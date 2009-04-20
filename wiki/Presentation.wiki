@@ -1,6 +1,6 @@
 = Numerical learning library =
 
-NLL is a multi-platform open source project entirely written in C++. Its goal it to propose generic and efficient algorithms for machine learning and more specifically machine vision. It is intended to be very easy to integrate and it is mainly composed of header files with no dependency on any library except the STL.
+NLL is a multi-platform open source project entirely written in C++. Its goal it to propose generic and efficient algorithms for machine learning and more specifically computer vision. It is intended to be very easy to integrate and it is mainly composed of header files with no dependency on any library except the STL.
 
 = Architecture =
 
