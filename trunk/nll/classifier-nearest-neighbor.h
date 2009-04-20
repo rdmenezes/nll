@@ -100,7 +100,7 @@ namespace algorithm
       {
          assert( _dat.size() );
          if ( !_dat.size() )
-             throw std::exception( "ClassifierNearestNeighbor: the database is empty, can't classify" );
+             throw std::runtime_error( "ClassifierNearestNeighbor: the database is empty, can't classify" );
 
          typename KdTree::NearestNeighborList list = _tree.findNearestNeighbor( p, _k );
 
@@ -125,7 +125,7 @@ namespace algorithm
          ensure( parameters.size() == 1, "expected size: 1" );
          ensure( parameters[ 0 ] > 0, "bad argument" );
          _k = static_cast<ui32>( parameters[ 0 ] );
-         _dat = core::filterDatabase( dat, core::make_vector<ui32>( Base::Database::Sample::LEARNING ), static_cast<ui32>( typename Base::Database::Sample::LEARNING ) );
+         _dat = core::filterDatabase( dat, core::make_vector<ui32>( Base::Database::Sample::LEARNING ), static_cast<ui32>( Base::Database::Sample::LEARNING ) );
 
          if ( _adapter )
             delete _adapter;

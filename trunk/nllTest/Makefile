@@ -15,13 +15,12 @@ test-classifier-svm.o\
 test-feature-selection.o\
 test-genetic-algorithm.o\
 test-labelize.o\
-test-metric.o\
 test-morphology.o\
 test-optimizer-parameters.o\
 test-optimizer.o\
+test-pca.o\
 test-preprocessing.o\
 test-region-growing.o\
-test-pca.o\
 test.o
 
 %.o: %.cpp $(DEPS)
