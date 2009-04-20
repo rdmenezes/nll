@@ -13,10 +13,10 @@ NLL implements generic algorithms using template metaprogramming and a minimalis
 = Details =
 
 Here is an overview of some algorithms implemented in NLL:
-* classifiers (k-nearest neighbour, multi-layered neural networks, support vector machines, boosting, gaussian mixture model)
-* feature selection (best-first, wrapper using genetic algorithm, relief-f, pearson)
-* feature transformation (PCA)
-* optimizers (grid search, harmony search, genetic algorithms)
-* math library (matrix, vector, linear algebra, distributions)
-* image library (resampling, morphology, transformations, convolutions, region growing, labelling)
+  * classifiers (k-nearest neighbour, multi-layered neural networks, support vector machines, boosting, gaussian mixture model)
+  * feature selection (best-first, wrapper using genetic algorithm, relief-f, pearson)
+  * feature transformation (PCA)
+  * optimizers (grid search, harmony search, genetic algorithms)
+  * math library (matrix, vector, linear algebra, distributions)
+  * image library (resampling, morphology, transformations, convolutions, region growing, labelling)
 * clustering (k-means, LSDBC)
