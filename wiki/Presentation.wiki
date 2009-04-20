@@ -5,10 +5,10 @@ NLL is a multi-platform open source project entirely written in C++. Its goal it
 = Architecture =
 
 NLL implements generic algorithms using template metaprogramming and a minimalist interface. Several layers are used:
-* core: the very basic structures and operations
-* algorithm_impl: generic algorithms with very limited dependencies and interface
-* algorithm: algorithms taking advantage of the NLL framework
-* preprocessing: it is built around the concept of typelist and propose a pipeline to process the raw features to be given to a classifier.
+  * core: the very basic structures and operations
+  * algorithm_impl: generic algorithms with very limited dependencies and interface
+  * algorithm: algorithms taking advantage of the NLL framework
+  * preprocessing: it is built around the concept of typelist and propose a pipeline to process the raw features to be given to a classifier.
 
 = Details =
 
