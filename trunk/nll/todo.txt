@@ -1,0 +1,139 @@
+[ FUNCTIONALITIES ]
+- FFT
+   - convolution
+   - correlation
+- separable convolution filters
+- fast recursive convolution filter
+- interpolation :
+   [DONE] nearest neighbour
+   [DONE] linear
+   cubic spline
+- ImageMapper
+- TransformationMapper
+- [DONE] extract with mask
+- [DONE] SVD
+- eigen vectors
+- [DONE] label
+- [DONE] region growing
+- morphology
+   [DONE] binary
+   [DONE] greyscale
+- shrink/skeleton
+- contrast modifier
+- generic converters
+   [DONE] matrix
+   [DONE] image
+   [DONE] buffer
+- spatial transformation (used by transformation mapper)
+- find edge filter
+- histogram
+- segmentation
+	- watershed
+	   [ref=http://bigwww.epfl.ch/demo/jwatershed/index.html]
+	   P-Watershed, for video : Predictive watershed: a fast watershed algorithm for video segmentation
+	   preprocessing: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.29.9575
+	- motion : http://www.macs.hw.ac.uk/bmvc2006/papers/357.pdf
+
+- distance transform
+- absolute difference between 2 images
+- [DONE] PSNR
+- binary operators
+   [DONE] matrix
+   [DONE] static vector
+   [DONE] Buffer1D
+- signal processing
+- fuzzy logic/fuzzy inference
+- curve fitting, linear square
+- distribution generator
+   [DONE] gaussian
+   multinormal
+   ...
+- distribution testing
+- optimizer
+	[DONE] GA
+	[DONE] grid search (full enumeration with granularity)
+	simulated anealing
+	[DONE] harmony search & variants
+	ant colony
+	particle swarm optimization
+- clustering
+	[DONE] LSDBC
+	[DONE] k-means
+   ...
+- Z score (dataset normalization)
+- model selection
+- bspline
+- matrix operation for rigid transformation
+- machine learning
+   [DONE] GMM
+   [DONE] MLP
+   [DONE] SVM
+   [DONE] kNN
+   [DONE] Boosting
+   Decision Stumps
+   HMM
+   CART
+   Random Forest
+   AdaBoost
+   Restricted Boltzmann machines
+      - Non linear Feature transformation/selection
+      - Classification
+      - Semantic hashing
+      - Sampling
+- feature transformation
+   [DONE] PCA (simple)
+   PCA robust, ftp://ftp.win.ua.ac.be/pub/preprints/05/Robpca05.pdf
+   LDA
+   Clustering creation feature
+- feature selection
+   - fisher discriminant ratio FDR
+   - random forest
+   - adaboost
+   - http://machine-learning.martinsewell.com/feature-selection/GuyonElisseeff2003.pdf
+   - http://clopinet.com/fextract-book/IntroFS.pdf
+   - wrappers
+    [DONE] GA
+    [DONE] Greedy Feature Flip Algorithm (G-flip)
+    Backward selection
+    Iterative Search Margin Based Algorithm (Simba)
+   - filter methods
+    [DONE] Pearson correlation coefficient (only 1 feature)(binary) / Fisher coefficient (multiclass/Naive Bayes ranking index) (http://www.vias.org/tmdatanaleng/cc_corr_coeff.html use this to avoid the mean computation)
+    [DONE] Multivariate methods (several features considered) : RELIEF
+- [DONE] kdtree
+- Registration
+	Rigid
+	Optical flow
+- kernel image matcher
+- graph
+   BGL adaptors?
+   directed/undirected
+   connected component
+- state machine
+- interpolation of 2 images
+- incremental learning: http://arxiv.org/ftp/arxiv/papers/0709/0709.3965.pdf
+- lapack bindings with the compile time flag NLL_USE_LAPACK
+- database with missing attributes and estimation
+
+[ TODO ]
+- fix logger bug (static->created several times?)
+- fix interpolation bug : 0.5 pixel off
+- check LEARNING/TESTING/VALIDATION... (preprocessing-*)
+- recode adaboost using weights instead of sampling...
+
+[ CURRENT TASK : CIVODLU ]
+- Restricted Boltzmann machine investigation
+- rethink about the extensibility of the preprocessing select
+
+
+[ REFACTORING ]
+- add stl iterators to:
+	Buffer
+	Matrix
+	Image
+	Database
+	StaticVector
+	
+	
+[ INFO ]
+- digit database: http://www.vision.ime.usp.br/~daniel/sibgrapi2005/
+- preprocessing + classifier + result + database : http://yann.lecun.com/exdb/mnist/
