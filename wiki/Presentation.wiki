@@ -8,7 +8,7 @@ NLL implements generic algorithms using template metaprogramming and a minimalis
   * core: the very basic structures and operations
   * algorithm_impl: generic algorithms with very limited dependencies and interface
   * algorithm: algorithms taking advantage of the NLL framework
-  * preprocessing: it is built around the concept of typelist and propose a unified pipeline to process and optimize the raw features to be given to a classifier.
+  * preprocessing: it is built around the concept of typelist and propose a unified pipeline to process and optimize features. The processing of the data must comply with a specific set of transformations to eventually feed a classifier's inputs.
 
 = Details =
 
