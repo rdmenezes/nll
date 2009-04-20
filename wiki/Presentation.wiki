@@ -1,0 +1,22 @@
+= Numerical learning library =
+
+NLL is a multi-platform open source project entirely written in C++. Its goal it to propose generic and efficient algorithms for machine learning and more specifically machine vision. It is intended to be very easy to integrate and it is mainly composed of header files with no dependency on any library except the STL.
+
+= Architecture =
+
+NLL implements generic algorithms using template metaprogramming and a minimalist interface. Several layers are used:
+* core: the very basic structures and operations
+* algorithm_impl: generic algorithms with very limited dependencies and interface
+* algorithm: algorithms taking advantage of the NLL framework
+* preprocessing: it is built around the concept of typelist and propose a pipeline to process the raw features to be given to a classifier.
+
+= Details =
+
+Here is an overview of some algorithms implemented in NLL:
+* classifiers (k-nearest neighbour, multi-layered neural networks, support vector machines, boosting, gaussian mixture model)
+* feature selection (best-first, wrapper using genetic algorithm, relief-f, pearson)
+* feature transformation (PCA)
+* optimizers (grid search, harmony search, genetic algorithms)
+* math library (matrix, vector, linear algebra, distributions)
+* image library (resampling, morphology, transformations, convolutions, region growing, labelling)
+* clustering (k-means, LSDBC)
