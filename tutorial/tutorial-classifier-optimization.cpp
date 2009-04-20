@@ -10,4 +10,3 @@ namespace tutorial
    TESTER_TEST_SUITE_END();
 }
 }
-

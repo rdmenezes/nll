@@ -9,7 +9,7 @@ test: nll tester
 	cd nllTest && make all && ../$(LIBPATH)/test$(EXECPOSTFIX)
 
 tutorial: nll tester
-	cd demo-nll-ocr && make
+	cd tutorial && make
 	
 tester:
 	cd tester && make all
@@ -21,7 +21,7 @@ clean:
 	cd nll && make clean
 	cd tester && make clean
 	cd nllTest && make clean
-	cd demo-nll-ocr && make clean
+	cd tutorial && make clean
 
 distclean: clean
 	rm -rf configure.in
@@ -31,14 +31,14 @@ doc:
 	
 tarball: clean doc all
 	mkdir tarball
-	cd tarball && mkdir nll && cd nll && mkdir nll nllTest tester doc include demo-nll-ocr
-	cd tarball/nll/demo-nll-ocr && mkdir data && cd data && mkdir proben1 && cd proben1 && mkdir cancer
+	cd tarball && mkdir nll && cd nll && mkdir nll nllTest tester doc include tutorial
+	cd tarball/nll/tutorial && mkdir data && cd data && mkdir proben1 && cd proben1 && mkdir cancer
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
 	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect
 	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln tarball/nll
 	cp nll/*.h tarball/nll/include
-	cp demo-nll-ocr/Makefile demo-nll-ocr/*.h demo-nll-ocr/*.cpp demo-nll-ocr/demo-nll-ocr.vcproj tarball/nll/demo-nll-ocr
-	cp demo-nll-ocr/data/proben1/cancer/*.dt tarball/nll/demo-nll-ocr/data/proben1/cancer
+	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcproj tarball/nll/tutorial
+	cp tutorial/data/proben1/cancer/*.dt tarball/nll/tutorial/data/proben1/cancer
 	cp nll/*.h nll/*.cpp nll/nll.vcproj nll/nll.rc nll/Makefile nll/nll.dox nll/todo.txt tarball/nll/nll
 	cp docs/html/* tarball/nll/doc
 	cp nllTest/*.h nllTest/*.cpp nllTest/nllTest.vcproj nllTest/Makefile tarball/nll/nllTest

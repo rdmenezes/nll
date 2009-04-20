@@ -57,6 +57,7 @@
  */
 
 # include <fstream>
+# include <stdexcept>
 
 /**
  @defgroup core

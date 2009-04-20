@@ -7,7 +7,7 @@ LIBS=
 OBJ=register.o
 
 %.o: %.cpp $(DEPS)
-	$(CC) $(FLAGS) -c -o $@ $<
+	$(CC) $(FLAGS) -DNO_MULTITHREADED_UNIT_TESTS -c -o $@ $<
 
 all: $(OBJ)
 	$(CC) $(OBJ) -shared -o $(LIBNAME) $(LIBS)

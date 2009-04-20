@@ -8,8 +8,12 @@ INCL=-I..
 OBJ=database-cancer.o\
 main.o\
 test-breast-cancer.o\
+test-classifier-knn.o\
+test-classifier-nn.o\
 tutorial-classifier-optimization.o\
+tutorial-feature-pca.o\
 tutorial-feature-selection.o\
+tutorial-partition-database.o\
 tutorial-pipeline.o
 
 %.o: %.cpp $(DEPS)

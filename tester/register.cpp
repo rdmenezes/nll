@@ -1,7 +1,12 @@
 #include "stdafx.h"
 #include "register.h"
 #include <iostream>
+
+// can be compiled without openmp
+#ifndef NO_MULTITHREADED_UNIT_TESTS
 #include <omp.h>
+#endif
+
 #include <assert.h>
 
 
