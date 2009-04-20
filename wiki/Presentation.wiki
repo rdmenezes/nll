@@ -19,4 +19,5 @@ Here is an overview of some algorithms implemented in NLL:
   * optimizers (grid search, harmony search, genetic algorithms)
   * math library (matrix, vector, linear algebra, distributions)
   * image library (resampling, morphology, transformations, convolutions, region growing, labelling)
-* clustering (k-means, LSDBC)
+  * clustering (k-means, LSDBC)
+  * kd-trees, gabor filters... and much more soon!
