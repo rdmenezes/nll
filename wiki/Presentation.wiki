@@ -34,7 +34,7 @@ void test()
    typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
    typedef nll::algorithm::Classifier<Input>                            Classifier;
 
-   // find the correct benchmark
+   // find the cancer1.dt benchmark
    const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "cancer1.dt" );
    ensure( benchmark, "can't find benchmark" );
    Classifier::Database dat = benchmark->database;
@@ -44,9 +44,9 @@ void test()
    ClassifierImpl classifier;
 
    // optimize the parameters of the classifier on the original dataset
-   // we will use an harmony search algorithm.
-   // for each point, the classifier is evaluated: a 10-fold cross validation is
-   // runned on the learning database
+   // we will use a harmony search algorithm.
+   // For each point, the classifier is evaluated: a 10-fold cross validation is
+   // run on the learning database
    Classifier::OptimizerClientClassifier classifierOptimizer = classifier.createOptimizer( dat );
 
    // configure the optimizer options
