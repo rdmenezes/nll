@@ -49,10 +49,13 @@ void test()
    // runned on the learning database
    Classifier::OptimizerClientClassifier classifierOptimizer = classifier.createOptimizer( dat );
 
+   // configure the optimizer options
    nll::algorithm::StopConditionIteration stop( 10 );
    nll::algorithm::MetricEuclidian<nll::algorithm::OptimizerHarmonySearchMemory::TMetric::value_type> metric;
-
    nll::algorithm::OptimizerHarmonySearchMemory parametersOptimizer( 5, 0.8, 0.1, 1, &stop, 0.01, &metric );
+
+   // run the optimizer on the default constrained classifier parameters
+   // if the default values don't fit, other constraint parameters should be given
    std::vector<double> params = parametersOptimizer.optimize( classifierOptimizer, ClassifierImpl::buildParameters() );
    
    // learn the TEST and VALIDATION database with the optimized parameters, and test the classifier
