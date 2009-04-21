@@ -5,13 +5,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nll", "nll\nll.vcproj", "{8
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nllTest", "nllTest\nllTest.vcproj", "{6B95ACCD-74E5-480D-A26B-FF01CFB16FDF}"
 	ProjectSection(ProjectDependencies) = postProject
-		{859D4214-0EA1-499F-B20D-2DA6C0DC5AFE} = {859D4214-0EA1-499F-B20D-2DA6C0DC5AFE}
 		{7F2576E1-EA39-410D-AB31-7D50DD9029AA} = {7F2576E1-EA39-410D-AB31-7D50DD9029AA}
+		{859D4214-0EA1-499F-B20D-2DA6C0DC5AFE} = {859D4214-0EA1-499F-B20D-2DA6C0DC5AFE}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tester", "tester\tester.vcproj", "{7F2576E1-EA39-410D-AB31-7D50DD9029AA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tutorial", "tutorial\tutorial.vcproj", "{F1885B35-439E-4129-9EB5-5704660C406A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7F2576E1-EA39-410D-AB31-7D50DD9029AA} = {7F2576E1-EA39-410D-AB31-7D50DD9029AA}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
