@@ -245,7 +245,7 @@ namespace algorithm
 		   {
 			   for (ui32 n = p->lopt; n <= p->hipt; ++n)
 			   {
-				   f32 dist = _distance((*_points)[_perm[n]], point );
+				   f32 dist = _distance.distance((*_points)[_perm[n]], point );
 				   if (_nearest.size() < k)
 				   {
 					   _nearest.insert(NearestNeighbor(_perm[n], dist));
