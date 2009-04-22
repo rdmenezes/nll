@@ -15,12 +15,19 @@ namespace core
       /**
        @brief get an instance
        */
-      static IdMaker& instance(){ static IdMaker id; return id; }
+      static IdMaker& instance()
+      {
+         static IdMaker id;
+
+         return id;
+      }
 
       /**
        @brief generate a uniq ID
        */
-      ui32 generateId(){ return ++_id; }
+      ui32 generateId(){
+         return ++_id;
+      }
 
    private:
       IdMaker() : _id( 0 ){}

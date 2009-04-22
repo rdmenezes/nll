@@ -40,7 +40,7 @@ namespace tutorial
          nll::algorithm::OptimizerHarmonySearchMemory parametersOptimizer( 5, 0.8, 0.1, 1, &stop, 0.01, &metric );
          std::vector<double> params = parametersOptimizer.optimize( classifierOptimizer, ClassifierImpl::buildParameters() );
          
-         // learn the TEST and VALIDATION database with the optimized parameters, and test the classifier
+         // learn the LEARNING and VALIDATION database with the optimized parameters, and test the classifier
          // on the TESTING database
          classifier.learnTrainingDatabase( dat, nll::core::make_buffer1D( params ) );
          Classifier::Result rr = classifier.test( dat );

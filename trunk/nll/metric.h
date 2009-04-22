@@ -12,6 +12,10 @@ namespace algorithm
 
            <code>Point</code> needs to provide size(), operator[]
            Derived classes must be copiable
+
+    @note Metric should be used directly but instead the actual implementation. It will be replaced by
+          concepts in C++ 0x when available. If actual implementation is used, 'virtual' method will be
+          optimized by VS2005.
     */
    template <class Point>
    class Metric
@@ -27,11 +31,11 @@ namespace algorithm
       /**
        @return a unique name for this metric.
        */
-      virtual std::string name() const = 0;
+   //   virtual std::string name() const = 0;
 
-   public:
-      f64 operator()( const Point& p1, const Point& p2 ) const { return distance( p1, p2 ); }
-      virtual ~Metric(){}
+   //public:
+   //   f64 operator()( const Point& p1, const Point& p2 ) const { return distance( p1, p2 ); }
+   //   virtual ~Metric(){}
    };
 
    /**
@@ -47,7 +51,7 @@ namespace algorithm
          return core::generic_norm2<Point, f64>( p1, p2, static_cast<ui32>( p1.size() ) );
       }
 
-      virtual std::string name() const { return typeid( this ).name(); }
+  //    virtual std::string name() const { return typeid( this ).name(); }
    };
 
    /**
@@ -65,7 +69,7 @@ namespace algorithm
             dist += core::absolute( p1[ n ] - p2[ n ] );
          return dist;
       }
-      virtual std::string name() const { return typeid( this ).name(); }
+  //    virtual std::string name() const { return typeid( this ).name(); }
    };
 
 }
