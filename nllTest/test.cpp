@@ -1186,6 +1186,21 @@ public:
       TESTER_ASSERT( adapter[ 1 ][ 0 ] == 2 );
       TESTER_ASSERT( adapter[ 2 ][ 0 ] == 3 );
    }
+
+   class _Test
+   {
+   public:
+      int n;
+   };
+   typedef nll::core::Singleton<_Test> Test;
+
+   void testSingleton()
+   {
+      #pragma omp parallel num_threads(200)
+      {
+         Test::instance().n = 3;
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -1214,6 +1229,7 @@ TESTER_TEST(testInterpolator);
 TESTER_TEST(testPSNR);
 TESTER_TEST(testSVD);
 TESTER_TEST(testCovariance);
+TESTER_TEST(testSingleton);
 # ifndef DONT_RUN_SLOW_TEST
 TESTER_TEST(testGmm);
 # endif

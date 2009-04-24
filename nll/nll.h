@@ -18,6 +18,13 @@
 #define NLL_API
 #endif
 
+/// define this macro if NLL needs not to be thread safe. By default it is thread safe.
+// define NLL_NOT_MULTITHREADED
+
+#ifndef NLL_NOT_MULTITHREADED
+# include <omp.h>
+#endif
+
 /**
  @mainpage Numerical Learning Library
    The Numerical Learning Library intends to provide a wide range of machine learning
@@ -26,7 +33,7 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.07
+ @version 0.08
  @date 14th March 2009
  */
 
@@ -71,6 +78,7 @@
  - databases
  - math
  */
+# include "singleton.h"
 # include "types.h"
 # include "utility-pure.h"
 # include "static-assert.h"

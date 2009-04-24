@@ -1,17 +1,17 @@
 #ifndef NLL_LSDBC_H_
 # define NLL_LSDBC_H_
 
-# include <vector>
-# include <algorithm>
-# include "kd-tree.h"
-# include "types.h"
+# ifdef NLL_NOT_MULTITHREADED
 
-# define CLUSTER_UNCLASSIFIED	0
+#  include <vector>
+#  include <algorithm>
+#  include "kd-tree.h"
+#  include "types.h"
+
+#  define CLUSTER_UNCLASSIFIED	0
 
 //
-// utility class
-// FIXME : Very dirty class
-// Don't forget to set "set_points" and "set_index" at init/when change set
+// TODO: non thread safe class!!
 //
 
 namespace nll
@@ -201,5 +201,6 @@ namespace algorithm
    };
 }
 }
+# endif
 
 #endif
