@@ -106,7 +106,7 @@ OBJ=math.o multi-layered-perceptron.o nll.o optimizer-harmony-search-memory.o op
 	$(CC) $(FLAGS) -c -o $@ $<
 
 all: $(OBJ)
-	$(CC) -shared -o $(LIBNAME) $(OBJ) $(LIBS)
+	$(CC) -DNLL_NOT_MULTITHREADED -shared -o $(LIBNAME) $(OBJ) $(LIBS)
 	mv $(LIBNAME) ../$(LIBPATH)
 
 .PHONY: clean

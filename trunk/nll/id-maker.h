@@ -9,32 +9,27 @@ namespace core
     @ingroup core
     @brief Singleton generating uniq IDs
     */
-   class IdMaker
+   class _IdMaker
    {
    public:
       /**
-       @brief get an instance
-       */
-      static IdMaker& instance()
-      {
-         static IdMaker id;
-
-         return id;
-      }
-
-      /**
        @brief generate a uniq ID
        */
-      ui32 generateId(){
-         return ++_id;
+      ui32 generateId()
+      {
+         #pragma omp atomic
+         ++_id;
+
+         return _id;
       }
 
-   private:
-      IdMaker() : _id( 0 ){}
+      _IdMaker() : _id( 0 ){}
 
    private:
       ui32     _id;
    };
+
+   typedef Singleton<_IdMaker>   IdMaker;
 }
 }
 

@@ -61,31 +61,15 @@ namespace core
     @ingroup core
     @brief Singleton that holds all logger instances.
     */
-   class NLL_API LoggerHandler
+   class _LoggerHandler
    {
       typedef std::vector<LoggerBase*> Container;
 
    public:
       /**
-       @brief retireve the instance
-       */
-      static LoggerHandler& instance()
-      {
-         static LoggerHandler hdl;
-         return hdl;
-      }
-
-   private:
-      /**
-       @brief ensure the singleton's nature
-       */
-      LoggerHandler(){}
-
-   public:
-      /**
        @brief destroy all the loggers
        */
-      ~LoggerHandler()
+      ~_LoggerHandler()
       {
          for ( ui32 n = 0; n < _loggers.size(); ++n )
             destroyLogger( n );
@@ -96,9 +80,12 @@ namespace core
        */
       void destroyLogger( const ui32 id )
       {
-         assert( id < _loggers.size() );
-         delete _loggers[ id ];
-         _loggers[ id ] = 0;
+         #pragma omp critical
+         {
+            assert( id < _loggers.size() );
+            delete _loggers[ id ];
+            _loggers[ id ] = 0;
+         }
       }
 
       /**
@@ -117,14 +104,22 @@ namespace core
        */
       ui32 createFileLogger( const std::string& file )
       {
-         LoggerBase* l = new LoggerFile( file );
-         _loggers.push_back( l );
-         return static_cast<ui32> ( _loggers.size() - 1 );
+         ui32 id = 0;
+         #pragma omp critical
+         {
+            LoggerBase* l = new LoggerFile( file );
+            _loggers.push_back( l );
+            id = static_cast<ui32>( _loggers.size() - 1 );
+         }
+         return id;
       }
 
    private:
       Container   _loggers;
    };
+
+   typedef Singleton<_LoggerHandler> LoggerHandler;
+
 
    /**
     @ingroup core
@@ -166,13 +161,19 @@ namespace core
        */
       static LoggerBase& getLogger()
       {
-         static ui32 coreIdLogger = LoggerHandler::instance().createFileLogger("nll.log");
+         static ui32 coreIdLogger = std::numeric_limits<ui32>::max();
+         #pragma omp critical
+         {
+            if ( coreIdLogger == std::numeric_limits<ui32>::max() )
+               coreIdLogger = LoggerHandler::instance().createFileLogger("nll.log");
+         }
          return LoggerHandler::instance().getLogger( coreIdLogger );
       }
    private:
       // can't instanciate this class
       LoggerNll();
    };
+
 }
 }
 
