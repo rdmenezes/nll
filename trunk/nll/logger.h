@@ -164,7 +164,7 @@ namespace core
          static ui32 coreIdLogger = std::numeric_limits<ui32>::max();
          if ( coreIdLogger == std::numeric_limits<ui32>::max() )
          {
-            #pragma omp critical
+            //#pragma omp critical
             {
                if ( coreIdLogger == std::numeric_limits<ui32>::max() )
                   coreIdLogger = LoggerHandler::instance().createFileLogger("nll.log");

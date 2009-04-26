@@ -13,7 +13,7 @@ namespace core
    {
    public:
       /**
-       @brief generate a uniq ID
+       @brief generate a unique ID
        */
       ui32 generateId()
       {
