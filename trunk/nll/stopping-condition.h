@@ -21,6 +21,9 @@ namespace algorithm
        @brief reitinialize the stop condition if necessary
        */
       virtual void reinit(){}
+
+      virtual ~StopCondition()
+      {}
    };
 
    /**

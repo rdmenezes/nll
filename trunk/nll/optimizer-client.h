@@ -29,6 +29,9 @@ namespace algorithm
        @todo deprecate...
        */
       double operator()( const nll::core::Buffer1D<nll::f64>& parameters ) const { return evaluate( parameters ); }
+
+      virtual ~OptimizerClient()
+      {}
    };
 }
 }

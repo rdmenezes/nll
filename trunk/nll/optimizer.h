@@ -21,6 +21,9 @@ namespace algorithm
               the search space, making the optimizer successful.
        */
       virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters ) = 0;
+
+      virtual ~Optimizer()
+      {}
    };
 }
 }
