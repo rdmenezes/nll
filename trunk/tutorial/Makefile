@@ -17,7 +17,7 @@ tutorial-partition-database.o\
 tutorial-pipeline.o
 
 %.o: %.cpp $(DEPS)
-	$(CC) $(FLAGS) $(INCL) -c -o $@ $<
+	$(CC) -DNLL_NOT_MULTITHREADED $(FLAGS) $(INCL) -c -o $@ $<
 
 all: $(OBJ)
 	$(CC) $(OBJ) -o $(EXECUTABLE) -L../$(LIBPATH) $(LIBS)

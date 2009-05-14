@@ -1,6 +1,8 @@
 #ifndef NLL_MATH_SAMPLING_H_
 # define NLL_MATH_SAMPLING_H_
 
+# include <algorithm>
+
 namespace nll
 {
 namespace core

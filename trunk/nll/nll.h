@@ -61,6 +61,7 @@
    - Allocator
          * allocate
          * deallocate
+   - matrix
  */
 
 # include <fstream>
