@@ -103,10 +103,10 @@ utility.h
 OBJ=math.o multi-layered-perceptron.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
 
 %.o: %.cpp $(DEPS)
-	$(CC) -DNLL_NOT_MULTITHREADED $(FLAGS) -c -o $@ $<
+	$(CC) $(FLAGS) -c -o $@ $<
 
 all: $(OBJ)
-	$(CC) -DNLL_NOT_MULTITHREADED -shared -o $(LIBNAME) $(OBJ) $(LIBS)
+	$(CC) -shared -o $(LIBNAME) $(OBJ) $(LIBS)
 	mv $(LIBNAME) ../$(LIBPATH)
 
 .PHONY: clean
