@@ -21,7 +21,7 @@ namespace algorithm
 
    private:
       typedef core::DatabaseInputAdapterRead<typename Base::Database> Adapter;
-      typedef KdTree<typename Adapter::Point, Metric, 5, Adapter> KdTree;
+      typedef KdTree<typename Adapter::Point, Metric, 5, Adapter> NnKdTree;
 
    public:
       // don't override these
@@ -102,11 +102,11 @@ namespace algorithm
          if ( !_dat.size() )
              throw std::runtime_error( "ClassifierNearestNeighbor: the database is empty, can't classify" );
 
-         typename KdTree::NearestNeighborList list = _tree.findNearestNeighbor( p, _k );
+         typename NnKdTree::NearestNeighborList list = _tree.findNearestNeighbor( p, _k );
 
          typedef std::map<ui32, ui32>  Count;
          Count count;
-         for ( typename KdTree::NearestNeighborList::const_iterator it = list.begin(); it != list.end(); ++it )
+         for ( typename NnKdTree::NearestNeighborList::const_iterator it = list.begin(); it != list.end(); ++it )
             ++count[ _dat[ it->id ].output ];
 
          ui32 index = 0;
@@ -144,7 +144,7 @@ namespace algorithm
       typename Base::Database  _dat;
       const Metric*            _metric;
 	   ui32                     _k;
-      KdTree                   _tree;
+      NnKdTree                 _tree;
       Adapter*                 _adapter;
    };
 }
