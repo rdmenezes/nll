@@ -826,7 +826,7 @@ public:
       std::vector<nll::ui8> t2;
       for (nll::ui32 n = 0; n < nll::core::getStaticBufferSize(t1); ++n)
          t2.push_back((nll::ui8)t1[n]);
-      nll::core::Buffer1D<nll::f32> v1 = nll::core::convert<nll::ui32[5], nll::core::Buffer1D<nll::f32> >(t1, nll::core::getStaticBufferSize(t1));
+      nll::core::Buffer1D<nll::f32> v1 = nll::core::convert<nll::ui32*, nll::core::Buffer1D<nll::f32> >(t1, nll::core::getStaticBufferSize(t1));
       nll::core::Buffer1D<nll::f32> v2;
       nll::core::Buffer1D<nll::ui8> v3;
       nll::core::convert(t2, v2, (nll::ui32)t2.size());

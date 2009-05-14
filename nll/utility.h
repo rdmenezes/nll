@@ -4,6 +4,7 @@
 # include <vector>
 # include <limits>
 # include <sstream>
+# include <cstring>
 # include "type-traits.h"
 
 #pragma warning( push )

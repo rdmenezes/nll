@@ -24,9 +24,11 @@ test-region-growing.o\
 test.o
 
 %.o: %.cpp $(DEPS)
-	$(CC) -DNLL_NOT_MULTITHREADED $(FLAGS) $(INCL) -c -o $@ $<
+	$(CC) $(FLAGS) $(INCL) -c -o $@ $<
 
 all: $(OBJ)
+	echo "---linking----"
+	echo "LIBPATH=" $(LIBPATH)
 	$(CC) $(OBJ) -o $(EXECUTABLE) -L../$(LIBPATH) $(LIBS)
 	mv $(EXECUTABLE) ../$(LIBPATH)
 

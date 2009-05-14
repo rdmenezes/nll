@@ -66,6 +66,7 @@
 
 # include <fstream>
 # include <stdexcept>
+# include <cstdlib>
 
 /**
  @defgroup core

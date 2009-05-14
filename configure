@@ -36,7 +36,7 @@ OS_NAME=`uname -s`
 # specific platform: cygwin
 if [ "$OS_NAME" = "CYGWIN_NT-5.1" ]; then
   if [ "$MODE" = "release" ]; then
-    echo "FLAGS=-o3 -DNDEBUG" >> configure.in
+    echo "FLAGS=-o3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
   else
     echo "FLAGS=" >> configure.in
   fi
@@ -56,7 +56,7 @@ fi
 
 # default platform
 if [ "$MODE" = "release" ]; then
-  echo "FLAGS=-o3 -DNDEBUG" >> configure.in
+  echo "FLAGS=-o3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
 else
   echo "FLAGS=" >> configure.in
 fi
