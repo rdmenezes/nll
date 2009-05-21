@@ -43,8 +43,6 @@ A distance transform, also known as distance map or distance field, is a represe
          // the image will be correcly saturated, using only the [0-255] range
          nll::core::convert( dt, i );
 
-         dt.print( std::cout );
-
          // The image is extended to a RGB image and saved
          nll::core::extend( i, 3 );
          nll::core::writeBmp( i, NLL_DATABASE_PATH "data/out/test1.bmp" );
