@@ -11,7 +11,7 @@ A distance transform, also known as distance map or distance field, is a represe
 
 
 {{{
-/**
+   /**
     @ingroup tutorial
     @brief Load, Manipulate an apply transformation to an image 
 
