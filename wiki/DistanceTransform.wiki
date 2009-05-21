@@ -9,11 +9,6 @@ In this tutorial, the very basic operations on images will be covered:
 
 A distance transform, also known as distance map or distance field, is a representation of an image. The map supplies each pixel of the image with the distance to the nearest obstacle pixel for a binary image.
 
-As an example the input:
-[http://www.imgfsr.com/sitebuilder/images/fig4.5a-256x256.png]
-
-The distance trans form of this image is:
-[http://www.imgfsr.com/sitebuilder/images/fig4.5c-256x256.png]
 
 {{{
 /**
