@@ -16,9 +16,11 @@ namespace core
               See "Distance Transforms of Sampled Functions" from Pedro F. Felzenszwalb Daniel P. Huttenlocher for
               reference paper.
 
-       We are using 'abstract' buffer so that we can give customized aceessor to a buffer allowing all the
+       We are using 'abstract' buffer so that we can give customized accessor to a buffer allowing all the
        computations to be 'in place' (in several dimension we don't have to copy each result in the final volume)
        saving a lot of time.
+
+       Generically written since it is potentially usable in a lot of problems (i.e. HMM)
 
        @param buf the input abstract buffer. Needs to provide double operator[]( unsigned ) const
        @param size the size of the input and output buffers.
@@ -54,7 +56,6 @@ namespace core
                    / ( 2 * q - 2 * v[ k ] );
             }
 
-
             ++k;
             v[ k ] = q;
             z[ k ] = s;
@@ -79,12 +80,12 @@ namespace core
             {}
          T operator[]( ui32 n ) const
          {
-            return _i( _col, n, 0 );
+            return _i( n, _col, 0 );
          }
 
          T& operator[]( ui32 n )
          {
-            return _i( _col, n, 0 );
+            return _i( n, _col, 0 );
          }
       private:
          ImageWrapperRow& operator=( const ImageWrapperRow& );
@@ -103,11 +104,11 @@ namespace core
             {}
          T operator[]( ui32 n ) const
          {
-            return _i( n, _row, 0 );
+            return _i( _row, n, 0 );
          }
          T& operator[]( ui32 n )
          {
-            return _i( n, _row, 0 );
+            return _i( _row, n, 0 );
          }
       private:
          ImageWrapperCol& operator=( const ImageWrapperCol& );
