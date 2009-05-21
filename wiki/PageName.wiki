@@ -1,5 +1,0 @@
-= Tutorial =
-
-Here is a list of available tutorials:
-
-* image & distance transform
