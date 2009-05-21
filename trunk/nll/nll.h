@@ -18,7 +18,7 @@
 #define NLL_API
 #endif
 
-/// define this macro if NLL needs not to be thread safe. By default it is thread safe.
+/// define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
 // define NLL_NOT_MULTITHREADED
 
 #ifndef NLL_NOT_MULTITHREADED
@@ -122,6 +122,7 @@
 # include "image-snr.h"
 # include "image-mask.h"
 # include "image-morphology.h"
+# include "image-distance-transform.h"
 # include "database.h"
 # include "database-manipulation.h"
 # include "database-input-adapter.h"

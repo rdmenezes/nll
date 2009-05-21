@@ -276,6 +276,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\image-distance-transform.h"
+				>
+			</File>
+			<File
 				RelativePath=".\image-interpolator.h"
 				>
 			</File>

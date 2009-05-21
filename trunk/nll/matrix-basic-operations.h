@@ -84,6 +84,25 @@ namespace core
    }
 
    /**
+    @brief Multiplies matrix by vector. Vector must define <code>size()</code> and <code>operator[]( unsigned )</code>
+    */
+   template <class T1, class Mapper1, class Mapper2>
+   Matrix<T1, Mapper1> mul( const Matrix<T1, Mapper1>& op1, const Buffer1D<T1, Mapper2>& op2 )
+   {
+      assert( op1.sizex() == op2.size() );
+      Matrix<T1, Mapper1> m( op1.sizey(), 1 );
+
+	   for ( ui32 ny = 0; ny < op1.sizey(); ++ny )
+	   {
+		   T1 val = 0;
+		   for ( ui32 n = 0; n < op1.sizex(); ++n )
+			   val += op1( ny, n ) * op2[ n ];
+		   m( ny, 0 ) = val;
+	   }
+	   return m;   
+   }
+
+   /**
     @ingroup core
     @brief Define operator on matrix.
     */
