@@ -27,8 +27,6 @@ test.o
 	$(CC) $(FLAGS) $(INCL) -c -o $@ $<
 
 all: $(OBJ)
-	echo "---linking----"
-	echo "LIBPATH=" $(LIBPATH)
 	$(CC) $(OBJ) -o $(EXECUTABLE) -L../$(LIBPATH) $(LIBS)
 	mv $(EXECUTABLE) ../$(LIBPATH)
 

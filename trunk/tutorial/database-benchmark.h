@@ -3,7 +3,7 @@
 
 # include <nll/nll.h>
 
-# define NLL_DATABASE_PATH     "../../demo-nll-ocr/"
+# define NLL_DATABASE_PATH     "../../tutorial/"
    
 namespace nll
 {
