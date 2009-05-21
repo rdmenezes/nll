@@ -3,7 +3,7 @@
 = Tutorial 1: Image and Distance transform=
 
 In this tutorial, the very basic operations on images will be covered:
-  * loading/saving
+  * loading/saving an image
   * conversion float/char and greyscale/RGB
   * apply a distance transform
 
