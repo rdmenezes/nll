@@ -2,6 +2,13 @@
 
 = Tutorial 1: Image and Distance transform=
 
+In this tutorial, the very basic operations on images will be covered:
+  * loading/saving
+  * conversion float/char and greyscale/RGB
+  * apply a distance transform
+
+A distance transform, also known as distance map or distance field, is a representation of an image. The map supplies each pixel of the image with the distance to the nearest obstacle pixel for a binary image.
+
 {{{
 /**
     @ingroup tutorial
