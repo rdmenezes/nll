@@ -1,10 +1,9 @@
 = Turotials =
 
 Here is a list of tutorials:
-
-* [DistanceTransform]
-* [ClassifierNeuralNetwork]
-* [FeatureTransformationPCA]
-* [ClassifierOptimization]
-* [DatabasePartitioning]
-* [Pipeline]
+  * [DistanceTransform]
+  * [ClassifierNeuralNetwork]
+  * [FeatureTransformationPCA]
+  * [ClassifierOptimization]
+  * [DatabasePartitioning]
+  * [Pipeline]
