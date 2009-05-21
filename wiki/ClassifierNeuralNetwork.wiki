@@ -1,13 +1,38 @@
-#summary One-sentence summary of this page.
+#summary Example of a Neural network classifier
 
-= Introduction =
+= Neural network classifier =
 
-Add your content here.
+{{{
+void test()
+{
+   srand( 1 );
 
+   // find the correct benchmark
+   const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "cancer1.dt" );
+   ensure( benchmark, "can't find benchmark" );
+   Classifier::Database dat = benchmark->database;
 
-= Details =
+   // use a multi layered perceptron as a classifier
+   typedef algorithm::ClassifierMlp<Input> ClassifierImpl;
+   ClassifierImpl classifier;
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+   // optimize the parameters of the classifier on the original dataset
+   // we will use an harmony search algorithm.
+   // for each point, the classifier is evaluated: a 10-fold cross validation is
+   // runned on the learning database
+   Classifier::OptimizerClientClassifier classifierOptimizer = classifier.createOptimizer( dat );
+
+   nll::algorithm::StopConditionIteration stop( 10 );
+   nll::algorithm::MetricEuclidian<nll::algorithm::OptimizerHarmonySearchMemory::TMetric::value_type> metric;
+
+   nll::algorithm::OptimizerHarmonySearchMemory parametersOptimizer( 5, 0.8, 0.1, 1, &stop, 0.01, &metric );
+   std::vector<double> params = parametersOptimizer.optimize( classifierOptimizer, ClassifierImpl::buildParameters() );
+   
+   // learn the LEARNING and VALIDATION database with the optimized parameters, and test the classifier
+   // on the TESTING database
+   classifier.learnTrainingDatabase( dat, nll::core::make_buffer1D( params ) );
+   Classifier::Result rr = classifier.test( dat );
+
+   TESTER_ASSERT( rr.testingError < 0.025 );
+}
+}}}
