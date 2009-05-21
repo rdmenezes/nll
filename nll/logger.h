@@ -80,7 +80,9 @@ namespace core
        */
       void destroyLogger( const ui32 id )
       {
+# ifndef NLL_NOT_MULTITHREADED
          #pragma omp critical
+# endif
          {
             assert( id < _loggers.size() );
             delete _loggers[ id ];
@@ -105,7 +107,9 @@ namespace core
       ui32 createFileLogger( const std::string& file )
       {
          ui32 id = 0;
+# ifndef NLL_NOT_MULTITHREADED
          #pragma omp critical
+# endif
          {
             LoggerBase* l = new LoggerFile( file );
             _loggers.push_back( l );

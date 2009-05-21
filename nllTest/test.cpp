@@ -232,6 +232,19 @@ public:
       TESTER_ASSERT( d2(0, 1) == 'b' );
       TESTER_ASSERT( d2(0, 2) == 'g' );
       TESTER_ASSERT( d2(0, 3) == 'l' );
+
+      // test mul by a vector
+      double bufm[] =
+      {
+         1, 2,
+         3, 4
+      };
+      nll::core::Matrix<double, nll::core::IndexMapperRowMajorFlat2D> m_mul( nll::core::Buffer1D<double>( bufm, 4, false ),
+                                                                            2, 2 );
+      nll::core::Buffer1D<double> buf = nll::core::make_buffer1D<double>( 5, 6 );
+      nll::core::Matrix<double, nll::core::IndexMapperRowMajorFlat2D> res = nll::core::mul( m_mul, buf );
+      TESTER_ASSERT( nll::core::equal<double>( res( 0, 0 ), ( 1 * 5 + 2 * 6 ) ) );
+      TESTER_ASSERT( nll::core::equal<double>( res( 1, 0 ), ( 3 * 5 + 4 * 6 ) ) );
    }
 
    void testDatabase()
@@ -1201,6 +1214,33 @@ public:
          Test::instance().n = 3;
       }
    }
+
+   void testDistanceTransform()
+   {
+      // compute the min distance
+      nll::core::Image<int> i( 10, 10, 1 );
+      for ( unsigned n = 0; n < i.size(); ++n )
+         i[ n ] = 10000;
+
+      i( 9, 0, 0 ) = 0;
+      i( 5, 0, 0 ) = 0;
+      i( 0, 0, 0 ) = 0;
+      nll::core::Image<double> dt = nll::core::distanceTransform( i );
+      dt.print( std::cout );
+      TESTER_ASSERT( dt( 1, 0, 0 ) == 1 );
+      TESTER_ASSERT( dt( 0, 3, 0 ) == 9 );
+      TESTER_ASSERT( dt( 0, 1, 0 ) == 1 );
+      TESTER_ASSERT( dt( 8, 0, 0 ) == 1 );
+      TESTER_ASSERT( dt( 9, 1, 0 ) == 1 );
+      TESTER_ASSERT( dt( 5, 1, 0 ) == 1 );
+      TESTER_ASSERT( dt( 4, 0, 0 ) == 1 );
+      TESTER_ASSERT( dt( 6, 0, 0 ) == 1 );
+      TESTER_ASSERT( dt( 1, 1, 0 ) == 2 );
+      TESTER_ASSERT( dt( 8, 1, 0 ) == 2 );
+      TESTER_ASSERT( dt( 4, 1, 0 ) == 2 );
+      TESTER_ASSERT( dt( 6, 1, 0 ) == 2 );
+      TESTER_ASSERT( dt( 2, 0, 0 ) == 4 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -1230,6 +1270,7 @@ TESTER_TEST(testPSNR);
 TESTER_TEST(testSVD);
 TESTER_TEST(testCovariance);
 TESTER_TEST(testSingleton);
+TESTER_TEST(testDistanceTransform);
 # ifndef DONT_RUN_SLOW_TEST
 TESTER_TEST(testGmm);
 # endif

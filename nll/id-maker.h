@@ -17,9 +17,10 @@ namespace core
        */
       ui32 generateId()
       {
+# ifndef NLL_NOT_MULTITHREADED
          #pragma omp atomic
+# endif
          ++_id;
-
          return _id;
       }
 
