@@ -99,6 +99,7 @@
 # include "matrix.h"
 # include "math-correlation.h"
 # include "math-sampling.h"
+# include "math-quaternion.h"
 # include "matrix-basic-operations.h"
 # include "matrix-decomposition.h"
 # include "matrix-basic.h"
