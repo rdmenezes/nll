@@ -12,7 +12,6 @@
 - TransformationMapper
 - [DONE] extract with mask
 - [DONE] SVD
-- eigen vectors
 - [DONE] label
 - [DONE] region growing
 - morphology
@@ -34,7 +33,7 @@
 	   preprocessing: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.29.9575
 	- motion : http://www.macs.hw.ac.uk/bmvc2006/papers/357.pdf
 
-- distance transform
+- [DONE] distance transform
 - absolute difference between 2 images
 - [DONE] PSNR
 - binary operators

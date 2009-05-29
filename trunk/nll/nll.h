@@ -49,6 +49,7 @@
    - IndexMapper2D
    - IndexMapper2Dn
    - Interpolator2D
+   - Convolution
    - ClassificationSample
    - Metric : requires
          * copy constructor
