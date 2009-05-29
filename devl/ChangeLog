@@ -1,0 +1,29 @@
+v0.07
+-bug fixes & improved algorithm interfaces
+
+v0.06
+-bug fixes & doc fixes
+
+v0.05
+-debug & memory leaks & reengineering (optimizers, classifiers)
+-PCA algorithm
+-Adaboost algorithm
+-added tutorials
+
+v0.04
+-improved C++ conformance
+-support for g++
+-feature selection relieff algorithm
+-fixed a lot of bugs
+-added a unit suite tester based on the cppunit syntax
+
+v0.03
+-features selection algorithms (Pearson correlation)
+-correlation
+-update of the PreprocessingRawSelect to preprare for futur extensions 
+
+v0.02
+-Introduction of the Preprocessing API
+
+v0.01
+-First release and default algorithms

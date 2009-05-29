@@ -1,0 +1,69 @@
+#!/bin/sh
+
+echo "Configure project..."
+
+#
+# only 'debug' or 'release' mode allowed
+#
+
+if [ $# -ge 2 ]; then
+  echo "Error: only 'debug' or 'release' mode suuported. By default, 'release' mode"
+  exit 1
+fi
+
+#
+# select debug or release mode, by default release
+#
+if [ $# -eq 1 ]; then
+  if [ "$1" = "release" ]; then
+    MODE=release
+  else
+    if [ "$1" = "debug" ]; then
+      MODE=debug
+    else
+      echo "unsupported config mode."
+      exit 1
+    fi
+  fi
+else
+  MODE=release
+fi
+
+echo "MODE=$MODE" > configure.in
+
+OS_NAME=`uname -s`
+
+# specific platform: cygwin
+if [ "$OS_NAME" = "CYGWIN_NT-5.1" ]; then
+  if [ "$MODE" = "release" ]; then
+    echo "FLAGS=-o3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
+  else
+    echo "FLAGS=" >> configure.in
+  fi
+  echo "CC=g++" >> configure.in
+  echo "LIBPREFIX=cyg" >> configure.in
+  echo "LIBPREFIXLINK=cyg" >> configure.in
+  echo "LIBPOSTFIX=.dll" >> configure.in
+  echo "EXECPOSTFIX=.exe" >> configure.in
+  echo "PLATFORM=$OS_NAME" >> configure.in
+  echo "LIBPATH=$MODE/$OS_NAME" >> configure.in
+  exit
+fi
+
+#
+# add others
+#
+
+# default platform
+if [ "$MODE" = "release" ]; then
+  echo "FLAGS=-o3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
+else
+  echo "FLAGS=" >> configure.in
+fi
+echo "CC=g++" >> configure.in
+echo "LIBPREFIX=lib" >> configure.in
+echo "LIBPREFIXLINK=" >> configure.in
+echo "LIBPOSTFIX=.so" >> configure.in
+echo "EXECPOSTFIX=" >> configure.in
+echo "PLATFORM=$OS_NAME" >> configure.in
+echo "LIBPATH=$MODE/$OS_NAME" >> configure.in
