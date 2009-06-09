@@ -32,7 +32,7 @@ doc:
 tarball: clean doc all
 	mkdir tarball
 	cd tarball && mkdir nll && cd nll && mkdir nll nllTest tester doc include tutorial
-	cd tarball/nll/tutorial && mkdir data && mkdir out && mkdir image && cd data && mkdir proben1 && cd proben1 && mkdir cancer
+	cd tarball/nll/tutorial && mkdir data && cd data && mkdir out && mkdir image && mkdir proben1 && cd proben1 && mkdir cancer
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
 	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect
 	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln tarball/nll
