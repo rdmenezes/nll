@@ -9,7 +9,7 @@ test: nll tester
 	cd nllTest && make all && ../$(LIBPATH)/test$(EXECPOSTFIX)
 
 tutorial: nll tester
-	cd tutorial && make
+	cd tutorial && make all && ../$(LIBPATH)/tutorial$(EXECPOSTFIX)
 	
 tester:
 	cd tester && make all
