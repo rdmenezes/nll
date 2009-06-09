@@ -34,7 +34,8 @@ echo "MODE=$MODE" > configure.in
 OS_NAME=`uname -s`
 
 # specific platform: cygwin
-if [ "$OS_NAME" = "CYGWIN_NT-5.1" ]; then
+IS_CYGWIN_PLATFORM=`echo "$OS_NAME" | grep CYGWIN`
+if [ -n "$IS_CYGWIN_PLATFORM" ]; then
   if [ "$MODE" = "release" ]; then
     echo "FLAGS=-o3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
   else
