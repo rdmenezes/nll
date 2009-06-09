@@ -20,6 +20,7 @@ test-optimizer-parameters.o\
 test-optimizer.o\
 test-pca.o\
 test-preprocessing.o\
+test-quaternion.o\
 test-region-growing.o\
 test.o
 

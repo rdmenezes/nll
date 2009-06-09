@@ -18,8 +18,8 @@
 #define NLL_API
 #endif
 
-/// define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
-// define NLL_NOT_MULTITHREADED
+// define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
+// #define NLL_NOT_MULTITHREADED
 
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>

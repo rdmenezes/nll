@@ -1,5 +1,6 @@
 v0.08
 -quaternions basic support
+-distance transform
 
 v0.07
 -bug fixes & improved algorithm interfaces

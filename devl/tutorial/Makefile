@@ -11,6 +11,7 @@ test-breast-cancer.o\
 test-classifier-knn.o\
 test-classifier-nn.o\
 tutorial-classifier-optimization.o\
+tutorial-distance-transform.o\
 tutorial-feature-pca.o\
 tutorial-feature-selection.o\
 tutorial-partition-database.o\
