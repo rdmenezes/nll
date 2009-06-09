@@ -35,7 +35,7 @@ tarball: clean doc all
 	cd tarball/nll/tutorial && mkdir data && cd data && mkdir out && mkdir image && mkdir proben1 && cd proben1 && mkdir cancer
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
 	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect
-	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln tarball/nll
+	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln Readme.txt tarball/nll
 	cp nll/*.h tarball/nll/include
 	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcproj tarball/nll/tutorial
 	cp tutorial/data/proben1/cancer/*.dt tarball/nll/tutorial/data/proben1/cancer
