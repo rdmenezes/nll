@@ -16,6 +16,7 @@ namespace tester
     */
    class Config
    {
+   public:
       typedef std::map<std::string, std::string>   Directory;
       typedef std::map<std::string, Directory>     Storage;
 
@@ -91,21 +92,23 @@ namespace tester
             size_t posEnd = line.find_last_of( ']' );
             if ( posStart != std::string::npos && posEnd != std::string::npos )
             {
-               directory = std::string( &line[ posStart ], &line[ posEnd ] );
+               directory = std::string( &line[ posStart + 1 ], &line[ posEnd ] );
             } else {
                std::vector<const char*> args = nll::core::split( line, '=' );
                if ( args.size() == 2 )
                {
                   _storage[ directory ][ args[ 0 ] ] = args[ 1 ];
                }
-               std::getline( i, line );
             }
+            std::getline( i, line );
          }
       }
 
+   public:
+      Storage      _storage;
+
    private:
       std::string  _dir;
-      Storage      _storage;
    };
 }
 }
