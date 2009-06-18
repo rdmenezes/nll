@@ -6,7 +6,7 @@ nll:
 	cd nll && make all
 
 test: nll tester
-	cd nllTest && make all && ../$(LIBPATH)/test$(EXECPOSTFIX)
+	cd nllTest && make all && cd ../$(LIBPATH)/ && ./test$(EXECPOSTFIX)
 
 tutorial: nll tester
 	cd tutorial && make all && cd ../$(LIBPATH) && ./tutorial$(EXECPOSTFIX)

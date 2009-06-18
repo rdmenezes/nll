@@ -1,23 +1,27 @@
+# This file has been automatically generated and should not be changed
+
 [nll.metadata.release.AMD64_3.4G]
 nll.machine=AMD64_3.4G
 nll.version=nll-0.09
 
 [nll.testdata.release.AMD64_3.4G]
+nll.TestClassifierKnn.test=0.016
+nll.TestClassifierNN.test=257.708
 nll.TestGA.testGA=10.407
-nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.063
-nll.TestNllAlgorithmClassifierGmm.testGmmClassifier=9.609
+nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.047
+nll.TestNllAlgorithmClassifierGmm.testGmmClassifier=9.547
 nll.TestNllAlgorithmClassifierGmm.testReadWriteVector=0
 nll.TestNllAlgorithmClassifierMlp.testMlpClassifier=0.125
 nll.TestNllClassifierNearestNeighbor.testNllClassifierNearestNeighbor=0
 nll.TestNllClassifierSvm.testNllClassifierSvm=0
-nll.TestNllFeatureSelection.testNllFeatureSelectionPearson=0.016
+nll.TestNllFeatureSelection.testNllFeatureSelectionPearson=0
 nll.TestNllFeatureSelection.testNllFeatureSelectionRelieff=0.062
 nll.TestNllFeatureSelection.testNllRelieff=0
-nll.TestNllLabelize.testNllLabelize=0.047
+nll.TestNllLabelize.testNllLabelize=0.046
 nll.TestNllMorphology.testNllMorphology=0.031
 nll.TestNllOptimizer.testOptimizerGA=5.703
-nll.TestNllOptimizer.testOptimizerGridSearch=55.423
-nll.TestNllOptimizer.testOptimizerHarmonySearch=0.016
+nll.TestNllOptimizer.testOptimizerGridSearch=55.236
+nll.TestNllOptimizer.testOptimizerHarmonySearch=0.015
 nll.TestNllOptimizer.testOptimizerHarmonySearchMemory=4.344
 nll.TestNllPreprocessing.testNllPreprocessingBase=0
 nll.TestNllPreprocessing.testNllPreprocessingBridgeImageVector=0
@@ -25,14 +29,14 @@ nll.TestNllPreprocessing.testNllPreprocessingCenter=0
 nll.TestNllPreprocessing.testNllPreprocessingConcatenate=0
 nll.TestNllPreprocessing.testNllPreprocessingImageGabor=1.703
 nll.TestNllPreprocessing.testNllPreprocessingImagePlace=0
-nll.TestNllPreprocessing.testNllPreprocessingImageResample=0.016
+nll.TestNllPreprocessing.testNllPreprocessingImageResample=0
 nll.TestNllPreprocessing.testNllPreprocessingOptimizationScheme=0
 nll.TestNllPreprocessing.testNllPreprocessingRawNormalize=0
 nll.TestNllRegionGrowing.testRegionGrowing=0
 nll.TestOptimizerParameters.testGeometric=0
 nll.TestPca.testPca=0
 nll.TestPca.testPcaFeature=0
-nll.TestQuaternion.testMatrixToQuaternion=0.016
+nll.TestQuaternion.testMatrixToQuaternion=0
 nll.TestnllCore.testBuffer1D=0
 nll.TestnllCore.testClassifier=0.015
 nll.TestnllCore.testCovariance=0
@@ -42,7 +46,7 @@ nll.TestnllCore.testDatabaseFilterSelect=0
 nll.TestnllCore.testDatabaseInputAdapter=0
 nll.TestnllCore.testDistanceTransform=0.016
 nll.TestnllCore.testGabor=1.735
-nll.TestnllCore.testGmm=12.266
+nll.TestnllCore.testGmm=11.875
 nll.TestnllCore.testImage=0.031
 nll.TestnllCore.testImageBinaryOperation=0.187
 nll.TestnllCore.testInterpolator=0.109
@@ -60,4 +64,10 @@ nll.TestnllCore.testSequenceConverter=0
 nll.TestnllCore.testSingleton=0
 nll.TestnllCore.testStaticVector=0
 nll.TestnllCore.testTraitsInheritence=0
+nll.TutorialClassifierOptimization.optimization=23.72
+nll.TutorialDistanceTransform.runDistanceTransform=0
+nll.TutorialFeaturePca.featurePca=0.032
+nll.TutorialFeatureSelection.featureSelection=0.156
+nll.TutorialPartitionDatabase.partitionDatabase=0
+nll.TutorialPipeline.runPipeline=0.141
 

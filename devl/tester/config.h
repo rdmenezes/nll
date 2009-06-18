@@ -60,6 +60,7 @@ namespace tester
 
       void write( std::ostream& o ) const
       {
+         o << "# This file has been automatically generated and should not be changed" << std::endl << std::endl;
          for ( Storage::const_iterator it = _storage.begin(); it != _storage.end(); ++it )
          {
             o << "[" << it->first << "]" << std::endl;
@@ -88,16 +89,19 @@ namespace tester
          std::getline( i, line );
          while ( !i.eof() )
          {
-            size_t posStart = line.find_first_of( '[' );
-            size_t posEnd = line.find_last_of( ']' );
-            if ( posStart != std::string::npos && posEnd != std::string::npos )
+            if ( line.size() && line[ 0 ] != '#' )
             {
-               directory = std::string( &line[ posStart + 1 ], &line[ posEnd ] );
-            } else {
-               std::vector<const char*> args = nll::core::split( line, '=' );
-               if ( args.size() == 2 )
+               size_t posStart = line.find_first_of( '[' );
+               size_t posEnd = line.find_last_of( ']' );
+               if ( posStart != std::string::npos && posEnd != std::string::npos )
                {
-                  _storage[ directory ][ args[ 0 ] ] = args[ 1 ];
+                  directory = std::string( &line[ posStart + 1 ], &line[ posEnd ] );
+               } else {
+                  std::vector<const char*> args = nll::core::split( line, '=' );
+                  if ( args.size() == 2 )
+                  {
+                     _storage[ directory ][ args[ 0 ] ] = args[ 1 ];
+                  }
                }
             }
             std::getline( i, line );
