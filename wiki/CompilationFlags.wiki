@@ -6,4 +6,7 @@ The compilation flags can be set to configure the project builds:
   * NLL_NOT_MULTITHREADED: if set, this dll should only be used on a single thread, removing the dependency on openMP
   * NLL_NO_ENSURE: if set, the ensure mecanism will be disabled
 
+= Flags for the tester target =
+  * NLL_TESTER_NO_REGRESSION disable the regression test. It will still write the timing reports, but not compare them.
+
 These flags can be set in the Microsoft project as well as in the configure.in file.
