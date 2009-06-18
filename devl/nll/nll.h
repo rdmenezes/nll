@@ -33,9 +33,12 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.08
+ @version 0.09
  @date 14th March 2009
  */
+
+/// define the version of nll
+#define NLL_VERSION  "nll-0.09"
 
 /**
  Concept: (for future integration with C++ 0x)

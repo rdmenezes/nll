@@ -9,11 +9,14 @@
 // TODO: reference precompiled headers your program requires here
 # include "database-builder.h"
 # include <tester/register.h>
+# include "config.h"
 
 // only for speed purpose...
 //#define DONT_RUN_SLOW_TEST
 #define DONT_RUN_VERY_SLOW_TEST
 //#define DONT_RUN_TEST
+
+
 
 #else
 #error This file can only be included once.
