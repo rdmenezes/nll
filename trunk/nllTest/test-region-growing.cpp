@@ -9,7 +9,7 @@ public:
       typedef nll::algorithm::RegionGrowing<nll::ui8> RegionGrowingTest;
 
       
-      nll::core::Image<nll::ui8> img("data/image/test-image4.bmp");
+      nll::core::Image<nll::ui8> img( NLL_TEST_PATH "data/image/test-image4.bmp");
       RegionGrowingTest::DifferentPixel different( 3 );
       RegionGrowingTest rgrowing( different );
       nll::core::ImageMask out;
@@ -26,7 +26,7 @@ public:
       TESTER_ASSERT( out( 206 + 10, 256 - 185, 0 ) == 2 );
       TESTER_ASSERT( out( 206 - 10, 256 - 185, 0 ) == 2 );
 
-      nll::core::writeBmp( t1, "data/test-e1.bmp" );
+      nll::core::writeBmp( t1, NLL_TEST_PATH "data/test-e1.bmp" );
    }
 };
 

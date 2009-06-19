@@ -226,7 +226,7 @@ namespace core
          std::cout << std::endl;
       }
 
-   private:
+   protected:
       T     _buffer[ SIZE ];
    };
 

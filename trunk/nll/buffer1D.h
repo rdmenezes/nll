@@ -224,7 +224,10 @@ public:
       std::cout << "ref buffer1D" << std::endl;
 # endif
       if ( _buffer )
+      {
+         #pragma omp atomic
          ++*_cpt;
+      }
    }
 
    /**
@@ -237,6 +240,7 @@ public:
 # ifdef DEBUG_BUFFER1D
          std::cout << "unref buffer1D" << std::endl;
 # endif
+         #pragma omp atomic
          --*_cpt;
          if ( !*_cpt )
          {

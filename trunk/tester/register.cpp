@@ -24,6 +24,7 @@ unsigned Register::run()
    if ( !_faileds.size() )
    {
       TESTER_STREAM << "success (" << _successful << " tests)" << std::endl;
+      regressionExport();
       return 0;
    }
 
@@ -33,5 +34,6 @@ unsigned Register::run()
    {
       TESTER_STREAM << "  " << _faileds[ n ].file << ": " << _faileds[ n ].funcName << ": " << _faileds[ n ].msg << std::endl;
    }
+
    return static_cast<unsigned>( _faileds.size() );
 }

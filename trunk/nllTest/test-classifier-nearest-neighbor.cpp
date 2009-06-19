@@ -14,8 +14,8 @@ public:
 
       NN nearest( &metric );
       baseClassifier = &nearest;
-      baseClassifier->write("data/nn.dat");
-      NN newNearest("data/nn.dat", &metric);
+      baseClassifier->write(NLL_TEST_PATH "data/nn.dat");
+      NN newNearest(NLL_TEST_PATH "data/nn.dat", &metric);
       TESTER_ASSERT( newNearest.getMetric() );
 
       NN::Database dat;
@@ -34,10 +34,10 @@ public:
 
       NN::Result resultLearning = nearestLearning.test( dat );
      
-      nearestLearning.write( "data/nn.dat" );
+      nearestLearning.write( NLL_TEST_PATH "data/nn.dat" );
       TESTER_ASSERT( resultLearning.learningError <= 0 && resultLearning.testingError <= 0 );
 
-      NN nearestLoading( "data/nn.dat", &metric );
+      NN nearestLoading( NLL_TEST_PATH "data/nn.dat", &metric );
       resultLearning = nearestLearning.test( dat );
       TESTER_ASSERT( resultLearning.learningError <= 0 && resultLearning.testingError <= 0 );
    

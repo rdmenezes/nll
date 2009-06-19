@@ -4,7 +4,7 @@
 #include <fstream>
 #include <nll/nll.h>
 
-# define GMM_TEST_PATH "data/gmm/"
+# define GMM_TEST_PATH "../../nllTest/data/gmm/"
 
 #pragma warning( push )
 #pragma warning( disable:4996 ) // sscanf unsafe function
@@ -68,11 +68,11 @@ public:
       test1[ 3 ] = 2;
       test1[ 4 ] = 3;
 
-      std::ofstream f("data/test1.test", std::ios_base::binary );
+      std::ofstream f( NLL_TEST_PATH "data/test1.test", std::ios_base::binary );
       nll::core::write<TEST> (test1, f);
       f.close();
 
-      std::ifstream o("data/test1.test", std::ios_base::binary );
+      std::ifstream o( NLL_TEST_PATH "data/test1.test", std::ios_base::binary );
       nll::core::read<TEST> (test2, o);
 
       TESTER_ASSERT( test1 == test2 );

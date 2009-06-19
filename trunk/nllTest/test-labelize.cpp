@@ -31,7 +31,7 @@ public:
       i(9, 3, 0) = 1;
       i(9, 4, 0) = 1;
 
-      nll::core::readBmp(i, "data/image/test-image2.bmp");
+      nll::core::readBmp(i, NLL_TEST_PATH "data/image/test-image2.bmp");
 
       nll::core::Timer t1;
       //Labelize::DifferentPixel different( 1 );
@@ -44,7 +44,7 @@ public:
 
       nll::core::Image<nll::ui8> ii;
       nll::utility::maskExport( info.labels, ii );
-      nll::core::writeBmp( ii, "data/label.bmp");
+      nll::core::writeBmp( ii, NLL_TEST_PATH "data/label.bmp");
       //TESTER_ASSERT
       // TODO finish automatic testing
    }

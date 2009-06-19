@@ -6,10 +6,10 @@ nll:
 	cd nll && make all
 
 test: nll tester
-	cd nllTest && make all && ../$(LIBPATH)/test$(EXECPOSTFIX)
+	cd nllTest && make all && cd ../$(LIBPATH)/ && ./test$(EXECPOSTFIX)
 
 tutorial: nll tester
-	cd tutorial && make
+	cd tutorial && make all && cd ../$(LIBPATH) && ./tutorial$(EXECPOSTFIX)
 	
 tester:
 	cd tester && make all
@@ -32,13 +32,14 @@ doc:
 tarball: clean doc all
 	mkdir tarball
 	cd tarball && mkdir nll && cd nll && mkdir nll nllTest tester doc include tutorial
-	cd tarball/nll/tutorial && mkdir data && cd data && mkdir proben1 && cd proben1 && mkdir cancer
+	cd tarball/nll/tutorial && mkdir data && cd data && mkdir out && mkdir image && mkdir proben1 && cd proben1 && mkdir cancer
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
 	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect
-	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln tarball/nll
+	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln Readme.txt tarball/nll
 	cp nll/*.h tarball/nll/include
 	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcproj tarball/nll/tutorial
 	cp tutorial/data/proben1/cancer/*.dt tarball/nll/tutorial/data/proben1/cancer
+	cp tutorial/data/image/*.bmp tarball/nll/tutorial/data/image
 	cp nll/*.h nll/*.cpp nll/nll.vcproj nll/nll.rc nll/Makefile nll/nll.dox nll/todo.txt tarball/nll/nll
 	cp docs/html/* tarball/nll/doc
 	cp nllTest/*.h nllTest/*.cpp nllTest/nllTest.vcproj nllTest/Makefile tarball/nll/nllTest

@@ -336,7 +336,7 @@ public:
       // TODO CODE MORE CROSSFOLD TEST
       // TEST2 cross validation : generate 60 examples from 3 classes
       //
-      nll::core::LoggerHandler::instance().createFileLogger("data/testLogger2.txt");
+      nll::core::LoggerHandler::instance().createFileLogger( NLL_TEST_PATH "data/testLogger2.txt");
       class ClassifierTest2 : public nll::algorithm::Classifier<int>
       {
          typedef int T;
@@ -472,7 +472,7 @@ public:
    {
       typedef nll::core::Image<unsigned char> image;
       image i1;
-      TESTER_ASSERT( nll::core::readBmp(i1, "data/image/test-image1.bmp") );
+      TESTER_ASSERT( nll::core::readBmp(i1, NLL_TEST_PATH "data/image/test-image1.bmp") );
       TESTER_ASSERT( i1.equal(0, 0, image::white()) );
       TESTER_ASSERT( i1.equal(0, i1.sizey() - 1, image::red()) );
 
@@ -495,12 +495,12 @@ public:
       nll::core::decolor(i3a);
       nll::core::binarize(i3a, nll::core::ThresholdBetween<nll::ui32> (10, 200));
       nll::core::extend(i3a, 3);
-      nll::core::writeBmp(i3a, "data/thresholdtest.bmp");
+      nll::core::writeBmp(i3a, NLL_TEST_PATH "data/thresholdtest.bmp");
 
 
-      nll::core::writeBmp(i1, "data/tmp.bmp");
+      nll::core::writeBmp(i1, NLL_TEST_PATH "data/tmp.bmp");
       image i4;
-      nll::core::readBmp(i4, "data/tmp.bmp");
+      nll::core::readBmp(i4, NLL_TEST_PATH "data/tmp.bmp");
       TESTER_ASSERT( i4 == i1 );
       TESTER_ASSERT( !(i2 == i1) );
 
@@ -509,19 +509,19 @@ public:
       nll::core::threshold(i4, nll::core::ThresholdGreater<nll::ui32> (200));
       TESTER_ASSERT( i4.equal(0, i3.sizey() - 1, image::black()) );
 
-      nll::core::readBmp(i4, "data/image/test-image1.bmp");
+      nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::convolve(i4, nll::core::buildGaussian());
       TESTER_ASSERT( i4(1, 1, 0) > 30 );
       TESTER_ASSERT( (int)i4(2, 1, 0) > 20 );
-      nll::core::writeBmp(i4, "data/tmp.bmp");
+      nll::core::writeBmp(i4, NLL_TEST_PATH "data/tmp.bmp");
 
       // resampling
       image i5, i6, i7, i8, i9;
-      nll::core::readBmp(i5, "data/image/test-image1.bmp");
+      nll::core::readBmp(i5, NLL_TEST_PATH "data/image/test-image1.bmp");
       i6.clone(i5);
       i9.clone(i5);
       nll::core::rescaleFast(i9, 256, 16);
-      nll::core::writeBmp(i9, "data/test4.bmp");
+      nll::core::writeBmp(i9, NLL_TEST_PATH "data/test4.bmp");
 
       nll::core::Image<float> flImage;
       nll::core::Image<nll::ui32> uiImage;
@@ -538,8 +538,8 @@ public:
       nll::core::convert(iImage, i8);
       
 
-      nll::core::writeBmp(i5, "data/test2.bmp");
-      nll::core::writeBmp(i7, "data/test3.bmp");
+      nll::core::writeBmp(i5, NLL_TEST_PATH"data/test2.bmp");
+      nll::core::writeBmp(i7, NLL_TEST_PATH "data/test3.bmp");
 
       TESTER_ASSERT( i5 == i6 );
       TESTER_ASSERT( i5 == i8 );
@@ -610,7 +610,7 @@ public:
    void testGmm()
    {
 
-# define GMM_TEST_PATH "data/gmm/"
+# define GMM_TEST_PATH "../../nllTest/data/gmm/"
 
       static const nll::i8* gmm_train[] =
       {
@@ -697,12 +697,12 @@ public:
 
    void testLogger()
    {
-      nll::ui32 id = nll::core::LoggerHandler::instance().createFileLogger("data/testLogger.txt");
+      nll::ui32 id = nll::core::LoggerHandler::instance().createFileLogger(NLL_TEST_PATH "data/testLogger.txt");
       nll::core::LoggerHandler::instance().getLogger(id).write("test1");
       nll::core::LoggerHandler::instance().getLogger(id).write("test2");
       nll::core::LoggerHandler::instance().getLogger(id).write("test3");
       nll::core::LoggerHandler::instance().destroyLogger(id);
-      std::ifstream f("data/testLogger.txt");
+      std::ifstream f(NLL_TEST_PATH "data/testLogger.txt");
       std::string str;
       f >> str;
       TESTER_ASSERT( str == std::string("test1") );
@@ -799,11 +799,11 @@ public:
 
       // test convolution
       nll::core::Image<nll::ui8> im1;
-      nll::core::readBmp(im1, "data/image/test-image1.bmp");
+      nll::core::readBmp(im1, NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::decolor(im1);
       nll::core::convolveBorder(im1, gabors[1]);
       nll::core::extend(im1, 3);
-      nll::core::writeBmp(im1, "data/tmp-img.bmp");
+      nll::core::writeBmp(im1, NLL_TEST_PATH "data/tmp-img.bmp");
 
       // test list convolutions
       std::cout << "gabor:" << std::endl;
@@ -817,7 +817,7 @@ public:
       nll::algorithm::GaborFilters<nll::ui8, Image::IndexMapper, nll::ui8> gabors2( gdescs2 );
 
       Image im2;
-      nll::core::readBmp( im2, "data/image/test-image2.bmp" );
+      nll::core::readBmp( im2, NLL_TEST_PATH "data/image/test-image2.bmp" );
       nll::core::decolor( im2 );
 
       
@@ -829,7 +829,7 @@ public:
       {
          Image cmp = nll::core::extractChannel( buf, n );
          nll::core::extend( cmp, 3 );
-         nll::core::writeBmp( cmp, "data/gabor-" + nll::core::val2str( n ) + ".bmp" );
+         nll::core::writeBmp( cmp, NLL_TEST_PATH "data/gabor-" + nll::core::val2str( n ) + ".bmp" );
       }
    }
 
@@ -876,19 +876,19 @@ public:
       TESTER_ASSERT( nll::core::isColorEqual(i3.point(2, 0), white, 3) );
       TESTER_ASSERT( nll::core::isColorEqual(i3.point(0, 1), br, 3) );
 
-      nll::core::Image<nll::ui8> ii1("data/image/test-image2.bmp");
-      nll::core::Image<nll::ui8> ii2("data/image/test-image1.bmp");
+      nll::core::Image<nll::ui8> ii1(NLL_TEST_PATH "data/image/test-image2.bmp");
+      nll::core::Image<nll::ui8> ii2(NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::Image<nll::ui8> ii3 = nll::core::transform(ii1, ii2, nll::core::BinaryAdd<nll::ui8>());
 
       nll::core::transformUnaryFast(ii3, nll::core::TransformationRotation(-0.3f, nll::core::vector2f(0, 0)));
       nll::core::convolve(ii3, nll::core::buildGaussian());
       nll::core::rescaleFast(ii3, 512, 512);
       nll::core::convolve(ii3, nll::core::buildGaussian());
-      nll::core::writeBmp(ii3, "data/test5.bmp");
+      nll::core::writeBmp(ii3, NLL_TEST_PATH "data/test5.bmp");
 
-      nll::core::Image<nll::ui8> ii4("data/image/test-image3.bmp");
+      nll::core::Image<nll::ui8> ii4(NLL_TEST_PATH "data/image/test-image3.bmp");
       nll::core::rescaleFast(ii4, 128, 128);
-      nll::core::writeBmp(ii4, "data/resample1.bmp");
+      nll::core::writeBmp(ii4, NLL_TEST_PATH "data/resample1.bmp");
    }
    
    void testMatrixOperators()
@@ -918,7 +918,7 @@ public:
 
    void testInterpolatorPerf()
    {
-      nll::core::Image<nll::ui8> img("data/image/test-image1.bmp");
+      nll::core::Image<nll::ui8> img( NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::Image<nll::ui8> img2;
       img2.clone(img);
 
@@ -927,7 +927,7 @@ public:
       nll::core::rescaleNearestNeighbor( img2, 1024, 1024 );
       t1.end();
 
-      nll::core::writeBmp( img, "data/interp-perf.bmp" );
+      nll::core::writeBmp( img, NLL_TEST_PATH "data/interp-perf.bmp" );
       std::cout << "Perf Interpolator=" << t1.getTime() << std::endl;
    }
 
@@ -949,19 +949,19 @@ public:
       double v1 = linearInterpolator.interpolate(0.5, 0.5, 0);
       TESTER_ASSERT( nll::core::equal(v1, 255.0) );
 
-      nll::core::Image<nll::ui8> i2("data/image/test-image3.bmp");
+      nll::core::Image<nll::ui8> i2(NLL_TEST_PATH "data/image/test-image3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
                          nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
                         >(i2, 128, 128);
-      nll::core::writeBmp(i2, "data/rescale-interp1.bmp");
+      nll::core::writeBmp(i2, NLL_TEST_PATH "data/rescale-interp1.bmp");
 
-      nll::core::Image<nll::ui8> i3("data/image/test-image1.bmp");
+      nll::core::Image<nll::ui8> i3(NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
                          nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
                         >(i3, 32, 32);
-      nll::core::writeBmp(i3, "data/rescale-interp2.bmp");
+      nll::core::writeBmp(i3, NLL_TEST_PATH "data/rescale-interp2.bmp");
 
       nll::core::Image<nll::ui8> i4(3, 3, 3);
       i4.setPixel(0, 0, red);
@@ -979,23 +979,23 @@ public:
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
                          nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
                         >(i4, 128, 128);
-      nll::core::writeBmp(i4, "data/rescale-interp3.bmp");
+      nll::core::writeBmp(i4, NLL_TEST_PATH "data/rescale-interp3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
                          nll::core::InterpolatorNearestNeighbor2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
                         >(i5, 128, 128);
-      nll::core::writeBmp(i5, "data/rescale-interp4.bmp");
+      nll::core::writeBmp(i5, NLL_TEST_PATH "data/rescale-interp4.bmp");
 
-      nll::core::Image<nll::ui8> i6("data/image/test-image2.bmp");
-      nll::core::Image<nll::ui8> i7("data/image/test-image2.bmp");
+      nll::core::Image<nll::ui8> i6(NLL_TEST_PATH "data/image/test-image2.bmp");
+      nll::core::Image<nll::ui8> i7(NLL_TEST_PATH "data/image/test-image2.bmp");
       for (int n = 0; n < 10; ++n)
       {
          nll::core::transformUnaryBilinear( i6, nll::core::TransformationRotation(-0.05f, nll::core::vector2f(0, 0)) );
          nll::core::transformUnaryNearestNeighbor( i7, nll::core::TransformationRotation(-0.05f, nll::core::vector2f(0, 0)) );
       }
 
-      nll::core::writeBmp(i6, "data/rescale-interp5.bmp");
-      nll::core::writeBmp(i7, "data/rescale-interp5-NN.bmp");
+      nll::core::writeBmp(i6, NLL_TEST_PATH "data/rescale-interp5.bmp");
+      nll::core::writeBmp(i7, NLL_TEST_PATH "data/rescale-interp5-NN.bmp");
 
       t1.end();
       std::cout << "time=" << t1.getTime() << std::endl;
@@ -1005,26 +1005,26 @@ public:
    {
       typedef nll::core::Image<nll::ui8> Image;
 
-      Image img1("data/image/test-image2.bmp");
+      Image img1(NLL_TEST_PATH "data/image/test-image2.bmp");
       Image img2;
 
       img2.clone(img1);
       nll::core::rescaleNearestNeighbor(img2, 32, 32);
       nll::core::rescaleNearestNeighbor(img2, img1.sizex(), img1.sizey());
       double psnr2 = nll::core::psnr(img1, img2);
-      nll::core::writeBmp(img2, "data/reconstructed-iterp2.bmp");
+      nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-iterp2.bmp");
 
       img2.clone(img1);
       nll::core::rescaleFast(img2, 32, 32);
       nll::core::rescaleFast(img2, img1.sizex(), img1.sizey());
       double psnr3 = nll::core::psnr(img1, img2);
-      nll::core::writeBmp(img2, "data/reconstructed-fast3.bmp");
+      nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-fast3.bmp");
 
       img2.clone(img1);
       nll::core::rescaleBilinear(img2, 32, 32);
       nll::core::rescaleBilinear(img2, img1.sizex(), img1.sizey());
       double psnr1 = nll::core::psnr(img1, img2);
-      nll::core::writeBmp(img2, "data/reconstructed-iterp1.bmp");
+      nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-iterp1.bmp");
 
       TESTER_ASSERT( psnr1 > psnr2 );
       TESTER_ASSERT( psnr1 > psnr3 );
