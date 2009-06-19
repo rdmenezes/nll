@@ -18,8 +18,8 @@
 #define NLL_API
 #endif
 
-/// define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
-// define NLL_NOT_MULTITHREADED
+// define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
+// #define NLL_NOT_MULTITHREADED
 
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
@@ -33,9 +33,12 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.08
+ @version 0.09
  @date 14th March 2009
  */
+
+/// define the version of nll
+#define NLL_VERSION  "nll-0.09"
 
 /**
  Concept: (for future integration with C++ 0x)
@@ -99,6 +102,7 @@
 # include "matrix.h"
 # include "math-correlation.h"
 # include "math-sampling.h"
+# include "math-quaternion.h"
 # include "matrix-basic-operations.h"
 # include "matrix-decomposition.h"
 # include "matrix-basic.h"

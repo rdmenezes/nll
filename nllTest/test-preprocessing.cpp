@@ -374,7 +374,7 @@ public:
       i1.setPixel( 4, 0, grey );
 
       i1 = pipeline.process( i1 );
-      nll::core::writeBmp( i1, "data/test_s1.bmp");
+      nll::core::writeBmp( i1, NLL_TEST_PATH "data/test_s1.bmp");
       TESTER_ASSERT( i1( 4, 5, 0 ) == 255 );
       TESTER_ASSERT( i1( 4, 5, 1 ) == 255 );
       TESTER_ASSERT( i1( 4, 5, 2 ) == 255 );
@@ -443,13 +443,13 @@ public:
       Classifier* c = new ClassifierTest<Image>( Classifier::Database() );
 
       PreprocessingPipeline pipeline = nll::preprocessing::make_typelist( p1, c );
-      Image i1("data/image/test-image1.bmp");
+      Image i1( NLL_TEST_PATH "data/image/test-image1.bmp");
 
       Image res = pipeline.process( i1 );
       nll::core::rescaleFast( i1, 16, 16 );
       TESTER_ASSERT( i1 == res );
 
-      nll::core::writeBmp( res, "data/test-resample-pre.bmp" );
+      nll::core::writeBmp( res, NLL_TEST_PATH "data/test-resample-pre.bmp" );
    }
 
    void testNllPreprocessingImageGabor()
@@ -471,7 +471,7 @@ public:
       Classifier* c = new ClassifierTest<Image>( Classifier::Database() );
 
       PreprocessingPipeline pipeline = nll::preprocessing::make_typelist( p1, c );
-      Image i1("data/image/test-image2.bmp");
+      Image i1( NLL_TEST_PATH "data/image/test-image2.bmp");
       nll::core::decolor( i1 );
       Image vec = pipeline.process( i1 );
 
@@ -479,7 +479,7 @@ public:
       {
          Image ii = nll::core::extractChannel( vec, n );
          nll::core::extend( ii, 3 );
-         nll::core::writeBmp( ii, "data/gabor-" + nll::core::val2str( n ) + "-2.bmp" );
+         nll::core::writeBmp( ii, NLL_TEST_PATH "data/gabor-" + nll::core::val2str( n ) + "-2.bmp" );
       }
    }
 };

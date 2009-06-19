@@ -20,6 +20,8 @@ feature-selection-genetic-algorithm.h\
 feature-selection-pearson.h\
 feature-selection-relieff.h\
 feature-selection.h\
+feature-transformation-pca.h\
+feature-transformation.h\
 gabor-filter.h\
 gabor.h\
 generic-operations.h\
@@ -29,6 +31,7 @@ id-maker.h\
 image-binary-transformation.h\
 image-converter.h\
 image-convolution.h\
+image-distance-transform.h\
 image-interpolator.h\
 image-io.h\
 image-mask.h\
@@ -51,6 +54,7 @@ mask-exporter.h\
 math-correlation.h\
 math-distribution-gaussian.h\
 math-distribution-uniform.h\
+math-quaternion.h\
 math-sampling.h\
 math.h\
 matrix-basic-operations.h\
@@ -71,6 +75,7 @@ optimizer-harmony-search-memory.h\
 optimizer-harmony-search.h\
 optimizer-parameters.h\
 optimizer.h\
+pca.h\
 preprocessing-bridge-image-vector.h\
 preprocessing-classifier.h\
 preprocessing-image-center.h\
@@ -86,9 +91,9 @@ preprocessing-unit.h\
 region-growing.h\
 relief.h\
 sequence-converter.h\
+singleton.h\
 static-assert.h\
 static-vector.h\
-stdafx.h\
 stopping-condition.h\
 svm.h\
 timer.h\
@@ -106,6 +111,7 @@ OBJ=math.o multi-layered-perceptron.o nll.o optimizer-harmony-search-memory.o op
 	$(CC) $(FLAGS) -c -o $@ $<
 
 all: $(OBJ)
+	cd .. && mkdir -p $(MODE) && mkdir -p $(MODE)/$(PLATFORM)
 	$(CC) -shared -o $(LIBNAME) $(OBJ) $(LIBS)
 	mv $(LIBNAME) ../$(LIBPATH)
 

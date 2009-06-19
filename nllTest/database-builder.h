@@ -2,6 +2,7 @@
 # define NLL_DATABASE_BUILDER_H_
 
 # include <nll/nll.h>
+# include "config.h"
 
 template <class Point>
 typename nll::algorithm::Classifier<Point>::Database buildXorDatabase()
@@ -51,8 +52,8 @@ typename nll::algorithm::Classifier<T>::Database loadDatabaseSpect()
 {
    typedef typename nll::algorithm::Classifier<T> ClassifierT;
    typename ClassifierT::Database dat;
-   _loadFileSpect<T>( "data/spect/SPECT.train", 1, dat );
-   _loadFileSpect<T>( "data/spect/SPECT.test", 0, dat );
+   _loadFileSpect<T>( NLL_TEST_PATH "data/spect/SPECT.train", 1, dat );
+   _loadFileSpect<T>( NLL_TEST_PATH "data/spect/SPECT.test", 0, dat );
    return dat;
 }
 

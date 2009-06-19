@@ -348,6 +348,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\math-quaternion.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math-sampling.h"
 				>
 			</File>

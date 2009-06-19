@@ -26,7 +26,7 @@ namespace tutorial
          // load the image as a BMP. The image type has to be 'unsigned char' so that it is correctly
          // loaded as a regular bitmap. However, if necessary, it can be encoded/decoded as float
          // or all other type.
-         nll::core::readBmp( i, NLL_DATABASE_PATH "data/image/test-image2.bmp" );
+         nll::core::readBmp( i, NLL_DATABASE_PATH "image/test-image2.bmp" );
 
          // we want to transform it to a greyscale image
          nll::core::decolor( i );
@@ -40,7 +40,7 @@ namespace tutorial
 
          // The image is extended to a RGB image and saved
          nll::core::extend( i, 3 );
-         nll::core::writeBmp( i, NLL_DATABASE_PATH "data/out/test1.bmp" );
+         nll::core::writeBmp( i, NLL_DATABASE_PATH "out/test1.bmp" );
       }
    };
 }

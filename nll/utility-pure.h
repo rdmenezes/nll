@@ -64,6 +64,20 @@ namespace core
 
    /**
     @ingroup core
+    @brief compute a value representing a string
+   */
+   template <class T>
+   T str2val( const std::string& val )
+   {
+      std::stringstream s;
+      s << val;
+      T res;
+      s >> res;
+      return res;
+   }
+
+   /**
+    @ingroup core
     @brief split a string according to a specific separator.
     
      The input string is altered: each time the separator is found, it is replaced by a null character.

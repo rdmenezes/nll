@@ -201,6 +201,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\database-benchmark.h"
+				>
+			</File>
+			<File
 				RelativePath=".\database-cancer.cpp"
 				>
 			</File>
@@ -279,6 +283,13 @@
 			<File
 				RelativePath=".\tutorial-distance-transform.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tutorial-distance-transform.h"
