@@ -4,6 +4,10 @@
 nll.machine=AMD64_3.4G
 nll.version=nll-0.09
 
+[nll.metadata.release.laptop2]
+nll.machine=laptop2
+nll.version=nll-0.09
+
 [nll.testdata.release.AMD64_3.4G]
 nll.TestClassifierKnn.test=0.016
 nll.TestClassifierNN.test=257.708
@@ -70,4 +74,14 @@ nll.TutorialFeaturePca.featurePca=0.032
 nll.TutorialFeatureSelection.featureSelection=0.156
 nll.TutorialPartitionDatabase.partitionDatabase=0
 nll.TutorialPipeline.runPipeline=0.141
+
+[nll.testdata.release.laptop2]
+nll.TestClassifierKnn.test=0.025
+nll.TestClassifierNN.test=258.123
+nll.TutorialClassifierOptimization.optimization=85.432
+nll.TutorialDistanceTransform.runDistanceTransform=0.07
+nll.TutorialFeaturePca.featurePca=0.054
+nll.TutorialFeatureSelection.featureSelection=0.425
+nll.TutorialPartitionDatabase.partitionDatabase=0.003
+nll.TutorialPipeline.runPipeline=0.417
 

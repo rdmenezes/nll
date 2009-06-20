@@ -237,6 +237,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-buffer-adaptor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-classifier-adaboost.cpp"
 				>
 				<FileConfiguration
@@ -323,6 +327,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\test-hmm.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\test-labelize.cpp"

@@ -232,6 +232,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\buffer-adaptor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\buffer1D-converter.h"
 				>
 			</File>
@@ -587,6 +591,10 @@
 			</File>
 			<File
 				RelativePath=".\gmm.h"
+				>
+			</File>
+			<File
+				RelativePath=".\hmm.h"
 				>
 			</File>
 			<File
