@@ -9,28 +9,29 @@ namespace algorithm
    {
       /**
        @brief Compute the number of states in a list of list of observation
-              The state list is checked for coherency
        */
       template <class StatesList>
-      ui32 getNumberOfStates( const StatesList& states )
+      ui32 getNumberOfStates( const StatesList& statesList )
       {
          // empty list
-         if ( !states.size() || !states[ 0 ].size() )
+         if ( !statesList.size() || !statesList[ 0 ].size() )
             return 0;
 
          typedef std::map<ui32, ui32>  StatesMap;
          StatesMap states;
-         for ( ui32 n = 0; n < states.size(); ++n )
-            for ( ui32 nn = 0; nn < states[ n ].size(); ++nn )
-               ++states[ states[ n ][ nn ] ];
+         for ( ui32 n = 0; n < statesList.size(); ++n )
+            for ( ui32 nn = 0; nn < statesList[ n ].size(); ++nn )
+               ++states[ statesList[ n ][ nn ] ];
 
          // check that the state list is a contiguous list of index starting from 0
          int previous = -1;
-         for ( StatesMap::const_iterator it = states.begin(); it != states.end(); ++it )
-            ensure( ( presious + 1 ) == it->first, "it must be contiguous and start at 0" );
+         for ( StatesMap::const_iterator it = states.begin(); it != states.end(); ++it, ++previous )
+         {
+            ensure(( previous + 1 ) ==  static_cast<int>( it->first ), "it must be contiguous and start at 0" );
+         }
 
          // the highest index + 1 is the number of states
-         return states.rbegin()->second + 1;
+         return states.rbegin()->first + 1;
       }
 
       /**
@@ -51,14 +52,18 @@ namespace algorithm
 
          ui32 size() const
          {
-            return _map[ _state ].size();
+            return static_cast<ui32>( _map[ _state ].size() );
          }
 
          const value_type& operator[]( ui32 n ) const
          {
-            const std::pair<ui32, ui32> index = _map[ n ];
+            const std::pair<ui32, ui32> index = _map[ _state ][ n ];
             return _mapValues[ index.first ][ index.second ];
          }
+
+      private:
+         // disabled
+         ObservationsConstAdaptor& operator=( const ObservationsConstAdaptor& );
 
       private:
          const ui32              _state;
@@ -110,23 +115,24 @@ namespace algorithm
        @param output_path return the best sequence
        @return p(oberservations, states|model)
        */
-      template <class EmissionMapper, class Vector, class Mat, class Emissions>
-      typename double viterbi( ui32 nbObservations,
-                               const Vector& input_prior,
-                               const Mat& input_transitions,
-                               const EmissionMapper& input_emissions,
-                               std::vector<ui32>& output_path,
-                               ui32& output_endState )
+      template <class EmissionMapper, class Vector, class Mat>
+      double viterbi( ui32 nbObservations,
+                      const Vector& input_prior,
+                      const Mat& input_transitions,
+                      const EmissionMapper& input_emissions,
+                      std::vector<ui32>& output_path,
+                      ui32& output_endState )
       {
          typedef core::Matrix<double>  Matrix;
-	      Matrix tt( input_prior.size(), nbObservations );
-	      Matrix vv( input_prior.size(), nbObservations );
-	      ui32 nb_states = input_prior.size();
+	      Matrix tt( (ui32)input_prior.size(), (ui32)nbObservations );
+         core::Matrix<ui32> vv( (ui32)input_prior.size(), (ui32)nbObservations );
+	      ui32 nb_states = (ui32)input_prior.size();
 
 	      for (ui32 n = 0; n < nb_states; ++n)
 	      {
 		      tt( n, 0 ) = input_prior[ n ] * input_emissions( 0, n );
 		      vv( n, 0 ) = 0;
+            std::cout << "init s[" << n << "]=" << tt( n, 0 ) << std::endl;
 	      }
 
 	      for ( ui32 t = 1; t < nbObservations; ++t )
@@ -143,7 +149,7 @@ namespace algorithm
 				      }
 			      ensure( index != -1, "error" );
 
-			      tt( j, t ) = max * input_emissions( t, j );
+			      tt( j, t ) = max * input_emissions( j, t );
 			      vv( j, t ) = index;
 		      }
 	      }
@@ -153,7 +159,7 @@ namespace algorithm
 	      for ( ui32 i = 0; i < nb_states; ++i )
 		      if ( tt( i, nbObservations - 1 ) > max )
 		      {
-			      max = tt( i, nb_obs - 1 );
+			      max = tt( i, nbObservations - 1 );
 			      index = i;
 		      }
 	      ensure(index != -1, "error");
@@ -172,7 +178,7 @@ namespace algorithm
          std::vector<ui32> seq;
 	      for ( std::vector<ui32>::reverse_iterator it = path.rbegin(); it != path.rend(); ++it )
 		      seq.push_back( *it );
-         output_path = std::vector<ui32>( seq.rebegin(), seq.rend() );
+         output_path = std::vector<ui32>( seq.rbegin(), seq.rend() );
          return max;
       }
 
@@ -233,10 +239,11 @@ namespace algorithm
                   const std::vector<unsigned>& nbOfGaussiansPerState,
                   const std::vector<unsigned>& gmmNbIterations )
       {
+         ui32 nbStates = implementation::getNumberOfStates( statesList );
          _nbOfGaussiansPerState = nbOfGaussiansPerState;
-         ensure( observationsList.size() == stateList.size(), "the number of obersation list must match the number of state list" );
-         ensure( observationsList.size() == nbOfGaussiansPerState.size(), "the number of obersation list must match the number of gaussians defined" );
-         ensure( observationsList.size() == gmmNbIterations.size(), "the number of obersation list must match the number of gaussians defined" );
+         ensure( observationsList.size() == statesList.size(), "the number of obersation list must match the number of state list" );
+         ensure( nbStates == nbOfGaussiansPerState.size(), "the number of obersation list must match the number of gaussians defined" );
+         ensure( nbStates == gmmNbIterations.size(), "the number of obersation list must match the number of gaussians defined" );
 
          if ( !observationsList.size() )
             return;
@@ -246,9 +253,8 @@ namespace algorithm
          typedef std::vector< std::vector< std::pair<ui32, ui32> > > SortedObservations;
 
          // we want to sort the observations according to their state index
-         ui32 nbStates = implementation::getNumberOfStates( statesList );
          SortedObservations sorted( nbStates );
-         for ( ui32 n = 0; n < observationsList.size() )
+         for ( ui32 n = 0; n < observationsList.size(); ++n )
          {
             ensure( observationsList[ n ].size() == statesList[ n ].size(), "each observation must belong to only one state" );
             for ( ui32 nn = 0; nn < observationsList[ n ].size(); ++nn )
@@ -260,16 +266,16 @@ namespace algorithm
          _gmms = std::vector<Gmm>( nbStates );
          for ( ui32 n = 0; n < nbStates; ++n )
          {
-            ObservationAdaptor observations( statesList, observationsList, n );
-            _gmms[ n ].learn( observations, observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
+            implementation::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
+            _gmms[ n ].em( observations, (ui32)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
          }
 
          // compute the initial distribution pi. It is used to initialize the markov chain
          ui32 nbStatesInLearning = 0;
-         for ( ui32 n = 0; n < statesList.size(); ++n )
-            nbStatesInLearning += sorted[ n ].size();
+         for ( ui32 n = 0; n < nbStates; ++n )
+            nbStatesInLearning += static_cast<ui32>( sorted[ n ].size() );
          _pi = Pi( nbStates );
-         for ( ui32 n = 0; n < statesList.size(); ++n )
+         for ( ui32 n = 0; n < nbStates; ++n )
             _pi[ n ] = sorted[ n ].size() / nbStatesInLearning;
 
          // compute the transition matrix
@@ -277,14 +283,14 @@ namespace algorithm
          for ( ui32 n = 0; n < observationsList.size(); ++n )
             for ( ui32 nn = 0; nn < observationsList[ n ].size() - 1; ++nn )
             {
-               ui32 s1 = observationsList[ n ][ nn ];
-               ui32 s2 = observationsList[ n ][ nn + 1 ];
+               ui32 s1 = statesList[ n ][ nn ];
+               ui32 s2 = statesList[ n ][ nn + 1 ];
                ++_transitions( s1, s2 );
             }
 
          for ( ui32 s1 = 0; s1 < nbStates; ++s1 )
             for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
-               _transitions( s1, s2 ) /= sorted[ s1 ];
+               _transitions( s1, s2 ) /= sorted[ s1 ].size();
       }
 
       /**
@@ -302,11 +308,28 @@ namespace algorithm
 
        @param obs a sequence of observation
        @param statesOut return the most probable sequnce of states explaining the observations
-       @param probability return the p(observations, states|model)
+       @return the probability p(observations, states|model)
        */
       template <class Observations>
-      void computeHiddenState( const Observations& obs, std::vector<State>& statesOut, double& probability )
+      double computeHiddenState( const Observations& obs, std::vector<State>& statesOut )
       {
+         assert( obs.size() && _pi.size() );
+         Matrix emissions( (ui32)_pi.size(), (ui32)obs.size() );
+         for ( ui32 s = 0; s < _pi.size(); ++s )
+            for ( ui32 o = 0; o < obs.size(); ++o )
+            {
+               std::vector<Observation> obss( 1 );
+               obss[ 0 ] = obs[ 0 ];
+               emissions( s, o ) = exp( _gmms[ s ].likelihood( obss ) );
+            }
+
+         ui32 endState;
+         return implementation::viterbi<Matrix, Pi, Matrix>( (ui32)obs.size(), 
+                                                             _pi,
+                                                             _transitions,
+                                                             emissions,
+                                                             statesOut,
+                                                             endState );
       }
 
       /**
@@ -347,18 +370,111 @@ namespace algorithm
 }
 }
 
+using namespace nll::algorithm;
 
-class TestHmm
+class TestHmmContinuous
 {
 public:
-   void testHmm()
+   // in this test we already know what hmm generated the samples. Just compare we have the same results
+   void testHmm1()
    {
-    
+      srand( 1 ); // set the seed since we need to know the exact paramters found by the algorithm
+
+      typedef std::vector<double>                      Observation;
+      typedef HiddenMarkovModelContinuous<Observation> Hmm;
+      typedef nll::core::Matrix<double>                Matrix;
+      typedef nll::core::Buffer1D<double>              Vector;
+      typedef std::vector<Observation>                 Observations;
+
+      // transition matrix
+      const unsigned nbStates = 4;
+      Matrix transition( nbStates, nbStates );
+      transition( 0, 1 ) = 0.6;
+      transition( 0, 2 ) = 0.4;
+      transition( 1, 0 ) = 1;
+      transition( 2, 3 ) = 1;
+      transition( 3, 2 ) = 0.5;
+      transition( 3, 0 ) = 0.5;
+
+      // initial state probability
+      Vector pi( 4 );
+      pi = nll::core::make_buffer1D<double>( 0.25, 0.25, 0, 0.5 );
+
+      // define the gaussian distribution (only 1 gaussian is used to generate the distribution)
+      struct Gaussian
+      {
+         double meanx;
+         double meany;
+         double variance;
+      };
+
+      const Gaussian gaussians[] =
+      {
+         {0,   0,   1},
+         {0.5, 2,   1},
+         {2,   0.5, 1},
+         {0.5, 2,   1}
+      };
+
+      // generate observations by state
+      std::vector<Observations> observations( nbStates );
+      for ( unsigned n = 0; n < nbStates; ++n )
+      {
+         for ( unsigned nn = 0; nn < 100; ++nn )
+         {
+            double posx = nll::core::generateGaussianDistribution( gaussians[ n ].meanx, gaussians[ n ].variance );
+            double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance );
+            Observation p = nll::core::make_vector<double>( posx, posy );
+
+            observations[ n ].push_back( p );
+         }
+      }
+
+      // generate a serie of observations
+      const unsigned size = 6;
+      const unsigned nbChains = 100;
+      std::vector<Observations> dataset( nbChains );
+      std::vector< std::vector<unsigned> > statesList( nbChains );
+      for ( unsigned n = 0; n < nbChains; ++n )
+      {
+         std::vector<unsigned> chain( size );
+         chain[ 0 ] = nll::core::sampling( pi, 1 )[ 0 ];
+         for ( unsigned nn = 1; nn < size; ++nn )
+         {
+            std::vector<double> proba( nbStates );
+            for ( unsigned nnn = 0; nnn < nbStates; ++nnn )
+               proba[ nnn ] = transition( chain[ nn - 1 ], nnn );
+            chain[ nn ] = nll::core::sampling( proba, 1 )[ 0 ];
+         }
+
+         Observations obs( size );
+         for ( unsigned nn = 0; nn < size; ++nn )
+         {
+            const unsigned observationIndex = (unsigned)rand() % observations[ chain[ nn ] ].size();
+            obs[ nn ] = observations[ chain[ nn ] ][ observationIndex ];
+         }
+         dataset[ n ] = obs;
+         statesList[ n ] = chain;
+      }
+
+      // generate the hmm
+      Hmm hmm;
+      hmm.learn( dataset,
+                 statesList,
+                 nll::core::make_vector<unsigned>( 1, 1, 1, 1 ),
+                 nll::core::make_vector<unsigned>( 5, 5, 5, 5 ) );
+
+      std::vector<nll::ui32> states;
+      hmm.computeHiddenState( dataset[ 0 ], states );
+
+      hmm.getTransitions().print( std::cout );
+      for ( unsigned n = 0; n < 4; ++n )
+         hmm.getEmission()[ n ].getGaussians()[ 0 ].mean.print( std::cout );
    }
 };
 
-#ifndef DONT_RUN_TEST
-TESTER_TEST_SUITE(TestHmm);
-TESTER_TEST(testHmm);
+//#ifndef DONT_RUN_TEST
+TESTER_TEST_SUITE(TestHmmContinuous);
+TESTER_TEST(testHmm1);
 TESTER_TEST_SUITE_END();
-#endif
+//#endif

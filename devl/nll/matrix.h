@@ -133,7 +133,7 @@ namespace core
       /**
        @brief print the matrix to a stream
        */
-      void print( std::ostream& o )
+      void print( std::ostream& o ) const
       {
          if ( this->_buffer )
          {
