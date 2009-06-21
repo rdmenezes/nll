@@ -178,6 +178,8 @@ namespace algorithm
 			   const ui32 result = _results[n];
 			   if (result == -1)
 				   continue;	// the point doesn't belongs to any cluster, is <Metrix::distance> correct?
+
+            std::cout << "p=" << _clusters[result][0] << std::endl;
 			   _utility.add(_clusters[result], points[n]);
 			   ++count[result];
 		   }

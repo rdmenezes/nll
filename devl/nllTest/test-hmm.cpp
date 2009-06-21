@@ -266,7 +266,10 @@ namespace algorithm
          _gmms = std::vector<Gmm>( nbStates );
          for ( ui32 n = 0; n < nbStates; ++n )
          {
-            implementation::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
+            // TODO CHANGE!!!!
+            implementation::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, /*n*/ 3 /*DEBUG TODO*/ );
+
+            std::vector<double> ob = observations[ 368 ];
             _gmms[ n ].em( observations, (ui32)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
          }
 
@@ -289,8 +292,13 @@ namespace algorithm
             }
 
          for ( ui32 s1 = 0; s1 < nbStates; ++s1 )
+         {
+            double norme = 0;
             for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
-               _transitions( s1, s2 ) /= sorted[ s1 ].size();
+               norme += _transitions( s1, s2 );
+            for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
+               _transitions( s1, s2 ) /= norme;
+         }
       }
 
       /**
@@ -378,7 +386,9 @@ public:
    // in this test we already know what hmm generated the samples. Just compare we have the same results
    void testHmm1()
    {
-      srand( 1 ); // set the seed since we need to know the exact paramters found by the algorithm
+      unsigned seed = 1245617666;//time(0);
+      std::cout << "seed=" << seed << std::endl;
+      srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 
       typedef std::vector<double>                      Observation;
       typedef HiddenMarkovModelContinuous<Observation> Hmm;
@@ -431,8 +441,8 @@ public:
       }
 
       // generate a serie of observations
-      const unsigned size = 6;
-      const unsigned nbChains = 100;
+      const unsigned size = 15;
+      const unsigned nbChains = 400;
       std::vector<Observations> dataset( nbChains );
       std::vector< std::vector<unsigned> > statesList( nbChains );
       for ( unsigned n = 0; n < nbChains; ++n )

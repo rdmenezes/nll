@@ -239,6 +239,9 @@ namespace algorithm
          for ( ui32 n = 0; n < points.sizey(); ++n )
          {
             rang[ n ] = kres.first[ n ];
+            std::cout << "n=" << n << std::endl;
+            std::cout << "rang[n]=" << rang[ n ] << std::endl;
+            std::cout << "count[ rang[ n ] ]=" << count[ rang[ n ] ] << std::endl;
             ++count[ rang[ n ] ];
          }
          core::sortRow( points, rang );
