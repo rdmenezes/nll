@@ -96,7 +96,6 @@
 # include "static-vector.h"
 # include "buffer1D.h"
 # include "buffer1D-converter.h"
-# include "buffer-adaptor.h"
 # include "math.h"
 # include "math-distribution-gaussian.h"
 # include "math-distribution-uniform.h"

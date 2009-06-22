@@ -1,5 +1,9 @@
 # This file has been automatically generated and should not be changed
 
+[nll.metadata.debug.AMD64_3.4G]
+nll.machine=AMD64_3.4G
+nll.version=nll-0.09
+
 [nll.metadata.debug.laptop2]
 nll.machine=laptop2
 nll.version=nll-0.09
@@ -11,6 +15,9 @@ nll.version=nll-0.09
 [nll.metadata.release.laptop2]
 nll.machine=laptop2
 nll.version=nll-0.09
+
+[nll.testdata.debug.AMD64_3.4G]
+nll.TestHmmContinuous.testHmm1=0.75
 
 [nll.testdata.debug.laptop2]
 nll.TestHmmContinuous.testHmm1=0.316

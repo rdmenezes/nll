@@ -132,7 +132,7 @@ namespace algorithm
 	      {
 		      tt( n, 0 ) = input_prior[ n ] * input_emissions( 0, n );
 		      vv( n, 0 ) = 0;
-            std::cout << "init s[" << n << "]=" << tt( n, 0 ) << std::endl;
+            std::cout << "init s[" << n << "]=" << tt( n, 0 ) << " e=" << input_emissions( 0, n ) << std::endl;
 	      }
 
 	      for ( ui32 t = 1; t < nbObservations; ++t )
@@ -178,7 +178,7 @@ namespace algorithm
          std::vector<ui32> seq;
 	      for ( std::vector<ui32>::reverse_iterator it = path.rbegin(); it != path.rend(); ++it )
 		      seq.push_back( *it );
-         output_path = std::vector<ui32>( seq.rbegin(), seq.rend() );
+         output_path = seq;
          return max;
       }
 
@@ -266,10 +266,7 @@ namespace algorithm
          _gmms = std::vector<Gmm>( nbStates );
          for ( ui32 n = 0; n < nbStates; ++n )
          {
-            // TODO CHANGE!!!!
-            implementation::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, /*n*/ 3 /*DEBUG TODO*/ );
-
-            std::vector<double> ob = observations[ 368 ];
+            implementation::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
             _gmms[ n ].em( observations, (ui32)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
          }
 
@@ -278,8 +275,13 @@ namespace algorithm
          for ( ui32 n = 0; n < nbStates; ++n )
             nbStatesInLearning += static_cast<ui32>( sorted[ n ].size() );
          _pi = Pi( nbStates );
+         for ( ui32 n = 0; n < statesList.size(); ++n )
+         {
+            ui32 state = statesList[ n ][ 0 ];
+            ++_pi[ state ];
+         }
          for ( ui32 n = 0; n < nbStates; ++n )
-            _pi[ n ] = sorted[ n ].size() / nbStatesInLearning;
+            _pi[ n ] /= static_cast<double>( statesList.size() );
 
          // compute the transition matrix
          _transitions = Matrix( nbStates, nbStates );
@@ -323,12 +325,13 @@ namespace algorithm
       {
          assert( obs.size() && _pi.size() );
          Matrix emissions( (ui32)_pi.size(), (ui32)obs.size() );
-         for ( ui32 s = 0; s < _pi.size(); ++s )
-            for ( ui32 o = 0; o < obs.size(); ++o )
+         for ( ui32 o = 0; o < obs.size(); ++o )
+            for ( ui32 s = 0; s < _pi.size(); ++s )
             {
                std::vector<Observation> obss( 1 );
-               obss[ 0 ] = obs[ 0 ];
-               emissions( s, o ) = exp( _gmms[ s ].likelihood( obss ) );
+               obss[ 0 ] = obs[ o ];
+               const double probability = exp( _gmms[ s ].likelihood( obss ) );
+               emissions( s, o ) = probability;
             }
 
          ui32 endState;
@@ -386,7 +389,8 @@ public:
    // in this test we already know what hmm generated the samples. Just compare we have the same results
    void testHmm1()
    {
-      unsigned seed = 1245617666;//time(0);
+      //1245617666
+      unsigned seed = 0;//time(0);
       std::cout << "seed=" << seed << std::endl;
       srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 
@@ -420,10 +424,10 @@ public:
 
       const Gaussian gaussians[] =
       {
-         {0,   0,   1},
-         {0.5, 2,   1},
-         {2,   0.5, 1},
-         {0.5, 2,   1}
+         {0,   0,   0.25},
+         {0.5, 2,   0.25},
+         {2,   0.5, 0.25},
+         {0.5, 2,   0.25}
       };
 
       // generate observations by state
@@ -442,7 +446,7 @@ public:
 
       // generate a serie of observations
       const unsigned size = 15;
-      const unsigned nbChains = 400;
+      const unsigned nbChains = 2000;
       std::vector<Observations> dataset( nbChains );
       std::vector< std::vector<unsigned> > statesList( nbChains );
       for ( unsigned n = 0; n < nbChains; ++n )
