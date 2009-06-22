@@ -277,6 +277,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-markov-chain.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-morphology.cpp"
 				>
 			</File>

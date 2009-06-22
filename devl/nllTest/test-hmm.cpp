@@ -390,7 +390,7 @@ public:
    void testHmm1()
    {
       //1245617666
-      unsigned seed = 0;//time(0);
+      unsigned seed = 12;
       std::cout << "seed=" << seed << std::endl;
       srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 
