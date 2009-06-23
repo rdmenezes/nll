@@ -105,7 +105,7 @@ namespace algorithm
 	      {
 		      tt( n, 0 ) = input_prior[ n ] * input_emissions( 0, n );
 		      vv( n, 0 ) = 0;
-            std::cout << "init s[" << n << "]=" << tt( n, 0 ) << " e=" << input_emissions( 0, n ) << std::endl;
+            std::cout << "init s[" << n << "]=" << tt( n, 0 ) << " e=" << input_emissions( n, 0 ) << std::endl;
 	      }
 
 	      for ( ui32 t = 1; t < nbObservations; ++t )
@@ -241,45 +241,14 @@ namespace algorithm
          {
             impl::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
             _gmms[ n ].em( observations, (ui32)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
+            _gmms[ n ].getGaussians()[ 0 ].mean.print( std::cout );
          }
 
+         // use a markov chain to compute the transition matrix and initial state distribution
          MarkovChainFirstOrderDense markovChain;
          markovChain.learn( statesList );
          _pi = markovChain.getInitialStateDistribution();
          _transitions = markovChain.getTransitions();
-
-         /*
-         // compute the initial distribution pi. It is used to initialize the markov chain
-         ui32 nbStatesInLearning = 0;
-         for ( ui32 n = 0; n < nbStates; ++n )
-            nbStatesInLearning += static_cast<ui32>( sorted[ n ].size() );
-         _pi = Pi( nbStates );
-         for ( ui32 n = 0; n < statesList.size(); ++n )
-         {
-            ui32 state = statesList[ n ][ 0 ];
-            ++_pi[ state ];
-         }
-         for ( ui32 n = 0; n < nbStates; ++n )
-            _pi[ n ] /= static_cast<double>( statesList.size() );
-
-         // compute the transition matrix
-         _transitions = Matrix( nbStates, nbStates );
-         for ( ui32 n = 0; n < observationsList.size(); ++n )
-            for ( ui32 nn = 0; nn < observationsList[ n ].size() - 1; ++nn )
-            {
-               ui32 s1 = statesList[ n ][ nn ];
-               ui32 s2 = statesList[ n ][ nn + 1 ];
-               ++_transitions( s1, s2 );
-            }
-
-         for ( ui32 s1 = 0; s1 < nbStates; ++s1 )
-         {
-            double norme = 0;
-            for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
-               norme += _transitions( s1, s2 );
-            for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
-               _transitions( s1, s2 ) /= norme;
-         }*/
       }
 
       /**
@@ -369,7 +338,7 @@ public:
    void testHmm1()
    {
       //1245617666
-      unsigned seed = time( 0 );
+      unsigned seed = 0;
       std::cout << "seed=" << seed << std::endl;
       srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 
@@ -406,63 +375,80 @@ public:
          {0,   0,   0.25},
          {0.5, 2,   0.25},
          {2,   0.5, 0.25},
-         {0.5, 2,   0.25}
+         {2, 2,   0.25}
       };
 
       // generate observations by state
-      std::vector<Observations> observations( nbStates );
-      for ( unsigned n = 0; n < nbStates; ++n )
+      for ( unsigned nb = 0; nb < 10; ++nb )
       {
-         for ( unsigned nn = 0; nn < 100; ++nn )
+         std::vector<Observations> observations( nbStates );
+         for ( unsigned n = 0; n < nbStates; ++n )
          {
-            double posx = nll::core::generateGaussianDistribution( gaussians[ n ].meanx, gaussians[ n ].variance );
-            double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance );
-            Observation p = nll::core::make_vector<double>( posx, posy );
+            for ( unsigned nn = 0; nn < 100; ++nn )
+            {
+               double posx = nll::core::generateGaussianDistribution( gaussians[ n ].meanx, gaussians[ n ].variance );
+               double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance );
+               Observation p = nll::core::make_vector<double>( posx, posy );
 
-            observations[ n ].push_back( p );
+               observations[ n ].push_back( p );
+            }
          }
+
+         // generate a serie of observations
+         const unsigned size = 15;
+         const unsigned nbChains = 2000;
+         std::vector<Observations> dataset( nbChains );
+         std::vector< std::vector<unsigned> > statesList( nbChains );
+         for ( unsigned n = 0; n < nbChains; ++n )
+         {
+            std::vector<unsigned> chain( size );
+            chain[ 0 ] = nll::core::sampling( pi, 1 )[ 0 ];
+            for ( unsigned nn = 1; nn < size; ++nn )
+            {
+               std::vector<double> proba( nbStates );
+               for ( unsigned nnn = 0; nnn < nbStates; ++nnn )
+                  proba[ nnn ] = transition( chain[ nn - 1 ], nnn );
+               chain[ nn ] = nll::core::sampling( proba, 1 )[ 0 ];
+            }
+
+            Observations obs( size );
+            for ( unsigned nn = 0; nn < size; ++nn )
+            {
+               const unsigned observationIndex = (unsigned)rand() % observations[ chain[ nn ] ].size();
+               obs[ nn ] = observations[ chain[ nn ] ][ observationIndex ];
+            }
+            dataset[ n ] = obs;
+            statesList[ n ] = chain;
+         }
+
+         // generate the hmm
+         Hmm hmm;
+         hmm.learn( dataset,
+                    statesList,
+                    nll::core::make_vector<unsigned>( 1, 1, 1, 1 ),
+                    nll::core::make_vector<unsigned>( 5, 5, 5, 5 ) );
+
+         // generate the markov chain
+         nll::algorithm::MarkovChainFirstOrderDense markovChain( transition, pi );
+
+         const unsigned sizeSeq = 6;
+         nll::core::Buffer1D<nll::ui32> chain = markovChain.generateSequence( sizeSeq );
+
+         std::vector<nll::ui32> chainConv( sizeSeq );
+         Observations obs( sizeSeq );
+         for ( unsigned n = 0; n < sizeSeq; ++n )
+         {
+            chainConv[ n ] = chain[ n ];
+            const unsigned observationIndex = (unsigned)rand() % observations[ chain[ n ] ].size();
+            obs[ n ] = observations[ chain[ n ] ][ observationIndex ];
+         }
+
+         // compare
+         std::vector<nll::ui32> chainOut;
+         hmm.computeHiddenState( obs, chainOut );
+
+         TESTER_ASSERT( chainOut == chainConv );
       }
-
-      // generate a serie of observations
-      const unsigned size = 15;
-      const unsigned nbChains = 2000;
-      std::vector<Observations> dataset( nbChains );
-      std::vector< std::vector<unsigned> > statesList( nbChains );
-      for ( unsigned n = 0; n < nbChains; ++n )
-      {
-         std::vector<unsigned> chain( size );
-         chain[ 0 ] = nll::core::sampling( pi, 1 )[ 0 ];
-         for ( unsigned nn = 1; nn < size; ++nn )
-         {
-            std::vector<double> proba( nbStates );
-            for ( unsigned nnn = 0; nnn < nbStates; ++nnn )
-               proba[ nnn ] = transition( chain[ nn - 1 ], nnn );
-            chain[ nn ] = nll::core::sampling( proba, 1 )[ 0 ];
-         }
-
-         Observations obs( size );
-         for ( unsigned nn = 0; nn < size; ++nn )
-         {
-            const unsigned observationIndex = (unsigned)rand() % observations[ chain[ nn ] ].size();
-            obs[ nn ] = observations[ chain[ nn ] ][ observationIndex ];
-         }
-         dataset[ n ] = obs;
-         statesList[ n ] = chain;
-      }
-
-      // generate the hmm
-      Hmm hmm;
-      hmm.learn( dataset,
-                 statesList,
-                 nll::core::make_vector<unsigned>( 1, 1, 1, 1 ),
-                 nll::core::make_vector<unsigned>( 5, 5, 5, 5 ) );
-
-      std::vector<nll::ui32> states;
-      hmm.computeHiddenState( dataset[ 0 ], states );
-
-      hmm.getTransitions().print( std::cout );
-      for ( unsigned n = 0; n < 4; ++n )
-         hmm.getEmission()[ n ].getGaussians()[ 0 ].mean.print( std::cout );
    }
 };
 
