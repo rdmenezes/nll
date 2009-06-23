@@ -594,6 +594,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\hmm-continuous.h"
+				>
+			</File>
+			<File
 				RelativePath=".\hmm.h"
 				>
 			</File>

@@ -23,6 +23,7 @@ nll.TestMarkovChain.testMarkovChainFirstOrderGenerate=3.047
 
 [nll.testdata.debug.laptop2]
 nll.TestHmmContinuous.testHmm1=0.316
+nll.TestMarkovChain.testMarkovChainFirstOrder=0.001
 
 [nll.testdata.release.AMD64_3.4G]
 nll.TestClassifierKnn.test=0.016
@@ -100,13 +101,16 @@ nll.TestClassifierKnn.test=0.025
 nll.TestClassifierNN.test=258.123
 nll.TestGA.testGA=16.874
 nll.TestHmm.testHmm=0
+nll.TestHmmContinuous.testHmm1=0.377
+nll.TestMarkovChain.testMarkovChainFirstOrder=0.001
+nll.TestMarkovChain.testMarkovChainFirstOrderGenerate=0.503
 nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.103
 nll.TestNllAlgorithmClassifierGmm.testGmmClassifier=24.137
 nll.TestNllAlgorithmClassifierGmm.testReadWriteVector=0.001
 nll.TestNllAlgorithmClassifierMlp.testMlpClassifier=0.102
 nll.TestNllClassifierNearestNeighbor.testNllClassifierNearestNeighbor=0.003
-nll.TestNllClassifierSvm.testNllClassifierSvm=0.006
-nll.TestNllFeatureSelection.testNllFeatureSelectionPearson=0.002
+nll.TestNllClassifierSvm.testNllClassifierSvm=0.004
+nll.TestNllFeatureSelection.testNllFeatureSelectionPearson=0.001
 nll.TestNllFeatureSelection.testNllFeatureSelectionRelieff=0.175
 nll.TestNllFeatureSelection.testNllRelieff=0.002
 nll.TestNllLabelize.testNllLabelize=0.135
@@ -136,7 +140,7 @@ nll.TestnllCore.testDatabase=0
 nll.TestnllCore.testDatabaseFilter=0
 nll.TestnllCore.testDatabaseFilterSelect=0
 nll.TestnllCore.testDatabaseInputAdapter=0
-nll.TestnllCore.testDistanceTransform=0.035
+nll.TestnllCore.testDistanceTransform=0.031
 nll.TestnllCore.testGabor=5.176
 nll.TestnllCore.testGmm=30.501
 nll.TestnllCore.testImage=0.073
