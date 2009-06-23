@@ -5,35 +5,8 @@ namespace nll
 {
 namespace algorithm
 {
-   namespace implementation
+   namespace impl
    {
-      /**
-       @brief Compute the number of states in a list of list of observation
-       */
-      template <class StatesList>
-      ui32 getNumberOfStates( const StatesList& statesList )
-      {
-         // empty list
-         if ( !statesList.size() || !statesList[ 0 ].size() )
-            return 0;
-
-         typedef std::map<ui32, ui32>  StatesMap;
-         StatesMap states;
-         for ( ui32 n = 0; n < statesList.size(); ++n )
-            for ( ui32 nn = 0; nn < statesList[ n ].size(); ++nn )
-               ++states[ statesList[ n ][ nn ] ];
-
-         // check that the state list is a contiguous list of index starting from 0
-         int previous = -1;
-         for ( StatesMap::const_iterator it = states.begin(); it != states.end(); ++it, ++previous )
-         {
-            ensure(( previous + 1 ) ==  static_cast<int>( it->first ), "it must be contiguous and start at 0" );
-         }
-
-         // the highest index + 1 is the number of states
-         return states.rbegin()->first + 1;
-      }
-
       /**
        @brief Adaptor from an array of array of observation to a vector type
        */
@@ -203,14 +176,14 @@ namespace algorithm
      Todo: C++ 0x Concept
 
     */
-   template <class Observation>
+   template <class Observation, class MarkovChain = MarkovChainFirstOrderDense>
    class HiddenMarkovModelContinuous
    {
    public:
       typedef std::vector<Observation>    Observations;
       typedef ui32                        State;
       typedef std::vector<State>          States;
-      typedef std::vector<double>         Pi;
+      typedef core::Buffer1D<double>      Pi;
       typedef core::Matrix<double>        Matrix;
 
    public:
@@ -239,7 +212,7 @@ namespace algorithm
                   const std::vector<unsigned>& nbOfGaussiansPerState,
                   const std::vector<unsigned>& gmmNbIterations )
       {
-         ui32 nbStates = implementation::getNumberOfStates( statesList );
+         ui32 nbStates = impl::getNumberOfStates( statesList );
          _nbOfGaussiansPerState = nbOfGaussiansPerState;
          ensure( observationsList.size() == statesList.size(), "the number of obersation list must match the number of state list" );
          ensure( nbStates == nbOfGaussiansPerState.size(), "the number of obersation list must match the number of gaussians defined" );
@@ -266,10 +239,16 @@ namespace algorithm
          _gmms = std::vector<Gmm>( nbStates );
          for ( ui32 n = 0; n < nbStates; ++n )
          {
-            implementation::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
+            impl::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
             _gmms[ n ].em( observations, (ui32)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
          }
 
+         MarkovChainFirstOrderDense markovChain;
+         markovChain.learn( statesList );
+         _pi = markovChain.getInitialStateDistribution();
+         _transitions = markovChain.getTransitions();
+
+         /*
          // compute the initial distribution pi. It is used to initialize the markov chain
          ui32 nbStatesInLearning = 0;
          for ( ui32 n = 0; n < nbStates; ++n )
@@ -300,7 +279,7 @@ namespace algorithm
                norme += _transitions( s1, s2 );
             for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
                _transitions( s1, s2 ) /= norme;
-         }
+         }*/
       }
 
       /**
@@ -335,12 +314,12 @@ namespace algorithm
             }
 
          ui32 endState;
-         return implementation::viterbi<Matrix, Pi, Matrix>( (ui32)obs.size(), 
-                                                             _pi,
-                                                             _transitions,
-                                                             emissions,
-                                                             statesOut,
-                                                             endState );
+         return impl::viterbi<Matrix, Pi, Matrix>( (ui32)obs.size(), 
+                                                    _pi,
+                                                    _transitions,
+                                                    emissions,
+                                                    statesOut,
+                                                    endState );
       }
 
       /**
@@ -390,7 +369,7 @@ public:
    void testHmm1()
    {
       //1245617666
-      unsigned seed = 12;
+      unsigned seed = time( 0 );
       std::cout << "seed=" << seed << std::endl;
       srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 

@@ -18,6 +18,8 @@ nll.version=nll-0.09
 
 [nll.testdata.debug.AMD64_3.4G]
 nll.TestHmmContinuous.testHmm1=0.75
+nll.TestMarkovChain.testMarkovChainFirstOrder=0
+nll.TestMarkovChain.testMarkovChainFirstOrderGenerate=3.047
 
 [nll.testdata.debug.laptop2]
 nll.TestHmmContinuous.testHmm1=0.316
@@ -26,6 +28,8 @@ nll.TestHmmContinuous.testHmm1=0.316
 nll.TestClassifierKnn.test=0.016
 nll.TestClassifierNN.test=257.708
 nll.TestGA.testGA=10.407
+nll.TestMarkovChain.testMarkovChainFirstOrder=0.797
+nll.TestMarkovChain.testMarkovChainFirstOrderGenerate=0.093
 nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.047
 nll.TestNllAlgorithmClassifierGmm.testGmmClassifier=9.547
 nll.TestNllAlgorithmClassifierGmm.testReadWriteVector=0

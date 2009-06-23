@@ -164,6 +164,7 @@
 # include "hmm.h"
 # include "gabor-filter.h"
 # include "gabor.h"
+# include "markov-chain.h"
 # include "classifier-gmm.h"
 # include "classifier-mlp.h"
 # include "classifier-nearest-neighbor.h"
