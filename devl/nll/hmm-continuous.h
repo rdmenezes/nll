@@ -127,6 +127,9 @@ namespace algorithm
                std::vector<Observation> obss( 1 );
                obss[ 0 ] = obs[ o ];
                const double probability = exp( _gmms[ s ].likelihood( obss ) );
+
+               //_gmms[ s ].getGaussians()[ 0 ].mean.print( std::cout );
+               //_gmms[ s ].getGaussians()[ 0 ].covariance.print( std::cout );
                emissions( s, o ) = probability;
             }
 
