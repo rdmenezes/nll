@@ -281,6 +281,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-matrix-cholesky.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-morphology.cpp"
 				>
 			</File>

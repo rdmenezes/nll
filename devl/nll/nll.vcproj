@@ -376,6 +376,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\matrix-cholesky.h"
+				>
+			</File>
+			<File
 				RelativePath=".\matrix-converter.h"
 				>
 			</File>

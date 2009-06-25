@@ -204,13 +204,14 @@ namespace core
       /**
        @brief test if the matrices are semantically equal
        */
-      inline bool equal( const Matrix& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
+      template <class Mapper>
+      inline bool equal( const Matrix<T, Mapper>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
       {
-         if ( _sizex != op._sizex || _sizey != op._sizey )
+         if ( _sizex != op.sizex() || _sizey != op.sizey() )
             return false;
-         if ( ! op._buffer || !this->_buffer )
+         if ( ! op.getBuf() || !this->_buffer )
             return false;
-         if ( op._buffer == this->_buffer )
+         if ( op.getBuf() == this->_buffer )
             return true;
          for ( ui32 nx = 0; nx < _sizex; ++nx )
             for ( ui32 ny = 0; ny < _sizey; ++ny )

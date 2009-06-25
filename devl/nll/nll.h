@@ -110,6 +110,7 @@
 # include "matrix-converter.h"
 # include "matrix-sort.h"
 # include "matrix-svd.h"
+# include "matrix-cholesky.h"
 # include "type-traits.h"
 # include "type-traits-inherited.h"
 # include "type-traits-memory.h"
