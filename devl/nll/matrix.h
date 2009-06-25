@@ -80,6 +80,18 @@ namespace core
       }
 
       /**
+       @brief Import a matrix that uses a different mapper/form...
+       */
+      template <class TT, class Mapper>
+      void import( const Matrix<TT, Mapper>& m )
+      {
+         *this = Matrix( m.sizey(), m.sizex() );
+         for ( ui32 ny = 0; ny < m.sizey(); ++ny )
+            for ( ui32 nx = 0; nx < m.sizex(); ++nx )
+               at( ny, nx ) = static_cast<value_type>( m( nx, ny ) );
+      }
+
+      /**
        @brief make an alias (memory is shared)
        */
       void copy( const Matrix& mat )

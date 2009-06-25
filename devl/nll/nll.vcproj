@@ -348,6 +348,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\math-distribution-multinormal.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math-distribution-uniform.h"
 				>
 			</File>

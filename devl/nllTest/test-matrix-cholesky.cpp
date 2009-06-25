@@ -77,6 +77,10 @@ public:
       TESTER_ASSERT( success );
       TESTER_ASSERT( m.equal( refmat, 1e-5 ) );
    }
+
+   /**
+    Test multinormal generation
+    */
 };
 
 #ifndef DONT_RUN_TEST
