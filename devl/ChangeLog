@@ -1,5 +1,6 @@
 v0.09
--bug fixes
+-bug fixes (small bias corrected in a sample generator)
+-added unit tests
 -added continuous hidden markov model
 -added first order markov chain
 -multi normal distribution generator added

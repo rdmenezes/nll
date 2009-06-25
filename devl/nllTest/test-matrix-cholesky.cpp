@@ -38,7 +38,6 @@ public:
          cov.clone( gmm.getGaussians()[ 0 ].covariance );
 
          nll::core::Buffer1D<nll::ui32> index;
-         double d;
          bool success = nll::core::choleskyDecomposition( cov );
          TESTER_ASSERT( success );
 
@@ -81,11 +80,68 @@ public:
    /**
     Test multinormal generation
     */
+   void testMultinormal()
+   {
+      srand( 0 );
+      typedef nll::core::Matrix<double, nll::core::IndexMapperRowMajorFlat2D> Matrix;
+      typedef std::vector<double> Point;
+      typedef std::vector<Point>  Points;
+      
+      for ( unsigned n = 0; n < 50; ++n )
+      {
+         const double meanx = ( ( rand() / (double)RAND_MAX ) - 0.5 ) * 100;
+         const double meany = ( ( rand() / (double)RAND_MAX ) - 0.5 ) * 100;
+         const double varx = ( rand() / (double)RAND_MAX ) * 100 + 0.1;
+         const double vary = ( rand() / (double)RAND_MAX ) * 100 + 0.1;
+
+         const unsigned nbPoints = 50000;
+         Points p( nbPoints );
+         for ( unsigned n = 0; n < nbPoints; ++n )
+         {
+            double dx = nll::core::generateGaussianDistribution( meanx, varx );
+            double dy = nll::core::generateGaussianDistribution( meany, vary );
+            p[ n ] = nll::core::make_vector<double>( dx, dy );
+         }
+
+         nll::algorithm::Gmm gmm;
+         gmm.em( p, 2, 1, 5 );
+
+         typedef nll::core::Buffer1D<double> Point2;
+         typedef std::vector<Point2>         Points2;
+         nll::core::NormalMultiVariateDistribution generator( gmm.getGaussians()[ 0 ].mean,
+                                                              gmm.getGaussians()[ 0 ].covariance );
+         Points2 points2( nbPoints );
+         for ( unsigned n = 0; n < nbPoints; ++n )
+            points2[ n ] = generator.generate();
+
+         nll::algorithm::Gmm gmm2;
+
+         gmm2.em( points2, 2, 1, 5 );
+         
+         // test the mean. It has a relatively big error. However if the number of samples is increased,
+         // the error rate is decreasing
+         TESTER_ASSERT( nll::core::equal<double>( meanx,
+                                                  gmm2.getGaussians()[ 0 ].mean[ 0 ], 1.5 ) );
+         TESTER_ASSERT( nll::core::equal<double>( meany,
+                                                  gmm2.getGaussians()[ 0 ].mean[ 1 ], 1.5 ) );
+
+         // we only test the diagonal as the other are of relatively low importance
+         // and it is discarded in the EM algorithm
+         TESTER_ASSERT( nll::core::equal<double>( gmm.getGaussians()[ 0 ].covariance( 0, 0 ),
+                                                  gmm2.getGaussians()[ 0 ].covariance( 0, 0 ), 
+                                                  gmm.getGaussians()[ 0 ].covariance( 0, 0 ) * 0.05 ) );
+         TESTER_ASSERT( nll::core::equal<double>( gmm.getGaussians()[ 0 ].covariance( 1, 1 ),
+                                                  gmm2.getGaussians()[ 0 ].covariance( 1, 1 ), 
+                                                  gmm.getGaussians()[ 0 ].covariance( 1, 1 ) * 0.05 ) );
+         std::cout << "#";
+      }
+    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestMatrixCholesky);
  TESTER_TEST(testMatrixCholesky);
  TESTER_TEST(testMatrixCholesky2);
+ TESTER_TEST(testMultinormal);
 TESTER_TEST_SUITE_END();
 #endif
