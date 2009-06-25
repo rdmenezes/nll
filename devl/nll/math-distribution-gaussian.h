@@ -9,7 +9,8 @@ namespace core
 {
    /**
     @ingroup core
-    @brief generate a sample of a specific gaussian distribution
+    @brief generate a sample of a specific gaussian distribution using the Box-Muller transform.
+           See http://en.wikipedia.org/wiki/Box-Muller_transform
     @param mean the mean of the distribution
     @param variance the variance of the distribution
     @return a sample of this distribution
