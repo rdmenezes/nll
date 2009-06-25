@@ -58,7 +58,7 @@ namespace algorithm
 
          Matrix tt( prior.size(), 2 );
          for ( ui32 n = 0; n < prior.size(); ++n )
-            tt( n, 0 ) = prior[ n ] * emission( 0, n );
+            tt( n, 0 ) = prior[ n ] * emission( n, 0 );
 
          for ( ui32 t = 1; t < nbObservations; ++t )
          {
@@ -67,7 +67,7 @@ namespace algorithm
                double sum = 0;
                for ( ui32 i = 0; i < prior.size(); ++i )
                   sum += tt( i, t - 1 ) * transitions( i, j )
-               tt( j, t ) = sum * emission( t, j );
+               tt( j, t ) = sum * emission( j, t );
             }
          }
 
