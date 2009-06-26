@@ -24,24 +24,26 @@ namespace core
    {
       if ( !nbSampledPoints )
          return Buffer1D<ui32>();
-      std::vector<double> sd( p.size() );
+      std::vector<double> sd( p.size() + 1 );
       double prob = 0;
-      sd[ 0 ] = 0;
-      const int PRECISION = 10000;
       for ( ui32 n = 0; n < p.size(); ++n )
       {
-         prob += p[ n ] * PRECISION;
-         sd[ n ] = prob;
+         prob += p[ n ];
+         sd[ n + 1 ] = prob;
       }
-      ensure( prob <= PRECISION + 0.01, "probability must sum to 1" );
+      sd[ p.size() ] = 10; // we set an impossible "probability" so we are sure we won't miss the last one
+      ensure( fabs( prob - 1 ) <= 0.01, "probability must sum to 1" );
       
       Buffer1D<ui32> points( nbSampledPoints );
       for ( ui32 n = 0; n < nbSampledPoints; ++n )
       {
-         int point = rand() % PRECISION;
-         std::vector<double>::const_iterator it = std::lower_bound( sd.begin(), sd.end(), point );
-         std::vector<double>::difference_type diff = it - sd.begin();
-         points[ n ] = static_cast<ui32>( diff );
+         double point = static_cast<double>( rand() ) / RAND_MAX;
+         size_t nn = 0;
+         // we don't need to test the end of the buffer as it is not possible to reach it!
+         for ( ; point >= sd[ nn ]; ++nn )
+            ;
+         points[ n ] = static_cast<ui32>( nn - 1 );
+         assert( points[ n ] < p.size() );
       }
       return points;
    }

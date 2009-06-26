@@ -72,6 +72,7 @@ namespace algorithm
          }
       };
 
+   public:
       typedef f64                                                             ComputingType;
       typedef core::Buffer1D<ComputingType>                                   Vector;
       typedef core::Matrix<ComputingType, core::IndexMapperRowMajorFlat2D>    Matrix;
@@ -111,7 +112,7 @@ namespace algorithm
       {}
 
       /**
-       @brief return the likelihood of a point from the computed model
+       @brief return the log likelihood of a point from the computed model
               Points requires operator[], size()
        */
       template <class Points>
@@ -201,6 +202,14 @@ namespace algorithm
       {
          core::read<ui32>( _pointSize, i );
          core::read<Gaussians>( _gaussians, i );
+      }
+
+      /**
+       @return the gaussians found
+       */
+      const Gaussians& getGaussians() const
+      {
+         return _gaussians;
       }
 
    private:
