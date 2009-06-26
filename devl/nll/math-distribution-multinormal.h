@@ -14,7 +14,7 @@ namespace core
       typedef Matrix<double>     MatrixT;
 
    public:
-      typedef Buffer1D<double>   Vector;
+      typedef Buffer1D<double>   VectorT;
 
    public:
       /**
@@ -33,20 +33,20 @@ namespace core
        @brief Generate samples using the mean/covariance matrix given.
               Just do sample = mean + triangular * vector, with vector=vector of N independent standard variables
        */
-      Vector generate() const
+      VectorT generate() const
       {
          MatrixT r( _mean.size(), 1 );
          for ( unsigned n = 0; n < _mean.size(); ++n )
             r[ n ] = generateGaussianDistribution( 0, 1 );
          MatrixT result = _triangularSub * r;
-         Vector final( _mean.size() );
+         VectorT final( _mean.size() );
          for ( unsigned n = 0; n < _mean.size(); ++n )
             final[ n ] = result[ n ] + _mean[ n ];
          return final;
       }
 
    private:
-      Vector   _mean;
+      VectorT   _mean;
       MatrixT  _triangularSub;
       bool     _success;
    };

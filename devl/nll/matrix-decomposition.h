@@ -21,7 +21,8 @@ namespace core
            |a31 a32 b33|.
     @param per defines the row permutations
     @param d is 1 if the number of row interchange is even, -1 if not
-    @note code from numerical recipes
+    @note As the matrix are directly modified, beware if several matrices are sharing the same buffer.
+          Code from numerical recipes
     */
 	template <class type, class mapper>
 	bool luDecomposition(Matrix<type, mapper>& a, Buffer1D<ui32>& perm, type& d)

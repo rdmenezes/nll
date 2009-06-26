@@ -193,7 +193,7 @@ public:
 # ifdef DEBUG_BUFFER1D
       std::cout << "clone buffer1D" << std::endl;
 # endif
-      _allocate( cpy.size(), false );
+      _allocate( static_cast<ui32>( cpy.size() ), false );
       for (ui32 n = 0; n < cpy.size(); ++n)
          at( n ) = cpy[ n ];
    }

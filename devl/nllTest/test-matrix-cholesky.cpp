@@ -78,7 +78,7 @@ public:
    }
 
    /**
-    Test multinormal generation
+    Test multinormal generation (no correlation)
     */
    void testMultinormal()
    {
@@ -126,7 +126,7 @@ public:
                                                   gmm2.getGaussians()[ 0 ].mean[ 1 ], 1.5 ) );
 
          // we only test the diagonal as the other are of relatively low importance
-         // and it is discarded in the EM algorithm
+         // as we generated these samples without correclation XY.
          TESTER_ASSERT( nll::core::equal<double>( gmm.getGaussians()[ 0 ].covariance( 0, 0 ),
                                                   gmm2.getGaussians()[ 0 ].covariance( 0, 0 ), 
                                                   gmm.getGaussians()[ 0 ].covariance( 0, 0 ) * 0.05 ) );
@@ -136,6 +136,49 @@ public:
          std::cout << "#";
       }
     }
+
+   /**
+    Test multinormal2 (with correlation)
+    */
+   void testMultinormal2()
+   {
+      srand( 0 );
+      typedef nll::core::Matrix<double, nll::core::IndexMapperRowMajorFlat2D> Matrix;
+
+      for ( unsigned nb = 0; nb < 50; ++nb )
+      {
+         // generate a symmetric positive definite matrix
+         // and mean vector
+         Matrix cov( 4, 4 );
+         std::vector<double> mean( cov.sizey() );
+         for ( unsigned ny = 0; ny < cov.sizey(); ++ny )
+         {
+            for ( unsigned nx = ny; nx < cov.sizex(); ++nx )
+            {
+               const double val = ny * ( ( rand() % 10 ) + 50 ) + nx + 1;
+               cov( ny, nx ) = val;
+               cov( nx, ny ) = val;
+            }
+            mean[ ny ] = rand() % 20;
+         }
+
+         // generate samples
+         nll::core::NormalMultiVariateDistribution generator( mean, cov );
+
+         const unsigned nbSamples = 10000;
+         Matrix samples( nbSamples, (unsigned)mean.size() );
+         for ( unsigned n = 0; n < nbSamples; ++n )
+         {
+            nll::core::NormalMultiVariateDistribution::VectorT sample = generator.generate();
+            for ( unsigned nx = 0; nx < mean.size(); ++nx )
+               samples( n, nx ) = sample[ nx ];
+         }
+         Matrix newCov = nll::core::covariance( samples, 0, nbSamples - 1 );
+
+         // with more samples, the error decrease, so it is fine like this.
+         TESTER_ASSERT( newCov.equal( cov, 7 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -143,5 +186,6 @@ TESTER_TEST_SUITE(TestMatrixCholesky);
  TESTER_TEST(testMatrixCholesky);
  TESTER_TEST(testMatrixCholesky2);
  TESTER_TEST(testMultinormal);
+ TESTER_TEST(testMultinormal2);
 TESTER_TEST_SUITE_END();
 #endif
