@@ -14,7 +14,7 @@ namespace core
     @param a matrix to be inversed
     @param determinant export the determinant is necessary
     @return false if the matrix is singular
-    @note use a LU decomposition internally
+    @note use a LU decomposition internally, complexity N^3
     */
    template <class type, class mapper>
 	bool inverse(Matrix<type, mapper>& a, type* determinant = 0)

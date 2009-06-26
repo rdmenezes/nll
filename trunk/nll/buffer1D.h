@@ -187,15 +187,15 @@ public:
    /**
     @brief clone a buffer. The memory is copied.
     */
-   template <class T2, class IndexMapper2>
-   void clone(const Buffer1D<T2, IndexMapper2>& cpy)
+   template <class Vector>
+   void clone(const Vector& cpy)
    {
 # ifdef DEBUG_BUFFER1D
       std::cout << "clone buffer1D" << std::endl;
 # endif
-      _allocate( cpy.size(), false );
+      _allocate( static_cast<ui32>( cpy.size() ), false );
       for (ui32 n = 0; n < cpy.size(); ++n)
-         at( n ) = cpy.at( n );
+         at( n ) = cpy[ n ];
    }
 
    /**

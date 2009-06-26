@@ -80,6 +80,18 @@ namespace core
       }
 
       /**
+       @brief Import a matrix that uses a different mapper/form...
+       */
+      template <class TT, class Mapper>
+      void import( const Matrix<TT, Mapper>& m )
+      {
+         *this = Matrix( m.sizey(), m.sizex() );
+         for ( ui32 ny = 0; ny < m.sizey(); ++ny )
+            for ( ui32 nx = 0; nx < m.sizex(); ++nx )
+               at( ny, nx ) = static_cast<value_type>( m( nx, ny ) );
+      }
+
+      /**
        @brief make an alias (memory is shared)
        */
       void copy( const Matrix& mat )
@@ -133,7 +145,7 @@ namespace core
       /**
        @brief print the matrix to a stream
        */
-      void print( std::ostream& o )
+      void print( std::ostream& o ) const
       {
          if ( this->_buffer )
          {
@@ -204,13 +216,14 @@ namespace core
       /**
        @brief test if the matrices are semantically equal
        */
-      inline bool equal( const Matrix& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
+      template <class Mapper>
+      inline bool equal( const Matrix<T, Mapper>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
       {
-         if ( _sizex != op._sizex || _sizey != op._sizey )
+         if ( _sizex != op.sizex() || _sizey != op.sizey() )
             return false;
-         if ( ! op._buffer || !this->_buffer )
+         if ( ! op.getBuf() || !this->_buffer )
             return false;
-         if ( op._buffer == this->_buffer )
+         if ( op.getBuf() == this->_buffer )
             return true;
          for ( ui32 nx = 0; nx < _sizex; ++nx )
             for ( ui32 ny = 0; ny < _sizey; ++ny )

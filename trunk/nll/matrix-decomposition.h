@@ -13,12 +13,21 @@ namespace core
 {
    /**
     @ingroup core
-    @brief Compute the LU decomposition. PA = LU
-    @note code from numerical recipes
+    @brief Compute the LU decomposition with partial pivoting (intercahnge of rows). PA = LU.
+    @param a the initial square matrix. After this call, the content is directly replaced by the
+           2 triangular matrices arranged as:
+           |b11 b12 b13|
+           |a21 b22 b23|
+           |a31 a32 b33|.
+    @param per defines the row permutations
+    @param d is 1 if the number of row interchange is even, -1 if not
+    @note As the matrix are directly modified, beware if several matrices are sharing the same buffer.
+          Code from numerical recipes
     */
 	template <class type, class mapper>
 	bool luDecomposition(Matrix<type, mapper>& a, Buffer1D<ui32>& perm, type& d)
 	{
+      ensure( a.sizex() == a.sizey(), "only square matrix" );
 		const type TINY=1.0e-20f;
 		int i,imax = 0,j,k;
 		type big,dum,sum,temp;

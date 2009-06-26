@@ -9,7 +9,7 @@ namespace algorithm
     @ingroup algorithm
     @brief define a stopping condition criteria
     */
-   class NLL_API StopCondition
+   class StopCondition
    {
    public:
       /**
@@ -30,7 +30,7 @@ namespace algorithm
     @ingroup algorithm
     @brief define a stopping condition only based on the number of iterations
     */
-   class NLL_API StopConditionIteration : public StopCondition
+   class StopConditionIteration : public StopCondition
    {
    public:
       StopConditionIteration( ui32 nbIterMax ) : _nbIterMax( nbIterMax ), _iter( 0 )
@@ -61,7 +61,7 @@ namespace algorithm
     @ingroup algorithm
     @brief define a stopping condition only based on the fitness
     */
-   class NLL_API StopConditionFitness : public StopCondition
+   class StopConditionFitness : public StopCondition
    {
    public:
       StopConditionFitness( f64 minFitness ) : _minFitness( minFitness )
