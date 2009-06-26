@@ -7,6 +7,7 @@ class TestHmmContinuous
 {
 public:
    // in this test we already know what hmm generated the samples. Just compare we have the same results
+   // Also test the sequnce generation of the HMM
    void testHmm1()
    {
       //1245617666
@@ -120,7 +121,29 @@ public:
          hmm.computeHiddenState( obs, chainOut );
          TESTER_ASSERT( chainOut == chainConv );
 
-         std::cout << "#";
+         // test the sequence generation
+         const unsigned nbChainsGeneration = 1000;
+         const unsigned chainSize = 6;
+         
+         std::vector<Observations> lists( nbChainsGeneration );
+         std::vector< std::vector<nll::ui32> > statesList2( nbChainsGeneration );
+         for ( unsigned n = 0; n < nbChainsGeneration; ++n )
+         {
+            lists[ n ] = hmm.generateSequence( chainSize, &statesList2[ n ] );
+         }
+
+         // recompute a hmm and test it against the model one
+         Hmm hmm2;
+         hmm2.learn( lists, 
+                     statesList2,
+                     nll::core::make_vector<unsigned>( 1, 1, 1, 1 ),
+                     nll::core::make_vector<unsigned>( 5, 5, 5, 5 ) );
+
+         const double precisionGeneration = 0.05;
+         TESTER_ASSERT(  hmm2.getTransitions().equal( hmm.getTransitions(), precisionGeneration ) );
+         for ( unsigned n = 0; n < hmm2.getPi().size(); ++n )
+            TESTER_ASSERT( nll::core::equal( hmm2.getPi()[ n ], hmm.getPi()[ n ], precisionGeneration ) );
+          std::cout << "#";
       }
    }
 };

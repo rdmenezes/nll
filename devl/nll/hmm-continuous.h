@@ -20,7 +20,7 @@ namespace algorithm
      p( qt | qt-1, ..., q0 ) = p( qt | qt-1 )
      p( o | qt, ..., q0 ) = p( o | qt )
 
-     Observation is an array type
+     Observation is an array type (operato[], size(), constructor(size))
      Todo: C++ 0x Concept
 
     */
@@ -166,9 +166,64 @@ namespace algorithm
          return _transitions;
       }
 
-      std::vector<Observation> generateSequence() const
+      /**
+       @brief generate a sequence of observations
+       @param size the size of the generated sequence
+       @param outStates if not null, output the the states that generated this sequence
+       @note this can be further optimized as the generators are instanciated for each state.
+             For long sequences, they should be precomputed instead.
+       */
+      std::vector<Observation> generateSequence( ui32 size, std::vector<ui32>* outStates = 0 ) const
       {
-         return std::vector<Observation>();
+         ensure( _pi.size(), "learn a model before" );
+         ensure( size, "must be >0" );
+         std::vector<ui32> sequence( size );
+         std::vector<Observation> observations( size );
+         sequence[ 0 ] = core::sampling( _pi, 1 )[ 0 ];
+
+         // generate the 1 observation
+         // first select a gaussian
+         const Gmm::Gaussians& gaussians = _gmms[ sequence[ 0 ] ].getGaussians();
+         std::vector<double> g( gaussians.size() );
+         for ( ui32 nn = 0; nn < gaussians.size(); ++nn )
+            g[ nn ] = gaussians[ nn ].weight;
+         ui32 gaussianId = core::sampling( g, 1 )[ 0 ];
+
+         // generate a sample from this gaussian
+         core::NormalMultiVariateDistribution generator( gaussians[ gaussianId ].mean,
+                                                         gaussians[ gaussianId ].covariance );
+         core::NormalMultiVariateDistribution::VectorT obs = generator.generate();
+         observations[ 0 ] = Observation( obs.size() );
+         for ( ui32 nn = 0; nn < obs.size(); ++nn )
+            observations[ 0 ][ nn ] = obs[ nn ];
+
+         // continue generating the sequence following the transition matrix
+         for ( ui32 n = 1; n < size; ++n )
+         {
+            // select the new state
+            std::vector<double> p( _pi.size() );
+            for ( ui32 nn = 0; nn < _pi.size(); ++nn )
+               p[ nn ] = _transitions( sequence[ n - 1 ], nn );
+            sequence[ n ] = core::sampling( p, 1 )[ 0 ];
+
+            // select the gaussian that will generate the sample
+            const Gmm::Gaussians& gaussians = _gmms[ sequence[ n ] ].getGaussians();
+            std::vector<double> g( gaussians.size() );
+            for ( ui32 nn = 0; nn < gaussians.size(); ++nn )
+               g[ nn ] = gaussians[ nn ].weight;
+            ui32 gaussianId = core::sampling( g, 1 )[ 0 ];
+
+            // generate a sample from this gaussian
+            core::NormalMultiVariateDistribution generator( gaussians[ gaussianId ].mean,
+                                                            gaussians[ gaussianId ].covariance );
+            core::NormalMultiVariateDistribution::VectorT obs = generator.generate();
+            observations[ n ] = Observation( obs.size() );
+            for ( ui32 nn = 0; nn < obs.size(); ++nn )
+               observations[ n ][ nn ] = obs[ nn ];
+         }
+         if ( outStates )
+            *outStates = sequence;
+         return observations;
       }
 
    protected:
