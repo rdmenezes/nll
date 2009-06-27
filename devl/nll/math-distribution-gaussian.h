@@ -18,8 +18,8 @@ namespace core
     */
    inline double NLL_API generateGaussianDistribution( const double mean, const double variance )
    {
-      double u1 = ( static_cast<double> ( rand() ) + 1 ) / ( RAND_MAX + 1 );
-      double u2 = ( static_cast<double> ( rand() ) + 1 ) / ( RAND_MAX + 1 );
+      double u1 = ( static_cast<double> ( rand() ) + 1 ) / ( (double)RAND_MAX + 1 );
+      double u2 = ( static_cast<double> ( rand() ) + 1 ) / ( (double)RAND_MAX + 1 );
       assert( -2 * log( u1 ) >= 0 );
       double t1 = sqrt( -2 * log( u1 ) ) * cos( 2 * core::PI * u2 );
 
