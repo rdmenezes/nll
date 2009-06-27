@@ -14,7 +14,10 @@ test-classifier-spect.o\
 test-classifier-svm.o\
 test-feature-selection.o\
 test-genetic-algorithm.o\
+test-hmm.o\
 test-labelize.o\
+test-markov-chain.o\
+test-matrix-cholesky.o\
 test-morphology.o\
 test-optimizer-parameters.o\
 test-optimizer.o\

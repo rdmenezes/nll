@@ -88,7 +88,7 @@ namespace core
          *this = Matrix( m.sizey(), m.sizex() );
          for ( ui32 ny = 0; ny < m.sizey(); ++ny )
             for ( ui32 nx = 0; nx < m.sizex(); ++nx )
-               at( ny, nx ) = static_cast<value_type>( m( nx, ny ) );
+               at( ny, nx ) = static_cast<typename Base::value_type>( m( nx, ny ) );
       }
 
       /**

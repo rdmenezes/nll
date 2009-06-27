@@ -27,6 +27,8 @@ gabor.h\
 generic-operations.h\
 genetic-algorithm.h\
 gmm.h\
+hmm-continuous.h\
+hmm.h\
 id-maker.h\
 image-binary-transformation.h\
 image-converter.h\
@@ -50,15 +52,18 @@ labelize.h\
 log.h\
 logger.h\
 lsdbc.h\
+markov-chain.h\
 mask-exporter.h\
 math-correlation.h\
 math-distribution-gaussian.h\
+math-distribution-multinormal.h\
 math-distribution-uniform.h\
 math-quaternion.h\
 math-sampling.h\
 math.h\
 matrix-basic-operations.h\
 matrix-basic.h\
+matrix-cholesky.h\
 matrix-converter.h\
 matrix-covariance.h\
 matrix-decomposition.h\
@@ -104,6 +109,7 @@ types.h\
 unreachable.h\
 utility-pure.h\
 utility.h
+
 
 OBJ=math.o multi-layered-perceptron.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
 
