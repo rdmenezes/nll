@@ -56,7 +56,7 @@ namespace algorithm
       {
          typedef core::Matrix<double> Matrix;
 
-         Matrix tt( prior.size(), 2 );
+         Matrix tt( prior.size(), nbObservations );
          for ( ui32 n = 0; n < prior.size(); ++n )
             tt( n, 0 ) = prior[ n ] * emission( n, 0 );
 
@@ -66,7 +66,7 @@ namespace algorithm
             {
                double sum = 0;
                for ( ui32 i = 0; i < prior.size(); ++i )
-                  sum += tt( i, t - 1 ) * transitions( i, j )
+                  sum += tt( i, t - 1 ) * transitions( i, j );
                tt( j, t ) = sum * emission( j, t );
             }
          }

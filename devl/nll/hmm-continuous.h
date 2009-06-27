@@ -106,7 +106,16 @@ namespace algorithm
       template <class Observations>
       double probability( const Observations& obs )
       {
-         return 0;
+         ensure( obs.size() && _pi.size(), "empty data or model" );
+         Matrix emissions( (ui32)_pi.size(), (ui32)obs.size() );
+         for ( ui32 t = 0; t < obs.size(); ++t )
+            for ( ui32 s = 0; s < _pi.size(); ++s )
+            {
+               std::vector<Observation> o( 1 );
+               o[ 0 ] = obs[ t ];
+               emissions( s, t ) = exp( _gmms[ s ].likelihood( o ) );
+            }
+         return impl::forward( (ui32)obs.size(), _pi, _transitions, emissions );
       }
 
       /**

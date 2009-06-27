@@ -121,6 +121,8 @@ public:
          hmm.computeHiddenState( obs, chainOut );
          TESTER_ASSERT( chainOut == chainConv );
 
+         hmm.probability( obs );
+
          // test the sequence generation
          const unsigned nbChainsGeneration = 1000;
          const unsigned chainSize = 6;
@@ -148,8 +150,8 @@ public:
    }
 };
 
-#ifndef DONT_RUN_TEST
+//#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestHmmContinuous);
 TESTER_TEST(testHmm1);
 TESTER_TEST_SUITE_END();
-#endif
+//#endif
