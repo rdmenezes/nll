@@ -16,7 +16,8 @@
 
 static nll::core::Matrix<float> testRef(nll::core::Matrix<float> m, float* buf, nll::ui32 count)
 {
-   TESTER_ASSERT( m.getBuf() == buf && m.getRefCount() == count );
+   TESTER_ASSERT( m.getBuf() == buf );
+   TESTER_ASSERT( m.getRefCount() == count );
    return m;
 }
 
@@ -57,9 +58,10 @@ public:
       buf2 = buf3;
       TESTER_ASSERT( buf2.getBuf() == buf3.getBuf() && buf2.getRefCount() == 2 && buf3.getRefCount() == 2 && buf1.getRefCount() == 1 );
       nll::core::Buffer1D<float> buf4( 20 );
-      nll::core::Buffer1D<float> buf5 = testRef( nll::core::Matrix<float>(buf4), buf4.getBuf(), buf4.getRefCount() + 1 );
-      TESTER_ASSERT( buf4.getBuf() == buf5.getBuf() && buf4.getRefCount() == 2 );
-
+      nll::core::Matrix<float> mat( buf4 );
+      unsigned nb = buf4.getRefCount() + 1;
+      nll::core::Buffer1D<float> buf5 = testRef( mat, buf4.getBuf(), nb );
+      TESTER_ASSERT( buf4.getBuf() == buf5.getBuf() && buf4.getRefCount() == 3 );
       double t1[] = { 0, 1.5, -10, 8 };
       nll::core::Buffer1D<double> buf6;
       buf6.import( t1, 4 );
@@ -1248,6 +1250,7 @@ TESTER_TEST_SUITE(TestnllCore);
 TESTER_TEST(testSampling);
 TESTER_TEST(testTraitsInheritence);
 TESTER_TEST(testBuffer1D);
+
 TESTER_TEST(testMatrix);
 TESTER_TEST(testDatabase);
 TESTER_TEST(testDatabaseFilter);

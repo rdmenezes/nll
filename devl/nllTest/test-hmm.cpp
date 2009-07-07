@@ -87,7 +87,7 @@ public:
             Observations obs( size );
             for ( unsigned nn = 0; nn < size; ++nn )
             {
-               const unsigned observationIndex = (unsigned)rand() % observations[ chain[ nn ] ].size();
+               const unsigned observationIndex = (unsigned)rand() % (unsigned)observations[ chain[ nn ] ].size();
                obs[ nn ] = observations[ chain[ nn ] ][ observationIndex ];
             }
             dataset[ n ] = obs;
@@ -112,7 +112,7 @@ public:
          for ( unsigned n = 0; n < sizeSeq; ++n )
          {
             chainConv[ n ] = chain[ n ];
-            const unsigned observationIndex = (unsigned)rand() % observations[ chain[ n ] ].size();
+            const unsigned observationIndex = (unsigned)rand() % (unsigned)observations[ chain[ n ] ].size();
             obs[ n ] = observations[ chain[ n ] ][ observationIndex ];
          }
 
@@ -150,8 +150,8 @@ public:
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestHmmContinuous);
 TESTER_TEST(testHmm1);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif

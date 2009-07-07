@@ -120,7 +120,7 @@ namespace core
    }
 
    /**
-    return the distance transform of a grayscale image using a norm-2 metric. The complexity ofthe algorithm
+    return the distance transform of a greyscale image using a norm-2 metric. The complexity ofthe algorithm
            is O(n*2), n the number of pixels.
     */
    template <class T, class Mapper>
