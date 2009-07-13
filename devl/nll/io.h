@@ -96,7 +96,7 @@ namespace core
       {
          ui32 size = 0;
          read<ui32>( size, i );
-         assert( size );
+         //assert( size );
          val = std::vector<T>( size );
          for ( ui32 n = 0; n < size; ++n )
             read<T>( val[ n ], i );

@@ -6,7 +6,7 @@ nll.version=nll-0.09
 
 [nll.metadata.debug.laptop2]
 nll.machine=laptop2
-nll.version=nll-0.09
+nll.version=nll-0.10
 
 [nll.metadata.release.AMD64_3.4G]
 nll.machine=AMD64_3.4G
@@ -14,7 +14,11 @@ nll.version=nll-0.09
 
 [nll.metadata.release.laptop2]
 nll.machine=laptop2
-nll.version=nll-0.09
+nll.version=nll-0.10
+
+[nll.testdata.debug.laptop2]
+nll.TestMlp.testMlp1=0.005
+nll.TestNllAlgorithmClassifierMlp.testMlpClassifier=0.106
 
 [nll.testdata.release.AMD64_3.4G]
 nll.TestClassifierKnn.test=0.016
@@ -95,6 +99,7 @@ nll.TestBufferAdaptor.testConstAdaptor1=0.001
 nll.TestClassifierKnn.test=0.025
 nll.TestClassifierNN.test=258.123
 nll.TestGA.testGA=16.874
+nll.TestMlp.testMlp1=0.002
 nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.103
 nll.TestNllAlgorithmClassifierGmm.testGmmClassifier=24.137
 nll.TestNllAlgorithmClassifierGmm.testReadWriteVector=0.001

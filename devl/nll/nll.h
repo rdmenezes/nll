@@ -33,12 +33,12 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.09
+ @version 0.10
  @date 14th March 2009
  */
 
 /// define the version of nll
-#define NLL_VERSION  "nll-0.09"
+#define NLL_VERSION  "nll-0.10"
 
 /**
  Concept: (for future integration with C++ 0x)
@@ -146,6 +146,7 @@
  - feature algorithm group, where it tries to intregrate all the generic algorithms to
    the developped framework.
  */
+# include "mlp.h"
 # include "pca.h"
 # include "stopping-condition.h"
 # include "metric.h"

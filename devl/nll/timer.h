@@ -42,12 +42,12 @@ namespace core
       }
 
       /**
-       @brief end the timer, return the time in seconds spent. Can be called again, in this case starting time is still the same.
+       @brief get the current time since the begining, return the time in seconds spent.
        */
-      f32 getCurrentTime()
+      f32 getCurrentTime() const
       {
-         end();
-         return static_cast<f32>( _cend - _cstart ) / CLOCKS_PER_SEC;
+         time_t c = clock();
+         return static_cast<f32>( c - _cstart ) / CLOCKS_PER_SEC;
       }
 
       /**
