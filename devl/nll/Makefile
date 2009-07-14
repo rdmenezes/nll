@@ -111,7 +111,7 @@ utility-pure.h\
 utility.h
 
 
-OBJ=math.o multi-layered-perceptron.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
+OBJ=math.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
 
 %.o: %.cpp $(DEPS)
 	$(CC) $(FLAGS) -c -o $@ $<

@@ -1,8 +1,6 @@
 #ifndef CLASSIFIER_MLP_H_
 # define CLASSIFIER_MLP_H_
 
-# include "multi-layered-perceptron.h"
-
 # define NLL_MLP_EVALUATE_NB_INSTANCE  5
 
 namespace nll
@@ -13,13 +11,13 @@ namespace algorithm
     @ingroup algorithm
     @brief multi-layered neural network with backpropagation for learning.
 
-    @note memory optimised for Point = Buffer1D<float>
-    @note classifier:database:input: needs size() and operator[] implemented
+    @note classifier:database:input: needs size() and operator[], constructor(size) implemented
     */
    template <class Point>
    class ClassifierMlp : public Classifier<Point>
    {
       typedef Classifier<Point>  Base;
+      typedef core::Database< core::ClassificationSample< Point, std::vector<double> > > MlpDatabase;
 
    public:
       // don't override these
@@ -30,6 +28,12 @@ namespace algorithm
       using Base::learnTrainingDatabase;
 
    public:
+      /**
+        Create the parameter specification
+             - parameters[ 0 ] = nb neur intermediate layer
+             - parameters[ 1 ] = learning rate
+             - parameters[ 2 ] = timeout (in sec)
+       */
       static ParameterOptimizers buildParameters()
       {
          ParameterOptimizers parameters;
@@ -63,13 +67,12 @@ namespace algorithm
 
       virtual typename Base::Class test( const Point& p ) const
       {
-         assert( _pmc.isWorking() ); // no model
-         assert( p.size() );
-         pmc::Database::Sample::Input i( p.size() );
+         assert( p.size() == _pmc.getInputSize() );
+         core::Buffer1D<double> i( p.size() );
          for ( ui32 n = 0; n < _pmc.getInputSize(); ++n )
-            i[ n ] = static_cast<f32>( p[ n ] );
-         const float * buf = _pmc.calculate( i.getBuf() );
-         f32 maxp = INT_MIN;
+            i[ n ] = static_cast<double>( p[ n ] );
+         core::Buffer1D<double> buf = _pmc.propagate( i );
+         double maxp = INT_MIN;
          ui32 index = 0;
          for ( ui32 n = 0; n < _pmc.getOutputSize(); ++n )
             if ( buf[ n ] > maxp )
@@ -77,7 +80,7 @@ namespace algorithm
                maxp = buf[ n ];
                index = n;
             }
-         assert( !core::equal<f32>( INT_MIN, maxp ) );
+         assert( !core::equal<double>( INT_MIN, maxp ) );
          return index;
       }
 
@@ -89,88 +92,39 @@ namespace algorithm
        */
       virtual void learn( const typename Base::Database& dat, const core::Buffer1D<f64>& parameters )
       {
-         _pmc.destroy();
          if ( !dat.size() )
             return;
-         assert( parameters.size() == this->_parametersPrototype.size() );
-         pmc::Database pmcDat = _computePmcDatabase( dat, core::Val2Type<core::Equal<core::Buffer1D<f32>, Point>::value>() );
-         ui32 layerDesc[] = { static_cast<ui32>( pmcDat[0].input.size() ),
-                              static_cast<ui32>( parameters[ 0 ] ),
-                              static_cast<ui32>( pmcDat[0].output.size() ) };
-         _pmc.create( 3, layerDesc );
-         _pmc.setLearningRate( (float)parameters[ 1 ] );
-         _pmc.learn( pmcDat, (float)0, (float)0, (float)parameters[ 2 ] );
+         ensure( parameters.size() == this->_parametersPrototype.size(), "Incorrect parameters." );
+         MlpDatabase pmcDat = _computePmcDatabase( dat );
+         std::vector<ui32> layerDesc = core::make_vector<ui32>( 
+            static_cast<ui32>( pmcDat[0].input.size() ),
+            static_cast<ui32>( parameters[ 0 ] ),
+            static_cast<ui32>( pmcDat[0].output.size() ) );
+         _pmc.createNetwork( layerDesc );
+         
+         StopConditionMlpThreshold stopCondition( parameters[ 2 ], -10, -10, -10 );
+         _pmc.learn( pmcDat, stopCondition, parameters[ 1 ] );
       }
 
    private:
-      // specialisation in case the type is the same that the internal buffer type used by the MLP classifier
-      inline pmc::Database _computePmcDatabase( const typename Base::Database& dat, core::Val2Type<true> /* isPointDatabaseMatchToBuffer1DF32 */ )
+      // we recreate a new database as the neural network only understand for its output an arrayof doubles
+      inline MlpDatabase _computePmcDatabase( const typename Base::Database& dat )
       {
-         pmc::Database pmcDatabase;
+         MlpDatabase pmcDatabase;
          ui32 nbOfclass = core::getNumberOfClass( dat );
          for ( ui32 n = 0; n < dat.size(); ++n)
          {
-            pmc::Database::Sample s;
+            typename MlpDatabase::Sample s;
             s.input = dat[ n ].input;
-            s.output = pmc::Database::Sample::Output( nbOfclass );
+            s.output = typename MlpDatabase::Sample::Output( nbOfclass );
             s.output[ dat[ n ].output ] = 1.0f;
-            s.type = (pmc::Database::Sample::Type)dat[ n ].type;
+            s.type = (typename MlpDatabase::Sample::Type)dat[ n ].type;
             pmcDatabase.add( s );
          }
          return pmcDatabase;
       }
-
-      // specialisation in case the type is the different that the internal buffer type used by the MLP classifier
-      // convert it to the same type
-      inline pmc::Database _computePmcDatabase( const typename Base::Database& dat, core::Val2Type<false> /* isPointDatabaseMatchToBuffer1DF32 */ )
-      {
-         pmc::Database pmcDatabase;
-         ui32 nbOfclass = core::getNumberOfClass( dat );
-         for ( ui32 n = 0; n < dat.size(); ++n)
-         {
-            pmc::Database::Sample s;
-            s.input = pmc::Database::Sample::Input( dat[ n ].input.size() );
-            for ( ui32 nn = 0; nn < dat[ n ].input.size(); ++nn)
-               s.input[ nn ] = static_cast<f32>( dat[ n ].input[ nn ] );
-            s.output = pmc::Database::Sample::Output( nbOfclass );
-            s.output[ dat[ n ].output ] = 1.0f;
-            s.type = (pmc::Database::Sample::Type)dat[ n ].type;
-            pmcDatabase.add( s );
-         }
-         return pmcDatabase;
-      }
-
-      /**
-       @todo: should it be averaged? or not that necesary if we do crossvalidation?
-       @brief Evaluate the quality of the classifier with the specified parameters and database.
-
-       Computes the mean learning error and mean testing error and computation time. The score is a pondered
-       sum of these 3 variables, according a much greater importance on the testing error.
-       */
-
-      /*
-      virtual double evaluate( const core::Buffer1D<nll::f64>& parameters, const typename Base::Database& dat ) const
-      {
-         double meanTestError = 0;
-         double meanLearnError = 0;
-
-         core::Timer timer;
-         for ( ui32 n = 0; n < NLL_MLP_EVALUATE_NB_INSTANCE; ++n )
-         {
-            typename Base::Classifier* classifier = new ClassifierMlp();
-            classifier->learn( dat, parameters );
-            typename Base::Classifier::Result r = classifier->test( dat );
-            delete classifier;
-
-            meanTestError += r.testingError;
-            meanLearnError += r.learningError;
-         }
-         timer.end();
-
-         return 1 / ( ( meanTestError + meanLearnError * 0.1 + timer.getTime() * 0.0001) / NLL_MLP_EVALUATE_NB_INSTANCE );
-      } */
    private:
-      pmc   _pmc;
+      Mlp<FunctionSimpleDifferenciableSigmoid>   _pmc;
    };
 }
 }

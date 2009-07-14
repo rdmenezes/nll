@@ -829,14 +829,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\multi-layered-perceptron.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\multi-layered-perceptron.h"
-				>
-			</File>
-			<File
 				RelativePath=".\pca.h"
 				>
 			</File>

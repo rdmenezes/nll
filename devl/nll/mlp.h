@@ -127,14 +127,7 @@ namespace algorithm
       template <class Vector>
       Mlp( const Vector& layers )
       {
-         ensure( layers.size() >= 3, "only valid for at least 3 layers" );
-         ui32 size = static_cast<ui32>( layers.size() );
-         _layersDesc = Vectori( size );
-         for ( ui32 n = 0; n < size; ++n )
-         {
-            // add the bias unit
-            _layersDesc[ n ] = layers[ n ] + ( n != ( layers.size() - 1 ) );
-         }
+         createNetwork( layers );
       }
 
       Mlp( const std::string& file )
@@ -145,6 +138,32 @@ namespace algorithm
       Mlp( const char* file )
       {
          read( file );
+      }
+
+      /**
+       @brief Create an empty network
+       */
+      Mlp()
+      {
+      }
+
+      /**
+       @brief Construct a new neural network with the specified layout
+
+       Vector must define operator[](unsigned) and size().
+       @todo add C++0x Concept
+       */
+      template <class Vector>
+      void createNetwork( const Vector& layers )
+      {
+         ensure( layers.size() >= 3, "only valid for at least 3 layers" );
+         ui32 size = static_cast<ui32>( layers.size() );
+         _layersDesc = Vectori( size );
+         for ( ui32 n = 0; n < size; ++n )
+         {
+            // add the bias unit
+            _layersDesc[ n ] = layers[ n ] + ( n != ( layers.size() - 1 ) );
+         }
       }
 
       virtual ~Mlp()
@@ -457,6 +476,32 @@ namespace algorithm
          for ( ui32 n = 0; n < (ui32)_layers.size() - 1; ++n )
             _layers[ n ][ _layersDesc[ n ] - 1 ].y = 1;
          return true;
+      }
+
+      /**
+       @brief return the size of the input layer
+       */
+      ui32 getInputSize() const
+      {
+         ensure( _layersDesc.size(), "no layer descriptor" );
+         return _layersDesc[ 0 ] - 1;
+      }
+
+      /**
+       @brief return the size of the output layer
+       */
+      ui32 getOutputSize() const
+      {
+         ensure( _layersDesc.size(), "no layer descriptor" );
+         return _layersDesc[ (ui32)_layers.size() - 1 ];
+      }
+
+      /**
+       @brief reset the weights of a network.
+       */
+      void reset()
+      {
+         _createNetwork();
       }
 
    protected:
