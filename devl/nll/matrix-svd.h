@@ -77,6 +77,17 @@ namespace core
    /**
     @ingroup core
     @brief SVD decomposition.
+
+    compute A=UWV^t, with A=[0..m][0..n] the input matrix. W is a diagonal matrix of singular value and outputed
+            as a vector.
+            V.V^t = 1
+            U.U^t = 1
+
+            properties: A^-1=V.(diag (1/wj)).U^t
+    @param a the input matrix. It is directly replaced in the matrix (no copy). When it is done,
+           a is replaced by U, an orthogonal matrix
+    @param w the diagonal matrix (but stored as a vector to save space) of singular values [0..n]
+    @param v (and NOT v^t) an orthogonal matrix [0..n][0..n]
     @note code from numerical recipes
     */
    template <class type, class mapper>

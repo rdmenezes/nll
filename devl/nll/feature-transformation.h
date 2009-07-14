@@ -58,7 +58,7 @@ namespace algorithm
       }
 
       /**
-       @brief A process a full database according to the transformation.
+       @brief Process a full database according to the transformation defined by <code>process</code>
 
        It is made virtual so that it could be changed if an optimized way other than the
        generic one is possible.
