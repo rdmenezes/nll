@@ -471,6 +471,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-kdTree.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-labelize.cpp"
 				>
 			</File>

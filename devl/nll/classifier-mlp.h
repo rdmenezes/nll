@@ -12,6 +12,7 @@ namespace algorithm
     @brief multi-layered neural network with backpropagation for learning.
 
     @note classifier:database:input: needs size() and operator[], constructor(size) implemented
+          <code>Mlp</code> for more information on neural networks
     */
    template <class Point>
    class ClassifierMlp : public Classifier<Point>
@@ -44,8 +45,12 @@ namespace algorithm
       }
 
    public:
-      ClassifierMlp() : Base( buildParameters() )
+      /**
+       @param defines the weight decay to be used
+       */
+      ClassifierMlp( double weightDecay = 0 ) : Base( buildParameters() ), _weightDecay( weightDecay )
       {}
+
       virtual typename Base::Classifier* deepCopy() const
       {
          ClassifierMlp* c = new ClassifierMlp();
@@ -103,7 +108,7 @@ namespace algorithm
          _pmc.createNetwork( layerDesc );
          
          StopConditionMlpThreshold stopCondition( parameters[ 2 ], -10, -10, -10 );
-         _pmc.learn( pmcDat, stopCondition, parameters[ 1 ] );
+         _pmc.learn( pmcDat, stopCondition, parameters[ 1 ], 0.1, _weightDecay );
       }
 
    private:
@@ -125,6 +130,7 @@ namespace algorithm
       }
    private:
       Mlp<FunctionSimpleDifferenciableSigmoid>   _pmc;
+      double                                     _weightDecay;
    };
 }
 }

@@ -27,7 +27,7 @@ public:
                                  Database::Sample::LEARNING ) );
       Mlp mlp1( nll::core::make_vector<nll::ui32>( 2, 3, 1 ) );
 
-      nll::algorithm::StopConditionMlpThreshold c( 0.1 );
+      nll::algorithm::StopConditionMlpThreshold c( 0.5 );
       nll::core::Timer t;
       double error = mlp1.learn( dat, c, 10, 0.1, 0.001 ).learningError;
       TESTER_ASSERT( fabs( error ) < 0.01 );

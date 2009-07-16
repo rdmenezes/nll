@@ -40,7 +40,6 @@ public:
       NN nearestLoading( NLL_TEST_PATH "data/nn.dat", &metric );
       resultLearning = nearestLearning.test( dat );
       TESTER_ASSERT( resultLearning.learningError <= 0 && resultLearning.testingError <= 0 );
-   
    }
 };
 

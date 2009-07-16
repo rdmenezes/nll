@@ -37,8 +37,8 @@ public:
       
       nll::core::Buffer1D<double> params2(3);
       params2[ 0 ] = 3.0f;
-      params2[ 1 ] = 5.4f;
-      params2[ 2 ] = 0.1f;
+      params2[ 1 ] = 0.1;
+      params2[ 2 ] = 0.5f;
       mlp2.learn(dat2, params2);
 
       

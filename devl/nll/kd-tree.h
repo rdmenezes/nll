@@ -27,6 +27,8 @@ namespace algorithm
     Distance needs to provide
       double operator()( const Point& p1, const Point& p2 );
       Distance( const Distance& d )
+
+      The distance must be of the form sum_i( coef_i * pow( x_i, coef2_i ) ), with coef_i >= 1
    
    	build o(n log n)
       NearestNeighbor o(log n) 
