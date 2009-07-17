@@ -7,7 +7,11 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief Feature selection using a wrapper approach and a greedy algorithm
+    @brief Feature selection using a wrapper approach and a greedy algorithm. It will
+           start with an empty set of feature. Each round, every feature not selected will
+           be tested. The best feture will be added to the list of selected features and
+           a new round will be started until the error is not lowered anymore by adding
+           new features.
    
     only suitable for low dimensionality
     greedy search

@@ -519,6 +519,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-relieff.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test.cpp"
 				>
 			</File>

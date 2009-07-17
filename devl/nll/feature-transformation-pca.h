@@ -7,7 +7,8 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief Define a feature transformation algorithm usin PCA.
+    @brief Define a feature transformation algorithm usin PCA. It is suitable for very high
+           dimentional dataset.
     @see Pca
     */
    template <class Point>

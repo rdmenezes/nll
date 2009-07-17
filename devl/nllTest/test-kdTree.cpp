@@ -101,9 +101,9 @@ public:
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestKdTree);
 TESTER_TEST(testMetric1);
 TESTER_TEST(testMetric2);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif

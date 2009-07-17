@@ -369,7 +369,7 @@ namespace algorithm
        @param reportTimeIntervalInSec specifies the interval in seconds between each logging of the state of the neural network
        */
       template <class Point, class Point2>
-      Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.5 )
+      Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2 )
       {
          ui32 nbIter = 0;
          _createNetwork();
@@ -408,17 +408,18 @@ namespace algorithm
                default:
                   unreachable( "Must never be reached" );
                }
-
-               // log messages
-               if ( timer.getCurrentTime() >= reportTimeIntervalInSec )
-               {
-                  double weight = _errorWeightDecay();
-                  std::stringstream s;
-                  s << "cycle:" << nbIter << " errorL=" << errorL << " errorV=" << errorV << " errorT=" << errorT << " weight:" << weight;
-                  core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, s.str() );
-                  timer.start();
-               }
             }
+
+            // log messages
+            if ( timer.getCurrentTime() >= reportTimeIntervalInSec )
+            {
+               double weight = _errorWeightDecay();
+               std::stringstream s;
+               s << "cycle:" << nbIter << " errorL=" << errorL << " errorV=" << errorV << " errorT=" << errorT << " weight:" << weight;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, s.str() );
+               timer.start();
+            }
+
             ++nbIter;
          } while ( !stop.stop( errorL, errorV, errorT ) );
 

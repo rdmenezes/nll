@@ -7,9 +7,10 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief Feature selection using a wrapper approach and a genetic algorithm
-   
-    only suitable for high dimensionality, but slow
+    @brief Feature selection using a wrapper approach and a genetic algorithm. The
+           GA will select and rate feature subset. These subsets will evolve using
+           GA. As for all the wrapper techniques, it is rather slow, thus not suitable
+           for a very high dimentional feature set.
     */
    template <class Point>
    class FeatureSelectionGeneticAlgorithm : public FeatureSelectionWrapper<Point>

@@ -2,7 +2,7 @@
 
 [nll.metadata.debug.AMD64_3.4G]
 nll.machine=AMD64_3.4G
-nll.version=nll-0.09
+nll.version=nll-0.10
 
 [nll.metadata.debug.laptop2]
 nll.machine=laptop2
@@ -16,6 +16,10 @@ nll.version=nll-0.10
 nll.machine=laptop2
 nll.version=nll-0.10
 
+[nll.testdata.debug.AMD64_3.4G]
+nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.031
+nll.TestRelieff.testRelieff1=0.046
+
 [nll.testdata.debug.laptop2]
 nll.TestMlp.testMlp1=0.005
 nll.TestNllAlgorithmClassifierMlp.testMlpClassifier=0.106
@@ -24,15 +28,17 @@ nll.TestNllAlgorithmClassifierMlp.testMlpClassifier=0.106
 nll.TestClassifierKnn.test=0
 nll.TestClassifierNN.test=257.708
 nll.TestGA.testGA=4.11
-nll.TestHmmContinuous.testHmm1=15.531
-nll.TestMarkovChain.testMarkovChainFirstOrder=0.719
+nll.TestHmmContinuous.testHmm1=14.969
+nll.TestKdTree.testMetric1=3.703
+nll.TestKdTree.testMetric2=0.297
+nll.TestMarkovChain.testMarkovChainFirstOrder=0.704
 nll.TestMarkovChain.testMarkovChainFirstOrderGenerate=0.125
 nll.TestMatrixCholesky.testMatrixCholesky=0
 nll.TestMatrixCholesky.testMatrixCholesky2=0.031
-nll.TestMatrixCholesky.testMultinormal=16.016
+nll.TestMatrixCholesky.testMultinormal=15.376
 nll.TestMatrixCholesky.testMultinormal2=1.046
 nll.TestMlp.testMlp1=0.109
-nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.047
+nll.TestNllAlgorithmClassifierAdaboost.testAdaboostClassifier1=0.016
 nll.TestNllAlgorithmClassifierGmm.testGmmClassifier=6.125
 nll.TestNllAlgorithmClassifierGmm.testGmmPrecision=0
 nll.TestNllAlgorithmClassifierGmm.testGmmPrecision1=0
@@ -44,12 +50,12 @@ nll.TestNllClassifierSvm.testNllClassifierSvm=0
 nll.TestNllFeatureSelection.testNllFeatureSelectionPearson=0
 nll.TestNllFeatureSelection.testNllFeatureSelectionRelieff=0.047
 nll.TestNllFeatureSelection.testNllRelieff=0
-nll.TestNllLabelize.testNllLabelize=0.016
+nll.TestNllLabelize.testNllLabelize=0.015
 nll.TestNllMorphology.testNllMorphology=0.015
-nll.TestNllOptimizer.testOptimizerGA=4.469
+nll.TestNllOptimizer.testOptimizerGA=4.422
 nll.TestNllOptimizer.testOptimizerGridSearch=40.377
-nll.TestNllOptimizer.testOptimizerHarmonySearch=0.015
-nll.TestNllOptimizer.testOptimizerHarmonySearchMemory=3.172
+nll.TestNllOptimizer.testOptimizerHarmonySearch=0
+nll.TestNllOptimizer.testOptimizerHarmonySearchMemory=3.141
 nll.TestNllPreprocessing.testNllPreprocessingBase=0
 nll.TestNllPreprocessing.testNllPreprocessingBridgeImageVector=0
 nll.TestNllPreprocessing.testNllPreprocessingCenter=0
@@ -64,6 +70,7 @@ nll.TestOptimizerParameters.testGeometric=0
 nll.TestPca.testPca=0
 nll.TestPca.testPcaFeature=0
 nll.TestQuaternion.testMatrixToQuaternion=0
+nll.TestRelieff.testRelieff1=0
 nll.TestnllCore.testBuffer1D=0
 nll.TestnllCore.testClassifier=0
 nll.TestnllCore.testCovariance=0
@@ -72,11 +79,11 @@ nll.TestnllCore.testDatabaseFilter=0
 nll.TestnllCore.testDatabaseFilterSelect=0
 nll.TestnllCore.testDatabaseInputAdapter=0
 nll.TestnllCore.testDistanceTransform=0
-nll.TestnllCore.testGabor=0.984
-nll.TestnllCore.testGmm=8.344
+nll.TestnllCore.testGabor=0.954
+nll.TestnllCore.testGmm=8.047
 nll.TestnllCore.testImage=0.016
-nll.TestnllCore.testImageBinaryOperation=0.11
-nll.TestnllCore.testInterpolator=0.062
+nll.TestnllCore.testImageBinaryOperation=0.093
+nll.TestnllCore.testInterpolator=0.046
 nll.TestnllCore.testInterpolatorPerf=0.281
 nll.TestnllCore.testKdTree=0
 nll.TestnllCore.testKmeans=0

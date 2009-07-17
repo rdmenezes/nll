@@ -8,9 +8,11 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Nearest neighbor classification algorithm. Ensure metric is alive while
-           the classifier is used. 
+           the classifier is used.
+    @note as the knn classifier is built upon a kd-tree, implying constraints to
+          the metric that can be used. Please refer to the <code>KdTree</code>
     
-    Metric needs to provide double operator()( const Point& point )
+    Metric needs to provide: double distance( const Point& p1, const Point& p2 ) const;
    
     */
    template <class Point, class Metric>

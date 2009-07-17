@@ -69,7 +69,7 @@ namespace algorithm
       static ParameterOptimizers buildParameters()
       {
          ParameterOptimizers parameters;
-         parameters.push_back( new ParameterOptimizerGaussianGeometric( 0.000001, 20, 0.001, 0.0001, 8, 1.0f / 8 ) );
+         parameters.push_back( new ParameterOptimizerGaussianGeometric( 0.000001, 20, 0.001, 0.0001, 5, 1.0f / 8 ) );
          parameters.push_back( new ParameterOptimizerGaussianLinear( 1, 200, 60, 30, 15 ) );
          return parameters;
       }

@@ -121,7 +121,7 @@ namespace algorithm
       /**
         @brief function used to evaluate classifier performance. It is used for optimizing
                the classifier's parameters as well as in the <code>Typelist</code> internally. The default
-               implementation is simply a 10-fold cross validation on the <code>LEARNING|VALIDATION</code>
+               implementation is simply a 20-fold cross validation on the <code>LEARNING|VALIDATION</code>
                samples. In the case that the classifier is not deterministic (meaning given a database, each
                learner build using this database must be the same), else this method should be reimplemented
                using, for example, several cross validations and return the mean value.
@@ -132,7 +132,7 @@ namespace algorithm
         */
       virtual double evaluate( const ClassifierParameters& parameters, const Database& dat ) const
       {
-         Result r = test( dat, parameters, 10 );
+         Result r = test( dat, parameters, 20 );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "Classifier::evaluate()=" + core::val2str( r.learningError ) );
          return r.learningError;
       }
@@ -223,14 +223,8 @@ namespace algorithm
                  dat[ n ].type == Database::Sample::VALIDATION )
                learningDatabase.add( dat[ n ] );
 
-         // compute statistics
-         ui32 nbClass = core::getNumberOfClass( learningDatabase );
-         std::vector<ui32> nbSamplesPerClass( nbClass );
-         for ( ui32 n = 0; n < learningDatabase.size(); ++n )
-            ++nbSamplesPerClass[ learningDatabase[ n ].output ];
-
          // set the bins
-         std::vector<ui32> bins = _setCrossFoldBin( learningDatabase, kfold, nbSamplesPerClass );
+         std::vector<ui32> bins = _setCrossFoldBin( learningDatabase, kfold );
 
          std::stringstream o;
          o << "testing: crossvalidation, k=" << kfold << std::endl;
@@ -360,44 +354,51 @@ namespace algorithm
 
    protected:
       // generate nbBins bins out of the database. Each bin is drawing the same distribution as database's class
-      std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins, const std::vector<ui32>& nbSamplesPerClass ) const
+      std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const
       {
-         // create the container and init all the sample to the last bin
-         std::vector<ui32> bins( dat.size() );
+         // create statistics
+         ui32 nbClass = core::getNumberOfClass( dat );
+         ensure( nbClass >= 2, "useless to learn on less than 2 classes" );
+         std::vector<double> nbSamplesPerClass( nbClass );
          for ( ui32 n = 0; n < dat.size(); ++n )
-            bins[ n ] = nbBins - 1;
+            ++nbSamplesPerClass[ dat[ n ].output ];
 
-         // init the stat
-         std::vector< std::vector<ui32> > stat( nbBins - 1 );
+         // compute the number of samples by class a bin must contain
+         std::vector< std::vector< ui32 > > remaining( nbBins - 1 );
          for ( ui32 n = 0; n < nbBins - 1; ++n )
-            stat[ n ] = std::vector<ui32>( nbSamplesPerClass.size() );
-
-         // allocate a bin number for all samples. Only ( nbBins - 1 ) first bins.
+         {
+            remaining[ n ] = std::vector< ui32 >( nbClass );
+            for ( ui32 nn = 0; nn < nbClass; ++nn )
+               remaining[ n ][ nn ] = (ui32)( nbSamplesPerClass[ nn ] / nbBins );
+         }
+            
+         // because of the rounding, the last bin will have more samples than the others
+         // only the (nbBins - 1) bins will be allocated, the last bin will have all the others
+         std::vector<ui32> binId( dat.size() );
+         for ( ui32 n = 0; n < dat.size(); ++n )
+            binId[ n ] = nbBins - 1;
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
-            ui32 c = dat[ n ].output;
-            // round to the lowest one
-            double threshold = core::round<double>( nbSamplesPerClass[ c ] / nbBins, 0.1 );
-            std::vector<ui32> list = core::generateUniqueList( 0, nbBins - 2 );
-            for ( ui32 nn = 0; nn < nbBins - 1; ++nn )
+            ui32 sclass = dat[ n ].output;
+            for ( ui32 nn = 0; nn < nbBins; ++nn )
             {
-               ui32 index = list[ nn ];
-               if ( stat[ index ][ c ] <= threshold )
+               ui32 bin = nn;
+               if ( ( bin != nbBins - 1 ) && remaining[ bin ][ sclass ] )
                {
-                  bins[ n ] = index;
-                  ++stat[ index ][ c ];
+                  --remaining[ bin ][ sclass ];
+                  binId[ n ] = nn;  // so the bin is not the same each time it is run
                   break;
                }
             }
          }
-         return bins;
+         return binId;
       }
 
       // generate a database for crossvalidation : currentBin == bins[n] => n testing, else n learning example
       void _generateDatabase( Database& dat, const std::vector<ui32>& bins, ui32 currentBin ) const
       {
          assert( bins.size() == dat.size() );
-         Database newdat;
+
          for ( ui32 n = 0; n < dat.size(); ++n )
             if ( bins[ n ] == currentBin )
                dat[ n ].type = Database::Sample::TESTING;

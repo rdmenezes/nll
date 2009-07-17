@@ -25,7 +25,7 @@ namespace algorithm
       "f32 operator[](ui32) const"
 
     Distance needs to provide
-      double operator()( const Point& p1, const Point& p2 );
+      double distance( const Point& p1, const Point& p2 ) const;
       Distance( const Distance& d )
 
       The distance must be of the form sum_i( coef_i * pow( x_i, coef2_i ) ), with coef_i >= 1
