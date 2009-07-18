@@ -21,3 +21,9 @@ The makefile has several target:
 Example: make clan tutorial
 It will recompile NLL and the tutorials then it will run
 them.
+
+2) How to configure regression testing?
+------------------------------
+The variable NLL_MACHINE_ID must be set. The timings will
+be compared for he local machine and exported in the
+performance log.

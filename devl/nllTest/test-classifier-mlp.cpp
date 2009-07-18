@@ -38,7 +38,7 @@ public:
       nll::core::Buffer1D<double> params2(3);
       params2[ 0 ] = 3.0f;
       params2[ 1 ] = 0.1;
-      params2[ 2 ] = 0.5f;
+      params2[ 2 ] = 1;
       mlp2.learn(dat2, params2);
 
       
@@ -51,8 +51,6 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestNllAlgorithmClassifierMlp);
-#ifndef DONT_RUN_SLOW_TEST
  TESTER_TEST(testMlpClassifier);
-#endif
 TESTER_TEST_SUITE_END();
 #endif

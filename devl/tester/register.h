@@ -94,8 +94,6 @@ public:
       const std::string dirMetadata = "nll.metadata." + mode + "." + name;
       const std::string dirTestdata = "nll.testdata." + mode + "." + name;
 
-      std::cout << "name=" << name << std::endl;
-
       _config.setDirectory( dirMetadata );
       _config[ "nll.version" ] = NLL_VERSION;
       _config[ "nll.machine" ] = name;
