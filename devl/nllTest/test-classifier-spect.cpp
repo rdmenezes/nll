@@ -9,7 +9,7 @@
 class TestNllClassifierSpect
 {
 public:
-   typedef nll::core::Buffer1D<float>              Point;
+   typedef nll::core::Buffer1D<double>             Point;
    typedef nll::algorithm::ClassifierMlp<Point>    Mlp;
    typedef Mlp::Database                           Database;
 
@@ -37,16 +37,33 @@ public:
       std::cout << "BestClassifierTestingErrorRate=" << resultTest.testingError << std::endl;
       TESTER_ASSERT( resultTest.testingError < 0.185 );
    }
+
+   void testNllPcaClassifierSpect()
+   {
+      typedef nll::algorithm::ClassifierSvm<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+      nll::algorithm::FeatureTransformationPca<Point> pca;
+      pca.compute( dat, 9 );
+      Database datProcessed = pca.process( dat );
+
+      Classifier classifier;
+      classifier.learn( datProcessed, nll::core::make_buffer1D<double>( 10, 100 ) );
+      Classifier::Result result = classifier.test( datProcessed );
+
+      TESTER_ASSERT( result.testingError < 0.097 );
+   }
 };
 
-#ifndef DONT_RUN_TEST
+//#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestNllClassifierSpect);
 # ifndef DONT_RUN_VERY_SLOW_TEST
 #  ifndef DONT_RUN_SLOW_TEST
 TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
+TESTER_TEST(testNllPcaClassifierSpect);
 TESTER_TEST_SUITE_END();
-#endif
+//#endif
 
 # pragma warning( pop )

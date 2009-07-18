@@ -99,6 +99,12 @@ namespace algorithm
 
    public:
       /**
+       By default we do a 10-fold cross validation
+       */
+      Classifier() : _crossValidationBin( 10 )
+      {}
+
+      /**
         @brief create a deepcopy of the learner. The returned pointer should be deleted by <code>delete</code>.
         */
       virtual Classifier* deepCopy() const = 0;
@@ -121,7 +127,7 @@ namespace algorithm
       /**
         @brief function used to evaluate classifier performance. It is used for optimizing
                the classifier's parameters as well as in the <code>Typelist</code> internally. The default
-               implementation is simply a 20-fold cross validation on the <code>LEARNING|VALIDATION</code>
+               implementation is simply a 10-fold cross validation on the <code>LEARNING|VALIDATION</code>
                samples. In the case that the classifier is not deterministic (meaning given a database, each
                learner build using this database must be the same), else this method should be reimplemented
                using, for example, several cross validations and return the mean value.
@@ -132,9 +138,17 @@ namespace algorithm
         */
       virtual double evaluate( const ClassifierParameters& parameters, const Database& dat ) const
       {
-         Result r = test( dat, parameters, 20 );
+         Result r = test( dat, parameters, _crossValidationBin );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "Classifier::evaluate()=" + core::val2str( r.learningError ) );
          return r.learningError;
+      }
+
+      /**
+       @brief set the number of bins for the cross validation
+       */
+      void setCrossValidationBinSize( ui32 numberOfBins )
+      {
+         _crossValidationBin = numberOfBins;
       }
 
 
@@ -408,6 +422,7 @@ namespace algorithm
       
    protected:
       const ParameterOptimizers _parametersPrototype;
+      ui32 _crossValidationBin;
    };
 }
 }

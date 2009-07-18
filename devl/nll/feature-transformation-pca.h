@@ -73,7 +73,7 @@ namespace algorithm
          assert( _pca );
          return _pca->process( p );
       }
-
+   
       /**
        @brief Read the transformation from an input stream
        */

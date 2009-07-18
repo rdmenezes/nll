@@ -21,20 +21,18 @@ public:
       Database dat2 = nll::core::filterDatabase( dat, nll::core::make_vector<nll::ui32>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
 
       // find the optimized parameters on his database
+      classifier.setCrossValidationBinSize( 20 );
       Classifier::OptimizerClientClassifier classifierOptimizer = classifier.createOptimizer( dat2 );
       nll::algorithm::OptimizerGridSearch parametersOptimizer;
       std::vector<double> optm = parametersOptimizer.optimize( classifierOptimizer, Classifier::buildParameters() );
-
-      //
-      nll::core::Buffer1D<double> params = nll::core::make_buffer1D<double>( optm[ 0 ], optm[ 1 ] );
-     // nll::core::Buffer1D<double> params = nll::core::make_buffer1D<double>( 9.76563, 16 );
       
       // run relieff
+      nll::core::Buffer1D<double> params = nll::core::make_buffer1D<double>( optm[ 0 ], optm[ 1 ] );
       nll::algorithm::FeatureSelectionFilterRelieff<Point> relief( 18 );
       relief.compute( dat2 );
       Database datp = relief.process( dat2 );
       
-      // evaluate the soluion
+      // evaluate the solution
       classifier.learn( dat2, params );
       Classifier::Result results = classifier.test( dat );
       TESTER_ASSERT( results.testingError < 0.11 );
