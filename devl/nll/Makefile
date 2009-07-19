@@ -71,7 +71,7 @@ matrix-sort.h\
 matrix-svd.h\
 matrix.h\
 metric.h\
-multi-layered-perceptron.h\
+mlp.h\
 nll.h\
 optimizer-client.h\
 optimizer-genetic-algorithm.h\
@@ -99,6 +99,7 @@ sequence-converter.h\
 singleton.h\
 static-assert.h\
 static-vector.h\
+stdafx.h\
 stopping-condition.h\
 svm.h\
 timer.h\

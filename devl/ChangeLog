@@ -1,5 +1,7 @@
 v0.10
 -reimplementation of the multilayer neural network (added weight decay)
+-bug fixes
+-improved documentation & tesing
 
 v0.09
 -bug fixes (small bias corrected in a sample generator)

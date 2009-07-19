@@ -15,9 +15,11 @@ test-classifier-svm.o\
 test-feature-selection.o\
 test-genetic-algorithm.o\
 test-hmm.o\
+test-kdTree.o\
 test-labelize.o\
 test-markov-chain.o\
 test-matrix-cholesky.o\
+test-mlp.o\
 test-morphology.o\
 test-optimizer-parameters.o\
 test-optimizer.o\
@@ -25,6 +27,7 @@ test-pca.o\
 test-preprocessing.o\
 test-quaternion.o\
 test-region-growing.o\
+test-relieff.o\
 test.o
 
 %.o: %.cpp $(DEPS)

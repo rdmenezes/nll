@@ -55,7 +55,7 @@ public:
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestNllClassifierSpect);
 # ifndef DONT_RUN_VERY_SLOW_TEST
 #  ifndef DONT_RUN_SLOW_TEST
@@ -64,6 +64,6 @@ TESTER_TEST(testNllClassifierSpect);
 # endif
 TESTER_TEST(testNllPcaClassifierSpect);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif
 
 # pragma warning( pop )
