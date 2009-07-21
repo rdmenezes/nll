@@ -70,7 +70,6 @@ nll.TestOptimizerParameters.testGeometric=0
 nll.TestPca.testPca=0
 nll.TestPca.testPcaFeature=0
 nll.TestQuaternion.testMatrixToQuaternion=0
-nll.TestRelieff.testRelieff1=0
 nll.TestnllCore.testBuffer1D=0
 nll.TestnllCore.testClassifier=0
 nll.TestnllCore.testCovariance=0

@@ -66,9 +66,16 @@ namespace algorithm
       {
          _stop->reinit();
          _initializeMemory( client, parameters );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "start OptimizerHarmonySearch..." );
          while ( !_stop->stop( _memory[ 0 ].fitness ) )
          {
             _run( client, parameters );
+
+            // log the solution
+            std::stringstream sstr;
+            sstr << "best=" << _memory[ 0 ].fitness << std::endl;
+            sstr << "worst=" << _memory[ _memory.size() - 1].fitness << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
          }
 
          std::vector<double> best( parameters.size() );

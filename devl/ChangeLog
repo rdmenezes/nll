@@ -1,3 +1,6 @@
+v0.11
+-improved logging
+
 v0.10
 -reimplementation of the multilayer neural network (added weight decay)
 -bug fixes

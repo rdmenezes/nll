@@ -99,13 +99,8 @@ namespace algorithm
 
    public:
       /**
-       By default we do a 10-fold cross validation
-       */
-      Classifier() : _crossValidationBin( 10 )
-      {}
-
-      /**
         @brief create a deepcopy of the learner. The returned pointer should be deleted by <code>delete</code>.
+               the <code>_crossValidationBin</code> should be copied accross classifiers (else default 10-fold will be used)
         */
       virtual Classifier* deepCopy() const = 0;
 
@@ -177,7 +172,13 @@ namespace algorithm
               The actual classifier should check the parameters expected for the classifier during
               learning. It shouldn't be exposed to the public.
        */
-      Classifier( const ParameterOptimizers& parameters ) : _parametersPrototype( parameters )
+      Classifier( const ParameterOptimizers& parameters ) : _parametersPrototype( parameters ), _crossValidationBin( 10 )
+      {}
+
+      /**
+       By default we do a 10-fold cross validation
+       */
+      Classifier() : _crossValidationBin( 10 )
       {}
 
       virtual ~Classifier()
@@ -191,6 +192,7 @@ namespace algorithm
          std::ifstream f( file.c_str(), std::ios_base::binary );
          if ( !f.is_open() )
             return;
+         _crossValidationBin = 10;
          read( f );
       }
 
@@ -227,7 +229,7 @@ namespace algorithm
        */
       Result test( const Database& dat, const ClassifierParameters& learningParameters, ui32 kfold ) const
       {
-         ensure( kfold >= 3, "useless to do less than a 3-fold cross validation" );
+         ensure( kfold >= 3, "useless to do less than a 3-fold cross validation. Current is:" + core::val2str( kfold ) );
          Result rglobal( 0, -1, -1 );
 
          // filter the database

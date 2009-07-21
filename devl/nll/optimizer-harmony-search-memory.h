@@ -76,6 +76,7 @@ namespace algorithm
       {
          _stop->reinit();
          _initializeMemory( client, parameters );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "start OptimizerHarmonySearchMemory..." );
          while ( !_stop->stop( _memory[ 0 ].fitness ) )
          {
             _run( client, parameters );

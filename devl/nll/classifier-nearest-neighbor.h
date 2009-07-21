@@ -70,6 +70,7 @@ namespace algorithm
          ClassifierNearestNeighbor<Point, Metric>* classifier = new ClassifierNearestNeighbor<Point, Metric>( _metric );
          classifier->_k = _k;
          classifier->_dat = _dat;
+         classifier->_crossValidationBin = _crossValidationBin;
          return classifier;
       }
 

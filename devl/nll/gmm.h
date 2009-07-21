@@ -184,6 +184,19 @@ namespace algorithm
             std::cout << "likelihood=" << likelihood <<std::endl;
 # endif
          } while ( nbIter-- );
+
+         // log the parameter's model
+         std::stringstream ss;
+         ss << "Gmm.em:" << nbGaussians << " gaussians" << std::endl;
+         for ( ui32 n = 0; n < nbGaussians; ++n )
+         {
+            ss << "gaussian weight=" << _gaussians[ n ].weight << std::endl
+               << "mean:" << std::endl;
+            _gaussians[ n ].mean.print( ss );
+            ss << "cov:" << std::endl;
+            _gaussians[ n ].covariance.print( ss );
+         }
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }
 
       /**

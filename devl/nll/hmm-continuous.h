@@ -97,6 +97,15 @@ namespace algorithm
          markovChain.learn( statesList );
          _pi = markovChain.getInitialStateDistribution();
          _transitions = markovChain.getTransitions();
+
+         // log the parameters of the computed model
+         std::stringstream ss;
+         ss << "HiddenMarkovModelContinuous.learn" << std::endl
+            << "pi:" << std::endl;
+         _pi.print( ss );
+         ss << "transitions:" << std::endl;
+         _transitions.print( ss );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }
 
       /**

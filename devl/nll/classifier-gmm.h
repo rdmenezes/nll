@@ -49,6 +49,7 @@ namespace algorithm
          cgmm->_gmms = Gmms( _gmms.size() );
          for ( ui32 n = 0; n < _gmms.size(); ++n )
             cgmm->_gmms[ n ].clone( _gmms[ n ] );
+         cgmm->_crossValidationBin = _crossValidationBin;
          return cgmm;
       }
 
