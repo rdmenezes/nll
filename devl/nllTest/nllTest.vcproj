@@ -475,6 +475,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-kernel-pca.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-labelize.cpp"
 				>
 			</File>
