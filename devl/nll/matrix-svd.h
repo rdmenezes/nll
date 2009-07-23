@@ -78,6 +78,11 @@ namespace core
     @ingroup core
     @brief SVD decomposition.
 
+    in the case of eigen value, eigen vector decomposition:
+    svdcmp( covarianceMatrix, eigen_values, eigen_vectors )
+    eigen vectors are column vectors
+
+
     compute A=UWV^t, with A=[0..m][0..n] the input matrix. W is a diagonal matrix of singular value and outputed
             as a vector.
             V.V^t = 1

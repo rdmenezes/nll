@@ -67,7 +67,7 @@ namespace algorithm
       }
 
       /**
-       @brief Return the eigen vectors
+       @brief Return the eigen vectors. They are arranged by column (each column is an eigen vector)
        */
       const core::Matrix<double>& getEigenVectors() const
       {
@@ -158,7 +158,6 @@ namespace algorithm
          // SVD failed
          if ( !res )
             return false;
-         core::transpose( _eigenVectors );
 
          // sort the eigen values by decreasing order
          Pairs sort;
@@ -198,7 +197,7 @@ namespace algorithm
          core::Matrix<double> t( _nbVectors, size );
          for ( ui32 n = 0; n < _nbVectors; ++n )
             for ( ui32 nn = 0; nn < size; ++nn )
-               t( n, nn ) = _eigenVectors( _pairs[ n ].second, nn );  // select the highest first
+               t( n, nn ) = _eigenVectors( nn, _pairs[ n ].second );  // select the highest first
          return t;
       }
 
