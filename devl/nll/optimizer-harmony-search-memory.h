@@ -80,13 +80,13 @@ namespace algorithm
          while ( !_stop->stop( _memory[ 0 ].fitness ) )
          {
             _run( client, parameters );
-
-            // log the solution
-            std::stringstream sstr;
-            sstr << "best=" << _memory[ 0 ].fitness << std::endl;
-            sstr << "worst=" << _memory[ _memory.size() - 1].fitness << std::endl;
-            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
          }
+
+         // log the solution
+         std::stringstream sstr;
+         sstr << "best=" << _memory[ 0 ].fitness << std::endl;
+         sstr << "worst=" << _memory[ _memory.size() - 1].fitness << std::endl;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
 
          std::vector<double> best( parameters.size() );
          for ( ui32 n = 0; n < best.size(); ++n )
