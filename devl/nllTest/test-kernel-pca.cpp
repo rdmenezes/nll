@@ -69,6 +69,15 @@ namespace algorithm
        @brief Compues the <code>nbFeatures</code> most important features in a high dimentional space defined
               by the kernel function. Memory consuption is 2 * point.size^2. If we don't have enough memory,
               just take a representative sample of the points.
+
+              first we compute the centered kernel matrix kernel_ij = kernel( x_i, x_j ), x the input vectors
+
+              Then this matrix is centered in the feature space
+
+              we want to solve: M * lambda = kernel * lambda (1) so we compute eigen values/vectors of kernel
+                                                                 and renormalize the eigen vectors
+              we defined a feature V = sum (lambda_i * H(x_i) ) (2)  | same lambda in (1) and (2)
+
        @param points the set of points. needs to define Point operator[](n) const and size()
        @param nbFeatures the number of features used for the feaure space. It could range from 1 to the number
               of points.
@@ -83,7 +92,7 @@ namespace algorithm
 
          _kernel = kernel.clone();
          _centeredKernel = _computeKernelMatrix( points, kernel );
-         bool diagonalization = _diagonalize( _eig, _eiv, nbFeatures );
+         bool diagonalization = _diagonalize( _eig, _eiv, _x, nbFeatures, points );
          if ( !diagonalization )
             return false;
 
@@ -97,20 +106,26 @@ namespace algorithm
       Vector transform( const Point2& p ) const
       {
          ensure( getEigenVectors().sizex() && getEigenVectors().sizey(), "compute first the model parameters" );
-         ensure( p.size() == getEigenVectors().sizey(), "point size error" );
+         ensure( p.size() == _x.sizey(), "point size error" );
          ensure( _kernel, "something wrong happened..." );
 
          Vector projected( getEigenVectors().sizex() );
-         for ( ui32 n = 0; n < getEigenVectors().sizex(); ++n )
+         Point x( p.size() );
+         Point t( p.size() );
+         for ( ui32 nn = 0; nn < p.size(); ++nn )
+            t[ nn ] = p[ nn ];
+
+         for ( ui32 k = 0; k < getEigenVectors().sizex(); ++k )
          {
-            Point pm( p.size() );
-            Point k( p.size() );
-            for ( ui32 nn = 0; nn < p.size(); ++nn )
+            double sum = 0;
+            for ( ui32 i = 0; i < getEigenVectors().sizex(); ++i )
             {
-               pm[ nn ] = p[ nn ];
-               k[ nn ] = getEigenVectors()( nn, n );
+               for ( ui32 nn = 0; nn < p.size(); ++nn )
+                  x[ nn ] = _x( nn, i );
+               const double kk = (*_kernel)( x, t );
+               sum += kk * getEigenVectors()( i, k );
             }
-            projected[ n ] = (*_kernel)( pm, k );
+            projected[ k ] = sum;
          }
          return projected;
       }
@@ -156,40 +171,48 @@ namespace algorithm
                kernelBase( j, i ) = kernelBase( i, j );
             }
 
+         // precompute the sums
+         Vector sumA( static_cast<ui32>( points.size() ) );
+         Vector sumB( static_cast<ui32>( points.size() ) );
+         double sumC = 0;
+         for ( ui32 m = 0; m < points.size() * points.size(); ++m )
+            sumC += kernelBase[ m ];
+         for ( ui32 i = 0; i < points.size(); ++i )
+         {
+            for ( ui32 m = 0; m < points.size(); ++m )
+                  sumA[ i ] += kernelBase( m, i );
+            for ( ui32 m = 0; m < points.size(); ++m )
+                  sumB[ i ] += kernelBase( i, m );
+         }
          const double m1 = 1 / static_cast<double>( points.size() );
+
+         // center the kernel
          Matrix mkernel( kernelBase.sizey(), kernelBase.sizex() );
          for ( ui32 i = 0; i < points.size(); ++i )
             for ( ui32 j = i; j < points.size(); ++j )
-            {
-               double sumA = 0;
-               for ( ui32 m = 0; m < points.size(); ++m )
-                  sumA += kernelBase( m, j );
-               double sumB = 0;
-               for ( ui32 m = 0; m < points.size(); ++m )
-                  sumB += kernelBase( i, m );
-               double sumC = 0;
-               for ( ui32 m = 0; m < points.size() * points.size(); ++m )
-                  sumC += kernelBase[ m ];
-               mkernel( i, j ) = kernelBase( i, j ) - m1 * sumA - m1 * sumB + m1 * m1 * sumC;
+            {               
+               mkernel( i, j ) = kernelBase( i, j ) - m1 * sumA[ j ] - m1 * sumB[ i ] + m1 * m1 * sumC;
                mkernel( j, i ) = mkernel( i, j );
             }
 
-            kernelBase.print( std::cout );
+         kernelBase.print( std::cout );
          mkernel.print( std::cout );
          kernelBase.unref();
          return mkernel;
       }
 
       /**
-       @brief compute the eigen vectors & values of the kernel matrix. Eigen vectors are already normalized
-       ( V.V = 1 ) by SVD
+       @brief compute the eigen vectors & values of the kernel matrix. Eigen vectors are normalized so that
+       ( V.V = 1 )
 
        we compute eiv, eig of:
        M * eiv * eig = Kernel * eig
        */
-      bool _diagonalize( Matrix& outEigenVectors, Vector& outEigenValues, ui32 nbFeatures )
+      template <class Points>
+      bool _diagonalize( Matrix& outEigenVectors, Vector& outEigenValues, Matrix& outVectors, ui32 nbFeatures, const Points& points  )
       {
          const ui32 size = _centeredKernel.sizex();
+         const ui32 inputPointSize = static_cast<ui32>( points[ 0 ].size() );
 
          // compute eigen values, eigen vectors
          Matrix copyCov;
@@ -197,6 +220,7 @@ namespace algorithm
          Vector eigenValues;
          copyCov.clone( _centeredKernel ); // we need to fully copy the kernel matrix as it is directly replaced in SVD decomposition
          bool res = core::svdcmp( copyCov, eigenValues, eigenVectors );
+         eigenValues.print( std::cout );
          copyCov.unref();
 
          // check if error
@@ -222,17 +246,24 @@ namespace algorithm
          // export the eigen vectors/values we are interested in
          outEigenVectors = Matrix( size, nbFeatures );
          outEigenValues = Vector( nbFeatures );
+         outVectors = Matrix( inputPointSize, nbFeatures );
 
          for ( ui32 n = 0; n < nbFeatures; ++n )
          {
             const ui32 index = pairs[ n ].second;
             if ( eigenValues[ n ] > 0 )
             {
+               const double norm = sqrt( eigenValues[ n ] );
                for ( ui32 nn = 0; nn < size; ++nn )
-                  outEigenVectors( nn, n ) = eigenVectors( nn, index );
+                  outEigenVectors( nn, n ) = eigenVectors( nn, index ) / norm;
+
+               for ( ui32 nn = 0; nn < inputPointSize; ++nn )
+                  outVectors( nn, n ) = points[ index ][ nn ];
+
             }
             outEigenValues[ n ] = eigenValues[ index ];
          }
+         outVectors.print( std::cout );
          outEigenVectors.print( std::cout );
          return true;
       }
@@ -240,8 +271,9 @@ namespace algorithm
    private:
       Matrix   _centeredKernel;  /// stores the centered kernel matrix K_ij in feature space
       Matrix   _eig;             /// eigen vectors, stored column (1 col = 1 eigen vector)
+      Matrix   _x;               /// the vectors associated with the principal component, 1 col = 1 vector
       Vector   _eiv;             /// eigen values
-      Kernel*  _kernel;           /// the kernel used by the algorithm
+      Kernel*  _kernel;          /// the kernel used by the algorithm
    };
 }
 }
@@ -255,7 +287,7 @@ public:
     => sum H(x_k)H(x_i) = 0, for i=0..size
     => sum kernel(x_k, x_i) = 0 for i=0..size
 
-    Test if kernel matrix is centered in feature space
+    //Test if kernel matrix is centered in feature space
     Eigen vectors in feature space are normalized
     */
    void testCentered()
@@ -267,18 +299,18 @@ public:
 
       // we want to keep the values small as we are using a polynomial kernel of degree 10
       Points points;
-      points.push_back( nll::core::make_vector<double>( 1, 1 ) );
       points.push_back( nll::core::make_vector<double>( 2, 1.1 ) );
+      points.push_back( nll::core::make_vector<double>( 1, 1 ) );
       points.push_back( nll::core::make_vector<double>( -1, 0.9 ) );
       points.push_back( nll::core::make_vector<double>( 1.5, 1.2 ) );
       points.push_back( nll::core::make_vector<double>( 1.8, 1.01 ) );
       points.push_back( nll::core::make_vector<double>( 2, 1.2 ) );
 
       KernelPca kpca;
-      Kernel polynomialKernel( 10 );
+      Kernel polynomialKernel( 8 );
       kpca.compute( points, 3, polynomialKernel );
 
-      // test centered
+      // test kernel is centered
       nll::core::Matrix<double> kernel = kpca.getKernelMatrix();
       for ( unsigned n = 0; n < points.size(); ++n )
       {
@@ -287,17 +319,6 @@ public:
             sum += kernel( n, nn );
          std::cout << "sum=" << sum << std::endl;
          TESTER_ASSERT( nll::core::equal<double>( sum, 0, 1e-5 ) );
-      }
-
-      // test normalized
-      for ( unsigned nb = 0; nb < kpca.getEigenValues().size() - 1; ++nb )
-      {
-         Point p( kpca.getEigenVectors().sizey() );
-         for ( unsigned n = 0; n < kpca.getEigenVectors().sizey(); ++n )
-         {
-            p[ n ] = kpca.getEigenVectors()( n, nb );
-         }
-         TESTER_ASSERT( nll::core::equal<double>( polynomialKernel( p, p ), 1, 1e-5 ) );
       }
 
       // test orthogonal eig
@@ -320,7 +341,7 @@ public:
          }
       }
 
-      nll::core::Buffer1D<float> point = nll::core::make_buffer1D<float>( 1.5, 0.9 );
+      nll::core::Buffer1D<float> point = nll::core::make_buffer1D<float>( 1.5f, 0.9f );
       KernelPca::Vector v = kpca.transform( point );
       v.print( std::cout );
    }
