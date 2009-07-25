@@ -33,7 +33,7 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.10
+ @version 0.11
  @date 14th March 2009
  */
 

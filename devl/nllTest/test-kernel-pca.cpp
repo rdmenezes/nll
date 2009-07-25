@@ -38,6 +38,35 @@ namespace algorithm
       double _degree;
    };
 
+   template <class Point>
+   class KernelRbf
+   {
+   public:
+      KernelRbf( double var ) : _var( var )
+      {
+      }
+
+      double operator()( const Point& p1, const Point& p2 ) const
+      {
+         assert( p1.size() == p2.size() );
+         double sum = 0;
+         for ( ui32 n = 0; n < p1.size(); ++n )
+         {
+            double val = p1[ n ] - p2[ n ];
+            sum += val * val;
+         }
+         return exp( - sum / ( _var ) );
+      }
+
+      KernelRbf* clone() const
+      {
+         return new KernelRbf( _var );
+      }
+
+   private:
+      double _var;
+   };
+
    /**
     @ingroup algorithm
     @brief Nonlinear Component Analysis as a Kernel Eigenvalue Problem. This is an extension of the PCA algorithm
@@ -163,6 +192,7 @@ namespace algorithm
       template <class Points>
       Matrix _computeKernelMatrix( const Points& points, const Kernel& kernel ) const
       {
+         // compute the not centered kernel matrix
          Matrix kernelBase( static_cast<ui32>( points.size() ), static_cast<ui32>( points.size() ) );
          for ( ui32 i = 0; i < points.size(); ++i )
             for ( ui32 j = i; j < points.size(); ++j )
@@ -195,7 +225,6 @@ namespace algorithm
                mkernel( j, i ) = mkernel( i, j );
             }
 
-         kernelBase.print( std::cout );
          mkernel.print( std::cout );
          kernelBase.unref();
          return mkernel;
@@ -220,7 +249,6 @@ namespace algorithm
          Vector eigenValues;
          copyCov.clone( _centeredKernel ); // we need to fully copy the kernel matrix as it is directly replaced in SVD decomposition
          bool res = core::svdcmp( copyCov, eigenValues, eigenVectors );
-         eigenValues.print( std::cout );
          copyCov.unref();
 
          // check if error
@@ -237,11 +265,13 @@ namespace algorithm
 
          // compute the number of eigen values according to the number of features & feature space dim
          for ( ui32 n = 0; n < nbFeatures; ++n )
-            if ( pairs[ n ].first <= 0 )
+            if ( pairs[ n ].first <= 1e-3 )
             {
-               nbFeatures = n - 1;
+               nbFeatures = n;
                break;
             }
+         if ( nbFeatures == 0 )
+            return false;
 
          // export the eigen vectors/values we are interested in
          outEigenVectors = Matrix( size, nbFeatures );
@@ -251,19 +281,17 @@ namespace algorithm
          for ( ui32 n = 0; n < nbFeatures; ++n )
          {
             const ui32 index = pairs[ n ].second;
-            if ( eigenValues[ n ] > 0 )
-            {
-               const double norm = sqrt( eigenValues[ n ] );
-               for ( ui32 nn = 0; nn < size; ++nn )
-                  outEigenVectors( nn, n ) = eigenVectors( nn, index ) / norm;
+            const double norm = sqrt( eigenValues[ index ] );
+            for ( ui32 nn = 0; nn < size; ++nn )
+               outEigenVectors( nn, n ) = eigenVectors( nn, index ) / norm;
 
-               for ( ui32 nn = 0; nn < inputPointSize; ++nn )
-                  outVectors( nn, n ) = points[ index ][ nn ];
+            for ( ui32 nn = 0; nn < inputPointSize; ++nn )
+               outVectors( nn, n ) = points[ index ][ nn ];
 
-            }
             outEigenValues[ n ] = eigenValues[ index ];
          }
          outVectors.print( std::cout );
+         outEigenValues.print( std::cout );
          outEigenVectors.print( std::cout );
          return true;
       }
@@ -294,7 +322,8 @@ public:
    {
       typedef std::vector<double>               Point;
       typedef std::vector<Point>                Points;
-      typedef nll::algorithm::KernelPolynomial<Point>   Kernel;
+      //typedef nll::algorithm::KernelPolynomial<Point>   Kernel;
+      typedef nll::algorithm::KernelRbf<Point>   Kernel;
       typedef nll::algorithm::KernelPca<Point, Kernel>  KernelPca;
 
       // we want to keep the values small as we are using a polynomial kernel of degree 10
@@ -303,12 +332,12 @@ public:
       points.push_back( nll::core::make_vector<double>( 1, 1 ) );
       points.push_back( nll::core::make_vector<double>( -1, 0.9 ) );
       points.push_back( nll::core::make_vector<double>( 1.5, 1.2 ) );
-      points.push_back( nll::core::make_vector<double>( 1.8, 1.01 ) );
-      points.push_back( nll::core::make_vector<double>( 2, 1.2 ) );
+      //points.push_back( nll::core::make_vector<double>( 1.8, 1.01 ) );
+      //points.push_back( nll::core::make_vector<double>( 2, 1.2 ) );
 
       KernelPca kpca;
-      Kernel polynomialKernel( 8 );
-      kpca.compute( points, 3, polynomialKernel );
+      Kernel rbfKernel( 0.1 );
+      kpca.compute( points, 3, rbfKernel );
 
       // test kernel is centered
       nll::core::Matrix<double> kernel = kpca.getKernelMatrix();
@@ -337,7 +366,7 @@ public:
             {
                p2[ n ] = kpca.getEigenVectors()( n, nb2 );
             }
-            TESTER_ASSERT( nll::core::equal<double>( polynomialKernel( p, p2 ), 0, 1e-5 ) );
+            TESTER_ASSERT( nll::core::equal<double>( rbfKernel( p, p2 ), 0, 1e-5 ) );
          }
       }
 
