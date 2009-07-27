@@ -181,6 +181,7 @@
 # include "relief.h"
 # include "feature-transformation.h"
 # include "feature-transformation-pca.h"
+# include "feature-transformation-kernel-pca.h"
 # include "feature-selection.h"
 # include "feature-selection-genetic-algorithm.h"
 # include "feature-selection-best-first.h"

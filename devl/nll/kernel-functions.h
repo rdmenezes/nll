@@ -34,6 +34,11 @@ namespace algorithm
          ensure( degree >= 1, "kernel degree error" );
       }
 
+      KernelPolynomial( std::istream& i )
+      {
+         read( i );
+      }
+
       double operator()( const Point& p1, const Point& p2 ) const
       {
          assert( p1.size() == p2.size() );
@@ -74,6 +79,11 @@ namespace algorithm
    public:
       KernelRbf( double var ) : _var( var )
       {
+      }
+
+      KernelRbf( std::istream& i )
+      {
+         read( i );
       }
 
       double operator()( const Point& p1, const Point& p2 ) const

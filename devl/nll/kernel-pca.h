@@ -14,6 +14,8 @@ namespace algorithm
     on kernel component analysis. See here for the details:http://www.face-rec.org/algorithms/Kernel/kernelPCA_scholkopf.pdf
 
     The kernel must be serializable (read, write) and operator()( Point, Point )
+
+    @note the memory consuption is around size * size * (1 + nb_eig/nbPoint)
     */
    template <class Point, class Kernel>
    class KernelPca
@@ -116,6 +118,28 @@ namespace algorithm
             projected[ k ] = sum;
          }
          return projected;
+      }
+
+      bool write( std::ostream& o ) const
+      {
+         _eig.write( o );
+         _x.write( o );
+         _kernel->write( o );
+         core::write<Vector>( _sumA, o );
+         core::write<double>( _sumC, o );
+         return true;
+      }
+
+      bool read( std::istream& i )
+      {
+         if ( _kernel )
+            delete _kernel;
+         _eig.read( i );
+         _x.read( i);
+         _kernel = new Kernel( i );
+         core::read<Vector>( _sumA, i );
+         core::read<double>( _sumC, i );
+         return true;
       }
 
    private:

@@ -713,6 +713,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\feature-transformation-kernel-pca.h"
+				>
+			</File>
+			<File
 				RelativePath=".\feature-transformation-pca.h"
 				>
 			</File>
