@@ -809,6 +809,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\kernel-functions.h"
+				>
+			</File>
+			<File
+				RelativePath=".\kernel-pca.h"
+				>
+			</File>
+			<File
 				RelativePath=".\kmeans.h"
 				>
 			</File>

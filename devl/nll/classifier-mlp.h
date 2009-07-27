@@ -55,6 +55,7 @@ namespace algorithm
       {
          ClassifierMlp* c = new ClassifierMlp();
          c->_pmc = _pmc;
+         c->_crossValidationBin = _crossValidationBin;
          return c;
       }
 

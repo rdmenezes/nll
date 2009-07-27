@@ -169,6 +169,8 @@
 # include "markov-chain.h"
 # include "hmm.h"
 # include "hmm-continuous.h"
+# include "kernel-functions.h"
+# include "kernel-pca.h"
 # include "classifier-gmm.h"
 # include "classifier-mlp.h"
 # include "classifier-nearest-neighbor.h"

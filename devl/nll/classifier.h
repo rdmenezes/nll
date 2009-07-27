@@ -155,7 +155,7 @@ namespace algorithm
         - skip <code>TESTING</code> samples
         - skip <code>VALIDATION</code> samples (used to compute the classifer's model)
 
-        The learning dataset is only used for learning the dataset.
+        The learning dataset is only used to learn the dataset.
         The validation dataset is used to tune the parameters of the algorithm, so that the testing
             dataset is never used except for testing.
         */
@@ -459,6 +459,7 @@ namespace algorithm
       {}
       virtual Classifier* deepCopy() const
       {
+         c->_crossValidationBin = _crossValidationBin;
          return 0;
       }
 
