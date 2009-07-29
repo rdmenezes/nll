@@ -105,13 +105,13 @@ namespace algorithm
 
       bool read( std::istream& i )
       {
-         core::read<double>( _var );
+         core::read<double>( _var, i );
          return true;
       }
 
       bool write( std::ostream& o ) const
       {
-         core::write<double>( _var );
+         core::write<double>( _var, o );
          return true;
       }
 

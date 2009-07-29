@@ -81,8 +81,7 @@ namespace core
     @brief split a string according to a specific separator.
     
      The input string is altered: each time the separator is found, it is replaced by a null character.
-     Each entry of the returned vector point to a part of the string. If a separator is found at the beginning
-     or at the end of the string, an empty string representing this entry will be added in the result.
+     Each entry of the returned vector point to a part of the string. All empty strings are removed.
     */
    inline std::vector<const char*> split( std::string& str, char separator = ' ' )
    {
@@ -92,7 +91,8 @@ namespace core
          if ( str[ n ] == separator )
          {
             str[ n ] = 0;
-            s.push_back( &str[ last ] );
+            if ( strlen( &str[ last ] ) )
+               s.push_back( &str[ last ] );
             last = n + 1;
          }
       s.push_back( &str[ last ] );

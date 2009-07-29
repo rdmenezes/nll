@@ -1,5 +1,6 @@
 v0.11
 -improved logging
+-added kernel PCA algorithm
 
 v0.10
 -reimplementation of the multilayer neural network (added weight decay)

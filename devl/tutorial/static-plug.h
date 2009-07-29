@@ -26,7 +26,9 @@ namespace benchmark
 }
 }
 
+# define MAKE_UNIQUE( symb )   symb##_FILE_##_LINE_
+
 # define STATIC_PLUG( func )                    \
-   nll::benchmark::StaticPlug plug##_FILE_##_Line( func );
+   nll::benchmark::StaticPlug MAKE_UNIQUE( func ) ( func );
 
 #endif
