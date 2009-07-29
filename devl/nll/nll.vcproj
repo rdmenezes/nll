@@ -841,6 +841,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\normalization.h"
+				>
+			</File>
+			<File
 				RelativePath=".\pca.h"
 				>
 			</File>

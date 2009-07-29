@@ -18,9 +18,9 @@ namespace algorithm
    template <class Point>
    class FeatureTransformationNormalization : public FeatureTransformation<Point>
    {
-      typedef core::Buffer1D<double>   Vector;
-
+      typedef Normalize<Point>               Impl;
    public:
+      typedef core::Buffer1D<double>         Vector;
       typedef  FeatureTransformation<Point>  Base;
 
       // don't override these
@@ -34,44 +34,12 @@ namespace algorithm
        */
       bool compute( const Database& points )
       {
-         if ( !points.size() )
-            return false;
-
-         const ui32 nbFeatures = (ui32)points[ 0 ].input.size();
-         _mean = Vector( nbFeatures );
-         _var = Vector( nbFeatures );
-         ui32 nbSamples = 0;
-         for ( ui32 n = 0; n < points.size(); ++n )
-            if ( points[ n ].type == Database::Sample::LEARNING ||
-                 points[ n ].type == Database::Sample::VALIDATION )
-            {
-               for ( ui32 nn = 0; nn < nbFeatures; ++nn )
-                  _mean[ nn ] += points[ n ].input[ nn ];
-               ++nbSamples;
-            }
-         if ( !nbSamples )
-            return false;
-
-         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
-            _mean[ nn ] /= nbSamples;
-
-         for ( ui32 n = 0; n < points.size(); ++n )
-            if ( points[ n ].type == Database::Sample::LEARNING ||
-                 points[ n ].type == Database::Sample::VALIDATION )
-            {
-               for ( ui32 nn = 0; nn < nbFeatures; ++nn )
-               {
-                  double val = points[ n ].input[ nn ] - _mean[ nn ];
-                  _var[ nn ] += val * val;
-               }
-            }
-
-         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
-         {
-            ensure( fabs( _var[ nn ] ) > 1e-10, "error: null variance, this attribut should be discarded instead" );
-            _var[ nn ] /= nbSamples;
-         }
-         return true;
+         Database learningDat = core::filterDatabase( points,
+                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
+                                                                                    Database::Sample::VALIDATION ),
+                                                      Database::Sample::LEARNING );
+         core::DatabaseInputAdapterRead<Database> databaseAdapter( learningDat );
+         return _impl.compute( databaseAdapter );
       }
 
       /**
@@ -79,12 +47,7 @@ namespace algorithm
        */
       virtual Point process( const Point& p ) const
       {
-         ensure( p.size() == _var.size(), "error size" );
-
-         Point res( p.size() );
-         for ( ui32 nn = 0; nn < p.size(); ++nn )
-            res[ nn ] = ( p[ nn ] - _mean[ nn ] ) / _var[ nn ];
-         return res;
+         return _impl.process( p );
       }
 
       /**
@@ -92,7 +55,7 @@ namespace algorithm
        */
       const Vector& getMean() const
       {
-         return _mean;
+         return _impl.getMean();
       }
 
       /**
@@ -100,7 +63,7 @@ namespace algorithm
        */
       const Vector& getVariance() const
       {
-         return _var;
+         return _impl.getVariance();
       }
 
       /**
@@ -108,8 +71,7 @@ namespace algorithm
        */
       virtual void read( std::istream& i )
       {
-         _mean.read( i );
-         _var.read( i );
+         _impl.read( i );
       }
 
       /**
@@ -117,13 +79,11 @@ namespace algorithm
        */
       virtual void write( std::ostream& o ) const
       {
-         _mean.write( o );
-         _var.write( o );
+         _impl.write( o );
       }
 
    protected:
-      Vector   _mean;
-      Vector   _var;
+      Impl     _impl;
    };
 }
 }

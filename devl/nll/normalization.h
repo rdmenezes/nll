@@ -1,0 +1,101 @@
+#ifndef NLL_ALGORITM_NORMALIZATION_H_
+# define NLL_ALGORITM_NORMALIZATION_H_
+
+namespace nll
+{
+namespace algorithm
+{
+   template <class Point>
+   class Normalize
+   {
+   public:
+      typedef core::Buffer1D<double>   Vector;
+
+   public:
+      virtual ~Normalize()
+      {}
+
+      template <class Points>
+      bool compute( const Points& points )
+      {
+         if ( !points.size() )
+            return false;
+
+         const ui32 nbFeatures = (ui32)points[ 0 ].size();
+         _mean = Vector( nbFeatures );
+         _var = Vector( nbFeatures );
+         ui32 nbSamples = points.size();
+         for ( ui32 n = 0; n < points.size(); ++n )
+         {
+            for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+               _mean[ nn ] += points[ n ][ nn ];
+         }
+
+         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+            _mean[ nn ] /= nbSamples;
+
+         for ( ui32 n = 0; n < points.size(); ++n )
+         {
+            for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+            {
+               double val = points[ n ][ nn ] - _mean[ nn ];
+               _var[ nn ] += val * val;
+            }
+         }
+
+         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+         {
+            ensure( fabs( _var[ nn ] ) > 1e-10, "error: null variance, this attribut should be discarded instead" );
+            _var[ nn ] /= nbSamples;
+         }
+         return true;
+      }
+
+      bool write( std::ostream& o ) const
+      {
+         _mean.write( o );
+         _var.write( o );
+         return true;
+      }
+
+      bool read( std::istream& i )
+      {
+         _mean.read( i );
+         _var.read( i );
+         return true;
+      }
+
+      Point process( const Point& p ) const
+      {
+         ensure( p.size() == _var.size(), "error size" );
+
+         Point res( p.size() );
+         for ( ui32 nn = 0; nn < p.size(); ++nn )
+            res[ nn ] = ( p[ nn ] - _mean[ nn ] ) / _var[ nn ];
+         return res;
+      }
+
+      /**
+       @return the mean for each feature
+       */
+      const Vector& getMean() const
+      {
+         return _mean;
+      }
+
+      /**
+       @return the variance
+       */
+      const Vector& getVariance() const
+      {
+         return _var;
+      }
+
+   protected:
+      Vector   _mean;
+      Vector   _var;
+   };
+}
+}
+
+#endif

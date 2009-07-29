@@ -179,6 +179,7 @@
 # include "region-growing.h"
 # include "labelize.h"
 # include "relief.h"
+# include "normalization.h"
 # include "feature-transformation.h"
 # include "feature-transformation-pca.h"
 # include "feature-transformation-kernel-pca.h"
