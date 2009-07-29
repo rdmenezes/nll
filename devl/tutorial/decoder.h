@@ -170,7 +170,7 @@ namespace tutorial
       typedef std::vector<AttributValue> AttributValues;
 
    public:
-      Database compute( const AttributValues& values, std::istream& i )
+      Database compute( const AttributValues& values, std::istream& i, char split = ' ' )
       {
          std::vector<const impl::Encoder*> encoders( values.size() );
          std::vector< std::set<std::string> > sets( values.size() );
@@ -182,7 +182,7 @@ namespace tutorial
             std::getline( i, line );
             if ( line.size() )
             {
-               std::vector<const char*> vals = core::split( line );
+               std::vector<const char*> vals = core::split( line, split );
                ensure( vals.size() == values.size(), "Error: size doesn't match" );
                for ( ui32 n = 0; n < values.size(); ++n )
                   if ( values[ n ] == CLASS || values[ n ] == DISCRETE )
@@ -221,7 +221,7 @@ namespace tutorial
             std::getline( i, line );
             if ( line.size() )
             {
-               std::vector<const char*> vals = core::split( line );
+               std::vector<const char*> vals = core::split( line, split );
                std::pair< std::vector<double>,
                           std::vector<double> > point = impl::encodeSample( encoders, vals );
 

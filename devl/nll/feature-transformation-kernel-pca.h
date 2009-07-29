@@ -33,10 +33,16 @@ namespace algorithm
          delete _kernel;
       }
 
-      template <class Points>
-      bool compute( const Points& points, ui32 nbFeatures )
+      /**
+       Compute the principal components using only the LEARNING|VALIDATION samples
+       */
+      bool compute( const Database& dat, ui32 nbFeatures )
       {
-         PointsAdapter adapter( points );
+         Database learningDat = core::filterDatabase( dat,
+                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
+                                                                                    Database::Sample::VALIDATION ),
+                                                      Database::Sample::LEARNING );
+         PointsAdapter adapter( learningDat );
          return _algorithm.compute( adapter, nbFeatures, *_kernel );
       }
 

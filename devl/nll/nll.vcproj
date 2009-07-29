@@ -717,6 +717,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\feature-transformation-normalization.h"
+				>
+			</File>
+			<File
 				RelativePath=".\feature-transformation-pca.h"
 				>
 			</File>
