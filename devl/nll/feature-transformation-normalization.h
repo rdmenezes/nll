@@ -30,7 +30,8 @@ namespace algorithm
 
    public:
       /**
-       @brief Computes the mean and variance independantly for each feature
+       @brief Computes the mean and variance independantly for each feature. Only the
+              LEARNING|VALIDATION data are used to compute the parameters.
        */
       bool compute( const Database& points )
       {
