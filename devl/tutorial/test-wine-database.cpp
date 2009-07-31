@@ -27,9 +27,9 @@ namespace tutorial
          typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
          ClassifierImpl c;
 
-         nll::algorithm::FeatureTransformationNormalization<Input> preprocesser;
-         preprocesser.compute( dat );
-         Classifier::Database preprocessedDat = preprocesser.process( dat );
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.process( dat );
          double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 50 ), preprocessedDat );
          TESTER_ASSERT( fabs( error ) <= 0 );
       }
@@ -47,19 +47,75 @@ namespace tutorial
 
          // define the classifier to be used
          typedef nll::algorithm::ClassifierMlp<Input> ClassifierImpl;
-         ClassifierImpl c;
+         ClassifierImpl c( 0.00001 );
 
-         nll::algorithm::FeatureTransformationNormalization<Input> preprocesser;
-         preprocesser.compute( dat );
-         Classifier::Database preprocessedDat = preprocesser.process( dat );
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 10, 0.05, 3 ), preprocessedDat );
-         TESTER_ASSERT( fabs( error ) <= 0.07 );
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.process( dat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 3, 0.1, 3 ), preprocessedDat );
+         TESTER_ASSERT( fabs( error ) <= 0.051 );
+      }
+
+      void testKnn()
+      {
+         srand( 0 );
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::MetricManhattan<Input>           Metric;
+         typedef nll::algorithm::ClassifierNearestNeighbor<Input, Metric> ClassifierImpl;
+
+         Metric metric;
+         ClassifierImpl c( &metric );
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.process( dat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 1 ), preprocessedDat );
+         TESTER_ASSERT( fabs( error ) <= 0.09 );
+      }
+
+      void testGmm()
+      {
+         srand( 0 );
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         const nll::benchmark::BenchmarkDatabases::Database& dat = benchmark->database;
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         nll::benchmark::BenchmarkDatabases::Database preprocessedDat = preprocessor.process( dat );
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierGmm< std::vector<Input> > ClassifierImpl;
+         ClassifierImpl::Database rDat;
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            const nll::benchmark::BenchmarkDatabases::Database::Sample& s = preprocessedDat[ n ];
+            std::vector<Input> input( 1 );
+            input[ 0 ] = s.input;
+            rDat.add( ClassifierImpl::Database::Sample( input, s.output, (ClassifierImpl::Database::Sample::Type)s.type ) );
+         }
+
+         ClassifierImpl c;
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 3, 1 ), rDat );
+         TESTER_ASSERT( fabs( error ) <= 0.012 );
       }
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
-   TESTER_TEST( testSvm );
-   TESTER_TEST( testMlp );
+    TESTER_TEST( testSvm );
+    TESTER_TEST( testMlp );
+    TESTER_TEST( testKnn );
+    TESTER_TEST( testGmm );
    TESTER_TEST_SUITE_END();
 }
 }

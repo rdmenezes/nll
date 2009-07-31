@@ -13,7 +13,7 @@ void loadYeastDatabase()
    nll::tutorial::DatabaseDecoderEncoder databaseCreator;
    std::ifstream f( NLL_DATABASE_PATH "uci/yeast/yeast.data" );
    ensure( f.good(), "error, can't find database: yeast.data" );
-   nll::benchmark::BenchmarkDatabases::Database dat = databaseCreator.compute( vals, f );
+   nll::benchmark::BenchmarkDatabases::Database dat = databaseCreator.compute( vals, f, ' ' );
    nll::benchmark::BenchmarkDatabases::instance().add(
       nll::benchmark::BenchmarkDatabases::Benchmark( "yeast.data",
                                                       dat,

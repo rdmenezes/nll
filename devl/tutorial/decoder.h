@@ -170,7 +170,7 @@ namespace tutorial
       typedef std::vector<AttributValue> AttributValues;
 
    public:
-      Database compute( const AttributValues& values, std::istream& i, char split = ' ' )
+      Database compute( const AttributValues& values, std::istream& i, char split )
       {
          std::vector<const impl::Encoder*> encoders( values.size() );
          std::vector< std::set<std::string> > sets( values.size() );

@@ -39,7 +39,8 @@ namespace tutorial
 
          nll::algorithm::OptimizerHarmonySearchMemory parametersOptimizer( 5, 0.8, 0.1, 1, &stop, 0.01, &metric );
          std::vector<double> params = parametersOptimizer.optimize( classifierOptimizer, ClassifierImpl::buildParameters() );
-         
+         params[ 2 ] += 1; // we add more time as in the test, it could fail sometime (as the learning is not deterministic and the seed can't be set as random number are used during optimization)
+
          // learn the LEARNING and VALIDATION database with the optimized parameters, and test the classifier
          // on the TESTING database
          classifier.learnTrainingDatabase( dat, nll::core::make_buffer1D( params ) );

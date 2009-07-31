@@ -55,13 +55,13 @@ namespace algorithm
 
       bool read( std::istream& i )
       {
-         core::read<double>( _degree );
+         core::read<double>( _degree, i );
          return true;
       }
 
       bool write( std::ostream& o ) const
       {
-         core::write<double>( _degree );
+         core::write<double>( _degree, o );
          return true;
       }
 
