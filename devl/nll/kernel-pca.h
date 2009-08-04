@@ -104,7 +104,7 @@ namespace algorithm
          {
             centeredKernel[ j ] = kernel[ j ] - constVal * sumA
                                               - constVal * _sumA[ j ]
-                                              + constVal * constVal;
+                                              + constVal * constVal * _sumC;
          }
 
          // project the input on the features
@@ -233,6 +233,7 @@ namespace algorithm
          outEigenVectors = Matrix( size, nbFeatures );
          outVectors = Matrix( inputPointSize, nbFeatures );
 
+         Vector reorderedSumA = Vector( nbFeatures );
          for ( ui32 n = 0; n < nbFeatures; ++n )
          {
             const ui32 index = pairs[ n ].second;
@@ -242,7 +243,9 @@ namespace algorithm
 
             for ( ui32 nn = 0; nn < inputPointSize; ++nn )
                outVectors( nn, n ) = points[ index ][ nn ];
+            reorderedSumA[ n ] = _sumA[ index ];
          }
+         _sumA = reorderedSumA;
          return true;
       }
 

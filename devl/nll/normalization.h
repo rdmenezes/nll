@@ -5,6 +5,13 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @ingroup algorithm
+    @brief Normalize features of a sequence of points. Each feature is independantly normalized
+           for (mean,variance)= (0,1)
+
+           A point must define operator[](ui32) and ui32 size() and constructible(size)
+    */
    template <class Point>
    class Normalize
    {
@@ -15,6 +22,11 @@ namespace algorithm
       virtual ~Normalize()
       {}
 
+      /**
+       Compute the mean and variance of every features.
+
+       Points must define const Point& operator[](ui32) and ui32 size() const
+       */
       template <class Points>
       bool compute( const Points& points )
       {
@@ -51,6 +63,9 @@ namespace algorithm
          return true;
       }
 
+      /**
+       @brief write the state of the class to a stream
+       */
       bool write( std::ostream& o ) const
       {
          _mean.write( o );
@@ -58,6 +73,9 @@ namespace algorithm
          return true;
       }
 
+      /**
+       @brief restore the state of the class from a stream
+       */
       bool read( std::istream& i )
       {
          _mean.read( i );
@@ -65,6 +83,9 @@ namespace algorithm
          return true;
       }
 
+      /**
+       @brief normalize a point
+       */
       Point process( const Point& p ) const
       {
          ensure( p.size() == _var.size(), "error size" );
