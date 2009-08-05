@@ -226,6 +226,18 @@ namespace core
          std::cout << std::endl;
       }
 
+      bool write( std::ostream& f ) const
+      {
+         f.write( (i8*)_buffer, sizeof( T ) * SIZE );
+         return true;
+      }
+
+      bool read( std::istream& f )
+      {
+         f.read( (i8*)_buffer, sizeof( T ) * SIZE );
+         return true;
+      }
+
    protected:
       T     _buffer[ SIZE ];
    };

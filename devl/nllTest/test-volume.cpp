@@ -129,6 +129,22 @@ namespace imaging
          Base::clone( buf );
       }
 
+      bool write( std::ostream& f ) const
+      {
+         _size.write( f );
+         Base::write( f );
+         return true;
+      }
+
+      bool read( std::istream& f )
+      {
+         _size.read( f );
+         _bufferSize = Base::size();
+         Base::read( f );
+         _mapper = IndexMapper( _size[ 0 ], _size[ 1 ], _size[ 2 ] );
+         return true;
+      }
+
    protected:
       /**
        @brief return the position of the pixel (x, y, z) in the buffer
@@ -173,12 +189,10 @@ namespace imaging
    template <class T, class VolumeMemoryBufferType = VolumeMemoryBuffer<T> >
    class Volume
    {
-   protected:
-      typedef VolumeMemoryBufferType   VoxelBuffer;
-
    public:
       typedef typename VolumeMemoryBufferType::iterator        iterator;
       typedef typename VolumeMemoryBufferType::const_iterator  const_iterator;
+      typedef VolumeMemoryBufferType                           VoxelBuffer;
 
    public:
       /**
@@ -191,7 +205,7 @@ namespace imaging
       /**
        @brief Create a volume of a fixed size
        */
-      Volume( ui32 sx, ui32 sy, ui32 sz, bool zero = true ) : _buffer( sx, sy, sz, zero )
+      Volume( ui32 sx, ui32 sy, ui32 sz, T background = 0, bool zero = true ) : _buffer( sx, sy, sz, zero ), _background( background )
       {
       }
 
@@ -219,6 +233,14 @@ namespace imaging
       const core::vector3ui& size() const
       {
          return _buffer.getSize();
+      }
+
+      bool inside( double x, double y, double z ) const
+      {
+         return x >= 0 && y >= 0 && z >= 0 &&
+                x < _buffer.getSize()[ 0 ] &&
+                y < _buffer.getSize()[ 1 ] &&
+                z < _buffer.getSize()[ 2 ];
       }
 
       /**
@@ -253,6 +275,34 @@ namespace imaging
          return _buffer.end();
       }
 
+      bool write( std::ostream& f ) const
+      {
+         _buffer.write( f );
+         core::write<T>( _background, f );
+         return true;
+      }
+
+      bool read( std::istream& f )
+      {
+         _buffer.read( f );
+         core::read<T>( _background, f );
+         return true;
+      }
+
+      /**
+       @return the background value. This value is used for the values outside the volume for special
+               operations like interpolation
+       */
+      T getBackgroundValue() const
+      {
+         return _background;
+      }
+
+      void setBackgroundValue( T b )
+      {
+         _background = b;
+      }
+
    protected:
       /**
        @brief return the value at the point (x, y, z)
@@ -272,6 +322,47 @@ namespace imaging
 
    private:
       VoxelBuffer _buffer;
+      T           _background;
+   };
+
+   /**
+    @brief Nearest neighbour interpolator
+    */
+   template <class T, class VoxelBuffer>
+   class InterpolatorNearestNeighbour
+   {
+   public:
+      typedef Volume<T, VoxelBuffer>   VolumeType;
+
+   public:
+      /**
+       @brief Construct an interpolator for the volume v. 
+
+       v must remain valid until the end of the calls to the interpolator
+       */
+      InterpolatorNearestNeighbour( const VolumeType& v ) : _volume( v )
+      {}
+
+      /**
+       @brief (x, y, z) must be an index. It returns background if the point is outside the volume
+       */
+      double operator()( double x, double y, double z ) const
+      {
+         const int ix = (int)core::round<double>( x );
+         const int iy = (int)core::round<double>( y );
+         const int iz = (int)core::round<double>( z );
+
+         if ( _volume.inside( ix, iy, iz ) )
+            return _volume( ix, iy, iz );
+         return _volume.getBackgroundValue();
+      }
+
+   protected:
+      /// non copiable
+      InterpolatorNearestNeighbour& operator=( const InterpolatorNearestNeighbour& );
+
+   protected:
+      const VolumeType& _volume;
    };
 
    /**
@@ -286,6 +377,7 @@ namespace imaging
       typedef T                                 value_type;
 
    public:
+
       /**
        @brief build an empty medical volume
        */
@@ -314,17 +406,10 @@ namespace imaging
        */
       VolumeSpacial( const core::vector3ui& size,
                      const Matrix& pst,
-                     T background = 0 ) : Base( size[ 0 ], size[ 1 ], size[ 2 ] ), _pst( pst ), _background( background )
+                     T background = 0,
+                     bool zero = true ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _pst( pst )
       {
          _constructVolume();
-      }
-
-      /**
-       @brief return the background value
-       */
-      value_type getBackgroundValue() const
-      {
-         return backgroundValue;
       }
 
       /**
@@ -377,6 +462,14 @@ namespace imaging
       const core::vector3d& getSpacing() const
       {
          return _spacing;
+      }
+
+      /**
+       @return the size of the volume
+       */
+      core::vector3ui getSize() const
+      {
+         return Base::size();
       }
 
    protected:
@@ -438,9 +531,24 @@ namespace imaging
          return pst;
       }
 
+      bool write( std::ostream& f ) const
+      {
+         Base::write( f );
+         _pst.write( f );
+         return true;
+      }
+
+      bool read( std::istream& f )
+      {
+         Base::read( f );
+         _pst.read( f );
+
+         _constructVolume();
+         return true;
+      }
+
    protected:
       Matrix         _pst;
-      T              _background;
       core::vector3d _spacing;
       Matrix         _inversedPst;
    };
@@ -470,6 +578,16 @@ public:
       TESTER_ASSERT( nll::core::equal( buffer( 1, 2, 3 ), 5.5 ) );
 
       TESTER_ASSERT( buffer.getSize() == nll::core::vector3ui( 5, 10, 15 ) );
+
+      // test read/write of a buffer
+      std::stringstream str;
+      buffer.write( str );
+
+      Buffer buffer2;
+      buffer2.read( str );
+
+      for ( Buffer::iterator it = buffer.begin(), it2 = buffer2.begin(); it != buffer.end(); ++it, ++it2 )
+         TESTER_ASSERT( nll::core::equal( *it, *it2 ) );
    }
 
    /**
@@ -525,7 +643,7 @@ public:
       Vol::Matrix rot3x3 = nll::core::identity<double, Vol::Matrix::IndexMapper>( 3 );
 
       pst = Vol::createPatientSpaceTransform( rot3x3, nll::core::vector3d( -10, 5, 30 ), nll::core::vector3d( 10, 20, 30 ) );
-      volume = Vol( nll::core::vector3ui( 10, 20, 30 ), pst );
+      volume = Vol( nll::core::vector3ui( 10, 20, 30 ), pst, 1 );
       TESTER_ASSERT( nll::core::equal<double>( pst( 0, 3 ), -10 ) );
       TESTER_ASSERT( nll::core::equal<double>( pst( 1, 3 ), 5 ) );
       TESTER_ASSERT( nll::core::equal<double>( pst( 2, 3 ), 30 ) );
@@ -536,6 +654,25 @@ public:
 
       TESTER_ASSERT( volume.getOrigin() == nll::core::vector3d( -10, 5, 30 ) );
       TESTER_ASSERT( volume.getSpacing() == nll::core::vector3d( 10, 20, 30 ) );
+
+      // test read write
+      std::stringstream ss;
+      volume.write( ss );
+
+      Vol volume2;
+      volume2.read( ss );
+      TESTER_ASSERT( volume2.getBackgroundValue() == volume.getBackgroundValue() );
+      TESTER_ASSERT( volume2.getOrigin() == volume.getOrigin() );
+      TESTER_ASSERT( volume2.getSpacing() == volume.getSpacing() );
+      TESTER_ASSERT( volume2.getSize() == volume.getSize() );
+
+      for ( Vol::iterator it = volume.begin(), it2 = volume2.begin(); it != volume.end(); ++it, ++it2 )
+         TESTER_ASSERT( *it == *it2 );
+
+      // inside/outside
+      TESTER_ASSERT( !volume.inside( -1, 10, 10 ) );
+      TESTER_ASSERT( !volume.inside( 50, 10, 10 ) );
+      TESTER_ASSERT( volume.inside( 5, 11, 11 ) );
    }
 
    void testIndexToPos()
@@ -569,22 +706,45 @@ public:
          Volume image( size, pst );
          for ( Volume::iterator it = image.begin(); it != image.end(); ++it )
             *it = rand() % 5000;
-/*
-         Vector3d spacing = image.getSpacing();
+
+         nll::core::vector3d spacing = image.getSpacing();
          for ( unsigned n = 0; n < 100; ++n )
          {
-            Vector3d index( rand() % ( size[ 0 ] - 1 ),
-                            rand() % ( size[ 1 ] - 1 ),
-                            rand() % ( size[ 2 ] - 1 ) );
+            nll::core::vector3d index( rand() % ( size[ 0 ] - 1 ),
+                                       rand() % ( size[ 1 ] - 1 ),
+                                       rand() % ( size[ 2 ] - 1 ) );
 
-            Vector3d position = image.indexToPosition( index );
-            Vector3d indexTransf = image.positionToIndex( position );
-            CPPUNIT_ASSERT( fabs( index[ 0 ] - indexTransf[ 0 ] ) < 1e-8 );
-            CPPUNIT_ASSERT( fabs( index[ 1 ] - indexTransf[ 1 ] ) < 1e-8 );
-            CPPUNIT_ASSERT( fabs( index[ 2 ] - indexTransf[ 2 ] ) < 1e-8 );
+            nll::core::vector3d position = image.indexToPosition( index );
+            nll::core::vector3d indexTransf = image.positionToIndex( position );
+            TESTER_ASSERT( fabs( index[ 0 ] - indexTransf[ 0 ] ) < 1e-8 );
+            TESTER_ASSERT( fabs( index[ 1 ] - indexTransf[ 1 ] ) < 1e-8 );
+            TESTER_ASSERT( fabs( index[ 2 ] - indexTransf[ 2 ] ) < 1e-8 );
          }
-         */
       }
+   }
+
+   void testInterpolator()
+   {
+      typedef nll::imaging::Volume<double>  Volume;
+      typedef nll::imaging::InterpolatorNearestNeighbour<double, Volume::VoxelBuffer> Interpolator;
+
+      Volume volume( 30, 30, 30, -1 );
+      Interpolator interpolator( volume );
+
+      TESTER_ASSERT( interpolator( -1, 0, 0 ) == -1 );
+
+      volume( 10, 10, 10 ) = 10;
+      volume( 9, 10, 10 ) = 11;
+      volume( 11, 10, 10 ) = 17;
+      volume( 10, 10, 11 ) = 12;
+      volume( 10, 9, 10 ) = 13;
+      volume( 10, 11, 10 ) = 14;
+      volume( 10, 10, 11 ) = 15;
+      volume( 10, 10, 9 ) = 16;
+      TESTER_ASSERT( interpolator( 10, 10, 10 ) == 10 );
+      TESTER_ASSERT( interpolator( 10.4, 10.4, 10.4 ) == 10 );
+      TESTER_ASSERT( interpolator( 9.6, 9.6, 9.6 ) == 10 );
+      TESTER_ASSERT( interpolator( 10.5, 9.6, 9.6 ) == 17 );
    }
 };
 
@@ -595,5 +755,6 @@ TESTER_TEST(testVolume1);
 TESTER_TEST(testVolumeIterator);
 TESTER_TEST(testVolumeSpacial1);
 TESTER_TEST(testIndexToPos);
+TESTER_TEST(testInterpolator);
 TESTER_TEST_SUITE_END();
 //#endif
