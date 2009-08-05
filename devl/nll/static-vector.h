@@ -240,8 +240,6 @@ namespace core
    public:
       vector2i( )
       {
-         at(0) = 0;
-         at(1) = 0;
       }
       vector2i( BaseClass::value_type x, BaseClass::value_type y )
       {
@@ -265,11 +263,62 @@ namespace core
       }
    };
 
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
+   class vector3ui : public StaticVector<ui32, 3>
+   {
+      typedef StaticVector<ui32, 3> BaseClass;
+   public:
+      vector3ui( )
+      {
+      }
+      vector3ui( BaseClass::value_type x, BaseClass::value_type y, BaseClass::value_type z )
+      {
+         at( 0 ) = x;
+         at( 1 ) = y;
+         at( 2 ) = z;
+      }
+   };
+
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
+   class vector3d : public StaticVector<f64, 3>
+   {
+      typedef StaticVector<f64, 3> BaseClass;
+   public:
+      vector3d( )
+      {
+      }
+      vector3d( BaseClass::value_type x, BaseClass::value_type y, BaseClass::value_type z )
+      {
+         at( 0 ) = x;
+         at( 1 ) = y;
+         at( 2 ) = z;
+      }
+   };
+
    typedef StaticVector<int,     3> vector3i;
    typedef StaticVector<float,   3> vector3f;
    typedef StaticVector<double,  2> vector2d;
-   typedef StaticVector<double,  3> vector3d;
 
+   /**
+    @ingroup core
+    @brief equal operator
+    */
+   template <class T, int SIZE>
+   inline bool operator==( const StaticVector<T, SIZE>& l, const StaticVector<T, SIZE>& r )
+   {
+      for ( ui32 n = 0; n < SIZE; ++n )
+      {
+         if ( !equal( l[ n ], r[ n ] ) )
+            return false;
+      }
+      return true;
+   }
 }
 }
 

@@ -109,13 +109,47 @@ namespace tutorial
          double error = c.evaluate( nll::core::make_buffer1D<double>( 3, 1 ), rDat );
          TESTER_ASSERT( fabs( error ) <= 0.012 );
       }
+
+      void testSvmKPca()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         typedef nll::algorithm::KernelRbf<Input> Kernel;
+         typedef nll::algorithm::FeatureTransformationKernelPca<Input, Kernel>   KernelPca;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+         std::cout << "size=" << dat.size() << std::endl;
+
+         Kernel kernel( 0.5 );
+         KernelPca kpca( kernel );
+         kpca.compute( dat, 100 );
+         Classifier::Database processedDat = kpca.process( dat );
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
+         ClassifierImpl c;
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( processedDat );
+         Classifier::Database preprocessedDat = preprocessor.process( processedDat );
+
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 50 ), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0 );
+      }
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
-    TESTER_TEST( testSvm );
-    TESTER_TEST( testMlp );
-    TESTER_TEST( testKnn );
-    TESTER_TEST( testGmm );
+    //TESTER_TEST( testSvm );
+    //TESTER_TEST( testMlp );
+    //TESTER_TEST( testKnn );
+    //TESTER_TEST( testGmm );
+   TESTER_TEST( testSvmKPca );
+
    TESTER_TEST_SUITE_END();
 }
 }

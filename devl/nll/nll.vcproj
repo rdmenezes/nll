@@ -933,6 +933,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="imaging"
+			>
+			<File
+				RelativePath=".\volume.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\nll.dox"
 			>

@@ -355,8 +355,9 @@ protected:
 # ifdef DEBUG_BUFFER1D
       std::cout << "allocate buffer1D=" << size << std::endl;
 # endif
-      assert( size );
       unref();
+      if ( !size )
+         return;
 
       _ownsBuffer = true;
       if (!_cpt)
