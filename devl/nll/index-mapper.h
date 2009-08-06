@@ -132,6 +132,38 @@ namespace core
          ui32  _sizex;
          ui32  _sizey;
    };
+
+   /**
+    @ingroup core
+    @brief defines how a continuous 3D buffer should be mapper to memory
+    */
+   struct IndexMapperRowMajorFlat3D
+   {
+      /**
+       @brief initialize with the correct dimension of the image
+       */
+      IndexMapperRowMajorFlat3D( const ui32 sizex, const ui32 sizey, const ui32 sizez ) : _sizex( sizex ), _sizey( sizey ), _sizez( sizez )
+      {
+         _sxy = _sizex * _sizey;
+      }
+
+      /**
+       @brief return the index in memory that map to the position (x, y)
+       */
+      inline ui32 index( const ui32 x, const ui32 y, const ui32 z ) const
+      {
+         assert( x < _sizex );
+         assert( y < _sizey );
+         assert( z < _sizez );
+         return x + y * _sizex + z * _sxy;
+      }
+
+      private:
+         ui32  _sxy;
+         ui32  _sizex;
+         ui32  _sizey;
+         ui32  _sizez;
+   };
 }
 }
 

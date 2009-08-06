@@ -138,6 +138,16 @@
 # include "sequence-converter.h"
 
 /**
+ @defgroup imaging
+
+ This group defines the main algorithms for imaging such as volumes, interpolation and
+ images.
+ */
+# include "volume.h"
+# include "volume-interpolator.h"
+# include "volume-spatial.h"
+
+/**
  @defgroup algorithm
 
  This group defines the main algorithms of the library. They are mainly decomposed into

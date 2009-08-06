@@ -937,6 +937,14 @@
 			Name="imaging"
 			>
 			<File
+				RelativePath=".\volume-interpolator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\volume-spatial.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volume.h"
 				>
 			</File>
