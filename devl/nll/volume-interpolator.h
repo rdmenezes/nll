@@ -7,12 +7,14 @@ namespace imaging
 {
    /**
     @brief Nearest neighbour interpolator
+
+    Volume must be of a volume type.
     */
-   template <class T, class VoxelBuffer>
+   template <class Volume>
    class InterpolatorNearestNeighbour
    {
    public:
-      typedef Volume<T, VoxelBuffer>   VolumeType;
+      typedef Volume   VolumeType;
 
    public:
       /**

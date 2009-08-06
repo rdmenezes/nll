@@ -112,6 +112,45 @@ namespace imaging
          return Base::size();
       }
 
+      /**
+       @return patient scale transform
+       */
+      const Matrix& getPst() const
+      {
+         return _pst;
+      }
+
+      /**
+       @return return the inversed Pst
+       */
+      const Matrix& getInversedPst() const
+      {
+         return _inversedPst;
+      }
+
+      /**
+       @brief save the volume to a stream
+       */
+      bool write( std::ostream& f ) const
+      {
+         Base::write( f );
+         _pst.write( f );
+         return true;
+      }
+
+      /**
+       @brief read the volume from a stream
+       */
+      bool read( std::istream& f )
+      {
+         Base::read( f );
+         _pst.read( f );
+
+         _constructVolume();
+         return true;
+      }
+
+
    protected:
       /**
        @brief Construct the voluem: compute the spacing and inversed pst
@@ -169,22 +208,6 @@ namespace imaging
                pst( ny, nx ) = tmp( ny, nx );
          pst( 3, 3 ) = 1;
          return pst;
-      }
-
-      bool write( std::ostream& f ) const
-      {
-         Base::write( f );
-         _pst.write( f );
-         return true;
-      }
-
-      bool read( std::istream& f )
-      {
-         Base::read( f );
-         _pst.read( f );
-
-         _constructVolume();
-         return true;
       }
 
    protected:
