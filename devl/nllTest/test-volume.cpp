@@ -5,6 +5,130 @@ namespace nll
 {
 namespace imaging
 {
+   namespace impl
+   {
+      /**
+       @brief apply a rotation given a transformation (rotation+scale only)
+              The matrix must be a 4x4 transformation matrix defined by the volume.
+              
+              Compute Mv using only the rotational part of M.
+       */
+      template <class T, class Mapper>
+      core::vector3d mul3Rot( const core::Matrix<T, Mapper>& m, const core::vector3d& v )
+      {
+         assert( m.sizex() == 4 && m.sizey() == 4 );
+         return core::vector3d( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
+                                v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
+                                v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
+      }
+   }
+
+
+   template <class T, class Buf>
+   bool loadSimpleFlatFile( const std::string& filename, VolumeSpatial<T, Buf>& vol )
+   {
+      typedef VolumeSpatial<T, Buf> Volume;
+
+      // open the file
+      std::ifstream file( filename.c_str(), std::ios::binary | std::ios::in );
+      if ( !file.good() )
+      {
+         return false;
+      }
+
+      // First of all, work out if we've got the new format that contains more information or not
+      unsigned int firstWord = 0;
+      file.read( (char*)&firstWord, sizeof( unsigned int ) );
+      
+      // If new format
+      unsigned int width  = 0;
+      unsigned int height = 0;
+      unsigned int depth  = 0;
+      unsigned int dataType = 0;
+      if ( firstWord == 0 )
+      {
+         // Get the version number
+         unsigned int formatVersionNumber = 0;
+         file.read( (char*)&formatVersionNumber, sizeof( unsigned int ) );
+         if ( formatVersionNumber >= 2 )
+         {
+            // Read datatype flag
+            file.read( (char*)&dataType, sizeof( unsigned int ) );
+         }
+
+         // Dimensions
+         file.read( (char*)&width, sizeof( unsigned int ) );
+         file.read( (char*)&height, sizeof( unsigned int ) );
+         file.read( (char*)&depth, sizeof( unsigned int ) );
+      }
+      else
+      {
+         // Old format - we've actually read the width...
+         width = firstWord;
+         file.read( (char*)&height, sizeof( unsigned int ) );
+         file.read( (char*)&depth, sizeof( unsigned int ) );
+      }
+
+      // Spacing
+      double colSp = 0;
+      double rowSp = 0;
+      double sliceSp = 0;
+      file.read( (char*)&colSp, sizeof( double ) );
+      file.read( (char*)&rowSp, sizeof( double ) );
+      file.read( (char*)&sliceSp, sizeof( double ) );
+
+      // Origin
+      double originX = 0;
+      double originY = 0;
+      double originZ = 0;
+      file.read( (char*)&originX, sizeof( double ) );
+      file.read( (char*)&originY, sizeof( double ) );
+      file.read( (char*)&originZ, sizeof( double ) );
+
+      // only with RSI type is handled
+      ensure( dataType == 1, "file format not handled" );
+
+      // Create an RSI to maximise dynamic range on each slice
+      std::vector< std::pair<double, double> > rsi( depth );
+
+      core::Matrix<double> id( 3, 3 );
+      for ( ui32 n = 0; n < 3; ++n )
+         id( n, n ) = 1;
+      core::Matrix<double> pst = Volume::createPatientSpaceTransform( id, core::vector3d( originX, originY, originZ ), core::vector3d( colSp, rowSp, sliceSp ) );
+
+      for ( unsigned int k = 0; k < depth; ++k )
+      {
+         double slope = 0;
+         double intercept = 0;
+         file.read( (char*)&slope, sizeof( double ) );
+         file.read( (char*)&intercept, sizeof( double ) );
+         rsi[k] = std::make_pair( slope, intercept );
+      }
+
+      Volume output( core::vector3ui( width,
+                                      height,
+                                      depth ),
+                     pst );
+
+      for ( unsigned int k = 0; k < depth; ++k )
+      {
+         for ( unsigned int j = 0; j < height; ++j )
+         {
+            for ( unsigned int i = 0; i < width; ++i )
+            {
+               ensure( !file.eof(), "unexpected eof" );
+               unsigned short value = 0;
+               file.read( (char*)&value, sizeof( unsigned short ) );
+               output( i, j, k ) = static_cast<double>( value ) * rsi[ k ].first + rsi[ k ].second;
+              // std::cout << "val=" << output( i, j, k ) << std::endl;
+            }
+         }
+      }
+
+      vol = output;
+      return true;
+   }
+
    /**
     @Trilinear interpolator of a volume.
 
@@ -102,42 +226,58 @@ namespace imaging
          _volume( volume ), _voxelsx( sxInVoxels ), _voxelsy( syInVoxels )
       {}
 
-      Slice getSlice( const core::vector3d& point, const core::vector3d& normal ) const
+      /**
+       @param point a point in mm
+       @param ax x-axis of the plane
+       @param ay y-axis of the plane
+       */
+      Slice getSlice( const core::vector3d& point, const core::vector3d& ax, const core::vector3d& ay ) const
       {
          // the slice has a speficied size, it needs to be resampled afterward if necesary
-         Slice slice( static_cast<ui32>( _voxelsx ),
-                      static_cast<ui32>( _voxelsx )
+         Slice slice( static_cast<ui32>( core::round( _voxelsx ) ),
+                      static_cast<ui32>( core::round( _voxelsy ) ),
+                      1,
                       false );
 
-         // align the normal of the MPR with the volume's coordinates system
-         // TODO do it!
-         core::vector3d n( normal[ 0 ], normal[ 1 ], normal[ 2 ] );
-
-         // normalize in the case of spacing != 1
-         n.div( n.norm2() );
-
          // compute the slopes
-         double dx = n[ 0 ];
-         double dy = n[ 1 ];
-         double dz = n[ 2 ];
+         core::vector3d dx = impl::mul3Rot( _volume.getInversedPst(), ax );
+         dx.div( dx.norm2() );
+         core::vector3d dy = impl::mul3Rot( _volume.getInversedPst(), ay );
+         dy.div( dy.norm2() );
 
          // set up the interpolator
          Interpolator interpolator( _volume );
 
+         // transform the point to voxel
+         core::vector3d pointVoxel = _volume.positionToIndex( point );
+
          // reconstruct the slice
-         double px = point[ 0 ];
-         double py = point[ 1 ];
-         double pz = point[ 2 ];
-         for ( f64 y = 0; y < _voxelsy; ++y )
-            for ( f64 x = 0; x < _voxelsy; ++x )
+         double startx = pointVoxel[ 0 ];
+         double starty = pointVoxel[ 1 ];
+         double startz = pointVoxel[ 2 ];
+         for ( ui32 y = 0; y < _voxelsy; ++y )
+         {
+            double px = startx;
+            double py = starty;
+            double pz = startz;
+            for ( ui32 x = 0; x < _voxelsx; ++x )
             {
+               //std::cout << "check=" << px << " " << py << " " << pz << " val=" << interpolator( px, py, pz ) << std::endl;
                slice( x, y, 0 ) = interpolator( px, py, pz );
-               px += dx;
-               py += dy;
-               pz += dz;
+               px += dx[ 0 ];
+               py += dx[ 1 ];
+               pz += dx[ 2 ];
             }
+
+            startx += dy[ 0 ];
+            starty += dy[ 1 ];
+            startz += dy[ 2 ];
+         }
          return slice;
       }
+
+   protected:
+      Mpr& operator=( const Mpr& );
 
    protected:
       const VolumeType& _volume;
@@ -363,19 +503,28 @@ public:
    
    void testMpr()
    {
+      // PETtest-NAC.mf2
+      //
+      const std::string volname = "N:/MCL/Mirada Test Data Library (MTDL)/CardiacRegistration/Thresholding/PETtest-CT.mf2";
       typedef nll::imaging::VolumeSpatial<double>           Volume;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
-      nll::core::Matrix<double> identity = nll::core::identity<double, nll::core::Matrix<double>::IndexMapper>( 4 );
-      Volume volume( nll::core::vector3ui( 30, 30, 30 ),
-                     identity );
+      Volume volume;
+      nll::imaging::loadSimpleFlatFile( volname, volume );
 
-      volume( 5, 5, 5 ) = 10;
-      volume( 6, 5, 5 ) = 11;
-      volume( 5, 6, 5 ) = 20;
-      volume( 5, 5, 6 ) = 40;
+      std::cout << "loaded" << std::endl;
+      Mpr mpr( volume, 512, 512 );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( -250, -250, 42 ),
+                                       nll::core::vector3d( 1, 0, 0 ),
+                                       nll::core::vector3d( 0, 1, 0 ) );
 
+      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      for ( unsigned y = 0; y < bmp.sizex(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 ) + 20000 ) / 100, 0, 255 );
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, "c:/temp/a.bmp" );
    }
 };
 
@@ -388,7 +537,8 @@ TESTER_TEST(testVolumeIterator);
 TESTER_TEST(testVolumeSpatial1);
 TESTER_TEST(testIndexToPos);
 TESTER_TEST(testInterpolator);
-*/
 TESTER_TEST(testInterpolatorTriLinear);
+*/
+TESTER_TEST(testMpr);
 TESTER_TEST_SUITE_END();
 //#endif
