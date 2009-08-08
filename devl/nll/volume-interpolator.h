@@ -6,7 +6,7 @@ namespace nll
 namespace imaging
 {
    /**
-    @brief Nearest neighbour interpolator. The center of a voxel is considered the center of a point.
+    @brief Nearest neighbour interpolator. The center of a voxel is considered the top left corner of a point.
 
     Volume must be of a volume type.
     */
@@ -26,14 +26,14 @@ namespace imaging
       {}
 
       /**
-       @brief (x, y, z) must be an index. It returns background if the point is outside the volume. When we do volume( 10, 10, 5 ) = 1, it is actualy
-              the point (10.5, 10.5, 5.5) that is really the center of the voxel.
+       @brief (x, y, z) must be an index. It returns background if the point is outside the volume. The center of 
+       a voxel is considered the top left corner of a point.
        */
       double operator()( double x, double y, double z ) const
       {
-         const int ix = (int)core::round<double>( x - 0.5 + NLL_IMAGE_BIAS );
-         const int iy = (int)core::round<double>( y - 0.5 + NLL_IMAGE_BIAS );
-         const int iz = (int)core::round<double>( z - 0.5 + NLL_IMAGE_BIAS );
+         const int ix = (int)core::round<double>( x );
+         const int iy = (int)core::round<double>( y );
+         const int iz = (int)core::round<double>( z );
 
          if ( _volume.inside( ix, iy, iz ) )
             return _volume( ix, iy, iz );
@@ -50,7 +50,7 @@ namespace imaging
 
 
    /**
-    @Trilinear interpolator of a volume. The center of a voxel is considered the center of a point.
+    @Trilinear interpolator of a volume. The center of a voxel is considered as the top left corner of a point.
 
     Volume must be of a volume type or derived.
 
@@ -64,8 +64,9 @@ namespace imaging
 
    public:
       /**
-       @brief Construct an interpolator for the volume v. When we do volume( 10, 10, 5 ) = 1, it is actualy
-              the point (10.5, 10.5, 5.5) that is really the center of the voxel.
+       @brief Construct an interpolator for the volume v. 
+
+       Beware, the top left corner is considered as the center!
 
        v must remain valid until the end of the calls to the interpolator
        */
@@ -77,21 +78,16 @@ namespace imaging
        */
       double operator()( double x, double y, double z ) const
       {
-         // the center of the voxel is the middle of the voxel
-         x -= 0.5 - NLL_IMAGE_BIAS;
-         y -= 0.5 - NLL_IMAGE_BIAS;
-         z -= 0.5 - NLL_IMAGE_BIAS;
-
          if ( !_volume.inside( x, y, z ) )
             _volume.getBackgroundValue();
 
-         const int ix = (i32)x;
-         const int iy = (i32)y;
-         const int iz = (i32)z;
+         const int ix = int( x );
+         const int iy = int( y );
+         const int iz = int( z );
 
-         const double dx = x - ix;
-         const double dy = y - iy;
-         const double dz = z - iz;
+         const double dx = fabs( x - ix );
+         const double dy = fabs( y - iy );
+         const double dz = fabs( z - iz );
 
          const double v000 = _getValue( ix,     iy,     iz );
          const double v001 = _getValue( ix,     iy,     iz + 1 );

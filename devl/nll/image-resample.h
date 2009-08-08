@@ -19,12 +19,11 @@ namespace core
       Image<T, IMapper> i( newSizeX, newSizeY, img.getNbComponents() );
 
       Interpolator interpolator( img );
-	   for ( ui32 y = 0; y < newSizeY - 1; ++y )
-         for ( ui32 x = 0; x < newSizeX - 1; ++x )
+	   for ( ui32 y = 0; y < newSizeY; ++y )
+         for ( ui32 x = 0; x < newSizeX; ++x )
             for ( ui32 c = 0; c < img.getNbComponents(); ++c )
             {
-               // +(0.5, 0.5) we start resampling in the middle of the first pixel
-               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize + 0.5, y * dysize + 0.5, c ) );
+               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize, y * dysize, c ) );
             }
       img = i;
    }

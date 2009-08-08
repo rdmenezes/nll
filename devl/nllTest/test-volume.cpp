@@ -3,8 +3,17 @@
 
 namespace nll
 {
+namespace core
+{
+   
+
+   
+}
+
 namespace imaging
 {
+   
+
    namespace impl
    {
       /**
@@ -211,10 +220,10 @@ public:
       volume( 10, 11, 10 ) = 14;
       volume( 10, 10, 11 ) = 15;
       volume( 10, 10, 9 ) = 16;
-      TESTER_ASSERT( interpolator( 10 + 0.5, 10 + 0.5, 10 + 0.5 ) == 10 );
-      TESTER_ASSERT( interpolator( 10.4 + 0.5, 10.4 + 0.5, 10.4 + 0.5 ) == 10 );
-      TESTER_ASSERT( interpolator( 9.6 + 0.5, 9.6 + 0.5, 9.6 + 0.5 ) == 10 );
-      TESTER_ASSERT( interpolator( 10.5 + 0.5, 9.6 + 0.5, 9.6 + 0.5 ) == 17 );
+      TESTER_ASSERT( interpolator( 10, 10, 10 ) == 10 );
+      TESTER_ASSERT( interpolator( 10.4, 10.4, 10.4 ) == 10 );
+      TESTER_ASSERT( interpolator( 9.6, 9.6, 9.6 ) == 10 );
+      TESTER_ASSERT( interpolator( 10.5, 9.6, 9.6 ) == 17 );
    }
 
    void testInterpolatorTriLinear()
@@ -230,7 +239,7 @@ public:
       volume( 5, 6, 5 ) = 20;
       volume( 5, 5, 6 ) = 40;
 
-      double dev = 0.5 - NLL_IMAGE_BIAS;// deviation to move the center to the center of the voxel + bias
+      double dev = 0; //0.5 - NLL_IMAGE_BIAS;// deviation to move the center to the center of the voxel + bias
       TESTER_ASSERT( interpolator( 5.5 + dev, 5 + dev, 5 + dev ) == 10.5 );
       TESTER_ASSERT( interpolator( 5 + dev, 5.5 + dev, 5 + dev ) == 15 );
       TESTER_ASSERT( interpolator( 5 + dev, 5 + dev, 5.5 + dev ) == 25 );
@@ -292,6 +301,8 @@ public:
    /**
     Test the accuracy of the interpolator using nearest neighbour
     */
+   /*
+   // NOT a valid test anymore
    void testMpr2()
    {
       typedef nll::imaging::VolumeSpatial<double>           Volume;
@@ -314,7 +325,14 @@ public:
                                        nll::core::vector3d( 0, 1, 0 ),
                                        nll::core::vector2d( 16.00, 16.00 ) );
 
-      
+      const std::string output = NLL_TEST_PATH "data/mpr-resamples-max.bmp";
+      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      for ( unsigned y = 0; y < bmp.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, output );
+
       for ( unsigned n = 0; n < 16; ++n )
          for ( unsigned nn = 0; nn < 16; ++nn )
          {
@@ -323,16 +341,12 @@ public:
             TESTER_ASSERT( nll::core::equal<double>( slice( n, nn + 16, 0 ), 10 ) );
             TESTER_ASSERT( nll::core::equal<double>( slice( n + 16, nn + 16, 0 ), 200 ) );
          }
+   }*/
 
-      const std::string output = NLL_TEST_PATH "data/mpr-resamples-max.bmp";
-      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
-      for ( unsigned y = 0; y < bmp.sizey(); ++y )
-         for ( unsigned x = 0; x < bmp.sizex(); ++x )
-            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
-      nll::core::extend( bmp, 3 );
-      nll::core::writeBmp( bmp, output );
-   }
-
+   /**
+    The MPR produced is correct as it goes through the center of the voxel(recall that the)
+    center is the top left coordinate!
+    */
    void testMpr3()
    {
       typedef nll::imaging::VolumeSpatial<double>           Volume;
@@ -365,7 +379,7 @@ public:
       volume( 0+2, 1+2, 0 ) = 10;
 
       Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0.5 ),
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0 ),
                                        nll::core::vector3d( 1, 0, 0 ),
                                        nll::core::vector3d( 0, 1, 0 ),
                                        nll::core::vector2d( 8.00, 8.00 ) );
@@ -379,20 +393,57 @@ public:
       nll::core::extend( bmp, 3 );
       nll::core::writeBmp( bmp, output );
    }
+
+   /**
+    This example produce strange results but is nevertheless correct!
+    The problem is for the last voxel resampled from the input, is that there
+    is no following voxels to interpolate, resulting in an interpolation with 0
+    */
+   void testResampling2d()
+   {
+      nll::core::Image<nll::ui8> i4(4, 4, 1);
+      i4( 0, 0, 0 ) = 255;
+      i4( 1, 0, 0 ) = 50;
+      i4( 2, 0, 0 ) = 255;
+      i4( 3, 0, 0 ) = 50;
+
+      i4( 0, 1, 0 ) = 50;
+      i4( 1, 1, 0 ) = 255;
+      i4( 2, 1, 0 ) = 50;
+      i4( 3, 1, 0 ) = 255;
+
+      i4( 0, 2, 0 ) = 255;
+      i4( 1, 2, 0 ) = 50;
+      i4( 2, 2, 0 ) = 255;
+      i4( 3, 2, 0 ) = 50;
+
+      i4( 0, 3, 0 ) = 50;
+      i4( 1, 3, 0 ) = 255;
+      i4( 2, 3, 0 ) = 50;
+      i4( 3, 3, 0 ) = 255;
+
+      const unsigned factor = 64;
+      nll::core::rescale<nll::ui8,
+                         nll::core::IndexMapperRowMajorFlat2DColorRGBn,
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                        >(i4, 4 * factor, 4 * factor);
+      nll::core::extend( i4, 3 );
+      nll::core::writeBmp( i4, NLL_TEST_PATH "data/mresampl.bmp" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
- /*TESTER_TEST(testBuffer1);
+ TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
  TESTER_TEST(testVolumeIterator);
  TESTER_TEST(testVolumeSpatial1);
  TESTER_TEST(testIndexToPos);
  TESTER_TEST(testInterpolator);
- TESTER_TEST(testInterpolatorTriLinear);*/
+ TESTER_TEST(testInterpolatorTriLinear);
  TESTER_TEST(testMpr);
- 
  //TESTER_TEST(testMpr2);
  TESTER_TEST(testMpr3);
+ TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
 #endif

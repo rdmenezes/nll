@@ -23,6 +23,10 @@ namespace core
            -inline ui32 index( const ui32 x, const ui32 y, const ui32 comp ) const
            -and ensure that components are NOT interleaved
            The mapper is used to define how the memory-pixels are mapped.
+
+     @note for resampled images, it is important to note that the pixel center is
+           the top-left corner of the pixel and not the center of the voxel which can
+           produce strange results if not aware of!
     */
    template <class T, class Mapper = IndexMapperRowMajorFlat2DColorRGBn>
    class Image : public Buffer1D<T, IndexMapperFlat1D>

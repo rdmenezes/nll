@@ -62,8 +62,7 @@ namespace core
 
    /**
     @ingroup core
-    @brief 2D bilinear interpolation of an image. when we do image( 10, 5, 0 ) = 1, we actually mean
-           image( 10.5, 5.5, 0 ) = 1 (the center of the pixel).
+    @brief 2D bilinear interpolation of an image. The voxel center is the top left of the voxel (0, 0)
     */
    template <class T, class Mapper>
    class InterpolatorLinear2D : public Interpolator2D<T, Mapper>
@@ -73,15 +72,11 @@ namespace core
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
       double interpolate( double x, double y, ui32 c ) const
       {
-         // the center of the pixel is in the midle
-         if ( x < 0 || y < 0 )
-            return 0;
-
          static double buf[4];
-         const i32 xi = int( x - NLL_IMAGE_BIAS );
-         const i32 yi = int( y - NLL_IMAGE_BIAS );
-         const double dx = fabs( x - xi - 0.5 + NLL_IMAGE_BIAS );
-         const double dy = fabs( y - yi - 0.5 + NLL_IMAGE_BIAS );
+         const i32 xi = int( x );
+         const i32 yi = int( y );
+         const double dx = fabs( x - xi );
+         const double dy = fabs( y - yi );
 
          buf[ 0 ] = this->_img( xi, yi, c );
          buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? this->_img( xi + 1, yi, c ) : 0;
@@ -97,8 +92,8 @@ namespace core
                       ( dy )     * ( ( dx )     * buf[ 2 ] + ( 1 - dx ) * buf[ 3 ] );
 
          // the first line|col is discarded as we can't really interpolate it correctly
-         //assert( val >= Bound<T>::min );
-         //assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
+         assert( val >= Bound<T>::min );
+         assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
          return val;
       }
    };
@@ -116,12 +111,6 @@ namespace core
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
       inline double interpolate( double x, double y, ui32 c ) const
       {
-         // the center of the pixel is in the midle
-         x -= 0.5 - NLL_IMAGE_BIAS;
-         y -= 0.5 - NLL_IMAGE_BIAS;
-         if ( x < -0.5 || y < -0.5 )
-            return 0;
-
          const double val = this->_img( (ui32)NLL_BOUND( round<double>( x ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( round<double>( y ), 0, this->_img.sizey() - 1 ), c );
          //const double val = _img( static_cast<ui32>( x ), static_cast<ui32>( y ), c ); // TODO: correct?
          assert( val >= Bound<T>::min && val <= (Bound<T>::max + 0.999) );

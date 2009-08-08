@@ -933,6 +933,11 @@ public:
       std::cout << "Perf Interpolator=" << t1.getTime() << std::endl;
    }
 
+   /**
+    regarding rescale-interp3.bmp & rescale-interp4.bmp, it looks odd. It is beause the
+    voxel center is the top-left corner and not actually its center. It is necessary to
+    ensure that id resampling compute the same image!
+    */
    void testInterpolator()
    {
       nll::core::Timer t1;
@@ -949,8 +954,9 @@ public:
       i.setPixel(1, 1, white);
       nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper> linearInterpolator( i );
       double v1 = linearInterpolator.interpolate(0.5, 0.5, 0);
-     // TESTER_ASSERT( nll::core::equal(v1, 255.0) ); // TODO PUT AGAIN
+      TESTER_ASSERT( nll::core::equal(v1, 255.0) );
 
+      
       nll::core::Image<nll::ui8> i2(NLL_TEST_PATH "data/image/test-image3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
@@ -964,7 +970,7 @@ public:
                          nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
                         >(i3, 32, 32);
       nll::core::writeBmp(i3, NLL_TEST_PATH "data/rescale-interp2.bmp");
-
+      
       nll::core::Image<nll::ui8> i4(3, 3, 3);
       i4.setPixel(0, 0, red);
       i4.setPixel(1, 0, blue);
@@ -998,7 +1004,7 @@ public:
 
       nll::core::writeBmp(i6, NLL_TEST_PATH "data/rescale-interp5.bmp");
       nll::core::writeBmp(i7, NLL_TEST_PATH "data/rescale-interp5-NN.bmp");
-
+      
       t1.end();
       std::cout << "time=" << t1.getTime() << std::endl;
    }
@@ -1019,7 +1025,7 @@ public:
       img2.clone(img1);
       nll::core::rescaleFast(img2, 32, 32);
       nll::core::rescaleFast(img2, img1.sizex(), img1.sizey());
-      //double psnr3 = nll::core::psnr(img1, img2);
+      double psnr3 = nll::core::psnr(img1, img2);
       nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-fast3.bmp");
 
       img2.clone(img1);
@@ -1029,7 +1035,7 @@ public:
       nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-iterp1.bmp");
 
       TESTER_ASSERT( psnr1 > psnr2 );
-      //TESTER_ASSERT( psnr1 > psnr3 );
+      TESTER_ASSERT( psnr1 > psnr3 );
    }
 
    void testSVD()
@@ -1247,7 +1253,6 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestnllCore);
-/*
 TESTER_TEST(testSampling);
 TESTER_TEST(testTraitsInheritence);
 TESTER_TEST(testBuffer1D);
@@ -1267,9 +1272,8 @@ TESTER_TEST(testGabor);
 TESTER_TEST(testSequenceConverter);
 TESTER_TEST(testImageBinaryOperation);
 TESTER_TEST(testMatrixOperators);
-TESTER_TEST(testInterpolatorPerf);*/
-//TESTER_TEST(testInterpolator);
-/*
+TESTER_TEST(testInterpolatorPerf);
+TESTER_TEST(testInterpolator);
 TESTER_TEST(testPSNR);
 TESTER_TEST(testSVD);
 TESTER_TEST(testCovariance);
@@ -1277,7 +1281,7 @@ TESTER_TEST(testSingleton);
 TESTER_TEST(testDistanceTransform);
 # ifndef DONT_RUN_SLOW_TEST
 TESTER_TEST(testGmm);
-# endif*/
+# endif
 TESTER_TEST_SUITE_END();
 #endif
 

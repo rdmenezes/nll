@@ -7,6 +7,8 @@ namespace imaging
 {
    /**
     @brief handle a medical volume
+
+    The center of a voxel is its top left corner.
     */
    template <class T, class VolumeMemoryBufferType = VolumeMemoryBuffer<T> >
    class VolumeSpatial : public Volume<T, VolumeMemoryBufferType>
