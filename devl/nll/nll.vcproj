@@ -937,7 +937,15 @@
 			Name="imaging"
 			>
 			<File
+				RelativePath=".\multiplanar-reconstruction.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volume-interpolator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\volume-io-mf2.h"
 				>
 			</File>
 			<File

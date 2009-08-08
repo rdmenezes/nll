@@ -22,7 +22,7 @@ namespace core
 	   for ( ui32 y = 0; y < newSizeY; ++y )
          for ( ui32 x = 0; x < newSizeX; ++x )
             for ( ui32 c = 0; c < img.getNbComponents(); ++c )
-               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( (x + 0) * dxsize, (y + 0) * dysize, c ) );
+               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize, y * dysize, c ) );
       img = i;
    }
 

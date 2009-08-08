@@ -1,6 +1,9 @@
 #ifndef NLL_IMAGE_INTERPOLATOR_H_
 # define NLL_IMAGE_INTERPOLATOR_H_
 
+/// we define a bias so that all the pixels are shifted to the same direction. Due to rounding it is not necessary the case without this bias factor
+# define NLL_IMAGE_BIAS    1e-10
+
 namespace nll
 {
 namespace core
@@ -48,7 +51,7 @@ namespace core
       /**
        @brief return the value of an interpolated point
        */
-      virtual double interpolate( const double x, const double y, const ui32 c ) const = 0;
+      virtual double interpolate( double x, double y, ui32 c ) const = 0;
 
    protected:
       Interpolator2D& operator=( const Interpolator2D& );
@@ -59,7 +62,8 @@ namespace core
 
    /**
     @ingroup core
-    @brief 2D bilinear interpolation of an image
+    @brief 2D bilinear interpolation of an image. when we do image( 10, 5, 0 ) = 1, we actually mean
+           image( 10.5, 5.5, 0 ) = 1 (the center of the pixel).
     */
    template <class T, class Mapper>
    class InterpolatorLinear2D : public Interpolator2D<T, Mapper>
@@ -67,13 +71,19 @@ namespace core
    public:
       typedef Interpolator2D<T, Mapper>   Base;
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
-      double interpolate( const double x, const double y, const ui32 c ) const
+      double interpolate( double x, double y, ui32 c ) const
       {
+         // the center of the pixel is in the midle
+         x -= 0.5 - NLL_IMAGE_BIAS;
+         y -= 0.5 - NLL_IMAGE_BIAS;
+         if ( x < -0.5 || y < -0.5 )
+            return 0;
+
          static double buf[4];
          const i32 xi = static_cast<i32>( x );
          const i32 yi = static_cast<i32>( y );
-         const double dx = x - xi;
-         const double dy = y - yi;
+         const double dx = fabs( x - xi );
+         const double dy = fabs( y - yi );
 
          buf[ 0 ] = this->_img( xi, yi, c );
          buf[ 1 ] = ( xi + 1 < (i32)this->_img.sizex() ) ? this->_img( xi + 1, yi, c ) : 0;
@@ -87,6 +97,8 @@ namespace core
          //             ( 1 - dx ) * ( dy )     * buf[ 3 ];
          double val = ( 1 - dy ) * ( ( 1 - dx ) * buf[ 0 ] + ( dx ) * buf[ 1 ] ) +
                       ( dy )     * ( ( dx )     * buf[ 2 ] + ( 1 - dx ) * buf[ 3 ] );
+
+         // the first line|col is discarded as we can't really interpolate it correctly
          assert( val >= Bound<T>::min );
          assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
          return val;
@@ -104,8 +116,14 @@ namespace core
    public:
       typedef Interpolator2D<T, Mapper>   Base;
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
-      inline double interpolate( const double x, const double y, const ui32 c ) const
+      inline double interpolate( double x, double y, ui32 c ) const
       {
+         // the center of the pixel is in the midle
+         x -= 0.5 - NLL_IMAGE_BIAS;
+         y -= 0.5 - NLL_IMAGE_BIAS;
+         if ( x < -0.5 || y < -0.5 )
+            return 0;
+
          const double val = this->_img( (ui32)NLL_BOUND( round<double>( x ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( round<double>( y ), 0, this->_img.sizey() - 1 ), c );
          //const double val = _img( static_cast<ui32>( x ), static_cast<ui32>( y ), c ); // TODO: correct?
          assert( val >= Bound<T>::min && val <= (Bound<T>::max + 0.999) );

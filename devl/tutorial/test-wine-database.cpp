@@ -144,11 +144,11 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
-    //TESTER_TEST( testSvm );
-    //TESTER_TEST( testMlp );
-    //TESTER_TEST( testKnn );
-    //TESTER_TEST( testGmm );
-   TESTER_TEST( testSvmKPca );
+    TESTER_TEST( testSvm );
+    TESTER_TEST( testMlp );
+    TESTER_TEST( testKnn );
+    TESTER_TEST( testGmm );
+    //TESTER_TEST( testSvmKPca );
 
    TESTER_TEST_SUITE_END();
 }

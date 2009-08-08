@@ -146,6 +146,8 @@
 # include "volume.h"
 # include "volume-interpolator.h"
 # include "volume-spatial.h"
+# include "multiplanar-reconstruction.h"
+# include "volume-io-mf2.h"
 
 /**
  @defgroup algorithm

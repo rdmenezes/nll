@@ -313,9 +313,27 @@ namespace core
       }
    };
 
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
+   class vector2d : public StaticVector<f64, 2>
+   {
+      typedef StaticVector<f64, 2> BaseClass;
+   public:
+      vector2d( )
+      {
+      }
+
+      vector2d( BaseClass::value_type x, BaseClass::value_type y )
+      {
+         at( 0 ) = x;
+         at( 1 ) = y;
+      }
+   };
+
    typedef StaticVector<int,     3> vector3i;
    typedef StaticVector<float,   3> vector3f;
-   typedef StaticVector<double,  2> vector2d;
 
    /**
     @ingroup core

@@ -22,268 +22,6 @@ namespace imaging
                                 v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
       }
    }
-
-
-   template <class T, class Buf>
-   bool loadSimpleFlatFile( const std::string& filename, VolumeSpatial<T, Buf>& vol )
-   {
-      typedef VolumeSpatial<T, Buf> Volume;
-
-      // open the file
-      std::ifstream file( filename.c_str(), std::ios::binary | std::ios::in );
-      if ( !file.good() )
-      {
-         return false;
-      }
-
-      // First of all, work out if we've got the new format that contains more information or not
-      unsigned int firstWord = 0;
-      file.read( (char*)&firstWord, sizeof( unsigned int ) );
-      
-      // If new format
-      unsigned int width  = 0;
-      unsigned int height = 0;
-      unsigned int depth  = 0;
-      unsigned int dataType = 0;
-      if ( firstWord == 0 )
-      {
-         // Get the version number
-         unsigned int formatVersionNumber = 0;
-         file.read( (char*)&formatVersionNumber, sizeof( unsigned int ) );
-         if ( formatVersionNumber >= 2 )
-         {
-            // Read datatype flag
-            file.read( (char*)&dataType, sizeof( unsigned int ) );
-         }
-
-         // Dimensions
-         file.read( (char*)&width, sizeof( unsigned int ) );
-         file.read( (char*)&height, sizeof( unsigned int ) );
-         file.read( (char*)&depth, sizeof( unsigned int ) );
-      }
-      else
-      {
-         // Old format - we've actually read the width...
-         width = firstWord;
-         file.read( (char*)&height, sizeof( unsigned int ) );
-         file.read( (char*)&depth, sizeof( unsigned int ) );
-      }
-
-      // Spacing
-      double colSp = 0;
-      double rowSp = 0;
-      double sliceSp = 0;
-      file.read( (char*)&colSp, sizeof( double ) );
-      file.read( (char*)&rowSp, sizeof( double ) );
-      file.read( (char*)&sliceSp, sizeof( double ) );
-
-      // Origin
-      double originX = 0;
-      double originY = 0;
-      double originZ = 0;
-      file.read( (char*)&originX, sizeof( double ) );
-      file.read( (char*)&originY, sizeof( double ) );
-      file.read( (char*)&originZ, sizeof( double ) );
-
-      // only with RSI type is handled
-      ensure( dataType == 1, "file format not handled" );
-
-      // Create an RSI to maximise dynamic range on each slice
-      std::vector< std::pair<double, double> > rsi( depth );
-
-      core::Matrix<double> id( 3, 3 );
-      for ( ui32 n = 0; n < 3; ++n )
-         id( n, n ) = 1;
-      core::Matrix<double> pst = Volume::createPatientSpaceTransform( id, core::vector3d( originX, originY, originZ ), core::vector3d( colSp, rowSp, sliceSp ) );
-
-      for ( unsigned int k = 0; k < depth; ++k )
-      {
-         double slope = 0;
-         double intercept = 0;
-         file.read( (char*)&slope, sizeof( double ) );
-         file.read( (char*)&intercept, sizeof( double ) );
-         rsi[k] = std::make_pair( slope, intercept );
-      }
-
-      Volume output( core::vector3ui( width,
-                                      height,
-                                      depth ),
-                     pst );
-
-      for ( unsigned int k = 0; k < depth; ++k )
-      {
-         for ( unsigned int j = 0; j < height; ++j )
-         {
-            for ( unsigned int i = 0; i < width; ++i )
-            {
-               ensure( !file.eof(), "unexpected eof" );
-               unsigned short value = 0;
-               file.read( (char*)&value, sizeof( unsigned short ) );
-               output( i, j, k ) = static_cast<double>( value ) * rsi[ k ].first + rsi[ k ].second;
-              // std::cout << "val=" << output( i, j, k ) << std::endl;
-            }
-         }
-      }
-
-      vol = output;
-      return true;
-   }
-
-   /**
-    @Trilinear interpolator of a volume.
-
-    Volume must be of a volume type or derived.
-    */
-   template <class Volume>
-   class InterpolatorTriLinear
-   {
-   public:
-      typedef Volume   VolumeType;
-
-   public:
-      /**
-       @brief Construct an interpolator for the volume v. 
-
-       v must remain valid until the end of the calls to the interpolator
-       */
-      InterpolatorTriLinear( const VolumeType& v ) : _volume( v )
-      {}
-
-      /**
-       @brief (x, y, z) must be an index. It returns background if the point is outside the volume
-       */
-      double operator()( double x, double y, double z ) const
-      {
-         if ( !_volume.inside( x, y, z ) )
-            _volume.getBackgroundValue();
-
-         const ui32 ix = (ui32)x;
-         const ui32 iy = (ui32)y;
-         const ui32 iz = (ui32)z;
-
-         const double dx = x - ix;
-         const double dy = y - iy;
-         const double dz = z - iz;
-
-         const double v000 = _getValue( ix,     iy,     iz );
-         const double v001 = _getValue( ix,     iy,     iz + 1 );
-         const double v010 = _getValue( ix,     iy + 1, iz );
-         const double v100 = _getValue( ix + 1, iy,     iz );
-         const double v011 = _getValue( ix,     iy + 1, iz + 1 );
-         const double v110 = _getValue( ix + 1, iy + 1, iz );
-         const double v101 = _getValue( ix + 1, iy,     iz + 1 );
-         const double v111 = _getValue( ix + 1, iy + 1, iz + 1 );
-
-         const double val = v000 * ( 1 - dx ) * ( 1 - dy ) * ( 1 - dz ) +
-                            v100 * dx * ( 1 - dy ) * ( 1 - dz ) +
-                            v010 * ( 1 - dx ) * dy * ( 1 - dz ) +
-                            v001 * ( 1 - dx ) * ( 1 - dy ) * dz +
-                            v101 * dx * ( 1 - dy ) * dz +
-                            v011 * ( 1 - dx ) * dy * dz +
-                            v110 * dx * dy * ( dz - 1 ) +
-                            v111 * dx * dy * z;
-
-         return val;
-      }
-
-   protected:
-      inline double _getValue( ui32 x, ui32 y, ui32 z ) const
-      {
-         if ( _volume.inside( x, y, z ) )
-            return _volume( x, y, z );
-         return _volume.getBackgroundValue();
-      }
-
-   protected:
-      /// non copiable
-      InterpolatorTriLinear& operator=( const InterpolatorTriLinear& );
-
-   protected:
-      const VolumeType& _volume;
-   };
-
-   /**
-    @ingroup imaging
-    @brief Multiplanar reconstruction of a volume
-
-    Volume must be a spatial volume as we need to know its position and orientation in space
-
-    Extract a slice according to a plane.
-    */
-   template <class Volume, class Interpolator3D>
-   class Mpr
-   {
-   public:
-      typedef Volume          VolumeType; 
-      typedef Interpolator3D  Interpolator;
-      typedef core::Image<double, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
-
-   public:
-      /**
-       @brief set the size of the plane to be reconstructed in voxels
-       */
-      Mpr( const VolumeType& volume, f64 sxInVoxels, f64 syInVoxels ) :
-         _volume( volume ), _voxelsx( sxInVoxels ), _voxelsy( syInVoxels )
-      {}
-
-      /**
-       @param point a point in mm
-       @param ax x-axis of the plane
-       @param ay y-axis of the plane
-       */
-      Slice getSlice( const core::vector3d& point, const core::vector3d& ax, const core::vector3d& ay ) const
-      {
-         // the slice has a speficied size, it needs to be resampled afterward if necesary
-         Slice slice( static_cast<ui32>( core::round( _voxelsx ) ),
-                      static_cast<ui32>( core::round( _voxelsy ) ),
-                      1,
-                      false );
-
-         // compute the slopes
-         core::vector3d dx = impl::mul3Rot( _volume.getInversedPst(), ax );
-         dx.div( dx.norm2() );
-         core::vector3d dy = impl::mul3Rot( _volume.getInversedPst(), ay );
-         dy.div( dy.norm2() );
-
-         // set up the interpolator
-         Interpolator interpolator( _volume );
-
-         // transform the point to voxel
-         core::vector3d pointVoxel = _volume.positionToIndex( point );
-
-         // reconstruct the slice
-         double startx = pointVoxel[ 0 ];
-         double starty = pointVoxel[ 1 ];
-         double startz = pointVoxel[ 2 ];
-         for ( ui32 y = 0; y < _voxelsy; ++y )
-         {
-            double px = startx;
-            double py = starty;
-            double pz = startz;
-            for ( ui32 x = 0; x < _voxelsx; ++x )
-            {
-               //std::cout << "check=" << px << " " << py << " " << pz << " val=" << interpolator( px, py, pz ) << std::endl;
-               slice( x, y, 0 ) = interpolator( px, py, pz );
-               px += dx[ 0 ];
-               py += dx[ 1 ];
-               pz += dx[ 2 ];
-            }
-
-            startx += dy[ 0 ];
-            starty += dy[ 1 ];
-            startz += dy[ 2 ];
-         }
-         return slice;
-      }
-
-   protected:
-      Mpr& operator=( const Mpr& );
-
-   protected:
-      const VolumeType& _volume;
-      f64               _voxelsx;
-      f64               _voxelsy;
-   };
 }
 }
 
@@ -473,10 +211,10 @@ public:
       volume( 10, 11, 10 ) = 14;
       volume( 10, 10, 11 ) = 15;
       volume( 10, 10, 9 ) = 16;
-      TESTER_ASSERT( interpolator( 10, 10, 10 ) == 10 );
-      TESTER_ASSERT( interpolator( 10.4, 10.4, 10.4 ) == 10 );
-      TESTER_ASSERT( interpolator( 9.6, 9.6, 9.6 ) == 10 );
-      TESTER_ASSERT( interpolator( 10.5, 9.6, 9.6 ) == 17 );
+      TESTER_ASSERT( interpolator( 10 + 0.5, 10 + 0.5, 10 + 0.5 ) == 10 );
+      TESTER_ASSERT( interpolator( 10.4 + 0.5, 10.4 + 0.5, 10.4 + 0.5 ) == 10 );
+      TESTER_ASSERT( interpolator( 9.6 + 0.5, 9.6 + 0.5, 9.6 + 0.5 ) == 10 );
+      TESTER_ASSERT( interpolator( 10.5 + 0.5, 9.6 + 0.5, 9.6 + 0.5 ) == 17 );
    }
 
    void testInterpolatorTriLinear()
@@ -492,53 +230,167 @@ public:
       volume( 5, 6, 5 ) = 20;
       volume( 5, 5, 6 ) = 40;
 
-      TESTER_ASSERT( interpolator( 5.5, 5, 5 ) == 10.5 );
-      TESTER_ASSERT( interpolator( 5, 5.5, 5 ) == 15 );
-      TESTER_ASSERT( interpolator( 5, 5, 5.5 ) == 25 );
+      double dev = 0.5 - NLL_IMAGE_BIAS;// deviation to move the center to the center of the voxel + bias
+      TESTER_ASSERT( interpolator( 5.5 + dev, 5 + dev, 5 + dev ) == 10.5 );
+      TESTER_ASSERT( interpolator( 5 + dev, 5.5 + dev, 5 + dev ) == 15 );
+      TESTER_ASSERT( interpolator( 5 + dev, 5 + dev, 5.5 + dev ) == 25 );
 
       TESTER_ASSERT( interpolator( -10, 0, 0 ) == -1 );
-      TESTER_ASSERT( interpolator( 5, 5, 5 ) == 10 );
    }
 
-   
+   /**
+    Test the reconstruction of a slice on a PET volume.
+    */
    void testMpr()
    {
       // PETtest-NAC.mf2
       //
-      const std::string volname = "N:/MCL/Mirada Test Data Library (MTDL)/CardiacRegistration/Thresholding/PETtest-CT.mf2";
+      const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
+      const std::string output = NLL_TEST_PATH "data/mpr1.bmp";
+      const std::string output2 = NLL_TEST_PATH "data/mpr1-1.bmp";
       typedef nll::imaging::VolumeSpatial<double>           Volume;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
       Volume volume;
+
+      std::cout << "loadind..." << std::endl;
       nll::imaging::loadSimpleFlatFile( volname, volume );
 
       std::cout << "loaded" << std::endl;
       Mpr mpr( volume, 512, 512 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( -250, -250, 42 ),
+
+      nll::core::Timer mprTime;
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 50, 50, 43 ),
                                        nll::core::vector3d( 1, 0, 0 ),
-                                       nll::core::vector3d( 0, 1, 0 ) );
+                                       nll::core::vector3d( 0, 1, 0 ),
+                                       nll::core::vector2d( 4, 4 ) );
+      mprTime.end();
+      std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
 
       nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
       for ( unsigned y = 0; y < bmp.sizex(); ++y )
          for ( unsigned x = 0; x < bmp.sizex(); ++x )
-            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 ) + 20000 ) / 100, 0, 255 );
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 )*3 + 20000 ) / 200, 0, 255 );
       nll::core::extend( bmp, 3 );
-      nll::core::writeBmp( bmp, "c:/temp/a.bmp" );
+      nll::core::writeBmp( bmp, output );
+
+      nll::core::Timer resampelTime;
+      nll::core::rescaleBilinear( slice, 512, 512 );
+      std::cout << "resample time=" << resampelTime.getCurrentTime() << std::endl;
+
+      nll::core::Image<nll::ui8> bmp2( slice.sizex(), slice.sizey(), 1 );
+      for ( unsigned y = 0; y < bmp2.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp2.sizex(); ++x )
+            bmp2( x, y, 0 ) = (nll::ui8)NLL_BOUND( ( (double)slice( x, y, 0 )*3 + 20000 ) / 200, 0, 255 );
+      nll::core::extend( bmp2, 3 );
+
+      nll::core::writeBmp( bmp2, output2 );
+   }
+
+   /**
+    Test the accuracy of the interpolator using nearest neighbour
+    */
+   void testMpr2()
+   {
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
+
+      nll::core::Matrix<double> pst( 4, 4 );
+      for ( unsigned n = 0; n < 4; ++n )
+         pst( n, n ) = 1;
+
+      Volume volume( nll::core::vector3ui( 2, 2, 2 ), pst );
+      volume( 0, 0, 0 ) = 200;
+      volume( 1, 0, 0 ) = 10;
+      volume( 1, 1, 0 ) = 200;
+      volume( 0, 1, 0 ) = 10;
+
+      Mpr mpr( volume, 32, 32 );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0 ),
+                                       nll::core::vector3d( 1, 0, 0 ),
+                                       nll::core::vector3d( 0, 1, 0 ),
+                                       nll::core::vector2d( 16.00, 16.00 ) );
+
+      
+      for ( unsigned n = 0; n < 16; ++n )
+         for ( unsigned nn = 0; nn < 16; ++nn )
+         {
+            TESTER_ASSERT( nll::core::equal<double>( slice( n, nn, 0 ), 200 ) );
+            TESTER_ASSERT( nll::core::equal<double>( slice( n + 16, nn, 0 ), 10 ) );
+            TESTER_ASSERT( nll::core::equal<double>( slice( n, nn + 16, 0 ), 10 ) );
+            TESTER_ASSERT( nll::core::equal<double>( slice( n + 16, nn + 16, 0 ), 200 ) );
+         }
+
+      const std::string output = NLL_TEST_PATH "data/mpr-resamples-max.bmp";
+      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      for ( unsigned y = 0; y < bmp.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, output );
+   }
+
+   void testMpr3()
+   {
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
+
+      nll::core::Matrix<double> pst( 4, 4 );
+      for ( unsigned n = 0; n < 4; ++n )
+         pst( n, n ) = 1;
+
+      Volume volume( nll::core::vector3ui( 4, 4, 4 ), pst );
+      volume( 0, 0, 0 ) = 200;
+      volume( 1, 0, 0 ) = 10;
+      volume( 1, 1, 0 ) = 200;
+      volume( 0, 1, 0 ) = 10;
+
+      volume( 0+2, 0, 0 ) = 200;
+      volume( 1+2, 0, 0 ) = 10;
+      volume( 1+2, 1, 0 ) = 200;
+      volume( 0+2, 1, 0 ) = 10;
+
+      volume( 0, 0+2, 0 ) = 200;
+      volume( 1, 0+2, 0 ) = 10;
+      volume( 1, 1+2, 0 ) = 200;
+      volume( 0, 1+2, 0 ) = 10;
+
+      volume( 0+2, 0+2, 0 ) = 200;
+      volume( 1+2, 0+2, 0 ) = 10;
+      volume( 1+2, 1+2, 0 ) = 200;
+      volume( 0+2, 1+2, 0 ) = 10;
+
+      Mpr mpr( volume, 32, 32 );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0 ),
+                                       nll::core::vector3d( 1, 0, 0 ),
+                                       nll::core::vector3d( 0, 1, 0 ),
+                                       nll::core::vector2d( 8.00, 8.00 ) );
+
+
+      const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-linear.bmp";
+      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      for ( unsigned y = 0; y < bmp.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, output );
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
-/*
-TESTER_TEST(testBuffer1);
-TESTER_TEST(testVolume1);
-TESTER_TEST(testVolumeIterator);
-TESTER_TEST(testVolumeSpatial1);
-TESTER_TEST(testIndexToPos);
-TESTER_TEST(testInterpolator);
-TESTER_TEST(testInterpolatorTriLinear);
-*/
-TESTER_TEST(testMpr);
+ TESTER_TEST(testBuffer1);
+ TESTER_TEST(testVolume1);
+ TESTER_TEST(testVolumeIterator);
+ TESTER_TEST(testVolumeSpatial1);
+ TESTER_TEST(testIndexToPos);
+ TESTER_TEST(testInterpolator);
+ TESTER_TEST(testInterpolatorTriLinear);
+ TESTER_TEST(testMpr);
+ TESTER_TEST(testMpr2);
+ TESTER_TEST(testMpr3);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif
