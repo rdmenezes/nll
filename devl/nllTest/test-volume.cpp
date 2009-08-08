@@ -261,12 +261,13 @@ public:
       Mpr mpr( volume, 512, 512 );
 
       nll::core::Timer mprTime;
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 50, 50, 43 ),
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 43 ),
                                        nll::core::vector3d( 1, 0, 0 ),
                                        nll::core::vector3d( 0, 1, 0 ),
                                        nll::core::vector2d( 4, 4 ) );
       mprTime.end();
       std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
+      slice( 1, 1, 0 ) = 1e6;
 
       nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
       for ( unsigned y = 0; y < bmp.sizex(); ++y )
@@ -343,28 +344,28 @@ public:
          pst( n, n ) = 1;
 
       Volume volume( nll::core::vector3ui( 4, 4, 4 ), pst );
-      volume( 0, 0, 0 ) = 200;
+      volume( 0, 0, 0 ) = 255;
       volume( 1, 0, 0 ) = 10;
-      volume( 1, 1, 0 ) = 200;
+      volume( 1, 1, 0 ) = 255;
       volume( 0, 1, 0 ) = 10;
 
-      volume( 0+2, 0, 0 ) = 200;
+      volume( 0+2, 0, 0 ) = 255;
       volume( 1+2, 0, 0 ) = 10;
-      volume( 1+2, 1, 0 ) = 200;
+      volume( 1+2, 1, 0 ) = 255;
       volume( 0+2, 1, 0 ) = 10;
 
-      volume( 0, 0+2, 0 ) = 200;
+      volume( 0, 0+2, 0 ) = 255;
       volume( 1, 0+2, 0 ) = 10;
-      volume( 1, 1+2, 0 ) = 200;
+      volume( 1, 1+2, 0 ) = 255;
       volume( 0, 1+2, 0 ) = 10;
 
-      volume( 0+2, 0+2, 0 ) = 200;
+      volume( 0+2, 0+2, 0 ) = 255;
       volume( 1+2, 0+2, 0 ) = 10;
-      volume( 1+2, 1+2, 0 ) = 200;
+      volume( 1+2, 1+2, 0 ) = 255;
       volume( 0+2, 1+2, 0 ) = 10;
 
       Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0 ),
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0.5 ),
                                        nll::core::vector3d( 1, 0, 0 ),
                                        nll::core::vector3d( 0, 1, 0 ),
                                        nll::core::vector2d( 8.00, 8.00 ) );
@@ -382,15 +383,16 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
- TESTER_TEST(testBuffer1);
+ /*TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
  TESTER_TEST(testVolumeIterator);
  TESTER_TEST(testVolumeSpatial1);
  TESTER_TEST(testIndexToPos);
  TESTER_TEST(testInterpolator);
- TESTER_TEST(testInterpolatorTriLinear);
+ TESTER_TEST(testInterpolatorTriLinear);*/
  TESTER_TEST(testMpr);
- TESTER_TEST(testMpr2);
+ 
+ //TESTER_TEST(testMpr2);
  TESTER_TEST(testMpr3);
 TESTER_TEST_SUITE_END();
 #endif

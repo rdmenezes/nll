@@ -2,7 +2,7 @@
 # define NLL_IMAGE_INTERPOLATOR_H_
 
 /// we define a bias so that all the pixels are shifted to the same direction. Due to rounding it is not necessary the case without this bias factor
-# define NLL_IMAGE_BIAS    1e-10
+# define NLL_IMAGE_BIAS    1e-5
 
 namespace nll
 {
@@ -74,21 +74,19 @@ namespace core
       double interpolate( double x, double y, ui32 c ) const
       {
          // the center of the pixel is in the midle
-         x -= 0.5 - NLL_IMAGE_BIAS;
-         y -= 0.5 - NLL_IMAGE_BIAS;
-         if ( x < -0.5 || y < -0.5 )
+         if ( x < 0 || y < 0 )
             return 0;
 
          static double buf[4];
-         const i32 xi = static_cast<i32>( x );
-         const i32 yi = static_cast<i32>( y );
-         const double dx = fabs( x - xi );
-         const double dy = fabs( y - yi );
+         const i32 xi = int( x - NLL_IMAGE_BIAS );
+         const i32 yi = int( y - NLL_IMAGE_BIAS );
+         const double dx = fabs( x - xi - 0.5 + NLL_IMAGE_BIAS );
+         const double dy = fabs( y - yi - 0.5 + NLL_IMAGE_BIAS );
 
          buf[ 0 ] = this->_img( xi, yi, c );
-         buf[ 1 ] = ( xi + 1 < (i32)this->_img.sizex() ) ? this->_img( xi + 1, yi, c ) : 0;
-         buf[ 2 ] = ( yi + 1 < (i32)this->_img.sizey() ) && ( xi + 1 < (i32)this->_img.sizex() ) ? this->_img( xi + 1, yi + 1, c ) : 0;
-         buf[ 3 ] = ( yi + 1 < (i32)this->_img.sizey() ) ? this->_img( xi, yi + 1, c ) : 0;
+         buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? this->_img( xi + 1, yi, c ) : 0;
+         buf[ 2 ] = ( yi < (i32)this->_img.sizey() - 1 ) && ( xi < (i32)this->_img.sizex() - 1 ) ? this->_img( xi + 1, yi + 1, c ) : 0;
+         buf[ 3 ] = ( yi < (i32)this->_img.sizey() - 1 ) ? this->_img( xi, yi + 1, c ) : 0;
 
          // factorized form of:
          //double val = ( 1 - dx ) * ( 1 - dy ) * buf[ 0 ] +
@@ -99,8 +97,8 @@ namespace core
                       ( dy )     * ( ( dx )     * buf[ 2 ] + ( 1 - dx ) * buf[ 3 ] );
 
          // the first line|col is discarded as we can't really interpolate it correctly
-         assert( val >= Bound<T>::min );
-         assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
+         //assert( val >= Bound<T>::min );
+         //assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
          return val;
       }
    };

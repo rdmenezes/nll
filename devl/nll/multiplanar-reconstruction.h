@@ -65,7 +65,7 @@ namespace imaging
             for ( ui32 x = 0; x < _voxelsx; ++x )
             {
                //std::cout << "check=" << px << " " << py << " " << pz << " val=" << interpolator( px, py, pz ) << std::endl;
-               slice( x, y, 0 ) = interpolator( px + 1e-10, py + 1e-10, pz + 1e-10 );
+               slice( x, y, 0 ) = interpolator( px, py, pz );
                px += dx[ 0 ];
                py += dx[ 1 ];
                pz += dx[ 2 ];
