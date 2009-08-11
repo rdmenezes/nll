@@ -1,39 +1,6 @@
 #include "stdafx.h"
 #include <nll/nll.h>
 
-namespace nll
-{
-namespace core
-{
-   
-
-   
-}
-
-namespace imaging
-{
-   
-
-   namespace impl
-   {
-      /**
-       @brief apply a rotation given a transformation (rotation+scale only)
-              The matrix must be a 4x4 transformation matrix defined by the volume.
-              
-              Compute Mv using only the rotational part of M.
-       */
-      template <class T, class Mapper>
-      core::vector3d mul3Rot( const core::Matrix<T, Mapper>& m, const core::vector3d& v )
-      {
-         assert( m.sizex() == 4 && m.sizey() == 4 );
-         return core::vector3d( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
-                                v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
-                                v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
-      }
-   }
-}
-}
-
 class TestVolume
 {
 public:
@@ -430,6 +397,41 @@ public:
       nll::core::extend( i4, 3 );
       nll::core::writeBmp( i4, NLL_TEST_PATH "data/mresampl.bmp" );
    }
+
+   void testMpr4()
+   {
+      const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
+
+      Volume volume;
+
+      std::cout << "loadind..." << std::endl;
+      nll::imaging::loadSimpleFlatFile( volname, volume );
+
+      std::cout << "loaded" << std::endl;
+      Mpr mpr( volume, 256, volume.getSize()[ 2 ] * 2 );
+
+      for ( unsigned z = 0; z < volume.getSize()[ 1 ]; ++z )
+      {
+         nll::core::Timer mprTime;
+         Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, z, 0 ),
+                                          nll::core::vector3d( 1, 0, 0 ),
+                                          nll::core::vector3d( 0, 0, 1 ),
+                                          nll::core::vector2d( 2, 2 ) );
+         mprTime.end();
+         std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
+         slice( 1, 1, 0 ) = 1e6;
+
+         nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+         for ( unsigned y = 0; y < bmp.sizey(); ++y )
+            for ( unsigned x = 0; x < bmp.sizex(); ++x )
+               bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 )*4 + 15000 ) / 200, 0, 255 );
+         nll::core::extend( bmp, 3 );
+         nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mpr-slice-" + nll::core::val2str( z ) + ".bmp" );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -442,8 +444,8 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testInterpolator);
  TESTER_TEST(testInterpolatorTriLinear);
  TESTER_TEST(testMpr);
- //TESTER_TEST(testMpr2);
  TESTER_TEST(testMpr3);
+ TESTER_TEST(testMpr4);
  TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
 #endif

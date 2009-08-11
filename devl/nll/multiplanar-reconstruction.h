@@ -5,6 +5,24 @@ namespace nll
 {
 namespace imaging
 {
+   namespace impl
+   {
+      /**
+       @brief apply a rotation given a transformation (rotation+scale only)
+              The matrix must be a 4x4 transformation matrix defined by the volume.
+              
+              Compute Mv using only the rotational part of M.
+       */
+      template <class T, class Mapper>
+      core::vector3d mul3Rot( const core::Matrix<T, Mapper>& m, const core::vector3d& v )
+      {
+         assert( m.sizex() == 4 && m.sizey() == 4 );
+         return core::vector3d( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
+                                v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
+                                v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
+      }
+   }
+
    /**
     @ingroup imaging
     @brief Multiplanar reconstruction of a volume
