@@ -1,25 +1,15 @@
-// mvvTest.cpp : Defines the test runner entry point.
+// nllTest.cpp : Defines the test runner entry point.
 //
 
 #include "stdafx.h"
+#include <fstream>
 
-#ifdef _MSC_VER
-#ifdef _DEBUG
-#pragma comment(lib, "cppunitd_dll.lib")
-#else
-#pragma comment(lib, "cppunit_dll.lib")
-#endif
-#endif
 
 int main()
 {
-   CppUnit::TextUi::TestRunner runner;
-   CppUnit::TestFactoryRegistry& registry = CppUnit::TestFactoryRegistry::getRegistry();
+   // erase logger
+   std::ofstream f("mvv.log");
+   f.close();
 
-   runner.addTest(registry.makeTest());
-   
-   if (!runner.run("", false))
-      return 1;      // nonzero if the test failed
-
-   return 0;
+   Register::instance().run();
 }
