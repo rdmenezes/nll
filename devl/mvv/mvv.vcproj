@@ -420,12 +420,20 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="Header Files"
+			Name="architecture"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\exception.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-manager.h"
 				>
 			</File>
 			<File
