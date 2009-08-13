@@ -1,121 +1,90 @@
 #include "stdafx.h"
+#include <mvv/queue-orders.h>
+#include <boost/thread/thread.hpp>
 
-// Example program showing signals with custom combiners.
-//
-// Copyright Douglas Gregor 2001-2004.
-// Copyright Frank Mori Hess 2009.
-//
-// Use, modification and
-// distribution is subject to the Boost Software License, Version
-// 1.0. (See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt)
-// For more information, see http://www.boost.org
+using namespace mvv;
 
-#include <iostream>
-#include <boost/signals2/signal.hpp>
-#include <vector>
-
-float product(float x, float y) { return x * y; }
-float quotient(float x, float y) { return x / y; }
-float sum(float x, float y) { return x + y; }
-float difference(float x, float y) { return x - y; }
-
-//[ custom_combiners_maximum_def_code_snippet
-// combiner which returns the maximum value returned by all slots
-template<typename T>
-struct maximum
+class OrderAction
 {
-  typedef T result_type;
+public:
+   OrderAction ()
+   {
+      id = 0;
+   }
 
-  template<typename InputIterator>
-  T operator()(InputIterator first, InputIterator last) const
-  {
-    // If there are no slots to call, just return the
-    // default-constructed value
-    if(first == last ) return T();
-    T max_value = *first++;
-    while (first != last) {
-      if (max_value < *first)
-        max_value = *first;
-      ++first;
-    }
+   void orderAdded( OrderInterface* o )
+   {
+      id = o->getId();
+   }
 
-    return max_value;
-  }
+   ui32 id;
 };
-//]
 
-void maximum_combiner_example()
+class OrderNewThread
 {
-  // signal which uses our custom "maximum" combiner
-  boost::signals2::signal<float (float x, float y), maximum<float> > sig;
+public:
+   OrderNewThread( OrderInterface* o )
+   {
+      launch = 0;
+      order = o;
+   }
 
-//[ custom_combiners_maximum_usage_code_snippet
-  sig.connect(&product);
-  sig.connect(&quotient);
-  sig.connect(&sum);
-  sig.connect(&difference);
+   void doOnActionFinished( QueueOrdersInterface::OnOrderToBeProcessedSlot slot )
+   {
+      launch = new QueueOrdersInterface::OnOrderToBeProcessed();
+      launch->connect( slot );
+   }
 
-  // Outputs the maximum value returned by the connected slots, in this case
-  // 15 from the product function.
-  std::cout << "maximum: " << sig(5, 3) << std::endl;
-//]
-}
+   void operator()()
+   {
+      (*launch)( order );
+   }
 
-//[ custom_combiners_aggregate_values_def_code_snippet
-// aggregate_values is a combiner which places all the values returned
-// from slots into a container
-template<typename Container>
-struct aggregate_values
-{
-  typedef Container result_type;
-
-  template<typename InputIterator>
-  Container operator()(InputIterator first, InputIterator last) const
-  {
-    Container values;
-
-    while(first != last) {
-      values.push_back(*first);
-      ++first;
-    }
-    return values;
-  }
+   QueueOrdersInterface::OnOrderToBeProcessed* launch;
+   OrderInterface* order;
 };
-//]
-
-void aggregate_values_example()
-{
-  // signal which uses aggregate_values as its combiner
-  boost::signals2::signal<float (float, float),
-    aggregate_values<std::vector<float> > > sig;
-
-//[ custom_combiners_aggregate_values_usage_code_snippet
-  sig.connect(&quotient);
-  sig.connect(&product);
-  sig.connect(&sum);
-  sig.connect(&difference);
-
-  std::vector<float> results = sig(5, 3);
-  std::cout << "aggregate values: ";
-  std::copy(results.begin(), results.end(),
-    std::ostream_iterator<float>(std::cout, " "));
-  std::cout << "\n";
-//]
-}
 
 class TestThreading
 {
 public:
+   /**
+    QueueOrder: Check a function onOrderCreated is working
+    */
    void test1()
    {
-     maximum_combiner_example();
-     aggregate_values_example();
+      OrderAction orderAction;
+      QueueOrdersInterface* queue = new QueueOrders();
+      queue->doOnActionAdded( boost::bind(&OrderAction::orderAdded, &orderAction, _1 ) );
+
+      OrderInterface* o = new OrderInterface( NOOP );  
+      queue->registerOrder( o );
+      TESTER_ASSERT( orderAction.id == o->getId() );
+   }
+
+   /**
+    QueueOrder: Check on an action is ended, the order manager is called
+    */
+   void test2()
+   {
+      QueueOrdersInterface* queue = new QueueOrders();
+
+      OrderInterface order( NOOP );
+      OrderNewThread pool( &order );
+      pool.doOnActionFinished( boost::bind(&QueueOrdersInterface::onOrderFinished, queue, _1 ) );
+
+      OrderAction orderAction;
+      queue->doOnOrderFinished( boost::bind(&OrderAction::orderAdded, &orderAction, _1 ) );
+
+      boost::thread thrd1( pool );
+
+      thrd1.join();
+      TESTER_ASSERT( orderAction.id == order.getId() );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestThreading);
 TESTER_TEST(test1);
+TESTER_TEST(test2);
 TESTER_TEST_SUITE_END();
 #endif

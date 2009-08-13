@@ -27,6 +27,13 @@ namespace mvv
       ExceptionBadOrder( const std::string& msg ) : Exception( msg )
       {}
    };
+
+   class MVV_API ExceptionOrderNotConsumed : public Exception
+   {
+   public:
+      ExceptionOrderNotConsumed( const std::string& msg ) : Exception( msg )
+      {}
+   };
 }
 
 #endif

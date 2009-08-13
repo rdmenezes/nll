@@ -61,6 +61,7 @@ namespace mvv
     */
    enum MVV_API OrderId
    {
+      NOOP            /// no operation, nothing is done
    };
 
    /**
