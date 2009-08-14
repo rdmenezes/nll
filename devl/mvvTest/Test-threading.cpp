@@ -53,7 +53,6 @@ public:
       TESTER_ASSERT( results.begin() != results.end(), "empty" );
       const OrderResult* res = ( *results.begin() )->getResult();
       TESTER_ASSERT( dynamic_cast<const OrderResultVal*>( res )->val );
-      wait ( 1 );
       pool.kill();
    }
 };

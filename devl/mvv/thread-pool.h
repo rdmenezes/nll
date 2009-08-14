@@ -27,6 +27,7 @@ namespace mvv
 
       ~ThreadPool()
       {
+         kill();
       }
 
       /**

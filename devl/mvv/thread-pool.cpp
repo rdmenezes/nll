@@ -58,6 +58,11 @@ namespace mvv
       {
          _workerThreads[ n ]->interrupt();
          _workerThreads[ n ]->join();
+         delete _workers[ n ];
+         delete _workerThreads[ n ];
       }
+
+      _workers.clear();
+      _workerThreads.clear();
    }
 }
