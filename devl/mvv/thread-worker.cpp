@@ -1,0 +1,19 @@
+#include "stdafx.h"
+#include "thread-worker.h"
+
+namespace mvv
+{
+   Worker::Worker( ThreadPool* pool, ui32 workerId ) : _pool( pool ), _workerId( workerId ), _hasFinished( true ), _currentOrder( 0 )
+   {
+      ensure( pool, "error: null pointer" );
+   }
+
+   void Worker::_run()
+   {
+      // locked by operator()
+      OrderResult* result = _currentOrder->run();
+      _currentOrder->setResult( result );
+      _hasFinished = true;
+      _pool->workerFinished( _currentOrder, _workerId );
+   }
+}

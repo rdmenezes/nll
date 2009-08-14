@@ -15,7 +15,7 @@ namespace mvv
     @ingroup mvv
     @brief base class for order results. All results must inherit this class.
     */
-   class MVV_API OrderResult
+   class OrderResult
    {
    public:
       virtual ~OrderResult()
@@ -59,9 +59,9 @@ namespace mvv
     @ingroup mvv
     @brief defines an order type that will be used to recognize this type
     */
-   enum MVV_API OrderId
+   enum OrderClassId
    {
-      NOOP            /// no operation, nothing is done
+      ORDER_NULL            /// no operation, nothing is done
    };
 
    /**
@@ -71,18 +71,35 @@ namespace mvv
     @note Orders in the QueueOrders will be stored by order of creation
           and not by insertion time!
     */
-   class MVV_API OrderInterface
+   class Order
    {
+   public:
+      typedef std::set<ui32>  Predecessors;
+
    public:
       /**
        @brief Construct an empty order
-       @param orderId the id of the type of order
+       @param orderClassId the id of the type of order
+       @param toBeMultithreaded true if the order must be run on another thread. It should be so, only if
+              the order is computationally intensive so that the OrderThread doesn't have to wait for the
+              end of this order. Example: rendering of a volume...
+       @param predecessors all the predecessor ids to be run and completed before starting this order. Example
+              in to render a volume, it must have already been in memory!
        */
-      OrderInterface( OrderId orderId ) : _id( nll::core::IdMaker::instance().generateId() ), _orderId( orderId ), _result( 0 )
+      Order( OrderClassId orderClassId,
+             bool toBeMultiThreaded,
+             const Predecessors& predecessors ) 
+         : _id( nll::core::IdMaker::instance().generateId() ), _orderClassId( orderClassId ),
+           _toBeMultiThreaded( toBeMultiThreaded ), _predecessors( predecessors ), _result( 0 )
       {}
 
-      ~OrderInterface()
+      virtual ~Order()
       {}
+
+      /**
+       @brief Run the order and return a result. (_result will be automatically set externally)
+       */
+      virtual OrderResult* run() = 0;
 
       /**
        @return the order instance id
@@ -95,9 +112,9 @@ namespace mvv
       /**
        @return the id of the kind of order
        */
-      OrderId getOrderId() const
+      OrderClassId getOrderClassId() const
       {
-         return _orderId;
+         return _orderClassId;
       }
 
       /**
@@ -112,17 +129,36 @@ namespace mvv
       }
 
       /**
-       @biref returns the result og the current order. Null if not results yet.
+       @brief returns the result og the current order. Null if not results yet.
        */
       const OrderResult* getResult() const
       {
          return _result;
       }
 
+      /**
+       @brief returns the predecessor of an order. The order cannot be executed if the predecessors have not
+              been computed before
+       */
+      const Predecessors& getPredecessors() const
+      {
+         return _predecessors;
+      }
+
+      /**
+       @return true if this order must be launched on a different thread.
+       */
+      bool toBeMultithreaded() const
+      {
+         return _toBeMultiThreaded;
+      }
+
    protected:
-      ui32        _id;
-      OrderId     _orderId;
-      OrderResult*_result;
+      ui32           _id;
+      OrderClassId   _orderClassId;
+      OrderResult*   _result;
+      bool           _toBeMultiThreaded;
+      Predecessors   _predecessors;
    };
 }
 

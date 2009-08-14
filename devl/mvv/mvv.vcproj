@@ -433,10 +433,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\order-manager.h"
-				>
-			</File>
-			<File
 				RelativePath=".\order.h"
 				>
 			</File>
@@ -446,6 +442,22 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-pool.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-pool.h"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-worker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-worker.h"
 				>
 			</File>
 			<File

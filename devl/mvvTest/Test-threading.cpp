@@ -1,48 +1,17 @@
 #include "stdafx.h"
-#include <mvv/queue-orders.h>
+#include <mvv/thread-pool.h>
 #include <boost/thread/thread.hpp>
+#include <time.h>
 
 using namespace mvv;
 
-class OrderAction
+
+void wait( double seconds )
 {
-public:
-   OrderAction ()
-   {
-      id = 0;
-   }
-
-   void orderAdded( OrderInterface* o )
-   {
-      id = o->getId();
-   }
-
-   ui32 id;
-};
-
-class OrderNewThread
-{
-public:
-   OrderNewThread( OrderInterface* o )
-   {
-      launch = 0;
-      order = o;
-   }
-
-   void doOnActionFinished( QueueOrdersInterface::OnOrderToBeProcessedSlot slot )
-   {
-      launch = new QueueOrdersInterface::OnOrderToBeProcessed();
-      launch->connect( slot );
-   }
-
-   void operator()()
-   {
-      (*launch)( order );
-   }
-
-   QueueOrdersInterface::OnOrderToBeProcessed* launch;
-   OrderInterface* order;
-};
+  clock_t endwait;
+  endwait = clock () + seconds * CLOCKS_PER_SEC ;
+  while (clock() < endwait) {}
+}
 
 class TestThreading
 {
@@ -52,39 +21,46 @@ public:
     */
    void test1()
    {
-      OrderAction orderAction;
-      QueueOrdersInterface* queue = new QueueOrders();
-      queue->doOnActionAdded( boost::bind(&OrderAction::orderAdded, &orderAction, _1 ) );
+      struct OrderResultVal : public OrderResult
+      {
+         OrderResultVal( unsigned v ) : val( v )
+         {}
 
-      OrderInterface* o = new OrderInterface( NOOP );  
-      queue->registerOrder( o );
-      TESTER_ASSERT( orderAction.id == o->getId() );
-   }
+         unsigned val;
+      };
 
-   /**
-    QueueOrder: Check on an action is ended, the order manager is called
-    */
-   void test2()
-   {
-      QueueOrdersInterface* queue = new QueueOrders();
+      class OrderWait : public Order
+      {
+      public:
+         OrderWait() : Order( ORDER_NULL, false, Order::Predecessors() )
+         {
+         }
 
-      OrderInterface order( NOOP );
-      OrderNewThread pool( &order );
-      pool.doOnActionFinished( boost::bind(&QueueOrdersInterface::onOrderFinished, queue, _1 ) );
+         virtual OrderResult* run()
+         {
+            std::cout << "[working]" << std::endl;
+            wait( 0.5 );
+            return new OrderResultVal( 1 );
+         }
+      };
 
-      OrderAction orderAction;
-      queue->doOnOrderFinished( boost::bind(&OrderAction::orderAdded, &orderAction, _1 ) );
+      ThreadPool  pool( 2 );
 
-      boost::thread thrd1( pool );
-
-      thrd1.join();
-      TESTER_ASSERT( orderAction.id == order.getId() );
+      OrderWait* order1 = new OrderWait();
+      pool.run( order1 );
+      wait( 1 );
+      ThreadPool::Orders  results = pool.getFinishedOrdersAndClearList();
+      TESTER_ASSERT( results.begin() != results.end(), "empty" );
+      const OrderResult* res = ( *results.begin() )->getResult();
+      TESTER_ASSERT( dynamic_cast<const OrderResultVal*>( res )->val );
+      wait ( 1 );
+      pool.kill();
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestThreading);
 TESTER_TEST(test1);
-TESTER_TEST(test2);
+
 TESTER_TEST_SUITE_END();
 #endif
