@@ -1,12 +1,11 @@
 #ifndef MVV_THREAD_WORKER_H_
 # define MVV_THREAD_WORKER_H_
 
-
-# include <boost/function.hpp>
 # include <boost/thread/mutex.hpp>
 # include <boost/thread/condition.hpp>
 # include "order.h"
 # include "thread-pool.h"
+# include "notifiable.h"
 
 
 namespace mvv
@@ -18,7 +17,7 @@ namespace mvv
     @ingroup mvv
     @brief Worker class to be run on a worker thread.
     */
-   class Worker
+   class Worker : public Notifiable
    {
    public:
       /**
@@ -62,7 +61,8 @@ namespace mvv
                   _notified.wait( lock );
                }
 
-               std::cout << "worker=" << _workerId << " run" << std::endl;
+               ensure( _currentOrder, "something went wrong..." );
+               std::cout << "worker=" << _workerId << " run, idorder=" << _currentOrder->getId() << std::endl;
 
                // run the job
                _run();

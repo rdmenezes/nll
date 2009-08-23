@@ -4,8 +4,9 @@
 
 namespace mvv
 {
-   ThreadPool::ThreadPool( ui32 numberOfWorkers )
+   ThreadPool::ThreadPool( ui32 numberOfWorkers, Notifiable* notifiable )
    {
+      _notifiable = notifiable;
       _workers = Workers( numberOfWorkers );
       _workerThreads = WorkerThreads( numberOfWorkers );
       for ( ui32 n = 0; n < numberOfWorkers; ++n )
@@ -20,12 +21,18 @@ namespace mvv
    {
       // we don't lock it as we don't want to block the calling thread!
       _notified.notify_one();
+
+      if ( _notifiable )
+      {
+         std::cout << "notify queue" << std::endl;
+         _notifiable->notify();
+      }
    }
 
    void ThreadPool::workerFinished( Order* order, ui32 workerId )
    {
       boost::mutex::scoped_lock lock( _mutex );
-      _ordersFinished.insert( order );
+      _ordersFinished.push_back( order );
       _workersAvailable.push( _workers[ workerId ] );
       notify();
    }
@@ -42,7 +49,7 @@ namespace mvv
    {
       boost::mutex::scoped_lock lock( _mutex );
 
-      // not idle treads, we have to wait
+      // no idle threads, we have to wait
       while ( _workersAvailable.empty() )
          _notified.wait( lock );
 
@@ -56,13 +63,18 @@ namespace mvv
    {
       for ( ui32 n = 0; n < _workers.size(); ++n )
       {
+         std::cout << "pool intrrupt" << std::endl;
          _workerThreads[ n ]->interrupt();
+         std::cout << "pool join" << std::endl;
          _workerThreads[ n ]->join();
+         std::cout << "pool joined" << std::endl;
          delete _workers[ n ];
          delete _workerThreads[ n ];
       }
 
       _workers.clear();
       _workerThreads.clear();
+      _workersAvailable = AvailableWorkers();
+      std::cout << "end pool kill" << std::endl;
    }
 }

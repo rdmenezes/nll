@@ -426,6 +426,10 @@
 				RelativePath=".\Test-threading.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\TestResource.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

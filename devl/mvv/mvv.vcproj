@@ -420,10 +420,18 @@
 			</File>
 		</Filter>
 		<Filter
-			Name="architecture"
+			Name="Core"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\dynamic-resource.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\dynamic-resource.h"
+				>
+			</File>
 			<File
 				RelativePath=".\exception.h"
 				>
@@ -433,11 +441,27 @@
 				>
 			</File>
 			<File
+				RelativePath=".\notifiable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-provider.h"
+				>
+			</File>
+			<File
 				RelativePath=".\order.h"
 				>
 			</File>
 			<File
 				RelativePath=".\queue-orders.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource-manager.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
@@ -472,6 +496,14 @@
 			>
 			<File
 				RelativePath=".\mvv.rc"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="Resource"
+			>
+			<File
+				RelativePath=".\engine-mpr.h"
 				>
 			</File>
 		</Filter>

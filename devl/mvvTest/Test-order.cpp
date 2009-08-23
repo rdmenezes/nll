@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include <mvv/order.h>
+#include <mvv/queue-orders.h>
 
 namespace mvv
 {
@@ -53,6 +54,6 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestOrder);
-TESTER_TEST(testBinder);
+//TESTER_TEST(testBinder);
 TESTER_TEST_SUITE_END();
 #endif

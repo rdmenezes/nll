@@ -12,6 +12,7 @@ namespace mvv
    {
       // locked by operator()
       OrderResult* result = _currentOrder->run();
+      ensure( result, "result requires not to be null" );
       _currentOrder->setResult( result );
       _hasFinished = true;
       _pool->workerFinished( _currentOrder, _workerId );
