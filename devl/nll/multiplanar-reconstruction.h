@@ -48,7 +48,8 @@ namespace imaging
       {}
 
       /**
-       @brief Compute the slice according to a position and 2 vectors
+       @brief Compute the slice according to a position and 2 vectors and a size factor.
+              The volume's spacing is used to compute the correct MPR.
        @param point the index of a point (volume coordinate)
        @param ax x-axis of the plane
        @param ay y-axis of the plane
@@ -64,9 +65,16 @@ namespace imaging
 
          // compute the slopes
          core::vector3d dx = impl::mul3Rot( _volume.getInversedPst(), ax );
-         dx.div( dx.norm2() * zoomFactor[ 0 ] );
+         const double c1 = dx.norm2() * zoomFactor[ 0 ];
+         dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
+         dx[ 1 ] = dx[ 1 ] / ( c1 * _volume.getSpacing()[ 1 ] );
+         dx[ 2 ] = dx[ 2 ] / ( c1 * _volume.getSpacing()[ 2 ] );
+
          core::vector3d dy = impl::mul3Rot( _volume.getInversedPst(), ay );
-         dy.div( dy.norm2() * zoomFactor[ 1 ] );
+         const double c2 = dy.norm2() * zoomFactor[ 1 ];
+         dy[ 0 ] = dy[ 0 ] / ( c2 * _volume.getSpacing()[ 0 ] );
+         dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
+         dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
          // set up the interpolator
          Interpolator interpolator( _volume );

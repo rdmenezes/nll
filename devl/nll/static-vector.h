@@ -264,6 +264,24 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
+   class vector2ui : public StaticVector<ui32, 2>
+   {
+      typedef StaticVector<ui32, 2> BaseClass;
+   public:
+      vector2ui( )
+      {
+      }
+      vector2ui( BaseClass::value_type x, BaseClass::value_type y )
+      {
+         at(0) = x;
+         at(1) = y;
+      }
+   };
+
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
    class vector2f : public StaticVector<f32, 2>
    {
       typedef StaticVector<f32, 2> BaseClass;

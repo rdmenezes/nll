@@ -240,7 +240,7 @@ public:
       Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 43 ),
                                        nll::core::vector3d( 1, 0, 0 ),
                                        nll::core::vector3d( 0, 1, 0 ),
-                                       nll::core::vector2d( 4, 4 ) );
+                                       nll::core::vector2d( 1, 1 ) );
       mprTime.end();
       std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
       slice( 1, 1, 0 ) = 1e6;
@@ -411,7 +411,7 @@ public:
       nll::imaging::loadSimpleFlatFile( volname, volume );
 
       std::cout << "loaded" << std::endl;
-      Mpr mpr( volume, 256, volume.getSize()[ 2 ] * 2 );
+      Mpr mpr( volume, 512, 512 );
 
       for ( unsigned z = 0; z < volume.getSize()[ 1 ]; ++z )
       {
@@ -419,7 +419,7 @@ public:
          Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, z, 0 ),
                                           nll::core::vector3d( 1, 0, 0 ),
                                           nll::core::vector3d( 0, 0, 1 ),
-                                          nll::core::vector2d( 2, 2 ) );
+                                          nll::core::vector2d( 1, 1 ) );
          mprTime.end();
          std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
          slice( 1, 1, 0 ) = 1e6;
@@ -434,8 +434,9 @@ public:
    }
 };
 
-#ifndef DONT_RUN_TEST
+//#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
+
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
  TESTER_TEST(testVolumeIterator);
@@ -443,9 +444,10 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testIndexToPos);
  TESTER_TEST(testInterpolator);
  TESTER_TEST(testInterpolatorTriLinear);
+ 
  TESTER_TEST(testMpr);
  TESTER_TEST(testMpr3);
  TESTER_TEST(testMpr4);
  TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
-#endif
+//#endif
