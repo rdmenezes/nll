@@ -79,6 +79,7 @@ namespace mvv
    };
 
    /**
+    @ingroup mvv
     @brief A class that holds dynamic resource. Each time a resource is modified, it notifies all the listeners
     */
    class DynamicResource

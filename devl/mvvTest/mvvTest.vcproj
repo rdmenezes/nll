@@ -419,6 +419,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Test-engine-mpr.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Test-layout.cpp"
 				>
 			</File>

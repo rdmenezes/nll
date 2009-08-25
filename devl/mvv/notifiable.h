@@ -4,6 +4,7 @@
 namespace mvv
 {
    /**
+    @ingroup mvv
     @brief The class implementing this will be notifiable (i.e. if run on another thread and waiting, with method
            will run again)
     */
