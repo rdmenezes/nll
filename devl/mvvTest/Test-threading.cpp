@@ -193,6 +193,6 @@ TESTER_TEST_SUITE(TestThreading);
 //TESTER_TEST(test1);
 //TESTER_TEST(test2);
 //TESTER_TEST(testQueue);
-TESTER_TEST(testQueueOrders);
+//TESTER_TEST(testQueueOrders);
 TESTER_TEST_SUITE_END();
 #endif

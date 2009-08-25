@@ -419,6 +419,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\Test-layout.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Test-order.cpp"
 				>
 			</File>
