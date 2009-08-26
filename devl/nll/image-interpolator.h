@@ -111,8 +111,10 @@ namespace core
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
       inline double interpolate( double x, double y, ui32 c ) const
       {
-         const double val = this->_img( (ui32)NLL_BOUND( round<double>( x ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( round<double>( y ), 0, this->_img.sizey() - 1 ), c );
-         //const double val = _img( static_cast<ui32>( x ), static_cast<ui32>( y ), c ); // TODO: correct?
+         // we need to add a bias factor due to rounding error. In this case the pixel
+         // location could be both ways. In this case, we force to choose the right one
+         // (it is also right to choose the left one, but we have to choose one way...)
+         const double val = this->_img( (ui32)NLL_BOUND( round<double>( x + NLL_IMAGE_BIAS ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( round<double>( y + NLL_IMAGE_BIAS ), 0, this->_img.sizey() - 1 ), c );
          assert( val >= Bound<T>::min && val <= (Bound<T>::max + 0.999) );
          return val;
       }

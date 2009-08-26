@@ -63,7 +63,7 @@ namespace imaging
                       1,
                       false );
 
-         // compute the slopes
+         // compute the slopes. First rotate the vectors so we are in the same coordinate system
          core::vector3d dx = impl::mul3Rot( _volume.getInversedPst(), ax );
          const double c1 = dx.norm2() * zoomFactor[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
@@ -90,7 +90,6 @@ namespace imaging
             double pz = startz;
             for ( ui32 x = 0; x < _voxelsx; ++x )
             {
-               //std::cout << "check=" << px << " " << py << " " << pz << " val=" << interpolator( px, py, pz ) << std::endl;
                slice( x, y, 0 ) = interpolator( px, py, pz );
                px += dx[ 0 ];
                py += dx[ 1 ];
