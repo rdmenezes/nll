@@ -25,6 +25,9 @@ namespace mvv
        @brief Construct the queue with a pool.
 
        Each time an order has finished, this thread is notified.
+
+       Note: "this" pointer is used in constructor, however it is guaranteed that the thread pool won't call
+             any method of the queue until it is fully constructed, so it is valid to do so.
        */
       QueueOrder( OrderProvider& orderProvider, ui32 poolSize ) : _orderProvider( orderProvider ), _pool( poolSize, this )
       {

@@ -6,7 +6,7 @@ class TestEngineMpr
 public:
    void test1()
    {
-      mvv::EngineMpr mpr;
+      //mvv::EngineMpr mpr;
    }
 };
 

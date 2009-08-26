@@ -255,6 +255,10 @@ namespace mvv
    class PaneDrawable : public Pane
    {
    public:
+      /**
+       @brief Constructor
+       @param drawable a drawable object. It must be alive until the end of life of this object
+       */
       PaneDrawable( Drawable& drawable,
                     const nll::core::vector2ui& origin,
                     const nll::core::vector2ui& size ) : Pane( origin, size ), _drawable( drawable )
@@ -267,6 +271,11 @@ namespace mvv
       {
          const Image& i = _drawable.draw();
          ensure( i.sizex() == getSize()[ 0 ], "must be the same size" );
+         ensure( i.getNbComponents() == image.getNbComponents(), "error components" );
+         for ( ui32 y = 0; y < getSize()[ 1 ]; ++y )
+            for ( ui32 x = 0; x < getSize()[ 0 ]; ++x )
+               for ( ui32 c = 0; c < image.getNbComponents(); ++c )
+                  image( x + getOrigin()[ 0 ], y + getOrigin()[ 1 ], c ) = i( x, y, c );
       }
 
       /**
