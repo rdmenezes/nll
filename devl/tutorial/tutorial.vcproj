@@ -417,6 +417,13 @@
 			<File
 				RelativePath=".\static-plug.h"
 				>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\stdafx.cpp"
@@ -457,13 +464,19 @@
 			<File
 				RelativePath=".\stdafx.h"
 				>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\test-breast-cancer.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -471,14 +484,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -490,7 +495,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -498,14 +502,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -517,14 +513,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -536,14 +524,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -555,14 +535,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -572,20 +544,19 @@
 			<File
 				RelativePath=".\test-wine-database.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\test-yeast-database.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -597,7 +568,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -605,14 +575,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -624,7 +586,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -632,14 +593,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -649,13 +602,19 @@
 			<File
 				RelativePath=".\tutorial-distance-transform.h"
 				>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tutorial-feature-pca.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -663,14 +622,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -680,13 +631,19 @@
 			<File
 				RelativePath=".\tutorial-feature-pca.h"
 				>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tutorial-feature-selection.cpp"
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -694,14 +651,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -713,7 +662,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -721,14 +669,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -740,7 +680,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -748,14 +687,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
