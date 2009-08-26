@@ -493,6 +493,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\transfer-function.h"
+				>
+			</File>
+			<File
 				RelativePath=".\types.h"
 				>
 			</File>

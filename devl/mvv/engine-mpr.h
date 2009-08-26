@@ -7,8 +7,6 @@
 
 namespace mvv
 {
-   typedef nll::imaging::VolumeSpatial<double> MedicalVolume;
-
    /**
     @ingroup mvv
     @brief A multiplanar reconstruction object

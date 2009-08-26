@@ -1,6 +1,22 @@
 #include "stdafx.h"
 #include <mvv/layout.h>
 
+using namespace mvv;
+
+struct DrawapleDummy : public Drawable
+{
+   
+   virtual const Image& draw()
+   {
+      return i;
+   }
+
+   virtual void setImageSize( ui32, ui32 )
+   {
+   }
+
+   Image i;
+};
 
 class TestLayout
 {
@@ -11,12 +27,16 @@ public:
       mvv::PaneListHorizontal* p1 = new mvv::PaneListHorizontal( nll::core::vector2ui( 1000, 10000 ),
                                                                  nll::core::vector2ui( 10, 100 ) );
 
-      mvv::Pane* p11 = new mvv::PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( 0, 0 ) );
-      mvv::Pane* p12 = new mvv::PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( 0, 0 ) );
-      mvv::Pane* p13 = new mvv::PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( 0, 0 ) );
+      DrawapleDummy drawable;
+      mvv::Pane* p11 = new mvv::PaneDrawable( drawable,
+                                              nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( 0, 0 ) );
+      mvv::Pane* p12 = new mvv::PaneDrawable( drawable,
+                                              nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( 0, 0 ) );
+      mvv::Pane* p13 = new mvv::PaneDrawable( drawable,
+                                              nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( 0, 0 ) );
       p1->addChild( p11, 0.2 );
       p1->addChild( p12, 0.3 );
       p1->addChild( p13, 0.5 );
@@ -57,12 +77,16 @@ public:
       mvv::PaneListVertical* p1 = new mvv::PaneListVertical( nll::core::vector2ui( 10000, 1000 ),
                                                              nll::core::vector2ui( 100, 10 ) );
 
-      mvv::Pane* p11 = new mvv::PaneListVertical( nll::core::vector2ui( 0, 0 ),
-                                                  nll::core::vector2ui( 0, 0 ) );
-      mvv::Pane* p12 = new mvv::PaneListVertical( nll::core::vector2ui( 0, 0 ),
-                                                  nll::core::vector2ui( 0, 0 ) );
-      mvv::Pane* p13 = new mvv::PaneListVertical( nll::core::vector2ui( 0, 0 ),
-                                                  nll::core::vector2ui( 0, 0 ) );
+      DrawapleDummy drawable;
+      mvv::Pane* p11 = new mvv::PaneDrawable( drawable,
+                                              nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( 0, 0 ) );
+      mvv::Pane* p12 = new mvv::PaneDrawable( drawable,
+                                              nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( 0, 0 ) );
+      mvv::Pane* p13 = new mvv::PaneDrawable( drawable,
+                                              nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( 0, 0 ) );
       p1->addChild( p11, 0.2 );
       p1->addChild( p12, 0.3 );
       p1->addChild( p13, 0.5 );
