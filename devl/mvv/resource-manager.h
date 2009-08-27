@@ -33,10 +33,11 @@ namespace mvv
        @brief Push an order to the queue. This order must be picked by the dispatcher thread (queue-order)
               That will handle its lifecycle.
        */
-      void pushOrders( Order* order )
+      virtual void pushOrder( Order* order )
       {
          boost::mutex::scoped_lock lock( _mutex );
          _orders.push_back( order );
+         // TODO notify the queue
       }
 
    private:

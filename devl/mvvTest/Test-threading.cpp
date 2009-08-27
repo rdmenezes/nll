@@ -63,6 +63,11 @@ public:
       return o;
    }
 
+   void pushOrder( Order* o )
+   {
+      orders.push_back( o );
+   }
+
    Orders orders;
 };
 

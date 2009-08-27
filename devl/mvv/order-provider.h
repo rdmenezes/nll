@@ -21,6 +21,11 @@ namespace mvv
               The list of orders is erased after this call and must be synchronized.
        */
       virtual Orders getOrdersAndClear() = 0;
+
+      /**
+       @brief push orders on a stack. <code>getOrdersAndClear</code> will return this stack and empty it
+       */
+      virtual void pushOrder( Order* order ) = 0;
    };
 }
 

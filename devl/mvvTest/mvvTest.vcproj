@@ -431,6 +431,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Test-subsystem.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Test-threading.cpp"
 				>
 			</File>

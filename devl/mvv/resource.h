@@ -10,7 +10,7 @@ namespace mvv
 {
    typedef nll::imaging::VolumeSpatial<double> MedicalVolume;
 
-   class ResourceTransferFunctionWindowing : public DynamicResource, TransferFunction
+   class ResourceTransferFunctionWindowing : public DynamicResource, public TransferFunction
    {
    public:
       ResourceTransferFunctionWindowing( double minWindow, double maxWindow ) : _minWindow( minWindow ),

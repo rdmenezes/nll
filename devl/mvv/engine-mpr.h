@@ -24,6 +24,8 @@ namespace mvv
       Slice slice;
    };
 
+   MVV_BIND_ORDER_RESULT( ORDER_MPR_RENDERING, OrderMprRenderingResult );
+
    /**
     @ingroup mvv
     @brief Order to asynchronously render a reformated slice of a volume
@@ -66,6 +68,7 @@ namespace mvv
       virtual OrderResult* run()
       { 
          Slice slice;
+         std::cout << "--mpr started--" << std::endl;
 
          switch ( _interpolator )
          {
@@ -85,6 +88,7 @@ namespace mvv
             ensure( 0, "interpolation not handled" );
          };
 
+         std::cout << "--mpr ended--" << std::endl;
          return new OrderMprRenderingResult( slice );
       }
 
@@ -104,18 +108,19 @@ namespace mvv
     @ingroup mvv
     @brief A multiplanar reconstruction object
     */
-   class EngineMpr : public Engine, Drawable
+   class EngineMpr : public Engine, public Drawable
    {
       typedef std::set<MedicalVolume*> Volumes;
       typedef std::vector<Order*>      Orders;
 
    public:
-      EngineMpr( ResourceVolumes& volumes,
+      EngineMpr( OrderProvider& orderProvider,
+                 ResourceVolumes& volumes,
                  ResourceTransferFunctionWindowing& windowing,
                  ResourceVector3d& origin,
                  ResourceVector3d& vector1,
                  ResourceVector3d& vector2,
-                 ResourceVector2d& zoom ) : _sx( 0 ), _sy( 0 ), _volumes( volumes ), _windowing( windowing ),
+                 ResourceVector2d& zoom ) : _orderProvider( orderProvider ), _sx( 0 ), _sy( 0 ), _volumes( volumes ), _windowing( windowing ),
                  _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom )
       {
          attach( origin );
@@ -179,7 +184,7 @@ namespace mvv
                                                                                    _vector2[ 2 ] ),
                                                               OrderMprRendering::NEAREST_NEIGHBOUR );
             _tracked[ n ] = order;
-            ResourceManager::instance().pushOrders( order );
+            _orderProvider.pushOrder( order );
          }
       }
 
@@ -211,9 +216,10 @@ namespace mvv
       }
 
    protected:
-      Image    _slice;
-      ui32     _sx;
-      ui32     _sy;
+      OrderProvider& _orderProvider;
+      Image          _slice;
+      ui32           _sx;
+      ui32           _sy;
 
       ResourceVolumes&                    _volumes;
       ResourceTransferFunctionWindowing&  _windowing;
