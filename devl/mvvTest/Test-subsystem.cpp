@@ -61,7 +61,7 @@ public:
       ResourceVector3d origin;
       origin.setValue( 0, 0 );
       origin.setValue( 1, 0 );
-      origin.setValue( 2, 0 );
+      origin.setValue( 2, 43 );
 
       ResourceVector3d v1;
       v1.setValue( 0, 1 );
@@ -74,8 +74,8 @@ public:
       v2.setValue( 2, 0 );
 
       ResourceVector2d zoom;
-      v2.setValue( 0, 1 );
-      v2.setValue( 1, 1 );
+      zoom.setValue( 0, 1 );
+      zoom.setValue( 1, 1 );
 
       // create a drawable object
       EngineMpr drawableMpr( orderProvider,
@@ -89,7 +89,7 @@ public:
       // set up the layout
       PaneDrawable layout( drawableMpr,
                            nll::core::vector2ui( 0, 0 ),
-                           nll::core::vector2ui( 512, 512 ) );
+                           nll::core::vector2ui( 1024, 1024 ) );
 
       // update the layout (says the dimension needed for the MPR)
       layout.updateLayout();

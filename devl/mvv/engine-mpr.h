@@ -70,6 +70,8 @@ namespace mvv
          Slice slice;
          std::cout << "--mpr started--" << std::endl;
 
+         nll::core::Timer t1;
+
          switch ( _interpolator )
          {
          case NEAREST_NEIGHBOUR:
@@ -88,7 +90,7 @@ namespace mvv
             ensure( 0, "interpolation not handled" );
          };
 
-         std::cout << "--mpr ended--" << std::endl;
+         std::cout << "--mpr ended-- = " << t1.getCurrentTime() <<std::endl;
          return new OrderMprRenderingResult( slice );
       }
 
@@ -182,7 +184,7 @@ namespace mvv
                                                               nll::core::vector3d( _vector2[ 0 ],
                                                                                    _vector2[ 1 ],
                                                                                    _vector2[ 2 ] ),
-                                                              OrderMprRendering::NEAREST_NEIGHBOUR );
+                                                                                   OrderMprRendering::TRILINEAR );
             _tracked[ n ] = order;
             _orderProvider.pushOrder( order );
          }
