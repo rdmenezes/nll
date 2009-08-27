@@ -61,7 +61,8 @@ namespace mvv
     */
    enum OrderClassId
    {
-      ORDER_NULL            /// no operation, nothing is done
+      ORDER_NULL,            /// no operation, nothing is done
+      ORDER_MPR_RENDERING    /// this order will render a reformated slice of a volume, see OrderMprRendering class
    };
 
    /**

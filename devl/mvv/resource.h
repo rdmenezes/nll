@@ -71,6 +71,9 @@ namespace mvv
       typedef std::set<MedicalVolume*> Volumes;
 
    public:
+      typedef Volumes::const_iterator  const_iterator;
+
+   public:
       /**
        @brief Attach a volume. The pointer must be valid until this object is used/volume attached
        */
@@ -86,14 +89,19 @@ namespace mvv
          notifyChanges();
       }
 
-      Volumes::const_iterator begin() const
+      const_iterator begin() const
       {
          return _volumes.begin();
       }
 
-      Volumes::const_iterator end() const
+      const_iterator end() const
       {
          return _volumes.end();
+      }
+
+      ui32 size() const
+      {
+         return _volumes.size();
       }
 
    protected:
@@ -127,6 +135,11 @@ namespace mvv
       {
          assert( v < 3 );
          return _buf[ v ];
+      }
+
+      double operator[]( ui32 v ) const
+      {
+         return getValue( v );
       }
 
       void setValue( ui32 v, double val )
@@ -165,6 +178,11 @@ namespace mvv
       {
          assert( v < 2 );
          return _buf[ v ];
+      }
+
+      double operator[]( ui32 v ) const
+      {
+         return getValue( v );
       }
 
       void setValue( ui32 v, double val )
