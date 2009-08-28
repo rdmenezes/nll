@@ -97,7 +97,7 @@ namespace core
       /**
        @brief initialize with the correct dimension of the image
        */
-      IndexMapperRowMajorFlat2DColorRGBn( const ui32 sizex, const ui32 sizey, const ui32 nbComponents ) : _sizex( sizex ), _sizey( sizey ), _nbComponents( nbComponents ){}
+      IndexMapperRowMajorFlat2DColorRGBn( const ui32 sizex, const ui32 sizey, const ui32 nbComponents ) : _sizex( sizex ), _sizey( sizey ), _nbComponents( nbComponents ), _cacheSxMulComp( sizex * nbComponents ){}
 
       /**
        @brief return the index in memory that map to the position (x, y)
@@ -107,10 +107,27 @@ namespace core
         return (x + y * _sizex) * _nbComponents + comp;
       }
 
+      inline ui32 addx( i32 index, ui32 size ) const
+      {
+         return index + _nbComponents * size;
+      }
+
+      inline ui32 addy( i32 index, ui32 size ) const
+      {
+         return index + _cacheSxMulComp * size;
+      }
+
+      inline ui32 addz( i32 index, ui32 size ) const
+      {
+         return index + size;
+      }
+
       private:
          ui32  _sizex;
          ui32  _sizey;
          ui32  _nbComponents;
+
+         ui32  _cacheSxMulComp;
    };
 
    /**
@@ -126,6 +143,22 @@ namespace core
       inline ui32 index( const ui32 x, const ui32 y, const ui32 /*comp*/ ) const
       {
         return x + y * _sizex;
+      }
+
+      inline ui32 addx( i32 index, ui32 size ) const
+      {
+         return index + size;
+      }
+
+      inline ui32 addy( i32 index, ui32 size ) const
+      {
+         return index + _sizex * size;
+      }
+
+      inline ui32 addz( i32, ui32 ) const
+      {
+         assert( 0 ); // invalid
+         return 0;
       }
 
       private:

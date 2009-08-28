@@ -78,10 +78,18 @@ namespace core
          const double dx = fabs( x - xi );
          const double dy = fabs( y - yi );
 
-         buf[ 0 ] = this->_img( xi, yi, c );
-         buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? this->_img( xi + 1, yi, c ) : 0;
-         buf[ 2 ] = ( yi < (i32)this->_img.sizey() - 1 ) && ( xi < (i32)this->_img.sizex() - 1 ) ? this->_img( xi + 1, yi + 1, c ) : 0;
-         buf[ 3 ] = ( yi < (i32)this->_img.sizey() - 1 ) ? this->_img( xi, yi + 1, c ) : 0;
+         TImage::ConstImageIterator iter = _img.getIterator( xi, yi, c );
+         buf[ 0 ] = *iter;
+         buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.nextx() : 0;
+         if ( yi < (i32)this->_img.sizey() - 1 )
+         {
+            buf[ 3 ] = iter.nexty();
+            iter.addx();
+            buf[ 2 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.nexty() : 0;
+         } else {
+            buf[ 2 ] = 0;
+            buf[ 3 ] = 0;
+         }
 
          // factorized form of:
          //double val = ( 1 - dx ) * ( 1 - dy ) * buf[ 0 ] +

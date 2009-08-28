@@ -34,6 +34,65 @@ namespace core
    public:
       typedef Mapper                         IndexMapper;
 
+      class ConstImageIterator
+      {
+      public:
+         ConstImageIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+            _sy( sy ), _sz( sz ), _mapper( mapper )
+         {}
+
+         T operator*() const
+         {
+            return _buf[ _index ];
+         }
+
+         ConstImageIterator& addx( i32 n = 1 )
+         {
+            _index = _mapper.addx( _index, n );
+            return *this;
+         }
+
+         ConstImageIterator& addy( i32 n = 1 )
+         {
+            _index = _mapper.addy( _index, n );
+            return *this;
+         }
+
+         ConstImageIterator& addcol( i32 n = 1 )
+         {
+            _index = _mapper.addz( _index, n );
+            return *this;
+         }
+
+         T nextx( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addx( _index, n ) ];
+         }
+
+         T nexty( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addy( _index, n ) ];
+         }
+
+         T nextcol( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addz( _index, n ) ];
+         }
+
+         bool operator==( const ConstImageIterator& i )
+         {
+            return _index == i._index;
+         }
+
+      private:
+         ui32     _index;
+         const T* _buf;
+         ui32     _sx;
+         ui32     _sy;
+         ui32     _sz;
+         const Mapper&  _mapper;
+      };
+
    protected:
       typedef Buffer1D<T, IndexMapperFlat1D> Base;
 
@@ -228,6 +287,25 @@ namespace core
          nll::core::read<ui32>( _nbcomp, i );
          Base::_indexMapper = IndexMapper( _sizex, _sizey, _nbcomp );
          Base::read( i );
+      }
+
+      ConstImageIterator beginImage() const
+      {
+         return ConstImageIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+      }
+
+      ConstImageIterator endImage() const
+      {
+         return ConstImageIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+      }
+
+      ConstImageIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      {
+         const T* Db = _buffer;
+         ui32 Di = _mapper.index( x, y, z );
+         const Mapper& Dm = _mapper;
+         return ConstImageIterator( Di, Db, _sizex, _sizey, _nbcomp, Dm );
+         //return ConstImageIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
