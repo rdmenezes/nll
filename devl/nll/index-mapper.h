@@ -191,6 +191,21 @@ namespace core
          return x + y * _sizex + z * _sxy;
       }
 
+      inline ui32 addx( i32 index, ui32 size ) const
+      {
+         return index + size;
+      }
+
+      inline ui32 addy( i32 index, ui32 size ) const
+      {
+         return index + _sizex * size;
+      }
+
+      inline ui32 addz( i32 index, ui32 size ) const
+      {
+         return index + _sxy * size;
+      }
+
       private:
          ui32  _sxy;
          ui32  _sizex;

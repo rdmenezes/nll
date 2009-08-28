@@ -34,6 +34,10 @@ namespace core
    public:
       typedef Mapper                         IndexMapper;
 
+      /**
+       @brief An image iterator. It allows to iterate over all pixels, over columns, lines, colors. It is also able to pick withou moving
+              in one of the 3 possible directions.
+       */
       class ConstImageIterator
       {
       public:
@@ -83,6 +87,9 @@ namespace core
          {
             return _index == i._index;
          }
+
+         // operator= undefined
+         ConstImageIterator& operator=( const ConstImageIterator& i );
 
       private:
          ui32     _index;
@@ -301,11 +308,7 @@ namespace core
 
       ConstImageIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
-         const T* Db = _buffer;
-         ui32 Di = _mapper.index( x, y, z );
-         const Mapper& Dm = _mapper;
-         return ConstImageIterator( Di, Db, _sizex, _sizey, _nbcomp, Dm );
-         //return ConstImageIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return ConstImageIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
