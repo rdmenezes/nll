@@ -240,9 +240,9 @@ public:
       Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 43 ),
                                        nll::core::vector3d( 1, 0, 0 ),
                                        nll::core::vector3d( 0, 1, 0 ),
-                                       nll::core::vector2d( 1, 1 ) );
+                                       nll::core::vector2d( 4, 4 ) );
       mprTime.end();
-      std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
+      std::cout << "mpr time full=" << mprTime.getCurrentTime() << std::endl;
       slice( 1, 1, 0 ) = 1e6;
 
       nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
@@ -253,7 +253,7 @@ public:
       nll::core::writeBmp( bmp, output );
 
       nll::core::Timer resampelTime;
-      nll::core::rescaleBilinear( slice, 512, 512 );
+      nll::core::rescaleBilinear( slice, 4096, 4096 );
       std::cout << "resample time=" << resampelTime.getCurrentTime() << std::endl;
 
       nll::core::Image<nll::ui8> bmp2( slice.sizex(), slice.sizey(), 1 );
@@ -402,7 +402,7 @@ public:
    {
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
       typedef nll::imaging::VolumeSpatial<double>           Volume;
-      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
+      typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
       Volume volume;
