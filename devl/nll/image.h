@@ -21,7 +21,9 @@ namespace core
 
     @param Mapper must provide:
            -inline ui32 index( const ui32 x, const ui32 y, const ui32 comp ) const
-           -and ensure that components are NOT interleaved
+           -and ensure that components are NOT interleaved ( it is assumed that the color components
+            are continuous). This assumption is used in several algorithms...
+           -addx, addy, addz to compute a new position from a previous position (but less expensive in computation time)
            The mapper is used to define how the memory-pixels are mapped.
 
      @note for resampled images, it is important to note that the pixel center is
@@ -35,8 +37,9 @@ namespace core
       typedef Mapper                         IndexMapper;
 
       /**
-       @brief An image iterator. It allows to iterate over all pixels, over columns, lines, colors. It is also able to pick withou moving
+       @brief An image iterator. It allows to iterate over all pixels, over columns, lines and colors. It is also able to pick without moving
               in one of the 3 possible directions.
+       @note addx, addy, addz, nextx, nexty, nextz beware of the bounds as they are not checked!
        */
       class ConstImageIterator
       {
@@ -45,46 +48,81 @@ namespace core
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
+         /**
+          @brief get the value pointed by the iterator. It is only valid if the iterator is pointing on a pixel!
+          */
          T operator*() const
          {
             return _buf[ _index ];
          }
 
+         /**
+          @brief move to the next pixel, the component pointed will be the same than currently
+          */
+         ConstImageIterator& operator++()
+         {
+            index += _sz;
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new x
+          */
          ConstImageIterator& addx( i32 n = 1 )
          {
             _index = _mapper.addx( _index, n );
             return *this;
          }
 
+         /**
+          @brief move the iterator on a new y
+          */
          ConstImageIterator& addy( i32 n = 1 )
          {
             _index = _mapper.addy( _index, n );
             return *this;
          }
 
+         /**
+          @brief move the iterator on a new color
+          @note it operator++ is called, it is moved to the next pixel, pointing at the same component
+          */
          ConstImageIterator& addcol( i32 n = 1 )
          {
             _index = _mapper.addz( _index, n );
             return *this;
          }
 
+         /**
+          @brief pick a value on the same y, col but different x
+          */
          T nextx( i32 n = 1 ) const
          {
             return _buf[ _mapper.addx( _index, n ) ];
          }
 
+         /**
+          @brief pick a value on the same x, col but different y
+          */
          T nexty( i32 n = 1 ) const
          {
             return _buf[ _mapper.addy( _index, n ) ];
          }
 
+         /**
+          @brief pick a value on the same x, y but different color
+          */
          T nextcol( i32 n = 1 ) const
          {
             return _buf[ _mapper.addz( _index, n ) ];
          }
 
+         /**
+          @brief test if the iterators are pointing at the same position.
+          */
          bool operator==( const ConstImageIterator& i )
          {
+            assert( _buf == i._buf );
             return _index == i._index;
          }
 
@@ -139,7 +177,11 @@ namespace core
        */
       inline ui32 index( const ui32 x, const ui32 y, const ui32 c ) const
       {
-         return Base::IndexMapper::index( _mapper.index( x, y, c ) );
+         // previously Base::IndexMapper::index( _mapper.index( x, y, c ) );
+         // the base index was taken into account. Instead, it is now discarded
+         // as we can still simulate the effect in the image's mapper (and operation
+         // on the iterator as column, line or color directions are now always valid)
+         return _mapper.index( x, y, c );
       }
 
       /**
@@ -296,16 +338,25 @@ namespace core
          Base::read( i );
       }
 
+      /**
+       @brief returns a const iterator on the first pixel
+       */
       ConstImageIterator beginImage() const
       {
          return ConstImageIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
+      /**
+       @brief returns a const iterator on the last pixel + 1, component 0
+       */
       ConstImageIterator endImage() const
       {
          return ConstImageIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
+      /**
+       @brief returns an iterator on the specified pixel
+       */
       ConstImageIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
          return ConstImageIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );

@@ -22,6 +22,107 @@ namespace imaging
       typedef T*                    iterator;
       typedef const T*              const_iterator;
 
+      /**
+       @brief An image iterator. It allows to iterate over all voxels, slices, over columns, lines. It is also able to pick without moving
+              in one of the 3 possible directions.
+       @note addx, addy, addz, nextx, nexty, nextz beware of the bounds as they are not checked!
+       */
+      class ConstVolumeDirectionalIterator
+      {
+      public:
+         ConstVolumeDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+            _sy( sy ), _sz( sz ), _mapper( mapper )
+         {}
+
+         /**
+          @brief get the value pointed by the iterator. It is only valid if the iterator is pointing on a voxel!
+          */
+         T operator*() const
+         {
+            return _buf[ _index ];
+         }
+
+         /**
+          @brief move to the next moxel
+          */
+         ConstVolumeDirectionalIterator& operator++()
+         {
+            ++index;
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new x
+          */
+         ConstVolumeDirectionalIterator& addx( i32 n = 1 )
+         {
+            _index = _mapper.addx( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new y
+          */
+         ConstVolumeDirectionalIterator& addy( i32 n = 1 )
+         {
+            _index = _mapper.addy( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new z
+          */
+         ConstVolumeDirectionalIterator& addcol( i32 n = 1 )
+         {
+            _index = _mapper.addz( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief pick a value on the same y, z but different x
+          */
+         T nextx( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addx( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, z but different y
+          */
+         T nexty( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addy( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, y but different z
+          */
+         T nextz( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addz( _index, n ) ];
+         }
+
+         /**
+          @brief test if the iterators are pointing at the same position.
+          */
+         bool operator==( const ConstVolumeDirectionalIterator& i )
+         {
+            assert( _buf == i._buf );
+            return _index == i._index;
+         }
+
+         // operator= undefined
+         ConstVolumeDirectionalIterator& operator=( const ConstVolumeDirectionalIterator& i );
+
+      private:
+         ui32     _index;
+         const T* _buf;
+         ui32     _sx;
+         ui32     _sy;
+         ui32     _sz;
+         const Mapper&  _mapper;
+      };
+
    public:
       /**
        @brief Construct a volume of size (sz, sy, sz)
@@ -115,6 +216,30 @@ namespace imaging
          Base::read( f );
          _mapper = IndexMapper( _size[ 0 ], _size[ 1 ], _size[ 2 ] );
          return true;
+      }
+
+      /**
+       @brief returns a const iterator on the first voxel
+       */
+      ConstVolumeDirectionalIterator beginImage() const
+      {
+         return ConstVolumeDirectionalIterator( 0, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+      }
+
+      /**
+       @brief returns a const iterator on the last voxel + 1
+       */
+      ConstVolumeDirectionalIterator endImage() const
+      {
+         return return ConstVolumeDirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+      }
+
+      /**
+       @brief returns an iterator on the specified voxel
+       */
+      ConstVolumeDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      {
+         return ConstVolumeDirectionalIterator( Base::IndexMapper::index( _mapper.index( x, y, z ) ), _buffer, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
    protected:
