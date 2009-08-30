@@ -28,6 +28,98 @@ namespace core
       typedef IndexMapper2D                  IndexMapper;
       typedef Buffer1D<T, IndexMapperFlat1D> Base;
 
+      /**
+       @brief A matrix iterator. It allows to iterate over all values, columns and lines. It is also able to pick without moving
+              in one of the 2 possible directions.
+       @note addx, addy, pickx, picky beware of the bounds as they are not checked!
+       */
+      class DirectionalIterator
+      {
+      public:
+         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, const IndexMapper2D& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+            _sy( sy ), _mapper( mapper )
+         {}
+
+         /**
+          @brief get the value pointed by the iterator. It is only valid if the iterator is pointing on a value!
+          */
+         T operator*() const
+         {
+            return _buf[ _index ];
+         }
+
+         /**
+          @brief move to the next value
+          */
+         DirectionalIterator& operator++()
+         {
+            ++_index;
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new x
+          */
+         DirectionalIterator& addx( i32 n = 1 )
+         {
+            _index = _mapper.addx( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new y
+          */
+         DirectionalIterator& addy( i32 n = 1 )
+         {
+            _index = _mapper.addy( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief pick a value on the same y, col but different x
+          */
+         T& pickx( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addx( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, col but different y
+          */
+         T& picky( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addy( _index, n ) ];
+         }
+
+         /**
+          @brief test if the iterators are pointing at the same position.
+          */
+         bool operator==( const DirectionalIterator& i )
+         {
+            assert( _buf == i._buf );
+            return _index == i._index;
+         }
+
+         /**
+          @brief test if the iterators are pointing at the same position.
+          */
+         bool operator!=( const DirectionalIterator& i )
+         {
+            assert( _buf == i._buf );
+            return _index != i._index;
+         }
+
+         // operator= undefined
+         DirectionalIterator& operator=( const DirectionalIterator& i );
+
+      protected:
+         ui32     _index;
+         T*       _buf;
+         ui32     _sx;
+         ui32     _sy;
+         const IndexMapper2D&  _mapper;
+      };
+
    public:
       /**
        @brief contruct a new matrix from a buffer. The buffer will be viewed as a matrix (size, 1).
@@ -238,6 +330,30 @@ namespace core
       inline bool operator==( const Matrix& op ) const
       {
          return equal( op, std::numeric_limits<T>::epsilon() );
+      }
+
+      /**
+       @brief returns a const iterator on the first pixel
+       */
+      DirectionalIterator beginDirectional()
+      {
+         return DirectionalIterator( 0, _buffer, _sizex, _sizey, _indexMapper );
+      }
+
+      /**
+       @brief returns a const iterator on the last pixel + 1, component 0
+       */
+      DirectionalIterator endDirectional()
+      {
+         return DirectionalIterator( _sizex * _sizey, _buffer, _sizex, _sizey, _indexMapper );
+      }
+
+      /**
+       @brief returns an iterator on the specified pixel
+       */
+      DirectionalIterator getIterator( ui32 x, ui32 y )
+      {
+         return DirectionalIterator( _mapper.index( x, y ), _buffer, _sizex, _sizey, _indexMapper );
       }
 
    private:

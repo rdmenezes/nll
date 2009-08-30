@@ -78,25 +78,73 @@ namespace imaging
        */
       double operator()( double x, double y, double z ) const
       {
+         const typename Volume::value_type background = _volume.getBackgroundValue();
          if ( !_volume.inside( x, y, z ) )
-            _volume.getBackgroundValue();
+            return background;
 
          const int ix = int( x );
          const int iy = int( y );
          const int iz = int( z );
 
+         const double sx = _volume.size()[ 0 ];
+         const double sy = _volume.size()[ 1 ];
+         const double sz = _volume.size()[ 2 ];
+
          const double dx = fabs( x - ix );
          const double dy = fabs( y - iy );
          const double dz = fabs( z - iz );
 
-         const double v000 = _getValue( ix,     iy,     iz );
-         const double v001 = _getValue( ix,     iy,     iz + 1 );
-         const double v010 = _getValue( ix,     iy + 1, iz );
-         const double v100 = _getValue( ix + 1, iy,     iz );
-         const double v011 = _getValue( ix,     iy + 1, iz + 1 );
-         const double v110 = _getValue( ix + 1, iy + 1, iz );
-         const double v101 = _getValue( ix + 1, iy,     iz + 1 );
-         const double v111 = _getValue( ix + 1, iy + 1, iz + 1 );
+         VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
+         VolumeType::ConstDirectionalIterator itz( it );
+         itz.addz();
+
+         const double v000 = *it;
+         double v001, v010, v011, v100, v110, v101, v111;
+
+         const int ixn = ix + 1;
+         const int iyn = iy + 1;
+         const int izn = iz + 1;
+
+         if ( iyn < sy )
+         {
+            v010 = it.picky();
+         }
+         else
+         {
+            v010 = background;
+         }
+         if ( ixn < sx )
+         {
+            v100 = it.pickx();
+            v110 = it.addx().picky();
+         } else {
+            v100 = background;
+            v110 = background;
+         }
+
+         if ( izn < sz )
+         {
+            v001 = *itz;
+            if ( iyn < sy )
+            {
+               v011 = itz.picky();
+            } else {
+               v011 = background;
+            }
+            if ( ixn < sx )
+            {
+               v101 = itz.pickx();
+               v111 = itz.addx().picky();
+            } else {
+               v101 = background;
+               v111 = background;
+            }
+         } else {
+            v001 = background;
+            v011 = background;
+            v101 = background;
+            v111 = background;
+         }
 
          const double i1 = v000 * ( 1 - dz ) + v001 * dz;
          const double i2 = v010 * ( 1 - dz ) + v011 * dz;

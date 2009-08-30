@@ -47,6 +47,22 @@ namespace core
          out_y = index / _sizex;
       }
 
+      /**
+       @brief return the index shifted by x, based on a previous index
+       */
+      inline ui32 addx( i32 index, ui32 size ) const
+      {
+         return index + size;
+      }
+
+      /**
+       @brief return the index shifted by y, based on a previous index
+       */
+      inline ui32 addy( i32 index, ui32 size ) const
+      {
+         return index + size * _sizex;
+      }
+
    private:
       ui32  _sizex;
       ui32  _sizey;
@@ -71,6 +87,22 @@ namespace core
         assert( x < _sizex );
         assert( y < _sizey );
         return y + x * _sizey;
+      }
+
+      /**
+       @brief return the index shifted by x, based on a previous index
+       */
+      inline ui32 addx( i32 index, ui32 size ) const
+      {
+         return index + size * _sizey;
+      }
+
+      /**
+       @brief return the index shifted by y, based on a previous index
+       */
+      inline ui32 addy( i32 index, ui32 size ) const
+      {
+         return index + size;
       }
 
       /**

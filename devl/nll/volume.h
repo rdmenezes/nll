@@ -21,6 +21,7 @@ namespace imaging
    public:
       typedef T*                    iterator;
       typedef const T*              const_iterator;
+      typedef T                     value_type;
 
       /**
        @brief An image iterator. It allows to iterate over all voxels, slices, over columns, lines. It is also able to pick without moving
@@ -186,7 +187,7 @@ namespace imaging
          /**
           @brief pick a value on the same y, z but different x
           */
-         T& pickx( i32 n = 1 ) const
+         T pickx( i32 n = 1 ) const
          {
             return _buf[ _mapper.addx( _index, n ) ];
          }
@@ -194,7 +195,7 @@ namespace imaging
          /**
           @brief pick a value on the same x, z but different y
           */
-         T& picky( i32 n = 1 ) const
+         T picky( i32 n = 1 ) const
          {
             return _buf[ _mapper.addy( _index, n ) ];
          }
@@ -202,7 +203,7 @@ namespace imaging
          /**
           @brief pick a value on the same x, y but different z
           */
-         T& pickz( i32 n = 1 ) const
+         T pickz( i32 n = 1 ) const
          {
             return _buf[ _mapper.addz( _index, n ) ];
          }
@@ -327,7 +328,7 @@ namespace imaging
        */
       ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
-         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
@@ -401,6 +402,7 @@ namespace imaging
    public:
       typedef typename VolumeMemoryBufferType::iterator        iterator;
       typedef typename VolumeMemoryBufferType::const_iterator  const_iterator;
+      typedef T                                                value_type;
       typedef VolumeMemoryBufferType                           VoxelBuffer;
 
       typedef typename VolumeMemoryBufferType::DirectionalIterator        DirectionalIterator;
