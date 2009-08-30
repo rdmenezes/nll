@@ -25,12 +25,12 @@ namespace imaging
       /**
        @brief An image iterator. It allows to iterate over all voxels, slices, over columns, lines. It is also able to pick without moving
               in one of the 3 possible directions.
-       @note addx, addy, addz, nextx, nexty, nextz beware of the bounds as they are not checked!
+       @note addx, addy, addz, pickx, picky, pickz beware of the bounds as they are not checked!
        */
-      class ConstVolumeDirectionalIterator
+      class DirectionalIterator
       {
       public:
-         ConstVolumeDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
@@ -45,16 +45,16 @@ namespace imaging
          /**
           @brief move to the next moxel
           */
-         ConstVolumeDirectionalIterator& operator++()
+         DirectionalIterator& operator++()
          {
-            ++index;
+            ++_index;
             return *this;
          }
 
          /**
           @brief move the iterator on a new x
           */
-         ConstVolumeDirectionalIterator& addx( i32 n = 1 )
+         DirectionalIterator& addx( i32 n = 1 )
          {
             _index = _mapper.addx( _index, n );
             return *this;
@@ -63,7 +63,7 @@ namespace imaging
          /**
           @brief move the iterator on a new y
           */
-         ConstVolumeDirectionalIterator& addy( i32 n = 1 )
+         DirectionalIterator& addy( i32 n = 1 )
          {
             _index = _mapper.addy( _index, n );
             return *this;
@@ -72,7 +72,7 @@ namespace imaging
          /**
           @brief move the iterator on a new z
           */
-         ConstVolumeDirectionalIterator& addcol( i32 n = 1 )
+         DirectionalIterator& addcol( i32 n = 1 )
          {
             _index = _mapper.addz( _index, n );
             return *this;
@@ -81,7 +81,7 @@ namespace imaging
          /**
           @brief pick a value on the same y, z but different x
           */
-         T nextx( i32 n = 1 ) const
+         T pickx( i32 n = 1 ) const
          {
             return _buf[ _mapper.addx( _index, n ) ];
          }
@@ -89,7 +89,7 @@ namespace imaging
          /**
           @brief pick a value on the same x, z but different y
           */
-         T nexty( i32 n = 1 ) const
+         T picky( i32 n = 1 ) const
          {
             return _buf[ _mapper.addy( _index, n ) ];
          }
@@ -97,7 +97,7 @@ namespace imaging
          /**
           @brief pick a value on the same x, y but different z
           */
-         T nextz( i32 n = 1 ) const
+         T pickz( i32 n = 1 ) const
          {
             return _buf[ _mapper.addz( _index, n ) ];
          }
@@ -105,22 +105,110 @@ namespace imaging
          /**
           @brief test if the iterators are pointing at the same position.
           */
-         bool operator==( const ConstVolumeDirectionalIterator& i )
+         bool operator==( const DirectionalIterator& i )
          {
             assert( _buf == i._buf );
             return _index == i._index;
          }
 
-         // operator= undefined
-         ConstVolumeDirectionalIterator& operator=( const ConstVolumeDirectionalIterator& i );
+         /**
+          @brief test if the iterators are pointing at the same position.
+          */
+         bool operator!=( const DirectionalIterator& i )
+         {
+            assert( _buf == i._buf );
+            return _index != i._index;
+         }
 
-      private:
+         // operator= undefined
+         DirectionalIterator& operator=( const DirectionalIterator& i );
+
+      protected:
          ui32     _index;
          const T* _buf;
          ui32     _sx;
          ui32     _sy;
          ui32     _sz;
          const Mapper&  _mapper;
+      };
+
+      /**
+       @brief An image iterator. It allows to iterate over all voxels, slices, over columns, lines. It is also able to pick without moving
+              in one of the 3 possible directions.
+       @note addx, addy, addz, pickx, picky, pickz beware of the bounds as they are not checked!
+       */
+       class ConstDirectionalIterator : public DirectionalIterator
+      {
+      public:
+         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : 
+            DirectionalIterator( index, buf, sx, sy, sz, mapper )
+         {}
+
+         ConstDirectionalIterator( const DirectionalIterator& i ) : DirectionalIterator( i )
+         {}
+
+         /**
+          @brief move to the next moxel
+          */
+         ConstDirectionalIterator& operator++()
+         {
+            ++_index;
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new x
+          */
+         ConstDirectionalIterator& addx( i32 n = 1 )
+         {
+            _index = _mapper.addx( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new y
+          */
+         ConstDirectionalIterator& addy( i32 n = 1 )
+         {
+            _index = _mapper.addy( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new z
+          */
+         ConstDirectionalIterator& addz( i32 n = 1 )
+         {
+            _index = _mapper.addz( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief pick a value on the same y, z but different x
+          */
+         T& pickx( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addx( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, z but different y
+          */
+         T& picky( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addy( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, y but different z
+          */
+         T& pickz( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addz( _index, n ) ];
+         }
+
+         // operator= undefined
+         ConstDirectionalIterator& operator=( const ConstDirectionalIterator& i );
       };
 
    public:
@@ -221,25 +309,49 @@ namespace imaging
       /**
        @brief returns a const iterator on the first voxel
        */
-      ConstVolumeDirectionalIterator beginImage() const
+      ConstDirectionalIterator beginDirectional() const
       {
-         return ConstVolumeDirectionalIterator( 0, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( 0, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
        @brief returns a const iterator on the last voxel + 1
        */
-      ConstVolumeDirectionalIterator endImage() const
+      ConstDirectionalIterator endDirectional() const
       {
-         return return ConstVolumeDirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
        @brief returns an iterator on the specified voxel
        */
-      ConstVolumeDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
-         return ConstVolumeDirectionalIterator( Base::IndexMapper::index( _mapper.index( x, y, z ) ), _buffer, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+      }
+
+      /**
+       @brief returns an iterator on the first voxel
+       */
+      DirectionalIterator beginDirectional()
+      {
+         return DirectionalIterator( 0, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+      }
+
+      /**
+       @brief returns an iterator on the last voxel + 1
+       */
+      DirectionalIterator endDirectional()
+      {
+         return DirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+      }
+
+      /**
+       @brief returns an iterator on the specified voxel
+       */
+      DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
+      {
+         return DirectionalIterator( _mapper.index( x, y, z ), _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
    protected:
@@ -248,7 +360,7 @@ namespace imaging
        */
       inline ui32 index( const ui32 x, const ui32 y, const ui32 z ) const
       {
-         return Base::IndexMapper::index( _mapper.index( x, y, z ) );
+         return _mapper.index( x, y, z );
       }
 
       /**
@@ -290,6 +402,9 @@ namespace imaging
       typedef typename VolumeMemoryBufferType::iterator        iterator;
       typedef typename VolumeMemoryBufferType::const_iterator  const_iterator;
       typedef VolumeMemoryBufferType                           VoxelBuffer;
+
+      typedef typename VolumeMemoryBufferType::DirectionalIterator        DirectionalIterator;
+      typedef typename VolumeMemoryBufferType::ConstDirectionalIterator   ConstDirectionalIterator;
 
    public:
       /**
@@ -398,6 +513,54 @@ namespace imaging
       void setBackgroundValue( T b )
       {
          _background = b;
+      }
+
+      /**
+       @brief returns a const iterator on the first voxel
+       */
+      ConstDirectionalIterator beginDirectional() const
+      {
+         return _buffer.beginDirectional();
+      }
+
+      /**
+       @brief returns a const iterator on the last voxel + 1
+       */
+      ConstDirectionalIterator endDirectional() const
+      {
+         return _buffer.endDirectional();
+      }
+
+      /**
+       @brief returns an iterator on the specified voxel
+       */
+      ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      {
+         return _buffer.getIterator( x, y, z );
+      }
+
+      /**
+       @brief returns a const iterator on the first voxel
+       */
+      DirectionalIterator beginDirectional()
+      {
+         return _buffer.beginDirectional();
+      }
+
+      /**
+       @brief returns an iterator on the last voxel + 1
+       */
+      DirectionalIterator endDirectional()
+      {
+         return _buffer.endDirectional();
+      }
+
+      /**
+       @brief returns an iterator on the specified voxel
+       */
+      DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
+      {
+         return _buffer.getIterator( x, y, z );
       }
 
    protected:

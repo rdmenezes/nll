@@ -39,12 +39,12 @@ namespace core
       /**
        @brief An image iterator. It allows to iterate over all pixels, over columns, lines and colors. It is also able to pick without moving
               in one of the 3 possible directions.
-       @note addx, addy, addz, nextx, nexty, nextz beware of the bounds as they are not checked!
+       @note addx, addy, addz, pickx, picky, pickz beware of the bounds as they are not checked!
        */
-      class ConstImageIterator
+      class DirectionalIterator
       {
       public:
-         ConstImageIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
@@ -59,16 +59,16 @@ namespace core
          /**
           @brief move to the next pixel, the component pointed will be the same than currently
           */
-         ConstImageIterator& operator++()
+         DirectionalIterator& operator++()
          {
-            index += _sz;
+            _index += _sz;
             return *this;
          }
 
          /**
           @brief move the iterator on a new x
           */
-         ConstImageIterator& addx( i32 n = 1 )
+         DirectionalIterator& addx( i32 n = 1 )
          {
             _index = _mapper.addx( _index, n );
             return *this;
@@ -77,7 +77,7 @@ namespace core
          /**
           @brief move the iterator on a new y
           */
-         ConstImageIterator& addy( i32 n = 1 )
+         DirectionalIterator& addy( i32 n = 1 )
          {
             _index = _mapper.addy( _index, n );
             return *this;
@@ -87,7 +87,7 @@ namespace core
           @brief move the iterator on a new color
           @note it operator++ is called, it is moved to the next pixel, pointing at the same component
           */
-         ConstImageIterator& addcol( i32 n = 1 )
+         DirectionalIterator& addcol( i32 n = 1 )
          {
             _index = _mapper.addz( _index, n );
             return *this;
@@ -96,7 +96,7 @@ namespace core
          /**
           @brief pick a value on the same y, col but different x
           */
-         T nextx( i32 n = 1 ) const
+         T& pickx( i32 n = 1 ) const
          {
             return _buf[ _mapper.addx( _index, n ) ];
          }
@@ -104,7 +104,7 @@ namespace core
          /**
           @brief pick a value on the same x, col but different y
           */
-         T nexty( i32 n = 1 ) const
+         T& picky( i32 n = 1 ) const
          {
             return _buf[ _mapper.addy( _index, n ) ];
          }
@@ -112,7 +112,7 @@ namespace core
          /**
           @brief pick a value on the same x, y but different color
           */
-         T nextcol( i32 n = 1 ) const
+         T& pickcol( i32 n = 1 ) const
          {
             return _buf[ _mapper.addz( _index, n ) ];
          }
@@ -120,22 +120,110 @@ namespace core
          /**
           @brief test if the iterators are pointing at the same position.
           */
-         bool operator==( const ConstImageIterator& i )
+         bool operator==( const DirectionalIterator& i )
          {
             assert( _buf == i._buf );
             return _index == i._index;
          }
 
-         // operator= undefined
-         ConstImageIterator& operator=( const ConstImageIterator& i );
+         /**
+          @brief test if the iterators are pointing at the same position.
+          */
+         bool operator!=( const DirectionalIterator& i )
+         {
+            assert( _buf == i._buf );
+            return _index != i._index;
+         }
 
-      private:
+         // operator= undefined
+         DirectionalIterator& operator=( const DirectionalIterator& i );
+
+      protected:
          ui32     _index;
-         const T* _buf;
+         T*       _buf;
          ui32     _sx;
          ui32     _sy;
          ui32     _sz;
          const Mapper&  _mapper;
+      };
+
+      /**
+       @brief An image iterator. It allows to iterate over all pixels, over columns, lines and colors. It is also able to pick without moving
+              in one of the 3 possible directions.
+       @note addx, addy, addz, pickx, picky, pickz beware of the bounds as they are not checked!
+       */
+      class ConstDirectionalIterator : public DirectionalIterator
+      {
+      public:
+         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
+         {}
+
+         ConstDirectionalIterator( const DirectionalIterator& it ) : DirectionalIterator( it )
+         {}
+
+         /**
+          @brief move to the next pixel, the component pointed will be the same than currently
+          */
+         ConstDirectionalIterator& operator++()
+         {
+            _index += _sz;
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new x
+          */
+         ConstDirectionalIterator& addx( i32 n = 1 )
+         {
+            _index = _mapper.addx( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new y
+          */
+         ConstDirectionalIterator& addy( i32 n = 1 )
+         {
+            _index = _mapper.addy( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief move the iterator on a new color
+          @note it operator++ is called, it is moved to the next pixel, pointing at the same component
+          */
+         ConstDirectionalIterator& addcol( i32 n = 1 )
+         {
+            _index = _mapper.addz( _index, n );
+            return *this;
+         }
+
+         /**
+          @brief pick a value on the same y, col but different x
+          */
+         T& pickx( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addx( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, col but different y
+          */
+         T& picky( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addy( _index, n ) ];
+         }
+
+         /**
+          @brief pick a value on the same x, y but different color
+          */
+         T& pickcol( i32 n = 1 ) const
+         {
+            return _buf[ _mapper.addz( _index, n ) ];
+         }
+
+         // operator= undefined
+         ConstDirectionalIterator& operator=( const ConstDirectionalIterator& i );
       };
 
    protected:
@@ -341,25 +429,49 @@ namespace core
       /**
        @brief returns a const iterator on the first pixel
        */
-      ConstImageIterator beginImage() const
+      ConstDirectionalIterator beginDirectional() const
       {
-         return ConstImageIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return ConstDirectionalIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
        @brief returns a const iterator on the last pixel + 1, component 0
        */
-      ConstImageIterator endImage() const
+      ConstDirectionalIterator endDirectional() const
       {
-         return ConstImageIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+      }
+
+      /**
+       @brief returns a const iterator on the first pixel
+       */
+      DirectionalIterator beginDirectional()
+      {
+         return DirectionalIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+      }
+
+      /**
+       @brief returns a const iterator on the last pixel + 1, component 0
+       */
+      DirectionalIterator endDirectional()
+      {
+         return DirectionalIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
        @brief returns an iterator on the specified pixel
        */
-      ConstImageIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
-         return ConstImageIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
+      }
+
+      /**
+       @brief returns an iterator on the specified pixel
+       */
+      DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
+      {
+         return DirectionalIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**

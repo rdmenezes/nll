@@ -14,7 +14,7 @@
 // only for speed purpose...
 //#define DONT_RUN_SLOW_TEST
 #define DONT_RUN_VERY_SLOW_TEST
-#define DONT_RUN_TEST
+//#define DONT_RUN_TEST
 
 
 

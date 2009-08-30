@@ -432,11 +432,113 @@ public:
          nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mpr-slice-" + nll::core::val2str( z ) + ".bmp" );
       }
    }
+
+   void testVolumeIterators()
+   {
+      typedef nll::imaging::Volume<char>           Volume;
+
+      Volume i1( 5, 6, 3 );
+      const char* ubf = &i1( 0, 0, 0 );
+      int k = 0;
+      for ( unsigned z = 0; z < i1.size()[ 2 ]; ++z )
+         for ( unsigned y = 0; y < i1.size()[ 1 ]; ++y )
+            for ( unsigned x = 0; x < i1.size()[ 0 ]; ++x, ++k )
+               i1( x, y, z ) = (char)k;
+
+      unsigned m = 0;
+      for ( Volume::DirectionalIterator it = i1.beginDirectional(); it != i1.endDirectional(); ++it, ++m )
+      {
+         TESTER_ASSERT( *it == ubf[ m ] );
+      }
+
+      m = 0;
+      for ( unsigned z = 0; z < i1.size()[ 2 ]; ++z )
+         for ( unsigned y = 0; y < i1.size()[ 1 ]; ++y )
+            for ( unsigned x = 0; x < i1.size()[ 0 ]; ++x )
+               TESTER_ASSERT( *i1.getIterator( x, y, z ) == ubf[ m++ ] );
+
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickz( 2 ) == i1( 0, 0, 2 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickx( 2 ) == i1( 2, 0, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
+
+      Volume i2( 2048 * 4, 2048 * 4, 3 );
+      i2( 100, 100, 1 ) = 42;
+
+      nll::core::Timer t1;
+      m = 0;
+      for ( unsigned z = 0; z < i2.size()[ 2 ]; ++z )
+         for ( unsigned y = 0; y < i2.size()[ 1 ]; ++y )
+            for ( unsigned x = 0; x < i2.size()[ 0 ]; ++x )
+               m += i2( x, y, z );
+      TESTER_ASSERT( m == 42 );
+      double t1t = t1.getCurrentTime();
+      std::cout << "volt1=" << t1.getCurrentTime() << std::endl;
+
+      nll::core::Timer t2;      
+      m = 0;
+      for ( Volume::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+         m += *it;
+      double t2t = t2.getCurrentTime();
+      std::cout << "volt2=" << t2.getCurrentTime() << std::endl;
+      TESTER_ASSERT( m == 42 );
+      TESTER_ASSERT( t2t < t1t );
+   }
+
+   void testVolumeConstIterators()
+   {
+      typedef nll::imaging::Volume<char>           Volume;
+
+      Volume i1( 5, 6, 3 );
+      const char* ubf = &i1( 0, 0, 0 );
+      int k = 0;
+      for ( unsigned z = 0; z < i1.size()[ 2 ]; ++z )
+         for ( unsigned y = 0; y < i1.size()[ 1 ]; ++y )
+            for ( unsigned x = 0; x < i1.size()[ 0 ]; ++x, ++k )
+               i1( x, y, z ) = (char)k;
+
+      unsigned m = 0;
+      for ( Volume::ConstDirectionalIterator it = i1.beginDirectional(); it != i1.endDirectional(); ++it, ++m )
+      {
+         TESTER_ASSERT( *it == ubf[ m ] );
+      }
+
+      m = 0;
+      for ( unsigned z = 0; z < i1.size()[ 2 ]; ++z )
+         for ( unsigned y = 0; y < i1.size()[ 1 ]; ++y )
+            for ( unsigned x = 0; x < i1.size()[ 0 ]; ++x )
+               TESTER_ASSERT( *i1.getIterator( x, y, z ) == ubf[ m++ ] );
+
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickz( 2 ) == i1( 0, 0, 2 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickx( 2 ) == i1( 2, 0, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
+
+      Volume i2( 2048 * 4, 2048 * 4, 3 );
+      i2( 100, 100, 1 ) = 42;
+
+      nll::core::Timer t1;
+      m = 0;
+      for ( unsigned z = 0; z < i2.size()[ 2 ]; ++z )
+         for ( unsigned y = 0; y < i2.size()[ 1 ]; ++y )
+            for ( unsigned x = 0; x < i2.size()[ 0 ]; ++x )
+               m += i2( x, y, z );
+      TESTER_ASSERT( m == 42 );
+      double t1t = t1.getCurrentTime();
+      std::cout << "volt1=" << t1.getCurrentTime() << std::endl;
+
+      nll::core::Timer t2;      
+      m = 0;
+      for ( Volume::ConstDirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+         m += *it;
+      double t2t = t2.getCurrentTime();
+      std::cout << "volt2=" << t2.getCurrentTime() << std::endl;
+      TESTER_ASSERT( m == 42 );
+      TESTER_ASSERT( t2t < t1t );
+   }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
-
+ TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
  TESTER_TEST(testVolumeIterator);
@@ -444,10 +546,9 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testIndexToPos);
  TESTER_TEST(testInterpolator);
  TESTER_TEST(testInterpolatorTriLinear);
- 
  TESTER_TEST(testMpr);
  TESTER_TEST(testMpr3);
  TESTER_TEST(testMpr4);
  TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif

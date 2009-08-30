@@ -1259,11 +1259,12 @@ public:
          i1[ n ] = n;
 
       unsigned m = 0;
-      for ( Image::ConstImageIterator it = i1.beginImage(); it != i1.endImage(); ++it, m += 3 )
+      for ( Image::DirectionalIterator it = i1.beginDirectional(); it != i1.endDirectional(); ++it, m += 3 )
       {
          TESTER_ASSERT( *it == i1[ m ] );
-         TESTER_ASSERT( it.nextcol() == i1[ m + 1 ] );
+         TESTER_ASSERT( it.pickcol() == i1[ m + 1 ] );
       }
+
 
       m = 0;
       for ( unsigned y = 0; y < i1.sizey(); ++y )
@@ -1271,9 +1272,9 @@ public:
             for ( unsigned c = 0; c < i1.getNbComponents(); ++c )
                TESTER_ASSERT( *i1.getIterator( x, y, c ) == i1[ m++ ] );
 
-      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).nextcol( 2 ) == i1( 0, 0, 2 ) );
-      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).nextx( 2 ) == i1( 2, 0, 0 ) );
-      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).nexty( 3 ) == i1( 0, 3, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickcol( 2 ) == i1( 0, 0, 2 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickx( 2 ) == i1( 2, 0, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
 
       Image i2( 2048 * 4, 2048 * 4, 3 );
       i2( 100, 100, 0 ) = 42;
@@ -1290,18 +1291,68 @@ public:
 
       nll::core::Timer t2;      
       m = 0;
-      for ( Image::ConstImageIterator it = i2.beginImage(); it != i2.endImage(); ++it )
+      for ( Image::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
          m += *it;
       double t2t = t2.getCurrentTime();
       std::cout << "t2=" << t2.getCurrentTime() << std::endl;
       TESTER_ASSERT( m == 42 );
       TESTER_ASSERT( t2t < t1t );
    }
+
+   void testConstImageIterators()
+   {
+      typedef nll::core::Image<nll::ui32>   Image;
+
+      Image i1( 5, 6, 3 );
+      for ( unsigned n = 0; n < 5 * 6 * 3; ++n )
+         i1[ n ] = n;
+
+      unsigned m = 0;
+      for ( Image::ConstDirectionalIterator it = i1.beginDirectional(); it != i1.endDirectional(); ++it, m += 3 )
+      {
+         TESTER_ASSERT( *it == i1[ m ] );
+         TESTER_ASSERT( it.pickcol() == i1[ m + 1 ] );
+      }
+
+
+      m = 0;
+      for ( unsigned y = 0; y < i1.sizey(); ++y )
+         for ( unsigned x = 0; x < i1.sizex(); ++x )
+            for ( unsigned c = 0; c < i1.getNbComponents(); ++c )
+               TESTER_ASSERT( *i1.getIterator( x, y, c ) == i1[ m++ ] );
+
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickcol( 2 ) == i1( 0, 0, 2 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickx( 2 ) == i1( 2, 0, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
+
+      Image i2( 2048 * 4, 2048 * 4, 3 );
+      i2( 100, 100, 0 ) = 42;
+
+      nll::core::Timer t1;
+      m = 0;
+      for ( unsigned y = 0; y < i2.sizey(); ++y )
+         for ( unsigned x = 0; x < i2.sizex(); ++x )
+            //for ( unsigned c = 0; c < i2.getNbComponents(); ++c )
+               m += i2( x, y, 0 );
+      TESTER_ASSERT( m == 42 );
+      double t1t = t1.getCurrentTime();
+      std::cout << "constt1=" << t1.getCurrentTime() << std::endl;
+
+      nll::core::Timer t2;      
+      m = 0;
+      for ( Image::ConstDirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+         m += *it;
+      double t2t = t2.getCurrentTime();
+      std::cout << "constt2=" << t2.getCurrentTime() << std::endl;
+      TESTER_ASSERT( m == 42 );
+      TESTER_ASSERT( t2t < t1t );
+   }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestnllCore);
 TESTER_TEST(testImageIterators);
+TESTER_TEST(testConstImageIterators);
 TESTER_TEST(testSampling);
 TESTER_TEST(testTraitsInheritence);
 TESTER_TEST(testBuffer1D);
@@ -1332,6 +1383,6 @@ TESTER_TEST(testDistanceTransform);
 TESTER_TEST(testGmm);
 # endif
 TESTER_TEST_SUITE_END();
-//#endif
+#endif
 
 #pragma warning( pop )

@@ -78,14 +78,14 @@ namespace core
          const double dx = fabs( x - xi );
          const double dy = fabs( y - yi );
 
-         TImage::ConstImageIterator iter = _img.getIterator( xi, yi, c );
+         TImage::ConstDirectionalIterator iter = _img.getIterator( xi, yi, c );
          buf[ 0 ] = *iter;
-         buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.nextx() : 0;
+         buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.pickx() : 0;
          if ( yi < (i32)this->_img.sizey() - 1 )
          {
-            buf[ 3 ] = iter.nexty();
+            buf[ 3 ] = iter.picky();
             iter.addx();
-            buf[ 2 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.nexty() : 0;
+            buf[ 2 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.picky() : 0;
          } else {
             buf[ 2 ] = 0;
             buf[ 3 ] = 0;
