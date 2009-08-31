@@ -16,7 +16,7 @@ namespace mvv
       /**
        @brief Transform a real value to a RGB value
        @param inValue the input value
-       @param outValue must be allocated (3 * ui8)
+       @param outValue must be allocated (4 * ui8)
        */
       virtual void transform( double inValue, ui8* outValue ) = 0;
    };

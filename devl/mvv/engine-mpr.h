@@ -148,15 +148,24 @@ namespace mvv
             }
 
          // all the orders are finished, just fuse them and update the result
-         ensure( _tracked.size() == 1, "TODO IMPLEMENT CORRECTLY" );
-         const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ 0 ]->getResult() );
+         ensure( _tracked.size() == _volumes.size(), "error size doesn't match!" );
          
-         _slice = Image( slice->slice.sizex(), slice->slice.sizey(), 3 );
+         _slice = Image( _sx, _sy, 3, true );
          for ( ui32 y = 0; y < _slice.sizey(); ++y )
             for ( ui32 x = 0; x < _slice.sizex(); ++x )
             {
-               const double val = slice->slice( x, y, 0 );
-               _windowing.transform( val, _slice.point( x, y ) );
+               ui8 buf[ 4 ];
+               ui8* out = _slice.point( x, y );
+               ui32 n = 0;
+               for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+               {
+                  // it is assumed results' order is the same than volume's order
+                  const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
+                  const double val = slice->slice( x, y, 0 );
+                  _windowing.transform( val, buf );
+                  for ( ui32 n = 0; n < 3; ++n )
+                     out[ n ] += it->ratio * buf[ n ];
+               }
             }
 
          // clear the orders, we don't need them
@@ -168,13 +177,12 @@ namespace mvv
        */
       virtual void _run()
       {
-         // TODO: here try cancelling orders if some are still pending
          _tracked = Orders( _volumes.size() );
 
          ui32 n = 0;
          for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
-            OrderMprRendering* order = new OrderMprRendering( *it, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
+            OrderMprRendering* order = new OrderMprRendering( it->volume, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
                                                               nll::core::vector3d( _origin[ 0 ],
                                                                                    _origin[ 1 ],
                                                                                    _origin[ 2 ] ),

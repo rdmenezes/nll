@@ -146,6 +146,18 @@ namespace imaging
             v111 = background;
          }
 
+         //
+         // optimized version for
+         //   const double v000 = _getValue( ix,     iy,     iz );
+         //   const double v001 = _getValue( ix,     iy,     iz + 1 );
+         //   const double v010 = _getValue( ix,     iy + 1, iz );
+         //   const double v100 = _getValue( ix + 1, iy,     iz );
+         //   const double v011 = _getValue( ix,     iy + 1, iz + 1 );
+         //   const double v110 = _getValue( ix + 1, iy + 1, iz );
+         //   const double v101 = _getValue( ix + 1, iy,     iz + 1 );
+         //   const double v111 = _getValue( ix + 1, iy + 1, iz + 1 );
+         //
+
          const double i1 = v000 * ( 1 - dz ) + v001 * dz;
          const double i2 = v010 * ( 1 - dz ) + v011 * dz;
          const double j1 = v100 * ( 1 - dz ) + v101 * dz;
@@ -155,14 +167,6 @@ namespace imaging
          const double w2 = j1 * ( 1 - dy ) + j2 * dy;
 
          return w1 * ( 1 - dx ) + w2 * dx;
-      }
-
-   protected:
-      inline double _getValue( ui32 x, ui32 y, ui32 z ) const
-      {
-         if ( _volume.inside( x, y, z ) )
-            return _volume( x, y, z );
-         return _volume.getBackgroundValue();
       }
 
    protected:

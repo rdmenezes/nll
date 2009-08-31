@@ -54,7 +54,7 @@ public:
 
       // set up resources
       ResourceVolumes volumes;
-      volumes.attachVolume( &volume );
+      volumes.attachVolume( &volume, 1 );
 
       ResourceTransferFunctionWindowing windowing( 100, 500 );
 
@@ -89,7 +89,7 @@ public:
       // set up the layout
       PaneDrawable layout( drawableMpr,
                            nll::core::vector2ui( 0, 0 ),
-                           nll::core::vector2ui( 1024, 1024 ) );
+                           nll::core::vector2ui( 512, 512 ) );
 
       // update the layout (says the dimension needed for the MPR)
       layout.updateLayout();

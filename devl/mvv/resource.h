@@ -68,7 +68,25 @@ namespace mvv
     */
    class ResourceVolumes : public DynamicResource
    {
-      typedef std::set<MedicalVolume*> Volumes;
+      struct Pair
+      {
+         Pair( MedicalVolume* v, double r ) : volume( v ), ratio( r )
+         {}
+
+         bool operator==( const Pair& p ) const
+         {
+            return volume == p.volume;
+         }
+
+         bool operator<( const Pair& p ) const
+         {
+            return volume < p.volume;
+         }
+
+         MedicalVolume* volume;
+         double         ratio;
+      };
+      typedef std::set<Pair> Volumes;
 
    public:
       typedef Volumes::const_iterator  const_iterator;
@@ -76,16 +94,29 @@ namespace mvv
    public:
       /**
        @brief Attach a volume. The pointer must be valid until this object is used/volume attached
+       @param volume the volume
+       @param ratio the ratio used to fuse volumes. The sum of ratio must be equal to 1
        */
-      void attachVolume( MedicalVolume* volume )
+      void attachVolume( MedicalVolume* volume, double ratio )
       {
-         _volumes.insert( volume );
+         _volumes.insert( Pair( volume, ratio ) );
          notifyChanges();
+      }
+
+      void setRatio( MedicalVolume* volume, double newRatio )
+      {
+         Volumes::iterator it = _volumes.find( Pair( volume, 0 ) );
+         if ( it != _volumes.end() )
+         {
+            it->ratio = newRatio;
+         } else {
+            ensure( 0, "error: volume not found" );
+         }
       }
 
       void detachVolume( MedicalVolume* volume )
       {
-         _volumes.erase( volume );
+         _volumes.erase( Pair( volume, 0 ) );
          notifyChanges();
       }
 
@@ -101,7 +132,7 @@ namespace mvv
 
       ui32 size() const
       {
-         return _volumes.size();
+         return (ui32)_volumes.size();
       }
 
    protected:
