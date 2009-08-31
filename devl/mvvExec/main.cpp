@@ -4,18 +4,15 @@
 static mvv::ApplicationVariables applicationVariables;
 static double sx = 0.75, sy = 0.75;
 static double dx = 0.38, dy = 0.38;
+
 void handleOrders( int value )
 {
-   glutTimerFunc( 15, handleOrders, 0 );
-
-   //static int t = 0;
-   //++t; std::cout << "draw=" << t << std::endl;
+   glutTimerFunc( 30, handleOrders, 0 );
 
    // code
    applicationVariables.rootLayout->draw( applicationVariables.screen );
    applicationVariables.handleOrders();
    applicationVariables.mpr1->run();
-   nll::core::writeBmp( applicationVariables.screen, "c:/tmp/mpr.bmp" );
 
    // generate background texture
    glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
@@ -36,23 +33,24 @@ void handleOrders( int value )
 
 void renderObjects()
 {
+   const double z = -2;
    glEnable( GL_TEXTURE_2D );
    glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
 
    glBegin( GL_TRIANGLES ); 
    glTexCoord2d( 1, 1 );
-   glVertex3f( 0 + dx, 0 + dy, -1 ); 
+   glVertex3f( 0 + dx, 0 + dy, z ); 
    glTexCoord2d( 0 ,1 );
-   glVertex3f( -sx + dx, 0 + dy, -1 ); 
+   glVertex3f( -sx + dx, 0 + dy, z ); 
    glTexCoord2d( 0, 0 );
-   glVertex3f( -sx + dx, -sy + dy, -1 ); 
+   glVertex3f( -sx + dx, -sy + dy, z ); 
 
    glTexCoord2d( 0, 0 );
-   glVertex3f( -sx + dx, -sy + dy, -1 ); 
+   glVertex3f( -sx + dx, -sy + dy, z ); 
    glTexCoord2d( 1, 0 );
-   glVertex3f( 0 + dx, -sy + dy, -1 ); 
+   glVertex3f( 0 + dx, -sy + dy, z ); 
    glTexCoord2d( 1, 1 );
-   glVertex3f( 0 + dx, 0 + dy, -1 ); 
+   glVertex3f( 0 + dx, 0 + dy, z ); 
 
 
    glEnd(); 
@@ -82,6 +80,11 @@ void reshape( GLint w, GLint h )
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    gluPerspective( 45.0, w / (double)h, 1, 50.0 );
+   /*
+   //glMatrixMode (GL_PROJECTION);
+   //glLoadIdentity ();
+   //gluOrtho2D (0, windowWidth, 0, windowHeight);
+   */
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 }
@@ -111,18 +114,20 @@ void keyboard(unsigned char key, int x, int y)
    if ( key == 'q' )
       exit( 0 );
    if ( key == 'k' )
-      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] + 0.8 );
+      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] + 0.3 );
    if ( key == 'l' )
-      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] - 0.8 );
+      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] - 0.3 );
 }
 
 int main(int argc, char** argv)
 {
   // GLUT Window Initialization:
   glutInit (&argc, argv);
-  glutInitWindowSize (512, 512);
+  //glutInitWindowSize (512, 512);
   glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-  glutCreateWindow ("Medical Volume Viewer");
+  //glutCreateWindow ("Medical Volume Viewer");
+  glutGameModeString( "1280x800:32" );
+  glutEnterGameMode();
 
   // Initialize OpenGL graphics state
   initGraphics();
@@ -134,7 +139,7 @@ int main(int argc, char** argv)
   glutMouseFunc (mouseButton);
   glutMotionFunc (mouseMotion);
   glutTimerFunc( 33, handleOrders, 0 );
-  
+
   // Turn the flow of control over to GLUT
   glutMainLoop ();
   return 0;

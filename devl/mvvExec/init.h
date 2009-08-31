@@ -53,7 +53,7 @@ namespace mvv
          zoom.setValue( 1, 2 );
 
          // set default windowing
-         windowing.setMinWindow( 000 );
+         windowing.setMinWindow( -1000 );
          windowing.setMaxWindow( 5000 );
 
          // set the MPR1
