@@ -49,9 +49,11 @@ namespace mvv
       {
          if ( _activated )
          {
+            bool isSuccessfullyRun = false;
             if ( _needToRecompute )
-               _run();
-            _needToRecompute = false;
+               isSuccessfullyRun = _run();
+            if ( isSuccessfullyRun )
+               _needToRecompute = false;
          }
       }
 
@@ -69,8 +71,9 @@ namespace mvv
    protected:
       /**
        @brief Compute a result.
+       @return true is successfully run. Else return 0, the engine will try again to run it next time
        */
-      virtual void _run() = 0;
+      virtual bool _run() = 0;
 
    protected:
       bool        _needToRecompute;

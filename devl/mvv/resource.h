@@ -19,6 +19,11 @@ namespace mvv
          notifyChanges();
       }
 
+      ResourceTransferFunctionWindowing() : _minWindow( 0 ),
+         _maxWindow( 1 )
+      {
+      }
+
       void setMinWindow( double v )
       {
          _minWindow = v;
@@ -50,7 +55,7 @@ namespace mvv
       {
          double interval = _maxWindow - _minWindow;
          ensure( interval > 0, "must be >0" );
-         const ui8 val = static_cast<ui8>( ( inValue - _minWindow ) / interval * 255 );
+         const ui8 val = static_cast<ui8>( NLL_BOUND( (double)( inValue - _minWindow ) / interval * 255, 0, 255 ) );
 
          outValue[ 0 ] = val;
          outValue[ 1 ] = val;

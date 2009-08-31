@@ -13,5 +13,6 @@ namespace mvv
    {
       r.attach( this );
       _resources.insert( &r );
+      notify();
    }
 }

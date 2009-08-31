@@ -175,13 +175,16 @@ namespace mvv
       /**
        @brief Compute a MPR
        */
-      virtual void _run()
+      virtual bool _run()
       {
+         if ( _tracked.size() )
+            return false;
          _tracked = Orders( _volumes.size() );
 
          ui32 n = 0;
          for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
+            std::cout << "mpr:order render" << std::endl;
             OrderMprRendering* order = new OrderMprRendering( it->volume, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
                                                               nll::core::vector3d( _origin[ 0 ],
                                                                                    _origin[ 1 ],
@@ -207,8 +210,8 @@ namespace mvv
          if ( _slice.sizex() != _sx || _slice.sizey() != _sy )
          {
             // run another time in case it wasn't correctly notified
-            notify();
-            run();
+            //notify();
+            //run();
             
             // for now just resample the image... we have to wait for the updated asynchronous order
             nll::core::rescaleBilinear( _slice, _sx, _sy );

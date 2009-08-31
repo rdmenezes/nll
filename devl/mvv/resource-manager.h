@@ -4,6 +4,7 @@
 # include <boost/thread/mutex.hpp>
 # include "resource.h"
 # include "order-provider.h"
+# include "notifiable.h"
 
 namespace mvv
 {
@@ -14,12 +15,9 @@ namespace mvv
    class _ResourceManager : public OrderProvider
    {
    public:
-      /// position of the camera for projection
-      ResourceVector3d  positionMpr;
-
-   public:
       /**
        @brief return the current orders to be handled. This method is synchronized.
+              Use case: pushOrder push an order on the queue, then the dispatcher thread (queue order) pick the orders
        */
       virtual Orders getOrdersAndClear()
       {
@@ -37,12 +35,22 @@ namespace mvv
       {
          boost::mutex::scoped_lock lock( _mutex );
          _orders.push_back( order );
-         // TODO notify the queue
+         if ( _queue )
+            _queue->notify();
+      }
+
+      /**
+       @brief hold a notifiable object that will be notified when an order has been pushed on the current stack of orders.
+       */
+      void setQueueOrder( Notifiable* queue )
+      {
+         _queue = queue;
       }
 
    private:
       boost::mutex      _mutex;
       Orders            _orders;
+      Notifiable*       _queue;
    };
 
    typedef nll::core::Singleton<_ResourceManager>  ResourceManager;

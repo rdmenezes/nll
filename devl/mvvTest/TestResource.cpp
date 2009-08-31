@@ -12,9 +12,10 @@ public:
       return _needToRecompute;
    }
 
-   void _run()
+   bool _run()
    {
       _needToRecompute = false;
+      return true;
    }
 
    void consume( Order* )
@@ -57,7 +58,7 @@ public:
 
    void test2()
    {
-      ResourceVector3d& pos = ResourceManager::instance().positionMpr;
+      ResourceVector3d pos( 0, 0, 0 );
       pos.setValue( 0, 10 );
       pos.setValue( 1, 20 );
       pos.setValue( 2, 30 );

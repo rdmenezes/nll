@@ -270,8 +270,12 @@ namespace mvv
       virtual void draw( Image& image )
       {
          const Image& i = _drawable.draw();
-         ensure( i.sizex() == getSize()[ 0 ], "must be the same size" );
-         ensure( i.getNbComponents() == image.getNbComponents(), "error components" );
+         if ( i.sizex() != getSize()[ 0 ] ||
+              i.sizey() != getSize()[ 1 ] ||
+              i.getNbComponents() != image.getNbComponents() )
+            return;
+         //ensure( i.sizex() == getSize()[ 0 ], "must be the same size" );
+         //ensure( i.getNbComponents() == image.getNbComponents(), "error components" );
          for ( ui32 y = 0; y < getSize()[ 1 ]; ++y )
             for ( ui32 x = 0; x < getSize()[ 0 ]; ++x )
                for ( ui32 c = 0; c < image.getNbComponents(); ++c )

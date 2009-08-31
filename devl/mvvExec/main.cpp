@@ -1,14 +1,64 @@
+#include "init.h"
 #include <GL/freeglut.h>
 
-void RenderObjects()
+static mvv::ApplicationVariables applicationVariables;
+static double sx = 0.75, sy = 0.75;
+static double dx = 0.38, dy = 0.38;
+void handleOrders( int value )
 {
-   glClear(GL_COLOR_BUFFER_BIT);
-   glPushMatrix();
-   glRotatef(0,0.0,0.0,1.0);
-   glColor3f(1.0,1.0,1.0);
-   glRectf(-25.0,-25.0,25.0,25.0);
-   glPopMatrix();
+   glutTimerFunc( 15, handleOrders, 0 );
+
+   //static int t = 0;
+   //++t; std::cout << "draw=" << t << std::endl;
+
+   // code
+   applicationVariables.rootLayout->draw( applicationVariables.screen );
+   applicationVariables.handleOrders();
+   applicationVariables.mpr1->run();
+   nll::core::writeBmp( applicationVariables.screen, "c:/tmp/mpr.bmp" );
+
+   // generate background texture
+   glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
+   glTexImage2D(GL_TEXTURE_2D, 0, 3, applicationVariables.screen.sizex(), applicationVariables.screen.sizey(),
+                0, GL_RGB, GL_UNSIGNED_BYTE, applicationVariables.screen.getBuf() );
+
+   static int nbFps = 0;
+   static unsigned last = clock();
+   ++nbFps;
+
+   if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
+   {
+      std::cout << "fps=" << nbFps << std::endl;
+      nbFps = 0;
+      last = clock();
+   }
 }
+
+void renderObjects()
+{
+   glEnable( GL_TEXTURE_2D );
+   glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
+
+   glBegin( GL_TRIANGLES ); 
+   glTexCoord2d( 1, 1 );
+   glVertex3f( 0 + dx, 0 + dy, -1 ); 
+   glTexCoord2d( 0 ,1 );
+   glVertex3f( -sx + dx, 0 + dy, -1 ); 
+   glTexCoord2d( 0, 0 );
+   glVertex3f( -sx + dx, -sy + dy, -1 ); 
+
+   glTexCoord2d( 0, 0 );
+   glVertex3f( -sx + dx, -sy + dy, -1 ); 
+   glTexCoord2d( 1, 0 );
+   glVertex3f( 0 + dx, -sy + dy, -1 ); 
+   glTexCoord2d( 1, 1 );
+   glVertex3f( 0 + dx, 0 + dy, -1 ); 
+
+
+   glEnd(); 
+}
+
+
 
 void display()
 {
@@ -19,10 +69,11 @@ void display()
    glLoadIdentity();
 
    // Render the scene
-   RenderObjects();
+   renderObjects();
 
    // Make sure changes appear onscreen
    glutSwapBuffers();
+   glutPostRedisplay();
 }
 
 void reshape( GLint w, GLint h )
@@ -30,28 +81,39 @@ void reshape( GLint w, GLint h )
    glViewport(0,0,(GLsizei) w, (GLsizei) h);
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
-   glOrtho(-50.0,50.0,-50.0,50.0,-1.0,1.0);
+   gluPerspective( 45.0, w / (double)h, 1, 50.0 );
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 }
 
-void InitGraphics()
+void initGraphics()
 {
    glEnable( GL_DEPTH_TEST );
    glDepthFunc( GL_LESS );
-   glShadeModel( GL_SMOOTH );  
-   //gluLookAt(0, 0, -1, 0, 0, -1, 0, 1, 0);
+   glShadeModel( GL_SMOOTH );
+
+   // configure the display texture
+   glGenTextures( 1, &applicationVariables.screenTextureId );
+   glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
+   glTexParameteri( GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_NEAREST );
+   glTexParameteri( GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST );
 }
-void MouseButton(int button, int state, int x, int y)
+void mouseButton(int button, int state, int x, int y)
 {
 }
 
-void MouseMotion(int x, int y)
+void mouseMotion(int x, int y)
 {
 }
 
-void Keyboard(unsigned char key, int x, int y)
+void keyboard(unsigned char key, int x, int y)
 {
+   if ( key == 'q' )
+      exit( 0 );
+   if ( key == 'k' )
+      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] + 0.8 );
+   if ( key == 'l' )
+      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] - 0.8 );
 }
 
 int main(int argc, char** argv)
@@ -60,16 +122,18 @@ int main(int argc, char** argv)
   glutInit (&argc, argv);
   glutInitWindowSize (512, 512);
   glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-  glutCreateWindow ("CS248 GLUT example");
+  glutCreateWindow ("Medical Volume Viewer");
+
   // Initialize OpenGL graphics state
-  InitGraphics();
+  initGraphics();
+
   // Register callbacks:
   glutDisplayFunc (display);
   glutReshapeFunc (reshape);
-  glutKeyboardFunc (Keyboard);
-  glutMouseFunc (MouseButton);
-  glutMotionFunc (MouseMotion);
-  //glutIdleFunc (AnimateScene);
+  glutKeyboardFunc (keyboard);
+  glutMouseFunc (mouseButton);
+  glutMotionFunc (mouseMotion);
+  glutTimerFunc( 33, handleOrders, 0 );
   
   // Turn the flow of control over to GLUT
   glutMainLoop ();
