@@ -59,11 +59,9 @@ namespace mvv
          {
             while (1)
             {
-               std::cout << "queue:queue waiting" << std::endl;
                if ( !_notified2 )
                   _notified.wait( _mutex );
                _notified2 = false;
-               std::cout << "queue:check orders" << std::endl;
 
                // get the orders, and take them to a buffer
                OrderProvider::Orders newOrders = _orderProvider.getOrdersAndClear();
@@ -76,7 +74,6 @@ namespace mvv
                // for each order test if successors have been run, else skip the order
                for ( OrderBuffer::iterator it = _buffer.begin(); it != _buffer.end(); )
                {
-                  std::cout << "queue:start run check=" << (*it)->getId() << std::endl;
                   // check predecessors
                   bool skip = false;
                   const Order::Predecessors& p = ( *it )->getPredecessors();
@@ -94,7 +91,6 @@ namespace mvv
                   }
 
                   // we can now run them
-                  std::cout << "queue:run" << (*it)->getId() << std::endl;
                   if ( ( *it )->toBeMultithreaded() )
                      _pool.run( *it );
                   else
@@ -102,7 +98,6 @@ namespace mvv
                      // run it on the same thread
                      ( *it )->setResult( ( *it )->run() );
                   }
-                  std::cout << "queue:run launched" << std::endl;
                   OrderBuffer::iterator toErase = it;
                   it = _buffer.erase( toErase );
                }

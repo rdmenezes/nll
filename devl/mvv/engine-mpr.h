@@ -68,7 +68,6 @@ namespace mvv
       virtual OrderResult* run()
       { 
          Slice slice;
-         std::cout << "--mpr started--" << std::endl;
 
          nll::core::Timer t1;
 
@@ -90,7 +89,6 @@ namespace mvv
             ensure( 0, "interpolation not handled" );
          };
 
-         std::cout << "--mpr ended-- = " << t1.getCurrentTime() <<std::endl;
          return new OrderMprRenderingResult( slice );
       }
 
@@ -195,7 +193,6 @@ namespace mvv
          ui32 n = 0;
          for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
-            std::cout << "mpr:order render" << std::endl;
             OrderMprRendering* order = new OrderMprRendering( it->volume, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
                                                               nll::core::vector3d( _origin[ 0 ],
                                                                                    _origin[ 1 ],

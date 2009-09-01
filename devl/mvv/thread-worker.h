@@ -57,7 +57,6 @@ namespace mvv
                // wait for a new job
                while ( _hasFinished )
                {
-                  std::cout << "worker=" << _workerId << " wait" << std::endl;
                   _notified.wait( lock );
                }
 

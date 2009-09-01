@@ -24,7 +24,6 @@ namespace mvv
 
       if ( _notifiable )
       {
-         std::cout << "notify queue" << std::endl;
          _notifiable->notify();
       }
    }
