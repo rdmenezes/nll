@@ -23,6 +23,7 @@ namespace mvv
       ResourceVolumes                     volumes;
       ResourceVector2d                    zoom;
       ResourceTransferFunctionWindowing   windowing;
+      ResourceTransferFunctionWindowing   windowing2;
 
       ResourceVector3d                    originMpr1;
       ResourceVector3d                    mpr1V1;
@@ -36,6 +37,7 @@ namespace mvv
       boost::thread                       dispatchThread;
 
       MedicalVolume                       TODOREMOVE_volume;
+      MedicalVolume                       TODOREMOVE_volume2;
 
       unsigned int                        screenTextureId;
       nll::core::Image<nll::ui8>          screen;
@@ -43,18 +45,26 @@ namespace mvv
       ApplicationVariables()
       {
          // load volumes
-         const std::string pathV1 = "C:/Users/Civo/Desktop/nll/nllTest/data/medical/pet-NAC.mf2";
+         const std::string pathV2 = "../../nllTest/data/medical/pet-NAC.mf2";
+         const std::string pathV1 = "../../nllTest/data/medical/CT1orig.mf2";
          bool loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
-         volumes.attachVolume( &TODOREMOVE_volume, 1 );
+         volumes.attachVolume( &TODOREMOVE_volume, 0.2, &windowing );
          ensure( loaded, "error" );
 
+         loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
+         volumes.attachVolume( &TODOREMOVE_volume2, 0.8, &windowing2 );
+         ensure( loaded, "error" );
+
+
          // set zoom factors
-         zoom.setValue( 0, 2 );
-         zoom.setValue( 1, 2 );
+         zoom.setValue( 0, 1 );
+         zoom.setValue( 1, 1 );
 
          // set default windowing
          windowing.setMinWindow( -1000 );
-         windowing.setMaxWindow( 5000 );
+         windowing.setMaxWindow( 1000 );
+         windowing2.setMinWindow( -1000 );
+         windowing2.setMaxWindow( 5000 );
 
          // set the MPR1
          originMpr1.setValue( 0, 0 );
@@ -66,14 +76,15 @@ namespace mvv
          mpr1V2.setValue( 0, 0 );
          mpr1V2.setValue( 1, 1 );
          mpr1V2.setValue( 2, 0 );
-         mpr1 = new EngineMpr( ResourceManager::instance(), volumes, windowing, originMpr1, mpr1V1, mpr1V2, zoom );
+
+         mpr1 = new EngineMpr( ResourceManager::instance(), volumes, originMpr1, mpr1V1, mpr1V2, zoom );
 
          engines.insert( mpr1 );
 
          // layout
-         PaneDrawable* layout = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 512, 512) );
-         layout->updateLayout();
-         rootLayout = layout;
+         PaneDrawable* layout1 = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 512, 512) );
+         layout1->updateLayout();
+         rootLayout = layout1;
 
          // queue
          queue = new QueueOrder( ResourceManager::instance(), 10 );
@@ -92,6 +103,14 @@ namespace mvv
          {
             for ( _ResourceManager::Orders::iterator oit = orders.begin(); oit != orders.end(); ++oit )
                (*it)->consume( *oit );
+         }
+      }
+
+      void runEngines()
+      {
+         for ( Engines::iterator it = engines.begin(); it != engines.end(); ++it )
+         {
+            (*it)->run();
          }
       }
    };

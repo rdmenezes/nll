@@ -46,17 +46,17 @@ public:
       OrderProviderTest orderProvider;
 
       // load data
-      const std::string path =  "C:/Users/Civo/Desktop/nll/nllTest/data/medical/pet-NAC.mf2";
+      const std::string path =  "D:/Devel/sandbox/nllTest/data/medical/pet-NAC.mf2";
       //const std::string path = "../../nllTest/data/medical/pet-NAC.mf2";
       MedicalVolume volume;
       bool loaded = nll::imaging::loadSimpleFlatFile( path, volume );
       ensure( loaded, "error" );
 
       // set up resources
-      ResourceVolumes volumes;
-      volumes.attachVolume( &volume, 1 );
-
       ResourceTransferFunctionWindowing windowing( 100, 500 );
+      ResourceVolumes volumes;
+      volumes.attachVolume( &volume, 1, &windowing );
+
 
       ResourceVector3d origin;
       origin.setValue( 0, 0 );
@@ -80,7 +80,6 @@ public:
       // create a drawable object
       EngineMpr drawableMpr( orderProvider,
                              volumes,
-                             windowing,
                              origin,
                              v1,
                              v2,

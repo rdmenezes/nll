@@ -75,7 +75,7 @@ namespace mvv
    {
       struct Pair
       {
-         Pair( MedicalVolume* v, double r ) : volume( v ), ratio( r )
+         Pair( MedicalVolume* v, double r, ResourceTransferFunctionWindowing* w ) : volume( v ), ratio( r ), windowing( w )
          {}
 
          bool operator==( const Pair& p ) const
@@ -90,6 +90,7 @@ namespace mvv
 
          MedicalVolume* volume;
          double         ratio;
+         ResourceTransferFunctionWindowing* windowing;
       };
       typedef std::set<Pair> Volumes;
 
@@ -102,15 +103,16 @@ namespace mvv
        @param volume the volume
        @param ratio the ratio used to fuse volumes. The sum of ratio must be equal to 1
        */
-      void attachVolume( MedicalVolume* volume, double ratio )
+      void attachVolume( MedicalVolume* volume, double ratio, ResourceTransferFunctionWindowing* windowing )
       {
-         _volumes.insert( Pair( volume, ratio ) );
+         _volumes.insert( Pair( volume, ratio, windowing ) );
+         windowing->setFather( this ); // we want to notify the Volumes if a windowing has changed!
          notifyChanges();
       }
 
       void setRatio( MedicalVolume* volume, double newRatio )
       {
-         Volumes::iterator it = _volumes.find( Pair( volume, 0 ) );
+         Volumes::iterator it = _volumes.find( Pair( volume, 0, 0 ) );
          if ( it != _volumes.end() )
          {
             it->ratio = newRatio;
@@ -121,7 +123,7 @@ namespace mvv
 
       void detachVolume( MedicalVolume* volume )
       {
-         _volumes.erase( Pair( volume, 0 ) );
+         _volumes.erase( Pair( volume, 0, 0 ) );
          notifyChanges();
       }
 

@@ -90,6 +90,19 @@ namespace mvv
       typedef std::set<Engine*>  Engines;
 
    public:
+      /**
+       @param father if father uis not null, it means that all notification of the child, will also affect the
+              father. It is used for example in MPR->volume->TransferFunction : a modification on the transfer
+              function must force a notification
+       */
+      DynamicResource( DynamicResource* father = 0 ) : _father( father )
+      {}
+
+      void setFather( DynamicResource* father )
+      {
+         _father = father;
+      }
+
       virtual ~DynamicResource()
       {}
 
@@ -100,6 +113,8 @@ namespace mvv
       {
          for ( Engines::iterator it = _engines.begin(); it != _engines.end(); ++it )
             ( *it )->notify();
+         if ( _father )
+            _father->notifyChanges();
       }
 
       /**
@@ -120,7 +135,8 @@ namespace mvv
       }
 
    protected:
-      Engines _engines;
+      Engines           _engines;
+      DynamicResource*  _father;
    };
 }
 

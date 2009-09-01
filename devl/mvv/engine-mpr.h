@@ -118,11 +118,10 @@ namespace mvv
    public:
       EngineMpr( OrderProvider& orderProvider,
                  ResourceVolumes& volumes,
-                 ResourceTransferFunctionWindowing& windowing,
                  ResourceVector3d& origin,
                  ResourceVector3d& vector1,
                  ResourceVector3d& vector2,
-                 ResourceVector2d& zoom ) : _orderProvider( orderProvider ), _sx( 0 ), _sy( 0 ), _volumes( volumes ), _windowing( windowing ),
+                 ResourceVector2d& zoom ) : _orderProvider( orderProvider ), _sx( 0 ), _sy( 0 ), _volumes( volumes ),
                  _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom )
       {
          attach( origin );
@@ -162,7 +161,7 @@ namespace mvv
                   // it is assumed results' order is the same than volume's order
                   const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
                   const double val = slice->slice( x, y, 0 );
-                  _windowing.transform( val, buf );
+                  it->windowing->transform( val, buf );
                   for ( ui32 n = 0; n < 3; ++n )
                      out[ n ] += it->ratio * buf[ n ];
                }
@@ -170,6 +169,18 @@ namespace mvv
 
          // clear the orders, we don't need them
          _tracked.clear();
+
+         // TODO REMOVE
+         static int nbFps = 0;
+         static unsigned last = clock();
+         ++nbFps;
+
+         if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
+         {
+            std::cout << "----------------MPR_fps=" << nbFps << std::endl;
+            nbFps = 0;
+            last = clock();
+         }
       }
 
       /**
@@ -199,6 +210,7 @@ namespace mvv
             _tracked[ n ] = order;
             _orderProvider.pushOrder( order );
          }
+         return true;
       }
 
 
@@ -208,11 +220,7 @@ namespace mvv
       virtual const Image& draw()
       {
          if ( _slice.sizex() != _sx || _slice.sizey() != _sy )
-         {
-            // run another time in case it wasn't correctly notified
-            //notify();
-            //run();
-            
+         {            
             // for now just resample the image... we have to wait for the updated asynchronous order
             nll::core::rescaleBilinear( _slice, _sx, _sy );
          }
@@ -235,7 +243,6 @@ namespace mvv
       ui32           _sy;
 
       ResourceVolumes&                    _volumes;
-      ResourceTransferFunctionWindowing&  _windowing;
       ResourceVector3d&                   _origin;
       ResourceVector3d&                   _vector1;
       ResourceVector3d&                   _vector2;

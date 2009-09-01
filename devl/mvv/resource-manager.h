@@ -51,7 +51,7 @@ namespace mvv
       boost::mutex      _mutex;
       Orders            _orders;
       Notifiable*       _queue;
-   };
+   }; 
 
    typedef nll::core::Singleton<_ResourceManager>  ResourceManager;
 }

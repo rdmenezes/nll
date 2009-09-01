@@ -126,11 +126,12 @@ namespace mvv
          boost::mutex::scoped_lock lock( _mutex );
          std::cout << "queue: kill" << std::endl;
 
+         std::cout << "queue: pool kill" << std::endl;
+         _pool.kill();
+
          for ( OrderStorage::iterator it = _orders.begin(); it != _orders.end(); ++it )
             delete it->second;
          _orders.clear();
-         std::cout << "queue: pool kill" << std::endl;
-         _pool.kill();
       }
 
       /**
