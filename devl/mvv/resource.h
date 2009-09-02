@@ -53,9 +53,10 @@ namespace mvv
        */
       virtual void transform( double inValue, ui8* outValue )
       {
-         double interval = _maxWindow - _minWindow;
-         ensure( interval > 0, "must be >0" );
-         const ui8 val = static_cast<ui8>( NLL_BOUND( (double)( inValue - _minWindow ) / interval * 255, 0, 255 ) );
+         const double interval = _maxWindow - _minWindow;
+         const double valf = ( inValue - _minWindow ) / interval;
+
+         const ui8 val = ( valf > 1 ) ? 255 : ( ( valf < 0 ) ? 0 : valf * 255 );
 
          outValue[ 0 ] = val;
          outValue[ 1 ] = val;

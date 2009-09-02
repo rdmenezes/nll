@@ -61,10 +61,12 @@ namespace mvv
                }
 
                ensure( _currentOrder, "something went wrong..." );
-               std::cout << "worker=" << _workerId << " run, idorder=" << _currentOrder->getId() << std::endl;
+               std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " run, idorder=" << _currentOrder->getId() << std::endl;
 
                // run the job
+               nll::core::Timer todoDebug;
                _run();
+               std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " end, time=" << todoDebug.getCurrentTime() << std::endl;
             }
          }
          catch ( boost::thread_interrupted )

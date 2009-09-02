@@ -95,6 +95,7 @@ namespace mvv
                      _pool.run( *it );
                   else
                   {
+                     std::cout << "run not threaded" << std::endl;
                      // run it on the same thread
                      ( *it )->setResult( ( *it )->run() );
                   }

@@ -31,14 +31,14 @@ namespace imaging
       class DirectionalIterator
       {
       public:
-         DirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
          /**
           @brief get the value pointed by the iterator. It is only valid if the iterator is pointing on a voxel!
           */
-         T operator*() const
+         T& operator*() const
          {
             return _buf[ _index ];
          }
@@ -126,7 +126,7 @@ namespace imaging
 
       protected:
          ui32     _index;
-         const T* _buf;
+         T*       _buf;
          ui32     _sx;
          ui32     _sy;
          ui32     _sz;
@@ -142,11 +142,16 @@ namespace imaging
       {
       public:
          ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : 
-            DirectionalIterator( index, buf, sx, sy, sz, mapper )
+            DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
          {}
 
          ConstDirectionalIterator( const DirectionalIterator& i ) : DirectionalIterator( i )
          {}
+
+         T operator*() const
+         {
+            return _buf[ _index ];
+         }
 
          /**
           @brief move to the next moxel

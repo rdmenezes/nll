@@ -37,6 +37,8 @@ namespace mvv
       typedef nll::imaging::InterpolatorTriLinear<MedicalVolume>          InterpolatorTrilinear;
       typedef nll::imaging::Mpr<MedicalVolume, InterpolatorNN>            MprNN;
       typedef nll::imaging::Mpr<MedicalVolume, InterpolatorTrilinear>     MprTrilinear;
+
+   public:
       typedef nll::imaging::Mpr<MedicalVolume, InterpolatorNN>::Slice     Slice;
 
    public:
@@ -143,30 +145,35 @@ namespace mvv
                // one order has not finished yet so we need to wait
                return;
             }
+            std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR result found" << std::endl;
 
          // all the orders are finished, just fuse them and update the result
          ensure( _tracked.size() == _volumes.size(), "error size doesn't match!" );
          
          _slice = Image( _sx, _sy, 3, true );
-         for ( ui32 y = 0; y < _slice.sizey(); ++y )
-            for ( ui32 x = 0; x < _slice.sizex(); ++x )
+
+         ui32 n = 0;
+         ui8 buf[ 4 ];
+         double ratio = 0;
+         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         {
+            const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
+            OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
+            Image::DirectionalIterator itOut = _slice.beginDirectional();
+            for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
             {
-               ui8 buf[ 4 ];
-               ui8* out = _slice.point( x, y );
-               ui32 n = 0;
-               for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
-               {
-                  // it is assumed results' order is the same than volume's order
-                  const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
-                  const double val = slice->slice( x, y, 0 );
-                  it->windowing->transform( val, buf );
-                  for ( ui32 n = 0; n < 3; ++n )
-                     out[ n ] += it->ratio * buf[ n ];
-               }
+               it->windowing->transform( *itIn, buf );
+               itOut.pickcol( 0 ) += buf[ 0 ] * it->ratio;
+               itOut.pickcol( 1 ) += buf[ 1 ] * it->ratio;
+               itOut.pickcol( 2 ) += buf[ 2 ] * it->ratio;
             }
+            ratio += it->ratio;
+         }
+         ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
 
          // clear the orders, we don't need them
          _tracked.clear();
+         std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR MPR finished" << std::endl;
 
          // TODO REMOVE
          static int nbFps = 0;
@@ -189,6 +196,7 @@ namespace mvv
          if ( _tracked.size() )
             return false;
          _tracked = Orders( _volumes.size() );
+         std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR STARTED RUN ORDER" << std::endl;
 
          ui32 n = 0;
          for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )

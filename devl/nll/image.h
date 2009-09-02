@@ -51,7 +51,7 @@ namespace core
          /**
           @brief get the value pointed by the iterator. It is only valid if the iterator is pointing on a pixel!
           */
-         T operator*() const
+         T& operator*() const
          {
             return _buf[ _index ];
          }
@@ -168,6 +168,11 @@ namespace core
          {
             _index += _sz;
             return *this;
+         }
+
+         T operator*() const
+         {
+            return _buf[ _index ];
          }
 
          /**
