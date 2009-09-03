@@ -148,6 +148,7 @@
 # include "volume-spatial.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
+# include "lut.h"
 
 /**
  @defgroup algorithm

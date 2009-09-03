@@ -937,6 +937,10 @@
 			Name="imaging"
 			>
 			<File
+				RelativePath=".\lut.h"
+				>
+			</File>
+			<File
 				RelativePath=".\multiplanar-reconstruction.h"
 				>
 			</File>

@@ -490,6 +490,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-lut.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-markov-chain.cpp"
 				>
 			</File>
