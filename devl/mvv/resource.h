@@ -5,6 +5,7 @@
 # include "transfer-function.h"
 # include "types.h"
 # include <nll/nll.h>
+//# include <nll/lut.h>
 
 namespace mvv
 {
@@ -13,20 +14,28 @@ namespace mvv
    class ResourceTransferFunctionWindowing : public DynamicResource, public TransferFunction
    {
    public:
-      ResourceTransferFunctionWindowing( double minWindow, double maxWindow ) : _minWindow( minWindow ),
+      ResourceTransferFunctionWindowing( double minWindow, double maxWindow ) : 
+         _lut( minWindow, maxWindow, 256, 3 ),
+         _minWindow( minWindow ),
          _maxWindow( maxWindow )
       {
+         _lut.createGreyscale();
          notifyChanges();
       }
 
-      ResourceTransferFunctionWindowing() : _minWindow( 0 ),
+      ResourceTransferFunctionWindowing() : 
+         _lut( 0, 1, 256, 3 ),
+         _minWindow( 0 ),
          _maxWindow( 1 )
       {
+         _lut.createGreyscale();
       }
 
       void setMinWindow( double v )
       {
          _minWindow = v;
+         _lut.reset( _minWindow, _maxWindow, 256, 3 );
+         _lut.createGreyscale();
          notifyChanges();
       }
 
@@ -38,6 +47,8 @@ namespace mvv
       void setMaxWindow( double v )
       {
          _maxWindow = v;
+         _lut.reset( _minWindow, _maxWindow, 256, 3 );
+         _lut.createGreyscale();
          notifyChanges();
       }
 
@@ -51,19 +62,13 @@ namespace mvv
        @param inValue the input value
        @param outValue must be allocated (3 * ui8)
        */
-      virtual void transform( double inValue, ui8* outValue )
+      virtual const ui8* transform( double inValue )
       {
-         const double interval = _maxWindow - _minWindow;
-         const double valf = ( inValue - _minWindow ) / interval;
-
-         const ui8 val = ( valf > 1 ) ? 255 : ( ( valf < 0 ) ? 0 : valf * 255 );
-
-         outValue[ 0 ] = val;
-         outValue[ 1 ] = val;
-         outValue[ 2 ] = val;
+         return _lut.transform( inValue );
       }
 
    protected:
+      nll::imaging::LookUpTransformWindowingRGB _lut;
       double   _minWindow;
       double   _maxWindow;
    };

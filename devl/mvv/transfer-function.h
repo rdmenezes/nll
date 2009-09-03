@@ -18,7 +18,7 @@ namespace mvv
        @param inValue the input value
        @param outValue must be allocated (4 * ui8)
        */
-      virtual void transform( double inValue, ui8* outValue ) = 0;
+      virtual const ui8* transform( double inValue ) = 0;
    };
 }
 

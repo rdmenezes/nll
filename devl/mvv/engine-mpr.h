@@ -153,16 +153,16 @@ namespace mvv
          _slice = Image( _sx, _sy, 3, true );
 
          ui32 n = 0;
-         ui8 buf[ 4 ];
          double ratio = 0;
          for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
             const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
             OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
             Image::DirectionalIterator itOut = _slice.beginDirectional();
+            ResourceTransferFunctionWindowing* windowing = it->windowing;
             for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
             {
-               it->windowing->transform( *itIn, buf );
+               const ui8* buf = windowing->transform( *itIn );
                itOut.pickcol( 0 ) += buf[ 0 ] * it->ratio;
                itOut.pickcol( 1 ) += buf[ 1 ] * it->ratio;
                itOut.pickcol( 2 ) += buf[ 2 ] * it->ratio;

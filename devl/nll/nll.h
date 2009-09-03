@@ -143,12 +143,12 @@
  This group defines the main algorithms for imaging such as volumes, interpolation and
  images.
  */
+# include "lut.h"
 # include "volume.h"
 # include "volume-interpolator.h"
 # include "volume-spatial.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
-# include "lut.h"
 
 /**
  @defgroup algorithm
