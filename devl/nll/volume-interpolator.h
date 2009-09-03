@@ -105,45 +105,58 @@ namespace imaging
          const int iyn = iy + 1;
          const int izn = iz + 1;
 
-         if ( iyn < sy )
+         if ( ixn < sx && iyn < sy && izn < sz )
          {
+            v100 = it.pickx();
+            v101 = itz.pickx();
             v010 = it.picky();
+            v011 = itz.picky();
+            v001 = it.pickz();
+            v110 = *it.addx().addy();
+            v111 = it.pickz();
          }
          else
          {
-            v010 = background;
-         }
-         if ( ixn < sx )
-         {
-            v100 = it.pickx();
-            v110 = it.addx().picky();
-         } else {
-            v100 = background;
-            v110 = background;
-         }
-
-         if ( izn < sz )
-         {
-            v001 = *itz;
             if ( iyn < sy )
             {
-               v011 = itz.picky();
-            } else {
-               v011 = background;
+               v010 = it.picky();
+            }
+            else
+            {
+               v010 = background;
             }
             if ( ixn < sx )
             {
-               v101 = itz.pickx();
-               v111 = itz.addx().picky();
+               v100 = it.pickx();
+               v110 = it.addx().picky();
             } else {
+               v100 = background;
+               v110 = background;
+            }
+
+            if ( izn < sz )
+            {
+               v001 = *itz;
+               if ( iyn < sy )
+               {
+                  v011 = itz.picky();
+               } else {
+                  v011 = background;
+               }
+               if ( ixn < sx )
+               {
+                  v101 = itz.pickx();
+                  v111 = itz.addx().picky();
+               } else {
+                  v101 = background;
+                  v111 = background;
+               }
+            } else {
+               v001 = background;
+               v011 = background;
                v101 = background;
                v111 = background;
             }
-         } else {
-            v001 = background;
-            v011 = background;
-            v101 = background;
-            v111 = background;
          }
 
          //

@@ -48,17 +48,17 @@ namespace mvv
          const std::string pathV2 = "../../nllTest/data/medical/pet-NAC.mf2";
          const std::string pathV1 = "../../nllTest/data/medical/CT1orig.mf2";
          bool loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
-         volumes.attachVolume( &TODOREMOVE_volume, 0.8, &windowing );
+         volumes.attachVolume( &TODOREMOVE_volume, 1, &windowing );
          ensure( loaded, "error" );
 
-         loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
-         volumes.attachVolume( &TODOREMOVE_volume2, 0.2, &windowing2 );
-         ensure( loaded, "error" );
+         //loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
+         //volumes.attachVolume( &TODOREMOVE_volume2, 0.2, &windowing2 );
+         //ensure( loaded, "error" );
 
 
          // set zoom factors
-         zoom.setValue( 0, 1 );
-         zoom.setValue( 1, 1 );
+         zoom.setValue( 0, 2 );
+         zoom.setValue( 1, 2 );
 
          // set default windowing
          windowing.setMinWindow( -1000 );
@@ -82,8 +82,8 @@ namespace mvv
          engines.insert( mpr1 );
 
          // layout
-         ui32 sizex = 512;
-         ui32 sizey = 512;
+         ui32 sizex = 1600;
+         ui32 sizey = 1400;
          PaneDrawable* layout1 = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( sizex, sizey ) );
          layout1->updateLayout();
          rootLayout = layout1;
