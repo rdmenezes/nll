@@ -2,14 +2,10 @@
 #include <GL/freeglut.h>
 
 static mvv::ApplicationVariables applicationVariables;
-static double sx = 0.75, sy = 0.75;
-static double dx = 0.38, dy = 0.38;
-static int resx = 256;
-static int resy = 256;
 
 void handleOrders( int value )
 {
-   glutTimerFunc( 3, handleOrders, 0 );
+   glutTimerFunc( 1, handleOrders, 0 );
 
    // code
    applicationVariables.handleOrders();
@@ -32,6 +28,7 @@ void renderObjects()
 {
    // generate the texture we are going to draw
    applicationVariables.rootLayout->draw( applicationVariables.screen );
+   //nll::core::writeBmp( applicationVariables.screen, "c:/screen.bmp" );
    glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
    glTexImage2D(GL_TEXTURE_2D, 0, 3, applicationVariables.screen.sizex(), applicationVariables.screen.sizey(),
                 0, GL_RGB, GL_UNSIGNED_BYTE, applicationVariables.screen.getBuf() );
@@ -42,11 +39,11 @@ void renderObjects()
 
    glBegin(GL_QUADS);
    glTexCoord2d( 0, 0 );
-	glVertex2f(0,resy);
+	glVertex2f(0,applicationVariables.rootLayout->getSize()[ 1 ]);
    glTexCoord2d( 1, 0 );
-	glVertex2f(resx,resy);
+	glVertex2f(applicationVariables.rootLayout->getSize()[ 0 ],applicationVariables.rootLayout->getSize()[ 1 ]);
    glTexCoord2d( 1, 1 );
-	glVertex2f(resx,0);
+	glVertex2f(applicationVariables.rootLayout->getSize()[ 0 ],0);
    glTexCoord2d( 0, 1 );
 	glVertex2f(0,0);
 	glEnd();
@@ -83,8 +80,9 @@ void reshape( GLint w, GLint h )
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
 
-   resx = w;
-   resy = h;
+   applicationVariables.screen = nll::core::Image<nll::ui8>( w, h, 3 );
+   applicationVariables.rootLayout->setSize( nll::core::vector2ui( w, h ) );
+   applicationVariables.rootLayout->updateLayout();
 }
 
 void initGraphics()
@@ -106,7 +104,7 @@ void mouseButton(int button, int state, int x, int y)
 void mouseMotion(int x, int y)
 {
    //std::cout << "y = " << y << std::endl;
-   applicationVariables.originMpr1.setValue( 2, (double)y / resy * 82 );
+//   applicationVariables.originMpr1.setValue( 2, (double)y / resy * 82 );
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -123,7 +121,7 @@ int main(int argc, char** argv)
 {
   // GLUT Window Initialization:
   glutInit (&argc, argv);
-  glutInitWindowSize (512, 512);
+  glutInitWindowSize (applicationVariables.rootLayout->getSize()[ 0 ], applicationVariables.rootLayout->getSize()[ 1 ]);
   glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutCreateWindow ("Medical Volume Viewer");
   //glutGameModeString( "1280x800:32" );
