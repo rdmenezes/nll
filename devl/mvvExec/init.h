@@ -1,6 +1,7 @@
 #ifndef MVV_INIT_H_
 # define MVV_INIT_H_
 
+# include <mvv/layout-3-mpr.h>
 # include <mvv/queue-orders.h>
 # include <mvv/resource-manager.h>
 # include <mvv/order.h>
@@ -17,48 +18,41 @@ namespace mvv
     */
    struct ApplicationVariables
    {
-      typedef std::set<Engine*>           Engines;
-
-
-      ResourceVolumes                     volumes;
-      ResourceVector2d                    zoom;
-      ResourceTransferFunctionWindowing   windowing;
-      ResourceTransferFunctionWindowing   windowing2;
-
-      ResourceVector3d                    originMpr1;
-      ResourceVector3d                    mpr1V1;
-      ResourceVector3d                    mpr1V2;
-      EngineMpr*                          mpr1;
-
+      Display3Mpr*                        mprs;
       QueueOrder*                         queue;
-      Engines                             engines;
       Pane*                               rootLayout;
 
       boost::thread                       dispatchThread;
 
       MedicalVolume                       TODOREMOVE_volume;
       MedicalVolume                       TODOREMOVE_volume2;
+      ResourceTransferFunctionWindowing   windowing;
+      ResourceTransferFunctionWindowing   windowing2;
 
       unsigned int                        screenTextureId;
       nll::core::Image<nll::ui8>          screen;
 
       ApplicationVariables()
       {
+         mprs = new Display3Mpr( ResourceManager::instance() );
+
          // load volumes
          const std::string pathV2 = "../../nllTest/data/medical/pet-NAC.mf2";
          const std::string pathV1 = "../../nllTest/data/medical/CT1orig.mf2";
-         bool loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
-         volumes.attachVolume( &TODOREMOVE_volume, 0.8, &windowing );
+         bool loaded;
+
+         loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
+         mprs->getVolumes().attachVolume( &TODOREMOVE_volume, 0.1, &windowing );
          ensure( loaded, "error" );
 
          loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
-         volumes.attachVolume( &TODOREMOVE_volume2, 0.2, &windowing2 );
+         mprs->getVolumes().attachVolume( &TODOREMOVE_volume2, 0.9, &windowing2 );
          ensure( loaded, "error" );
 
 
          // set zoom factors
-         zoom.setValue( 0, 3 );
-         zoom.setValue( 1, 3 );
+         //zoom.setValue( 0, 3 );
+         //zoom.setValue( 1, 3 );
 
          // set default windowing
          windowing.setMinWindow( -1000 );
@@ -67,6 +61,7 @@ namespace mvv
          windowing2.setMaxWindow( 5000 );
 
          // set the MPR1
+         /*
          originMpr1.setValue( 0, 0 );
          originMpr1.setValue( 1, 0 );
          originMpr1.setValue( 2, 43 );
@@ -87,6 +82,16 @@ namespace mvv
          PaneDrawable* layout1 = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( sizex, sizey ) );
          layout1->updateLayout();
          rootLayout = layout1;
+         */
+
+         ui32 sizex = 1024;
+         ui32 sizey = 1024;
+
+         rootLayout = mprs->getLayout();
+         rootLayout->setOrigin( nll::core::vector2ui( 0, 0 ) );
+         rootLayout->setSize( nll::core::vector2ui( sizex, sizey ) );
+         rootLayout->updateLayout();
+         mprs->_computeAutoAdjustSize();
 
          // queue
          queue = new QueueOrder( ResourceManager::instance(), 10 );
@@ -100,20 +105,13 @@ namespace mvv
 
       void handleOrders()
       {
-         _ResourceManager::Orders orders = queue->getFinishedOrdersAndClear();
-         for ( Engines::iterator it = engines.begin(); it != engines.end(); ++it )
-         {
-            for ( _ResourceManager::Orders::iterator oit = orders.begin(); oit != orders.end(); ++oit )
-               (*it)->consume( *oit );
-         }
+         QueueOrder::OrderBuffer orders = queue->getFinishedOrdersAndClear();
+         mprs->consume( orders );
       }
 
       void runEngines()
       {
-         for ( Engines::iterator it = engines.begin(); it != engines.end(); ++it )
-         {
-            (*it)->run();
-         }
+         mprs->checkStatus();
       }
    };
 }

@@ -5,7 +5,7 @@ static mvv::ApplicationVariables applicationVariables;
 
 void handleOrders( int value )
 {
-   glutTimerFunc( 1, handleOrders, 0 );
+   glutTimerFunc( 0, handleOrders, 0 );
 
    // code
    applicationVariables.handleOrders();
@@ -104,7 +104,14 @@ void mouseButton(int button, int state, int x, int y)
 void mouseMotion(int x, int y)
 {
    //std::cout << "y = " << y << std::endl;
-//   applicationVariables.originMpr1.setValue( 2, (double)y / resy * 82 );
+   //applicationVariables.originMpr1.setValue( 2, (double)y / applicationVariables.screen.sizey() * 82 );
+
+   /*
+   nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+   pos[ 2 ] = (double)y / applicationVariables.screen.sizey() * 82;
+   pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 512;
+   applicationVariables.mprs->setMprPosition( pos );
+   */
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -112,9 +119,18 @@ void keyboard(unsigned char key, int x, int y)
    if ( key == 'q' )
       exit( 0 );
    if ( key == 'k' )
-      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] + 0.3 );
+   {
+      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+      pos[ 2 ] += 8.3;
+      applicationVariables.mprs->setMprPosition( pos );
+   }
    if ( key == 'l' )
-      applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] - 0.3 );
+   {
+      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+      pos[ 2 ] -= 8.3;
+      applicationVariables.mprs->setMprPosition( pos );
+   }
+   
 }
 
 int main(int argc, char** argv)

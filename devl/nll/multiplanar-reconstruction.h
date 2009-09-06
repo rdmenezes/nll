@@ -50,13 +50,15 @@ namespace imaging
       /**
        @brief Compute the slice according to a position and 2 vectors and a size factor.
               The volume's spacing is used to compute the correct MPR.
-       @param point the index of a point (volume coordinate)
+       @param point in mm (patient coordinate)
        @param ax x-axis of the plane
        @param ay y-axis of the plane
        @param zoomFactor zoomFactor used toreconstruct the slice
        */
       Slice getSlice( const core::vector3d& point, const core::vector3d& ax, const core::vector3d& ay, const core::vector2d zoomFactor = core::vector2d( 1, 1 ) ) const
       {
+         assert( zoomFactor[ 0 ] > 0 && zoomFactor[ 1 ] > 0 );
+
          // the slice has a speficied size, it needs to be resampled afterward if necesary
          Slice slice( static_cast<ui32>( core::round( _voxelsx ) ),
                       static_cast<ui32>( core::round( _voxelsy ) ),
@@ -80,9 +82,10 @@ namespace imaging
          Interpolator interpolator( _volume );
 
          // reconstruct the slice
-         double startx = point[ 0 ];
-         double starty = point[ 1 ];
-         double startz = point[ 2 ];
+         core::vector3d index = _volume.positionToIndex ( point );
+         double startx = index[ 0 ];
+         double starty = index[ 1 ];
+         double startz = index[ 2 ];
          for ( ui32 y = 0; y < _voxelsy; ++y )
          {
             double px = startx;

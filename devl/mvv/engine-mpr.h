@@ -169,23 +169,12 @@ namespace mvv
             }
             ratio += it->ratio;
          }
+         nll::core::writeBmp( _slice, "c:/tmp/tmp.bmp" );
          ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
 
          // clear the orders, we don't need them
          _tracked.clear();
          std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR MPR finished" << std::endl;
-
-         // TODO REMOVE
-         static int nbFps = 0;
-         static unsigned last = clock();
-         ++nbFps;
-
-         if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
-         {
-            std::cout << "----------------MPR_fps=" << nbFps << std::endl;
-            nbFps = 0;
-            last = clock();
-         }
       }
 
       /**

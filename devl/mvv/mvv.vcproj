@@ -518,6 +518,10 @@
 				RelativePath=".\engine-mpr.h"
 				>
 			</File>
+			<File
+				RelativePath=".\layout-3-mpr.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\mvv.dox"

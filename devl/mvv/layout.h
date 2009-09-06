@@ -10,6 +10,8 @@ namespace mvv
    /**
     @ingroup mvv
     @brief Base Class that hold a graphic display
+
+    UpdateLayout must be called if visible status, size or origin have changed changed
     */
    class Pane
    {
@@ -46,6 +48,11 @@ namespace mvv
       void setVisible( bool isVisible )
       {
          _visible = isVisible;
+
+         if ( !_visible )
+         {
+            setSize( nll::core::vector2ui( 0, 0 ) );
+         }
       }
 
       /**
@@ -292,6 +299,33 @@ namespace mvv
 
    protected:
       Drawable&      _drawable;
+   };
+
+   /**
+    @brief Empty pane, used as placeholder
+    */
+   class PaneDrawableEmpty : public Pane
+   {
+   public:
+      /**
+       @brief Constructor
+       @param drawable a drawable object. It must be alive until the end of life of this object
+       */
+      PaneDrawableEmpty( const nll::core::vector2ui& origin,
+                         const nll::core::vector2ui& size ) : Pane( origin, size )
+      {}
+
+      /**
+       @brief draw the pane
+       */
+      virtual void draw( Image& )
+      {}
+
+      /**
+       @brief Update the layout in case the child changed origin/size/visibility
+       */
+      virtual void updateLayout()
+      {}
    };
 }
 
