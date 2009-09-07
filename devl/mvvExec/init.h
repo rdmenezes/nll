@@ -37,16 +37,16 @@ namespace mvv
          mprs = new Display3Mpr( ResourceManager::instance() );
 
          // load volumes
-         const std::string pathV2 = "../../nllTest/data/medical/pet-NAC.mf2";
-         const std::string pathV1 = "../../nllTest/data/medical/CT1orig.mf2";
+         const std::string pathV2 = "../../nllTest/data/medical/1_-NAC.mf2";
+         const std::string pathV1 = "../../nllTest/data/medical/1_-CT.mf2";
          bool loaded;
 
          loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
-         mprs->getVolumes().attachVolume( &TODOREMOVE_volume, 0.1, &windowing );
+         mprs->getVolumes().attachVolume( &TODOREMOVE_volume, 0.5, &windowing );
          ensure( loaded, "error" );
 
          loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
-         mprs->getVolumes().attachVolume( &TODOREMOVE_volume2, 0.9, &windowing2 );
+         mprs->getVolumes().attachVolume( &TODOREMOVE_volume2, 0.5, &windowing2 );
          ensure( loaded, "error" );
 
 
@@ -59,6 +59,8 @@ namespace mvv
          windowing.setMaxWindow( 1000 );
          windowing2.setMinWindow( -1000 );
          windowing2.setMaxWindow( 5000 );
+         unsigned char red[] = { 255, 0, 0 };
+         windowing2.setLutColor( red );
 
          // set the MPR1
          /*

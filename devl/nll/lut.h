@@ -156,6 +156,23 @@ namespace imaging
          }
       }
 
+      /**
+       @param baseColor an index that must contain getNbComponents() components
+       */ 
+      void createColorScale( const value_type* baseColor )
+      {
+         core::Buffer1D<value_type> vals( _lut.getNbComponents() );
+         for ( ui32 n = 0; n < _lut.getSize(); ++n )
+         {
+            for ( ui32 i = 0; i < _lut.getNbComponents(); ++i )
+            {
+               double ratio = (double)n / _lut.getSize();
+               vals[ i ] = static_cast<value_type>( (  ( ratio ) * baseColor[ i ] + ( 1 - ratio ) * 255 ) / _lut.getSize() * n );
+            }
+            set( n, vals.getBuf() );
+         }
+      }
+
    protected:
       Lut      _lut;
    };

@@ -57,6 +57,11 @@ namespace mvv
          return _minWindow;
       }
 
+      void setLutColor( const ui8* colors )
+      {
+         _lut.createColorScale( colors );
+      }
+
       /**
        @brief Transform a real value to a RGB value
        @param inValue the input value

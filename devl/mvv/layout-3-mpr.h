@@ -185,9 +185,20 @@ namespace mvv
 
          const nll::core::vector2ui size = _rootLayout->getSize();
 
-         _origin00.setValue( 0, -itmax->volume->getOrigin()[ 0 ] );
-         _origin00.setValue( 1, -itmax->volume->getOrigin()[ 1 ] );
+         // we want zoom to be 1
+         double zx = ( size[ 0 ] / 2 ) / sx;
+
+         double spx1 = size[ 0 ] / 2 - sx * zx;
+         double spy1 = size[ 1 ] / 2 - sy * zx;
+
+         std::cout << "----------div=" << spx1 << std::endl;
+
+         _origin00.setValue( 0, -itmax->volume->getOrigin()[ 0 ] - spx1 / ( 2 * zx ) );
+         _origin00.setValue( 1, -itmax->volume->getOrigin()[ 1 ] - spy1 / ( 2 * zx ) );
          _origin00.setValue( 2, -itmax->volume->getOrigin()[ 2 ] );
+
+         _zoom.setValue( 0, zx );
+         _zoom.setValue( 1, zx );
       }
 
 
