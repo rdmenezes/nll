@@ -198,6 +198,18 @@ namespace mvv
          _buf[ v ] = val;
       }
 
+      void normalize()
+      {
+         double l = sqrt( _buf[ 0 ] * _buf[ 0 ] +
+                          _buf[ 1 ] * _buf[ 1 ] +
+                          _buf[ 2 ] * _buf[ 2 ] );
+         assert( l > 0 );
+         _buf[ 0 ] /= l;
+         _buf[ 1 ] /= l;
+         _buf[ 2 ] /= l;
+         notifyChanges();
+      }
+
    protected:
       double   _buf[ 3 ];
    };

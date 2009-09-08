@@ -118,17 +118,61 @@ void keyboard(unsigned char key, int x, int y)
 {
    if ( key == 'q' )
       exit( 0 );
-   if ( key == 'k' )
+   if ( key == '7' )
    {
       nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
       pos[ 2 ] += 8.3;
       applicationVariables.mprs->setMprPosition( pos );
    }
-   if ( key == 'l' )
+   if ( key == '1' )
    {
       nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
       pos[ 2 ] -= 8.3;
       applicationVariables.mprs->setMprPosition( pos );
+   }
+   if ( key == '8' )
+   {
+      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+      pos[ 0 ] += 8.3;
+      applicationVariables.mprs->setMprPosition( pos );
+   }
+   if ( key == '2' )
+   {
+      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+      pos[ 0 ] -= 8.3;
+      applicationVariables.mprs->setMprPosition( pos );
+   }
+   if ( key == '9' )
+   {
+      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+      pos[ 1 ] += 8.3;
+      applicationVariables.mprs->setMprPosition( pos );
+   }
+   if ( key == '3' )
+   {
+      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
+      pos[ 1 ] -= 8.3;
+      applicationVariables.mprs->setMprPosition( pos );
+   }
+   if ( key == '5' )
+   {
+      applicationVariables.mprs->autoAdjustSize();
+   }
+   if ( key == '+' )
+   {
+      nll::core::vector2d zoom = applicationVariables.mprs->getZoom();
+      zoom[ 0 ] += 0.5;
+      zoom[ 1 ] = zoom[ 0 ];
+      applicationVariables.mprs->setZoom( zoom );
+   }
+   if ( key == '-' )
+   {
+      nll::core::vector2d zoom = applicationVariables.mprs->getZoom();
+      zoom[ 0 ] -= 0.5;
+      if ( zoom[ 0 ] <= 0.01 )
+         zoom[ 0 ] = 0.01;
+      zoom[ 1 ] = zoom[ 0 ];
+      applicationVariables.mprs->setZoom( zoom );
    }
    
 }

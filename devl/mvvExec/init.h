@@ -55,7 +55,7 @@ namespace mvv
          //zoom.setValue( 1, 3 );
 
          // set default windowing
-         windowing.setMinWindow( -1000 );
+         windowing.setMinWindow( -2000 );
          windowing.setMaxWindow( 1000 );
          windowing2.setMinWindow( -1000 );
          windowing2.setMaxWindow( 5000 );
@@ -86,14 +86,14 @@ namespace mvv
          rootLayout = layout1;
          */
 
-         ui32 sizex = 1024;
-         ui32 sizey = 1024;
+         ui32 sizex = 1600;
+         ui32 sizey = 1184;
 
          rootLayout = mprs->getLayout();
          rootLayout->setOrigin( nll::core::vector2ui( 0, 0 ) );
          rootLayout->setSize( nll::core::vector2ui( sizex, sizey ) );
          rootLayout->updateLayout();
-         mprs->_computeAutoAdjustSize();
+         mprs->autoAdjustSize();
 
          // queue
          queue = new QueueOrder( ResourceManager::instance(), 10 );

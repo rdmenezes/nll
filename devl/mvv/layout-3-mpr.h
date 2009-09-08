@@ -23,7 +23,6 @@ namespace mvv
       Display3Mpr( OrderProvider& orderProvider )
       {
          // create the MPRs
-         /*
          _mpr00 = new EngineMpr( orderProvider,
                                  _volumes,
                                  _origin00,
@@ -41,27 +40,6 @@ namespace mvv
                                  _origin01,
                                  _v010,
                                  _v001,
-                                 _zoom );
-                                 */
-         
-         
-         _mpr00 = new EngineMpr( orderProvider,
-                                 _volumes,
-                                 _origin00,
-                                 _v100,
-                                 _v010,
-                                 _zoom );
-         _mpr10 = new EngineMpr( orderProvider,
-                                 _volumes,
-                                 _origin00,
-                                 _v100,
-                                 _v010,
-                                 _zoom );
-         _mpr01 = new EngineMpr( orderProvider,
-                                 _volumes,
-                                 _origin00,
-                                 _v100,
-                                 _v010,
                                  _zoom );
 
          // create the layout
@@ -88,6 +66,7 @@ namespace mvv
          root->addChild( vertical_r, 0.5 );
          _rootLayout = root;
 
+         // the default vectors for MPR
          _v100.setValue( 0, 1 );
          _v100.setValue( 1, 0 );
          _v100.setValue( 2, 0 );
@@ -103,21 +82,31 @@ namespace mvv
          _zoom.setValue( 0, 0.5 );
          _zoom.setValue( 1, 0.5 );
 
+         // registers the engines contained by this object
          _engines.insert( _mpr00 );
          _engines.insert( _mpr10 );
          _engines.insert( _mpr01 );
       }
 
+      /**
+       @brief Return the volume list (and their lifecycle) attached to the MPR
+       */
       ResourceVolumes& getVolumes()
       {
          return _volumes;
       }
 
+      /**
+       @brief Returns the layout. This layout should be appended to another layout where it will be held.
+       */
       Pane* getLayout() const
       {
          return _rootLayout;
       }
 
+      /**
+       @brief Set the MPR position
+       */
       void setMprPosition( const nll::core::vector3d& pos )
       {
          _origin01.setValue( 0, pos[ 0 ] );
@@ -125,6 +114,9 @@ namespace mvv
          _origin00.setValue( 2, pos[ 2 ] );
       }
 
+      /**
+       @brief Get the MPR position
+       */
       nll::core::vector3d getMprPosition() const
       {
          return nll::core::vector3d( _origin01.getValue( 0 ),
@@ -156,8 +148,28 @@ namespace mvv
          }
       }
 
-  // protected:
-      void _computeAutoAdjustSize()
+      /**
+       @brief Return the zoom shared by the 3 MPRs
+       */
+      nll::core::vector2d getZoom() const
+      {
+         return nll::core::vector2d( _zoom[ 0 ], _zoom[ 1 ] );
+      }
+
+      /**
+       @brief Return the zoom shared by the 3 MPRs
+       */
+      void setZoom( const nll::core::vector2d& z )
+      {
+         ensure( z[ 0 ] > 0 && z[ 1 ] > 0, "only positive numbers" );
+         _zoom.setValue( 0, z[ 0 ] );
+         _zoom.setValue( 1, z[ 1 ] );
+      }
+
+      /**
+       @brief Center the MPRs on the biggest volume, and adjust the zoom so that the bigger MPR fits the screen
+       */
+      void autoAdjustSize()
       {
          // look for the biggest volume and display its middle
          double max = 0;
@@ -178,31 +190,78 @@ namespace mvv
             }
          }
 
+         // select the new base vector : we want to be in the same base than the biggest volume
+         _v100.setValue( 0, itmax->volume->getPst()( 0, 0 ) );
+         _v100.setValue( 1, itmax->volume->getPst()( 1, 0 ) );
+         _v100.setValue( 2, itmax->volume->getPst()( 2, 0 ) );
+         _v100.normalize();
 
-         double sx = itmax->volume->getSize()[ 0 ] * itmax->volume->getSpacing()[ 0 ];
-         double sy = itmax->volume->getSize()[ 1 ] * itmax->volume->getSpacing()[ 1 ];
-         double sz = itmax->volume->getSize()[ 2 ] * itmax->volume->getSpacing()[ 2 ];
+         _v010.setValue( 0, itmax->volume->getPst()( 0, 1 ) );
+         _v010.setValue( 1, itmax->volume->getPst()( 1, 1 ) );
+         _v010.setValue( 2, itmax->volume->getPst()( 2, 1 ) );
+         _v010.normalize();
+
+         _v001.setValue( 0, itmax->volume->getPst()( 0, 2 ) );
+         _v001.setValue( 1, itmax->volume->getPst()( 1, 2 ) );
+         _v001.setValue( 2, itmax->volume->getPst()( 2, 2 ) );
+         _v001.normalize();
+
+         // compute a ratio so that the biggest side on MPR is fully displayed
+         double sx0 = itmax->volume->getSize()[ 0 ] * itmax->volume->getSpacing()[ 0 ];
+         double sy0 = itmax->volume->getSize()[ 1 ] * itmax->volume->getSpacing()[ 1 ];
+
+         double sx1 = itmax->volume->getSize()[ 0 ] * itmax->volume->getSpacing()[ 0 ];
+         double sy1 = itmax->volume->getSize()[ 2 ] * itmax->volume->getSpacing()[ 2 ];
+
+         double sx2 = itmax->volume->getSize()[ 1 ] * itmax->volume->getSpacing()[ 1 ];
+         double sy2 = itmax->volume->getSize()[ 2 ] * itmax->volume->getSpacing()[ 2 ];
 
          const nll::core::vector2ui size = _rootLayout->getSize();
 
-         // we want zoom to be 1
-         double zx = ( size[ 0 ] / 2 ) / sx;
+         // we want zoom to be 1 to the largest border
+         double zx = ( size[ 0 ] / 2 ) / sx0;
+         double zy = ( size[ 1 ] / 2 ) / sy0;
+         double zoomFactor = std::min( zx, zy );
 
-         double spx1 = size[ 0 ] / 2 - sx * zx;
-         double spy1 = size[ 1 ] / 2 - sy * zx;
+         // compute the initial deviation
+         double spx1 = size[ 0 ] / 2 - sx0 * zoomFactor;
+         double spy1 = size[ 1 ] / 2 - sy0 * zoomFactor;
 
-         std::cout << "----------div=" << spx1 << std::endl;
+         double spx2 = size[ 0 ] / 2 - sx1 * zoomFactor;
+         double spy2 = size[ 1 ] / 2 - sy1 * zoomFactor;
 
-         _origin00.setValue( 0, -itmax->volume->getOrigin()[ 0 ] - spx1 / ( 2 * zx ) );
-         _origin00.setValue( 1, -itmax->volume->getOrigin()[ 1 ] - spy1 / ( 2 * zx ) );
-         _origin00.setValue( 2, -itmax->volume->getOrigin()[ 2 ] );
+         double spx3 = size[ 0 ] / 2 - sx2 * zoomFactor;
+         double spy3 = size[ 1 ] / 2 - sy2 * zoomFactor;
 
-         _zoom.setValue( 0, zx );
-         _zoom.setValue( 1, zx );
+         // save the new deviation (in case a volume is unloaded we want to keep track of the original position)
+         _originDev00[ 0 ] = - spx1 / ( 2 * zoomFactor );
+         _originDev00[ 1 ] = - spy1 / ( 2 * zoomFactor );
+         _originDev00[ 2 ] = + sy1 / 2;
+
+         _originDev10[ 0 ] = - spx2 / ( 2 * zoomFactor );
+         _originDev10[ 1 ] = + sy0 / 2;
+         _originDev10[ 2 ] = - spy2 / ( 2 * zoomFactor );
+
+         _originDev01[ 0 ] = + sx0 / 2;
+         _originDev01[ 1 ] = - spx3 / ( 2 * zoomFactor );
+         _originDev01[ 2 ] = - spy3 / ( 2 * zoomFactor );
+
+         // set the updated center to the center of the largest volume
+         _origin00.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev00[ 0 ] );
+         _origin00.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev00[ 1 ] );
+         _origin00.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev00[ 2 ] );
+
+         _origin10.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev10[ 0 ] );
+         _origin10.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev10[ 1 ] );
+         _origin10.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev10[ 2 ] );
+
+         _origin01.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev01[ 0 ] );
+         _origin01.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev01[ 1 ] );
+         _origin01.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev01[ 2 ] );
+
+         _zoom.setValue( 0, zoomFactor );
+         _zoom.setValue( 1, zoomFactor );
       }
-
-
-
 
    protected:
       ResourceVolumes   _volumes;
@@ -213,6 +272,10 @@ namespace mvv
       ResourceVector3d  _v010;
       ResourceVector3d  _v001;
       ResourceVector2d  _zoom;
+
+      nll::core::vector3d  _originDev00;
+      nll::core::vector3d  _originDev10;
+      nll::core::vector3d  _originDev01;
 
       EngineMpr*        _mpr00;
       EngineMpr*        _mpr10;
