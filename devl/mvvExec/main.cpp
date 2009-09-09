@@ -79,10 +79,10 @@ void reshape( GLint w, GLint h )
    
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-
+/*
    applicationVariables.screen = nll::core::Image<nll::ui8>( w, h, 3 );
    applicationVariables.rootLayout->setSize( nll::core::vector2ui( w, h ) );
-   applicationVariables.rootLayout->updateLayout();
+   applicationVariables.rootLayout->updateLayout();*/
 }
 
 void initGraphics()
@@ -106,12 +106,12 @@ void mouseMotion(int x, int y)
    //std::cout << "y = " << y << std::endl;
    //applicationVariables.originMpr1.setValue( 2, (double)y / applicationVariables.screen.sizey() * 82 );
 
-   /*
+   
    nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
    pos[ 2 ] = (double)y / applicationVariables.screen.sizey() * 82;
-   pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 512;
+   pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 82;
    applicationVariables.mprs->setMprPosition( pos );
-   */
+   
 }
 
 void keyboard(unsigned char key, int x, int y)
