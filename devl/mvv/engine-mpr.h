@@ -140,6 +140,11 @@ namespace mvv
             }
             ratio += it->ratio;
          }
+         ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
+
+         //for ( Orders::const_iterator it = _tracked.begin(); it != _tracked.end(); ++it )
+         //   delete (*it)->getResult();
+         return new OrderResult();
       }
 
    private:
@@ -185,7 +190,7 @@ namespace mvv
        */
       virtual void consume( Order* o )
       {
-         if ( o->getOrderClassId() != ORDER_MPR_RENDERING || !_tracked.size() )
+         if ( ( o->getOrderClassId() != ORDER_MPR_RENDERING && o->getOrderClassId() != ORDER_MPR_RENDERING_COMBINE ) || !_tracked.size() )
             return;
 
          // it is a MPR_RENDERING order so we need to check it is one of our order
@@ -198,32 +203,11 @@ namespace mvv
             std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR result found" << std::endl;
 
          // all the orders are finished, just fuse them and update the result
-         ensure( _tracked.size() == _volumes.size(), "error size doesn't match!" );
-         
-         _slice = Image( _sx, _sy, 3, true );
-
-         ui32 n = 0;
-         double ratio = 0;
-         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
-         {
-            const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
-            OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
-            Image::DirectionalIterator itOut = _slice.beginDirectional();
-            ResourceTransferFunctionWindowing* windowing = it->windowing;
-            for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
-            {
-               const ui8* buf = windowing->transform( *itIn );
-               itOut.pickcol( 0 ) += buf[ 0 ] * it->ratio;
-               itOut.pickcol( 1 ) += buf[ 1 ] * it->ratio;
-               itOut.pickcol( 2 ) += buf[ 2 ] * it->ratio;
-            }
-            ratio += it->ratio;
-         }
-         //nll::core::writeBmp( _slice, "c:/tmp/tmp.bmp" );
-         ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
-
+         ensure( _tracked.size() == _volumes.size() + 1, "error size doesn't match!" );
+        
          // clear the orders, we don't need them
          _tracked.clear();
+         _slice.clone( _sliceTmp );
          std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR MPR finished" << std::endl;
       }
 
@@ -233,7 +217,11 @@ namespace mvv
       virtual bool _run()
       {
          if ( _tracked.size() )
+         {
+            std::cout << "waiting..." << _tracked.size()<< std::endl;
             return false;
+         }
+         _sliceTmp = Image( _sx, _sy, 3, true );
          _tracked = Orders( _volumes.size() );
          std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR STARTED RUN ORDER" << std::endl;
 
@@ -254,6 +242,9 @@ namespace mvv
             _tracked[ n ] = order;
             _orderProvider.pushOrder( order );
          }
+         OrderCombineMpr* order = new OrderCombineMpr( _tracked, _sliceTmp, _volumes );
+         _orderProvider.pushOrder( order );
+         _tracked.push_back( order );
          return true;
       }
 
@@ -278,11 +269,15 @@ namespace mvv
       {
          _sx = sx;
          _sy = sy;
+
+         _slice = Image( _sx, _sy, 3, true );
+         _sliceTmp = Image( _sx, _sy, 3, true );
       }
 
    protected:
       OrderProvider& _orderProvider;
       Image          _slice;
+      Image          _sliceTmp;
       ui32           _sx;
       ui32           _sy;
 

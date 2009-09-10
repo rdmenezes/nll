@@ -234,7 +234,7 @@ namespace mvv
          // we want zoom to be 1 to the largest border
          double zx = ( size[ 0 ] / 2 ) / sx0;
          double zy = ( size[ 1 ] / 2 ) / sy0;
-         double zoomFactor = std::min( zx, zy );
+         double zoomFactor = std::min( zx, zy ) * 2;
 
          // compute the initial deviation
          double spx1 = size[ 0 ] / 2 - sx0 * zoomFactor;
