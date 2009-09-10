@@ -96,7 +96,9 @@ namespace mvv
       {}
 
       virtual ~Order()
-      {}
+      {
+         delete _result;
+      }
 
       /**
        @brief Run the order and return a result. (_result will be automatically set externally)

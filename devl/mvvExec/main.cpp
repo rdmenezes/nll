@@ -109,7 +109,7 @@ void mouseMotion(int x, int y)
    
    nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
    pos[ 2 ] = (double)y / applicationVariables.screen.sizey() * 82;
-   pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 82;
+   pos[ 1 ] = (double)x / applicationVariables.screen.sizex() * 82;
    applicationVariables.mprs->setMprPosition( pos );
    
 }

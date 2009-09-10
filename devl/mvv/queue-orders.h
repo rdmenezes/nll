@@ -130,6 +130,13 @@ namespace mvv
          _orders.clear();
       }
 
+      void destroy( ui32 id )
+      {
+         boost::mutex::scoped_lock lock( _mutex );
+         delete _orders[ id ];
+         _orders[ id ] = 0;
+      }
+
       /**
        @brief get the orders that have been executed. It is a sequence, and it is guaranteed the predecessors
               have been placed before in the list.

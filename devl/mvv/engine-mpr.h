@@ -141,9 +141,6 @@ namespace mvv
             ratio += it->ratio;
          }
          ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
-
-         //for ( Orders::const_iterator it = _tracked.begin(); it != _tracked.end(); ++it )
-         //   delete (*it)->getResult();
          return new OrderResult();
       }
 
@@ -204,8 +201,11 @@ namespace mvv
 
          // all the orders are finished, just fuse them and update the result
          ensure( _tracked.size() == _volumes.size() + 1, "error size doesn't match!" );
-        
-         // clear the orders, we don't need them
+
+         for ( Orders::iterator it = _tracked.begin(); it != _tracked.end(); ++it )
+         {
+         }
+
          _tracked.clear();
          _slice.clone( _sliceTmp );
          std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR MPR finished" << std::endl;
