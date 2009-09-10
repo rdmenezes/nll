@@ -107,6 +107,56 @@ namespace mvv
    };
 
    /**
+    @brief Combines all the slices within a MPR using transfer functions
+    */
+   class OrderCombineMpr : public Order
+   {
+   public:
+      typedef std::vector<Order*>      Orders;
+      typedef nll::core::Image<ui8>    Image;
+
+   public:
+      OrderCombineMpr( const Orders& predecessors, Image& slice, ResourceVolumes& volumes ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
+         _tracked( predecessors ), _volumes( volumes ), _slice( slice )
+      {
+      }
+
+      virtual OrderResult* run()
+      {
+         ui32 n = 0;
+         double ratio = 0;
+         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         {
+            const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
+            OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
+            Image::DirectionalIterator itOut = _slice.beginDirectional();
+            ResourceTransferFunctionWindowing* windowing = it->windowing;
+            for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
+            {
+               const ui8* buf = windowing->transform( *itIn );
+               itOut.pickcol( 0 ) += buf[ 0 ] * it->ratio;
+               itOut.pickcol( 1 ) += buf[ 1 ] * it->ratio;
+               itOut.pickcol( 2 ) += buf[ 2 ] * it->ratio;
+            }
+            ratio += it->ratio;
+         }
+      }
+
+   private:
+      static Order::Predecessors makePredecessors( const Orders& orders )
+      {
+         Order::Predecessors predecessors;
+         for ( Orders::const_iterator it = orders.begin(); it != orders.end(); ++it )
+            predecessors.insert( ( *it )->getId() );
+         return predecessors;
+      }
+
+      const Orders&                       _tracked;
+      ResourceVolumes&                    _volumes;
+      Image&                              _slice;
+   };
+
+   /**
     @ingroup mvv
     @brief A multiplanar reconstruction object
     */
@@ -169,7 +219,7 @@ namespace mvv
             }
             ratio += it->ratio;
          }
-         nll::core::writeBmp( _slice, "c:/tmp/tmp.bmp" );
+         //nll::core::writeBmp( _slice, "c:/tmp/tmp.bmp" );
          ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
 
          // clear the orders, we don't need them

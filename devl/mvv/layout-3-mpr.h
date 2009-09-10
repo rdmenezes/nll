@@ -162,6 +162,19 @@ namespace mvv
       void setZoom( const nll::core::vector2d& z )
       {
          ensure( z[ 0 ] > 0 && z[ 1 ] > 0, "only positive numbers" );
+
+         _origin00.setValue( 0, _origin00[ 0 ] + _originDev00[ 0 ] * ( z[ 0 ] - _zoom[ 0 ] ) );
+         _origin00.setValue( 1, _origin00[ 1 ] + _originDev00[ 1 ] * ( z[ 1 ] - _zoom[ 1 ] ) );
+         //_origin00.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev00[ 2 ] );
+/*
+         _origin10.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev10[ 0 ] );
+         _origin10.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev10[ 1 ] );
+         _origin10.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev10[ 2 ] );
+
+         _origin01.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev01[ 0 ] );
+         _origin01.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev01[ 1 ] );
+         _origin01.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev01[ 2 ] );
+*/
          _zoom.setValue( 0, z[ 0 ] );
          _zoom.setValue( 1, z[ 1 ] );
       }
