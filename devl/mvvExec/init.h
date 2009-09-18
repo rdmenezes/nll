@@ -86,8 +86,8 @@ namespace mvv
          rootLayout = layout1;
          */
 
-         ui32 sizex = 1500;
-         ui32 sizey = 800;
+         ui32 sizex = 1024;
+         ui32 sizey = 1024;
 
          rootLayout = mprs->getLayout();
          rootLayout->setOrigin( nll::core::vector2ui( 0, 0 ) );
@@ -96,7 +96,7 @@ namespace mvv
          mprs->autoAdjustSize();
 
          // queue
-         queue = new QueueOrder( ResourceManager::instance(), 10 );
+         queue = new QueueOrder( ResourceManager::instance(), 4 );
          dispatchThread = boost::thread( boost::ref( *queue ) );
          
          ResourceManager::instance().setQueueOrder( queue );

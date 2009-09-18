@@ -26,6 +26,16 @@ namespace mvv
        @brief push orders on a stack. <code>getOrdersAndClear</code> will return this stack and empty it
        */
       virtual void pushOrder( Order* order ) = 0;
+
+      /**
+       @brief Returns the a list of orders that need to be destroyed
+       */
+      virtual Orders getOrdersToDestroyAndClear() = 0;
+
+      /**
+       @brief Push an order that will be deallocated. It is assumed the order has finished executing, else this is not valid!
+       */
+      virtual void pushOrderToDestroy( Order* order ) = 0;
    };
 }
 

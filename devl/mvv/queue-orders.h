@@ -63,6 +63,16 @@ namespace mvv
                   _notified.wait( _mutex );
                _notified2 = false;
 
+               // find the orders to destroy
+               OrderProvider::Orders toRemove = _orderProvider.getOrdersToDestroyAndClear();
+               for ( OrderProvider::Orders::iterator it = toRemove.begin(); it != toRemove.end(); ++it )
+               {
+                  ui32 id = (*it)->getId();
+                  ensure( *it && (*it)->getResult(), "valid only for orders already run" );
+                  delete *it;
+                  _orders[ id ] = 0;
+               }
+
                // get the orders, and take them to a buffer
                OrderProvider::Orders newOrders = _orderProvider.getOrdersAndClear();
                for ( OrderProvider::Orders::iterator it = newOrders.begin(); it != newOrders.end(); ++it )
@@ -128,13 +138,6 @@ namespace mvv
          for ( OrderStorage::iterator it = _orders.begin(); it != _orders.end(); ++it )
             delete it->second;
          _orders.clear();
-      }
-
-      void destroy( ui32 id )
-      {
-         boost::mutex::scoped_lock lock( _mutex );
-         delete _orders[ id ];
-         _orders[ id ] = 0;
       }
 
       /**

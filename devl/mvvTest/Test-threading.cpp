@@ -68,6 +68,15 @@ public:
       orders.push_back( o );
    }
 
+   virtual Orders getOrdersToDestroyAndClear()
+   {
+      return Orders();
+   }
+
+   virtual void pushOrderToDestroy( Order* )
+   {
+   }
+
    Orders orders;
 };
 

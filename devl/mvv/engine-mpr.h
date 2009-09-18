@@ -204,6 +204,18 @@ namespace mvv
 
          for ( Orders::iterator it = _tracked.begin(); it != _tracked.end(); ++it )
          {
+            _orderProvider.pushOrderToDestroy( *it );
+         }
+
+         static int nbFps = 0;
+         static unsigned last = clock();
+         ++nbFps;
+
+         if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
+         {
+            std::cout << "------NumberofMprRendered=" << nbFps << std::endl;
+            nbFps = 0;
+            last = clock();
          }
 
          _tracked.clear();
@@ -271,7 +283,6 @@ namespace mvv
          _sy = sy;
 
          _slice = Image( _sx, _sy, 3, true );
-         _sliceTmp = Image( _sx, _sy, 3, true );
       }
 
    protected:

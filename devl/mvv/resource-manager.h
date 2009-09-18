@@ -28,6 +28,17 @@ namespace mvv
       }
 
       /**
+       @brief Returns the a list of orders that need to be destroyed
+       */
+      virtual Orders getOrdersToDestroyAndClear()
+      {
+         boost::mutex::scoped_lock lock( _mutex );
+         Orders o = _ordersToDestroy;
+         _ordersToDestroy.clear();
+         return o;
+      }
+
+      /**
        @brief Push an order to the queue. This order must be picked by the dispatcher thread (queue-order)
               That will handle its lifecycle.
        */
@@ -47,9 +58,16 @@ namespace mvv
          _queue = queue;
       }
 
+      virtual void pushOrderToDestroy( Order* order )
+      {
+         _ordersToDestroy.push_back( order );
+      }
+
+
    private:
       boost::mutex      _mutex;
       Orders            _orders;
+      Orders            _ordersToDestroy;
       Notifiable*       _queue;
    }; 
 

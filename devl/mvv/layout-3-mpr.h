@@ -163,8 +163,8 @@ namespace mvv
       {
          ensure( z[ 0 ] > 0 && z[ 1 ] > 0, "only positive numbers" );
 
-         _origin00.setValue( 0, _origin00[ 0 ] + _originDev00[ 0 ] * ( z[ 0 ] - _zoom[ 0 ] ) );
-         _origin00.setValue( 1, _origin00[ 1 ] + _originDev00[ 1 ] * ( z[ 1 ] - _zoom[ 1 ] ) );
+         //_origin00.setValue( 0, _origin00[ 0 ] + ( z[ 0 ] - _zx ) * _originDev00[ 0 ] );
+         //_origin00.setValue( 1, _origin00[ 1 ] + ( z[ 1 ] - _zy ) * _originDev00[ 1 ] );
          //_origin00.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev00[ 2 ] );
 /*
          _origin10.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev10[ 0 ] );
@@ -272,6 +272,9 @@ namespace mvv
          _origin01.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev01[ 1 ] );
          _origin01.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev01[ 2 ] );
 
+         _zx = zoomFactor;
+         _zy = zoomFactor;
+
          _zoom.setValue( 0, zoomFactor );
          _zoom.setValue( 1, zoomFactor );
       }
@@ -295,6 +298,9 @@ namespace mvv
       EngineMpr*        _mpr01;
       Engines           _engines;
       Pane*             _rootLayout;
+
+      double sx0, sy0, sx1, sy1, sx2, sy2;
+      double _zx, _zy;
    };
 }
 

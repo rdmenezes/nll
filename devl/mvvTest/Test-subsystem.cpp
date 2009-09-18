@@ -29,9 +29,18 @@ public:
       return o;
    }
 
+   virtual Orders getOrdersToDestroyAndClear()
+   {
+      return Orders();
+   }
+
    void pushOrder( Order* o )
    {
       orders.push_back( o );
+   }
+
+   virtual void pushOrderToDestroy( Order* )
+   {
    }
 
 private:
