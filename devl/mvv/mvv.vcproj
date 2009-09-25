@@ -437,6 +437,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\engine.h"
+				>
+			</File>
+			<File
 				RelativePath=".\exception.h"
 				>
 			</File>
