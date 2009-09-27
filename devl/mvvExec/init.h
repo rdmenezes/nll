@@ -87,7 +87,7 @@ namespace mvv
          */
 
          ui32 sizex = 1024;
-         ui32 sizey = 1024;
+         ui32 sizey = 768;
 
          rootLayout = mprs->getLayout();
          rootLayout->setOrigin( nll::core::vector2ui( 0, 0 ) );

@@ -124,9 +124,7 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLayout);
-/*
 TESTER_TEST(testLayout1);
 TESTER_TEST(testLayout2);
-*/
 TESTER_TEST_SUITE_END();
 #endif

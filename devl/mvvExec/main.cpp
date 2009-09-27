@@ -109,7 +109,7 @@ void mouseMotion(int x, int y)
    
    nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
    pos[ 2 ] = (double)y / applicationVariables.screen.sizey() * 82;
-   pos[ 1 ] = (double)x / applicationVariables.screen.sizex() * 82;
+   pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 82;
    applicationVariables.mprs->setMprPosition( pos );
    
 }
@@ -117,7 +117,12 @@ void mouseMotion(int x, int y)
 void keyboard(unsigned char key, int x, int y)
 {
    if ( key == 'q' )
+   {
+      applicationVariables.queue->kill();
+      applicationVariables.dispatchThread.interrupt();
+      applicationVariables.dispatchThread.join();
       exit( 0 );
+   }
    if ( key == '7' )
    {
       nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
@@ -184,7 +189,7 @@ int main(int argc, char** argv)
   glutInitWindowSize (applicationVariables.rootLayout->getSize()[ 0 ], applicationVariables.rootLayout->getSize()[ 1 ]);
   glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutCreateWindow ("Medical Volume Viewer");
-  //glutGameModeString( "1280x800:32" );
+  //glutGameModeString( "1024x768:32" );
   //glutEnterGameMode();
 
   // Initialize OpenGL graphics state

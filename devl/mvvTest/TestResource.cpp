@@ -44,9 +44,10 @@ public:
 
       EngineTest engine1;
       engine1.run();
+      TESTER_ASSERT( !engine1.isNotified() );
       engine1.attach( vector1 ); // specify vector1 is an input
 
-      TESTER_ASSERT( !engine1.isNotified() );
+      TESTER_ASSERT( engine1.isNotified() );
       vector1.setValue( 0, 6 );
 
       TESTER_ASSERT( engine1.isNotified() );
@@ -67,7 +68,7 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestResource);
-//TESTER_TEST(test1);
-//TESTER_TEST(test2);
+TESTER_TEST(test1);
+TESTER_TEST(test2);
 TESTER_TEST_SUITE_END();
 #endif
