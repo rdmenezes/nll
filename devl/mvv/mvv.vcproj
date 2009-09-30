@@ -485,6 +485,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\symbol.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\symbol.h"
+				>
+			</File>
+			<File
 				RelativePath=".\thread-pool.cpp"
 				>
 			</File>

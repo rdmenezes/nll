@@ -21,11 +21,6 @@ namespace mvv
       virtual ~Engine();
 
       /**
-       @brief Consume an order
-       */
-      virtual void consume( Order* ) = 0;
-
-      /**
        @brief Notify the engine it needs to be recomputed.
        */
       void notify()
@@ -76,6 +71,19 @@ namespace mvv
       bool        _needToRecompute;
       Resources   _resources;
       bool        _activated;
+   };
+
+   /**
+    @ingroup mvv
+    @brief Defines an engine. It is an object that computes things depending on DynamicResource class and reacting to orders. 
+    */
+   class MVV_API EngineRunnable : public Engine
+   {
+   public:
+      virtual void consume( Order* ) = 0;
+
+      EngineRunnable() : Engine()
+      {}
    };
 }
 

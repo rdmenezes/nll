@@ -11,7 +11,117 @@ namespace mvv
 {
    typedef nll::imaging::VolumeSpatial<double> MedicalVolume;
 
-   class ResourceTransferFunctionWindowing : public DynamicResource, public TransferFunction
+   class ResourceOrderList : public DynamicResource
+   {
+   public:
+      typedef std::vector<Order*>   Orders;
+
+      void setOrders( const Orders& o )
+      {
+         _orders = o;
+         notifyChanges();
+      }
+
+      const Orders& getOrders() const
+      {
+         return _orders;
+      }
+
+   private:
+      Orders   _orders;
+   };
+
+   class ResourceVolumeIntensities : public DynamicResource
+   {
+      typedef std::map<const MedicalVolume*, double> Intensities;
+
+   public:
+      void addIntensity( const MedicalVolume* vol, double intensity )
+      {
+         _intensities[ vol ] = intensity;
+         notifyChanges();
+      }
+
+      void removeIntensity( const MedicalVolume* vol )
+      {
+         Intensities::iterator it = _intensities.find( vol );
+         if ( it == _intensities.end() )
+            return;
+         _intensities.erase( it );
+         notifyChanges();
+      }
+
+      double getIntensity( const MedicalVolume* vol ) const
+      {
+         Intensities::const_iterator it = _intensities.find( vol );
+         if ( it == _intensities.end() )
+         {
+            unreachable( "should never happen" );
+            return 0;
+         }
+         return it->second;
+      }
+
+   private:
+      Intensities _intensities;
+   };
+
+   // define a Lut resource interface
+   class ResourceLut : public DynamicResource, public TransferFunction
+   {
+   };
+
+   class ResourceLuts : public DynamicResource
+   {
+   typedef std::map<const MedicalVolume*, ResourceLut*> Luts;
+
+   public:
+      ~ResourceLuts()
+      {
+         for ( Luts::iterator it = _luts.begin(); it != _luts.end(); ++it )
+            delete it->second;
+      }
+
+      /**
+       @param lut must be an allocated pointer as it will be destroyed when this resource is
+       */
+      void addLut( const MedicalVolume* vol, ResourceLut* lut )
+      {
+         _luts[ vol ] = lut;
+         lut->setFather( this );
+         notifyChanges();
+      }
+
+      void removeLut( const MedicalVolume* vol )
+      {
+         Luts::iterator it = _luts.find( vol );
+         if ( it == _luts.end() )
+            return;
+         _luts.erase( it );
+         notifyChanges();
+      }
+
+      ResourceLut* getLut( const MedicalVolume* vol ) const
+      {
+         Luts::const_iterator it = _luts.find( vol );
+         if ( it == _luts.end() )
+         {
+            unreachable( "should never happen" );
+            return 0;
+         }
+         return it->second;
+      }
+
+   private:
+      // not supposed to be copiable
+      ResourceLuts& operator=( const ResourceLuts );
+      ResourceLuts( const ResourceLuts& );
+
+   private:
+      Luts _luts;
+   };
+
+   class ResourceTransferFunctionWindowing : public ResourceLut
    {
    public:
       ResourceTransferFunctionWindowing( double minWindow, double maxWindow ) : 
@@ -78,6 +188,8 @@ namespace mvv
       double   _maxWindow;
    };
 
+
+
    /**
     @ingroup mvv
     @brief Holds a set of volumes
@@ -132,9 +244,9 @@ namespace mvv
          }
       }
 
-      void detachVolume( MedicalVolume* volume )
+      void detachVolume( const MedicalVolume* volume )
       {
-         _volumes.erase( Pair( volume, 0, 0 ) );
+         _volumes.erase( Pair( (MedicalVolume*)volume, 0, 0 ) );
          notifyChanges();
       }
 
@@ -218,35 +330,36 @@ namespace mvv
     @ingroup mvv
     @brief Holds a 2D vector
     */
-   class ResourceVector2d : public DynamicResource
+   template <class T>
+   class ResourceVector2 : public DynamicResource
    {
    public:
-      ResourceVector2d( double a, double b )
+      ResourceVector2( T a, T b )
       {
          _buf[ 0 ] = a;
          _buf[ 1 ] = b;
          notifyChanges();
       }
 
-      ResourceVector2d()
+      ResourceVector2()
       {
          _buf[ 0 ] = 0;
          _buf[ 1 ] = 0;
          notifyChanges();
       }
 
-      double getValue( ui32 v ) const
+      T getValue( ui32 v ) const
       {
          assert( v < 2 );
          return _buf[ v ];
       }
 
-      double operator[]( ui32 v ) const
+      T operator[]( ui32 v ) const
       {
          return getValue( v );
       }
 
-      void setValue( ui32 v, double val )
+      void setValue( ui32 v, T val )
       {
          assert( v < 2 );
          notifyChanges();
@@ -254,8 +367,11 @@ namespace mvv
       }
 
    protected:
-      double   _buf[ 2 ];
+      T   _buf[ 2 ];
    };
+
+  typedef ResourceVector2<double>   ResourceVector2d;
+  typedef ResourceVector2<ui32>     ResourceVector2ui;
 }
 
 #endif

@@ -127,6 +127,7 @@ namespace mvv
          double ratio = 0;
          for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
+            // it is assumed here orders are in the same order than volume
             const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
             OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
             Image::DirectionalIterator itOut = _slice.beginDirectional();
@@ -159,10 +160,107 @@ namespace mvv
    };
 
    /**
+    @brief This engine computes the MPR
+    */
+   class EngineMprComputation : public EngineRunnable
+   {
+      typedef std::vector<Order*>   Orders;
+
+   public:
+      EngineMprComputation( OrderProvider& orderProvider,
+                            ResourceVolumes& volumes,
+                            ResourceVector3d& origin,
+                            ResourceVector3d& vector1,
+                            ResourceVector3d& vector2,
+                            ResourceVector2d& zoom,
+                            ResourceVector2ui& renderingSize ) : _orderProvider( orderProvider ), _volumes( volumes ),
+         _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom ), _renderingSize( renderingSize )
+      {
+         attach( volumes );
+         attach( origin );
+         attach( vector1 );
+         attach( vector2 );
+         attach( zoom );
+      }
+
+      /**
+       @brief Create the orders to compute the MPRs of every volume for this 'MPR view'
+       */
+      virtual bool _run()
+      {
+         if ( _tracked.size() )
+         {
+            std::cout << "waiting..." << _tracked.size()<< std::endl;
+            return false;
+         }
+         _tracked = Orders( _volumes.size() );
+
+         ui32 n = 0;
+         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         {
+            OrderMprRendering* order = new OrderMprRendering( it->volume, _renderingSize[ 0 ], _renderingSize[ 1 ], _zoom[ 0 ], _zoom[ 1 ],
+                                                              nll::core::vector3d( _origin[ 0 ],
+                                                                                   _origin[ 1 ],
+                                                                                   _origin[ 2 ] ),
+                                                              nll::core::vector3d( _vector1[ 0 ],
+                                                                                   _vector1[ 1 ],
+                                                                                   _vector1[ 2 ] ),
+                                                              nll::core::vector3d( _vector2[ 0 ],
+                                                                                   _vector2[ 1 ],
+                                                                                   _vector2[ 2 ] ),
+                                                                                   OrderMprRendering::TRILINEAR );
+            _tracked[ n ] = order;
+            _orderProvider.pushOrder( order );
+         }
+
+         // MPR rendering orders have been created
+         return true;
+      }
+
+      /**
+       @brief Consume an order
+       */
+      virtual void consume( Order* o )
+      {
+         if ( !_tracked.size() || ( o->getOrderClassId() != ORDER_MPR_RENDERING ) )
+            return;
+
+         // it is a MPR_RENDERING order so we need to check it is one of our order
+         for ( ui32 n = 0; n < _tracked.size(); ++n )
+            if ( !_tracked[ n ]->getResult() )
+            {
+               // one order has not finished yet so we need to wait
+               return;
+            }
+
+         // all the orders are finished, just fuse them and update the result
+         ensure( _tracked.size() == _volumes.size(), "error size doesn't match!" );
+
+         // orders have been rendered, update the resource
+         outOrdersToFuse.setOrders( _tracked );
+         _tracked.clear();
+      }
+
+   public:
+      ResourceOrderList outOrdersToFuse;
+
+   private:
+      OrderProvider&                      _orderProvider;
+      ResourceVolumes&                    _volumes;
+      ResourceVector3d&                   _origin;
+      ResourceVector3d&                   _vector1;
+      ResourceVector3d&                   _vector2;
+      ResourceVector2d&                   _zoom;
+      ResourceVector2ui&                  _renderingSize;
+
+      Orders            _tracked;
+   };
+
+   /**
     @ingroup mvv
     @brief A multiplanar reconstruction object
     */
-   class EngineMpr : public Engine, public Drawable
+   class EngineMpr : public EngineRunnable, public Drawable
    {
       typedef std::set<MedicalVolume*> Volumes;
       typedef std::vector<Order*>      Orders;

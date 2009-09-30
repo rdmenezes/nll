@@ -14,7 +14,7 @@ namespace mvv
     */
    class Display3Mpr
    {
-      typedef std::set<Engine*>           Engines;
+      typedef std::set<EngineRunnable*>           Engines;
 
    public:
       typedef std::vector<Order*>         Orders;
