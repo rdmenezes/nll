@@ -18,7 +18,7 @@ public:
 
    void pushOrder( Order* o )
    {
-      std::cout << "push order" << std::endl;
+      std::cout << "push order=" << o->getId() << " t=" << o->getOrderClassId() << std::endl;
       orders.push_back( o );
    }
 
@@ -121,7 +121,9 @@ public:
       {
          engine.consume( *it );
       }
+
       engine.run();
+      queue.notify();
 
       // fuse the MPR
       wait( 1 );

@@ -189,6 +189,7 @@ namespace mvv
          _needToRecompute = false;
       }
 
+   private:
       /**
        @brief Create the orders to compute the MPRs of every volume for this 'MPR view'
        */
@@ -223,6 +224,7 @@ namespace mvv
          return true;
       }
 
+   public:
       /**
        @brief Consume an order
        */
@@ -295,6 +297,7 @@ namespace mvv
          _current = 0;
       }
 
+   private:
       virtual bool _run()
       {
          if ( _current || !_orders.getOrders().size() )
@@ -318,6 +321,7 @@ namespace mvv
          // create the order
          OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes /*, _intensities, _luts*/ /*TODO PUT ACTUAL*/  );
          _orderProvider.pushOrder( order );
+         return true;
       }
 
    private:
@@ -375,6 +379,13 @@ namespace mvv
          _needToRecompute = false;
       }
 
+      virtual void notify()
+      {
+         _mprComputation.notify();
+         _mprCombiner.notify();
+         _needToRecompute = true;
+      }
+
       virtual void consume( Order* o )
       {
          _mprComputation.consume( o );
@@ -390,8 +401,9 @@ namespace mvv
 
       virtual bool _run()
       {
-         _mprComputation._run();
-         return _mprCombiner._run();
+         _mprComputation.run();
+         _mprCombiner.run();
+         return !_mprCombiner.isNotified();
       }
 
    private:
