@@ -7,6 +7,9 @@
 
 namespace mvv
 {
+   /**
+    @brief Class representing a lightweight string. 
+    */
    class MVV_API Symbol
    {
       typedef std::set<std::string> Strings;
@@ -34,7 +37,13 @@ namespace mvv
          return _s < rhs._s;
       }
 
+      const char* getName() const
+      {
+         return _s;
+      }
+
    private:
+      // to be created internally only!
       Symbol( const char* s ) : _s( s )
       {
       }

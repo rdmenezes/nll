@@ -57,7 +57,7 @@ namespace mvv
    };
 
    /**
-    @brief Get a MPR context
+    @brief Get a MPR context. This context is local to this specific MPR object.
     */
    class ContextMpr : public ContextInstance
    {

@@ -5,7 +5,6 @@
 # include "transfer-function.h"
 # include "types.h"
 # include <nll/nll.h>
-//# include <nll/lut.h>
 
 namespace mvv
 {
@@ -76,14 +75,15 @@ namespace mvv
    typedef std::map<const MedicalVolume*, ResourceLut*> Luts;
 
    public:
+      ResourceLuts()
+      {}
+
       ~ResourceLuts()
       {
-         for ( Luts::iterator it = _luts.begin(); it != _luts.end(); ++it )
-            delete it->second;
       }
 
       /**
-       @param lut must be an allocated pointer as it will be destroyed when this resource is
+       @param lut will not be freed
        */
       void addLut( const MedicalVolume* vol, ResourceLut* lut )
       {
@@ -229,7 +229,7 @@ namespace mvv
       void attachVolume( MedicalVolume* volume, double ratio, ResourceTransferFunctionWindowing* windowing )
       {
          _volumes.insert( Pair( volume, ratio, windowing ) );
-         windowing->setFather( this ); // we want to notify the Volumes if a windowing has changed!
+         //windowing->setFather( this ); // we want to notify the Volumes if a windowing has changed!
          notifyChanges();
       }
 
@@ -370,8 +370,16 @@ namespace mvv
       T   _buf[ 2 ];
    };
 
-  typedef ResourceVector2<double>   ResourceVector2d;
-  typedef ResourceVector2<ui32>     ResourceVector2ui;
+   typedef ResourceVector2<double>   ResourceVector2d;
+   typedef ResourceVector2<ui32>     ResourceVector2ui;
+
+   class ResourceImageRGB : public DynamicResource
+   {
+   public:
+      typedef nll::core::Image<ui8> Image;
+
+      Image image;
+   };
 }
 
 #endif

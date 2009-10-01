@@ -8,7 +8,8 @@ namespace mvv
 
    /**
     @ingroup mvv
-    @brief Defines an engine. It is an object that computes things depending on DynamicResource class and reacting to orders. 
+    @brief Defines an engine. It is an object that computes things depending on DynamicResource class.
+           It should use and publish DynamicResource so that engines can be plugged in
     */
    class MVV_API Engine
    {
@@ -58,6 +59,14 @@ namespace mvv
       void setActivated( bool activated )
       {
          _activated = activated;
+      }
+
+      /**
+       @brief Returns true if the engine need to be run
+       */
+      bool isNotified() const
+      {
+         return _needToRecompute;
       }
 
    protected:
