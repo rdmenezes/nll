@@ -531,6 +531,10 @@
 			Name="Resource"
 			>
 			<File
+				RelativePath=".\drawable-engine-mpr.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine-mpr.h"
 				>
 			</File>

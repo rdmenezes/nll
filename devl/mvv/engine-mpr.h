@@ -200,6 +200,8 @@ namespace mvv
        */
       virtual bool _run()
       {
+         if ( !_volumes.size() )
+            return true;
          if ( _tracked.size() )
          {
             std::cout << "waiting..." << _tracked.size()<< std::endl;
@@ -305,7 +307,12 @@ namespace mvv
    private:
       virtual bool _run()
       {
-         if ( _current || !_orders.getOrders().size() )
+         if ( !_volumes.size() || !_orders.getOrders().size() )
+         {
+            // if no volume or havent received any order->nothing to do!
+            return true;
+         }
+         if ( _current )
          {
             // first finish our current order
             return false;
@@ -381,6 +388,10 @@ namespace mvv
          attach( renderingSize );
          attach( intensities );
          attach( luts );
+
+         // we don't attach it as the resource will die before the engine does which will cause
+         // problems when this object is deleted
+         _mprComputation.outOrdersToFuse.setFather( &luts );
          _needToRecompute = false;
       }
 
@@ -411,7 +422,7 @@ namespace mvv
          return !_mprCombiner.isNotified();
       }
 
-   private:
+   protected:
       OrderProvider&                _orderProvider;
       ResourceVolumes&              _volumes;
       ResourceVector3d&             _origin;

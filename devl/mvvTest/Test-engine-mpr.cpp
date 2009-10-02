@@ -115,7 +115,7 @@ public:
       queue.notify();
 
       // render the MPR
-      wait( 1 );
+      wait( 2 );
       QueueOrder::OrderBuffer orders = queue.getFinishedOrdersAndClear();
       TESTER_ASSERT( orders.size() == 2 ); // 2 volumes => 2 MPR to render
       for ( QueueOrder::OrderBuffer::iterator it = orders.begin(); it != orders.end(); ++it )
@@ -127,7 +127,7 @@ public:
       queue.notify();
 
       // fuse the MPR
-      wait( 1 );
+      wait( 2 );
       orders = queue.getFinishedOrdersAndClear();
       TESTER_ASSERT( orders.size() == 1 );   // fuse order
       for ( QueueOrder::OrderBuffer::iterator it = orders.begin(); it != orders.end(); ++it )

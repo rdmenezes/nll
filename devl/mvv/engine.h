@@ -10,6 +10,8 @@ namespace mvv
     @ingroup mvv
     @brief Defines an engine. It is an object that computes things depending on DynamicResource class.
            It should use and publish DynamicResource so that engines can be plugged in
+
+           The resource must be deleted after the engine using this resource are!!
     */
    class MVV_API Engine
    {
