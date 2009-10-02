@@ -42,11 +42,11 @@ namespace mvv
          bool loaded;
 
          loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
-         mprs->getVolumes().attachVolume( &TODOREMOVE_volume, 0.5, &windowing );
+         mprs->getVolumes().attachVolume( &TODOREMOVE_volume );
          ensure( loaded, "error" );
 
          loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
-         mprs->getVolumes().attachVolume( &TODOREMOVE_volume2, 0.5, &windowing2 );
+         mprs->getVolumes().attachVolume( &TODOREMOVE_volume2 );
          ensure( loaded, "error" );
 
 

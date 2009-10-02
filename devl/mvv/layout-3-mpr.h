@@ -186,16 +186,16 @@ namespace mvv
       {
          // look for the biggest volume and display its middle
          double max = 0;
-         ResourceVolumes::const_iterator itmax;
-         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it )
+         ResourceVolumes::iterator itmax;
+         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it )
          {
 
-            double val = it->volume->getSize()[ 0 ] *
-                         it->volume->getSize()[ 1 ] *
-                         it->volume->getSize()[ 2 ] *
-                         it->volume->getSpacing()[ 0 ] *
-                         it->volume->getSpacing()[ 1 ] *
-                         it->volume->getSpacing()[ 2 ];
+            double val = (*it)->getSize()[ 0 ] *
+                         (*it)->getSize()[ 1 ] *
+                         (*it)->getSize()[ 2 ] *
+                         (*it)->getSpacing()[ 0 ] *
+                         (*it)->getSpacing()[ 1 ] *
+                         (*it)->getSpacing()[ 2 ];
             if ( val > max )
             {
                max = val;
@@ -204,30 +204,30 @@ namespace mvv
          }
 
          // select the new base vector : we want to be in the same base than the biggest volume
-         _v100.setValue( 0, itmax->volume->getPst()( 0, 0 ) );
-         _v100.setValue( 1, itmax->volume->getPst()( 1, 0 ) );
-         _v100.setValue( 2, itmax->volume->getPst()( 2, 0 ) );
+         _v100.setValue( 0, (*itmax)->getPst()( 0, 0 ) );
+         _v100.setValue( 1, (*itmax)->getPst()( 1, 0 ) );
+         _v100.setValue( 2, (*itmax)->getPst()( 2, 0 ) );
          _v100.normalize();
 
-         _v010.setValue( 0, itmax->volume->getPst()( 0, 1 ) );
-         _v010.setValue( 1, itmax->volume->getPst()( 1, 1 ) );
-         _v010.setValue( 2, itmax->volume->getPst()( 2, 1 ) );
+         _v010.setValue( 0, (*itmax)->getPst()( 0, 1 ) );
+         _v010.setValue( 1, (*itmax)->getPst()( 1, 1 ) );
+         _v010.setValue( 2, (*itmax)->getPst()( 2, 1 ) );
          _v010.normalize();
 
-         _v001.setValue( 0, itmax->volume->getPst()( 0, 2 ) );
-         _v001.setValue( 1, itmax->volume->getPst()( 1, 2 ) );
-         _v001.setValue( 2, itmax->volume->getPst()( 2, 2 ) );
+         _v001.setValue( 0, (*itmax)->getPst()( 0, 2 ) );
+         _v001.setValue( 1, (*itmax)->getPst()( 1, 2 ) );
+         _v001.setValue( 2, (*itmax)->getPst()( 2, 2 ) );
          _v001.normalize();
 
          // compute a ratio so that the biggest side on MPR is fully displayed
-         double sx0 = itmax->volume->getSize()[ 0 ] * itmax->volume->getSpacing()[ 0 ];
-         double sy0 = itmax->volume->getSize()[ 1 ] * itmax->volume->getSpacing()[ 1 ];
+         double sx0 = (*itmax)->getSize()[ 0 ] * (*itmax)->getSpacing()[ 0 ];
+         double sy0 = (*itmax)->getSize()[ 1 ] * (*itmax)->getSpacing()[ 1 ];
 
-         double sx1 = itmax->volume->getSize()[ 0 ] * itmax->volume->getSpacing()[ 0 ];
-         double sy1 = itmax->volume->getSize()[ 2 ] * itmax->volume->getSpacing()[ 2 ];
+         double sx1 = (*itmax)->getSize()[ 0 ] * (*itmax)->getSpacing()[ 0 ];
+         double sy1 = (*itmax)->getSize()[ 2 ] * (*itmax)->getSpacing()[ 2 ];
 
-         double sx2 = itmax->volume->getSize()[ 1 ] * itmax->volume->getSpacing()[ 1 ];
-         double sy2 = itmax->volume->getSize()[ 2 ] * itmax->volume->getSpacing()[ 2 ];
+         double sx2 = (*itmax)->getSize()[ 1 ] * (*itmax)->getSpacing()[ 1 ];
+         double sy2 = (*itmax)->getSize()[ 2 ] * (*itmax)->getSpacing()[ 2 ];
 
          const nll::core::vector2ui size = _rootLayout->getSize();
 
@@ -260,17 +260,17 @@ namespace mvv
          _originDev01[ 2 ] = - spy3 / ( 2 * zoomFactor );
 
          // set the updated center to the center of the largest volume
-         _origin00.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev00[ 0 ] );
-         _origin00.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev00[ 1 ] );
-         _origin00.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev00[ 2 ] );
+         _origin00.setValue( 0, -(*itmax)->getOrigin()[ 0 ] + _originDev00[ 0 ] );
+         _origin00.setValue( 1, -(*itmax)->getOrigin()[ 1 ] + _originDev00[ 1 ] );
+         _origin00.setValue( 2, -(*itmax)->getOrigin()[ 2 ] + _originDev00[ 2 ] );
 
-         _origin10.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev10[ 0 ] );
-         _origin10.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev10[ 1 ] );
-         _origin10.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev10[ 2 ] );
+         _origin10.setValue( 0, -(*itmax)->getOrigin()[ 0 ] + _originDev10[ 0 ] );
+         _origin10.setValue( 1, -(*itmax)->getOrigin()[ 1 ] + _originDev10[ 1 ] );
+         _origin10.setValue( 2, -(*itmax)->getOrigin()[ 2 ] + _originDev10[ 2 ] );
 
-         _origin01.setValue( 0, -itmax->volume->getOrigin()[ 0 ] + _originDev01[ 0 ] );
-         _origin01.setValue( 1, -itmax->volume->getOrigin()[ 1 ] + _originDev01[ 1 ] );
-         _origin01.setValue( 2, -itmax->volume->getOrigin()[ 2 ] + _originDev01[ 2 ] );
+         _origin01.setValue( 0, -(*itmax)->getOrigin()[ 0 ] + _originDev01[ 0 ] );
+         _origin01.setValue( 1, -(*itmax)->getOrigin()[ 1 ] + _originDev01[ 1 ] );
+         _origin01.setValue( 2, -(*itmax)->getOrigin()[ 2 ] + _originDev01[ 2 ] );
 
          _zx = zoomFactor;
          _zy = zoomFactor;

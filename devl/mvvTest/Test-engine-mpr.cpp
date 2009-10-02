@@ -63,11 +63,11 @@ public:
 
       // set up resources
       ResourceVolumes volumes;
-      ResourceVector3d origin( 0, 0, 0 );
-      ResourceVector3d vector1( 0, 1, 0 );
-      ResourceVector3d vector2( 1, 0, 0 );
-      ResourceVector2d zoom( 1, 1 );
-      ResourceVector2ui renderingSize( 512, 512 );
+      ResourceVector3d origin( -150, -150, 0 );
+      ResourceVector3d vector1( 1, 0, 0 );
+      ResourceVector3d vector2( 0, 1, 0 );
+      ResourceVector2d zoom( 5, 5 );
+      ResourceVector2ui renderingSize( 1024, 1024 );
       ResourceVolumeIntensities intensities;
       ResourceLuts luts;
       ResourceTransferFunctionWindowing   lutCt;
@@ -76,8 +76,8 @@ public:
       // TODO update
       luts.addLut( &volumeCt, &lutCt );
       luts.addLut( &volumePet, &lutPet );
-      volumes.attachVolume( &volumeCt, 0, 0 );
-      volumes.attachVolume( &volumePet, 0, 0 );
+      volumes.attachVolume( &volumeCt );
+      volumes.attachVolume( &volumePet );
       intensities.addIntensity( &volumeCt, 0.5 );
       intensities.addIntensity( &volumePet, 0.5 );
 
@@ -115,8 +115,9 @@ public:
       queue.notify();
 
       // render the MPR
-      wait( 3 );
+      wait( 1 );
       QueueOrder::OrderBuffer orders = queue.getFinishedOrdersAndClear();
+      TESTER_ASSERT( orders.size() == 2 ); // 2 volumes => 2 MPR to render
       for ( QueueOrder::OrderBuffer::iterator it = orders.begin(); it != orders.end(); ++it )
       {
          engine.consume( *it );
@@ -128,13 +129,15 @@ public:
       // fuse the MPR
       wait( 1 );
       orders = queue.getFinishedOrdersAndClear();
+      TESTER_ASSERT( orders.size() == 1 );   // fuse order
       for ( QueueOrder::OrderBuffer::iterator it = orders.begin(); it != orders.end(); ++it )
       {
          engine.consume( *it );
       }
 
-
-      std::cout << "sx=" << engine.outFusedMpr.image.sizex() << std::endl;
+      nll::core::writeBmp( engine.outFusedMpr.image, "a.bmp" );
+      TESTER_ASSERT( !engine.isNotified() );
+      TESTER_ASSERT( engine.outFusedMpr.image.sizex() == 1024 && engine.outFusedMpr.image.sizey() == 1024 );
 
       queue.kill();
       dispatchThread.interrupt();

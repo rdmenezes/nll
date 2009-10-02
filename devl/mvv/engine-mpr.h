@@ -121,32 +121,35 @@ namespace mvv
       typedef nll::core::Image<ui8>    Image;
 
    public:
-      OrderCombineMpr( const Orders& predecessors, Image& slice, ResourceVolumes& volumes ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
-         _tracked( predecessors ), _volumes( volumes ), _slice( slice )
+      OrderCombineMpr( const Orders& predecessors, Image& slice, ResourceVolumes& volumes, ResourceLuts& luts, ResourceVolumeIntensities& intensities ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
+         _tracked( predecessors ), _volumes( volumes ), _slice( slice ), _luts( luts ), _intensities( intensities )
       {
       }
 
       virtual OrderResult* run()
       {
          ui32 n = 0;
-         double ratio = 0;
-         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         double ratioCheck = 0;
+         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
             // it is assumed here orders are in the same order than volume
             const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
             OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
             Image::DirectionalIterator itOut = _slice.beginDirectional();
-            ResourceTransferFunctionWindowing* windowing = it->windowing;
+            ResourceLut* windowing = _luts.getLut( *it );
+            //const nll::imaging::LookUpTransformWindowingRGB& lutTest = dynamic_cast<ResourceTransferFunctionWindowing*>( _luts.getLut( *it ) )->getLut();
+            const double ratio = _intensities.getIntensity( *it );
             for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
             {
+               //const ui8* buf = lutTest.transform(*itIn);//windowing->transform( *itIn );
                const ui8* buf = windowing->transform( *itIn );
-               itOut.pickcol( 0 ) += buf[ 0 ] * it->ratio;
-               itOut.pickcol( 1 ) += buf[ 1 ] * it->ratio;
-               itOut.pickcol( 2 ) += buf[ 2 ] * it->ratio;
+               itOut.pickcol( 0 ) += buf[ 0 ] * ratio;
+               itOut.pickcol( 1 ) += buf[ 1 ] * ratio;
+               itOut.pickcol( 2 ) += buf[ 2 ] * ratio;
             }
-            ratio += it->ratio;
+            ratioCheck += ratio;
          }
-         ensure( fabs( ratio - 1 ) < 1e-5, "ratio must sum to 1" );
+         ensure( fabs( ratioCheck - 1 ) < 1e-5, "ratio must sum to 1" );
          return new OrderResult();
       }
 
@@ -161,6 +164,8 @@ namespace mvv
 
       const Orders&                       _tracked;
       ResourceVolumes&                    _volumes;
+      ResourceLuts&                       _luts;
+      ResourceVolumeIntensities&          _intensities;
       Image&                              _slice;
    };
 
@@ -203,9 +208,9 @@ namespace mvv
          _tracked = Orders( _volumes.size() );
 
          ui32 n = 0;
-         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
-            OrderMprRendering* order = new OrderMprRendering( it->volume, _renderingSize[ 0 ], _renderingSize[ 1 ], _zoom[ 0 ], _zoom[ 1 ],
+            OrderMprRendering* order = new OrderMprRendering( *it, _renderingSize[ 0 ], _renderingSize[ 1 ], _zoom[ 0 ], _zoom[ 1 ],
                                                               nll::core::vector3d( _origin[ 0 ],
                                                                                    _origin[ 1 ],
                                                                                    _origin[ 2 ] ),
@@ -319,7 +324,7 @@ namespace mvv
                                                       true );
 
          // create the order
-         OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes /*, _intensities, _luts*/ /*TODO PUT ACTUAL*/  );
+         OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
          _orderProvider.pushOrder( order );
          return true;
       }
@@ -491,6 +496,7 @@ namespace mvv
        */
       virtual bool _run()
       {
+         /*
          if ( _tracked.size() )
          {
             std::cout << "waiting..." << _tracked.size()<< std::endl;
@@ -501,9 +507,9 @@ namespace mvv
          std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR STARTED RUN ORDER" << std::endl;
 
          ui32 n = 0;
-         for ( ResourceVolumes::const_iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
-            OrderMprRendering* order = new OrderMprRendering( it->volume, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
+            OrderMprRendering* order = new OrderMprRendering( *it, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
                                                               nll::core::vector3d( _origin[ 0 ],
                                                                                    _origin[ 1 ],
                                                                                    _origin[ 2 ] ),
@@ -519,7 +525,7 @@ namespace mvv
          }
          OrderCombineMpr* order = new OrderCombineMpr( _tracked, _sliceTmp, _volumes );
          _orderProvider.pushOrder( order );
-         _tracked.push_back( order );
+         _tracked.push_back( order );*/
          return true;
       }
 

@@ -182,6 +182,11 @@ namespace mvv
          return _lut.transform( inValue );
       }
 
+      const nll::imaging::LookUpTransformWindowingRGB& getLut() const
+      {
+         return _lut;
+      }
+
    protected:
       nll::imaging::LookUpTransformWindowingRGB _lut;
       double   _minWindow;
@@ -196,66 +201,33 @@ namespace mvv
     */
    class ResourceVolumes : public DynamicResource
    {
-      struct Pair
-      {
-         Pair( MedicalVolume* v, double r, ResourceTransferFunctionWindowing* w ) : volume( v ), ratio( r ), windowing( w )
-         {}
-
-         bool operator==( const Pair& p ) const
-         {
-            return volume == p.volume;
-         }
-
-         bool operator<( const Pair& p ) const
-         {
-            return volume < p.volume;
-         }
-
-         MedicalVolume* volume;
-         double         ratio;
-         ResourceTransferFunctionWindowing* windowing;
-      };
-      typedef std::set<Pair> Volumes;
+      typedef std::set<MedicalVolume*>  Volumes;
 
    public:
-      typedef Volumes::const_iterator  const_iterator;
+      typedef Volumes::iterator  iterator;
 
    public:
       /**
        @brief Attach a volume. The pointer must be valid until this object is used/volume attached
-       @param volume the volume
-       @param ratio the ratio used to fuse volumes. The sum of ratio must be equal to 1
        */
-      void attachVolume( MedicalVolume* volume, double ratio, ResourceTransferFunctionWindowing* windowing )
+      void attachVolume( MedicalVolume* volume )
       {
-         _volumes.insert( Pair( volume, ratio, windowing ) );
-         //windowing->setFather( this ); // we want to notify the Volumes if a windowing has changed!
+         _volumes.insert( volume );
          notifyChanges();
-      }
-
-      void setRatio( MedicalVolume* volume, double newRatio )
-      {
-         Volumes::iterator it = _volumes.find( Pair( volume, 0, 0 ) );
-         if ( it != _volumes.end() )
-         {
-            it->ratio = newRatio;
-         } else {
-            ensure( 0, "error: volume not found" );
-         }
       }
 
       void detachVolume( const MedicalVolume* volume )
       {
-         _volumes.erase( Pair( (MedicalVolume*)volume, 0, 0 ) );
+         _volumes.erase( const_cast<MedicalVolume*>( volume ) );
          notifyChanges();
       }
 
-      const_iterator begin() const
+      iterator begin()
       {
          return _volumes.begin();
       }
 
-      const_iterator end() const
+      iterator end()
       {
          return _volumes.end();
       }
