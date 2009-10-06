@@ -143,10 +143,40 @@ public:
       dispatchThread.interrupt();
       dispatchThread.join();
    }
+
+   void test2()
+   {
+      typedef nll::core::Image<unsigned char> Image;
+
+      Image a1( 1024, 1024, 3 );
+      Image a2( 1024, 1024, 3 );
+
+      nll::core::Timer t;
+      Image a3( 1024, 1024, 3 );
+
+      for ( Image::DirectionalIterator i1 = a1.beginDirectional(),
+                                       i2 = a2.beginDirectional(),
+                                       i3 = a3.beginDirectional()
+                                       ; i1 != a1.endDirectional(); ++i1, ++i2, ++i3 )
+      {
+         i3.pickcol( 0 ) = std::min<unsigned char>( 255, 0.5 * i1.pickcol( 0 ) + 0.5 * i2.pickcol( 0 ) );
+         i3.pickcol( 1 ) = std::min<unsigned char>( 255, 0.5 * i1.pickcol( 1 ) + 0.5 * i2.pickcol( 1 ) );
+         i3.pickcol( 2 ) = std::min<unsigned char>( 255, 0.5 * i1.pickcol( 2 ) + 0.5 * i2.pickcol( 2 ) );
+
+         /*
+         i3.pickcol( 0 ) = 0.5 * ( i1.pickcol( 0 ) - 10 ) / 3 + 0.5 * ( i2.pickcol( 0 ) - 10 ) / 3;
+         i3.pickcol( 1 ) = 0.5 * ( i1.pickcol( 1 ) - 10 ) / 3 + 0.5 * ( i2.pickcol( 1 ) - 10 ) / 3;
+         i3.pickcol( 2 ) = 0.5 * ( i1.pickcol( 2 ) - 10 ) / 3 + 0.5 * ( i2.pickcol( 2 ) - 10 ) / 3;
+         */
+      }
+      std::cout << "time=" << t.getCurrentTime() << std::endl;
+      nll::core::writeBmp( a3, "aaa.bmp" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestEngineMpr);
+TESTER_TEST(test2);
 TESTER_TEST(test1);
 TESTER_TEST_SUITE_END();
 #endif

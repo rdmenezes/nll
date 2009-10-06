@@ -169,6 +169,94 @@ namespace mvv
       Image&                              _slice;
    };
 
+   class EngineMprCombiner : public EngineRunnable
+   {
+      typedef std::vector<Order*>   Orders;
+
+   public:
+      ResourceImageRGB outFusedMPR;
+
+   public:
+      EngineMprCombiner( OrderProvider& orderProvider, ResourceOrderList& orders, ResourceVolumeIntensities& intensities, ResourceLuts& luts, ResourceVolumes& volumes ) : _orderProvider( orderProvider ), _orders( orders ),
+         _intensities( intensities ), _luts( luts ), _volumes( volumes ), _current( 0 )
+      {
+         attach( _orders );
+         attach( _intensities );
+         attach( _luts );
+         _needToRecompute = false;
+         _idle = true;
+      }
+
+      virtual void consume( Order* o )
+      {
+         if ( !_current || ( o->getOrderClassId() != ORDER_MPR_RENDERING_COMBINE ) )
+            return;
+         if ( o != _current || o->getResult() )
+            return;
+
+
+         // the order has correctly executed: every volume MPR has been computed as well
+         // as their fusion. Just publish the result and destroy the orders
+         outFusedMPR.notifyChanges();
+         for ( Orders::const_iterator it = _renderingOrders.begin(); it != _renderingOrders.end(); ++it )
+            _orderProvider.pushOrderToDestroy( *it );
+         _current = 0;
+         _idle = true;
+      }
+
+      /**
+       @return true if all orders have been processed
+       */
+      const bool& isIdle() const
+      {
+         return _idle;
+      }
+
+   private:
+      virtual bool _run()
+      {
+         if ( !_volumes.size() || !_orders.getOrders().size() )
+         {
+            // if no volume or havent received any order->nothing to do!
+            return true;
+         }
+         if ( _current )
+         {
+            // first finish our current order
+            return false;
+         }
+
+         // track these orders as we need to destroy them
+         _renderingOrders = _orders.getOrders();
+         const OrderMprRenderingResult* renderingResult = dynamic_cast<const OrderMprRenderingResult*>( _renderingOrders[ 0 ]->getResult() );
+         ensure( renderingResult, "wrong order..." );
+         ensure( _renderingOrders.size(), "we need to have orders to fuse!" );
+
+         // reset the frame
+         outFusedMPR.image = ResourceImageRGB::Image( renderingResult->slice.sizex(),
+                                                      renderingResult->slice.sizey(),
+                                                      3,
+                                                      true );
+
+         // create the order
+         OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
+         _orderProvider.pushOrder( order );
+         _idle = false;
+         return true;
+      }
+
+   private:
+      OrderProvider&                _orderProvider;
+      ResourceOrderList&            _orders;
+      ResourceVolumeIntensities&    _intensities;
+      ResourceLuts&                 _luts;
+      ResourceVolumes&              _volumes;
+
+      Orders   _renderingOrders;
+      Order*   _current;
+      bool     _idle;
+   };
+
    /**
     @brief This engine computes the MPR
     */
@@ -178,12 +266,13 @@ namespace mvv
 
    public:
       EngineMprComputation( OrderProvider& orderProvider,
+                            const bool& canRecomputeMpr,
                             ResourceVolumes& volumes,
                             ResourceVector3d& origin,
                             ResourceVector3d& vector1,
                             ResourceVector3d& vector2,
                             ResourceVector2d& zoom,
-                            ResourceVector2ui& renderingSize ) : _orderProvider( orderProvider ), _volumes( volumes ),
+                            ResourceVector2ui& renderingSize ) : _orderProvider( orderProvider ), _canRecomputeMpr( canRecomputeMpr ), _volumes( volumes ),
          _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom ), _renderingSize( renderingSize )
       {
          attach( volumes );
@@ -192,6 +281,12 @@ namespace mvv
          attach( vector2 );
          attach( zoom );
          _needToRecompute = false;
+      }
+
+      ~EngineMprComputation()
+      {
+         for ( Orders::iterator it = _tracked.begin(); it != _tracked.end(); ++it )
+               _orderProvider.pushOrderToDestroy( *it );
       }
 
    private:
@@ -207,6 +302,17 @@ namespace mvv
             std::cout << "waiting..." << _tracked.size()<< std::endl;
             return false;
          }
+         if ( _canRecomputeMpr )
+         {
+            // we delete the orders that are not needed anymore.
+            for ( Orders::iterator it = _tracked.begin(); it != _tracked.end(); ++it )
+               _orderProvider.pushOrderToDestroy( *it );
+
+         } else {
+            // we need to wait for the MPR fusion
+            return false;
+         }
+
          _tracked = Orders( _volumes.size() );
 
          ui32 n = 0;
@@ -253,7 +359,6 @@ namespace mvv
 
          // orders have been rendered, update the resource
          outOrdersToFuse.setOrders( _tracked );
-         _tracked.clear();
       }
 
    public:
@@ -268,83 +373,9 @@ namespace mvv
       ResourceVector2d&                   _zoom;
       ResourceVector2ui&                  _renderingSize;
 
+      const bool&                         _canRecomputeMpr;
+
       Orders                              _tracked;
-   };
-
-   class EngineMprCombiner : public EngineRunnable
-   {
-      typedef std::vector<Order*>   Orders;
-
-   public:
-      ResourceImageRGB outFusedMPR;
-
-   public:
-      EngineMprCombiner( OrderProvider& orderProvider, ResourceOrderList& orders, ResourceVolumeIntensities& intensities, ResourceLuts& luts, ResourceVolumes& volumes ) : _orderProvider( orderProvider ), _orders( orders ),
-         _intensities( intensities ), _luts( luts ), _volumes( volumes ), _current( 0 )
-      {
-         attach( _orders );
-         attach( _intensities );
-         attach( _luts );
-         _needToRecompute = false;
-      }
-
-      virtual void consume( Order* o )
-      {
-         if ( !_current || ( o->getOrderClassId() != ORDER_MPR_RENDERING_COMBINE ) )
-            return;
-         if ( o != _current || o->getResult() )
-            return;
-
-
-         // the order has correctly executed: every volume MPR has been computed as well
-         // as their fusion. Just publish the result and destroy the orders
-         outFusedMPR.notifyChanges();
-         for ( Orders::const_iterator it = _renderingOrders.begin(); it != _renderingOrders.end(); ++it )
-            _orderProvider.pushOrderToDestroy( *it );
-         _current = 0;
-      }
-
-   private:
-      virtual bool _run()
-      {
-         if ( !_volumes.size() || !_orders.getOrders().size() )
-         {
-            // if no volume or havent received any order->nothing to do!
-            return true;
-         }
-         if ( _current )
-         {
-            // first finish our current order
-            return false;
-         }
-
-         // track these orders as we need to destroy them
-         _renderingOrders = _orders.getOrders();
-         const OrderMprRenderingResult* renderingResult = dynamic_cast<const OrderMprRenderingResult*>( _renderingOrders[ 0 ]->getResult() );
-         ensure( renderingResult, "wrong order..." );
-         ensure( _renderingOrders.size(), "we need to have orders to fuse!" );
-
-         // reset the frame
-         outFusedMPR.image = ResourceImageRGB::Image( renderingResult->slice.sizex(),
-                                                      renderingResult->slice.sizey(),
-                                                      3,
-                                                      true );
-
-         // create the order
-         OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
-         _orderProvider.pushOrder( order );
-         return true;
-      }
-
-   private:
-      OrderProvider&                _orderProvider;
-      ResourceOrderList&            _orders;
-      ResourceVolumeIntensities&    _intensities;
-      ResourceLuts&                 _luts;
-      ResourceVolumes&              _volumes;
-
-      Orders   _renderingOrders;
-      Order*   _current;
    };
 
    /**
@@ -376,7 +407,7 @@ namespace mvv
                      ResourceLuts& luts ) : _orderProvider( orderProvider ), _volumes( volumes ),
                      _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom ),
                      _renderingSize( renderingSize ), _intensities( intensities ), _luts( luts ),
-                     _mprComputation( orderProvider, volumes, origin, vector1, vector2, zoom, renderingSize ),
+                     _mprComputation( orderProvider, _mprCombiner.isIdle(), volumes, origin, vector1, vector2, zoom, renderingSize ),
                      _mprCombiner( orderProvider, _mprComputation.outOrdersToFuse, intensities, luts, volumes )
 
       {
