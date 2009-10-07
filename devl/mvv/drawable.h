@@ -16,6 +16,9 @@ namespace mvv
       typedef nll::core::Image<ui8> Image;
 
    public:
+      virtual ~Drawable()
+      {}
+
       /**
        @brief compute an image of size (sx, sy)
        */

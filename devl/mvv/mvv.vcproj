@@ -449,6 +449,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\interaction-event.h"
+				>
+			</File>
+			<File
 				RelativePath=".\layout.h"
 				>
 			</File>

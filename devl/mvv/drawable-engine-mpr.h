@@ -2,23 +2,30 @@
 # define MVV_DRAWABLE_ENGINE_MPR_H_
 
 # include "engine-mpr.h"
+# include "symbol.h"
+# include "context.h"
+# include "interaction-event.h"
 
 namespace mvv
 {
 public:
-   class DrawableEngineMpr : public EngineMprImpl, public Drawable
+   class MprToolkit : public InteractionEventReceiver, public EngineRunnable
    {
    public:
-      DrawableEngineMpr( OrderProvider& orderProvider,
-                         ResourceVolumes& volumes,
-                         ResourceVector3d& origin,
-                         ResourceVector3d& vector1,
-                         ResourceVector3d& vector2,
-                         ResourceVector2d& zoom,
-                         ResourceVector2ui& renderingSize,
-                         ResourceVolumeIntensities& intensities,
-                         ResourceLuts& luts) : EngineMprImpl( orderProvider, volumes, origin, vector1, vector2, zoom, _renderingSize, intensities, luts )
+   };
+
+   class DrawableMprToolkits : public Drawable, public InteractionEventReceiver
+   {
+   public:
+      DrawableMprToolkits( const Symbol& mprName )
       {
+         _mpr = 0;
+         init( mprName );
+      }
+
+      ~DrawableMprToolkits()
+      {
+         delete _mpr;
       }
 
       virtual const Image& draw()
@@ -38,8 +45,40 @@ public:
          _renderingSize[ 1 ] = sy;
       }
 
+      virtual void handle( const InteractionEvent& event )
+      {
+      }
 
    protected:
+      void init( const Symbol& mprName )
+      {
+         _mprName = mprName;
+
+         // get the mpr
+         ContextMpr* mprs = Context::instance().get<ContextMpr>();
+         ensure( mprs, "first init correctly the context!" );
+
+         ContextMpr::ContextMprInstance* context = mprs->getMpr( mprName );
+         ensure( mpr, "the MPR doesn't exist in the context!" );
+
+         _mpr = new EngineMprImpl( ResourceManager::instance(),
+                                   context->volumes,
+                                   context->origin,
+                                   context->vector1,
+                                   context->vector2,
+                                   context->zoom,
+                                   _renderingSize );
+      }
+
+   private:
+      // non copiable
+      DrawableMprToolkits& operator=( const DrawableMprToolkits );
+      DrawableMprToolkits( const DrawableMprToolkits& );
+
+
+   protected:
+      Symbol             _mprName;
+      EngineMprImpl*     _mpr;
       ResourceVector2ui  _renderingSize;
    };
 }
