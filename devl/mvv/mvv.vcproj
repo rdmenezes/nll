@@ -465,6 +465,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\order-creator.h"
+				>
+			</File>
+			<File
 				RelativePath=".\order-provider.h"
 				>
 			</File>

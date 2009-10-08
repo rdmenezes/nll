@@ -3,6 +3,7 @@
 
 # include "symbol.h"
 # include "resource.h"
+# include "order-creator.h"
 
 namespace mvv
 {
@@ -179,10 +180,13 @@ namespace mvv
 
    /**
     @brief Holds all the shared resources
+
+    All order creators should be referenced here so there is only 1 access point to create/receive all orders.
     */
-   class ContextGlobalResource : public ContextInstance
+   class ContextGlobalResource : public ContextInstance, public OrderCreator
    {
       typedef std::map<Symbol, MedicalVolume*>  Volumes;
+      typedef std::set<OrderCreator*>           OrderCreators;
 
    public:
       ~ContextGlobalResource()
@@ -223,8 +227,35 @@ namespace mvv
          }
       }
 
+      void addOrderCreator( OrderCreator* o )
+      {
+         ensure( o, "should not be null" );
+         _orderCreators.insert( o );
+      }
+
+      void removeOrderCreator( OrderCreator* o )
+      {
+         ensure( o, "should not be null" );
+         OrderCreators::iterator it = _orderCreators.find( o );
+         if ( it != _orderCreators.end() )
+            _orderCreators.erase( o );
+      }
+
+      virtual void consume( Order* o )
+      {
+         for ( OrderCreators::iterator it = _orderCreators.begin(); it != _orderCreators.end(); ++it )
+            ( *it )->consume( o );
+      }
+
+      virtual void run()
+      {
+         for ( OrderCreators::iterator it = _orderCreators.begin(); it != _orderCreators.end(); ++it )
+            ( *it )->run();
+      }
+
    private:
-      Volumes     _volumes;
+      Volumes        _volumes;
+      OrderCreators  _orderCreators;
    };
 }
 

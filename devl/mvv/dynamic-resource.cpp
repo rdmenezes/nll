@@ -3,13 +3,13 @@
 
 namespace mvv
 {
-   Engine::~Engine()
+   EngineRunnable::~EngineRunnable()
    {
       for ( Resources::iterator it = _resources.begin(); it != _resources.end(); ++it )
          ( *it )->detach( this );
    }
 
-   void Engine::attach( DynamicResource& r )
+   void EngineRunnable::attach( DynamicResource& r )
    {
       r.attach( this );
       _resources.insert( &r );

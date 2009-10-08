@@ -1,6 +1,8 @@
 #ifndef MVV_ENGINE_H_
 # define MVV_ENGINE_H_
 
+# include "order-creator.h"
+
 namespace mvv
 {
    // forward declaration
@@ -13,15 +15,15 @@ namespace mvv
 
            The resource must be deleted after the engine using this resource are!!
     */
-   class MVV_API Engine
+   class MVV_API EngineRunnable : public OrderCreator
    {
       typedef std::set<DynamicResource*>  Resources;
 
    public:
-      Engine() : _needToRecompute( true ), _activated( true )
+      EngineRunnable() : _needToRecompute( true ), _activated( true )
       {}
 
-      virtual ~Engine();
+      virtual ~EngineRunnable();
 
       /**
        @brief Notify the engine it needs to be recomputed.
@@ -82,19 +84,6 @@ namespace mvv
       bool        _needToRecompute;
       Resources   _resources;
       bool        _activated;
-   };
-
-   /**
-    @ingroup mvv
-    @brief Defines an engine. It is an object that computes things depending on DynamicResource class and reacting to orders. 
-    */
-   class MVV_API EngineRunnable : public Engine
-   {
-   public:
-      virtual void consume( Order* ) = 0;
-
-      EngineRunnable() : Engine()
-      {}
    };
 }
 

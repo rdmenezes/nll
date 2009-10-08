@@ -13,7 +13,7 @@ namespace mvv
     */
    class DynamicResource
    {
-      typedef std::set<Engine*>  Engines;
+      typedef std::set<EngineRunnable*>  Engines;
 
    public:
       /**
@@ -47,7 +47,7 @@ namespace mvv
        @brief Attach a resource to an engine. It means each time a resource is changed, the engine needs
               to recalculate everything.
        */
-      void attach( Engine* resource )
+      void attach( EngineRunnable* resource )
       {
          _engines.insert( resource );
       }
@@ -55,7 +55,7 @@ namespace mvv
       /**
        @brief must be called when an engine doesn't use the resource anymore
        */
-      void detach( Engine* resource )
+      void detach( EngineRunnable* resource )
       {
          _engines.erase( resource );
       }
