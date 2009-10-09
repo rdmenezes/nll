@@ -425,6 +425,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\context-global-resource.h"
+				>
+			</File>
+			<File
+				RelativePath=".\context-mpr.h"
+				>
+			</File>
+			<File
 				RelativePath=".\context.h"
 				>
 			</File>

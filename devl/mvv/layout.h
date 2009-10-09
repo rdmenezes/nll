@@ -3,6 +3,7 @@
 
 # include "types.h"
 # include "drawable.h"
+# include "drawable-engine-mpr.h"
 # include <nll/nll.h>
 
 namespace mvv
@@ -299,6 +300,50 @@ namespace mvv
 
    protected:
       Drawable&      _drawable;
+   };
+
+   /**
+    @ingroup mvv
+    @brief An actual Pane that can be rendered
+    */
+   class PaneMpr : public Pane
+   {
+   public:
+      /**
+       @brief Constructor
+       @param drawable a drawable object. It must be alive until the end of life of this object
+       */
+      PaneMpr( DrawableMprToolkits& mpr,
+               const nll::core::vector2ui& origin,
+               const nll::core::vector2ui& size ) : Pane( origin, size ), _mpr( mpr )
+      {}
+
+      /**
+       @brief draw the pane
+       */
+      virtual void draw( Image& image )
+      {
+         const Image& i = _mpr.draw();
+         if ( i.sizex() != getSize()[ 0 ] ||
+              i.sizey() != getSize()[ 1 ] ||
+              i.getNbComponents() != image.getNbComponents() )
+            return;
+         for ( ui32 y = 0; y < getSize()[ 1 ]; ++y )
+            for ( ui32 x = 0; x < getSize()[ 0 ]; ++x )
+               for ( ui32 c = 0; c < image.getNbComponents(); ++c )
+                  image( x + getOrigin()[ 0 ], y + getOrigin()[ 1 ], c ) = i( x, y, c );
+      }
+
+      /**
+       @brief Update the layout in case the child changed origin/size/visibility
+       */
+      virtual void updateLayout()
+      {
+         _mpr.setImageSize( getSize()[ 0 ], getSize()[ 1 ] );
+      }
+
+   protected:
+      DrawableMprToolkits&      _mpr;
    };
 
    /**

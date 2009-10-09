@@ -3,71 +3,101 @@
 
 # include "engine-mpr.h"
 # include "symbol.h"
-# include "context.h"
+# include "context-mpr.h"
 # include "interaction-event.h"
 
 namespace mvv
 {
-public:
    class MprToolkit : public InteractionEventReceiver, public EngineRunnable
    {
    public:
    };
 
+   /**
+    @brief Handle a MPR rendering and pluggable toolkits
+
+    Toolkits will be handled form first added to last added
+    */
    class DrawableMprToolkits : public Drawable, public InteractionEventReceiver
    {
+      typedef std::vector<MprToolkit*>  Toolkits;
+
    public:
-      DrawableMprToolkits( const Symbol& mprName )
+      DrawableMprToolkits( OrderProvider& orderProvider,
+                           ResourceVolumes& volumes,
+                           ResourceVector3d& origin,
+                           ResourceVector3d& vector1,
+                           ResourceVector3d& vector2,
+                           ResourceVector2d& zoom,
+                           ResourceVolumeIntensities& intensities,
+                           ResourceLuts& luts )
       {
-         _mpr = 0;
-         init( mprName );
+         _mpr = new EngineMprImpl( orderProvider,
+                                   volumes,
+                                   origin,
+                                   vector1,
+                                   vector2,
+                                   zoom,
+                                   _renderingSize,
+                                   intensities,
+                                   luts );
       }
 
       ~DrawableMprToolkits()
       {
          delete _mpr;
+
+         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); )
+         {
+            delete *it;
+         }
+      }
+
+      /**
+       @param toolkit must be an allocated object, will be deallocated by this object
+       */
+      void addToolkit( MprToolkit* toolkit )
+      {
+         _toolkits.push_back( toolkit );
+      }
+
+      /**
+       @biref remove a toolkit from this MPR. The toolkit will be deallocated.
+       */
+      void removeToolkit( MprToolkit* toolkit )
+      {
+         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); )
+         {
+            Toolkits::iterator cur = it;
+            ++it;
+            if ( *cur == toolkit )
+            {
+               delete *cur;
+               _toolkits.erase( cur );
+            }
+         }
       }
 
       virtual const Image& draw()
       {
-         if ( outFusedMpr.image.sizex() != _renderingSize[ 0 ] || outFusedMpr.image.sizey() != _renderingSize[ 1 ] )
+         if ( _mpr->outFusedMpr.image.sizex() != _renderingSize[ 0 ] || _mpr->outFusedMpr.image.sizey() != _renderingSize[ 1 ] )
          {
             // we need to rescale for this frame the current MPR as the size is different (asynchrone results)
             // it will be correctly updated later...
-            nll::core::rescaleBilinear( outFusedMpr.image, _renderingSize[ 0 ], _renderingSize[ 1 ] );
+            nll::core::rescaleBilinear( _mpr->outFusedMpr.image, _renderingSize[ 0 ], _renderingSize[ 1 ] );
          }
-         return outFusedMpr.image;
+         return _mpr->outFusedMpr.image;
       }
 
       virtual void setImageSize( ui32 sx, ui32 sy )
       {
-         _renderingSize[ 0 ] = sx;
-         _renderingSize[ 1 ] = sy;
+         _renderingSize.setValue( 0, sx );
+         _renderingSize.setValue( 1, sy );
       }
 
       virtual void handle( const InteractionEvent& event )
       {
-      }
-
-   protected:
-      void init( const Symbol& mprName )
-      {
-         _mprName = mprName;
-
-         // get the mpr
-         ContextMpr* mprs = Context::instance().get<ContextMpr>();
-         ensure( mprs, "first init correctly the context!" );
-
-         ContextMpr::ContextMprInstance* context = mprs->getMpr( mprName );
-         ensure( mpr, "the MPR doesn't exist in the context!" );
-
-         _mpr = new EngineMprImpl( ResourceManager::instance(),
-                                   context->volumes,
-                                   context->origin,
-                                   context->vector1,
-                                   context->vector2,
-                                   context->zoom,
-                                   _renderingSize );
+         // TODO
       }
 
    private:
@@ -77,9 +107,9 @@ public:
 
 
    protected:
-      Symbol             _mprName;
       EngineMprImpl*     _mpr;
       ResourceVector2ui  _renderingSize;
+      Toolkits           _toolkits;
    };
 }
 
