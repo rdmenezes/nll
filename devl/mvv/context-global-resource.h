@@ -12,6 +12,7 @@ namespace mvv
    {
       typedef std::map<Symbol, MedicalVolume*>  Volumes;
       typedef std::set<OrderCreator*>           OrderCreators;
+      typedef std::vector<Order*>              Orders;
 
    public:
       ~ContextGlobalResource()
@@ -73,6 +74,12 @@ namespace mvv
          OrderCreators::iterator it = _orderCreators.find( o );
          if ( it != _orderCreators.end() )
             _orderCreators.erase( o );
+      }
+
+      virtual void consume( const Orders& o )
+      {
+         for ( Orders::const_iterator it = o.begin(); it != o.end(); ++it )
+            consume( *it );
       }
 
       /**

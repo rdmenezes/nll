@@ -106,16 +106,17 @@ void mouseMotion(int x, int y)
    //std::cout << "y = " << y << std::endl;
    //applicationVariables.originMpr1.setValue( 2, (double)y / applicationVariables.screen.sizey() * 82 );
 
-   
+   /*
    nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
    pos[ 2 ] = (double)y / applicationVariables.screen.sizey() * 82;
    pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 82;
    applicationVariables.mprs->setMprPosition( pos );
-   
+   */
 }
 
 void keyboard(unsigned char key, int x, int y)
 {
+   /*
    if ( key == 'q' )
    {
       applicationVariables.queue->kill();
@@ -179,7 +180,7 @@ void keyboard(unsigned char key, int x, int y)
       zoom[ 1 ] = zoom[ 0 ];
       applicationVariables.mprs->setZoom( zoom );
    }
-   
+   */
 }
 
 int main(int argc, char** argv)

@@ -9,6 +9,9 @@
 # include <mvv/resource.h>
 # include <mvv/engine-mpr.h>
 # include <mvv/layout.h>
+# include <mvv/context.h>
+# include <mvv/context-global-resource.h>
+# include <mvv/symbol.h>
 # include <set>
 
 namespace mvv
@@ -18,37 +21,85 @@ namespace mvv
     */
    struct ApplicationVariables
    {
-      Display3Mpr*                        mprs;
       QueueOrder*                         queue;
-      Pane*                               rootLayout;
-
+      PaneListHorizontal*                 rootLayout;
       boost::thread                       dispatchThread;
-
-      MedicalVolume                       TODOREMOVE_volume;
-      MedicalVolume                       TODOREMOVE_volume2;
-      ResourceTransferFunctionWindowing   windowing;
-      ResourceTransferFunctionWindowing   windowing2;
 
       unsigned int                        screenTextureId;
       nll::core::Image<nll::ui8>          screen;
 
-      ApplicationVariables()
-      {
-         mprs = new Display3Mpr( ResourceManager::instance() );
+      Symbol      volume1_pet;
+      Symbol      volume2_ct;
 
-         // load volumes
-         const std::string pathV2 = "../../nllTest/data/medical/1_-NAC.mf2";
-         const std::string pathV1 = "../../nllTest/data/medical/1_-CT.mf2";
+      ApplicationVariables() : volume1_pet( Symbol::create("volume1_pet") ), 
+                               volume2_ct( Symbol::create("volume2_ct") )
+      {
          bool loaded;
 
-         loaded = nll::imaging::loadSimpleFlatFile( pathV1, TODOREMOVE_volume );
-         mprs->getVolumes().attachVolume( &TODOREMOVE_volume );
+         // load volumes
+         ContextGlobalResource* globalContext = new ContextGlobalResource();
+         Context::instance().add( globalContext );
+
+         const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
+         MedicalVolume *pet = new MedicalVolume();
+         loaded = nll::imaging::loadSimpleFlatFile( pathPet, *pet );
          ensure( loaded, "error" );
 
-         loaded = nll::imaging::loadSimpleFlatFile( pathV2, TODOREMOVE_volume2 );
-         mprs->getVolumes().attachVolume( &TODOREMOVE_volume2 );
+         const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
+         MedicalVolume *ct = new MedicalVolume();
+         loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
          ensure( loaded, "error" );
 
+         // create a MPR
+         ContextMpr* mprContext = new ContextMpr();
+         ContextMpr::ContextMprInstance* mpr1Context = new ContextMpr::ContextMprInstance();
+         mprContext->addMpr( Symbol::create("mpr1_frontal"), mpr1Context );
+
+         mpr1Context->addVolume( pet, 0.5, new ResourceTransferFunctionWindowing( 0, 5000) );
+         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 0, 5000) );
+         mpr1Context->origin.setValue( 0, 0 );
+         mpr1Context->origin.setValue( 1, 0 );
+         mpr1Context->origin.setValue( 2, 0 );
+         mpr1Context->vector1.setValue( 0, 0 );
+         mpr1Context->vector1.setValue( 1, 1 );
+         mpr1Context->vector1.setValue( 2, 0 );
+         mpr1Context->vector2.setValue( 0, 1 );
+         mpr1Context->vector2.setValue( 1, 0 );
+         mpr1Context->vector2.setValue( 2, 0 );
+         mpr1Context->zoom.setValue( 0, 1 );
+         mpr1Context->zoom.setValue( 1, 1 );
+
+         DrawableMprToolkits* toolkits = new DrawableMprToolkits( ResourceManager::instance(),
+                                                                  mpr1Context->volumes,
+                                                                  mpr1Context->origin,
+                                                                  mpr1Context->vector1,
+                                                                  mpr1Context->vector2,
+                                                                  mpr1Context->zoom,
+                                                                  mpr1Context->volumeIntensities,
+                                                                  mpr1Context->luts );
+         mpr1Context->setDrawableMprToolkits( toolkits );
+
+
+         // create layout
+         ui32 sizex = 1024;
+         ui32 sizey = 1024;
+         rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
+                                              nll::core::vector2ui( sizex, sizey ) );
+         rootLayout->addChild( new PaneDrawableEmpty( nll::core::vector2ui( 0, 0 ),
+                                                      nll::core::vector2ui( 0, 0 ) ),
+                               0.1 );
+         PaneMpr* mpr = new PaneMpr( *toolkits,
+                                     nll::core::vector2ui( 0, 0 ),
+                                     nll::core::vector2ui( 0, 0 ) );
+         rootLayout->addChild( mpr, 0.9 );
+         rootLayout->updateLayout();
+
+         mpr1Context->origin.notifyChanges();
+
+         //PaneDrawable* layout1 = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( sizex, sizey ) );
+
+
+         /*
 
          // set zoom factors
          //zoom.setValue( 0, 3 );
@@ -61,7 +112,7 @@ namespace mvv
          windowing2.setMaxWindow( 5000 );
          unsigned char red[] = { 255, 0, 0 };
          windowing2.setLutColor( red );
-
+         */
          // set the MPR1
          /*
          originMpr1.setValue( 0, 0 );
@@ -86,19 +137,18 @@ namespace mvv
          rootLayout = layout1;
          */
 
-         ui32 sizex = 1024;
-         ui32 sizey = 768;
 
+/*
          rootLayout = mprs->getLayout();
          rootLayout->setOrigin( nll::core::vector2ui( 0, 0 ) );
          rootLayout->setSize( nll::core::vector2ui( sizex, sizey ) );
          rootLayout->updateLayout();
          mprs->autoAdjustSize();
-
+*/
          // queue
          queue = new QueueOrder( ResourceManager::instance(), 4 );
          dispatchThread = boost::thread( boost::ref( *queue ) );
-         
+           
          ResourceManager::instance().setQueueOrder( queue );
 
          // screen
@@ -107,13 +157,16 @@ namespace mvv
 
       void handleOrders()
       {
+         ContextGlobalResource* context = Context::instance().get<ContextGlobalResource>();
+         ensure( context, "can't be null" );
          QueueOrder::OrderBuffer orders = queue->getFinishedOrdersAndClear();
-         mprs->consume( orders );
+         context->consume( orders );
       }
 
       void runEngines()
       {
-         mprs->checkStatus();
+         ContextGlobalResource* context = Context::instance().get<ContextGlobalResource>();
+         context->run();
       }
    };
 }
