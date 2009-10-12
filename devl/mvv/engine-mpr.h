@@ -141,6 +141,8 @@ namespace mvv
             const double ratio = _intensities.getIntensity( *it );
             for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
             {
+               // TODO handle sum(ration) != 1
+
                //const ui8* buf = lutTest.transform(*itIn);//windowing->transform( *itIn );
                const ui8* buf = windowing->transform( *itIn );
                itOut.pickcol( 0 ) += buf[ 0 ] * ratio;
@@ -191,8 +193,9 @@ namespace mvv
       {
          if ( !_current || ( o->getOrderClassId() != ORDER_MPR_RENDERING_COMBINE ) )
             return;
-         if ( o != _current || o->getResult() )
+         if ( o != _current )
             return;
+         assert( o->getResult() );
 
 
          // the order has correctly executed: every volume MPR has been computed as well
@@ -202,6 +205,8 @@ namespace mvv
             _orderProvider.pushOrderToDestroy( *it );
          _current = 0;
          _idle = true;
+
+         std::cout << "combiner.consume() idle=true" << std::endl;
       }
 
       /**
@@ -241,7 +246,9 @@ namespace mvv
          // create the order
          OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
          _orderProvider.pushOrder( order );
+         _current = order;
          _idle = false;
+         std::cout << "combiner.run() idle=false" << std::endl;
          return true;
       }
 
@@ -295,6 +302,7 @@ namespace mvv
        */
       virtual bool _run()
       {
+         std::cout << "engine.computation::run()" << std::endl;
          if ( !_volumes.size() )
             return true;
          if ( _tracked.size() )
@@ -309,6 +317,7 @@ namespace mvv
                _orderProvider.pushOrderToDestroy( *it );
 
          } else {
+            std::cout << "engine.computation::run() cannot recompute" << std::endl;
             // we need to wait for the MPR fusion
             return false;
          }
@@ -359,6 +368,8 @@ namespace mvv
 
          // orders have been rendered, update the resource
          outOrdersToFuse.setOrders( _tracked );
+
+         _tracked.clear();
       }
 
    public:
@@ -394,6 +405,14 @@ namespace mvv
    public:
       // resource that export the computed fused MPR
       ResourceImageRGB  outFusedMpr;
+
+   public:
+      enum Orientation
+      {
+         FRONTAL,
+         CORONAL,
+         TRANSVERSE
+      };
 
    public:
       EngineMprImpl( OrderProvider& orderProvider,
@@ -453,6 +472,50 @@ namespace mvv
          return !_mprCombiner.isNotified();
       }
 
+      /**
+       @brief Set zoom, orientation, position of the bigggest volume to be the center of the MPR
+       */
+      void autoFindPosition( Orientation orientation )
+      {
+         // find the biggest volume
+         ui32 size = 0;
+         ResourceVolumes::iterator choice;
+         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it )
+         {
+            ui32 volSize = (*it)->getSize()[ 0 ] * (*it)->getSize()[ 1 ] * (*it)->getSize()[ 2 ];
+            if ( volSize > size )
+            {
+               size = volSize;
+               choice = it;
+            }
+         }
+
+         // get the size in minimeter
+         const double sxmm = (*choice)->getSize()[ 0 ] / (*choice)->getSpacing()[ 0 ];
+         const double symm = (*choice)->getSize()[ 1 ] / (*choice)->getSpacing()[ 1 ];
+         const double szmm = (*choice)->getSize()[ 2 ] / (*choice)->getSpacing()[ 2 ];
+
+         // select the orientation
+         if ( orientation == TRANSVERSE )
+         {
+            _zoom.setValue( 0, 1 );
+            _zoom.setValue( 1, 1 );
+            _vector1.setValue( nll::core::vector3d( (*choice)->getPst()( 0, 0 ),
+                                                    (*choice)->getPst()( 1, 0 ),
+                                                    (*choice)->getPst()( 2, 0 ) ) );
+            _vector2.setValue( nll::core::vector3d( (*choice)->getPst()( 0, 1 ),
+                                                    (*choice)->getPst()( 1, 1 ),
+                                                    (*choice)->getPst()( 2, 1 ) ) );
+            const double vx = ( _renderingSize[ 0 ] - sxmm ) / 2 + sxmm / 2;
+            const double vy = ( _renderingSize[ 1 ] - symm ) / 2 + symm / 2;
+
+            std::cout << "v=" << vx << "," << vy << std::endl;
+            _origin.setValue( nll::core::vector3d( -(*choice)->getOrigin()[ 0 ],
+                                                   -(*choice)->getOrigin()[ 1 ],
+                                                   0 ) ); //(*choice)->getOrigin()[ 2 ] + (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ] / 2 ) );
+         }
+      }
+
    protected:
       OrderProvider&                _orderProvider;
       ResourceVolumes&              _volumes;
@@ -466,150 +529,6 @@ namespace mvv
 
       EngineMprComputation          _mprComputation;
       EngineMprCombiner             _mprCombiner;
-   };
-
-   /**
-    @ingroup mvv
-    @brief A multiplanar reconstruction object
-    */
-   class EngineMpr : public EngineRunnable, public Drawable
-   {
-      typedef std::set<MedicalVolume*> Volumes;
-      typedef std::vector<Order*>      Orders;
-
-   public:
-      EngineMpr( OrderProvider& orderProvider,
-                 ResourceVolumes& volumes,
-                 ResourceVector3d& origin,
-                 ResourceVector3d& vector1,
-                 ResourceVector3d& vector2,
-                 ResourceVector2d& zoom  ) : _orderProvider( orderProvider ), _sx( 0 ), _sy( 0 ), _volumes( volumes ),
-                 _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom )
-      {
-         attach( origin );
-         attach( vector1 );
-         attach( vector2 );
-         attach( zoom );
-      }
-
-      /**
-       @brief Consume an order
-       */
-      virtual void consume( Order* o )
-      {
-         if ( ( o->getOrderClassId() != ORDER_MPR_RENDERING && o->getOrderClassId() != ORDER_MPR_RENDERING_COMBINE ) || !_tracked.size() )
-            return;
-
-         // it is a MPR_RENDERING order so we need to check it is one of our order
-         for ( ui32 n = 0; n < _tracked.size(); ++n )
-            if ( !_tracked[ n ]->getResult() )
-            {
-               // one order has not finished yet so we need to wait
-               return;
-            }
-            std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR result found" << std::endl;
-
-         // all the orders are finished, just fuse them and update the result
-         ensure( _tracked.size() == _volumes.size() + 1, "error size doesn't match!" );
-
-         for ( Orders::iterator it = _tracked.begin(); it != _tracked.end(); ++it )
-         {
-            _orderProvider.pushOrderToDestroy( *it );
-         }
-
-         static int nbFps = 0;
-         static unsigned last = clock();
-         ++nbFps;
-
-         if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
-         {
-            std::cout << "------NumberofMprRendered=" << nbFps << std::endl;
-            nbFps = 0;
-            last = clock();
-         }
-
-         _tracked.clear();
-         _slice.clone( _sliceTmp );
-         std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR MPR finished" << std::endl;
-      }
-
-      /**
-       @brief Compute a MPR
-       */
-      virtual bool _run()
-      {
-         /*
-         if ( _tracked.size() )
-         {
-            std::cout << "waiting..." << _tracked.size()<< std::endl;
-            return false;
-         }
-         _sliceTmp = Image( _sx, _sy, 3, true );
-         _tracked = Orders( _volumes.size() );
-         std::cout << (double)clock() / CLOCKS_PER_SEC << " MPR STARTED RUN ORDER" << std::endl;
-
-         ui32 n = 0;
-         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
-         {
-            OrderMprRendering* order = new OrderMprRendering( *it, _sx, _sy, _zoom[ 0 ], _zoom[ 1 ],
-                                                              nll::core::vector3d( _origin[ 0 ],
-                                                                                   _origin[ 1 ],
-                                                                                   _origin[ 2 ] ),
-                                                              nll::core::vector3d( _vector1[ 0 ],
-                                                                                   _vector1[ 1 ],
-                                                                                   _vector1[ 2 ] ),
-                                                              nll::core::vector3d( _vector2[ 0 ],
-                                                                                   _vector2[ 1 ],
-                                                                                   _vector2[ 2 ] ),
-                                                                                   OrderMprRendering::TRILINEAR );
-            _tracked[ n ] = order;
-            _orderProvider.pushOrder( order );
-         }
-         OrderCombineMpr* order = new OrderCombineMpr( _tracked, _sliceTmp, _volumes );
-         _orderProvider.pushOrder( order );
-         _tracked.push_back( order );*/
-         return true;
-      }
-
-
-      /**
-       @brief Return a MPR fully processed and ready to be drawed
-       */
-      virtual const Image& draw()
-      {
-         if ( _slice.sizex() != _sx || _slice.sizey() != _sy )
-         {            
-            // for now just resample the image... we have to wait for the updated asynchronous order
-            nll::core::rescaleBilinear( _slice, _sx, _sy );
-         }
-         return _slice;
-      }
-
-      /**
-       @brief Specifies the size of the MPR in pixel
-       */
-      virtual void setImageSize( ui32 sx, ui32 sy )
-      {
-         _sx = sx;
-         _sy = sy;
-
-         _slice = Image( _sx, _sy, 3, true );
-      }
-
-   protected:
-      OrderProvider& _orderProvider;
-      Image          _slice;
-      Image          _sliceTmp;
-      ui32           _sx;
-      ui32           _sy;
-
-      ResourceVolumes&                    _volumes;
-      ResourceVector3d&                   _origin;
-      ResourceVector3d&                   _vector1;
-      ResourceVector3d&                   _vector2;
-      ResourceVector2d&                   _zoom;
-
-      Orders   _tracked;
    };
 }
 

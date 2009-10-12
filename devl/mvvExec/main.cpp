@@ -116,7 +116,6 @@ void mouseMotion(int x, int y)
 
 void keyboard(unsigned char key, int x, int y)
 {
-   /*
    if ( key == 'q' )
    {
       applicationVariables.queue->kill();
@@ -124,63 +123,35 @@ void keyboard(unsigned char key, int x, int y)
       applicationVariables.dispatchThread.join();
       exit( 0 );
    }
-   if ( key == '7' )
+   if ( key == 'a' )
    {
-      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-      pos[ 2 ] += 8.3;
-      applicationVariables.mprs->setMprPosition( pos );
+      mvv::ContextMpr* context = mvv::Context::instance().get<mvv::ContextMpr>();
+      assert( context );
+      for ( mvv::ContextMpr::Mprs::iterator it = context->begin(); it != context->end(); ++it )
+      {
+         mvv::DrawableMprToolkits* toolkits = it->second->getDrawableMprToolkits();
+         assert( toolkits );
+         toolkits->autoFindPosition( mvv::EngineMprImpl::TRANSVERSE );
+      }
    }
-   if ( key == '1' )
+   if ( key == 'w' )
    {
-      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-      pos[ 2 ] -= 8.3;
-      applicationVariables.mprs->setMprPosition( pos );
+      mvv::ContextMpr* context = mvv::Context::instance().get<mvv::ContextMpr>();
+      assert( context );
+      mvv::ContextMpr::ContextMprInstance* mpr = context->getMpr( mvv::Symbol::create("mpr1_frontal") );
+      assert( mpr );
+      mpr->zoom.setValue( 0, mpr->zoom.getValue( 0 ) + 0.1 );
+      mpr->zoom.setValue( 1, mpr->zoom.getValue( 1 ) + 0.1 );
    }
-   if ( key == '8' )
+   if ( key == 's' )
    {
-      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-      pos[ 0 ] += 8.3;
-      applicationVariables.mprs->setMprPosition( pos );
+      mvv::ContextMpr* context = mvv::Context::instance().get<mvv::ContextMpr>();
+      assert( context );
+      mvv::ContextMpr::ContextMprInstance* mpr = context->getMpr( mvv::Symbol::create("mpr1_frontal") );
+      assert( mpr );
+      mpr->zoom.setValue( 0, mpr->zoom.getValue( 0 ) - 0.1 );
+      mpr->zoom.setValue( 1, mpr->zoom.getValue( 1 ) - 0.1 );
    }
-   if ( key == '2' )
-   {
-      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-      pos[ 0 ] -= 8.3;
-      applicationVariables.mprs->setMprPosition( pos );
-   }
-   if ( key == '9' )
-   {
-      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-      pos[ 1 ] += 8.3;
-      applicationVariables.mprs->setMprPosition( pos );
-   }
-   if ( key == '3' )
-   {
-      nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-      pos[ 1 ] -= 8.3;
-      applicationVariables.mprs->setMprPosition( pos );
-   }
-   if ( key == '5' )
-   {
-      applicationVariables.mprs->autoAdjustSize();
-   }
-   if ( key == '+' )
-   {
-      nll::core::vector2d zoom = applicationVariables.mprs->getZoom();
-      zoom[ 0 ] += 0.5;
-      zoom[ 1 ] = zoom[ 0 ];
-      applicationVariables.mprs->setZoom( zoom );
-   }
-   if ( key == '-' )
-   {
-      nll::core::vector2d zoom = applicationVariables.mprs->getZoom();
-      zoom[ 0 ] -= 0.5;
-      if ( zoom[ 0 ] <= 0.01 )
-         zoom[ 0 ] = 0.01;
-      zoom[ 1 ] = zoom[ 0 ];
-      applicationVariables.mprs->setZoom( zoom );
-   }
-   */
 }
 
 int main(int argc, char** argv)

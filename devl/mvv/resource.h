@@ -282,6 +282,14 @@ namespace mvv
          _buf[ v ] = val;
       }
 
+      void setValue( const nll::core::vector3d& v )
+      {
+         _buf[ 0 ] = v[ 0 ];
+         _buf[ 1 ] = v[ 1 ];
+         _buf[ 2 ] = v[ 2 ];
+         notifyChanges();
+      }
+
       void normalize()
       {
          double l = sqrt( _buf[ 0 ] * _buf[ 0 ] +

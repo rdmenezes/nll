@@ -18,7 +18,7 @@ namespace mvv
 
     Toolkits will be handled form first added to last added
     */
-   class DrawableMprToolkits : public Drawable, public InteractionEventReceiver
+   class DrawableMprToolkits : public Drawable, public InteractionEventReceiver, public OrderCreator
    {
       typedef std::vector<MprToolkit*>  Toolkits;
 
@@ -78,8 +78,17 @@ namespace mvv
          }
       }
 
+      /**
+       @brief Set zoom, orientation, position of the bigggest volume to be the center of the MPR
+       */
+      void autoFindPosition( EngineMprImpl::Orientation orientation )
+      {
+         _mpr->autoFindPosition( orientation );
+      }
+
       virtual const Image& draw()
       {
+         // TODO update with toolkits
          if ( _mpr->outFusedMpr.image.sizex() != _renderingSize[ 0 ] || _mpr->outFusedMpr.image.sizey() != _renderingSize[ 1 ] )
          {
             // we need to rescale for this frame the current MPR as the size is different (asynchrone results)
@@ -98,6 +107,16 @@ namespace mvv
       virtual void handle( const InteractionEvent& event )
       {
          // TODO
+      }
+
+      virtual void run()
+      {
+         _mpr->run();
+      }
+
+      virtual void consume( Order* o )
+      {
+         _mpr->consume( o );
       }
 
    private:

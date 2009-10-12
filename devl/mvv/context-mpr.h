@@ -32,6 +32,12 @@ namespace mvv
          {
             if ( _toolkits )
                removeDrawableMprToolkits( _toolkits );
+            _toolkits = toolkits;
+         }
+
+         DrawableMprToolkits* getDrawableMprToolkits()
+         {
+            return _toolkits;
          }
 
          /**
@@ -39,6 +45,7 @@ namespace mvv
           */
          void removeDrawableMprToolkits( DrawableMprToolkits* toolkits )
          {
+            // TODO fix the warning
             delete _toolkits;
             _toolkits = 0;
          }
