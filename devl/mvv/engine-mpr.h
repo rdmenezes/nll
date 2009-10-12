@@ -207,6 +207,9 @@ namespace mvv
          _idle = true;
 
          std::cout << "combiner.consume() idle=true" << std::endl;
+
+         std::cout << "---saving file in c:\tmp---" << std::endl;
+         nll::core::writeBmp( outFusedMPR.image, "c:/tmp/out.bmp" );
       }
 
       /**
@@ -510,9 +513,9 @@ namespace mvv
             const double vy = ( _renderingSize[ 1 ] - symm ) / 2 + symm / 2;
 
             std::cout << "v=" << vx << "," << vy << std::endl;
-            _origin.setValue( nll::core::vector3d( -(*choice)->getOrigin()[ 0 ],
-                                                   -(*choice)->getOrigin()[ 1 ],
-                                                   0 ) ); //(*choice)->getOrigin()[ 2 ] + (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ] / 2 ) );
+            _origin.setValue( nll::core::vector3d( (*choice)->getOrigin()[ 0 ],
+                                                   (*choice)->getOrigin()[ 1 ],
+                                                   42 ) ); //(*choice)->getOrigin()[ 2 ] + (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ] / 2 ) );
          }
       }
 

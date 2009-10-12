@@ -40,8 +40,8 @@ namespace imaging
                   <p>
                   With R the rotation matrix, and O the image origin in mm, S the image size
                   <p>
-                  The origin is defined as the vector from the voxel (0, 0, 0) of the volume
-                  to the world origin, distance in minimeter
+                  The origin is defined as the vector from the world origin to the voxel (0, 0, 0) of the volume,
+                  distance in minimeter
                   <p>
                   The spacing is extracted from the matrix: s_x = sqrt( r1^2 + r4^2 + r7^2 ) and so on
                   for s_y and s_z spacing.
@@ -66,9 +66,9 @@ namespace imaging
             result[ 1 ] += index[ n ] * _pst( 1, n );
             result[ 2 ] += index[ n ] * _pst( 2, n );
          }
-         return core::vector3d( result[ 0 ] - _pst( 0, 3 ),
-                                result[ 1 ] - _pst( 1, 3 ),
-                                result[ 2 ] - _pst( 2, 3 ) );
+         return core::vector3d( result[ 0 ] + _pst( 0, 3 ),
+                                result[ 1 ] + _pst( 1, 3 ),
+                                result[ 2 ] + _pst( 2, 3 ) );
       }
 
       /**
@@ -81,9 +81,9 @@ namespace imaging
          core::vector3d result( 0, 0, 0 );
          for ( unsigned n = 0; n < 3; ++n )
          {
-            result[ 0 ] += ( position[ n ] + _pst( n, 3 ) ) * _inversedPst( 0, n );
-            result[ 1 ] += ( position[ n ] + _pst( n, 3 ) ) * _inversedPst( 1, n );
-            result[ 2 ] += ( position[ n ] + _pst( n, 3 ) ) * _inversedPst( 2, n );
+            result[ 0 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 0, n );
+            result[ 1 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 1, n );
+            result[ 2 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 2, n );
          }
          return result;
       }

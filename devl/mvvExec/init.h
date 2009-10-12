@@ -50,6 +50,8 @@ namespace mvv
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
          ensure( loaded, "error" );
 
+         std::cout << "s=" << ct->getSize()[ 0 ] << "," << ct->getSize()[ 1 ] << "," << ct->getSize()[ 2 ] << std::endl;
+         std::cout << "o=" << ct->getOrigin()[ 0 ] << "," << ct->getOrigin()[ 1 ] << "," << ct->getOrigin()[ 2 ] << std::endl;
          // create a MPR
          ContextMpr* mprContext = new ContextMpr();
          Context::instance().add( mprContext );
@@ -59,7 +61,7 @@ namespace mvv
          ResourceTransferFunctionWindowing* petLut = new ResourceTransferFunctionWindowing( 0, 5000);
          petLut->setLutColor( nll::core::Image<nll::ui8>::red() );
          mpr1Context->addVolume( pet, 0.5, petLut );
-         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 0, 2000) );
+         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 0, 1000) );
          mpr1Context->origin.setValue( 0, -80 );
          mpr1Context->origin.setValue( 1, -80 );
          mpr1Context->origin.setValue( 2, 0 );
@@ -85,8 +87,8 @@ namespace mvv
 
 
          // create layout
-         ui32 sizex = 700;
-         ui32 sizey = 700;
+         ui32 sizex = 512;
+         ui32 sizey = 512;
          rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                               nll::core::vector2ui( sizex, sizey ) );
          rootLayout->addChild( new PaneDrawableEmpty( nll::core::vector2ui( 0, 0 ),

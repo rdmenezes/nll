@@ -39,16 +39,14 @@ void renderObjects()
 
    glBegin(GL_QUADS);
    glTexCoord2d( 0, 0 );
-	glVertex2f(0,applicationVariables.rootLayout->getSize()[ 1 ]);
+   glVertex2f(0,0);
    glTexCoord2d( 1, 0 );
-	glVertex2f(applicationVariables.rootLayout->getSize()[ 0 ],applicationVariables.rootLayout->getSize()[ 1 ]);
+   glVertex2f(applicationVariables.rootLayout->getSize()[ 0 ],0);
    glTexCoord2d( 1, 1 );
-	glVertex2f(applicationVariables.rootLayout->getSize()[ 0 ],0);
+   glVertex2f(applicationVariables.rootLayout->getSize()[ 0 ],applicationVariables.rootLayout->getSize()[ 1 ]);
    glTexCoord2d( 0, 1 );
-	glVertex2f(0,0);
+	glVertex2f(0,applicationVariables.rootLayout->getSize()[ 1 ]);
 	glEnd();
-
-   //applicationVariables.originMpr1.setValue( 2, applicationVariables.originMpr1[ 2 ] - 0.03 );
 }
 
 
@@ -140,8 +138,21 @@ void keyboard(unsigned char key, int x, int y)
       assert( context );
       mvv::ContextMpr::ContextMprInstance* mpr = context->getMpr( mvv::Symbol::create("mpr1_frontal") );
       assert( mpr );
-      mpr->zoom.setValue( 0, mpr->zoom.getValue( 0 ) + 0.1 );
-      mpr->zoom.setValue( 1, mpr->zoom.getValue( 1 ) + 0.1 );
+
+      const double oldzx = mpr->zoom.getValue( 0 );
+      const double oldzy = mpr->zoom.getValue( 1 );
+      const double newzx = oldzx + 0.01;
+      const double newzy = oldzy + 0.01;
+      mpr->zoom.setValue( 0, newzx );
+      mpr->zoom.setValue( 1, newzy );
+
+      const double oldx = mpr->origin.getValue( 0 );
+      const double oldy = mpr->origin.getValue( 1 );
+      const double oldz = mpr->origin.getValue( 2 );
+      const double newx = oldx - ( oldzx - newzx ) * 512 / 2;
+      const double newy = oldy - ( oldzy - newzy ) * 512 / 2;
+      mpr->origin.setValue( 0, newx );
+      mpr->origin.setValue( 1, newy );
    }
    if ( key == 's' )
    {

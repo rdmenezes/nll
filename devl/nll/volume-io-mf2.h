@@ -78,7 +78,8 @@ namespace imaging
       core::Matrix<double> id( 3, 3 );
       for ( ui32 n = 0; n < 3; ++n )
          id( n, n ) = 1;
-      core::Matrix<double> pst = Volume::createPatientSpaceTransform( id, core::vector3d( originX, originY, originZ ), core::vector3d( colSp, rowSp, sliceSp ) );
+      // origin is from worldorigin->volumeorigin
+      core::Matrix<double> pst = Volume::createPatientSpaceTransform( id, core::vector3d( -originX, -originY, -originZ ), core::vector3d( colSp, rowSp, sliceSp ) );
 
       for ( unsigned int k = 0; k < depth; ++k )
       {
