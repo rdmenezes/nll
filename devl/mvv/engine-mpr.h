@@ -494,9 +494,9 @@ namespace mvv
          }
 
          // get the size in minimeter
-         const double sxmm = (*choice)->getSize()[ 0 ] / (*choice)->getSpacing()[ 0 ];
-         const double symm = (*choice)->getSize()[ 1 ] / (*choice)->getSpacing()[ 1 ];
-         const double szmm = (*choice)->getSize()[ 2 ] / (*choice)->getSpacing()[ 2 ];
+         const double sxmm = (*choice)->getSize()[ 0 ] * (*choice)->getSpacing()[ 0 ];
+         const double symm = (*choice)->getSize()[ 1 ] * (*choice)->getSpacing()[ 1 ];
+         const double szmm = (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ];
 
          // select the orientation
          if ( orientation == TRANSVERSE )
@@ -509,13 +509,14 @@ namespace mvv
             _vector2.setValue( nll::core::vector3d( (*choice)->getPst()( 0, 1 ),
                                                     (*choice)->getPst()( 1, 1 ),
                                                     (*choice)->getPst()( 2, 1 ) ) );
-            const double vx = ( _renderingSize[ 0 ] - sxmm ) / 2 + sxmm / 2;
-            const double vy = ( _renderingSize[ 1 ] - symm ) / 2 + symm / 2;
+            const double vx = ( sxmm - _renderingSize[ 0 ] ) / 2;
+            const double vy = ( symm - _renderingSize[ 1 ] ) / 2;
 
-            std::cout << "v=" << vx << "," << vy << std::endl;
-            _origin.setValue( nll::core::vector3d( (*choice)->getOrigin()[ 0 ],
-                                                   (*choice)->getOrigin()[ 1 ],
-                                                   42 ) ); //(*choice)->getOrigin()[ 2 ] + (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ] / 2 ) );
+            // as the volume coordinate system and world coordinate systems are now aligned,
+            // we can forget about the base...
+            _origin.setValue( nll::core::vector3d( (*choice)->getOrigin()[ 0 ] + vx,
+                                                   (*choice)->getOrigin()[ 1 ] + vy,
+                                                   (*choice)->getOrigin()[ 2 ] + szmm / 2 ) );
          }
       }
 

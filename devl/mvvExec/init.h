@@ -48,6 +48,16 @@ namespace mvv
          const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
+
+         for ( int nx = 0; nx < 10; ++nx )
+            for ( int ny = 0; ny < 10; ++ny )
+               (*ct)( nx, ny, ct->getSize()[ 2 ] / 2 ) = 999;
+         for ( int nx = 0; nx < 10; ++nx )
+            for ( int ny = 0; ny < 10; ++ny )
+               (*ct)( 512 - 10 + nx, 512 - 10 + ny, ct->getSize()[ 2 ] / 2 ) = 999;
+         for ( int nx = 0; nx < 10; ++nx )
+            for ( int ny = 0; ny < 10; ++ny )
+               (*ct)( 256 - 5 + nx, 256 - 5 + ny, ct->getSize()[ 2 ] / 2 ) = 999;
          ensure( loaded, "error" );
 
          std::cout << "s=" << ct->getSize()[ 0 ] << "," << ct->getSize()[ 1 ] << "," << ct->getSize()[ 2 ] << std::endl;
@@ -87,8 +97,8 @@ namespace mvv
 
 
          // create layout
-         ui32 sizex = 512;
-         ui32 sizey = 512;
+         ui32 sizex = 512 * ct->getSpacing()[ 0 ];
+         ui32 sizey = 512 * ct->getSpacing()[ 1 ];
          rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                               nll::core::vector2ui( sizex, sizey ) );
          rootLayout->addChild( new PaneDrawableEmpty( nll::core::vector2ui( 0, 0 ),
