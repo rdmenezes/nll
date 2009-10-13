@@ -8,9 +8,56 @@
 
 namespace mvv
 {
-   class MprToolkit : public InteractionEventReceiver, public EngineRunnable
+   /// forward declaration
+   class DrawableMprToolkits;
+
+   class MVV_API MprToolkit : public InteractionEventReceiver, public EngineRunnable
    {
    public:
+      MprToolkit( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : _toolkits( toolkits ), _orderProvider( orderProvider ), _mpr( mpr )
+      {
+      }
+
+      virtual ~MprToolkit()
+      {
+      }
+
+      virtual const ResourceImageRGB& getImage()
+      {
+         return _mpr;
+      }
+
+   protected:
+      OrderProvider&          _orderProvider;
+      const ResourceImageRGB& _mpr;
+      DrawableMprToolkits&    _toolkits;
+   };
+
+   class MVV_API MprToolkitTranslation : public MprToolkit
+   {
+   public:
+      MprToolkitTranslation( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )
+      {
+         _isCurrentlyPressed = false;
+      }
+
+   protected:
+      virtual bool _run()
+      {
+         return true;
+      }
+
+      virtual void consume( Order* )
+      {
+         // we don't want to send asynchronous orders
+      }
+
+      void handle( const InteractionEvent& event );
+
+   private:
+      bool                 _isCurrentlyPressed;
+      nll::core::vector3d  _initialOrigin;
+      nll::core::vector2i  _initialMousePos;
    };
 
    /**
@@ -18,29 +65,39 @@ namespace mvv
 
     Toolkits will be handled form first added to last added
     */
-   class DrawableMprToolkits : public Drawable, public InteractionEventReceiver, public OrderCreator
+   class MVV_API DrawableMprToolkits : public Drawable, public InteractionEventReceiver, public OrderCreator
    {
       typedef std::vector<MprToolkit*>  Toolkits;
 
    public:
-      DrawableMprToolkits( OrderProvider& orderProvider,
-                           ResourceVolumes& volumes,
-                           ResourceVector3d& origin,
-                           ResourceVector3d& vector1,
-                           ResourceVector3d& vector2,
-                           ResourceVector2d& zoom,
-                           ResourceVolumeIntensities& intensities,
-                           ResourceLuts& luts )
+      DrawableMprToolkits( OrderProvider& orderProviderv,
+                           ResourceVolumes& volumesv,
+                           ResourceVector3d& originv,
+                           ResourceVector3d& vector1v,
+                           ResourceVector3d& vector2v,
+                           ResourceVector2d& zoomv,
+                           ResourceVolumeIntensities& intensitiesv,
+                           ResourceLuts& lutsv ) : _orderProvider( orderProviderv ),
+                                                   volumes( volumesv ),
+                                                   origin( originv ),
+                                                   vector1( vector1v ),
+                                                   vector2( vector2v ),
+                                                   zoom( zoomv ),
+                                                   intensities( intensitiesv ),
+                                                   luts( lutsv ),
+                                                   _mpr( new EngineMprImpl( orderProviderv,
+                                                                            volumesv,
+                                                                            originv,
+                                                                            vector1v,
+                                                                            vector2v,
+                                                                            zoomv,
+                                                                            renderingSize,
+                                                                            intensitiesv,
+                                                                            lutsv ) ),
+                                                      slice( _mpr->outFusedMpr )
+                                                   
+
       {
-         _mpr = new EngineMprImpl( orderProvider,
-                                   volumes,
-                                   origin,
-                                   vector1,
-                                   vector2,
-                                   zoom,
-                                   _renderingSize,
-                                   intensities,
-                                   luts );
       }
 
       ~DrawableMprToolkits()
@@ -86,37 +143,69 @@ namespace mvv
          _mpr->autoFindPosition( orientation );
       }
 
+      /**
+       @brief Retutns the rendered & decorated MPR
+
+       If toolkits are, the last one is the one supposed to hold the result
+       */
       virtual const Image& draw()
       {
-         // TODO update with toolkits
-         if ( _mpr->outFusedMpr.image.sizex() != _renderingSize[ 0 ] || _mpr->outFusedMpr.image.sizey() != _renderingSize[ 1 ] )
+         // if we have toolkits, pick the last one, which is supposed to old the final frame to be rendered
+         if ( _toolkits.size() )
+         {
+            const Image& image = (*_toolkits.rbegin())->getImage().image;
+
+            if ( image.sizex() != renderingSize[ 0 ] || 
+                 image.sizey() != renderingSize[ 1 ] )
+            {
+               std::cout << "Warning: resize" << std::endl;
+               Image tmp;
+               tmp.clone( image );
+               return tmp;
+            }
+            return image;
+         }
+
+         // else just pick the raw MPR slice
+         if ( _mpr->outFusedMpr.image.sizex() != renderingSize[ 0 ] || _mpr->outFusedMpr.image.sizey() != renderingSize[ 1 ] )
          {
             // we need to rescale for this frame the current MPR as the size is different (asynchrone results)
             // it will be correctly updated later...
-            nll::core::rescaleBilinear( _mpr->outFusedMpr.image, _renderingSize[ 0 ], _renderingSize[ 1 ] );
+            nll::core::rescaleBilinear( _mpr->outFusedMpr.image, renderingSize[ 0 ], renderingSize[ 1 ] );
          }
          return _mpr->outFusedMpr.image;
       }
 
+      /**
+       @brief Set the new size if the layouts have to resize the window, we need to recompute a MPR
+       */
       virtual void setImageSize( ui32 sx, ui32 sy )
       {
-         _renderingSize.setValue( 0, sx );
-         _renderingSize.setValue( 1, sy );
+         renderingSize.setValue( 0, sx );
+         renderingSize.setValue( 1, sy );
       }
 
+      /**
+       @brief Handle all the mouse & keyboard event throught the toolkits
+       */
       virtual void handle( const InteractionEvent& event )
       {
-         // TODO
+         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); ++it )
+            (*it)->handle( event );
       }
 
       virtual void run()
       {
          _mpr->run();
+         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); ++it )
+            (*it)->run();
       }
 
       virtual void consume( Order* o )
       {
          _mpr->consume( o );
+         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); ++it )
+            (*it)->consume( o );
       }
 
    private:
@@ -125,10 +214,24 @@ namespace mvv
       DrawableMprToolkits( const DrawableMprToolkits& );
 
 
+   public:
+      // all resources are published
+      ResourceVector2ui          renderingSize;
+      ResourceVolumes&           volumes;
+      ResourceVector3d&          origin;
+      ResourceVector3d&          vector1;
+      ResourceVector3d&          vector2;
+      ResourceVector2d&          zoom;
+      ResourceVolumeIntensities& intensities;
+      ResourceLuts&              luts;
+
    protected:
       EngineMprImpl*     _mpr;
-      ResourceVector2ui  _renderingSize;
       Toolkits           _toolkits;
+      OrderProvider&     _orderProvider;
+
+   public:
+      ResourceImageRGB&          slice;
    };
 }
 

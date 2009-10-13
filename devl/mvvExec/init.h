@@ -27,6 +27,7 @@ namespace mvv
 
       unsigned int                        screenTextureId;
       nll::core::Image<nll::ui8>          screen;
+      mvv::InteractionEvent               events;
 
       Symbol      volume1_pet;
       Symbol      volume2_ct;
@@ -34,6 +35,12 @@ namespace mvv
       ApplicationVariables() : volume1_pet( Symbol::create("volume1_pet") ), 
                                volume2_ct( Symbol::create("volume2_ct") )
       {
+         events.mousePosition = nll::core::vector2ui( 0, 0 );
+         events.mouseLeftClickedPosition = nll::core::vector2ui( 0, 0 );
+         events.mouseLeftReleasedPosition = nll::core::vector2ui( 0, 0 );
+         events.isMouseLeftButtonPressed = false;
+         events.isMouseRightButtonPressed = false;
+
          bool loaded;
 
          // load volumes
@@ -92,13 +99,17 @@ namespace mvv
                                                                   mpr1Context->zoom,
                                                                   mpr1Context->volumeIntensities,
                                                                   mpr1Context->luts );
+         MprToolkitTranslation* toolkit1 = new MprToolkitTranslation( *toolkits, ResourceManager::instance(), toolkits->slice );
+         toolkits->addToolkit( toolkit1 );
          mpr1Context->setDrawableMprToolkits( toolkits );
          globalContext->addOrderCreator( toolkits );
 
 
          // create layout
-         ui32 sizex = 512 * ct->getSpacing()[ 0 ];
-         ui32 sizey = 512 * ct->getSpacing()[ 1 ];
+         ui32 sizex = 1600;
+         ui32 sizey = 1175;
+
+         std::cout << "size=" << sizex << " " << sizey << std::endl;
          rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                               nll::core::vector2ui( sizex, sizey ) );
          rootLayout->addChild( new PaneDrawableEmpty( nll::core::vector2ui( 0, 0 ),

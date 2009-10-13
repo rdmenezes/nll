@@ -270,6 +270,11 @@ namespace mvv
          return _buf[ v ];
       }
 
+      nll::core::vector3d getValue() const
+      {
+         return nll::core::vector3d( _buf[ 0 ], _buf[ 1 ], _buf[ 2 ] );
+      }
+
       double operator[]( ui32 v ) const
       {
          return getValue( v );
@@ -278,12 +283,20 @@ namespace mvv
       void setValue( ui32 v, double val )
       {
          assert( v < 3 );
+         if ( nll::core::equal( val, _buf[ v ] ) )
+            return;
          notifyChanges();
          _buf[ v ] = val;
       }
 
       void setValue( const nll::core::vector3d& v )
       {
+         if ( nll::core::equal( v[ 0 ], _buf[ 0 ] ) &&
+              nll::core::equal( v[ 1 ], _buf[ 0 ] ) &&
+              nll::core::equal( v[ 2 ], _buf[ 0 ] ) )
+         {
+            return;
+         }
          _buf[ 0 ] = v[ 0 ];
          _buf[ 1 ] = v[ 1 ];
          _buf[ 2 ] = v[ 2 ];
@@ -295,6 +308,8 @@ namespace mvv
          double l = sqrt( _buf[ 0 ] * _buf[ 0 ] +
                           _buf[ 1 ] * _buf[ 1 ] +
                           _buf[ 2 ] * _buf[ 2 ] );
+         if ( nll::core::equal<double>( l, 1 ) )
+            return;
          assert( l > 0 );
          _buf[ 0 ] /= l;
          _buf[ 1 ] /= l;
@@ -342,6 +357,8 @@ namespace mvv
       void setValue( ui32 v, T val )
       {
          assert( v < 2 );
+         if ( nll::core::equal( val, _buf[ v ] ) )
+            return;
          notifyChanges();
          _buf[ v ] = val;
       }
@@ -353,6 +370,9 @@ namespace mvv
    typedef ResourceVector2<double>   ResourceVector2d;
    typedef ResourceVector2<ui32>     ResourceVector2ui;
 
+   /**
+    @brief This class needs to be notified if a change occur as it is very costly to monitor all changes on a volume...
+    */
    class ResourceImageRGB : public DynamicResource
    {
    public:

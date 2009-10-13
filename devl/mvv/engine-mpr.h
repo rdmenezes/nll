@@ -208,8 +208,8 @@ namespace mvv
 
          std::cout << "combiner.consume() idle=true" << std::endl;
 
-         std::cout << "---saving file in c:\tmp---" << std::endl;
-         nll::core::writeBmp( outFusedMPR.image, "c:/tmp/out.bmp" );
+         //std::cout << "---saving file in c:\tmp---" << std::endl;
+         //nll::core::writeBmp( outFusedMPR.image, "c:/tmp/out.bmp" );
       }
 
       /**
@@ -494,9 +494,11 @@ namespace mvv
          }
 
          // get the size in minimeter
+         /*
          const double sxmm = (*choice)->getSize()[ 0 ] * (*choice)->getSpacing()[ 0 ];
          const double symm = (*choice)->getSize()[ 1 ] * (*choice)->getSpacing()[ 1 ];
          const double szmm = (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ];
+         */
 
          // select the orientation
          if ( orientation == TRANSVERSE )
@@ -509,6 +511,7 @@ namespace mvv
             _vector2.setValue( nll::core::vector3d( (*choice)->getPst()( 0, 1 ),
                                                     (*choice)->getPst()( 1, 1 ),
                                                     (*choice)->getPst()( 2, 1 ) ) );
+            /*
             const double vx = ( sxmm - _renderingSize[ 0 ] ) / 2;
             const double vy = ( symm - _renderingSize[ 1 ] ) / 2;
 
@@ -517,6 +520,12 @@ namespace mvv
             _origin.setValue( nll::core::vector3d( (*choice)->getOrigin()[ 0 ] + vx,
                                                    (*choice)->getOrigin()[ 1 ] + vy,
                                                    (*choice)->getOrigin()[ 2 ] + szmm / 2 ) );
+            */
+            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
+                                                                                       (*choice)->getSize()[ 1 ] / 2,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 ) );
+            _origin.setValue( pos );
+            std::cout << "--init origin=" << _origin.getValue( 0 ) << " " << _origin.getValue( 1 ) << " " << _origin.getValue( 2 ) << std::endl;
          }
       }
 

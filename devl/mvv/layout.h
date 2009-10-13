@@ -4,6 +4,7 @@
 # include "types.h"
 # include "drawable.h"
 # include "drawable-engine-mpr.h"
+# include "interaction-event.h"
 # include <nll/nll.h>
 
 namespace mvv
@@ -14,7 +15,7 @@ namespace mvv
 
     UpdateLayout must be called if visible status, size or origin have changed changed
     */
-   class Pane
+   class Pane : public InteractionEventReceiver
    {
    public:
       typedef nll::core::Image<ui8> Image;
@@ -112,6 +113,14 @@ namespace mvv
       {
          for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
             delete *it;
+      }
+
+      virtual void handle( const InteractionEvent& event )
+      {
+         for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
+         {
+            (*it)->handle( event );
+         }
       }
 
    protected:
@@ -298,6 +307,11 @@ namespace mvv
          _drawable.setImageSize( getSize()[ 0 ], getSize()[ 1 ] );
       }
 
+      virtual void handle( const InteractionEvent& event )
+      {
+         // no event receiver
+      }
+
    protected:
       Drawable&      _drawable;
    };
@@ -342,6 +356,11 @@ namespace mvv
          _mpr.setImageSize( getSize()[ 0 ], getSize()[ 1 ] );
       }
 
+      virtual void handle( const InteractionEvent& event )
+      {
+         _mpr.handle( event );
+      }
+
    protected:
       DrawableMprToolkits&      _mpr;
    };
@@ -370,6 +389,12 @@ namespace mvv
        @brief Update the layout in case the child changed origin/size/visibility
        */
       virtual void updateLayout()
+      {}
+
+      /**
+       @brief no event handling
+       */
+      virtual void handle( const InteractionEvent& event )
       {}
    };
 }

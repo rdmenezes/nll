@@ -547,6 +547,10 @@
 			Name="Resource"
 			>
 			<File
+				RelativePath=".\drawable-engine-mpr.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\drawable-engine-mpr.h"
 				>
 			</File>

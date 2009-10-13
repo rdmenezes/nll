@@ -8,6 +8,20 @@ namespace mvv
     */
    struct InteractionEvent
    {
+      /// the current mouse position
+      nll::core::vector2ui    mousePosition;
+
+      /// the position where the first left unreleased click occured
+      nll::core::vector2ui    mouseLeftClickedPosition;
+
+      /// the position where first unreleased
+      nll::core::vector2ui    mouseLeftReleasedPosition;
+
+      /// set if left button is pressed
+      bool                    isMouseLeftButtonPressed;
+
+      /// set if right button is pressed
+      bool                    isMouseRightButtonPressed;
    };
 
    /**

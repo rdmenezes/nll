@@ -11,6 +11,10 @@ void handleOrders( int value )
    applicationVariables.handleOrders();
    applicationVariables.runEngines();
 
+   // event
+   applicationVariables.rootLayout->handle( applicationVariables.events );
+
+
 
    static int nbFps = 0;
    static unsigned last = clock();
@@ -97,19 +101,47 @@ void initGraphics()
 }
 void mouseButton(int button, int state, int x, int y)
 {
+   applicationVariables.events.mousePosition = nll::core::vector2ui( x, y );
+
+   if ( button == GLUT_LEFT_BUTTON )
+   {
+      if ( state == GLUT_UP )
+      {
+         if ( applicationVariables.events.isMouseLeftButtonPressed )
+         {
+            applicationVariables.events.mouseLeftReleasedPosition = nll::core::vector2ui( x, y );
+         }
+
+         // button unreleased
+         applicationVariables.events.isMouseLeftButtonPressed = false;
+      } 
+      if ( state == GLUT_DOWN )
+      {
+         if (!applicationVariables.events.isMouseLeftButtonPressed )
+         {
+            // the first click position
+            applicationVariables.events.mouseLeftClickedPosition = nll::core::vector2ui( x, y );
+         }
+         applicationVariables.events.isMouseLeftButtonPressed = true;
+      }
+   }
+
+   if ( button == GLUT_RIGHT_BUTTON )
+   {
+      if ( state == GLUT_UP )
+      {
+         applicationVariables.events.isMouseRightButtonPressed = false;
+      } 
+      if ( state == GLUT_DOWN )
+      {
+         applicationVariables.events.isMouseRightButtonPressed = true;
+      }
+   }
 }
 
 void mouseMotion(int x, int y)
 {
-   //std::cout << "y = " << y << std::endl;
-   //applicationVariables.originMpr1.setValue( 2, (double)y / applicationVariables.screen.sizey() * 82 );
-
-   /*
-   nll::core::vector3d pos = applicationVariables.mprs->getMprPosition();
-   pos[ 2 ] = (double)y / applicationVariables.screen.sizey() * 82;
-   pos[ 0 ] = (double)x / applicationVariables.screen.sizex() * 82;
-   applicationVariables.mprs->setMprPosition( pos );
-   */
+   applicationVariables.events.mousePosition = nll::core::vector2ui( x, y );
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -138,21 +170,13 @@ void keyboard(unsigned char key, int x, int y)
       assert( context );
       mvv::ContextMpr::ContextMprInstance* mpr = context->getMpr( mvv::Symbol::create("mpr1_frontal") );
       assert( mpr );
-
       const double oldzx = mpr->zoom.getValue( 0 );
       const double oldzy = mpr->zoom.getValue( 1 );
-      const double newzx = oldzx + 0.01;
-      const double newzy = oldzy + 0.01;
+      const double newzx = oldzx + 0.1;
+      const double newzy = oldzy + 0.1;
       mpr->zoom.setValue( 0, newzx );
       mpr->zoom.setValue( 1, newzy );
 
-      const double oldx = mpr->origin.getValue( 0 );
-      const double oldy = mpr->origin.getValue( 1 );
-      const double oldz = mpr->origin.getValue( 2 );
-      const double newx = oldx - ( oldzx - newzx ) * 512 / 2;
-      const double newy = oldy - ( oldzy - newzy ) * 512 / 2;
-      mpr->origin.setValue( 0, newx );
-      mpr->origin.setValue( 1, newy );
    }
    if ( key == 's' )
    {
@@ -162,6 +186,14 @@ void keyboard(unsigned char key, int x, int y)
       assert( mpr );
       mpr->zoom.setValue( 0, mpr->zoom.getValue( 0 ) - 0.1 );
       mpr->zoom.setValue( 1, mpr->zoom.getValue( 1 ) - 0.1 );
+   }
+   if ( key == 'e' )
+   {
+      mvv::ContextMpr* context = mvv::Context::instance().get<mvv::ContextMpr>();
+      assert( context );
+      mvv::ContextMpr::ContextMprInstance* mpr = context->getMpr( mvv::Symbol::create("mpr1_frontal") );
+      assert( mpr );
+      mpr->origin.setValue( 0, mpr->origin.getValue( 0 ) - 0.1 );
    }
 }
 
