@@ -38,7 +38,8 @@ namespace mvv
    public:
       MprToolkitTranslation( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )
       {
-         _isCurrentlyPressed = false;
+         _isLeftCurrentlyPressed = false;
+         _isRightCurrentlyPressed = false;
       }
 
    protected:
@@ -55,8 +56,10 @@ namespace mvv
       void handle( const InteractionEvent& event );
 
    private:
-      bool                 _isCurrentlyPressed;
+      bool                 _isLeftCurrentlyPressed;
+      bool                 _isRightCurrentlyPressed;
       nll::core::vector3d  _initialOrigin;
+      nll::core::vector2d  _initialZoom;
       nll::core::vector2i  _initialMousePos;
    };
 

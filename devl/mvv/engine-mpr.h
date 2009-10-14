@@ -206,6 +206,7 @@ namespace mvv
          _current = 0;
          _idle = true;
 
+         //_needToRecompute = false;
          std::cout << "combiner.consume() idle=true" << std::endl;
 
          //std::cout << "---saving file in c:\tmp---" << std::endl;
@@ -248,6 +249,7 @@ namespace mvv
 
          // create the order
          OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
+         std::cout << "--create fusion order[" << order->getId() << "]:" << _renderingOrders[ 0 ]->getId() << " " << _renderingOrders[ 1 ]->getId() << std::endl;
          _orderProvider.pushOrder( order );
          _current = order;
          _idle = false;
@@ -442,9 +444,14 @@ namespace mvv
          attach( intensities );
          attach( luts );
 
+         // we are using this resource to force the update when new orders have been created.
+         // If new Orders, the combiner should wait for the orders to execute and then
+         // execute itself
+         attach( _dummySynchResource );
+
          // we don't attach it as the resource will die before the engine does which will cause
          // problems when this object is deleted
-         _mprComputation.outOrdersToFuse.setFather( &luts );
+         _mprComputation.outOrdersToFuse.setFather( &_dummySynchResource );
          _needToRecompute = false;
       }
 
@@ -461,7 +468,7 @@ namespace mvv
          _mprCombiner.consume( o );
 
          // update out resource if necesary
-         if ( _mprCombiner.outFusedMPR.image.getBuf() != outFusedMpr.image.getBuf() )
+         if ( _mprCombiner.outFusedMPR.image.getBuf() != outFusedMpr.image.getBuf() && _mprCombiner.isIdle() )
          {
             outFusedMpr.image = _mprCombiner.outFusedMPR.image;
             outFusedMpr.notifyChanges();
@@ -493,39 +500,29 @@ namespace mvv
             }
          }
 
-         // get the size in minimeter
-         /*
-         const double sxmm = (*choice)->getSize()[ 0 ] * (*choice)->getSpacing()[ 0 ];
-         const double symm = (*choice)->getSize()[ 1 ] * (*choice)->getSpacing()[ 1 ];
-         const double szmm = (*choice)->getSize()[ 2 ] * (*choice)->getSpacing()[ 2 ];
-         */
-
          // select the orientation
          if ( orientation == TRANSVERSE )
          {
-            _zoom.setValue( 0, 1 );
-            _zoom.setValue( 1, 1 );
-            _vector1.setValue( nll::core::vector3d( (*choice)->getPst()( 0, 0 ),
-                                                    (*choice)->getPst()( 1, 0 ),
-                                                    (*choice)->getPst()( 2, 0 ) ) );
-            _vector2.setValue( nll::core::vector3d( (*choice)->getPst()( 0, 1 ),
-                                                    (*choice)->getPst()( 1, 1 ),
-                                                    (*choice)->getPst()( 2, 1 ) ) );
-            /*
-            const double vx = ( sxmm - _renderingSize[ 0 ] ) / 2;
-            const double vy = ( symm - _renderingSize[ 1 ] ) / 2;
+            _zoom.setValue( 0, 2 );
+            _zoom.setValue( 1, 2 );
 
-            // as the volume coordinate system and world coordinate systems are now aligned,
-            // we can forget about the base...
-            _origin.setValue( nll::core::vector3d( (*choice)->getOrigin()[ 0 ] + vx,
-                                                   (*choice)->getOrigin()[ 1 ] + vy,
-                                                   (*choice)->getOrigin()[ 2 ] + szmm / 2 ) );
-            */
+            // we have to normalize the vectors
+            nll::core::vector3d value1( (*choice)->getPst()( 0, 0 ),
+                                        (*choice)->getPst()( 1, 0 ),
+                                        (*choice)->getPst()( 2, 0 ) );
+            value1.div( value1.norm2() );
+
+            nll::core::vector3d value2( (*choice)->getPst()( 0, 1 ),
+                                        (*choice)->getPst()( 1, 1 ),
+                                        (*choice)->getPst()( 2, 1 ) );
+            value2.div( value2.norm2() );
+
+            _vector1.setValue( value1 );
+            _vector2.setValue( value2 );
             nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
                                                                                        (*choice)->getSize()[ 1 ] / 2,
                                                                                        (*choice)->getSize()[ 2 ] / 2 ) );
             _origin.setValue( pos );
-            std::cout << "--init origin=" << _origin.getValue( 0 ) << " " << _origin.getValue( 1 ) << " " << _origin.getValue( 2 ) << std::endl;
          }
       }
 
@@ -539,6 +536,8 @@ namespace mvv
       ResourceVector2ui&            _renderingSize;
       ResourceVolumeIntensities&    _intensities;
       ResourceLuts&                 _luts;
+
+      DynamicResource               _dummySynchResource;
 
       EngineMprComputation          _mprComputation;
       EngineMprCombiner             _mprCombiner;
