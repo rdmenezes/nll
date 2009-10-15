@@ -414,9 +414,9 @@ namespace mvv
    public:
       enum Orientation
       {
-         FRONTAL,
-         CORONAL,
-         TRANSVERSE
+         FRONTAL,       // (1 0 0) (0 0 1)
+         CORONAL,       // (0 1 0) (0 0 1)
+         TRANSVERSE     // (1 0 0) (0 1 0)
       };
 
    public:
@@ -501,6 +501,31 @@ namespace mvv
          }
 
          // select the orientation
+         if ( orientation == CORONAL )
+         {
+            _zoom.setValue( 0, 2 );
+            _zoom.setValue( 1, 2 );
+
+            // we have to normalize the vectors
+            nll::core::vector3d value1( (*choice)->getPst()( 0, 1 ),
+                                        (*choice)->getPst()( 1, 1 ),
+                                        (*choice)->getPst()( 2, 1 ) );
+            value1.div( value1.norm2() );
+
+            nll::core::vector3d value2( (*choice)->getPst()( 0, 2 ),
+                                        (*choice)->getPst()( 1, 2 ),
+                                        (*choice)->getPst()( 2, 2 ) );
+            value2.div( value2.norm2() );
+
+            _vector1.setValue( value1 );
+            _vector2.setValue( value2 );
+            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
+                                                                                       (*choice)->getSize()[ 1 ] / 2,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 ) );
+            _origin.setValue( pos );
+            return;
+         }
+
          if ( orientation == TRANSVERSE )
          {
             _zoom.setValue( 0, 2 );
@@ -523,6 +548,32 @@ namespace mvv
                                                                                        (*choice)->getSize()[ 1 ] / 2,
                                                                                        (*choice)->getSize()[ 2 ] / 2 ) );
             _origin.setValue( pos );
+            return;
+         }
+
+         if ( orientation == FRONTAL )
+         {
+            _zoom.setValue( 0, 2 );
+            _zoom.setValue( 1, 2 );
+
+            // we have to normalize the vectors
+            nll::core::vector3d value1( (*choice)->getPst()( 0, 0 ),
+                                        (*choice)->getPst()( 1, 0 ),
+                                        (*choice)->getPst()( 2, 0 ) );
+            value1.div( value1.norm2() );
+
+            nll::core::vector3d value2( (*choice)->getPst()( 0, 2 ),
+                                        (*choice)->getPst()( 1, 2 ),
+                                        (*choice)->getPst()( 2, 2 ) );
+            value2.div( value2.norm2() );
+
+            _vector1.setValue( value1 );
+            _vector2.setValue( value2 );
+            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
+                                                                                       (*choice)->getSize()[ 1 ] / 2,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 ) );
+            _origin.setValue( pos );
+            return;
          }
       }
 

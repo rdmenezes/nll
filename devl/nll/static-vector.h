@@ -367,6 +367,16 @@ namespace core
       }
       return true;
    }
+
+   template <class T>
+   inline StaticVector<T, 3> cross( const StaticVector<T, 3>& a, const StaticVector<T, 3>& b )
+   {
+      StaticVector<T, 3> res;
+      res[ 0 ] = a[ 1 ] * b[ 2 ] - a[ 2 ] * b[ 1 ];
+      res[ 1 ] = a[ 2 ] * b[ 0 ] - a[ 0 ] * b[ 2 ];
+      res[ 2 ] = a[ 0 ] * b[ 1 ] - a[ 1 ] * b[ 0 ];
+      return res;
+   }
 }
 }
 

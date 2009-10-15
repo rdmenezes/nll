@@ -57,9 +57,12 @@ namespace mvv
          nll::core::vector2i diffMouse( - event.mousePosition[ 0 ] + _initialMousePos[ 0 ],
                                           event.mousePosition[ 1 ] - _initialMousePos[ 1 ] );
          double d = diffMouse.norm2();
-         nll::core::vector3d pos( _initialOrigin[ 0 ],
-                                  _initialOrigin[ 1 ],
-                                  _initialOrigin[ 2 ] + d / 10 ); // TODO: use the normal and not (0, 0, 1) vector
+
+         nll::core::StaticVector<double, 3> cross = nll::core::cross( _toolkits.vector1.getValue(), _toolkits.vector2.getValue() );
+         assert( nll::core::equal( cross.norm2(), 1.0, 1e-5 ) );  // the base vector1, vector2 must be normalized
+         nll::core::vector3d pos( _initialOrigin[ 0 ] + d * cross[ 0 ] / 10,
+                                  _initialOrigin[ 1 ] + d * cross[ 1 ] / 10,
+                                  _initialOrigin[ 2 ] + d * cross[ 2 ] / 10 ); // TODO: use the normal and not (0, 0, 1) vector
          _toolkits.origin.setValue( pos );
          return;
       }

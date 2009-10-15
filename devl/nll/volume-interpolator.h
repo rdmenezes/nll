@@ -114,7 +114,8 @@ namespace imaging
             v001 = it.pickz();
             v110 = *it.addx().addy();
             v111 = it.pickz();
-         }
+         } else return background;
+         /*
          else
          {
             if ( iyn < sy )
@@ -170,6 +171,7 @@ namespace imaging
          //   const double v101 = _getValue( ix + 1, iy,     iz + 1 );
          //   const double v111 = _getValue( ix + 1, iy + 1, iz + 1 );
          //
+         */
 
          const double i1 = v000 * ( 1 - dz ) + v001 * dz;
          const double i2 = v010 * ( 1 - dz ) + v011 * dz;
