@@ -56,8 +56,8 @@ namespace mvv
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
 
-         for ( int nx = 0; nx < 10; ++nx )
-            for ( int ny = 0; ny < 10; ++ny )
+         for ( int nx = 0; nx < 60; ++nx )
+            for ( int ny = 0; ny < 60; ++ny )
                (*ct)( nx, ny, ct->getSize()[ 2 ] / 2 ) = 999;
          for ( int nx = 0; nx < 10; ++nx )
             for ( int ny = 0; ny < 10; ++ny )
@@ -76,9 +76,9 @@ namespace mvv
          mprContext->addMpr( Symbol::create("mpr1_frontal"), mpr1Context );
 
          ResourceTransferFunctionWindowing* petLut = new ResourceTransferFunctionWindowing( 0, 5000);
-         petLut->setLutColor( nll::core::Image<nll::ui8>::red() );
+         petLut->setLutColor( nll::core::Image<nll::ui8>::blue() );
          mpr1Context->addVolume( pet, 0.5, petLut );
-         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 0, 1000) );
+         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 800) );
          mpr1Context->origin.setValue( 0, -80 );
          mpr1Context->origin.setValue( 1, -80 );
          mpr1Context->origin.setValue( 2, 0 );

@@ -44,7 +44,7 @@ namespace core
       class DirectionalIterator
       {
       public:
-         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
@@ -135,8 +135,16 @@ namespace core
             return _index != i._index;
          }
 
-         // operator= undefined
-         DirectionalIterator& operator=( const DirectionalIterator& i );
+         DirectionalIterator& operator=( const DirectionalIterator& i )
+         {
+            _index = i._index;
+            _buf = i._buf;
+            _sx = i._sx;
+            _sy = i._sy;
+            _sz = i._sz;
+            _mapper = i._mapper;
+            return *this;
+         }
 
       protected:
          ui32     _index;
@@ -144,7 +152,7 @@ namespace core
          ui32     _sx;
          ui32     _sy;
          ui32     _sz;
-         const Mapper&  _mapper;
+         Mapper&  _mapper;
       };
 
       /**
@@ -155,7 +163,7 @@ namespace core
       class ConstDirectionalIterator : public DirectionalIterator
       {
       public:
-         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
+         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
          {}
 
          ConstDirectionalIterator( const DirectionalIterator& it ) : DirectionalIterator( it )
@@ -227,8 +235,16 @@ namespace core
             return _buf[ _mapper.addz( _index, n ) ];
          }
 
-         // operator= undefined
-         ConstDirectionalIterator& operator=( const ConstDirectionalIterator& i );
+         ConstDirectionalIterator& operator=( const ConstDirectionalIterator& i )
+         {
+            _index = i._index;
+            _buf = i._buf;
+            _sx = i._sx;
+            _sy = i._sy;
+            _sz = i._sz;
+            _mapper = i._mapper;
+            return *this;
+         }
       };
 
    protected:
@@ -436,7 +452,9 @@ namespace core
        */
       ConstDirectionalIterator beginDirectional() const
       {
-         return ConstDirectionalIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         // we have to remove the const, to provide operator=, however it will be guaranteed that
+         // no modifications will be done
+         return ConstDirectionalIterator( 0, _buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
       }
 
       /**
@@ -468,7 +486,9 @@ namespace core
        */
       ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
-         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         // we have to remove the const, to provide operator=, however it will be guaranteed that
+         // no modifications will be done
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
       }
 
       /**
@@ -500,6 +520,12 @@ namespace core
       static const T* red()
 	   {
 		   static const T col[] = {0, 0, 255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+		   return col;
+	   }
+
+      static const T* blue()
+	   {
+		   static const T col[] = {255, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		   return col;
 	   }
 

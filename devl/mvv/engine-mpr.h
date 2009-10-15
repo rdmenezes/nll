@@ -128,30 +128,50 @@ namespace mvv
 
       virtual OrderResult* run()
       {
-         ui32 n = 0;
          double ratioCheck = 0;
+         typedef std::vector<OrderMprRendering::Slice::DirectionalIterator*>  Iterators;
+         typedef std::vector<ResourceLut*>                                    Windowings;
+         typedef std::vector<double>                                          Intensities;
+
+         Iterators  iterators( _volumes.size() );
+         Windowings windowings( _volumes.size() );
+         Intensities intensities( _volumes.size() );
+
+         ui32 n = 0;
          for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
-            // it is assumed here orders are in the same order than volume
             const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
-            OrderMprRendering::Slice::DirectionalIterator itIn = slice->slice.beginDirectional();
-            Image::DirectionalIterator itOut = _slice.beginDirectional();
-            ResourceLut* windowing = _luts.getLut( *it );
-            //const nll::imaging::LookUpTransformWindowingRGB& lutTest = dynamic_cast<ResourceTransferFunctionWindowing*>( _luts.getLut( *it ) )->getLut();
-            const double ratio = _intensities.getIntensity( *it );
-            for ( ; itOut != _slice.endDirectional(); ++itIn, ++itOut )
-            {
-               // TODO handle sum(ration) != 1
-
-               //const ui8* buf = lutTest.transform(*itIn);//windowing->transform( *itIn );
-               const ui8* buf = windowing->transform( *itIn );
-               itOut.pickcol( 0 ) += buf[ 0 ] * ratio;
-               itOut.pickcol( 1 ) += buf[ 1 ] * ratio;
-               itOut.pickcol( 2 ) += buf[ 2 ] * ratio;
-            }
-            ratioCheck += ratio;
+            iterators[ n ] = new OrderMprRendering::Slice::DirectionalIterator( slice->slice.beginDirectional() );
+            intensities[ n ] = _intensities.getIntensity( *it );
+            windowings[ n ] = _luts.getLut( *it );
+            ratioCheck += intensities[ n ];
          }
-         ensure( fabs( ratioCheck - 1 ) < 1e-5, "ratio must sum to 1" );
+         ensure( nll::core::equal<double>( ratioCheck, 1, 1e-2 ), "ratio must sum to 1" );
+
+         for ( Image::DirectionalIterator itOut = _slice.beginDirectional(); itOut != _slice.endDirectional(); ++itOut )
+         {
+            ui32 nn = 0;
+            double vala = 0;
+            double valb = 0;
+            double valc = 0;
+            for ( ui32 nn = 0; nn < iterators.size(); ++nn )
+            {
+               const ui8* buf = windowings[ nn ]->transform( **( iterators[ nn ] ) );
+               const double intensity = intensities[ nn ];
+               vala += buf[ 0 ] * intensity;
+               valb += buf[ 1 ] * intensity;
+               valc += buf[ 2 ] * intensity;
+
+               ++( *iterators[ nn ] );
+            }
+            itOut.pickcol( 0 ) = vala;
+            itOut.pickcol( 1 ) = valb;
+            itOut.pickcol( 2 ) = valc;
+         }
+
+         for ( Iterators::iterator it = iterators.begin(); it != iterators.end(); ++it )
+            delete *it;
+
          return new OrderResult();
       }
 
@@ -209,6 +229,16 @@ namespace mvv
          //_needToRecompute = false;
          std::cout << "combiner.consume() idle=true" << std::endl;
 
+         static int nbFps = 0;
+         static unsigned last = clock();
+         ++nbFps;
+
+         if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
+         {
+            std::cout << "---------------fps=" << nbFps << std::endl;
+            nbFps = 0;
+            last = clock();
+         }
          //std::cout << "---saving file in c:\tmp---" << std::endl;
          //nll::core::writeBmp( outFusedMPR.image, "c:/tmp/out.bmp" );
       }
