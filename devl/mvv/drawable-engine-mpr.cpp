@@ -3,7 +3,20 @@
 
 namespace mvv
 {
-   void MprToolkitTranslation::handle( const InteractionEvent& event )
+   /*
+   MprToolkitTarget::MprToolkitTarget( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )
+   {
+      attach( *( (ResourceImageRGB*)&mpr ) );
+      _isLeftCurrentlyPressed = false;
+      _targetPos[ 0 ] = toolkits.renderingSize[ 0 ] / 2;
+      _targetPos[ 1 ] = toolkits.renderingSize[ 1 ] / 2;
+   }
+
+   void MprToolkitTarget::handle( const InteractionEvent& event )
+   {
+   }
+
+   void MprToolkitMove::handle( const InteractionEvent& event )
    {
       if ( event.isMouseLeftButtonPressed )
       {
@@ -83,4 +96,5 @@ namespace mvv
          return;
       }
    }
+   */
 }

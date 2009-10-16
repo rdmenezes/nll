@@ -99,15 +99,16 @@ namespace mvv
                                                                   mpr1Context->zoom,
                                                                   mpr1Context->volumeIntensities,
                                                                   mpr1Context->luts );
-         MprToolkitTranslation* toolkit1 = new MprToolkitTranslation( *toolkits, ResourceManager::instance(), toolkits->slice );
-         toolkits->addToolkit( toolkit1 );
+         //MprToolkitMove* toolkit1 = new MprToolkitMove( *toolkits, ResourceManager::instance(), toolkits->slice );
+         //toolkits->addToolkit( toolkit1 );
+
          mpr1Context->setDrawableMprToolkits( toolkits );
          globalContext->addOrderCreator( toolkits );
 
 
          // create layout
-         ui32 sizex = 1024;
-         ui32 sizey = 1024;
+         ui32 sizex = 256;
+         ui32 sizey = 256;
 
          std::cout << "size=" << sizex << " " << sizey << std::endl;
          rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
@@ -123,55 +124,10 @@ namespace mvv
 
          mpr1Context->origin.notifyChanges();
 
-         //PaneDrawable* layout1 = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( sizex, sizey ) );
+         //MprToolkitTarget* toolkit2 = new MprToolkitTarget( *toolkits, ResourceManager::instance(), toolkits->slice );
+         //toolkits->addToolkit( toolkit2 );
 
 
-         /*
-
-         // set zoom factors
-         //zoom.setValue( 0, 3 );
-         //zoom.setValue( 1, 3 );
-
-         // set default windowing
-         windowing.setMinWindow( -2000 );
-         windowing.setMaxWindow( 1000 );
-         windowing2.setMinWindow( -1000 );
-         windowing2.setMaxWindow( 5000 );
-         unsigned char red[] = { 255, 0, 0 };
-         windowing2.setLutColor( red );
-         */
-         // set the MPR1
-         /*
-         originMpr1.setValue( 0, 0 );
-         originMpr1.setValue( 1, 0 );
-         originMpr1.setValue( 2, 43 );
-         mpr1V1.setValue( 0, 1 );
-         mpr1V1.setValue( 1, 0 );
-         mpr1V1.setValue( 2, 0 );
-         mpr1V2.setValue( 0, 0 );
-         mpr1V2.setValue( 1, 1 );
-         mpr1V2.setValue( 2, 0 );
-
-         mpr1 = new EngineMpr( ResourceManager::instance(), volumes, originMpr1, mpr1V1, mpr1V2, zoom );
-
-         engines.insert( mpr1 );
-
-         // layout
-         ui32 sizex = 1024;
-         ui32 sizey = 1024;
-         PaneDrawable* layout1 = new PaneDrawable( *mpr1, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( sizex, sizey ) );
-         layout1->updateLayout();
-         rootLayout = layout1;
-         */
-
-
-/*
-         rootLayout = mprs->getLayout();
-         rootLayout->setOrigin( nll::core::vector2ui( 0, 0 ) );
-         rootLayout->setSize( nll::core::vector2ui( sizex, sizey ) );
-         rootLayout->updateLayout();
-         mprs->autoAdjustSize();
-*/
          // queue
          queue = new QueueOrder( ResourceManager::instance(), 4 );
          dispatchThread = boost::thread( boost::ref( *queue ) );

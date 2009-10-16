@@ -11,6 +11,7 @@ namespace mvv
    /// forward declaration
    class DrawableMprToolkits;
 
+   /*
    class MVV_API MprToolkit : public InteractionEventReceiver, public EngineRunnable
    {
    public:
@@ -33,10 +34,10 @@ namespace mvv
       DrawableMprToolkits&    _toolkits;
    };
 
-   class MVV_API MprToolkitTranslation : public MprToolkit
+   class MVV_API MprToolkitMove : public MprToolkit
    {
    public:
-      MprToolkitTranslation( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )
+      MprToolkitMove( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )
       {
          _isLeftCurrentlyPressed = false;
          _isRightCurrentlyPressed = false;
@@ -63,6 +64,122 @@ namespace mvv
       nll::core::vector2i  _initialMousePos;
    };
 
+
+   class MVV_API MprToolkitTarget : public MprToolkit
+   {
+   public:
+      MprToolkitTarget( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr );
+
+   protected:
+      virtual bool _run()
+      {
+         // we don't do anything is the target is not within the MPR
+         if ( _targetPos[ 0 ] > _mpr.image.sizex() || _targetPos[ 1 ] > _mpr.image.sizey() )
+            return true;
+
+         _img.image.clone( _mpr.image );
+         ResourceImageRGB::Image::DirectionalIterator it = _img.image.getIterator( _targetPos[ 0 ], 0, 1 );
+         for ( ui32 y = 0; y < _img.image.sizey(); ++y )
+         {
+            *it = 255;
+            it.addy();
+         }
+         it = _img.image.getIterator( 0, _targetPos[ 1 ], 1 );
+         for ( ui32 x = 0; x < _img.image.sizex(); ++x )
+         {
+            *it = 255;
+            it.addx();
+         }
+         return true;
+      }
+
+      virtual void consume( Order* )
+      {
+         // we don't want to send asynchronous orders
+      }
+
+      void handle( const InteractionEvent& event );
+
+      nll::core::vector2i getTargetPsoition() const
+      {
+         return _targetPos;
+      }
+
+      virtual const ResourceImageRGB& getImage()
+      {
+         return _img;
+      }
+
+   private:
+      bool                 _isLeftCurrentlyPressed;
+      nll::core::vector3d  _initialOrigin;
+      nll::core::vector2i  _initialMousePos;
+      nll::core::vector2i  _targetPos;
+
+      ResourceImageRGB     _img;
+   };
+   */
+
+   class MprToolkit : public OrderCreator
+   {
+   public:
+      typedef std::set<DynamicResource*>     Resources;
+      typedef std::set<DrawableMprToolkits*> Mprs;
+
+      virtual ~MprToolkit()
+      {
+      }
+
+      /**
+       @brief Returns the resources that will force an update of the DrawableMprToolkits
+              (example: the mouse move the target. If the target is moved, the mpr must be updated,
+                        consequently the target position is a resouce of the DrawableMprToolkits).
+       */
+      Resources& getResources()
+      {
+         return _resources;
+      }
+
+      virtual void consume( Order* )
+      {
+      }
+
+      virtual void run()
+      {
+      }
+
+      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr )
+      {
+      }
+
+      /**
+       @brief We need to know what DrawableMprToolkits is attached to a Mpr toolkit.
+
+       Example: toolkit to move the MPR position: event is reived, a new MPR position is calculated,
+                the toolkit must update the position of all the other MPR
+       */
+      void attach( DrawableMprToolkits* r )
+      {
+         _mprs.insert( r );
+      }
+
+      void detach( DrawableMprToolkits* r )
+      {
+         Mprs::iterator it = _mprs.find( r );
+         if ( it != _mprs.end() )
+            _mprs.erase( it );
+      }
+
+      virtual bool isMprMustBeSaved()
+      {
+         return false;
+      }
+
+   protected:
+      Resources   _resources;
+      Mprs        _mprs;
+   };
+
    /**
     @brief Handle a MPR rendering and pluggable toolkits
 
@@ -70,7 +187,57 @@ namespace mvv
     */
    class MVV_API DrawableMprToolkits : public Drawable, public InteractionEventReceiver, public OrderCreator
    {
-      typedef std::vector<MprToolkit*>  Toolkits;
+      class MprState : public InteractionEventReceiver, public EngineRunnable
+      {
+      public:
+         MprState( MprToolkit& mprToolkit, DrawableMprToolkits& toolkits, OrderProvider& orderProvider, ResourceImageRGB& mpr, bool createMprCopy = false ) :
+            _mprToolkit( mprToolkit ), _source( toolkits ), _orderProvider( orderProvider ), _previous( mpr ), _isMprSaved( createMprCopy )
+         {
+            if ( _isMprSaved )
+            {
+               // if we intend to modify the MPR, we need to create a saving point. Changes are triggered
+               // when the previous image has changed
+               attach( mpr );
+            }
+         }
+
+         void handle( const InteractionEvent& event )
+         {
+            _mprToolkit.handle( event, _source, _isMprSaved ? &_previous : 0 );
+         }
+
+         virtual void consume( Order* o )
+         {
+            _mprToolkit.consume( o );
+         }
+
+         virtual bool _run()
+         {
+            _mprToolkit.run();   // TODO: some limitations here on the kind of orders
+            return true;
+         }
+
+         virtual ResourceImageRGB& getImage()
+         {
+            if ( _isMprSaved )
+               return _img;
+            return _previous;
+         }
+
+         MprToolkit& getToolkit()
+         {
+            return _mprToolkit;
+         }
+
+      private:
+         ResourceImageRGB        _img;
+         DrawableMprToolkits&    _source;
+         OrderProvider&          _orderProvider;
+         ResourceImageRGB&       _previous;
+         bool                    _isMprSaved;
+         MprToolkit&             _mprToolkit;
+      };
+      typedef std::vector<MprState*>  States;
 
    public:
       DrawableMprToolkits( OrderProvider& orderProviderv,
@@ -107,7 +274,7 @@ namespace mvv
       {
          delete _mpr;
 
-         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); )
+         for ( States::iterator it = _states.begin(); it != _states.end(); )
          {
             delete *it;
          }
@@ -116,24 +283,33 @@ namespace mvv
       /**
        @param toolkit must be an allocated object, will be deallocated by this object
        */
-      void addToolkit( MprToolkit* toolkit )
+      void addToolkit( MprToolkit& toolkit )
       {
-         _toolkits.push_back( toolkit );
+         toolkit.attach( this );
+         ResourceImageRGB* outputMpr;
+         if ( _states.size() )
+            outputMpr = &_mpr->outFusedMpr;
+         else
+            outputMpr = &(*_states.rbegin())->getImage();
+
+         _states.push_back( new MprState( toolkit, *this, _orderProvider, *outputMpr, toolkit.isMprMustBeSaved() ) );
       }
 
       /**
        @biref remove a toolkit from this MPR. The toolkit will be deallocated.
        */
-      void removeToolkit( MprToolkit* toolkit )
+      void removeToolkit( MprToolkit& toolkit )
       {
-         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); )
+         toolkit.detach( this );
+
+         for ( States::iterator it = _states.begin(); it != _states.end(); )
          {
-            Toolkits::iterator cur = it;
+            States::iterator cur = it;
             ++it;
-            if ( *cur == toolkit )
+            if ( &(*cur)->getToolkit() == &toolkit )
             {
                delete *cur;
-               _toolkits.erase( cur );
+               _states.erase( cur );
             }
          }
       }
@@ -154,9 +330,9 @@ namespace mvv
       virtual const Image& draw()
       {
          // if we have toolkits, pick the last one, which is supposed to old the final frame to be rendered
-         if ( _toolkits.size() )
+         if ( _states.size() )
          {
-            const Image& image = (*_toolkits.rbegin())->getImage().image;
+            const Image& image = (*_states.rbegin())->getImage().image;
 
             if ( image.sizex() != renderingSize[ 0 ] || 
                  image.sizey() != renderingSize[ 1 ] )
@@ -193,21 +369,21 @@ namespace mvv
        */
       virtual void handle( const InteractionEvent& event )
       {
-         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); ++it )
+         for ( States::iterator it = _states.begin(); it != _states.end(); ++it )
             (*it)->handle( event );
       }
 
       virtual void run()
       {
          _mpr->run();
-         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); ++it )
+         for ( States::iterator it = _states.begin(); it != _states.end(); ++it )
             (*it)->run();
       }
 
       virtual void consume( Order* o )
       {
          _mpr->consume( o );
-         for ( Toolkits::iterator it = _toolkits.begin(); it != _toolkits.end(); ++it )
+         for ( States::iterator it = _states.begin(); it != _states.end(); ++it )
             (*it)->consume( o );
       }
 
@@ -230,7 +406,7 @@ namespace mvv
 
    protected:
       EngineMprImpl*     _mpr;
-      Toolkits           _toolkits;
+      States             _states;
       OrderProvider&     _orderProvider;
 
    public:
