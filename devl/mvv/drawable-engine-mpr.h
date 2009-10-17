@@ -120,15 +120,13 @@ namespace mvv
    };
    */
 
-   class MprToolkit : public OrderCreator
+   class MVV_API MprToolkit : public OrderCreator
    {
    public:
       typedef std::set<DynamicResource*>     Resources;
       typedef std::set<DrawableMprToolkits*> Mprs;
 
-      virtual ~MprToolkit()
-      {
-      }
+      virtual ~MprToolkit();
 
       /**
        @brief Returns the resources that will force an update of the DrawableMprToolkits
@@ -148,9 +146,7 @@ namespace mvv
       {
       }
 
-      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr )
-      {
-      }
+      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr ) = 0;
 
       /**
        @brief We need to know what DrawableMprToolkits is attached to a Mpr toolkit.
@@ -158,12 +154,12 @@ namespace mvv
        Example: toolkit to move the MPR position: event is reived, a new MPR position is calculated,
                 the toolkit must update the position of all the other MPR
        */
-      void attach( DrawableMprToolkits* r )
+      virtual void attach( DrawableMprToolkits* r )
       {
          _mprs.insert( r );
       }
 
-      void detach( DrawableMprToolkits* r )
+      virtual void detach( DrawableMprToolkits* r )
       {
          Mprs::iterator it = _mprs.find( r );
          if ( it != _mprs.end() )
@@ -178,6 +174,36 @@ namespace mvv
    protected:
       Resources   _resources;
       Mprs        _mprs;
+   };
+
+   class MVV_API MprToolkitMove : public MprToolkit
+   {
+   public:
+      MprToolkitMove()
+      {
+         _isLeftCurrentlyPressed = false;
+         _isRightCurrentlyPressed = false;
+         _zoom = nll::core::vector2d( 1, 1 );
+         _position = nll::core::vector3d( 0, 0, 0 );
+      }
+
+      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr );
+
+      virtual void attach( DrawableMprToolkits* r );
+
+   protected:
+      /// update all the attached MPR with new position & zoom
+      void _updateMprs();
+
+   protected:
+      nll::core::vector3d  _position;
+      nll::core::vector2d  _zoom;
+
+      bool                 _isLeftCurrentlyPressed;
+      bool                 _isRightCurrentlyPressed;
+      nll::core::vector3d  _initialOrigin;
+      nll::core::vector2d  _initialZoom;
+      nll::core::vector2i  _initialMousePos;
    };
 
    /**
@@ -287,7 +313,7 @@ namespace mvv
       {
          toolkit.attach( this );
          ResourceImageRGB* outputMpr;
-         if ( _states.size() )
+         if ( !_states.size() )
             outputMpr = &_mpr->outFusedMpr;
          else
             outputMpr = &(*_states.rbegin())->getImage();

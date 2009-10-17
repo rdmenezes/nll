@@ -131,10 +131,12 @@ void mouseButton(int button, int state, int x, int y)
       if ( state == GLUT_UP )
       {
          applicationVariables.events.isMouseRightButtonPressed = false;
+         applicationVariables.events.mouseLeftReleasedPosition = nll::core::vector2ui( x, y );
       } 
       if ( state == GLUT_DOWN )
       {
          applicationVariables.events.isMouseRightButtonPressed = true;
+         applicationVariables.events.mouseLeftClickedPosition = nll::core::vector2ui( x, y );
       }
    }
 }

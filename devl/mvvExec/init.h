@@ -72,6 +72,10 @@ namespace mvv
          // create a MPR
          ContextMpr* mprContext = new ContextMpr();
          Context::instance().add( mprContext );
+
+         //
+         // MPR1
+         //
          ContextMpr::ContextMprInstance* mpr1Context = new ContextMpr::ContextMprInstance();
          mprContext->addMpr( Symbol::create("mpr1_frontal"), mpr1Context );
 
@@ -88,8 +92,8 @@ namespace mvv
          mpr1Context->vector2.setValue( 0, 1 );
          mpr1Context->vector2.setValue( 1, 0 );
          mpr1Context->vector2.setValue( 2, 0 );
-         mpr1Context->zoom.setValue( 0, 2 );
-         mpr1Context->zoom.setValue( 1, 2 );
+         mpr1Context->zoom.setValue( 0, 1 );
+         mpr1Context->zoom.setValue( 1, 1 );
 
          DrawableMprToolkits* toolkits = new DrawableMprToolkits( ResourceManager::instance(),
                                                                   mpr1Context->volumes,
@@ -99,16 +103,49 @@ namespace mvv
                                                                   mpr1Context->zoom,
                                                                   mpr1Context->volumeIntensities,
                                                                   mpr1Context->luts );
-         //MprToolkitMove* toolkit1 = new MprToolkitMove( *toolkits, ResourceManager::instance(), toolkits->slice );
-         //toolkits->addToolkit( toolkit1 );
-
+         MprToolkitMove* moveToolkit = new MprToolkitMove();
+         toolkits->addToolkit( *moveToolkit );
          mpr1Context->setDrawableMprToolkits( toolkits );
          globalContext->addOrderCreator( toolkits );
 
+         //
+         // MPR2
+         //
+         ContextMpr::ContextMprInstance* mpr2Context = new ContextMpr::ContextMprInstance();
+         mprContext->addMpr( Symbol::create("mpr2_coronal"), mpr2Context );
+
+         ResourceTransferFunctionWindowing* petLut2 = new ResourceTransferFunctionWindowing( 0, 5000);
+         petLut2->setLutColor( nll::core::Image<nll::ui8>::red() );
+         mpr2Context->addVolume( pet, 0.5, petLut2 );
+         mpr2Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 800) );
+         mpr2Context->origin.setValue( 0, -80 );
+         mpr2Context->origin.setValue( 1, -80 );
+         mpr2Context->origin.setValue( 2, 0 );
+         mpr2Context->vector1.setValue( 0, 1 );
+         mpr2Context->vector1.setValue( 1, 0 );
+         mpr2Context->vector1.setValue( 2, 0 );
+         mpr2Context->vector2.setValue( 0, 0 );
+         mpr2Context->vector2.setValue( 1, 0 );
+         mpr2Context->vector2.setValue( 2, 1 );
+         mpr2Context->zoom.setValue( 0, 1 );
+         mpr2Context->zoom.setValue( 1, 1 );
+
+         DrawableMprToolkits* toolkits2 = new DrawableMprToolkits( ResourceManager::instance(),
+                                                                   mpr2Context->volumes,
+                                                                   mpr2Context->origin,
+                                                                   mpr2Context->vector1,
+                                                                   mpr2Context->vector2,
+                                                                   mpr2Context->zoom,
+                                                                   mpr2Context->volumeIntensities,
+                                                                   mpr2Context->luts );
+         toolkits2->addToolkit( *moveToolkit );
+         mpr2Context->setDrawableMprToolkits( toolkits2 );
+         globalContext->addOrderCreator( toolkits2 );
+
 
          // create layout
-         ui32 sizex = 256;
-         ui32 sizey = 256;
+         ui32 sizex = 1280;
+         ui32 sizey = 800;
 
          std::cout << "size=" << sizex << " " << sizey << std::endl;
          rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
@@ -119,7 +156,11 @@ namespace mvv
          PaneMpr* mpr = new PaneMpr( *toolkits,
                                      nll::core::vector2ui( 0, 0 ),
                                      nll::core::vector2ui( 0, 0 ) );
-         rootLayout->addChild( mpr, 0.999 );
+         PaneMpr* mpr2 = new PaneMpr( *toolkits2,
+                                      nll::core::vector2ui( 0, 0 ),
+                                      nll::core::vector2ui( 0, 0 ) );
+         rootLayout->addChild( mpr, 0.499 );
+         rootLayout->addChild( mpr2, 0.5 );
          rootLayout->updateLayout();
 
          mpr1Context->origin.notifyChanges();

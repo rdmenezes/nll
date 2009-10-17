@@ -45,6 +45,17 @@ namespace mvv
       }
 
       /**
+       @brief Returns true if the position given is inside the pane
+       */
+      bool isInside( const nll::core::vector2ui& pos )
+      {
+         return pos[ 0 ] >= _origin[ 0 ] &&
+                pos[ 1 ] >= _origin[ 1 ] &&
+                pos[ 0 ] < ( _origin[ 0 ] + _size[ 0 ] ) &&
+                pos[ 1 ] < ( _origin[ 1 ] + _size[ 1 ] );
+      }
+
+      /**
        @brief set if this pane is visible or not.
        */
       void setVisible( bool isVisible )
@@ -119,7 +130,10 @@ namespace mvv
       {
          for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
          {
-            (*it)->handle( event );
+            if ( (*it)->isInside( event.mouseLeftClickedPosition ) )
+            {
+               (*it)->handle( event );
+            }
          }
       }
 

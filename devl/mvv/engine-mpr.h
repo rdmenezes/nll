@@ -533,8 +533,8 @@ namespace mvv
          // select the orientation
          if ( orientation == CORONAL )
          {
-            _zoom.setValue( 0, 2 );
-            _zoom.setValue( 1, 2 );
+            _zoom.setValue( 0, 1 );
+            _zoom.setValue( 1, 1 );
 
             // we have to normalize the vectors
             nll::core::vector3d value1( (*choice)->getPst()( 0, 1 ),
@@ -558,8 +558,8 @@ namespace mvv
 
          if ( orientation == TRANSVERSE )
          {
-            _zoom.setValue( 0, 2 );
-            _zoom.setValue( 1, 2 );
+            _zoom.setValue( 0, 1 );
+            _zoom.setValue( 1, 1 );
 
             // we have to normalize the vectors
             nll::core::vector3d value1( (*choice)->getPst()( 0, 0 ),
@@ -583,8 +583,8 @@ namespace mvv
 
          if ( orientation == FRONTAL )
          {
-            _zoom.setValue( 0, 2 );
-            _zoom.setValue( 1, 2 );
+            _zoom.setValue( 0, 1 );
+            _zoom.setValue( 1, 1 );
 
             // we have to normalize the vectors
             nll::core::vector3d value1( (*choice)->getPst()( 0, 0 ),
