@@ -163,7 +163,7 @@ void keyboard(unsigned char key, int x, int y)
       {
          mvv::DrawableMprToolkits* toolkits = it->second->getDrawableMprToolkits();
          assert( toolkits );
-         toolkits->autoFindPosition( mvv::EngineMprImpl::FRONTAL );
+         toolkits->autoFindPosition( mvv::EngineMprImpl::CORONAL );
       }
    }
    if ( key == 'w' )
@@ -206,7 +206,7 @@ int main(int argc, char** argv)
   glutInitWindowSize (applicationVariables.rootLayout->getSize()[ 0 ], applicationVariables.rootLayout->getSize()[ 1 ]);
   glutInitDisplayMode ( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
   glutCreateWindow ("Medical Volume Viewer");
-  //glutGameModeString( "1024x768:32" );
+  //glutGameModeString( "1024x1024:32" );
   //glutEnterGameMode();
 
   // Initialize OpenGL graphics state

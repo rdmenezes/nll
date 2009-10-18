@@ -144,8 +144,8 @@ namespace mvv
 
 
          // create layout
-         ui32 sizex = 1280;
-         ui32 sizey = 800;
+         ui32 sizex = 1024;
+         ui32 sizey = 1024;
 
          std::cout << "size=" << sizex << " " << sizey << std::endl;
          rootLayout = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
