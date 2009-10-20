@@ -128,6 +128,28 @@ namespace mvv
       _mprs.insert( r );
    }
 
+   //void MprToolkitPoint::run()
+  // {
+      /*
+      // we don't do anything is the target is not within the MPR
+      if ( _targetPos[ 0 ] > _mpr.image.sizex() || _targetPos[ 1 ] > _mpr.image.sizey() )
+         return true;
+
+      _img.image.clone( _mpr.image );
+      ResourceImageRGB::Image::DirectionalIterator it = _img.image.getIterator( _targetPos[ 0 ], 0, 1 );
+      for ( ui32 y = 0; y < _img.image.sizey(); ++y )
+      {
+         *it = 255;
+         it.addy();
+      }
+      it = _img.image.getIterator( 0, _targetPos[ 1 ], 1 );
+      for ( ui32 x = 0; x < _img.image.sizex(); ++x )
+      {
+         *it = 255;
+         it.addx();
+      }*/
+ //  }
+
 
    /*
    MprToolkitTarget::MprToolkitTarget( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )

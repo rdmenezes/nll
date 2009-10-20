@@ -11,116 +11,15 @@ namespace mvv
    /// forward declaration
    class DrawableMprToolkits;
 
-   /*
-   class MVV_API MprToolkit : public InteractionEventReceiver, public EngineRunnable
-   {
-   public:
-      MprToolkit( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : _toolkits( toolkits ), _orderProvider( orderProvider ), _mpr( mpr )
-      {
-      }
 
-      virtual ~MprToolkit()
-      {
-      }
+   /**
+    @brief MPR toolkit
 
-      virtual const ResourceImageRGB& getImage()
-      {
-         return _mpr;
-      }
+    Define specific behaviour & tools for a MPR
 
-   protected:
-      OrderProvider&          _orderProvider;
-      const ResourceImageRGB& _mpr;
-      DrawableMprToolkits&    _toolkits;
-   };
-
-   class MVV_API MprToolkitMove : public MprToolkit
-   {
-   public:
-      MprToolkitMove( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr ) : MprToolkit( toolkits, orderProvider, mpr )
-      {
-         _isLeftCurrentlyPressed = false;
-         _isRightCurrentlyPressed = false;
-      }
-
-   protected:
-      virtual bool _run()
-      {
-         return true;
-      }
-
-      virtual void consume( Order* )
-      {
-         // we don't want to send asynchronous orders
-      }
-
-      void handle( const InteractionEvent& event );
-
-   private:
-      bool                 _isLeftCurrentlyPressed;
-      bool                 _isRightCurrentlyPressed;
-      nll::core::vector3d  _initialOrigin;
-      nll::core::vector2d  _initialZoom;
-      nll::core::vector2i  _initialMousePos;
-   };
-
-
-   class MVV_API MprToolkitTarget : public MprToolkit
-   {
-   public:
-      MprToolkitTarget( DrawableMprToolkits& toolkits, OrderProvider& orderProvider, const ResourceImageRGB& mpr );
-
-   protected:
-      virtual bool _run()
-      {
-         // we don't do anything is the target is not within the MPR
-         if ( _targetPos[ 0 ] > _mpr.image.sizex() || _targetPos[ 1 ] > _mpr.image.sizey() )
-            return true;
-
-         _img.image.clone( _mpr.image );
-         ResourceImageRGB::Image::DirectionalIterator it = _img.image.getIterator( _targetPos[ 0 ], 0, 1 );
-         for ( ui32 y = 0; y < _img.image.sizey(); ++y )
-         {
-            *it = 255;
-            it.addy();
-         }
-         it = _img.image.getIterator( 0, _targetPos[ 1 ], 1 );
-         for ( ui32 x = 0; x < _img.image.sizex(); ++x )
-         {
-            *it = 255;
-            it.addx();
-         }
-         return true;
-      }
-
-      virtual void consume( Order* )
-      {
-         // we don't want to send asynchronous orders
-      }
-
-      void handle( const InteractionEvent& event );
-
-      nll::core::vector2i getTargetPsoition() const
-      {
-         return _targetPos;
-      }
-
-      virtual const ResourceImageRGB& getImage()
-      {
-         return _img;
-      }
-
-   private:
-      bool                 _isLeftCurrentlyPressed;
-      nll::core::vector3d  _initialOrigin;
-      nll::core::vector2i  _initialMousePos;
-      nll::core::vector2i  _targetPos;
-
-      ResourceImageRGB     _img;
-   };
-   */
-
-   class MVV_API MprToolkit : public OrderCreator
+    Toolkits are allowed to create & handle orders
+    */
+   class MVV_API MprToolkit
    {
    public:
       typedef std::set<DynamicResource*>     Resources;
@@ -138,27 +37,45 @@ namespace mvv
          return _resources;
       }
 
+      /**
+       This is used to consume orders. 
+       */
       virtual void consume( Order* )
       {
       }
 
-      virtual void run()
+      /**
+       This method is called each time the MPR slice has been modified
+       @param source the source where the toolkit must be run
+       @param mpr the slice. If null, this means this toolkit is not supposed to modify a slice (else override isMprMustBeSaved)
+       @return true if the toolkit must be run at the next checkpoint
+       */
+      virtual bool run( DrawableMprToolkits& source, ResourceImageRGB* mpr )
       {
+         return true;
       }
 
+      /**
+       @brief If an event have been received by a drawable toolkits and this toolkit has been attached to it,
+              it must be handled here. Incoming Source & slice are provided
+       @param mpr the slice. If null, this means this toolkit is not supposed to modify a slice (else override isMprMustBeSaved)
+       */
       virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr ) = 0;
 
       /**
        @brief We need to know what DrawableMprToolkits is attached to a Mpr toolkit.
 
-       Example: toolkit to move the MPR position: event is reived, a new MPR position is calculated,
-                the toolkit must update the position of all the other MPR
+       Example: toolkit to move the MPR position: event is received, a new MPR position is calculated,
+                the toolkit must update the position of all the other MPRs attached
        */
       virtual void attach( DrawableMprToolkits* r )
       {
          _mprs.insert( r );
       }
 
+      /**
+       @brief detach a DrawableMprToolkits
+       */
       virtual void detach( DrawableMprToolkits* r )
       {
          Mprs::iterator it = _mprs.find( r );
@@ -166,6 +83,13 @@ namespace mvv
             _mprs.erase( it );
       }
 
+      /**
+       @brief By default the slice within a DrawableMprToolkits can't be modified by a toolkit (for memory usage)
+              Override this method and return true if the toolkit will modify the slice. In addition, the
+              correct resource must be provided by <code>getResources</code> to trigger an update on the
+              DrawableMprToolkits object (else changes won't update the drawed slice).
+
+       */
       virtual bool isMprMustBeSaved()
       {
          return false;
@@ -176,6 +100,11 @@ namespace mvv
       Mprs        _mprs;
    };
 
+
+
+   /**
+    @brief Handle movement & scaling of the MPR
+    */
    class MVV_API MprToolkitMove : public MprToolkit
    {
    public:
@@ -187,9 +116,23 @@ namespace mvv
          _position = nll::core::vector3d( 0, 0, 0 );
       }
 
+      /**
+       @brief Handle is called each time an event is received
+       */
       virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr );
 
+      /**
+       @brief Special attach: when attached for the first time, the MPR is centered on the biggest attached volume
+       */
       virtual void attach( DrawableMprToolkits* r );
+
+      /**
+       @brief We don't want to save the state of this slice as it doesn't modify it
+       */
+      virtual bool isMprMustBeSaved()
+      {
+         return false;
+      }
 
    protected:
       /// update all the attached MPR with new position & zoom
@@ -203,6 +146,30 @@ namespace mvv
       bool                 _isRightCurrentlyPressed;
       nll::core::vector3d  _initialOrigin;
       nll::core::vector2d  _initialZoom;
+      nll::core::vector2i  _initialMousePos;
+   };
+
+   class MVV_API MprToolkitPoint : public MprToolkit
+   {
+   public:
+      MprToolkitPoint()
+      {
+         _isLeftCurrentlyPressed = false;
+         _initialOrigin = nll::core::vector3d( 0, 0, 0 );
+      }
+
+      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr )
+      {
+      }
+
+      virtual bool isMprMustBeSaved()
+      {
+         return true;
+      }
+
+   protected:
+      bool                 _isLeftCurrentlyPressed;
+      nll::core::vector3d  _initialOrigin;
       nll::core::vector2i  _initialMousePos;
    };
 
@@ -239,8 +206,11 @@ namespace mvv
 
          virtual bool _run()
          {
-            _mprToolkit.run();   // TODO: some limitations here on the kind of orders
-            return true;
+            if ( _isMprSaved )
+            {
+               _img.image.clone( _previous.image );
+            }
+            return _mprToolkit.run( _source, _isMprSaved ? &_previous : 0 );
          }
 
          virtual ResourceImageRGB& getImage()
