@@ -12,6 +12,7 @@
 # include <mvv/context.h>
 # include <mvv/context-global-resource.h>
 # include <mvv/symbol.h>
+# include <mvv/volume-loader.h>
 # include <set>
 
 namespace mvv
@@ -47,15 +48,23 @@ namespace mvv
          ContextGlobalResource* globalContext = new ContextGlobalResource();
          Context::instance().add( globalContext );
 
+         
+         MedicalVolume* ct = loadTextRawVolume( "../../nllTest/data/text-volume1/header.txt" );
+         loaded = ct;
+         
+         /*
          const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
          MedicalVolume *pet = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathPet, *pet );
          ensure( loaded, "error" );
-
+         */
+         /*
          const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
+         */
 
+         /*
          for ( int nx = 0; nx < 60; ++nx )
             for ( int ny = 0; ny < 60; ++ny )
                (*ct)( nx, ny, ct->getSize()[ 2 ] / 2 ) = 999;
@@ -65,10 +74,9 @@ namespace mvv
          for ( int nx = 0; nx < 10; ++nx )
             for ( int ny = 0; ny < 10; ++ny )
                (*ct)( 256 - 5 + nx, 256 - 5 + ny, ct->getSize()[ 2 ] / 2 ) = 999;
+         */
          ensure( loaded, "error" );
 
-         std::cout << "s=" << ct->getSize()[ 0 ] << "," << ct->getSize()[ 1 ] << "," << ct->getSize()[ 2 ] << std::endl;
-         std::cout << "o=" << ct->getOrigin()[ 0 ] << "," << ct->getOrigin()[ 1 ] << "," << ct->getOrigin()[ 2 ] << std::endl;
          // create a MPR
          ContextMpr* mprContext = new ContextMpr();
          Context::instance().add( mprContext );
@@ -79,10 +87,12 @@ namespace mvv
          ContextMpr::ContextMprInstance* mpr1Context = new ContextMpr::ContextMprInstance();
          mprContext->addMpr( Symbol::create("mpr1_frontal"), mpr1Context );
 
+         /*
          ResourceTransferFunctionWindowing* petLut = new ResourceTransferFunctionWindowing( 0, 5000);
          petLut->setLutColor( nll::core::Image<nll::ui8>::blue() );
          mpr1Context->addVolume( pet, 0.5, petLut );
-         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 800) );
+         */
+         mpr1Context->addVolume( ct, 1, new ResourceTransferFunctionWindowing( 100, 1100) );
          mpr1Context->origin.setValue( 0, -80 );
          mpr1Context->origin.setValue( 1, -80 );
          mpr1Context->origin.setValue( 2, 0 );
@@ -104,7 +114,9 @@ namespace mvv
                                                                   mpr1Context->volumeIntensities,
                                                                   mpr1Context->luts );
          MprToolkitMove* moveToolkit = new MprToolkitMove();
+         MprToolkitPoint* pointToolkit = new MprToolkitPoint();
          toolkits->addToolkit( *moveToolkit );
+         toolkits->addToolkit( *pointToolkit );
          mpr1Context->setDrawableMprToolkits( toolkits );
          globalContext->addOrderCreator( toolkits );
 
@@ -113,11 +125,13 @@ namespace mvv
          //
          ContextMpr::ContextMprInstance* mpr2Context = new ContextMpr::ContextMprInstance();
          mprContext->addMpr( Symbol::create("mpr2_coronal"), mpr2Context );
-
+         
+         /*
          ResourceTransferFunctionWindowing* petLut2 = new ResourceTransferFunctionWindowing( 0, 5000);
          petLut2->setLutColor( nll::core::Image<nll::ui8>::red() );
          mpr2Context->addVolume( pet, 0.5, petLut2 );
-         mpr2Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 800) );
+         */
+         mpr2Context->addVolume( ct, 1, new ResourceTransferFunctionWindowing( 100, 1100) );
          mpr2Context->origin.setValue( 0, -80 );
          mpr2Context->origin.setValue( 1, -80 );
          mpr2Context->origin.setValue( 2, 0 );
@@ -139,6 +153,7 @@ namespace mvv
                                                                    mpr2Context->volumeIntensities,
                                                                    mpr2Context->luts );
          toolkits2->addToolkit( *moveToolkit );
+         toolkits2->addToolkit( *pointToolkit );
          mpr2Context->setDrawableMprToolkits( toolkits2 );
          globalContext->addOrderCreator( toolkits2 );
 
@@ -165,8 +180,6 @@ namespace mvv
 
          mpr1Context->origin.notifyChanges();
 
-         //MprToolkitTarget* toolkit2 = new MprToolkitTarget( *toolkits, ResourceManager::instance(), toolkits->slice );
-         //toolkits->addToolkit( toolkit2 );
 
 
          // queue

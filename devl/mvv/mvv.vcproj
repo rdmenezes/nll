@@ -563,6 +563,14 @@
 				>
 			</File>
 		</Filter>
+		<Filter
+			Name="Loader"
+			>
+			<File
+				RelativePath=".\volume-loader.h"
+				>
+			</File>
+		</Filter>
 		<File
 			RelativePath=".\mvv.dox"
 			>

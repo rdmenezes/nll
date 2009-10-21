@@ -50,7 +50,7 @@ namespace mvv
        @param mpr the slice. If null, this means this toolkit is not supposed to modify a slice (else override isMprMustBeSaved)
        @return true if the toolkit must be run at the next checkpoint
        */
-      virtual bool run( DrawableMprToolkits& source, ResourceImageRGB* mpr )
+      virtual bool run( DrawableMprToolkits& , ResourceImageRGB* )
       {
          return true;
       }
@@ -156,9 +156,10 @@ namespace mvv
       {
          _isLeftCurrentlyPressed = false;
          _initialOrigin = nll::core::vector3d( 0, 0, 0 );
+         _resources.insert( &_trigger );
       }
 
-      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr )
+      virtual void handle( const InteractionEvent& , DrawableMprToolkits& , ResourceImageRGB*  )
       {
       }
 
@@ -167,10 +168,16 @@ namespace mvv
          return true;
       }
 
+      virtual bool run( DrawableMprToolkits& , ResourceImageRGB* );
+
+      virtual void attach( DrawableMprToolkits* r );
+
    protected:
       bool                 _isLeftCurrentlyPressed;
       nll::core::vector3d  _initialOrigin;
       nll::core::vector2i  _initialMousePos;
+
+      DynamicResource      _trigger;
    };
 
    /**
@@ -196,7 +203,7 @@ namespace mvv
 
          void handle( const InteractionEvent& event )
          {
-            _mprToolkit.handle( event, _source, _isMprSaved ? &_previous : 0 );
+            _mprToolkit.handle( event, _source, _isMprSaved ? &_img : 0 );
          }
 
          virtual void consume( Order* o )
@@ -210,7 +217,7 @@ namespace mvv
             {
                _img.image.clone( _previous.image );
             }
-            return _mprToolkit.run( _source, _isMprSaved ? &_previous : 0 );
+            return _mprToolkit.run( _source, _isMprSaved ? &_img : 0 );
          }
 
          virtual ResourceImageRGB& getImage()
@@ -224,6 +231,9 @@ namespace mvv
          {
             return _mprToolkit;
          }
+      private:
+         MprState& operator=( const MprState& );
+         MprState( const MprState& );
 
       private:
          ResourceImageRGB        _img;
@@ -292,7 +302,7 @@ namespace mvv
       }
 
       /**
-       @biref remove a toolkit from this MPR. The toolkit will be deallocated.
+       @brief remove a toolkit from this MPR. Its associated state will be destroyed
        */
       void removeToolkit( MprToolkit& toolkit )
       {
@@ -330,13 +340,14 @@ namespace mvv
          {
             const Image& image = (*_states.rbegin())->getImage().image;
 
+            _tmpImage.clear();
             if ( image.sizex() != renderingSize[ 0 ] || 
                  image.sizey() != renderingSize[ 1 ] )
             {
                std::cout << "Warning: resize" << std::endl;
-               Image tmp;
-               tmp.clone( image );
-               return tmp;
+               _tmpImage.clone( image );
+               nll::core::rescaleBilinear( _tmpImage, renderingSize[ 0 ], renderingSize[ 1 ] );
+               return _tmpImage;
             }
             return image;
          }
@@ -404,6 +415,9 @@ namespace mvv
       EngineMprImpl*     _mpr;
       States             _states;
       OrderProvider&     _orderProvider;
+
+      /// this image is a temporary save in case we need to resample it
+      Image              _tmpImage;
 
    public:
       ResourceImageRGB&          slice;

@@ -163,7 +163,7 @@ void keyboard(unsigned char key, int x, int y)
       {
          mvv::DrawableMprToolkits* toolkits = it->second->getDrawableMprToolkits();
          assert( toolkits );
-         toolkits->autoFindPosition( mvv::EngineMprImpl::CORONAL );
+         toolkits->autoFindPosition( mvv::EngineMprImpl::TRANSVERSE );
       }
    }
    if ( key == 'w' )

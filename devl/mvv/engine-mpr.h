@@ -150,7 +150,6 @@ namespace mvv
 
          for ( Image::DirectionalIterator itOut = _slice.beginDirectional(); itOut != _slice.endDirectional(); ++itOut )
          {
-            ui32 nn = 0;
             double vala = 0;
             double valb = 0;
             double valc = 0;
@@ -164,9 +163,9 @@ namespace mvv
 
                ++( *iterators[ nn ] );
             }
-            itOut.pickcol( 0 ) = vala;
-            itOut.pickcol( 1 ) = valb;
-            itOut.pickcol( 2 ) = valc;
+            itOut.pickcol( 0 ) = static_cast<ui8>( vala );
+            itOut.pickcol( 1 ) = static_cast<ui8>( valb );
+            itOut.pickcol( 2 ) = static_cast<ui8>( valc );
          }
 
          for ( Iterators::iterator it = iterators.begin(); it != iterators.end(); ++it )
@@ -183,6 +182,11 @@ namespace mvv
             predecessors.insert( ( *it )->getId() );
          return predecessors;
       }
+
+      // non copiyable
+      OrderCombineMpr& operator=( const OrderCombineMpr& );
+      OrderCombineMpr( const OrderCombineMpr& );
+
 
       const Orders&                       _tracked;
       ResourceVolumes&                    _volumes;
@@ -279,13 +283,18 @@ namespace mvv
 
          // create the order
          OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
-         std::cout << "--create fusion order[" << order->getId() << "]:" << _renderingOrders[ 0 ]->getId() << " " << _renderingOrders[ 1 ]->getId() << std::endl;
+         //std::cout << "--create fusion order[" << order->getId() << "]:" << _renderingOrders[ 0 ]->getId() << " " << _renderingOrders[ 1 ]->getId() << std::endl;
          _orderProvider.pushOrder( order );
          _current = order;
          _idle = false;
          std::cout << "combiner.run() idle=false" << std::endl;
          return true;
       }
+
+   private:
+      // non copiable
+      EngineMprCombiner& operator=( const EngineMprCombiner& );
+      EngineMprCombiner( const EngineMprCombiner& );
 
    private:
       OrderProvider&                _orderProvider;
@@ -372,7 +381,7 @@ namespace mvv
                                                               nll::core::vector3d( _vector2[ 0 ],
                                                                                    _vector2[ 1 ],
                                                                                    _vector2[ 2 ] ),
-                                                                                   OrderMprRendering::TRILINEAR );
+                                                                                   OrderMprRendering::NEAREST_NEIGHBOUR );
             _tracked[ n ] = order;
             _orderProvider.pushOrder( order );
          }
@@ -406,6 +415,10 @@ namespace mvv
 
          _tracked.clear();
       }
+
+   private:
+      EngineMprComputation& operator=( const EngineMprComputation& );
+      EngineMprComputation( const EngineMprComputation& );
 
    public:
       ResourceOrderList outOrdersToFuse;
@@ -567,9 +580,9 @@ namespace mvv
                                         (*choice)->getPst()( 2, 0 ) );
             value1.div( value1.norm2() );
 
-            nll::core::vector3d value2( (*choice)->getPst()( 0, 1 ),
-                                        (*choice)->getPst()( 1, 1 ),
-                                        (*choice)->getPst()( 2, 1 ) );
+            nll::core::vector3d value2( -(*choice)->getPst()( 0, 1 ),
+                                        -(*choice)->getPst()( 1, 1 ),
+                                        -(*choice)->getPst()( 2, 1 ) );
             value2.div( value2.norm2() );
 
             _vector1.setValue( value1 );
