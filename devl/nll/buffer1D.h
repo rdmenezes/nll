@@ -290,6 +290,20 @@ public:
    }
 
    /**
+    @brief Decrease the ref count if > 0, and unshare this object.
+    */
+   void clear()
+   {
+      if ( _cpt && *_cpt )
+      {
+         unref();
+      }
+      _buffer = 0;
+      _cpt = 0;
+      _size = 0;
+   }
+
+   /**
     @brief check if the buffers are semantically equal.
     */
    bool operator==( const Buffer1D& b ) const
