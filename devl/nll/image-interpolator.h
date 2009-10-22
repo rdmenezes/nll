@@ -62,7 +62,7 @@ namespace core
 
    /**
     @ingroup core
-    @brief 2D bilinear interpolation of an image. The voxel center is the top left of the voxel (0, 0)
+    @brief 2D bilinear interpolation of an image. The voxel center of the voxel (0, 0)
     */
    template <class T, class Mapper>
    class InterpolatorLinear2D : public Interpolator2D<T, Mapper>
@@ -73,10 +73,15 @@ namespace core
       double interpolate( double x, double y, ui32 c ) const
       {
          static double buf[4];
-         const i32 xi = int( x );
-         const i32 yi = int( y );
-         const double dx = fabs( x - xi );
-         const double dy = fabs( y - yi );
+         const i32 xi = int( x - 0.5 + NLL_IMAGE_BIAS );
+         const i32 yi = int( y - 0.5 + NLL_IMAGE_BIAS );
+         if ( xi < 0 || xi >= _img.sizex() ||
+              yi < 0 || yi >= _img.sizey() )
+         {
+            return 0;
+         }
+         const double dx = fabs( x - xi - 0.5 );
+         const double dy = fabs( y - yi - 0.5 );
 
          TImage::ConstDirectionalIterator iter = _img.getIterator( xi, yi, c );
          buf[ 0 ] = *iter;
@@ -122,7 +127,7 @@ namespace core
          // we need to add a bias factor due to rounding error. In this case the pixel
          // location could be both ways. In this case, we force to choose the right one
          // (it is also right to choose the left one, but we have to choose one way...)
-         const double val = this->_img( (ui32)NLL_BOUND( round<double>( x + NLL_IMAGE_BIAS ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( round<double>( y + NLL_IMAGE_BIAS ), 0, this->_img.sizey() - 1 ), c );
+         const double val = this->_img( (ui32)NLL_BOUND( ( x + NLL_IMAGE_BIAS ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( ( y + NLL_IMAGE_BIAS ), 0, this->_img.sizey() - 1 ), c );
          assert( val >= Bound<T>::min && val <= (Bound<T>::max + 0.999) );
          return val;
       }
