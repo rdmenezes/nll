@@ -25,7 +25,7 @@ namespace core
     @brief Round a value to its closes integer
     */
    template <class T>
-   inline T round( const T val, T thres = 0.5 )
+   inline T round( const T val, double thres = 0.5 )
    {
       i32 vali = static_cast<i32>( val );
       return (val - vali >= thres ) ? ( vali + 1 ) : vali;

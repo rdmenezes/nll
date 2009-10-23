@@ -87,6 +87,7 @@
 # include "singleton.h"
 # include "types.h"
 # include "utility-pure.h"
+# include "math-floor.h"
 # include "static-assert.h"
 # include "ensure.h"
 # include "log.h"

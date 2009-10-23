@@ -311,12 +311,14 @@ public:
    }*/
 
    /**
-    The MPR produced is correct as it goes through the center of the voxel(recall that the)
-    center is the top left coordinate!
+    Should produce a perfect chessboard
+
+    (1.5, 1.5, 0) is the center of the 4x4 chessboard (we want to be 1 + 1/2 voxel off on x and y)
     */
    void testMpr3()
    {
       typedef nll::imaging::VolumeSpatial<double>           Volume;
+      //typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
@@ -346,13 +348,66 @@ public:
       volume( 0+2, 1+2, 0 ) = 10;
 
       Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0 ),
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 1.5, 1.5, 0 ),
                                        nll::core::vector3d( 1, 0, 0 ),
                                        nll::core::vector3d( 0, 1, 0 ),
                                        nll::core::vector2d( 8.00, 8.00 ) );
 
 
       const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-linear.bmp";
+      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      for ( unsigned y = 0; y < bmp.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, output );
+   }
+
+   /**
+    Should produce a perfect chessboard
+
+    (1.5, 1.5, 0) is the center of the 4x4 chessboard (we want to be 1 + 1/2 voxel off on x and y)
+    */
+   void testMpr5()
+   {
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
+      //typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
+
+      nll::core::Matrix<double> pst( 4, 4 );
+      for ( unsigned n = 0; n < 4; ++n )
+         pst( n, n ) = 1;
+
+      Volume volume( nll::core::vector3ui( 4, 4, 4 ), pst );
+      volume( 0, 0, 0 ) = 255;
+      volume( 1, 0, 0 ) = 10;
+      volume( 1, 1, 0 ) = 255;
+      volume( 0, 1, 0 ) = 10;
+
+      volume( 0+2, 0, 0 ) = 255;
+      volume( 1+2, 0, 0 ) = 10;
+      volume( 1+2, 1, 0 ) = 255;
+      volume( 0+2, 1, 0 ) = 10;
+
+      volume( 0, 0+2, 0 ) = 255;
+      volume( 1, 0+2, 0 ) = 10;
+      volume( 1, 1+2, 0 ) = 255;
+      volume( 0, 1+2, 0 ) = 10;
+
+      volume( 0+2, 0+2, 0 ) = 255;
+      volume( 1+2, 0+2, 0 ) = 10;
+      volume( 1+2, 1+2, 0 ) = 255;
+      volume( 0+2, 1+2, 0 ) = 10;
+
+      Mpr mpr( volume, 32, 32 );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 1.5, 1.5, 0 ),
+                                       nll::core::vector3d( 1, 0, 0 ),
+                                       nll::core::vector3d( 0, 1, 0 ),
+                                       nll::core::vector2d( 8.00, 8.00 ) );
+
+
+      const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-nn.bmp";
       nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
       for ( unsigned y = 0; y < bmp.sizey(); ++y )
          for ( unsigned x = 0; x < bmp.sizex(); ++x )
@@ -549,6 +604,7 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testMpr);
  TESTER_TEST(testMpr3);
  TESTER_TEST(testMpr4);
+ TESTER_TEST(testMpr5);
  TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
 #endif
