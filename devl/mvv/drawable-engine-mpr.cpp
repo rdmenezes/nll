@@ -122,9 +122,11 @@ namespace mvv
                   choice = it;
                }
             }
-            _position = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
-                                                                         (*choice)->getSize()[ 1 ] / 2,
-                                                                         (*choice)->getSize()[ 2 ] / 2 ) );
+
+            // we add 0.5 voxel to be in the center
+            _position = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
+                                                                         (*choice)->getSize()[ 1 ] / 2 + 0.5,
+                                                                         (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
             r->origin.setValue( _position );
          } else {
             r->origin.setValue( nll::core::vector3d( 0, 0, 0 ) );
@@ -183,7 +185,9 @@ namespace mvv
                }
             }
 
-            _initialOrigin = (*choice)->indexToPosition( nll::core::vector3d( 0, 0, 0 ) );
+            _initialOrigin = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
+                                                                              (*choice)->getSize()[ 1 ] / 2,
+                                                                              (*choice)->getSize()[ 2 ] / 2 ) );
          } else {
             _initialOrigin = nll::core::vector3d( 0, 0, 0 );
          }

@@ -381,7 +381,7 @@ namespace mvv
                                                               nll::core::vector3d( _vector2[ 0 ],
                                                                                    _vector2[ 1 ],
                                                                                    _vector2[ 2 ] ),
-                                                                                   OrderMprRendering::NEAREST_NEIGHBOUR );
+                                                                                   OrderMprRendering::TRILINEAR );
             _tracked[ n ] = order;
             _orderProvider.pushOrder( order );
          }
@@ -562,9 +562,9 @@ namespace mvv
 
             _vector1.setValue( value1 );
             _vector2.setValue( value2 );
-            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
-                                                                                       (*choice)->getSize()[ 1 ] / 2,
-                                                                                       (*choice)->getSize()[ 2 ] / 2 ) );
+            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
+                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
             _origin.setValue( pos );
             return;
          }
@@ -587,9 +587,10 @@ namespace mvv
 
             _vector1.setValue( value1 );
             _vector2.setValue( value2 );
-            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
-                                                                                       (*choice)->getSize()[ 1 ] / 2,
-                                                                                       (*choice)->getSize()[ 2 ] / 2 ) );
+
+            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
+                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
             _origin.setValue( pos );
             return;
          }
@@ -612,9 +613,9 @@ namespace mvv
 
             _vector1.setValue( value1 );
             _vector2.setValue( value2 );
-            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
-                                                                                       (*choice)->getSize()[ 1 ] / 2,
-                                                                                       (*choice)->getSize()[ 2 ] / 2 ) );
+            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
+                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
             _origin.setValue( pos );
             return;
          }

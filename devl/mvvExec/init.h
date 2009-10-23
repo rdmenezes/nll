@@ -52,13 +52,14 @@ namespace mvv
          MedicalVolume* ct = loadTextRawVolume( "../../nllTest/data/text-volume1/header.txt" );
          loaded = ct;
          
+         
          /*
          const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
          MedicalVolume *pet = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathPet, *pet );
          ensure( loaded, "error" );
-         */
-         /*
+         
+         
          const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
@@ -130,7 +131,7 @@ namespace mvv
          ResourceTransferFunctionWindowing* petLut2 = new ResourceTransferFunctionWindowing( 0, 5000);
          petLut2->setLutColor( nll::core::Image<nll::ui8>::red() );
          mpr2Context->addVolume( pet, 0.5, petLut2 );
-         */
+         */         
          mpr2Context->addVolume( ct, 1, new ResourceTransferFunctionWindowing( 100, 1100) );
          mpr2Context->origin.setValue( 0, -80 );
          mpr2Context->origin.setValue( 1, -80 );
