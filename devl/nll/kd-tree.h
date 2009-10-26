@@ -177,8 +177,8 @@ namespace algorithm
 		   _points = &points;
 		   ui32 size = points.size();
          _perm = std::vector<ui32>( size );
-         _tmpMin = std::vector<f32>( size );
-         _tmpMax = std::vector<f32>( size );
+         _tmpMin = std::vector<f32>( pointSize );
+         _tmpMax = std::vector<f32>( pointSize );
 		   for (ui32 n = 0; n < size; ++n)
 			   _perm[ n ] = n;
 		   _root = _build( 0, size - 1 );
