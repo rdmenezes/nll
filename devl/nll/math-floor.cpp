@@ -213,6 +213,80 @@ namespace core
          jmp   done1
       }
    }
+
+   // IA-32 IEEE format truncate to unsigned int
+   // eax = result
+   // ebx = <<unused>>
+   // ecx = exponent
+   // edx = parameter
+   // esi = <<unused>>
+   // edi = x[1]
+   __declspec(naked)
+   __declspec(align(16))
+   NLL_API
+   unsigned int truncateu(double /*x*/)
+   {
+      __asm
+      {
+         // edx = x[1];
+         mov   edx, [esp+8]
+
+         // eax = 0;
+         xor   eax, eax
+
+         // ecx = ((edx >> 20) & 0x7FF) - 1023;
+         mov   ecx, edx
+         shr   ecx, 20
+         and   ecx, 0x7FF
+         sub   ecx, 1023
+         // if (ecx < 0) return 0;
+         test  ecx, ecx
+         jl    done1
+         // if (ecx > 31) return UINT_MAX;
+         // cmp   ecx, 31
+         // jg    done1
+         test  ecx, 0xFFFFFFE0
+         jnz   toobig
+
+         // eax = 1 << cl;
+         inc   eax
+         shl   eax, cl
+
+         // edx &= 0xFFFFF;
+         and   edx, 0xFFFFF
+         // ecx = -(20 - ecx);
+         sub   ecx, 20
+         // if (ecx > 0)
+         test  ecx, ecx
+         // {
+         jle   done
+         //    edx <<= ecx;
+         shl   edx, cl
+         //    eax |= edx;
+         or    eax, edx
+         //    edx = x[0];
+         mov   edx, [esp+4]
+         //    ecx -= 32;
+         sub   ecx, 32
+         // }
+   done:
+         // ecx = -ecx;
+         neg   ecx
+         // edx >>= ecx;
+         shr   edx, cl
+         // eax |= edx;
+         or    eax, edx
+   done1:
+         // return eax;
+         ret
+   toobig:
+         not   eax
+         ret
+      }
+   }
+
 #endif
+
+
 }
 }

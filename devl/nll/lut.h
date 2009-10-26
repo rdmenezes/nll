@@ -7,6 +7,8 @@ namespace imaging
 {
    /**
     @brief a default color mapper
+
+    The mapper is adressed by an index and a pointer to a multidimentional value is returned. The mapper holds all the data.
     */
    template <class T>
    class MapperLutColor
@@ -15,6 +17,11 @@ namespace imaging
       typedef core::Buffer1D<T*>    VectorIndex;
 
    public:
+      /**
+       @brief Init the mapper.
+       @param size the number of index to generate
+       @param components the number of components the mapper will store for each index
+       */
       MapperLutColor( ui32 size, ui32 components ) : _size( size ), _components( components ), _container( size * components, false )
       {
          _index = VectorIndex( size );
@@ -24,22 +31,37 @@ namespace imaging
          }
       }
 
+      /**
+       @brief Set value for an index.
+       @param index the index where the value will be stored
+       @param value a multidimentional value, that must have the same size than specified in constructor
+              The value is copied.
+       */
       void set( ui32 index, const T* value )
       {
          for ( ui32 n = 0; n < _components; ++n )
             _index[ index ][ n ] = value[ n ];
       }
 
+      /**
+       @brief return a pointer on the multidimensional value pointed by index.
+       */
       const T* operator[]( ui32 index ) const
       {
          return _index[ index ];
       }
 
+      /**
+       @brief returns the number of components of a point
+       */
       ui32 getNbComponents() const
       {
          return _components;
       }
 
+      /**
+       @brief Returns the number of indexes that can be adressed
+       */
       ui32 getSize() const
       {
          return _size;
@@ -56,7 +78,11 @@ namespace imaging
     @ingroup imaging
     @brief Look up table
 
+    The LUT maps a 'double' to a multidimentional value. The 'double' is scaled and transformed to an index. Each
+    index has a mapped value.
+
     TMapper should provide
+      copy constructor
       const T* operator[](index) const
       getSize() const 
       getNbComponents() const
@@ -66,12 +92,21 @@ namespace imaging
    class LookUpTransform
    {
    public:
+      /**
+       @brief Init the look up table.
+       @param mapper the mapper to be used. It is internally copied.
+       @param minIntensity the minimal intensity to be displayed
+       @param maxIntensity the maximal intensity to be displayed
+       */
       LookUpTransform( const TMapper& mapper, double minIntensity, double maxIntensity ) : _mapper( mapper ), _min( minIntensity ), _max( maxIntensity ), _interval( maxIntensity - minIntensity + 1 )
       {
          ensure( _interval > 0, "must be >0" );
          _ratio = static_cast<double>( _mapper.getSize() ) / _interval;
       }
 
+      /**
+       @brief Transform a double to multidimentional value
+       */
       const T* transform( double value ) const
       {
          if ( value < _min )
@@ -81,16 +116,25 @@ namespace imaging
          return _mapper[ (ui32)( ( value - _min ) * _ratio ) ];
       }
 
+      /**
+       @brief Returns the number of mapper indexes
+       */
       ui32 getSize() const
       {
          return _mapper.getSize();
       }
 
+      /**
+       @brief Returns the number of components each value in the LUT has
+       */
       ui32 getNbComponents() const
       {
          return _mapper.getNbComponents();
       }
 
+      /**
+       @brief Set a new value for the specified index. Internally, the value is copied.
+       */
       void set( ui32 index, const T* value )
       {
          _mapper.set( index, value );
@@ -104,6 +148,9 @@ namespace imaging
       double   _ratio;
    };
 
+   /**
+    @brief Implementation of a LUT for double->RGB values
+    */
    class LookUpTransformWindowingRGB
    {
    public:

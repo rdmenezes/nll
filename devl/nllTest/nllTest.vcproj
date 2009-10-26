@@ -498,6 +498,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-math-floor.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-matrix-cholesky.cpp"
 				>
 			</File>

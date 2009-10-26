@@ -62,7 +62,7 @@ namespace core
 
    /**
     @ingroup core
-    @brief 2D bilinear interpolation of an image. The voxel center of the voxel (0, 0)
+    @brief 2D bilinear interpolation of an image. (0, 0) points to the center of the top left pixel
     */
    template <class T, class Mapper>
    class InterpolatorLinear2D : public Interpolator2D<T, Mapper>
@@ -73,28 +73,29 @@ namespace core
       double interpolate( double x, double y, ui32 c ) const
       {
          static double buf[4];
-         const i32 xi = int( x - 0.5 + NLL_IMAGE_BIAS );
-         const i32 yi = int( y - 0.5 + NLL_IMAGE_BIAS );
-         if ( xi < 0 || xi >= _img.sizex() ||
-              yi < 0 || yi >= _img.sizey() )
+
+         x -= 0.5;
+         y -= 0.5;
+         const int xi = core::floor( x );
+         const int yi = core::floor( y );
+
+         const double dx = fabs( x - xi );
+         const double dy = fabs( y - yi );
+
+         // if we can't interpolate first & last line/column (we are missing one sample), just don't do any interpolation
+         // and return background value
+         if ( xi < 0 || xi >= ( this->_img.sizex() - 1 ) ||
+              yi < 0 || yi >= ( this->_img.sizey() - 1 ) )
          {
             return 0;
          }
-         const double dx = fabs( x - xi - 0.5 );
-         const double dy = fabs( y - yi - 0.5 );
-
+  
          TImage::ConstDirectionalIterator iter = _img.getIterator( xi, yi, c );
          buf[ 0 ] = *iter;
          buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.pickx() : 0;
-         if ( yi < (i32)this->_img.sizey() - 1 )
-         {
-            buf[ 3 ] = iter.picky();
-            iter.addx();
-            buf[ 2 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.picky() : 0;
-         } else {
-            buf[ 2 ] = 0;
-            buf[ 3 ] = 0;
-         }
+         buf[ 3 ] = iter.picky();
+         iter.addx();
+         buf[ 2 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.picky() : 0;
 
          // factorized form of:
          //double val = ( 1 - dx ) * ( 1 - dy ) * buf[ 0 ] +

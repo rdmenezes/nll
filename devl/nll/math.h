@@ -24,11 +24,9 @@ namespace core
     @ingroup core
     @brief Round a value to its closes integer
     */
-   template <class T>
-   inline T round( const T val, double thres = 0.5 )
+   inline int round( double x )
    {
-      i32 vali = static_cast<i32>( val );
-      return (val - vali >= thres ) ? ( vali + 1 ) : vali;
+      return core::floor( x + 0.5 );
    }
 }
 }
