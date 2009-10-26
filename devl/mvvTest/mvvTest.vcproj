@@ -379,6 +379,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\dummy.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mvvTest.cpp"
 				>
 			</File>
@@ -431,6 +435,7 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
+					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -440,6 +445,14 @@
 			<File
 				RelativePath=".\Test-engine-mpr.cpp"
 				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\Test-layout.cpp"

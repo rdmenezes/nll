@@ -48,12 +48,12 @@ namespace mvv
          ContextGlobalResource* globalContext = new ContextGlobalResource();
          Context::instance().add( globalContext );
 
-         
+         /*
          MedicalVolume* ct = loadTextRawVolume( "../../nllTest/data/text-volume1/header.txt" );
          loaded = ct;
+         */
          
          
-         /*
          const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
          MedicalVolume *pet = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathPet, *pet );
@@ -63,7 +63,7 @@ namespace mvv
          const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
-         */
+         
 
          /*
          for ( int nx = 0; nx < 60; ++nx )
@@ -88,12 +88,12 @@ namespace mvv
          ContextMpr::ContextMprInstance* mpr1Context = new ContextMpr::ContextMprInstance();
          mprContext->addMpr( Symbol::create("mpr1_frontal"), mpr1Context );
 
-         /*
+         
          ResourceTransferFunctionWindowing* petLut = new ResourceTransferFunctionWindowing( 0, 5000);
          petLut->setLutColor( nll::core::Image<nll::ui8>::blue() );
          mpr1Context->addVolume( pet, 0.5, petLut );
-         */
-         mpr1Context->addVolume( ct, 1, new ResourceTransferFunctionWindowing( 100, 1100) );
+        
+         mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 1100) );
          mpr1Context->origin.setValue( 0, -80 );
          mpr1Context->origin.setValue( 1, -80 );
          mpr1Context->origin.setValue( 2, 0 );
@@ -127,12 +127,12 @@ namespace mvv
          ContextMpr::ContextMprInstance* mpr2Context = new ContextMpr::ContextMprInstance();
          mprContext->addMpr( Symbol::create("mpr2_coronal"), mpr2Context );
          
-         /*
+         
          ResourceTransferFunctionWindowing* petLut2 = new ResourceTransferFunctionWindowing( 0, 5000);
          petLut2->setLutColor( nll::core::Image<nll::ui8>::red() );
          mpr2Context->addVolume( pet, 0.5, petLut2 );
-         */         
-         mpr2Context->addVolume( ct, 1, new ResourceTransferFunctionWindowing( 100, 1100) );
+         
+         mpr2Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 1100) );
          mpr2Context->origin.setValue( 0, -80 );
          mpr2Context->origin.setValue( 1, -80 );
          mpr2Context->origin.setValue( 2, 0 );
