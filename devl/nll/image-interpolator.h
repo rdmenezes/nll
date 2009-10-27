@@ -92,10 +92,10 @@ namespace core
   
          TImage::ConstDirectionalIterator iter = _img.getIterator( xi, yi, c );
          buf[ 0 ] = *iter;
-         buf[ 1 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.pickx() : 0;
+         buf[ 1 ] = iter.pickx();
          buf[ 3 ] = iter.picky();
          iter.addx();
-         buf[ 2 ] = ( xi < (i32)this->_img.sizex() - 1 ) ? iter.picky() : 0;
+         buf[ 2 ] = iter.picky();
 
          // factorized form of:
          //double val = ( 1 - dx ) * ( 1 - dy ) * buf[ 0 ] +
