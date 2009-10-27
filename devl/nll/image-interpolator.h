@@ -84,8 +84,8 @@ namespace core
 
          // if we can't interpolate first & last line/column (we are missing one sample), just don't do any interpolation
          // and return background value
-         if ( xi < 0 || xi >= ( this->_img.sizex() - 1 ) ||
-              yi < 0 || yi >= ( this->_img.sizey() - 1 ) )
+         if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
+              yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
          {
             return 0;
          }

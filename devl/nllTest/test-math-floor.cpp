@@ -19,7 +19,7 @@ struct TestMathFloor
       int sum2 = 0;
       for ( unsigned n = 0; n < 85000000; ++n, val2 += 0.4 )
       {
-         int valn = std::floor( val2 );
+         int valn = (int)std::floor( val2 );
          sum2 += valn;
       }
       double time2 = t2.getCurrentTime();
