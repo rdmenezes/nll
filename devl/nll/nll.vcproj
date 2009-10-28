@@ -781,6 +781,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\optimizer-powell.h"
+				>
+			</File>
+			<File
 				RelativePath=".\optimizer.h"
 				>
 			</File>
@@ -796,6 +800,14 @@
 		<Filter
 			Name="algorithm-impl"
 			>
+			<File
+				RelativePath=".\bracketing.h"
+				>
+			</File>
+			<File
+				RelativePath=".\brent.h"
+				>
+			</File>
 			<File
 				RelativePath=".\gabor-filter.h"
 				>
@@ -854,6 +866,10 @@
 			</File>
 			<File
 				RelativePath=".\pca.h"
+				>
+			</File>
+			<File
+				RelativePath=".\powell.h"
 				>
 			</File>
 			<File

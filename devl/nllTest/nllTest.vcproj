@@ -442,6 +442,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-bracketing.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-classifier-adaboost.cpp"
 				>
 			</File>

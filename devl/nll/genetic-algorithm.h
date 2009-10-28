@@ -213,6 +213,7 @@ namespace algorithm
          {
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "round=" + core::val2str( round ) );
             Genes newBreed = _select( genes, static_cast<ui32>( selectionRate * populationSize ) );
+            ensure( newBreed.size(), "error: bad proportion" );
             while (newBreed.size() < populationSize)
 			   {
 				   ui32 n1 = static_cast<ui32>( rand() % newBreed.size() );

@@ -38,7 +38,7 @@
  */
 
 /// define the version of nll
-#define NLL_VERSION  "nll-0.10"
+#define NLL_VERSION  "nll-0.11"
 
 /**
  Concept: (for future integration with C++ 0x)
@@ -160,6 +160,9 @@
  - feature algorithm group, where it tries to intregrate all the generic algorithms to
    the developped framework.
  */
+# include "bracketing.h"
+# include "brent.h"
+# include "powell.h"
 # include "mlp.h"
 # include "pca.h"
 # include "stopping-condition.h"
@@ -172,6 +175,7 @@
 # include "optimizer-harmony-search.h"
 # include "optimizer-harmony-search-memory.h"
 # include "optimizer-grid-search.h"
+# include "optimizer-powell.h"
 # include "classifier.h"
 # include "kmeans.h"
 # include "gmm.h"

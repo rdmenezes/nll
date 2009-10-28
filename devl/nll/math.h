@@ -28,6 +28,16 @@ namespace core
    {
       return core::floor( x + 0.5 );
    }
+
+   /**
+    @brief return the sign of a value
+    @return 1 for val >= 0, else -1
+    */
+   template <class T>
+   T sign( const T v )
+   {
+      return ( v >= 0 ) ? 1 : -1;
+   }
 }
 }
 
