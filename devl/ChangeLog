@@ -5,6 +5,7 @@ v0.11
 -added powell & line search optimizers
 -support for volumes, lookup tables & multi-planar reconstruction
 -fixed bugs & improved unit tests
+-added tutorials & test databases
 
 v0.10
 -reimplementation of the multilayer neural network (added weight decay)
