@@ -33,13 +33,19 @@ doc:
 tarball: clean doc all
 	mkdir tarball
 	cd tarball && mkdir nll && cd nll && mkdir nll nllTest tester doc include tutorial
-	cd tarball/nll/tutorial && mkdir data && cd data && mkdir out && mkdir image && mkdir proben1 && cd proben1 && mkdir cancer
+	cd tarball/nll/tutorial && mkdir data && cd data && mkdir out && mkdir image && mkdir proben1 && mkdir uci && cd proben1 && mkdir cancer
+	cd tarball/nll/tutorial/data/uci && mkdir iris spam wine yeast
+	cp tutorial/data/uci/iris/*.data tarball/nll/tutorial/data/uci/iris/
+	cp tutorial/data/uci/spam/*.data tarball/nll/tutorial/data/uci/spam/
+	cp tutorial/data/uci/wine/*.data tarball/nll/tutorial/data/uci/wine/
+	cp tutorial/data/uci/yeast/*.data tarball/nll/tutorial/data/uci/yeast/
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
 	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect medical
 	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln Readme.txt tarball/nll
 	cp nll/*.h tarball/nll/include
 	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcproj tarball/nll/tutorial
 	cp tutorial/data/proben1/cancer/*.dt tarball/nll/tutorial/data/proben1/cancer
+	cp tutorial/data/proben1/cancer/*.data tarball/nll/tutorial/data/proben1/cancer
 	cp tutorial/data/image/*.bmp tarball/nll/tutorial/data/image
 	cp nll/*.h nll/*.cpp nll/nll.vcproj nll/nll.rc nll/Makefile nll/nll.dox nll/todo.txt tarball/nll/nll
 	cp nll/docs/html/* tarball/nll/doc
