@@ -107,7 +107,7 @@ namespace tutorial
 
          ClassifierImpl c;
          double error = c.evaluate( nll::core::make_buffer1D<double>( 3, 1 ), rDat );
-         TESTER_ASSERT( fabs( error ) <= 0.012 );
+         TESTER_ASSERT( fabs( error ) <= 0.034 );
       }
 
       void testSvmKPca()
