@@ -73,19 +73,29 @@ struct FunctionRastrigin : public OptimizerClientResult
 /**
  @brief f(x)= -418.89829 for xi=420.9687 i=0..n
  */
-struct FunctionSchwefel : public OptimizerClientResult
+
+static int eval = 0;
+
+struct FunctionGriewangk : public OptimizerClientResult
 {
    virtual double evaluate( const nll::core::Buffer1D<nll::f64>& parameters ) const
    {
       double accum = 0;
       for ( unsigned n = 0; n < parameters.size(); ++n )
-         accum += - parameters[ n ] * sin( std::sqrt( fabs( parameters[ n ] ) ) );
-      return accum;
+         accum += nll::core::sqr( parameters[ n ] );
+
+      double accum2 = 1;
+      for ( unsigned n = 0; n < parameters.size(); ++n )
+      {
+         double tmp = cos( parameters[ n ] / sqrt( (double)( n + 1 ) ) );
+         accum2 *= tmp;
+      }
+      return accum / 4000 - accum2 + 1;
    }
 
    virtual double getMin() const
    {
-      return -418.89;
+      return 0;
    }
 };
 
@@ -105,9 +115,10 @@ struct TestOptimizer
       f.push_back( new FunctionJong() );
       f.push_back( new FunctionRosenbrockValley() );
       f.push_back( new FunctionRastrigin() );
-      f.push_back( new FunctionSchwefel() );
+      f.push_back( new FunctionGriewangk() );
       return f;
    }
+
 
    void testPowell()
    {
@@ -123,7 +134,7 @@ struct TestOptimizer
          parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
          parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
          
-         nll::algorithm::OptimizerPowell optimizer( 200, 1e-14 );
+         nll::algorithm::OptimizerPowell optimizer( 200, 1e-3 );
          std::vector<double> res = optimizer.optimize( *functions[ n ], parameters );
 
          nll::core::Buffer1D<double> buffer( (unsigned)res.size() );
@@ -136,9 +147,9 @@ struct TestOptimizer
       }
    }
 
-   /*
    void testGA()
    {
+      srand( 10 );
       const double tol = 1e-2;
       std::vector<OptimizerClientResult*> functions = getFunctions();
 
@@ -147,11 +158,11 @@ struct TestOptimizer
          typedef nll::core::Buffer1D<double> Point;
 
          nll::algorithm::ParameterOptimizers parameters;
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.5 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.5 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.5 ) );
          
-         nll::algorithm::OptimizerGeneticAlgorithm optimizer( 20, 100, 20, 0.3f, 0.5f );
+         nll::algorithm::OptimizerGeneticAlgorithm optimizer( 20, 50, 400, 0.8f, 0.5f );
          std::vector<double> res = optimizer.optimize( *functions[ n ], parameters );
 
          nll::core::Buffer1D<double> buffer( (unsigned)res.size() );
@@ -165,7 +176,7 @@ struct TestOptimizer
       }
    }
       
-
+/*
    void testHarmony()
    {
       const double tol = 1e-1;
@@ -196,7 +207,7 @@ struct TestOptimizer
 };
 
 TESTER_TEST_SUITE( TestOptimizer );
-TESTER_TEST( testPowell );
-//TESTER_TEST( testGA );
+//TESTER_TEST( testPowell );
+TESTER_TEST( testGA );
 //TESTER_TEST( testHarmony );
 TESTER_TEST_SUITE_END();

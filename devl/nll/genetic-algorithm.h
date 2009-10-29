@@ -106,10 +106,11 @@ namespace algorithm
 		   for ( ui32 n = 0; n < genes.size(); ++n )
 		   {
 			   clock_t t = clock();
-			   pairs.push_back( Pair( _evaluator( genes[ n ] ), n ) );
+            double val = _evaluator( genes[ n ] );
+			   pairs.push_back( Pair( 1 / val, n ) );
 			   if ( _printEvaluation )
             {
-               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( pairs.rbegin()->first ) );
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( 1 / pairs.rbegin()->first ) );
 				   //std::cout << "eval:" << n << " time=" << ( f32 )( clock() - t ) / CLOCKS_PER_SEC << " val=" << pairs.rbegin()->first;
                //std::cout << " gene = " << n;
                //for ( ui32 nn = 0; nn < genes[ n ].size(); ++nn )
@@ -118,12 +119,12 @@ namespace algorithm
             }
 		   }
 		   std::sort( pairs.rbegin(), pairs.rend() );
-		   Pairs::const_reverse_iterator it = pairs.rbegin();
+		   Pairs::const_iterator it = pairs.begin();
    		
 		   if ( _printEvaluation )
          {
             std::stringstream ss;
-            ss << "best = " << it->first;
+            ss << "best = " << 1 / it->first;
             for ( ui32 n = 0; n < genes[ it->second ].size(); ++n )
                ss << " " << genes[ it->second ][ n ];
             ss << std::endl;
@@ -169,7 +170,7 @@ namespace algorithm
 
    /**
     @ingroup algorithm
-    @brief Highly customizable genetic algorithm. The cost function will be <b>minimized</b>.
+    @brief Highly customizable genetic algorithm. The cost function will be <b>maximized</b>.
     
     All operations are implemented by the template parameters.
     Need Gene.size().

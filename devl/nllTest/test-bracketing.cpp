@@ -120,7 +120,7 @@ struct TestBracketing
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestBracketing);
  TESTER_TEST(test);
  TESTER_TEST(testBrent);
@@ -128,4 +128,4 @@ TESTER_TEST_SUITE(TestBracketing);
  TESTER_TEST(testPowell);
  TESTER_TEST(testPowell2);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif

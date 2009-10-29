@@ -59,6 +59,7 @@ namespace algorithm
          OptimizerClientClassifier( const Classifier* classifier, const Database& database ) : _classifier( classifier ), _database( database ){}
          double evaluate( const ClassifierParameters& parameters ) const
          {
+            // we are minimizing the learning error
             return _classifier->evaluate( parameters, _database );
          }
 
