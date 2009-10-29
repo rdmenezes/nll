@@ -100,24 +100,6 @@ struct TestBracketing
       TESTER_ASSERT( fabs( p[ 0 ] ) < 1e-3 );
       TESTER_ASSERT( !error );
    }
-
-   void testPowell2()
-   {
-      ackley func1;
-      bool error;
-
-      std::vector< nll::core::Buffer1D<double> > directions;
-      directions.push_back( nll::core::make_buffer1D<double>( 1, 0 ) );
-      directions.push_back( nll::core::make_buffer1D<double>( 0, 1 ) );
-
-      double val;
-      nll::core::Buffer1D<double> p = nll::core::make_buffer1D<double>( -20, 10 );
-      val = nll::algorithm::powell( p, directions, 1e-4, func1, 20, &error );
-      TESTER_ASSERT( fabs( val ) < 1e-4 );
-      TESTER_ASSERT( fabs( p[ 0 ] ) < 1e-3 );
-      TESTER_ASSERT( fabs( p[ 1 ] ) < 1e-3 );
-      TESTER_ASSERT( !error );
-   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -126,6 +108,5 @@ TESTER_TEST_SUITE(TestBracketing);
  TESTER_TEST(testBrent);
  TESTER_TEST(testLineMinimization);
  TESTER_TEST(testPowell);
- TESTER_TEST(testPowell2);
 TESTER_TEST_SUITE_END();
 #endif

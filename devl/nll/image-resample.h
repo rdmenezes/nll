@@ -51,6 +51,7 @@ namespace core
    /**
     @ingroup core
     @brief resample an image a weighted grid.
+    @note there will be 0.5 pixel shift as the pixel center is the lop left corner.
     
     The resampled image is the mean of all pixels in a specific cell of this grid.
     */

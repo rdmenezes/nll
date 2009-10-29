@@ -20,6 +20,10 @@ namespace nll
          }
       }
 
+      /**
+       @ingroup algorithm
+       @brief Result of a bracketing
+       */
       struct BracketingResult
       {
          double ax;

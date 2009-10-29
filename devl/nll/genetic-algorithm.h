@@ -110,12 +110,10 @@ namespace algorithm
 			   pairs.push_back( Pair( 1 / val, n ) );
 			   if ( _printEvaluation )
             {
-               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( 1 / pairs.rbegin()->first ) );
-				   //std::cout << "eval:" << n << " time=" << ( f32 )( clock() - t ) / CLOCKS_PER_SEC << " val=" << pairs.rbegin()->first;
-               //std::cout << " gene = " << n;
-               //for ( ui32 nn = 0; nn < genes[ n ].size(); ++nn )
-               //   std::cout << " " << genes[ n ][ nn ];
-               //std::cout << std::endl;
+               std::stringstream ss;
+               for ( ui32 nn = 0; nn < genes[ n ].size(); ++nn )
+                  ss << " " << genes[ n ][ nn ];
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( 1 / pairs.rbegin()->first ) + ss.str() );
             }
 		   }
 		   std::sort( pairs.rbegin(), pairs.rend() );
@@ -131,7 +129,9 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
    		
-		   for ( ui32 n = 0; n < nbGenesToSelect && n < genes.size(); ++n, ++it )
+         // copy from begin to nb genes
+         assert( pairs.size() );
+		   for ( ui32 n = 0; n < ( nbGenesToSelect ) && n < genes.size(); ++n, ++it )
 			   newGenes.push_back( genes[ it->second ] );
 		   return newGenes;
       }
@@ -202,7 +202,7 @@ namespace algorithm
                       double mutationRate,
                       double selectionRate,
                       ui32 nbRounds,
-                      const Gene& seed = GeneGenerate() )
+                      const Gene seed = GeneGenerate() )
       {
          Genes genes;
          genes.push_back( seed );
@@ -214,18 +214,19 @@ namespace algorithm
          {
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "round=" + core::val2str( round ) );
             Genes newBreed = _select( genes, static_cast<ui32>( selectionRate * populationSize ) );
+            ui32 size = static_cast<ui32>( newBreed.size() );
             ensure( newBreed.size(), "error: bad proportion" );
             while (newBreed.size() < populationSize)
 			   {
-				   ui32 n1 = static_cast<ui32>( rand() % newBreed.size() );
-				   ui32 n2 = static_cast<ui32>( rand() % newBreed.size() );
+				   ui32 n1 = static_cast<ui32>( rand() % size );
+				   ui32 n2 = static_cast<ui32>( rand() % size );
 				   newBreed.push_back( _recombinate( newBreed[ n1 ], newBreed[ n2 ], seed.size() ) );
 			   }
-            for (ui32 i = 1; i < newBreed.size(); ++i)
+            for (ui32 i = 2; i < newBreed.size(); ++i)
 			   {
 				   f32 n = (f32)(rand() % 1000);
 				   if (n <= mutationRate * 1000)
-					   _mutate(newBreed[i]);
+					   _mutate( newBreed[ i ] );
 			   }
 			   genes = newBreed;
             ++round;

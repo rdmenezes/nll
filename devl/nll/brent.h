@@ -108,6 +108,10 @@ namespace algorithm
 
    namespace impl
    {
+      /**
+       @ingroup algorithm
+       @brief Helper to bridge with the line minimization with brent algorithm
+       */
       template <class Point, class Functor>
       class HelperLineMinimizationFunctionWrapper
       {
@@ -139,6 +143,7 @@ namespace algorithm
    }
 
    /**
+    @ingroup algorithm
     @brief Line minimization for multidimentional data
     @param p the entry point. It will be updated with the position of the minimum found
     @param direction the direction of the line search

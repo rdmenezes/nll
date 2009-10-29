@@ -158,11 +158,12 @@ struct TestOptimizer
          typedef nll::core::Buffer1D<double> Point;
 
          nll::algorithm::ParameterOptimizers parameters;
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.5 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.05 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.05 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 40, 0.05 ) );
          
-         nll::algorithm::OptimizerGeneticAlgorithm optimizer( 20, 50, 400, 0.8f, 0.5f );
+         // we need a lot of steps as GA are not very good at efficiently optimizing finely a solution
+         nll::algorithm::OptimizerGeneticAlgorithm optimizer( 20, 100, 50, 0.9f, 0.5 );
          std::vector<double> res = optimizer.optimize( *functions[ n ], parameters );
 
          nll::core::Buffer1D<double> buffer( (unsigned)res.size() );

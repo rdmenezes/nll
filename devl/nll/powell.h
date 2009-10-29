@@ -6,7 +6,8 @@ namespace nll
 namespace algorithm
 {
    /**
-    @brief Powell optimizer.
+    @brief Powell optimizer. Particularly suited for optimizing problems with low dimensionality (<=10) and find
+           solutions in narrow valley problems
 
     Point must define operator[], size(), Point(n)
     */
