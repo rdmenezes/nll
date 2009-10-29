@@ -47,5 +47,5 @@ tarball: clean doc all
 	cp nllTest/data/gmm/*.mfc tarball/nll/nllTest/data/gmm
 	cp nllTest/data/spect/SPECT* tarball/nll/nllTest/data/spect
 	cp nllTest/data/image/*.bmp tarball/nll/nllTest/data/image
-   cp nllTest/data/medical/pet-NAC.mf2 tarball/nll/nllTest/data/medical
+	cp nllTest/data/medical/pet-NAC.mf2 tarball/nll/nllTest/data/medical
 	cp tester/*.h tester/*.cpp tester/tester.vcproj tester/ReadMe.txt tester/Makefile tarball/nll/tester
