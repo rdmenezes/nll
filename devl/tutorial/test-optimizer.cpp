@@ -169,16 +169,15 @@ struct TestOptimizer
          for ( unsigned nn = 0; nn < res.size(); ++nn )
             buffer[ nn ] = res[ nn ];
          double val = (*functions[ n ]).evaluate( buffer );
-         std::cout << "val=" << val << std::endl;
          TESTER_ASSERT( val < functions[ n ]->getMin() + tol );
 
          std::cout << "#";
       }
    }
       
-/*
    void testHarmony()
    {
+      srand( 0 );
       const double tol = 1e-1;
       std::vector<OptimizerClientResult*> functions = getFunctions();
 
@@ -191,23 +190,22 @@ struct TestOptimizer
          parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
          parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
          
-         nll::algorithm::OptimizerHarmonySearch optimizer( 3, 0.8, 0.1, 1, new nll::algorithm::StopConditionIteration( 8000 ) );
+         nll::algorithm::OptimizerHarmonySearch optimizer( 5, 0.8, 0.5, 0.1, new nll::algorithm::StopConditionIteration( 18000 ) );
          std::vector<double> res = optimizer.optimize( *functions[ n ], parameters );
 
          nll::core::Buffer1D<double> buffer( (unsigned)res.size() );
          for ( unsigned nn = 0; nn < res.size(); ++nn )
             buffer[ nn ] = res[ nn ];
          double val = (*functions[ n ]).evaluate( buffer );
-         std::cout << "val=" << val << std::endl;
          TESTER_ASSERT( val < functions[ n ]->getMin() + tol );
 
          std::cout << "#";
       }
-   }*/
+   }
 };
 
 TESTER_TEST_SUITE( TestOptimizer );
-//TESTER_TEST( testPowell );
+TESTER_TEST( testPowell );
 TESTER_TEST( testGA );
-//TESTER_TEST( testHarmony );
+TESTER_TEST( testHarmony );
 TESTER_TEST_SUITE_END();
