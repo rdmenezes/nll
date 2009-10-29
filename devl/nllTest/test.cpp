@@ -1288,17 +1288,17 @@ public:
             //for ( unsigned c = 0; c < i2.getNbComponents(); ++c )
                m += i2( x, y, 0 );
       TESTER_ASSERT( m == 42 );
-      double t1t = t1.getCurrentTime();
-      std::cout << "t1=" << t1.getCurrentTime() << std::endl;
+      double time1t = t1.getCurrentTime();
+      std::cout << "time1=" << t1.getCurrentTime() << std::endl;
 
       nll::core::Timer t2;      
       m = 0;
       for ( Image::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
          m += *it;
-      double t2t = t2.getCurrentTime();
-      std::cout << "t2=" << t2.getCurrentTime() << std::endl;
+      double time2t = t2.getCurrentTime();
+      std::cout << "time2=" << t2.getCurrentTime() << std::endl;
       TESTER_ASSERT( m == 42 );
-      TESTER_ASSERT( t2t < t1t );
+      TESTER_ASSERT( time2t < time1t );
    }
 
    void testConstImageIterators()
@@ -1337,17 +1337,17 @@ public:
             //for ( unsigned c = 0; c < i2.getNbComponents(); ++c )
                m += i2( x, y, 0 );
       TESTER_ASSERT( m == 42 );
-      double t1t = t1.getCurrentTime();
+      double time1t = t1.getCurrentTime();
       std::cout << "constt1=" << t1.getCurrentTime() << std::endl;
 
       nll::core::Timer t2;      
       m = 0;
       for ( Image::ConstDirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
          m += *it;
-      double t2t = t2.getCurrentTime();
+      double time2t = t2.getCurrentTime();
       std::cout << "constt2=" << t2.getCurrentTime() << std::endl;
       TESTER_ASSERT( m == 42 );
-      TESTER_ASSERT( t2t < t1t );
+      TESTER_ASSERT( time2t < time1t );
    }
 };
 

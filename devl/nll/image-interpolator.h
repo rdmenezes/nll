@@ -90,7 +90,7 @@ namespace core
             return 0;
          }
   
-         TImage::ConstDirectionalIterator iter = _img.getIterator( xi, yi, c );
+         typename Base::TImage::ConstDirectionalIterator iter = this->_img.getIterator( xi, yi, c );
          buf[ 0 ] = *iter;
          buf[ 1 ] = iter.pickx();
          buf[ 3 ] = iter.picky();

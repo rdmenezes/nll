@@ -337,7 +337,7 @@ namespace core
        */
       DirectionalIterator beginDirectional()
       {
-         return DirectionalIterator( 0, _buffer, _sizex, _sizey, _indexMapper );
+         return DirectionalIterator( 0, this->_buffer, _sizex, _sizey, _indexMapper );
       }
 
       /**
@@ -345,7 +345,7 @@ namespace core
        */
       DirectionalIterator endDirectional()
       {
-         return DirectionalIterator( _sizex * _sizey, _buffer, _sizex, _sizey, _indexMapper );
+         return DirectionalIterator( _sizex * _sizey, this->_buffer, _sizex, _sizey, _indexMapper );
       }
 
       /**
@@ -353,7 +353,7 @@ namespace core
        */
       DirectionalIterator getIterator( ui32 x, ui32 y )
       {
-         return DirectionalIterator( _mapper.index( x, y ), _buffer, _sizex, _sizey, _indexMapper );
+         return DirectionalIterator( this->_mapper.index( x, y ), this->_buffer, _sizex, _sizey, _indexMapper );
       }
 
    private:

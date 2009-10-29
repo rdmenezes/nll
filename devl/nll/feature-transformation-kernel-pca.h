@@ -13,6 +13,7 @@ namespace algorithm
    {
    public:
       typedef  FeatureTransformation<Point>  Base;
+      typedef  typename Base::Database       Database;
 
       // don't override these
       using Base::process;

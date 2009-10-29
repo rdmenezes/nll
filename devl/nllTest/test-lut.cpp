@@ -43,8 +43,8 @@ public:
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLut);
 TESTER_TEST(simpleTest);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif

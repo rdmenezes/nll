@@ -174,13 +174,13 @@ namespace core
           */
          ConstDirectionalIterator& operator++()
          {
-            _index += _sz;
+            this->_index += this->_sz;
             return *this;
          }
 
          T operator*() const
          {
-            return _buf[ _index ];
+            return this->_buf[ this->_index ];
          }
 
          /**
@@ -188,7 +188,7 @@ namespace core
           */
          ConstDirectionalIterator& addx( i32 n = 1 )
          {
-            _index = _mapper.addx( _index, n );
+            this->_index = this->_mapper.addx( this->_index, n );
             return *this;
          }
 
@@ -197,7 +197,7 @@ namespace core
           */
          ConstDirectionalIterator& addy( i32 n = 1 )
          {
-            _index = _mapper.addy( _index, n );
+            this->_index = this->_mapper.addy( this->_index, n );
             return *this;
          }
 
@@ -207,7 +207,7 @@ namespace core
           */
          ConstDirectionalIterator& addcol( i32 n = 1 )
          {
-            _index = _mapper.addz( _index, n );
+            this->_index = this->_mapper.addz( this->_index, n );
             return *this;
          }
 
@@ -216,7 +216,7 @@ namespace core
           */
          T& pickx( i32 n = 1 ) const
          {
-            return _buf[ _mapper.addx( _index, n ) ];
+            return this->_buf[ this->_mapper.addx( this->_index, n ) ];
          }
 
          /**
@@ -224,7 +224,7 @@ namespace core
           */
          T& picky( i32 n = 1 ) const
          {
-            return _buf[ _mapper.addy( _index, n ) ];
+            return this->_buf[ this->_mapper.addy( this->_index, n ) ];
          }
 
          /**
@@ -232,17 +232,17 @@ namespace core
           */
          T& pickcol( i32 n = 1 ) const
          {
-            return _buf[ _mapper.addz( _index, n ) ];
+            return this->_buf[ this->_mapper.addz( this->_index, n ) ];
          }
 
          ConstDirectionalIterator& operator=( const ConstDirectionalIterator& i )
          {
-            _index = i._index;
-            _buf = i._buf;
-            _sx = i._sx;
-            _sy = i._sy;
-            _sz = i._sz;
-            _mapper = i._mapper;
+            this->_index = i._index;
+            this->_buf = i._buf;
+            this->_sx = i._sx;
+            this->_sy = i._sy;
+            this->_sz = i._sz;
+            this->_mapper = i._mapper;
             return *this;
          }
       };
@@ -454,7 +454,7 @@ namespace core
       {
          // we have to remove the const, to provide operator=, however it will be guaranteed that
          // no modifications will be done
-         return ConstDirectionalIterator( 0, _buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
+         return ConstDirectionalIterator( 0, this->_buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
       }
 
       /**
@@ -462,7 +462,7 @@ namespace core
        */
       ConstDirectionalIterator endDirectional() const
       {
-         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
@@ -470,7 +470,7 @@ namespace core
        */
       DirectionalIterator beginDirectional()
       {
-         return DirectionalIterator( 0, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return DirectionalIterator( 0, this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
@@ -478,7 +478,7 @@ namespace core
        */
       DirectionalIterator endDirectional()
       {
-         return DirectionalIterator( _sizex * _sizey * _nbcomp, _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return DirectionalIterator( _sizex * _sizey * _nbcomp, this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
@@ -488,7 +488,7 @@ namespace core
       {
          // we have to remove the const, to provide operator=, however it will be guaranteed that
          // no modifications will be done
-         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
       }
 
       /**
@@ -496,7 +496,7 @@ namespace core
        */
       DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
       {
-         return DirectionalIterator( _mapper.index( x, y, z ), _buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return DirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**

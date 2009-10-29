@@ -1,9 +1,10 @@
 v0.11
 -improved logging
 -added kernel PCA algorithm
--added iterators for matrices, images and volumes
--support for volumes, lookup tables, multi-planar reconstruction
--fixed bugs & UT
+-added directional iterators for matrices, images and volumes
+-added powell & line search optimizers
+-support for volumes, lookup tables & multi-planar reconstruction
+-fixed bugs & improved unit tests
 
 v0.10
 -reimplementation of the multilayer neural network (added weight decay)

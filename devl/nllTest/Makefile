@@ -6,6 +6,7 @@ LIBS=-lm -l$(LIBPREFIXLINK)nll -l$(LIBPREFIXLINK)tester
 INCL=-I..
 
 OBJ=nllTest.o\
+test-bracketing.o\
 test-classifier-adaboost.o\
 test-classifier-gmm.o\
 test-classifier-mlp.o\
@@ -16,8 +17,11 @@ test-feature-selection.o\
 test-genetic-algorithm.o\
 test-hmm.o\
 test-kdTree.o\
+test-kernel-pca.o\
 test-labelize.o\
+test-lut.o\
 test-markov-chain.o\
+test-math-floor.o\
 test-matrix-cholesky.o\
 test-mlp.o\
 test-morphology.o\
@@ -28,7 +32,10 @@ test-preprocessing.o\
 test-quaternion.o\
 test-region-growing.o\
 test-relieff.o\
+test-transformation-normalization.o\
+test-volume.o\
 test.o
+
 
 %.o: %.cpp $(DEPS)
 	$(CC) $(FLAGS) $(INCL) -c -o $@ $<

@@ -92,7 +92,7 @@ namespace algorithm
          c->_kernelType = _kernelType;
          c->_inputSize = _inputSize;
          c->_vector = 0;
-         c->_crossValidationBin = _crossValidationBin;
+         c->_crossValidationBin = this->_crossValidationBin;
          return c;
       }
 

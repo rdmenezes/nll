@@ -91,8 +91,8 @@ namespace imaging
          const double dy = fabs( y - iy );
          const double dz = fabs( z - iz );
 
-         VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
-         VolumeType::ConstDirectionalIterator itz( it );
+         typename VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
+         typename VolumeType::ConstDirectionalIterator itz( it );
          itz.addz();
 
          const double v000 = *it;

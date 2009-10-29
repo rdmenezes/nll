@@ -1,4 +1,5 @@
-# include <stdafx.h>
+#include "stdafx.h"
+#include <nll/nll.h>
 
 struct TestMathFloor
 {

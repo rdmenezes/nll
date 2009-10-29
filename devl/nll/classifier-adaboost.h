@@ -69,7 +69,7 @@ namespace algorithm
          for ( ui32 n = 0; n < _classifiers.size(); ++n )
             c->_classifiers[ n ] = reinterpret_cast<BaseWeakLearner*>( _classifiers[ n ]->deepCopy() );
          c->_alphas = _alphas;
-         c->_crossValidationBin = _crossValidationBin;
+         c->_crossValidationBin = this->_crossValidationBin;
          return c;
       }
 

@@ -6,10 +6,20 @@ LIBS=-lm -l$(LIBPREFIXLINK)nll -l$(LIBPREFIXLINK)tester
 INCL=-I..
 
 OBJ=database-cancer.o\
+database-iris.o\
+database-spam.o\
+database-wine.o\
+database-yeast.o\
 main.o\
+stdafx.o\
 test-breast-cancer.o\
 test-classifier-knn.o\
 test-classifier-nn.o\
+test-iris-database.o\
+test-optimizer.o\
+test-spam-database.o\
+test-wine-database.o\
+test-yeast-database.o\
 tutorial-classifier-optimization.o\
 tutorial-distance-transform.o\
 tutorial-feature-pca.o\

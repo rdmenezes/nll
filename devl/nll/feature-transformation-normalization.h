@@ -21,7 +21,8 @@ namespace algorithm
       typedef Normalize<Point>               Impl;
    public:
       typedef core::Buffer1D<double>         Vector;
-      typedef  FeatureTransformation<Point>  Base;
+      typedef FeatureTransformation<Point>   Base;
+      typedef typename Base::Database        Database;
 
       // don't override these
       using Base::process;

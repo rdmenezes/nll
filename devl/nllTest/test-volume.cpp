@@ -526,17 +526,17 @@ public:
             for ( unsigned x = 0; x < i2.size()[ 0 ]; ++x )
                m += i2( x, y, z );
       TESTER_ASSERT( m == 42 );
-      double t1t = t1.getCurrentTime();
+      double time1t = t1.getCurrentTime();
       std::cout << "volt1=" << t1.getCurrentTime() << std::endl;
 
       nll::core::Timer t2;      
       m = 0;
       for ( Volume::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
          m += *it;
-      double t2t = t2.getCurrentTime();
+      double time2t = t2.getCurrentTime();
       std::cout << "volt2=" << t2.getCurrentTime() << std::endl;
       TESTER_ASSERT( m == 42 );
-      TESTER_ASSERT( t2t < t1t );
+      TESTER_ASSERT( time2t < time1t );
    }
 
    void testVolumeConstIterators()

@@ -1,6 +1,8 @@
 #ifndef NLL_MATH_FLOOR_H_
 # define NLL_MATH_FLOOR_H_
 
+# include <cmath>
+
 namespace nll
 {
 namespace core

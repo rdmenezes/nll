@@ -150,7 +150,7 @@ namespace imaging
 
          T operator*() const
          {
-            return _buf[ _index ];
+            return this->_buf[ this->_index ];
          }
 
          /**
@@ -158,7 +158,7 @@ namespace imaging
           */
          ConstDirectionalIterator& operator++()
          {
-            ++_index;
+            ++this->_index;
             return *this;
          }
 
@@ -167,7 +167,7 @@ namespace imaging
           */
          ConstDirectionalIterator& addx( i32 n = 1 )
          {
-            _index = _mapper.addx( _index, n );
+            this->_index = this->_mapper.addx( this->_index, n );
             return *this;
          }
 
@@ -176,7 +176,7 @@ namespace imaging
           */
          ConstDirectionalIterator& addy( i32 n = 1 )
          {
-            _index = _mapper.addy( _index, n );
+            this->_index = this->_mapper.addy( this->_index, n );
             return *this;
          }
 
@@ -185,7 +185,7 @@ namespace imaging
           */
          ConstDirectionalIterator& addz( i32 n = 1 )
          {
-            _index = _mapper.addz( _index, n );
+            this->_index = this->_mapper.addz( this->_index, n );
             return *this;
          }
 
@@ -194,7 +194,7 @@ namespace imaging
           */
          T pickx( i32 n = 1 ) const
          {
-            return _buf[ _mapper.addx( _index, n ) ];
+            return this->_buf[ this->_mapper.addx( this->_index, n ) ];
          }
 
          /**
@@ -202,7 +202,7 @@ namespace imaging
           */
          T picky( i32 n = 1 ) const
          {
-            return _buf[ _mapper.addy( _index, n ) ];
+            return this->_buf[ this->_mapper.addy( this->_index, n ) ];
          }
 
          /**
@@ -210,7 +210,7 @@ namespace imaging
           */
          T pickz( i32 n = 1 ) const
          {
-            return _buf[ _mapper.addz( _index, n ) ];
+            return this->_buf[ this->_mapper.addz( this->_index, n ) ];
          }
 
          // operator= undefined
@@ -317,7 +317,7 @@ namespace imaging
        */
       ConstDirectionalIterator beginDirectional() const
       {
-         return ConstDirectionalIterator( 0, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( 0, this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
@@ -325,7 +325,7 @@ namespace imaging
        */
       ConstDirectionalIterator endDirectional() const
       {
-         return ConstDirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
@@ -333,7 +333,7 @@ namespace imaging
        */
       ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
       {
-         return ConstDirectionalIterator( _mapper.index( x, y, z ), _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
@@ -341,7 +341,7 @@ namespace imaging
        */
       DirectionalIterator beginDirectional()
       {
-         return DirectionalIterator( 0, _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return DirectionalIterator( 0, this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
@@ -349,7 +349,7 @@ namespace imaging
        */
       DirectionalIterator endDirectional()
       {
-         return DirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return DirectionalIterator( _size[ 0 ] * _size[ 1 ] * _size[ 2 ], this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
       /**
@@ -357,7 +357,7 @@ namespace imaging
        */
       DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
       {
-         return DirectionalIterator( _mapper.index( x, y, z ), _buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
+         return DirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
 
    protected:

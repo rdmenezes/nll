@@ -1,7 +1,9 @@
 include ../configure.in
 LIBS=-lm
 LIBNAME=$(LIBPREFIX)nll$(LIBPOSTFIX)
-DEPS=buffer1D-converter.h\
+DEPS=bracketing.h\
+brent.h\
+buffer1D-converter.h\
 buffer1D.h\
 classifier-adaboost.h\
 classifier-gmm.h\
@@ -20,6 +22,8 @@ feature-selection-genetic-algorithm.h\
 feature-selection-pearson.h\
 feature-selection-relieff.h\
 feature-selection.h\
+feature-transformation-kernel-pca.h\
+feature-transformation-normalization.h\
 feature-transformation-pca.h\
 feature-transformation.h\
 gabor-filter.h\
@@ -47,17 +51,21 @@ image.h\
 index-mapper.h\
 io.h\
 kd-tree.h\
+kernel-functions.h\
+kernel-pca.h\
 kmeans.h\
 labelize.h\
 log.h\
 logger.h\
 lsdbc.h\
+lut.h\
 markov-chain.h\
 mask-exporter.h\
 math-correlation.h\
 math-distribution-gaussian.h\
 math-distribution-multinormal.h\
 math-distribution-uniform.h\
+math-floor.h\
 math-quaternion.h\
 math-sampling.h\
 math.h\
@@ -72,15 +80,19 @@ matrix-svd.h\
 matrix.h\
 metric.h\
 mlp.h\
+multiplanar-reconstruction.h\
 nll.h\
+normalization.h\
 optimizer-client.h\
 optimizer-genetic-algorithm.h\
 optimizer-grid-search.h\
 optimizer-harmony-search-memory.h\
 optimizer-harmony-search.h\
 optimizer-parameters.h\
+optimizer-powell.h\
 optimizer.h\
 pca.h\
+powell.h\
 preprocessing-bridge-image-vector.h\
 preprocessing-classifier.h\
 preprocessing-image-center.h\
@@ -109,10 +121,13 @@ type-traits.h\
 types.h\
 unreachable.h\
 utility-pure.h\
-utility.h
+utility.h\
+volume-interpolator.h\
+volume-io-mf2.h\
+volume-spatial.h\
+volume.h
 
-
-OBJ=math.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
+OBJ=math-floor.o math.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
 
 %.o: %.cpp $(DEPS)
 	$(CC) $(FLAGS) -c -o $@ $<
