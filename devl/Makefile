@@ -1,5 +1,6 @@
 include configure.in
 
+
 all: nll
 
 nll:
