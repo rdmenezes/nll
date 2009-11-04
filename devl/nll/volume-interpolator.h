@@ -68,7 +68,11 @@ namespace imaging
        v must remain valid until the end of the calls to the interpolator
        */
       InterpolatorTriLinear( const VolumeType& v ) : _volume( v )
-      {}
+      {
+         iix = -1000;
+         iiy = -1000;
+         iiz = -1000;
+      }
 
       /**
        @brief (x, y, z) must be an index. It returns background if the point is outside the volume
@@ -79,50 +83,48 @@ namespace imaging
          const int iy = core::floor( y );
          const int iz = core::floor( z );
 
+         // 0 <-> size - 1 as we need an extra sample for linear interpolation
          const typename Volume::value_type background = _volume.getBackgroundValue();
-         if ( !_volume.inside( ix, iy, iz ) )
+         if ( ix < 0 || ix >= _volume.size()[ 0 ] - 1 ||
+              iy < 0 || iy >= _volume.size()[ 1 ] - 1 ||
+              iz < 0 || iz >= _volume.size()[ 2 ] - 1 )
+         {
             return background;
+         }
 
-         const double sx = _volume.size()[ 0 ];
-         const double sy = _volume.size()[ 1 ];
-         const double sz = _volume.size()[ 2 ];
 
          const double dx = fabs( x - ix );
          const double dy = fabs( y - iy );
          const double dz = fabs( z - iz );
 
-         typename VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
-         typename VolumeType::ConstDirectionalIterator itz( it );
-         itz.addz();
-
-         const double v000 = *it;
-         double v001, v010, v011, v100, v110, v101, v111;
-
-         const int ixn = ix + 1;
-         const int iyn = iy + 1;
-         const int izn = iz + 1;
-
-         if ( ixn < sx && iyn < sy && izn < sz )
+         // Often in the same neighbourhood, we are using the same voxel, but at a slightly different
+         // position, so we are caching the previous result, and reuse it if necessary
+         if ( ix != iix || iy != iiy || iz != iiz )
          {
+            // update the position to possibly use the cached values next iteration
+            iix = ix;
+            iiy = iy;
+            iiz = iz;
+
+            // case we are not using the cached values
+            typename VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
+            typename VolumeType::ConstDirectionalIterator itz( it );
+            itz.addz();
+
+            v000 = *it;
+
+            const int ixn = ix + 1;
+            const int iyn = iy + 1;
+            const int izn = iz + 1;
+
             v100 = it.pickx();
             v101 = itz.pickx();
             v010 = it.picky();
             v011 = itz.picky();
             v001 = it.pickz();
             v110 = *it.addx().addy();
-            v111 = it.pickz();
-         } else return background;
-
-         //
-         // optimized version for
-         //   v100 = it.pickx();
-         //   v101 = itz.pickx();
-         //   v010 = it.picky();
-         //   v011 = itz.picky();
-         //   v001 = it.pickz();
-         //   v110 = *it.addx().addy();
-         //   v111 = it.pickz();
-         //
+            v111 = it.pickz();            
+         }
 
          const double i1 = v000 * ( 1 - dz ) + v001 * dz;
          const double i2 = v010 * ( 1 - dz ) + v011 * dz;
@@ -132,7 +134,8 @@ namespace imaging
          const double w1 = i1 * ( 1 - dy ) + i2 * dy;
          const double w2 = j1 * ( 1 - dy ) + j2 * dy;
 
-         return w1 * ( 1 - dx ) + w2 * dx;
+         const double value = w1 * ( 1 - dx ) + w2 * dx;
+         return value;
       }
 
    protected:
@@ -141,6 +144,10 @@ namespace imaging
 
    protected:
       const VolumeType& _volume;
+
+      mutable double v000;
+      mutable double v001, v010, v011, v100, v110, v101, v111;
+      mutable int iix, iiy, iiz;
    };
 }
 }

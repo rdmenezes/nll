@@ -34,11 +34,11 @@
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
  @version 0.11
- @date 14th March 2009
+ @date 30th November 2009
  */
 
 /// define the version of nll
-#define NLL_VERSION  "nll-0.11"
+#define NLL_VERSION  "nll-0.12"
 
 /**
  Concept: (for future integration with C++ 0x)
