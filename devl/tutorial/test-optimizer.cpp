@@ -122,6 +122,7 @@ struct TestOptimizer
 
    void testPowell()
    {
+      srand( 0 );
       const double tol = 1e-2;
       std::vector<OptimizerClientResult*> functions = getFunctions();
 
