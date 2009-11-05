@@ -85,9 +85,9 @@ namespace imaging
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
          const typename Volume::value_type background = _volume.getBackgroundValue();
-         if ( ix < 0 || ix >= _volume.size()[ 0 ] - 1 ||
-              iy < 0 || iy >= _volume.size()[ 1 ] - 1 ||
-              iz < 0 || iz >= _volume.size()[ 2 ] - 1 )
+         if ( ix < 0 || ix + 1 >= _volume.size()[ 0 ]  ||
+              iy < 0 || iy + 1 >= _volume.size()[ 1 ]  ||
+              iz < 0 || iz + 1 >= _volume.size()[ 2 ] )
          {
             return background;
          }

@@ -33,13 +33,6 @@
 #endif
 
 /*
- * Additional GLUT Key definitions for the Special key function
- */
-#define GLUT_KEY_NUM_LOCK           0x006D
-#define GLUT_KEY_BEGIN              0x006E
-#define GLUT_KEY_DELETE             0x006F
-
-/*
  * GLUT API Extension macro definitions -- behaviour when the user clicks on an "x" to close a window
  */
 #define GLUT_ACTION_EXIT                         0
@@ -63,8 +56,6 @@
 /*
  * GLUT API Extension macro definitions -- the glutGet parameters
  */
-#define  GLUT_INIT_STATE                    0x007C
-
 #define  GLUT_ACTION_ON_WINDOW_CLOSE        0x01F9
 
 #define  GLUT_WINDOW_BORDER_WIDTH           0x01FA
@@ -75,44 +66,21 @@
 #define  GLUT_RENDERING_CONTEXT             0x01FD
 #define  GLUT_DIRECT_RENDERING              0x01FE
 
-#define  GLUT_FULL_SCREEN                   0x01FF
-
 /*
  * New tokens for glutInitDisplayMode.
  * Only one GLUT_AUXn bit may be used at a time.
  * Value 0x0400 is defined in OpenGLUT.
  */
-#define  GLUT_AUX                           0x1000
-
 #define  GLUT_AUX1                          0x1000
 #define  GLUT_AUX2                          0x2000
 #define  GLUT_AUX3                          0x4000
 #define  GLUT_AUX4                          0x8000
 
 /*
- * Context-related flags, see freeglut_state.c
- */
-#define  GLUT_INIT_MAJOR_VERSION            0x0200
-#define  GLUT_INIT_MINOR_VERSION            0x0201
-#define  GLUT_INIT_FLAGS                    0x0202
-
-/*
- * Flags for glutInitContextFlags, see freeglut_init.c
- */
-#define  GLUT_DEBUG                         0x0001
-#define  GLUT_FORWARD_COMPATIBLE            0x0002
-
-/*
  * Process loop function, see freeglut_main.c
  */
 FGAPI void    FGAPIENTRY glutMainLoopEvent( void );
 FGAPI void    FGAPIENTRY glutLeaveMainLoop( void );
-FGAPI void    FGAPIENTRY glutExit         ( void );
-
-/*
- * Window management functions, see freeglut_window.c
- */
-FGAPI void    FGAPIENTRY glutFullScreenToggle( void );
 
 /*
  * Window-specific callback functions, see freeglut_callbacks.c
@@ -126,8 +94,7 @@ FGAPI void    FGAPIENTRY glutMenuDestroyFunc( void (* callback)( void ) );
 /*
  * State setting and retrieval functions, see freeglut_state.c
  */
-FGAPI void    FGAPIENTRY glutSetOption ( GLenum option_flag, int value );
-FGAPI int *   FGAPIENTRY glutGetModeValues(GLenum mode, int * size);
+FGAPI void    FGAPIENTRY glutSetOption ( GLenum option_flag, int value ) ;
 /* A.Donev: User-data manipulation */
 FGAPI void*   FGAPIENTRY glutGetWindowData( void );
 FGAPI void    FGAPIENTRY glutSetWindowData(void* data);
@@ -147,8 +114,8 @@ FGAPI void    FGAPIENTRY glutStrokeString( void* font, const unsigned char *stri
  */
 FGAPI void    FGAPIENTRY glutWireRhombicDodecahedron( void );
 FGAPI void    FGAPIENTRY glutSolidRhombicDodecahedron( void );
-FGAPI void    FGAPIENTRY glutWireSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
-FGAPI void    FGAPIENTRY glutSolidSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale );
+FGAPI void    FGAPIENTRY glutWireSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale ) ;
+FGAPI void    FGAPIENTRY glutSolidSierpinskiSponge ( int num_levels, GLdouble offset[3], GLdouble scale ) ;
 FGAPI void    FGAPIENTRY glutWireCylinder( GLdouble radius, GLdouble height, GLint slices, GLint stacks);
 FGAPI void    FGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height, GLint slices, GLint stacks);
 
@@ -158,34 +125,6 @@ FGAPI void    FGAPIENTRY glutSolidCylinder( GLdouble radius, GLdouble height, GL
 typedef void (*GLUTproc)();
 FGAPI GLUTproc FGAPIENTRY glutGetProcAddress( const char *procName );
 
-/*
- * Joystick functions, see freeglut_joystick.c
- */
-/* USE OF THESE FUNCTIONS IS DEPRECATED !!!!! */
-/* If you have a serious need for these functions in your application, please either
- * contact the "freeglut" developer community at freeglut-developer@lists.sourceforge.net,
- * switch to the OpenGLUT library, or else port your joystick functionality over to PLIB's
- * "js" library.
- */
-int     glutJoystickGetNumAxes( int ident );
-int     glutJoystickGetNumButtons( int ident );
-int     glutJoystickNotWorking( int ident );
-float   glutJoystickGetDeadBand( int ident, int axis );
-void    glutJoystickSetDeadBand( int ident, int axis, float db );
-float   glutJoystickGetSaturation( int ident, int axis );
-void    glutJoystickSetSaturation( int ident, int axis, float st );
-void    glutJoystickSetMinRange( int ident, float *axes );
-void    glutJoystickSetMaxRange( int ident, float *axes );
-void    glutJoystickSetCenter( int ident, float *axes );
-void    glutJoystickGetMinRange( int ident, float *axes );
-void    glutJoystickGetMaxRange( int ident, float *axes );
-void    glutJoystickGetCenter( int ident, float *axes );
-
-/*
- * Initialization functions, see freeglut_init.c
- */
-FGAPI void    FGAPIENTRY glutInitContextVersion( int majorVersion, int minorVersion );
-FGAPI void    FGAPIENTRY glutInitContextFlags( int flags );
 
 #ifdef __cplusplus
     }

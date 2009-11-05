@@ -35,67 +35,61 @@
 /*
  * Under windows, we have to differentiate between static and dynamic libraries
  */
-#ifdef _WIN32
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__)
+
 /* #pragma may not be supported by some compilers.
  * Discussion by FreeGLUT developers suggests that
  * Visual C++ specific code involving pragmas may
  * need to move to a separate header.  24th Dec 2003
- */
+ */ 
 
-/* Define FREEGLUT_LIB_PRAGMAS to 1 to include library
- * pragmas or to 1 to exclude library pragmas.
- * The default behavior depends on the compiler/platform.
- */
-#   ifndef FREEGLUT_LIB_PRAGMAS
-#       if ( defined(_MSC_VER) || defined(__WATCOMC__) ) && !defined(_WIN32_WCE)
-#           define FREEGLUT_LIB_PRAGMAS 1
-#       else
-#           define FREEGLUT_LIB_PRAGMAS 0
-#       endif
-#   endif
-
-#  ifndef WIN32_LEAN_AND_MEAN
-#    define WIN32_LEAN_AND_MEAN 1
-#  endif
-#   define NOMINMAX
-#   include <Windows.h>
+#   define WIN32_LEAN_AND_MEAN
+#   define NO_MIN_MAX
+#    include <windows.h>
+#   undef min
+#   undef max
 
 /* Windows static library */
 #   ifdef FREEGLUT_STATIC
 
-#       define FGAPI
-#       define FGAPIENTRY
+#    define FGAPI
+#    define FGAPIENTRY
 
         /* Link with Win32 static freeglut lib */
-#       if FREEGLUT_LIB_PRAGMAS
+#       if defined(_MSC_VER)
 #           pragma comment (lib, "freeglut_static.lib")
 #       endif
 
 /* Windows shared library (DLL) */
 #   else
 
-#       define FGAPIENTRY __stdcall
-#       if defined(FREEGLUT_EXPORTS)
-#           define FGAPI __declspec(dllexport)
-#       else
-#           define FGAPI __declspec(dllimport)
+#        if defined(FREEGLUT_EXPORTS)
+#                define FGAPI __declspec(dllexport)
+#        else
+#                define FGAPI __declspec(dllimport)
 
-            /* Link with Win32 shared freeglut lib */
-#           if FREEGLUT_LIB_PRAGMAS
-#               pragma comment (lib, "freeglut.lib")
-#           endif
+            /* link with Win32 shared freeglut lib */
+#           if defined(_MSC_VER)
+#               ifndef _WIN32_WCE
+#                   pragma comment (lib, "freeglut.lib")
+#               endif
+#        endif
 
 #       endif
+
+#       define FGAPIENTRY __stdcall
 
 #   endif
 
 /* Drag in other Windows libraries as required by FreeGLUT */
-#   if FREEGLUT_LIB_PRAGMAS
-#       pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
-#       pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
-#       pragma comment (lib, "gdi32.lib")    /* link Windows GDI lib        */
-#       pragma comment (lib, "winmm.lib")    /* link Windows MultiMedia lib */
-#       pragma comment (lib, "user32.lib")   /* link Windows user lib       */
+#   if defined(_MSC_VER)
+#       ifndef _WIN32_WCE
+#           pragma comment (lib, "winmm.lib")    /* link Windows MultiMedia lib */
+#           pragma comment (lib, "user32.lib")   /* link Windows user lib       */
+#           pragma comment (lib, "gdi32.lib")    /* link Windows GDI lib        */
+#           pragma comment (lib, "opengl32.lib") /* link Microsoft OpenGL lib   */
+#           pragma comment (lib, "glu32.lib")    /* link OpenGL Utility lib     */
+#       endif /* _WIN32_WCE */
 #   endif
 
 #else
@@ -171,8 +165,6 @@
 #define  GLUT_MULTISAMPLE                   0x0080
 #define  GLUT_STEREO                        0x0100
 #define  GLUT_LUMINANCE                     0x0200
-#define  GLUT_CAPTIONLESS                   0x0400
-#define  GLUT_BORDERLESS                    0x0800
 
 /*
  * GLUT API macro definitions -- windows and menu related definitions
@@ -191,7 +183,7 @@
  *
  * Steve Baker suggested to make it binary compatible with GLUT:
  */
-#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__) || defined(__WATCOMC__)
+#if defined(_MSC_VER) || defined(__CYGWIN__) || defined(__MINGW32__)
 #   define  GLUT_STROKE_ROMAN               ((void *)0x0000)
 #   define  GLUT_STROKE_MONO_ROMAN          ((void *)0x0001)
 #   define  GLUT_BITMAP_9_BY_15             ((void *)0x0002)
@@ -269,6 +261,7 @@
 #define  GLUT_INIT_DISPLAY_MODE             0x01F8
 #define  GLUT_ELAPSED_TIME                  0x02BC
 #define  GLUT_WINDOW_FORMAT_ID              0x007B
+#define  GLUT_INIT_STATE                    0x007C
 
 /*
  * GLUT API macro definitions -- the glutDeviceGet parameters

@@ -104,7 +104,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)\$(PlatformName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -140,7 +140,7 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
@@ -280,7 +280,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)\$(PlatformName)"
 			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
 			ConfigurationType="2"
 			CharacterSet="1"
@@ -319,7 +319,7 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
