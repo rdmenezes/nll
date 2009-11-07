@@ -36,6 +36,10 @@ namespace mvv
       ApplicationVariables() : volume1_pet( Symbol::create("volume1_pet") ), 
                                volume2_ct( Symbol::create("volume2_ct") )
       {
+         std::cout << "SSE="<< nll::core::Configuration::instance().isSupportedSSE() << std::endl;
+         std::cout << "SSE2="<< nll::core::Configuration::instance().isSupportedSSE2() << std::endl;
+         std::cout << "MMX="<< nll::core::Configuration::instance().isSupportedMMX() << std::endl;
+         std::cout << "3DNOW="<< nll::core::Configuration::instance().isSupported3DNOW() << std::endl;
          events.mousePosition = nll::core::vector2ui( 0, 0 );
          events.mouseLeftClickedPosition = nll::core::vector2ui( 0, 0 );
          events.mouseLeftReleasedPosition = nll::core::vector2ui( 0, 0 );

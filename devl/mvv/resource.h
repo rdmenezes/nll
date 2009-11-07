@@ -8,7 +8,7 @@
 
 namespace mvv
 {
-   typedef nll::imaging::VolumeSpatial<double> MedicalVolume;
+   typedef nll::imaging::VolumeSpatial<float> MedicalVolume;
 
    class ResourceOrderList : public DynamicResource
    {

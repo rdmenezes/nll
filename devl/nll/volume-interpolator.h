@@ -28,7 +28,7 @@ namespace imaging
       /**
        @brief (x, y, z) must be an index. It returns background if the point is outside the volume. (0,0) is the center of the voxel.
        */
-      double operator()( double x, double y, double z ) const
+      typename Volume::value operator()( double x, double y, double z ) const
       {
          const int ix = core::floor( x + 0.5 );
          const int iy = core::floor( y + 0.5 );
@@ -61,6 +61,10 @@ namespace imaging
    public:
       typedef Volume   VolumeType;
 
+      // if the volume is a floating point type, the interpolation is the same type
+      // else a float
+      typedef typename core::If<typename Volume::value_type, float, core::IsFloatingType<typename Volume::value_type>::value >::type value_type;
+
    public:
       /**
        @brief Construct an interpolator for the volume v. 
@@ -77,7 +81,7 @@ namespace imaging
       /**
        @brief (x, y, z) must be an index. It returns background if the point is outside the volume
        */
-      double operator()( double x, double y, double z ) const
+      value_type operator()( double x, double y, double z ) const
       {
          const int ix = core::floor( x );
          const int iy = core::floor( y );
@@ -85,17 +89,17 @@ namespace imaging
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
          const typename Volume::value_type background = _volume.getBackgroundValue();
-         if ( ix < 0 || ix + 1 >= _volume.size()[ 0 ]  ||
-              iy < 0 || iy + 1 >= _volume.size()[ 1 ]  ||
-              iz < 0 || iz + 1 >= _volume.size()[ 2 ] )
+         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume.size()[ 0 ] ) ||
+              iy < 0 || iy + 1 >= static_cast<int>( _volume.size()[ 1 ] ) ||
+              iz < 0 || iz + 1 >= static_cast<int>( _volume.size()[ 2 ] ) )
          {
             return background;
          }
 
 
-         const double dx = fabs( x - ix );
-         const double dy = fabs( y - iy );
-         const double dz = fabs( z - iz );
+         const value_type dx = fabs( x - ix );
+         const value_type dy = fabs( y - iy );
+         const value_type dz = fabs( z - iz );
 
          // Often in the same neighbourhood, we are using the same voxel, but at a slightly different
          // position, so we are caching the previous result, and reuse it if necessary
@@ -113,10 +117,6 @@ namespace imaging
 
             v000 = *it;
 
-            const int ixn = ix + 1;
-            const int iyn = iy + 1;
-            const int izn = iz + 1;
-
             v100 = it.pickx();
             v101 = itz.pickx();
             v010 = it.picky();
@@ -126,15 +126,15 @@ namespace imaging
             v111 = it.pickz();            
          }
 
-         const double i1 = v000 * ( 1 - dz ) + v001 * dz;
-         const double i2 = v010 * ( 1 - dz ) + v011 * dz;
-         const double j1 = v100 * ( 1 - dz ) + v101 * dz;
-         const double j2 = v110 * ( 1 - dz ) + v111 * dz;
+         const value_type i1 = v000 * ( 1 - dz ) + v001 * dz;
+         const value_type i2 = v010 * ( 1 - dz ) + v011 * dz;
+         const value_type j1 = v100 * ( 1 - dz ) + v101 * dz;
+         const value_type j2 = v110 * ( 1 - dz ) + v111 * dz;
 
-         const double w1 = i1 * ( 1 - dy ) + i2 * dy;
-         const double w2 = j1 * ( 1 - dy ) + j2 * dy;
+         const value_type w1 = i1 * ( 1 - dy ) + i2 * dy;
+         const value_type w2 = j1 * ( 1 - dy ) + j2 * dy;
 
-         const double value = w1 * ( 1 - dx ) + w2 * dx;
+         const value_type value = w1 * ( 1 - dx ) + w2 * dx;
          return value;
       }
 
@@ -145,8 +145,8 @@ namespace imaging
    protected:
       const VolumeType& _volume;
 
-      mutable double v000;
-      mutable double v001, v010, v011, v100, v110, v101, v111;
+      mutable value_type v000;
+      mutable value_type v001, v010, v011, v100, v110, v101, v111;
       mutable int iix, iiy, iiz;
    };
 }

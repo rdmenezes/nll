@@ -316,6 +316,41 @@ namespace core
    {
       enum {min = 0, max = 1};
    };
+
+   template <class U, class V, bool COND>
+   struct If
+   {
+   };
+
+   template <class U, class V>
+   struct If<U, V, true>
+   {
+      typedef U   type;
+   };
+
+   template <class U, class V>
+   struct If<U, V, false>
+   {
+      typedef V   type;
+   };
+
+   template <class T>
+   struct IsFloatingType
+   {
+      enum {value = false};
+   };
+
+   template <>
+   struct IsFloatingType<float>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsFloatingType<double>
+   {
+      enum {value = true};
+   };
 }
 }
 

@@ -37,7 +37,11 @@ namespace imaging
    public:
       typedef Volume          VolumeType; 
       typedef Interpolator3D  Interpolator;
-      typedef core::Image<double, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
+
+      // if the volume is a floating point type, the interpolation is the same type
+      // else a float
+      typedef typename core::If<typename Volume::value_type, float, core::IsFloatingType<typename Volume::value_type>::value >::type SliceType;
+      typedef core::Image<SliceType, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
 
    public:
       /**

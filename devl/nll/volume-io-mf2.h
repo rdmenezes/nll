@@ -104,7 +104,7 @@ namespace imaging
                ensure( !file.eof(), "unexpected eof" );
                unsigned short value = 0;
                file.read( (char*)&value, sizeof( unsigned short ) );
-               output( i, j, k ) = static_cast<double>( value ) * rsi[ k ].first + rsi[ k ].second;
+               output( i, j, k ) = static_cast<T>( value ) * rsi[ k ].first + rsi[ k ].second;
             }
          }
       }

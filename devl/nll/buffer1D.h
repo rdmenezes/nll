@@ -25,7 +25,7 @@ namespace core
  @todo ONLY WORKING FOR POD DATATYPES (CHECK COPY CONSTRUCTOR IS CORRECTLY CALLED) -> else memset(0) is used to init data
        which can cause problems for data structures of the STL for example. Quickfix: set zero = false in constructor
  */
-template <class T, class IndexMapper1D = IndexMapperFlat1D>
+template <class T, class IndexMapper1D = IndexMapperFlat1D, class AllocatorT = std::allocator<T> >
 class Buffer1D
 {
 public:
@@ -35,13 +35,16 @@ public:
    /// the index mapper
    typedef  IndexMapper1D  IndexMapper;
 
+   /// the allocator used by this buffer
+   typedef  AllocatorT     Allocator;
+
 public:
    /**
     @brief contructs a buffer with a specified size
     @param zero if set to true, the buffer is cleared by zero, else undefined value
     @param size the number of elements of the buffer
     */
-   explicit Buffer1D( ui32 size, bool zero = true ) : _cpt( 0 ), _buffer ( 0 ), _size( 0 ), _ownsBuffer( true ) { _allocate( size, zero ); }
+   explicit Buffer1D( ui32 size, bool zero = true, Allocator allocator = Allocator() ) : _cpt( 0 ), _buffer ( 0 ), _size( 0 ), _ownsBuffer( true ), _allocator( allocator ) { _allocate( size, zero ); }
 
    /**
     @brief constructs an empty buffer.
@@ -62,7 +65,7 @@ public:
     */
    Buffer1D( T* buf, ui32 size, bool ownsBuffer ) : _buffer( buf ), _size( size ), _ownsBuffer( ownsBuffer )
    {
-      _cpt = new i32;
+      _cpt = Allocator::rebind<i32>::other( _allocator ).allocate( 1 );
       *_cpt = 1; //initialRefCount;
    }
 
@@ -100,6 +103,14 @@ public:
     @return the internal buffer.
     */
    inline T* getBuf() { return _buffer; }
+
+   /**
+    @return the allocator used by this object
+    */
+   Allocator& getAllocator()
+   {
+      return _allocator;
+   }
 
    /**
     @return the idx th value of the buffer.
@@ -206,7 +217,10 @@ public:
 # ifdef DEBUG_BUFFER1D
       std::cout << "copy buffer1D" << std::endl;
 # endif
+      // unref with the current allocator
       unref();
+
+      _allocator = cpy._allocator;
       _cpt = cpy._cpt;
       _buffer = cpy._buffer;
       _size = cpy.size();
@@ -247,10 +261,10 @@ public:
 # ifdef DEBUG_BUFFER1D
             std::cout << "destroy buffer1D=" << _size << std::endl;
 # endif
-            delete _cpt;
+            Allocator::rebind<i32>::other( _allocator ).deallocate( _cpt, 1 );
             _cpt = 0;
             if ( _ownsBuffer )
-               delete [] _buffer;
+               _allocator.deallocate( _buffer, _size );
             _buffer = 0;
          }
       }
@@ -376,10 +390,10 @@ protected:
       _ownsBuffer = true;
       if (!_cpt)
       {
-         _cpt = new i32;
+         _cpt = Allocator::rebind<i32>::other( _allocator ).allocate( 1 );
          *_cpt = 0;
       }
-      _buffer = new T[ size ];
+      _buffer = _allocator.allocate( size );
       _size = size;
 
       // TODO : if NON-POD data?
@@ -394,6 +408,7 @@ protected:
    T*             _buffer;
    ui32           _size;
    bool           _ownsBuffer;
+   Allocator      _allocator;
 };
 
 }

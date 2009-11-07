@@ -41,7 +41,7 @@ namespace algorithm
          // sort instances by class, build a kd-tree for each class
          core::Buffer1D< core::Buffer1D<ui32> > indexes( nbclass );
          core::Buffer1D<ui32> nbSampleByClass( nbclass );
-         SortedSamples sortedSamples( nbclass, false );
+         SortedSamples sortedSamples( nbclass, true );
          for ( ui32 n = 0; n < dat.size(); ++n )
             ++nbSampleByClass[ dat[ n ].output ];
          for ( ui32 n = 0; n < nbclass; ++n )

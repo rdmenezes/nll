@@ -85,6 +85,7 @@
  - math
  */
 # include "singleton.h"
+# include "configuration.h"
 # include "types.h"
 # include "utility-pure.h"
 # include "math-floor.h"
