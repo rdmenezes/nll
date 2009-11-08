@@ -84,6 +84,7 @@ namespace imaging
 
          // set up the interpolator
          Interpolator interpolator( _volume );
+         interpolator.startInterpolation();
 
          // reconstruct the slice
          core::vector3f index = _volume.positionToIndex ( point );
@@ -107,6 +108,8 @@ namespace imaging
             starty += dy[ 1 ];
             startz += dy[ 2 ];
          }
+
+         interpolator.endInterpolation();
          return slice;
       }
 

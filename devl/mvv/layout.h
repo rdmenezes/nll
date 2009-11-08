@@ -356,10 +356,21 @@ namespace mvv
               i.sizey() != getSize()[ 1 ] ||
               i.getNbComponents() != image.getNbComponents() )
             return;
+
+         nll::core::Timer t;
          for ( ui32 y = 0; y < getSize()[ 1 ]; ++y )
+         {
+            Image::ConstDirectionalIterator input = i.getIterator( 0, y, 0 );
+            Image::DirectionalIterator output = image.getIterator( getOrigin()[ 0 ], y + getOrigin()[ 1 ], 0 );
             for ( ui32 x = 0; x < getSize()[ 0 ]; ++x )
-               for ( ui32 c = 0; c < image.getNbComponents(); ++c )
-                  image( x + getOrigin()[ 0 ], y + getOrigin()[ 1 ], c ) = i( x, y, c );
+            {
+               output.pickcol( 0 ) = input.pickcol( 0 );
+               output.pickcol( 1 ) = input.pickcol( 1 );
+               output.pickcol( 2 ) = input.pickcol( 2 );
+               ++input;
+               ++output;
+            }
+         }
       }
 
       /**

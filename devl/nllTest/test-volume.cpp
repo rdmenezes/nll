@@ -1,6 +1,32 @@
 #include "stdafx.h"
 #include <nll/nll.h>
 
+namespace nll
+{
+namespace imaging
+{
+#if defined( _MSC_VER ) && !defined( NLL_DISABLE_SSE_SUPPORT )
+   // truncate to integer using SSE
+inline long truncateSSE(float x) {
+    __asm cvtss2si eax,x
+}
+
+   inline int float2int(float x) {
+      int i;
+      __asm
+      {
+         fld x
+         fistp i
+      }
+      return i;
+   }
+
+   
+#endif
+}
+}
+
+
 class TestVolume
 {
 public:
@@ -589,10 +615,58 @@ public:
       TESTER_ASSERT( m == 42 );
       TESTER_ASSERT( t2t < t1t );
    }
+
+   void testFloor()
+   {
+      float v = -0.6;
+     // _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+
+      nll::core::Timer t1;
+      for ( unsigned n = 0; n < 1e8; ++n )
+      {
+         float floor1 = nll::core::floor( v );
+      }
+      std::cout << "round=" << v << " time=" << t1.getCurrentTime() << std::endl;
+
+      const unsigned int rm = _MM_GET_ROUNDING_MODE();
+      _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+
+      nll::core::Timer t2;
+
+      float vv[] = {1.5, 2.5, -0.5};
+      __declspec(align(16)) int result[ 4 ];
+      for ( unsigned n = 0; n < 1e8; n += 3 )
+      {
+         
+         __declspec(align(16)) float pos[ 4 ] =
+         {
+            vv[0], vv[1], vv[2], 0
+         };
+         const __m128 rawValue = _mm_load_ps( pos );
+         __m128i floored = _mm_cvtps_epi32 (rawValue);//_mm_cvtps_epi32 _mm_cvttps_epi32
+         _mm_store_si128( (__m128i*)result, floored );
+         /*
+         result[ 0 ] = nll::imaging::float2int( vv[ 0 ] );
+         result[ 1 ] = nll::imaging::float2int( vv[ 1 ] );
+         result[ 2 ] = nll::imaging::float2int( vv[ 2 ] );
+         */
+      }
+      std::cout << "result[ 0 ]=" << result[ 0 ] << std::endl;
+      std::cout << "result[ 0 ]=" << result[ 1 ] << std::endl;
+      std::cout << "result[ 0 ]=" << result[ 2 ] << std::endl;
+
+
+      _MM_SET_ROUNDING_MODE( rm );
+      std::cout << "round=" << v << " time=" << t2.getCurrentTime() << std::endl;
+
+      std::cout << "val=" << nll::imaging::truncateSSE( -0.4 ) << std::endl;
+
+   }
 };
 
-#ifndef DONT_RUN_TEST
+//#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
+/*
  TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
@@ -606,5 +680,7 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testMpr4);
  TESTER_TEST(testMpr5);
  TESTER_TEST(testResampling2d);
+ */
+ TESTER_TEST(testFloor);
 TESTER_TEST_SUITE_END();
-#endif
+//#endif

@@ -147,8 +147,8 @@
  */
 # include "lut.h"
 # include "volume.h"
-# include "volume-interpolator.h"
 # include "volume-spatial.h"
+# include "volume-interpolator.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
 

@@ -66,7 +66,7 @@ namespace mvv
                // run the job
                nll::core::Timer todoDebug;
                _run();
-               std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " end, time=" << todoDebug.getCurrentTime() << std::endl;
+               std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " end, time=" << todoDebug.getCurrentTime() << " classId=" << _currentOrder->getOrderClassId() << std::endl;
             }
          }
          catch ( boost::thread_interrupted )
