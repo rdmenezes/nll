@@ -86,20 +86,20 @@ public:
       Vol volume;
 
       Vol::Matrix pst;
-      Vol::Matrix rot3x3 = nll::core::identity<double, Vol::Matrix::IndexMapper>( 3 );
+      Vol::Matrix rot3x3 = nll::core::identity<float, Vol::Matrix::IndexMapper>( 3 );
 
-      pst = Vol::createPatientSpaceTransform( rot3x3, nll::core::vector3d( -10, 5, 30 ), nll::core::vector3d( 10, 20, 30 ) );
+      pst = Vol::createPatientSpaceTransform( rot3x3, nll::core::vector3f( -10, 5, 30 ), nll::core::vector3f( 10, 20, 30 ) );
       volume = Vol( nll::core::vector3ui( 10, 20, 30 ), pst, 1 );
-      TESTER_ASSERT( nll::core::equal<double>( pst( 0, 3 ), -10 ) );
-      TESTER_ASSERT( nll::core::equal<double>( pst( 1, 3 ), 5 ) );
-      TESTER_ASSERT( nll::core::equal<double>( pst( 2, 3 ), 30 ) );
+      TESTER_ASSERT( nll::core::equal<float>( pst( 0, 3 ), -10 ) );
+      TESTER_ASSERT( nll::core::equal<float>( pst( 1, 3 ), 5 ) );
+      TESTER_ASSERT( nll::core::equal<float>( pst( 2, 3 ), 30 ) );
 
-      TESTER_ASSERT( nll::core::equal<double>( pst( 0, 0 ), 10 ) );
-      TESTER_ASSERT( nll::core::equal<double>( pst( 1, 1 ), 20 ) );
-      TESTER_ASSERT( nll::core::equal<double>( pst( 2, 2 ), 30 ) );
+      TESTER_ASSERT( nll::core::equal<float>( pst( 0, 0 ), 10 ) );
+      TESTER_ASSERT( nll::core::equal<float>( pst( 1, 1 ), 20 ) );
+      TESTER_ASSERT( nll::core::equal<float>( pst( 2, 2 ), 30 ) );
 
-      TESTER_ASSERT( volume.getOrigin() == nll::core::vector3d( -10, 5, 30 ) );
-      TESTER_ASSERT( volume.getSpacing() == nll::core::vector3d( 10, 20, 30 ) );
+      TESTER_ASSERT( volume.getOrigin() == nll::core::vector3f( -10, 5, 30 ) );
+      TESTER_ASSERT( volume.getSpacing() == nll::core::vector3f( 10, 20, 30 ) );
 
       // test read write
       std::stringstream ss;
@@ -133,38 +133,38 @@ public:
          // define a random spacing [2, 0.01]
          double a = static_cast<double>( rand() ) / RAND_MAX * 3.141 / 2;
 
-         nll::core::vector3d spacingT( rand() % 2 / (double)10 + 0.01,
-                                       rand() % 2 / (double)10 + 0.01,
-                                       rand() % 2 / (double)10 + 0.01 );
-         nll::core::vector3d origin( rand() % 100,
-                                     rand() % 100,
-                                     rand() % 100 );
-         nll::core::Matrix<double> rotation( 3, 3 );
+         nll::core::vector3f spacingT( rand() % 2 / (float)10 + 0.01f,
+                                       rand() % 2 / (float)10 + 0.01f,
+                                       rand() % 2 / (float)10 + 0.01f );
+         nll::core::vector3f origin( static_cast<float>( rand() % 100 ),
+                                     static_cast<float>( rand() % 100 ),
+                                     static_cast<float>( rand() % 100 ) );
+         nll::core::Matrix<float> rotation( 3, 3 );
          rotation( 0, 0 ) = 1;
-         rotation( 1, 1 ) = cos( a );
-         rotation( 2, 1 ) = sin( a );
-         rotation( 1, 2 ) = -sin( a );
-         rotation( 2, 2 ) = cos( a );
+         rotation( 1, 1 ) = (float)cos( a );
+         rotation( 2, 1 ) = (float)sin( a );
+         rotation( 1, 2 ) = (float)-sin( a );
+         rotation( 2, 2 ) = (float)cos( a );
 
-         nll::core::Matrix<double> pst = Volume::createPatientSpaceTransform( rotation, origin, spacingT );
+         nll::core::Matrix<float> pst = Volume::createPatientSpaceTransform( rotation, origin, spacingT );
 
          // create the wrapper
          Volume image( size, pst );
          for ( Volume::iterator it = image.begin(); it != image.end(); ++it )
             *it = rand() % 5000;
 
-         nll::core::vector3d spacing = image.getSpacing();
+         nll::core::vector3f spacing = image.getSpacing();
          for ( unsigned n = 0; n < 100; ++n )
          {
-            nll::core::vector3d index( rand() % ( size[ 0 ] - 1 ),
-                                       rand() % ( size[ 1 ] - 1 ),
-                                       rand() % ( size[ 2 ] - 1 ) );
+            nll::core::vector3f index( static_cast<float>( rand() % ( size[ 0 ] - 1 ) ),
+                                       static_cast<float>( rand() % ( size[ 1 ] - 1 ) ),
+                                       static_cast<float>( rand() % ( size[ 2 ] - 1 ) ) );
 
-            nll::core::vector3d position = image.indexToPosition( index );
-            nll::core::vector3d indexTransf = image.positionToIndex( position );
-            TESTER_ASSERT( fabs( index[ 0 ] - indexTransf[ 0 ] ) < 1e-8 );
-            TESTER_ASSERT( fabs( index[ 1 ] - indexTransf[ 1 ] ) < 1e-8 );
-            TESTER_ASSERT( fabs( index[ 2 ] - indexTransf[ 2 ] ) < 1e-8 );
+            nll::core::vector3f position = image.indexToPosition( index );
+            nll::core::vector3f indexTransf = image.positionToIndex( position );
+            TESTER_ASSERT( fabs( index[ 0 ] - indexTransf[ 0 ] ) < 1e-3 );
+            TESTER_ASSERT( fabs( index[ 1 ] - indexTransf[ 1 ] ) < 1e-3 );
+            TESTER_ASSERT( fabs( index[ 2 ] - indexTransf[ 2 ] ) < 1e-3 );
          }
       }
    }
@@ -188,9 +188,9 @@ public:
       volume( 10, 10, 11 ) = 15;
       volume( 10, 10, 9 ) = 16;
       TESTER_ASSERT( interpolator( 10, 10, 10 ) == 10 );
-      TESTER_ASSERT( interpolator( 10.4, 10.4, 10.4 ) == 10 );
-      TESTER_ASSERT( interpolator( 9.6, 9.6, 9.6 ) == 10 );
-      TESTER_ASSERT( interpolator( 10.5, 9.6, 9.6 ) == 17 );
+      TESTER_ASSERT( interpolator( 10.4f, 10.4f, 10.4f ) == 10 );
+      TESTER_ASSERT( interpolator( 9.6f, 9.6f, 9.6f ) == 10 );
+      TESTER_ASSERT( interpolator( 10.5f, 9.6f, 9.6f ) == 17 );
    }
 
    void testInterpolatorTriLinear()
@@ -206,10 +206,10 @@ public:
       volume( 5, 6, 5 ) = 20;
       volume( 5, 5, 6 ) = 40;
 
-      double dev = 0; //0.5 - NLL_IMAGE_BIAS;// deviation to move the center to the center of the voxel + bias
-      TESTER_ASSERT( interpolator( 5.5 + dev, 5 + dev, 5 + dev ) == 10.5 );
-      TESTER_ASSERT( interpolator( 5 + dev, 5.5 + dev, 5 + dev ) == 15 );
-      TESTER_ASSERT( interpolator( 5 + dev, 5 + dev, 5.5 + dev ) == 25 );
+      float dev = 0; //0.5 - NLL_IMAGE_BIAS;// deviation to move the center to the center of the voxel + bias
+      TESTER_ASSERT( interpolator( 5.5f + dev, 5 + dev, 5 + dev ) == 10.5 );
+      TESTER_ASSERT( interpolator( 5 + dev, 5.5f + dev, 5 + dev ) == 15 );
+      TESTER_ASSERT( interpolator( 5 + dev, 5 + dev, 5.5f + dev ) == 25 );
 
       TESTER_ASSERT( interpolator( -10, 0, 0 ) == -1 );
    }
@@ -237,10 +237,10 @@ public:
       Mpr mpr( volume, 512, 512 );
 
       nll::core::Timer mprTime;
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 43 ),
-                                       nll::core::vector3d( 1, 0, 0 ),
-                                       nll::core::vector3d( 0, 1, 0 ),
-                                       nll::core::vector2d( 4, 4 ) );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 0, 0, 43 ),
+                                       nll::core::vector3f( 1, 0, 0 ),
+                                       nll::core::vector3f( 0, 1, 0 ),
+                                       nll::core::vector2f( 4, 4 ) );
       mprTime.end();
       std::cout << "mpr time full=" << mprTime.getCurrentTime() << std::endl;
       slice( 1, 1, 0 ) = 1e6;
@@ -287,9 +287,9 @@ public:
       volume( 0, 1, 0 ) = 10;
 
       Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, 0, 0 ),
-                                       nll::core::vector3d( 1, 0, 0 ),
-                                       nll::core::vector3d( 0, 1, 0 ),
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 0, 0, 0 ),
+                                       nll::core::vector3f( 1, 0, 0 ),
+                                       nll::core::vector3f( 0, 1, 0 ),
                                        nll::core::vector2d( 16.00, 16.00 ) );
 
       const std::string output = NLL_TEST_PATH "data/mpr-resamples-max.bmp";
@@ -322,7 +322,7 @@ public:
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
-      nll::core::Matrix<double> pst( 4, 4 );
+      nll::core::Matrix<float> pst( 4, 4 );
       for ( unsigned n = 0; n < 4; ++n )
          pst( n, n ) = 1;
 
@@ -348,10 +348,10 @@ public:
       volume( 0+2, 1+2, 0 ) = 10;
 
       Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 1.5, 1.5, 0 ),
-                                       nll::core::vector3d( 1, 0, 0 ),
-                                       nll::core::vector3d( 0, 1, 0 ),
-                                       nll::core::vector2d( 8.00, 8.00 ) );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 1.5, 1.5, 0 ),
+                                       nll::core::vector3f( 1, 0, 0 ),
+                                       nll::core::vector3f( 0, 1, 0 ),
+                                       nll::core::vector2f( 8.00, 8.00 ) );
 
 
       const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-linear.bmp";
@@ -375,7 +375,7 @@ public:
       //typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
-      nll::core::Matrix<double> pst( 4, 4 );
+      nll::core::Matrix<float> pst( 4, 4 );
       for ( unsigned n = 0; n < 4; ++n )
          pst( n, n ) = 1;
 
@@ -401,10 +401,10 @@ public:
       volume( 0+2, 1+2, 0 ) = 10;
 
       Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 1.5, 1.5, 0 ),
-                                       nll::core::vector3d( 1, 0, 0 ),
-                                       nll::core::vector3d( 0, 1, 0 ),
-                                       nll::core::vector2d( 8.00, 8.00 ) );
+      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 1.5, 1.5, 0 ),
+                                       nll::core::vector3f( 1, 0, 0 ),
+                                       nll::core::vector3f( 0, 1, 0 ),
+                                       nll::core::vector2f( 8.00, 8.00 ) );
 
 
       const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-nn.bmp";
@@ -456,7 +456,7 @@ public:
    void testMpr4()
    {
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
-      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      typedef nll::imaging::VolumeSpatial<float>           Volume;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
@@ -471,10 +471,10 @@ public:
       for ( unsigned z = 0; z < volume.getSize()[ 1 ]; ++z )
       {
          nll::core::Timer mprTime;
-         Mpr::Slice slice = mpr.getSlice( nll::core::vector3d( 0, z, 0 ),
-                                          nll::core::vector3d( 1, 0, 0 ),
-                                          nll::core::vector3d( 0, 0, 1 ),
-                                          nll::core::vector2d( 1, 1 ) );
+         Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 0, (float)z, 0 ),
+                                          nll::core::vector3f( 1, 0, 0 ),
+                                          nll::core::vector3f( 0, 0, 1 ),
+                                          nll::core::vector2f( 1, 1 ) );
          mprTime.end();
          std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
          slice( 1, 1, 0 ) = 1e6;

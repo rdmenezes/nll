@@ -61,7 +61,7 @@ namespace mvv
       {
          nll::core::vector2i diffMouse( - (int)event.mousePosition[ 0 ] + (int)_initialMousePos[ 0 ],
                                           (int)event.mousePosition[ 1 ] - (int)_initialMousePos[ 1 ] );
-         nll::core::vector3d pos( _initialOrigin[ 0 ] + ( diffMouse[ 0 ] * source.vector1[ 0 ] / source.zoom[ 0 ] + diffMouse[ 1 ] * source.vector2[ 0 ] / source.zoom[ 1 ] ),
+         nll::core::vector3f pos( _initialOrigin[ 0 ] + ( diffMouse[ 0 ] * source.vector1[ 0 ] / source.zoom[ 0 ] + diffMouse[ 1 ] * source.vector2[ 0 ] / source.zoom[ 1 ] ),
                                   _initialOrigin[ 1 ] + ( diffMouse[ 0 ] * source.vector1[ 1 ] / source.zoom[ 0 ] + diffMouse[ 1 ] * source.vector2[ 1 ] / source.zoom[ 1 ] ),
                                   _initialOrigin[ 2 ] + ( diffMouse[ 0 ] * source.vector1[ 2 ] / source.zoom[ 0 ] + diffMouse[ 1 ] * source.vector2[ 2 ] / source.zoom[ 1 ] )  );
          _position = pos;
@@ -73,12 +73,12 @@ namespace mvv
       {
          nll::core::vector2i diffMouse( - (int)event.mousePosition[ 0 ] + (int)_initialMousePos[ 0 ],
                                           (int)event.mousePosition[ 1 ] - (int)_initialMousePos[ 1 ] );
-         double sign = ( _initialMousePos[ 1 ] > (int)event.mousePosition[ 1 ] ) ? 1 : -1;
-         double d = diffMouse.norm2() * sign;
+         float sign = ( _initialMousePos[ 1 ] > (int)event.mousePosition[ 1 ] ) ? 1 : -1;
+         float d = static_cast<float>( diffMouse.norm2() ) * sign;
 
-         nll::core::StaticVector<double, 3> cross = nll::core::cross( source.vector1.getValue(), source.vector2.getValue() );
+         nll::core::StaticVector<float, 3> cross = nll::core::cross( source.vector1.getValue(), source.vector2.getValue() );
          assert( nll::core::equal( cross.norm2(), 1.0, 1e-5 ) );  // the base vector1, vector2 must be normalized
-         nll::core::vector3d pos( _initialOrigin[ 0 ] + d * cross[ 0 ] / 10,
+         nll::core::vector3f pos( _initialOrigin[ 0 ] + d * cross[ 0 ] / 10,
                                   _initialOrigin[ 1 ] + d * cross[ 1 ] / 10,
                                   _initialOrigin[ 2 ] + d * cross[ 2 ] / 10 );
          _position = pos;
@@ -91,13 +91,13 @@ namespace mvv
          nll::core::vector2i diffMouse( - (int)event.mousePosition[ 0 ] + (int)_initialMousePos[ 0 ],
                                           (int)event.mousePosition[ 1 ] - (int)_initialMousePos[ 1 ] );
          double d = diffMouse.norm2();
-         if ( event.mousePosition[ 1 ] >= (int)_initialMousePos[ 1 ] )
+         if ( (int)event.mousePosition[ 1 ] >= _initialMousePos[ 1 ] )
          {
-            _zoom[ 0 ] = _initialZoom[ 0 ] * (double)( 1 + d / 100 );
-            _zoom[ 1 ] = _initialZoom[ 1 ] * (double)( 1 + d / 100 );
+            _zoom[ 0 ] = _initialZoom[ 0 ] * (float)( 1 + d / 100 );
+            _zoom[ 1 ] = _initialZoom[ 1 ] * (float)( 1 + d / 100 );
          } else {
-            _zoom[ 0 ] = _initialZoom[ 0 ] / (double)( 1 + d / 100 );
-            _zoom[ 1 ] = _initialZoom[ 1 ] / (double)( 1 + d / 100 );
+            _zoom[ 0 ] = _initialZoom[ 0 ] / (float)( 1 + d / 100 );
+            _zoom[ 1 ] = _initialZoom[ 1 ] / (float)( 1 + d / 100 );
          }
          _updateMprs();
          return;
@@ -124,12 +124,12 @@ namespace mvv
             }
 
             // we add 0.5 voxel to be in the center
-            _position = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
-                                                                         (*choice)->getSize()[ 1 ] / 2 + 0.5,
-                                                                         (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
+            _position = (*choice)->indexToPosition( nll::core::vector3f( (*choice)->getSize()[ 0 ] / 2 + 0.5f,
+                                                                         (*choice)->getSize()[ 1 ] / 2 + 0.5f,
+                                                                         (*choice)->getSize()[ 2 ] / 2 + 0.5f ) );
             r->origin.setValue( _position );
          } else {
-            r->origin.setValue( nll::core::vector3d( 0, 0, 0 ) );
+            r->origin.setValue( nll::core::vector3f( 0, 0, 0 ) );
          }
       }
       _mprs.insert( r );
@@ -138,7 +138,7 @@ namespace mvv
    bool MprToolkitPoint::run( DrawableMprToolkits& tk, ResourceImageRGB* i )
    {
       assert( i ); // it has to be a valid image
-      nll::core::vector3d diff( _initialOrigin[ 0 ] - tk.origin[ 0 ],
+      nll::core::vector3f diff( _initialOrigin[ 0 ] - tk.origin[ 0 ],
                                 _initialOrigin[ 1 ] - tk.origin[ 1 ],
                                 _initialOrigin[ 2 ] - tk.origin[ 2 ] );
 
@@ -149,14 +149,14 @@ namespace mvv
       if ( pos[ 0 ] >= 0 && pos[ 0 ] < i->image.sizex() &&
            pos[ 1 ] >= 0 && pos[ 1 ] < i->image.sizey() )
       {
-         ResourceImageRGB::Image::DirectionalIterator it = i->image.getIterator( pos[ 0 ], 0, 1 );   
+         ResourceImageRGB::Image::DirectionalIterator it = i->image.getIterator( (ui32)pos[ 0 ], 0, 1 );   
          for ( ui32 y = 0; y < i->image.sizey(); ++y )
          {
             *it = 255;
             it.addy();
          }
 
-         it = i->image.getIterator( 0, pos[ 1 ], 1 );
+         it = i->image.getIterator( 0, (ui32)pos[ 1 ], 1 );
          for ( ui32 x = 0; x < i->image.sizex(); ++x )
          {
             *it = 255;
@@ -185,11 +185,11 @@ namespace mvv
                }
             }
 
-            _initialOrigin = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2,
-                                                                              (*choice)->getSize()[ 1 ] / 2,
-                                                                              (*choice)->getSize()[ 2 ] / 2 ) );
+            _initialOrigin = (*choice)->indexToPosition( nll::core::vector3f( (float)(*choice)->getSize()[ 0 ] / 2,
+                                                                              (float)(*choice)->getSize()[ 1 ] / 2,
+                                                                              (float)(*choice)->getSize()[ 2 ] / 2 ) );
          } else {
-            _initialOrigin = nll::core::vector3d( 0, 0, 0 );
+            _initialOrigin = nll::core::vector3f( 0, 0, 0 );
          }
       }
       _mprs.insert( r );

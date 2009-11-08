@@ -53,7 +53,7 @@ namespace mvv
          /**
           @param lut it must be an allocated pointer as it will be deallocated later on
           */
-         void addVolume( MedicalVolume* volume, double volumeIntensity, ResourceLut* lut )
+         void addVolume( MedicalVolume* volume, float volumeIntensity, ResourceLut* lut )
          {
             ensure( volume, "must not be empty" );
             volumes.attachVolume( volume );
@@ -76,16 +76,16 @@ namespace mvv
          ResourceVolumes            volumes;
 
          /// the origin of the MPR
-         ResourceVector3d           origin;
+         ResourceVector3f           origin;
 
          /// the first vector of the MPR basis
-         ResourceVector3d           vector1;
+         ResourceVector3f           vector1;
 
          /// the second vector of the MPR basis
-         ResourceVector3d           vector2;
+         ResourceVector3f           vector2;
 
          /// the zoom factor of the MPR
-         ResourceVector2d           zoom;
+         ResourceVector2f           zoom;
 
          /// the luts attached to the volumes. Every volume must have an attached lut!
          ResourceLuts               luts;

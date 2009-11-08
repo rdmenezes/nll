@@ -28,11 +28,11 @@ namespace imaging
       /**
        @brief (x, y, z) must be an index. It returns background if the point is outside the volume. (0,0) is the center of the voxel.
        */
-      typename Volume::value operator()( double x, double y, double z ) const
+      typename VolumeType::value_type operator()( float x, float y, float z ) const
       {
-         const int ix = core::floor( x + 0.5 );
-         const int iy = core::floor( y + 0.5 );
-         const int iz = core::floor( z + 0.5 );
+         const int ix = core::floor( x + 0.5f );
+         const int iy = core::floor( y + 0.5f );
+         const int iz = core::floor( z + 0.5f );
 
          if ( _volume.inside( ix, iy, iz ) )
             return _volume( ix, iy, iz );
@@ -81,7 +81,7 @@ namespace imaging
       /**
        @brief (x, y, z) must be an index. It returns background if the point is outside the volume
        */
-      value_type operator()( double x, double y, double z ) const
+      value_type operator()( float x, float y, float z ) const
       {
          const int ix = core::floor( x );
          const int iy = core::floor( y );

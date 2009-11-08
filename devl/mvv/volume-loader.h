@@ -13,9 +13,9 @@ namespace mvv
    {
       typedef std::vector<std::string>    Strings;
 
-      nll::core::Matrix<double>     rotation;   /// the 3x3 rotation matrix
-      nll::core::vector3d           origin;     /// the origin of the volume in mm
-      nll::core::vector3d           spacing;    /// the spacing of a voxel in mm
+      nll::core::Matrix<float>      rotation;   /// the 3x3 rotation matrix
+      nll::core::vector3f           origin;     /// the origin of the volume in mm
+      nll::core::vector3f           spacing;    /// the spacing of a voxel in mm
       nll::core::vector3ui          size;       /// the number of voxels of the volume
       Strings                       files;      /// the files to read
    };
@@ -85,7 +85,7 @@ namespace mvv
       std::getline( i, line );
       if ( line != "rotation:" )
          return false;
-      outVolumeHeader.rotation = nll::core::Matrix<double>( 3, 3 );
+      outVolumeHeader.rotation = nll::core::Matrix<float>( 3, 3 );
       for ( unsigned n = 0; n < 3; ++n )
       {
          std::getline( i, line );

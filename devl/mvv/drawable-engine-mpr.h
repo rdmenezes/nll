@@ -112,8 +112,8 @@ namespace mvv
       {
          _isLeftCurrentlyPressed = false;
          _isRightCurrentlyPressed = false;
-         _zoom = nll::core::vector2d( 1, 1 );
-         _position = nll::core::vector3d( 0, 0, 0 );
+         _zoom = nll::core::vector2f( 1, 1 );
+         _position = nll::core::vector3f( 0, 0, 0 );
       }
 
       /**
@@ -139,13 +139,13 @@ namespace mvv
       void _updateMprs();
 
    protected:
-      nll::core::vector3d  _position;
-      nll::core::vector2d  _zoom;
+      nll::core::vector3f  _position;
+      nll::core::vector2f  _zoom;
 
       bool                 _isLeftCurrentlyPressed;
       bool                 _isRightCurrentlyPressed;
-      nll::core::vector3d  _initialOrigin;
-      nll::core::vector2d  _initialZoom;
+      nll::core::vector3f  _initialOrigin;
+      nll::core::vector2f  _initialZoom;
       nll::core::vector2i  _initialMousePos;
    };
 
@@ -155,7 +155,7 @@ namespace mvv
       MprToolkitPoint()
       {
          _isLeftCurrentlyPressed = false;
-         _initialOrigin = nll::core::vector3d( 0, 0, 0 );
+         _initialOrigin = nll::core::vector3f( 0, 0, 0 );
          _resources.insert( &_trigger );
       }
 
@@ -174,7 +174,7 @@ namespace mvv
 
    protected:
       bool                 _isLeftCurrentlyPressed;
-      nll::core::vector3d  _initialOrigin;
+      nll::core::vector3f  _initialOrigin;
       nll::core::vector2i  _initialMousePos;
 
       DynamicResource      _trigger;
@@ -248,10 +248,10 @@ namespace mvv
    public:
       DrawableMprToolkits( OrderProvider& orderProviderv,
                            ResourceVolumes& volumesv,
-                           ResourceVector3d& originv,
-                           ResourceVector3d& vector1v,
-                           ResourceVector3d& vector2v,
-                           ResourceVector2d& zoomv,
+                           ResourceVector3f& originv,
+                           ResourceVector3f& vector1v,
+                           ResourceVector3f& vector2v,
+                           ResourceVector2f& zoomv,
                            ResourceVolumeIntensities& intensitiesv,
                            ResourceLuts& lutsv ) : _orderProvider( orderProviderv ),
                                                    volumes( volumesv ),
@@ -404,10 +404,10 @@ namespace mvv
       // all resources are published
       ResourceVector2ui          renderingSize;
       ResourceVolumes&           volumes;
-      ResourceVector3d&          origin;
-      ResourceVector3d&          vector1;
-      ResourceVector3d&          vector2;
-      ResourceVector2d&          zoom;
+      ResourceVector3f&          origin;
+      ResourceVector3f&          vector1;
+      ResourceVector3f&          vector2;
+      ResourceVector2f&          zoom;
       ResourceVolumeIntensities& intensities;
       ResourceLuts&              luts;
 

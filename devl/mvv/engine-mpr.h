@@ -52,11 +52,11 @@ namespace mvv
       OrderMprRendering( const MedicalVolume* vol,
                          ui32 sx,
                          ui32 sy,
-                         double zoomx,
-                         double zoomy,
-                         nll::core::vector3d origin,
-                         nll::core::vector3d v1,
-                         nll::core::vector3d v2,
+                         float zoomx,
+                         float zoomy,
+                         nll::core::vector3f origin,
+                         nll::core::vector3f v1,
+                         nll::core::vector3f v2,
                          Interpolator interpolator ) : Order( ORDER_MPR_RENDERING, true, Predecessors() ),
          _volume( vol ), _sx( sx ), _sy( sy ), _zoomx( zoomx ), _zoomy( zoomy ),
          _origin( origin ), _v1( v1 ), _v2( v2 ), _interpolator( interpolator )
@@ -78,13 +78,13 @@ namespace mvv
          case NEAREST_NEIGHBOUR:
             {
                MprNN mpr( *_volume, _sx, _sy );
-               slice = mpr.getSlice( _origin, _v1, _v2, nll::core::vector2d( _zoomx, _zoomy ) );
+               slice = mpr.getSlice( _origin, _v1, _v2, nll::core::vector2f( _zoomx, _zoomy ) );
                break;
             }
          case TRILINEAR:
             {
                MprTrilinear mpr( *_volume, _sx, _sy );
-               slice = mpr.getSlice( _origin, _v1, _v2, nll::core::vector2d( _zoomx, _zoomy ) );
+               slice = mpr.getSlice( _origin, _v1, _v2, nll::core::vector2f( _zoomx, _zoomy ) );
                break;
             }
          default:
@@ -103,12 +103,12 @@ namespace mvv
       const MedicalVolume*    _volume;
       ui32                    _sx;
       ui32                    _sy;
-      double                  _zoomx;
-      double                  _zoomy;
+      float                   _zoomx;
+      float                   _zoomy;
       Interpolator            _interpolator;
-      nll::core::vector3d     _origin;
-      nll::core::vector3d     _v1;
-      nll::core::vector3d     _v2;
+      nll::core::vector3f     _origin;
+      nll::core::vector3f     _v1;
+      nll::core::vector3f     _v2;
    };
 
    /**
@@ -131,7 +131,7 @@ namespace mvv
          double ratioCheck = 0;
          typedef std::vector<OrderMprRendering::Slice::DirectionalIterator*>  Iterators;
          typedef std::vector<ResourceLut*>                                    Windowings;
-         typedef std::vector<double>                                          Intensities;
+         typedef std::vector<float>                                           Intensities;
 
          Iterators  iterators( _volumes.size() );
          Windowings windowings( _volumes.size() );
@@ -150,13 +150,13 @@ namespace mvv
 
          for ( Image::DirectionalIterator itOut = _slice.beginDirectional(); itOut != _slice.endDirectional(); ++itOut )
          {
-            double vala = 0;
-            double valb = 0;
-            double valc = 0;
+            float vala = 0;
+            float valb = 0;
+            float valc = 0;
             for ( ui32 nn = 0; nn < iterators.size(); ++nn )
             {
                const ui8* buf = windowings[ nn ]->transform( **( iterators[ nn ] ) );
-               const double intensity = intensities[ nn ];
+               const float intensity = intensities[ nn ];
                vala += buf[ 0 ] * intensity;
                valb += buf[ 1 ] * intensity;
                valc += buf[ 2 ] * intensity;
@@ -319,10 +319,10 @@ namespace mvv
       EngineMprComputation( OrderProvider& orderProvider,
                             const bool& canRecomputeMpr,
                             ResourceVolumes& volumes,
-                            ResourceVector3d& origin,
-                            ResourceVector3d& vector1,
-                            ResourceVector3d& vector2,
-                            ResourceVector2d& zoom,
+                            ResourceVector3f& origin,
+                            ResourceVector3f& vector1,
+                            ResourceVector3f& vector2,
+                            ResourceVector2f& zoom,
                             ResourceVector2ui& renderingSize ) : _orderProvider( orderProvider ), _canRecomputeMpr( canRecomputeMpr ), _volumes( volumes ),
          _origin( origin ), _vector1( vector1 ), _vector2( vector2 ), _zoom( zoom ), _renderingSize( renderingSize )
       {
@@ -372,13 +372,13 @@ namespace mvv
          for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
             OrderMprRendering* order = new OrderMprRendering( *it, _renderingSize[ 0 ], _renderingSize[ 1 ], _zoom[ 0 ], _zoom[ 1 ],
-                                                              nll::core::vector3d( _origin[ 0 ],
+                                                              nll::core::vector3f( _origin[ 0 ],
                                                                                    _origin[ 1 ],
                                                                                    _origin[ 2 ] ),
-                                                              nll::core::vector3d( _vector1[ 0 ],
+                                                              nll::core::vector3f( _vector1[ 0 ],
                                                                                    _vector1[ 1 ],
                                                                                    _vector1[ 2 ] ),
-                                                              nll::core::vector3d( _vector2[ 0 ],
+                                                              nll::core::vector3f( _vector2[ 0 ],
                                                                                    _vector2[ 1 ],
                                                                                    _vector2[ 2 ] ),
                                                                                    OrderMprRendering::TRILINEAR );
@@ -426,10 +426,10 @@ namespace mvv
    private:
       OrderProvider&                      _orderProvider;
       ResourceVolumes&                    _volumes;
-      ResourceVector3d&                   _origin;
-      ResourceVector3d&                   _vector1;
-      ResourceVector3d&                   _vector2;
-      ResourceVector2d&                   _zoom;
+      ResourceVector3f&                   _origin;
+      ResourceVector3f&                   _vector1;
+      ResourceVector3f&                   _vector2;
+      ResourceVector2f&                   _zoom;
       ResourceVector2ui&                  _renderingSize;
 
       const bool&                         _canRecomputeMpr;
@@ -465,10 +465,10 @@ namespace mvv
    public:
       EngineMprImpl( OrderProvider& orderProvider,
                      ResourceVolumes& volumes,
-                     ResourceVector3d& origin,
-                     ResourceVector3d& vector1,
-                     ResourceVector3d& vector2,
-                     ResourceVector2d& zoom,
+                     ResourceVector3f& origin,
+                     ResourceVector3f& vector1,
+                     ResourceVector3f& vector2,
+                     ResourceVector2f& zoom,
                      ResourceVector2ui& renderingSize,
                      ResourceVolumeIntensities& intensities,
                      ResourceLuts& luts ) : _orderProvider( orderProvider ), _volumes( volumes ),
@@ -550,21 +550,21 @@ namespace mvv
             _zoom.setValue( 1, 1 );
 
             // we have to normalize the vectors
-            nll::core::vector3d value1( (*choice)->getPst()( 0, 1 ),
+            nll::core::vector3f value1( (*choice)->getPst()( 0, 1 ),
                                         (*choice)->getPst()( 1, 1 ),
                                         (*choice)->getPst()( 2, 1 ) );
-            value1.div( value1.norm2() );
+            value1.div( static_cast<float>( value1.norm2() ) );
 
-            nll::core::vector3d value2( (*choice)->getPst()( 0, 2 ),
+            nll::core::vector3f value2( (*choice)->getPst()( 0, 2 ),
                                         (*choice)->getPst()( 1, 2 ),
                                         (*choice)->getPst()( 2, 2 ) );
-            value2.div( value2.norm2() );
+            value2.div( static_cast<float>( value2.norm2() ) );
 
             _vector1.setValue( value1 );
             _vector2.setValue( value2 );
-            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
-                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5,
-                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
+            nll::core::vector3f pos = (*choice)->indexToPosition( nll::core::vector3f( (*choice)->getSize()[ 0 ] / 2 + 0.5f,
+                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5f,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5f ) );
             _origin.setValue( pos );
             return;
          }
@@ -575,22 +575,22 @@ namespace mvv
             _zoom.setValue( 1, 1 );
 
             // we have to normalize the vectors
-            nll::core::vector3d value1( (*choice)->getPst()( 0, 0 ),
+            nll::core::vector3f value1( (*choice)->getPst()( 0, 0 ),
                                         (*choice)->getPst()( 1, 0 ),
                                         (*choice)->getPst()( 2, 0 ) );
-            value1.div( value1.norm2() );
+            value1.div( static_cast<float>( value1.norm2() ) );
 
-            nll::core::vector3d value2( -(*choice)->getPst()( 0, 1 ),
+            nll::core::vector3f value2( -(*choice)->getPst()( 0, 1 ),
                                         -(*choice)->getPst()( 1, 1 ),
                                         -(*choice)->getPst()( 2, 1 ) );
-            value2.div( value2.norm2() );
+            value2.div( static_cast<float>( value2.norm2() ) );
 
             _vector1.setValue( value1 );
             _vector2.setValue( value2 );
 
-            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
-                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5,
-                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
+            nll::core::vector3f pos = (*choice)->indexToPosition( nll::core::vector3f( (*choice)->getSize()[ 0 ] / 2 + 0.5f,
+                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5f,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5f ) );
             _origin.setValue( pos );
             return;
          }
@@ -601,21 +601,21 @@ namespace mvv
             _zoom.setValue( 1, 1 );
 
             // we have to normalize the vectors
-            nll::core::vector3d value1( (*choice)->getPst()( 0, 0 ),
+            nll::core::vector3f value1( (*choice)->getPst()( 0, 0 ),
                                         (*choice)->getPst()( 1, 0 ),
                                         (*choice)->getPst()( 2, 0 ) );
-            value1.div( value1.norm2() );
+            value1.div( static_cast<float>( value1.norm2() ) );
 
-            nll::core::vector3d value2( (*choice)->getPst()( 0, 2 ),
+            nll::core::vector3f value2( (*choice)->getPst()( 0, 2 ),
                                         (*choice)->getPst()( 1, 2 ),
                                         (*choice)->getPst()( 2, 2 ) );
-            value2.div( value2.norm2() );
+            value2.div( static_cast<float>( value2.norm2() ) );
 
             _vector1.setValue( value1 );
             _vector2.setValue( value2 );
-            nll::core::vector3d pos = (*choice)->indexToPosition( nll::core::vector3d( (*choice)->getSize()[ 0 ] / 2 + 0.5,
-                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5,
-                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5 ) );
+            nll::core::vector3f pos = (*choice)->indexToPosition( nll::core::vector3f( (*choice)->getSize()[ 0 ] / 2 + 0.5f,
+                                                                                       (*choice)->getSize()[ 1 ] / 2 + 0.5f,
+                                                                                       (*choice)->getSize()[ 2 ] / 2 + 0.5f ) );
             _origin.setValue( pos );
             return;
          }
@@ -624,10 +624,10 @@ namespace mvv
    protected:
       OrderProvider&                _orderProvider;
       ResourceVolumes&              _volumes;
-      ResourceVector3d&             _origin;
-      ResourceVector3d&             _vector1;
-      ResourceVector3d&             _vector2;
-      ResourceVector2d&             _zoom;
+      ResourceVector3f&             _origin;
+      ResourceVector3f&             _vector1;
+      ResourceVector3f&             _vector2;
+      ResourceVector2f&             _zoom;
       ResourceVector2ui&            _renderingSize;
       ResourceVolumeIntensities&    _intensities;
       ResourceLuts&                 _luts;

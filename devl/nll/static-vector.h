@@ -282,21 +282,6 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector2f : public StaticVector<f32, 2>
-   {
-      typedef StaticVector<f32, 2> BaseClass;
-   public:
-      vector2f( BaseClass::value_type x, BaseClass::value_type y )
-      {
-         at(0) = x;
-         at(1) = y;
-      }
-   };
-
-   /**
-    @ingroup core
-    @brief specific implementation with custom constructor
-    */
    class vector3ui : public StaticVector<ui32, 3>
    {
       typedef StaticVector<ui32, 3> BaseClass;
@@ -335,6 +320,25 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
+   class vector3f : public StaticVector<f32, 3>
+   {
+      typedef StaticVector<f32, 3> BaseClass;
+   public:
+      vector3f( )
+      {
+      }
+      vector3f( BaseClass::value_type x, BaseClass::value_type y, BaseClass::value_type z )
+      {
+         at( 0 ) = x;
+         at( 1 ) = y;
+         at( 2 ) = z;
+      }
+   };
+
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
    class vector2d : public StaticVector<f64, 2>
    {
       typedef StaticVector<f64, 2> BaseClass;
@@ -350,8 +354,26 @@ namespace core
       }
    };
 
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
+   class vector2f : public StaticVector<f32, 2>
+   {
+      typedef StaticVector<f32, 2> BaseClass;
+   public:
+      vector2f( )
+      {
+      }
+
+      vector2f( BaseClass::value_type x, BaseClass::value_type y )
+      {
+         at( 0 ) = x;
+         at( 1 ) = y;
+      }
+   };
+
    typedef StaticVector<int,     3> vector3i;
-   typedef StaticVector<float,   3> vector3f;
 
    /**
     @ingroup core

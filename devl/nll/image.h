@@ -135,6 +135,9 @@ namespace core
             return _index != i._index;
          }
 
+         /**
+          @brief copy an iterator
+          */
          DirectionalIterator& operator=( const DirectionalIterator& i )
          {
             _index = i._index;
@@ -143,6 +146,16 @@ namespace core
             _sy = i._sy;
             _sz = i._sz;
             _mapper = i._mapper;
+            return *this;
+         }
+
+         /**
+          @brief Copy a value at the iterator position
+          */
+         DirectionalIterator& operator=( const T* i )
+         {
+            for ( ui32 n = 0; n < _sz; ++n )
+               _buf[ n ] = i[ n ];
             return *this;
          }
 

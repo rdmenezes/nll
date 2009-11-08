@@ -32,10 +32,10 @@ namespace mvv
 
    class ResourceVolumeIntensities : public DynamicResource
    {
-      typedef std::map<const MedicalVolume*, double> Intensities;
+      typedef std::map<const MedicalVolume*, float> Intensities;
 
    public:
-      void addIntensity( const MedicalVolume* vol, double intensity )
+      void addIntensity( const MedicalVolume* vol, float intensity )
       {
          _intensities[ vol ] = intensity;
          notifyChanges();
@@ -50,7 +50,7 @@ namespace mvv
          notifyChanges();
       }
 
-      double getIntensity( const MedicalVolume* vol ) const
+      float getIntensity( const MedicalVolume* vol ) const
       {
          Intensities::const_iterator it = _intensities.find( vol );
          if ( it == _intensities.end() )
@@ -124,7 +124,7 @@ namespace mvv
    class ResourceTransferFunctionWindowing : public ResourceLut
    {
    public:
-      ResourceTransferFunctionWindowing( double minWindow, double maxWindow ) : 
+      ResourceTransferFunctionWindowing( float minWindow, float maxWindow ) : 
          _lut( minWindow, maxWindow, 256, 3 ),
          _minWindow( minWindow ),
          _maxWindow( maxWindow )
@@ -141,7 +141,7 @@ namespace mvv
          _lut.createGreyscale();
       }
 
-      void setMinWindow( double v )
+      void setMinWindow( float v )
       {
          _minWindow = v;
          _lut.reset( _minWindow, _maxWindow, 256, 3 );
@@ -154,7 +154,7 @@ namespace mvv
          return _minWindow;
       }
 
-      void setMaxWindow( double v )
+      void setMaxWindow( float v )
       {
          _maxWindow = v;
          _lut.reset( _minWindow, _maxWindow, 256, 3 );
@@ -177,7 +177,7 @@ namespace mvv
        @param inValue the input value
        @param outValue must be allocated (3 * ui8)
        */
-      virtual const ui8* transform( double inValue )
+      virtual const ui8* transform( float inValue )
       {
          return _lut.transform( inValue );
       }
@@ -189,8 +189,8 @@ namespace mvv
 
    protected:
       nll::imaging::LookUpTransformWindowingRGB _lut;
-      double   _minWindow;
-      double   _maxWindow;
+      float   _minWindow;
+      float   _maxWindow;
    };
 
 
@@ -245,10 +245,10 @@ namespace mvv
     @ingroup mvv
     @brief Holds a 3D vector
     */
-   class ResourceVector3d : public DynamicResource
+   class ResourceVector3f : public DynamicResource
    {
    public:
-      ResourceVector3d( double a, double b, double c )
+      ResourceVector3f( float a, float b, float c )
       {
          _buf[ 0 ] = a;
          _buf[ 1 ] = b;
@@ -256,7 +256,7 @@ namespace mvv
          notifyChanges();
       }
 
-      ResourceVector3d()
+      ResourceVector3f()
       {
          _buf[ 0 ] = 0;
          _buf[ 1 ] = 0;
@@ -264,23 +264,23 @@ namespace mvv
          notifyChanges();
       }
 
-      double getValue( ui32 v ) const
+      float getValue( ui32 v ) const
       {
          assert( v < 3 );
          return _buf[ v ];
       }
 
-      nll::core::vector3d getValue() const
+      nll::core::vector3f getValue() const
       {
-         return nll::core::vector3d( _buf[ 0 ], _buf[ 1 ], _buf[ 2 ] );
+         return nll::core::vector3f( _buf[ 0 ], _buf[ 1 ], _buf[ 2 ] );
       }
 
-      double operator[]( ui32 v ) const
+      float operator[]( ui32 v ) const
       {
          return getValue( v );
       }
 
-      void setValue( ui32 v, double val )
+      void setValue( ui32 v, float val )
       {
          assert( v < 3 );
          if ( nll::core::equal( val, _buf[ v ] ) )
@@ -289,7 +289,7 @@ namespace mvv
          _buf[ v ] = val;
       }
 
-      void setValue( const nll::core::vector3d& v )
+      void setValue( const nll::core::vector3f& v )
       {
          if ( nll::core::equal( v[ 0 ], _buf[ 0 ] ) &&
               nll::core::equal( v[ 1 ], _buf[ 0 ] ) &&
@@ -305,10 +305,10 @@ namespace mvv
 
       void normalize()
       {
-         double l = sqrt( _buf[ 0 ] * _buf[ 0 ] +
+         float l = sqrtf( _buf[ 0 ] * _buf[ 0 ] +
                           _buf[ 1 ] * _buf[ 1 ] +
                           _buf[ 2 ] * _buf[ 2 ] );
-         if ( nll::core::equal<double>( l, 1 ) )
+         if ( nll::core::equal<float>( l, 1 ) )
             return;
          assert( l > 0 );
          _buf[ 0 ] /= l;
@@ -318,7 +318,7 @@ namespace mvv
       }
 
    protected:
-      double   _buf[ 3 ];
+      float   _buf[ 3 ];
    };
 
    /**
@@ -367,7 +367,7 @@ namespace mvv
       T   _buf[ 2 ];
    };
 
-   typedef ResourceVector2<double>   ResourceVector2d;
+   typedef ResourceVector2<float>    ResourceVector2f;
    typedef ResourceVector2<ui32>     ResourceVector2ui;
 
    /**

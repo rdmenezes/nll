@@ -75,11 +75,11 @@ namespace imaging
       // Create an RSI to maximise dynamic range on each slice
       std::vector< std::pair<double, double> > rsi( depth );
 
-      core::Matrix<double> id( 3, 3 );
+      core::Matrix<float> id( 3, 3 );
       for ( ui32 n = 0; n < 3; ++n )
          id( n, n ) = 1;
       // origin is from worldorigin->volumeorigin
-      core::Matrix<double> pst = Volume::createPatientSpaceTransform( id, core::vector3d( -originX, -originY, -originZ ), core::vector3d( colSp, rowSp, sliceSp ) );
+      core::Matrix<float> pst = Volume::createPatientSpaceTransform( id, core::vector3f( (float)-originX, (float)-originY, (float)-originZ ), core::vector3f( (float)colSp, (float)rowSp, (float)sliceSp ) );
 
       for ( unsigned int k = 0; k < depth; ++k )
       {
@@ -104,7 +104,7 @@ namespace imaging
                ensure( !file.eof(), "unexpected eof" );
                unsigned short value = 0;
                file.read( (char*)&value, sizeof( unsigned short ) );
-               output( i, j, k ) = static_cast<T>( value ) * rsi[ k ].first + rsi[ k ].second;
+               output( i, j, k ) = static_cast<T>( value * rsi[ k ].first + rsi[ k ].second );
             }
          }
       }

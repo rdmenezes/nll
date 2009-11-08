@@ -3,6 +3,7 @@
 
 # ifndef NLL_DISABLE_SSE_SUPPORT
 #  include <xmmintrin.h>
+#  include <emmintrin.h>
 #endif
 
 # define _CPU_FEATURE_MMX    0x0001
@@ -50,8 +51,9 @@ namespace core
              return false;
           }
           return true;
-# endif
+# else
           return false;
+# endif
       }
    }
 
@@ -92,6 +94,11 @@ namespace core
       bool isSupported3DNOW() const
       {
          return _support3DNOW;
+      }
+
+      void disableSSE()
+      {
+         _supportSSE = false;
       }
 
    private:

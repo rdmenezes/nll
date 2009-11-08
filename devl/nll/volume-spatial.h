@@ -14,7 +14,7 @@ namespace imaging
    class VolumeSpatial : public Volume<T, VolumeMemoryBufferType>
    {
    public:
-      typedef core::Matrix<double>              Matrix;
+      typedef core::Matrix<float>               Matrix;
       typedef Volume<T, VolumeMemoryBufferType> Base;
       typedef T                                 value_type;
 
@@ -57,16 +57,16 @@ namespace imaging
       /**
        @brief Given a voxel index, it will be returned a position in Patient Coordinate system.
        */
-      core::vector3d indexToPosition( const core::vector3d& index ) const
+      core::vector3f indexToPosition( const core::vector3f& index ) const
       {
-         core::vector3d result( 0, 0, 0 );
+         core::vector3f result( 0, 0, 0 );
          for ( unsigned n = 0; n < 3; ++n )
          {
             result[ 0 ] += index[ n ] * _pst( 0, n );
             result[ 1 ] += index[ n ] * _pst( 1, n );
             result[ 2 ] += index[ n ] * _pst( 2, n );
          }
-         return core::vector3d( result[ 0 ] + _pst( 0, 3 ),
+         return core::vector3f( result[ 0 ] + _pst( 0, 3 ),
                                 result[ 1 ] + _pst( 1, 3 ),
                                 result[ 2 ] + _pst( 2, 3 ) );
       }
@@ -76,9 +76,9 @@ namespace imaging
               position. The integer part represent the voxel coordinate, the real part represents
               how far is the point from this voxel.
        */
-      core::vector3d positionToIndex( const core::vector3d& position ) const
+      core::vector3f positionToIndex( const core::vector3f& position ) const
       {
-         core::vector3d result( 0, 0, 0 );
+         core::vector3f result( 0, 0, 0 );
          for ( unsigned n = 0; n < 3; ++n )
          {
             result[ 0 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 0, n );
@@ -91,9 +91,9 @@ namespace imaging
       /**
        @return the origin of the image
        */
-      core::vector3d getOrigin() const
+      core::vector3f getOrigin() const
       {
-         return core::vector3d( _pst( 0, 3 ),
+         return core::vector3f( _pst( 0, 3 ),
                                 _pst( 1, 3 ),
                                 _pst( 2, 3 ) );
       }
@@ -101,7 +101,7 @@ namespace imaging
       /**
        @return the spacing of the image
        */
-      const core::vector3d& getSpacing() const
+      const core::vector3f& getSpacing() const
       {
          return _spacing;
       }
@@ -187,7 +187,7 @@ namespace imaging
        @param spacing the spacing in each dimension x, y, z
        @return is the 4x4 transformation matrix used to construct the ImageWrapper object.
        */
-      static Matrix createPatientSpaceTransform( const Matrix& rotation3x3, const core::vector3d& origin, const core::vector3d& spacing )
+      static Matrix createPatientSpaceTransform( const Matrix& rotation3x3, const core::vector3f& origin, const core::vector3f& spacing )
       {
          ensure( spacing[ 0 ] > 0, "must be >0" );
          ensure( spacing[ 1 ] > 0, "must be >0" );
@@ -214,7 +214,7 @@ namespace imaging
 
    protected:
       Matrix         _pst;
-      core::vector3d _spacing;
+      core::vector3f _spacing;
       Matrix         _inversedPst;
    };
 }

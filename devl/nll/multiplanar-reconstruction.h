@@ -13,13 +13,13 @@ namespace imaging
               
               Compute Mv using only the rotational part of M.
        */
-      template <class T, class Mapper>
-      core::vector3d mul3Rot( const core::Matrix<T, Mapper>& m, const core::vector3d& v )
+      template <class T, class Mapper, class Vector>
+      Vector mul3Rot( const core::Matrix<T, Mapper>& m, Vector& v )
       {
          assert( m.sizex() == 4 && m.sizey() == 4 );
-         return core::vector3d( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
-                                v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
-                                v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
+         return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
+                        v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
+                        v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
       }
    }
 
@@ -47,7 +47,7 @@ namespace imaging
       /**
        @brief set the size of the plane to be reconstructed in voxels
        */
-      Mpr( const VolumeType& volume, f64 sxInVoxels, f64 syInVoxels ) :
+      Mpr( const VolumeType& volume, f32 sxInVoxels, f32 syInVoxels ) :
          _volume( volume ), _voxelsx( sxInVoxels ), _voxelsy( syInVoxels )
       {}
 
@@ -59,7 +59,7 @@ namespace imaging
        @param ay y-axis of the plane
        @param zoomFactor zoomFactor used toreconstruct the slice
        */
-      Slice getSlice( const core::vector3d& point, const core::vector3d& ax, const core::vector3d& ay, const core::vector2d zoomFactor = core::vector2d( 1, 1 ) ) const
+      Slice getSlice( const core::vector3f& point, const core::vector3f& ax, const core::vector3f& ay, const core::vector2f zoomFactor = core::vector2f( 1, 1 ) ) const
       {
          assert( zoomFactor[ 0 ] > 0 && zoomFactor[ 1 ] > 0 );
 
@@ -70,14 +70,14 @@ namespace imaging
                       false );
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         core::vector3d dx = impl::mul3Rot( _volume.getInversedPst(), ax );
-         const double c1 = dx.norm2() * zoomFactor[ 0 ];
+         core::vector3f dx = impl::mul3Rot( _volume.getInversedPst(), ax );
+         const float c1 = (float)dx.norm2() * zoomFactor[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
          dx[ 1 ] = dx[ 1 ] / ( c1 * _volume.getSpacing()[ 1 ] );
          dx[ 2 ] = dx[ 2 ] / ( c1 * _volume.getSpacing()[ 2 ] );
 
-         core::vector3d dy = impl::mul3Rot( _volume.getInversedPst(), ay );
-         const double c2 = dy.norm2() * zoomFactor[ 1 ];
+         core::vector3f dy = impl::mul3Rot( _volume.getInversedPst(), ay );
+         const float c2 = (float)dy.norm2() * zoomFactor[ 1 ];
          dy[ 0 ] = dy[ 0 ] / ( c2 * _volume.getSpacing()[ 0 ] );
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
@@ -86,15 +86,15 @@ namespace imaging
          Interpolator interpolator( _volume );
 
          // reconstruct the slice
-         core::vector3d index = _volume.positionToIndex ( point );
-         double startx = index[ 0 ] - ( _voxelsx * dx[ 0 ] / 2 + _voxelsy * dy[ 0 ] / 2 );
-         double starty = index[ 1 ] - ( _voxelsx * dx[ 1 ] / 2 + _voxelsy * dy[ 1 ] / 2 );
-         double startz = index[ 2 ] - ( _voxelsx * dx[ 2 ] / 2 + _voxelsy * dy[ 2 ] / 2 );
+         core::vector3f index = _volume.positionToIndex ( point );
+         float startx = ( index[ 0 ] - ( _voxelsx * dx[ 0 ] / 2 + _voxelsy * dy[ 0 ] / 2 ) );
+         float starty = ( index[ 1 ] - ( _voxelsx * dx[ 1 ] / 2 + _voxelsy * dy[ 1 ] / 2 ) );
+         float startz = ( index[ 2 ] - ( _voxelsx * dx[ 2 ] / 2 + _voxelsy * dy[ 2 ] / 2 ) );
          for ( ui32 y = 0; y < _voxelsy; ++y )
          {
-            double px = startx;
-            double py = starty;
-            double pz = startz;
+            float px = startx;
+            float py = starty;
+            float pz = startz;
             for ( ui32 x = 0; x < _voxelsx; ++x )
             {
                slice( x, y, 0 ) = interpolator( px, py, pz );
@@ -115,8 +115,8 @@ namespace imaging
 
    protected:
       const VolumeType& _volume;
-      f64               _voxelsx;
-      f64               _voxelsy;
+      float             _voxelsx;
+      float             _voxelsy;
    };
 }
 }
