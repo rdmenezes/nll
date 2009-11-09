@@ -245,6 +245,7 @@ namespace imaging
       InterpolatorTriLinearDummy<Volume>  _interpolator;
    };
 
+# if !defined ( NLL_DISABLE_SSE_SUPPORT )
    //
    // Optimized version using SSE
    //
@@ -331,7 +332,7 @@ namespace imaging
          }
 
 
-         const float dx = fabs( x - ix );
+         const value_type dx = fabs( x - ix );
          const value_type dy = fabs( y - iy );
          const value_type dz = fabs( z - iz );
 
@@ -384,6 +385,7 @@ namespace imaging
       mutable int iix, iiy, iiz;
       mutable unsigned int _currentRoundingMode;
    };
+# endif
 }
 }
 

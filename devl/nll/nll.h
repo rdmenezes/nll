@@ -18,6 +18,9 @@
 #define NLL_API
 #endif
 
+// define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
+// #define NLL_DISABLE_SSE_SUPPORT
+
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
 // #define NLL_NOT_MULTITHREADED
 
