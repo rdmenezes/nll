@@ -20,9 +20,11 @@ namespace core
       - IndexMapper(const ui32 sizex, const ui32 sizey)
       - ui32 index(const ui32 x, const ui32 y) const
       - void indexInverse( const ui32 index, ui32& out_x, ui32& out_y ) const
+
+   AllocatorT: it must be a standard std::allocator
    */
-   template <class T, class IndexMapper2D = IndexMapperColumnMajorFlat2D>
-   class Matrix : public Buffer1D<T, IndexMapperFlat1D>
+   template <class T, class IndexMapper2D = IndexMapperColumnMajorFlat2D, class AllocatorT = std::allocator<T> >
+   class Matrix : public Buffer1D<T, IndexMapperFlat1D, AllocatorT>
    {
    public:
       typedef IndexMapper2D                  IndexMapper;
@@ -309,7 +311,7 @@ namespace core
        @brief test if the matrices are semantically equal
        */
       template <class Mapper>
-      inline bool equal( const Matrix<T, Mapper>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
+      inline bool equal( const Matrix<T, Mapper, Allocator>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
       {
          if ( _sizex != op.sizex() || _sizey != op.sizey() )
             return false;

@@ -25,13 +25,13 @@ namespace core
     @brief Solve Ax = B using SVD decomposition
     @note code from numerical recipes
     */
-   template <class type, class mapper>
-   Buffer1D<type> solve_svd(const Matrix<type, mapper>& a, const Buffer1D<type>& b)
+   template <class type, class mapper, class allocator>
+   Buffer1D<type> solve_svd(const Matrix<type, mapper, allocator>& a, const Buffer1D<type>& b)
    {
-	   Matrix<type, mapper> aa;
+	   Matrix<type, mapper, allocator> aa;
       aa.clone(a);
 	   Buffer1D<type> w, b_io(b), x;
-	   Matrix<type, mapper> v;
+	   Matrix<type, mapper, allocator> v;
 
 	   bool res = svdcmp(aa, w, v);
 	   if (!res)
@@ -41,8 +41,8 @@ namespace core
    }
 
    // x doesn't need to be allocated
-   template <class type, class mapper>
-   bool svbksb(const Matrix<type, mapper>& a, const Buffer1D<type>& w, const Matrix<type, mapper>& v, const Buffer1D<type>& b, Buffer1D<type>& x)
+   template <class type, class mapper, class allocator>
+   bool svbksb(const Matrix<type, mapper, allocator>& a, const Buffer1D<type>& w, const Matrix<type, mapper, allocator>& v, const Buffer1D<type>& b, Buffer1D<type>& x)
    {
 	   int jj,j,i;
 	   type s;
@@ -95,8 +95,8 @@ namespace core
     @param v (and NOT v^t) an orthogonal matrix [0..n][0..n]
     @note code from numerical recipes
     */
-   template <class type, class mapper>
-   bool svdcmp(Matrix<type, mapper> a, Buffer1D<type>& w, Matrix<type, mapper>& v)
+   template <class type, class mapper, class allocator>
+   bool svdcmp(Matrix<type, mapper, allocator> a, Buffer1D<type>& w, Matrix<type, mapper, allocator>& v)
    {
 	   bool flag;
 	   int i,its,j,jj,k,l = 0,nm = 0;
@@ -107,7 +107,7 @@ namespace core
 	   Buffer1D<type> rv1(n);
 	   g=scale=anorm=0.0;
 	   w = Buffer1D<type>(n);
-	   v = Matrix<type, mapper>(n, n);
+	   v = Matrix<type, mapper, allocator>(n, n);
 	   for (i=0;i<n;i++) {
 		   l=i+2;
 		   rv1[i]=scale*g;

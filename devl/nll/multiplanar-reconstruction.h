@@ -13,8 +13,8 @@ namespace imaging
               
               Compute Mv using only the rotational part of M.
        */
-      template <class T, class Mapper, class Vector>
-      Vector mul3Rot( const core::Matrix<T, Mapper>& m, Vector& v )
+      template <class T, class Mapper, class Allocator, class Vector>
+      Vector mul3Rot( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
       {
          assert( m.sizex() == 4 && m.sizey() == 4 );
          return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),

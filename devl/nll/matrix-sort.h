@@ -14,8 +14,8 @@ namespace core
     @brief sort the matrices by row.
     @param rang a value is attributed for each row. Rows are sorted using this value by increasing order. Stable.
     */
-   template <class T, class Mapper>
-   void sortRow( Matrix<T, Mapper>& m, const std::vector<ui32>& rang )
+   template <class T, class Mapper, class Allocator>
+   void sortRow( Matrix<T, Mapper, Allocator>& m, const std::vector<ui32>& rang )
    {
       typedef std::pair<ui32, ui32> Pair;
       typedef std::vector<Pair>     Pairs;
@@ -28,7 +28,7 @@ namespace core
          pairs[ n ] = std::make_pair( rang[ n ], n );
       std::sort( pairs.begin(), pairs.end() );
 
-      Matrix<T, Mapper> cpy( m.sizey(), m.sizex(), false );
+      Matrix<T, Mapper, Allocator> cpy( m.sizey(), m.sizex(), false );
       for ( ui32 ny = 0; ny < m.sizey(); ++ny )
       {
          const ui32 newIndex = pairs[ ny ].second;
@@ -43,8 +43,8 @@ namespace core
     @brief sort the matrices by column.
     @param rang a value is attributed for each column. Columns are sorted using this value by increasing order. Stable.
     */
-   template <class T, class Mapper>
-   void sortCol( Matrix<T, Mapper>& m, const std::vector<ui32>& rang )
+   template <class T, class Mapper, class Allocator>
+   void sortCol( Matrix<T, Mapper, Allocator>& m, const std::vector<ui32>& rang )
    {
       typedef std::pair<ui32, ui32> Pair;
       typedef std::vector<Pair>     Pairs;
@@ -57,7 +57,7 @@ namespace core
          pairs[ n ] = std::make_pair( rang[ n ], n );
       std::sort( pairs.begin(), pairs.end() );
 
-      Matrix<T, Mapper> cpy( m.sizey(), m.sizex(), false );
+      Matrix<T, Mapper, Allocator> cpy( m.sizey(), m.sizex(), false );
       
       for ( ui32 nx = 0; nx < m.sizex(); ++nx )
       {

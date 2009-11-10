@@ -12,8 +12,8 @@ namespace core
     @return false if the matrix is not a square positive definite matrix
     @note the matrix is duplicated
     */
-   template <class T, class Mapper>
-   bool choleskyDecomposition( Matrix<T, Mapper>& a )
+   template <class T, class Mapper, class Allocator>
+   bool choleskyDecomposition( Matrix<T, Mapper, Allocator>& a )
    {
       int i, j, k;
       int size = static_cast<int>( a.sizex() );
@@ -22,7 +22,7 @@ namespace core
       if ( a.sizex() != a.sizey() )
          return false;
 
-      Matrix<T, Mapper> res;
+      Matrix<T, Mapper, Allocator> res;
       res.clone( a );
 
       // compute the lower triangular

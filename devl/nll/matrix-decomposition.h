@@ -24,8 +24,8 @@ namespace core
     @note As the matrix are directly modified, beware if several matrices are sharing the same buffer.
           Code from numerical recipes
     */
-	template <class type, class mapper>
-	bool luDecomposition(Matrix<type, mapper>& a, Buffer1D<ui32>& perm, type& d)
+	template <class type, class mapper, class allocator>
+	bool luDecomposition(Matrix<type, mapper, allocator>& a, Buffer1D<ui32>& perm, type& d)
 	{
       ensure( a.sizex() == a.sizey(), "only square matrix" );
 		const type TINY=1.0e-20f;
@@ -89,8 +89,8 @@ namespace core
 
     Solve PAx = B, with A = LU
     */
-	template <class type, class mapper>
-	bool luBackSubstitution(Matrix<type, mapper>& a, Buffer1D<ui32>& perm, Buffer1D<type>& b)
+	template <class type, class mapper, class allocator>
+	bool luBackSubstitution(Matrix<type, mapper, allocator>& a, Buffer1D<ui32>& perm, Buffer1D<type>& b)
 	{
 		bool error = false;
 		assert(b.size() == a.sizey()); // "bad dimention"
@@ -122,18 +122,18 @@ namespace core
     @ingroup core
     @brief Solve Ax = B using LU decomposition.
     */
-	template <class type, class mapper>
-	Matrix<type, mapper> solve_lu(const Matrix<type, mapper>& a, const Buffer1D<type>& b)
+	template <class type, class mapper, class allocator>
+	Matrix<type, mapper, allocator> solve_lu(const Matrix<type, mapper, allocator>& a, const Buffer1D<type>& b)
 	{
 		Buffer1D<type> result(b);
-		Matrix<type, mapper> m;
+		Matrix<type, mapper, allocator> m;
 		m.clone(a);
 
 		type d = 0;
 		Buffer1D<ui32> perm;
 
 		if (!luDecomposition(m, perm, d))
-			return Matrix<type, mapper>();
+			return Matrix<type, mapper, allocator>();
 		bool flag = luBackSubstitution(m, perm, result);
 		assert(flag);
 		return result;

@@ -86,7 +86,7 @@ public:
       Vol volume;
 
       Vol::Matrix pst;
-      Vol::Matrix rot3x3 = nll::core::identity<float, Vol::Matrix::IndexMapper>( 3 );
+      Vol::Matrix rot3x3 = nll::core::identity<float, Vol::Matrix::IndexMapper, Vol::Matrix::Allocator>( 3 );
 
       pst = Vol::createPatientSpaceTransform( rot3x3, nll::core::vector3f( -10, 5, 30 ), nll::core::vector3f( 10, 20, 30 ) );
       volume = Vol( nll::core::vector3ui( 10, 20, 30 ), pst, 1 );
@@ -457,7 +457,7 @@ public:
    void testMpr4()
    {
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
-      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      typedef nll::imaging::VolumeSpatial<float>           Volume;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
@@ -467,7 +467,7 @@ public:
       nll::imaging::loadSimpleFlatFile( volname, volume );
 
       std::cout << "loaded" << std::endl;
-      Mpr mpr( volume, 2048, 1024 );
+      Mpr mpr( volume, 1024, 1024 );
 
       for ( unsigned z = 0; z < volume.getSize()[ 1 ]; ++z )
       {

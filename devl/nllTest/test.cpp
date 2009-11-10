@@ -120,7 +120,7 @@ public:
       bool inv = nll::core::inverse( m3 );
       
       nll::core::Matrix<float, nll::core::IndexMapperRowMajorFlat2D> m5 = nll::core::mul( m3, m4 );
-      nll::core::sub( m5, nll::core::identity<float, nll::core::IndexMapperRowMajorFlat2D> ( 2 ) );
+      nll::core::sub( m5, nll::core::identity<float, nll::core::IndexMapperRowMajorFlat2D, std::allocator<float> > ( 2 ) );
 
       TESTER_ASSERT( inv );
       double norm = nll::core::generic_norm2<float*, double>( m5.getBuf(), 2 * 2 );
@@ -142,7 +142,7 @@ public:
       typedef long long                TYPE1;
       typedef nll::core::Matrix<TYPE1> TYPEMAT1;
       TYPEMAT1 mat1(4, 4);
-      TYPEMAT1 mat2 = nll::core::identity<TYPE1, TYPEMAT1::IndexMapper>(4);
+      TYPEMAT1 mat2 = nll::core::identity<TYPE1, TYPEMAT1::IndexMapper, std::allocator<TYPE1> >(4);
       int val = 0;
       
       for (TYPEMAT1::iterator it = mat1.begin(); it != mat1.end(); ++it, ++val)
@@ -898,7 +898,7 @@ public:
       nll::core::Matrix<float> f1(3, 3);
       f1(0, 0) = 2;
       f1(1, 0) = 4;
-      nll::core::Matrix<float> f2 = nll::core::identity<float, nll::core::Matrix<float>::IndexMapper>(3);
+      nll::core::Matrix<float> f2 = nll::core::identity<float, nll::core::Matrix<float>::IndexMapper, std::allocator<float> >(3);
 
       nll::core::Matrix<float> f3 = f1 + f2;
       nll::core::Matrix<float> f4;

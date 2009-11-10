@@ -12,8 +12,8 @@ namespace core
     @brief Compute the mean row of a matrix.
     @return a vector
     */
-   template <class type, class mapper>
-	inline Buffer1D<type> meanRow(const Matrix<type, mapper>& vec, ui32 start, ui32 end)
+   template <class type, class mapper, class allocator>
+	inline Buffer1D<type> meanRow(const Matrix<type, mapper, allocator>& vec, ui32 start, ui32 end)
 	{
 		assert(start < vec.sizey() && end < vec.sizey() && start <= end);
 		Buffer1D<type> mean(vec.sizex());
@@ -29,8 +29,8 @@ namespace core
     @brief Compute the mean column of a matrix.
     @return a vector
     */
-   template <class type, class mapper>
-	inline Buffer1D<type> meanCol(const Matrix<type, mapper>& vec, ui32 start, ui32 end)
+   template <class type, class mapper, class allocator>
+	inline Buffer1D<type> meanCol(const Matrix<type, mapper, allocator>& vec, ui32 start, ui32 end)
 	{
 		assert(start < vec.sizex() && end < vec.sizex() && start <= end);
 		Buffer1D<type> mean(vec.sizey());
@@ -54,12 +54,12 @@ namespace core
 
     @note the matrix is symetric, so only compute upper triangular and copy the lower one
     */
-   template <class type, class mapper>
-	inline Matrix<type, mapper> covariance(const Matrix<type, mapper>& vec, ui32 start, ui32 end, Buffer1D<type>* exportedMean = 0)
+   template <class type, class mapper, class allocator>
+	inline Matrix<type, mapper, allocator> covariance(const Matrix<type, mapper, allocator>& vec, ui32 start, ui32 end, Buffer1D<type>* exportedMean = 0)
 	{
       assert( vec.sizey() );
 
-		Matrix<type, mapper> cov(vec.sizex(), vec.sizex());
+		Matrix<type, mapper, allocator> cov(vec.sizex(), vec.sizex());
 		Buffer1D<type> mean = meanRow(vec, start, end);
 		for (ui32 i = 0; i < vec.sizex(); ++i)
       {

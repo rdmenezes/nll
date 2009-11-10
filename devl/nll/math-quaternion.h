@@ -16,8 +16,8 @@ namespace core
       /**
        @brief create a quaternion from a 3x3 <b>rotation</b> matrix only (not scaling/shearing)
        */
-      template <class Mapper, class T2>
-      Quaternion( const Matrix<T2, Mapper>& a )
+      template <class Mapper, class T2, class Allocator>
+      Quaternion( const Matrix<T2, Mapper, Allocator>& a )
       {
          ensure( a.sizex() == 3 && a.sizey() == 3, "error only 3x3 rotation matrix handled" );
          
@@ -68,8 +68,8 @@ namespace core
        @brief create a quaternion to an axis-angle representation.
        @param angle angle in radian
        */
-      template <class T, class Mapper>
-      Quaternion( const Buffer1D<T, Mapper>& axis, double angle )
+      template <class T, class Mapper, class Allocator>
+      Quaternion( const Buffer1D<T, Mapper, Allocator>& axis, double angle )
       {
          ensure( axis.size() == 3, "the axis must be a 3D coordinate" );
          _fromAngleAxis( angle, axis[ 0 ], axis[ 1 ], axis[ 2 ] );
@@ -89,10 +89,10 @@ namespace core
       /**
        @biref export the quaternion as a rotation matrix.
        */
-      template <class T, class Mapper>
-      void toMatrix( Matrix<T, Mapper>& out ) const
+      template <class T, class Mapper, class Allocator>
+      void toMatrix( Matrix<T, Mapper, Allocator>& out ) const
       {
-         out = Matrix<T, Mapper>( 3, 3 );
+         out = Matrix<T, Mapper, Allocator>( 3, 3 );
          double xx = _buffer[ 1 ] * _buffer[ 1 ];
          double xy = _buffer[ 1 ] * _buffer[ 2 ];
          double xz = _buffer[ 1 ] * _buffer[ 3 ];

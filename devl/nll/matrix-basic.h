@@ -16,11 +16,11 @@ namespace core
     @return false if the matrix is singular
     @note use a LU decomposition internally, complexity N^3
     */
-   template <class type, class mapper>
-	bool inverse(Matrix<type, mapper>& a, type* determinant = 0)
+   template <class type, class mapper, class allocator>
+	bool inverse(Matrix<type, mapper, allocator>& a, type* determinant = 0)
 	{
 		assert(a.sizex() == a.sizey()); //  "non square matrix"
-		Matrix<type, mapper> y(a.sizey(), a.sizex());
+		Matrix<type, mapper, allocator> y(a.sizey(), a.sizex());
 		Buffer1D<ui32> perm(a.sizex());
 		Buffer1D<type> col(a.sizex());
 		
@@ -40,7 +40,7 @@ namespace core
 			for (ui32 i = 0; i < a.sizex(); ++i)
 				col(i) = 0.0;
 			col(j) = 1.0;
-			bool flag = luBackSubstitution<type, mapper>(a, perm, col);
+			bool flag = luBackSubstitution<type, mapper, allocator>(a, perm, col);
 			if (!flag)
 				return false;
 			for (ui32 i = 0; i < a.sizex(); ++i)
@@ -54,10 +54,10 @@ namespace core
     @ingroup core
     @brief Generate an identity matrix of a fixed size.
     */
-   template <class type, class mapper>
-   Matrix<type, mapper> identity( ui32 n )
+   template <class type, class mapper, class allocator>
+   Matrix<type, mapper, allocator> identity( ui32 n )
    {
-      Matrix<type, mapper> id( n, n );
+      Matrix<type, mapper, allocator> id( n, n );
       for (ui32 nn = 0; nn < n; ++nn)
          id( nn, nn ) = 1;
       return id;
@@ -68,10 +68,10 @@ namespace core
     @brief Generate a matrix of a fixed size filled with a constant value.
     @param val the matrix is filled with this value
     */
-   template <class type, class mapper>
+   template <class type, class mapper, class allocator>
    Matrix<type, mapper> null( ui32 ny, ui32 nx, type val = 0 )
    {
-      Matrix<type, mapper> null( ny, nx );
+      Matrix<type, mapper, allocator> null( ny, nx );
       for (ui32 nn = 0; nn < ny * nx; ++nn)
          null( nn ) = val;
       return null;
@@ -81,13 +81,13 @@ namespace core
     @ingroup core
     @brief Transpose a matrix.
     */
-   template <class type, class mapper>
-   void transpose( Matrix<type, mapper>& m )
+   template <class type, class mapper, class allocator>
+   void transpose( Matrix<type, mapper, allocator>& m )
 	{
 		if (m.sizex() == 1 || m.sizey() == 1)
 		{
          m.ref();
-         Matrix<type, mapper> nmat( m, m.sizex(), m.sizey() );
+         Matrix<type, mapper, allocator> nmat( m, m.sizex(), m.sizey() );
          m = nmat;
 			return;
 		}
@@ -97,7 +97,7 @@ namespace core
 					std::swap(m(ny, nx), m(nx, ny));
 		else
 		{
-			Matrix<type, mapper> nn(m.sizex(), m.sizey());
+			Matrix<type, mapper, allocator> nn(m.sizex(), m.sizey());
 			for (ui32 nx = 0; nx < m.sizex(); ++nx)
 				for (ui32 ny = 0; ny < m.sizey(); ++ny)
 					nn(nx, ny) = m(ny, nx);

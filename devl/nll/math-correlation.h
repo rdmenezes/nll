@@ -9,8 +9,8 @@ namespace core
     @ingroup core
     @brief Compute the correlation of 2 vectors.
     */
-   template <class T, class Mapper>
-   double correlation( const Matrix<T, Mapper>& v1, const Matrix<T, Mapper>& v2 )
+   template <class T, class Mapper, class Allocator>
+   double correlation( const Matrix<T, Mapper, Allocator>& v1, const Matrix<T, Mapper, Allocator>& v2 )
    {
       // assert if it is really a vector, with the same dimention
       assert( std::min( v1.sizex(), v1.sizey() ) == 1 );
