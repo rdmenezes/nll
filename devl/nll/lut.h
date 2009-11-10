@@ -196,6 +196,7 @@ namespace imaging
          const __m128 minimumValue = _mm_setzero_ps();
 			const __m128 maximumValue = _mm_set1_ps( static_cast< float >( _mapper.getSize() - 1 ) );
 
+         __declspec(align(16)) int index[ 4 ];
          while ( p < end16 )
          {
             const __m128 rawValue = _mm_load_ps( p ); // load 4 values
@@ -203,28 +204,16 @@ namespace imaging
             const int lowCompMask = _mm_movemask_ps( _mm_cmplt_ps( value, minimumValue ) );
 				const int highCompMask = _mm_movemask_ps( _mm_cmpge_ps( value, maximumValue ) );
             
-            __m64 a = _mm_cvtps_pi32( value );
-				// Access the 32-bit values
-				const int index1 = _mm_cvtsi64_si32( a );
-				const int index2 = _mm_cvtsi64_si32( _mm_srli_si64( a, 32 ) );
+            __m128i floored = _mm_cvtps_epi32( value );
+            _mm_store_si128( (__m128i*)index, floored );
             
-            // Now move the UPPER 2 elements into the lower elements, and repeat from (***)
-				value = _mm_movehl_ps( value, value );
-				a = _mm_cvtps_pi32( value );
-            
-				const int index3 = _mm_cvtsi64_si32( a );
-				const int index4 = _mm_cvtsi64_si32( _mm_srli_si64( a, 32 ) );
-      
-            
-            *output++ = ( lowCompMask & 0x01 ) ? 0 : (highCompMask & 0x1 ) ? _mapper.getSize() : index1;
-            *output++ = ( lowCompMask & 0x02 ) ? 0 : (highCompMask & 0x2 ) ? _mapper.getSize() : index2;
-            *output++ = ( lowCompMask & 0x03 ) ? 0 : (highCompMask & 0x3 ) ? _mapper.getSize() : index3;
-            *output++ = ( lowCompMask & 0x04 ) ? 0 : (highCompMask & 0x4 ) ? _mapper.getSize() : index4;
-
+            *output++ = ( lowCompMask & 0x01 ) ? 0 : (highCompMask & 0x1 ) ? _mapper.getSize() : index[ 0 ];
+           
+            *output++ = ( lowCompMask & 0x02 ) ? 0 : (highCompMask & 0x2 ) ? _mapper.getSize() : index[ 1 ];
+            *output++ = ( lowCompMask & 0x03 ) ? 0 : (highCompMask & 0x3 ) ? _mapper.getSize() : index[ 2 ];
+            *output++ = ( lowCompMask & 0x04 ) ? 0 : (highCompMask & 0x4 ) ? _mapper.getSize() : index[ 3 ];            
             p += 4;
          }
-
-         _mm_empty();
 
          for ( ; p != last; ++p )
          {

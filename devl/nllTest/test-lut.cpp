@@ -92,7 +92,11 @@ public:
       std::cout << "LUT Time with multithreaded SSE=" << t2.getCurrentTime() << std::endl;
 
       for ( unsigned n = 0; n < output.size(); ++n )
+      {
+         if ( output[ n ] != output2[ n ] )
+            std::cout << "error val=" << output[ n ] << " " << output2[ n ] << std::endl;
          TESTER_ASSERT( output[ n ] == output2[ n ] );
+      }
    }
 };
 

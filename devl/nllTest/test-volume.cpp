@@ -1,34 +1,6 @@
 #include "stdafx.h"
 #include <nll/nll.h>
 
-namespace nll
-{
-namespace imaging
-{
-
-#if defined( _MSC_VER ) && !defined( NLL_DISABLE_SSE_SUPPORT )
-   /*
-   // truncate to integer using SSE
-inline long truncateSSE(float x) {
-    __asm cvtss2si eax,x
-}
-
-   inline int float2int(float x) {
-      int i;
-      __asm
-      {
-         fld x
-         fistp i
-      }
-      return i;
-   }
-*/
-   
-#endif
-}
-}
-
-
 class TestVolume
 {
 public:
@@ -259,7 +231,8 @@ public:
       Volume volume;
 
       std::cout << "loadind..." << std::endl;
-      nll::imaging::loadSimpleFlatFile( volname, volume );
+      bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
+      assert( loaded );
 
       std::cout << "loaded" << std::endl;
       Mpr mpr( volume, 512, 512 );
@@ -484,7 +457,7 @@ public:
    void testMpr4()
    {
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
-      typedef nll::imaging::VolumeSpatial<float>           Volume;
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
@@ -619,9 +592,8 @@ public:
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
-/*
  TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
@@ -635,7 +607,6 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testMpr4);
  TESTER_TEST(testMpr5);
  TESTER_TEST(testResampling2d);
- */
  TESTER_TEST(testMpr4);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif
