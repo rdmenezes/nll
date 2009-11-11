@@ -49,7 +49,7 @@ public:
    /**
     @brief constructs an empty buffer.
     */
-   Buffer1D() : _cpt( 0 ), _buffer( 0 ), _size( 0 ), _ownsBuffer( true ){}
+   Buffer1D( Allocator allocator = Allocator() ) : _cpt( 0 ), _buffer( 0 ), _size( 0 ), _ownsBuffer( true ), _allocator( allocator ){}
 
    /**
     @brief copy constructor.
@@ -63,7 +63,7 @@ public:
     @param ownsBuffer if true, the pointer will be used and deleted at the end of life of the object, else it is used
                       but not deleted. Ensure the parameter is valid until Buffer1D is used.
     */
-   Buffer1D( T* buf, ui32 size, bool ownsBuffer ) : _buffer( buf ), _size( size ), _ownsBuffer( ownsBuffer )
+   Buffer1D( T* buf, ui32 size, bool ownsBuffer, Allocator allocator = Allocator() ) : _buffer( buf ), _size( size ), _ownsBuffer( ownsBuffer ), _allocator( allocator )
    {
       _cpt = Allocator::rebind<i32>::other( _allocator ).allocate( 1 );
       *_cpt = 1; //initialRefCount;

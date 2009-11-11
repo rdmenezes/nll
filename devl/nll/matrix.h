@@ -27,8 +27,8 @@ namespace core
    class Matrix : public Buffer1D<T, IndexMapperFlat1D, AllocatorT>
    {
    public:
-      typedef IndexMapper2D                  IndexMapper;
-      typedef Buffer1D<T, IndexMapperFlat1D> Base;
+      typedef IndexMapper2D                              IndexMapper;
+      typedef Buffer1D<T, IndexMapperFlat1D, AllocatorT> Base;
 
       /**
        @brief A matrix iterator. It allows to iterate over all values, columns and lines. It is also able to pick without moving
@@ -140,7 +140,7 @@ namespace core
        @brief build a matrix with a fixed size.
        @param zero if true the memory is set to 0, else undetermined.
        */
-      Matrix( ui32 sizey, ui32 sizex, bool zero = true ) : Base( sizex * sizey, zero ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
+      Matrix( ui32 sizey, ui32 sizex, bool zero = true, Allocator allocator = Allocator() ) : Base( sizex * sizey, zero, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
       {}
 
       /**
@@ -152,14 +152,14 @@ namespace core
       /**
        @brief make an unintialized matrix
        */
-      Matrix() : _sizex( 0 ), _sizey( 0 ), _indexMapper( 0, 0 )
+      Matrix( Allocator allocator = Allocator() ) : Base( allocator ), _sizex( 0 ), _sizey( 0 ), _indexMapper( 0, 0 )
       {}
 
       /**
        @brief make a matrix from a raw memory buffer
        @param ownsBuffer if yes memory will be handled (and destroyed at the end of life of the object). Else ensure buffer is valid until the matrix is alive.
        */
-      Matrix( T* buf, ui32 sizey, ui32 sizex, bool ownsBuffer ) : Base( buf, sizex * sizey, ownsBuffer ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
+      Matrix( T* buf, ui32 sizey, ui32 sizex, bool ownsBuffer, Allocator allocator = Allocator() ) : Base( buf, sizex * sizey, ownsBuffer, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
       {}
 
       /**
