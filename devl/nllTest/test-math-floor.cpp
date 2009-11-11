@@ -27,7 +27,9 @@ struct TestMathFloor
       std::cout << "Time core::floor=" << time1 << std::endl;
       std::cout << "Time std::floor=" << time2 << std::endl;
       TESTER_ASSERT( sum2 == sum ); // check we have the same result!
-      TESTER_ASSERT( time1 <= time2 ); // the assembly one must be faster, else equal if std version is used
+#if defined( _MSC_VER ) && defined( _M_IX86 )
+         TESTER_ASSERT( time1 <= time2 ); // the assembly one must be faster, else equal if std version is used
+#endif
    }
 
    void testTruncateu()
@@ -54,7 +56,10 @@ struct TestMathFloor
       std::cout << "Time core::truncateu=" << time1 << std::endl;
       std::cout << "Time default" << time2 << std::endl;
       TESTER_ASSERT( sum2 == sum ); // check we have the same result!
-      TESTER_ASSERT( time1 <= time2 ); // the assembly one must be faster, else equal if std version is used
+
+#if defined( _MSC_VER ) && defined( _M_IX86 )
+      TESTER_ASSERT( time1 <= time2 ); // else default implementation so useless to test...
+#endif
    }
 
    /*

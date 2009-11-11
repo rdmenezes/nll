@@ -1298,7 +1298,7 @@ public:
       double time2t = t2.getCurrentTime();
       std::cout << "time2=" << t2.getCurrentTime() << std::endl;
       TESTER_ASSERT( m == 42 );
-      TESTER_ASSERT( time2t < time1t );
+      TESTER_ASSERT( time2t < time1t + 0.05 );  // the time taken can vary
    }
 
    void testConstImageIterators()
@@ -1347,7 +1347,7 @@ public:
       double time2t = t2.getCurrentTime();
       std::cout << "constt2=" << t2.getCurrentTime() << std::endl;
       TESTER_ASSERT( m == 42 );
-      TESTER_ASSERT( time2t < time1t );
+      TESTER_ASSERT( time2t < time1t + 0.05 );
    }
 };
 

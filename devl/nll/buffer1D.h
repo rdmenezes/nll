@@ -335,8 +335,8 @@ public:
    /**
     @brief check if the buffers are semantically equal with a fixed tolerance.
     */
-   template <class T2, class IMapper2>
-   inline bool equal( const Buffer1D<T2, IMapper2>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
+   template <class T2, class IMapper2, class Alloc>
+   inline bool equal( const Buffer1D<T2, IMapper2, Alloc>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
    {
       if ( _size != op.size() )
          return false;
