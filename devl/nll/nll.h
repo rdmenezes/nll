@@ -154,6 +154,7 @@
 # include "volume-interpolator.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
+# include "slice-blending.h"
 
 /**
  @defgroup algorithm

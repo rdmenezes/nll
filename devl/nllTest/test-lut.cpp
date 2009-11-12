@@ -2,78 +2,6 @@
 #include <nll/nll.h>
 #include <sstream>
 
-#include <emmintrin.h>
-
-#include <omp.h>
-
-namespace nll
-{
-namespace imaging
-{
-   template <class Lut>
-   struct BlendSliceInfo
-   {
-      typedef core::Image<f32> Slice;
-
-      BlendSliceInfo( Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
-      {}
-
-      Slice                   slice;
-      float                   blendFactor;
-      Lut                     lut;
-   };
-
-
-   /**
-    @ingroup imaging
-    @brief Typically used compose the result of several MPR to create a RGB fused slice
-    @note we assume the input slices have all the same size and output is already allocated
-    */
-   template <class Lut>
-   void blend( const std::vector< BlendSliceInfo<Lut> >& sliceInfos,
-               nll::core::Image<ui8>& out )
-   {
-      typedef core::Image<ui8>                                    OutputSlice;
-      typedef core::Image<ui8>::iterator                          OutputIterator;
-      typedef typename BlendSliceInfo<Lut>::Slice::const_iterator InputIterator;
-
-      if ( !sliceInfos.size() )
-         return;
-      ensure( out.getNbComponents() == 3, "error must be RGB image" );
-      ensure( out.size() == 3 * sliceInfos[ 0 ].slice.size(), "error must be the same size and RGB image" );
-
-      std::vector< InputIterator > inputIterators( sliceInfos.size() );
-      std::vector< core::Image<ui32> > indexes( sliceInfos.size() );
-      for ( size_t n = 0; n < sliceInfos.size(); ++n )
-      {
-         inputIterators[ n ] = sliceInfos[ n ].slice.begin();
-         indexes[ n ] = core::Image<ui32>( sliceInfos[ n ].slice.sizex(), sliceInfos[ n ].slice.sizey(), 1 );
-         sliceInfos[ n ].lut.transformToIndex( sliceInfos[ n ].slice.begin(), sliceInfos[ n ].slice.end(), indexes[ n ].begin() );
-      }
-
-      ui32 p = 0;
-      for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3, ++p )
-      {
-         float vala = 0;
-         float valb = 0;
-         float valc = 0;
-
-         for ( size_t n = 0; n < sliceInfos.size(); ++n )
-         {
-            const ui32 index = indexes[ n ][ p ];
-            const ui8* fi = sliceInfos[ n ].lut[ index ];
-            vala += inputIterators[ n ][ p ] * fi[ 0 ];
-            valb += inputIterators[ n ][ p ] * fi[ 1 ];
-            valc += inputIterators[ n ][ p ] * fi[ 2 ];
-         }
-         oit[ 0 ] = *((ui8*)&vala);
-         oit[ 1 ] = *((ui8*)&vala);
-         oit[ 2 ] = *((ui8*)&vala);
-      }
-   }
-}
-}
-
 // alignment float* alignedArray = (array + 15) & (~0x0F);
 const unsigned size = 2048 * 4;
 
@@ -88,6 +16,7 @@ public:
 
    void testBlending()
    {
+      //nll::core::Configuration::instance().disableSSE();
       typedef nll::imaging::MapperLutColor<nll::ui8>                 ColorMapper;
       typedef nll::imaging::LookUpTransform<nll::ui8, ColorMapper>   Lut;
 
@@ -151,17 +80,7 @@ public:
 
    void testTransformComp()
    {
-      omp_set_nested(1);
-   //   omp_set_dynamic(9);
-    omp_set_num_threads(2);
-
-
       std::cout << "numproc=" << omp_get_nested() << std::endl;
-
-      #pragma omp parallel num_threads(3)
-      { 
-          printf("Hello World\n");
-      }
 
       srand( 0 );
       Lut lut = createLut();
@@ -198,8 +117,8 @@ public:
 
 //#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLut);
-//TESTER_TEST(simpleTest);
-//TESTER_TEST(testTransformComp);
+TESTER_TEST(simpleTest);
+TESTER_TEST(testTransformComp);
 TESTER_TEST(testBlending);
 TESTER_TEST_SUITE_END();
 //#endif

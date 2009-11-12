@@ -134,10 +134,14 @@ namespace imaging
       template <>
       void transformToIndex( float* first, float* last, ui32* output ) const
       {
+         std::cout << "specialized" << std::endl;
          size_t size = last - first;
 
 # ifndef NLL_NOT_MULTITHREADED
-         #pragma omp parallel
+         // finally the multithreaded version doesn't not improve the time performance
+         // usuall it is a very small fraction of time for blending a frame and it costs
+         // more to create the threads and synchronize them
+         //#pragma omp parallel
 # endif
          {
 # ifndef NLL_NOT_MULTITHREADED
@@ -147,6 +151,7 @@ namespace imaging
             ui32* o = output + size * threadNumber / numberOfThreads;
             const float* i = first  + size * threadNumber / numberOfThreads;
             const float* l = first  + size * ( threadNumber + 1 ) / numberOfThreads;
+            std::cout << "thread=" << threadNumber << " size=" << l - i << std::endl;
 
 #  ifdef NLL_DISABLE_SSE_SUPPORT
             transformSingleThreaded( i, l, o );
