@@ -4,8 +4,8 @@
 # include "math.h"
 # include "type-traits.h"
 
-#pragma warning( push )
-#pragma warning( disable:4244 ) // conversion from 'const double' to XXX, possible loss of data
+# pragma warning( push )
+# pragma warning( disable:4244 ) // conversion from 'const double' to XXX, possible loss of data
 
 namespace nll
 {

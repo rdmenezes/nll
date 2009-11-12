@@ -221,7 +221,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="true"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="$(SolutionDir)"
 				PreprocessorDefinitions="WIN32;NLL_EXPORTS"
 				StringPooling="true"
@@ -315,6 +315,8 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
+				EnableFiberSafeOptimizations="true"
+				WholeProgramOptimization="false"
 				AdditionalIncludeDirectories="$(SolutionDir)"
 				PreprocessorDefinitions="WIN32;NLL_EXPORTS"
 				StringPooling="true"
@@ -976,6 +978,10 @@
 			</File>
 			<File
 				RelativePath=".\multiplanar-reconstruction.h"
+				>
+			</File>
+			<File
+				RelativePath=".\slice-blending.h"
 				>
 			</File>
 			<File

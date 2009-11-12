@@ -95,7 +95,6 @@ namespace imaging
        */
       LookUpTransform( const TMapper& mapper, float minIntensity, float maxIntensity ) : _mapper( mapper ), _min( minIntensity ), _max( maxIntensity ), _interval( maxIntensity - minIntensity + 1 )
       {
-         std::cout << "createLut=" << minIntensity << " " << maxIntensity << std::endl;
          ensure( _interval > 0, "must be >0" );
          _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
       }
@@ -106,6 +105,12 @@ namespace imaging
       const T* transform( float value ) const
       {
          return _mapper[ transformToIndex( value ) ];
+      }
+
+      const T* operator[]( ui32 index ) const
+      {
+         ensure( index < _mapper.getSize(), "error out of bound" );
+         return _mapper[ index ];
       }
 
       ui32 transformToIndex( float value ) const
@@ -146,7 +151,7 @@ namespace imaging
 #  ifdef NLL_DISABLE_SSE_SUPPORT
             transformSingleThreaded( i, l, o );
 #   else
-            if ( core::Configuration::instance().isSupportedSSE() )
+            if ( core::Configuration::instance().isSupportedSSE2() )
             {
                const unsigned int rm = _MM_GET_ROUNDING_MODE();
 					_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
@@ -208,7 +213,6 @@ namespace imaging
             _mm_store_si128( (__m128i*)index, floored );
             
             *output++ = ( lowCompMask & 0x01 ) ? 0 : (highCompMask & 0x1 ) ? _mapper.getSize() : index[ 0 ];
-           
             *output++ = ( lowCompMask & 0x02 ) ? 0 : (highCompMask & 0x2 ) ? _mapper.getSize() : index[ 1 ];
             *output++ = ( lowCompMask & 0x03 ) ? 0 : (highCompMask & 0x3 ) ? _mapper.getSize() : index[ 2 ];
             *output++ = ( lowCompMask & 0x04 ) ? 0 : (highCompMask & 0x4 ) ? _mapper.getSize() : index[ 3 ];            

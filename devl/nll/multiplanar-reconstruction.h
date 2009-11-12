@@ -1,6 +1,9 @@
 #ifndef NLL_IMAGING_MULTIPLANAR_RECONSTRUCTION_H_
 # define NLL_IMAGING_MULTIPLANAR_RECONSTRUCTION_H_
 
+# pragma warning( push )
+# pragma warning( disable:4127 ) // conditional expression is constant, this is intended!
+
 namespace nll
 {
 namespace imaging
@@ -47,7 +50,7 @@ namespace imaging
       /**
        @brief set the size of the plane to be reconstructed in voxels
        */
-      Mpr( const VolumeType& volume, f32 sxInVoxels, f32 syInVoxels ) :
+      Mpr( const VolumeType& volume, ui32 sxInVoxels, ui32 syInVoxels ) :
          _volume( volume ), _voxelsx( sxInVoxels ), _voxelsy( syInVoxels )
       {}
 
@@ -82,15 +85,35 @@ namespace imaging
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
-         // set up the interpolator
-         Interpolator interpolator( _volume );
-         interpolator.startInterpolation();
-
          // reconstruct the slice
          core::vector3f index = _volume.positionToIndex ( point );
          float startx = ( index[ 0 ] - ( _voxelsx * dx[ 0 ] / 2 + _voxelsy * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( _voxelsx * dx[ 1 ] / 2 + _voxelsy * dy[ 1 ] / 2 ) );
          float startz = ( index[ 2 ] - ( _voxelsx * dx[ 2 ] / 2 + _voxelsy * dy[ 2 ] / 2 ) );
+
+         // set up the interpolator
+         // if SSE is not supported, use the default interpolator
+         if ( core::Equal<Interpolator, InterpolatorTriLinear< VolumeSpatial<float> > >::value && !core::Configuration::instance().isSupportedSSE2() )
+         {
+            typedef InterpolatorTriLinearDummy< Volume > InterpolatorNoSSE;
+            InterpolatorNoSSE interpolator( _volume );
+            interpolator.startInterpolation();
+            _fill<InterpolatorNoSSE>( startx, starty, startz, dx, dy, interpolator, slice );
+            interpolator.endInterpolation();
+         } else {
+            Interpolator interpolator( _volume );
+            interpolator.startInterpolation();
+            _fill<Interpolator>( startx, starty, startz, dx, dy, interpolator, slice );
+            interpolator.endInterpolation();
+         }
+
+         return slice;
+      }
+
+   protected:
+      template <class Interpolator>
+      void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
+      {
          for ( ui32 y = 0; y < _voxelsy; ++y )
          {
             float px = startx;
@@ -108,20 +131,18 @@ namespace imaging
             starty += dy[ 1 ];
             startz += dy[ 2 ];
          }
-
-         interpolator.endInterpolation();
-         return slice;
       }
 
-   protected:
       Mpr& operator=( const Mpr& );
 
    protected:
       const VolumeType& _volume;
-      float             _voxelsx;
-      float             _voxelsy;
+      ui32              _voxelsx;
+      ui32              _voxelsy;
    };
 }
 }
+
+# pragma warning( pop )
 
 #endif
