@@ -51,6 +51,11 @@ namespace imaging
       }
 
       ui32 p = 0;
+      __declspec(align(16)) int result[ 4 ];
+      __declspec(align(16)) float tmpVal[ 4 ] =
+      {
+         0, 0, 0, 0
+      };
       for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3, ++p )
       {
          __m128 val = _mm_setzero_ps();
@@ -60,10 +65,10 @@ namespace imaging
             const ui32 index = indexes[ n ][ p ];
             const ui8* fi = sliceInfos[ n ].lut[ index ];
 
-            __declspec(align(16)) float tmpVal[ 4 ] =
-            {
-               fi[ 0 ], fi[ 1 ], fi[ 2 ], 0
-            };
+            tmpVal[ 0 ] = fi[ 0 ];
+            tmpVal[ 1 ] = fi[ 1 ];
+            tmpVal[ 2 ] = fi[ 2 ];
+
             __m128 lutValue = _mm_load_ps( tmpVal );
             __m128 inputValue = _mm_set_ps1( inputIterators[ n ][ p ] );
 
@@ -72,7 +77,6 @@ namespace imaging
          }
 
          __m128i truncated = _mm_cvttps_epi32( val );
-         __declspec(align(16)) int result[ 4 ];
          _mm_store_si128( (__m128i*)result, truncated );
 
          oit[ 0 ] = static_cast<ui8>( result[ 0 ] );
@@ -141,7 +145,7 @@ namespace imaging
       else
          blendDummy<Lut>( sliceInfos, out );
 #  else
-      blenDummy<Lut>( sliceInfos, out );
+      blendDummy<Lut>( sliceInfos, out );
 # endif
    }
    

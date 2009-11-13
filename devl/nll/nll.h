@@ -141,6 +141,7 @@
 # include "utility.h"
 # include "timer.h"
 # include "sequence-converter.h"
+# include "allocator-aligned.h"
 
 /**
  @defgroup imaging

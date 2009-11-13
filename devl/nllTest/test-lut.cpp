@@ -22,10 +22,11 @@ public:
 
       ColorMapper mapper( 256, 3 );
       Lut lut( mapper, 10, 100 );
-      const nll::ui32 size = 1024;
-      nll::core::Image<float> t1( size, size, 1 );
-      nll::core::Image<float> t2( size, size, 1 );
-      nll::core::Image<nll::ui8> out( size, size, 3 );
+      const nll::ui32 sizex = 512;
+      const nll::ui32 sizey = 1024;
+      nll::core::Image<float> t1( sizex, sizey, 1 );
+      nll::core::Image<float> t2( sizex, sizey, 1 );
+      nll::core::Image<nll::ui8> out( sizex, sizey, 3 );
 
       std::vector< nll::imaging::BlendSliceInfo<Lut> > infos;
       infos.push_back( nll::imaging::BlendSliceInfo<Lut>( t1, 0.5, lut ) );
@@ -117,8 +118,8 @@ public:
 
 //#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLut);
-TESTER_TEST(simpleTest);
-TESTER_TEST(testTransformComp);
+//TESTER_TEST(simpleTest);
+//TESTER_TEST(testTransformComp);
 TESTER_TEST(testBlending);
 TESTER_TEST_SUITE_END();
 //#endif
