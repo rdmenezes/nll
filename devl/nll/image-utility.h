@@ -29,14 +29,14 @@ namespace core
     @ingroup core
     @brief extract a specified channel of an image.
     */
-   template <class type, class mapper>
-	inline Image<type, mapper> extractChannel(const Image<type, mapper>& img, ui32 channel)
+   template <class type, class mapper, class allocator>
+	inline Image<type, mapper, allocator> extractChannel(const Image<type, mapper, allocator>& img, ui32 channel)
 	{
 		assert(channel < img.getNbComponents());
 		assert(img.getBuf());
 		if (!img.getBuf())
-			return Image<type, mapper>();
-		Image<type, mapper> i(img.sizex(), img.sizey(), 1);
+			return Image<type, mapper, allocator>();
+		Image<type, mapper, allocator> i(img.sizex(), img.sizey(), 1, false, img.getAllocator());
 		for (ui32 ny = 0; ny < img.sizey(); ++ny)
 			for (ui32 nx = 0; nx < img.sizex(); ++nx)
 				i(nx, ny, 0) = img(nx, ny, channel);
@@ -47,12 +47,12 @@ namespace core
     @ingroup core
     @brief return a greyscale image of 1 component of an image.
     */
-   template <class type, class mapper>
-	inline void decolor(Image<type, mapper>& img)
+   template <class type, class mapper, class allocator>
+	inline void decolor(Image<type, mapper, allocator>& img)
 	{
 		if (img.getNbComponents() > 1 && img.getBuf())
 		{
-			Image<type, mapper> tmp(img.sizex(), img.sizey(), 1, false);
+			Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), 1, false, img.getAllocator());
 			for (ui32 y = 0; y < img.sizey(); ++y)
 				for (ui32 x = 0; x < img.sizex(); ++x)
 				{
@@ -72,12 +72,12 @@ namespace core
 
     Replicate the value of the pixel for each component.
     */
-	template <class type, class mapper>
-	inline void extend(Image<type, mapper>& img, ui32 nbc)
+	template <class type, class mapper, class allocator>
+	inline void extend(Image<type, mapper, allocator>& img, ui32 nbc)
 	{
 		assert(img.getNbComponents() == 1); // "error: only 1 comp handled"
 	
-		Image<type, mapper> tmp(img.sizex(), img.sizey(), nbc, false);
+		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), nbc, false, img.getAllocator());
 		for (ui32 y = 0; y < img.sizey(); ++y)
 			for (ui32 x = 0; x < img.sizex(); ++x)
 			{
@@ -94,10 +94,10 @@ namespace core
     @ingroup core
     @brief add a specified border (in pixels) of an image.
     */
-   template <class type, class mapper>
-	inline void addBorder(Image<type, mapper>& image, ui32 borderx, ui32 bordery)
+   template <class type, class mapper, class allocator>
+	inline void addBorder(Image<type, mapper, allocator>& image, ui32 borderx, ui32 bordery)
 	{
-		Image<type, mapper> tmp(image.sizex() + borderx * 2, image.sizey() + bordery * 2, image.getNbComponents());
+		Image<type, mapper, allocator> tmp(image.sizex() + borderx * 2, image.sizey() + bordery * 2, image.getNbComponents(), true, image.getAllocator());
 		for (ui32 y = 0; y < image.sizey(); ++y)
 			for (ui32 x = 0; x < image.sizex(); ++x)
 			{
@@ -114,10 +114,10 @@ namespace core
     @ingroup core
     @brief remove a specified border (in pixels) of an image.
     */
-	template <class type, class mapper>
-	inline void subBorder(Image<type, mapper>& image, ui32 borderx, ui32 bordery)
+	template <class type, class mapper, class allocator>
+	inline void subBorder(Image<type, mapper, allocator>& image, ui32 borderx, ui32 bordery)
 	{
-		Image<type, mapper> tmp(image.sizex() - borderx * 2, image.sizey() - bordery * 2, image.getNbComponents(), false);
+		Image<type, mapper, allocator> tmp(image.sizex() - borderx * 2, image.sizey() - bordery * 2, image.getNbComponents(), false, image.getAllocator());
 		for (ui32 y = 0; y < tmp.sizey(); ++y)
 			for (ui32 x = 0; x < tmp.sizex(); ++x)
 			{
@@ -133,8 +133,8 @@ namespace core
     @ingroup core
     @brief invert the components of an image.
     */
-	template <class type, class mapper>
-	inline void changeRGBtoBGR(Image<type, mapper>& image)
+	template <class type, class mapper, class allocator>
+	inline void changeRGBtoBGR(Image<type, mapper, allocator>& image)
 	{
 		for (ui32 y = 0; y < image.sizey(); ++y)
 			for (ui32 x = 0; x < image.sizex(); ++x)
@@ -149,8 +149,8 @@ namespace core
     @ingroup core
     @brief y-inverse an image.
     */
-	template <class type, class mapper>
-	inline void inversey(Image<type, mapper>& image)
+	template <class type, class mapper, class allocator>
+	inline void inversey(Image<type, mapper, allocator>& image)
 	{
 		for (ui32 y = 0; y < image.sizey() / 2; ++y)
 			for (ui32 x = 0; x < image.sizex(); ++x)
@@ -166,12 +166,12 @@ namespace core
     @ingroup core
     @brief extract a subpart of an image.
     */
-	template <class type, class mapper>
-	inline void extract(Image<type, mapper>& img, ui32 x1, ui32 y1, ui32 x2, ui32 y2)
+	template <class type, class mapper, class allocator>
+	inline void extract(Image<type, mapper, allocator>& img, ui32 x1, ui32 y1, ui32 x2, ui32 y2)
 	{
 		assert(x1 <= x2 && x2 < img.sizex() &&
 			    y1 <= y2 && y2 < img.sizey());
-		Image<type, mapper> i(x2 - x1 + 1, y2 - y1 + 1, img.getNbComponents(), false);
+		Image<type, mapper, allocator> i(x2 - x1 + 1, y2 - y1 + 1, img.getNbComponents(), false, img.getAllocator());
 		for (ui32 x = x1; x <= x2; ++x)
 			for (ui32 y = y1; y <= y2; ++y)
 				for (ui32 c = 0; c < img.getNbComponents(); ++c)
@@ -188,8 +188,8 @@ namespace core
     @param p1x export the first left cropped point
     @param p2x export the first right cropped point
     */
-	template <class type, class mapper>
-	void cropVertical(Image<type, mapper>& img, f32 noiseRatio, f32 threshold = 15, ui32* p1x = 0, ui32* p2x = 0)
+	template <class type, class mapper, class allocator>
+	void cropVertical(Image<type, mapper, allocator>& img, f32 noiseRatio, f32 threshold = 15, ui32* p1x = 0, ui32* p2x = 0)
 	{
 		if (p1x)
 			*p1x = 0;
@@ -250,7 +250,7 @@ namespace core
 			*p2x = x2;
 
 		// crop the image
-		Image<type, mapper> result(x2 - x1 + 1, img.sizey(), img.getNbComponents(), false);
+		Image<type, mapper, allocator> result(x2 - x1 + 1, img.sizey(), img.getNbComponents(), false, img.getAllocator());
 		for (i32 x = x1; x <= x2; ++x)
 			for (ui32 y = 0; y < img.sizey(); ++y)
 				for (ui32 c = 0; c < img.getNbComponents(); ++c)
@@ -263,8 +263,8 @@ namespace core
     @ingroup core
     @brief replace a specific color by another one.
     */
-	template <class type, class mapper>
-	void replaceColor(Image<type, mapper>& img, const type* col, const type* newcol)
+	template <class type, class mapper, class allocator>
+	void replaceColor(Image<type, mapper, allocator>& img, const type* col, const type* newcol)
 	{
 		if (!img.getBuf() || !img.sizex() || !img.sizey())
 			return;
@@ -284,8 +284,8 @@ namespace core
     @ingroup core
     @brief crop an image and return the cropped area.
     */
-	template <class type, class mapper>
-	void crop(Image<type, mapper>& img, const type* background, ui32& outx1, ui32& outy1, ui32& outx2, ui32& outy2)
+	template <class type, class mapper, class allocator>
+	void crop(Image<type, mapper, allocator>& img, const type* background, ui32& outx1, ui32& outy1, ui32& outx2, ui32& outy2)
 	{
 		if (!img.getBuf() || !img.sizex() || !img.sizey())
 			return;
@@ -322,8 +322,8 @@ namespace core
     @ingroup core
     @brief resacle an image with no interpolation.
     */
-	template <class type, class mapper>
-	void scale(Image<type, mapper>& img, f32 scalex, f32 scaley)
+	template <class type, class mapper, class allocator>
+	void scale(Image<type, mapper, allocator>& img, f32 scalex, f32 scaley)
 	{
 		if (!(scalex > 0 && scaley > 0 && img.getBuf()))
 			return;
@@ -331,7 +331,7 @@ namespace core
 		ui32 newy = (ui32)(scaley * img.sizey());
 		ui32 colorbyte = img.getNbComponents();
 
-		Image<type, mapper> scaled(newx, newy, colorbyte);
+		Image<type, mapper, allocator> scaled(newx, newy, colorbyte, true, img.getAllocator());
 		
 		f32 dx = 1 / scalex;
 		f32 dy = 1 / scaley;

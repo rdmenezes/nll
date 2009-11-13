@@ -8,7 +8,7 @@ namespace core
    /**
     @ingroup core
     @brief Provide a 16 byte aligned memory allocator
-    @note T must be a basic type only
+    @note T must be a basic type only as malloc/free is used (thus object no constructed)
     */
    template <class T>
    class Allocator16ByteAligned

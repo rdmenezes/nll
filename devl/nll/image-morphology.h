@@ -49,10 +49,10 @@ namespace core
     @ingroup core
     @brief greyscale morphology operation.
     */
-   template <class T, class Mapper>
-   void dilate( Image<T, Mapper>& i )
+   template <class T, class Mapper, class Allocator>
+   void dilate( Image<T, Mapper, Allocator>& i )
    {
-      Image<T, Mapper> ni( i.sizex(), i.sizey(), i.getNbComponents(), true );
+      Image<T, Mapper, Allocator> ni( i.sizex(), i.sizey(), i.getNbComponents(), true, i.getAllocator() );
       for ( ui32 c = 0; c < i.getNbComponents(); ++c )
          for ( ui32 ny = 1; ny + 1 < i.sizey(); ++ny )
             for ( ui32 nx = 1; nx + 1 < i.sizex(); ++nx )
@@ -75,10 +75,10 @@ namespace core
     @ingroup core
     @brief greyscale morphology operation.
     */
-   template <class T, class Mapper>
-   void erode( Image<T, Mapper>& i )
+   template <class T, class Mapper, class Allocator>
+   void erode( Image<T, Mapper, Allocator>& i )
    {
-      Image<T, Mapper> ni( i.sizex(), i.sizey(), i.getNbComponents(), true );
+      Image<T, Mapper, Allocator> ni( i.sizex(), i.sizey(), i.getNbComponents(), true, i.getAllocator() );
       for ( ui32 c = 0; c < i.getNbComponents(); ++c )
          for ( ui32 ny = 1; ny + 1 < i.sizey(); ++ny )
             for ( ui32 nx = 1; nx + 1 < i.sizex(); ++nx )
@@ -101,8 +101,8 @@ namespace core
     @ingroup core
     @brief morphology operation (greyscale or binary)
     */
-   template <class T, class Mapper>
-   inline void opening( Image<T, Mapper>& m, ui32 size )
+   template <class T, class Mapper, class Allocator>
+   inline void opening( Image<T, Mapper, Allocator>& m, ui32 size )
    {
       for ( ui32 n = 0; n < size; ++n )
          erode( m );
@@ -114,8 +114,8 @@ namespace core
     @ingroup core
     @brief morphology operation (greyscale or binary)
     */
-   template <class T, class Mapper>
-   inline void closing( Image<T, Mapper>& m, ui32 size )
+   template <class T, class Mapper, class Allocator>
+   inline void closing( Image<T, Mapper, Allocator>& m, ui32 size )
    {
       for ( ui32 n = 0; n < size; ++n )
          dilate( m );

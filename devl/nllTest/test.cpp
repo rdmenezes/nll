@@ -952,7 +952,7 @@ public:
       i.setPixel(1, 0, white);
       i.setPixel(0, 1, white);
       i.setPixel(1, 1, white);
-      nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper> linearInterpolator( i );
+      nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator> linearInterpolator( i );
       double v1 = linearInterpolator.interpolate(0.5, 0.5, 0);
       TESTER_ASSERT( nll::core::equal(v1, 255.0) );
 
@@ -960,14 +960,16 @@ public:
       nll::core::Image<nll::ui8> i2(NLL_TEST_PATH "data/image/test-image3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i2, 128, 128);
       nll::core::writeBmp(i2, NLL_TEST_PATH "data/rescale-interp1.bmp");
 
       nll::core::Image<nll::ui8> i3(NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i3, 32, 32);
       nll::core::writeBmp(i3, NLL_TEST_PATH "data/rescale-interp2.bmp");
       
@@ -985,12 +987,14 @@ public:
       i5.clone(i4);
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i4, 128, 128);
       nll::core::writeBmp(i4, NLL_TEST_PATH "data/rescale-interp3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorNearestNeighbor2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorNearestNeighbor2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i5, 128, 128);
       nll::core::writeBmp(i5, NLL_TEST_PATH "data/rescale-interp4.bmp");
 

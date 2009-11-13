@@ -123,8 +123,8 @@ namespace core
     return the distance transform of a greyscale image using a norm-2 metric. The complexity ofthe algorithm
            is O(n*2), n the number of pixels.
     */
-   template <class T, class Mapper>
-   Image<double, Mapper> distanceTransform( class Image<T, Mapper>& i )
+   template <class T, class Mapper, class Allocator>
+   Image<double, Mapper> distanceTransform( class Image<T, Mapper, Allocator>& i )
    {
       ensure( i.getNbComponents() == 1, "only greyscale image handled" );
       Image<double, Mapper> buf1( i.sizex(), i.sizey(), 1, false );

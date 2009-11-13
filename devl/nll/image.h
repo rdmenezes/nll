@@ -10,10 +10,10 @@ namespace nll
 {
 namespace core
 {
-   template <class T, class Mapper> class Image;
+   template <class T, class Mapper, class Alloc> class Image;
 
    // forward declaration
-   template <class T, class Mapper> bool readBmp( Image<T, Mapper>& out_i, const std::string& file );
+   template <class T, class Mapper, class Alloc> bool readBmp( Image<T, Mapper, Alloc>& out_i, const std::string& file, Alloc alloc );
 
    /**
     @ingroup core
@@ -25,13 +25,9 @@ namespace core
             are continuous). This assumption is used in several algorithms...
            -addx, addy, addz to compute a new position from a previous position (but less expensive in computation time)
            The mapper is used to define how the memory-pixels are mapped.
-
-     @note for resampled images, it is important to note that the pixel center is
-           the top-left corner of the pixel and not the center of the voxel which can
-           produce strange results if not aware of!
     */
-   template <class T, class Mapper = IndexMapperRowMajorFlat2DColorRGBn>
-   class Image : public Buffer1D<T, IndexMapperFlat1D>
+   template <class T, class Mapper = IndexMapperRowMajorFlat2DColorRGBn, class Alloc = std::allocator<T> >
+   class Image : public Buffer1D<T, IndexMapperFlat1D, Alloc>
    {
    public:
       typedef Mapper                         IndexMapper;
@@ -261,20 +257,20 @@ namespace core
       };
 
    protected:
-      typedef Buffer1D<T, IndexMapperFlat1D> Base;
+      typedef Buffer1D<T, IndexMapperFlat1D, Alloc> Base;
 
    public:
       /**
        @brief construct an image of a specific size.
        @param zero if false, the buffer is not initialized
        */
-      Image( ui32 sizex, ui32 sizey, ui32 nbComponents, bool zero = true ) : Base( sizex * sizey * nbComponents, zero), _mapper( sizex, sizey, nbComponents ), _sizex( sizex ), _sizey( sizey ), _nbcomp( nbComponents )
+      Image( ui32 sizex, ui32 sizey, ui32 nbComponents, bool zero = true, Alloc alloc = Alloc() ) : Base( sizex * sizey * nbComponents, zero, alloc ), _mapper( sizex, sizey, nbComponents ), _sizex( sizex ), _sizey( sizey ), _nbcomp( nbComponents )
       {}
 
       /**
        @brief construct an empty image
        */
-      Image() : _sizex( 0 ), _sizey( 0 ), _mapper( 0, 0, 0 ), _nbcomp( 0 )
+      Image( Alloc alloc = Alloc() ) : _sizex( 0 ), _sizey( 0 ), _mapper( 0, 0, 0 ), _nbcomp( 0 ), Base( alloc )
       {}
 
       /**
@@ -289,9 +285,9 @@ namespace core
        @brief load a BMP image from a file
        @todo when several formats, add a dispatcher for good format
        */
-      Image( const std::string& file ) : _sizex( 0 ), _sizey( 0 ), _mapper( 0, 0, 0 ), _nbcomp( 0 )
+      Image( const std::string& file, Alloc alloc = Alloc() ) : _sizex( 0 ), _sizey( 0 ), _mapper( 0, 0, 0 ), _nbcomp( 0 )
       {
-         nll::core::readBmp( *this, file );
+         nll::core::readBmp( *this, file, alloc );
       }
 
       /**
@@ -366,7 +362,7 @@ namespace core
       /**
        @brief copy an image (not shared)
        */
-      Image& operator=(const Image& i)
+      Image& operator=( const Image& i )
       {
          copy( i );
          return *this;
@@ -385,7 +381,7 @@ namespace core
       /**
        @brief clone an image
        */
-      void clone(const Image& i)
+      void clone( const Image& i )
       {
          dynamic_cast<Base*>(this)->clone( i );
          _mapper = i._mapper;
@@ -397,7 +393,7 @@ namespace core
       /**
        @brief copy an image (buffer are shared)
        */
-      void copy(const Image& i)
+      void copy( const Image& i )
       {
          dynamic_cast<Base*>(this)->copy( i );
          _mapper = i._mapper;

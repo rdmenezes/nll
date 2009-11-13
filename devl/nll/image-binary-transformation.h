@@ -80,13 +80,13 @@ namespace core
     @brief Transform the image with a defined operation
     @sa BinaryMin, BinaryMax, BinaryAdd, BinarySub.
     */
-   template <class type, class mapper, class Transformation>
-	Image<type, mapper> transform(const Image<type, mapper>& img1, const Image<type, mapper>& img2, const Transformation& transf)
+   template <class type, class mapper, class allocator, class Transformation>
+	Image<type, mapper, allocator> transform(const Image<type, mapper, allocator>& img1, const Image<type, mapper, allocator>& img2, const Transformation& transf, allocator alloc = allocator())
 	{
       assert( img1.sizex() == img2.sizex() );
       assert( img1.sizey() == img2.sizey() );
       assert( img1.getNbComponents() == img2.getNbComponents() );
-		Image<type, mapper> tmp( img1.sizex(), img1.sizey(), img1.getNbComponents(), false );
+		Image<type, mapper, allocator> tmp( img1.sizex(), img1.sizey(), img1.getNbComponents(), false, alloc );
 		for ( ui32 y = 0; y < img1.sizey(); ++y )
 			for ( ui32 x = 0; x < img1.sizex(); ++x )
 			{

@@ -107,7 +107,7 @@ public:
    /**
     @return the allocator used by this object
     */
-   Allocator& getAllocator()
+   Allocator getAllocator() const
    {
       return _allocator;
    }

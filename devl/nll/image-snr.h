@@ -11,8 +11,8 @@ namespace core
 
     @param signalDynamic max possible value of the pixel (char=256...)
     */
-   template <class T, class Mapper>
-   double psnr( const Image<T, Mapper>& orig, const Image<T, Mapper>& reconstructed, const T signalDynamic = Bound<T>::max )
+   template <class T, class Mapper, class Allocator>
+   double psnr( const Image<T, Mapper, Allocator>& orig, const Image<T, Mapper, Allocator>& reconstructed, const T signalDynamic = Bound<T>::max )
    {
       assert( orig.sizex() == reconstructed.sizex() );
       assert( orig.sizey() == reconstructed.sizey() );

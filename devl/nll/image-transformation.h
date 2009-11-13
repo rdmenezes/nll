@@ -93,10 +93,10 @@ namespace core
     @ingroup core
     @brief Define the transformation operation. No interpolation is done.
     */
-	template <class type, class mapper, class Transformation>
-	void transformUnaryFast(Image<type, mapper>& img, const Transformation& transf, const type* background = Image<type, mapper>::black())
+	template <class type, class mapper, class Transformation, class allocator>
+	void transformUnaryFast(Image<type, mapper, allocator>& img, const Transformation& transf, const type* background = Image<type, mapper, allocator>::black(), allocator alloc = allocator() )
 	{
-		Image<type, mapper> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false);
+		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false, alloc);
 		for (ui32 y = 0; y < img.sizey(); ++y)
 			for (ui32 x = 0; x < img.sizex(); ++x)
 			{
@@ -123,10 +123,10 @@ namespace core
     @ingroup core
     @brief Define the transformation operation. Interpolation is done.
     */
-   template <class type, class mapper, class Transformation, class Interpolator>
-	void transformUnary(Image<type, mapper>& img, const Transformation& transf, const type* background = Image<type, mapper>::black())
+   template <class type, class mapper, class Transformation, class Interpolator, class allocator>
+	void transformUnary(Image<type, mapper, allocator>& img, const Transformation& transf, const type* background = Image<type, mapper, allocator>::black(), allocator alloc = allocator())
 	{
-		Image<type, mapper> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false);
+		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false, alloc);
       Interpolator interpolator( img );
 		for (ui32 y = 0; y < img.sizey(); ++y)
 			for (ui32 x = 0; x < img.sizex(); ++x)
@@ -152,20 +152,20 @@ namespace core
     @ingroup core
     @brief Define the transformation operation using a bilinear interpolation
     */
-   template <class type, class mapper, class Transformation>
-	inline void transformUnaryBilinear(Image<type, mapper>& img, const Transformation& transf, const type* background = Image<type, mapper>::black())
+   template <class type, class mapper, class Transformation, class allocator>
+	inline void transformUnaryBilinear(Image<type, mapper, allocator>& img, const Transformation& transf, const type* background = Image<type, mapper, allocator>::black(), allocator alloc = allocator())
    {
-      transformUnary<type, mapper, Transformation, InterpolatorLinear2D<type, mapper> >( img, transf, background );
+      transformUnary<type, mapper, Transformation, InterpolatorLinear2D<type, mapper, allocator> >( img, transf, background, alloc );
    }
 
    /**
     @ingroup core
     @brief Define the transformation operation using a nearest neighbor interpolation.
     */
-   template <class type, class mapper, class Transformation>
-	inline void transformUnaryNearestNeighbor(Image<type, mapper>& img, const Transformation& transf, const type* background = Image<type, mapper>::black())
+   template <class type, class mapper, class Transformation, class allocator>
+	inline void transformUnaryNearestNeighbor(Image<type, mapper, allocator>& img, const Transformation& transf, const type* background = Image<type, mapper, allocator>::black(), allocator alloc = allocator())
    {
-      transformUnary<type, mapper, Transformation, InterpolatorNearestNeighbor2D<type, mapper> >( img, transf, background );
+      transformUnary<type, mapper, Transformation, InterpolatorNearestNeighbor2D<type, mapper, allocator> >( img, transf, background, alloc );
    }
    
 }

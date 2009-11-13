@@ -448,7 +448,7 @@ public:
       const unsigned factor = 64;
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>
                         >(i4, 4 * factor, 4 * factor);
       nll::core::extend( i4, 3 );
       nll::core::writeBmp( i4, NLL_TEST_PATH "data/mresampl.bmp" );

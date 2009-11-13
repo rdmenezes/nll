@@ -20,11 +20,11 @@ namespace core
     for this particluar case: it is used statically, so a specific optimization
     will be used to avoid the virtual calls.
    */
-   template <class T, class Mapper>
+   template <class T, class Mapper, class Alloc>
    class Interpolator2D
    {
    public:
-      typedef Image<T, Mapper>   TImage;
+      typedef Image<T, Mapper, Alloc>   TImage;
 
       /**
        @brief wrap the image in an interpolator
@@ -64,11 +64,11 @@ namespace core
     @ingroup core
     @brief 2D bilinear interpolation of an image. (0, 0) points to the center of the top left pixel
     */
-   template <class T, class Mapper>
-   class InterpolatorLinear2D : public Interpolator2D<T, Mapper>
+   template <class T, class Mapper, class Alloc>
+   class InterpolatorLinear2D : public Interpolator2D<T, Mapper, Alloc>
    {
    public:
-      typedef Interpolator2D<T, Mapper>   Base;
+      typedef Interpolator2D<T, Mapper, Alloc>   Base;
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
       double interpolate( double x, double y, ui32 c ) const
       {
@@ -117,11 +117,11 @@ namespace core
     @ingroup core
     @brief 2D nearest neighbor interpolation of an image
     */
-   template <class T, class Mapper>
-   class InterpolatorNearestNeighbor2D : public Interpolator2D<T, Mapper>
+   template <class T, class Mapper, class Alloc>
+   class InterpolatorNearestNeighbor2D : public Interpolator2D<T, Mapper, Alloc>
    {
    public:
-      typedef Interpolator2D<T, Mapper>   Base;
+      typedef Interpolator2D<T, Mapper, Alloc>   Base;
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
       inline double interpolate( double x, double y, ui32 c ) const
       {
@@ -139,11 +139,11 @@ namespace core
     @brief 2D cubic spline interpolation of an image
     @todo implement
     */
-   template <class T, class Mapper>
-   class InterpolatorCubic2D : public Interpolator2D<T, Mapper>
+   template <class T, class Mapper, class Alloc>
+   class InterpolatorCubic2D : public Interpolator2D<T, Mapper, Alloc>
    {
    public:
-      typedef Interpolator2D<T, Mapper>   Base;
+      typedef Interpolator2D<T, Mapper, Alloc>   Base;
       InterpolatorCubic2D( const typename Base::TImage& i ) : Base( i ){}
       double interpolate( const double x, const double y, const ui32 c ) const
       {

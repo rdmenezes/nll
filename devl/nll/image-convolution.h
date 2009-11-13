@@ -40,13 +40,13 @@ namespace core
     @ingroup core
     @brief convolve an image
    */
-	template <class type, class mapper, class Convolution>
-	void convolve(Image<type, mapper>& img, const Convolution& convolution)
+	template <class type, class mapper, class allocator, class Convolution>
+	void convolve(Image<type, mapper, allocator>& img, const Convolution& convolution)
 	{
 		i32 midx = convolution.sizex() / 2;
 		i32 midy = convolution.sizey() / 2;
 	
-		Image<type, mapper> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false);
+		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false, img.getAllocator());
 
 		for (ui32 y = midy; y < img.sizey() - midy; ++y)
 			for (ui32 x = midx; x < img.sizex() - midx; ++x)
@@ -70,8 +70,8 @@ namespace core
     @ingroup core
     @brief convolve an image adding a null border of the size of the convolution
    */
-	template <class type, class mapper, class Convolution>
-	void convolveBorder(Image<type, mapper>& img, const Convolution& convolution)
+	template <class type, class mapper, class allocator, class Convolution>
+	void convolveBorder(Image<type, mapper, allocator>& img, const Convolution& convolution)
 	{
 		addBorder(img, convolution.sizex(), convolution.sizey());
 		convolve(img, convolution);

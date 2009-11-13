@@ -11,12 +11,12 @@ namespace core
 
     @param Interpolator interpolator used for resampling
     */
-   template <class T, class IMapper, class Interpolator>
-   void rescale( Image<T, IMapper>& img, ui32 newSizeX, ui32 newSizeY )
+   template <class T, class IMapper, class Interpolator, class Allocator>
+   void rescale( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
    {
       f64 dxsize = static_cast<f64> ( img.sizex() - 0 ) / newSizeX;
 		f64 dysize = static_cast<f64> ( img.sizey() - 0 ) / newSizeY;
-      Image<T, IMapper> i( newSizeX, newSizeY, img.getNbComponents() );
+      Image<T, IMapper, Allocator> i( newSizeX, newSizeY, img.getNbComponents(), false, alloc );
 
       Interpolator interpolator( img );
 	   for ( ui32 y = 0; y < newSizeY; ++y )
@@ -32,20 +32,20 @@ namespace core
     @ingroup core
     @brief resample an image using a bilinear interpolation.
     */
-   template <class T, class IMapper>
-   inline void rescaleBilinear( Image<T, IMapper>& img, ui32 newSizeX, ui32 newSizeY )
+   template <class T, class IMapper, class Allocator>
+   inline void rescaleBilinear( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
    {
-      rescale<T, IMapper, InterpolatorLinear2D<T, IMapper> >( img, newSizeX, newSizeY );
+      rescale<T, IMapper, InterpolatorLinear2D<T, IMapper, Allocator>, Allocator>( img, newSizeX, newSizeY, alloc );
    }
 
    /**
     @ingroup core
     @brief resample an image using a nearest neighbor interpolation.
     */
-   template <class T, class IMapper>
-   inline void rescaleNearestNeighbor( Image<T, IMapper>& img, ui32 newSizeX, ui32 newSizeY )
+   template <class T, class IMapper, class Allocator>
+   inline void rescaleNearestNeighbor( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
    {
-      rescale<T, IMapper, InterpolatorNearestNeighbor2D<T, IMapper> >( img, newSizeX, newSizeY );
+      rescale<T, IMapper, InterpolatorNearestNeighbor2D<T, IMapper, Allocator>, Allocator>( img, newSizeX, newSizeY, alloc );
    }
 
    /**
@@ -55,10 +55,10 @@ namespace core
     
     The resampled image is the mean of all pixels in a specific cell of this grid.
     */
-   template <class T, class IMapper>
-   void rescaleFast( Image<T, IMapper>& img, ui32 newSizeX, ui32 newSizeY )
+   template <class T, class IMapper, class Allocator>
+   void rescaleFast( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
    {
-      Image<T, IMapper> i( newSizeX, newSizeY, img.getNbComponents() );
+      Image<T, IMapper, Allocator> i( newSizeX, newSizeY, img.getNbComponents(), false, alloc );
 		f64 dxsize = static_cast<f64> ( img.sizex() ) / newSizeX;
 		f64 dysize = static_cast<f64> ( img.sizey() ) / newSizeY;
 

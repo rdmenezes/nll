@@ -17,8 +17,8 @@ namespace core
     
     If the pixel (x, y) is different from(0, 0, ...) then mask(x, y)=true
     */
-   template <class T, class Mapper>
-   ImageMask createMask( const Image<T, Mapper>& i )
+   template <class T, class Mapper, class Allocator>
+   ImageMask createMask( const Image<T, Mapper, Allocator>& i )
    {
       ImageMask mask( i.sizex(), i.sizey(), 1, false );
       for ( ui32 ny = 0; ny < i.sizey(); ++ny )
@@ -42,11 +42,11 @@ namespace core
     
     If mask(x, y) then the pixel (x, y) has the same value than the original, else replaced by backrgound
     */
-   template <class T, class Mapper>
-   Image<T, Mapper> extract( const Image<T, Mapper>& img, const ImageMask& mask, const T* background = Image<T, Mapper>::black() )
+   template <class T, class Mapper, class Allocator>
+   Image<T, Mapper, Allocator> extract( const Image<T, Mapper, Allocator>& img, const ImageMask& mask, const T* background = Image<T, Mapper>::black(), Allocator alloc = Allocator() )
    {
       assert( mask.getNbComponents() == 1 && img.sizex() == mask.sizex() && img.sizey() == mask.sizey() );
-      Image<T, Mapper> img2( img.sizex(), img.sizey(), img.getNbComponents() );
+      Image<T, Mapper, Allocator> img2( img.sizex(), img.sizey(), img.getNbComponents(), true, alloc );
       for ( ui32 ny = 0; ny < img.sizey(); ++ny )
          for ( ui32 nx = 0; nx < img.sizex(); ++nx )
          {
@@ -71,11 +71,11 @@ namespace core
     
     If mask(x, y) == id then the pixel (x, y) has the same value than the original, else replaced by backrgound
     */
-   template <class T, class Mapper>
-   Image<T, Mapper> extract( const Image<T, Mapper>& img, const ImageMask& mask, ui32 id, const T* background = Image<T, Mapper>::black() )
+   template <class T, class Mapper, class Allocator>
+   Image<T, Mapper, Allocator> extract( const Image<T, Mapper, Allocator>& img, const ImageMask& mask, ui32 id, const T* background = Image<T, Mapper>::black(), Allocator alloc = Allocator() )
    {
       assert( mask.getNbComponents() == 1 && img.sizex() == mask.sizex() && img.sizey() == mask.sizey() );
-      Image<T, Mapper> img2( img.sizex(), img.sizey(), img.getNbComponents() );
+      Image<T, Mapper, Allocator> img2( img.sizex(), img.sizey(), img.getNbComponents(), alloc );
       for ( ui32 ny = 0; ny < img.sizey(); ++ny )
          for ( ui32 nx = 0; nx < img.sizex(); ++nx )
          {
