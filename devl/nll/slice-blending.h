@@ -1,6 +1,9 @@
 #ifndef NLL_IMAGING_SLICE_FUSION_H_
 # define NLL_IMAGING_SLICE_FUSION_H_
 
+// looks like it is slower due to load/store
+# define DISABLE_SSE_BLENDING_OPTIM
+
 namespace nll
 {
 namespace imaging
@@ -18,6 +21,7 @@ namespace imaging
       Lut                     lut;
    };
 
+#ifndef DISABLE_SSE_BLENDING_OPTIM
 #ifndef NLL_DISABLE_SSE_SUPPORT
    /**
     @ingroup imaging
@@ -38,16 +42,9 @@ namespace imaging
       ensure( out.size() == 3 * sliceInfos[ 0 ].slice.size(), "error must be the same size and RGB image" );
 
       std::vector< InputIterator > inputIterators( sliceInfos.size() );
-      std::vector< core::Image<ui32> > indexes( sliceInfos.size() );
       for ( size_t n = 0; n < sliceInfos.size(); ++n )
       {
          inputIterators[ n ] = sliceInfos[ n ].slice.begin();
-         indexes[ n ] = core::Image<ui32>( sliceInfos[ n ].slice.sizex(), sliceInfos[ n ].slice.sizey(), 1 );
-
-         // we need to const_cast as the specialized version is not using 'const' iterators
-         f32* s = const_cast<float*>( sliceInfos[ n ].slice.begin() );
-         f32* e = const_cast<float*>( sliceInfos[ n ].slice.end() );
-         sliceInfos[ n ].lut.transformToIndex( s, e, indexes[ n ].begin() );
       }
 
       ui32 p = 0;
@@ -62,18 +59,20 @@ namespace imaging
 
          for ( size_t n = 0; n < sliceInfos.size(); ++n )
          {
-            const ui32 index = indexes[ n ][ p ];
-            const ui8* fi = sliceInfos[ n ].lut[ index ];
+            const ui8* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
+            const float intensity = sliceInfos[ n ].blendFactor;
 
-            tmpVal[ 0 ] = fi[ 0 ];
-            tmpVal[ 1 ] = fi[ 1 ];
-            tmpVal[ 2 ] = fi[ 2 ];
+            tmpVal[ 0 ] = buf[ 0 ];
+            tmpVal[ 1 ] = buf[ 1 ];
+            tmpVal[ 2 ] = buf[ 2 ];
 
             __m128 lutValue = _mm_load_ps( tmpVal );
-            __m128 inputValue = _mm_set_ps1( inputIterators[ n ][ p ] );
+            __m128 inputValue = _mm_set_ps1( intensity );
 
             inputValue = _mm_mul_ps( lutValue, inputValue );
             val = _mm_add_ps( val, inputValue );
+
+            ++inputIterators[ n ];
          }
 
          __m128i truncated = _mm_cvttps_epi32( val );
@@ -84,6 +83,7 @@ namespace imaging
          oit[ 2 ] = static_cast<ui8>( result[ 2 ] );
       }
    }
+#endif
 #endif
 
    
@@ -106,12 +106,6 @@ namespace imaging
       for ( size_t n = 0; n < sliceInfos.size(); ++n )
       {
          inputIterators[ n ] = sliceInfos[ n ].slice.begin();
-         indexes[ n ] = core::Image<ui32>( sliceInfos[ n ].slice.sizex(), sliceInfos[ n ].slice.sizey(), 1 );
-
-         // we need to const_cast as the specialized version is not using 'const' iterators
-         f32* s = const_cast<float*>( sliceInfos[ n ].slice.begin() );
-         f32* e = const_cast<float*>( sliceInfos[ n ].slice.end() );
-         sliceInfos[ n ].lut.transformToIndex( s, e, indexes[ n ].begin() );
       }
 
       ui32 p = 0;
@@ -123,11 +117,14 @@ namespace imaging
 
          for ( size_t n = 0; n < sliceInfos.size(); ++n )
          {
-            const ui32 index = indexes[ n ][ p ];
-            const ui8* fi = sliceInfos[ n ].lut[ index ];
-            vala += inputIterators[ n ][ p ] * fi[ 0 ];
-            valb += inputIterators[ n ][ p ] * fi[ 1 ];
-            valc += inputIterators[ n ][ p ] * fi[ 2 ];
+            const ui8* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
+            const float intensity = sliceInfos[ n ].blendFactor;
+
+            vala += buf[ 0 ] * intensity;
+            valb += buf[ 1 ] * intensity;
+            valc += buf[ 2 ] * intensity;
+
+            ++inputIterators[ n ];
          }
          oit[ 0 ] = static_cast<ui8>(vala);
          oit[ 1 ] = static_cast<ui8>(valb);
@@ -139,13 +136,17 @@ namespace imaging
    void blend( const std::vector< BlendSliceInfo<Lut> >& sliceInfos,
                nll::core::Image<ui8>& out )
    {
-# ifndef NLL_DISABLE_SSE_SUPPORT
+#ifdef DISABLE_SSE_BLENDING_OPTIM
+      blendDummy<Lut>( sliceInfos, out );
+# else
+#  ifndef NLL_DISABLE_SSE_SUPPORT
       if ( core::Configuration::instance().isSupportedSSE2() )
          blendSSE<Lut>( sliceInfos, out );
       else
          blendDummy<Lut>( sliceInfos, out );
-#  else
+#   else
       blendDummy<Lut>( sliceInfos, out );
+#  endif
 # endif
    }
    

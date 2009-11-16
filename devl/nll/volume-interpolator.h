@@ -42,13 +42,13 @@ namespace imaging
       {}
 
       /**
-       @brief (x, y, z) must be an index. It returns background if the point is outside the volume. (0,0) is the center of the voxel.
+       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume. (0,0) is the center of the voxel.
        */
-      typename VolumeType::value_type operator()( float x, float y, float z ) const
+      typename VolumeType::value_type operator()( const float* pos ) const
       {
-         const int ix = core::floor( x + 0.5f );
-         const int iy = core::floor( y + 0.5f );
-         const int iz = core::floor( z + 0.5f );
+         const int ix = core::floor( pos[ 0 ] + 0.5f );
+         const int iy = core::floor( pos[ 1 ] + 0.5f );
+         const int iz = core::floor( pos[ 2 ] + 0.5f );
 
          if ( _volume.inside( ix, iy, iz ) )
             return _volume( ix, iy, iz );
@@ -113,13 +113,13 @@ namespace imaging
       }
 
       /**
-       @brief (x, y, z) must be an index. It returns background if the point is outside the volume
+       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
        */
-      value_type operator()( float x, float y, float z ) const
+      value_type operator()( const float* pos ) const
       {
-         const int ix = core::floor( x );
-         const int iy = core::floor( y );
-         const int iz = core::floor( z );
+         const int ix = core::floor( pos[ 0 ] );
+         const int iy = core::floor( pos[ 1 ] );
+         const int iz = core::floor( pos[ 2 ] );
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
          const typename Volume::value_type background = _volume.getBackgroundValue();
@@ -131,9 +131,9 @@ namespace imaging
          }
 
 
-         const value_type dx = fabs( x - ix );
-         const value_type dy = fabs( y - iy );
-         const value_type dz = fabs( z - iz );
+         const value_type dx = fabs( pos[ 0 ] - ix );
+         const value_type dy = fabs( pos[ 1 ] - iy );
+         const value_type dz = fabs( pos[ 2 ] - iz );
 
          // Often in the same neighbourhood, we are using the same voxel, but at a slightly different
          // position, so we are caching the previous result, and reuse it if necessary
@@ -230,11 +230,11 @@ namespace imaging
       }
 
       /**
-       @brief (x, y, z) must be an index. It returns background if the point is outside the volume
+       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
        */
-      value_type operator()( float x, float y, float z ) const
+      value_type operator()( const float* pos ) const
       {
-         return _interpolator( x, y, z );
+         return _interpolator( pos );
       }
 
    protected:
@@ -293,18 +293,10 @@ namespace imaging
       }
 
       /**
-       @brief (x, y, z) must be an index. It returns background if the point is outside the volume
+       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
        */
-      value_type operator()( float x, float y, float z ) const
+      value_type operator()( const float* pos ) const
       {
-         //
-         // Floor 3 floats, about 20 times faster than std::floor
-         //
-         // first align the data and load them in a register, prepare the result
-         __declspec(align(16)) float pos[ 4 ] =
-         {
-            x, y, z, 0
-         };
          __declspec(align(16)) int result[ 4 ];
 
          // load the value
@@ -332,9 +324,9 @@ namespace imaging
          }
 
 
-         const value_type dx = fabs( x - ix );
-         const value_type dy = fabs( y - iy );
-         const value_type dz = fabs( z - iz );
+         const value_type dx = fabs( pos[ 0 ] - ix );
+         const value_type dy = fabs( pos[ 1 ] - iy );
+         const value_type dz = fabs( pos[ 2 ] - iz );
 
          // Often in the same neighbourhood, we are using the same voxel, but at a slightly different
          // position, so we are caching the previous result, and reuse it if necessary

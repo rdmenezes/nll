@@ -116,15 +116,21 @@ namespace imaging
       {
          for ( ui32 y = 0; y < _voxelsy; ++y )
          {
-            float px = startx;
-            float py = starty;
-            float pz = startz;
+# ifdef _MSC_VER
+            __declspec(align(16)) float pos[ 4 ] =
+#  else
+            float pos[ 4 ] =
+# endif
+            {
+               startx, starty, startz
+            };
+
             for ( ui32 x = 0; x < _voxelsx; ++x )
             {
-               slice( x, y, 0 ) = interpolator( px, py, pz );
-               px += dx[ 0 ];
-               py += dx[ 1 ];
-               pz += dx[ 2 ];
+               slice( x, y, 0 ) = interpolator( pos );
+               pos[ 0 ] += dx[ 0 ];
+               pos[ 1 ] += dx[ 1 ];
+               pos[ 2 ] += dx[ 2 ];
             }
 
             startx += dy[ 0 ];
