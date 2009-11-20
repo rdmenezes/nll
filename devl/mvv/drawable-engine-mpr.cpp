@@ -74,7 +74,7 @@ namespace mvv
          nll::core::vector2i diffMouse( - (int)event.mousePosition[ 0 ] + (int)_initialMousePos[ 0 ],
                                           (int)event.mousePosition[ 1 ] - (int)_initialMousePos[ 1 ] );
          float sign = ( _initialMousePos[ 1 ] > (int)event.mousePosition[ 1 ] ) ? 1 : -1;
-         float d = static_cast<float>( diffMouse.norm2() ) * sign;
+         float d = static_cast<float>( fabs( (float)diffMouse[ 1 ] ) ) * sign;
 
          nll::core::StaticVector<float, 3> cross = nll::core::cross( source.vector1.getValue(), source.vector2.getValue() );
          assert( nll::core::equal( cross.norm2(), 1.0, 1e-5 ) );  // the base vector1, vector2 must be normalized
