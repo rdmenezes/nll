@@ -1,8 +1,12 @@
 #ifndef NLL_IMAGING_SLICE_FUSION_H_
 # define NLL_IMAGING_SLICE_FUSION_H_
 
-// looks like it is slower due to load/store
-# define DISABLE_SSE_BLENDING_OPTIM
+# pragma warning( push )
+# pragma warning( disable:4127 ) // conditional expression constant // intended!
+
+// There is no real benefits against default compilation with SSE2 support
+// so the feature is disabled but SSE implementation kept for trials only...
+//# define DISABLE_SSE_BLENDING_OPTIM
 
 namespace nll
 {
@@ -27,11 +31,16 @@ namespace imaging
     @ingroup imaging
     @brief Typically used compose the result of several MPR to create a RGB fused slice
     @note we assume the input slices have all the same size and output is already allocated
+
+    - Lut buffer is a float buffer
+    - Lut buffer is 16 bytes aligned
+    - Lut is allocating 1 extra bloc (so we can load 4 values directly)
     */
    template <class Lut>
    void blendSSE( const std::vector< BlendSliceInfo<Lut> >& sliceInfos,
                   nll::core::Image<ui8>& out )
    {
+      std::cout << "SSE" << std::endl;
       typedef core::Image<ui8>                                    OutputSlice;
       typedef core::Image<ui8>::iterator                          OutputIterator;
       typedef typename BlendSliceInfo<Lut>::Slice::const_iterator InputIterator;
@@ -40,6 +49,8 @@ namespace imaging
          return;
       ensure( out.getNbComponents() == 3, "error must be RGB image" );
       ensure( out.size() == 3 * sliceInfos[ 0 ].slice.size(), "error must be the same size and RGB image" );
+      const int isApplicable = core::Equal<f32, typename Lut::value_type>::value;
+      ensure( isApplicable, "should only be run with float LUT" );
 
       std::vector< InputIterator > inputIterators( sliceInfos.size() );
       for ( size_t n = 0; n < sliceInfos.size(); ++n )
@@ -47,26 +58,19 @@ namespace imaging
          inputIterators[ n ] = sliceInfos[ n ].slice.begin();
       }
 
-      ui32 p = 0;
       __declspec(align(16)) int result[ 4 ];
-      __declspec(align(16)) float tmpVal[ 4 ] =
-      {
-         0, 0, 0, 0
-      };
-      for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3, ++p )
+      for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3 )
       {
          __m128 val = _mm_setzero_ps();
 
          for ( size_t n = 0; n < sliceInfos.size(); ++n )
          {
-            const ui8* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
+            // we mainly need this for compilation only... it can be instanciated with any type
+            // but should never be run with a type different than float
+            const typename Lut::value_type* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
             const float intensity = sliceInfos[ n ].blendFactor;
 
-            tmpVal[ 0 ] = buf[ 0 ];
-            tmpVal[ 1 ] = buf[ 1 ];
-            tmpVal[ 2 ] = buf[ 2 ];
-
-            __m128 lutValue = _mm_load_ps( tmpVal );
+            const __m128 lutValue = _mm_load_ps( reinterpret_cast<const float*>( buf ) );
             __m128 inputValue = _mm_set_ps1( intensity );
 
             inputValue = _mm_mul_ps( lutValue, inputValue );
@@ -117,7 +121,7 @@ namespace imaging
 
          for ( size_t n = 0; n < sliceInfos.size(); ++n )
          {
-            const ui8* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
+            const typename Lut::value_type* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
             const float intensity = sliceInfos[ n ].blendFactor;
 
             vala += buf[ 0 ] * intensity;
@@ -140,7 +144,7 @@ namespace imaging
       blendDummy<Lut>( sliceInfos, out );
 # else
 #  ifndef NLL_DISABLE_SSE_SUPPORT
-      if ( core::Configuration::instance().isSupportedSSE2() )
+      if ( core::Configuration::instance().isSupportedSSE2() && core::Equal<float, typename Lut::value_type>::value )
          blendSSE<Lut>( sliceInfos, out );
       else
          blendDummy<Lut>( sliceInfos, out );
@@ -153,4 +157,5 @@ namespace imaging
 }
 }
 
+# pragma warning( pop )
 #endif

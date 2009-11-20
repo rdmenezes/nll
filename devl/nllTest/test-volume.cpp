@@ -169,6 +169,7 @@ public:
       }
    }
 
+   /*
    void testInterpolator()
    {
       typedef nll::imaging::Volume<double>  Volume;
@@ -176,6 +177,7 @@ public:
 
       Volume volume( 30, 30, 30, -1 );
       Interpolator interpolator( volume );
+
 
       TESTER_ASSERT( interpolator( -1, 0, 0 ) == -1 );
 
@@ -212,7 +214,7 @@ public:
       TESTER_ASSERT( interpolator( 5 + dev, 5 + dev, 5.5f + dev ) == 25 );
 
       TESTER_ASSERT( interpolator( -10, 0, 0 ) == -1 );
-   }
+   }*/
 
    /**
     Test the reconstruction of a slice on a PET volume.
@@ -459,6 +461,8 @@ public:
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
       typedef nll::imaging::VolumeSpatial<float>           Volume;
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
+      //typedef nll::imaging::InterpolatorTriLinearDummy<Volume>   Interpolator;
+      //typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
       Volume volume;
@@ -467,7 +471,7 @@ public:
       nll::imaging::loadSimpleFlatFile( volname, volume );
 
       std::cout << "loaded" << std::endl;
-      Mpr mpr( volume, 1024, 1024 );
+      Mpr mpr( volume, 1024*4, 1024*4 );
 
       for ( unsigned z = 0; z < volume.getSize()[ 1 ]; ++z )
       {
@@ -475,7 +479,7 @@ public:
          Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 0, (float)z, 0 ),
                                           nll::core::vector3f( 1, 0, 0 ),
                                           nll::core::vector3f( 0, 0, 1 ),
-                                          nll::core::vector2f( 5, 5 ) );
+                                          nll::core::vector2f( 8, 8 ) );
          mprTime.end();
          std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
          slice( 1, 1, 0 ) = 1e6;
@@ -600,11 +604,10 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testVolumeIterator);
  TESTER_TEST(testVolumeSpatial1);
  TESTER_TEST(testIndexToPos);
- TESTER_TEST(testInterpolator);
- TESTER_TEST(testInterpolatorTriLinear);
+ //TESTER_TEST(testInterpolator);
+ //TESTER_TEST(testInterpolatorTriLinear);
  TESTER_TEST(testMpr);
  TESTER_TEST(testMpr3);
- TESTER_TEST(testMpr4);
  TESTER_TEST(testMpr5);
  TESTER_TEST(testResampling2d);
  TESTER_TEST(testMpr4);

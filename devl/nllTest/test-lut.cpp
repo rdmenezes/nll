@@ -5,25 +5,25 @@
 // alignment float* alignedArray = (array + 15) & (~0x0F);
 const unsigned size = 2048 * 4;
 
+
+
 class TestLut
 {
 public:
    typedef nll::imaging::MapperLutColor<unsigned char>               Mapper;
    typedef nll::imaging::LookUpTransform<unsigned char, Mapper>      Lut;
 
-   /**
-    */
-
    void testBlending()
    {
       //nll::core::Configuration::instance().disableSSE();
-      typedef nll::imaging::MapperLutColor<nll::ui8>                 ColorMapper;
-      typedef nll::imaging::LookUpTransform<nll::ui8, ColorMapper>   Lut;
+      typedef nll::f32 type;
+      typedef nll::imaging::MapperLutColor<type, nll::core::Allocator16ByteAligned<type> > ColorMapper;
+      typedef nll::imaging::LookUpTransform<type, ColorMapper>   Lut;
 
       ColorMapper mapper( 256, 3 );
       Lut lut( mapper, 10, 100 );
-      const nll::ui32 sizex = 512;
-      const nll::ui32 sizey = 1024;
+      const nll::ui32 sizex = 1024*4;
+      const nll::ui32 sizey = 1024*4;
       nll::core::Image<float> t1( sizex, sizey, 1 );
       nll::core::Image<float> t2( sizex, sizey, 1 );
       nll::core::Image<nll::ui8> out( sizex, sizey, 3 );
@@ -34,7 +34,11 @@ public:
 
       nll::core::Timer t;
       nll::imaging::blend( infos, out );
-      std::cout << t.getCurrentTime() << std::endl;
+      std::cout << "blending=" << t.getCurrentTime() << std::endl;
+
+      nll::core::Timer tt;
+      nll::imaging::blendDummy( infos, out );
+      std::cout << "blendingDummy=" << tt.getCurrentTime() << std::endl;
    }
 
    void simpleTest()
@@ -81,8 +85,6 @@ public:
 
    void testTransformComp()
    {
-      std::cout << "numproc=" << omp_get_nested() << std::endl;
-
       srand( 0 );
       Lut lut = createLut();
       nll::core::Image<float> input( size, size, 1 );
@@ -96,17 +98,20 @@ public:
       nll::core::Image<float>::DirectionalIterator it = input.beginDirectional();
       nll::core::Image<nll::ui32>::DirectionalIterator out = output.beginDirectional();
 
+      
       nll::core::Timer t1;
       for ( unsigned n = 0; n < input.sizex() * input.sizex(); ++n, ++it, ++out )
       {
          *out = lut.transformToIndex( *it );
       }
       std::cout << "LUT Time no multithreaded SSE=" << t1.getCurrentTime() << std::endl;
+      
 
+      
       nll::core::Timer t2;
       lut.transformToIndex( input.begin(), input.end(), output2.begin() );
       std::cout << "LUT Time with multithreaded SSE=" << t2.getCurrentTime() << std::endl;
-
+      
       for ( unsigned n = 0; n < output.size(); ++n )
       {
          if ( output[ n ] != output2[ n ] )
@@ -116,10 +121,10 @@ public:
    }
 };
 
-//#ifndef DONT_RUN_TEST
+#ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLut);
-//TESTER_TEST(simpleTest);
-//TESTER_TEST(testTransformComp);
+TESTER_TEST(testTransformComp);
+TESTER_TEST(simpleTest);
 TESTER_TEST(testBlending);
 TESTER_TEST_SUITE_END();
-//#endif
+#endif

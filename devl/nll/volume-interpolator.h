@@ -160,10 +160,10 @@ namespace imaging
             v111 = it.pickz();            
          }
 
-         const value_type i1 = v000 * ( 1 - dz ) + v001 * dz;
-         const value_type i2 = v010 * ( 1 - dz ) + v011 * dz;
-         const value_type j1 = v100 * ( 1 - dz ) + v101 * dz;
-         const value_type j2 = v110 * ( 1 - dz ) + v111 * dz;
+         const value_type i1 = v000 + ( v001 - v000 ) * dz;
+         const value_type i2 = v010 + ( v011 - v010 ) * dz;
+         const value_type j1 = v100 + ( v101 - v100 ) * dz;
+         const value_type j2 = v110 + ( v111 - v110 ) * dz;
 
          const value_type w1 = i1 * ( 1 - dy ) + i2 * dy;
          const value_type w2 = j1 * ( 1 - dy ) + j2 * dy;
@@ -299,11 +299,8 @@ namespace imaging
       {
          __declspec(align(16)) int result[ 4 ];
 
-         // load the value
-         const __m128 rawValue = _mm_load_ps( pos );
-
          // floor the value, beware of the flooring mode
-         __m128i floored = _mm_cvtps_epi32( rawValue );
+         __m128i floored = _mm_cvtps_epi32( *( (__m128*)pos ) );
 
          // retrieve the result from register to memory
          _mm_store_si128( (__m128i*)result, floored );
@@ -353,10 +350,10 @@ namespace imaging
             v111 = it.pickz();            
          }
 
-         const value_type i1 = v000 * ( 1 - dz ) + v001 * dz;
-         const value_type i2 = v010 * ( 1 - dz ) + v011 * dz;
-         const value_type j1 = v100 * ( 1 - dz ) + v101 * dz;
-         const value_type j2 = v110 * ( 1 - dz ) + v111 * dz;
+         const value_type i1 = v000 + ( v001 - v000 ) * dz;
+         const value_type i2 = v010 + ( v011 - v010 ) * dz;
+         const value_type j1 = v100 + ( v101 - v100 ) * dz;
+         const value_type j2 = v110 + ( v111 - v110 ) * dz;
 
          const value_type w1 = i1 * ( 1 - dy ) + i2 * dy;
          const value_type w2 = j1 * ( 1 - dy ) + j2 * dy;

@@ -5,19 +5,25 @@ namespace nll
 {
 namespace imaging
 {
-   template <class T>
+   /**
+    @brief A lut buffer.
+    @note Allocator is used to allocate the buffer. One extra block will always be allocated to allow a specific
+          optimization
+    */
+   template <class T, class Allocator = std::allocator<T> >
    class MapperLutColor
    {
-      typedef core::Buffer1D<T>     Vector;
-      typedef core::Buffer1D<T*>    VectorIndex;
+      typedef core::Buffer1D<T, core::IndexMapperFlat1D, Allocator>  Vector;
+      typedef core::Buffer1D<T*>                                     VectorIndex;
 
    public:
       /**
        @brief Init the mapper.
        @param size the number of index to generate
        @param components the number of components the mapper will store for each index
+       @note one extra block is allocated to enable sse optimization more efficiently
        */
-      MapperLutColor( ui32 size, ui32 components ) : _size( size ), _components( components ), _container( size * components, false )
+      MapperLutColor( ui32 size, ui32 components ) : _size( size ), _components( components ), _container( size * components + 1, false )
       {
          _index = VectorIndex( size );
          for ( ui32 n = 0; n < size; ++n )
@@ -87,6 +93,8 @@ namespace imaging
    class LookUpTransform
    {
    public:
+      typedef T      value_type;
+
       /**
        @brief Init the look up table.
        @param mapper the mapper to be used. It is internally copied.
@@ -140,7 +148,8 @@ namespace imaging
 # ifndef NLL_NOT_MULTITHREADED
          // finally the multithreaded version doesn't not improve the time performance
          // usuall it is a very small fraction of time for blending a frame and it costs
-         // more to create the threads and synchronize them
+         // more to create the threads and synchronize them, it is only worth it when
+         // the number of indexes to convert is huge
          //#pragma omp parallel
 # endif
          {
