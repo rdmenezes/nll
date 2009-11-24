@@ -10,6 +10,8 @@ namespace mvv
    class TransferFunction
    {
    public:
+      typedef ui8    value_type;
+
       virtual ~TransferFunction()
       {}
 
@@ -18,7 +20,7 @@ namespace mvv
        @param inValue the input value
        @param outValue must be allocated (4 * ui8)
        */
-      virtual const ui8* transform( float inValue ) = 0;
+      virtual const ui8* transform( float inValue ) const = 0;
    };
 }
 

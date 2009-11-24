@@ -111,9 +111,69 @@ namespace mvv
       nll::core::vector3f     _v2;
    };
 
+
+   class OrderCombineMpr : public Order
+   {
+   public:
+      typedef std::vector<Order*>      Orders;
+      typedef nll::core::Image<ui8>    Image;
+
+   public:
+      OrderCombineMpr( const Orders& predecessors, Image& slice, ResourceVolumes& volumes, ResourceLuts& luts, ResourceVolumeIntensities& intensities ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
+         _tracked( predecessors ), _volumes( volumes ), _slice( slice ), _luts( luts ), _intensities( intensities )
+      {
+      }
+
+      virtual OrderResult* run()
+      {
+         double ratioCheck = 0;
+         typedef std::vector<OrderMprRendering::Slice::DirectionalIterator*>  Iterators;
+         typedef std::vector<ResourceLut*>                                    Windowings;
+         typedef std::vector<float>                                           Intensities;
+         typedef nll::imaging::BlendSliceInfo<ResourceLut>                    BlendingInfo;
+
+         Iterators  iterators( _volumes.size() );
+         Windowings windowings( _volumes.size() );
+         Intensities intensities( _volumes.size() );
+
+         ui32 n = 0;
+         std::vector<BlendingInfo> blendingInfos;
+         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
+         {
+            const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
+
+            nll::core::Image<float, nll::core::IndexMapperRowMajorFlat2DColorRGBnMask> sslice = slice->slice;
+            blendingInfos.push_back( BlendingInfo( sslice, _intensities.getIntensity( *it ), *_luts.getLut( *it ) ) );
+         }
+
+         blend( blendingInfos, _slice );
+         return new OrderResult();
+      }
+
+   private:
+      static Order::Predecessors makePredecessors( const Orders& orders )
+      {
+         Order::Predecessors predecessors;
+         for ( Orders::const_iterator it = orders.begin(); it != orders.end(); ++it )
+            predecessors.insert( ( *it )->getId() );
+         return predecessors;
+      }
+
+      // non copiyable
+      OrderCombineMpr& operator=( const OrderCombineMpr& );
+      OrderCombineMpr( const OrderCombineMpr& );
+
+
+      const Orders&                       _tracked;
+      ResourceVolumes&                    _volumes;
+      ResourceLuts&                       _luts;
+      ResourceVolumeIntensities&          _intensities;
+      Image&                              _slice;
+   };
    /**
     @brief Combines all the slices within a MPR using transfer functions
     */
+   /*
    class OrderCombineMpr : public Order
    {
    public:
@@ -194,6 +254,7 @@ namespace mvv
       ResourceVolumeIntensities&          _intensities;
       Image&                              _slice;
    };
+   */
 
    class EngineMprCombiner : public EngineRunnable
    {

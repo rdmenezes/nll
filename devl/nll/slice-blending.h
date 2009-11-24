@@ -6,7 +6,7 @@
 
 // There is no real benefits against default compilation with SSE2 support
 // so the feature is disabled but SSE implementation kept for trials only...
-//# define DISABLE_SSE_BLENDING_OPTIM
+# define DISABLE_SSE_BLENDING_OPTIM
 
 namespace nll
 {
@@ -15,14 +15,23 @@ namespace imaging
    template <class Lut>
    struct BlendSliceInfo
    {
-      typedef core::Image<f32> Slice;
+      typedef core::Image<f32, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
 
       BlendSliceInfo( Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
       {}
+      
+      BlendSliceInfo& operator=( const BlendSliceInfo& cpy )
+      {
+         slice = cpy.slice;
+         blendFactor = cpy.blendFactor;
+         lut = cpy.lut;
+         return *this;
+      }
+
 
       Slice                   slice;
       float                   blendFactor;
-      Lut                     lut;
+      Lut&                    lut;
    };
 
 #ifndef DISABLE_SSE_BLENDING_OPTIM

@@ -177,7 +177,7 @@ namespace mvv
        @param inValue the input value
        @param outValue must be allocated (3 * ui8)
        */
-      virtual const ui8* transform( float inValue )
+      virtual const ui8* transform( float inValue ) const
       {
          return _lut.transform( inValue );
       }
