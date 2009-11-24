@@ -114,6 +114,7 @@ namespace imaging
       template <class Interpolator>
       void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
+         Slice::DirectionalIterator it = slice.getIterator( 0, 0, 0 );
          for ( ui32 y = 0; y < _voxelsy; ++y )
          {
 # ifdef _MSC_VER
@@ -125,12 +126,14 @@ namespace imaging
                startx, starty, startz
             };
 
+            it = slice.getIterator( 0, y, 0 );
             for ( ui32 x = 0; x < _voxelsx; ++x )
             {
-               slice( x, y, 0 ) = interpolator( pos );
+               *it = interpolator( pos );
                pos[ 0 ] += dx[ 0 ];
                pos[ 1 ] += dx[ 1 ];
                pos[ 2 ] += dx[ 2 ];
+               it.addx();
             }
 
             startx += dy[ 0 ];
