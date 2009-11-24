@@ -58,25 +58,27 @@ namespace imaging
          inputIterators[ n ] = sliceInfos[ n ].slice.begin();
       }
 
+      // cache the lut address & values in an array // else strange code is generated with VS2005SP1
+      core::Buffer1D<const Lut*> luts( static_cast<ui32>( sliceInfos.size() ) );
+      std::vector<__m128> blendFactors( sliceInfos.size() );
+      for ( ui32 n = 0; n < sliceInfos.size(); ++n )
+      {
+         luts[ n ] = &sliceInfos[ n ].lut;
+         blendFactors[ n ] = _mm_set_ps1( sliceInfos[ n ].blendFactor );
+      }
+
       __declspec(align(16)) int result[ 4 ];
+      const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
       for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3 )
       {
          __m128 val = _mm_setzero_ps();
-
-         for ( size_t n = 0; n < sliceInfos.size(); ++n )
+         for ( ui32 n = 0; n < nbSlices; ++n )
          {
             // we mainly need this for compilation only... it can be instanciated with any type
             // but should never be run with a type different than float
-            const typename Lut::value_type* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
-            const float intensity = sliceInfos[ n ].blendFactor;
-
+            const typename Lut::value_type* buf = luts[ n ]->transform( *inputIterators[ n ]++ );
             const __m128 lutValue = _mm_load_ps( reinterpret_cast<const float*>( buf ) );
-            __m128 inputValue = _mm_set_ps1( intensity );
-
-            inputValue = _mm_mul_ps( lutValue, inputValue );
-            val = _mm_add_ps( val, inputValue );
-
-            ++inputIterators[ n ];
+            val = _mm_add_ps( val, _mm_mul_ps( lutValue, blendFactors[ n ] ) );
          }
 
          __m128i truncated = _mm_cvttps_epi32( val );
@@ -112,23 +114,31 @@ namespace imaging
          inputIterators[ n ] = sliceInfos[ n ].slice.begin();
       }
 
-      ui32 p = 0;
-      for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3, ++p )
+      // cache the lut address & values in an array // else strange code is generated with VS2005SP1
+      core::Buffer1D<const Lut*> luts( static_cast<ui32>( sliceInfos.size() ) );
+      core::Buffer1D<float> blendFactors( static_cast<ui32>( sliceInfos.size() ) );
+      for ( ui32 n = 0; n < sliceInfos.size(); ++n )
+      {
+         luts[ n ] = &sliceInfos[ n ].lut;
+         blendFactors[ n ] = sliceInfos[ n ].blendFactor;
+      }
+
+      const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
+      for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3 )
       {
          float vala = 0;
          float valb = 0;
          float valc = 0;
 
-         for ( size_t n = 0; n < sliceInfos.size(); ++n )
+         for ( ui32 n = 0; n < nbSlices; ++n )
          {
-            const typename Lut::value_type* buf = sliceInfos[ n ].lut.transform( *inputIterators[ n ] );
-            const float intensity = sliceInfos[ n ].blendFactor;
+            const typename Lut::value_type* buf = luts[ n ]->transform( *inputIterators[ n ]++ );
+            const float blending = blendFactors[ n ];
 
-            vala += buf[ 0 ] * intensity;
-            valb += buf[ 1 ] * intensity;
-            valc += buf[ 2 ] * intensity;
+            vala += buf[ 0 ] * blending;
+            valb += buf[ 1 ] * blending;
+            valc += buf[ 2 ] * blending;
 
-            ++inputIterators[ n ];
          }
          oit[ 0 ] = static_cast<ui8>(vala);
          oit[ 1 ] = static_cast<ui8>(valb);
