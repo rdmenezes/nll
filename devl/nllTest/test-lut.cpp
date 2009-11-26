@@ -24,8 +24,8 @@ public:
       Lut lut( mapper, 10, 100 );
       const nll::ui32 sizex = 1024*4;
       const nll::ui32 sizey = 1024*4;
-      nll::core::Image<float> t1( sizex, sizey, 1 );
-      nll::core::Image<float> t2( sizex, sizey, 1 );
+      nll::core::Image<float,nll::core::IndexMapperRowMajorFlat2DColorRGBnMask> t1( sizex, sizey, 1 );
+      nll::core::Image<float,nll::core::IndexMapperRowMajorFlat2DColorRGBnMask> t2( sizex, sizey, 1 );
       nll::core::Image<nll::ui8> out( sizex, sizey, 3 );
 
       std::vector< nll::imaging::BlendSliceInfo<Lut> > infos;
@@ -48,21 +48,21 @@ public:
       lut.createGreyscale();
 
       {
-         const unsigned char* v1 = lut.transform( -10 );
+         const float* v1 = lut.transform( -10 );
          TESTER_ASSERT( v1[ 0 ] == 0 );
          TESTER_ASSERT( v1[ 1 ] == 0 );
          TESTER_ASSERT( v1[ 2 ] == 0 );
       }
 
       {
-         const unsigned char* v1 = lut.transform( 9 );
+         const float* v1 = lut.transform( 9 );
          TESTER_ASSERT( v1[ 0 ] == 0 );
          TESTER_ASSERT( v1[ 1 ] == 0 );
          TESTER_ASSERT( v1[ 2 ] == 0 );
       }
 
       {
-         const unsigned char* v1 = lut.transform( 10 );
+         const float* v1 = lut.transform( 10 );
          TESTER_ASSERT( v1[ 0 ] == (int)( 10.0 / 100 * 256 ) );
          TESTER_ASSERT( v1[ 1 ] == (int)( 10.0 / 100 * 256 ) );
          TESTER_ASSERT( v1[ 2 ] == (int)( 10.0 / 100 * 256 ) );
@@ -123,8 +123,8 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLut);
-TESTER_TEST(testTransformComp);
-TESTER_TEST(simpleTest);
+//TESTER_TEST(testTransformComp);
+//TESTER_TEST(simpleTest);
 TESTER_TEST(testBlending);
 TESTER_TEST_SUITE_END();
 #endif

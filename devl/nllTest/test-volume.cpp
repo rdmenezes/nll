@@ -573,6 +573,7 @@ public:
       TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
 
       Volume i2( 2048 * 4, 2048 * 4, 3 );
+      //Volume i2( 2048 * 4, 2048 * 4, 3 );
       i2( 100, 100, 1 ) = 42;
 
       nll::core::Timer t1;

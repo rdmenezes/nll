@@ -19,15 +19,14 @@ namespace imaging
 
       BlendSliceInfo( Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
       {}
-      
-      BlendSliceInfo& operator=( const BlendSliceInfo& cpy )
+
+      BlendSliceInfo& operator=( const BlendSliceInfo& rhs )
       {
-         slice = cpy.slice;
-         blendFactor = cpy.blendFactor;
-         lut = cpy.lut;
+         slice = rhs.slice;
+         blendFactor = rhs.blendFactor;
+         lut = rhs.lut;
          return *this;
       }
-
 
       Slice                   slice;
       float                   blendFactor;
@@ -81,6 +80,7 @@ namespace imaging
       for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3 )
       {
          __m128 val = _mm_setzero_ps();
+
          for ( ui32 n = 0; n < nbSlices; ++n )
          {
             // we mainly need this for compilation only... it can be instanciated with any type

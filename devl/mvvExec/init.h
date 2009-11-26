@@ -57,15 +57,15 @@ namespace mvv
          */
          
          
-         const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
-         //const std::string pathPet = "../../nllTest/data/medical/pet.mf2";
+         //const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
+         const std::string pathPet = "../../nllTest/data/medical/pet.mf2";
          MedicalVolume *pet = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathPet, *pet );
          ensure( loaded, "error" );
          
          
-         const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
-         //const std::string pathCt = "../../nllTest/data/medical/ct.mf2";
+         //const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
+         const std::string pathCt = "../../nllTest/data/medical/ct.mf2";
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
          
@@ -95,7 +95,7 @@ namespace mvv
 
          
          ResourceTransferFunctionWindowing* petLut = new ResourceTransferFunctionWindowing( 0, 5000);
-         petLut->setLutColor( nll::core::Image<nll::ui8>::blue() );
+         petLut->setLutColor( nll::core::Image<nll::f32>::blue() );
          mpr1Context->addVolume( pet, 0.5, petLut );
         
          mpr1Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 1100) );
@@ -134,7 +134,7 @@ namespace mvv
          
          
          ResourceTransferFunctionWindowing* petLut2 = new ResourceTransferFunctionWindowing( 0, 5000);
-         petLut2->setLutColor( nll::core::Image<nll::ui8>::red() );
+         petLut2->setLutColor( nll::core::Image<nll::f32>::red() );
          mpr2Context->addVolume( pet, 0.5, petLut2 );
          
          mpr2Context->addVolume( ct, 0.5, new ResourceTransferFunctionWindowing( 100, 1100) );
@@ -165,7 +165,7 @@ namespace mvv
 
 
          // create layout
-         ui32 sizex = 1024;
+         ui32 sizex = 1024 * 2;
          ui32 sizey = 1024;
 
          std::cout << "size=" << sizex << " " << sizey << std::endl;

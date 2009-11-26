@@ -278,7 +278,7 @@ namespace imaging
    class LookUpTransformWindowingRGB
    {
    public:
-      typedef ui8                         value_type;
+      typedef float                         value_type;
 
    protected:
       typedef MapperLutColor<value_type>  LutMapper;

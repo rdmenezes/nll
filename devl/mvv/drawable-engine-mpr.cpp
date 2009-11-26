@@ -90,7 +90,8 @@ namespace mvv
       {
          nll::core::vector2i diffMouse( - (int)event.mousePosition[ 0 ] + (int)_initialMousePos[ 0 ],
                                           (int)event.mousePosition[ 1 ] - (int)_initialMousePos[ 1 ] );
-         double d = diffMouse.norm2();
+         //double d = diffMouse.norm2();
+         float d = static_cast<float>( fabs( (float)diffMouse[ 1 ] ) );
          if ( (int)event.mousePosition[ 1 ] >= _initialMousePos[ 1 ] )
          {
             _zoom[ 0 ] = _initialZoom[ 0 ] * (float)( 1 + d / 100 );

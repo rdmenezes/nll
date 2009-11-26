@@ -167,7 +167,7 @@ namespace mvv
          return _minWindow;
       }
 
-      void setLutColor( const ui8* colors )
+      void setLutColor( const f32* colors )
       {
          _lut.createColorScale( colors );
       }
@@ -177,7 +177,7 @@ namespace mvv
        @param inValue the input value
        @param outValue must be allocated (3 * ui8)
        */
-      virtual const ui8* transform( float inValue ) const
+      virtual const f32* transform( float inValue ) const
       {
          return _lut.transform( inValue );
       }
