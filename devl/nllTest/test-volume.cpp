@@ -237,29 +237,29 @@ public:
       assert( loaded );
 
       std::cout << "loaded" << std::endl;
-      Mpr mpr( volume, 512, 512 );
+      Mpr mpr( volume );
 
       nll::core::Timer mprTime;
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 0, 0, 43 ),
-                                       nll::core::vector3f( 1, 0, 0 ),
-                                       nll::core::vector3f( 0, 1, 0 ),
-                                       nll::core::vector2f( 4, 4 ) );
+      Mpr::Slice slice( nll::core::vector3ui( 512, 512, 1 ),
+                        nll::core::vector3f( 1, 0, 0 ),
+                        nll::core::vector3f( 0, 1, 0 ),
+                        nll::core::vector3f( 0, 0, 43 ),
+                        nll::core::vector2f( 0.25f, 0.25f ) );
+         
+      mpr.getSlice( slice );
       mprTime.end();
       std::cout << "mpr time full=" << mprTime.getCurrentTime() << std::endl;
       slice( 1, 1, 0 ) = 1e6;
 
-      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
       for ( unsigned y = 0; y < bmp.sizex(); ++y )
          for ( unsigned x = 0; x < bmp.sizex(); ++x )
             bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 )*3 + 20000 ) / 200, 0, 255 );
       nll::core::extend( bmp, 3 );
       nll::core::writeBmp( bmp, output );
 
-      nll::core::Timer resampelTime;
-      nll::core::rescaleBilinear( slice, 4096, 4096 );
-      std::cout << "resample time=" << resampelTime.getCurrentTime() << std::endl;
 
-      nll::core::Image<nll::ui8> bmp2( slice.sizex(), slice.sizey(), 1 );
+      nll::core::Image<nll::ui8> bmp2( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
       for ( unsigned y = 0; y < bmp2.sizey(); ++y )
          for ( unsigned x = 0; x < bmp2.sizex(); ++x )
             bmp2( x, y, 0 ) = (nll::ui8)NLL_BOUND( ( (double)slice( x, y, 0 )*3 + 20000 ) / 200, 0, 255 );
@@ -350,15 +350,18 @@ public:
       volume( 1+2, 1+2, 0 ) = 255;
       volume( 0+2, 1+2, 0 ) = 10;
 
-      Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 1.5, 1.5, 0 ),
-                                       nll::core::vector3f( 1, 0, 0 ),
-                                       nll::core::vector3f( 0, 1, 0 ),
-                                       nll::core::vector2f( 8.00, 8.00 ) );
+      Mpr mpr( volume );
+
+      Mpr::Slice slice( nll::core::vector3ui( 32, 32, 1 ),
+                        nll::core::vector3f( 1, 0, 0 ),
+                        nll::core::vector3f( 0, 1, 0 ),
+                        nll::core::vector3f( 1.5, 1.5, 0 ),
+                        nll::core::vector2f( 1.0f / 8.00f, 1.0f / 8.00f ) );
+      mpr.getSlice( slice );
 
 
       const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-linear.bmp";
-      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
       for ( unsigned y = 0; y < bmp.sizey(); ++y )
          for ( unsigned x = 0; x < bmp.sizex(); ++x )
             bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
@@ -403,15 +406,17 @@ public:
       volume( 1+2, 1+2, 0 ) = 255;
       volume( 0+2, 1+2, 0 ) = 10;
 
-      Mpr mpr( volume, 32, 32 );
-      Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 1.5, 1.5, 0 ),
-                                       nll::core::vector3f( 1, 0, 0 ),
-                                       nll::core::vector3f( 0, 1, 0 ),
-                                       nll::core::vector2f( 8.00, 8.00 ) );
+      Mpr mpr( volume );
+      Mpr::Slice slice( nll::core::vector3ui( 32, 32, 1 ),
+                        nll::core::vector3f( 1, 0, 0 ),
+                        nll::core::vector3f( 0, 1, 0 ),
+                        nll::core::vector3f( 1.5, 1.5, 0 ),
+                        nll::core::vector2f( 1.0f / 8.00f, 1.0f / 8.00f ) );
+      mpr.getSlice( slice );
 
 
       const std::string output = NLL_TEST_PATH "data/mpr-resamples-max-nn.bmp";
-      nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+      nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
       for ( unsigned y = 0; y < bmp.sizey(); ++y )
          for ( unsigned x = 0; x < bmp.sizex(); ++x )
             bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
@@ -471,20 +476,22 @@ public:
       nll::imaging::loadSimpleFlatFile( volname, volume );
 
       std::cout << "loaded" << std::endl;
-      Mpr mpr( volume, 1024*4, 1024*4 );
+      Mpr mpr( volume );
 
       for ( unsigned z = 0; z < volume.getSize()[ 1 ]; ++z )
       {
+         Mpr::Slice slice( nll::core::vector3ui( 1024*4, 1024*4, 1 ),
+                           nll::core::vector3f( 1, 0, 0 ),
+                           nll::core::vector3f( 0, 0, 1 ),
+                           nll::core::vector3f( 0, (float)z, 0 ),
+                           nll::core::vector2f( 1.0f / 8.00f, 1.0f / 8.00f ) );
          nll::core::Timer mprTime;
-         Mpr::Slice slice = mpr.getSlice( nll::core::vector3f( 0, (float)z, 0 ),
-                                          nll::core::vector3f( 1, 0, 0 ),
-                                          nll::core::vector3f( 0, 0, 1 ),
-                                          nll::core::vector2f( 8, 8 ) );
+         mpr.getSlice( slice );
          mprTime.end();
          std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
          slice( 1, 1, 0 ) = 1e6;
 
-         nll::core::Image<nll::i8> bmp( slice.sizex(), slice.sizey(), 1 );
+         nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
          for ( unsigned y = 0; y < bmp.sizey(); ++y )
             for ( unsigned x = 0; x < bmp.sizex(); ++x )
                bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 )*4 + 15000 ) / 200, 0, 255 );

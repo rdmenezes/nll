@@ -19,7 +19,7 @@ namespace mvv
       }
    }
 
-   void MprToolkitMove::handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* )
+   void MprToolkitMove::handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceSliceRGB* )
    {
       if ( event.isMouseLeftButtonPressed )
       {
@@ -136,7 +136,7 @@ namespace mvv
       _mprs.insert( r );
    }
 
-   bool MprToolkitPoint::run( DrawableMprToolkits& tk, ResourceImageRGB* i )
+   bool MprToolkitPoint::run( DrawableMprToolkits& tk, ResourceSliceRGB* i )
    {
       assert( i ); // it has to be a valid image
       nll::core::vector3f diff( _initialOrigin[ 0 ] - tk.origin[ 0 ],
@@ -144,21 +144,21 @@ namespace mvv
                                 _initialOrigin[ 2 ] - tk.origin[ 2 ] );
 
       // (0, 0) is the middle of the screen
-      nll::core::vector2d pos( i->image.sizex() / 2 + tk.zoom[ 0 ] * ( tk.vector1[ 0 ] * diff[ 0 ] + tk.vector1[ 1 ] * diff[ 1 ] + tk.vector1[ 2 ] * diff[ 2 ] ),
-                               i->image.sizey() / 2 + tk.zoom[ 1 ] * ( tk.vector2[ 0 ] * diff[ 0 ] + tk.vector2[ 1 ] * diff[ 1 ] + tk.vector2[ 2 ] * diff[ 2 ] ) );
+      nll::core::vector2d pos( i->slice.getStorage().sizex() / 2 + tk.zoom[ 0 ] * ( tk.vector1[ 0 ] * diff[ 0 ] + tk.vector1[ 1 ] * diff[ 1 ] + tk.vector1[ 2 ] * diff[ 2 ] ),
+                               i->slice.getStorage().sizey() / 2 + tk.zoom[ 1 ] * ( tk.vector2[ 0 ] * diff[ 0 ] + tk.vector2[ 1 ] * diff[ 1 ] + tk.vector2[ 2 ] * diff[ 2 ] ) );
 
-      if ( pos[ 0 ] >= 0 && pos[ 0 ] < i->image.sizex() &&
-           pos[ 1 ] >= 0 && pos[ 1 ] < i->image.sizey() )
+      if ( pos[ 0 ] >= 0 && pos[ 0 ] < i->slice.getStorage().sizex() &&
+           pos[ 1 ] >= 0 && pos[ 1 ] < i->slice.getStorage().sizey() )
       {
-         ResourceImageRGB::Image::DirectionalIterator it = i->image.getIterator( (ui32)pos[ 0 ], 0, 1 );   
-         for ( ui32 y = 0; y < i->image.sizey(); ++y )
+         ResourceSliceRGB::Slice::DirectionalIterator it = i->slice.getStorage().getIterator( (ui32)pos[ 0 ], 0, 1 );   
+         for ( ui32 y = 0; y < i->slice.getStorage().sizey(); ++y )
          {
             *it = 255;
             it.addy();
          }
 
-         it = i->image.getIterator( 0, (ui32)pos[ 1 ], 1 );
-         for ( ui32 x = 0; x < i->image.sizex(); ++x )
+         it = i->slice.getStorage().getIterator( 0, (ui32)pos[ 1 ], 1 );
+         for ( ui32 x = 0; x < i->slice.getStorage().sizex(); ++x )
          {
             *it = 255;
             it.addx();

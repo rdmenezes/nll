@@ -52,6 +52,13 @@ namespace imaging
             return *this;
          }
 
+         DirectionalIterator operator++( int )
+         {
+            DirectionalIterator ans = *this;
+            ++_index;
+            return ans;
+         }
+
          /**
           @brief move the iterator on a new x
           */
@@ -160,6 +167,13 @@ namespace imaging
          {
             ++this->_index;
             return *this;
+         }
+
+         ConstDirectionalIterator operator++( int )
+         {
+            ConstDirectionalIterator ans = *this;
+            ++this->_index;
+            return ans;
          }
 
          /**

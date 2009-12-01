@@ -373,6 +373,28 @@ namespace mvv
    /**
     @brief This class needs to be notified if a change occur as it is very costly to monitor all changes on a volume...
     */
+   class ResourceSlicef : public DynamicResource
+   {
+   public:
+      typedef nll::imaging::Slice<nll::f32> Slice;
+
+      Slice slice;
+   };
+
+   /**
+    @brief This class needs to be notified if a change occur as it is very costly to monitor all changes on a volume...
+    */
+   class ResourceSliceRGB : public DynamicResource
+   {
+   public:
+      typedef nll::imaging::Slice<nll::ui8> Slice;
+
+      Slice slice;
+   };
+
+   /**
+    @brief This class needs to be notified if a change occur as it is very costly to monitor all changes on a volume...
+    */
    class ResourceImageRGB : public DynamicResource
    {
    public:

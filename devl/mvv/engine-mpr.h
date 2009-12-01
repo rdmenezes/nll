@@ -18,8 +18,10 @@ namespace mvv
       typedef nll::imaging::InterpolatorNearestNeighbour<MedicalVolume>    InterpolatorNN;
       typedef nll::imaging::Mpr<MedicalVolume, InterpolatorNN>::Slice      Slice;
 
-      OrderMprRenderingResult( Slice s ) : slice( s )
-      {}
+      OrderMprRenderingResult( Slice s )
+      {
+         slice = s;
+      }
 
       Slice slice;
    };
@@ -69,22 +71,26 @@ namespace mvv
 
       virtual OrderResult* run()
       { 
-         Slice slice;
-
          nll::core::Timer t1;
+
+         Slice slice( nll::core::vector3ui( _sx, _sy, 1 ),
+                      _v1,
+                      _v2,
+                      _origin,
+                      nll::core::vector2f( 1 / _zoomx, 1 / _zoomy ) );
 
          switch ( _interpolator )
          {
          case NEAREST_NEIGHBOUR:
             {
-               MprNN mpr( *_volume, _sx, _sy );
-               slice = mpr.getSlice( _origin, _v1, _v2, nll::core::vector2f( _zoomx, _zoomy ) );
+               MprNN mpr( *_volume );
+               mpr.getSlice( slice );
                break;
             }
          case TRILINEAR:
             {
-               MprTrilinear mpr( *_volume, _sx, _sy );
-               slice = mpr.getSlice( _origin, _v1, _v2, nll::core::vector2f( _zoomx, _zoomy ) );
+               MprTrilinear mpr( *_volume );
+               mpr.getSlice( slice );
                break;
             }
          default:
@@ -117,9 +123,10 @@ namespace mvv
    public:
       typedef std::vector<Order*>      Orders;
       typedef nll::core::Image<ui8>    Image;
+      typedef ResourceSliceRGB::Slice Slice;
 
    public:
-      OrderCombineMpr( const Orders& predecessors, Image& slice, ResourceVolumes& volumes, ResourceLuts& luts, ResourceVolumeIntensities& intensities ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
+      OrderCombineMpr( const Orders& predecessors, Slice& slice, ResourceVolumes& volumes, ResourceLuts& luts, ResourceVolumeIntensities& intensities ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
          _tracked( predecessors ), _volumes( volumes ), _slice( slice ), _luts( luts ), _intensities( intensities )
       {
       }
@@ -130,7 +137,7 @@ namespace mvv
          typedef std::vector<OrderMprRendering::Slice::DirectionalIterator*>  Iterators;
          typedef std::vector<ResourceLut*>                                    Windowings;
          typedef std::vector<float>                                           Intensities;
-         typedef nll::imaging::BlendSliceInfo<ResourceLut>                    BlendingInfo;
+         typedef nll::imaging::BlendSliceInfof<ResourceLut>                   BlendingInfo;
 
          Iterators  iterators( _volumes.size() );
          Windowings windowings( _volumes.size() );
@@ -140,10 +147,9 @@ namespace mvv
          std::vector<BlendingInfo> blendingInfos;
          for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
          {
-            const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
-
-            nll::core::Image<float, nll::core::IndexMapperRowMajorFlat2DColorRGBnMask> sslice = slice->slice;
-            blendingInfos.push_back( BlendingInfo( sslice, _intensities.getIntensity( *it ), *_luts.getLut( *it ) ) );
+            // const_cast, but it is guaranteed the image won't be modified
+            OrderMprRenderingResult* slice = const_cast<OrderMprRenderingResult*>( dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() ) );
+            blendingInfos.push_back( BlendingInfo( slice->slice, _intensities.getIntensity( *it ), *_luts.getLut( *it ) ) );
          }
 
          blend( blendingInfos, _slice );
@@ -168,100 +174,16 @@ namespace mvv
       ResourceVolumes&                    _volumes;
       ResourceLuts&                       _luts;
       ResourceVolumeIntensities&          _intensities;
-      Image&                              _slice;
+      Slice&                              _slice;
    };
-   /**
-    @brief Combines all the slices within a MPR using transfer functions
-    */
-   /*
-   class OrderCombineMpr : public Order
-   {
-   public:
-      typedef std::vector<Order*>      Orders;
-      typedef nll::core::Image<ui8>    Image;
-
-   public:
-      OrderCombineMpr( const Orders& predecessors, Image& slice, ResourceVolumes& volumes, ResourceLuts& luts, ResourceVolumeIntensities& intensities ) : Order( ORDER_MPR_RENDERING_COMBINE, true, makePredecessors( predecessors ) ),
-         _tracked( predecessors ), _volumes( volumes ), _slice( slice ), _luts( luts ), _intensities( intensities )
-      {
-      }
-
-      virtual OrderResult* run()
-      {
-         double ratioCheck = 0;
-         typedef std::vector<OrderMprRendering::Slice::DirectionalIterator*>  Iterators;
-         typedef std::vector<ResourceLut*>                                    Windowings;
-         typedef std::vector<float>                                           Intensities;
-
-         Iterators  iterators( _volumes.size() );
-         Windowings windowings( _volumes.size() );
-         Intensities intensities( _volumes.size() );
-
-         ui32 n = 0;
-         for ( ResourceVolumes::iterator it = _volumes.begin(); it != _volumes.end(); ++it, ++n )
-         {
-            const OrderMprRenderingResult* slice = dynamic_cast<const OrderMprRenderingResult*>( _tracked[ n ]->getResult() );
-            iterators[ n ] = new OrderMprRendering::Slice::DirectionalIterator( slice->slice.beginDirectional() );
-            intensities[ n ] = _intensities.getIntensity( *it );
-            windowings[ n ] = _luts.getLut( *it );
-            ratioCheck += intensities[ n ];
-         }
-         ensure( nll::core::equal<double>( ratioCheck, 1, 1e-2 ), "ratio must sum to 1" );
-
-         for ( Image::DirectionalIterator itOut = _slice.beginDirectional(); itOut != _slice.endDirectional(); ++itOut )
-         {
-            float vala = 0;
-            float valb = 0;
-            float valc = 0;
-            for ( ui32 nn = 0; nn < iterators.size(); ++nn )
-            {
-               const ui8* buf = windowings[ nn ]->transform( **( iterators[ nn ] ) );
-               const float intensity = intensities[ nn ];
-               vala += buf[ 0 ] * intensity;
-               valb += buf[ 1 ] * intensity;
-               valc += buf[ 2 ] * intensity;
-
-               ++( *iterators[ nn ] );
-            }
-            itOut.pickcol( 0 ) = static_cast<ui8>( vala );
-            itOut.pickcol( 1 ) = static_cast<ui8>( valb );
-            itOut.pickcol( 2 ) = static_cast<ui8>( valc );
-         }
-
-         for ( Iterators::iterator it = iterators.begin(); it != iterators.end(); ++it )
-            delete *it;
-
-         return new OrderResult();
-      }
-
-   private:
-      static Order::Predecessors makePredecessors( const Orders& orders )
-      {
-         Order::Predecessors predecessors;
-         for ( Orders::const_iterator it = orders.begin(); it != orders.end(); ++it )
-            predecessors.insert( ( *it )->getId() );
-         return predecessors;
-      }
-
-      // non copiyable
-      OrderCombineMpr& operator=( const OrderCombineMpr& );
-      OrderCombineMpr( const OrderCombineMpr& );
-
-
-      const Orders&                       _tracked;
-      ResourceVolumes&                    _volumes;
-      ResourceLuts&                       _luts;
-      ResourceVolumeIntensities&          _intensities;
-      Image&                              _slice;
-   };
-   */
 
    class EngineMprCombiner : public EngineRunnable
    {
       typedef std::vector<Order*>   Orders;
 
+
    public:
-      ResourceImageRGB outFusedMPR;
+      ResourceSliceRGB outFusedMPR;
 
    public:
       EngineMprCombiner( OrderProvider& orderProvider, ResourceOrderList& orders, ResourceVolumeIntensities& intensities, ResourceLuts& luts, ResourceVolumes& volumes ) : _orderProvider( orderProvider ), _orders( orders ),
@@ -333,22 +255,32 @@ namespace mvv
          // track these orders as we need to destroy them
          _renderingOrders = _orders.getOrders();
          const OrderMprRenderingResult* renderingResult = dynamic_cast<const OrderMprRenderingResult*>( _renderingOrders[ 0 ]->getResult() );
-         ensure( renderingResult, "wrong order..." );
-         ensure( _renderingOrders.size(), "we need to have orders to fuse!" );
+         if ( renderingResult->slice.size()[ 0 ] &&
+              renderingResult->slice.size()[ 1 ] &&
+              renderingResult->slice.size()[ 2 ] )
+         {
+            ensure( renderingResult, "wrong order..." );
+            ensure( _renderingOrders.size(), "we need to have orders to fuse!" );
 
-         // reset the frame
-         outFusedMPR.image = ResourceImageRGB::Image( renderingResult->slice.sizex(),
-                                                      renderingResult->slice.sizey(),
-                                                      3,
-                                                      true );
+            // reset the frame
+            outFusedMPR.slice = ResourceSliceRGB::Slice( nll::core::vector3ui( renderingResult->slice.size()[ 0 ],
+                                                                               renderingResult->slice.size()[ 1 ],
+                                                                               3 ),
+                                                         renderingResult->slice.getAxisX(),
+                                                         renderingResult->slice.getAxisY(),
+                                                         renderingResult->slice.getOrigin(),
+                                                         renderingResult->slice.getSpacing() );
 
-         // create the order
-         OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.image, _volumes, _luts, _intensities );
-         //std::cout << "--create fusion order[" << order->getId() << "]:" << _renderingOrders[ 0 ]->getId() << " " << _renderingOrders[ 1 ]->getId() << std::endl;
-         _orderProvider.pushOrder( order );
-         _current = order;
-         _idle = false;
-         std::cout << "combiner.run() idle=false" << std::endl;
+            // create the order
+            OrderCombineMpr* order = new OrderCombineMpr( _renderingOrders, outFusedMPR.slice, _volumes, _luts, _intensities );
+            //std::cout << "--create fusion order[" << order->getId() << "]:" << _renderingOrders[ 0 ]->getId() << " " << _renderingOrders[ 1 ]->getId() << std::endl;
+            _orderProvider.pushOrder( order );
+            _current = order;
+            _idle = false;
+            std::cout << "combiner.run() idle=false" << std::endl;
+            return true;
+         }
+         std::cout << "-----val" << renderingResult->slice.size()[ 0 ] << renderingResult->slice.size()[ 1 ] << renderingResult->slice.size()[ 2 ] << std::endl;
          return true;
       }
 
@@ -513,7 +445,7 @@ namespace mvv
 
    public:
       // resource that export the computed fused MPR
-      ResourceImageRGB  outFusedMpr;
+      ResourceSliceRGB  outFusedMpr;
 
    public:
       enum Orientation
@@ -572,9 +504,9 @@ namespace mvv
          _mprCombiner.consume( o );
 
          // update out resource if necesary
-         if ( _mprCombiner.outFusedMPR.image.getBuf() != outFusedMpr.image.getBuf() && _mprCombiner.isIdle() )
+         if ( _mprCombiner.outFusedMPR.slice.getStorage().getBuf() != outFusedMpr.slice.getStorage().getBuf() && _mprCombiner.isIdle() )
          {
-            outFusedMpr.image = _mprCombiner.outFusedMPR.image;
+            outFusedMpr.slice = _mprCombiner.outFusedMPR.slice;
             outFusedMpr.notifyChanges();
          }
       }

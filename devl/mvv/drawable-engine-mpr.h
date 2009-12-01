@@ -50,7 +50,7 @@ namespace mvv
        @param mpr the slice. If null, this means this toolkit is not supposed to modify a slice (else override isMprMustBeSaved)
        @return true if the toolkit must be run at the next checkpoint
        */
-      virtual bool run( DrawableMprToolkits& , ResourceImageRGB* )
+      virtual bool run( DrawableMprToolkits& , ResourceSliceRGB* )
       {
          return true;
       }
@@ -60,7 +60,7 @@ namespace mvv
               it must be handled here. Incoming Source & slice are provided
        @param mpr the slice. If null, this means this toolkit is not supposed to modify a slice (else override isMprMustBeSaved)
        */
-      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr ) = 0;
+      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceSliceRGB* mpr ) = 0;
 
       /**
        @brief We need to know what DrawableMprToolkits is attached to a Mpr toolkit.
@@ -119,7 +119,7 @@ namespace mvv
       /**
        @brief Handle is called each time an event is received
        */
-      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceImageRGB* mpr );
+      virtual void handle( const InteractionEvent& event, DrawableMprToolkits& source, ResourceSliceRGB* mpr );
 
       /**
        @brief Special attach: when attached for the first time, the MPR is centered on the biggest attached volume
@@ -159,7 +159,7 @@ namespace mvv
          _resources.insert( &_trigger );
       }
 
-      virtual void handle( const InteractionEvent& , DrawableMprToolkits& , ResourceImageRGB*  )
+      virtual void handle( const InteractionEvent& , DrawableMprToolkits& , ResourceSliceRGB*  )
       {
       }
 
@@ -168,7 +168,7 @@ namespace mvv
          return true;
       }
 
-      virtual bool run( DrawableMprToolkits& , ResourceImageRGB* );
+      virtual bool run( DrawableMprToolkits& , ResourceSliceRGB* );
 
       virtual void attach( DrawableMprToolkits* r );
 
@@ -190,7 +190,7 @@ namespace mvv
       class MprState : public InteractionEventReceiver, public EngineRunnable
       {
       public:
-         MprState( MprToolkit& mprToolkit, DrawableMprToolkits& toolkits, OrderProvider& orderProvider, ResourceImageRGB& mpr, bool createMprCopy = false ) :
+         MprState( MprToolkit& mprToolkit, DrawableMprToolkits& toolkits, OrderProvider& orderProvider, ResourceSliceRGB& mpr, bool createMprCopy = false ) :
             _mprToolkit( mprToolkit ), _source( toolkits ), _orderProvider( orderProvider ), _previous( mpr ), _isMprSaved( createMprCopy )
          {
             if ( _isMprSaved )
@@ -215,12 +215,12 @@ namespace mvv
          {
             if ( _isMprSaved )
             {
-               _img.image.clone( _previous.image );
+               _img.slice.clone( _previous.slice );
             }
             return _mprToolkit.run( _source, _isMprSaved ? &_img : 0 );
          }
 
-         virtual ResourceImageRGB& getImage()
+         virtual ResourceSliceRGB& getImage()
          {
             if ( _isMprSaved )
                return _img;
@@ -236,10 +236,10 @@ namespace mvv
          MprState( const MprState& );
 
       private:
-         ResourceImageRGB        _img;
+         ResourceSliceRGB        _img;
          DrawableMprToolkits&    _source;
          OrderProvider&          _orderProvider;
-         ResourceImageRGB&       _previous;
+         ResourceSliceRGB&       _previous;
          bool                    _isMprSaved;
          MprToolkit&             _mprToolkit;
       };
@@ -292,7 +292,7 @@ namespace mvv
       void addToolkit( MprToolkit& toolkit )
       {
          toolkit.attach( this );
-         ResourceImageRGB* outputMpr;
+         ResourceSliceRGB* outputMpr;
          if ( !_states.size() )
             outputMpr = &_mpr->outFusedMpr;
          else
@@ -338,28 +338,28 @@ namespace mvv
          // if we have toolkits, pick the last one, which is supposed to old the final frame to be rendered
          if ( _states.size() )
          {
-            const Image& image = (*_states.rbegin())->getImage().image;
+            const ResourceSliceRGB::Slice& slice = (*_states.rbegin())->getImage().slice;
 
             _tmpImage.clear();
-            if ( image.sizex() != renderingSize[ 0 ] || 
-                 image.sizey() != renderingSize[ 1 ] )
+            if ( slice.size()[ 0 ] != renderingSize[ 0 ] || 
+                 slice.size()[ 1 ] != renderingSize[ 1 ] )
             {
                std::cout << "Warning: resize" << std::endl;
-               _tmpImage.clone( image );
+               _tmpImage.clone( slice.getStorage() );
                nll::core::rescaleBilinear( _tmpImage, renderingSize[ 0 ], renderingSize[ 1 ] );
                return _tmpImage;
             }
-            return image;
+            return slice.getStorage();
          }
 
          // else just pick the raw MPR slice
-         if ( _mpr->outFusedMpr.image.sizex() != renderingSize[ 0 ] || _mpr->outFusedMpr.image.sizey() != renderingSize[ 1 ] )
+         if ( _mpr->outFusedMpr.slice.size()[ 0 ] != renderingSize[ 0 ] || _mpr->outFusedMpr.slice.size()[ 0 ] != renderingSize[ 1 ] )
          {
             // we need to rescale for this frame the current MPR as the size is different (asynchrone results)
             // it will be correctly updated later...
-            nll::core::rescaleBilinear( _mpr->outFusedMpr.image, renderingSize[ 0 ], renderingSize[ 1 ] );
+            nll::core::rescaleBilinear( _mpr->outFusedMpr.slice.getStorage(), renderingSize[ 0 ], renderingSize[ 1 ] );
          }
-         return _mpr->outFusedMpr.image;
+         return _mpr->outFusedMpr.slice.getStorage();
       }
 
       /**
@@ -420,7 +420,7 @@ namespace mvv
       Image              _tmpImage;
 
    public:
-      ResourceImageRGB&          slice;
+      ResourceSliceRGB&          slice;
    };
 }
 

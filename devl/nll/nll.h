@@ -153,6 +153,7 @@
 # include "volume.h"
 # include "volume-spatial.h"
 # include "volume-interpolator.h"
+# include "slice.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
 # include "slice-blending.h"

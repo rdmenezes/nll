@@ -65,11 +65,24 @@ namespace core
 
    /**
     @ingroup core
+    @brief Generate an identity matrix of a fixed size.
+    */
+   template <class Matrix>
+   Matrix identityMatrix( ui32 n )
+   {
+      Matrix id( n, n );
+      for (ui32 nn = 0; nn < n; ++nn)
+         id( nn, nn ) = 1;
+      return id;
+   }
+
+   /**
+    @ingroup core
     @brief Generate a matrix of a fixed size filled with a constant value.
     @param val the matrix is filled with this value
     */
    template <class type, class mapper, class allocator>
-   Matrix<type, mapper> null( ui32 ny, ui32 nx, type val = 0 )
+   Matrix<type, mapper, allocator> null( ui32 ny, ui32 nx, type val = 0 )
    {
       Matrix<type, mapper, allocator> null( ny, nx );
       for (ui32 nn = 0; nn < ny * nx; ++nn)

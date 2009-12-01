@@ -12,12 +12,15 @@ namespace nll
 {
 namespace imaging
 {
-   template <class Lut>
+   /**
+    @brief Holds necessary infos to blend slice such as blending factor, LUT & slice.
+    */
+   template <class Lut, class InputType>
    struct BlendSliceInfo
    {
-      typedef core::Image<f32, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
+      typedef imaging::Slice<InputType>      Slice;
 
-      BlendSliceInfo( Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
+      BlendSliceInfo( const Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
       {}
 
       BlendSliceInfo& operator=( const BlendSliceInfo& rhs )
@@ -33,6 +36,17 @@ namespace imaging
       Lut&                    lut;
    };
 
+   /**
+    @brief Defines blending information for floating type based slice
+    */
+   template <class Lut>
+   struct BlendSliceInfof : public BlendSliceInfo<Lut, f32>
+   {
+      BlendSliceInfof( Slice& s, float bf, Lut& l ) : BlendSliceInfo( s, bf, l )
+      {}
+   };
+
+
 #ifndef DISABLE_SSE_BLENDING_OPTIM
 #ifndef NLL_DISABLE_SSE_SUPPORT
    /**
@@ -45,7 +59,7 @@ namespace imaging
     - Lut is allocating 1 extra bloc (so we can load 4 values directly)
     */
    template <class Lut>
-   void blendSSE( const std::vector< BlendSliceInfo<Lut> >& sliceInfos,
+   void blendSSE( const std::vector< BlendSliceInfo<Lut> >& sliceInfosf,
                   nll::core::Image<ui8>& out )
    {
       std::cout << "SSE" << std::endl;
@@ -102,34 +116,47 @@ namespace imaging
 #endif
 
    
-   // dummy
-   template <class Lut>
-   void blendDummy( const std::vector< BlendSliceInfo<Lut> >& sliceInfos,
-               nll::core::Image<ui8>& out )
+   /**
+    @brief Blend slices. All sizes, origin, spacing of input/output slices must match
+    */
+   template <class Lut, class OutType>
+   void blendDummy( const std::vector< BlendSliceInfof<Lut> >& sliceInfos, Slice<OutType>& out )
    {
-      typedef core::Image<ui8>                                    OutputSlice;
-      typedef core::Image<ui8>::iterator                          OutputIterator;
-      typedef typename BlendSliceInfo<Lut>::Slice::const_iterator InputIterator;
+      typedef typename Slice<OutType>::value_type                  OutputType;
+      typedef Slice<OutType>::iterator                             OutputIterator;
+      typedef typename BlendSliceInfof<Lut>::Slice::const_iterator InputIterator;
 
       if ( !sliceInfos.size() )
          return;
-      ensure( out.getNbComponents() == 3, "error must be RGB image" );
-      ensure( out.size() == 3 * sliceInfos[ 0 ].slice.size(), "error must be the same size and RGB image" );
-
-      std::vector< InputIterator > inputIterators( sliceInfos.size() );
-      std::vector< core::Image<ui32> > indexes( sliceInfos.size() );
-      for ( size_t n = 0; n < sliceInfos.size(); ++n )
-      {
-         inputIterators[ n ] = sliceInfos[ n ].slice.begin();
-      }
 
       // cache the lut address & values in an array // else strange code is generated with VS2005SP1
       core::Buffer1D<const Lut*> luts( static_cast<ui32>( sliceInfos.size() ) );
       core::Buffer1D<float> blendFactors( static_cast<ui32>( sliceInfos.size() ) );
+      std::vector< InputIterator > inputIterators( sliceInfos.size() );
       for ( ui32 n = 0; n < sliceInfos.size(); ++n )
       {
          luts[ n ] = &sliceInfos[ n ].lut;
          blendFactors[ n ] = sliceInfos[ n ].blendFactor;
+         inputIterators[ n ] = sliceInfos[ n ].slice.begin();
+
+         // check the slices are correctly used
+
+         // same scaling
+         assert( core::equal<float>( sliceInfos[ n ].slice.getSpacing()[ 0 ], out.getSpacing()[ 0 ] ) );
+         assert( core::equal<float>( sliceInfos[ n ].slice.getSpacing()[ 1 ], out.getSpacing()[ 1 ] ) );
+
+         // same plane
+         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 0 ], out.getNormal()[ 0 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 1 ], out.getNormal()[ 1 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
+         
+         // transform slice coordinate to output coordinate
+         core::vector3f offset = sliceInfos[ n ].slice.getOrigin() - out.getOrigin();
+
+         // check minmax is in the output slice
+         core::vector3f min = offset - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ];
+         core::vector3f max = offset + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ];
+         assert( out.contains( min ) && out.contains( max ) );
       }
 
       const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
@@ -149,15 +176,15 @@ namespace imaging
             valc += buf[ 2 ] * blending;
 
          }
-         oit[ 0 ] = static_cast<ui8>(vala);
-         oit[ 1 ] = static_cast<ui8>(valb);
-         oit[ 2 ] = static_cast<ui8>(valc);
+         oit[ 0 ] = static_cast<OutputType>( vala );
+         oit[ 1 ] = static_cast<OutputType>( valb );
+         oit[ 2 ] = static_cast<OutputType>( valc );
       }
    }
 
-   template <class Lut>
-   void blend( const std::vector< BlendSliceInfo<Lut> >& sliceInfos,
-               nll::core::Image<ui8>& out )
+   template <class Lut, class OutType>
+   void blend( const std::vector< BlendSliceInfof<Lut> >& sliceInfos,
+               Slice<OutType>& out )
    {
 #ifdef DISABLE_SSE_BLENDING_OPTIM
       blendDummy<Lut>( sliceInfos, out );

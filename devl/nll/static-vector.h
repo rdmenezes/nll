@@ -190,7 +190,7 @@ namespace core
       /**
        @brief define operation on the static vector
        */
-      T dot( const StaticVector& op )
+      T dot( const StaticVector& op ) const
       {
          T accum = 0;
          for ( int n = 0; n < SIZE; ++n )
@@ -322,11 +322,17 @@ namespace core
     */
    class vector3f : public StaticVector<f32, 3>
    {
-      typedef StaticVector<f32, 3> BaseClass;
    public:
+      typedef StaticVector<f32, 3> BaseClass;
+
+      vector3f( const BaseClass& b ) : BaseClass( b )
+      {
+      }
+
       vector3f( )
       {
       }
+
       vector3f( BaseClass::value_type x, BaseClass::value_type y, BaseClass::value_type z )
       {
          at( 0 ) = x;

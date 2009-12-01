@@ -59,6 +59,13 @@ namespace core
             return *this;
          }
 
+         DirectionalIterator operator++( int )
+         {
+            DirectionalIterator ans = *this;
+            ++_index;
+            return ans;
+         }
+
          /**
           @brief move the iterator on a new x
           */

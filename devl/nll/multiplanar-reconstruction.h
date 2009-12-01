@@ -44,52 +44,45 @@ namespace imaging
       // if the volume is a floating point type, the interpolation is the same type
       // else a float
       typedef typename core::If<typename Volume::value_type, float, core::IsFloatingType<typename Volume::value_type>::value >::type SliceType;
-      typedef core::Image<SliceType, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
+      typedef imaging::Slice<SliceType>   Slice;
+
+      //typedef core::Image<SliceType, core::IndexMapperRowMajorFlat2DColorRGBnMask> Slice;
 
    public:
       /**
        @brief set the size of the plane to be reconstructed in voxels
        */
-      Mpr( const VolumeType& volume, ui32 sxInVoxels, ui32 syInVoxels ) :
-         _volume( volume ), _voxelsx( sxInVoxels ), _voxelsy( syInVoxels )
+      Mpr( const VolumeType& volume ) :
+         _volume( volume )
       {}
 
       /**
        @brief Compute the slice according to a position and 2 vectors and a size factor.
               The volume's spacing is used to compute the correct MPR.
-       @param point in mm (patient coordinate). It will be the center of the new slice.
-       @param ax x-axis of the plane
-       @param ay y-axis of the plane
-       @param zoomFactor zoomFactor used toreconstruct the slice
+       @param slice the slice to be filled
        */
-      Slice getSlice( const core::vector3f& point, const core::vector3f& ax, const core::vector3f& ay, const core::vector2f zoomFactor = core::vector2f( 1, 1 ) ) const
+      void getSlice( Slice& slice ) const
       {
-         assert( zoomFactor[ 0 ] > 0 && zoomFactor[ 1 ] > 0 );
-
-         // the slice has a speficied size, it needs to be resampled afterward if necesary
-         Slice slice( static_cast<ui32>( core::round( _voxelsx ) ),
-                      static_cast<ui32>( core::round( _voxelsy ) ),
-                      1,
-                      false );
+         assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         core::vector3f dx = impl::mul3Rot( _volume.getInversedPst(), ax );
-         const float c1 = (float)dx.norm2() * zoomFactor[ 0 ];
+         core::vector3f dx = impl::mul3Rot( _volume.getInversedPst(), slice.getAxisX() );
+         const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
          dx[ 1 ] = dx[ 1 ] / ( c1 * _volume.getSpacing()[ 1 ] );
          dx[ 2 ] = dx[ 2 ] / ( c1 * _volume.getSpacing()[ 2 ] );
 
-         core::vector3f dy = impl::mul3Rot( _volume.getInversedPst(), ay );
-         const float c2 = (float)dy.norm2() * zoomFactor[ 1 ];
+         core::vector3f dy = impl::mul3Rot( _volume.getInversedPst(), slice.getAxisY() );
+         const float c2 = (float)dy.norm2() / slice.getSpacing()[ 1 ];
          dy[ 0 ] = dy[ 0 ] / ( c2 * _volume.getSpacing()[ 0 ] );
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
          // reconstruct the slice
-         core::vector3f index = _volume.positionToIndex ( point );
-         float startx = ( index[ 0 ] - ( _voxelsx * dx[ 0 ] / 2 + _voxelsy * dy[ 0 ] / 2 ) );
-         float starty = ( index[ 1 ] - ( _voxelsx * dx[ 1 ] / 2 + _voxelsy * dy[ 1 ] / 2 ) );
-         float startz = ( index[ 2 ] - ( _voxelsx * dx[ 2 ] / 2 + _voxelsy * dy[ 2 ] / 2 ) );
+         core::vector3f index = _volume.positionToIndex ( slice.getOrigin() );
+         float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
+         float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
+         float startz = ( index[ 2 ] - ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
 
          // set up the interpolator
          // if SSE is not supported, use the default interpolator
@@ -106,16 +99,14 @@ namespace imaging
             _fill<Interpolator>( startx, starty, startz, dx, dy, interpolator, slice );
             interpolator.endInterpolation();
          }
-
-         return slice;
       }
 
    protected:
       template <class Interpolator>
       void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
-         Slice::DirectionalIterator it = slice.getIterator( 0, 0, 0 );
-         for ( ui32 y = 0; y < _voxelsy; ++y )
+         Slice::DirectionalIterator it = slice.getIterator( 0, 0 );
+         for ( ui32 y = 0; y < slice.size()[ 1 ]; ++y )
          {
 # ifdef _MSC_VER
             __declspec(align(16)) float pos[ 4 ] =
@@ -126,8 +117,8 @@ namespace imaging
                startx, starty, startz
             };
 
-            it = slice.getIterator( 0, y, 0 );
-            for ( ui32 x = 0; x < _voxelsx; ++x )
+            it = slice.getIterator( 0, y );
+            for ( ui32 x = 0; x < slice.size()[ 0 ]; ++x )
             {
                *it = interpolator( pos );
                pos[ 0 ] += dx[ 0 ];
@@ -146,8 +137,6 @@ namespace imaging
 
    protected:
       const VolumeType& _volume;
-      ui32              _voxelsx;
-      ui32              _voxelsy;
    };
 }
 }

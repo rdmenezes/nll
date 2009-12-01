@@ -62,6 +62,16 @@ namespace core
          }
 
          /**
+          @brief move to the next pixel, the component pointed will be the same than currently
+          */
+         DirectionalIterator operator++( int )
+         {
+            DirectionalIterator ans = *this;
+            _index += _sz;
+            return ans;
+         }
+
+         /**
           @brief move the iterator on a new x
           */
          DirectionalIterator& addx( i32 n = 1 )
@@ -185,6 +195,13 @@ namespace core
          {
             this->_index += this->_sz;
             return *this;
+         }
+
+         ConstDirectionalIterator operator++( int )
+         {
+            ConstDirectionalIterator ans = *this;
+            this->_index += this->_sz;
+            return ans;
          }
 
          T operator*() const
