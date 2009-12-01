@@ -177,11 +177,22 @@ namespace imaging
       }
 
       /**
+       @brief Returns true if the point, in world coordinate (in mm) is in the same plane than
+              the slice.
+       */
+      bool isInPlane( const core::vector3f pos, float tol = 1e-4 ) const
+      {
+         // check first it is in the same plan
+         // N . x + d = 0 means we are in the plan
+         return ( fabs( _orthonorm.dot( pos ) + _planed ) < tol );
+      }
+
+      /**
        @brief Returns true if the position in mm is in the slice
        */
       bool contains( float x, float y, float z, float tol = 1e-4 ) const
       {
-         return core::vector3f( x, y, z, tol );
+         return contains( core::vector3f( x, y, z, tol ), tol );
       }
 
       /**
@@ -189,15 +200,28 @@ namespace imaging
        */
       bool contains( const core::vector3f pos, float tol = 1e-4 ) const
       {
-         // check first it is in the same plan
-         // N . x + d = 0 means we are in the plan
-         bool isInPlan = ( fabs( _orthonorm.dot( pos ) + _planed ) < tol );
-         if ( !isInPlan )
+         if ( !isInPlane( pos, tol ) )
             return false;
 
-         // transform world coordinates to slice coordinates
-
-         return true;
+         // get the point in the slice coordinate system
+         // compare is < or > slice.size * spacing / 2
+         try
+         {
+            core::vector2f slicePos = worldToSliceCoordinate( pos );
+            const float sx = this->size()[ 0 ] / 2 * _spacing[ 0 ];
+            const float sy = this->size()[ 1 ] / 2 * _spacing[ 1 ];
+            if ( slicePos[ 0 ] < -sx ||
+                 slicePos[ 0 ] > sx ||
+                 slicePos[ 1 ] < -sy ||
+                 slicePos[ 1 ] > sy )
+              return false;
+            return true;
+         } catch (...)
+         {
+            // something wrong happened...
+            // it should not be the case if the slice geometry is correctly defined
+            return false;
+         }
       }
 
       Slice& clone( const Slice& rhs )
@@ -239,10 +263,10 @@ namespace imaging
        @brief Transform a world coordinate (standard x, y, z coordinate system, in mm) to slice coordinate
        @param v a position in world coordinate in mm. It must be located on the slice!
        */
-      core::vector2f worldToSliceCoordinate( const core::vector3f& v )
+      core::vector2f worldToSliceCoordinate( const core::vector3f& v ) const
       {
-         if ( !contains( v ) )
-            throw std::exception( "error: the point is not on the slice" );
+         if ( !isInPlane( v ) )
+            throw std::exception( "error: the point is not on the plane" );
 
          // Let's have M a point on the slice plane with coordinate (x, y, z), O the the origin of the world U=(1, 0, 0) V=(0, 1, 0) W=(0, 0, 1) a base of the world coordinate system
          // O' origin of the slice, S and T base vectors of the slice. We are looking for (X, Y) coordinate in
@@ -290,15 +314,16 @@ namespace imaging
                break;
             }
          int i1 = -1;
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( int n = 0; n < 3; ++n )
             if ( _axisy[ n ] != 0 && n != i0 )
             {
-               i0 = n;
+               i1 = n;
                break;
             }
          if ( i0 == -1 || i1 == -1 )
             throw std::exception( "error: the slice base is invalid" );
 
+         // create some alias for code readability
          const float x   = m[ i0 ][ 0 ];
          const float ox  = m[ i0 ][ 1 ];
          const float ax1 = m[ i0 ][ 2 ];

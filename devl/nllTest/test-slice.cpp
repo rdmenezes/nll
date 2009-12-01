@@ -15,19 +15,33 @@ public:
       unsigned sizex = 512;
       unsigned sizey = 1024;
       Slice t1( nll::core::vector3ui( sizex, sizey, 1 ),
-                nll::core::vector3f( 1.0f, 0, 0),
-                nll::core::vector3f( 0, 1.0f, 0),
-                nll::core::vector3f( 0, 0, 0),
+                nll::core::vector3f( 1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 1.0f, 0 ),
+                nll::core::vector3f( 10, 0, 5 ),
                 nll::core::vector2f( 1.0f, 1.0f ) );
 
-      TESTER_ASSERT( t1.contains( nll::core::vector3f( 0, 0, 0 ) ) );
-      TESTER_ASSERT( t1.contains( nll::core::vector3f( sizex, 0, 0 ) ) );
-      TESTER_ASSERT( t1.contains( nll::core::vector3f( sizex, sizey, 0 ) ) );
+      TESTER_ASSERT( t1.isInPlane( nll::core::vector3f( 0, 0, 5 ) ) );
+      TESTER_ASSERT( t1.isInPlane( nll::core::vector3f( (float)sizex, 0, 5 ) ) );
+      TESTER_ASSERT( t1.isInPlane( nll::core::vector3f( (float)sizex, (float)sizey, 5 ) ) );
+      TESTER_ASSERT( !t1.isInPlane( nll::core::vector3f( (float)sizex, (float)sizey, 4 ) ) );
+      TESTER_ASSERT( !t1.isInPlane( nll::core::vector3f( (float)sizex, (float)sizey, 6 ) ) );
+      TESTER_ASSERT( t1.isInPlane( nll::core::vector3f( 4, 4, 5 ) ) );
+      TESTER_ASSERT( t1.isInPlane( nll::core::vector3f( (float)sizex * 1000, (float)sizey, 5 ) ) );
 
-      const nll::core::vector3f p( 0, 0, 0 );
-      std::cout << "x=" << ( t1.worldToSliceCoordinate( p )[ 0 ] ) << std::endl;
-      std::cout << "y=" << ( t1.worldToSliceCoordinate( p )[ 1 ] ) << std::endl;
-      //TESTER_ASSERT( !t1.contains( nll::core::vector3f( sizex + 1, 0, 0 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( 0, 0, 5 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( (float)sizex / 2, 0, 5 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( (float)sizex / 2, (float)sizey / 2, 5 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( -128, 0, 5 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( (float)sizex / 2, -(float)sizey / 2, 5 ) ) );
+
+      TESTER_ASSERT( !t1.contains( nll::core::vector3f( (float)sizex / 2, (float)sizey / 2, 4 ) ) );
+      TESTER_ASSERT( !t1.contains( nll::core::vector3f( (float)sizex / 2, (float)sizey / 2, 6 ) ) );
+      TESTER_ASSERT( !t1.contains( nll::core::vector3f( (float)sizex / 2 + 11, (float)sizey / 2, 5 ) ) );
+
+      const nll::core::vector3f p( 0, 4, 5 );
+      const nll::core::vector2f ptrans = t1.worldToSliceCoordinate( p );
+      TESTER_ASSERT( fabs( ptrans[ 0 ] - ( -10 ) ) < 1e-4 );
+      TESTER_ASSERT( fabs( ptrans[ 1 ] - ( 4 ) ) < 1e-4 );
    }
 };
 
