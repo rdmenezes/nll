@@ -365,7 +365,7 @@ namespace imaging
        */
       core::vector3f sliceToWorldCoordinate( const core::vector2f& v ) const
       {
-         return _axisx * v[ 0 ] * _spacing[ 0 ] + _axisx * v[ 1 ] * _spacing[ 1 ] + _origin;
+         return _axisx * v[ 0 ] * _spacing[ 0 ] + _axisy * v[ 1 ] * _spacing[ 1 ] + _origin;
       }
 
    protected:

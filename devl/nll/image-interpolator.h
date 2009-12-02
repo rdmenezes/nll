@@ -122,8 +122,6 @@ namespace core
       {
          float buf[ 4 ];
 
-         x -= 0.5;
-         y -= 0.5;
          const int xi = static_cast<int>( std::floor( x ) );
          const int yi = static_cast<int>( std::floor( y ) );
 
@@ -141,10 +139,10 @@ namespace core
          }
   
          // precompute coef
-         const float a0 = (1 - dy ) * ( 1 - dx );
-         const float a1 = dx;
-         const float a2 = dy * dx;
-         const float a3 = 1 - dx;
+         const float a0 = ( 1 - dx ) * ( 1 - dy );
+         const float a1 = ( dx )     * ( 1 - dy );
+         const float a2 = ( dx )     * ( dy );
+         const float a3 = ( 1 - dx ) * ( dy );
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
          for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp, iterOrig.addcol() )

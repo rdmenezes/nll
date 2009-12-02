@@ -372,6 +372,10 @@ namespace core
       {
       }
 
+      vector2f( const BaseClass& b ) : BaseClass( b )
+      {
+      }
+
       vector2f( BaseClass::value_type x, BaseClass::value_type y )
       {
          at( 0 ) = x;

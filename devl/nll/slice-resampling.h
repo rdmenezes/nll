@@ -17,11 +17,16 @@ namespace imaging
    template <class T, class Interpolator2D>
    void resampling( const Slice<T>& input, Slice<T>& output )
    {
-      typedef Slice<T>  InputSlice;
+      core::Buffer1D<float> buf( output.size()[ 2 ] );
+
+      typedef Slice<T>  SliceType;
       ensure( output.size()[ 0 ] && output.size()[ 1 ] && output.size()[ 2 ], "the output slice is invalid!" );
-      ensure( core::equal<float>( input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5 ) &&
-              core::equal<float>( input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5 ) &&
-              core::equal<float>( input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5 ), "Input & output slice must be in the same plane" );
+      ensure( ( core::equal<float>( input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5 ) &&
+                core::equal<float>( input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5 ) &&
+                core::equal<float>( input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5 ) ) || 
+              ( core::equal<float>( -input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5 ) &&
+                core::equal<float>( -input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5 ) &&
+                core::equal<float>( -input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5 ) ), "Input & output slice must be in the same plane" );
       ensure( output.size()[ 2 ] == input.size()[ 2 ], "input and output values must be of the same type" );
       ensure( output.isInPlane( input.getOrigin() ), "input and output slices must be in the same plan" );
       
@@ -33,25 +38,28 @@ namespace imaging
       const core::vector2f dy = input.worldToSliceCoordinate( output.sliceToWorldCoordinate( core::vector2f( 0, 1 ) ) ) - outOriginInInput;
 
 
-      Interpolator interpolator( input.getAllocator() );
-      InputSlice::ConstDirectionalIterator it = input.getIterator( 0, 0, 0 );
+      Interpolator2D interpolator( input.getStorage() );
+      SliceType::DirectionalIterator it = output.getIterator( 0, 0 );
 
       // find the top left corner of the output slice in world coordinate
       const core::vector3f cornerInWorldSpace = output.sliceToWorldCoordinate( core::vector2f( - static_cast<float>( output.size()[ 0 ] ) / 2,
                                                                                                - static_cast<float>( output.size()[ 1 ] ) / 2 ) );
-      core::vector2f start = input.worldToSliceCoordinate( cornerInWorldSpace );
+      const core::vector2f cornerInInput = input.worldToSliceCoordinate( cornerInWorldSpace );
+      core::vector2f start = cornerInInput + core::vector2f( static_cast<float>( input.size()[ 0 ] ) / 2, static_cast<float>( input.size()[ 1 ] ) / 2 );
       for ( ui32 y = 0; y < output.size()[ 1 ]; ++y )
       {
          core::vector2f pixelIter = start;
-         InputSlice::ConstDirectionalIterator itline = it;
+         SliceType::DirectionalIterator itline = it;
          for ( ui32 x = 0; x < output.size()[ 0 ]; ++x )
          {
-            interpolator.interpolate( pixelIter[ 0 ], pixelIter[ 1 ], &( *itline ) );
+            interpolator.interpolate( pixelIter[ 0 ], pixelIter[ 1 ], buf.getBuf() );
+            for ( ui32 c = 0; c < output.size()[ 2 ]; ++c )
+               itline.pickcol( c ) = buf[ c ];
             itline.addx();
-            pixelIter += dx;
+            pixelIter = pixelIter + dx;
          }
          it.addy();
-         start += dy;
+         start = start + dy;
       }
    }
 }

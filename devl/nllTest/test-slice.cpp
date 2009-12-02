@@ -86,6 +86,35 @@ public:
       typedef nll::imaging::Slice<nll::ui8>  Slice;
 
       nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+      nll::core::decolor( im1 );
+
+      Slice t1( nll::core::vector3ui( 128, 129, 1 ),
+                nll::core::vector3f( 1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 1.0f, 0 ),
+                nll::core::vector3f( 0, 0, 0 ),
+                nll::core::vector2f( 1.0f, 1.0f ) );
+      t1.getStorage() = im1;
+
+      Slice t2( nll::core::vector3ui( 1024*4, 1024*4, 1 ),
+                nll::core::vector3f( 1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 1.0f, 0 ),
+                nll::core::vector3f( 0, 0, 0 ),
+                nll::core::vector2f( 0.05, 0.1 ) );
+
+      nll::core::Timer time1;
+      nll::imaging::resampling<Slice::value_type, Slice::BilinearInterpolator>( t1, t2 );
+      std::cout << "TimerZoom=" << time1.getCurrentTime() << std::endl;
+
+      nll::core::extend( t2.getStorage(), 3 );
+      nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-zoom1.bmp" );
+   }
+
+   void testResamplingId()
+   {
+      nll::core::Image<nll::ui8>             im1;
+      typedef nll::imaging::Slice<nll::ui8>  Slice;
+
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
 
       Slice t1( nll::core::vector3ui( 128, 129, 3 ),
                 nll::core::vector3f( 1.0f, 0, 0 ),
@@ -98,11 +127,61 @@ public:
                 nll::core::vector3f( 1.0f, 0, 0 ),
                 nll::core::vector3f( 0, 1.0f, 0 ),
                 nll::core::vector3f( 0, 0, 0 ),
-                nll::core::vector2f( 0.5f, 0.5f ) );
+                nll::core::vector2f( 1, 1 ) );
 
-//      nll::imaging::resampling<Slice, Slice::BilinearInterpolator>( t1, t2 );
+      nll::imaging::resampling<Slice::value_type, Slice::NearestNeighbourInterpolator>( t1, t2 );
 
-      nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-zoom1.bmp" );
+      nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-id.bmp" );
+   }
+
+   void testResamplingNewCoordinateSystem()
+   {
+      nll::core::Image<nll::ui8>             im1;
+      typedef nll::imaging::Slice<nll::ui8>  Slice;
+
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+
+      Slice t1( nll::core::vector3ui( 128, 129, 3 ),
+                nll::core::vector3f( 1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 1.0f, 0 ),
+                nll::core::vector3f( 0, 0, 0 ),
+                nll::core::vector2f( 1.0f, 1.0f ) );
+      t1.getStorage() = im1;
+
+      Slice t2( nll::core::vector3ui( 128, 129, 3 ),
+                nll::core::vector3f( 0, -1.0f, 0 ),
+                nll::core::vector3f( -1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 0, 0 ),
+                nll::core::vector2f( 1, 1 ) );
+
+      nll::imaging::resampling<Slice::value_type, Slice::BilinearInterpolator>( t1, t2 );
+
+      nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-system.bmp" );
+   }
+
+   void testResamplingTranslation()
+   {
+      nll::core::Image<nll::ui8>             im1;
+      typedef nll::imaging::Slice<nll::ui8>  Slice;
+
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+
+      Slice t1( nll::core::vector3ui( 128, 129, 3 ),
+                nll::core::vector3f( 1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 1.0f, 0 ),
+                nll::core::vector3f( 0, 0, 0 ),
+                nll::core::vector2f( 1.0f, 1.0f ) );
+      t1.getStorage() = im1;
+
+      Slice t2( nll::core::vector3ui( 128, 129, 3 ),
+                nll::core::vector3f( 1.0f, 0, 0 ),
+                nll::core::vector3f( 0, 1.0f, 0 ),
+                nll::core::vector3f( 20, 0, 0 ),
+                nll::core::vector2f( 1, 1 ) );
+
+      nll::imaging::resampling<Slice::value_type, Slice::BilinearInterpolator>( t1, t2 );
+
+      nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-translation1.bmp" );
    }
 };
 
@@ -110,6 +189,9 @@ public:
 TESTER_TEST_SUITE(TestSlice);
 TESTER_TEST(testContains);
 TESTER_TEST(testCoordinateSystem);
+TESTER_TEST(testResamplingNewCoordinateSystem);
 TESTER_TEST(testResamplingZoom);
+TESTER_TEST(testResamplingId);
+TESTER_TEST(testResamplingTranslation);
 TESTER_TEST_SUITE_END();
 #endif
