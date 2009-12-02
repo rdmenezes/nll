@@ -29,7 +29,7 @@ namespace core
       };
 
    public:
-      inline explicit Allocator16ByteAligned()
+      inline Allocator16ByteAligned()
       {
          STATIC_ASSERT( IsNativeType<T>::value );
       }
@@ -37,12 +37,12 @@ namespace core
       inline ~Allocator16ByteAligned()
       {}
 
-      inline explicit Allocator16ByteAligned( Allocator16ByteAligned const& )
+      inline Allocator16ByteAligned( Allocator16ByteAligned const& )
       {
       }
 
       template<typename U>
-      inline explicit Allocator16ByteAligned( Allocator16ByteAligned<U> const& )
+      inline Allocator16ByteAligned( Allocator16ByteAligned<U> const& )
       {
          STATIC_ASSERT( IsNativeType<T>::value );
       }

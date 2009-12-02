@@ -191,12 +191,14 @@ namespace core
          if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
               yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
          {
-            for ( ui32 nbcomp = 0; nbcomp < _img.getNbOfCopmpoents(); ++nbcomp )
+            for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
                output[ nbcomp ] = 0;
             return;
          }
-         for ( ui32 nbcomp = 0; nbcomp < _img.getNbOfCopmpoents(); ++nbcomp )
-            output[ nbcomp ] = static_cast<float>( );
+
+         typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
+         for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
+            output[ nbcomp ] = static_cast<float>( iterOrig.pickcol( nbcomp ) );
       }
    };
 }

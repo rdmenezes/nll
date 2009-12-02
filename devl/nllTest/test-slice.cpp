@@ -100,7 +100,7 @@ public:
                 nll::core::vector3f( 0, 0, 0 ),
                 nll::core::vector2f( 0.5f, 0.5f ) );
 
-      nll::imaging::resampling<Slice, Slice::BilinearInterpolator>( t1, t2 );
+//      nll::imaging::resampling<Slice, Slice::BilinearInterpolator>( t1, t2 );
 
       nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-zoom1.bmp" );
    }
