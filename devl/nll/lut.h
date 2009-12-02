@@ -6,6 +6,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief A lut buffer.
     @note Allocator is used to allocate the buffer. One extra block will always be allocated to allow a specific
           optimization
@@ -273,6 +274,7 @@ namespace imaging
    };
 
    /**
+    @ingroup imaging
     @brief Implementation of a LUT for double->RGB values
     */
    class LookUpTransformWindowingRGB

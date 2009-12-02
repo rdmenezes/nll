@@ -145,7 +145,7 @@ namespace imaging
               in one of the 3 possible directions.
        @note addx, addy, addz, pickx, picky, pickz beware of the bounds as they are not checked!
        */
-       class ConstDirectionalIterator : public DirectionalIterator
+      class ConstDirectionalIterator : public DirectionalIterator
       {
       public:
          ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : 
@@ -407,7 +407,6 @@ namespace imaging
 
    /**
     @ingroup imaging
-
     @brief Store a set of voxels - volume - The voxel buffer is stored accross instances.
     
     It is assumed that the VolumeMemoryBuffer will provide accessors for data and size, and iterators.

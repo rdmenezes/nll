@@ -9,12 +9,18 @@ namespace imaging
     @ingroup imaging
     @brief Defines a single slice. A slice is a 2D image, with a position, orientation and spacing info.
     @note copy by value should be quick, hence storage is shared accross slices when copied
+    @note the 2D slice coordinate system is centered on the slice origin: (0, 0) = sliceOrigin
     */
    template <class T>
    class Slice
    {
    public:
       typedef core::Image<T> Storage;
+
+   public:
+      // defines interpolators
+      typedef core::InterpolatorLinear2D<typename Storage::value_type, typename Storage::IndexMapper, typename Storage::Allocator>           BilinearInterpolator;
+      typedef core::InterpolatorNearestNeighbor2D<typename Storage::value_type, typename Storage::IndexMapper, typename Storage::Allocator>  NearestNeighbourInterpolator;
 
    public:
       typedef core::Matrix<f32>                                            Matrix;
@@ -35,7 +41,7 @@ namespace imaging
        @param size the number of voxels. The third component indicated the dimenstionality of the value.
        @param axisx the x axis of the slice
        @param axisy the y axis of the slice
-       @param origin the origin (vector (0, 0, 0) to the center of the slice in mm)
+       @param origin the origin (vector (0, 0, 0) in world coordinate to the center of the slice in mm)
        @param spacing of the pixels in mm
        */
       Slice( const core::vector3ui& size,
@@ -224,6 +230,9 @@ namespace imaging
          }
       }
 
+      /**
+       @brief Deep copy the slice
+       */
       Slice& clone( const Slice& rhs )
       {
          _axisx = rhs._axisx;
@@ -237,6 +246,9 @@ namespace imaging
          return *this;
       }
 
+      /**
+       @brief Copy the slice. the internal storage
+       */
       Slice& operator=( const Slice& rhs )
       {
          _axisx = rhs._axisx;
@@ -249,11 +261,17 @@ namespace imaging
          return *this;
       }
 
+      /**
+       @brief Returns the internal storage
+       */
       Storage& getStorage()
       {
          return _storage;
       }
 
+      /**
+       @brief Returns the internal storage
+       */
       const Storage& getStorage() const
       {
          return _storage;
@@ -261,7 +279,7 @@ namespace imaging
 
       /**
        @brief Transform a world coordinate (standard x, y, z coordinate system, in mm) to slice coordinate
-       @param v a position in world coordinate in mm. It must be located on the slice!
+       @param v a position in world coordinate in mm. It must be located on the plane of the slice!
        */
       core::vector2f worldToSliceCoordinate( const core::vector3f& v ) const
       {
@@ -339,7 +357,15 @@ namespace imaging
 
          const float Y = ( y - oy - ay1 * ( x - ox ) / ax1 ) / ( ay2 * ( ay2 * ax1 - ay1 * ax2 ) );
          const float X = ( x - ox - Y * ax2 ) / ax1;
-         return core::vector2f( X, Y );
+         return core::vector2f( X / _spacing[ 0 ], Y / _spacing[ 1 ] );
+      }
+
+      /**
+       @brief Transform the slice coordinate to a 3D point in world coordinate (in mm)
+       */
+      core::vector3f sliceToWorldCoordinate( const core::vector2f& v ) const
+      {
+         return _axisx * v[ 0 ] * _spacing[ 0 ] + _axisx * v[ 1 ] * _spacing[ 1 ] + _origin;
       }
 
    protected:

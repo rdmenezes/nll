@@ -6,6 +6,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief Nearest neighbour interpolator. (0,0) is the center of the voxel.
 
     Volume must be of a volume type.
@@ -65,6 +66,7 @@ namespace imaging
 
 
    /**
+    @ingroup imaging
     @brief Trilinear interpolator of a volume. (0,0) is the center of the voxel.
 
     Volume must be of a volume type or derived.
@@ -187,6 +189,7 @@ namespace imaging
 
 
    /**
+    @ingroup imaging
     @brief Trilinear interpolator of a volume. (0,0) is the center of the voxel.
 
     Volume must be of a volume type or derived.

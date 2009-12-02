@@ -53,6 +53,13 @@ namespace core
        */
       virtual double interpolate( double x, double y, ui32 c ) const = 0;
 
+      /**
+       @brief computes a serie of interpolated values for each component
+       @param output a preallocated buffer where interpolated components for this position will
+              be stored.
+       */
+      virtual void interpolate( float x, float y, float* output ) const = 0;
+
    protected:
       Interpolator2D& operator=( const Interpolator2D& );
 
@@ -72,7 +79,7 @@ namespace core
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
       double interpolate( double x, double y, ui32 c ) const
       {
-         static double buf[4];
+         double buf[ 4 ];
 
          x -= 0.5;
          y -= 0.5;
@@ -110,6 +117,49 @@ namespace core
          assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
          return val;
       }
+
+      virtual void interpolate( float x, float y, float* output ) const
+      {
+         float buf[ 4 ];
+
+         x -= 0.5;
+         y -= 0.5;
+         const int xi = static_cast<int>( std::floor( x ) );
+         const int yi = static_cast<int>( std::floor( y ) );
+
+         const float dx = fabs( x - xi );
+         const float dy = fabs( y - yi );
+
+         // if we can't interpolate first & last line/column (we are missing one sample), just don't do any interpolation
+         // and return background value
+         if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
+              yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
+         {
+            for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
+               output[ nbcomp ] = 0;
+            return;
+         }
+  
+         // precompute coef
+         const float a0 = (1 - dy ) * ( 1 - dx );
+         const float a1 = dx;
+         const float a2 = dy * dx;
+         const float a3 = 1 - dx;
+
+         typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
+         for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp, iterOrig.addcol() )
+         {
+            typename Base::TImage::ConstDirectionalIterator iter = iterOrig;
+            buf[ 0 ] = *iter;
+            buf[ 1 ] = iter.pickx();
+            buf[ 3 ] = iter.picky();
+            iter.addx();
+            buf[ 2 ] = iter.picky();
+
+            output[ nbcomp ] = a0 * buf[ 0 ] + a1 * buf[ 1 ] +
+                               a2 * buf[ 2 ] + a3 * buf[ 3 ];
+         }
+      }
    };
 
 
@@ -132,28 +182,21 @@ namespace core
          assert( val >= Bound<T>::min && val <= (Bound<T>::max + 0.999) );
          return val;
       }
-   };
 
-   /**
-    @ingroup core
-    @brief 2D cubic spline interpolation of an image
-    @todo implement
-    */
-   template <class T, class Mapper, class Alloc>
-   class InterpolatorCubic2D : public Interpolator2D<T, Mapper, Alloc>
-   {
-   public:
-      typedef Interpolator2D<T, Mapper, Alloc>   Base;
-      InterpolatorCubic2D( const typename Base::TImage& i ) : Base( i ){}
-      double interpolate( const double x, const double y, const ui32 c ) const
+      virtual void interpolate( float x, float y, float* output ) const
       {
-         static double buf[4];
-         const i32 xi = static_cast<i32>( x );
-         const i32 yi = static_cast<i32>( y );
-         const double dx = x - xi;
-         const double dy = y - yi;
+         int xi = (int)( x + 0.5f );
+         int yi = (int)( y + 0.5f );
 
-         // TODO : interpolation
+         if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
+              yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
+         {
+            for ( ui32 nbcomp = 0; nbcomp < _img.getNbOfCopmpoents(); ++nbcomp )
+               output[ nbcomp ] = 0;
+            return;
+         }
+         for ( ui32 nbcomp = 0; nbcomp < _img.getNbOfCopmpoents(); ++nbcomp )
+            output[ nbcomp ] = static_cast<float>( );
       }
    };
 }

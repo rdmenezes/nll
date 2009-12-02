@@ -13,6 +13,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief Holds necessary infos to blend slice such as blending factor, LUT & slice.
     */
    template <class Lut, class InputType>
@@ -37,6 +38,7 @@ namespace imaging
    };
 
    /**
+    @ingroup imaging
     @brief Defines blending information for floating type based slice
     */
    template <class Lut>
@@ -117,6 +119,7 @@ namespace imaging
 
    
    /**
+    @ingroup imaging
     @brief Blend slices. All sizes, origin, spacing of input/output slices must match
     */
    template <class Lut, class OutType>
@@ -151,11 +154,11 @@ namespace imaging
          assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
          
          // transform slice coordinate to output coordinate
-         core::vector3f offset = sliceInfos[ n ].slice.getOrigin() - out.getOrigin();
+         //core::vector3f offset = sliceInfos[ n ].slice.getOrigin() - out.getOrigin();
 
          // check minmax is in the output slice
-         core::vector3f min = offset - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ];
-         core::vector3f max = offset + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ];
+         core::vector3f min = sliceInfos[ n ].slice.getOrigin() - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
+         core::vector3f max = sliceInfos[ n ].slice.getOrigin() + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
          assert( out.contains( min ) && out.contains( max ) );
       }
 
@@ -182,6 +185,10 @@ namespace imaging
       }
    }
 
+   /**
+    @ingroup imaging
+    @brief Blend slices.
+    */
    template <class Lut, class OutType>
    void blend( const std::vector< BlendSliceInfof<Lut> >& sliceInfos,
                Slice<OutType>& out )

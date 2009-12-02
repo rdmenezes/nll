@@ -6,6 +6,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief handle a medical volume
 
     The center of a voxel is its top left corner.

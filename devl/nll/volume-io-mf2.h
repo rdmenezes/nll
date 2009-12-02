@@ -6,6 +6,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     Load a .mf2 medical volume. Not a standard file format, just a helper.
     */
    template <class T, class Buf>

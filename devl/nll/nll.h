@@ -37,7 +37,7 @@
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
  @version 0.12
- @date 30th November 2009
+ @date 4th December 2009
  */
 
 /// define the version of nll
@@ -68,6 +68,7 @@
    - Allocator
          * allocate
          * deallocate
+         * rebind
    - matrix
  */
 
@@ -154,9 +155,10 @@
 # include "volume-spatial.h"
 # include "volume-interpolator.h"
 # include "slice.h"
+# include "slice-blending.h"
+# include "slice-resampling.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
-# include "slice-blending.h"
 
 /**
  @defgroup algorithm
@@ -164,7 +166,7 @@
  This group defines the main algorithms of the library. They are mainly decomposed into
  2 sub groups:
  - generic algorithm group, that tries to keep the dependencies to a minimum.
- - feature algorithm group, where it tries to intregrate all the generic algorithms to
+ - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
 # include "bracketing.h"
@@ -241,6 +243,5 @@
 # include "debug-io.h"
 # include "debug-decompose.h"
 
-/// @defgroup tutorial
 
 #endif
