@@ -159,11 +159,29 @@ namespace core
       /**
        @brief define operation on the static vector
        */
+      StaticVector& operator+=( const StaticVector& op2 )
+      {
+         this->add( op2 );
+         return *this;
+      }
+
+      /**
+       @brief define operation on the static vector
+       */
       StaticVector operator-( const StaticVector& op2 ) const
       {
          StaticVector res( *this );
          res.sub( op2 );
          return res;
+      }
+
+      /**
+       @brief define operation on the static vector
+       */
+      StaticVector& operator-=( const StaticVector& op2 )
+      {
+         this->sub( op2 );
+         return *this;
       }
 
       /**

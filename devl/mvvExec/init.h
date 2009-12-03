@@ -165,7 +165,7 @@ namespace mvv
 
 
          // create layout
-         ui32 sizex = 1024*2;
+         ui32 sizex = 1024;
          ui32 sizey = 1024;
 
          std::cout << "size=" << sizex << " " << sizey << std::endl;

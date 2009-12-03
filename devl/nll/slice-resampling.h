@@ -21,12 +21,12 @@ namespace imaging
 
       typedef Slice<T>  SliceType;
       ensure( output.size()[ 0 ] && output.size()[ 1 ] && output.size()[ 2 ], "the output slice is invalid!" );
-      ensure( ( core::equal<float>( input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5 ) &&
-                core::equal<float>( input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5 ) &&
-                core::equal<float>( input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5 ) ) || 
-              ( core::equal<float>( -input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5 ) &&
-                core::equal<float>( -input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5 ) &&
-                core::equal<float>( -input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5 ) ), "Input & output slice must be in the same plane" );
+      ensure( ( core::equal<float>( input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5f ) &&
+                core::equal<float>( input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5f ) &&
+                core::equal<float>( input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5f ) ) || 
+              ( core::equal<float>( -input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5f ) &&
+                core::equal<float>( -input.getNormal()[ 1 ], output.getNormal()[ 1 ], 1e-5f ) &&
+                core::equal<float>( -input.getNormal()[ 2 ], output.getNormal()[ 2 ], 1e-5f ) ), "Input & output slice must be in the same plane" );
       ensure( output.size()[ 2 ] == input.size()[ 2 ], "input and output values must be of the same type" );
       ensure( output.isInPlane( input.getOrigin() ), "input and output slices must be in the same plan" );
       
@@ -50,16 +50,16 @@ namespace imaging
       {
          core::vector2f pixelIter = start;
          SliceType::DirectionalIterator itline = it;
-         for ( ui32 x = 0; x < output.size()[ 0 ]; ++x )
+         it.addy();
+         while ( itline != it ) 
          {
             interpolator.interpolate( pixelIter[ 0 ], pixelIter[ 1 ], buf.getBuf() );
             for ( ui32 c = 0; c < output.size()[ 2 ]; ++c )
-               itline.pickcol( c ) = buf[ c ];
+               itline.pickcol( c ) = static_cast<T>( buf[ c ] );
             itline.addx();
-            pixelIter = pixelIter + dx;
+            pixelIter += dx;
          }
-         it.addy();
-         start = start + dy;
+         start += dy;
       }
    }
 }

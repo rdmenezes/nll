@@ -99,7 +99,7 @@ public:
                 nll::core::vector3f( 1.0f, 0, 0 ),
                 nll::core::vector3f( 0, 1.0f, 0 ),
                 nll::core::vector3f( 0, 0, 0 ),
-                nll::core::vector2f( 0.05, 0.1 ) );
+                nll::core::vector2f( 0.05f, 0.1f ) );
 
       nll::core::Timer time1;
       nll::imaging::resampling<Slice::value_type, Slice::BilinearInterpolator>( t1, t2 );

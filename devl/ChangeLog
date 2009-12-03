@@ -1,3 +1,8 @@
+v0.12
+-optimization of the nll::imaging to be suitable for realtime sofware rendering
+-added slices & associated operations (MPR reconstruction, blending, resampling)
+-added Allocator parameter for Matrix, Images & Buffer for specific allocators
+
 v0.11
 -improved logging
 -added kernel PCA algorithm
