@@ -154,6 +154,7 @@
 # include "volume.h"
 # include "volume-spatial.h"
 # include "volume-interpolator.h"
+# include "volume-resampling.h"
 # include "slice.h"
 # include "slice-blending.h"
 # include "slice-resampling.h"

@@ -80,7 +80,7 @@ namespace imaging
          /**
           @brief move the iterator on a new z
           */
-         DirectionalIterator& addcol( i32 n = 1 )
+         DirectionalIterator& addz( i32 n = 1 )
          {
             _index = _mapper.addz( _index, n );
             return *this;

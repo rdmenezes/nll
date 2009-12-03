@@ -233,7 +233,8 @@ namespace imaging
       }
 
       /**
-       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
+       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume.
+              pos must be 16bytes aligned
        */
       value_type operator()( const float* pos ) const
       {
