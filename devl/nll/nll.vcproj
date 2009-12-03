@@ -53,7 +53,7 @@
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
 				OpenMP="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
@@ -974,7 +974,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\volume-io-bin.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volume-io-mf2.h"
+				>
+			</File>
+			<File
+				RelativePath=".\volume-io-txt.h"
 				>
 			</File>
 			<File

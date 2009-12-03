@@ -7,7 +7,7 @@ namespace imaging
 {
    /**
     @ingroup imaging
-    @brief Resample an input slice to a output geometry
+    @brief Resample an input slice to an arbitrary output geometry
     @param input the input slice
     @param interpolator2D the interpolator to be used for resampling
     @param output the output slice. It must be already allocated. The input will be resampled to the output
@@ -17,8 +17,6 @@ namespace imaging
    template <class T, class Interpolator2D>
    void resampling( const Slice<T>& input, Slice<T>& output )
    {
-      core::Buffer1D<float> buf( output.size()[ 2 ] );
-
       typedef Slice<T>  SliceType;
       ensure( output.size()[ 0 ] && output.size()[ 1 ] && output.size()[ 2 ], "the output slice is invalid!" );
       ensure( ( core::equal<float>( input.getNormal()[ 0 ], output.getNormal()[ 0 ], 1e-5f ) &&
@@ -53,9 +51,7 @@ namespace imaging
          it.addy();
          while ( itline != it ) 
          {
-            interpolator.interpolate( pixelIter[ 0 ], pixelIter[ 1 ], buf.getBuf() );
-            for ( ui32 c = 0; c < output.size()[ 2 ]; ++c )
-               itline.pickcol( c ) = static_cast<T>( buf[ c ] );
+            interpolator.interpolateValues( pixelIter[ 0 ], pixelIter[ 1 ], &( *itline ) );
             itline.addx();
             pixelIter += dx;
          }

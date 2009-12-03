@@ -38,7 +38,7 @@ namespace imaging
       /**
        @brief Construct a slice. The storage is allocated but not initialized.
 
-       @param size the number of voxels. The third component indicated the dimenstionality of the value.
+       @param size the number of voxels. The third component indicates the dimenstionality of the value.
        @param axisx the x axis of the slice
        @param axisy the y axis of the slice
        @param origin the origin (vector (0, 0, 0) in world coordinate to the center of the slice in mm)

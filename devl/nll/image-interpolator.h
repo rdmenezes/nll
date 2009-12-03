@@ -53,13 +53,6 @@ namespace core
        */
       virtual double interpolate( double x, double y, ui32 c ) const = 0;
 
-      /**
-       @brief computes a serie of interpolated values for each component
-       @param output a preallocated buffer where interpolated components for this position will
-              be stored.
-       */
-      virtual void interpolate( float x, float y, float* output ) const = 0;
-
    protected:
       Interpolator2D& operator=( const Interpolator2D& );
 
@@ -118,7 +111,11 @@ namespace core
          return val;
       }
 
-      virtual void interpolate( float x, float y, float* output ) const
+      /**
+       @brief Helper method to do interpolation on multi valued values
+       */
+      template <class Iterator>
+      void interpolateValues( float x, float y, Iterator output ) const
       {
          float buf[ 4 ];
 
@@ -154,8 +151,8 @@ namespace core
             iter.addx();
             buf[ 2 ] = iter.picky();
 
-            output[ nbcomp ] = a0 * buf[ 0 ] + a1 * buf[ 1 ] +
-                               a2 * buf[ 2 ] + a3 * buf[ 3 ];
+            *output++ = a0 * buf[ 0 ] + a1 * buf[ 1 ] +
+                        a2 * buf[ 2 ] + a3 * buf[ 3 ];
          }
       }
    };
@@ -181,7 +178,11 @@ namespace core
          return val;
       }
 
-      virtual void interpolate( float x, float y, float* output ) const
+      /**
+       @brief Helper method to do interpolation on multi valued values
+       */
+      template <class Iterator>
+      void interpolateValues( float x, float y, Iterator output ) const
       {
          int xi = (int)( x + 0.5f );
          int yi = (int)( y + 0.5f );
@@ -190,13 +191,13 @@ namespace core
               yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
          {
             for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
-               output[ nbcomp ] = 0;
+               *output++ = 0;
             return;
          }
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
          for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
-            output[ nbcomp ] = static_cast<float>( iterOrig.pickcol( nbcomp ) );
+            *output++ = iterOrig.pickcol( nbcomp );
       }
    };
 }

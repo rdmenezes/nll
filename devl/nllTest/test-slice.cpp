@@ -107,6 +107,10 @@ public:
 
       nll::core::extend( t2.getStorage(), 3 );
       nll::core::writeBmp( t2.getStorage(), NLL_TEST_PATH "data/slice-zoom1.bmp" );
+
+      nll::core::Timer time2;
+      nll::core::rescaleBilinear( im1, 1024*4, 1024*4);
+      std::cout << "Regular 2D scaling=" << time2.getCurrentTime() << std::endl;
    }
 
    void testResamplingId()

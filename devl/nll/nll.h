@@ -159,6 +159,8 @@
 # include "slice-resampling.h"
 # include "multiplanar-reconstruction.h"
 # include "volume-io-mf2.h"
+# include "volume-io-bin.h"
+# include "volume-io-txt.h"
 
 /**
  @defgroup algorithm
