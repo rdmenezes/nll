@@ -986,6 +986,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\volume-resampling.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volume-spatial.h"
 				>
 			</File>

@@ -43,6 +43,13 @@
 /// define the version of nll
 #define NLL_VERSION  "nll-0.12"
 
+
+#ifdef _MSC_VER
+# define NLL_ALIGN_16   __declspec(align(16))
+#else
+# define NLL_ALIGN_16
+#endif
+
 /**
  Concept: (for future integration with C++ 0x)
    - Point : requires

@@ -41,12 +41,7 @@ namespace imaging
          {
             typename VolumeType::DirectionalIterator  voxelIt = lineIt;
             
-# ifdef _MSC_VER
-            // if the SSE optimization is used, the position must be 16bytes aligned
-            __declspec(align(16)) float voxelPosSrc[ 4 ] =
-#  else
-            float voxelPosSrc[ 4 ] =
-# endif
+            NLL_ALIGN_16 float voxelPosSrc[ 4 ] =
             { 
                linePosSrc[ 0 ],
                linePosSrc[ 1 ],

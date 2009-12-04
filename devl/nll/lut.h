@@ -109,7 +109,7 @@ namespace imaging
       }
 
       /**
-       @brief Transform a double to multidimentional value
+       @brief Transform a float to multidimentional value
        */
       const T* transform( float value ) const
       {

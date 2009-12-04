@@ -108,11 +108,7 @@ namespace imaging
          Slice::DirectionalIterator it = slice.getIterator( 0, 0 );
          for ( ui32 y = 0; y < slice.size()[ 1 ]; ++y )
          {
-# ifdef _MSC_VER
-            __declspec(align(16)) float pos[ 4 ] =
-#  else
-            float pos[ 4 ] =
-# endif
+            NLL_ALIGN_16 float pos[ 4 ] =
             {
                startx, starty, startz
             };

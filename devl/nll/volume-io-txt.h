@@ -1,6 +1,8 @@
 #ifndef NLL_IMAGING_VOLUME_IO_TXT_H_
 # define NLL_IMAGING_VOLUME_IO_TXT_H_
 
+#define NLL_IMAGING_TEXT_VOLUME_READER_VERSION   0x13000001
+
 namespace nll
 {
 namespace imaging
@@ -29,7 +31,7 @@ namespace imaging
          return false;
 
       // header
-      hdr << "version:" << NLL_IMAGING_BINARY_VOLUME_READER_VERSION << std::endl;
+      hdr << "version:" << NLL_IMAGING_TEXT_VOLUME_READER_VERSION << std::endl;
       hdr << "size:" << volume.getSize()[ 0 ] << " " << volume.getSize()[ 1 ] << " " << volume.getSize()[ 2 ] << std::endl;
       hdr << "background:" << volume.getBackgroundValue() << std::endl;
       for ( ui32 ny = 0; ny < 4; ++ny )
@@ -88,7 +90,7 @@ namespace imaging
          throw std::exception( "error: can't parse volume header: version" );
 
       ui32 version = atoi( lineSpt[ 1 ] );
-      if ( version != NLL_IMAGING_BINARY_VOLUME_READER_VERSION )
+      if ( version != NLL_IMAGING_TEXT_VOLUME_READER_VERSION )
          throw std::exception( "error: header version not recognized" );
 
       // get size
