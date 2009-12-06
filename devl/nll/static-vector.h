@@ -194,6 +194,12 @@ namespace core
          return res;
       }
 
+      StaticVector operator*=( const T val )
+      {
+         this->mul( val );
+         return *this;
+      }
+
       /**
        @brief define operation on the static vector
        */
@@ -203,6 +209,13 @@ namespace core
          StaticVector res( *this );
          res.div( val );
          return res;
+      }
+
+      StaticVector operator/=( const T val )
+      {
+         assert( val != 0 );
+         this->div( val );
+         return *this;
       }
 
       /**
@@ -254,6 +267,21 @@ namespace core
       {
          f.read( (i8*)_buffer, sizeof( T ) * SIZE );
          return true;
+      }
+
+      bool operator==( const StaticVector& r ) const
+      {
+         for ( ui32 n = 0; n < SIZE; ++n )
+         {
+            if ( !equal( _buffer[ n ], r[ n ] ) )
+               return false;
+         }
+         return true;
+      }
+
+      inline bool operator!=( const StaticVector& r ) const
+      {
+         return ! ( *this == r );
       }
 
    protected:

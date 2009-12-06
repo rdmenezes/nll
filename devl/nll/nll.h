@@ -150,6 +150,7 @@
 # include "timer.h"
 # include "sequence-converter.h"
 # include "allocator-aligned.h"
+# include "geometry.h"
 
 /**
  @defgroup imaging
