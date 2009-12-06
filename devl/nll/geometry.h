@@ -160,6 +160,14 @@ namespace core
       }
 
       /**
+       @brief Returns the normal with norm( normal ) = 1
+       */
+      const core::vector3f& getNormal() const
+      {
+         return _orthonorm;
+      }
+
+      /**
        @brief Returns the x-axis of the slice
        */
       const core::vector3f& getAxisX() const

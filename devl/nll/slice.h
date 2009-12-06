@@ -49,7 +49,7 @@ namespace imaging
              const core::vector3f& axisy,
              const core::vector3f& origin,
              const core::vector2f& spacing ) :
-         _storage( size[ 0 ], size[ 1 ], size[ 2 ], false ), _axisx( axisx ), _axisy( axisy ), _origin( origin ), _spacing( spacing )
+         _storage( size[ 0 ], size[ 1 ], size[ 2 ], false ), _axisx( axisx ), _axisy( axisy ), _spacing( spacing )
       {
          // normalize
          float sx = static_cast<float>( _axisx.norm2() );
@@ -57,11 +57,7 @@ namespace imaging
          _axisx = _axisx / sx;
          _axisy = _axisy / sy;
 
-         // computes the normal
-         _orthonorm = core::cross( _axisx, _axisy );
-
-         // computes constant
-         _planed = - _origin.dot( _orthonorm );
+         _plane = core::GeometryPlane( origin, _axisx * spacing[ 0 ], _axisy * spacing[ 1 ] );
       }
 
       /**
@@ -85,7 +81,7 @@ namespace imaging
        */
       const core::vector3f& getOrigin() const
       {
-         return _origin;
+         return _plane.getOrigin();
       }
 
       /**
@@ -101,7 +97,7 @@ namespace imaging
        */
       const core::vector3f& getNormal() const
       {
-         return _orthonorm;
+         return _plane.getNormal();
       }
 
       /**
@@ -183,14 +179,12 @@ namespace imaging
       }
 
       /**
-       @brief Returns true if the point, in world coordinate (in mm) is in the same plane than
-              the slice.
+       @brief Returns true if the point, in world coordinate (in mm) is in the same plane defined by
+              this slice.
        */
       bool isInPlane( const core::vector3f pos, float tol = 1e-4 ) const
       {
-         // check first it is in the same plan
-         // N . x + d = 0 means we are in the plan
-         return ( fabs( _orthonorm.dot( pos ) + _planed ) < tol );
+         return _plane.contains( pos, tol );
       }
 
       /**
@@ -206,7 +200,7 @@ namespace imaging
        */
       bool contains( const core::vector3f pos, float tol = 1e-4 ) const
       {
-         if ( !isInPlane( pos, tol ) )
+         if ( !_plane.contains( pos, tol ) )
             return false;
 
          // get the point in the slice coordinate system
@@ -237,11 +231,7 @@ namespace imaging
       {
          _axisx = rhs._axisx;
          _axisy = rhs._axisy;
-         _origin = rhs._origin;
          _spacing = rhs._spacing;
-         _orthonorm = rhs._orthonorm;
-         _planed = rhs._planed;
-
          _storage.clone( rhs._storage );
          return *this;
       }
@@ -253,10 +243,7 @@ namespace imaging
       {
          _axisx = rhs._axisx;
          _axisy = rhs._axisy;
-         _origin = rhs._origin;
          _spacing = rhs._spacing;
-         _orthonorm = rhs._orthonorm;
-         _planed = rhs._planed;
          _storage = rhs._storage;
          return *this;
       }
@@ -283,81 +270,7 @@ namespace imaging
        */
       core::vector2f worldToSliceCoordinate( const core::vector3f& v ) const
       {
-         if ( !isInPlane( v ) )
-            throw std::exception( "error: the point is not on the plane" );
-
-         // Let's have M a point on the slice plane with coordinate (x, y, z), O the the origin of the world U=(1, 0, 0) V=(0, 1, 0) W=(0, 0, 1) a base of the world coordinate system
-         // O' origin of the slice, S and T base vectors of the slice. We are looking for (X, Y) coordinate in
-         // slice coordinate system.
-
-         // We have: 
-         //   S = ax1 * U + ay1 * V + az1 * W
-         //   T = ax2 * U + ay2 * V + az2 * W
-         //   (ax1,ax2,ay1,ay2,az1,az2) are known
-         // 
-         // We also have:
-         //   OM = OO' + O'M
-         //
-         //   OM = O' + X * S + Y * T
-         //      = O' + X * ( ax1 * U + ay1 * V + az1 * W ) + Y * ( ax2 * U + ay2 * V + az2 * W )
-         //
-         //   { x = ox' + X * ax1 + Y * ax2
-         //   { y = oy' + X * ay1 + Y * ay2
-         //   { z = oz' + X * az1 + Y * az2
-         //
-         // S != 0, meaning ax1 | ay1 | az1 != 0, let's assume ax1 != 0 (we can choose ay1, az1)
-         //   X = ( x - ox' - Y * ax2 ) / ax1
-         //
-         // S and T are not colinear AND T != 0, assuming ay2 != 0 (else we can choose ax2, az2)
-         //   Y = ( y - oy' - X * ay1 ) / ay2
-         //   Y = ( y - oy' - ay1 * ( x - ox' - Y * ax2 ) / ax1 ) / ay2
-         //   Y = ay1 * ax2 * Y / ( ay2 * ax1 ) + ( y - oy' - ay1 * ( x - ox') / ax1 ) / ay2
-         //   Y * ( ay2 * ax1 - ay1 * ax2 ) / ( ay2 * ax1 ) ) = ( y - oy' - ay1 * ( x - ox') / ax1 ) / ay2
-         //   Y = ( y - oy' - ay1 * ( x - ox') / ax1 ) / ( ay2 * ( ay2 * ax1 - ay1 * ax2 ) )
-
-
-         // init the data and it's index
-         float m[ 3 ][ 4 ] =
-         {
-            { v[ 0 ], _origin[ 0 ], _axisx[ 0 ], _axisy[ 0 ] },
-            { v[ 1 ], _origin[ 1 ], _axisx[ 1 ], _axisy[ 1 ] },
-            { v[ 2 ], _origin[ 2 ], _axisx[ 2 ], _axisy[ 2 ] }
-         };
-
-         int i0 = -1;
-         for ( ui32 n = 0; n < 3; ++n )
-            if ( _axisx[ n ] != 0 )
-            {
-               i0 = n;
-               break;
-            }
-         int i1 = -1;
-         for ( int n = 0; n < 3; ++n )
-            if ( _axisy[ n ] != 0 && n != i0 )
-            {
-               i1 = n;
-               break;
-            }
-         if ( i0 == -1 || i1 == -1 )
-            throw std::exception( "error: the slice base is invalid" );
-
-         // create some alias for code readability
-         const float x   = m[ i0 ][ 0 ];
-         const float ox  = m[ i0 ][ 1 ];
-         const float ax1 = m[ i0 ][ 2 ];
-         const float ax2 = m[ i0 ][ 3 ];
-
-         const float y   = m[ i1 ][ 0 ];
-         const float oy  = m[ i1 ][ 1 ];
-         const float ay1 = m[ i1 ][ 2 ];
-         const float ay2 = m[ i1 ][ 3 ];
-
-         if ( ( ay2 * ax1 - ay1 * ax2 ) == 0 )
-            throw std::exception( "error: base is not valid, vectors are colinear" );
-
-         const float Y = ( y - oy - ay1 * ( x - ox ) / ax1 ) / ( ay2 * ( ay2 * ax1 - ay1 * ax2 ) );
-         const float X = ( x - ox - Y * ax2 ) / ax1;
-         return core::vector2f( X / _spacing[ 0 ], Y / _spacing[ 1 ] );
+         return _plane.worldToPlaneCoordinate( v );
       }
 
       /**
@@ -365,18 +278,15 @@ namespace imaging
        */
       core::vector3f sliceToWorldCoordinate( const core::vector2f& v ) const
       {
-         return _axisx * v[ 0 ] * _spacing[ 0 ] + _axisy * v[ 1 ] * _spacing[ 1 ] + _origin;
+         return _plane.planeToWorldCoordinate( v );
       }
 
    protected:
-      Storage           _storage;
-      core::vector3f    _axisx;
-      core::vector3f    _axisy;
-      core::vector3f    _origin;
-      core::vector2f    _spacing;
-
-      core::vector3f    _orthonorm;
-      f32               _planed;
+      Storage              _storage;
+      core::vector3f       _axisx;
+      core::vector3f       _axisy;
+      core::vector2f       _spacing;
+      core::GeometryPlane  _plane;
    };
 }
 }
