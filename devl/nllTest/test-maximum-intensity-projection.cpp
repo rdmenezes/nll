@@ -21,7 +21,7 @@ namespace imaging
       }
 
       template <class VolumeInterpolator>
-      void computeMip( Slice<typename Volume::value_type>& slice, const core::vector3f& direction, float interpolationStepInMinimeter = 0.2 )
+      void computeMip( Slice<typename Volume::value_type>& slice, const core::vector3f& direction, float interpolationStepInMinimeter = 1 )
       {
          std::cout << "computeMip" << std::endl;
          ui32 n = 0;
@@ -42,15 +42,16 @@ namespace imaging
          dirInStandardSpace /= ( static_cast<f32>( dirInStandardSpace.norm2() ) * interpolationStepInMinimeter );
 
          // get the starting point of the slice in volume coordinate
-         core::vector3f start = _volume.positionToIndex( slice.sliceToWorldCoordinate( core::vector2f( -static_cast<float>( slice.size()[ 0 ] ) / 2,
-                                                                                                       -static_cast<float>( slice.size()[ 1 ] ) / 2 ) ) );
+         core::vector3f centerInWorld = slice.sliceToWorldCoordinate( core::vector2f( -static_cast<float>( slice.size()[ 0 ] ) / 2,
+                                                                                      -static_cast<float>( slice.size()[ 1 ] ) / 2 ) );
+         core::vector3f start = _volume.positionToIndex( centerInWorld );
 
          // translate to volume coordinates
          const core::vector3f startIndex = _volume.positionToIndex( start );
          const core::vector3f dir = _volume.positionToIndex( start + dirInStandardSpace ) - startIndex;
          const core::vector3f SliceOringIndex = _volume.positionToIndex( slice.sliceToWorldCoordinate( core::vector2f( 0, 0 ) ) );
          const core::vector3f dx = _volume.positionToIndex( slice.sliceToWorldCoordinate( core::vector2f( 1, 0 ) ) ) - SliceOringIndex;
-         const core::vector3f dy = _volume.positionToIndex( slice.sliceToWorldCoordinate( core::vector2f( 1, 0 ) ) ) - SliceOringIndex;
+         const core::vector3f dy = _volume.positionToIndex( slice.sliceToWorldCoordinate( core::vector2f( 0, 1 ) ) ) - SliceOringIndex;
 
 
          core::vector3f intersection1;
@@ -61,6 +62,7 @@ namespace imaging
          SliceType::DirectionalIterator itLineEnd = slice.getIterator( 0, slice.size()[ 1 ] );
          itLineNext.addy();
 
+         float dist = 0;
          for ( ; itLine != itLineEnd; )
          {
             SliceType::DirectionalIterator itPixels = itLine;
@@ -71,10 +73,18 @@ namespace imaging
             {
                if ( _boundingBox.getIntersection( position, dir, intersection1, intersection2 ) )
                {
+                  float s1 = core::sqr( position[ 0 ] - intersection1[ 0 ] ) +
+                             core::sqr( position[ 1 ] - intersection1[ 1 ] ) +
+                             core::sqr( position[ 2 ] - intersection1[ 2 ] );
+                  float s2 = core::sqr( position[ 0 ] - intersection2[ 0 ] ) +
+                             core::sqr( position[ 1 ] - intersection2[ 1 ] ) +
+                             core::sqr( position[ 2 ] - intersection2[ 2 ] );
+                  float d = sqrt( s2 / s1 );
+                  dist += d;
                   *itPixels = max;
+                  ++n;
                } else
                   *itPixels = max;
-               ++n;
             }
 
             itLineNext.addy();
@@ -82,6 +92,7 @@ namespace imaging
          }
 
          std::cout << "pixels=" << n << std::endl;
+         std::cout << "dist=" << dist << std::endl;
       }
 
    private:
@@ -104,23 +115,28 @@ public:
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Slice<Volume::value_type>       Slice;
 
+      /*
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
       Volume volume;
       bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
       TESTER_ASSERT( loaded );
+      */
+
+      Volume::Matrix id = nll::core::identityMatrix<Volume::Matrix>( 4 );
+      Volume volume( nll::core::vector3ui( 512, 512, 512 ), id );
 
       nll::imaging::MaximumIntensityProjection<Volume>   mipCreator( volume );
 
       Slice slice( nll::core::vector3ui( 256, 256, 1 ),
-                   nll::core::vector3f( 1, 0, 0 ), 
-                   nll::core::vector3f( 0, 1, 0 ),
-                   nll::core::vector3f( 0, 0, 0 ),
+                   nll::core::vector3f( 0, 1, 0 ), 
+                   nll::core::vector3f( 0, 0, 1 ),
+                   nll::core::vector3f( -10, 128, 128 ),
                    nll::core::vector2f( 1, 1 ) );
 
       nll::core::Timer t1;
-      mipCreator.computeMip<Interpolator>( slice, nll::core::vector3f( 0, 0, 1 ) );
-      std::cout << slice( 0, 0, 0 ) << std::endl;
+      mipCreator.computeMip<Interpolator>( slice, nll::core::vector3f( 1, 0, 0 ) );
       std::cout << "Time=" << t1.getCurrentTime() << std::endl;
+      std::cout << slice( 0, 0, 0 ) << std::endl;
    }
 };
 

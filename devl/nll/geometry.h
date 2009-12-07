@@ -472,8 +472,8 @@ namespace core
 
          core::vector2f intersection;
          if ( _planes[ 0 ].getIntersection( pos,  dir, intersection ) &&
-              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
-              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 1 ] )
+              intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 1 ] )
          {
             intersections.push_back( vector3f( _min[ 0 ] + intersection[ 0 ],
                                                _min[ 1 ] + intersection[ 1 ],
@@ -481,8 +481,8 @@ namespace core
          }
 
          if ( _planes[ 1 ].getIntersection( pos,  dir, intersection ) &&
-              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
-              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+              intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 2 ] )
          {
             intersections.push_back( vector3f( _min[ 0 ] + intersection[ 0 ],
                                                _min[ 1 ],
@@ -490,8 +490,8 @@ namespace core
          }
 
          if ( _planes[ 2 ].getIntersection( pos,  dir, intersection ) &&
-              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 1 ] &&
-              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+              intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 1 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 2 ] )
          {
             intersections.push_back( vector3f( _min[ 0 ],
                                                _min[ 1 ] + intersection[ 0 ],
@@ -499,8 +499,8 @@ namespace core
          }
 
          if ( _planes[ 3 ].getIntersection( pos,  dir, intersection ) &&
-              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
-              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 1 ] )
+              intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 1 ] )
          {
             intersections.push_back( vector3f( _max[ 0 ] - intersection[ 0 ],
                                                _max[ 1 ] - intersection[ 1 ],
@@ -508,8 +508,8 @@ namespace core
          }
 
          if ( _planes[ 4 ].getIntersection( pos,  dir, intersection ) &&
-              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
-              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+              intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 2 ] )
          {
             intersections.push_back( vector3f( _max[ 0 ] - intersection[ 0 ],
                                                _max[ 1 ],
@@ -517,8 +517,8 @@ namespace core
          }
 
          if ( _planes[ 5 ].getIntersection( pos,  dir, intersection ) &&
-              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 1 ] &&
-              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+              intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 1 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 2 ] )
          {
             intersections.push_back( vector3f( _max[ 0 ],
                                                _max[ 1 ] - intersection[ 0 ],
