@@ -57,6 +57,7 @@ namespace imaging
          _axisx = _axisx / sx;
          _axisy = _axisy / sy;
 
+         assert( spacing[ 0 ] > 0 && spacing[ 1 ] > 0 );
          _plane = core::GeometryPlane( origin, _axisx * spacing[ 0 ], _axisy * spacing[ 1 ] );
       }
 
