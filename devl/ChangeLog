@@ -1,7 +1,9 @@
 v0.12
--optimization of the nll::imaging to be suitable for realtime sofware rendering
+-optimization of the nll::imaging package to be suitable for realtime sofware rendering
 -added slices & associated operations (MPR reconstruction, blending, resampling)
+-added volume resampling
 -added Allocator parameter for Matrix, Images & Buffer for specific allocators
+-added common operations on geometry (plane, box)
 
 v0.11
 -improved logging

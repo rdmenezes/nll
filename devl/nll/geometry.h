@@ -8,7 +8,8 @@ namespace core
    namespace impl
    {
       /**
-       @brief A specialized 3x3 multiplication
+       @core
+       @brief A specialized 3x3 multiplication with vector
        */
       template <class T, class Mapper, class Allocator, class Vector>
       Vector mul3Rot( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
@@ -294,8 +295,9 @@ namespace core
 
       /**
        @brief Compute the intersection of the plane with a line defined by (position, direction).
+       @param outIntersection returns the intersection in world coordinate
        */
-      bool getIntersection( const core::vector3f& p, const core::vector3f& dir, core::vector3f& outIntersection )
+      bool getIntersection( const core::vector3f& p, const core::vector3f& dir, core::vector3f& outIntersection ) const
       {
          // X = p + dir * t
          // X = u * ax + v * ay + orig
@@ -325,13 +327,13 @@ namespace core
             _inverseIntersection( 1, 0 ) = - dir[ 1 ];
             _inverseIntersection( 2, 0 ) = - dir[ 2 ];
 
-            _inverseIntersection( 0, 1 ) = - _axisx[ 0 ];
-            _inverseIntersection( 1, 1 ) = - _axisx[ 1 ];
-            _inverseIntersection( 2, 1 ) = - _axisx[ 2 ];
+            _inverseIntersection( 0, 1 ) = _axisx[ 0 ];
+            _inverseIntersection( 1, 1 ) = _axisx[ 1 ];
+            _inverseIntersection( 2, 1 ) = _axisx[ 2 ];
 
-            _inverseIntersection( 0, 2 ) = - _axisy[ 0 ];
-            _inverseIntersection( 1, 2 ) = - _axisy[ 1 ];
-            _inverseIntersection( 2, 2 ) = - _axisy[ 2 ];
+            _inverseIntersection( 0, 2 ) = _axisy[ 0 ];
+            _inverseIntersection( 1, 2 ) = _axisy[ 1 ];
+            _inverseIntersection( 2, 2 ) = _axisy[ 2 ];
 
             bool inversed = core::inverse( _inverseIntersection );
             if ( !inversed )
@@ -350,17 +352,218 @@ namespace core
          return true;
       }
 
+      /**
+       @brief Compute the intersection of the plane with a line defined by (position, direction).
+       @param outIntersection returns the intersection in slice coordinate
+       */
+      bool getIntersection( const core::vector3f& p, const core::vector3f& dir, core::vector2f& outIntersection ) const
+      {
+         // X = p + dir * t
+         // X = u * ax + v * ay + orig
+
+         // ox + dirx * t = ux * ax + vx * ay + origx
+         // oy + diry * t = uy * ax + vy * ay + origy
+         // oz + dirz * t = uz * ax + vz * ay + origz
+
+         // ox - origx = -dirx * t + ax * ux + ay * vx
+         // oy - origy = -diry * t + ax * uy + ay * vy
+         // oz - origz = -dirz * t + ax * uz + ay * vz
+
+         // | ox - origx |   | -dirx ux vx |   | t  |
+         // | oy - origx | = | -diry uy vy | * | ax |
+         // | oz - origx |   | -dirz uz vz |   | ay |
+
+         // | -dirx ux vx |^-1   | ox - origx |   | t  |
+         // | -diry uy vy |    . | oy - origx | = | ax |
+         // | -dirz uz vz |      | oz - origx |   | ay |
+
+         // we are caching the previous result, and check against it next time...
+         if ( p != _lastOrigin || dir != _lastDir )
+         {
+            _lastDir = dir;
+            _lastOrigin = p;
+            _inverseIntersection( 0, 0 ) =  - dir[ 0 ];
+            _inverseIntersection( 1, 0 ) =  - dir[ 1 ];
+            _inverseIntersection( 2, 0 ) =  - dir[ 2 ];
+
+            _inverseIntersection( 0, 1 ) =  _axisx[ 0 ];
+            _inverseIntersection( 1, 1 ) =  _axisx[ 1 ];
+            _inverseIntersection( 2, 1 ) =  _axisx[ 2 ];
+
+            _inverseIntersection( 0, 2 ) =  _axisy[ 0 ];
+            _inverseIntersection( 1, 2 ) =  _axisy[ 1 ];
+            _inverseIntersection( 2, 2 ) =  _axisy[ 2 ];
+
+            bool inversed = core::inverse( _inverseIntersection );
+            if ( !inversed )
+            {
+               return false;
+            }
+         }
+
+         vector3f tmpPoint( p[ 0 ] - _origin[ 0 ],
+                            p[ 1 ] - _origin[ 1 ],
+                            p[ 2 ] - _origin[ 2 ] );
+         core::vector3f res = impl::mul3Rot( _inverseIntersection, tmpPoint );
+         outIntersection[ 0 ] = res[ 1 ];
+         outIntersection[ 1 ] = res[ 2 ];
+         return true;
+      }
+
+      /**
+       @brief Returns true if the point <code>p</code> is in the area defined by min and max
+       */
+      bool isInArea( const vector2f& min, const vector2f& max, const vector2f& p ) const
+      {
+         return p[ 0 ] >= min[ 0 ] &&
+                p[ 0 ] <= max[ 0 ] &&
+                p[ 1 ] >= min[ 1 ] &&
+                p[ 1 ] <= max[ 1 ];
+      }
+
    private:
       core::vector3f _origin;
       core::vector3f _axisx;
       core::vector3f _axisy;
       core::vector3f _orthonorm;
 
-      // cached intermediate results
+      // cached intermediate results but constant
       float          _planed;
-      core::vector3f _lastDir;
-      core::vector3f _lastOrigin;
-      Matrix         _inverseIntersection;
+
+      // cached and non constant
+      mutable core::vector3f _lastDir;
+      mutable core::vector3f _lastOrigin;
+      mutable Matrix         _inverseIntersection;
+   };
+
+   /**
+    @ingroup core
+    @brief Contains common operations for box geometry
+    */
+   class GeometryBox
+   {
+   public:
+      /**
+       @brief Construct a box defined by a (min, max) point in standard coordinate system (mm)
+       @note in the case the box is not defined in standard coordinate system, just conver the point to the same
+             coordinate system.
+       */
+      GeometryBox( const vector3f& min, const vector3f& max ) : _min( min ), _max( max ), _size( max[ 0 ] - min[ 0 ],
+                                                                                                 max[ 1 ] - min[ 1 ],
+                                                                                                 max[ 2 ] - min[ 2 ] )
+      {
+         assert( max[ 0 ] > min[ 0 ] );
+         assert( max[ 1 ] > min[ 1 ] );
+         assert( max[ 2 ] > min[ 2 ] );
+         _initPlanes( min, max );
+      }
+
+      /**
+       @brief Finds the intersection between the box and a ray. A ray must go in and out with exactly 2 intersections
+       @param pos the starting position of the ray in mm in patient space
+       @param dir a direction for the ray
+       @param outIntersectionBegin the first intersection (it doesn't depend on the ray direction/position)
+       @param outIntersectionEnd the first intersection (it doesn't depend on the ray direction/position)
+       @return true if intersection between the box & (origin, direction). If true, update <code>outIntersection*</code>
+       */
+      bool getIntersection( const vector3f& pos, const vector3f& dir, vector3f& outIntersectionBegin, vector3f& outIntersectionEnd ) const
+      {
+         std::vector< vector3f > intersections;
+
+         core::vector2f intersection;
+         if ( _planes[ 0 ].getIntersection( pos,  dir, intersection ) &&
+              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 1 ] )
+         {
+            intersections.push_back( vector3f( _min[ 0 ] + intersection[ 0 ],
+                                               _min[ 1 ] + intersection[ 1 ],
+                                               _min[ 2 ]  ) );
+         }
+
+         if ( _planes[ 1 ].getIntersection( pos,  dir, intersection ) &&
+              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+         {
+            intersections.push_back( vector3f( _min[ 0 ] + intersection[ 0 ],
+                                               _min[ 1 ],
+                                               _min[ 2 ] + intersection[ 1 ] ) );
+         }
+
+         if ( _planes[ 2 ].getIntersection( pos,  dir, intersection ) &&
+              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 1 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+         {
+            intersections.push_back( vector3f( _min[ 0 ],
+                                               _min[ 1 ] + intersection[ 0 ],
+                                               _min[ 2 ] + intersection[ 1 ] ) );
+         }
+
+         if ( _planes[ 3 ].getIntersection( pos,  dir, intersection ) &&
+              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 1 ] )
+         {
+            intersections.push_back( vector3f( _max[ 0 ] - intersection[ 0 ],
+                                               _max[ 1 ] - intersection[ 1 ],
+                                               _max[ 2 ] ) );
+         }
+
+         if ( _planes[ 4 ].getIntersection( pos,  dir, intersection ) &&
+              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 0 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+         {
+            intersections.push_back( vector3f( _max[ 0 ] - intersection[ 0 ],
+                                               _max[ 1 ],
+                                               _max[ 2 ] - intersection[ 1 ] ) );
+         }
+
+         if ( _planes[ 5 ].getIntersection( pos,  dir, intersection ) &&
+              intersection[ 0 ] >= 0 && intersection[ 0 ] < _size[ 1 ] &&
+              intersection[ 1 ] >= 0 && intersection[ 1 ] < _size[ 2 ] )
+         {
+            intersections.push_back( vector3f( _max[ 0 ],
+                                               _max[ 1 ] - intersection[ 0 ],
+                                               _max[ 2 ] - intersection[ 1 ] ) );
+         }
+
+         // update intersections
+         if ( intersections.size() == 2 )
+         {
+            outIntersectionBegin = intersections[ 0 ];
+            outIntersectionEnd = intersections[ 1 ];
+            return true;
+         } else return false;
+      }
+
+      bool contains( const vector3f& p ) const
+      {
+         return p[ 0 ] >= _min[ 0 ] && p[ 0 ] < _max[ 0 ] &&
+                p[ 1 ] >= _min[ 1 ] && p[ 1 ] < _max[ 1 ] &&
+                p[ 2 ] >= _min[ 2 ] && p[ 2 ] < _max[ 2 ];
+      }
+
+   private:
+      void _initPlanes( const vector3f& min, const vector3f& max )
+      {
+         _planes[ 0 ] = GeometryPlane( min, vector3f( 1, 0, 0 ),
+                                            vector3f( 0, 1, 0 ) );
+         _planes[ 1 ] = GeometryPlane( min, vector3f( 1, 0, 0 ),
+                                            vector3f( 0, 0, 1 ) );
+         _planes[ 2 ] = GeometryPlane( min, vector3f( 0, 1, 0 ),
+                                            vector3f( 0, 0, 1 ) );
+         _planes[ 3 ] = GeometryPlane( max, vector3f( -1, 0, 0 ),
+                                            vector3f( 0, -1, 0 ) );
+         _planes[ 4 ] = GeometryPlane( max, vector3f( -1, 0, 0 ),
+                                            vector3f( 0, 0, -1 ) );
+         _planes[ 5 ] = GeometryPlane( max, vector3f( 0, -1, 0 ),
+                                            vector3f( 0, 0, -1 ) );
+      }
+
+   private:
+      vector3f    _min;
+      vector3f    _max;
+      vector3f    _size;
+
+      GeometryPlane  _planes[ 6 ];
    };
 }
 }

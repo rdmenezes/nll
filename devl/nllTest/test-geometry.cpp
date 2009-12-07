@@ -5,24 +5,7 @@ namespace nll
 {
 namespace core
 {
-   class GeometryBox
-   {
-   public:
-      GeometryBox( const core::vector3f& min, const core::vector3f& max ) : _min( min ), _max( max )
-      {
-      }
-
-      /**
-       @return true if intersection between the box & (origin, direction). If true, update <code>outIntersection*</code>
-       */
-  //    bool getIntersection( const core::vector3f& pos, const core::vector3f& dir, core::vector3f& outIntersectionBegin, core::vector3f& outIntersectionEnd )
-   //   {
-    //  }
-
-   private:
-      core::vector3f    _min;
-      core::vector3f    _max;
-   };
+   
 }
 }
 
@@ -109,6 +92,7 @@ public:
       nll::core::vector3f p6tt = planeSpacinv2.planeToWorldCoordinate( p6t );
       TESTER_ASSERT( fabs( p6tt[ 0 ] - p6[ 0 ] ) < 1e3 );
       TESTER_ASSERT( fabs( p6tt[ 1 ] - p6[ 1 ] ) < 1e3 );
+
    }
 
    void testNormalConstructor()
@@ -142,9 +126,43 @@ public:
       TESTER_ASSERT( projected );
       TESTER_ASSERT( out == nll::core::vector3f( 2, 1, 3 ) );
 
-      //nll::core::GeometryPlane plane1( nll::core::vector3f( 2, 0, 0 ),
-      //                                 nll::core::vector3f( 0, 1, 0 ),
-      //                                 nll::core::vector3f( 0, 0, 1 ) );
+      // test dummy
+      nll::core::GeometryPlane planeTrans( nll::core::vector3f( 0, 0, 0 ),
+                                           nll::core::vector3f( 0, 1, 0 ),
+                                           nll::core::vector3f( 0, 0, 1 ) );
+      nll::core::vector3f p3( -10, 5, 5 );
+      nll::core::vector3f d2( -1, 0, 0 );
+      nll::core::vector2f out2;
+      projected = planeTrans.getIntersection( p3, d2, out2 );
+      TESTER_ASSERT( projected );
+      TESTER_ASSERT( out2 == nll::core::vector2f( 5, 5 ) );
+   }
+
+   void testBoxIntersectionSimple()
+   {
+      nll::core::GeometryBox box1( nll::core::vector3f( 0, 0, 0 ),
+                                   nll::core::vector3f( 10, 20, 30 ) );
+
+      nll::core::vector3f p1( -10, 5, 5 );
+      nll::core::vector3f d1( 1, 0, 0 );
+
+      nll::core::vector3f r1, r2;
+      bool intersected = box1.getIntersection( p1, d1, r1, r2 );
+      TESTER_ASSERT( intersected );
+   }
+
+   void testBoxContainsSimple()
+   {
+      nll::core::GeometryBox box1( nll::core::vector3f( 0, 0, 0 ),
+                                   nll::core::vector3f( 10, 20, 30 ) );
+
+      TESTER_ASSERT( box1.contains( nll::core::vector3f( 5, 5, 5 ) ) );
+      TESTER_ASSERT( !box1.contains( nll::core::vector3f( -5, 5, 5 ) ) );
+      TESTER_ASSERT( !box1.contains( nll::core::vector3f( 5, -5, 5 ) ) );
+      TESTER_ASSERT( !box1.contains( nll::core::vector3f( 5, 5, -5 ) ) );
+      TESTER_ASSERT( !box1.contains( nll::core::vector3f( 5, 50, 5 ) ) );
+      TESTER_ASSERT( !box1.contains( nll::core::vector3f( 5, 5, 50 ) ) );
+      TESTER_ASSERT( !box1.contains( nll::core::vector3f( 50, 5, 5 ) ) );
    }
 };
 
@@ -154,6 +172,8 @@ TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST(testPlaneContains);
 TESTER_TEST(testPlaneIntersection);
 TESTER_TEST(testNormalConstructor);
+TESTER_TEST(testBoxIntersectionSimple);
+TESTER_TEST(testBoxContainsSimple);
 TESTER_TEST_SUITE_END();
 #endif
 

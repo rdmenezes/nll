@@ -47,7 +47,7 @@
 #ifdef _MSC_VER
 # define NLL_ALIGN_16   __declspec(align(16))
 #else
-# define NLL_ALIGN_16
+# define NLL_ALIGN_16   // TODO: find equivalent for gcc
 #endif
 
 /**
