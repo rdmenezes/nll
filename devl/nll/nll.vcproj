@@ -588,6 +588,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\matrix-custom.h"
+				>
+			</File>
+			<File
 				RelativePath=".\matrix-decomposition.h"
 				>
 			</File>

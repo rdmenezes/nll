@@ -25,26 +25,39 @@ namespace core
    template <class T>
    inline bool inverse3x3( core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m )
    {
+      
       assert( m.sizex() == 3 && m.sizey() == 3 );
 
       const T c = m[ 0 ] * ( m[ 4 ] * m[ 8 ] - m[ 7 ] * m[ 5 ] ) -
-                  m[ 3 ] * ( m[ 1 ] * m[ 8 ] - m[ 7 ] * m[ 2 ] ) +
-                  m[ 6 ] * ( m[ 1 ] * m[ 5 ] - m[ 4 ] * m[ 2 ] );
+                  m[ 1 ] * ( m[ 8 ] * m[ 3 ] - m[ 5 ] * m[ 6 ] ) +
+                  m[ 2 ] * ( m[ 7 ] * m[ 3 ] - m[ 4 ] * m[ 6 ] );
 
       if ( core::equal<T>( c, 0 ) )
          return false;
 
-      m[ 0 ] = ( m[ 4 ] * m[ 8 ] - m[ 7 ] * m[ 5 ] ) / c;
-      m[ 1 ] = ( m[ 7 ] * m[ 2 ] - m[ 1 ] * m[ 8 ] ) / c;
-      m[ 2 ] = ( m[ 1 ] * m[ 5 ] - m[ 4 ] * m[ 2 ] ) / c;
+      // we need to use extra storage...
+      const T a0 = ( m[ 8 ] * m[ 4 ] - m[ 5 ] * m[ 7 ] ) / c;
+      const T a1 = ( m[ 2 ] * m[ 7 ] - m[ 8 ] * m[ 1 ] ) / c;
+      const T a2 = ( m[ 5 ] * m[ 1 ] - m[ 2 ] * m[ 4 ] ) / c;
 
-      m[ 3 ] = ( m[ 6 ] * m[ 5 ] - m[ 3 ] * m[ 8 ] ) / c;
-      m[ 4 ] = ( m[ 0 ] * m[ 8 ] - m[ 6 ] * m[ 2 ] ) / c;
-      m[ 5 ] = ( m[ 3 ] * m[ 2 ] - m[ 0 ] * m[ 5 ] ) / c;
+      const T a3 = ( m[ 5 ] * m[ 6 ] - m[ 8 ] * m[ 3 ] ) / c;
+      const T a4 = ( m[ 8 ] * m[ 0 ] - m[ 2 ] * m[ 6 ] ) / c;
+      const T a5 = ( m[ 2 ] * m[ 3 ] - m[ 5 ] * m[ 0 ] ) / c;
 
-      m[ 6 ] = ( m[ 3 ] * m[ 7 ] - m[ 6 ] * m[ 4 ] ) / c;
-      m[ 7 ] = ( m[ 6 ] * m[ 1 ] - m[ 0 ] * m[ 7 ] ) / c;
-      m[ 8 ] = ( m[ 0 ] * m[ 4 ] - m[ 3 ] * m[ 1 ] ) / c;
+      const T a6 = ( m[ 7 ] * m[ 3 ] - m[ 4 ] * m[ 6 ] ) / c;
+      const T a7 = ( m[ 6 ] * m[ 1 ] - m[ 0 ] * m[ 7 ] ) / c;
+      const T a8 = ( m[ 0 ] * m[ 4 ] - m[ 3 ] * m[ 1 ] ) / c;
+      
+      // update the matrix
+      m[ 0 ] = a0;
+      m[ 1 ] = a1;
+      m[ 2 ] = a2;
+      m[ 3 ] = a3;
+      m[ 4 ] = a4;
+      m[ 5 ] = a5;
+      m[ 6 ] = a6;
+      m[ 7 ] = a7;
+      m[ 8 ] = a8;
       return true;
    }
 
@@ -62,6 +75,20 @@ namespace core
       return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
                      v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
                      v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
+   }
+
+
+   template <class T, class Mapper, class Allocator>
+   void matrix4x4RotationX( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
+   {
+      if ( m.sizex() != 4 || m.sizey() != 4 )
+         m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
+      m( 0, 0 ) = 1;
+      m( 1, 1 ) = cos( angleRadian );
+      m( 2, 1 ) = sin( angleRadian );
+      m( 1, 2 ) = -sin( angleRadian );
+      m( 2, 2 ) = cos( angleRadian );
+      m( 3, 3 ) = 1;
    }
 }
 }

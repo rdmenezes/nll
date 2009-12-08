@@ -382,8 +382,8 @@ namespace core
             _inverseIntersection( 1, 2 ) =  _axisy[ 1 ];
             _inverseIntersection( 2, 2 ) =  _axisy[ 2 ];
 
-            bool inversed = core::inverse( _inverseIntersection );
-            //bool inversed = core::inverse3x3( _inverseIntersection );
+            //bool inversed = core::inverse( _inverseIntersection );
+            bool inversed = core::inverse3x3( _inverseIntersection );
             if ( !inversed )
             {
                return false;

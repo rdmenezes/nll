@@ -23,8 +23,13 @@ namespace imaging
       {
       }
 
+      /**
+       @brief Compute a maximum intensity projection on the slice.
+       @param slice defines the attributs of the surface we want to project
+       @param direction determines the projection direction
+       */
       template <class VolumeInterpolator>
-      void computeMip( Slice<value_type>& slice, const core::vector3f& direction, float interpolationStepInMinimeter = 1 )
+      void computeMip( Slice<value_type>& slice, const core::vector3f& direction )
       {
          typedef Slice<typename Volume::value_type>   SliceType;
 
@@ -39,7 +44,9 @@ namespace imaging
 
          // normalized vector director
          core::vector3f dirInStandardSpace = direction;
-         dirInStandardSpace /= ( static_cast<f32>( dirInStandardSpace.norm2() ) * interpolationStepInMinimeter );
+         float interpolationStepInMinimeter = std::min( std::min( _volume.getSpacing()[ 0 ], _volume.getSpacing()[ 1 ] ), _volume.getSpacing()[ 2 ] ) * 2;
+         dirInStandardSpace /= static_cast<f32>( dirInStandardSpace.norm2() );
+         dirInStandardSpace *= interpolationStepInMinimeter;
 
          // get the starting point of the slice in volume coordinate
          core::vector3f centerInWorld = slice.sliceToWorldCoordinate( core::vector2f( -static_cast<float>( slice.size()[ 0 ] ) / 2,
@@ -66,14 +73,14 @@ namespace imaging
          VolumeInterpolator interpolator( _volume );
          interpolator.startInterpolation();
          const float background = _volume.getBackgroundValue();
+         const float dirNorm = static_cast<float>( dir.norm2() );
+         const core::vector3f dirOppose = core::vector3f( -dir[ 0 ], -dir[ 1 ], -dir[ 2 ] );
          for ( ; itLine != itLineEnd; )
          {
             SliceType::DirectionalIterator itPixels = itLine;
             core::vector3f position = startLine;
             for ( ; itPixels != itLineNext; ++itPixels )
             {
-               //std::cout << "i1=" << intersection1[ 0 ] << " " << intersection1[ 1 ] << " " << intersection1[ 2 ] << std::endl;
-               //std::cout << "i2=" << intersection2[ 0 ] << " " << intersection2[ 1 ] << " " << intersection2[ 2 ] << std::endl;
                if ( _boundingBox.getIntersection( position, dir, intersection1, intersection2 ) )
                {
                   
@@ -83,11 +90,10 @@ namespace imaging
                   float s2 = core::sqr( position[ 0 ] - intersection2[ 0 ] ) +
                              core::sqr( position[ 1 ] - intersection2[ 1 ] ) +
                              core::sqr( position[ 2 ] - intersection2[ 2 ] );
-                  float d = sqrt( fabs( s2 - s1 ) );
-                  *itPixels = _getMaxValue( intersection1, dir, static_cast<ui32>( std::ceil( d ) ), interpolator );
+                  float d = sqrt( fabs( s2 - s1 ) ) / dirNorm;
+                  *itPixels = _getMaxValue( intersection1, ( s1 < s2 ) ? dir : dirOppose, static_cast<ui32>( std::ceil( d ) ), interpolator );
                } else {
                   *itPixels = background;
-                  //std::cout << "PP=" << 
                }
 
                position += dx;
@@ -99,6 +105,33 @@ namespace imaging
          }
          interpolator.endInterpolation();
       }
+   
+   /**
+    @brief Creates a slice from angle
+    */
+   template <class VolumeInterpolator>
+   Slice<value_type> getAutoOrientedMip( float anglexRadian, ui32 sizex, ui32 sizey )
+   {
+      const core::vector3f centerPosition = _volume.indexToPosition( core::vector3f( -1, static_cast<float>( _volume.getSize()[ 1 ] ) / 2, static_cast<float>( _volume.getSize()[ 2 ] ) / 2 ) );
+
+      core::Matrix<float> tfm;
+      core::matrix4x4RotationX( tfm, anglexRadian );
+      tfm = core::mul( _volume.getInversedPst(), tfm );
+
+      const core::vector3f centerPositionRotated = core::mul4Rot( tfm, centerPosition );
+
+      const core::vector3f zero = _volume.indexToPosition( core::vector3f( 0, 0, 0 ) );
+      const core::vector3f dz = _volume.indexToPosition( core::vector3f( 0, 0, 1 ) ) - zero;
+      const core::vector3f dy = _volume.indexToPosition( core::vector3f( 0, 1, 0 ) ) - zero;
+      Slice<value_type> slice( core::vector3ui( sizex, sizey, 1 ),
+                               dz,
+                               dy,
+                               centerPositionRotated - core::vector3f( -600, 250, 150),
+                               core::vector2f(1, 1) );
+                               //core::vector2f( static_cast<float>( dz.norm2() ), static_cast<float>( dy.norm2() ) ) );
+      computeMip<VolumeInterpolator>( slice, core::cross( dz, dy ) );
+      return slice;
+   }
 
    private:
       // non copyable
@@ -137,6 +170,38 @@ namespace imaging
 class TestMaximumIntensityProjection
 {
 public:
+   void testAutoMip()
+   {
+      typedef nll::imaging::VolumeSpatial<float>            Volume;
+      typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
+      typedef nll::imaging::Slice<Volume::value_type>       Slice;
+
+      const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
+      Volume volume;
+      bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
+      TESTER_ASSERT( loaded );
+
+
+      std::cout << "automip" << std::endl;
+      nll::imaging::MaximumIntensityProjection<Volume>   mipCreator( volume );
+      Slice slice = mipCreator.getAutoOrientedMip<Interpolator>( 0, 256, 256 );
+
+      nll::imaging::LookUpTransformWindowingRGB lut( -1000, 10000, 256, 3 );
+      lut.createGreyscale();
+      nll::core::Image<nll::ui8> i( slice.size()[ 0 ], slice.size()[ 1 ], 3 );
+      for ( unsigned y = 0; y < i.sizey(); ++y )
+      {
+         for ( unsigned x = 0; x < i.sizex(); ++x )
+         {
+            const nll::f32* col = lut.transform( slice( x, y, 0 ) );
+            i( x, y, 0 ) = (nll::ui8)col[ 0 ];
+            i( x, y, 1 ) = (nll::ui8)col[ 1 ];
+            i( x, y, 2 ) = (nll::ui8)col[ 2 ];
+         }
+      }
+      nll::core::writeBmp( i, NLL_TEST_PATH "data/mip1-256-auto.bmp" );
+   }
+
    void testMip()
    {
       typedef nll::imaging::VolumeSpatial<float>            Volume;
@@ -159,17 +224,18 @@ public:
 
       nll::imaging::MaximumIntensityProjection<Volume>   mipCreator( volume );
 
-      Slice slice( nll::core::vector3ui( 128, 128, 1 ),
+      unsigned size = 4;
+      Slice slice( nll::core::vector3ui( 128 * size, 128 * size, 1 ),
                    nll::core::vector3f( 1, 0, 0 ), 
                    nll::core::vector3f( 0, 1, 0 ),
                    nll::core::vector3f( -297-155, -297-155, -650 ),
-                   nll::core::vector2f( 2.67, 2.67 ) );
+                   nll::core::vector2f( 2.67f/size, 2.67f/size ) );
 
       nll::core::Timer t1;
       mipCreator.computeMip<Interpolator>( slice, nll::core::vector3f( 0, 0, 1 ) );
       std::cout << "Time MIP 256*256=" << t1.getCurrentTime() << std::endl;
 
-      nll::imaging::LookUpTransformWindowingRGB lut( 0, 5000, 256, 3 );
+      nll::imaging::LookUpTransformWindowingRGB lut( -1000, 10000, 256, 3 );
       lut.createGreyscale();
       nll::core::Image<nll::ui8> i( slice.size()[ 0 ], slice.size()[ 1 ], 3 );
       for ( unsigned y = 0; y < i.sizey(); ++y )
@@ -177,9 +243,9 @@ public:
          for ( unsigned x = 0; x < i.sizex(); ++x )
          {
             const nll::f32* col = lut.transform( slice( x, y, 0 ) );
-            i( x, y, 0 ) = col[ 0 ];
-            i( x, y, 1 ) = col[ 1 ];
-            i( x, y, 2 ) = col[ 2 ];
+            i( x, y, 0 ) = (nll::ui8)col[ 0 ];
+            i( x, y, 1 ) = (nll::ui8)col[ 1 ];
+            i( x, y, 2 ) = (nll::ui8)col[ 2 ];
          }
       }
       nll::core::writeBmp( i, NLL_TEST_PATH "data/mip1-256.bmp" );
@@ -209,10 +275,13 @@ public:
       std::cout << "Time MIP 1024*1024=" << t1.getCurrentTime() << std::endl;
       std::cout << slice( 0, 0, 0 ) << std::endl;
    }
+
+
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestMaximumIntensityProjection);
+TESTER_TEST(testAutoMip);
 TESTER_TEST(testMip);
 //TESTER_TEST(testMipBig);
 TESTER_TEST_SUITE_END();
