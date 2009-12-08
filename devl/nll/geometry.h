@@ -7,18 +7,6 @@ namespace core
 {
    namespace impl
    {
-      /**
-       @core
-       @brief A specialized 3x3 multiplication with vector
-       */
-      template <class T, class Mapper, class Allocator, class Vector>
-      Vector mul3Rot( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
-      {
-         assert( m.sizex() == 3 && m.sizey() == 3 );
-         return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
-                        v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
-                        v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
-      }
    }
 
    /**
@@ -335,7 +323,7 @@ namespace core
             _inverseIntersection( 1, 2 ) = _axisy[ 1 ];
             _inverseIntersection( 2, 2 ) = _axisy[ 2 ];
 
-            bool inversed = core::inverse( _inverseIntersection );
+            bool inversed = core::inverse3x3( _inverseIntersection );
             if ( !inversed )
             {
                return false;
@@ -345,7 +333,7 @@ namespace core
          vector3f tmpPoint( p[ 0 ] - _origin[ 0 ],
                             p[ 1 ] - _origin[ 1 ],
                             p[ 2 ] - _origin[ 2 ] );
-         core::vector3f res = impl::mul3Rot( _inverseIntersection, tmpPoint );
+         core::vector3f res = core::mat3Mulv( _inverseIntersection, tmpPoint );
          outIntersection[ 0 ] = p[ 0 ] + dir[ 0 ] * res[ 0 ];
          outIntersection[ 1 ] = p[ 1 ] + dir[ 1 ] * res[ 0 ];
          outIntersection[ 2 ] = p[ 2 ] + dir[ 2 ] * res[ 0 ];
@@ -395,6 +383,7 @@ namespace core
             _inverseIntersection( 2, 2 ) =  _axisy[ 2 ];
 
             bool inversed = core::inverse( _inverseIntersection );
+            //bool inversed = core::inverse3x3( _inverseIntersection );
             if ( !inversed )
             {
                return false;
@@ -404,7 +393,7 @@ namespace core
          vector3f tmpPoint( p[ 0 ] - _origin[ 0 ],
                             p[ 1 ] - _origin[ 1 ],
                             p[ 2 ] - _origin[ 2 ] );
-         core::vector3f res = impl::mul3Rot( _inverseIntersection, tmpPoint );
+         core::vector3f res = core::mat3Mulv( _inverseIntersection, tmpPoint );
          outIntersection[ 0 ] = res[ 1 ];
          outIntersection[ 1 ] = res[ 2 ];
          return true;
@@ -502,27 +491,27 @@ namespace core
               intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 0 ] &&
               intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 1 ] )
          {
-            intersections.push_back( vector3f( _max[ 0 ] - intersection[ 0 ],
-                                               _max[ 1 ] - intersection[ 1 ],
-                                               _max[ 2 ] ) );
+            intersections.push_back( vector3f( _maxZ[ 0 ] + intersection[ 0 ],
+                                               _maxZ[ 1 ] + intersection[ 1 ],
+                                               _maxZ[ 2 ] ) );
          }
 
          if ( _planes[ 4 ].getIntersection( pos,  dir, intersection ) &&
               intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 0 ] &&
               intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 2 ] )
          {
-            intersections.push_back( vector3f( _max[ 0 ] - intersection[ 0 ],
-                                               _max[ 1 ],
-                                               _max[ 2 ] - intersection[ 1 ] ) );
+            intersections.push_back( vector3f( _maxY[ 0 ] + intersection[ 0 ],
+                                               _maxY[ 1 ],
+                                               _maxY[ 2 ] + intersection[ 1 ] ) );
          }
 
          if ( _planes[ 5 ].getIntersection( pos,  dir, intersection ) &&
               intersection[ 0 ] >= 0 && intersection[ 0 ] <= _size[ 1 ] &&
               intersection[ 1 ] >= 0 && intersection[ 1 ] <= _size[ 2 ] )
          {
-            intersections.push_back( vector3f( _max[ 0 ],
-                                               _max[ 1 ] - intersection[ 0 ],
-                                               _max[ 2 ] - intersection[ 1 ] ) );
+            intersections.push_back( vector3f( _maxX[ 0 ],
+                                               _maxX[ 1 ] + intersection[ 0 ],
+                                               _maxX[ 2 ] + intersection[ 1 ] ) );
          }
 
          // update intersections
@@ -544,24 +533,31 @@ namespace core
    private:
       void _initPlanes( const vector3f& min, const vector3f& max )
       {
+         _maxZ = core::vector3f( min[ 0 ], min[ 1 ], max[ 2 ] );
+         _maxY = core::vector3f( min[ 0 ], max[ 1 ], min[ 2 ] );
+         _maxX = core::vector3f( max[ 0 ], min[ 1 ], min[ 2 ] );
          _planes[ 0 ] = GeometryPlane( min, vector3f( 1, 0, 0 ),
                                             vector3f( 0, 1, 0 ) );
          _planes[ 1 ] = GeometryPlane( min, vector3f( 1, 0, 0 ),
                                             vector3f( 0, 0, 1 ) );
          _planes[ 2 ] = GeometryPlane( min, vector3f( 0, 1, 0 ),
                                             vector3f( 0, 0, 1 ) );
-         _planes[ 3 ] = GeometryPlane( max, vector3f( -1, 0, 0 ),
-                                            vector3f( 0, -1, 0 ) );
-         _planes[ 4 ] = GeometryPlane( max, vector3f( -1, 0, 0 ),
-                                            vector3f( 0, 0, -1 ) );
-         _planes[ 5 ] = GeometryPlane( max, vector3f( 0, -1, 0 ),
-                                            vector3f( 0, 0, -1 ) );
+         _planes[ 3 ] = GeometryPlane( _maxZ, vector3f( 1, 0, 0 ),
+                                              vector3f( 0, 1, 0 ) );
+         _planes[ 4 ] = GeometryPlane( _maxY, vector3f( 1, 0, 0 ),
+                                              vector3f( 0, 0, 1 ) );
+         _planes[ 5 ] = GeometryPlane( _maxX, vector3f( 0, 1, 0 ),
+                                              vector3f( 0, 0, 1 ) );
       }
 
    private:
       vector3f    _min;
       vector3f    _max;
       vector3f    _size;
+
+      vector3f    _maxX;
+      vector3f    _maxY;
+      vector3f    _maxZ;
 
       GeometryPlane  _planes[ 6 ];
    };

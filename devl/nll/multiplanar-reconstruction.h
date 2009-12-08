@@ -8,24 +8,6 @@ namespace nll
 {
 namespace imaging
 {
-   namespace impl
-   {
-      /**
-       @brief apply a rotation given a transformation (rotation+scale only)
-              The matrix must be a 4x4 transformation matrix defined by the volume.
-              
-              Compute Mv using only the rotational part of M.
-       */
-      template <class T, class Mapper, class Allocator, class Vector>
-      Vector mul4Rot( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
-      {
-         assert( m.sizex() == 4 && m.sizey() == 4 );
-         return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
-                        v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ),
-                        v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
-      }
-   }
-
    /**
     @ingroup imaging
     @brief Multiplanar reconstruction of a volume
@@ -66,13 +48,13 @@ namespace imaging
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         core::vector3f dx = impl::mul4Rot( _volume.getInversedPst(), slice.getAxisX() );
+         core::vector3f dx = core::mul4Rot( _volume.getInversedPst(), slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
          dx[ 1 ] = dx[ 1 ] / ( c1 * _volume.getSpacing()[ 1 ] );
          dx[ 2 ] = dx[ 2 ] / ( c1 * _volume.getSpacing()[ 2 ] );
 
-         core::vector3f dy = impl::mul4Rot( _volume.getInversedPst(), slice.getAxisY() );
+         core::vector3f dy = core::mul4Rot( _volume.getInversedPst(), slice.getAxisY() );
          const float c2 = (float)dy.norm2() / slice.getSpacing()[ 1 ];
          dy[ 0 ] = dy[ 0 ] / ( c2 * _volume.getSpacing()[ 0 ] );
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );

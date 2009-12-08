@@ -157,9 +157,9 @@ namespace imaging
          //core::vector3f offset = sliceInfos[ n ].slice.getOrigin() - out.getOrigin();
 
          // check minmax is in the output slice
-         core::vector3f min = sliceInfos[ n ].slice.getOrigin() - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
-         core::vector3f max = sliceInfos[ n ].slice.getOrigin() + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
-         assert( out.contains( min ) && out.contains( max ) );
+         //core::vector3f min = sliceInfos[ n ].slice.getOrigin() - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
+         //core::vector3f max = sliceInfos[ n ].slice.getOrigin() + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
+         //assert( out.contains( min ) && out.contains( max ) );
       }
 
       const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
