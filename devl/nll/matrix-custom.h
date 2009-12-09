@@ -77,6 +77,18 @@ namespace core
                      v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
    }
 
+   /**
+    @brief Transform a 3-vector with an affine 4x4 transformation matrix
+    */
+   template <class T, class Mapper, class Allocator, class Vector>
+   Vector transf4( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
+   {
+      assert( m.sizex() == 4 && m.sizey() == 4 );
+      return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ) + m( 0, 3 ),
+                     v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ) + m( 1, 3 ),
+                     v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) + m( 2, 3 ) );
+   }
+
 
    template <class T, class Mapper, class Allocator>
    void matrix4x4RotationX( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
@@ -85,9 +97,22 @@ namespace core
          m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
       m( 0, 0 ) = 1;
       m( 1, 1 ) = cos( angleRadian );
-      m( 2, 1 ) = sin( angleRadian );
-      m( 1, 2 ) = -sin( angleRadian );
+      m( 2, 1 ) = -sin( angleRadian );
+      m( 1, 2 ) = sin( angleRadian );
       m( 2, 2 ) = cos( angleRadian );
+      m( 3, 3 ) = 1;
+   }
+
+   template <class T, class Mapper, class Allocator>
+   void matrix4x4RotationZ( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
+   {
+      if ( m.sizex() != 4 || m.sizey() != 4 )
+         m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
+      m( 0, 0 ) = cos( angleRadian );
+      m( 1, 0 ) = -sin( angleRadian );
+      m( 0, 1 ) = sin( angleRadian );
+      m( 1, 1 ) = cos( angleRadian );
+      m( 2, 2 ) = 1;
       m( 3, 3 ) = 1;
    }
 }
