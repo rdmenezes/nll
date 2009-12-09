@@ -171,6 +171,7 @@
 # include "volume-io-mf2.h"
 # include "volume-io-bin.h"
 # include "volume-io-txt.h"
+# include "maximum-intensity-projection.h"
 
 /**
  @defgroup algorithm

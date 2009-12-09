@@ -962,6 +962,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\maximum-intensity-projection.h"
+				>
+			</File>
+			<File
 				RelativePath=".\multiplanar-reconstruction.h"
 				>
 			</File>
