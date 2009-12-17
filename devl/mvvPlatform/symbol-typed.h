@@ -5,53 +5,34 @@
 # include <string>
 # include <utility>
 # include "mvvPlatform.h"
+# include "symbol.h"
 
 namespace mvv
 {
 namespace platform
 {
    /**
-    @brief Class representing a lightweight string. 
+    @ingroup platform
+    @brief Class representing a lightweight string. Only one instance for each string can be created,
+           so we can compare directly string internal buffer pointer for comparison
+
+           In addition, it is specific to a type, so we can't convert a SymbolTyped<Volume> to SymbolTyped<Lut>, adding
+           compile time safety checks.
     */
    template <class T>
    class SymbolTyped
    {
-      struct Value
-      {
-         Value( const std::string& n, const T v ) : name( n ), value( v )
-         {}
-         const std::string name;
-         const T           value;
-
-         bool operator<( const Value& v ) const
-         {
-            return name.c_str() < v.name.c_str();
-         }
-
-      private:
-         Value& operator=( const Value& );
-      };
-      typedef std::set<Value> Strings;
+      typedef std::set<std::string> Strings;
 
    public:
       typedef T   value_type;
 
    public:
-      static SymbolTyped create( const std::string& s, const T value )
+      static SymbolTyped create( const std::string& s )
       {
          // return the address contained in the set, guaranteing its unicity
-         std::pair<Strings::iterator, bool> it = _strings.insert( Value( s, value ) );
-         return SymbolTyped( it.first->name.c_str(), it.first->value );
-      }
-
-      static bool get( const std::string& s, SymbolTyped& out )
-      {
-         // return the address contained in the set, guaranteing its unicity
-         std::pair<Strings::iterator, bool> it = _strings.insert( Value( s, value ) );
-         if ( !it.second )
-            return false;
-         out = *it.first;
-         return true;
+         std::pair<Strings::iterator, bool> it = _strings.insert( s );
+         return SymbolTyped( it.first->c_str() );
       }
 
       bool operator==( const SymbolTyped& rhs ) const
@@ -76,17 +57,19 @@ namespace platform
 
    private:
       // to be created internally only!
-      SymbolTyped( const char* s, const T value ) : _s( s ), _v( value )
+      SymbolTyped( const char* s ) : _s( s )
       {
       }
 
    private:
       const char* _s;
-      T _v;
 
    private:
       static Strings _strings;
    };
+
+   template <class T>
+   typename SymbolTyped<T>::Strings SymbolTyped<T>::_strings = SymbolTyped<T>::Strings();
 }
 }
 

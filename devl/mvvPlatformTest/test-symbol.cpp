@@ -26,11 +26,22 @@ struct TestSymbol
    {
       typedef SymbolTyped<int>   IntSymbol;
 
-      IntSymbol s1 = IntSymbol::create( "test1", 3 );
-      IntSymbol s2 = IntSymbol::get( "test1" );
+      const IntSymbol& s1 = IntSymbol::create("test1");
+      const IntSymbol& s2 = IntSymbol::create("test2");
+      const IntSymbol& s3 = IntSymbol::create("test1");
+
+      TESTER_ASSERT( s1 == s3 );
+      TESTER_ASSERT( s1 != s2 );
+      TESTER_ASSERT( s3 == s1 );
+      TESTER_ASSERT( s2 != s3 );
+
+      IntSymbol s4 = s1;
+      TESTER_ASSERT( s2 != s4 );
+      TESTER_ASSERT( s1 == s4 );
    }
 };
 
 TESTER_TEST_SUITE(TestSymbol);
 TESTER_TEST(test1);
+TESTER_TEST(test2);
 TESTER_TEST_SUITE_END();

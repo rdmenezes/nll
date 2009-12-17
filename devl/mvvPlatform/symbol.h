@@ -11,7 +11,9 @@ namespace mvv
 namespace platform
 {
    /**
-    @brief Class representing a lightweight string. 
+    @ingroup platform
+    @brief Class representing a lightweight string. Only one instance for each string can be created,
+           so we can compare directly string internal buffer pointer for comparison
     */
    class MVVPLATFORM_API Symbol
    {

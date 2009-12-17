@@ -54,7 +54,7 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 			/>
@@ -145,7 +145,7 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
@@ -233,7 +233,7 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
@@ -325,7 +325,7 @@
 				RuntimeTypeInfo="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				WarnAsError="true"
+				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 			/>
@@ -385,11 +385,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\engine.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mvvPlatform.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\mvvPlatform.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.cpp"
 				>
 			</File>
 			<File
@@ -400,6 +408,26 @@
 		<Filter
 			Name="API"
 			>
+			<File
+				RelativePath=".\engine-handler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\engine.h"
+				>
+			</File>
+			<File
+				RelativePath=".\notifiable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\refcounted.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
+				>
+			</File>
 			<File
 				RelativePath=".\symbol-typed.h"
 				>
