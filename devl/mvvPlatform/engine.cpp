@@ -8,6 +8,7 @@ namespace platform
    void Engine::connect( impl::Resource r )
    {
       _resources.insert( r );
+      r.connect( this );
    }
 
    void Engine::disconnect( impl::Resource r )
@@ -21,11 +22,13 @@ namespace platform
 
    Engine::~Engine()
    {
-      for ( ResourceStorage::iterator it = _resources.begin(); it != _resources.end(); ++it )
+      ResourceStorage::iterator cur;
+      for ( ResourceStorage::iterator it = _resources.begin(); it != _resources.end(); )
       {
-         disconnect( *it );
+         cur = it++;
+         disconnect( *cur );
       }
-      _handler.disconnect( this );
+      _handler.disconnect( *this );
    }
 }
 }

@@ -56,7 +56,13 @@ namespace platform
 
          void setState( const State s )
          {
-            _state = s;
+            if ( _state == DISABLED && s == ENABLED )
+            {
+               _state = s;
+               notify();
+            } else {
+               _state = s;
+            }
          }
 
          State getState() const

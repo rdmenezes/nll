@@ -409,7 +409,15 @@
 			Name="API"
 			>
 			<File
+				RelativePath=".\context.h"
+				>
+			</File>
+			<File
 				RelativePath=".\engine-handler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\engine-order.h"
 				>
 			</File>
 			<File
@@ -418,6 +426,26 @@
 			</File>
 			<File
 				RelativePath=".\notifiable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-consumer.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-creator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-dispatcher.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-provider.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order.h"
 				>
 			</File>
 			<File
@@ -434,6 +462,10 @@
 			</File>
 			<File
 				RelativePath=".\symbol.h"
+				>
+			</File>
+			<File
+				RelativePath=".\types.h"
 				>
 			</File>
 		</Filter>

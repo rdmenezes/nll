@@ -389,6 +389,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test-context.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-engine.cpp"
 				>
 			</File>

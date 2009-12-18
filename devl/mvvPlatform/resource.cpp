@@ -11,7 +11,8 @@ namespace platform
       {
          if ( _state == ENABLED )
          {
-            for ( ResourceSharedData::EngineStorage::iterator it = getData().links.begin(); it != getData().links.end(); ++it )
+            ResourceSharedData::EngineStorage& engines = getData().links;
+            for ( ResourceSharedData::EngineStorage::iterator it = engines.begin(); it != engines.end(); ++it )
             {
                assert( *it );
                (*it)->notify();
@@ -28,21 +29,13 @@ namespace platform
       void Resource::disconnect( Engine* e )
       {
          assert( e );
-         size_t nb = getData().links.erase( e );
-         if ( nb )
-         {
-            e->disconnect( *this );
-         }
+         if ( !_data )
+            return;
+         getData().links.erase( e );
       }
 
       Resource::~Resource()
       {
-         for ( impl::ResourceSharedData::EngineStorage::iterator it = getData().links.begin();
-               it != getData().links.end();
-               ++ it )
-         {
-            disconnect( *it );
-         }
       }
    }
 }

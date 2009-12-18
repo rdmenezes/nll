@@ -1,6 +1,23 @@
 #ifndef MVVPLATFORM_H
 #define MVVPLATFORM_H
 
+/**
+ @mainpage Medical Volume Viewer
+   mvv Intends to provide basic reading/reporting and apply medical processing algorithms.
+ @author Ludovic Sibille
+ @version 0.01
+ @date 18th December 2009
+ */
+
+/// define the version of nll
+#define MVV_VERSION  "mvv-0.01"
+
+/**
+ @defgroup platform
+ @brief The platform package will provide the basic framework for mvv
+ */
+
+
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the MVVPLATFORM_EXPORTS

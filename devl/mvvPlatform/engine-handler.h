@@ -17,10 +17,19 @@ namespace platform
    class MVVPLATFORM_API EngineHandler
    {
    public:
-      virtual void connect( Engine* e ) = 0;
+      /**
+       @brief connect an engine. Meaning next time, the <code>run()</code> of the engine will be called
+       */
+      virtual void connect( Engine& e ) = 0;
 
-      virtual void disconnect( Engine* e ) = 0;
+      /**
+       @brief disconnect the engine. the <code>run()</code> of the engine won't be called anymore
+       */
+      virtual void disconnect( Engine& e ) = 0;
 
+      /**
+       @brief this method will call the <code>run()</code> method of the engine, with an unspecified order
+       */
       virtual void run() = 0;
 
       virtual ~EngineHandler()
