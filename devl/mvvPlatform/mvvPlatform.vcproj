@@ -397,11 +397,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\order-manager-thread-pool.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\resource.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\symbol.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-pool.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-pool.h"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-worker.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\thread-worker.h"
 				>
 			</File>
 		</Filter>
@@ -425,6 +445,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\event-mouse-receiver.h"
+				>
+			</File>
+			<File
 				RelativePath=".\event-mouse.h"
 				>
 			</File>
@@ -441,7 +465,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\order-dispatcher-impl.h"
+				>
+			</File>
+			<File
 				RelativePath=".\order-dispatcher.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-manager-thread-pool.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-provider-impl.h"
 				>
 			</File>
 			<File

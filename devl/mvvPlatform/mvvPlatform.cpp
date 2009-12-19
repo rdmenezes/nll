@@ -13,6 +13,9 @@
 #include "order-creator.h"
 #include "engine-order.h"
 #include "event-mouse.h"
+#include "event-mouse-receiver.h"
+#include "order-dispatcher-impl.h"
+#include "order-provider-impl.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

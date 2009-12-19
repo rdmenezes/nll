@@ -4,7 +4,7 @@
 # include "symbol-typed.h"
 # include "mvvPlatform.h"
 # include "refcounted.h"
-# include <nll/buffer1D.h>
+# include "types.h"
 
 namespace mvv
 {
@@ -36,7 +36,15 @@ namespace platform
               alive until this order is executed
        */
       Order( OrderClassId classId, const Predecessors& predecessors, bool willBeMultithreaded = true ) : _classId( classId ), _predecessors( predecessors ), _multithreaded( willBeMultithreaded ), _result( 0 )
-      {}
+      {
+         static ui32 orderId = 0;
+         _orderId = ++orderId;
+      }
+
+      ui32 getId() const
+      {
+         return _orderId;
+      }
 
       virtual ~Order()
       {}   
@@ -95,6 +103,7 @@ namespace platform
       Predecessors   _predecessors;
       bool           _multithreaded;
       OrderResult*   _result;
+      ui32           _orderId;
    };
 }
 }

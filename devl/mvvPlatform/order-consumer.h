@@ -33,7 +33,7 @@ namespace platform
       /**
        @brief Returns the type of order the consumer will handle. (orders are dispatched according to this)
        */
-      virtual std::set<OrderClassId> interestedOrder() const = 0;
+      virtual const std::set<OrderClassId>& interestedOrder() const = 0;
 
    private:
       // copy disabled: we don't wan't to automatically register the new consumer to the dispatcher...

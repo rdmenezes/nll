@@ -83,6 +83,8 @@ namespace platform
             {
                destroy();
             }
+
+            _data = 0;
          }
       }
 
@@ -182,6 +184,11 @@ namespace platform
       T& operator*()
       {
          return getData();
+      }
+
+      T* operator&()
+      {
+         return reinterpret_cast<T*>( _data->data );
       }
    };
 }

@@ -47,16 +47,16 @@ namespace platform
          return _s;
       }
 
-   private:
+   protected:
       // to be created internally only!
       Symbol( const char* s ) : _s( s )
       {
       }
 
-   private:
+   protected:
       const char* _s;
 
-   private:
+   protected:
       static Strings _strings;
    };
 }

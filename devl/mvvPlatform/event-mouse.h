@@ -17,7 +17,7 @@ namespace platform
       /// the current mouse position
       nll::core::vector2ui    mousePosition;
 
-      /// the position where the first left unreleased click occured
+      /// the position where the first left clicked occured
       nll::core::vector2ui    mouseLeftClickedPosition;
 
       /// the position where first unreleased

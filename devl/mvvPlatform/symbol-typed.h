@@ -19,15 +19,13 @@ namespace platform
            In addition, it is specific to a type, so we can't convert a SymbolTyped<Volume> to SymbolTyped<Lut>, adding
            compile time safety checks.
     */
-   template <class T>
-   class SymbolTyped
-   {
-      typedef std::set<std::string> Strings;
 
+   template <class T>
+   class SymbolTyped : public Symbol
+   {
    public:
       typedef T   value_type;
 
-   public:
       static SymbolTyped create( const std::string& s )
       {
          // return the address contained in the set, guaranteing its unicity
@@ -40,36 +38,19 @@ namespace platform
          return _s == rhs._s;
       }
 
-      bool operator!=( const SymbolTyped& rhs ) const
-      {
-         return _s != rhs._s;
-      }
+   protected:
+      // we are disabling all equality operators for symbol that do not have the same type tagged
+      template <class TT>
+      bool operator==( const SymbolTyped<TT>& ) const;
 
-      bool operator<( const SymbolTyped& rhs ) const
-      {
-         return _s < rhs._s;
-      }
-
-      const char* getName() const
-      {
-         return _s;
-      }
-
-   private:
+   protected:
       // to be created internally only!
-      SymbolTyped( const char* s ) : _s( s )
+      SymbolTyped( const char* s ) : Symbol( s )
       {
       }
-
-   private:
-      const char* _s;
-
-   private:
-      static Strings _strings;
    };
 
-   template <class T>
-   typename SymbolTyped<T>::Strings SymbolTyped<T>::_strings = SymbolTyped<T>::Strings();
+   
 }
 }
 

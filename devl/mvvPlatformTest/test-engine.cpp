@@ -122,7 +122,7 @@ public:
       consumed = true;
    }
 
-   virtual std::set<OrderClassId> interestedOrder() const
+   virtual const std::set<OrderClassId>& interestedOrder() const
    {
       return std::set<OrderClassId>();
    }

@@ -38,6 +38,11 @@ struct TestSymbol
       IntSymbol s4 = s1;
       TESTER_ASSERT( s2 != s4 );
       TESTER_ASSERT( s1 == s4 );
+
+      typedef SymbolTyped<void>   VoidSymbol;
+
+      //VoidSymbol v1 = VoidSymbol::create("void1");
+      //v1 == s1;
    }
 };
 
