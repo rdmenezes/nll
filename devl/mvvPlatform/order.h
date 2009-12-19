@@ -4,6 +4,7 @@
 # include "symbol-typed.h"
 # include "mvvPlatform.h"
 # include "refcounted.h"
+# include <nll/buffer1D.h>
 
 namespace mvv
 {
@@ -26,7 +27,7 @@ namespace platform
       typedef RefcountedTyped<OrderResult*> Base;
    public:
       typedef SymbolTyped<Order>    OrderClassId;  /// specify what category of order it is
-      typedef std::set<Order>       Predecessors;  /// predecessors that must be run and finished before this order starts
+      typedef std::set< RefcountedTyped<Order> >       Predecessors;  /// predecessors that must be run and finished before this order starts
 
       /**
        @brief Construct an order
@@ -34,11 +35,11 @@ namespace platform
        @param predecessors all orders that must be completed before this ordr is started. All predecessors must remain
               alive until this order is executed
        */
-      Order( OrderClassId classId, const Predecessors& predecessors, bool willBeMultithreaded = true ) : _classId( classId ), _predecessors( predecessors ), _multithreaded( willBeMultithreaded )
+      Order( OrderClassId classId, const Predecessors& predecessors, bool willBeMultithreaded = true ) : _classId( classId ), _predecessors( predecessors ), _multithreaded( willBeMultithreaded ), _result( 0 )
       {}
 
       virtual ~Order()
-      {}
+      {}   
 
       /**
        @brief Update the result of the order
@@ -67,10 +68,33 @@ namespace platform
          return _classId;
       }
 
+      /**
+       @brief launch the computation
+       */
+      void compute()
+      {
+         _result = _compute();
+      }
+
+      /**
+       @brief return the result. Null if not yet computed
+       */
+      OrderResult* getResult() const
+      {
+         return _result;
+      }
+
+   protected:
+      /**
+       @brief Compute the order. It must return an OrderResult that has been allocated
+       */
+      virtual OrderResult* _compute() = 0;
+
    protected:
       OrderClassId   _classId;
       Predecessors   _predecessors;
       bool           _multithreaded;
+      OrderResult*   _result;
    };
 }
 }

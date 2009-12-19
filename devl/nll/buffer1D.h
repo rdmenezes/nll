@@ -1,6 +1,7 @@
 #ifndef NLL_BUFFER1D_H_
 # define NLL_BUFFER1D_H_
 
+# include <limits>
 # include <limits.h>
 # include <assert.h>
 # include "types.h"

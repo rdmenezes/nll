@@ -23,7 +23,7 @@ namespace platform
        @brief Distach an order to some consumers. The implementation should take advantage of the
               <code>interestedOrder</code> of the consumer to not dispatch an order to all consumers
        */
-      virtual void dispatch( Order order ) = 0;
+      virtual void dispatch( RefcountedTyped<Order> order ) = 0;
 
       /**
        @brief Register a consumer that will consume the orders

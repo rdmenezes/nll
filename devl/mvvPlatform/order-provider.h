@@ -16,7 +16,7 @@ namespace platform
    class MVVPLATFORM_API OrderProvider
    {
    public:
-      typedef std::vector<Order>  Orders;
+      typedef std::vector< RefcountedTyped<Order> >  Orders;
 
    public:
       /**
@@ -27,7 +27,7 @@ namespace platform
       /**
        @brief The client will push orders on a stack to be run by the thread pool. <code>getOrdersAndClear</code> will return this stack and empty it
        */
-      virtual void pushOrder( Order order ) = 0;
+      virtual void pushOrder( RefcountedTyped<Order> order ) = 0;
    };
 }
 }

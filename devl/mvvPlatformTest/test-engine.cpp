@@ -78,6 +78,21 @@ private:
    int res;
 };
 
+class DummyOrder : public Order
+{
+public:
+   DummyOrder() : Order( Order::OrderClassId::create( "dummy" ), Order::Predecessors() )
+   {
+   }
+
+
+protected:
+   virtual OrderResult* _compute()
+   {
+      return new OrderResult();
+   }
+};
+
 class DummyEngineOrder : public EngineOrder
 {
 public:
@@ -85,11 +100,15 @@ public:
    {
       connect( r1 );
       connect( r2 );
+      consumed = false;
    }
 
    virtual bool _run()
    {
       res = r1.getValue() + r2.getValue();
+      currentOrder = RefcountedTyped<Order>( new DummyOrder() );
+
+      _orderProvider.pushOrder( currentOrder );
       return true;
    }
 
@@ -98,11 +117,23 @@ public:
       return res;
    }
 
+   void consume( RefcountedTyped<Order> o )
+   {
+      consumed = true;
+   }
+
+   virtual std::set<OrderClassId> interestedOrder() const
+   {
+      return std::set<OrderClassId>();
+   }
+
    DummyResource& r1;
    DummyResource& r2;
+   bool consumed;
 
 private:
    int res;
+   RefcountedTyped<Order> currentOrder;
 };
 
 class DummyOrderProvider : public OrderProvider
@@ -115,7 +146,7 @@ public:
       return o;
    }
 
-   virtual void pushOrder( Order order )
+   virtual void pushOrder( RefcountedTyped<Order> order )
    {
       orders.push_back( order );
    }
@@ -128,7 +159,7 @@ class DummyOrderDispatcher : public OrderDispatcher
 public:
    typedef std::vector<OrderConsumer*>  Consumers;
 
-   virtual void dispatch( Order order )
+   virtual void dispatch( RefcountedTyped<Order> order )
    {
       for ( Consumers::iterator it = consumers.begin(); it != consumers.end(); ++it )
       {
@@ -136,12 +167,12 @@ public:
       }
    }
 
-   virtual void registerConsumer( OrderConsumer& consumer )
+   virtual void connect( OrderConsumer& consumer )
    {
       consumers.push_back( &consumer );
    }
 
-   virtual void releaseConsumer( OrderConsumer& )
+   virtual void disconnect( OrderConsumer& )
    {
    }
 
@@ -218,8 +249,32 @@ struct TestEngine
       TESTER_ASSERT( engine1.getResult() != val );
    }
 
+   
    void testOrderWorkflow()
    {
+      DummyEngineHandler handler;
+      DummyOrderProvider orderProvider;
+      DummyOrderDispatcher dispatcher;
+
+      int i1 = 42;
+      int i2 = 3;
+
+      DummyResource resource1( &i1, false );
+      DummyResource resource2( &i2, false );
+      DummyEngineOrder engine( handler, orderProvider, dispatcher, resource1, resource2 );
+
+      TESTER_ASSERT( handler.engines.size() == 1 );
+      TESTER_ASSERT( orderProvider.orders.size() == 0 );
+      TESTER_ASSERT( dispatcher.consumers.size() == 1 );
+
+      // run and create order
+      handler.run();
+      TESTER_ASSERT( orderProvider.orders.size() == 1 );
+
+      // dispatch order, check it has been dispatched
+      dispatcher.dispatch( orderProvider.orders[ 0 ] );
+      TESTER_ASSERT( engine.consumed );
+      TESTER_ASSERT( orderProvider.orders[ 0 ].getNumberOfReference() == 2 ); // in order & orderprovider
    }
 };
 
@@ -227,4 +282,5 @@ TESTER_TEST_SUITE(TestEngine);
 TESTER_TEST(test1);
 TESTER_TEST(testEngineDestroyedBeforeResource);
 TESTER_TEST(testInactive);
+TESTER_TEST(testOrderWorkflow)
 TESTER_TEST_SUITE_END();
