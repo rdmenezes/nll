@@ -21,7 +21,7 @@ namespace platform
    // forward declaration
    class ThreadPool;
 
-   class ThreadWorker
+   class MVVPLATFORM_API ThreadWorker
    {
    public:
       ThreadWorker( ThreadPool* pool, ui32 workerId );

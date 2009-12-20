@@ -10,9 +10,12 @@ namespace platform
 {
    void ThreadWorker::run( RefcountedTyped<Order> order )
    {
+      boost::mutex::scoped_lock lock( _mutex );
+
+      ensure( &order, "must not be null" );
       ensure( _hasFinished, "error: the thread must be idle!" );
 
-      boost::mutex::scoped_lock lock( _mutex );
+      //boost::mutex::scoped_lock lock( _mutex );
       _currentOrder = order;
       _hasFinished = false;
       notify();
@@ -38,6 +41,7 @@ namespace platform
             nll::core::Timer todoDebug;
             _run();
             std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " end, time=" << todoDebug.getCurrentTime() << " classId=" << (*_currentOrder).getClassId().getName() << std::endl;
+            _currentOrder.unref();
          }
       }
       catch ( boost::thread_interrupted )
@@ -55,13 +59,14 @@ namespace platform
    void ThreadWorker::_run()
    {
       // locked by operator()
+      nll::core::Timer timerDebug;
       (*_currentOrder).compute();
+      std::cout << "Job only=" << timerDebug.getCurrentTime() << std::endl;
       ensure( (*_currentOrder).getResult(), "result requires not to be null" );
       _hasFinished = true;
       _pool->workerFinished( _currentOrder, _workerId );
 
-      // unref the order!
-      _currentOrder.unref(); // = RefcountedTyped<Order>( 0 );
+      _pool->notify();
    }
 }
 }

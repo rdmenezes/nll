@@ -6,6 +6,7 @@
 # include "refcounted.h"
 # include "types.h"
 
+# include <iostream> // TODO remove
 namespace mvv
 {
 namespace platform
@@ -90,6 +91,14 @@ namespace platform
       OrderResult* getResult() const
       {
          return _result;
+      }
+
+      /**
+       @brief return true if it needs to be multithreaded
+       */
+      bool toBeMultithreaded() const
+      {
+         return _multithreaded;
       }
 
    protected:

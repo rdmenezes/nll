@@ -21,13 +21,10 @@ namespace mvv
 {
 namespace platform
 {
-   // forward declaration
-   class Worker;
-
    /**
     @brief Run orders on a pool of thread. This class must be run on the manager thread
     */
-   class ThreadPool : public Notifiable
+   class MVVPLATFORM_API ThreadPool : public Notifiable
    {
       friend class ThreadWorker;
 
@@ -56,25 +53,42 @@ namespace platform
       void kill();
 
       /**
-       @brief run the order on a worker thread
+       @brief Return the finished orders and clear the list.
        */
-      void run( RefcountedTyped<Order> order );
+      Orders getFinishedOrdersAndClearList();
 
-   protected:
+      /**
+       @brief Push an order on the execution queue ( run on main thread )
+       */
+      void push( RefcountedTyped<Order> order );
+
+      /**
+       @brief run the infiny loop of the manager thread
+       */
+      void operator()();
+
+      ui32 getNumberOfOrdersToRun() const
+      {
+         return static_cast<ui32>( _ordersToRun.size() );
+      }
+
+ //  protected:
       /**
        @brief Notify the thread that it requires to do something
        */
       void notify();
 
       /**
+       @brief run the order on a worker thread
+       */
+      void dispatchToWorker( RefcountedTyped<Order> order );
+
+      /**
        @brief notify the pool that a worker is idle
        */
       void workerFinished( RefcountedTyped<Order> order, ui32 workerId );
 
-      /**
-       @brief Return the finished orders and clear the list.
-       */
-      Orders getFinishedOrdersAndClearList();
+      void _check();
 
    private:
       // copy disabled
@@ -83,8 +97,11 @@ namespace platform
 
    private:
       boost::condition  _notified;
+      bool              _notified2;
       boost::mutex      _mutex;
+      boost::mutex      _mutexWait;
       Orders            _ordersFinished;
+      Orders            _ordersToRun;
       Workers           _workers;
       WorkerThreads     _workerThreads;
       AvailableWorkers  _workersAvailable;

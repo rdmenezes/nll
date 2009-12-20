@@ -73,6 +73,11 @@ namespace platform
          return _data == r._data;
       }
 
+      bool operator!=( const Refcounted& r ) const
+      {
+         return _data != r._data;
+      }
+
       void unref()
       {
          if ( _data )
@@ -183,10 +188,20 @@ namespace platform
 
       T& operator*()
       {
-         return getData();
+         return *reinterpret_cast<T*>( _data->data );
       }
 
       T* operator&()
+      {
+         return reinterpret_cast<T*>( _data->data );
+      }
+
+      const T& operator*() const
+      {
+         return *reinterpret_cast<T*>( _data->data );
+      }
+
+      const T* operator&() const
       {
          return reinterpret_cast<T*>( _data->data );
       }

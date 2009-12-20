@@ -124,7 +124,8 @@ public:
 
    virtual const std::set<OrderClassId>& interestedOrder() const
    {
-      return std::set<OrderClassId>();
+      static std::set<OrderClassId> res;
+      return res;
    }
 
    DummyResource& r1;
