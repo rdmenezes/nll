@@ -20,9 +20,9 @@ namespace platform
 
    public:
       /**
-       @brief Instanciate an order consumer that will receive orders from this dispatcher
+       @brief default constructor
        */
-      OrderConsumer( OrderDispatcher& dispatcher ) : _dispatcher( dispatcher )
+      OrderConsumer()
       {}
 
       /**
@@ -39,9 +39,6 @@ namespace platform
       // copy disabled: we don't wan't to automatically register the new consumer to the dispatcher...
       OrderConsumer( const OrderConsumer& d );
       OrderConsumer& operator=( const OrderConsumer& o );
-
-   protected:
-      OrderDispatcher&     _dispatcher;
    };
 }
 }

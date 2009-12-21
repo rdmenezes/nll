@@ -41,7 +41,8 @@ namespace platform
        */
       virtual void connect( OrderConsumer& consumer )
       {
-         for ( Buckets::const_iterator it = consumer.interestedOrder().begin(); it != consumer.interestedOrder().end(); ++it )
+         Buckets::const_iterator it = consumer.interestedOrder().begin();
+         for ( ; it != consumer.interestedOrder().end(); ++it )
          {
             _consumers[ *it ].insert( &consumer );
          }

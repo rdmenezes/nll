@@ -72,12 +72,12 @@ namespace platform
          return static_cast<ui32>( _ordersToRun.size() );
       }
 
- //  protected:
       /**
        @brief Notify the thread that it requires to do something
        */
       void notify();
 
+   protected:
       /**
        @brief run the order on a worker thread
        */

@@ -4,50 +4,53 @@
 
 using namespace mvv::platform;
 
-void wait( float seconds )
+namespace
 {
-  clock_t endwait;
-  endwait = clock () + seconds * CLOCKS_PER_SEC ;
-  while (clock() < endwait) {}
+   void wait( float seconds )
+   {
+     clock_t endwait;
+     endwait = clock () + seconds * CLOCKS_PER_SEC ;
+     while (clock() < endwait) {}
+   }
+
+
+   struct DummyOrder3 : public Order
+   {
+      DummyOrder3( float time, const Order::Predecessors& pred ) : Order( Order::OrderClassId::create( "dummy2" ), pred ), timeToWait( time )
+      {
+         computed = false;
+      }
+
+      virtual OrderResult* _compute()
+      {
+         wait( timeToWait );
+         computed = true;
+         return new OrderResult();
+      }
+
+      bool computed;
+      float timeToWait;
+   };
+
+
+   struct DummyOrder2 : public Order
+   {
+      DummyOrder2( float time ) : Order( Order::OrderClassId::create( "dummy" ), Order::Predecessors() ), timeToWait( time )
+      {
+         computed = false;
+      }
+
+      virtual OrderResult* _compute()
+      {
+         wait( timeToWait );
+         computed = true;
+         return new OrderResult();
+      }
+
+      bool computed;
+      float timeToWait;
+   };
 }
-
-
-struct DummyOrder3 : public Order
-{
-   DummyOrder3( float time, const Order::Predecessors& pred ) : Order( Order::OrderClassId::create( "dummy2" ), pred ), timeToWait( time )
-   {
-      computed = false;
-   }
-
-   virtual OrderResult* _compute()
-   {
-      wait( timeToWait );
-      computed = true;
-      return new OrderResult();
-   }
-
-   bool computed;
-   float timeToWait;
-};
-
-
-struct DummyOrder2 : public Order
-{
-   DummyOrder2( float time ) : Order( Order::OrderClassId::create( "dummy" ), Order::Predecessors() ), timeToWait( time )
-   {
-      computed = false;
-   }
-
-   virtual OrderResult* _compute()
-   {
-      wait( timeToWait );
-      computed = true;
-      return new OrderResult();
-   }
-
-   bool computed;
-   float timeToWait;
-};
 
 struct TestPool
 {
@@ -103,7 +106,7 @@ struct TestPool
 
    void testPredecessor()
    {
-      for ( int n = 0; n < 10; ++n )
+      for ( int n = 0; n < 39; ++n )
       {
          RefcountedTyped<Order> o0( new DummyOrder3( 0.25f, Order::Predecessors() ) );
          RefcountedTyped<Order> o1( new DummyOrder3( 0.4f, Order::Predecessors() ) );
@@ -125,6 +128,7 @@ struct TestPool
 
          wait( 1 );
          ThreadPool::Orders finished = pool.getFinishedOrdersAndClearList();
+         TESTER_ASSERT( finished.size() == 4 );
          TESTER_ASSERT( finished.size() == 4 && finished[ 0 ].getNumberOfReference() == 4 && (*finished[ 0 ]).getResult()
                                              && finished[ 1 ].getNumberOfReference() == 4 && (*finished[ 1 ]).getResult()
                                              && finished[ 2 ].getNumberOfReference() == 4 && (*finished[ 2 ]).getResult()
@@ -136,6 +140,6 @@ struct TestPool
 
 TESTER_TEST_SUITE(TestPool);
 TESTER_TEST(testPredecessor);
-TESTER_TEST(testDummy);
-TESTER_TEST(testMulti);
+//TESTER_TEST(testDummy);
+//TESTER_TEST(testMulti);
 TESTER_TEST_SUITE_END();

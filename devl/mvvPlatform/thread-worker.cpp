@@ -29,6 +29,7 @@ namespace platform
          while ( 1 )
          {
             // wait for a new job
+            _pool->notify();
             while ( _hasFinished )
             {
                _notified.wait( lock );
@@ -66,7 +67,7 @@ namespace platform
       _hasFinished = true;
       _pool->workerFinished( _currentOrder, _workerId );
 
-      _pool->notify();
+      //_pool->notify();
    }
 }
 }

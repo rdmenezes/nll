@@ -10,6 +10,12 @@ namespace mvv
 {
 namespace platform
 {
+   namespace impl
+   {
+      // forward declaration
+      struct OrderManagerThreadPoolImpl;
+   }
+
    /**
     @ingroup platform
     @brief Receive, execute and dispatch orders to consumers using a pool of threads
@@ -31,8 +37,9 @@ namespace platform
        @brief Create a pool of threads
        @param nbWorkerThread the number of worker thread. Typically, about the same than the number of CPU
        */
-      OrderManagerThreadPool( ui32 nbWorkerThread ) : _nbWorkerThread( nbWorkerThread )
-      {}
+      OrderManagerThreadPool( ui32 nbWorkerThread );
+
+      ~OrderManagerThreadPool();
 
       /**
        @brief Kill all the workers, the current queued orders are discarded.
@@ -51,7 +58,7 @@ namespace platform
       void run();
 
    protected:
-      ui32     _nbWorkerThread;
+      RefcountedTyped<impl::OrderManagerThreadPoolImpl> _impl;
    };
 }
 }

@@ -205,6 +205,17 @@ namespace platform
       {
          return reinterpret_cast<T*>( _data->data );
       }
+
+      /*
+      const T& operator->() const
+      {
+         return *reinterpret_cast<T*>( _data->data );
+      }
+
+      T& operator->()
+      {
+         return *reinterpret_cast<T*>( _data->data );
+      }*/
    };
 }
 }

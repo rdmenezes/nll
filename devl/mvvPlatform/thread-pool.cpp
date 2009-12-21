@@ -1,3 +1,7 @@
+#pragma warning( push )
+#pragma warning( disable:4127 ) // conditional expression is constant
+#pragma warning( disable:4512 ) // assignment operator not generated
+
 #include "thread-pool.h"
 #include "thread-worker.h"
 
@@ -25,7 +29,7 @@ namespace platform
       // we don't lock it as we don't want to block the calling thread!
       _notified.notify_one();
       _notified2 = true;
-      std::cout << "--notify--" << std::endl;
+      //std::cout << "--notify--" << std::endl;
    }
 
    void ThreadPool::workerFinished( RefcountedTyped<Order> order, ui32 workerId )
@@ -95,11 +99,11 @@ namespace platform
          {
             while ( !_notified2 || _workersAvailable.empty() )
             {
-               std::cout << "--check wait--" << std::endl;
+               //std::cout << "--check wait--" << std::endl;
                _notified.wait( _mutexWait );
             }
             _notified2 = false;
-            std::cout << "--check--" << std::endl;
+            //std::cout << "--check--" << std::endl;
             
             // a new order arrived, or an older one has finished
             // we now need to run the orders that need to be
@@ -166,3 +170,5 @@ namespace platform
    }
 }
 }
+
+#pragma warning( pop )

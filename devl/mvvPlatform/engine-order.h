@@ -24,7 +24,7 @@ namespace platform
        @brief Instanciate an EngineOrder. The engine will be connected to the necessary components, and disconnected when
               destroyed.
        */
-      EngineOrder( EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : Engine( handler ), OrderCreator( provider ), OrderConsumer( dispatcher )
+      EngineOrder( EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : Engine( handler ), OrderCreator( provider ), _dispatcher( dispatcher )
       {
          _dispatcher.connect( *this );
       }
@@ -33,6 +33,9 @@ namespace platform
       {
          _dispatcher.disconnect( *this );
       }
+
+   protected:
+      OrderDispatcher& _dispatcher;
    };
 }
 }
