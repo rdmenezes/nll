@@ -22,6 +22,7 @@ namespace mvv
 namespace platform
 {
    /**
+    @ingroup platform
     @brief Run orders on a pool of thread. This class must be run on the manager thread
     */
    class MVVPLATFORM_API ThreadPool : public Notifiable
@@ -37,9 +38,8 @@ namespace platform
       /**
        @brief Construct the pool.
        @param nbWorkers the number of orders that can be run simultaneaously
-      // @param mainThread the class on main thread that must be notified when an order has been run
        */
-      ThreadPool( ui32 nbWorkers ); // TODO CHECK , Notifiable& mainThread
+      ThreadPool( ui32 nbWorkers );
 
       ~ThreadPool()
       {
@@ -105,7 +105,6 @@ namespace platform
       Workers           _workers;
       WorkerThreads     _workerThreads;
       AvailableWorkers  _workersAvailable;
-     // Notifiable&       _mainThread;
    };
 }
 }

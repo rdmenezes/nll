@@ -28,7 +28,8 @@ namespace platform
     4- the manager thread will copy the orders run to the main thread
     5- the main thread will dispatch the orders
 
-    2-5 is done in the implementation of OrderManagerThreadPool
+    2-5 is done in the implementation of OrderManagerThreadPool, the public API is run on calling thread.
+        pushOrder can block the process, but only for a few miliseconds...
     */
    class MVVPLATFORM_API OrderManagerThreadPool : public OrderProviderImpl, public OrderDispatcherImpl
    {

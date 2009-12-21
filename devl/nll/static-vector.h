@@ -391,6 +391,31 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
+   class vector3uc : public StaticVector<ui8, 3>
+   {
+   public:
+      typedef StaticVector<ui8, 3> BaseClass;
+
+      vector3uc( const BaseClass& b ) : BaseClass( b )
+      {
+      }
+
+      vector3uc( )
+      {
+      }
+
+      vector3uc( BaseClass::value_type x, BaseClass::value_type y, BaseClass::value_type z )
+      {
+         at( 0 ) = x;
+         at( 1 ) = y;
+         at( 2 ) = z;
+      }
+   };
+
+   /**
+    @ingroup core
+    @brief specific implementation with custom constructor
+    */
    class vector2d : public StaticVector<f64, 2>
    {
       typedef StaticVector<f64, 2> BaseClass;

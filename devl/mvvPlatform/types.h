@@ -1,6 +1,8 @@
 #ifndef MVV_PLATFORM_TYPES_H_
 # define MVV_PLATFORM_TYPES_H_
 
+# include <nll/nll.h>
+
 namespace mvv
 {
    typedef     unsigned char     ui8;
@@ -11,6 +13,9 @@ namespace mvv
    typedef     long              i32;
    typedef     float             f32;
    typedef     double            f64;
+
+   typedef     nll::core::Image<ui8>   Image;
+   typedef     nll::core::Image<f32>   Imagef;
 }
 
 #endif

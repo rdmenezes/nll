@@ -15,7 +15,6 @@ namespace platform
       ensure( &order, "must not be null" );
       ensure( _hasFinished, "error: the thread must be idle!" );
 
-      //boost::mutex::scoped_lock lock( _mutex );
       _currentOrder = order;
       _hasFinished = false;
       notify();
@@ -66,8 +65,6 @@ namespace platform
       ensure( (*_currentOrder).getResult(), "result requires not to be null" );
       _hasFinished = true;
       _pool->workerFinished( _currentOrder, _workerId );
-
-      //_pool->notify();
    }
 }
 }

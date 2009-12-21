@@ -101,7 +101,6 @@ namespace platform
          {
             while ( !_notified2 || _workersAvailable.empty() )
             {
-               //std::cout << "--check wait--" << std::endl;
                _notified.wait( _mutexWait );
             }
 
