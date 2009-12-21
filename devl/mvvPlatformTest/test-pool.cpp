@@ -126,7 +126,7 @@ struct TestPool
          pool.push( o1 );
          pool.push( o2 );
 
-         wait( 1 );
+         wait( 3 );
          ThreadPool::Orders finished = pool.getFinishedOrdersAndClearList();
          TESTER_ASSERT( finished.size() == 4 );
          TESTER_ASSERT( finished.size() == 4 && finished[ 0 ].getNumberOfReference() == 4 && (*finished[ 0 ]).getResult()

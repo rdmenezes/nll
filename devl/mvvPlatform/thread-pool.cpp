@@ -29,7 +29,7 @@ namespace platform
       // we don't lock it as we don't want to block the calling thread!
       _notified.notify_one();
       _notified2 = true;
-      //std::cout << "--notify--" << std::endl;
+      //std::cout << clock() / (double)CLOCKS_PER_SEC << "Notified pool" << std::endl;
    }
 
    void ThreadPool::workerFinished( RefcountedTyped<Order> order, ui32 workerId )
@@ -62,6 +62,8 @@ namespace platform
 
    void ThreadPool::dispatchToWorker( RefcountedTyped<Order> order )
    {
+      boost::mutex::scoped_lock lock( _mutex );
+
       // we have a thread available
       ThreadWorker* worker = _workersAvailable.top();
       _workersAvailable.pop();
@@ -102,8 +104,11 @@ namespace platform
                //std::cout << "--check wait--" << std::endl;
                _notified.wait( _mutexWait );
             }
-            _notified2 = false;
-            //std::cout << "--check--" << std::endl;
+
+            {
+               boost::mutex::scoped_lock lock( _mutex );
+               _notified2 = false;
+            }
             
             // a new order arrived, or an older one has finished
             // we now need to run the orders that need to be
@@ -119,6 +124,8 @@ namespace platform
 
    void ThreadPool::_check()
    {
+      //std::cout << clock() / (double)CLOCKS_PER_SEC << "check" << std::endl;
+
       Orders orders;
       {
          boost::mutex::scoped_lock lock( _mutex );
