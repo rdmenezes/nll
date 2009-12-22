@@ -65,11 +65,13 @@ namespace platform
 
    void Pane::draw( Image& image )
    {
+      if ( !_visible )
+         return;
       _draw( image );
 
       for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
       {
-         (**it)._draw( image );
+         (**it).draw( image );
       }
    }
 }

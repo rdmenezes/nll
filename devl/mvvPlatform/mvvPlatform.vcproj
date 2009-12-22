@@ -461,6 +461,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\layout-widget.h"
+				>
+			</File>
+			<File
 				RelativePath=".\notifiable.h"
 				>
 			</File>

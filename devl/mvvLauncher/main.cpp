@@ -5,12 +5,8 @@ static mvv::ApplicationVariables applicationVariables;
 
 void handleOrders( int value )
 {
-   glutTimerFunc( 0, handleOrders, 0 );
+   glutTimerFunc( 1, handleOrders, 0 );
 
-}
-
-void renderObjects()
-{
    static int nbFps = 0;
    static unsigned last = clock();
    ++nbFps;
@@ -21,10 +17,15 @@ void renderObjects()
       nbFps = 0;
       last = clock();
    }
+}
+
+void renderObjects()
+{
+   
 
    // generate the texture we are going to draw
    (*applicationVariables.layout).draw( applicationVariables.screen );
-/*
+
    //nll::core::writeBmp( applicationVariables.screen, "c:/screen.bmp" );
    glBindTexture( GL_TEXTURE_2D, applicationVariables.screenTextureId );
    glTexImage2D(GL_TEXTURE_2D, 0, 3, applicationVariables.screen.sizex(), applicationVariables.screen.sizey(),
@@ -43,7 +44,7 @@ void renderObjects()
    glVertex2f( (GLfloat)(*applicationVariables.layout).getSize()[ 0 ], (GLfloat)(*applicationVariables.layout).getSize()[ 1 ] );
    glTexCoord2d( 0, 1 );
 	glVertex2f( 0, (GLfloat)(*applicationVariables.layout).getSize()[ 1 ] );
-	glEnd();*/
+	glEnd();
 }
 
 
@@ -94,6 +95,10 @@ void initGraphics()
 }
 void mouseButton(int button, int state, int x, int y)
 {
+   // the (0, 0) is top-left instead of bottom left, so just align the mouse coordinate with screen coordinate
+   y = applicationVariables.screen.sizex() - y - 1;
+
+   //std::cout << "event-main" << std::endl;
    applicationVariables.mouseEvent.mousePosition = nll::core::vector2ui( x, y );
    applicationVariables.mouseEvent.isMouseRightButtonJustReleased = false;
    applicationVariables.mouseEvent.isMouseLeftButtonJustReleased = false;
@@ -107,6 +112,7 @@ void mouseButton(int button, int state, int x, int y)
          applicationVariables.mouseEvent.isMouseLeftButtonJustReleased =true;
          if ( applicationVariables.mouseEvent.isMouseLeftButtonPressed )
          {
+            //std::cout << "LEFT DOWN" << std::endl;
             applicationVariables.mouseEvent.mouseLeftReleasedPosition = nll::core::vector2ui( x, y );
          }
 
@@ -115,6 +121,7 @@ void mouseButton(int button, int state, int x, int y)
       } 
       if ( state == GLUT_DOWN )
       {
+         //std::cout << "LEFT PRESSED" << std::endl;
          applicationVariables.mouseEvent.isMouseLeftButtonJustPressed =true;
          if (!applicationVariables.mouseEvent.isMouseLeftButtonPressed )
          {
@@ -140,11 +147,17 @@ void mouseButton(int button, int state, int x, int y)
          applicationVariables.mouseEvent.mouseLeftClickedPosition = nll::core::vector2ui( x, y );
       }
    }
+   (*applicationVariables.layout).receive( applicationVariables.mouseEvent );
 }
 
 void mouseMotion(int x, int y)
 {
+   // the (0, 0) is top-left instead of bottom left, so just align the mouse coordinate with screen coordinate
+   y = applicationVariables.screen.sizex() - y - 1;
+
    applicationVariables.mouseEvent.mousePosition = nll::core::vector2ui( x, y );
+
+   //(*applicationVariables.layout).receive( applicationVariables.mouseEvent ); // TODO put back!
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -175,7 +188,7 @@ int main(int argc, char** argv)
   glutMouseFunc( mouseButton );
   glutMotionFunc( mouseMotion );
   glutPassiveMotionFunc( mouseMotion );
-  glutTimerFunc( 33, handleOrders, 0 );
+  glutTimerFunc( 0, handleOrders, 0 );
 
   // Turn the flow of control over to GLUT
   glutMainLoop ();

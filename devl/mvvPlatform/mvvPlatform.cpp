@@ -16,6 +16,7 @@
 #include "event-mouse-receiver.h"
 #include "order-dispatcher-impl.h"
 #include "order-provider-impl.h"
+#include "layout-widget.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW
