@@ -77,9 +77,10 @@ namespace platform
             {
                std::cout << "actif:" << this << std::endl;
                setDropDownActive( true );
+               return;
             }
          } else {
-            if ( e.isMouseLeftButtonJustPressed )
+            if ( e.isMouseLeftButtonJustPressed && !isInside( e.mouseLeftClickedPosition ) )
             {
                int n = 0;
                _choice = -1;
