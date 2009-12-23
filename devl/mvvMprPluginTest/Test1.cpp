@@ -1,36 +1,22 @@
-#include "stdafx.h"
+#include <tester/register.h>
+#include <mvvPlatform/types.h>
+#include <mvvPlatform/resource.h>
+#include <mvvPlatform/resource-volumes.h>
+#include <mvvPlatform/resource-storage-volumes.h>
+#include <mvvPlatform/resource-map.h>
 
-/**
- * Test harness for mvvMprPluginTest.
- *
- * @version 1.0
- * @author 
- */
-class TestmvvMprPluginTest : public CppUnit::TestFixture  
+
+using namespace mvv;
+using namespace mvv::platform;
+
+struct Test1
 {
-public:
-   /**
-    * Called before the test begins to set up the test.
-    */
-   void setUp()
-   {
-   }
-   /**
-    * Called after the test finishes.
-    */
-   void tearDown()
-   {
-   }
-   /**
-    * 
-    */
    void test1()
    {
-   }
-
-   CPPUNIT_TEST_SUITE(TestmvvMprPluginTest);
-   CPPUNIT_TEST(test1);
-   CPPUNIT_TEST_SUITE_END();
+      
+   }   
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestmvvMprPluginTest);
+TESTER_TEST_SUITE(Test1);
+TESTER_TEST(test1);
+TESTER_TEST_SUITE_END();
