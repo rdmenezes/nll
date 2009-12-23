@@ -24,6 +24,7 @@
 #include "resource-volumes.h"
 #include "resource-map.h"
 #include "transfer-function.h"
+#include "resource-typedef.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

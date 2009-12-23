@@ -548,6 +548,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\resource-typedef.h"
+					>
+				</File>
+				<File
 					RelativePath=".\resource-vector.h"
 					>
 				</File>

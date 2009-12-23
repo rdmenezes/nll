@@ -79,9 +79,6 @@ namespace platform
          }
       }
    };
-
-   typedef ResourceSetRef<Volume>   ResourceSetVolume;
-   typedef ResourceSetRef<Order>    ResourceSetOrders;
 }
 }
 
