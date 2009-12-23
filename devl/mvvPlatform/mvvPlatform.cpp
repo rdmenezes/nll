@@ -17,6 +17,11 @@
 #include "order-dispatcher-impl.h"
 #include "order-provider-impl.h"
 #include "layout-widget.h"
+#include "context-volumes.h"
+#include "engine-order-volume-loading.h"
+#include "resource-vector.h"
+#include "resource-set.h"
+#include "resource-volumes.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

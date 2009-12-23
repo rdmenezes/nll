@@ -90,6 +90,9 @@ namespace platform
    class Resource : public impl::Resource
    {
    public:
+      typedef T   value_type;
+
+   public:
       Resource( T* resourceData, bool own = true ) : impl::Resource( resourceData, own )
       {
       };

@@ -17,7 +17,7 @@ namespace platform
 
            Typically, the engine acquires resources using <code>register</code>
     */
-   class EngineOrder : public Engine, public OrderCreator, public OrderConsumer
+   class MVVPLATFORM_API EngineOrder : public Engine, public OrderCreator, public OrderConsumer
    {
    public:
       /**

@@ -17,6 +17,9 @@ namespace platform
     */
    class MVVPLATFORM_API OrderResult
    {
+   public:
+      virtual ~OrderResult()
+      {}
    };
 
    /**
@@ -48,7 +51,9 @@ namespace platform
       }
 
       virtual ~Order()
-      {}   
+      {
+         delete _result;
+      }   
 
       /**
        @brief Update the result of the order

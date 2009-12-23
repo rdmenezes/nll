@@ -63,6 +63,11 @@ namespace platform
          ++_data->ref;
       }
 
+      bool isEmpty() const
+      {
+         return _data == 0;
+      }
+
       bool operator<( const Refcounted& r ) const
       {
          return _data < r._data;

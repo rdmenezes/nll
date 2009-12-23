@@ -433,6 +433,10 @@
 			Name="API"
 			>
 			<File
+				RelativePath=".\context-volumes.h"
+				>
+			</File>
+			<File
 				RelativePath=".\context.h"
 				>
 			</File>
@@ -474,6 +478,10 @@
 			</File>
 			<File
 				RelativePath=".\order-creator.h"
+				>
+			</File>
+			<File
+				RelativePath=".\order-definition.h"
 				>
 			</File>
 			<File
@@ -520,6 +528,34 @@
 				RelativePath=".\types.h"
 				>
 			</File>
+			<Filter
+				Name="resource"
+				>
+				<File
+					RelativePath=".\resource-set.h"
+					>
+				</File>
+				<File
+					RelativePath=".\resource-storage-volumes.h"
+					>
+				</File>
+				<File
+					RelativePath=".\resource-vector.h"
+					>
+				</File>
+				<File
+					RelativePath=".\resource-volumes.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="engine"
+				>
+				<File
+					RelativePath=".\engine-order-volume-loading.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<File
 			RelativePath=".\mvvPlatform.dox"

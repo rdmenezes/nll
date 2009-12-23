@@ -13,6 +13,8 @@ namespace platform
    /**
     @ingroup platform
     @brief Handle a set of engines. They are stored and called through run() method
+
+    Each cycle, for each engine the run() method will be invoked.
     */
    class MVVPLATFORM_API EngineHandler
    {
