@@ -22,6 +22,7 @@
 #include "resource-vector.h"
 #include "resource-set.h"
 #include "resource-volumes.h"
+#include "resource-map.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

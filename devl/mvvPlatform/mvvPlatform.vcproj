@@ -532,6 +532,10 @@
 				Name="resource"
 				>
 				<File
+					RelativePath=".\resource-map.h"
+					>
+				</File>
+				<File
 					RelativePath=".\resource-set.h"
 					>
 				</File>

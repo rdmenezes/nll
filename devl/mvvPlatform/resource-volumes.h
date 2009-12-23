@@ -28,23 +28,42 @@ namespace platform
          Iterator( ResourceStorageVolumes storage, Storage::iterator it, Storage::iterator end ) : _storage( storage ), _it( it ), _end( end )
          {
             // init
-            _storage.find( *_it, _vol );
+            if ( _it != _end )
+            {
+               bool res = _storage.find( *_it, _vol );
+               while ( ( !res || _vol.isEmpty() ) && _it != _end )
+               {
+                  // skip if non valid reference or reference not found
+                  ++_it;
+                  res = _storage.find( *_it, _vol );
+               }
+            }
          }
 
-         bool operator==( const Iterator& rhs )
+         bool operator==( const Iterator& rhs ) const
          {
             return _it == rhs._it;
+         }
+
+         bool operator!=( const Iterator& rhs ) const
+         {
+            return _it != rhs._it;
          }
 
          Iterator& operator++()
          {
             ++_it;
+
             // we need to run throu the volume list and look it up in the storage
+            if ( _it == _end )
+               return *this;
             bool res = _storage.find( *_it, _vol );
             while ( ( !res || _vol.isEmpty() ) && _it != _end )
             {
                // skip if non valid reference or reference not found
                ++_it;
+               if ( _it == _end )
+                  return *this;
                res = _storage.find( *_it, _vol );
             }
             return *this;
@@ -52,7 +71,7 @@ namespace platform
 
          RefcountedTyped<Volume> operator*()
          {
-            assert( _vol.isEmpty() );
+            //assert( _vol.isEmpty() );
             return _vol;
          }
 
@@ -71,6 +90,16 @@ namespace platform
       bool find( SymbolVolume name, RefcountedTyped<Volume>& volume )
       {
          return _volumeStorage.find( name, volume );
+      }
+
+      Iterator begin()
+      {
+         return Iterator( _volumeStorage, getValue().begin(), getValue().end() );
+      }
+
+      Iterator end()
+      {
+         return Iterator( _volumeStorage, getValue().end(), getValue().end() );
       }
 
    private:

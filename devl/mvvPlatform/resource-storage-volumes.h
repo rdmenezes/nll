@@ -50,11 +50,16 @@ namespace platform
             return _it == rhs._it;
          }
 
+         bool operator!=( const Iterator& rhs ) const
+         {
+            return _it != rhs._it;
+         }
+
          Volume& operator*()
          {
             return *( (*_it).second );
          }
-      private:
+
          Storage::iterator _it;
       };
 
@@ -67,6 +72,10 @@ namespace platform
          ConstIterator( Storage::const_iterator i ) : _it( i )
          {}
 
+         ConstIterator( Iterator it ) : _it( it._it )
+         {
+         }
+
          ConstIterator& operator++()
          {
             ++_it;
@@ -76,6 +85,11 @@ namespace platform
          bool operator==( const ConstIterator& rhs ) const
          {
             return _it == rhs._it;
+         }
+
+         bool operator!=( const ConstIterator& rhs ) const
+         {
+            return _it != rhs._it;
          }
 
          const Volume& operator*() const

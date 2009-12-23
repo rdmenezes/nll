@@ -30,7 +30,7 @@ namespace platform
 
       void setValue( ui32 n, value_type val )
       {
-         if ( !nll::core::equal<value_type>( Base::getValue()[ n ], val, 1e-6 ) )
+         if ( !nll::core::equal<value_type>( Base::getValue()[ n ], val, 1e-6f ) )
          {
             Base::getValue()[ n ] = val;
             notify();
@@ -98,7 +98,7 @@ namespace platform
 
       void setValue( ui32 n, value_type val )
       {
-         if ( !nll::core::equal<value_type>( Base::getValue()[ n ], val, 1e-6 ) )
+         if ( !nll::core::equal<value_type>( Base::getValue()[ n ], val, 1e-6f ) )
          {
             Base::getValue()[ n ] = val;
             notify();
