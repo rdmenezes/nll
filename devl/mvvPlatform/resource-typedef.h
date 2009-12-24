@@ -12,16 +12,19 @@ namespace mvv
 namespace platform
 {
    /// defines a set of order in no particular order.
-   typedef ResourceSetRef<Order> ResourceOrders;
+   typedef ResourceSetRef<Order>                         ResourceOrders;
+
+   /// defines a map of floats. Given a volume name, return the assiated floating value
+   typedef ResourceMap<SymbolVolume, f32>                ResourceFloats;
+
+   /// hold a boolean
+   typedef ResourceValue<bool>                           ResourceBool;
+
+   /// hold a RGB image
+   typedef ResourceValue< nll::core::Image< nll::ui8> >  ResourceImageuc;
 
    /// defines a map of transfer function. Given a volume name, retrieve its associated transfer function
    typedef ResourceMap<SymbolVolume, RefcountedTyped< TransferFunction > > ResourceTransferFunction;
-
-   /// defines a map of floats. Given a volume name, return the assiated floating value
-   typedef ResourceMap<SymbolVolume, f32 > ResourceFloats;
-
-   /// hold a boolean
-   typedef ResourceValue<bool>             ResourceBool;
 }
 }
 

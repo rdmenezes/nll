@@ -390,6 +390,10 @@
 				RelativePath=".\mvvMprPlugin.h"
 				>
 			</File>
+			<File
+				RelativePath=".\types.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="API"

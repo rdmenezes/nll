@@ -23,6 +23,70 @@ namespace platform
       typedef T   value_type;
 
    public:
+      class Iterator
+      {
+      public:
+         Iterator( typename Storage::iterator it ) : _it( it )
+         {}
+
+         bool operator==( const Iterator& rhs ) const
+         {
+            return _it == rhs._it;
+         }
+
+         bool operator!=( const Iterator& rhs ) const
+         {
+            return _it == rhs._it;
+         }
+
+         RefcountedTyped<T> operator*()
+         {
+            return *_it;
+         }
+
+         Iterator& operator++()
+         {
+            ++_it;
+         }
+
+      //private:
+         typename Storage::iterator _it;
+      };
+
+      class ConstIterator
+      {
+      public:
+         ConstIterator( typename Storage::const_iterator it ) : _it( it )
+         {}
+
+         ConstIterator( Iterator it ) : _it( it._it )
+         {}
+
+         bool operator==( const ConstIterator& rhs ) const
+         {
+            return _it == rhs._it;
+         }
+
+         bool operator!=( const ConstIterator& rhs ) const
+         {
+            return _it == rhs._it;
+         }
+
+         RefcountedTyped<T> operator*() const
+         {
+            return *_it;
+         }
+
+         Iterator& operator++()
+         {
+            ++_it;
+         }
+
+      private:
+         typename Storage::const_iterator _it;
+      };
+
+   public:
       ResourceSetRef() : Base( new Base::value_type(), true )
       {}
 
@@ -42,6 +106,32 @@ namespace platform
             getValue().erase( it );
             notify();
          }
+      }
+
+      void clear()
+      {
+         getValue().clear();
+         notify();
+      }
+
+      Iterator begin()
+      {
+         return Iterator( getValue().begin() );
+      }
+
+      Iterator end()
+      {
+         return Iterator( getValue().end() );
+      }
+
+      ConstIterator begin() const
+      {
+         return ConstIterator( getValue().begin() );
+      }
+
+      ConstIterator end() const
+      {
+         return ConstIterator( getValue().end() );
       }
    };
 
@@ -77,6 +167,12 @@ namespace platform
             getValue().erase( it );
             notify();
          }
+      }
+
+      void clear()
+      {
+         getValue().clear();
+         notify();
       }
    };
 }

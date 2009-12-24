@@ -55,9 +55,9 @@ namespace platform
             return _it != rhs._it;
          }
 
-         Volume& operator*()
+         RefcountedTyped<Volume> operator*()
          {
-            return *( (*_it).second );
+            return (*_it).second;
          }
 
          Storage::iterator _it;
@@ -92,9 +92,9 @@ namespace platform
             return _it != rhs._it;
          }
 
-         const Volume& operator*() const
+         RefcountedTyped<Volume> operator*() const
          {
-            return *( (*_it).second );
+            return (*_it).second;
          }
       private:
          Storage::const_iterator _it;
