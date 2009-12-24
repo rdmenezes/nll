@@ -118,7 +118,7 @@ struct TestPool
          pred.insert( o0 );
          RefcountedTyped<Order> o3( new DummyOrder3( 0.3f, pred ) );
 
-         ThreadPool pool( 2 );
+         ThreadPool pool( 4 );
          boost::thread dispatchThread( boost::ref( pool ) );
 
          pool.push( o3 );

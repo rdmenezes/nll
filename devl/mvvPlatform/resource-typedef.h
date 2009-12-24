@@ -5,6 +5,7 @@
 # include "resource-map.h"
 # include "resource-vector.h"
 # include "transfer-function.h"
+# include "resource-value.h"
 
 namespace mvv
 {
@@ -18,6 +19,9 @@ namespace platform
 
    /// defines a map of floats. Given a volume name, return the assiated floating value
    typedef ResourceMap<SymbolVolume, f32 > ResourceFloats;
+
+   /// hold a boolean
+   typedef ResourceValue<bool>             ResourceBool;
 }
 }
 

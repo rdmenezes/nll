@@ -41,6 +41,11 @@ namespace platform
       {
          return Base::getValue()[ n ];
       }
+
+      Base::value_type getValue() const
+      {
+         return Base::getValue();
+      }
    };
 
    /**
@@ -75,6 +80,11 @@ namespace platform
       {
          return Base::getValue()[ n ];
       }
+
+      Base::value_type getValue() const
+      {
+         return Base::getValue();
+      }
    };
 
    /**
@@ -108,6 +118,11 @@ namespace platform
       value_type getValue( ui32 n ) const
       {
          return Base::getValue()[ n ];
+      }
+
+      Base::value_type getValue() const
+      {
+         return Base::getValue();
       }
    };
 }
