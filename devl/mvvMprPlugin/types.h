@@ -10,7 +10,29 @@ namespace platform
    typedef nll::imaging::Slice<float>     Slice;
    typedef nll::imaging::Slice<nll::ui8>  Sliceuc;
 
-   /// hold a RGB image
+   /// specicalization to avoid equality testing
+   template <>
+   class ResourceValue<Sliceuc> : public Resource<Sliceuc>
+   {
+   public:
+      ResourceValue() : Resource( new Sliceuc(), true )
+      {
+      }
+
+      void setValue( Sliceuc val )
+      {
+         // we don't check for equality as potentially, it can be very long, so instead we prefere to notify
+         getValue() = val;
+         notify();
+      }
+
+      Sliceuc getValue() const
+      {
+         return getValue();
+      }
+   };
+
+   /// hold a RGB slice
    typedef ResourceValue<Sliceuc>   ResourceSliceuc;
 }
 }

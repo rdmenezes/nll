@@ -342,7 +342,6 @@ namespace platform
       // public output slots
       ResourceSliceuc   blendedSlice;
 
-
    protected:
       // input slots, any change in a slot and the engine needs to be recomputed
       ResourceVolumes      volumes;       /// list of volume to display
