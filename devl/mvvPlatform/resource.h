@@ -13,20 +13,28 @@ namespace platform
    // forward declaration
    class Engine;
 
+   enum ResourceState
+   {
+      STATE_ENABLED, /// the resource is enabled
+      STATE_DISABLED /// the resource is disabled and won't trigger a change
+   };
+
    namespace impl
    {
       struct MVVPLATFORM_API ResourceSharedData
       {
          typedef std::set<Engine*>  EngineStorage;
-         ResourceSharedData() : privateData( 0 ), own( false )
+         ResourceSharedData() : privateData( 0 ), own( false ), state( STATE_ENABLED ), needNotification( false )
          {}
 
-         ResourceSharedData( void* d, bool o ) : privateData( d ), own( o )
+         ResourceSharedData( void* d, bool o ) : privateData( d ), own( o ), state( STATE_ENABLED ), needNotification( false )
          {}
 
          void*             privateData;
          bool              own;
          EngineStorage     links;
+         ResourceState     state;
+         bool              needNotification; /// when the resource is asleep, we need to recompute when reactivated hence this flag!
       };
 
       /**
@@ -35,17 +43,9 @@ namespace platform
       class MVVPLATFORM_API Resource : public RefcountedTyped<ResourceSharedData>, public Notifiable
       {
          typedef RefcountedTyped<ResourceSharedData>  Base;
-
-      public:
-         enum State
-         {
-            ENABLED, /// the resource is enabled
-            DISABLED /// the resource is disabled and won't trigger a change
-         };
       public:
          Resource( void* resourceData, bool own = true ) : Base( new ResourceSharedData( resourceData, own ), true )
          {
-            init();
          }
 
          virtual void notify();
@@ -54,31 +54,14 @@ namespace platform
 
          void disconnect( Engine* e );
 
-         void setState( const State s )
-         {
-            if ( _state == DISABLED && s == ENABLED )
-            {
-               _state = s;
-               notify();
-            } else {
-               _state = s;
-            }
-         }
+         void setState( ResourceState s );
 
-         State getState() const
-         {
-            return _state;
-         }
+         bool needNotification() const;
+
+         ResourceState getState() const;
 
          virtual ~Resource();
 
-      protected:
-         void init()
-         {
-            _state = ENABLED;
-         }
-      protected:
-         State    _state;
       };
    }
 

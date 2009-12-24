@@ -28,7 +28,14 @@ namespace platform
       typedef std::set<impl::Resource>   ResourceStorage;
 
    public:
-      Engine( EngineHandler& handler ) : _needToRecompute( true ), _handler( handler )
+      enum State
+      {
+         ENGINE_ENABLED,
+         ENGINE_DISABLED
+      };
+
+   public:
+      Engine( EngineHandler& handler ) : _needToRecompute( true ), _handler( handler ), _state( ENGINE_ENABLED )
       {
          _handler.connect( *this );
       }
@@ -39,15 +46,35 @@ namespace platform
       }
 
       /**
+       @brief In state disabled, the engine will receive notifications but won't run the actual _run() method
+              until it is activated.
+       */
+      void setState( State s )
+      {
+         _state = s;
+      }
+
+      /**
+       @brief Returns the current state of the engine
+       */
+      State getState() const
+      {
+         return _state;
+      }
+
+      /**
        @brief This method will be invoked if the engine must recompute an output
        @return false if the engine did not complete successfully and need to be recomputed
                next cycle
        */
       virtual bool _run() = 0;
 
+      /**
+       @brief This method will execute _run() if the engine is enabled and a connected resource has been notified
+       */
       virtual void run()
       {
-         if ( _needToRecompute )
+         if ( _state == ENGINE_ENABLED && _needToRecompute )
          {
             _needToRecompute = !_run();
          }
@@ -76,6 +103,7 @@ namespace platform
       bool              _needToRecompute;
       ResourceStorage   _resources;
       EngineHandler&    _handler;
+      State             _state;
    };
 }
 }

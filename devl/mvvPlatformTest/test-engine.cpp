@@ -229,7 +229,7 @@ struct TestEngine
       int i2 = 3;
 
       DummyResource resource1( i1, true );
-      resource1.setState( DummyResource::DISABLED );
+      resource1.setState( STATE_DISABLED );
       DummyResource resource2( &i2, false );
       DummyEngineHandler handler;
 
@@ -245,7 +245,7 @@ struct TestEngine
       handler.run();
       TESTER_ASSERT( engine1.getResult() == val );
 
-      resource1.setState( DummyResource::ENABLED );
+      resource1.setState( STATE_ENABLED );
       handler.run();
       TESTER_ASSERT( engine1.getResult() != val );
    }

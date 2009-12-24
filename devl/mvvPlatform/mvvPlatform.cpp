@@ -25,6 +25,8 @@
 #include "resource-map.h"
 #include "transfer-function.h"
 #include "resource-typedef.h"
+#include "resource-barrier.h"
+#include "engine-barrier.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

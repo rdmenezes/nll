@@ -4,10 +4,78 @@
 #include <mvvPlatform/resource-volumes.h>
 #include <mvvPlatform/resource-storage-volumes.h>
 #include <mvvPlatform/resource-map.h>
+#include <mvvPlatform/resource-vector.h>
+#include <mvvPlatform/resource-barrier.h>
+#include <mvvPlatform/engine.h>
 
 
 using namespace mvv;
 using namespace mvv::platform;
+
+namespace
+{
+   class DummyEngineHandler : public EngineHandler
+   {
+      typedef std::set<Engine*> Storage;
+
+   public:
+      virtual void connect( Engine& e )
+      {
+         engines.insert( &e );
+      }
+
+      virtual void disconnect( Engine& e )
+      {
+         engines.erase( &e );
+      }
+
+      virtual void run()
+      {
+         for ( Storage::iterator it = engines.begin(); it != engines.end(); ++it )
+         {
+            (*it)->run();
+         }
+      }
+
+      Storage engines;
+   };
+
+   class DummyEnginea : public Engine
+   {
+   public:
+      DummyEnginea( EngineHandler& handler, impl::Resource& r1  ) : Engine( handler ), r1( r1 )
+      {
+         connect( r1 );
+         hasBeenRun = false;
+      }
+
+      virtual bool _run()
+      {
+         hasBeenRun = true;
+         return true;
+      }
+
+      void setStatus( bool run )
+      {
+         hasBeenRun = run;
+      }
+
+      bool getStatus() const
+      {
+         return hasBeenRun;
+      }
+
+      bool isNotified() const
+      {
+         return _needToRecompute;
+      }
+
+      impl::Resource& r1;
+
+   private:
+      bool hasBeenRun;
+   };
+}
 
 struct TestResource
 {
@@ -85,9 +153,37 @@ struct TestResource
       TESTER_ASSERT( res && res2 == "2" );
    }
    
+   void testResourceScopedBarrier()
+   {
+      DummyEngineHandler handler;
+
+      ResourceVector2ui r1;
+      DummyEnginea e1( handler, r1 );
+
+      TESTER_ASSERT( e1.isNotified() );
+      handler.run();
+      TESTER_ASSERT( e1.getStatus() && !e1.isNotified() && !r1.needNotification() );
+      e1.setStatus( false );
+
+      // do some modification
+      {
+         ResourceScopedBarrier barrier( r1 );
+         r1.setValue( 0, 15 );
+         r1.setValue( 1, 16 );
+
+         TESTER_ASSERT( r1.needNotification() );
+         handler.run();
+         TESTER_ASSERT( !e1.isNotified() );
+      }
+
+      TESTER_ASSERT( e1.isNotified() );
+      handler.run();
+      TESTER_ASSERT( e1.getStatus() && !e1.isNotified() && !r1.needNotification() );
+   }
 };
 
 TESTER_TEST_SUITE(TestResource);
 TESTER_TEST(testResourceVolumes);
 TESTER_TEST(testResourceMap);
+TESTER_TEST(testResourceScopedBarrier);
 TESTER_TEST_SUITE_END();
