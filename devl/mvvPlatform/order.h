@@ -6,7 +6,6 @@
 # include "refcounted.h"
 # include "types.h"
 
-# include <iostream> // TODO remove
 namespace mvv
 {
 namespace platform
@@ -26,11 +25,10 @@ namespace platform
     @ingroup platform
     @brief Defines an order that can be run synchronously/asynchronously
     */
-   class MVVPLATFORM_API Order : public RefcountedTyped<OrderResult*>
+   class MVVPLATFORM_API Order
    {
-      typedef RefcountedTyped<OrderResult*> Base;
    public:
-      typedef SymbolTyped<Order>    OrderClassId;  /// specify what category of order it is
+      typedef SymbolTyped<Order>                       OrderClassId;  /// specify what category of order it is
       typedef std::set< RefcountedTyped<Order> >       Predecessors;  /// predecessors that must be run and finished before this order starts
 
       /**
@@ -60,10 +58,9 @@ namespace platform
        @param r the result
        @param own if true, this result will be deleted when this order is destroyed
        */
-      void setResult( OrderResult* r, bool own )
+      void setResult( OrderResult* r )
       {
-         _data->own = own;
-         getData() = r;
+         _result = r;
       }
 
       /**
