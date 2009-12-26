@@ -22,13 +22,13 @@ namespace platform
       void setValue( Sliceuc val )
       {
          // we don't check for equality as potentially, it can be very long, so instead we prefere to notify
-         getValue() = val;
+         Resource<Sliceuc>::getValue() = val;
          notify();
       }
 
       Sliceuc getValue() const
       {
-         return getValue();
+         return Resource<Sliceuc>::getValue();
       }
    };
 

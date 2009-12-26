@@ -26,12 +26,12 @@ namespace platform
        */
       EngineOrder( EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : Engine( handler ), OrderCreator( provider ), _dispatcher( dispatcher )
       {
-         _dispatcher.connect( *this );
+         //_dispatcher.connect( *this );  // We can't do that: the base is initialized before the 'child', and seen as pure virtual
       }
 
       virtual ~EngineOrder()
       {
-         _dispatcher.disconnect( *this );
+         //_dispatcher.disconnect( *this ); // We can't do that: the base is initialized before the 'child', and seen as pure virtual
       }
 
    protected:

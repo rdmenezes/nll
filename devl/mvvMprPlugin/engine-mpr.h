@@ -137,6 +137,11 @@ namespace platform
          ResourceOrders       outOrdersComputed;   /// return the orders that have been computed
 
       public:
+         ~EngineMprSlice()
+         {
+            _dispatcher.disconnect( *this );
+         }
+
          EngineMprSlice( ResourceVolumes vvolumes,
                          ResourceVector3f vposition,
                          ResourceVector3f vdirectionx,
@@ -150,6 +155,9 @@ namespace platform
             volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), isInteracting( visInteracting ), interpolation( vinterpolation ),
             EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting )
          {
+            _construct();
+            dispatcher.connect( *this );
+
             position.connect( this );
             directionx.connect( this );
             directiony.connect( this );
@@ -164,18 +172,24 @@ namespace platform
                isInteracting.connect( this );
             }
             interpolation.connect( this );
-
-            _construct();
          }
 
          virtual void consume( RefcountedTyped<Order> order )
          {
+            if ( _ordersCheck.size() == 0 )
+            {
+               // all orders have been consumed
+               return;
+            }
+
             // A rendering order has completed. Now check that all our order are run, and prepare the engine
             // for the next run
-            for ( std::vector< RefcountedTyped<Order> >::iterator it = _ordersSend.begin(); it != _ordersSend.end(); ++it )
+            for ( std::vector< RefcountedTyped<Order> >::iterator it = _ordersCheck.begin(); it != _ordersCheck.end(); )
             {
                if ( !(**it).getResult() )
                   return;
+               _ordersCheck.erase( it );
+               it = _ordersCheck.begin();
             }
 
             // all orders are complete! we must clear our oders to complete list, and update output slots
@@ -218,6 +232,7 @@ namespace platform
                _orderProvider.pushOrder( order );
             }
             _ordersSend = orders;
+            _ordersCheck = orders;
             return true;
          }
 
@@ -230,6 +245,7 @@ namespace platform
          bool                    _fasterDisplayWhenInteracting;
          std::set<OrderClassId>  _interested;
          std::vector< RefcountedTyped<Order> >  _ordersSend;
+         std::vector< RefcountedTyped<Order> >  _ordersCheck;
       };
 
 
@@ -246,19 +262,20 @@ namespace platform
       {
       public:
          OrderSliceBlender( ResourceOrders orders,
-                            ResourceTransferFunction lut,
+                            ResourceMapTransferFunction lut,
                             ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _orders( orders ), _lut( lut ), _intensities( intensities )
          {}
 
       protected:
          virtual OrderResult* _compute()
          {
+            // TODO
             return new OrderSliceBlenderResult( Sliceuc() );
          }
 
       protected:
          ResourceOrders                      _orders;
-         ResourceTransferFunction            _lut;
+         ResourceMapTransferFunction         _lut;
          ResourceFloats                      _intensities;
       };
 
@@ -270,31 +287,40 @@ namespace platform
       {
       protected:
          // input slots
-         ResourceOrders             ordersToBlend; // orders to blend
-         ResourceTransferFunction   lut;
-         ResourceFloats             intensities;
+         ResourceOrders                ordersToBlend; // orders to blend
+         ResourceMapTransferFunction   lut;
+         ResourceFloats                intensities;
 
       public:
          // output slots
-         ResourceSliceuc            blendedSlice;
+         ResourceSliceuc               blendedSlice;
 
       public:
-         EngineSliceBlender( ResourceOrders vordersToBlend, ResourceTransferFunction vlut, ResourceFloats vintensities,
+         EngineSliceBlender( ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities,
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
             ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities )
          {
+            _construct();
+            _orderSend.unref();
+
+            dispatcher.connect( *this );
+
             ordersToBlend.connect( this );
             lut.connect( this );
             intensities.connect( this );
+         }
 
-            _construct();
+         ~EngineSliceBlender()
+         {
+            _dispatcher.disconnect( *this );
          }
 
       protected:
          virtual bool _run()
          {
-            if ( _orderSend.isEmpty() )
+            if ( _orderSend.isEmpty() && ordersToBlend.size() )
             {
+               // we have been notified
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( ordersToBlend, lut, intensities ) );
                _orderProvider.pushOrder( _orderSend );
                return true;
@@ -342,22 +368,12 @@ namespace platform
       // public output slots
       ResourceSliceuc   blendedSlice;
 
-   protected:
-      // input slots, any change in a slot and the engine needs to be recomputed
-      ResourceVolumes      volumes;       /// list of volume to display
-      ResourceVector3f     position;      /// position in mm of the camera
-      ResourceVector3f     directionx;    /// x-axis of the MPR
-      ResourceVector3f     directiony;    /// y-axis of the MPR
-      ResourceVector3f     panning;       /// panning position in mm
-      ResourceVector2f     zoom;          /// zoom
-      ResourceVector2ui    size;          /// size of the slice
-      ResourceTransferFunction lut;       /// list of LUTs associated to the volume
-      ResourceFloats       intensities;   /// list of intensities associated to the volume
-
-      ResourceBool              isInteracting;  /// set to true if MPR is being modified, so we can use less accurate algorithms to speed up the process
-      ResourceInterpolationMode interpolation;  /// Interpolation used to produce the slices
-
    public:
+      ~EngineMpr()
+      {
+         _dispatcher.disconnect( *this );
+      }
+
       EngineMpr( ResourceVolumes vvolumes,
                  ResourceVector3f vposition,
                  ResourceVector3f vdirectionx,
@@ -365,14 +381,27 @@ namespace platform
                  ResourceVector3f vpanning,
                  ResourceVector2f vzoom,
                  ResourceVector2ui vsize,
-                 ResourceTransferFunction vlut,
+                 ResourceMapTransferFunction vlut,
                  ResourceFloats vintensities,
                  ResourceBool visInteracting,
                  ResourceInterpolationMode vinterpolation,
                  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting = false ) : 
-      volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), lut( vlut ), intensities( vintensities ), isInteracting( visInteracting ), interpolation( vinterpolation ),
-      EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting )
+      EngineOrder( handler, provider, dispatcher ), //_fasterDisplayWhenInteracting( fasterDisplayWhenInteracting ),
+      _mprSlicer( vvolumes,
+                  vposition,
+                  vdirectionx,
+                  vdirectiony,
+                  vpanning,
+                  vzoom,
+                  vsize,
+                  visInteracting,
+                  vinterpolation,
+                  handler, provider, dispatcher, fasterDisplayWhenInteracting ),
+      _sliceBlender( _mprSlicer.outOrdersComputed, vlut, vintensities, handler,  provider, dispatcher )
       {
+         dispatcher.connect( *this );
+         blendedSlice = _sliceBlender.blendedSlice;
+         /*
          volumes.connect( this );
          position.connect( this );
          directionx.connect( this );
@@ -383,16 +412,36 @@ namespace platform
          lut.connect( this );
          intensities.connect( this );
          interpolation.connect( this );
+         */
+         //if ( fasterDisplayWhenInteracting )
+         //{
+         // /  // register the change only if activated
+         //   isInteracting.connect( this );
+         //}
+      }
 
-         if ( fasterDisplayWhenInteracting )
-         {
-            // register the change only if activated
-            isInteracting.connect( this );
-         }
+      virtual bool _run()
+      {
+         // we don't do any actions
+         return true;
+      }
+
+      virtual void consume( RefcountedTyped<Order> order )
+      {
+         // we don't handle any orders
+      }
+
+      virtual const std::set<OrderClassId>& interestedOrder() const
+      {
+         // no insteresting orders
+         return _interested;
       }
 
    private:
-      bool  _fasterDisplayWhenInteracting;
+      //bool  _fasterDisplayWhenInteracting;
+      std::set<OrderClassId>  _interested;
+      impl::EngineMprSlice          _mprSlicer;
+      impl::EngineSliceBlender      _sliceBlender;
    };
 }
 }

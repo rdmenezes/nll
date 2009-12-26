@@ -194,7 +194,7 @@ namespace core
          return res;
       }
 
-      StaticVector operator*=( const T val )
+      StaticVector& operator*=( const T val )
       {
          this->mul( val );
          return *this;
@@ -211,7 +211,7 @@ namespace core
          return res;
       }
 
-      StaticVector operator/=( const T val )
+      StaticVector& operator/=( const T val )
       {
          assert( val != 0 );
          this->div( val );

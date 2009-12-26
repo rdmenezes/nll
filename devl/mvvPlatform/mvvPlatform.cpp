@@ -26,6 +26,7 @@
 #include "transfer-function.h"
 #include "resource-typedef.h"
 #include "resource-barrier.h"
+#include "resource-lut.h"
 #include "engine-barrier.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)

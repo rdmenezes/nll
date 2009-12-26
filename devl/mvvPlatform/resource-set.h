@@ -133,6 +133,11 @@ namespace platform
       {
          return ConstIterator( getValue().end() );
       }
+
+      ui32 size() const
+      {
+         return getValue().size();
+      }
    };
 
    /**

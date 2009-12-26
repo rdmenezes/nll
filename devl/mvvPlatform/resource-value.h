@@ -29,9 +29,14 @@ namespace platform
          }
       }
 
-      T getValue() const
+      T& getValue()
       {
-         return getValue();
+         return Resource<T>::getValue();
+      }
+
+      const T& getValue() const
+      {
+         return Resource<T>::getValue();
       }
    };
 }

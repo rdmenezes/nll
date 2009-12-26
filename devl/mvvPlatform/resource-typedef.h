@@ -6,6 +6,7 @@
 # include "resource-vector.h"
 # include "transfer-function.h"
 # include "resource-value.h"
+# include "resource-lut.h"
 
 namespace mvv
 {
@@ -24,7 +25,7 @@ namespace platform
    typedef ResourceValue< nll::core::Image< nll::ui8> >  ResourceImageuc;
 
    /// defines a map of transfer function. Given a volume name, retrieve its associated transfer function
-   typedef ResourceMap<SymbolVolume, RefcountedTyped< TransferFunction > > ResourceTransferFunction;
+   typedef ResourceMap<SymbolVolume, ResourceLut >       ResourceMapTransferFunction;
 }
 }
 

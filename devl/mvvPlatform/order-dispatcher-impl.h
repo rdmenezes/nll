@@ -56,7 +56,10 @@ namespace platform
          for ( Buckets::const_iterator it = consumer.interestedOrder().begin(); it != consumer.interestedOrder().end(); ++it )
          {
             Consumers::iterator c = _consumers.find( *it );
-            c->second.erase( &consumer );
+            if ( c != _consumers.end() )
+            {
+               c->second.erase( &consumer );
+            }
          }
       }
 

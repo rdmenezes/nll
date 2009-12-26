@@ -101,6 +101,12 @@ public:
       connect( r1 );
       connect( r2 );
       consumed = false;
+      dispatcher.connect( *this );
+   }
+
+   ~DummyEngineOrder()
+   {
+      _dispatcher.disconnect( *this );
    }
 
    virtual bool _run()

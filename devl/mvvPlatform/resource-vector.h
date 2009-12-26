@@ -28,6 +28,15 @@ namespace platform
                         value_type v2 ) : Base( new Base::value_type( v0, v1, v2 ) )
       {}
 
+      void setValue( const Base::value_type& val )
+      {
+         if ( val != Base::getValue() )
+         {
+            Base::getValue() = val;
+            notify();
+         }
+      }
+
       void setValue( ui32 n, value_type val )
       {
          if ( !nll::core::equal<value_type>( Base::getValue()[ n ], val, 1e-6f ) )
@@ -67,6 +76,15 @@ namespace platform
                         value_type v1 ) : Base( new Base::value_type( v0, v1 ) )
       {}
 
+      void setValue( const Base::value_type& val )
+      {
+         if ( val != Base::getValue() )
+         {
+            Base::getValue() = val;
+            notify();
+         }
+      }
+
       void setValue( ui32 n, value_type val )
       {
          if ( val != Base::getValue()[ n ] )
@@ -105,6 +123,15 @@ namespace platform
       ResourceVector2f( value_type v0,
                         value_type v1 ) : Base( new Base::value_type( v0, v1 ) )
       {}
+
+      void setValue( const Base::value_type& val )
+      {
+         if ( val != Base::getValue() )
+         {
+            Base::getValue() = val;
+            notify();
+         }
+      }
 
       void setValue( ui32 n, value_type val )
       {
