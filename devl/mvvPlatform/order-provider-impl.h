@@ -20,8 +20,13 @@ namespace platform
        */
       virtual Orders getOrdersAndClear()
       {
-         Orders o = _execWaitList;
-         _execWaitList.clear();
+         Orders o;
+         //std::cout << " orderProvider.clear()" << std::endl;
+         #pragma omp atomic
+         {
+            o = _execWaitList;
+            _execWaitList.clear();
+         }
          return o;
       }
 
@@ -30,7 +35,11 @@ namespace platform
        */
       virtual void pushOrder( RefcountedTyped<Order> order )
       {
-         _execWaitList.push_back( order );
+         #pragma omp atomic
+         {
+            //std::cout << " orderProvider.push()" << std::endl;
+            _execWaitList.push_back( order );
+         }
       }
 
    protected:

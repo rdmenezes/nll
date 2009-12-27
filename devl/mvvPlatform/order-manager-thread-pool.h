@@ -58,6 +58,11 @@ namespace platform
        */
       void run();
 
+      ui32 getNumberOfOrdersToRun() const;
+
+      void notify();
+      
+
    protected:
       RefcountedTyped<impl::OrderManagerThreadPoolImpl> _impl;
    };

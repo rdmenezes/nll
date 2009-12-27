@@ -29,6 +29,8 @@ namespace platform
       // we don't lock it as we don't want to block the calling thread!
       _notified.notify_one();
       _notified2 = true;
+
+      //std::cout << "notify()" << std::endl;
       //std::cout << clock() / (double)CLOCKS_PER_SEC << "Notified pool" << std::endl;
    }
 
@@ -57,6 +59,7 @@ namespace platform
       _ordersToRun.push_back( order );
 
       // we need to wake up the manager thread: an order arrived
+      //std::cout << "pool.push=" << (*order).getClassId().getName() << std::endl;
       notify();
    }
 
@@ -68,6 +71,7 @@ namespace platform
       ThreadWorker* worker = _workersAvailable.top();
       _workersAvailable.pop();
       worker->run( order );
+      //std::cout << "pool.dispatchworker=" << (*order).getClassId().getName() << std::endl;
    }
 
    void ThreadPool::kill()
@@ -102,6 +106,13 @@ namespace platform
             while ( !_notified2 || _workersAvailable.empty() )
             {
                _notified.wait( _mutexWait );
+
+               boost::mutex::scoped_lock lock( _mutex );
+               if ( _notified2 )
+               {
+                  break;
+               }
+               //std::cout << "checkcheck=" << _notified2 << std::endl;
             }
 
             {
@@ -124,12 +135,12 @@ namespace platform
    void ThreadPool::_check()
    {
       //std::cout << clock() / (double)CLOCKS_PER_SEC << "check" << std::endl;
-
       Orders orders;
       {
          boost::mutex::scoped_lock lock( _mutex );
          orders = _ordersToRun;
       }
+
       for ( Orders::iterator it = orders.begin(); it != orders.end(); ++it )
       {
          // check predecessors
@@ -141,6 +152,7 @@ namespace platform
             {
                // if no result, it means one of its predecessors is not run, skip it!
                skip = true;
+               //std::cout << "skip" << std::endl;
                break;
             }
          }
@@ -148,6 +160,7 @@ namespace platform
          {
             if ( ( **it ).toBeMultithreaded() )
             {
+               //std::cout << "dispatch" << std::endl;
                dispatchToWorker( *it );
             } else {
                // run it on the manager thread
@@ -173,6 +186,7 @@ namespace platform
             break;
          }
       }
+      //std::cout << "pool.check=" << orders.size() << std::endl;
    }
 }
 }

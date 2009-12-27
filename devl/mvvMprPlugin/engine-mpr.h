@@ -36,7 +36,7 @@ namespace platform
          {
          }
 
-         Slice getSlice() const
+         Slice& getSlice()
          {
             return _slice;
          }
@@ -60,7 +60,8 @@ namespace platform
                             const nll::core::vector2f& zoom,
                             const nll::core::vector2ui& size,
                             InterpolationMode interpolation,
-                            RefcountedTyped<Volume> volume ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation )
+                            RefcountedTyped<Volume> volume,
+                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName )
          {
          }
 
@@ -98,9 +99,10 @@ namespace platform
             return new OrderSliceCreatorResult( slice );
          }
 
-         RefcountedTyped<Volume> getVolume() const
+      public:
+         SymbolVolume getVolume() const
          {
-            return _volume;
+            return _volumeName;
          }
 
       protected:
@@ -112,6 +114,7 @@ namespace platform
          nll::core::vector2ui    _size;
          InterpolationMode       _interpolation;
          RefcountedTyped<Volume> _volume;
+         SymbolVolume            _volumeName;
       };
 
       /**
@@ -203,6 +206,7 @@ namespace platform
 
             // clear the waiting list so we can compute a new list!
             _ordersSend.clear();
+            std::cout << "Order sliced" << std::endl;
          }
 
          virtual const std::set<OrderClassId>& interestedOrder() const
@@ -227,7 +231,8 @@ namespace platform
                                                                     zoom.getValue(),
                                                                     size.getValue(),
                                                                     currentInterpolation,
-                                                                    *it ) );
+                                                                    *it,
+                                                                    it.getName() ) );
                orders.push_back( order );
                _orderProvider.pushOrder( order );
             }
@@ -262,20 +267,58 @@ namespace platform
       {
       public:
          OrderSliceBlender( ResourceOrders orders,
-                            ResourceMapTransferFunction lut,
-                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _orders( orders ), _lut( lut ), _intensities( intensities )
+                            ResourceMapTransferFunction maplut,
+                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _orders( orders ), _maplut( maplut ), _intensities( intensities )
          {}
 
       protected:
          virtual OrderResult* _compute()
          {
-            // TODO
+            std::cout << "blending" << std::endl;
+            std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
+            //std::vector<ResourceLut::lut_type&> luts( _orders.size() );
+
+            int n = 0;
+            for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
+            {
+               RefcountedTyped<Order> o = *it;
+               Order& oc = *o;
+               OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &oc );
+               impl::OrderSliceCreatorResult* result = dynamic_cast<impl::OrderSliceCreatorResult*>( (**it).getResult() );
+               if ( !orderCreator )
+                  throw std::exception( "unexpected type of order" );
+               SymbolVolume volume = orderCreator->getVolume();
+
+               float intensity;
+               ResourceLut lut;
+               bool res  = _maplut.find( volume, lut );
+                    res |= _intensities.find( volume, intensity );
+               if ( res )
+               {
+                  sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
+               }
+            }
+
+            if ( sliceInfos.size() )
+            {
+               Sliceuc result( nll::core::vector3ui( sliceInfos[ 0 ].slice.size()[ 0 ],
+                                                     sliceInfos[ 0 ].slice.size()[ 1 ],
+                                           3 ),
+                               sliceInfos[ 0 ].slice.getAxisX(),
+                               sliceInfos[ 0 ].slice.getAxisY(),
+                               sliceInfos[ 0 ].slice.getOrigin(),
+                               sliceInfos[ 0 ].slice.getSpacing() );
+
+               nll::imaging::blendDummy( sliceInfos, result );
+               std::cout << "blending done" << std::endl;
+               return new OrderSliceBlenderResult( result );
+            }
             return new OrderSliceBlenderResult( Sliceuc() );
          }
 
       protected:
          ResourceOrders                      _orders;
-         ResourceMapTransferFunction         _lut;
+         ResourceMapTransferFunction         _maplut;
          ResourceFloats                      _intensities;
       };
 
@@ -318,13 +361,21 @@ namespace platform
       protected:
          virtual bool _run()
          {
-            if ( _orderSend.isEmpty() && ordersToBlend.size() )
+            if ( !ordersToBlend.size() )
             {
+               // we have nothing to wait for...
+               return true;
+            }
+            if ( _orderSend.isEmpty() )
+            {
+               std::cout << "blend order"<< std::endl;
                // we have been notified
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( ordersToBlend, lut, intensities ) );
                _orderProvider.pushOrder( _orderSend );
                return true;
             }
+
+            // we need to wait for blending is finished to start next round...
             return false;
          }
 

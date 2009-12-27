@@ -75,6 +75,13 @@ namespace platform
             return _vol;
          }
 
+         SymbolVolume getName() const
+         {
+            return *_it;
+         }
+
+
+
       private:
          ResourceStorageVolumes  _storage;
          Storage::iterator       _it;

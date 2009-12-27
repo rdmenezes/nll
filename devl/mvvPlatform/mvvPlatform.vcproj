@@ -137,6 +137,7 @@
 				PreprocessorDefinitions="WIN32;MVVPLATFORM_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="true"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="2"

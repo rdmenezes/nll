@@ -38,6 +38,7 @@ namespace platform
       Orders orders = getOrdersAndClear();
       for ( Orders::iterator it = orders.begin(); it != orders.end(); ++it )
       {
+         //std::cout << "run order:" << (**it).getClassId().getName() << std::endl;
          ( *( *_impl ).pool ).push( *it );
       }
 
@@ -53,6 +54,16 @@ namespace platform
    {
       ( *( *_impl ).pool ).kill();
       _impl.unref();
+   }
+
+   ui32 OrderManagerThreadPool::getNumberOfOrdersToRun() const
+   {
+      return ( *( *_impl ).pool ).getNumberOfOrdersToRun();
+   }
+
+   void OrderManagerThreadPool::notify()
+   {
+      return ( *( *_impl ).pool ).notify();
    }
 }
 }

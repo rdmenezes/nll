@@ -36,7 +36,7 @@ namespace platform
 
          bool operator!=( const Iterator& rhs ) const
          {
-            return _it == rhs._it;
+            return _it != rhs._it;
          }
 
          RefcountedTyped<T> operator*()
@@ -47,6 +47,7 @@ namespace platform
          Iterator& operator++()
          {
             ++_it;
+            return *this;
          }
 
       //private:
@@ -69,7 +70,7 @@ namespace platform
 
          bool operator!=( const ConstIterator& rhs ) const
          {
-            return _it == rhs._it;
+            return _it != rhs._it;
          }
 
          RefcountedTyped<T> operator*() const
@@ -77,9 +78,10 @@ namespace platform
             return *_it;
          }
 
-         Iterator& operator++()
+         ConstIterator& operator++()
          {
             ++_it;
+            return *this;
          }
 
       private:
@@ -136,7 +138,9 @@ namespace platform
 
       ui32 size() const
       {
-         return getValue().size();
+         const Storage& set = getValue();
+         ui32 size = static_cast<ui32>( set.size() );
+         return size;
       }
    };
 
