@@ -13,7 +13,7 @@ namespace platform
 
     Each time 
     */
-   struct MVVPLATFORM_API ContextVolume : public ContextInstance
+   struct MVVPLATFORM_API ContextVolumes : public ContextInstance
    {
       ResourceStorageVolumes      volumes;
    };

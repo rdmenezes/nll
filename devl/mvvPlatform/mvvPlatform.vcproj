@@ -434,6 +434,10 @@
 			Name="API"
 			>
 			<File
+				RelativePath=".\context-tools.h"
+				>
+			</File>
+			<File
 				RelativePath=".\context-volumes.h"
 				>
 			</File>
@@ -443,6 +447,10 @@
 			</File>
 			<File
 				RelativePath=".\engine-barrier.h"
+				>
+			</File>
+			<File
+				RelativePath=".\engine-handler-impl.h"
 				>
 			</File>
 			<File

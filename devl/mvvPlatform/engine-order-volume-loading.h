@@ -35,9 +35,11 @@ namespace platform
          {
             RefcountedTyped<Volume> volume( new Volume() );
             bool loaded = nll::imaging::loadSimpleFlatFile( _location, *volume );
-            if ( !loaded )
+            if ( loaded )
             {
-               throw std::exception( "Volume was not loaded correctly" );
+               std::cout << "volume loaded: " << _location << std::endl;
+            } else {
+               std::cout << "error: cant' load volume!!! " << _location << std::endl;
             }
             return new OrderVolumeLoaderResult( volume, _name );
          }
@@ -82,9 +84,15 @@ namespace platform
          _resourceVolumes.insert( result->name, result->volume );
       }
 
-      virtual const std::set<OrderClassId>& interestedOrder()
+      virtual const std::set<OrderClassId>& interestedOrder() const
       {
          return _interested;
+      }
+
+      virtual bool _run()
+      {
+         // we don't use any resources...
+         return true;
       }
 
    protected:

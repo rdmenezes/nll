@@ -394,6 +394,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\segment-tool.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\segment.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\types.h"
 				>
 			</File>
@@ -403,6 +411,22 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\context-segments.h"
+				>
+			</File>
+			<File
+				RelativePath=".\layout-segment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\segment-tool.h"
+				>
+			</File>
+			<File
+				RelativePath=".\segment.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\mvvMprPlugin.dox"

@@ -34,8 +34,8 @@ namespace platform
                while ( ( !res || _vol.isEmpty() ) && _it != _end )
                {
                   // skip if non valid reference or reference not found
-                  ++_it;
                   res = _storage.find( *_it, _vol );
+                  ++_it;
                }
             }
          }

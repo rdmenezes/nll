@@ -4,6 +4,7 @@
 # include "context.h"
 # include "symbol-typed.h"
 # include "types.h"
+# include "resource.h"
 # include <map>
 
 namespace mvv

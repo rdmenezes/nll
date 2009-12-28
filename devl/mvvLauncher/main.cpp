@@ -7,6 +7,10 @@ void handleOrders( int value )
 {
    glutTimerFunc( 1, handleOrders, 0 );
 
+   // run orders & engines
+   applicationVariables.engineHandler.run();
+   applicationVariables.orderManager.run();
+
    static int nbFps = 0;
    static unsigned last = clock();
    ++nbFps;
@@ -162,8 +166,17 @@ void mouseMotion(int x, int y)
 
 void keyboard(unsigned char key, int x, int y)
 {
+   if ( key == 'n' )
+   {
+      RefcountedTyped<Segment> segment1;
+      applicationVariables.context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
+      (*segment1).position.notify();
+      std::cout << "notify segment1" << std::endl;
+   }
    if ( key == 'q' )
    {
+      applicationVariables.context.clear();
+      applicationVariables.orderManager.kill();
       exit( 0 );
    }
 }

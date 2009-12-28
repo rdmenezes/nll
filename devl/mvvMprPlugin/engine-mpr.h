@@ -220,6 +220,8 @@ namespace platform
             if ( _ordersSend.size() )
                return false;
 
+            std::cout << "engine-mpr::slice.run" << std::endl;
+
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
@@ -292,9 +294,10 @@ namespace platform
                float intensity;
                ResourceLut lut;
                bool res  = _maplut.find( volume, lut );
-                    res |= _intensities.find( volume, intensity );
+                    res &= _intensities.find( volume, intensity );
                if ( res )
                {
+                  std::cout << "transform=" << lut.transform( 0.5f ) << std::endl;;
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
                }
             }
@@ -310,6 +313,10 @@ namespace platform
                                sliceInfos[ 0 ].slice.getSpacing() );
 
                nll::imaging::blendDummy( sliceInfos, result );
+
+               //nll::core::writeBmp( result.getStorage(), "c:/tmp/test.bmp" );
+               //std::cout << "export image" << std::endl;
+
                std::cout << "blending done" << std::endl;
                return new OrderSliceBlenderResult( result );
             }

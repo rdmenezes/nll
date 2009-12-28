@@ -3,6 +3,7 @@
 
 # include <map>
 # include <string>
+# include <iostream>
 # include "mvvPlatform.h"
 
 namespace mvv
@@ -35,8 +36,7 @@ namespace platform
        */
       ~Context()
       {
-         for ( ContextContainer::iterator it = _contexts.begin(); it != _contexts.end(); ++it )
-            delete it->second;
+         clear();
       }
 
       /**
@@ -68,6 +68,15 @@ namespace platform
       template <class T> void get( T*& out ) const
       {
          out = get<T>();
+      }
+
+      void clear()
+      {
+         for ( ContextContainer::iterator it = _contexts.begin(); it != _contexts.end(); ++it )
+         {
+            delete it->second;
+         }
+         _contexts.clear();
       }
 
    private:

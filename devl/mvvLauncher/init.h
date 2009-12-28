@@ -5,6 +5,12 @@
 # include <mvvPlatform/event-mouse.h>
 # include <mvvPlatform/layout-pane.h>
 # include <mvvPlatform/layout-widget.h>
+# include <mvvPlatform/context.h>
+# include <mvvPlatform/context-volumes.h>
+# include <mvvPlatform/context-tools.h>
+# include <mvvPlatform/engine-handler-impl.h>
+# include <mvvMprPlugin/context-segments.h>
+# include <mvvMprPlugin/layout-segment.h>
 
 
 using namespace mvv;
@@ -18,12 +24,74 @@ namespace mvv
       Image                               screen;
       EventMouse                          mouseEvent;
       RefcountedTyped<Pane>               layout;
+      Context                             context;
+      EngineHandlerImpl                   engineHandler;
+      OrderManagerThreadPool              orderManager;
 
-      ApplicationVariables()
+      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 4 )
+      {  
+         initContext();
+         initLayout();
+
+         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
+         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
+
+         RefcountedTyped<Segment> segment1;
+         context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
+         (*segment1).volumes.insert( SymbolVolume::create( "ct1" ) );
+         (*segment1).volumes.insert( SymbolVolume::create( "pt1" ) );
+         (*segment1).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
+         (*segment1).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
+
+         nll::imaging::LookUpTransformWindowingRGB lutPetImpl( 0, 5000, 256 );
+         float red[] = {255, 0, 0};
+         lutPetImpl.createColorScale( red );
+         ResourceLut lutPet( lutPetImpl );
+         ResourceLut lutCt( 100, 1100 );
+
+         (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
+         (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
+
+      }
+
+   private:
+      void initContext()
       {
-         screen = Image( 512, 512, 3 );
+         ContextVolumes* ctxVolumes = new ContextVolumes();
+         context.add( ctxVolumes );
 
-         layout = RefcountedTyped<Pane>( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
+         ContextTools* ctxTools = new ContextTools( ctxVolumes->volumes, engineHandler, orderManager, orderManager );
+         context.add( ctxTools );
+
+         ContextSegments* ctxSegments = new ContextSegments();
+         context.add( ctxSegments );
+      }
+
+      void initLayout()
+      {
+         Segment* segment0 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
+         context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment1" ), RefcountedTyped<Segment>( segment0 ) );
+
+         PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
+                                           nll::core::vector2ui( 0, 0 ),
+                                           RefcountedTyped<Segment>( segment0 ) );
+
+         PaneEmpty* e1 = new PaneEmpty( nll::core::vector2ui( 0, 0 ),
+                                        nll::core::vector2ui( 0, 0 ),
+                                        nll::core::vector3uc( 255, 255, 0 ) );
+         PaneListHorizontal* list = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
+                                                            nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
+         list->addChild( RefcountedTyped<Pane>( e0 ), 0.999f );
+         list->addChild( RefcountedTyped<Pane>( e1 ), 0.001f );
+         layout = RefcountedTyped<Pane>( list );                                                    
+      }
+   };
+}
+
+#endif
+
+/*
+layout = RefcountedTyped<Pane>( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
                                                         nll::core::vector2ui( screen.sizex(), screen.sizey() ),
                                                         nll::core::vector3uc( 0, 0, 0 ) ) );
 
@@ -68,17 +136,4 @@ namespace mvv
 
                droplist.push_back( dropDown2 );
                //(*layout).insert( dropDown2 );
-            }
-        
-            Pane::PaneRef dropDown( new WidgetDropDown( nll::core::vector2ui( 0, 256 ), nll::core::vector2ui( 40, 20 ), entry, droplist ) );
-            (*layout).insert( dropDown );
-         
-         Pane::PaneRef  test( new PaneEmpty( nll::core::vector2ui( 200, 200 ),
-                                             nll::core::vector2ui( 40, 40 ),
-                                             nll::core::vector3uc( 0, 0, 255 ) ) );
-         (*layout).insert( test );
-      }
-   };
-}
-
-#endif
+*/

@@ -28,6 +28,8 @@
 #include "resource-barrier.h"
 #include "resource-lut.h"
 #include "engine-barrier.h"
+#include "context-tools.h"
+#include "engine-handler-impl.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

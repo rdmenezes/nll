@@ -52,8 +52,11 @@ namespace platform
 
    void OrderManagerThreadPool::kill()
    {
-      ( *( *_impl ).pool ).kill();
-      _impl.unref();
+      if ( !_impl.isEmpty() )
+      {
+         ( *( *_impl ).pool ).kill();
+         _impl.unref();
+      }
    }
 
    ui32 OrderManagerThreadPool::getNumberOfOrdersToRun() const

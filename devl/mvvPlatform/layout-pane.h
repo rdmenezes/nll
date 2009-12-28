@@ -167,7 +167,7 @@ namespace platform
          }
       }
 
-      virtual void draw( Image& image )
+      void _draw( Image& image )
       {
          if ( !_visible )
             return;

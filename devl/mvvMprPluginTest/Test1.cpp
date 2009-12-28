@@ -178,7 +178,9 @@ struct Test1
          wait( 5.0f );
          handler.run();
          manager.run();
+         TESTER_ASSERT( 0 ); // failed
       }
+      TESTER_ASSERT( manager.getNumberOfOrdersToRun() == 0 );
       TESTER_ASSERT( mpr.blendedSlice.getValue().getStorage().sizex() == 1024 &&
                      mpr.blendedSlice.getValue().getStorage().sizey() == 1024 );
       nll::core::writeBmp( mpr.blendedSlice.getValue().getStorage(), "../../nllTest/data/outMprPluging.bmp" );
