@@ -48,7 +48,7 @@ namespace platform
          directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
          directiony.setValue( nll::core::vector3f( 0, 1, 0 ) );
          panning.setValue( nll::core::vector3f( 0, 0, 0 ) );
-         zoom.setValue( nll::core::vector2f( 4, 4 ) );
+         zoom.setValue( nll::core::vector2f( 2, 2 ) );
          isInteracting.setValue( false );
          interpolation.setValue( LINEAR );
 

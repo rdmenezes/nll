@@ -206,7 +206,6 @@ namespace platform
 
             // clear the waiting list so we can compute a new list!
             _ordersSend.clear();
-            std::cout << "Order sliced" << std::endl;
          }
 
          virtual const std::set<OrderClassId>& interestedOrder() const
@@ -219,8 +218,6 @@ namespace platform
          {
             if ( _ordersSend.size() )
                return false;
-
-            std::cout << "engine-mpr::slice.run" << std::endl;
 
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
@@ -276,9 +273,7 @@ namespace platform
       protected:
          virtual OrderResult* _compute()
          {
-            std::cout << "blending" << std::endl;
             std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
-            //std::vector<ResourceLut::lut_type&> luts( _orders.size() );
 
             int n = 0;
             for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
@@ -297,7 +292,6 @@ namespace platform
                     res &= _intensities.find( volume, intensity );
                if ( res )
                {
-                  std::cout << "transform=" << lut.transform( 0.5f ) << std::endl;;
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
                }
             }
@@ -317,7 +311,16 @@ namespace platform
                //nll::core::writeBmp( result.getStorage(), "c:/tmp/test.bmp" );
                //std::cout << "export image" << std::endl;
 
-               std::cout << "blending done" << std::endl;
+               static int nbFps = 0;
+               static unsigned last = clock();
+               ++nbFps;
+
+               if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
+               {
+                  std::cout << "----------------------------fps=" << nbFps << std::endl;
+                  nbFps = 0;
+                  last = clock();
+               }
                return new OrderSliceBlenderResult( result );
             }
             return new OrderSliceBlenderResult( Sliceuc() );
@@ -396,7 +399,9 @@ namespace platform
                blendedSlice.setValue( result->blendedSlice );
 
                // unref the previous result: the engine is available for new computations...
+               std::cout << "ref=" << _orderSend.getNumberOfReference() << std::endl;
                _orderSend.unref();
+               ordersToBlend.clear();
             }
          }
 
@@ -429,6 +434,7 @@ namespace platform
    public:
       ~EngineMpr()
       {
+         std::cout << "destroy engine MPR" << std::endl;
          _dispatcher.disconnect( *this );
       }
 

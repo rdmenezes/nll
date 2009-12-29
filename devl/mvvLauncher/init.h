@@ -28,7 +28,7 @@ namespace mvv
       EngineHandlerImpl                   engineHandler;
       OrderManagerThreadPool              orderManager;
 
-      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 4 )
+      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 3 )
       {  
          initContext();
          initLayout();
@@ -47,7 +47,7 @@ namespace mvv
          float red[] = {255, 0, 0};
          lutPetImpl.createColorScale( red );
          ResourceLut lutPet( lutPetImpl );
-         ResourceLut lutCt( 100, 1100 );
+         ResourceLut lutCt( -100, 1500 );
 
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );

@@ -31,6 +31,7 @@ namespace platform
 
    Segment::~Segment()
    {
+      std::cout << "segment destructor" << std::endl;
       for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
          disconnect( *it );
    }

@@ -108,7 +108,7 @@ namespace platform
                _notified.wait( _mutexWait );
 
                boost::mutex::scoped_lock lock( _mutex );
-               if ( _notified2 )
+               if ( _notified2 && !_workersAvailable.empty() )
                {
                   break;
                }

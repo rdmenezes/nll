@@ -14,6 +14,10 @@ namespace platform
    {
    public:
       ResourceMapSegments  segments;
+
+      ~ContextSegments()
+      {
+      }
    };
 }
 }

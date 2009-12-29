@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_REFCOUNTED_H_
 
 # include <assert.h>
+# include <iostream>
 # include "mvvPlatform.h"
 
 namespace mvv
@@ -51,6 +52,7 @@ namespace platform
 
       virtual ~Refcounted()
       {
+         //std::cout << "refcounted destructor" << std::endl;
          unref();
       }
 
@@ -91,6 +93,9 @@ namespace platform
             --_data->ref;
             if ( !_data->ref )
             {
+               // if a virtual failed here, it means we are calling inherited destroy() from
+               // the destructor of refcounted, which is wrong: the derived class has been
+               // deconstructed hence the error
                destroy();
             }
 
@@ -107,12 +112,12 @@ namespace platform
       }
 
       /**
-       @brief Frre up all resources allocated
+       @brief Free up all resources allocated
        */
-      virtual void destroy()
-      {
-         delete _data;
-      }
+      virtual void destroy() = 0;
+      //{
+      //   delete _data;
+      //}
 
       unsigned getNumberOfReference() const
       {
@@ -128,7 +133,7 @@ namespace platform
       void copy( const Refcounted& rhs )
       {
          // first check if we can really copy this reference
-         assert( rhs._data );
+         //assert( rhs._data );
 
          // if same pointee, then do nothing
          if ( rhs._data == _data )
@@ -158,6 +163,16 @@ namespace platform
    {
    public:
       typedef T   value_type;
+
+      virtual ~RefcountedTyped()
+      {
+         if ( _data )
+         {
+            // we unref here to avoid virtual call to destroy! a second unref() might be run
+            // in the base destructor but this doesn't do anything.
+            unref();
+         }
+      }
 
       RefcountedTyped()
       {}

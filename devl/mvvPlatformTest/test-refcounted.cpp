@@ -1,7 +1,9 @@
 #include <tester/register.h>
 #include <mvvPlatform/resource.h>
 
-using namespace mvv::platform;
+//using namespace mvv::platform;
+
+typedef mvv::platform::RefcountedTyped<int> Refcounted;
 
 struct TestRefcounted
 {
@@ -39,7 +41,7 @@ struct TestRefcounted
 
    void test2()
    {
-      typedef RefcountedTyped<int>  RefcountedTypedI;
+      typedef mvv::platform::RefcountedTyped<int>  RefcountedTypedI;
 
       int* t = new int;
       *t = 42;

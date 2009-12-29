@@ -11,16 +11,17 @@ void handleOrders( int value )
    applicationVariables.engineHandler.run();
    applicationVariables.orderManager.run();
 
+   /*
    static int nbFps = 0;
    static unsigned last = clock();
    ++nbFps;
 
    if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
    {
-      std::cout << "fps=" << nbFps << std::endl;
+      std::cout << "----------------------------fps=" << nbFps << std::endl;
       nbFps = 0;
       last = clock();
-   }
+   }*/
 }
 
 void renderObjects()
@@ -162,6 +163,10 @@ void mouseMotion(int x, int y)
    applicationVariables.mouseEvent.mousePosition = nll::core::vector2ui( x, y );
 
    //(*applicationVariables.layout).receive( applicationVariables.mouseEvent ); // TODO put back!
+
+   RefcountedTyped<Segment> segment1;
+   applicationVariables.context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
+   (*segment1).position.setValue( 2, (float)x/50 );
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -171,10 +176,10 @@ void keyboard(unsigned char key, int x, int y)
       RefcountedTyped<Segment> segment1;
       applicationVariables.context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
       (*segment1).position.notify();
-      std::cout << "notify segment1" << std::endl;
    }
    if ( key == 'q' )
    {
+      applicationVariables.layout.unref();
       applicationVariables.context.clear();
       applicationVariables.orderManager.kill();
       exit( 0 );
