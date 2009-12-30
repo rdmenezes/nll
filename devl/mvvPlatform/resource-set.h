@@ -12,6 +12,7 @@ namespace platform
 {
    /**
     @brief Hold a set of values. If the set is modified, the resource is notified
+    @note be carreful that we hold a resource on resources!! Watch out for side effects in case of multithreading!
     */
    template <class T>
    class ResourceSetRef : public Resource< std::set< RefcountedTyped<T> > >

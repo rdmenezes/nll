@@ -22,7 +22,7 @@ namespace platform
       {
          Orders o;
          //std::cout << " orderProvider.clear()" << std::endl;
-         #pragma omp atomic
+         #pragma omp critical
          {
             o = _execWaitList;
             _execWaitList.clear();
@@ -35,7 +35,7 @@ namespace platform
        */
       virtual void pushOrder( RefcountedTyped<Order> order )
       {
-         #pragma omp atomic
+         #pragma omp critical
          {
             //std::cout << " orderProvider.push()" << std::endl;
             _execWaitList.push_back( order );

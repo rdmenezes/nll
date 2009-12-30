@@ -58,11 +58,14 @@ namespace platform
 
       void ref()
       {
-         if ( !_data )
+         //#pragma omp critical
          {
-            _data = new Internals();
+            if ( !_data )
+            {
+               _data = new Internals();
+            }
+            ++_data->ref;
          }
-         ++_data->ref;
       }
 
       bool isEmpty() const
@@ -87,19 +90,22 @@ namespace platform
 
       void unref()
       {
-         if ( _data )
+         //#pragma omp critical
          {
-            assert( _data->ref );
-            --_data->ref;
-            if ( !_data->ref )
+            if ( _data )
             {
-               // if a virtual failed here, it means we are calling inherited destroy() from
-               // the destructor of refcounted, which is wrong: the derived class has been
-               // deconstructed hence the error
-               destroy();
-            }
+               assert( _data->ref );
+               --_data->ref;
+               if ( !_data->ref )
+               {
+                  // if a virtual failed here, it means we are calling inherited destroy() from
+                  // the destructor of refcounted, which is wrong: the derived class has been
+                  // deconstructed hence the error
+                  destroy();
+               }
 
-            _data = 0;
+               _data = 0;
+            }
          }
       }
 

@@ -267,35 +267,51 @@ namespace platform
       public:
          OrderSliceBlender( ResourceOrders orders,
                             ResourceMapTransferFunction maplut,
-                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _orders( orders ), _maplut( maplut ), _intensities( intensities )
-         {}
+                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _maplut( maplut ), _intensities( intensities )
+         {
+            for ( ResourceOrders::Iterator it = orders.begin(); it != orders.end(); ++it )
+            {
+               _orders.insert( (*it) );
+            }
+         }
 
       protected:
          virtual OrderResult* _compute()
          {
             std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
+            //std::vector< nll::imaging::BlendSliceInfof<ResourceLut> > sliceInfos;
 
             int n = 0;
-            for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
+            std::cout << "size=" << _orders.size() << std::endl;
+            for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it )
             {
                RefcountedTyped<Order> o = *it;
-               Order& oc = *o;
-               OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &oc );
+               std::cout << "test=" << o.getNumberOfReference() << std::endl;
+            }
+            for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
+            {
+               std::cout << "start test" << std::endl;
+               OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( *it ) );
                impl::OrderSliceCreatorResult* result = dynamic_cast<impl::OrderSliceCreatorResult*>( (**it).getResult() );
+               ensure( result, "must nnot be null" );
                if ( !orderCreator )
                   throw std::exception( "unexpected type of order" );
                SymbolVolume volume = orderCreator->getVolume();
 
-               float intensity;
+               float intensity = 0;
                ResourceLut lut;
-               bool res  = _maplut.find( volume, lut );
-                    res &= _intensities.find( volume, intensity );
+               std::cout << "lut s" << std::endl;
+               bool res  = _maplut.find( volume, lut ) && _intensities.find( volume, intensity );
+               std::cout << "lut i" << std::endl;
                if ( res )
                {
+                  //sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut>( result->getSlice(), intensity, lut ) );
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
                }
+               std::cout << "lut e" << std::endl;
             }
 
+            
             if ( sliceInfos.size() )
             {
                Sliceuc result( nll::core::vector3ui( sliceInfos[ 0 ].slice.size()[ 0 ],
@@ -321,8 +337,10 @@ namespace platform
                   nbFps = 0;
                   last = clock();
                }
+               _orders.clear();
                return new OrderSliceBlenderResult( result );
             }
+            _orders.clear();
             return new OrderSliceBlenderResult( Sliceuc() );
          }
 

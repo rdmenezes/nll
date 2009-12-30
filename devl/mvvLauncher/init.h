@@ -81,8 +81,8 @@ namespace mvv
                                         nll::core::vector3uc( 255, 255, 0 ) );
          PaneListHorizontal* list = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                                             nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
-         list->addChild( RefcountedTyped<Pane>( e0 ), 0.999f );
-         list->addChild( RefcountedTyped<Pane>( e1 ), 0.001f );
+         list->addChild( RefcountedTyped<Pane>( e0 ), 0.5f );
+         list->addChild( RefcountedTyped<Pane>( e1 ), 0.5f );
          layout = RefcountedTyped<Pane>( list );                                                    
       }
    };
