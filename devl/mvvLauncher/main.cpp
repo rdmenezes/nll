@@ -166,7 +166,11 @@ void mouseMotion(int x, int y)
 
    RefcountedTyped<Segment> segment1;
    applicationVariables.context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
-   (*segment1).position.setValue( 2, (float)x/50 );
+   (*segment1).position.setValue( 2, (float)x/10 );
+
+   RefcountedTyped<Segment> segment2;
+   applicationVariables.context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
+   (*segment2).position.setValue( 2, (float)x/10 );
 }
 
 void keyboard(unsigned char key, int x, int y)

@@ -28,7 +28,7 @@ namespace mvv
       EngineHandlerImpl                   engineHandler;
       OrderManagerThreadPool              orderManager;
 
-      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 3 )
+      ApplicationVariables() : screen( 2048 / 2, 2048 / 2, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
@@ -36,6 +36,7 @@ namespace mvv
          context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
          context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
+         // segment 1
          RefcountedTyped<Segment> segment1;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
          (*segment1).volumes.insert( SymbolVolume::create( "ct1" ) );
@@ -52,6 +53,16 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
+         // segment 2
+         RefcountedTyped<Segment> segment2;
+         context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
+         (*segment2).volumes.insert( SymbolVolume::create( "ct1" ) );
+         (*segment2).volumes.insert( SymbolVolume::create( "pt1" ) );
+         (*segment2).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
+         (*segment2).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
+
+         (*segment2).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
+         (*segment2).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
       }
 
    private:
@@ -72,13 +83,17 @@ namespace mvv
          Segment* segment0 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment1" ), RefcountedTyped<Segment>( segment0 ) );
 
+         Segment* segment1 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
+         context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment2" ), RefcountedTyped<Segment>( segment1 ) );
+
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
                                            RefcountedTyped<Segment>( segment0 ) );
 
-         PaneEmpty* e1 = new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                        nll::core::vector2ui( 0, 0 ),
-                                        nll::core::vector3uc( 255, 255, 0 ) );
+         PaneSegment* e1 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
+                                           nll::core::vector2ui( 0, 0 ),
+                                           RefcountedTyped<Segment>( segment1 ) );
+
          PaneListHorizontal* list = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                                             nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          list->addChild( RefcountedTyped<Pane>( e0 ), 0.5f );

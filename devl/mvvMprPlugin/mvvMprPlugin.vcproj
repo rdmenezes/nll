@@ -132,12 +132,14 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="false"
+				EnableFiberSafeOptimizations="true"
+				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="$(SolutionDir)"
 				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS"
-				StringPooling="true"
+				StringPooling="false"
 				RuntimeLibrary="2"
-				BufferSecurityCheck="true"
-				EnableFunctionLevelLinking="true"
+				BufferSecurityCheck="false"
+				EnableFunctionLevelLinking="false"
 				EnableEnhancedInstructionSet="2"
 				FloatingPointModel="2"
 				TreatWChar_tAsBuiltInType="true"
@@ -169,6 +171,7 @@
 				LargeAddressAware="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				LinkTimeCodeGeneration="1"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -418,6 +421,10 @@
 			</File>
 			<File
 				RelativePath=".\layout-segment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\segment-tool-camera.h"
 				>
 			</File>
 			<File

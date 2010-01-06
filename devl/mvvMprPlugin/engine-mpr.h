@@ -282,15 +282,8 @@ namespace platform
             //std::vector< nll::imaging::BlendSliceInfof<ResourceLut> > sliceInfos;
 
             int n = 0;
-            std::cout << "size=" << _orders.size() << std::endl;
-            for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it )
-            {
-               RefcountedTyped<Order> o = *it;
-               std::cout << "test=" << o.getNumberOfReference() << std::endl;
-            }
             for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
             {
-               std::cout << "start test" << std::endl;
                OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( *it ) );
                impl::OrderSliceCreatorResult* result = dynamic_cast<impl::OrderSliceCreatorResult*>( (**it).getResult() );
                ensure( result, "must nnot be null" );
@@ -300,15 +293,12 @@ namespace platform
 
                float intensity = 0;
                ResourceLut lut;
-               std::cout << "lut s" << std::endl;
                bool res  = _maplut.find( volume, lut ) && _intensities.find( volume, intensity );
-               std::cout << "lut i" << std::endl;
                if ( res )
                {
                   //sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut>( result->getSlice(), intensity, lut ) );
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
                }
-               std::cout << "lut e" << std::endl;
             }
 
             
@@ -415,6 +405,7 @@ namespace platform
                if ( !result )
                   throw std::exception( "unexpected order received!" );
                blendedSlice.setValue( result->blendedSlice );
+               std::cout << "dim=" << result->blendedSlice.size()[ 0 ] << " " << result->blendedSlice.size()[ 1 ] << std::endl;
 
                // unref the previous result: the engine is available for new computations...
                std::cout << "ref=" << _orderSend.getNumberOfReference() << std::endl;
