@@ -28,7 +28,7 @@ namespace mvv
       EngineHandlerImpl                   engineHandler;
       OrderManagerThreadPool              orderManager;
 
-      ApplicationVariables() : screen( 2048 / 2, 2048 / 2, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
@@ -96,7 +96,7 @@ namespace mvv
 
          PaneListHorizontal* list = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                                             nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
-         list->addChild( RefcountedTyped<Pane>( e0 ), 0.5f );
+         list->addChild( RefcountedTyped<Pane>( e0 ), 0.5 );
          list->addChild( RefcountedTyped<Pane>( e1 ), 0.5f );
          layout = RefcountedTyped<Pane>( list );                                                    
       }

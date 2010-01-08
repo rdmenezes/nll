@@ -46,6 +46,7 @@ namespace platform
       orders = ( *( *_impl ).pool ).getFinishedOrdersAndClearList();
       for ( Orders::iterator it = orders.begin(); it != orders.end(); ++it )
       {
+         std::cout << "dispatch order:" << (**it).getId() << std::endl;
          dispatch( *it );
       }
    }

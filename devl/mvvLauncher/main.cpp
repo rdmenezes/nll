@@ -181,6 +181,10 @@ void keyboard(unsigned char key, int x, int y)
       applicationVariables.context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
       (*segment1).position.notify();
    }
+   if ( key == 'm' )
+   {
+      applicationVariables.orderManager.notify();
+   }
    if ( key == 'q' )
    {
       applicationVariables.layout.unref();

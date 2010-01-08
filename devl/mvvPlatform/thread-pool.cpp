@@ -65,11 +65,14 @@ namespace platform
 
    void ThreadPool::dispatchToWorker( RefcountedTyped<Order> order )
    {
-      boost::mutex::scoped_lock lock( _mutex );
+      ThreadWorker* worker = 0;
+      {
+         boost::mutex::scoped_lock lock( _mutex );
 
-      // we have a thread available
-      ThreadWorker* worker = _workersAvailable.top();
-      _workersAvailable.pop();
+         // we have a thread available
+         worker = _workersAvailable.top();
+         _workersAvailable.pop();
+      }
       worker->run( order );
       //std::cout << "pool.dispatchworker=" << (*order).getClassId().getName() << std::endl;
    }

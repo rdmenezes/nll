@@ -48,9 +48,6 @@ namespace platform
        */
       void operator()();
 
-   protected:
-      void _run();
-
    private:
       // copy disabled
       ThreadWorker& operator=( const ThreadWorker& );
@@ -61,6 +58,7 @@ namespace platform
       ui32              _workerId;
       boost::condition  _notified;
       boost::mutex      _mutex;
+      bool              _isReady;
       bool              _hasFinished;
       RefcountedTyped<Order> _currentOrder;
    };

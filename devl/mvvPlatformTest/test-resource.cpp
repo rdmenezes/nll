@@ -111,6 +111,7 @@ struct TestResource
          TESTER_ASSERT( ++it == volumes.end() );
       }
 
+
       // same but remove storage
       {
          storage.erase( SymbolVolume::create("v1") );

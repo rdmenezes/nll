@@ -68,6 +68,7 @@ namespace platform
       protected:
          virtual OrderResult* _compute()
          {
+            std::cout << "compute order:" << this->getId() << std::endl;
             typedef nll::imaging::InterpolatorNearestNeighbour<Volume>  InterpolatorNN;
             typedef nll::imaging::InterpolatorTriLinear<Volume>         InterpolatorTrilinear;
             typedef nll::imaging::Mpr<Volume, InterpolatorNN>           MprNN;
@@ -191,9 +192,11 @@ namespace platform
             {
                if ( !(**it).getResult() )
                   return;
+               std::cout << "consume order:" << (**it).getId() << std::endl;
                _ordersCheck.erase( it );
                it = _ordersCheck.begin();
             }
+
 
             // all orders are complete! we must clear our oders to complete list, and update output slots
             // we don't want to notify each time the engines connected to the output slot, so create a barrier
@@ -278,6 +281,7 @@ namespace platform
       protected:
          virtual OrderResult* _compute()
          {
+            std::cout << "compute order:" << this->getId() << std::endl;
             std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
             //std::vector< nll::imaging::BlendSliceInfof<ResourceLut> > sliceInfos;
 
@@ -317,6 +321,7 @@ namespace platform
                //nll::core::writeBmp( result.getStorage(), "c:/tmp/test.bmp" );
                //std::cout << "export image" << std::endl;
 
+               
                static int nbFps = 0;
                static unsigned last = clock();
                ++nbFps;
@@ -327,6 +332,7 @@ namespace platform
                   nbFps = 0;
                   last = clock();
                }
+
                _orders.clear();
                return new OrderSliceBlenderResult( result );
             }
@@ -386,7 +392,7 @@ namespace platform
             }
             if ( _orderSend.isEmpty() )
             {
-               std::cout << "blend order"<< std::endl;
+               //std::cout << "blend order"<< std::endl;
                // we have been notified
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( ordersToBlend, lut, intensities ) );
                _orderProvider.pushOrder( _orderSend );
@@ -401,14 +407,15 @@ namespace platform
          {
             if ( order == _orderSend )
             {
+               std::cout << "consume order:" << (*order).getId() << std::endl;
                OrderSliceBlenderResult* result = dynamic_cast<OrderSliceBlenderResult*>( (*order).getResult() );
                if ( !result )
                   throw std::exception( "unexpected order received!" );
                blendedSlice.setValue( result->blendedSlice );
-               std::cout << "dim=" << result->blendedSlice.size()[ 0 ] << " " << result->blendedSlice.size()[ 1 ] << std::endl;
+               //std::cout << "dim=" << result->blendedSlice.size()[ 0 ] << " " << result->blendedSlice.size()[ 1 ] << std::endl;
 
                // unref the previous result: the engine is available for new computations...
-               std::cout << "ref=" << _orderSend.getNumberOfReference() << std::endl;
+               //std::cout << "ref=" << _orderSend.getNumberOfReference() << std::endl;
                _orderSend.unref();
                ordersToBlend.clear();
             }
