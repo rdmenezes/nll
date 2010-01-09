@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_TYPES2_H_
 
 # include <nll/nll.h>
+# include <mvvPlatform/resource-value.h>
 
 namespace mvv
 {

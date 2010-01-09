@@ -3,6 +3,7 @@
 
 # include "mvvPlatform.h"
 # include "order.h"
+# include "linkable.h"
 
 namespace mvv
 {
@@ -27,12 +28,12 @@ namespace platform
       /**
        @brief Register a consumer that will consume the orders
        */
-      virtual void connect( OrderConsumer& consumer ) = 0;
+      virtual void connect( OrderConsumer* consumer ) = 0;
 
       /**
        @brief Remove a consumer from the distacher list
        */
-      virtual void disconnect( OrderConsumer& consumer ) = 0;
+      virtual void disconnect( OrderConsumer* consumer ) = 0;
 
       virtual ~OrderDispatcher()
       {

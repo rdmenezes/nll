@@ -16,6 +16,8 @@ namespace platform
            and update its output according to the order's result.
 
            Typically, the engine acquires resources using <code>register</code>
+
+           All engines must be disconnected before the handler is destroyed
     */
    class MVVPLATFORM_API EngineOrder : public Engine, public OrderCreator, public OrderConsumer
    {

@@ -131,7 +131,7 @@
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
-				OmitFramePointers="false"
+				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="$(SolutionDir)"
@@ -425,6 +425,10 @@
 			</File>
 			<File
 				RelativePath=".\segment-tool-camera.h"
+				>
+			</File>
+			<File
+				RelativePath=".\segment-tool-sorter.h"
 				>
 			</File>
 			<File

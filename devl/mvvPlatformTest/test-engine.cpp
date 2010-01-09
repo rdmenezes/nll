@@ -101,12 +101,12 @@ public:
       connect( r1 );
       connect( r2 );
       consumed = false;
-      dispatcher.connect( *this );
+      dispatcher.connect( this );
    }
 
    ~DummyEngineOrder()
    {
-      _dispatcher.disconnect( *this );
+      _dispatcher.disconnect( this );
    }
 
    virtual bool _run()
@@ -174,12 +174,12 @@ public:
       }
    }
 
-   virtual void connect( OrderConsumer& consumer )
+   virtual void connect( OrderConsumer* consumer )
    {
-      consumers.push_back( &consumer );
+      consumers.push_back( consumer );
    }
 
-   virtual void disconnect( OrderConsumer& )
+   virtual void disconnect( OrderConsumer* )
    {
    }
 

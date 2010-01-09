@@ -1,6 +1,9 @@
 #include "stdafx.h"
 #include "thread-worker.h"
 
+#pragma warning( push )
+#pragma warning( disable:4512 ) // assignment operator not generated
+
 namespace mvv
 {
    Worker::Worker( ThreadPool* pool, ui32 workerId ) : _pool( pool ), _workerId( workerId ), _hasFinished( true ), _currentOrder( 0 )
@@ -18,3 +21,5 @@ namespace mvv
       _pool->workerFinished( _currentOrder, _workerId );
    }
 }
+
+#pragma warning( pop )

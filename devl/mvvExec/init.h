@@ -57,15 +57,15 @@ namespace mvv
          */
          
          
-         //const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
-         const std::string pathPet = "../../nllTest/data/medical/pet.mf2";
+         const std::string pathPet = "../../nllTest/data/medical/1_-NAC.mf2";
+         //const std::string pathPet = "../../nllTest/data/medical/pet.mf2";
          MedicalVolume *pet = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathPet, *pet );
          ensure( loaded, "error" );
          
          
-         //const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
-         const std::string pathCt = "../../nllTest/data/medical/ct.mf2";
+         const std::string pathCt = "../../nllTest/data/medical/1_-CT.mf2";
+         //const std::string pathCt = "../../nllTest/data/medical/ct.mf2";
          MedicalVolume *ct = new MedicalVolume();
          loaded = nll::imaging::loadSimpleFlatFile( pathCt, *ct );
          
@@ -189,7 +189,7 @@ namespace mvv
 
 
          // queue
-         queue = new QueueOrder( ResourceManager::instance(), 4 );
+         queue = new QueueOrder( ResourceManager::instance(), 2 );
          dispatchThread = boost::thread( boost::ref( *queue ) );
            
          ResourceManager::instance().setQueueOrder( queue );

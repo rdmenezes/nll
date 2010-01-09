@@ -1,4 +1,5 @@
 #include "segment-tool.h"
+#include "segment.h"
 
 namespace mvv
 {
@@ -6,10 +7,19 @@ namespace platform
 {
    SegmentTool::~SegmentTool()
    {
-      for ( StorageSegments::iterator it = _segments.begin(); it != _segments.end(); ++it )
-      {
-         (**it)._remove( this );
-      }
+      removeConnections();
+   }
+
+   void SegmentTool::connect( Segment* segment )
+   {
+      addSimpleLink( segment );
+      segment->addSimpleLink( this );
+   }
+
+   void SegmentTool::disconnect( Segment* segment )
+   {
+      eraseSimpleLink( segment );
+      segment->eraseSimpleLink( this );
    }
 }
 }

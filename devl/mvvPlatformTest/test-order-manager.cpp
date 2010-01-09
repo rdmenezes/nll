@@ -61,7 +61,7 @@ struct TestOrderManager
    {
       OrderManagerThreadPool manager( 4 );
       DummyOrderConsumer orderConsumer;
-      manager.connect( orderConsumer );
+      manager.connect( &orderConsumer );
 
       RefcountedTyped<Order> o1( new DummyOrder4( 0.5, Order::Predecessors() ) );
       manager.pushOrder( o1 );

@@ -4,7 +4,9 @@
 # include "mvvMprPlugin.h"
 # include "engine-mpr.h"
 # include "segment-tool.h"
+# include "segment-tool-sorter.h"
 # include <mvvPlatform/event-mouse-receiver.h>
+# include <mvvPlatform/linkable.h>
 
 namespace mvv
 {
@@ -17,11 +19,11 @@ namespace platform
     @ingroup platform
     @brief Display a MPR and all supporting information
     */
-   class MVVMPRPLUGIN_API Segment : public EventMouseReceiver
+   class MVVMPRPLUGIN_API Segment : public EventMouseReceiver, LinkableDouble<SegmentTool*, Segment*>
    {
       friend class SegmentTool;
 
-      typedef std::set< SegmentTool* > ToolsStorage;
+      typedef std::vector< SegmentTool* > ToolsStorage;
 
    public:
       // input slots
@@ -54,6 +56,9 @@ namespace platform
 
          // point to the correct resource..
          segment = _slicer.blendedSlice;
+
+         // use a default priority sorter
+         _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );
       }
 
       ~Segment();
@@ -64,12 +69,21 @@ namespace platform
 
       virtual void receive( const EventMouse& event );
 
+      void setToolSorter( RefcountedTyped<SegmentToolSorter> sorter )
+      {
+         _sorter = sorter;
+      }
+
+   protected:
+      void updateToolsList();
+
    private:
       void _remove( SegmentTool* tool );
 
    protected:
-      EngineMpr      _slicer;
-      ToolsStorage   _tools;
+      EngineMpr                           _slicer;
+      ToolsStorage                        _tools;
+      RefcountedTyped<SegmentToolSorter>  _sorter;
    };
 }
 }

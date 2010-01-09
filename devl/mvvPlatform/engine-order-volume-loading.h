@@ -60,7 +60,7 @@ namespace platform
       EngineOrderVolumeLoader( ResourceStorageVolumes resourceVolumes, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ), _resourceVolumes( resourceVolumes )
       {
          construct();
-         dispatcher.connect( *this );
+         dispatcher.connect( this );
       }
 
       EngineOrderVolumeLoader( ResourceStorageVolumes resourceVolumes, EngineHandler& handler, OrderManagerThreadPool& manager ) : EngineOrder( handler, manager, manager ), _resourceVolumes( resourceVolumes )
@@ -70,7 +70,7 @@ namespace platform
 
       ~EngineOrderVolumeLoader()
       {
-         _dispatcher.disconnect( *this );
+         _dispatcher.disconnect( this );
       }
 
       void loadVolume( const std::string& location, SymbolVolume name )

@@ -39,26 +39,26 @@ namespace platform
       /**
        @brief Register a consumer that will consume the orders
        */
-      virtual void connect( OrderConsumer& consumer )
+      virtual void connect( OrderConsumer* consumer )
       {
-         Buckets::const_iterator it = consumer.interestedOrder().begin();
-         for ( ; it != consumer.interestedOrder().end(); ++it )
+         Buckets::const_iterator it = consumer->interestedOrder().begin();
+         for ( ; it != consumer->interestedOrder().end(); ++it )
          {
-            _consumers[ *it ].insert( &consumer );
+            _consumers[ *it ].insert( consumer );
          }
       }
 
       /**
        @brief Remove a consumer from the distacher list
        */
-      virtual void disconnect( OrderConsumer& consumer )
+      virtual void disconnect( OrderConsumer* consumer )
       {
-         for ( Buckets::const_iterator it = consumer.interestedOrder().begin(); it != consumer.interestedOrder().end(); ++it )
+         for ( Buckets::const_iterator it = consumer->interestedOrder().begin(); it != consumer->interestedOrder().end(); ++it )
          {
             Consumers::iterator c = _consumers.find( *it );
             if ( c != _consumers.end() )
             {
-               c->second.erase( &consumer );
+               c->second.erase( consumer );
             }
          }
       }

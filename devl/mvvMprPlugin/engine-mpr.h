@@ -68,7 +68,7 @@ namespace platform
       protected:
          virtual OrderResult* _compute()
          {
-            std::cout << "compute order:" << this->getId() << std::endl;
+            //std::cout << "compute order:" << this->getId() << std::endl;
             typedef nll::imaging::InterpolatorNearestNeighbour<Volume>  InterpolatorNN;
             typedef nll::imaging::InterpolatorTriLinear<Volume>         InterpolatorTrilinear;
             typedef nll::imaging::Mpr<Volume, InterpolatorNN>           MprNN;
@@ -143,7 +143,7 @@ namespace platform
       public:
          ~EngineMprSlice()
          {
-            _dispatcher.disconnect( *this );
+            _dispatcher.disconnect( this );
          }
 
          EngineMprSlice( ResourceVolumes vvolumes,
@@ -160,7 +160,7 @@ namespace platform
             EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting )
          {
             _construct();
-            dispatcher.connect( *this );
+            dispatcher.connect( this );
 
             position.connect( this );
             directionx.connect( this );
@@ -192,7 +192,7 @@ namespace platform
             {
                if ( !(**it).getResult() )
                   return;
-               std::cout << "consume order:" << (**it).getId() << std::endl;
+               //std::cout << "consume order:" << (**it).getId() << std::endl;
                _ordersCheck.erase( it );
                it = _ordersCheck.begin();
             }
@@ -281,7 +281,7 @@ namespace platform
       protected:
          virtual OrderResult* _compute()
          {
-            std::cout << "compute order:" << this->getId() << std::endl;
+            //std::cout << "compute order:" << this->getId() << std::endl;
             std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
             //std::vector< nll::imaging::BlendSliceInfof<ResourceLut> > sliceInfos;
 
@@ -321,18 +321,6 @@ namespace platform
                //nll::core::writeBmp( result.getStorage(), "c:/tmp/test.bmp" );
                //std::cout << "export image" << std::endl;
 
-               
-               static int nbFps = 0;
-               static unsigned last = clock();
-               ++nbFps;
-
-               if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
-               {
-                  std::cout << "----------------------------fps=" << nbFps << std::endl;
-                  nbFps = 0;
-                  last = clock();
-               }
-
                _orders.clear();
                return new OrderSliceBlenderResult( result );
             }
@@ -358,28 +346,35 @@ namespace platform
          ResourceMapTransferFunction   lut;
          ResourceFloats                intensities;
 
+      protected:
+         // output slot but protected
+         ResourceUi32 fps;
+
       public:
          // output slots
          ResourceSliceuc               blendedSlice;
 
       public:
-         EngineSliceBlender( ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities,
+         EngineSliceBlender( ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
             ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities )
          {
             _construct();
             _orderSend.unref();
 
-            dispatcher.connect( *this );
+            dispatcher.connect( this );
 
             ordersToBlend.connect( this );
             lut.connect( this );
             intensities.connect( this );
+
+            _fps = 0;
+            _clock = clock();
          }
 
          ~EngineSliceBlender()
          {
-            _dispatcher.disconnect( *this );
+            _dispatcher.disconnect( this );
          }
 
       protected:
@@ -407,17 +402,24 @@ namespace platform
          {
             if ( order == _orderSend )
             {
-               std::cout << "consume order:" << (*order).getId() << std::endl;
+               //std::cout << "consume order:" << (*order).getId() << std::endl;
                OrderSliceBlenderResult* result = dynamic_cast<OrderSliceBlenderResult*>( (*order).getResult() );
                if ( !result )
                   throw std::exception( "unexpected order received!" );
                blendedSlice.setValue( result->blendedSlice );
-               //std::cout << "dim=" << result->blendedSlice.size()[ 0 ] << " " << result->blendedSlice.size()[ 1 ] << std::endl;
 
-               // unref the previous result: the engine is available for new computations...
-               //std::cout << "ref=" << _orderSend.getNumberOfReference() << std::endl;
                _orderSend.unref();
                ordersToBlend.clear();
+
+
+               ++_fps;
+               if ( ( clock() - _clock ) / (double)CLOCKS_PER_SEC >= 1 )
+               {
+                  std::cout << "----engine:" << this << " fps=" << _fps << std::endl;
+                  fps.setValue( _fps );   
+                  _fps = 0;
+                  _clock = clock();
+               }
             }
          }
 
@@ -434,6 +436,9 @@ namespace platform
       protected:
          std::set<OrderClassId>  _interested;
          RefcountedTyped<Order>  _orderSend;
+
+         ui32                    _fps;
+         ui32                    _clock;
       };
    }
 
@@ -446,12 +451,13 @@ namespace platform
    public:
       // public output slots
       ResourceSliceuc   blendedSlice;
+      ResourceUi32      fps;
 
    public:
       ~EngineMpr()
       {
          std::cout << "destroy engine MPR" << std::endl;
-         _dispatcher.disconnect( *this );
+         _dispatcher.disconnect( this );
       }
 
       EngineMpr( ResourceVolumes vvolumes,
@@ -477,9 +483,9 @@ namespace platform
                   visInteracting,
                   vinterpolation,
                   handler, provider, dispatcher, fasterDisplayWhenInteracting ),
-      _sliceBlender( _mprSlicer.outOrdersComputed, vlut, vintensities, handler,  provider, dispatcher )
+      _sliceBlender( _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
       {
-         dispatcher.connect( *this );
+         dispatcher.connect( this );
          blendedSlice = _sliceBlender.blendedSlice;
          /*
          volumes.connect( this );

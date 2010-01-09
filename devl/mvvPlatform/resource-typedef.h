@@ -21,6 +21,9 @@ namespace platform
    /// hold a boolean
    typedef ResourceValue<bool>                           ResourceBool;
 
+   /// hold an unsigned int
+   typedef ResourceValue<ui32>                           ResourceUi32;
+
    /// hold a RGB image
    typedef ResourceValue< nll::core::Image< nll::ui8> >  ResourceImageuc;
 
