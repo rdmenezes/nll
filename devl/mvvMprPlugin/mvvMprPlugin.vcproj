@@ -428,6 +428,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\segment-tool-pointer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\segment-tool-sorter.h"
 				>
 			</File>

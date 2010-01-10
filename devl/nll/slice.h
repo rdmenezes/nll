@@ -49,8 +49,23 @@ namespace imaging
              const core::vector3f& axisy,
              const core::vector3f& origin,
              const core::vector2f& spacing ) :
-         _storage( size[ 0 ], size[ 1 ], size[ 2 ], false ), _axisx( axisx ), _axisy( axisy ), _spacing( spacing )
+         _storage( size[ 0 ], size[ 1 ], size[ 2 ], false )
       {
+         setGeometry( axisx, axisy, origin, spacing );
+      }
+
+      /**
+       @brief set a new slice geometry
+       */
+      void setGeometry( const core::vector3f& axisx,
+                        const core::vector3f& axisy,
+                        const core::vector3f& origin,
+                        const core::vector2f& spacing )
+      {
+         _axisx = axisx;
+         _axisy = axisy;
+         _spacing = spacing;
+
          // normalize
          float sx = static_cast<float>( _axisx.norm2() );
          float sy = static_cast<float>( _axisy.norm2() );

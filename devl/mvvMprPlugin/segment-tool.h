@@ -17,13 +17,14 @@ namespace platform
 
    /**
     @ingroup platform
-    @brief
+    @brief Tools that can be plugged on a segment
+    @note don't forget to call notify() on outputSegment if the slice is modified in updateSegment
     */
    class MVVMPRPLUGIN_API SegmentTool : public EventMouseReceiver, public EngineOrder, public LinkableDouble< Segment*, SegmentTool* >
    {
    public:
       // output of one tool is connected to the input of the following output
-      ResourceSliceuc   inputSegment;
+      ResourceSliceuc   inputSegment;     /// must never be modified directly
       ResourceSliceuc   outputSegment;
 
    public:
@@ -57,6 +58,8 @@ namespace platform
 
       /**
        @brief Tools are sorted according to their priority from highest to lowest
+              they are displayed from lowest->highest
+              received events from highest->lowest
        */
       virtual int priority() const
       {
@@ -65,9 +68,27 @@ namespace platform
 
       virtual bool _run()
       {
+         // update the geometry in case it is different
+         inputSegment.getValue().setGeometry( outputSegment.getValue().getAxisX(),
+                                              outputSegment.getValue().getAxisY(),
+                                              outputSegment.getValue().getOrigin(),
+                                              outputSegment.getValue().getSpacing() );
          if ( _canModify )
          {
-            // copy the current segment
+            if ( inputSegment.getValue().getStorage().size() != outputSegment.getValue().getStorage().size() )
+            {
+               outputSegment.getValue().getStorage().clone( inputSegment.getValue().getStorage() );
+            }
+
+            // copy the content
+            ResourceSliceuc::value_type::Storage::const_iterator in = inputSegment.getValue().getStorage().begin();
+            for ( ResourceSliceuc::value_type::Storage::iterator it = outputSegment.getValue().getStorage().begin(); it != outputSegment.getValue().getStorage().end(); ++it, ++in )
+            {
+               *it = *in;
+            }
+
+            // notify the changes
+            outputSegment.notify();
          }
 
          //do the changes on the output
@@ -75,7 +96,12 @@ namespace platform
          return true;
       }
 
+      /**
+       @brief action need to be run when the input slice changed. only <code>inputSegment</code> must not be modified
+       */
       virtual void updateSegment() = 0;
+
+      virtual void receive( Segment& sender, const EventMouse& event ) = 0;
 
       /**
        @brief if true, the event will not be propagated to other tools
@@ -88,8 +114,6 @@ namespace platform
       virtual void connect( Segment* segment );
 
       virtual void disconnect( Segment* segment );
-
-      virtual void receive( Segment& sender, const EventMouse& event ) = 0;
 
    private:
       // disabled copy
