@@ -25,6 +25,61 @@ namespace platform
 
       typedef std::vector< SegmentTool* > ToolsStorage;
 
+      class SegmentToolWrapper : public Engine
+      {
+      public:
+         // output of one tool is connected to the input of the following output
+         ResourceSliceuc   inputSegment;     /// must never be modified directly
+         ResourceSliceuc   outputSegment;
+
+         SegmentToolWrapper( Segment& segment, SegmentTool* tool, EngineHandler& handler ) : Engine( handler ), _tool( tool ), _segment( segment )
+         {
+            ensure( tool, "must not be zero" );
+
+            connect( inputSegment );
+            handler.connect( *this );
+
+            outputSegment = inputSegment;
+         }
+
+      private:
+         // update the segment as soon as it is changed
+         virtual bool _run()
+         {
+            // update the geometry in case it is different
+            outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
+                                                  inputSegment.getValue().getAxisY(),
+                                                  inputSegment.getValue().getOrigin(),
+                                                  inputSegment.getValue().getSpacing() );
+            if ( _tool->isModifyingMprImage() )
+            {
+               // if we modify the image & the dimenstion are not good, just deep copy the input
+               if ( inputSegment.getValue().getStorage().size() != outputSegment.getValue().getStorage().size() )
+               {
+                  outputSegment.getValue().getStorage().clone( inputSegment.getValue().getStorage() );
+               } else {
+                  // deep copy the input
+                  ResourceSliceuc::value_type::Storage::const_iterator in = inputSegment.getValue().getStorage().begin();
+                  for ( ResourceSliceuc::value_type::Storage::iterator it = outputSegment.getValue().getStorage().begin(); it != outputSegment.getValue().getStorage().end(); ++it, ++in )
+                  {
+                     *it = *in;
+                  }
+               }
+
+               // notify the changes
+               outputSegment.notify();
+            }
+
+            //do the changes on the output
+            _tool->updateSegment( outputSegment, _segment );
+            return true;
+         }
+
+      private:
+         SegmentTool*      _tool;
+         Segment&          _segment;
+      };
+
    public:
       // input slots
       ResourceVolumes               volumes;
@@ -44,7 +99,7 @@ namespace platform
       ResourceSliceuc               segment;
 
    public:
-      Segment( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false )
+      Segment( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false ), _handler( handler )
       {
          position.setValue( nll::core::vector3f( 0, 0, 0 ) );
          directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
@@ -81,9 +136,14 @@ namespace platform
       void _remove( SegmentTool* tool );
 
    protected:
+      typedef RefcountedTyped<SegmentToolWrapper>  Wrapper;
+      typedef std::vector<Wrapper>                 Wrappers;
+
       EngineMpr                           _slicer;
       ToolsStorage                        _tools;
       RefcountedTyped<SegmentToolSorter>  _sorter;
+      Wrappers                            _wrappers;
+      EngineHandler&                      _handler;
    };
 }
 }

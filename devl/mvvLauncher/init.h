@@ -11,6 +11,7 @@
 # include <mvvPlatform/engine-handler-impl.h>
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/layout-segment.h>
+# include <mvvMprPlugin/segment-tool-pointer.h>
 
 
 using namespace mvv;
@@ -27,6 +28,8 @@ namespace mvv
       Context                             context;
       EngineHandlerImpl                   engineHandler;
       OrderManagerThreadPool              orderManager;
+
+      SegmentToolPointer                  segmentPointer;
 
       ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
       {  
@@ -52,6 +55,8 @@ namespace mvv
 
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
+
+         (*segment1).connect( &segmentPointer );
 
          // segment 2
          RefcountedTyped<Segment> segment2;

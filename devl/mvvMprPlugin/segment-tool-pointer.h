@@ -10,13 +10,17 @@ namespace platform
    class MVVMPRPLUGIN_API SegmentToolPointer : public SegmentTool
    {
    public:
-      SegmentToolPointer( ResourceSliceuc inputSegment, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : SegmentTool( inputSegment, handler, provider, dispatcher )
+      virtual void updateSegment( ResourceSliceuc segment, Segment&  )
       {
-      }
+         if ( segment.getValue().getStorage().sizex() < 5 )
+            return;
 
-      virtual void updateSegment()
-      {
-         
+         std::cout << "segment - computed" << std::endl;
+         ResourceSliceuc::value_type::Storage::DirectionalIterator  it = segment.getValue().getIterator( 5, 5 );
+         for ( int n = 0; n < 15; ++n, ++it )
+         {
+            *it = 255;
+         }
       }
 
       virtual void receive( Segment& sender, const EventMouse& event )

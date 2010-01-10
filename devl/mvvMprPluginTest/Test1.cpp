@@ -22,12 +22,12 @@ public:
    EngineOrderTest( EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : 
       EngineOrder( handler, provider, dispatcher )
    {
-      dispatcher.connect( *this );
+      dispatcher.connect( this );
    }
 
    ~EngineOrderTest()
    {
-      _dispatcher.disconnect( *this );
+      _dispatcher.disconnect( this );
    }
 
    virtual void consume( RefcountedTyped<Order> order )

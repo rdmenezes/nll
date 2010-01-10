@@ -6,29 +6,36 @@ namespace platform
 {
    void Segment::updateToolsList()
    {
+
       // sort the tools
       (*_sorter).sort( _tools );
 
+      // TODO: if overhead is too big, we can simply update instead of recreating everything...
+      _wrappers.clear();
+      for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
+      {
+         _wrappers.push_back( RefcountedTyped<SegmentToolWrapper>( new SegmentToolWrapper( *this, *it, _handler ) ) );
+      }
+
+      
       // connect the first tool to the segment
-      ToolsStorage::iterator it = _tools.begin();
-      if ( _tools.size() )
+      Wrappers::iterator it = _wrappers.begin();
+      if ( _wrappers.size() )
       {
          (**it).inputSegment = segment;
          ++it;
       }
 
       // connect tool output to next tool input
-      for ( ; it != _tools.end(); )
+      for ( ; it != _wrappers.end(); )
       {
-         ToolsStorage::iterator cur = it;
-         ToolsStorage::iterator next = ++it;
-         if ( next != _tools.end() )
+         Wrappers::iterator cur = it;
+         Wrappers::iterator next = ++it;
+         if ( next != _wrappers.end() )
          {
             (**next).outputSegment = (**cur).inputSegment;
          }
       }
-
-      // duplicate or not the 
    }
 
    void Segment::connect( SegmentTool* tool )
