@@ -60,7 +60,7 @@ namespace platform
                             const nll::core::vector2f& zoom,
                             const nll::core::vector2ui& size,
                             InterpolationMode interpolation,
-                            RefcountedTyped<Volume> volume,
+                            Volume& volume,
                             SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName )
          {
          }
@@ -84,13 +84,13 @@ namespace platform
             {
             case LINEAR:
                {
-                  MprTrilinear mpr( *_volume );
+                  MprTrilinear mpr( _volume );
                   mpr.getSlice( slice );
                   break;
                }
             case NEAREST:
                {
-                  MprNN mpr( *_volume );
+                  MprNN mpr( _volume );
                   mpr.getSlice( slice );
                   break;
                }
@@ -105,6 +105,10 @@ namespace platform
          {
             return _volumeName;
          }
+	  private:
+		  // copy disabled
+		  OrderSliceCreator& operator=( const OrderSliceCreator& );
+		  OrderSliceCreator( const OrderSliceCreator& );
 
       protected:
          nll::core::vector3f     _position;
@@ -114,7 +118,7 @@ namespace platform
          nll::core::vector2f     _zoom;
          nll::core::vector2ui    _size;
          InterpolationMode       _interpolation;
-         RefcountedTyped<Volume> _volume;
+         Volume&				 _volume;
          SymbolVolume            _volumeName;
       };
 
@@ -238,7 +242,7 @@ namespace platform
                                                                     zoom.getValue(),
                                                                     size.getValue(),
                                                                     currentInterpolation,
-                                                                    *it,
+                                                                    **it,
                                                                     it.getName() ) );
 
                orders.push_back( order );
@@ -276,14 +280,11 @@ namespace platform
       class OrderSliceBlender : public Order
       {
       public:
-         OrderSliceBlender( ResourceOrders orders,
-                            ResourceMapTransferFunction maplut,
-                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _maplut( maplut ), _intensities( intensities )
+		  OrderSliceBlender( std::set<Order*> orders,
+                             ResourceMapTransferFunction maplut,
+                             ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _maplut( maplut ), _intensities( intensities ), _orders( orders )
          {
-            for ( ResourceOrders::Iterator it = orders.begin(); it != orders.end(); ++it )
-            {
-               _orders.insert( (*it) );
-            }
+          
          }
 
       protected:
@@ -294,10 +295,10 @@ namespace platform
             //std::vector< nll::imaging::BlendSliceInfof<ResourceLut> > sliceInfos;
 
             int n = 0;
-            for ( ResourceOrders::Iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
+			for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
             {
                //std::cout << "refnb=" << (*it).getNumberOfReference() << std::endl;
-               OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( *it ) );
+               OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( *it );
                impl::OrderSliceCreatorResult* result = dynamic_cast<impl::OrderSliceCreatorResult*>( (**it).getResult() );
                ensure( result, "must nnot be null" );
                if ( !orderCreator )
@@ -306,6 +307,10 @@ namespace platform
 
                float intensity = 0;
                ResourceLut lut;
+
+               // we have to be careful here: we don't wan't to have side effects with
+               // multithreading (i.e. unsafely increase/decrease refcount of a shared object...)
+               // so we use refereces
                bool res  = _maplut.find( volume, lut ) && _intensities.find( volume, intensity );
                if ( res )
                {
@@ -313,7 +318,6 @@ namespace platform
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
                }
             }
-
             
             if ( sliceInfos.size() )
             {
@@ -338,7 +342,7 @@ namespace platform
          }
 
       protected:
-         ResourceOrders                      _orders;
+		 std::set<Order*>                    _orders;
          ResourceMapTransferFunction         _maplut;
          ResourceFloats                      _intensities;
       };
@@ -398,7 +402,14 @@ namespace platform
             {
                //std::cout << "blend order"<< std::endl;
                // we have been notified
-               _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( ordersToBlend, lut, intensities ) );
+                std::set<Order*> orders;
+                _copy = ResourceOrders();
+                for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
+                {
+                    orders.insert( &( **it ) );
+                    _copy.insert( *it );
+                }
+               _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( orders, lut, intensities ) );
                _orderConsumed = true;
                _orderProvider.pushOrder( _orderSend );
                return true;
@@ -446,6 +457,7 @@ namespace platform
       protected:
          std::set<OrderClassId>  _interested;
          RefcountedTyped<Order>  _orderSend;
+         ResourceOrders          _copy;
 
          ui32                    _fps;
          ui32                    _clock;
