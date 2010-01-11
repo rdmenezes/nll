@@ -8,6 +8,14 @@ namespace mvv
 {
 namespace platform
 {
+   namespace impl
+   {
+      struct ResourceVolumesList
+      {
+         ResourceStorageVolumes        _volumeStorage;
+         ResourceSet< SymbolVolume >   _volumes;
+      };
+   }
    // TODO test multiple reference?
 
    /**
@@ -17,7 +25,7 @@ namespace platform
     In case the storage doesn't contain the volume anymore (but still referenced somewhere else), 
     we can remove volumes safely
     */
-   class MVVPLATFORM_API ResourceVolumes : public ResourceSet< SymbolVolume >
+   class MVVPLATFORM_API ResourceVolumes : public Resource< impl::ResourceVolumesList >
    {
       typedef ResourceSet< SymbolVolume > Base;
 
@@ -25,7 +33,7 @@ namespace platform
       class Iterator
       {
       public:
-         Iterator( ResourceStorageVolumes storage, Storage::iterator it, Storage::iterator end ) : _storage( storage ), _it( it ), _end( end )
+         Iterator( ResourceStorageVolumes storage, ResourceSet< SymbolVolume >::Storage::iterator it, ResourceSet< SymbolVolume >::Storage::iterator end ) : _storage( storage ), _it( it ), _end( end )
          {
             // init
             if ( _it != _end )
@@ -39,6 +47,7 @@ namespace platform
                      break;
                   res = _storage.find( *_it, _vol );
                }
+    //           std::cout << "val=" << (*_it).getName() << std::endl;
             }
          }
 
@@ -60,9 +69,12 @@ namespace platform
             if ( _it == _end )
                return *this;
             bool res = _storage.find( *_it, _vol );
+       //     std::cout << "found=" << res << std::endl;
+       //     std::cout << "val=" << (*_it).getName() << std::endl;
             while ( ( !res || _vol.isEmpty() ) && _it != _end )
             {
                // skip if non valid reference or reference not found
+       //        std::cout << "skip:" << &*( _vol ) << std::endl;
                ++_it;
                if ( _it == _end )
                   return *this;
@@ -73,7 +85,7 @@ namespace platform
 
          RefcountedTyped<Volume> operator*()
          {
-            //assert( _vol.isEmpty() );
+            assert( !_vol.isEmpty() );
             return _vol;
          }
 
@@ -86,33 +98,43 @@ namespace platform
 
       private:
          ResourceStorageVolumes  _storage;
-         Storage::iterator       _it;
-         Storage::iterator       _end;
+         ResourceSet< SymbolVolume >::Storage::iterator       _it;
+         ResourceSet< SymbolVolume >::Storage::iterator       _end;
          RefcountedTyped<Volume> _vol;
       };
 
-      ResourceVolumes( ResourceStorageVolumes volumeStorage ) : _volumeStorage( volumeStorage )
+      ResourceVolumes( ResourceStorageVolumes volumeStorage ) : Resource( new impl::ResourceVolumesList )
       {
-         // nothing to do
+         getValue()._volumeStorage = volumeStorage;
       }
 
       bool find( SymbolVolume name, RefcountedTyped<Volume>& volume )
       {
-         return _volumeStorage.find( name, volume );
+         return getValue()._volumeStorage.find( name, volume );
       }
 
       Iterator begin()
       {
-         return Iterator( _volumeStorage, getValue().begin(), getValue().end() );
+         return Iterator( getValue()._volumeStorage, getValue()._volumes.begin(), getValue()._volumes.end() );
       }
 
       Iterator end()
       {
-         return Iterator( _volumeStorage, getValue().end(), getValue().end() );
+         return Iterator( getValue()._volumeStorage, getValue()._volumes.end(), getValue()._volumes.end() );
+      }
+
+      size_t size() const
+      {
+         return getValue()._volumeStorage.size();
+      }
+
+      ResourceSet< SymbolVolume >& getVolumes()
+      {
+         return getValue()._volumes;
       }
 
    private:
-      ResourceStorageVolumes     _volumeStorage;
+      //ResourceStorageVolumes     _volumeStorage;
    };
 }
 }

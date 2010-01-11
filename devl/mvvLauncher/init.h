@@ -31,7 +31,7 @@ namespace mvv
 
       SegmentToolPointer                  segmentPointer;
 
-      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 80, 80, 3 ), orderManager( 5 )
       {  
          initContext();
          initLayout();
@@ -42,8 +42,8 @@ namespace mvv
          // segment 1
          RefcountedTyped<Segment> segment1;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
-         (*segment1).volumes.insert( SymbolVolume::create( "ct1" ) );
-         (*segment1).volumes.insert( SymbolVolume::create( "pt1" ) );
+         (*segment1).volumes.getVolumes().insert( SymbolVolume::create( "ct1" ) );
+         (*segment1).volumes.getVolumes().insert( SymbolVolume::create( "pt1" ) );
          (*segment1).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
          (*segment1).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
 
@@ -56,13 +56,13 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
-         (*segment1).connect( &segmentPointer );
+         //(*segment1).connect( &segmentPointer );
 
          // segment 2
          RefcountedTyped<Segment> segment2;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
-         (*segment2).volumes.insert( SymbolVolume::create( "ct1" ) );
-         (*segment2).volumes.insert( SymbolVolume::create( "pt1" ) );
+         (*segment2).volumes.getVolumes().insert( SymbolVolume::create( "ct1" ) );
+         (*segment2).volumes.getVolumes().insert( SymbolVolume::create( "pt1" ) );
          (*segment2).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
          (*segment2).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
 

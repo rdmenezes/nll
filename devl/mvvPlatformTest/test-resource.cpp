@@ -81,48 +81,55 @@ struct TestResource
 {
    void testResourceVolumes()
    {
-      ResourceStorageVolumes storage;
-      Volume* v1 = new Volume();
-      Volume* v2 = new Volume();
-      Volume* v3 = new Volume();
-      Volume* v4 = new Volume();
-
-      storage.insert( SymbolVolume::create("v1"), RefcountedTyped<Volume>( v1 ) );
-      storage.insert( SymbolVolume::create("v2"), RefcountedTyped<Volume>( v2 ) );
-      storage.insert( SymbolVolume::create("v3"), RefcountedTyped<Volume>( v3 ) );
-      storage.insert( SymbolVolume::create("v4"), RefcountedTyped<Volume>( v4 ) );
-
-      ResourceVolumes volumes( storage );
-      volumes.insert( SymbolVolume::create("v1") );
-      volumes.insert( SymbolVolume::create("v2") );
-      volumes.insert( SymbolVolume::create("v3") );
-
-      // check iterator
+      std::cout << "----------------------------TEST" << std::endl;
+      for ( int n = 0; n < 1000; ++n )
       {
-         ResourceVolumes::Iterator it = volumes.begin();
-         TESTER_ASSERT( &(*it).getData() == v1 );
+         ResourceStorageVolumes storage;
+         Volume* v1 = new Volume();
+         Volume* v2 = new Volume();
+         Volume* v3 = new Volume();
+         Volume* v4 = new Volume();
 
-         ++it;
-         TESTER_ASSERT( &(*it).getData() == v2 );
+         storage.insert( SymbolVolume::create("v1"), RefcountedTyped<Volume>( v1 ) );
+         storage.insert( SymbolVolume::create("v2"), RefcountedTyped<Volume>( v2 ) );
+         storage.insert( SymbolVolume::create("v3"), RefcountedTyped<Volume>( v3 ) );
+         storage.insert( SymbolVolume::create("v4"), RefcountedTyped<Volume>( v4 ) );
 
-         ++it;
-         TESTER_ASSERT( &(*it).getData() == v3 );
+         ResourceVolumes volumes( storage );
+         volumes.getVolumes().insert( SymbolVolume::create("v1") );
+         volumes.getVolumes().insert( SymbolVolume::create("v2") );
+         volumes.getVolumes().insert( SymbolVolume::create("v3") );
 
-         TESTER_ASSERT( ++it == volumes.end() );
+         // check iterator
+         {
+            ResourceVolumes::Iterator it = volumes.begin();
+            TESTER_ASSERT( &(*it).getData() == v1 );
+
+            ++it;
+            TESTER_ASSERT( &(*it).getData() == v2 );
+
+            ++it;
+            TESTER_ASSERT( &(*it).getData() == v3 );
+
+            TESTER_ASSERT( ++it == volumes.end() );
+         }
+
+
+         // same but remove storage
+         {
+            storage.erase( SymbolVolume::create("v1") );
+            storage.erase( SymbolVolume::create("v3") );
+
+            ResourceVolumes::Iterator it = volumes.begin();
+            TESTER_ASSERT( &(*it).getData() == v2 );
+
+
+            TESTER_ASSERT( ++it == volumes.end() );
+         }
       }
-
-
-      // same but remove storage
-      {
-         storage.erase( SymbolVolume::create("v1") );
-         storage.erase( SymbolVolume::create("v3") );
-
-         ResourceVolumes::Iterator it = volumes.begin();
-         TESTER_ASSERT( &(*it).getData() == v2 );
-
-
-         TESTER_ASSERT( ++it == volumes.end() );
-      }
+      std::cout << "----------------------------SUCESS" << std::endl;
+      for ( int n = 0; n < 4 * 1e7; ++n )
+         ;
    }
 
    void testResourceMap()

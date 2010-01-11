@@ -23,7 +23,7 @@ namespace platform
          }
       }
 
-      virtual void receive( Segment& sender, const EventMouse& event )
+      virtual void receive( Segment& , const EventMouse&  )
       {
       }
 

@@ -11,6 +11,16 @@ void handleOrders( int )
    applicationVariables->engineHandler.run();
    applicationVariables->orderManager.run();
 
+
+   RefcountedTyped<Segment> segment1;
+   applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
+   (*segment1).position.notify();
+
+   RefcountedTyped<Segment> segment2;
+   bool found = applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
+   if ( found )
+      (*segment2).position.notify();
+
    /*
    static int nbFps = 0;
    static unsigned last = clock();
@@ -183,6 +193,11 @@ void keyboard(unsigned char key, int x, int y)
       RefcountedTyped<Segment> segment1;
       applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
       (*segment1).position.notify();
+
+      RefcountedTyped<Segment> segment2;
+      bool found = applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
+      if ( found )
+         (*segment2).position.notify();
    }
    if ( key == 'm' )
    {

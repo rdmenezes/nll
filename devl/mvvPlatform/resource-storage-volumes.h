@@ -192,6 +192,11 @@ namespace platform
       {
          return ConstIterator( getValue().volumes.end() );
       }
+
+      size_t size() const
+      {
+         return getValue().volumes.size();
+      }
    };
 }
 }

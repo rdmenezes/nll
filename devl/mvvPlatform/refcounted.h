@@ -22,7 +22,7 @@ namespace platform
       struct      Internals
       {
          void*    data;
-         mutable unsigned ref;
+         mutable int ref;
          bool     own;
 
          Internals()
@@ -94,7 +94,7 @@ namespace platform
          {
             if ( _data )
             {
-               assert( _data->ref );
+               assert( _data->ref > 0 );
                --_data->ref;
                if ( !_data->ref )
                {

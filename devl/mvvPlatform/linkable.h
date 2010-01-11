@@ -65,9 +65,9 @@ namespace platform
 
       void removeConnections()
       {
-         for ( LinkStorage::iterator it = _links.begin(); it != _links.end(); ++it )
+         while( _links.size() )
          {
-            disconnect( *it );
+            disconnect( *_links.begin() );
          }
          _hasBeenDestructed = true;
       }

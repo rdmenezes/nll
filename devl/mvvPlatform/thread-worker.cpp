@@ -44,8 +44,9 @@ namespace platform
                {
                   (*_currentOrder).compute();
                }
-               catch ( std::exception )
+               catch ( std::exception e )
                {
+                  std::cout << "ex=" << e.what() << std::endl;
                   std::cout << "--------------------------exception thrown------------------------" << std::endl;
                }
                ensure( (*_currentOrder).getResult(), "result requires not to be null" );
