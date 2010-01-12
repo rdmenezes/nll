@@ -3,6 +3,7 @@
 
 # include <assert.h>
 # include <iostream>
+# include <nll/nll.h>
 # include "mvvPlatform.h"
 
 namespace mvv
@@ -214,6 +215,7 @@ namespace platform
 
       T& operator*()
       {
+         ensure( getNumberOfReference(), "invalid operation" );
          return *reinterpret_cast<T*>( _data->data );
       }
 
@@ -224,6 +226,7 @@ namespace platform
 
       const T& operator*() const
       {
+         ensure( getNumberOfReference(), "invalid operation" );
          return *reinterpret_cast<T*>( _data->data );
       }
 

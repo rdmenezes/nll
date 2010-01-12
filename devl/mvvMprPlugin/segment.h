@@ -27,12 +27,18 @@ namespace platform
 
       class SegmentToolWrapper : public Engine
       {
-      public:
+      private:
          // output of one tool is connected to the input of the following output
          ResourceSliceuc   inputSegment;     /// must never be modified directly
+
+      public:
          ResourceSliceuc   outputSegment;
 
-         SegmentToolWrapper( Segment& segment, SegmentTool* tool, EngineHandler& handler ) : Engine( handler ), _tool( tool ), _segment( segment )
+      public:
+         SegmentToolWrapper( ResourceSliceuc vinputSegment,
+                             Segment& segment,
+                             SegmentTool* tool,
+                             EngineHandler& handler ) : Engine( handler ), inputSegment( vinputSegment ), _tool( tool ), _segment( segment )
          {
             ensure( tool, "must not be zero" );
 
@@ -46,6 +52,17 @@ namespace platform
          // update the segment as soon as it is changed
          virtual bool _run()
          {
+            //std::cout << "size=" << inputSegment.getValue().size()[ 0 ] << " " << inputSegment.getValue().size()[ 1 ] << std::endl;
+
+            if ( !inputSegment.getValue().size()[ 0 ] ||
+                 !inputSegment.getValue().size()[ 1 ] ||
+                 !inputSegment.getValue().size()[ 2 ] )
+            {
+               // we have no segment to display, then just do nothing
+               return true;
+            }
+
+
             // update the geometry in case it is different
             outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
                                                   inputSegment.getValue().getAxisY(),
@@ -58,12 +75,10 @@ namespace platform
                {
                   outputSegment.getValue().getStorage().clone( inputSegment.getValue().getStorage() );
                } else {
-                  // deep copy the input
-                  ResourceSliceuc::value_type::Storage::const_iterator in = inputSegment.getValue().getStorage().begin();
-                  for ( ResourceSliceuc::value_type::Storage::iterator it = outputSegment.getValue().getStorage().begin(); it != outputSegment.getValue().getStorage().end(); ++it, ++in )
-                  {
-                     *it = *in;
-                  }
+                  // quick copy, we know memory is continuous
+                  Sliceuc::iterator inputBegin = inputSegment.getValue().getStorage().begin();
+                  Sliceuc::iterator outputBegin = outputSegment.getValue().getStorage().begin();
+                  memcpy( &*outputBegin, &*inputBegin, inputSegment.getValue().getStorage().size() );
                }
 
                // notify the changes
@@ -98,6 +113,9 @@ namespace platform
       // output slots
       ResourceSliceuc               segment;
 
+   private:
+      ResourceSliceuc               _segment;
+
    public:
       Segment( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false ), _handler( handler )
       {
@@ -110,7 +128,8 @@ namespace platform
          interpolation.setValue( LINEAR );
 
          // point to the correct resource..
-         segment = _slicer.blendedSlice;
+         _segment = _slicer.blendedSlice;
+         segment = _segment;
 
          // use a default priority sorter
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );

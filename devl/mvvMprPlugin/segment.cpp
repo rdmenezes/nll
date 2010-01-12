@@ -14,27 +14,20 @@ namespace platform
       _wrappers.clear();
       for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
       {
-         _wrappers.push_back( RefcountedTyped<SegmentToolWrapper>( new SegmentToolWrapper( *this, *it, _handler ) ) );
+         if ( _wrappers.size() == 0 )
+         {
+            // init with the initial segment
+            _wrappers.push_back( RefcountedTyped<SegmentToolWrapper>( new SegmentToolWrapper( _segment, *this, *it, _handler ) ) );
+         } else {
+            // just take a reference on the last tools as input
+            RefcountedTyped<SegmentToolWrapper> wrapper( new SegmentToolWrapper( (**_wrappers.rbegin()).outputSegment, *this, *it, _handler ) );
+            _wrappers.push_back( wrapper );            
+         }
       }
 
-      
-      // connect the first tool to the segment
-      Wrappers::iterator it = _wrappers.begin();
       if ( _wrappers.size() )
       {
-         (**it).inputSegment = segment;
-         ++it;
-      }
-
-      // connect tool output to next tool input
-      for ( ; it != _wrappers.end(); )
-      {
-         Wrappers::iterator cur = it;
-         Wrappers::iterator next = ++it;
-         if ( next != _wrappers.end() )
-         {
-            (**next).outputSegment = (**cur).inputSegment;
-         }
+         segment = (**_wrappers.rbegin()).outputSegment;
       }
    }
 

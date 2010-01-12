@@ -425,6 +425,7 @@ namespace platform
                if ( !result )
                   throw std::exception( "unexpected order received!" );
                blendedSlice.setValue( result->blendedSlice );
+               //std::cout << "connected engines=" << blendedSlice.getNbConnectedEngines() << std::endl;
 
                _orderSend.unref();
                ordersToBlend.clear();

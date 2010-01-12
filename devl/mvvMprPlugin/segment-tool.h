@@ -23,8 +23,9 @@ namespace platform
    class MVVMPRPLUGIN_API SegmentTool : public LinkableDouble< Segment*, SegmentTool* >
    {
    public:
-      SegmentTool()
-      {}
+      SegmentTool( bool canModifyImage ) : _canModify( canModifyImage )
+      {
+      }
 
       virtual ~SegmentTool();
 
@@ -48,7 +49,7 @@ namespace platform
               they are displayed from lowest->highest
               received events from highest->lowest
        */
-      virtual int priority() const
+      virtual f32 priority() const
       {
          return 0;
       }

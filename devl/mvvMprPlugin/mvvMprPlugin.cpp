@@ -8,6 +8,7 @@
 #include "layout-segment.h"
 #include "context-segments.h"
 #include "segment-tool-pointer.h"
+#include "segment-tool-camera.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

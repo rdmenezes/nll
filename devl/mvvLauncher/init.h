@@ -12,6 +12,7 @@
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/segment-tool-pointer.h>
+# include <mvvMprPlugin/segment-tool-camera.h>
 
 
 using namespace mvv;
@@ -31,6 +32,7 @@ namespace mvv
       OrderManagerThreadPool              orderManager;
 
       SegmentToolPointer                  segmentPointer;
+      RefcountedTyped<SegmentToolCamera> segmentToolCamera;
 
       ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
       {  
@@ -40,7 +42,7 @@ namespace mvv
          context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
          context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
-		 //context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
+		   //context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
          //context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
@@ -61,7 +63,9 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
-         //(*segment1).connect( &segmentPointer );
+         (*segment1).connect( &segmentPointer );
+         segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
+         (*segment1).connect( &*segmentToolCamera );
 
          // segment 2
          RefcountedTyped<Segment> segment2;

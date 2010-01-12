@@ -132,6 +132,27 @@ struct TestResource
          ;
    }
 
+   void testResourceSimpleCount()
+   {
+      typedef ResourceMap<int, std::string>  Map;
+
+      Map m1;
+      Map m2;
+
+      // check operator= has been called only once
+      m1.insert( 0, "0" );
+      TESTER_ASSERT( m1.getNumberOfReference() == 1 );
+      TESTER_ASSERT( m2.getNumberOfReference() == 1 );
+
+      m2 = m1;
+      TESTER_ASSERT( m1.getNumberOfReference() == 2 );
+      TESTER_ASSERT( m2.getNumberOfReference() == 2 );
+
+      m2 = m1;
+      TESTER_ASSERT( m1.getNumberOfReference() == 2 );
+      TESTER_ASSERT( m2.getNumberOfReference() == 2 );
+   }
+
    void testResourceMap()
    {
       typedef ResourceMap<int, std::string>  Map1;
@@ -194,4 +215,5 @@ TESTER_TEST_SUITE(TestResource);
 TESTER_TEST(testResourceVolumes);
 TESTER_TEST(testResourceMap);
 TESTER_TEST(testResourceScopedBarrier);
+TESTER_TEST(testResourceSimpleCount);
 TESTER_TEST_SUITE_END();

@@ -5,6 +5,7 @@
 # include "mvvPlatform.h"
 # include "refcounted.h"
 # include "notifiable.h"
+# include "types.h"
 
 namespace mvv
 {
@@ -50,6 +51,11 @@ namespace platform
 
          virtual void notify();
 
+         ui32 getNbConnectedEngines() const
+         {
+            return static_cast<ui32>( getData().links.size() );
+         }
+
          void connect( Engine* e );
 
          void disconnect( Engine* e );
@@ -61,6 +67,17 @@ namespace platform
          ResourceState getState() const;
 
          virtual ~Resource();
+
+         Resource& operator=( const Resource& r )
+         {
+            Base::operator=( r );
+            if ( r._data != _data )
+            {
+               // in case the resource is different, we need to notify it has changed
+               notify();
+            }
+            return *this;
+         }
 
       };
    }
