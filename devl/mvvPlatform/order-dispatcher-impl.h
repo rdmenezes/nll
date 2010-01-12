@@ -24,7 +24,7 @@ namespace platform
        @brief Distach an order to some consumers. The implementation is taking advantage of the
               <code>interestedOrder</code> of the consumer to not dispatch an order to all consumers
        */
-      virtual void dispatch( RefcountedTyped<Order> order )
+      virtual void dispatch( Order* order )
       {
          Consumers::iterator it = _consumers.find( ( *order ).getClassId() );
          if ( it != _consumers.end() )

@@ -8,7 +8,7 @@ namespace mvv
 {
 namespace platform
 {
-   void ThreadWorker::run( RefcountedTyped<Order> order )
+   void ThreadWorker::run( Order* order )
    {
       {
          boost::mutex::scoped_lock lock( _mutex );
@@ -53,7 +53,7 @@ namespace platform
                _hasFinished = true;
                _pool->workerFinished( _currentOrder, _workerId );
                //std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " end, time=" << todoDebug.getCurrentTime() << " classId=" << (*_currentOrder).getClassId().getName() << std::endl;
-               _currentOrder.unref();
+               //_currentOrder.unref();
             }
          }
       }

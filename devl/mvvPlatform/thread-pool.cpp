@@ -34,7 +34,7 @@ namespace platform
       //std::cout << clock() / (double)CLOCKS_PER_SEC << "Notified pool" << std::endl;
    }
 
-   void ThreadPool::workerFinished( RefcountedTyped<Order> order, ui32 workerId )
+   void ThreadPool::workerFinished( Order* order, ui32 workerId )
    {
       // we need to synchronize as we update internal data
       boost::mutex::scoped_lock lock( _mutex );
@@ -52,7 +52,7 @@ namespace platform
       return o;
    }
 
-   void ThreadPool::push( RefcountedTyped<Order> order )
+   void ThreadPool::push( Order* order )
    {
       // we need to synchronize as we update internal data
       boost::mutex::scoped_lock lock( _mutex );
@@ -63,7 +63,7 @@ namespace platform
       notify();
    }
 
-   void ThreadPool::dispatchToWorker( RefcountedTyped<Order> order )
+   void ThreadPool::dispatchToWorker( Order* order )
    {
       ThreadWorker* worker = 0;
       {

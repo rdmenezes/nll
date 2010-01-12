@@ -21,7 +21,7 @@ namespace imaging
    {
       typedef imaging::Slice<InputType>      Slice;
 
-      BlendSliceInfo( const Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
+      BlendSliceInfo( Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
       {}
 
       BlendSliceInfo& operator=( const BlendSliceInfo& rhs )
@@ -32,7 +32,7 @@ namespace imaging
          return *this;
       }
 
-      Slice                   slice;
+      Slice&                  slice;
       float                   blendFactor;
       Lut&                    lut;
    };

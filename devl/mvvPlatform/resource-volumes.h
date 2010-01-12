@@ -16,14 +16,11 @@ namespace platform
          ResourceSet< SymbolVolume >   _volumes;
       };
    }
-   // TODO test multiple reference?
 
    /**
-    @brief Hold reference volumes stored in a specific storage.
-
-    The principle is for example for a Segment, it is holding reference to volumes.
-    In case the storage doesn't contain the volume anymore (but still referenced somewhere else), 
-    we can remove volumes safely
+    @brief Hold reference volumes stored in a specific storage. A volume name can be potentially
+           associated with an empty volume (example: we preallocate the name for loading, but
+           voxel data is not yet available)
     */
    class MVVPLATFORM_API ResourceVolumes : public Resource< impl::ResourceVolumesList >
    {
@@ -47,7 +44,6 @@ namespace platform
                      break;
                   res = _storage.find( *_it, _vol );
                }
-    //           std::cout << "val=" << (*_it).getName() << std::endl;
             }
          }
 
@@ -69,12 +65,8 @@ namespace platform
             if ( _it == _end )
                return *this;
             bool res = _storage.find( *_it, _vol );
-       //     std::cout << "found=" << res << std::endl;
-       //     std::cout << "val=" << (*_it).getName() << std::endl;
             while ( ( !res || _vol.isEmpty() ) && _it != _end )
             {
-               // skip if non valid reference or reference not found
-       //        std::cout << "skip:" << &*( _vol ) << std::endl;
                ++_it;
                if ( _it == _end )
                   return *this;
@@ -128,13 +120,15 @@ namespace platform
          return getValue()._volumeStorage.size();
       }
 
-      ResourceSet< SymbolVolume >& getVolumes()
+      void insert( SymbolVolume val )
       {
-         return getValue()._volumes;
+         getValue()._volumes.insert( val );
       }
 
-   private:
-      //ResourceStorageVolumes     _volumeStorage;
+      void erase( SymbolVolume val )
+      {
+         getValue()._volumes.erase( val );
+      }
    };
 }
 }

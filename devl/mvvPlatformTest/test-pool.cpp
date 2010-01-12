@@ -60,14 +60,14 @@ struct TestPool
       ThreadPool pool( 2 );
       boost::thread dispatchThread( boost::ref( pool ) );
 
-      pool.push( o1 );
+      pool.push( &*o1 );
       wait( 1 );
 
       ThreadPool::Orders finished = pool.getFinishedOrdersAndClearList();
 
       // check the order has been run
       // check all references are gone ( only o1 & finished )
-      TESTER_ASSERT( finished.size() == 1 && finished[ 0 ].getNumberOfReference() == 2 );
+      TESTER_ASSERT( finished.size() == 1  );
       pool.kill();
    }
 
@@ -84,9 +84,9 @@ struct TestPool
       ThreadPool::Orders finished;
       for ( int n = 0; n < 10; ++n )
       {
-         pool.push( o1 );
-         pool.push( o2 );
-         pool.push( o3 );
+         pool.push( &*o1 );
+         pool.push( &*o2 );
+         pool.push( &*o3 );
 
          wait( 0.3f );
          finished = pool.getFinishedOrdersAndClearList();
@@ -97,9 +97,9 @@ struct TestPool
 
       // check the order has been run
       // check all references are gone ( only o1 & finished )
-      TESTER_ASSERT( finished.size() == 3 && finished[ 0 ].getNumberOfReference() == 2 && (*finished[ 0 ]).getResult()
-                                          && finished[ 1 ].getNumberOfReference() == 2 && (*finished[ 1 ]).getResult()
-                                          && finished[ 2 ].getNumberOfReference() == 2 && (*finished[ 2 ]).getResult() );
+      TESTER_ASSERT( finished.size() == 3 && (*finished[ 0 ]).getResult()
+                                          && (*finished[ 1 ]).getResult()
+                                          && (*finished[ 2 ]).getResult() );
       std::cout << "kill" << std::endl;
       pool.kill();
    }
@@ -113,26 +113,26 @@ struct TestPool
          RefcountedTyped<Order> o2( new DummyOrder3( 0.2f, Order::Predecessors() ) );
 
          Order::Predecessors pred;
-         pred.insert( o2 );
-         pred.insert( o1 );
-         pred.insert( o0 );
+         pred.insert( &*o2 );
+         pred.insert( &*o1 );
+         pred.insert( &*o0 );
          RefcountedTyped<Order> o3( new DummyOrder3( 0.3f, pred ) );
 
          ThreadPool pool( 4 );
          boost::thread dispatchThread( boost::ref( pool ) );
 
-         pool.push( o3 );
-         pool.push( o0 );
-         pool.push( o1 );
-         pool.push( o2 );
+         pool.push( &*o3 );
+         pool.push( &*o0 );
+         pool.push( &*o1 );
+         pool.push( &*o2 );
 
          wait( 3 );
          ThreadPool::Orders finished = pool.getFinishedOrdersAndClearList();
          TESTER_ASSERT( finished.size() == 4 );
-         TESTER_ASSERT( finished.size() == 4 && finished[ 0 ].getNumberOfReference() == 4 && (*finished[ 0 ]).getResult()
-                                             && finished[ 1 ].getNumberOfReference() == 4 && (*finished[ 1 ]).getResult()
-                                             && finished[ 2 ].getNumberOfReference() == 4 && (*finished[ 2 ]).getResult()
-                                             && finished[ 3 ].getNumberOfReference() == 2 && (*finished[ 3 ]).getResult() );
+         TESTER_ASSERT( finished.size() == 4 &&(*finished[ 0 ]).getResult()
+                                             && (*finished[ 1 ]).getResult()
+                                             && (*finished[ 2 ]).getResult()
+                                             && (*finished[ 3 ]).getResult() );
       }
    }
    
@@ -140,6 +140,6 @@ struct TestPool
 
 TESTER_TEST_SUITE(TestPool);
 TESTER_TEST(testPredecessor);
-//TESTER_TEST(testDummy);
-//TESTER_TEST(testMulti);
+TESTER_TEST(testDummy);
+TESTER_TEST(testMulti);
 TESTER_TEST_SUITE_END();

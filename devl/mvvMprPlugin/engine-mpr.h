@@ -150,8 +150,7 @@ namespace platform
             _dispatcher.disconnect( this );
          }
 
-         EngineMprSlice( bool orderConsumer,             /// if true, it means the blender has copied the orders and they can be safely disposed
-                         ResourceVolumes vvolumes,
+         EngineMprSlice( ResourceVolumes vvolumes,
                          ResourceVector3f vposition,
                          ResourceVector3f vdirectionx,
                          ResourceVector3f vdirectiony,
@@ -161,7 +160,6 @@ namespace platform
                          ResourceBool visInteracting,
                          ResourceInterpolationMode vinterpolation,
                          EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting ) : 
-            _orderConsumed( orderConsumer ),
             volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), isInteracting( visInteracting ), interpolation( vinterpolation ),
             EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting )
          {
@@ -184,7 +182,7 @@ namespace platform
             interpolation.connect( this );
          }
 
-         virtual void consume( RefcountedTyped<Order> order )
+         virtual void consume( Order* )
          {
             if ( _ordersCheck.size() == 0 )
             {
@@ -228,8 +226,8 @@ namespace platform
             if ( _ordersSend.size() )
                return false;
 
-            if ( !_orderConsumed )
-               return false;
+           // if ( !_orderConsumed )
+           //    return false;
 
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
@@ -246,9 +244,8 @@ namespace platform
                                                                     it.getName() ) );
 
                orders.push_back( order );
-               _orderProvider.pushOrder( order );
+               _orderProvider.pushOrder( &*order );
             }
-            _orderConsumed = false;
             _ordersSend = orders;
             _ordersCheck = orders;
             return true;
@@ -264,7 +261,6 @@ namespace platform
          std::set<OrderClassId>  _interested;
          std::vector< RefcountedTyped<Order> >  _ordersSend;
          std::vector< RefcountedTyped<Order> >  _ordersCheck;
-         bool& _orderConsumed;
       };
 
 
@@ -281,23 +277,25 @@ namespace platform
       {
       public:
 		  OrderSliceBlender( std::set<Order*> orders,
-                             ResourceMapTransferFunction maplut,
-                             ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _maplut( maplut ), _intensities( intensities ), _orders( orders )
+                           ResourceMapTransferFunction& maplut,
+                           ResourceFloats& intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _maplut( maplut ), _intensities( intensities ), _orders( orders )
          {
           
          }
 
+      private:
+         // disable copy
+         OrderSliceBlender( const OrderSliceBlender& );
+         OrderSliceBlender& operator=( OrderSliceBlender& );
+
       protected:
          virtual OrderResult* _compute()
          {
-            //std::cout << "compute order:" << this->getId() << std::endl;
             std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
-            //std::vector< nll::imaging::BlendSliceInfof<ResourceLut> > sliceInfos;
 
             int n = 0;
-			for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
+			   for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
             {
-               //std::cout << "refnb=" << (*it).getNumberOfReference() << std::endl;
                OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( *it );
                impl::OrderSliceCreatorResult* result = dynamic_cast<impl::OrderSliceCreatorResult*>( (**it).getResult() );
                ensure( result, "must nnot be null" );
@@ -310,17 +308,17 @@ namespace platform
 
                // we have to be careful here: we don't wan't to have side effects with
                // multithreading (i.e. unsafely increase/decrease refcount of a shared object...)
-               // so we use refereces
+               // so we use refereces 
                bool res  = _maplut.find( volume, lut ) && _intensities.find( volume, intensity );
                if ( res )
                {
-                  //sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut>( result->getSlice(), intensity, lut ) );
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
                }
             }
             
             if ( sliceInfos.size() )
             {
+               
                Sliceuc result( nll::core::vector3ui( sliceInfos[ 0 ].slice.size()[ 0 ],
                                                      sliceInfos[ 0 ].slice.size()[ 1 ],
                                            3 ),
@@ -342,9 +340,9 @@ namespace platform
          }
 
       protected:
-		 std::set<Order*>                    _orders;
-         ResourceMapTransferFunction         _maplut;
-         ResourceFloats                      _intensities;
+		   std::set<Order*>                    _orders;
+         ResourceMapTransferFunction&        _maplut;
+         ResourceFloats&                     _intensities;
       };
 
       /**
@@ -368,8 +366,8 @@ namespace platform
          ResourceSliceuc               blendedSlice;
 
       public:
-         EngineSliceBlender( bool orderConsumer, ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
-                             EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ), _orderConsumed( orderConsumer ),
+         EngineSliceBlender( ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
+                             EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
             ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities )
          {
             _construct();
@@ -400,7 +398,6 @@ namespace platform
             }
             if ( _orderSend.isEmpty() )
             {
-               //std::cout << "blend order"<< std::endl;
                // we have been notified
                 std::set<Order*> orders;
                 _copy = ResourceOrders();
@@ -410,8 +407,7 @@ namespace platform
                     _copy.insert( *it );
                 }
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( orders, lut, intensities ) );
-               _orderConsumed = true;
-               _orderProvider.pushOrder( _orderSend );
+               _orderProvider.pushOrder( &*_orderSend );
                return true;
             }
 
@@ -419,11 +415,12 @@ namespace platform
             return false;
          }
 
-         virtual void consume( RefcountedTyped<Order> order )
+         virtual void consume( Order* order )
          {
-            if ( order == _orderSend )
+            if ( _orderSend.isEmpty() )
+               return;
+            if ( order == &*_orderSend )
             {
-               //std::cout << "consume order:" << (*order).getId() << std::endl;
                OrderSliceBlenderResult* result = dynamic_cast<OrderSliceBlenderResult*>( (*order).getResult() );
                if ( !result )
                   throw std::exception( "unexpected order received!" );
@@ -461,7 +458,6 @@ namespace platform
 
          ui32                    _fps;
          ui32                    _clock;
-         bool&                   _orderConsumed;
       };
    }
 
@@ -495,9 +491,8 @@ namespace platform
                  ResourceBool visInteracting,
                  ResourceInterpolationMode vinterpolation,
                  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting = false ) : 
-      EngineOrder( handler, provider, dispatcher ), //_fasterDisplayWhenInteracting( fasterDisplayWhenInteracting ),
-      _mprSlicer( _orderConsumed,
-                  vvolumes,
+      EngineOrder( handler, provider, dispatcher ),
+      _mprSlicer( vvolumes,
                   vposition,
                   vdirectionx,
                   vdirectiony,
@@ -507,9 +502,8 @@ namespace platform
                   visInteracting,
                   vinterpolation,
                   handler, provider, dispatcher, fasterDisplayWhenInteracting ),
-      _sliceBlender( _orderConsumed, _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
+      _sliceBlender( _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
       {
-         _orderConsumed = true;
          dispatcher.connect( this );
          blendedSlice = _sliceBlender.blendedSlice;
       }
@@ -520,7 +514,7 @@ namespace platform
          return true;
       }
 
-      virtual void consume( RefcountedTyped<Order> order )
+      virtual void consume( Order* )
       {
          // we don't handle any orders
       }
@@ -532,12 +526,9 @@ namespace platform
       }
 
    private:
-      //bool  _fasterDisplayWhenInteracting;
       std::set<OrderClassId>  _interested;
       impl::EngineMprSlice          _mprSlicer;
       impl::EngineSliceBlender      _sliceBlender;
-
-      bool _orderConsumed;
    };
 }
 }

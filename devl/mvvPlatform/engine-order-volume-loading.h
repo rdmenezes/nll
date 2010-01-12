@@ -78,7 +78,7 @@ namespace platform
          _orderProvider.pushOrder( new impl::OrderVolumeLoader( location, name ) );
       }
 
-      virtual void consume( RefcountedTyped<Order> order )
+      virtual void consume( Order* order )
       {
          impl::OrderVolumeLoaderResult* result = dynamic_cast<impl::OrderVolumeLoaderResult*>( (*order).getResult() );
          _resourceVolumes.insert( result->name, result->volume );

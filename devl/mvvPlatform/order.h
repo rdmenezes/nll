@@ -29,7 +29,7 @@ namespace platform
    {
    public:
       typedef SymbolTyped<Order>                       OrderClassId;  /// specify what category of order it is
-      typedef std::set< RefcountedTyped<Order> >       Predecessors;  /// predecessors that must be run and finished before this order starts
+      typedef std::set< Order* >                       Predecessors;  /// predecessors that must be run and finished before this order starts
 
       /**
        @brief Construct an order

@@ -21,25 +21,18 @@ namespace platform
       virtual Orders getOrdersAndClear()
       {
          Orders o;
-         //std::cout << " orderProvider.clear()" << std::endl;
-         #pragma omp critical
-         {
-            o = _execWaitList;
-            _execWaitList.clear();
-         }
+         o = _execWaitList;
+         _execWaitList.clear();
          return o;
       }
 
       /**
        @brief The client will push orders on a stack to be run by the thread pool. <code>getOrdersAndClear</code> will return this stack and empty it
+       @param order must be a valid pointer for its whole lifecycle
        */
-      virtual void pushOrder( RefcountedTyped<Order> order )
+      virtual void pushOrder( Order* order )
       {
-         #pragma omp critical
-         {
-            //std::cout << " orderProvider.push()" << std::endl;
-            _execWaitList.push_back( order );
-         }
+         _execWaitList.push_back( order );
       }
 
    protected:

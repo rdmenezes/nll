@@ -34,13 +34,13 @@ namespace
    class DummyOrderConsumer : public OrderConsumer
    {
    public:
-      typedef std::vector< RefcountedTyped<Order> > Orders;
+      typedef std::vector< Order* > Orders;
       DummyOrderConsumer()
       {
          interested.insert( Order::OrderClassId::create( "dummy2" ) );
       }
 
-      virtual void consume( RefcountedTyped<Order> order )
+      virtual void consume( Order* order )
       {
          orders.push_back( order );
       }
@@ -64,7 +64,7 @@ struct TestOrderManager
       manager.connect( &orderConsumer );
 
       RefcountedTyped<Order> o1( new DummyOrder4( 0.5, Order::Predecessors() ) );
-      manager.pushOrder( o1 );
+      manager.pushOrder( &*o1 );
 
       // first launch orders
       manager.run();

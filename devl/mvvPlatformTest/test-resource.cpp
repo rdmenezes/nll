@@ -96,9 +96,9 @@ struct TestResource
          storage.insert( SymbolVolume::create("v4"), RefcountedTyped<Volume>( v4 ) );
 
          ResourceVolumes volumes( storage );
-         volumes.getVolumes().insert( SymbolVolume::create("v1") );
-         volumes.getVolumes().insert( SymbolVolume::create("v2") );
-         volumes.getVolumes().insert( SymbolVolume::create("v3") );
+         volumes.insert( SymbolVolume::create("v1") );
+         volumes.insert( SymbolVolume::create("v2") );
+         volumes.insert( SymbolVolume::create("v3") );
 
          // check iterator
          {

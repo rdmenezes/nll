@@ -114,7 +114,7 @@ public:
       res = r1.getValue() + r2.getValue();
       currentOrder = RefcountedTyped<Order>( new DummyOrder() );
 
-      _orderProvider.pushOrder( currentOrder );
+      _orderProvider.pushOrder( &*currentOrder );
       return true;
    }
 
@@ -123,7 +123,7 @@ public:
       return res;
    }
 
-   void consume( RefcountedTyped<Order> o )
+   void consume( Order* )
    {
       consumed = true;
    }
@@ -153,7 +153,7 @@ public:
       return o;
    }
 
-   virtual void pushOrder( RefcountedTyped<Order> order )
+   virtual void pushOrder( Order* order )
    {
       orders.push_back( order );
    }
@@ -166,7 +166,7 @@ class DummyOrderDispatcher : public OrderDispatcher
 public:
    typedef std::vector<OrderConsumer*>  Consumers;
 
-   virtual void dispatch( RefcountedTyped<Order> order )
+   virtual void dispatch( Order* order )
    {
       for ( Consumers::iterator it = consumers.begin(); it != consumers.end(); ++it )
       {
@@ -281,7 +281,7 @@ struct TestEngine
       // dispatch order, check it has been dispatched
       dispatcher.dispatch( orderProvider.orders[ 0 ] );
       TESTER_ASSERT( engine.consumed );
-      TESTER_ASSERT( orderProvider.orders[ 0 ].getNumberOfReference() == 2 ); // in order & orderprovider
+      //TESTER_ASSERT( orderProvider.orders[ 0 ].getNumberOfReference() == 2 ); // in order & orderprovider
    }
 };
 

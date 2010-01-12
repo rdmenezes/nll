@@ -41,7 +41,7 @@ namespace platform
       /**
        @brief Specify the function we want to run when this thread is done! run on manager thread
        */
-      void run( RefcountedTyped<Order> order );
+      void run( Order* order );
 
       /**
        @brief infiny loop run on the worker thread.
@@ -60,7 +60,7 @@ namespace platform
       boost::mutex      _mutex;
       bool              _isReady;
       bool              _hasFinished;
-      RefcountedTyped<Order> _currentOrder;
+      Order*            _currentOrder;
    };
 }
 }

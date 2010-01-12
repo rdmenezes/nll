@@ -27,8 +27,9 @@ namespace platform
 
       /**
        @brief Consume an order, there is no order guaranteed for the execution order (except for predecessors)
+       @param order must be a valid pointer for its whole lifecycle
        */
-      virtual void consume( RefcountedTyped<Order> order ) = 0;
+      virtual void consume( Order* order ) = 0;
 
       /**
        @brief Returns the type of order the consumer will handle. (orders are dispatched according to this)

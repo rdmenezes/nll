@@ -206,8 +206,8 @@ void keyboard(unsigned char key, int x, int y)
    if ( key == 'q' )
    {
       applicationVariables->layout.unref();
-      applicationVariables->context.clear();
       applicationVariables->orderManager.kill();
+      applicationVariables->context.clear();
       exit( 0 );
    }
 }

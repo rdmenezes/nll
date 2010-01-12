@@ -30,7 +30,7 @@ namespace platform
       friend class ThreadWorker;
 
    public:
-      typedef std::vector< RefcountedTyped<Order> >   Orders;
+      typedef std::vector< Order* >                   Orders;
       typedef std::vector<ThreadWorker*>              Workers;
       typedef std::vector<boost::thread*>             WorkerThreads;
       typedef std::stack<ThreadWorker*>               AvailableWorkers;
@@ -60,7 +60,7 @@ namespace platform
       /**
        @brief Push an order on the execution queue ( run on main thread )
        */
-      void push( RefcountedTyped<Order> order );
+      void push( Order* order );
 
       /**
        @brief run the infiny loop of the manager thread
@@ -81,12 +81,12 @@ namespace platform
       /**
        @brief run the order on a worker thread
        */
-      void dispatchToWorker( RefcountedTyped<Order> order );
+      void dispatchToWorker( Order* order );
 
       /**
        @brief notify the pool that a worker is idle
        */
-      void workerFinished( RefcountedTyped<Order> order, ui32 workerId );
+      void workerFinished( Order* order, ui32 workerId );
 
       void _check();
 
