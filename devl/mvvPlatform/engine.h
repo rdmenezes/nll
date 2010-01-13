@@ -82,6 +82,11 @@ namespace platform
 
       virtual ~Engine();
 
+      /**
+       @brief remove all engine connections (but keep the handler connected)
+       */
+      void clearConnections();
+
    protected:
       /**
        @brief connect the resource to the engine and add the resource to the resources (we need to hold a reference

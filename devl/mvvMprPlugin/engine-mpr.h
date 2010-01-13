@@ -74,6 +74,8 @@ namespace platform
             typedef nll::imaging::Mpr<Volume, InterpolatorNN>           MprNN;
             typedef nll::imaging::Mpr<Volume, InterpolatorTrilinear>    MprTrilinear;
 
+            std::cout << "pos=" << _position[ 0 ] << " " << _position[ 1 ] << " " << _position[ 2 ] << std::endl;
+
             Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
                          _dirx,
                          _diry,
@@ -527,7 +529,7 @@ namespace platform
       }
 
    private:
-      std::set<OrderClassId>  _interested;
+      std::set<OrderClassId>        _interested;
       impl::EngineMprSlice          _mprSlicer;
       impl::EngineSliceBlender      _sliceBlender;
    };

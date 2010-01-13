@@ -62,7 +62,6 @@ namespace platform
                return true;
             }
 
-
             // update the geometry in case it is different
             outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
                                                   inputSegment.getValue().getAxisY(),

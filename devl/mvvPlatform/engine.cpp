@@ -20,14 +20,17 @@ namespace platform
       }
    }
 
+   void Engine::clearConnections()
+   {
+      while ( _resources.size() )
+      {
+         disconnect( *_resources.begin() );
+      }
+   }
+
    Engine::~Engine()
    {
-      ResourceStorage::iterator cur;
-      for ( ResourceStorage::iterator it = _resources.begin(); it != _resources.end(); )
-      {
-         cur = it++;
-         disconnect( *cur );
-      }
+      clearConnections();
       _handler.disconnect( *this );
    }
 }

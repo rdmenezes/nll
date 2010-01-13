@@ -79,6 +79,27 @@ namespace platform
             return *this;
          }
 
+         /**
+          @brief Copy the value of the <code>e</code> and add the current connections <code>this</code> to <code>e</code>
+          */
+         void copyAndAddConnections( Resource& e )
+         {
+            if ( _data && e._data != _data )
+            {
+               // save the connections
+               impl::ResourceSharedData::EngineStorage links = getData().links;
+
+               assert( 0 ); // remove and add connections to the engine to relocate the resource
+               *this = e;
+
+               // add the connections
+               for ( impl::ResourceSharedData::EngineStorage::iterator it = links.begin(); it != links.end(); ++it )
+               {
+                  connect( *it );
+               }
+            }
+         }
+
       };
    }
 
