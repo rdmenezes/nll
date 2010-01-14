@@ -42,10 +42,14 @@ namespace platform
          {
             ensure( tool, "must not be zero" );
 
-            connect( inputSegment );
+            inputSegment.connect( this );
             handler.connect( *this );
 
             outputSegment = inputSegment;
+         }
+
+         virtual ~SegmentToolWrapper()
+         {
          }
 
       private:
@@ -134,7 +138,7 @@ namespace platform
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );
       }
 
-      ~Segment();
+      virtual ~Segment();
 
       virtual void connect( SegmentTool* tool );     
 

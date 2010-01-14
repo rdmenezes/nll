@@ -233,6 +233,7 @@ namespace platform
 
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
+            std::cout << "check engine pointer=" << position.getDataPtr() << std::endl;
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
             {
                RefcountedTyped<Order> order( new OrderSliceCreator( position.getValue(),

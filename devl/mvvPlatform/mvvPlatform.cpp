@@ -19,6 +19,7 @@
 #include "layout-widget.h"
 #include "context-volumes.h"
 #include "engine-order-volume-loading.h"
+#include "resource.h"
 #include "resource-vector.h"
 #include "resource-set.h"
 #include "resource-volumes.h"

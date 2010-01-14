@@ -34,7 +34,7 @@ namespace mvv
       SegmentToolPointer                  segmentPointer;
       RefcountedTyped<SegmentToolCamera> segmentToolCamera;
 
-      ApplicationVariables() : screen( 512 * 2, 512, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 128, 128, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
@@ -65,7 +65,7 @@ namespace mvv
 
          (*segment1).connect( &segmentPointer );
          segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
-         (*segment1).connect( &*segmentToolCamera );
+         (*segment1).connect( segmentToolCamera.getDataPtr() );
 
          // segment 2
          /*
@@ -78,7 +78,8 @@ namespace mvv
 
          (*segment2).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment2).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
-         (*segment2).connect( &*segmentToolCamera );*/
+
+         (*segment2).connect( segmentToolCamera.getDataPtr() );*/
       }
 
    private:
@@ -114,7 +115,7 @@ namespace mvv
          PaneListHorizontal* list = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                                             nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          list->addChild( RefcountedTyped<Pane>( e0 ), 1 );
-        // list->addChild( RefcountedTyped<Pane>( e1 ), 0.5f );
+         //list->addChild( RefcountedTyped<Pane>( e1 ), 0.5f );
          layout = RefcountedTyped<Pane>( list );                                                    
       }
    };

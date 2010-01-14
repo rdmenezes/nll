@@ -26,7 +26,8 @@ namespace platform
       void Resource::connect( Engine* e )
       {
          assert( e );
-         getData().links.insert( e );
+         addSimpleLink( e );
+         e->addSimpleLink( *this );
       }
 
       void Resource::disconnect( Engine* e )
@@ -34,7 +35,8 @@ namespace platform
          assert( e );
          if ( !_data )
             return;
-         getData().links.erase( e );
+         eraseSimpleLink( e );
+         e->eraseSimpleLink( *this );
       }
 
       Resource::~Resource()

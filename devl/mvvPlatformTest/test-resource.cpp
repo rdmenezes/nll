@@ -45,7 +45,7 @@ namespace
    public:
       DummyEnginea( EngineHandler& handler, impl::Resource& r1  ) : Engine( handler ), r1( r1 )
       {
-         connect( r1 );
+         r1.connect( this );
          hasBeenRun = false;
       }
 
@@ -209,11 +209,43 @@ struct TestResource
       handler.run();
       TESTER_ASSERT( e1.getStatus() && !e1.isNotified() && !r1.needNotification() );
    }
+
+   void testReplace()
+   {
+      DummyEngineHandler handler;
+
+      // engine connected with a resource
+      ResourceVector2ui r1;
+      DummyEnginea e1( handler, r1 );
+
+      TESTER_ASSERT( e1.isConnected( r1 ) );
+      TESTER_ASSERT( e1.isNotified() );
+      handler.run();
+      TESTER_ASSERT( !e1.isNotified() );
+
+      // exchange a connected resource
+      ResourceVector2ui r2;
+      r2.copyAndAddConnections( r1 );
+
+      // the engine must be notified as we have connected to a new resource. As me don't know how
+      // to compare the resources, we need to notify
+      TESTER_ASSERT( e1.isNotified() );
+      handler.run();
+      TESTER_ASSERT( !e1.isNotified() );
+      handler.run();
+
+      // r1 should be disconnected from the engine
+      TESTER_ASSERT( !e1.isConnected( r1 ) );
+
+      r1.notify();
+      TESTER_ASSERT( !e1.isNotified() );
+   }
 };
 
 TESTER_TEST_SUITE(TestResource);
-TESTER_TEST(testResourceVolumes);
+/*TESTER_TEST(testResourceVolumes);
 TESTER_TEST(testResourceMap);
 TESTER_TEST(testResourceScopedBarrier);
-TESTER_TEST(testResourceSimpleCount);
+TESTER_TEST(testResourceSimpleCount);*/
+TESTER_TEST(testReplace);
 TESTER_TEST_SUITE_END();

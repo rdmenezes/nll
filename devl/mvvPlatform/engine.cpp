@@ -5,32 +5,30 @@ namespace mvv
 {
 namespace platform
 {
+   
    void Engine::connect( impl::Resource r )
    {
-      _resources.insert( r );
-      r.connect( this );
+      addSimpleLink( r );
+      r.addSimpleLink( this );
    }
 
    void Engine::disconnect( impl::Resource r )
    {
-      size_t nb = _resources.erase( r );
-      if ( nb )
-      {
-         r.disconnect( this );
-      }
+      eraseSimpleLink( r );
+      r.eraseSimpleLink( this );
    }
 
-   void Engine::clearConnections()
+   bool Engine::isConnected( impl::Resource r ) const
    {
-      while ( _resources.size() )
-      {
-         disconnect( *_resources.begin() );
-      }
+      LinkStorage::const_iterator it = _links.find( r );
+      if ( it != _links.end() )
+         return true;
+      return false;
    }
 
    Engine::~Engine()
    {
-      clearConnections();
+      removeConnections();
       _handler.disconnect( *this );
    }
 }

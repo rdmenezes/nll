@@ -11,6 +11,7 @@ namespace platform
    template <class ObjectToHold>
    class LinkableSimple
    {
+   public:
       typedef std::set<ObjectToHold>   LinkStorage;
 
    public:
@@ -78,7 +79,7 @@ namespace platform
       LinkableDouble( const LinkableDouble& );
 
    protected:
-      DerivedClass  _this;
+      //DerivedClass  _this;
       bool          _hasBeenDestructed;
    };
 }

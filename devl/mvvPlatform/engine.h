@@ -6,6 +6,7 @@
 # include "notifiable.h"
 # include "engine-handler.h"
 # include "resource.h"
+# include "linkable.h"
 
 namespace mvv
 {
@@ -21,11 +22,11 @@ namespace platform
     @ingroup platform
     @brief Implement an engine that compute output from a set of resources. If one resource change,
            the result must be recomputed.
-    @note the engine when destroyed will destroy its resource reference and will initiate a disconnect() on all the resources
+    @note when destroyed, the engines will unregister all the reosources
     */
-   class MVVPLATFORM_API Engine : public Notifiable
+   class MVVPLATFORM_API Engine : public Notifiable, public LinkableDouble< impl::Resource, Engine* >
    {
-      typedef std::set<impl::Resource>   ResourceStorage;
+      typedef LinkableDouble< impl::Resource, Engine* > Linkable;
 
    public:
       enum State
@@ -82,22 +83,19 @@ namespace platform
 
       virtual ~Engine();
 
-      /**
-       @brief remove all engine connections (but keep the handler connected)
-       */
-      void clearConnections();
+      bool isConnected( impl::Resource r ) const;
 
-   protected:
+   private:
       /**
        @brief connect the resource to the engine and add the resource to the resources (we need to hold a reference
               in case all references are lost externally, guaranteeing no resource used by the engine can be lost...)
        */
-      void connect( impl::Resource r );
+      virtual void connect( impl::Resource r );
 
       /**
        @brief Disconnect the resource from the engine and clear this resource for the list of used resources
        */
-      void disconnect( impl::Resource r );
+      virtual void disconnect( impl::Resource r );
 
    private:
       // disable copy operators
@@ -106,7 +104,6 @@ namespace platform
 
    protected:
       bool              _needToRecompute;
-      ResourceStorage   _resources;
       EngineHandler&    _handler;
       State             _state;
    };

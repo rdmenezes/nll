@@ -70,12 +70,12 @@ namespace platform
 
          Resource& operator=( const Resource& r )
          {
-            Base::operator=( r );
             if ( r._data != _data )
             {
                // in case the resource is different, we need to notify it has changed
                notify();
             }
+            Base::operator=( r );
             return *this;
          }
 
@@ -87,19 +87,48 @@ namespace platform
             if ( _data && e._data != _data )
             {
                // save the connections
-               impl::ResourceSharedData::EngineStorage links = getData().links;
+               impl::ResourceSharedData::EngineStorage links = e.getData().links;
 
-               assert( 0 ); // remove and add connections to the engine to relocate the resource
-               *this = e;
+               //assert( 0 ); // remove and add connections to the engine to relocate the resource
 
                // add the connections
                for ( impl::ResourceSharedData::EngineStorage::iterator it = links.begin(); it != links.end(); ++it )
                {
+                  e.disconnect( *it );
                   connect( *it );
                }
+
+               //e = *this;
+               notify(); // we manually need to notify the engines as operator= couldn't do it as e is empty...
+
+               
+
+        //       e._data = _data;
+
+               nll::core::vector3f* val = reinterpret_cast<nll::core::vector3f*>( e.getData().privateData );
+               std::cout << "test pos=" << (*val)[0] << " privateData=" << val << std::endl;
             }
          }
 
+         //
+         // this should be only called internally
+         //
+         void addSimpleLink( Engine* o )
+         {
+            assert( o );
+            getData().links.insert( o );
+         }
+
+         //
+         // this should be only called internally
+         //
+         void eraseSimpleLink( Engine* o )
+         {
+            assert( o );
+            impl::ResourceSharedData::EngineStorage::iterator it = getData().links.find( o );
+            if ( it != getData().links.end() )
+               getData().links.erase( it );
+         }
       };
    }
 

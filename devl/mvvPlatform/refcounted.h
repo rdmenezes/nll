@@ -208,6 +208,16 @@ namespace platform
          return *reinterpret_cast<T*>( _data->data );
       }
 
+      T* getDataPtr()
+      {
+         return reinterpret_cast<T*>( _data->data );
+      }
+
+      const T* getDataPtr() const
+      {
+         return reinterpret_cast<T*>( _data->data );
+      }
+
       const T& getData() const
       {
          return *reinterpret_cast<T*>( _data->data );

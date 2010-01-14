@@ -39,13 +39,18 @@ namespace platform
          }
 
          // if a bigger volume is found, center all the segments on it
-         _position.setValue( pos );
-         for ( LinkStorage::iterator it = _links.begin(); it != _links.end(); ++it )
+
+         //_position.setValue( pos );
+         _position.setValue( nll::core::vector3f(0.1, 0.2, 0.3) );
+         for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
          {
+            std::cout << "update segment:" << *it << std::endl;
             _position.copyAndAddConnections( (**it).position );
          }
 
          std::cout << "camera=" << this << " pos=" << pos[ 0 ] << " " << pos[ 1 ] << " " << pos[ 2 ] << std::endl;
+         std::cout << "check=" << this << " pos=" << _position.getValue()[ 0 ] << " " << _position.getValue()[ 1 ] << " " << _position.getValue()[ 2 ] << std::endl;
+         std::cout << "check camera pointer=" << _position.getDataPtr() << std::endl;
          return true;
       }
 
@@ -56,6 +61,11 @@ namespace platform
       virtual void updateSegment( ResourceSliceuc, Segment& )
       {
          // do nothing
+      }
+
+      void setPosition( const nll::core::vector3f& pos )
+      {
+         _position.setValue( pos );
       }
 
    protected:

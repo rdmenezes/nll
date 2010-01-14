@@ -56,8 +56,8 @@ class DummyEngine : public Engine
 public:
    DummyEngine( EngineHandler& handler, DummyResource& r1, DummyResource& r2  ) : Engine( handler ), r1( r1 ), r2( r2 )
    {
-      connect( r1 );
-      connect( r2 );
+      r1.connect( this );
+      r2.connect( this );
    }
 
    virtual bool _run()
@@ -98,8 +98,8 @@ class DummyEngineOrder : public EngineOrder
 public:
    DummyEngineOrder( EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, DummyResource& r1, DummyResource& r2  ) : EngineOrder( handler, provider, dispatcher ), r1( r1 ), r2( r2 )
    {
-      connect( r1 );
-      connect( r2 );
+      r1.connect( this );
+      r2.connect( this );
       consumed = false;
       dispatcher.connect( this );
    }
