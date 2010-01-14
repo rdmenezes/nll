@@ -185,6 +185,28 @@ namespace platform
          _panes.push_back( pane );
       }
 
+      virtual void _receive( const EventMouse& e )
+      {
+         for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
+         {
+            if ( e.isMouseLeftButtonPressed )
+            {
+               if ( (**it).isInside( e.mouseLeftClickedPosition ) )
+               {
+                  // propagate to the sub pane concerned
+                  (**it).receive( e );
+               }
+            } else if ( e.isMouseRightButtonPressed )
+            {
+               if ( (**it).isInside( e.mouseRightClickedPosition ) )
+               {
+                  // propagate to the sub pane concerned
+                  (**it).receive( e );
+               }
+            }
+         }
+      }
+
    protected:
       Panes    _panes;
    };

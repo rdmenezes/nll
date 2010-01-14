@@ -7,6 +7,11 @@ namespace mvv
 {
 namespace platform
 {
+   /**
+    @ingroup platform
+    @brief This tool will center the attached segment when a bigger volume has just been loaded,
+           it will also handle navigation (slice by slice, padding, zooming)
+    */
    class MVVMPRPLUGIN_API SegmentToolCamera : public SegmentTool, public Engine
    {
    public:
@@ -25,36 +30,102 @@ namespace platform
        */
       virtual bool _run()
       {
+         ui32 maxVoxel = _nbMaxVoxels;
          for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
          {
+            bool hasMoved = false;
+            ui32 localMax = _nbMaxVoxels;
             if ( (**it).getAuthorizeRecenteringOnLoading() )
             {
                bool biggerVolumeFound = false;
                nll::core::vector3f pos;
                for ( ResourceVolumes::Iterator volit = (**it).volumes.begin(); volit != (**it).volumes.end(); ++volit )
                {
+                  // check if the volume moved
                   nll::core::vector3ui size = (**volit).size();
-                  const ui32 s = (**volit).size()[ 0 ] * (**volit).size()[ 1 ] * (**volit).size()[ 2 ];
-                  if ( s > _nbMaxVoxels )
-                  {
-                     _nbMaxVoxels = s;
-                     biggerVolumeFound = true;
-                     pos = (**volit).indexToPosition( nll::core::vector3f( static_cast<f32>( size[ 0 ] ) / 2,
+                  pos = (**volit).indexToPosition( nll::core::vector3f( static_cast<f32>( size[ 0 ] ) / 2,
                                                                            static_cast<f32>( size[ 1 ] ) / 2,
                                                                            static_cast<f32>( size[ 2 ] ) / 2 )  );
+                  nll::core::vector3f segmentPosition = (**it).position.getValue();
+                  if ( (**it).volumes.size() > 1 )
+                  {
+                     // if there was not volume, we need to check
+                     if ( fabs( pos[ 0 ] - segmentPosition[ 0 ] ) < 0.001 &&
+                          fabs( pos[ 1 ] - segmentPosition[ 1 ] ) < 0.001 &&
+                          fabs( pos[ 2 ] - segmentPosition[ 2 ] ) < 0.001 )
+                     {
+                        biggerVolumeFound = false; // we don't want to update the camera position
+                        hasMoved = true;
+                        break;
+                     }
+                  }
+
+                  // check if a bigger volume has been loaded
+                  const ui32 s = (**volit).size()[ 0 ] * (**volit).size()[ 1 ] * (**volit).size()[ 2 ];
+                  if ( s > localMax )
+                  {
+                     localMax = s;
+                     biggerVolumeFound = true;
                   }
                }
                if ( biggerVolumeFound )
                {
                   (**it).position.setValue( pos );
                }
+               maxVoxel = std::max( localMax, _nbMaxVoxels );
             }
          }
+         _nbMaxVoxels = maxVoxel;
          return true;
       }
 
-      virtual void receive( Segment& , const EventMouse&  )
+      virtual void receive( Segment& s, const EventMouse& e )
       {
+         if ( e.isMouseLeftButtonJustPressed )
+         {
+            _paddingLastPos = e.mousePosition;
+         }
+         if ( e.isMouseRightButtonJustPressed )
+         {
+            _sliceLastPos = e.mousePosition;
+         }
+         if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
+         {
+            // we are padding the segment
+            nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_paddingLastPos[ 0 ],
+                                           - (int)e.mousePosition[ 1 ] + (int)_paddingLastPos[ 1 ] );
+
+            nll::core::vector3f position = s.position.getValue();
+            nll::core::vector3f directionx = s.directionx.getValue();
+            nll::core::vector3f directiony = s.directiony.getValue();
+            nll::core::vector2f zoom = s.zoom.getValue();
+
+            nll::core::vector3f pos( position[ 0 ] + ( diffMouse[ 0 ] * directionx[ 0 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 0 ] / zoom[ 1 ] ),
+                                     position[ 1 ] + ( diffMouse[ 0 ] * directionx[ 1 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 1 ] / zoom[ 1 ] ),
+                                     position[ 2 ] + ( diffMouse[ 0 ] * directionx[ 2 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 2 ] / zoom[ 1 ] ) );
+            s.position.setValue( pos );
+            _paddingLastPos = e.mousePosition;
+         } else if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
+         {
+            // we are going through the slices
+            nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_sliceLastPos[ 0 ],
+                                           - (int)e.mousePosition[ 1 ] + (int)_sliceLastPos[ 1 ] );
+            float sign = ( _sliceLastPos[ 1 ] > (int)e.mousePosition[ 1 ] ) ? 1.0f : -1.0f;
+            float d = static_cast<float>( fabs( (float)diffMouse[ 1 ] ) ) * sign / 10;
+            for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
+            {
+               nll::core::StaticVector<float, 3> cross = nll::core::cross( (**it).directionx.getValue(), (**it).directiony.getValue() );
+               assert( nll::core::equal( cross.norm2(), 1.0, 1e-5 ) );  // the base vector1, vector2 must be normalized
+               nll::core::vector3f pos( (**it).position.getValue()[ 0 ] + d * cross[ 0 ],
+                                        (**it).position.getValue()[ 1 ] + d * cross[ 1 ],
+                                        (**it).position.getValue()[ 2 ] + d * cross[ 2 ] );
+               (**it).position.setValue( pos );
+            }
+            _sliceLastPos = e.mousePosition;
+         } else {
+            // modify the zoom
+
+         }
       }
 
       virtual void updateSegment( ResourceSliceuc, Segment& )
@@ -74,8 +145,10 @@ namespace platform
       }
 
    protected:
-      ResourceStorageVolumes _storage;
-      ui32 _nbMaxVoxels;
+      ResourceStorageVolumes  _storage;
+      ui32                    _nbMaxVoxels;
+      nll::core::vector2ui    _paddingLastPos;
+      nll::core::vector2ui    _sliceLastPos;
    };
 }
 }

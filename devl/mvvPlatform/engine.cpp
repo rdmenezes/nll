@@ -8,14 +8,14 @@ namespace platform
    
    void Engine::connect( impl::Resource r )
    {
-      addSimpleLink( r );
-      r.addSimpleLink( this );
+      _addSimpleLink( r );
+      r._addSimpleLink( this );
    }
 
    void Engine::disconnect( impl::Resource r )
    {
-      eraseSimpleLink( r );
-      r.eraseSimpleLink( this );
+      _eraseSimpleLink( r );
+      r._eraseSimpleLink( this );
    }
 
    bool Engine::isConnected( impl::Resource r ) const

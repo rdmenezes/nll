@@ -122,6 +122,7 @@ void mouseButton(int button, int state, int x, int y)
    applicationVariables->mouseEvent.isMouseRightButtonJustPressed = false;
    applicationVariables->mouseEvent.isMouseLeftButtonJustPressed = false;
 
+
    if ( button == GLUT_LEFT_BUTTON )
    {
       if ( state == GLUT_UP )
@@ -154,14 +155,25 @@ void mouseButton(int button, int state, int x, int y)
       if ( state == GLUT_UP )
       {
          applicationVariables->mouseEvent.isMouseRightButtonJustReleased =true;
+         if ( applicationVariables->mouseEvent.isMouseRightButtonPressed )
+         {
+            //std::cout << "Right DOWN" << std::endl;
+            applicationVariables->mouseEvent.mouseRightReleasedPosition = nll::core::vector2ui( x, y );
+         }
+
+         // button unreleased
          applicationVariables->mouseEvent.isMouseRightButtonPressed = false;
-         applicationVariables->mouseEvent.mouseLeftReleasedPosition = nll::core::vector2ui( x, y );
       } 
       if ( state == GLUT_DOWN )
       {
+         //std::cout << "Right PRESSED" << std::endl;
          applicationVariables->mouseEvent.isMouseRightButtonJustPressed =true;
+         if (!applicationVariables->mouseEvent.isMouseRightButtonPressed )
+         {
+            // the first click position
+            applicationVariables->mouseEvent.mouseRightClickedPosition = nll::core::vector2ui( x, y );
+         }
          applicationVariables->mouseEvent.isMouseRightButtonPressed = true;
-         applicationVariables->mouseEvent.mouseLeftClickedPosition = nll::core::vector2ui( x, y );
       }
    }
    (*applicationVariables->layout).receive( applicationVariables->mouseEvent );
@@ -172,6 +184,23 @@ void mouseMotion(int x, int y)
    // the (0, 0) is top-left instead of bottom left, so just align the mouse coordinate with screen coordinate
    y = applicationVariables->screen.sizex() - y - 1;
 
+   // left
+   if ( applicationVariables->mouseEvent.isMouseLeftButtonJustPressed )
+   {
+      applicationVariables->mouseEvent.isMouseLeftButtonJustReleased = true;
+      applicationVariables->mouseEvent.isMouseLeftButtonJustPressed = false;
+   } else {
+      applicationVariables->mouseEvent.isMouseLeftButtonJustReleased = false;
+   }
+
+   // right
+   if ( applicationVariables->mouseEvent.isMouseRightButtonJustPressed )
+   {
+      applicationVariables->mouseEvent.isMouseRightButtonJustReleased = true;
+      applicationVariables->mouseEvent.isMouseRightButtonJustPressed = false;
+   } else {
+      applicationVariables->mouseEvent.isMouseRightButtonJustReleased = false;
+   }
    applicationVariables->mouseEvent.mousePosition = nll::core::vector2ui( x, y );
 
    //(*applicationVariables.layout).receive( applicationVariables.mouseEvent ); // TODO put back!
@@ -186,6 +215,7 @@ void mouseMotion(int x, int y)
  //  {
  //     (*segment2).position.setValue( 2, (float)x/10 );
  //  }
+   (*applicationVariables->layout).receive( applicationVariables->mouseEvent );
 }
 
 void keyboard(unsigned char key, int x, int y)

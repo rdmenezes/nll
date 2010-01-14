@@ -82,7 +82,7 @@ namespace platform
          //
          // this should be only called internally
          //
-         void addSimpleLink( Engine* o )
+         void _addSimpleLink( Engine* o )
          {
             assert( o );
             getData().links.insert( o );
@@ -91,7 +91,7 @@ namespace platform
          //
          // this should be only called internally
          //
-         void eraseSimpleLink( Engine* o )
+         void _eraseSimpleLink( Engine* o )
          {
             assert( o );
             impl::ResourceSharedData::EngineStorage::iterator it = getData().links.find( o );

@@ -23,6 +23,12 @@ namespace platform
       /// the position where first unreleased
       nll::core::vector2ui    mouseLeftReleasedPosition;
 
+      /// the position where the first left clicked occured
+      nll::core::vector2ui    mouseRightClickedPosition;
+
+      /// the position where first unreleased
+      nll::core::vector2ui    mouseRightReleasedPosition;
+
       /// set if left button is pressed
       bool                    isMouseLeftButtonPressed;
 

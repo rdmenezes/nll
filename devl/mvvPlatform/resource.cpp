@@ -26,8 +26,8 @@ namespace platform
       void Resource::connect( Engine* e )
       {
          assert( e );
-         addSimpleLink( e );
-         e->addSimpleLink( *this );
+         _addSimpleLink( e );
+         e->_addSimpleLink( *this );
       }
 
       void Resource::disconnect( Engine* e )
@@ -35,8 +35,8 @@ namespace platform
          assert( e );
          if ( !_data )
             return;
-         eraseSimpleLink( e );
-         e->eraseSimpleLink( *this );
+         _eraseSimpleLink( e );
+         e->_eraseSimpleLink( *this );
       }
 
       Resource::~Resource()

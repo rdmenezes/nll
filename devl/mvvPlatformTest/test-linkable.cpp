@@ -44,26 +44,26 @@ public:
 
 void LinkableDouble1::connect( LinkableDouble1::ObjectToHold o )
 {
-   o->addSimpleLink( this );
-   addSimpleLink( o );
+   o->_addSimpleLink( this );
+   _addSimpleLink( o );
 }
 
 void LinkableDouble1::disconnect( LinkableDouble1::ObjectToHold o )
 {
-   o->eraseSimpleLink( this );
-   eraseSimpleLink( o );
+   o->_eraseSimpleLink( this );
+   _eraseSimpleLink( o );
 }
 
 void LinkableDouble2::connect( LinkableDouble2::ObjectToHold o )
 {
-   o->addSimpleLink( this );
-   addSimpleLink( o );
+   o->_addSimpleLink( this );
+   _addSimpleLink( o );
 }
 
 void LinkableDouble2::disconnect( LinkableDouble2::ObjectToHold o )
 {
-   o->eraseSimpleLink( this );
-   eraseSimpleLink( o );
+   o->_eraseSimpleLink( this );
+   _eraseSimpleLink( o );
 }
 
 struct TestLinkable

@@ -12,14 +12,14 @@ namespace platform
 
    void SegmentTool::connect( Segment* segment )
    {
-      addSimpleLink( segment );
-      segment->addSimpleLink( this );
+      _addSimpleLink( segment );
+      segment->_addSimpleLink( this );
    }
 
    void SegmentTool::disconnect( Segment* segment )
    {
-      eraseSimpleLink( segment );
-      segment->eraseSimpleLink( this );
+      _eraseSimpleLink( segment );
+      segment->_eraseSimpleLink( this );
    }
 }
 }
