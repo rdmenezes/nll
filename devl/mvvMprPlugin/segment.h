@@ -136,6 +136,7 @@ namespace platform
 
          // use a default priority sorter
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );
+         _authorizeRecenteringOnLoading = true;
       }
 
       virtual ~Segment();
@@ -149,6 +150,20 @@ namespace platform
       void setToolSorter( RefcountedTyped<SegmentToolSorter> sorter )
       {
          _sorter = sorter;
+      }
+
+      /**
+       @brief set to true if when a volume is loaded, a tool may change the segment's position
+       @sa SegmentToolCamera
+       */
+      void setAuthorizeRecenteringOnLoading( bool status )
+      {
+         _authorizeRecenteringOnLoading = status;
+      }
+
+      bool getAuthorizeRecenteringOnLoading() const
+      {
+         return _authorizeRecenteringOnLoading;
       }
 
    protected:
@@ -166,6 +181,7 @@ namespace platform
       RefcountedTyped<SegmentToolSorter>  _sorter;
       Wrappers                            _wrappers;
       EngineHandler&                      _handler;
+      bool                                _authorizeRecenteringOnLoading;
    };
 }
 }

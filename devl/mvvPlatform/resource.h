@@ -79,37 +79,6 @@ namespace platform
             return *this;
          }
 
-         /**
-          @brief Copy the value of the <code>e</code> and add the current connections <code>this</code> to <code>e</code>
-          */
-         void copyAndAddConnections( Resource& e )
-         {
-            if ( _data && e._data != _data )
-            {
-               // save the connections
-               impl::ResourceSharedData::EngineStorage links = e.getData().links;
-
-               //assert( 0 ); // remove and add connections to the engine to relocate the resource
-
-               // add the connections
-               for ( impl::ResourceSharedData::EngineStorage::iterator it = links.begin(); it != links.end(); ++it )
-               {
-                  e.disconnect( *it );
-                  connect( *it );
-               }
-
-               //e = *this;
-               notify(); // we manually need to notify the engines as operator= couldn't do it as e is empty...
-
-               
-
-        //       e._data = _data;
-
-               nll::core::vector3f* val = reinterpret_cast<nll::core::vector3f*>( e.getData().privateData );
-               std::cout << "test pos=" << (*val)[0] << " privateData=" << val << std::endl;
-            }
-         }
-
          //
          // this should be only called internally
          //

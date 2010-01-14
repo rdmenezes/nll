@@ -210,6 +210,7 @@ struct TestResource
       TESTER_ASSERT( e1.getStatus() && !e1.isNotified() && !r1.needNotification() );
    }
 
+   /*
    void testReplace()
    {
       DummyEngineHandler handler;
@@ -239,13 +240,13 @@ struct TestResource
 
       r1.notify();
       TESTER_ASSERT( !e1.isNotified() );
-   }
+   }*/
 };
 
 TESTER_TEST_SUITE(TestResource);
-/*TESTER_TEST(testResourceVolumes);
+TESTER_TEST(testResourceVolumes);
 TESTER_TEST(testResourceMap);
 TESTER_TEST(testResourceScopedBarrier);
-TESTER_TEST(testResourceSimpleCount);*/
-TESTER_TEST(testReplace);
+TESTER_TEST(testResourceSimpleCount);
+//TESTER_TEST(testReplace);
 TESTER_TEST_SUITE_END();
