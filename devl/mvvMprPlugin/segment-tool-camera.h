@@ -95,7 +95,7 @@ namespace platform
             nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_paddingLastPos[ 0 ],
                                            - (int)e.mousePosition[ 1 ] + (int)_paddingLastPos[ 1 ] );
 
-            nll::core::vector3f position = s.position.getValue();
+            nll::core::vector3f position = s.panning.getValue();
             nll::core::vector3f directionx = s.directionx.getValue();
             nll::core::vector3f directiony = s.directiony.getValue();
             nll::core::vector2f zoom = s.zoom.getValue();
@@ -103,7 +103,7 @@ namespace platform
             nll::core::vector3f pos( position[ 0 ] + ( diffMouse[ 0 ] * directionx[ 0 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 0 ] / zoom[ 1 ] ),
                                      position[ 1 ] + ( diffMouse[ 0 ] * directionx[ 1 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 1 ] / zoom[ 1 ] ),
                                      position[ 2 ] + ( diffMouse[ 0 ] * directionx[ 2 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 2 ] / zoom[ 1 ] ) );
-            s.position.setValue( pos );
+            s.panning.setValue( pos );
             _paddingLastPos = e.mousePosition;
          } else if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
          {

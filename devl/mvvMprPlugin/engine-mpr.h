@@ -77,7 +77,7 @@ namespace platform
             Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
                          _dirx,
                          _diry,
-                         _position,
+                         _position + _panning,
                          nll::core::vector2f( 1.0f / _zoom[ 0 ], 1.0f / _zoom[ 1 ] ) );
 
             switch ( _interpolation )
