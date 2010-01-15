@@ -7,20 +7,33 @@ namespace platform
 {
    namespace impl
    {
-      void Resource::notify()
+      void ResourceSharedData::notify()
       {
-         if ( getData().state == STATE_ENABLED )
+         bool isNotifying = false;
+         if ( state == STATE_ENABLED && !isNotifying )
          {
-            ResourceSharedData::EngineStorage& engines = getData().links;
-            for ( ResourceSharedData::EngineStorage::iterator it = engines.begin(); it != engines.end(); ++it )
+            isNotifying = true;
+
+            // notify engines
+            for ( EngineStorage::iterator it = links.begin(); it != links.end(); ++it )
             {
                assert( *it );
                (*it)->notify();
             }
-            getData().needNotification = false;
+            // notify resources
+            for ( ResourceStorage::iterator it = resources.begin(); it != resources.end(); ++it )
+            {
+               (*it)->notify();
+            }
+            needNotification = false;
          } else {
-            getData().needNotification = true;
+            needNotification = true;
          }
+      }
+
+      void Resource::notify()
+      {
+         getData().notify();
       }
 
       void Resource::connect( Engine* e )

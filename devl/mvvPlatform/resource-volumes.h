@@ -97,6 +97,7 @@ namespace platform
 
       ResourceVolumes( ResourceStorageVolumes volumeStorage ) : Resource( new impl::ResourceVolumesList )
       {
+         volumeStorage.connect( *this );
          getValue()._volumeStorage = volumeStorage;
       }
 

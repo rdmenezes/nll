@@ -113,7 +113,7 @@ void initGraphics()
 void mouseButton(int button, int state, int x, int y)
 {
    // the (0, 0) is top-left instead of bottom left, so just align the mouse coordinate with screen coordinate
-   y = applicationVariables->screen.sizex() - y - 1;
+   y = applicationVariables->screen.sizey() - y - 1;
 
    //std::cout << "event-main" << std::endl;
    applicationVariables->mouseEvent.mousePosition = nll::core::vector2ui( x, y );
@@ -182,7 +182,7 @@ void mouseButton(int button, int state, int x, int y)
 void mouseMotion(int x, int y)
 {
    // the (0, 0) is top-left instead of bottom left, so just align the mouse coordinate with screen coordinate
-   y = applicationVariables->screen.sizex() - y - 1;
+   y = applicationVariables->screen.sizey() - y - 1;
 
    // left
    if ( applicationVariables->mouseEvent.isMouseLeftButtonJustPressed )

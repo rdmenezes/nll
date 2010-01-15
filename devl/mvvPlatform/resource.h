@@ -24,7 +24,8 @@ namespace platform
    {
       struct MVVPLATFORM_API ResourceSharedData
       {
-         typedef std::set<Engine*>  EngineStorage;
+         typedef std::set<Engine*>              EngineStorage;
+         typedef std::set<ResourceSharedData*>  ResourceStorage;
          ResourceSharedData() : privateData( 0 ), own( false ), state( STATE_ENABLED ), needNotification( false )
          {}
 
@@ -34,12 +35,52 @@ namespace platform
          void*             privateData;
          bool              own;
          EngineStorage     links;
+         ResourceStorage   resources;        /// the connected resources
+         ResourceStorage   resourcesLinks;   /// double linkage for connected resource as when a resource is destroyed, it must be erased from the connected resources both ways!
          ResourceState     state;
          bool              needNotification; /// when the resource is asleep, we need to recompute when reactivated hence this flag!
+
+         void _addSimpleLink( ResourceSharedData* r )
+         {
+            if ( r != this )
+            {
+               resources.insert( r );
+            }
+         }
+
+         void _addSimpleLinkConnection( ResourceSharedData* r )
+         {
+            if ( r != this )
+            {
+               resourcesLinks.insert( r );
+            }
+         }
+
+         void _eraseSimpleLink( ResourceSharedData* r )
+         {
+            ResourceStorage::iterator it = resources.find( r );
+            if ( it != resources.end() )
+               resources.erase( it );
+            it = resourcesLinks.find( r );
+            if ( it != resourcesLinks.end() )
+               resourcesLinks.erase( it );
+         }
+
+         ~ResourceSharedData()
+         {
+            for ( ResourceStorage::iterator it = resourcesLinks.begin(); it != resourcesLinks.end(); ++it )
+            {
+               (*it)->_eraseSimpleLink( this );
+            }
+         }
+
+         void notify();
       };
 
       /**
        @brief Resource. Should not be used in client code as it is not type safe
+
+       A resource can be connected to other resources, in this case
        */
       class MVVPLATFORM_API Resource : public RefcountedTyped<ResourceSharedData>, public Notifiable
       {
@@ -59,6 +100,19 @@ namespace platform
          void connect( Engine* e );
 
          void disconnect( Engine* e );
+
+         void connect( Resource& e )
+         {
+            e.getData()._addSimpleLinkConnection( &getData() );
+            getData()._addSimpleLinkConnection( &e.getData() );
+            getData()._addSimpleLink( &e.getData() );
+         }
+
+         void disconnect( Resource& e )
+         {
+            e.getData()._eraseSimpleLink( &getData() );
+            getData()._eraseSimpleLink( &e.getData() );
+         }
 
          void setState( ResourceState s );
 

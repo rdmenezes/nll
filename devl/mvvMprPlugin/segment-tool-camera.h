@@ -50,9 +50,9 @@ namespace platform
                   if ( (**it).volumes.size() > 1 )
                   {
                      // if there was not volume, we need to check
-                     if ( fabs( pos[ 0 ] - segmentPosition[ 0 ] ) < 0.001 &&
-                          fabs( pos[ 1 ] - segmentPosition[ 1 ] ) < 0.001 &&
-                          fabs( pos[ 2 ] - segmentPosition[ 2 ] ) < 0.001 )
+                     if ( fabs( pos[ 0 ] - segmentPosition[ 0 ] ) > 0.001 ||
+                          fabs( pos[ 1 ] - segmentPosition[ 1 ] ) > 0.001 ||
+                          fabs( pos[ 2 ] - segmentPosition[ 2 ] ) > 0.001 )
                      {
                         biggerVolumeFound = false; // we don't want to update the camera position
                         hasMoved = true;
@@ -122,9 +122,29 @@ namespace platform
                (**it).position.setValue( pos );
             }
             _sliceLastPos = e.mousePosition;
-         } else {
-            // modify the zoom
-
+         } else if ( e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
+         {
+            // update the zoom factors of all the attached segments
+            nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_paddingLastPos[ 0 ],
+                                           - (int)e.mousePosition[ 1 ] + (int)_paddingLastPos[ 1 ] );
+            float d = static_cast<float>( fabs( (float)diffMouse[ 1 ] ) );
+            nll::core::vector2f zoom;
+            for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
+            {
+               if ( (int)e.mousePosition[ 1 ] >= _paddingLastPos[ 1 ] )
+               {
+                  zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] * (float)( 1 + d / 100 );
+                  zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] * (float)( 1 + d / 100 );
+               } else {
+                  zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] / (float)( 1 + d / 100 );
+                  zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] / (float)( 1 + d / 100 );
+               }
+               (**it).zoom.setValue( zoom );
+            }
+            
+            _paddingLastPos = e.mousePosition;
+            _sliceLastPos = e.mousePosition;
+            return;
          }
       }
 
