@@ -112,15 +112,14 @@ namespace platform
                                            - (int)e.mousePosition[ 1 ] + (int)_sliceLastPos[ 1 ] );
             float sign = ( _sliceLastPos[ 1 ] > (int)e.mousePosition[ 1 ] ) ? 1.0f : -1.0f;
             float d = static_cast<float>( fabs( (float)diffMouse[ 1 ] ) ) * sign / 10;
-            for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
-            {
-               nll::core::StaticVector<float, 3> cross = nll::core::cross( (**it).directionx.getValue(), (**it).directiony.getValue() );
-               assert( nll::core::equal( cross.norm2(), 1.0, 1e-5 ) );  // the base vector1, vector2 must be normalized
-               nll::core::vector3f pos( (**it).position.getValue()[ 0 ] + d * cross[ 0 ],
-                                        (**it).position.getValue()[ 1 ] + d * cross[ 1 ],
-                                        (**it).position.getValue()[ 2 ] + d * cross[ 2 ] );
-               (**it).position.setValue( pos );
-            }
+
+            nll::core::StaticVector<float, 3> cross = nll::core::cross( s.directionx.getValue(), s.directiony.getValue() );
+            assert( nll::core::equal( cross.norm2(), 1.0, 1e-5 ) );  // the base vector1, vector2 must be normalized
+            nll::core::vector3f pos( s.position.getValue()[ 0 ] + d * cross[ 0 ],
+                                     s.position.getValue()[ 1 ] + d * cross[ 1 ],
+                                     s.position.getValue()[ 2 ] + d * cross[ 2 ] );
+            s.position.setValue( pos );
+
             _sliceLastPos = e.mousePosition;
          } else if ( e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
          {

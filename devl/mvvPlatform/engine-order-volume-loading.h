@@ -82,6 +82,7 @@ namespace platform
       {
          impl::OrderVolumeLoaderResult* result = dynamic_cast<impl::OrderVolumeLoaderResult*>( (*order).getResult() );
          _resourceVolumes.insert( result->name, result->volume );
+         _resourceVolumes.notify();
       }
 
       virtual const std::set<OrderClassId>& interestedOrder() const

@@ -54,11 +54,11 @@ namespace mvv
          (*segment1).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
          (*segment1).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
 
-         nll::imaging::LookUpTransformWindowingRGB lutPetImpl( 0, 5000, 256 );
+         nll::imaging::LookUpTransformWindowingRGB lutPetImpl( 0, 20000, 4500 );
          float red[] = {255, 0, 0};
          lutPetImpl.createColorScale( red );
          ResourceLut lutPet( lutPetImpl );
-         ResourceLut lutCt( -100, 1500 );
+         ResourceLut lutCt( -200, 1000 );
 
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
@@ -107,9 +107,12 @@ namespace mvv
       {
          Segment* segment0 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment1" ), RefcountedTyped<Segment>( segment0 ) );
+         segment0->interpolation.setValue( NEAREST );
 
          Segment* segment1 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment2" ), RefcountedTyped<Segment>( segment1 ) );
+         segment1->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
+         segment1->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
 
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
