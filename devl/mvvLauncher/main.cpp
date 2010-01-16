@@ -257,7 +257,7 @@ int main(int argc, char** argv)
   // GLUT Window Initialization:
   glutInit( &argc, argv );
   glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
-  glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+  glutInitDisplayMode( GLUT_RGB /*| GLUT_DOUBLE | GLUT_DEPTH*/ );
   glutCreateWindow( "Medical Volume Viewer" );
   //glutGameModeString( "1024x1024:32" );
   //glutEnterGameMode();

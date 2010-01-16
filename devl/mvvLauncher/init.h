@@ -34,7 +34,7 @@ namespace mvv
       SegmentToolPointer                  segmentPointer;
       RefcountedTyped<SegmentToolCamera> segmentToolCamera;
 
-      ApplicationVariables() : screen( 128, 128, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1024, 512, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
