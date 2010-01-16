@@ -29,9 +29,16 @@ namespace platform
 
          nll::core::vector3f p = slice.getOrthogonalProjection( _position );
          nll::core::vector2f pplane = slice.worldToSliceCoordinate( p );
-         if ( !slice.contains( pplane ) )
+         try
          {
-            // out of the slice, don't display anything
+            if ( !slice.contains( pplane ) )
+            {
+               // out of the slice, don't display anything
+               return;
+            }
+         }
+         catch( ... )
+         {
             return;
          }
 

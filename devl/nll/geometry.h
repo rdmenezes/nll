@@ -184,7 +184,7 @@ namespace core
        @brief Returns true if the point, in world coordinate (in mm) is in the same plane than
               the slice.
        */
-      bool contains( const core::vector3f pos, float tol = 1e-4 ) const
+      bool contains( const core::vector3f pos, float tol = 1e-2 ) const
       {
          // check first it is in the same plan
          // N . x + d = 0 means we are in the plan
@@ -230,12 +230,14 @@ namespace core
          //   Y = ( y - oy' - ay1 * ( x - ox') / ax1 ) / ay2 / ( 1 - ay1 * ax2 / ( ay2 * ax1 ) )
    
          // init the data and it's index
+         std::cout << "init" << std::endl;
          float m[ 3 ][ 4 ] =
          {
             { v[ 0 ], _origin[ 0 ], _axisx[ 0 ], _axisy[ 0 ] },
             { v[ 1 ], _origin[ 1 ], _axisx[ 1 ], _axisy[ 1 ] },
             { v[ 2 ], _origin[ 2 ], _axisx[ 2 ], _axisy[ 2 ] }
          };
+         std::cout << " end init" << std::endl;
 
          int i0 = -1;
          for ( ui32 n = 0; n < 3; ++n )
