@@ -77,7 +77,7 @@ namespace platform
    protected:
       virtual void _receive( const EventMouse& e )
       {
-         (*_segment).receive( e );
+         (*_segment).receive( e, _origin );
       }
 
    protected:

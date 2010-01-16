@@ -19,7 +19,7 @@ namespace platform
     @ingroup platform
     @brief Display a MPR and all supporting information
     */
-   class MVVMPRPLUGIN_API Segment : public EventMouseReceiver, LinkableDouble<SegmentTool*, Segment*>
+   class MVVMPRPLUGIN_API Segment : LinkableDouble<SegmentTool*, Segment*>
    {
       friend class SegmentTool;
 
@@ -145,7 +145,7 @@ namespace platform
 
       virtual void disconnect( SegmentTool* tool );
 
-      virtual void receive( const EventMouse& event );
+      virtual void receive( const EventMouse& event, const nll::core::vector2ui& windowOrigin );
 
       void setToolSorter( RefcountedTyped<SegmentToolSorter> sorter )
       {
@@ -164,6 +164,15 @@ namespace platform
       bool getAuthorizeRecenteringOnLoading() const
       {
          return _authorizeRecenteringOnLoading;
+      }
+
+      /**
+       @brief If interaction is needed with events, some tools might need to update
+              the segment's display.
+       */
+      void refreshTools()
+      {
+         segment.notify();
       }
 
    protected:

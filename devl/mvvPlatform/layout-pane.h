@@ -203,6 +203,9 @@ namespace platform
                   // propagate to the sub pane concerned
                   (**it).receive( e );
                }
+            } else if ( (**it).isInside( e.mousePosition ) )
+            {
+               (**it).receive( e );
             }
          }
       }

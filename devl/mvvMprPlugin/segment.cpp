@@ -65,11 +65,11 @@ namespace platform
       removeConnections();
    }
 
-   void Segment::receive( const EventMouse& e )
+   void Segment::receive( const EventMouse& e, const nll::core::vector2ui& windowOrigin )
    {
       for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
       {
-         (*it)->receive( *this, e );
+         (*it)->receive( *this, e, windowOrigin );
       }
    }
 }

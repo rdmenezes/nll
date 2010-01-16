@@ -224,8 +224,8 @@ namespace imaging
          try
          {
             core::vector2f slicePos = worldToSliceCoordinate( pos );
-            const float sx = this->size()[ 0 ];
-            const float sy = this->size()[ 1 ];
+            const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
+            const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
             if ( slicePos[ 0 ] < -sx ||
                  slicePos[ 0 ] > sx ||
                  slicePos[ 1 ] < -sy ||
@@ -242,8 +242,8 @@ namespace imaging
 
       bool contains( const core::vector2f pos ) const
       {
-         const float sx = this->size()[ 0 ] / 2;
-         const float sy = this->size()[ 1 ] / 2;
+         const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
+         const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
          if ( pos[ 0 ] < -sx ||
               pos[ 0 ] > sx ||
               pos[ 1 ] < -sy ||

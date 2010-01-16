@@ -59,7 +59,12 @@ namespace platform
        */
       virtual void updateSegment( ResourceSliceuc segment, Segment& holder ) = 0;
 
-      virtual void receive( Segment& sender, const EventMouse& event ) = 0;
+      /**
+       @param sender the segment where the signal originate's from
+       @param event the event
+       @paran windowOrigin the origin of the layout so we can compute the actual position of the mouse relative to the layout
+       */
+      virtual void receive( Segment& sender, const EventMouse& event, const nll::core::vector2ui& windowOrigin ) = 0;
 
       /**
        @brief if true, the event will not be propagated to other tools

@@ -79,7 +79,7 @@ namespace platform
          return true;
       }
 
-      virtual void receive( Segment& s, const EventMouse& e )
+      virtual void receive( Segment& s, const EventMouse& e, const nll::core::vector2ui& )
       {
          if ( e.isMouseLeftButtonJustPressed )
          {

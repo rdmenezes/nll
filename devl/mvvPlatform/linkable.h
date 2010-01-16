@@ -18,12 +18,15 @@ namespace platform
       LinkableSimple()
       {}
 
-      void _addSimpleLink( ObjectToHold o )
+      virtual ~LinkableSimple()
+      {}
+
+      virtual void _addSimpleLink( ObjectToHold o )
       {
          _links.insert( o );
       }
 
-      void _eraseSimpleLink( ObjectToHold o )
+      virtual void _eraseSimpleLink( ObjectToHold o )
       {
          LinkStorage::iterator it = _links.find( o );
          if ( it != _links.end() )
