@@ -16,11 +16,28 @@ namespace platform
 
       virtual void updateSegment( ResourceSliceuc segment, Segment&  )
       {
-         if ( segment.getValue().getStorage().sizex() < 5 )
+         ResourceSliceuc::value_type slice = segment.getValue();
+         if ( !slice.size()[ 0 ] || !slice.size()[ 1 ] || !slice.size()[ 2 ] )
             return;
 
-         ResourceSliceuc::value_type::Storage::DirectionalIterator  it = segment.getValue().getIterator( 5, 5 );
-         for ( int n = 0; n < 15; ++n, ++it )
+         nll::core::vector3f p = slice.getOrthogonalProjection( _position );
+         nll::core::vector2f pplane = slice.worldToSliceCoordinate( p );
+         std::cout << "val=" << pplane[ 0 ] + slice.size()[ 0 ] / 2 << " " << pplane[ 1 ] + slice.size()[ 1 ] / 2 << std::endl;
+         if ( !slice.contains( pplane ) )
+         {
+            // out of the slice, don't display anything
+            return;
+         }
+
+         ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( static_cast<ui32>( pplane[ 0 ] + slice.size()[ 0 ] / 2 ),
+                                                                                            0 );
+         for ( ui32 n = 0; n < slice.size()[ 1 ]; ++n, it.addy() )
+         {
+            *it = 255;
+         }
+
+         it = slice.getIterator( 0, static_cast<ui32>( pplane[ 1 ] + slice.size()[ 1 ] / 2 ) );
+         for ( ui32 n = 0; n < slice.size()[ 0 ]; ++n, ++it )
          {
             *it = 255;
          }
@@ -32,7 +49,7 @@ namespace platform
       }
 
    protected:
-      ResourceVector3f  _position;
+      nll::core::vector3f  _position;
    };
 }
 }

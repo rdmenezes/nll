@@ -224,8 +224,8 @@ namespace imaging
          try
          {
             core::vector2f slicePos = worldToSliceCoordinate( pos );
-            const float sx = this->size()[ 0 ] / 2 * _spacing[ 0 ];
-            const float sy = this->size()[ 1 ] / 2 * _spacing[ 1 ];
+            const float sx = this->size()[ 0 ];
+            const float sy = this->size()[ 1 ];
             if ( slicePos[ 0 ] < -sx ||
                  slicePos[ 0 ] > sx ||
                  slicePos[ 1 ] < -sy ||
@@ -238,6 +238,18 @@ namespace imaging
             // it should not be the case if the slice geometry is correctly defined
             return false;
          }
+      }
+
+      bool contains( const core::vector2f pos ) const
+      {
+         const float sx = this->size()[ 0 ] / 2;
+         const float sy = this->size()[ 1 ] / 2;
+         if ( pos[ 0 ] < -sx ||
+              pos[ 0 ] > sx ||
+              pos[ 1 ] < -sy ||
+              pos[ 1 ] > sy )
+           return false;
+         return true; 
       }
 
       /**
@@ -261,6 +273,7 @@ namespace imaging
          _axisy = rhs._axisy;
          _spacing = rhs._spacing;
          _storage = rhs._storage;
+         _plane = rhs._plane;
          return *this;
       }
 
@@ -281,7 +294,7 @@ namespace imaging
       }
 
       /**
-       @brief Transform a world coordinate (standard x, y, z coordinate system, in mm) to slice coordinate
+       @brief Transform a world coordinate (standard x, y, z coordinate system, in mm) to slice coordinate, with (0, 0) the center on the origin (=center of the slice)
        @param v a position in world coordinate in mm. It must be located on the plane of the slice!
        */
       core::vector2f worldToSliceCoordinate( const core::vector3f& v ) const
@@ -295,6 +308,14 @@ namespace imaging
       core::vector3f sliceToWorldCoordinate( const core::vector2f& v ) const
       {
          return _plane.planeToWorldCoordinate( v );
+      }
+
+      /**
+       @brief Get the orthogonal projection of a point on the plane of the slice
+       */
+      core::vector3f getOrthogonalProjection( const core::vector3f& p ) const
+      {
+         return _plane.getOrthogonalProjection( p );
       }
 
    protected:

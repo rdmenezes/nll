@@ -341,6 +341,17 @@ namespace core
       }
 
       /**
+       @brief Get the orthogonal projection of a point on the plane
+       */
+      vector3f getOrthogonalProjection( const core::vector3f& p ) const
+      {
+         vector3f proj;
+         bool res = getIntersection( p, _orthonorm, proj );
+         assert( res ); // we are projection according to the normal of the plan so we know there is intersection
+         return proj;
+      }
+
+      /**
        @brief Compute the intersection of the plane with a line defined by (position, direction).
        @param outIntersection returns the intersection in slice coordinate
        */
