@@ -39,11 +39,6 @@ namespace platform
          return _canModify;
       }
 
-      void setModifyingMprImage( bool modify )
-      {
-         _canModify = modify;
-      }
-
       /**
        @brief Tools are sorted according to their priority from highest to lowest
               they are displayed from lowest->highest

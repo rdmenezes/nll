@@ -25,11 +25,12 @@ namespace platform
     */
    class MVVMPRPLUGIN_API SegmentToolSorterPriorityQueue : public SegmentToolSorter
    {
+      // from smallest to biggest
       struct Compare
       {
          bool operator()( SegmentTool* s1, SegmentTool* s2 )
          {
-            return s1->priority() > s2->priority();
+            return s1->priority() < s2->priority();
          }
       };
 

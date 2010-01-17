@@ -28,6 +28,7 @@ namespace platform
       if ( _wrappers.size() )
       {
          segment = (**_wrappers.rbegin()).outputSegment;
+         std::cout << " connected out=" << (void*)segment.getValue().getStorage().begin() << std::endl;
       }
    }
 
@@ -67,9 +68,14 @@ namespace platform
 
    void Segment::receive( const EventMouse& e, const nll::core::vector2ui& windowOrigin )
    {
-      for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
+      for ( ToolsStorage::reverse_iterator it = _tools.rbegin(); it != _tools.rend(); ++it )
       {
          (*it)->receive( *this, e, windowOrigin );
+         if ( (*it)->interceptEvent() )
+         {
+            // we stop the events
+            break;
+         }
       }
    }
 }

@@ -16,6 +16,23 @@ namespace platform
       {
       }
 
+      virtual bool interceptEvent() const
+      {
+         // if one segment is active, then we must intercept the signal. Only one tool
+         // is allowed to handle a signal
+         for ( MapSegments::const_iterator it = _active.begin(); it != _active.end(); ++it )
+         {
+            if ( it->second )
+               return true;
+         }
+         return false;
+      }
+
+      virtual f32 priority() const
+      {
+         return 100;
+      }
+
       virtual void updateSegment( ResourceSliceuc segment, Segment& s )
       {
          ResourceSliceuc::value_type slice = segment.getValue();
@@ -58,6 +75,37 @@ namespace platform
 
       virtual void receive( Segment& segment, const EventMouse& e, const nll::core::vector2ui& windowOrigin )
       {
+         if ( e.isMouseLeftButtonJustPressed )
+         {
+            _leftMouseLastPos = e.mousePosition;
+         }
+
+         // if the current segment is active and left mouse button pressed, update the
+         // camera position
+         MapSegments::iterator it = _active.find( &segment );
+         if ( it != _active.end() && it->second && e.isMouseLeftButtonPressed )
+         {
+            nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_leftMouseLastPos[ 0 ],
+                                           - (int)e.mousePosition[ 1 ] + (int)_leftMouseLastPos[ 1 ] );
+            nll::core::vector3f directionx = segment.directionx.getValue();
+            nll::core::vector3f directiony = segment.directiony.getValue();
+            nll::core::vector2f zoom = segment.zoom.getValue();
+
+            nll::core::vector3f pos( _position[ 0 ] - ( diffMouse[ 0 ] * directionx[ 0 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 0 ] / zoom[ 1 ] ),
+                                     _position[ 1 ] - ( diffMouse[ 0 ] * directionx[ 1 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 1 ] / zoom[ 1 ] ),
+                                     _position[ 2 ] - ( diffMouse[ 0 ] * directionx[ 2 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 2 ] / zoom[ 1 ] ) );
+            _position = pos;
+            _leftMouseLastPos = e.mousePosition;
+            segment.refreshTools();
+            return;
+         }
+
+         // if mouse is pressed, we don't want to update the activation/deactivation state
+         // (as it is not in syn, we can move the pointer even if the user didn't select it)
+         if ( e.isMouseLeftButtonPressed || e.isMouseRightButtonPressed )
+            return;
+
+
          // project the point on the plane
          ResourceSliceuc::value_type slice = segment.segment.getValue();
          if ( !slice.size()[ 0 ] || !slice.size()[ 1 ] || !slice.size()[ 2 ] )
@@ -68,7 +116,7 @@ namespace platform
          pplane[ 0 ] += static_cast<f32>( slice.size()[ 0 ] ) / 2;
          pplane[ 1 ] += static_cast<f32>( slice.size()[ 1 ] ) / 2;
 
-         MapSegments::iterator it = _active.find( &segment );
+         //MapSegments::iterator it = _active.find( &segment );
          bool justMakeItActive = false;
          if ( it == _active.end() || !it->second )
          {
@@ -82,7 +130,7 @@ namespace platform
             }
          }
 
-         if ( !justMakeItActive )
+         if ( !justMakeItActive && !e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
          {
             // we know none should be highlighted
             for ( MapSegments::iterator it = _active.begin(); it != _active.end(); ++it )
@@ -115,8 +163,9 @@ namespace platform
       }
 
    protected:
-      nll::core::vector3f  _position;
-      MapSegments          _active;
+      nll::core::vector3f     _position;
+      MapSegments             _active;
+      nll::core::vector2ui    _leftMouseLastPos;
    };
 }
 }

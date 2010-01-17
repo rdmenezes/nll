@@ -45,7 +45,10 @@ namespace platform
             inputSegment.connect( this );
             handler.connect( *this );
 
-            outputSegment = inputSegment;
+            if ( !tool->isModifyingMprImage() )
+            {
+               outputSegment = inputSegment;
+            }
          }
 
          virtual ~SegmentToolWrapper()
@@ -66,30 +69,41 @@ namespace platform
                return true;
             }
 
-            // update the geometry in case it is different
-            outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
-                                                  inputSegment.getValue().getAxisY(),
-                                                  inputSegment.getValue().getOrigin(),
-                                                  inputSegment.getValue().getSpacing() );
             if ( _tool->isModifyingMprImage() )
             {
+               ensure( inputSegment.getValue().getStorage().begin() !=
+                       outputSegment.getValue().getStorage().begin(), "we can't share the same buffer if it modifies the segment..." );
+
                // if we modify the image & the dimenstion are not good, just deep copy the input
                if ( inputSegment.getValue().getStorage().size() != outputSegment.getValue().getStorage().size() )
                {
-                  outputSegment.getValue().getStorage().clone( inputSegment.getValue().getStorage() );
+                  Sliceuc slice;
+                  slice.setGeometry( inputSegment.getValue().getAxisX(),
+                                     inputSegment.getValue().getAxisY(),
+                                     inputSegment.getValue().getOrigin(),
+                                     inputSegment.getValue().getSpacing() );
+
+                  slice.getStorage().clone( inputSegment.getValue().getStorage() );
+                  outputSegment.setValue( slice );
                } else {
                   // quick copy, we know memory is continuous
                   Sliceuc::iterator inputBegin = inputSegment.getValue().getStorage().begin();
-                  Sliceuc::iterator outputBegin = outputSegment.getValue().getStorage().begin();
+                  Sliceuc::iterator outputBegin = outputSegment.getValue().getStorage().begin();                
                   memcpy( &*outputBegin, &*inputBegin, inputSegment.getValue().getStorage().size() );
+
+                  // update the geometry in case it is different
+                  outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
+                                                        inputSegment.getValue().getAxisY(),
+                                                        inputSegment.getValue().getOrigin(),
+                                                        inputSegment.getValue().getSpacing() );
                }
+
+               //do the changes on the output
+               _tool->updateSegment( outputSegment, _segment );
 
                // notify the changes
                outputSegment.notify();
             }
-
-            //do the changes on the output
-            _tool->updateSegment( outputSegment, _segment );
             return true;
          }
 
@@ -172,7 +186,7 @@ namespace platform
        */
       void refreshTools()
       {
-         segment.notify();
+         _segment.notify();
       }
 
    protected:
