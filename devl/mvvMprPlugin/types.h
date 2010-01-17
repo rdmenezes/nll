@@ -27,7 +27,12 @@ namespace platform
          notify();
       }
 
-      Sliceuc getValue() const
+      Sliceuc& getValue()
+      {
+         return Resource<Sliceuc>::getValue();
+      }
+
+      const Sliceuc& getValue() const
       {
          return Resource<Sliceuc>::getValue();
       }
