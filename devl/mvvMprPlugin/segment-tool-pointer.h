@@ -87,6 +87,12 @@ namespace platform
          {
             nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_leftMouseLastPos[ 0 ],
                                            - (int)e.mousePosition[ 1 ] + (int)_leftMouseLastPos[ 1 ] );
+            if ( diffMouse[ 0 ] == 0 && diffMouse[ 1 ] == 0 )
+            {
+               // no displacement
+               return;
+            }
+
             nll::core::vector3f directionx = segment.directionx.getValue();
             nll::core::vector3f directiony = segment.directiony.getValue();
             nll::core::vector2f zoom = segment.zoom.getValue();
@@ -94,8 +100,42 @@ namespace platform
             nll::core::vector3f pos( _position[ 0 ] - ( diffMouse[ 0 ] * directionx[ 0 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 0 ] / zoom[ 1 ] ),
                                      _position[ 1 ] - ( diffMouse[ 0 ] * directionx[ 1 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 1 ] / zoom[ 1 ] ),
                                      _position[ 2 ] - ( diffMouse[ 0 ] * directionx[ 2 ] / zoom[ 0 ] + diffMouse[ 1 ] * directiony[ 2 ] / zoom[ 1 ] ) );
-            _position = pos;
             _leftMouseLastPos = e.mousePosition;
+
+            for ( LinkStorage::iterator it = _links.begin(); it != _links.end(); ++it )
+            {
+               if ( *it == &segment )
+               {
+                  // we will refresh the current segment anyway...
+                  continue;
+               }
+               try
+               {
+                  // update the position in other slices...
+                  Sliceuc& slice = (*it)->segment.getValue();
+                  nll::core::vector3f vec = pos - _position;
+                  float mag = sqrtf( vec[ 0 ] * vec[ 0 ] + vec[ 1 ] * vec[ 1 ] + vec[ 2 ] * vec[ 2 ] );
+                  if ( fabs( mag ) > 1e-8 )
+                  {
+                     nll::core::vector3f displacement = slice.getNormal() * slice.getNormal().dot( vec );
+                     if ( displacement.dot( displacement ) < 1e-2 )
+                     {
+                        // if no displacement, we need at least to refresh the tool as it has been moved but on the
+                        // same plane than the slice
+                        (*it)->refreshTools();
+                     }
+                     else
+                     {
+                        // refresh the slice: movement not in the same plane than the slice
+                        (*it)->position.setValue( (*it)->position.getValue() + displacement );
+                     }
+                  }
+               } catch( ... ) {
+                  // skip, unknow error!
+               }
+            }
+
+            _position = pos;
             segment.refreshTools();
             return;
          }

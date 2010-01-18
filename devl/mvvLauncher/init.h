@@ -34,7 +34,7 @@ namespace mvv
       SegmentToolPointer                  segmentPointer;
       RefcountedTyped<SegmentToolCamera> segmentToolCamera;
 
-      ApplicationVariables() : screen( 1024, 512, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1024*2, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
@@ -42,8 +42,8 @@ namespace mvv
          context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
          context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
-		   //context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
-         //context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
+		  // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
+        // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
          // segment 1
@@ -108,6 +108,9 @@ namespace mvv
       {
          Segment* segment0 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment1" ), RefcountedTyped<Segment>( segment0 ) );
+         segment0->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
+         segment0->directiony.setValue( nll::core::vector3f( 0, 1, 0 ) );
+
          //segment0->interpolation.setValue( NEAREST );
 
          Segment* segment1 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
