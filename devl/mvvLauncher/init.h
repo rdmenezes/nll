@@ -31,16 +31,16 @@ namespace mvv
       EngineHandlerImpl                   engineHandler;
       OrderManagerThreadPool              orderManager;
 
-      SegmentToolPointer                  segmentPointer;
-      RefcountedTyped<SegmentToolCamera> segmentToolCamera;
+      RefcountedTyped<SegmentToolPointer> segmentPointer;
+      RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
 
-      ApplicationVariables() : screen( 1024*2, 1024, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 2048, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
 
-         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
-         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
+        context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
+        context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
 		  // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
         // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
@@ -63,7 +63,8 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
-         (*segment1).connect( &segmentPointer );
+         segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( engineHandler ) );
+         (*segment1).connect( segmentPointer.getDataPtr() );
          segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
          (*segment1).connect( segmentToolCamera.getDataPtr() );
 
@@ -80,7 +81,7 @@ namespace mvv
          (*segment2).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
          (*segment2).connect( segmentToolCamera.getDataPtr() );
-         (*segment2).connect( &segmentPointer );
+         (*segment2).connect( segmentPointer.getDataPtr() );
 
          // event
          mouseEvent.isMouseRightButtonJustReleased = false;
@@ -115,7 +116,7 @@ namespace mvv
 
          Segment* segment1 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment2" ), RefcountedTyped<Segment>( segment1 ) );
-         segment1->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
+         segment1->directionx.setValue( nll::core::vector3f( 0, 1, 0 ) );
          segment1->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
 
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),

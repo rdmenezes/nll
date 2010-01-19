@@ -11,8 +11,55 @@ namespace platform
    {
       typedef std::map<Segment*, bool> MapSegments;
 
+      class SegmentPositionListener : public Engine
+      {
+      public:
+         SegmentPositionListener( SegmentToolPointer& pointer, nll::core::vector3f& position,  Segment& segment, EngineHandler& handler ) : Engine( handler ), _pointer( pointer ), _position( position ), _segment( segment )
+         {
+            segment.position.connect( this );
+         }
+
+         virtual void unnotify()
+         {
+            _needToRecompute = false;
+         }
+
+         virtual bool _run()
+         {
+            if ( _pointer.interceptEvent() )
+            {
+               // we have the control, and the pointer is likely to be moving, so don't update any position else
+               // it will create moving artifacts.
+               return true;
+            }
+
+            // a segment position has been updated, we want to set the position of the pointer on the normal-axis coordinate only            
+            Sliceuc& slice = _segment.segment.getValue();
+            if ( slice.getNormal().dot( slice.getNormal() ) > 1e-4 )
+            {
+               _position = slice.getOrthogonalProjection( _position );
+               _pointer.refreshConnectedSegments();
+               _pointer.unnotifyOtherEngines( this );
+               _segment.refreshTools();
+               return true;
+            } else {
+               return false;
+            }
+         }
+
+         const Segment* getSegment() const
+         {
+            return &_segment;
+         }
+
+      private:
+         Segment&                _segment;
+         nll::core::vector3f&    _position;
+         SegmentToolPointer&     _pointer;
+      };
+
    public:
-      SegmentToolPointer() : SegmentTool( true )
+      SegmentToolPointer( EngineHandler& handler ) : SegmentTool( true ), _handler( handler )
       {
       }
 
@@ -70,6 +117,25 @@ namespace platform
          for ( ui32 n = 0; n < slice.size()[ 0 ]; ++n, ++it )
          {
             *it = val;
+         }
+      }
+
+      void refreshConnectedSegments()
+      {
+         for ( LinkStorage::iterator it = _links.begin(); it != _links.end(); ++it )
+         {
+            (*it)->refreshTools();
+         }
+      }
+
+      void unnotifyOtherEngines( SegmentPositionListener* e )
+      {
+         typedef std::vector< RefcountedTyped<SegmentPositionListener> > Links;
+         for ( Links::iterator it = _positionListeners.begin(); it != _positionListeners.end(); ++it )
+         {
+            if ( (*it).getDataPtr() == e )
+               continue;
+            (**it).unnotify();
          }
       }
 
@@ -192,6 +258,15 @@ namespace platform
          
       }
 
+      virtual void _addSimpleLink( Segment* o )
+      {
+         std::pair<LinkStorage::iterator, bool> r = _links.insert( o );
+         if ( r.second )
+         {
+            _positionListeners.push_back( RefcountedTyped<SegmentPositionListener>( new SegmentPositionListener( *this, _position, *o, _handler ) ) );
+         }
+      }
+
       virtual void _eraseSimpleLink( Segment* o )
       {
          MapSegments::iterator ii = _active.find( o );
@@ -200,12 +275,25 @@ namespace platform
          LinkStorage::iterator it = _links.find( o );
          if ( it != _links.end() )
             _links.erase( it );
+
+         typedef std::vector< RefcountedTyped<SegmentPositionListener> > Container;
+         for ( Container::iterator it = _positionListeners.begin(); it != _positionListeners.end(); ++it )
+         {
+            if ( (**it).getSegment() == o )
+            {
+               _positionListeners.erase( it );
+               break;
+            }
+         }
       }
 
    protected:
       nll::core::vector3f     _position;
       MapSegments             _active;
       nll::core::vector2ui    _leftMouseLastPos;
+
+      EngineHandler&          _handler;
+      std::vector< RefcountedTyped<SegmentPositionListener> > _positionListeners;
    };
 }
 }
