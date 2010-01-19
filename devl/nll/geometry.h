@@ -5,8 +5,42 @@ namespace nll
 {
 namespace core
 {
-   namespace impl
+   /**
+    @ingroup core
+    @brief Test if 2 vectors are colinear
+    @note we take the convention that 2 zero vectors are not colinear
+    */
+   template <class T, int N>
+   bool isCollinear( const StaticVector<T, N>& a, const StaticVector<T, N>& b )
    {
+      bool isInit = false;
+      float ratio = 0;
+      ui32 n = 0;
+
+      // first get the ratio
+      const T accuracy = static_cast<T>( 1e-6 );
+      for ( ; n < N && !isInit; ++n )
+      {
+         if ( !equal<T>( b[ n ], 0, accuracy ) )
+         {
+            ratio = static_cast<float>( a[ n ] ) / static_cast<float>( b[ n ] );
+            isInit = true;
+            break;
+         }
+      }
+
+      // then check it is always the same
+      for ( ; n < N; ++n )
+      {
+         if ( !equal<T>( b[ n ], 0, accuracy ) )
+         {
+            float ratioTest = static_cast<float>( a[ n ] ) / static_cast<float>( b[ n ] );
+            if ( !equal<float>( ratio, ratioTest, 1e-6f ) )
+               return false;
+         }
+      }
+      // only zero...
+      return isInit && !equal<T>( ratio, 0, accuracy );
    }
 
    /**

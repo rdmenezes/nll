@@ -122,6 +122,15 @@ namespace platform
 
             _sliceLastPos = e.mousePosition;
 
+            // if we have 2 segment with a colinear normal, then me must synchronize their position
+            for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
+            {
+               if ( *it != &s && !(*it)->segment.isEmpty() && nll::core::isCollinear( (*it)->segment.getValue().getNormal(), cross ) )
+               {
+                  (*it)->position.setValue( pos );
+               }
+            }
+
             // TODO: we need to synchronize the other slices that would not be orthogonals
          } else if ( e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
          {

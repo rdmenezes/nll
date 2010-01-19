@@ -12,6 +12,26 @@ namespace core
 class TestGeometry
 {
 public:
+   void testColinearity()
+   {
+      
+      TESTER_ASSERT( nll::core::isCollinear( nll::core::vector3f( 1, 1, 1 ),
+                                            nll::core::vector3f( -2, -2, -2 ) ) );
+      TESTER_ASSERT( nll::core::isCollinear( nll::core::vector3f( 1, 0, 0 ),
+                                            nll::core::vector3f( 2, 0, 0 ) ) );
+      TESTER_ASSERT( nll::core::isCollinear( nll::core::vector3f( 0, -1, 0 ),
+                                            nll::core::vector3f( 0, 1, 0 ) ) );
+      TESTER_ASSERT( nll::core::isCollinear( nll::core::vector3f( 0, 0, 0.1f ),
+                                            nll::core::vector3f( 0, 0, 0.01f ) ) );
+
+      TESTER_ASSERT( !nll::core::isCollinear( nll::core::vector3f( 0, 0, 1 ),
+                                             nll::core::vector3f( 0, 0.001f, 1 ) ) );
+      TESTER_ASSERT( !nll::core::isCollinear( nll::core::vector3f( 0, 1.1f, 0 ),
+                                             nll::core::vector3f( 0, 0, 1 ) ) );
+      TESTER_ASSERT( !nll::core::isCollinear( nll::core::vector3f( 0, 0, 0 ),
+                                             nll::core::vector3f( 0, 0, 0 ) ) );
+   }
+
    void testPlaneContains()
    {
       nll::core::GeometryPlane planeId( nll::core::vector3f( 0, 0, 0 ),
@@ -168,6 +188,7 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGeometry);
+TESTER_TEST(testColinearity);
 TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST(testPlaneContains);
 TESTER_TEST(testPlaneIntersection);
