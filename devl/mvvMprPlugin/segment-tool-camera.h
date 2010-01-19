@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_SEGMENT_TOOL_CAMERA_H_
 
 # include "segment-tool.h"
+# include "segment-tool-pointer.h"
 
 namespace mvv
 {
@@ -70,7 +71,20 @@ namespace platform
                }
                if ( biggerVolumeFound )
                {
+                  std::cout << "set segment position=" << &(**it) << " v=" << pos[ 0 ] << " " << pos[ 1 ] << " " << pos[ 2 ] << std::endl;
                   (**it).position.setValue( pos );
+
+                  // TODO check it is right
+                  // now we need to update the position of the pointer if this tool is attached
+                  /*
+                  typedef std::set<SegmentToolPointer*> Pointers;
+                  Pointers pointers = (**it).getTools<SegmentToolPointer>();
+                  for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
+                  {
+                     std::cout << "set position" << pos[ 0 ] << " " << pos[ 1 ] << " " << pos[ 2 ] << std::endl;
+                     (*it)->setPosition( pos );
+                     (*it)->refreshConnectedSegments();
+                  }*/ 
                }
                maxVoxel = std::max( localMax, _nbMaxVoxels );
             }

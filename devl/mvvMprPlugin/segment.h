@@ -166,6 +166,19 @@ namespace platform
          _sorter = sorter;
       }
 
+      template <class T>
+      std::set<T*> getTools()
+      {
+         std::set<T*> tools;
+         for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
+         {
+            T* tool = dynamic_cast<T*>( *it );
+            if ( tool )
+               tools.insert( tool );
+         }
+         return tools;
+      }
+
       /**
        @brief set to true if when a volume is loaded, a tool may change the segment's position
        @sa SegmentToolCamera

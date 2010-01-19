@@ -34,7 +34,7 @@ namespace mvv
       RefcountedTyped<SegmentToolPointer> segmentPointer;
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
 
-      ApplicationVariables() : screen( 1024 / 2, 1024 / 2, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
@@ -139,23 +139,25 @@ namespace mvv
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment1" ), RefcountedTyped<Segment>( segment0 ) );
          segment0->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
          segment0->directiony.setValue( nll::core::vector3f( 0, 1, 0 ) );
-
-         //segment0->interpolation.setValue( NEAREST );
+         segment0->interpolation.setValue( NEAREST );
 
          Segment* segment1 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment2" ), RefcountedTyped<Segment>( segment1 ) );
          segment1->directionx.setValue( nll::core::vector3f( 0, 1, 0 ) );
          segment1->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
+         segment1->interpolation.setValue( NEAREST );
 
          Segment* segment2 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment3" ), RefcountedTyped<Segment>( segment2 ) );
          segment2->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
          segment2->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
+         segment2->interpolation.setValue( NEAREST );
 
          Segment* segment3 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment4" ), RefcountedTyped<Segment>( segment3 ) );
          segment3->directionx.setValue( nll::core::vector3f( 0, 1, 0 ) );
          segment3->directiony.setValue( nll::core::vector3f( 0, 0, -1 ) );
+         segment3->interpolation.setValue( NEAREST );
 
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
