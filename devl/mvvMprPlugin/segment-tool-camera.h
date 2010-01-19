@@ -91,7 +91,7 @@ namespace platform
          }
          if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
          {
-            // we are padding the segment
+            // we are panning the segment
             nll::core::vector2i diffMouse( - (int)e.mousePosition[ 0 ] + (int)_paddingLastPos[ 0 ],
                                            - (int)e.mousePosition[ 1 ] + (int)_paddingLastPos[ 1 ] );
 
@@ -121,6 +121,8 @@ namespace platform
             s.position.setValue( pos );
 
             _sliceLastPos = e.mousePosition;
+
+            // TODO: we need to synchronize the other slices that would not be orthogonals
          } else if ( e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
          {
             // update the zoom factors of all the attached segments

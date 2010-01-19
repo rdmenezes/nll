@@ -75,6 +75,14 @@ namespace platform
          return false;
       }
 
+      bool isSegmentActive( Segment* s ) const
+      {
+         MapSegments::const_iterator it = _active.find( s );
+         if ( it != _active.end() )
+            return it->second;
+         return false;
+      }
+
       virtual f32 priority() const
       {
          return 100;

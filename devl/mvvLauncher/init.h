@@ -34,7 +34,7 @@ namespace mvv
       RefcountedTyped<SegmentToolPointer> segmentPointer;
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
 
-      ApplicationVariables() : screen( 2048, 1024, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
          initLayout();
@@ -42,8 +42,8 @@ namespace mvv
         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
-		  // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
-        // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
+		//   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
+       //  context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
          // segment 1
@@ -69,7 +69,6 @@ namespace mvv
          (*segment1).connect( segmentToolCamera.getDataPtr() );
 
          // segment 2
-         
          RefcountedTyped<Segment> segment2;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
          (*segment2).volumes.insert( SymbolVolume::create( "ct1" ) );
@@ -82,6 +81,21 @@ namespace mvv
 
          (*segment2).connect( segmentToolCamera.getDataPtr() );
          (*segment2).connect( segmentPointer.getDataPtr() );
+
+         // segment 3
+         RefcountedTyped<Segment> segment3;
+         context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment3"), segment3 );
+         (*segment3).volumes.insert( SymbolVolume::create( "ct1" ) );
+         (*segment3).volumes.insert( SymbolVolume::create( "pt1" ) );
+         (*segment3).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
+         (*segment3).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
+
+         (*segment3).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
+         (*segment3).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
+
+         (*segment3).connect( segmentToolCamera.getDataPtr() );
+         (*segment3).connect( segmentPointer.getDataPtr() );
+
 
          // event
          mouseEvent.isMouseRightButtonJustReleased = false;
@@ -119,6 +133,11 @@ namespace mvv
          segment1->directionx.setValue( nll::core::vector3f( 0, 1, 0 ) );
          segment1->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
 
+         Segment* segment2 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
+         context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment3" ), RefcountedTyped<Segment>( segment2 ) );
+         segment2->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
+         segment2->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
+
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
                                            RefcountedTyped<Segment>( segment0 ) );
@@ -127,12 +146,22 @@ namespace mvv
          PaneSegment* e1 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
                                            RefcountedTyped<Segment>( segment1 ) );
+
+         PaneSegment* e2 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
+                                           nll::core::vector2ui( 0, 0 ),
+                                           RefcountedTyped<Segment>( segment2 ) );
          
+         PaneListVertical* vlist = new PaneListVertical( nll::core::vector2ui( 0, 0 ),
+                                                         nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
+
          PaneListHorizontal* list = new PaneListHorizontal( nll::core::vector2ui( 0, 0 ),
                                                             nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
+         vlist->addChild( RefcountedTyped<Pane>( list ), 0.51 );
+         vlist->addChild( RefcountedTyped<Pane>( e2 ), 0.49 );
+
          list->addChild( RefcountedTyped<Pane>( e0 ), 0.5f );
          list->addChild( RefcountedTyped<Pane>( e1 ), 0.5f );
-         layout = RefcountedTyped<Pane>( list );                                                    
+         layout = RefcountedTyped<Pane>( vlist );                                                    
       }
    };
 }
