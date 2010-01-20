@@ -134,9 +134,13 @@ namespace platform
       ResourceSliceuc               _segment;
 
    public:
+      static const nll::core::vector3f UNINITIALIZED_POSITION;
+
+   public:
       Segment( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false ), _handler( handler )
       {
-         position.setValue( nll::core::vector3f( 0, 0, 0 ) );
+         // we are in an undefined position, we need to wait for the volumes to be loaded/initialized
+         position.setValue( UNINITIALIZED_POSITION );
          directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
          directiony.setValue( nll::core::vector3f( 0, 1, 0 ) );
          panning.setValue( nll::core::vector3f( 0, 0, 0 ) );

@@ -33,20 +33,13 @@ namespace platform
                return true;
             }
 
-            /*
-            if ( !_pointer.hasBeenInitialized() )
-            {
-               // the pointer must be initialized before updating from segment position...
-               return false;
-            }*/
-
             // a segment position has been updated, we want to set the position of the pointer on the normal-axis coordinate only            
             Sliceuc& slice = _segment.segment.getValue();
             if ( slice.getNormal().dot( slice.getNormal() ) > 1e-4 )
             {
-               _position = slice.getOrthogonalProjection( _position );
-               std::cout << "slice position" << slice.getOrigin()[ 0 ] << " " << slice.getOrigin()[ 1 ] << " " << slice.getOrigin()[ 2 ] << std::endl;
-               std::cout << "update position" << _position[ 0 ] << " " << _position[ 1 ] << " " << _position[ 2 ] << std::endl;
+               // we need to use the segment position... and not the slice! Indeed it might not be in sync while moving!
+               nll::core::GeometryPlane plane( _segment.position.getValue(), _segment.directionx.getValue(), _segment.directiony.getValue() );
+               _position = plane.getOrthogonalProjection( _position );
                _pointer.refreshConnectedSegments();
                _pointer.unnotifyOtherEngines( this );
                _segment.refreshTools();
@@ -306,20 +299,12 @@ namespace platform
          }
       }
 
-
-      bool hasBeenInitialized() const
-      {
-         return _hasBeenInitialized;
-      }
-
       void setPosition( const nll::core::vector3f& p )
       {
-         _hasBeenInitialized = true;
          _position = p;
       }
 
    protected:
-      bool                    _hasBeenInitialized; // TODO check if useful
       nll::core::vector3f     _position;
       MapSegments             _active;
       nll::core::vector2ui    _leftMouseLastPos;

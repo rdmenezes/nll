@@ -74,9 +74,7 @@ namespace platform
                   std::cout << "set segment position=" << &(**it) << " v=" << pos[ 0 ] << " " << pos[ 1 ] << " " << pos[ 2 ] << std::endl;
                   (**it).position.setValue( pos );
 
-                  // TODO check it is right
-                  // now we need to update the position of the pointer if this tool is attached
-                  /*
+                  
                   typedef std::set<SegmentToolPointer*> Pointers;
                   Pointers pointers = (**it).getTools<SegmentToolPointer>();
                   for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
@@ -84,7 +82,7 @@ namespace platform
                      std::cout << "set position" << pos[ 0 ] << " " << pos[ 1 ] << " " << pos[ 2 ] << std::endl;
                      (*it)->setPosition( pos );
                      (*it)->refreshConnectedSegments();
-                  }*/ 
+                  }
                }
                maxVoxel = std::max( localMax, _nbMaxVoxels );
             }

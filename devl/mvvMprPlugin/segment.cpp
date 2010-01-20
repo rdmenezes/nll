@@ -78,5 +78,7 @@ namespace platform
          }
       }
    }
+
+   const nll::core::vector3f Segment::UNINITIALIZED_POSITION = nll::core::vector3f( -10000, -10000, -10000 );
 }
 }

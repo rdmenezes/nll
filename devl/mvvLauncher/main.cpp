@@ -231,21 +231,17 @@ void keyboard(unsigned char key, int x, int y)
       (*applicationVariables->segmentToolCamera).setPosition( nll::core::vector3f( 4.9, -158.2, 1230.38 ) );
       applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment4"), segment1 );
       (*applicationVariables->segmentToolCamera).setPosition( nll::core::vector3f( 4.9, -158.2, 1230.38 ) );
-      /*
-      RefcountedTyped<Segment> segment1;
-      applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
-      (*segment1).position.notify();
-
-      RefcountedTyped<Segment> segment2;
-      bool found = applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
-      if ( found )
-         (*segment2).position.notify();
-         */
    }
    if ( key == 'm' )
    {
       applicationVariables->orderManager.notify();
    }
+
+   if ( key == '7' )
+   {
+      (*applicationVariables->layout).setSize( nll::core::vector2ui( 600, 600 ) );
+   }
+
    if ( key == 'q' )
    {
       applicationVariables->layout.unref();
@@ -264,7 +260,7 @@ int main(int argc, char** argv)
   glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
   glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
   glutCreateWindow( "Medical Volume Viewer" );
-  //glutGameModeString( "1024x1024:32" );
+  //glutGameModeString( "1280x1024:32" );
   //glutEnterGameMode();
 
   // Initialize OpenGL graphics state
