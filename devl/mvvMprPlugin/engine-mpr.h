@@ -68,8 +68,6 @@ namespace platform
       protected:
          virtual OrderResult* _compute()
          {
-            std::cout << "compute slice - pos=" << _position[ 0 ] << " " << _position[ 1 ] << " " << _position[ 2 ] << std::endl;
-            //std::cout << "compute order:" << this->getId() << std::endl;
             typedef nll::imaging::InterpolatorNearestNeighbour<Volume>  InterpolatorNN;
             typedef nll::imaging::InterpolatorTriLinear<Volume>         InterpolatorTrilinear;
             typedef nll::imaging::Mpr<Volume, InterpolatorNN>           MprNN;
@@ -226,6 +224,11 @@ namespace platform
          {
             if ( _ordersSend.size() )
                return false;
+            if ( position.getValue() == nll::core::vector3f( -10000, -10000, -10000 ) )
+            {
+               // if the segment is not initialized (see segment.cpp), then don't compute the slice: it is empty!
+               return false;
+            }
 
            // if ( !_orderConsumed )
            //    return false;
@@ -247,6 +250,7 @@ namespace platform
                orders.push_back( order );
                _orderProvider.pushOrder( &*order );
             }
+
             _ordersSend = orders;
             _ordersCheck = orders;
             return true;
@@ -426,15 +430,6 @@ namespace platform
                if ( !result )
                   throw std::exception( "unexpected order received!" );
                blendedSlice.setValue( result->blendedSlice );
-               //std::cout << "connected engines=" << blendedSlice.getNbConnectedEngines() << std::endl;
-
-               /*
-               std::cout << "export SLICE, pos=" << blendedSlice.getValue().getOrigin()[ 0 ] << " "
-                                                 << blendedSlice.getValue().getOrigin()[ 1 ] << " "
-                                                 << blendedSlice.getValue().getOrigin()[ 2 ] << " "
-                                                 << std::endl;
-               nll::core::writeBmp( blendedSlice.getValue().getStorage(), "c:/tmp/engine-" + nll::core::val2str(this) + ".bmp" );
-               */
 
                _orderSend.unref();
                ordersToBlend.clear();

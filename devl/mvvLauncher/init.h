@@ -43,7 +43,7 @@ namespace mvv
        // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
 		   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
-         //context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
+         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
          // segment 1
@@ -99,12 +99,12 @@ namespace mvv
          // segment 4
          RefcountedTyped<Segment> segment4;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment4"), segment4 );
-         (*segment4).volumes.insert( SymbolVolume::create( "ct1" ) );
+         //(*segment4).volumes.insert( SymbolVolume::create( "ct1" ) );
          (*segment4).volumes.insert( SymbolVolume::create( "pt1" ) );
-         (*segment4).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
+         //(*segment4).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
          (*segment4).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
 
-         (*segment4).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
+         //(*segment4).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment4).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
          (*segment4).connect( segmentToolCamera.getDataPtr() );
