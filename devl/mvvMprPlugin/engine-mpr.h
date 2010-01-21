@@ -15,6 +15,9 @@
 /// order to blend several slices into 1 RGB slice
 # define MVV_PLATFORM_ORDER_BLEND_SLICE  OrderClassId::create( "MVV_PLATFORM_ORDER_BLEND_SLICE" )
 
+/// when constructed, the segment's position will be defined as below
+# define MVV_PLATFORM_UNINITIALIZED_POSITION           nll::core::vector3f( -10000, -10000, -10000 )
+
 namespace mvv
 {
 namespace platform
@@ -224,7 +227,7 @@ namespace platform
          {
             if ( _ordersSend.size() )
                return false;
-            if ( position.getValue() == nll::core::vector3f( -10000, -10000, -10000 ) )
+            if ( position.getValue() == MVV_PLATFORM_UNINITIALIZED_POSITION )
             {
                // if the segment is not initialized (see segment.cpp), then don't compute the slice: it is empty!
                return false;

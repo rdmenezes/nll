@@ -427,6 +427,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mip.h"
+				>
+			</File>
+			<File
 				RelativePath=".\segment-tool-camera.h"
 				>
 			</File>

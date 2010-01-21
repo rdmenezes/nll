@@ -21,6 +21,9 @@ namespace platform
    /// hold a boolean
    typedef ResourceValue<bool>                           ResourceBool;
 
+   /// hold a float
+   typedef ResourceValue<bool>                           ResourceFloat;
+
    /// hold an unsigned int
    typedef ResourceValue<ui32>                           ResourceUi32;
 

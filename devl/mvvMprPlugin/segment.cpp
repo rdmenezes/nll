@@ -1,4 +1,5 @@
 #include "segment.h"
+#include "engine-mpr.h"
 
 namespace mvv
 {
@@ -79,6 +80,6 @@ namespace platform
       }
    }
 
-   const nll::core::vector3f Segment::UNINITIALIZED_POSITION = nll::core::vector3f( -10000, -10000, -10000 );
+   const nll::core::vector3f Segment::UNINITIALIZED_POSITION = MVV_PLATFORM_UNINITIALIZED_POSITION;
 }
 }
