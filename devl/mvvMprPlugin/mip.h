@@ -29,7 +29,7 @@ namespace platform
       class OrderMipPrecompute : public Order
       {
       public:
-         OrderMipPrecompute( const Volume& volume, ui32 nbMips, const nll::core::vector2ui& size ) : Order( MVV_PLATFORM_ORDER_PRECOMPUTE_MIP, Order::Predecessors(), true ), _volume( volume ), _nbMips( nbMips ), _size( size )
+         OrderMipPrecompute( const Volume& volume, ui32 nbMips, const nll::core::vector2ui& size, impl::Resource& notifier ) : Order( MVV_PLATFORM_ORDER_PRECOMPUTE_MIP, Order::Predecessors(), true ), _volume( volume ), _nbMips( nbMips ), _size( size ), _notifier( notifier )
          {
          }
 
@@ -53,9 +53,11 @@ namespace platform
             nll::imaging::MaximumIntensityProjection<Volume> mip( _volume );
             for ( ui32 n = 0; n < _nbMips; ++n )
             {
+               std::cout << "compute mips=" << n << std::endl;
                const f32 angle =  static_cast<f32>( 2 * nll::core::PI / _nbMips * n );
                result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, _size[ 0 ], _size[ 1 ], minSpacing, minSpacing ) );
                result->progress = static_cast<float>( n ) / _nbMips;
+               _notifier.notify();
             }
             return result;
          }
@@ -69,6 +71,7 @@ namespace platform
          const Volume&        _volume;
          const ui32           _nbMips;
          nll::core::vector2ui _size;
+         impl::Resource&      _notifier;
       };
    }
 
@@ -107,7 +110,7 @@ namespace platform
 
       virtual bool _run()
       {
-         const bool isMipComputed = !_order.isEmpty() || (*_order).getResultInProgress()->progress >= 1;
+         //const bool isMipComputed = !_order.isEmpty() || (*_order).getResultInProgress()->progress >= 1;
 
          if ( volumes.size() > 1 )
             throw std::exception( "Unexpected number of volumes (only zero or one)" );
@@ -126,23 +129,34 @@ namespace platform
          if ( volumes.size() == 1 && _order.isEmpty() )
          {
             // no previously computed MIP, just launch order, clear the frame and display status...
-            outImage.getValue().getStorage() = nll::core::Image< nll::ui8>( size.getValue()[ 0 ], size.getValue()[ 1 ], 3, !isMipComputed );
+            outImage.getValue().getStorage() = nll::core::Image< nll::ui8>( size.getValue()[ 0 ], size.getValue()[ 1 ], 3, true );
+            _cacheOldSize = size.getValue();
             outImage.notify();
-            _order = RefcountedTyped<impl::OrderMipPrecompute>( new impl::OrderMipPrecompute( **volumes.begin(), _nbMips, size.getValue() ) );
+            _order = RefcountedTyped<impl::OrderMipPrecompute>( new impl::OrderMipPrecompute( **volumes.begin(), _nbMips, size.getValue(), fps ) );
             _orderProvider.pushOrder( &*_order );
             _displayProgression( 0 );
             _cacheOldVolume = (*volumes.begin()).getDataPtr();
-            return false;
+            return true;
          }
 
-         float progress = (*_order).getResultInProgress()->progress;
+         if ( _cacheOldSize != size.getValue() )
+         {
+            outImage.getValue().getStorage() = nll::core::Image< nll::ui8>( size.getValue()[ 0 ], size.getValue()[ 1 ], 3, true );
+            _cacheOldSize = size.getValue();
+         }
+
+         impl::OrderMipPrecomputeResult* order = (*_order).getResultInProgress();
+         if ( !order )
+            return false;
+         float progress = order->progress;
          if ( progress >= 1 )
          {
             // everything else has triggered an update of the precomputed MIP, just update the slice
-
+            
          } else {
             // just update the progress
             _displayProgression( progress );
+            return true;
          }
 
 
@@ -161,8 +175,21 @@ namespace platform
       }
 
    private:
-      void _displayProgression( float )
+      void _displayProgression( float progress )
       {
+         std::cout << "display" << std::endl;
+         ResourceSliceuc::value_type& slice = outImage.getValue();
+
+         typedef ResourceSliceuc::value_type Slice;
+         typedef Slice::value_type           Image;
+         Image::DirectionalIterator it = slice.getStorage().getIterator( 0, slice.size()[ 1 ] / 2, 0 );
+
+         ui32 nb = static_cast<ui32>( slice.size()[ 0 ] * progress );
+         for ( ui32 n = 0; n < nb; ++n )
+         {
+            *it = 255;
+            it.addx();
+         }
       }
 
       void _refreshDisplay()
@@ -175,6 +202,7 @@ namespace platform
       RefcountedTyped<impl::OrderMipPrecompute> _order;
 
       Volume*                 _cacheOldVolume;
+      nll::core::vector2ui    _cacheOldSize;
    };
 }
 }

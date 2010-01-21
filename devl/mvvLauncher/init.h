@@ -13,6 +13,7 @@
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/segment-tool-pointer.h>
 # include <mvvMprPlugin/segment-tool-camera.h>
+# include <mvvMprPlugin/layout-mip.h>
 
 
 using namespace mvv;
@@ -33,17 +34,23 @@ namespace mvv
 
       RefcountedTyped<SegmentToolPointer> segmentPointer;
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
+      RefcountedTyped<Mip>                mip;
 
       ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
+
+         // MIP
+         mip = RefcountedTyped<Mip>( new Mip( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager ) );
+         (*mip).volumes.insert( SymbolVolume::create( "pt1" ) );
+
          initLayout();
 
        // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
        // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
 		   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
-         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
+      //   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
          // segment 1
@@ -96,6 +103,7 @@ namespace mvv
          (*segment3).connect( segmentToolCamera.getDataPtr() );
          (*segment3).connect( segmentPointer.getDataPtr() );
 
+         /*
          // segment 4
          RefcountedTyped<Segment> segment4;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment4"), segment4 );
@@ -109,6 +117,7 @@ namespace mvv
 
          (*segment4).connect( segmentToolCamera.getDataPtr() );
          (*segment4).connect( segmentPointer.getDataPtr() );
+         */
 
 
          // event
@@ -150,11 +159,13 @@ namespace mvv
          segment2->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
          segment2->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
 
+         /*
          Segment* segment3 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment4" ), RefcountedTyped<Segment>( segment3 ) );
          segment3->directionx.setValue( nll::core::vector3f( 0, 1, 0 ) );
          segment3->directiony.setValue( nll::core::vector3f( 0, 0, -1 ) );
          segment3->interpolation.setValue( NEAREST );
+         */
 
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
@@ -168,9 +179,15 @@ namespace mvv
                                            nll::core::vector2ui( 0, 0 ),
                                            RefcountedTyped<Segment>( segment2 ) );
 
+         /*
          PaneSegment* e3 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
                                            RefcountedTyped<Segment>( segment3 ) );
+         */
+
+         PaneMip* e3 = new PaneMip( nll::core::vector2ui( 0, 0 ),
+                                    nll::core::vector2ui( 0, 0 ),
+                                    mip );
          
          PaneListVertical* vlist = new PaneListVertical( nll::core::vector2ui( 0, 0 ),
                                                          nll::core::vector2ui( screen.sizex(), screen.sizey() ) );

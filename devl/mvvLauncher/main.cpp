@@ -218,7 +218,7 @@ void mouseMotion(int x, int y)
    (*applicationVariables->layout).receive( applicationVariables->mouseEvent );
 }
 
-void keyboard(unsigned char key, int x, int y)
+void keyboard(unsigned char key, int, int)
 {
    if ( key == 'n' )
    {
