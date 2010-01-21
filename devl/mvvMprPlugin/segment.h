@@ -184,20 +184,6 @@ namespace platform
       }
 
       /**
-       @brief set to true if when a volume is loaded, a tool may change the segment's position
-       @sa SegmentToolCamera
-       */
-      void setAuthorizeRecenteringOnLoading( bool status )
-      {
-         _authorizeRecenteringOnLoading = status;
-      }
-
-      bool getAuthorizeRecenteringOnLoading() const
-      {
-         return _authorizeRecenteringOnLoading;
-      }
-
-      /**
        @brief If interaction is needed with events, some tools might need to update
               the segment's display.
        */

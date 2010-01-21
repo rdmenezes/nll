@@ -31,60 +31,53 @@ namespace platform
        */
       virtual bool _run()
       {
-         ui32 maxVoxel = _nbMaxVoxels;
+         // check if a volume has more voxel than previously
+         ui32 maxVoxel = 0;
+         bool updatePosition = false;
+         nll::core::vector3f newPosition;
          for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
          {
-            bool hasMoved = false;
-            ui32 localMax = _nbMaxVoxels;
-            if ( (**it).getAuthorizeRecenteringOnLoading() )
+            for ( ResourceVolumes::Iterator volit = (**it).volumes.begin(); volit != (**it).volumes.end(); ++volit )
             {
-               bool biggerVolumeFound = false;
-               nll::core::vector3f pos;
-               for ( ResourceVolumes::Iterator volit = (**it).volumes.begin(); volit != (**it).volumes.end(); ++volit )
+               // check if the volume moved
+               nll::core::vector3ui size = (**volit).size();
+               const ui32 nbVoxels = (**volit).size()[ 0 ] * (**volit).size()[ 1 ] * (**volit).size()[ 2 ];
+               if ( nbVoxels > _nbMaxVoxels )
                {
-                  // check if the volume moved
-                  nll::core::vector3ui size = (**volit).size();
-                  pos = (**volit).indexToPosition( nll::core::vector3f( static_cast<f32>( size[ 0 ] ) / 2,
-                                                                           static_cast<f32>( size[ 1 ] ) / 2,
-                                                                           static_cast<f32>( size[ 2 ] ) / 2 )  );
-                  nll::core::vector3f segmentPosition = (**it).position.getValue();
-                  if ( (**it).volumes.size() > 1 )
-                  {
-                     // if there was not volume, we need to check
-                     if ( fabs( pos[ 0 ] - segmentPosition[ 0 ] ) > 0.001 ||
-                          fabs( pos[ 1 ] - segmentPosition[ 1 ] ) > 0.001 ||
-                          fabs( pos[ 2 ] - segmentPosition[ 2 ] ) > 0.001 )
-                     {
-                        biggerVolumeFound = false; // we don't want to update the camera position
-                        hasMoved = true;
-                        break;
-                     }
-                  }
-
-                  // check if a bigger volume has been loaded
-                  const ui32 s = (**volit).size()[ 0 ] * (**volit).size()[ 1 ] * (**volit).size()[ 2 ];
-                  if ( s > localMax )
-                  {
-                     localMax = s;
-                     biggerVolumeFound = true;
-                  }
+                  maxVoxel = nbVoxels;
+                  updatePosition = true;
+                  newPosition = (**volit).indexToPosition( nll::core::vector3f( static_cast<f32>( size[ 0 ] ) / 2,
+                                                                                static_cast<f32>( size[ 1 ] ) / 2,
+                                                                                static_cast<f32>( size[ 2 ] ) / 2 )  );
                }
-               if ( biggerVolumeFound )
-               {
-                  (**it).position.setValue( pos );
-
-                  
-                  typedef std::set<SegmentToolPointer*> Pointers;
-                  Pointers pointers = (**it).getTools<SegmentToolPointer>();
-                  for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
-                  {
-                     (*it)->setPosition( pos );
-                     (*it)->refreshConnectedSegments();
-                  }
-               }
-               maxVoxel = std::max( localMax, _nbMaxVoxels );
             }
          }
+
+         if ( !maxVoxel )
+         {
+            // empty so don't do anything
+            return true;
+         }
+
+         // if true, update the segments connected on the _same_ point, even if the volume is not in the segment (else segments are not synchronized)
+         if ( updatePosition )
+         {
+            for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
+            {
+               // update segment position
+               (**it).position.setValue( newPosition );
+
+               // update the position of the pointer: all connected segments must point at the same position
+               typedef std::set<SegmentToolPointer*> Pointers;
+               Pointers pointers = (**it).getTools<SegmentToolPointer>();
+               for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
+               {
+                  (*it)->setPosition( newPosition );
+                  (*it)->refreshConnectedSegments();
+               }
+            }
+         }
+
          _nbMaxVoxels = maxVoxel;
          return true;
       }
