@@ -23,7 +23,7 @@ namespace platform
       class OrderMipDisplay : public Order
       {
       public:
-         OrderMipDisplay( const Slice& slice, const ResourceLut& lut, const nll::core::vector2ui& size ) : Order( MVV_PLATFORM_ORDER_DISPLAY_MIP, Order::Predecessors(), true ), _slice( slice ), _lut( lut ), _size( size )
+         OrderMipDisplay( Slice& slice, const ResourceLut& lut, const nll::core::vector2ui& size ) : Order( MVV_PLATFORM_ORDER_DISPLAY_MIP, Order::Predecessors(), true ), _slice( slice ), _lut( lut ), _size( size )
          {
          }
 
@@ -38,19 +38,28 @@ namespace platform
 
             if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] != _size[ 1 ] )
             {
-               // TODO resample
-            } else {
+               float sx = _size[ 0 ] / _slice.size()[ 0 ] * _slice.getSpacing()[ 0 ];
+               float sy = _size[ 1 ] / _slice.size()[ 1 ] * _slice.getSpacing()[ 1 ];
+               float s = std::min( sx, sy );
+               Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
+                            _slice.getAxisX(),
+                            _slice.getAxisY(),
+                            _slice.getOrigin(),
+                            nll::core::vector2f( _slice.getSpacing()[ 0 ] / s,
+                                                 _slice.getSpacing()[ 1 ] / s ) );
+               nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _slice, slice );
+               _slice = slice;
+            }
 
-               Sliceuc::Storage::DirectionalIterator out = result->slice.getIterator( 0, 0 );
-               for ( Slice::Storage::ConstDirectionalIterator it = _slice.getStorage().getIterator( 0, 0, 0 );
-                     it != _slice.getStorage().endDirectional();
-                     ++it, ++out )
-               {
-                  const float* col = _lut.transform( *it );
-                  out.pickcol( 0 ) = static_cast<ui8>( col[ 0 ] );
-                  out.pickcol( 1 ) = static_cast<ui8>( col[ 1 ] );
-                  out.pickcol( 2 ) = static_cast<ui8>( col[ 2 ] );
-               }
+            Sliceuc::Storage::DirectionalIterator out = result->slice.getIterator( 0, 0 );
+            for ( Slice::Storage::ConstDirectionalIterator it = _slice.getStorage().getIterator( 0, 0, 0 );
+                  it != _slice.getStorage().endDirectional();
+                  ++it, ++out )
+            {
+               const float* col = _lut.transform( *it );
+               out.pickcol( 0 ) = static_cast<ui8>( col[ 0 ] );
+               out.pickcol( 1 ) = static_cast<ui8>( col[ 1 ] );
+               out.pickcol( 2 ) = static_cast<ui8>( col[ 2 ] );
             }
             return result;
          }
@@ -61,8 +70,8 @@ namespace platform
          OrderMipDisplay& operator=( OrderMipDisplay& );
 
       private:
-         const Slice&                  _slice;
-         const ResourceLut&  _lut;
+         Slice&                        _slice;
+         const ResourceLut&            _lut;
          nll::core::vector2ui          _size;
       };
 
@@ -98,16 +107,12 @@ namespace platform
             OrderMipPrecomputeResult* result = new OrderMipPrecomputeResult();
             setResult( result );
 
-            float sx = _volume.getSpacing()[ 0 ] * _volume.size()[ 0 ];
-            float sy = _volume.getSpacing()[ 0 ] * _volume.size()[ 0 ];
-            float sz = _volume.getSpacing()[ 0 ] * _volume.size()[ 0 ];
-            float minSpacing = 1 / std::min( _size[ 0 ] / std::max( sx, sy ), _size[ 1 ] / sz );
-
             nll::imaging::MaximumIntensityProjection<Volume> mip( _volume );
             for ( ui32 n = 0; n < _nbMips; ++n )
             {
-               const f32 angle =  static_cast<f32>( 2 * nll::core::PI / _nbMips * n );
-               result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, _size[ 0 ], _size[ 1 ], minSpacing, minSpacing ) );
+               const f32 angle =  static_cast<f32>( 2 * nll::core::PI / _nbMips * n ) + 0.01f;
+               result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, std::max( _volume.size()[ 0 ], _volume.size()[ 1 ]), _volume.size()[ 2 ], _volume.getSpacing()[ 0 ], _volume.getSpacing()[ 1 ] ) );
+               //result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, _size[ 0 ], _size[ 1 ], minSpacing, minSpacing ) );
                result->progress = static_cast<float>( n + 1 ) / _nbMips;
                _notifier.notify();
             }
