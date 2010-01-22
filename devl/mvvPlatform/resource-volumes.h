@@ -118,7 +118,7 @@ namespace platform
 
       size_t size() const
       {
-         return getValue()._volumeStorage.size();
+         return getValue()._volumes.size();
       }
 
       void insert( SymbolVolume val )

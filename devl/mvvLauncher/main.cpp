@@ -234,7 +234,7 @@ void keyboard(unsigned char key, int, int)
    }
    if ( key == 'm' )
    {
-      applicationVariables->orderManager.notify();
+      (*applicationVariables->mip).anglex.notify();
    }
 
    if ( key == '7' )

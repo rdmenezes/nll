@@ -7,6 +7,11 @@
 # include "resource.h"
 # include <map>
 
+namespace boost
+{
+   class mutex;
+}
+
 namespace mvv
 {
 namespace platform
@@ -15,8 +20,12 @@ namespace platform
    {
       struct ResourceVolumesStorage
       {
+         ResourceVolumesStorage();
+         ~ResourceVolumesStorage();
+
          typedef std::map<SymbolVolume, RefcountedTyped<Volume> > Storage;
-         Storage  volumes;
+         Storage      volumes;
+         boost::mutex* mutex;
       };
    }
 
@@ -112,12 +121,7 @@ namespace platform
       /**
        @brief Insert a volume
        */
-      void insert( SymbolVolume name, RefcountedTyped<Volume> volume )
-      {
-         getValue().volumes[ name ] = volume;
-
-         notify();
-      }
+      void insert( SymbolVolume name, RefcountedTyped<Volume> volume );
 
       /**
        @brief Preallocate a name but with no associated volume
@@ -125,53 +129,22 @@ namespace platform
        This is useful when we want to load a serie of volume and we are waiting for all of them to be loadded
        before doing some processing...
        */ 
-      void insert( SymbolVolume name )
-      {
-         getValue().volumes[ name ] = RefcountedTyped<Volume>();
-
-         notify();
-      }
+      void insert( SymbolVolume name );
 
       /**
        @brief Returns true if a volume is null
        */
-      bool hasEmptyVolume() const
-      {
-         for ( Storage::const_iterator it = getValue().volumes.begin(); it != getValue().volumes.end(); ++it )
-         {
-            if ( it->second.isEmpty() )
-               return true;
-         }
-         return false;
-      }
+      bool hasEmptyVolume() const;
 
       /**
        @brief remove a volume
        */
-      void erase( SymbolVolume name )
-      {
-         Storage::iterator it = getValue().volumes.find( name );
-         if ( it != getValue().volumes.end() )
-         {
-            getValue().volumes.erase( it );
-         }
-
-         notify();
-      }
+      void erase( SymbolVolume name );
 
       /**
        @brief Find a symbol and return its associated volume. If not found, false is returned
        */
-      bool find( SymbolVolume name, RefcountedTyped<Volume>& volume )
-      {
-         Storage::iterator it = getValue().volumes.find( name );
-         if ( it != getValue().volumes.end() )
-         {
-            volume = it->second;
-            return true;
-         }
-         return false;
-      }
+      bool find( SymbolVolume name, RefcountedTyped<Volume>& volume );
 
       Iterator begin()
       {

@@ -50,7 +50,7 @@ namespace mvv
        // context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
 
 		   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
-      //   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
+         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
          // segment 1
@@ -102,6 +102,16 @@ namespace mvv
 
          (*segment3).connect( segmentToolCamera.getDataPtr() );
          (*segment3).connect( segmentPointer.getDataPtr() );
+
+
+         nll::imaging::LookUpTransformWindowingRGB lutPetImpl2( -1000, 15000, 256 );
+         for ( ui32 n = 0; n < 255; ++n )
+         {
+            float grey[] = {255 - n, 255 - n, 255 - n};
+            lutPetImpl2.set( n, grey );
+         }
+         ResourceLut lutPet2( lutPetImpl2 );
+         (*mip).lut = lutPet2;
 
          /*
          // segment 4

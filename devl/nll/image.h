@@ -488,7 +488,7 @@ namespace core
        */
       ConstDirectionalIterator endDirectional() const
       {
-         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
+         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, this->_buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
       }
 
       /**

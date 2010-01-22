@@ -573,6 +573,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\resource-storage-volumes.cpp"
+					>
+				</File>
+				<File
 					RelativePath=".\resource-storage-volumes.h"
 					>
 				</File>
