@@ -260,6 +260,7 @@ namespace imaging
          _axisx = rhs._axisx;
          _axisy = rhs._axisy;
          _spacing = rhs._spacing;
+         _plane = rhs._plane;
          _storage.clone( rhs._storage );
          return *this;
       }

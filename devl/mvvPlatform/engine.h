@@ -26,6 +26,7 @@ namespace platform
     */
    class MVVPLATFORM_API Engine : public Notifiable, public LinkableDouble< impl::Resource, Engine* >
    {
+   public:
       typedef LinkableDouble< impl::Resource, Engine* > Linkable;
 
    public:

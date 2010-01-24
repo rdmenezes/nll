@@ -2,7 +2,9 @@
 # define MVV_PLATFORM_MIP_H_
 
 # include "mvvMprPlugin.h"
+# include <mvvPlatform/resource-volumes.h>
 # include <mvvPlatform/resource-typedef.h>
+# include "mip-tool.h"
 
 /// order to create MPR from a volume
 # define MVV_PLATFORM_ORDER_PRECOMPUTE_MIP   OrderClassId::create( "MVV_PLATFORM_ORDER_PRECOMPUTE_MIP" )
@@ -23,7 +25,7 @@ namespace platform
       class OrderMipDisplay : public Order
       {
       public:
-         OrderMipDisplay( Slice& slice, const ResourceLut& lut, const nll::core::vector2ui& size ) : Order( MVV_PLATFORM_ORDER_DISPLAY_MIP, Order::Predecessors(), true ), _slice( slice ), _lut( lut ), _size( size )
+         OrderMipDisplay( const Slice& sliceOrig, Slice& slice, const ResourceLut& lut, const nll::core::vector2ui& size ) : Order( MVV_PLATFORM_ORDER_DISPLAY_MIP, Order::Predecessors(), true ), _slice( slice ), _lut( lut ), _size( size ), _sliceOrig( sliceOrig )
          {
          }
 
@@ -31,23 +33,23 @@ namespace platform
          {
             OrderMipDisplayResult* result = new OrderMipDisplayResult();
             result->slice = Sliceuc( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 3 ),
-                                        _slice.getAxisX(),
-                                        _slice.getAxisY(),
-                                        _slice.getOrigin(),
-                                        _slice.getSpacing() );
+                                        _sliceOrig.getAxisX(),
+                                        _sliceOrig.getAxisY(),
+                                        _sliceOrig.getOrigin(),
+                                        _sliceOrig.getSpacing() );
 
             if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] != _size[ 1 ] )
             {
-               float sx = _size[ 0 ] / _slice.size()[ 0 ] * _slice.getSpacing()[ 0 ];
-               float sy = _size[ 1 ] / _slice.size()[ 1 ] * _slice.getSpacing()[ 1 ];
+               float sx = static_cast<f32>(_size[ 0 ] ) / _sliceOrig.size()[ 0 ] * _sliceOrig.getSpacing()[ 0 ];
+               float sy = static_cast<f32>(_size[ 1 ] ) / _sliceOrig.size()[ 1 ] * _sliceOrig.getSpacing()[ 1 ];
                float s = std::min( sx, sy ) / 3;
                Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
-                            _slice.getAxisX(),
-                            _slice.getAxisY(),
-                            _slice.getOrigin(),
-                            nll::core::vector2f( _slice.getSpacing()[ 0 ] / s,
-                                                 _slice.getSpacing()[ 1 ] / s ) );
-               nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _slice, slice );
+                            _sliceOrig.getAxisX(),
+                            _sliceOrig.getAxisY(),
+                            _sliceOrig.getOrigin(),
+                            nll::core::vector2f( _sliceOrig.getSpacing()[ 0 ] / s,
+                                                 _sliceOrig.getSpacing()[ 1 ] / s ) );
+               nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _sliceOrig, slice );
                _slice = slice;
             }
 
@@ -71,6 +73,7 @@ namespace platform
 
       private:
          Slice&                        _slice;
+         const Slice&                  _sliceOrig;
          const ResourceLut&            _lut;
          nll::core::vector2ui          _size;
       };
@@ -86,6 +89,7 @@ namespace platform
          /// a value from 0 to 1, with 1 job is finished
          float                progress;
          std::vector<Slice>   slices;
+         std::vector<Slice>   slicesOrig;
       };
 
       class OrderMipPrecompute : public Order
@@ -112,6 +116,11 @@ namespace platform
             {
                const f32 angle =  static_cast<f32>( 2 * nll::core::PI / _nbMips * n ) + 0.01f;
                result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, std::max( _volume.size()[ 0 ], _volume.size()[ 1 ]), _volume.size()[ 2 ], _volume.getSpacing()[ 0 ], _volume.getSpacing()[ 1 ] ) );
+
+               Slice cpy;
+               cpy.clone( result->slices[ n ] );
+               result->slicesOrig.push_back( cpy );
+
                //result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, _size[ 0 ], _size[ 1 ], minSpacing, minSpacing ) );
                result->progress = static_cast<float>( n + 1 ) / _nbMips;
                _notifier.notify();
@@ -132,8 +141,14 @@ namespace platform
       };
    }
 
-   class MVVMPRPLUGIN_API Mip : public EngineOrder
+   class MVVMPRPLUGIN_API Mip : public EngineOrder,  public LinkableDouble<MipTool*, Mip*>
    {
+   public:
+      typedef LinkableDouble<MipTool*, Mip*>  ToolLinks;
+
+   private:
+      typedef std::vector< MipTool* >     ToolsStorage;
+
    // output slots
    public:
       /// output public slot holding the resampled & annoted MIP
@@ -167,6 +182,23 @@ namespace platform
       ~Mip()
       {
          _dispatcher.disconnect( this );
+         ToolLinks::removeConnections();
+      }
+
+      virtual void connect( MipTool* tool )
+      {
+         _tools.push_back( tool );
+         (*tool).connect( this );
+      }
+
+      virtual void disconnect( MipTool* tool )
+      {
+         ToolsStorage::iterator it = std::find( _tools.begin(), _tools.end(), tool );
+         if ( it != _tools.end() )
+         {
+            _tools.erase( it );
+            (*tool).disconnect( this );
+         }
       }
 
       virtual bool _run()
@@ -224,7 +256,7 @@ namespace platform
             {
                // everything else has triggered an update of the precomputed MIP, just update the slice
                ui32 sliceId = static_cast<ui32>( anglex.getValue() / ( nll::core::PI * 2 ) * order->slices.size() );
-               _orderDisplay = RefcountedTyped<impl::OrderMipDisplay>( new impl::OrderMipDisplay( order->slices[ sliceId ], lut, size.getValue() ) );
+               _orderDisplay = RefcountedTyped<impl::OrderMipDisplay>( new impl::OrderMipDisplay( order->slicesOrig[ sliceId ], order->slices[ sliceId ], lut, size.getValue() ) );
                _orderProvider.pushOrder( &*_orderDisplay );
             }
          } else {
@@ -293,6 +325,7 @@ namespace platform
       Volume*                 _cacheOldVolume;
       nll::core::vector2ui    _cacheOldSize;
       nll::core::Timer        _timer;
+      ToolsStorage            _tools;
    };
 }
 }

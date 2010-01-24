@@ -239,7 +239,11 @@ void keyboard(unsigned char key, int, int)
 
    if ( key == '7' )
    {
-      (*applicationVariables->layout).setSize( nll::core::vector2ui( 600, 600 ) );
+      (*applicationVariables->layout).setSize( nll::core::vector2ui( 300, 300 ) );
+   }
+   if ( key == '8' )
+   {
+      (*applicationVariables->layout).setSize( nll::core::vector2ui( 700, 700 ) );
    }
 
    if ( key == 'q' )

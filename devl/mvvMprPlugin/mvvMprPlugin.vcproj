@@ -393,6 +393,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mip-tool.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mvvMprPlugin.cpp"
 				>
 			</File>
@@ -428,6 +432,10 @@
 			</File>
 			<File
 				RelativePath=".\layout-segment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mip-tool.h"
 				>
 			</File>
 			<File

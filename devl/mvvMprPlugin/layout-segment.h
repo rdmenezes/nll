@@ -43,7 +43,7 @@ namespace platform
          if ( _origin[ 0 ] + _size[ 0 ] > image.sizex() ||
               _origin[ 1 ] + _size[ 1 ] > image.sizey() )
          {
-            throw std::exception( "error: image size doesn't match!" );
+            return;
          }
 
          // print image
