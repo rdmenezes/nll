@@ -152,7 +152,8 @@ namespace platform
             _dispatcher.disconnect( this );
          }
 
-         EngineMprSlice( ResourceVolumes vvolumes,
+         EngineMprSlice( bool ready,
+                         ResourceVolumes vvolumes,
                          ResourceVector3f vposition,
                          ResourceVector3f vdirectionx,
                          ResourceVector3f vdirectiony,
@@ -163,7 +164,8 @@ namespace platform
                          ResourceInterpolationMode vinterpolation,
                          EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting ) : 
             volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), isInteracting( visInteracting ), interpolation( vinterpolation ),
-            EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting )
+            EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting ),
+            _ready( ready )
          {
             _construct();
             dispatcher.connect( this );
@@ -225,21 +227,17 @@ namespace platform
       protected:
          virtual bool _run()
          {
-            if ( _ordersSend.size() )
-               return false;
-            if ( position.getValue() == MVV_PLATFORM_UNINITIALIZED_POSITION )
+            if ( _ordersSend.size() || !_ready )
             {
-               // if the segment is not initialized (see segment.cpp), then don't compute the slice: it is empty!
+               // if we already have an order or this order is still in the pipeline then wait
                return false;
             }
-
-           // if ( !_orderConsumed )
-           //    return false;
 
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
             {
+               _ready = false;
                RefcountedTyped<Order> order( new OrderSliceCreator( position.getValue(),
                                                                     directionx.getValue(),
                                                                     directiony.getValue(),
@@ -249,7 +247,6 @@ namespace platform
                                                                     currentInterpolation,
                                                                     **it,
                                                                     it.getName() ) );
-
                orders.push_back( order );
                _orderProvider.pushOrder( &*order );
             }
@@ -269,6 +266,7 @@ namespace platform
          std::set<OrderClassId>  _interested;
          std::vector< RefcountedTyped<Order> >  _ordersSend;
          std::vector< RefcountedTyped<Order> >  _ordersCheck;
+         bool& _ready;
       };
 
 
@@ -326,7 +324,6 @@ namespace platform
             
             if ( sliceInfos.size() )
             {
-               
                Sliceuc result( nll::core::vector3ui( sliceInfos[ 0 ].slice.size()[ 0 ],
                                                      sliceInfos[ 0 ].slice.size()[ 1 ],
                                            3 ),
@@ -374,9 +371,10 @@ namespace platform
          ResourceSliceuc               blendedSlice;
 
       public:
-         EngineSliceBlender( ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
+         EngineSliceBlender( bool ready, ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
-            ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities )
+            ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities ),
+            _ready( ready )
          {
             _construct();
             _orderSend.unref();
@@ -436,7 +434,7 @@ namespace platform
 
                _orderSend.unref();
                ordersToBlend.clear();
-
+               _ready = true;
 
                ++_fps;
                if ( ( clock() - _clock ) / (double)CLOCKS_PER_SEC >= 1 )
@@ -466,6 +464,7 @@ namespace platform
 
          ui32                    _fps;
          ui32                    _clock;
+         bool&                   _ready;
       };
    }
 
@@ -500,7 +499,8 @@ namespace platform
                  ResourceInterpolationMode vinterpolation,
                  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting = false ) : 
       EngineOrder( handler, provider, dispatcher ),
-      _mprSlicer( vvolumes,
+      _mprSlicer( _ready,
+                  vvolumes,
                   vposition,
                   vdirectionx,
                   vdirectiony,
@@ -510,8 +510,9 @@ namespace platform
                   visInteracting,
                   vinterpolation,
                   handler, provider, dispatcher, fasterDisplayWhenInteracting ),
-      _sliceBlender( _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
+      _sliceBlender( _ready, _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
       {
+         _ready = true;
          dispatcher.connect( this );
          blendedSlice = _sliceBlender.blendedSlice;
       }
@@ -537,6 +538,7 @@ namespace platform
       std::set<OrderClassId>        _interested;
       impl::EngineMprSlice          _mprSlicer;
       impl::EngineSliceBlender      _sliceBlender;
+      bool                          _ready;
    };
 }
 }

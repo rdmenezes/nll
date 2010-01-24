@@ -31,6 +31,13 @@ namespace platform
        */
       virtual bool _run()
       {
+         /*
+         if ( _nbMaxVoxels > 0 )
+         {
+            // Todo: if several volumes, sometimes tool is not perfectly synchronized...
+            return true;
+         }*/
+
          // check if a volume has more voxel than previously
          ui32 maxVoxel = 0;
          bool updatePosition = false;

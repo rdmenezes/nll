@@ -40,7 +40,7 @@ namespace platform
             {
                float sx = _size[ 0 ] / _slice.size()[ 0 ] * _slice.getSpacing()[ 0 ];
                float sy = _size[ 1 ] / _slice.size()[ 1 ] * _slice.getSpacing()[ 1 ];
-               float s = std::min( sx, sy );
+               float s = std::min( sx, sy ) / 3;
                Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
                             _slice.getAxisX(),
                             _slice.getAxisY(),
@@ -148,7 +148,7 @@ namespace platform
       ResourceUi32            fps;
 
    public:
-      Mip( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ui32 nbMips = 32 ) : EngineOrder( handler, provider, dispatcher ), volumes( storage ), _nbMips( nbMips )
+      Mip( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ui32 nbMips = 48 ) : EngineOrder( handler, provider, dispatcher ), volumes( storage ), _nbMips( nbMips )
       {
          _interested.insert( MVV_PLATFORM_ORDER_DISPLAY_MIP );
          dispatcher.connect( this );
