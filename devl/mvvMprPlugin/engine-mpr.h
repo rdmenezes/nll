@@ -152,7 +152,7 @@ namespace platform
             _dispatcher.disconnect( this );
          }
 
-         EngineMprSlice( bool ready,
+         EngineMprSlice( bool& ready,
                          ResourceVolumes vvolumes,
                          ResourceVector3f vposition,
                          ResourceVector3f vdirectionx,
@@ -227,7 +227,7 @@ namespace platform
       protected:
          virtual bool _run()
          {
-            if ( _ordersSend.size() || !_ready )
+            if ( _ordersSend.size() /*|| !_ready*/  )
             {
                // if we already have an order or this order is still in the pipeline then wait
                return false;
@@ -371,7 +371,7 @@ namespace platform
          ResourceSliceuc               blendedSlice;
 
       public:
-         EngineSliceBlender( bool ready, ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
+         EngineSliceBlender( bool& ready, ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
             ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities ),
             _ready( ready )
@@ -434,7 +434,7 @@ namespace platform
 
                _orderSend.unref();
                ordersToBlend.clear();
-               _ready = true;
+               //_ready = true;
 
                ++_fps;
                if ( ( clock() - _clock ) / (double)CLOCKS_PER_SEC >= 1 )

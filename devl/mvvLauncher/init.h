@@ -107,7 +107,8 @@ namespace mvv
          nll::imaging::LookUpTransformWindowingRGB lutPetImpl2( -1000, 15000, 256 );
          for ( int n = 0; n < 255; ++n )
          {
-            float grey[] = {255.01f - n, 255.01f - n, 255.01f - n};
+            //float grey[] = {255.01f - n, 255.01f - n, 255.01f - n};
+            float grey[] = {255 - n, 255 - n, 255 - n};
             lutPetImpl2.set( n, grey );
          }
          ResourceLut lutPet2( lutPetImpl2 );
