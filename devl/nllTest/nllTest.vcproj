@@ -1572,6 +1572,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-transformation.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-volume-io.cpp"
 				>
 				<FileConfiguration

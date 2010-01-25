@@ -982,6 +982,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\transformation.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volume-interpolator.h"
 				>
 			</File>

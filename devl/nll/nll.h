@@ -159,6 +159,7 @@
  This group defines the main algorithms for imaging such as volumes, interpolation and
  images.
  */
+# include "transformation.h"
 # include "lut.h"
 # include "volume.h"
 # include "volume-spatial.h"
