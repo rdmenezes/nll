@@ -56,7 +56,8 @@ namespace platform
       class OrderSliceCreator : public Order
       {
       public:
-         OrderSliceCreator( const nll::core::vector3f& position,
+         OrderSliceCreator( clock_t time,
+                            const nll::core::vector3f& position,
                             const nll::core::vector3f& dirx,
                             const nll::core::vector3f& diry,
                             const nll::core::vector3f& panning,
@@ -64,7 +65,7 @@ namespace platform
                             const nll::core::vector2ui& size,
                             InterpolationMode interpolation,
                             Volume& volume,
-                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName )
+                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _time( time ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName )
          {
          }
 
@@ -107,12 +108,19 @@ namespace platform
          {
             return _volumeName;
          }
+
+         clock_t getTime() const
+         {
+            return _time;
+         }
+
 	  private:
 		  // copy disabled
 		  OrderSliceCreator& operator=( const OrderSliceCreator& );
 		  OrderSliceCreator( const OrderSliceCreator& );
 
       protected:
+         clock_t                 _time;
          nll::core::vector3f     _position;
          nll::core::vector3f     _dirx;
          nll::core::vector3f     _diry;
@@ -120,7 +128,7 @@ namespace platform
          nll::core::vector2f     _zoom;
          nll::core::vector2ui    _size;
          InterpolationMode       _interpolation;
-         Volume&				 _volume;
+         Volume&				      _volume;
          SymbolVolume            _volumeName;
       };
 
@@ -238,15 +246,19 @@ namespace platform
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
             {
                _ready = false;
-               RefcountedTyped<Order> order( new OrderSliceCreator( position.getValue(),
-                                                                    directionx.getValue(),
-                                                                    directiony.getValue(),
-                                                                    panning.getValue(),
-                                                                    zoom.getValue(),
-                                                                    size.getValue(),
-                                                                    currentInterpolation,
-                                                                    **it,
-                                                                    it.getName() ) );
+               OrderSliceCreator* slicer = new OrderSliceCreator( clock(),
+                                                                  position.getValue(),
+                                                                  directionx.getValue(),
+                                                                  directiony.getValue(),
+                                                                  panning.getValue(),
+                                                                  zoom.getValue(),
+                                                                  size.getValue(),
+                                                                  currentInterpolation,
+                                                                  **it,
+                                                                  it.getName() );
+
+               std::cout << "slicer=" << &_ready << " clock=" << slicer->getTime() << " pos=" << position.getValue()[ 0 ] << " " << position.getValue()[ 1 ] << " " << position.getValue()[ 2 ] << std::endl;
+               RefcountedTyped<Order> order( slicer );
                orders.push_back( order );
                _orderProvider.pushOrder( &*order );
             }
@@ -282,12 +294,18 @@ namespace platform
       class OrderSliceBlender : public Order
       {
       public:
-		  OrderSliceBlender( std::set<Order*> orders,
+		  OrderSliceBlender( clock_t time,
+                           std::set<Order*> orders,
                            ResourceMapTransferFunction& maplut,
-                           ResourceFloats& intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _maplut( maplut ), _intensities( intensities ), _orders( orders )
+                           ResourceFloats& intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _time( time ), _maplut( maplut ), _intensities( intensities ), _orders( orders )
          {
           
          }
+
+        clock_t getTime() const
+        {
+           return _time;
+        }
 
       private:
          // disable copy
@@ -345,6 +363,7 @@ namespace platform
          }
 
       protected:
+         clock_t                             _time;
 		   std::set<Order*>                    _orders;
          ResourceMapTransferFunction&        _maplut;
          ResourceFloats&                     _intensities;
@@ -387,6 +406,7 @@ namespace platform
 
             _fps = 0;
             _clock = clock();
+            _lastTime = 0;
          }
 
          ~EngineSliceBlender()
@@ -407,12 +427,18 @@ namespace platform
                // we have been notified
                 std::set<Order*> orders;
                 _copy = ResourceOrders();
+                clock_t maxClock = 0;
                 for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
                 {
                     orders.insert( &( **it ) );
                     _copy.insert( *it );
+
+                    OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
+                    maxClock = std::max( maxClock, orderCreator->getTime() );
+
+                    std::cout << "create blend=" << &_ready << " clock=" << orderCreator->getTime() << std::endl;
                 }
-               _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( orders, lut, intensities ) );
+               _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, lut, intensities ) );
                _orderProvider.pushOrder( &*_orderSend );
                return true;
             }
@@ -430,7 +456,17 @@ namespace platform
                OrderSliceBlenderResult* result = dynamic_cast<OrderSliceBlenderResult*>( (*order).getResult() );
                if ( !result )
                   throw std::exception( "unexpected order received!" );
-               blendedSlice.setValue( result->blendedSlice );
+
+               OrderSliceBlender* orderBlender = dynamic_cast<OrderSliceBlender*> ( order );
+               ensure( orderBlender, "error can't be null..." );
+               if ( orderBlender->getTime() >= _lastTime )
+               {
+                  _lastTime = orderBlender->getTime();
+                  blendedSlice.setValue( result->blendedSlice );
+                  std::cout << "blender=" << &_ready << " pos=" << result->blendedSlice.getOrigin()[ 0 ] << " " << result->blendedSlice.getOrigin()[ 1 ] << " " << result->blendedSlice.getOrigin()[ 2 ] << std::endl;
+               } else {
+                  std::cout << "error=" << std::endl;
+               }
 
                _orderSend.unref();
                ordersToBlend.clear();
@@ -465,6 +501,7 @@ namespace platform
          ui32                    _fps;
          ui32                    _clock;
          bool&                   _ready;
+         clock_t                 _lastTime;
       };
    }
 
