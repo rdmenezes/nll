@@ -224,6 +224,7 @@ namespace platform
             }
 
             // clear the waiting list so we can compute a new list!
+            std::cout << "slice clear=" << &_ready << std::endl;
             _ordersSend.clear();
          }
 
