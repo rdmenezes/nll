@@ -39,22 +39,42 @@ namespace imaging
       {}
 
       /**
-       @brief Compute the slice according to a position and 2 vectors and a size factor.
-              The volume's spacing is used to compute the correct MPR.
-       @param slice the slice to be filled
+       @brief Compute a MPR where it's transorfmation is set to identity.
+       
+       @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
+             source->target. We get the MPR of the source object with this method, as 'source' is
+             already in source space.
+       @param slice the slice to be filled, defined in source space
        */
       void getSlice( Slice& slice ) const
       {
+         TransformationAffine id( core::identityMatrix<TransformationAffine::Matrix>( 4 ) );
+         getSlice( slice, id );
+      }
+
+      /**
+       @brief Compute the slice according to a position and 2 vectors and a size factor.
+              The volume's spacing is used to compute the correct MPR.
+       @param slice the slice to be filled, defined in source space
+       @param tfm an affine that transform source->target, assuming we have a target volume.
+       @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
+             source->target. We get the MPR of the target object with this method and tfm transformation,
+             as the 'target' volume is in target space and need to be translated to source space.
+       */
+      void getSlice( Slice& slice, const TransformationAffine& tfm ) const
+      {
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
 
+
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         core::vector3f dx = core::mul4Rot( _volume.getInversedPst(), slice.getAxisX() );
+         Transformation::Matrix transformation = tfm.getAffineMatrix() * _volume.getInversedPst();
+         core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
          dx[ 1 ] = dx[ 1 ] / ( c1 * _volume.getSpacing()[ 1 ] );
          dx[ 2 ] = dx[ 2 ] / ( c1 * _volume.getSpacing()[ 2 ] );
 
-         core::vector3f dy = core::mul4Rot( _volume.getInversedPst(), slice.getAxisY() );
+         core::vector3f dy = core::mul4Rot( transformation, slice.getAxisY() );
          const float c2 = (float)dy.norm2() / slice.getSpacing()[ 1 ];
          dy[ 0 ] = dy[ 0 ] / ( c2 * _volume.getSpacing()[ 0 ] );
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );

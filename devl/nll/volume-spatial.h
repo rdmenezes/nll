@@ -46,6 +46,8 @@ namespace imaging
                   <p>
                   The spacing is extracted from the matrix: s_x = sqrt( r1^2 + r4^2 + r7^2 ) and so on
                   for s_y and s_z spacing.
+                  <p>
+                  Positive rotation is clockwise.
        */
       VolumeSpatial( const core::vector3ui& size,
                      const Matrix& pst,
