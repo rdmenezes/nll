@@ -7,15 +7,29 @@ namespace core
 {
    /**
     @ingroup core
-    @brief A custom fast 3x3 multiplication with vector
+    @brief A custom fast 3x3 multiplication with vector, computes: xA
     */
+
    template <class T, class Vector>
-   inline Vector mat3Mulv( const core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m, Vector& v )
+   inline Vector mat3Mulv( Vector& v, const core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m )
    {
       assert( m.sizex() == 3 && m.sizey() == 3 );
       return Vector( v[ 0 ] * m[ 0 ] + v[ 1 ] * m[ 3 ] + v[ 2 ] * m[ 6 ],
                      v[ 0 ] * m[ 1 ] + v[ 1 ] * m[ 4 ] + v[ 2 ] * m[ 7 ],
                      v[ 0 ] * m[ 2 ] + v[ 1 ] * m[ 5 ] + v[ 2 ] * m[ 8 ] );
+   }
+
+   /**
+    @ingroup core
+    @brief A custom fast 3x3 multiplication with vector, computes: Ax
+    */
+   template <class T, class Vector>
+   inline Vector mat3Mulv( const core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m, Vector& v )
+   {
+      assert( m.sizex() == 3 && m.sizey() == 3 );
+      return Vector( v[ 0 ] * m[ 0 ] + v[ 1 ] * m[ 1 ] + v[ 2 ] * m[ 2 ],
+                     v[ 0 ] * m[ 3 ] + v[ 1 ] * m[ 4 ] + v[ 2 ] * m[ 5 ],
+                     v[ 0 ] * m[ 6 ] + v[ 1 ] * m[ 7 ] + v[ 2 ] * m[ 8 ] );
    }
 
    /**
@@ -66,7 +80,7 @@ namespace core
      @brief apply 3x3 transformation (rotation+scale only) defined in a 4x4 matrix
             The matrix must be a 4x4 transformation matrix defined by the volume.
             
-            Compute Mv using only the upper left 3x3 part of M.
+            Compute vM using only the upper left 3x3 part of M.
     */
    template <class T, class Mapper, class Allocator, class Vector>
    Vector mul4Rot( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
@@ -77,9 +91,12 @@ namespace core
                      v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) );
    }
 
+
+
    /**
     @brief Transform a 3-vector with an affine 4x4 transformation matrix
     */
+   /*
    template <class T, class Mapper, class Allocator, class Vector>
    Vector transf4( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
    {
@@ -87,7 +104,7 @@ namespace core
       return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ) + m( 0, 3 ),
                      v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + v[ 2 ] * m( 1, 2 ) + m( 1, 3 ),
                      v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) + m( 2, 3 ) );
-   }
+   }*/
 
 
    template <class T, class Mapper, class Allocator>

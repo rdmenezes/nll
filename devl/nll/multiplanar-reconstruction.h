@@ -60,6 +60,11 @@ namespace imaging
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
              source->target. We get the MPR of the target object with this method and tfm transformation,
              as the 'target' volume is in target space and need to be translated to source space.
+
+             Ex: slice origin(0, 0, 0) with a translation(1,-1,0)
+             |00010     |00000
+             |00200 =>  |00001
+             |00000     |00020
        */
       void getSlice( Slice& slice, const TransformationAffine& tfm ) const
       {
@@ -67,7 +72,7 @@ namespace imaging
 
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         Transformation::Matrix transformation = tfm.getAffineMatrix() * _volume.getInversedPst();
+         Transformation::Matrix transformation = tfm.getAffineMatrix() * _volume.getInvertedPst();
          core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
@@ -80,8 +85,15 @@ namespace imaging
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
-         // reconstruct the slice
-         core::vector3f index = _volume.positionToIndex ( slice.getOrigin() );
+         // Reconstruct the slice
+         //
+         // Center = slice center - translation of the deformation
+         core::vector3f sliceCenter = slice.getOrigin();
+         sliceCenter[ 0 ] += tfm.getAffineMatrix()( 0, 3 );
+         sliceCenter[ 1 ] += tfm.getAffineMatrix()( 1, 3 );
+         sliceCenter[ 2 ] += tfm.getAffineMatrix()( 2, 3 );
+
+         core::vector3f index = _volume.positionToIndex ( sliceCenter );
          float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
          float startz = ( index[ 2 ] - ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );

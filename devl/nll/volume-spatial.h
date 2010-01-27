@@ -84,9 +84,9 @@ namespace imaging
          core::vector3f result( 0, 0, 0 );
          for ( unsigned n = 0; n < 3; ++n )
          {
-            result[ 0 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 0, n );
-            result[ 1 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 1, n );
-            result[ 2 ] += ( position[ n ] - _pst( n, 3 ) ) * _inversedPst( 2, n );
+            result[ 0 ] += ( position[ n ] - _pst( n, 3 ) ) * _invertedPst( 0, n );
+            result[ 1 ] += ( position[ n ] - _pst( n, 3 ) ) * _invertedPst( 1, n );
+            result[ 2 ] += ( position[ n ] - _pst( n, 3 ) ) * _invertedPst( 2, n );
          }
          return result;
       }
@@ -128,9 +128,9 @@ namespace imaging
       /**
        @return return the inversed Pst
        */
-      const Matrix& getInversedPst() const
+      const Matrix& getInvertedPst() const
       {
-         return _inversedPst;
+         return _invertedPst;
       }
 
       /**
@@ -172,8 +172,8 @@ namespace imaging
                                   _pst( 2, n ) * _pst( 2, n ) );
          }
 
-         _inversedPst.clone( _pst );
-         bool inversed = core::inverse( _inversedPst );
+         _invertedPst.clone( _pst );
+         bool inversed = core::inverse( _invertedPst );
          ensure( inversed, "error: the PST is singular, meaning the pst is malformed" );
       }
 
@@ -218,7 +218,7 @@ namespace imaging
    protected:
       Matrix         _pst;
       core::vector3f _spacing;
-      Matrix         _inversedPst;
+      Matrix         _invertedPst;
    };
 }
 }

@@ -80,6 +80,10 @@ namespace imaging
       {
          ensure( init.sizex() == 4 && init.sizex() == 4, "only 4x4 matrices are handled" );
          _affine.clone( init );
+
+         _affineInverted = _affine;
+         bool res = core::inverse( _affineInverted );
+         ensure( res, "this is not an affine matrix!" );
       }
 
       /**
@@ -88,6 +92,7 @@ namespace imaging
       TransformationAffine()
       {
          _affine = core::identityMatrix<Matrix>( 4 );
+         _affineInverted = _affine;
       }
 
       /**
@@ -108,6 +113,14 @@ namespace imaging
       }
 
       /**
+       @brief get the inverse of the affine transformation
+       */
+      virtual const Matrix& getInvertedAffineMatrix() const
+      {
+         return _affineInverted;
+      }
+
+      /**
        @brief transform a point defined in source, returns the deformable displacement at this point
        */
       virtual nll::core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const
@@ -120,11 +133,12 @@ namespace imaging
        */
       virtual nll::core::vector3f transform( const nll::core::vector3f& p ) const
       {
-         return core::transf4( _affine, p );
+         return core::mat3Mulv( _affine, p );
       }
 
    protected:
       Matrix      _affine;
+      Matrix      _affineInverted;
    };
 }
 }

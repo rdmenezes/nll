@@ -367,7 +367,7 @@ namespace core
          vector3f tmpPoint( p[ 0 ] - _origin[ 0 ],
                             p[ 1 ] - _origin[ 1 ],
                             p[ 2 ] - _origin[ 2 ] );
-         core::vector3f res = core::mat3Mulv( _inverseIntersection, tmpPoint );
+         core::vector3f res = core::mat3Mulv( tmpPoint, _inverseIntersection );
          outIntersection[ 0 ] = p[ 0 ] + dir[ 0 ] * res[ 0 ];
          outIntersection[ 1 ] = p[ 1 ] + dir[ 1 ] * res[ 0 ];
          outIntersection[ 2 ] = p[ 2 ] + dir[ 2 ] * res[ 0 ];
@@ -438,7 +438,7 @@ namespace core
          vector3f tmpPoint( p[ 0 ] - _origin[ 0 ],
                             p[ 1 ] - _origin[ 1 ],
                             p[ 2 ] - _origin[ 2 ] );
-         core::vector3f res = core::mat3Mulv( _inverseIntersection, tmpPoint );
+         core::vector3f res = core::mat3Mulv( tmpPoint, _inverseIntersection );
          outIntersection[ 0 ] = res[ 1 ];
          outIntersection[ 1 ] = res[ 2 ];
          return true;
