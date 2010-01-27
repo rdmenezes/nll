@@ -81,7 +81,7 @@ namespace imaging
          ensure( init.sizex() == 4 && init.sizex() == 4, "only 4x4 matrices are handled" );
          _affine.clone( init );
 
-         _affineInverted = _affine;
+         _affineInverted.clone( _affine );
          bool res = core::inverse( _affineInverted );
          ensure( res, "this is not an affine matrix!" );
       }
@@ -92,7 +92,7 @@ namespace imaging
       TransformationAffine()
       {
          _affine = core::identityMatrix<Matrix>( 4 );
-         _affineInverted = _affine;
+         _affineInverted.clone( _affine );
       }
 
       /**
@@ -133,7 +133,7 @@ namespace imaging
        */
       virtual nll::core::vector3f transform( const nll::core::vector3f& p ) const
       {
-         return core::mat3Mulv( _affine, p );
+         return core::transf4( _affine, p );
       }
 
    protected:

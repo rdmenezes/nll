@@ -29,8 +29,8 @@ public:
 
       ColorMapper mapper( 256, 3 );
       Lut lut( mapper, 10, 100 );
-      const nll::ui32 sizex = 1024*4;
-      const nll::ui32 sizey = 1024*4;
+      const nll::ui32 sizex = 1024;//*4;
+      const nll::ui32 sizey = 1024;//*4;
       Slice t1( nll::core::vector3ui( sizex, sizey, 1 ),
                 nll::core::vector3f( 1.0f, 0, 0),
                 nll::core::vector3f( 0, 1.0f, 0),

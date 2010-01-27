@@ -78,7 +78,6 @@ namespace core
 			   T1 val = 0;
 			   for (ui32 n = 0; n < op1.sizex(); ++n)
             {
-               std::cout << "mul:" << op1(ny, n) << " * " << op2(n, nx) << std::endl;
 				   val += op1(ny, n) * op2(n, nx);
             }
 			   m(ny, nx) = val;

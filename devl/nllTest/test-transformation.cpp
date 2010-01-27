@@ -164,28 +164,16 @@ public:
       // rotation of 90 degree on the right, and step on the left of -10
       Matrix pst;
       nll::core::matrix4x4RotationZ( pst, static_cast<float>( nll::core::PI / 2 ) );
-      //nll::core::matrix4x4RotationZ( pst, static_cast<float>( 0 ) );
-      pst( 0, 3 ) = 0;
+      pst( 0, 3 ) = -10;
       Volume v( nll::core::vector3ui( 16, 16, 16 ),
                 pst, 0 );
+
+      // we want to rotate the volume by -90deg and (10, 0, 0). As the transformation is defined from
+      // source to target, and the slice is in source but the volume is in target, we actualy need to set
+      // tfm^-1 to transform how we want to!
       Matrix translation;
       nll::core::matrix4x4RotationZ( translation, static_cast<float>( nll::core::PI / 2 ) );
-      //translation( 0, 3 ) = 0;
-      //translation( 1, 3 ) = 0;
-
-      // we have a target volume, we want to add (1, -2) from target->source, but the slice is defined in source so we need to invert the matrix
-      //nll::core::inverse( translation );
-
-      std::cout << "t=" << std::endl;
-      pst.print(std::cout);
-
-      std::cout << "t^-1=" << std::endl;
-      translation.print(std::cout);
-
-      Matrix TEST = translation * v.getInvertedPst();
-
-      std::cout << "t*t^-1=" << std::endl;
-      TEST.print( std::cout );
+      translation( 0, 3 ) = -10;
 
       // fill with specific voxels
       v( 0, 0, 0 ) = 100;
@@ -194,14 +182,15 @@ public:
       v( 10, 10, 10 ) = 200;
 
       // get a slice in this geometry
-      Slice s( nll::core::vector3ui( 25, 25, 1 ),
+      Slice s( nll::core::vector3ui( 22, 22, 1 ),
                nll::core::vector3f( 1, 0, 0 ),
                nll::core::vector3f( 0, 1, 0 ),
                nll::core::vector3f( 0, 0, 0 ),
                nll::core::vector2f( 1.0f, 1.0f ) );
 
       Mpr mpr( v );
-      mpr.getSlice( s, translation );
+      nll::imaging::TransformationAffine tfm( translation );
+      mpr.getSlice( s, tfm );
 
       
       std::cout << "print=" << std::endl;
@@ -215,24 +204,23 @@ public:
       }
       
 
-      // the volume is turned 90deg clockwise, moved by (-10, 0)
-      // then a transformation of -90deg, we should find a volume with the same base, but with origin(-10, 0, 0)
+      // the volume is turned 90deg clockwise, moved by (-10, 0, 0)
+      // then a rotation -90deg moved by (10, 0, 0)
       // we use a regular base (1, 0, 0) and (0, 1, 0)
-      // then at (-10, 0, 0) is the voxel(0, 0, 0) in the volume. We need to move the volume origin at top-left corner of the slice
-      // so we need to add (sx/2,-sy/2)
+      // we should be back from the starting point
       TESTER_ASSERT( s( 0, 0, 0 ) == 0 );
-      TESTER_ASSERT( s( 0 + 1, 2, 0 ) == 100 );
-      TESTER_ASSERT( s( 0 + 1, 5 + 2, 0 ) == 5 );
-      TESTER_ASSERT( s( 10 + 1, 2, 0 ) == 10 );
+      TESTER_ASSERT( s( 11, 11, 0 ) == 100 );
+      TESTER_ASSERT( s( 11, 11 + 5, 0 ) == 5 );
+      TESTER_ASSERT( s( 10 + 11, 11, 0 ) == 10 );
    }
    
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformation);
-/*TESTER_TEST(testAffine);
+TESTER_TEST(testAffine);
 TESTER_TEST(testMprIdentity);
-TESTER_TEST(testMprTranslation);*/
+TESTER_TEST(testMprTranslation);
 TESTER_TEST(testMprTranslationInverse);
 TESTER_TEST_SUITE_END();
 #endif
