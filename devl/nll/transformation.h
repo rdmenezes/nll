@@ -8,6 +8,10 @@ namespace imaging
    /**
     @ingroup imaging
     @brief This object defines a transformation from source to target geometry
+    @note The spirit is when displaying an object, this always takes place in source space, so we need
+          to define a transformation from source->target so that it is very easy & fast to display... Internally,
+          we could have inverted the transformation, however it might be a complex operation (i.e. like deformable
+          deformation).
     */
    class Transformation
    {

@@ -58,10 +58,10 @@ namespace imaging
        @param slice the slice to be filled, defined in source space
        @param tfm an affine that transform source->target, assuming we have a target volume.
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
-             source->target. We get the MPR of the target object with this method and tfm transformation,
-             as the 'target' volume is in target space and need to be translated to source space.
+             source->target. Assume we want to add a translation in target space, like in Ex 1,
+             we actually need to inverse this transformation!
 
-             Ex: slice origin(0, 0, 0) with a translation(1,-1,0)
+             Ex 1: slice origin(0, 0, 0) with a translation(1,-1,0)
              |00010     |00000
              |00200 =>  |00001
              |00000     |00020
