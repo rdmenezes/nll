@@ -35,6 +35,7 @@ namespace core
    /**
     @ingroup core
     @brief A custom fast 3x3 inverse.
+    @note the matrix is directly modified!
     */
    template <class T>
    inline bool inverse3x3( core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m )
@@ -76,6 +77,50 @@ namespace core
    }
 
    /**
+    @ingroup core
+    @param inverse the 3x3 region of a 4x4 matrix, leaving the other elements the same
+    @note the matrix is directly modified!
+    */
+   template <class T>
+   inline bool inverse3x3M4( core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m )
+   {
+      
+      assert( m.sizex() == 4 && m.sizey() == 4 );
+
+      const T c = m[ 0 ] * ( m[ 5 ] * m[ 10 ] - m[ 9 ] * m[ 6 ] ) -
+                  m[ 1 ] * ( m[ 10 ] * m[ 4 ] - m[ 6 ] * m[ 8 ] ) +
+                  m[ 2 ] * ( m[ 9 ] * m[ 4 ] - m[ 5 ] * m[ 8 ] );
+
+      if ( core::equal<T>( c, 0 ) )
+         return false;
+
+      // we need to use extra storage...
+      const T a0 = ( m[ 10 ] * m[ 5 ] - m[ 6 ] * m[ 9 ] ) / c;
+      const T a1 = ( m[ 2 ] * m[ 9 ] - m[ 10 ] * m[ 1 ] ) / c;
+      const T a2 = ( m[ 6 ] * m[ 1 ] - m[ 2 ] * m[ 5 ] ) / c;
+
+      const T a3 = ( m[ 6 ] * m[ 8 ] - m[ 10 ] * m[ 4 ] ) / c;
+      const T a4 = ( m[ 10 ] * m[ 0 ] - m[ 2 ] * m[ 8 ] ) / c;
+      const T a5 = ( m[ 2 ] * m[ 4 ] - m[ 6 ] * m[ 0 ] ) / c;
+
+      const T a6 = ( m[ 9 ] * m[ 4 ] - m[ 5 ] * m[ 8 ] ) / c;
+      const T a7 = ( m[ 8 ] * m[ 1 ] - m[ 0 ] * m[ 9 ] ) / c;
+      const T a8 = ( m[ 0 ] * m[ 5 ] - m[ 4 ] * m[ 1 ] ) / c;
+      
+      // update the matrix
+      m[ 0 ] = a0;
+      m[ 1 ] = a1;
+      m[ 2 ] = a2;
+      m[ 4 ] = a3;
+      m[ 5 ] = a4;
+      m[ 6 ] = a5;
+      m[ 8 ] = a6;
+      m[ 9 ] = a7;
+      m[ 10 ] = a8;
+      return true;
+   }
+
+   /**
      @ingroup core
      @brief apply 3x3 transformation (rotation+scale only) defined in a 4x4 matrix
             The matrix must be a 4x4 transformation matrix defined by the volume.
@@ -94,6 +139,7 @@ namespace core
 
 
    /**
+    @ingroup core
     @brief Transform a 3-vector with an affine 4x4 transformation matrix
     */
    template <class T, class Mapper, class Allocator, class Vector>
@@ -106,6 +152,10 @@ namespace core
    }
 
 
+   /**
+    @ingroup core
+    @brief Create a rotation matrix on the x-axis
+    */
    template <class T, class Mapper, class Allocator>
    void matrix4x4RotationX( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
    {
@@ -119,6 +169,10 @@ namespace core
       m( 3, 3 ) = 1;
    }
 
+   /**
+    @ingroup core
+    @brief Create a rotation matrix on the z-axis
+    */
    template <class T, class Mapper, class Allocator>
    void matrix4x4RotationZ( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
    {

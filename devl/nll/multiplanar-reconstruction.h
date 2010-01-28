@@ -70,9 +70,9 @@ namespace imaging
       {
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
 
-
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
          Transformation::Matrix transformation = tfm.getAffineMatrix() * _volume.getInvertedPst();
+
          core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
          dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
@@ -85,15 +85,12 @@ namespace imaging
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
-         // Reconstruct the slice
-         //
-         // Center = slice center - translation of the deformation
-         core::vector3f sliceCenter = slice.getOrigin();
-         sliceCenter[ 0 ] += tfm.getAffineMatrix()( 0, 3 );
-         sliceCenter[ 1 ] += tfm.getAffineMatrix()( 1, 3 );
-         sliceCenter[ 2 ] += tfm.getAffineMatrix()( 2, 3 );
+         core::vector3f tr( tfm.getAffineMatrix()( 0, 3 ) ,
+                            tfm.getAffineMatrix()( 1, 3 ),
+                            tfm.getAffineMatrix()( 2, 3 ) );
+         core::vector3f sliceCenter = slice.getOrigin() + tr;
+         core::vector3f index = core::mul4Rot( tfm.getAffineMatrix(), _volume.positionToIndex ( sliceCenter ) );
 
-         core::vector3f index = _volume.positionToIndex ( sliceCenter );
          float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
          float startz = ( index[ 2 ] - ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );

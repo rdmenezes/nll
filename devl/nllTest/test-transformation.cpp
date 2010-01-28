@@ -173,7 +173,8 @@ public:
       // tfm^-1 to transform how we want to!
       Matrix translation;
       nll::core::matrix4x4RotationZ( translation, static_cast<float>( nll::core::PI / 2 ) );
-      translation( 0, 3 ) = -10;
+      translation( 0, 3 ) = 1;
+      translation( 1, 3 ) = 2;
 
       // fill with specific voxels
       v( 0, 0, 0 ) = 100;
@@ -185,7 +186,7 @@ public:
       Slice s( nll::core::vector3ui( 22, 22, 1 ),
                nll::core::vector3f( 1, 0, 0 ),
                nll::core::vector3f( 0, 1, 0 ),
-               nll::core::vector3f( 0, 0, 0 ),
+               nll::core::vector3f( -10, 0, 0 ),
                nll::core::vector2f( 1.0f, 1.0f ) );
 
       Mpr mpr( v );
@@ -209,9 +210,72 @@ public:
       // we use a regular base (1, 0, 0) and (0, 1, 0)
       // we should be back from the starting point
       TESTER_ASSERT( s( 0, 0, 0 ) == 0 );
-      TESTER_ASSERT( s( 11, 11, 0 ) == 100 );
-      TESTER_ASSERT( s( 11, 11 + 5, 0 ) == 5 );
-      TESTER_ASSERT( s( 10 + 11, 11, 0 ) == 10 );
+      TESTER_ASSERT( s( 11 -1, 11 - 2, 0 ) == 100 );
+      TESTER_ASSERT( s( 11 -1, 11 + 5 - 2, 0 ) == 5 );
+      TESTER_ASSERT( s( 10 + 11 - 1, 11 - 2, 0 ) == 10 );
+   }
+
+
+   void testMprTranslationInverse2()
+   {
+      typedef nll::imaging::VolumeSpatial<float>      Volume;
+      typedef nll::imaging::Slice<float>              Slice;
+      typedef Volume::Matrix                          Matrix;
+      typedef nll::imaging::InterpolatorNearestNeighbour<Volume> Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator > Mpr;
+
+      // rotation of 90 degree on the right, and step on the left of -10
+      Matrix pst;
+      nll::core::matrix4x4RotationZ( pst, static_cast<float>( nll::core::PI / 2 ) );
+      pst( 0, 3 ) = -10;
+      Volume v( nll::core::vector3ui( 16, 16, 16 ),
+                pst, 0 );
+
+      // we want to rotate the volume by -90deg and (10, 0, 0). As the transformation is defined from
+      // source to target, and the slice is in source but the volume is in target, we actualy need to set
+      // tfm^-1 to transform how we want to!
+      Matrix translation;
+      nll::core::matrix4x4RotationZ( translation, static_cast<float>( nll::core::PI / 2 ) );
+      translation( 0, 3 ) = 1;
+      translation( 1, 3 ) = 2;
+
+      // fill with specific voxels
+      v( 0, 0, 0 ) = 100;
+      v( 10, 0, 0 ) = 10;
+      v( 0, 5, 0 ) = 5;
+      v( 10, 10, 10 ) = 200;
+
+      // get a slice in this geometry
+      Slice s( nll::core::vector3ui( 22, 22, 1 ),
+               nll::core::vector3f( 1, 0, 0 ),
+               nll::core::vector3f( 0, 1, 0 ),
+               nll::core::vector3f( -10 + 4, 0 + 5, 0 ),
+               nll::core::vector2f( 1.0f, 1.0f ) );
+
+      Mpr mpr( v );
+      nll::imaging::TransformationAffine tfm( translation );
+      mpr.getSlice( s, tfm );
+
+      
+      std::cout << "print=" << std::endl;
+      for ( int y = s.size()[ 1 ] - 1; y >= 0; --y )
+      {
+         for ( unsigned x = 0; x < s.size()[ 0 ]; ++x )
+         {
+            std::cout << s( x, y, 0 ) << " ";
+         }
+         std::cout << std::endl;
+      }
+      
+
+      // the volume is turned 90deg clockwise, moved by (-10, 0, 0)
+      // then a rotation -90deg moved by (10, 0, 0)
+      // we use a regular base (1, 0, 0) and (0, 1, 0)
+      // we should be back from the starting point
+      TESTER_ASSERT( s( 0, 0, 0 ) == 0 );
+      TESTER_ASSERT( s( 11 -1 - 4, 11 - 2 - 5, 0 ) == 100 );
+      TESTER_ASSERT( s( 11 -1 - 4, 11 + 5 - 2 - 5, 0 ) == 5 );
+      TESTER_ASSERT( s( 10 + 11 - 1 - 4, 11 - 2 - 5, 0 ) == 10 );
    }
    
 };
@@ -219,9 +283,10 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformation);
 TESTER_TEST(testAffine);
-TESTER_TEST(testMprIdentity);
+/*TESTER_TEST(testMprIdentity);
 TESTER_TEST(testMprTranslation);
-TESTER_TEST(testMprTranslationInverse);
+TESTER_TEST(testMprTranslationInverse);*/
+TESTER_TEST(testMprTranslationInverse2);
 TESTER_TEST_SUITE_END();
 #endif
 
