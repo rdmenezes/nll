@@ -128,7 +128,7 @@ namespace core
             Compute vM using only the upper left 3x3 part of M.
     */
    template <class T, class Mapper, class Allocator, class Vector>
-   Vector mul4Rot( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
+   Vector mul4Rot( const core::Matrix<T, Mapper, Allocator>& m, const Vector& v )
    {
       assert( m.sizex() == 4 && m.sizey() == 4 );
       return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ),
@@ -143,7 +143,7 @@ namespace core
     @brief Transform a 3-vector with an affine 4x4 transformation matrix
     */
    template <class T, class Mapper, class Allocator, class Vector>
-   Vector transf4( const core::Matrix<T, Mapper, Allocator>& m, Vector& v )
+   Vector transf4( const core::Matrix<T, Mapper, Allocator>& m, const Vector& v )
    {
       assert( m.sizex() == 4 && m.sizey() == 4 );
       return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + v[ 2 ] * m( 0, 2 ) + m( 0, 3 ),
