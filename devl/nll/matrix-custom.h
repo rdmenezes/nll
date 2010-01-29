@@ -155,6 +155,7 @@ namespace core
    /**
     @ingroup core
     @brief Create a rotation matrix on the x-axis
+    @note the matrix is directly modified!
     */
    template <class T, class Mapper, class Allocator>
    void matrix4x4RotationX( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
@@ -172,6 +173,7 @@ namespace core
    /**
     @ingroup core
     @brief Create a rotation matrix on the z-axis
+    @note the matrix is directly modified!
     */
    template <class T, class Mapper, class Allocator>
    void matrix4x4RotationZ( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )

@@ -56,7 +56,8 @@ namespace imaging
        @brief Compute the slice according to a position and 2 vectors and a size factor.
               The volume's spacing is used to compute the correct MPR.
        @param slice the slice to be filled, defined in source space
-       @param tfm an affine that transform source->target, assuming we have a target volume.
+       @param tfm an affine that transform source->target, assuming we have a target volume. We can see the transformation as
+              transforming the source geometry and then do as if there was no transformation
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
              source->target. Assume we want to add a translation in target space, like in Ex 1,
              we actually need to inverse this transformation!
@@ -95,14 +96,8 @@ namespace imaging
          tfmRot( 1, 3 ) = 0;
          tfmRot( 2, 3 ) = 0;
 
-         //core::vector3f DEBUG3 = transf4( tfmRot, core::vector3f( _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
-         //core::vector3f DEBUG2 = transf4( _volume.getInvertedPst(), slice.getOrigin() );
-         //core::vector3f DEBUG = transf4( _volume.getInvertedPst() * tfmRot, slice.getOrigin() );
-         //core::vector3f index = transf4( tfmRot * _volume.getInvertedPst(), slice.getOrigin() ) + _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) );
          core::vector3f index = transf4( tfmRot * _volume.getInvertedPst(), slice.getOrigin() ) + 
                                 transf4( tfmRot, core::vector3f( _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
-         //core::vector3f sliceCenter = slice.getOrigin() + tr;
-         //core::vector3f index = core::mul4Rot( tfm.getAffineMatrix(), _volume.positionToIndex ( sliceCenter ) );
 
          float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );

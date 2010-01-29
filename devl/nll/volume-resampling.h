@@ -10,7 +10,7 @@ namespace imaging
     @brief Resample a target volume to an arbitrary source geometry
     @param target the volume that will be resampled
     @param source the volume into wich it will be resampled.
-    @param tfm a transformation defined from source to target
+    @param tfm a transformation defined from source to target (easier to see if we transform first the source, and continue as if no transformation...)
 
     The source must already be allocated.
     */
@@ -30,7 +30,7 @@ namespace imaging
       // Compute the transformation source index->source position->transformation in source position to target->to target index
       // we don't really care about the order of composition as rotation and scalling are associative
       //
-      Matrix transformation = target.getInvertedPst() * source.getPst() * tfm.getAffineMatrix();
+      Matrix transformation = tfm.getAffineMatrix() * target.getInvertedPst() * source.getPst();
       const core::vector3f dx( transformation( 0, 0 ),
                                transformation( 1, 0 ),
                                transformation( 2, 0 ) );
@@ -56,15 +56,6 @@ namespace imaging
 
       core::vector3f originInTarget = transf4( tfmRot * target.getInvertedPst(), source.getOrigin() ) + 
                                       transf4( tfmRot, core::vector3f( target.positionToIndex( tr ) - target.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
-
-
-      //const core::vector3f originInTarget = transf4( target.getInvertedPst() * tfmRot, source.getOrigin() ) + target.positionToIndex( tr ) - target.positionToIndex( core::vector3f( 0, 0, 0 ) );
-      //const core::vector3f center = target.positionToIndex( source.getOrigin() + tr );
-      //const core::vector3f originInTarget = core::mul4Rot( tfm.getAffineMatrix(), center );
-      //const core::vector3f originInTarget = target.positionToIndex( source.getOrigin() );
-      
-      //const core::vector3f originInTarget = transf4( target.getInvertedPst() * source.getPst() * tfm.getAffineMatrix(), core::vector3f( 0, 0, 0 ) );
-      //const core::vector3f originInTarget = transf4( target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst(), core::vector3f( 0, 0, 0 ) );
 
       Interpolator interpolator( target );
       typename VolumeType::DirectionalIterator  sliceIt = source.getIterator( 0, 0, 0 );

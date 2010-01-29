@@ -472,6 +472,54 @@ public:
       TESTER_ASSERT( source( 1, 5 + 1 + 1, 0 ) == 0 );
       TESTER_ASSERT( source( 2, 5 + 1 + 1, 0 ) == 5 );
    }
+
+   void testResamplingTranslationRotation5()
+   {
+      typedef  nll::imaging::VolumeSpatial<float>  Volume;
+
+      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
+      nll::core::matrix4x4RotationZ( tf, static_cast<float>( nll::core::PI/2 ) );
+      tf( 0, 3 ) = -7;
+      tf( 1, 3 ) = 0;
+      tf( 2, 3 ) = 0;
+      nll::imaging::TransformationAffine tfm( tf );
+
+      // target
+      Volume::Matrix tfm1( 4, 4 );
+      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( 0 ) );
+
+      tfm1( 0, 3 ) = -2;
+      tfm1( 1, 3 ) = -1;
+      tfm1( 2, 3 ) = 0;
+      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
+
+      target( 0, 0, 0 ) = 100;
+      target( 10, 0, 0 ) = 10;
+      target( 0, 5, 0 ) = 5;
+      target( 0, 0, 1 ) = 0;
+
+      // source
+      Volume::Matrix tfm2( 4, 4 );
+      nll::core::matrix4x4RotationZ( tfm2, 0 );
+      tfm2( 0, 3 ) = 0;
+      tfm2( 1, 3 ) = -1;
+      tfm2( 2, 3 ) = 0;
+      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
+
+      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
+
+      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
+      {
+         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
+         {
+            std::cout << source( x, y, 0 ) << " ";
+         }
+         std::cout << std::endl;
+      }
+      TESTER_ASSERT( source( 0, 0, 0 ) == 5 );
+      TESTER_ASSERT( source( 5, 0, 0 ) == 100 );
+      TESTER_ASSERT( source( 5, 10, 0 ) == 10 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -487,5 +535,6 @@ TESTER_TEST_SUITE(TestVolumeResampling);
  TESTER_TEST(testResamplingTranslationRotation4);
  TESTER_TEST(testResamplingSpacing);
  TESTER_TEST(testResamplingSpacing2);
+ TESTER_TEST(testResamplingTranslationRotation5);
 TESTER_TEST_SUITE_END();
 #endif
