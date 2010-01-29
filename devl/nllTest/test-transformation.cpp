@@ -486,10 +486,12 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformation);
+
 TESTER_TEST(testAffine);
 TESTER_TEST(testMprIdentity);
 TESTER_TEST(testMprTranslation);
 TESTER_TEST(testMprTranslationInverse);
+
 TESTER_TEST(testMprTranslationInverse2);
 TESTER_TEST(testMprTranslationTfmSp1);
 TESTER_TEST(testMprTranslationTfmSp2);

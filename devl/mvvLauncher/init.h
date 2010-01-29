@@ -36,7 +36,7 @@ namespace mvv
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
       RefcountedTyped<Mip>                mip;
 
-      ApplicationVariables() : screen( 1024, 1024, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 6 )
       {  
          initContext();
 

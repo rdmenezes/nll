@@ -168,7 +168,7 @@ namespace platform
          _interested.insert( MVV_PLATFORM_ORDER_DISPLAY_MIP );
          dispatcher.connect( this );
 
-         fps.setValue( 4 );
+         fps.setValue( 10 );
 
          size.connect( this );
          lut.connect( this );

@@ -140,7 +140,7 @@ namespace core
 
    /**
     @ingroup core
-    @brief Transform a 3-vector with an affine 4x4 transformation matrix
+    @brief Transform a 3-vector with an affine 4x4 transformation matrix, computing Mv', with v' = [ v[ x, y, z], 1 ]
     */
    template <class T, class Mapper, class Allocator, class Vector>
    Vector transf4( const core::Matrix<T, Mapper, Allocator>& m, const Vector& v )

@@ -88,8 +88,21 @@ namespace imaging
          core::vector3f tr( tfm.getAffineMatrix()( 0, 3 ) ,
                             tfm.getAffineMatrix()( 1, 3 ),
                             tfm.getAffineMatrix()( 2, 3 ) );
-         core::vector3f sliceCenter = slice.getOrigin() + tr;
-         core::vector3f index = core::mul4Rot( tfm.getAffineMatrix(), _volume.positionToIndex ( sliceCenter ) );
+
+         Transformation::Matrix tfmRot;
+         tfmRot.clone( tfm.getAffineMatrix() );
+         tfmRot( 0, 3 ) = 0;
+         tfmRot( 1, 3 ) = 0;
+         tfmRot( 2, 3 ) = 0;
+
+         //core::vector3f DEBUG3 = transf4( tfmRot, core::vector3f( _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
+         //core::vector3f DEBUG2 = transf4( _volume.getInvertedPst(), slice.getOrigin() );
+         //core::vector3f DEBUG = transf4( _volume.getInvertedPst() * tfmRot, slice.getOrigin() );
+         //core::vector3f index = transf4( tfmRot * _volume.getInvertedPst(), slice.getOrigin() ) + _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) );
+         core::vector3f index = transf4( tfmRot * _volume.getInvertedPst(), slice.getOrigin() ) + 
+                                transf4( tfmRot, core::vector3f( _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
+         //core::vector3f sliceCenter = slice.getOrigin() + tr;
+         //core::vector3f index = core::mul4Rot( tfm.getAffineMatrix(), _volume.positionToIndex ( sliceCenter ) );
 
          float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
