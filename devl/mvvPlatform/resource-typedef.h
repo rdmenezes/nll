@@ -32,6 +32,9 @@ namespace platform
 
    /// defines a map of transfer function. Given a volume name, retrieve its associated transfer function
    typedef ResourceMap<SymbolVolume, ResourceLut >       ResourceMapTransferFunction;
+
+   /// defines a list of 3D vectors
+   typedef ResourceVector<nll::core::vector3f>           ResourceVector3fs;
 }
 }
 

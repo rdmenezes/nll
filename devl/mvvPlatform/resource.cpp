@@ -18,7 +18,7 @@ namespace platform
             for ( EngineStorage::iterator it = links.begin(); it != links.end(); ++it )
             {
                assert( *it );
-               (*it)->notify();
+               (*it)->notify( this );
             }
             // notify resources
             for ( ResourceStorage::iterator it = resources.begin(); it != resources.end(); ++it )

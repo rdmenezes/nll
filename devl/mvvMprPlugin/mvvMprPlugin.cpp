@@ -9,6 +9,7 @@
 #include "context-segments.h"
 #include "segment-tool-pointer.h"
 #include "segment-tool-camera.h"
+#include "segment-tool-points.h"
 #include "mip.h"
 #include "layout-mip.h"
 

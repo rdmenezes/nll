@@ -10,6 +10,61 @@ namespace platform
 {
    /**
     @ingroup platform
+    @brief Hold a list of values
+    */
+   template <class T>
+   class ResourceVector : public Resource< std::vector<T> >
+   {
+      typedef Resource< std::vector<T> >  Base;
+
+   public:
+      typedef typename Base::value_type::value_type   value_type;
+
+   public:
+      ResourceVector() : Base( new Base::value_type(), true )
+      {}
+
+      ResourceVector( ui32 n ) : Base( new Base::value_type( n ), true )
+      {}
+
+      void push_back( T val )
+      {
+         Base::getValue().push_back( val );
+         notify();
+      }
+
+      T operator[]( ui32 n ) const
+      {
+         return Base::getValue()[ n ];
+      }
+
+      void setValue( T val, ui32 index )
+      {
+         if ( val != Base::getValue()[ index ] )
+         {
+            Base::getValue()[ index ] = val;
+            notify();
+         }
+      }
+
+      typename std::vector<T>::const_iterator begin() const
+      {
+         return Base::getValue().begin();
+      }
+
+      typename std::vector<T>::const_iterator end() const
+      {
+         return Base::getValue().end();
+      }
+
+      ui32 size() const
+      {
+         return static_cast<ui32>( Base::getValue().size() );
+      }
+   };
+
+   /**
+    @ingroup platform
     @brief Hold a vector, it is modified when a new value is set
     */
    class MVVPLATFORM_API ResourceVector3f : public Resource<nll::core::vector3f>

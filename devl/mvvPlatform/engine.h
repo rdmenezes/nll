@@ -22,9 +22,9 @@ namespace platform
     @ingroup platform
     @brief Implement an engine that compute output from a set of resources. If one resource change,
            the result must be recomputed.
-    @note when destroyed, the engines will unregister all the reosources
+    @note when destroyed, the engines will unregister all the resources
     */
-   class MVVPLATFORM_API Engine : public Notifiable, public LinkableDouble< impl::Resource, Engine* >
+   class MVVPLATFORM_API Engine : public LinkableDouble< impl::Resource, Engine* >
    {
    public:
       typedef LinkableDouble< impl::Resource, Engine* > Linkable;
@@ -42,8 +42,9 @@ namespace platform
          _handler.connect( *this );
       }
 
-      virtual void notify()
+      virtual void notify( impl::ResourceSharedData* r )
       {
+         _notifiedResources.insert( r );
          _needToRecompute = true;
       }
 
@@ -73,12 +74,17 @@ namespace platform
 
       /**
        @brief This method will execute _run() if the engine is enabled and a connected resource has been notified
+       @note if the engine has run successfully, the list of resources that triggered the engine update is cleared
        */
       virtual void run()
       {
          if ( _state == ENGINE_ENABLED && _needToRecompute )
          {
             _needToRecompute = !_run();
+            if ( !_needToRecompute )
+            {
+               clearNotifiedResources();
+            }
          }
       }
 
@@ -86,7 +92,21 @@ namespace platform
 
       bool isConnected( impl::Resource r ) const;
 
+      /**
+       @brief Returns true if this resource has triggered the engine
+       */
+      template <class T>
+      bool hasTriggeredNotification( const Resource<T>& r ) const
+      {
+         return _notifiedResources.find( &r );
+      }
+
    private:
+      void clearNotifiedResources()
+      {
+         _notifiedResources.clear();
+      }
+
       /**
        @brief connect the resource to the engine and add the resource to the resources (we need to hold a reference
               in case all references are lost externally, guaranteeing no resource used by the engine can be lost...)
@@ -104,9 +124,12 @@ namespace platform
       Engine( const Engine& );
 
    protected:
-      bool              _needToRecompute;
-      EngineHandler&    _handler;
-      State             _state;
+      bool                       _needToRecompute;
+      EngineHandler&             _handler;
+      State                      _state;
+
+   private:
+      std::set<impl::ResourceSharedData*>  _notifiedResources;
    };
 }
 }
