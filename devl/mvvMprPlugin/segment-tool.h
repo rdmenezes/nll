@@ -30,13 +30,22 @@ namespace platform
       virtual ~SegmentTool();
 
       /**
-       @brief Returns true is this tool is modifying the segment (add layouts...), means we need to make a copy of
-              the Segment, so in case the tool depends on another resource and this resource is notified we just update
-              the saved segment
+       @brief Returns true is this tool is modifying the segment (add layouts...). Else modification
+              on the MPR are not allowed and <code>updateSegment</code> won't be called
        */
       bool isModifyingMprImage() const
       {
          return _canModify;
+      }
+
+      /**
+       @brief Returns true is this tool need to save the current segment: when the tool is updated,
+              and if no other resources have change, then we don't need to recompute all the segment,
+              just start at the point we saved previously
+       */
+      virtual bool isSavingMprImage() const
+      {
+         return false;
       }
 
       /**

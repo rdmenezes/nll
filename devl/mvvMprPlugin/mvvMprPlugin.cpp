@@ -3,6 +3,8 @@
 
 #include "mvvMprPlugin.h"
 
+#include "annotation.h"
+#include "annotation-point.h"
 #include "engine-mpr.h"
 #include "segment.h"
 #include "layout-segment.h"

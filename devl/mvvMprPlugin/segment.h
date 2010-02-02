@@ -45,7 +45,7 @@ namespace platform
             inputSegment.connect( this );
             handler.connect( *this );
 
-            if ( !tool->isModifyingMprImage() )
+            if ( !tool->isSavingMprImage() )
             {
                outputSegment = inputSegment;
             }
@@ -71,31 +71,34 @@ namespace platform
 
             if ( _tool->isModifyingMprImage() )
             {
-               ensure( inputSegment.getValue().getStorage().begin() !=
-                       outputSegment.getValue().getStorage().begin(), "we can't share the same buffer if it modifies the segment..." );
-
-               // if we modify the image & the dimenstion are not good, just deep copy the input
-               if ( inputSegment.getValue().getStorage().size() != outputSegment.getValue().getStorage().size() )
+               if ( _tool->isSavingMprImage() )
                {
-                  Sliceuc slice;
-                  slice.setGeometry( inputSegment.getValue().getAxisX(),
-                                     inputSegment.getValue().getAxisY(),
-                                     inputSegment.getValue().getOrigin(),
-                                     inputSegment.getValue().getSpacing() );
+                  ensure( inputSegment.getValue().getStorage().begin() !=
+                          outputSegment.getValue().getStorage().begin(), "we can't share the same buffer if it modifies the segment..." );
 
-                  slice.getStorage().clone( inputSegment.getValue().getStorage() );
-                  outputSegment.setValue( slice );
-               } else {
-                  // quick copy, we know memory is continuous
-                  Sliceuc::iterator inputBegin = inputSegment.getValue().getStorage().begin();
-                  Sliceuc::iterator outputBegin = outputSegment.getValue().getStorage().begin();                
-                  memcpy( &*outputBegin, &*inputBegin, inputSegment.getValue().getStorage().size() );
+                  // if we modify the image & the dimenstion are not good, just deep copy the input
+                  if ( inputSegment.getValue().getStorage().size() != outputSegment.getValue().getStorage().size() )
+                  {
+                     Sliceuc slice;
+                     slice.setGeometry( inputSegment.getValue().getAxisX(),
+                                        inputSegment.getValue().getAxisY(),
+                                        inputSegment.getValue().getOrigin(),
+                                        inputSegment.getValue().getSpacing() );
 
-                  // update the geometry in case it is different
-                  outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
-                                                        inputSegment.getValue().getAxisY(),
-                                                        inputSegment.getValue().getOrigin(),
-                                                        inputSegment.getValue().getSpacing() );
+                     slice.getStorage().clone( inputSegment.getValue().getStorage() );
+                     outputSegment.setValue( slice );
+                  } else {
+                     // quick copy, we know memory is continuous
+                     Sliceuc::iterator inputBegin = inputSegment.getValue().getStorage().begin();
+                     Sliceuc::iterator outputBegin = outputSegment.getValue().getStorage().begin();                
+                     memcpy( &*outputBegin, &*inputBegin, inputSegment.getValue().getStorage().size() );
+
+                     // update the geometry in case it is different
+                     outputSegment.getValue().setGeometry( inputSegment.getValue().getAxisX(),
+                                                           inputSegment.getValue().getAxisY(),
+                                                           inputSegment.getValue().getOrigin(),
+                                                           inputSegment.getValue().getSpacing() );
+                  }
                }
 
                //do the changes on the output

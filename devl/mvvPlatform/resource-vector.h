@@ -19,6 +19,8 @@ namespace platform
 
    public:
       typedef typename Base::value_type::value_type   value_type;
+      typedef typename std::vector<T>::iterator       iterator;
+      typedef typename std::vector<T>::const_iterator const_iterator;
 
    public:
       ResourceVector() : Base( new Base::value_type(), true )
@@ -47,12 +49,22 @@ namespace platform
          }
       }
 
-      typename std::vector<T>::const_iterator begin() const
+      const_iterator begin() const
       {
          return Base::getValue().begin();
       }
 
-      typename std::vector<T>::const_iterator end() const
+      const_iterator end() const
+      {
+         return Base::getValue().end();
+      }
+
+      iterator begin()
+      {
+         return Base::getValue().begin();
+      }
+
+      iterator end()
       {
          return Base::getValue().end();
       }

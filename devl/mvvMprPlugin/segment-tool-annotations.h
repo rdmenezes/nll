@@ -1,7 +1,8 @@
-#ifndef MVV_PLATFORM_SEGMENT_TOOL_POINTS_H_
-# define MVV_PLATFORM_SEGMENT_TOOL_POINTS_H_
+#ifndef MVV_PLATFORM_SEGMENT_TOOL_ANNOTATIONS_H_
+# define MVV_PLATFORM_SEGMENT_TOOL_ANNOTATIONS_H_
 
 # include "segment-tool-pointer.h"
+# include "annotation.h"
 
 namespace mvv
 {
@@ -10,12 +11,12 @@ namespace platform
    /**
     @brief Displays a set of points on the MPR. It is assumed points coordinate are in source space.
     */
-   class MVVMPRPLUGIN_API SegmentToolPoints : public SegmentTool, public Engine
+   class MVVMPRPLUGIN_API SegmentToolAnnotations : public SegmentTool, public Engine
    {
    public:
-      SegmentToolPoints( ResourceVector3fs points, EngineHandler& handler, nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ) ) : SegmentTool( true ), Engine( handler ), _points( points ), _color( color )
+      SegmentToolAnnotations( ResourceAnnotations annotations, EngineHandler& handler ) : SegmentTool( true ), Engine( handler ), _annotations( annotations )
       {
-         _points.connect( this );
+         _annotations.connect( this );
       }
 
       virtual f32 priority() const
@@ -31,9 +32,12 @@ namespace platform
       }
 
 
-      virtual void updateSegment( ResourceSliceuc , Segment&  )
+      virtual void updateSegment( ResourceSliceuc s, Segment&  )
       {
-
+         for ( ResourceAnnotations::Iterator it = _annotations.begin(); it != _annotations.end(); ++it )
+         {
+            (**it).updateSegment( s );
+         }
       }
 
       virtual void receive( Segment& , const EventMouse& , const nll::core::vector2ui&  )
@@ -51,8 +55,7 @@ namespace platform
       }
 
    private:
-      ResourceVector3fs       _points;
-      nll::core::vector3uc    _color;
+      ResourceAnnotations     _annotations;
    };
 }
 }

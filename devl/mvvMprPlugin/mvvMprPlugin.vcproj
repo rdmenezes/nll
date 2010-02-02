@@ -423,6 +423,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\annotation-point.h"
+				>
+			</File>
+			<File
+				RelativePath=".\annotation.h"
+				>
+			</File>
+			<File
 				RelativePath=".\context-segments.h"
 				>
 			</File>
@@ -435,6 +443,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mip-tool-annotations.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mip-tool.h"
 				>
 			</File>
@@ -443,15 +455,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\segment-tool-annotations.h"
+				>
+			</File>
+			<File
 				RelativePath=".\segment-tool-camera.h"
 				>
 			</File>
 			<File
 				RelativePath=".\segment-tool-pointer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-points.h"
 				>
 			</File>
 			<File

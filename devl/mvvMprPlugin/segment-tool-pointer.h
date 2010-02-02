@@ -67,6 +67,11 @@ namespace platform
       {
       }
 
+      virtual bool isSavingMprImage() const
+      {
+         return true;
+      }
+
       virtual bool interceptEvent() const
       {
          // if one segment is active, then we must intercept the signal. Only one tool
@@ -94,7 +99,7 @@ namespace platform
 
       virtual void updateSegment( ResourceSliceuc segment, Segment& s )
       {
-         ResourceSliceuc::value_type slice = segment.getValue();
+         ResourceSliceuc::value_type& slice = segment.getValue();
          if ( !slice.size()[ 0 ] || !slice.size()[ 1 ] || !slice.size()[ 2 ] )
             return;
 
