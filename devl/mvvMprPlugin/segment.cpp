@@ -53,15 +53,6 @@ namespace platform
       updateToolsList();
    }
 
-   void Segment::_remove( SegmentTool* tool )
-   {
-      ToolsStorage::iterator it = std::find( _tools.begin(), _tools.end(), tool );
-      if ( it != _tools.end() )
-      {
-         _tools.erase( it );
-      }
-   }
-
    Segment::~Segment()
    {
       removeConnections();

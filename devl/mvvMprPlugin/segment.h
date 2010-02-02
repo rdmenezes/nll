@@ -198,9 +198,6 @@ namespace platform
    protected:
       void updateToolsList();
 
-   private:
-      void _remove( SegmentTool* tool );
-
    protected:
       typedef RefcountedTyped<SegmentToolWrapper>  Wrapper;
       typedef std::vector<Wrapper>                 Wrappers;

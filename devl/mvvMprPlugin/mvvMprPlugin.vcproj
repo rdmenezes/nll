@@ -443,11 +443,23 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mip-tool-annotations.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mip-tool-annotations.h"
 				>
 			</File>
 			<File
+				RelativePath=".\mip-tool-sorter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mip-tool.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mip.cpp"
 				>
 			</File>
 			<File

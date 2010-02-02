@@ -13,7 +13,7 @@
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/segment-tool-pointer.h>
 # include <mvvMprPlugin/segment-tool-camera.h>
-# include <mvvMprPlugin/segment-tool-points.h>
+# include <mvvMprPlugin/segment-tool-annotations.h>
 # include <mvvMprPlugin/layout-mip.h>
 # include <mvvMprPlugin/annotation-point.h>
 
@@ -36,7 +36,7 @@ namespace mvv
 
       RefcountedTyped<SegmentToolPointer> segmentPointer;
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
-      RefcountedTyped<SegmentToolPoints>  segmentToolPoints;
+      RefcountedTyped<SegmentToolAnnotations>  segmentToolAnnotations;
       ResourceAnnotations                 annotations;
 
       RefcountedTyped<Mip>                mip;
@@ -79,8 +79,8 @@ namespace mvv
          (*segment1).connect( segmentPointer.getDataPtr() );
          segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
          (*segment1).connect( segmentToolCamera.getDataPtr() );
-         segmentToolPoints = RefcountedTyped<SegmentToolPoints>( new SegmentToolPoints( annotations, engineHandler ) );
-         (*segment1).connect( segmentToolPoints.getDataPtr() );
+         segmentToolAnnotations = RefcountedTyped<SegmentToolAnnotations>( new SegmentToolAnnotations( annotations, engineHandler ) );
+         (*segment1).connect( segmentToolAnnotations.getDataPtr() );
 
          annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, 0 ) ) ) );
          annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 1, 0, 0 ) ) ) );
@@ -99,7 +99,7 @@ namespace mvv
 
          (*segment2).connect( segmentToolCamera.getDataPtr() );
          (*segment2).connect( segmentPointer.getDataPtr() );
-         (*segment2).connect( segmentToolPoints.getDataPtr() );
+         (*segment2).connect( segmentToolAnnotations.getDataPtr() );
 
          // segment 3
          RefcountedTyped<Segment> segment3;
@@ -114,7 +114,7 @@ namespace mvv
 
          (*segment3).connect( segmentToolCamera.getDataPtr() );
          (*segment3).connect( segmentPointer.getDataPtr() );
-         (*segment3).connect( segmentToolPoints.getDataPtr() );
+         (*segment3).connect( segmentToolAnnotations.getDataPtr() );
 
 
          nll::imaging::LookUpTransformWindowingRGB lutPetImpl2( -1000, 15000, 256 );

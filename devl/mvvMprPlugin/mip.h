@@ -5,6 +5,8 @@
 # include <mvvPlatform/resource-volumes.h>
 # include <mvvPlatform/resource-typedef.h>
 # include "mip-tool.h"
+# include "mip-tool-annotations.h"
+# include "mip-tool-sorter.h"
 
 /// order to create MPR from a volume
 # define MVV_PLATFORM_ORDER_PRECOMPUTE_MIP   OrderClassId::create( "MVV_PLATFORM_ORDER_PRECOMPUTE_MIP" )
@@ -149,10 +151,105 @@ namespace platform
    private:
       typedef std::vector< MipTool* >     ToolsStorage;
 
+   public:
+      class MipToolWrapper : public Engine
+      {
+      private:
+         // output of one tool is connected to the input of the following output
+         ResourceSliceuc   inputMip;     /// must never be modified directly
+
+      public:
+         ResourceSliceuc   outputMip;
+
+      public:
+         MipToolWrapper( ResourceSliceuc vinputMip,
+                         Mip& mip,
+                         MipTool* tool,
+                         EngineHandler& handler ) : Engine( handler ), inputMip( vinputMip ), _tool( tool ), _mip( mip )
+         {
+            ensure( tool, "must not be zero" );
+
+            inputMip.connect( this );
+            handler.connect( *this );
+
+            if ( !tool->isSavingMprImage() )
+            {
+               outputMip = inputMip;
+            }
+         }
+
+         virtual ~MipToolWrapper()
+         {
+         }
+
+      private:
+         // update the segment as soon as it is changed
+         virtual bool _run()
+         {
+            //std::cout << "size=" << inputSegment.getValue().size()[ 0 ] << " " << inputSegment.getValue().size()[ 1 ] << std::endl;
+
+            if ( !inputMip.getValue().size()[ 0 ] ||
+                 !inputMip.getValue().size()[ 1 ] ||
+                 !inputMip.getValue().size()[ 2 ] )
+            {
+               // we have no segment to display, then just do nothing
+               return true;
+            }
+
+            if ( _tool->isModifyingMprImage() )
+            {
+               if ( _tool->isSavingMprImage() )
+               {
+                  ensure( inputMip.getValue().getStorage().begin() !=
+                          outputMip.getValue().getStorage().begin(), "we can't share the same buffer if it modifies the mip..." );
+
+                  // if we modify the image & the dimenstion are not good, just deep copy the input
+                  if ( inputMip.getValue().getStorage().size() != outputMip.getValue().getStorage().size() )
+                  {
+                     Sliceuc slice;
+                     slice.setGeometry( inputMip.getValue().getAxisX(),
+                                        inputMip.getValue().getAxisY(),
+                                        inputMip.getValue().getOrigin(),
+                                        inputMip.getValue().getSpacing() );
+
+                     slice.getStorage().clone( inputMip.getValue().getStorage() );
+                     outputMip.setValue( slice );
+                  } else {
+                     // quick copy, we know memory is continuous
+                     Sliceuc::iterator inputBegin = inputMip.getValue().getStorage().begin();
+                     Sliceuc::iterator outputBegin = outputMip.getValue().getStorage().begin();                
+                     memcpy( &*outputBegin, &*inputBegin, inputMip.getValue().getStorage().size() );
+
+                     // update the geometry in case it is different
+                     outputMip.getValue().setGeometry( inputMip.getValue().getAxisX(),
+                                                       inputMip.getValue().getAxisY(),
+                                                       inputMip.getValue().getOrigin(),
+                                                       inputMip.getValue().getSpacing() );
+                  }
+               }
+
+               //do the changes on the output
+               _tool->updateMip( outputMip, _mip );
+
+               // notify the changes
+               outputMip.notify();
+            }
+            return true;
+         }
+
+      private:
+         MipTool*      _tool;
+         Mip&          _mip;
+      };
+
    // output slots
    public:
       /// output public slot holding the resampled & annoted MIP
       ResourceSliceuc   outImage;
+
+   private:
+      /// output private slot holding the resampled MIP
+      ResourceSliceuc   _outImage;
 
    // input slots
    public:
@@ -177,6 +274,9 @@ namespace platform
          fps.connect( this );
 
          _orderDisplay.unref();
+         _outImage = outImage;
+
+         _sorter = RefcountedTyped<MipToolSorter>( new MipToolSorterPriorityQueue() );
       }
 
       ~Mip()
@@ -185,21 +285,9 @@ namespace platform
          ToolLinks::removeConnections();
       }
 
-      virtual void connect( MipTool* tool )
-      {
-         _tools.push_back( tool );
-         (*tool).connect( this );
-      }
+      virtual void connect( MipTool* tool );
 
-      virtual void disconnect( MipTool* tool )
-      {
-         ToolsStorage::iterator it = std::find( _tools.begin(), _tools.end(), tool );
-         if ( it != _tools.end() )
-         {
-            _tools.erase( it );
-            (*tool).disconnect( this );
-         }
-      }
+      virtual void disconnect( MipTool* tool );
 
       virtual bool _run()
       {
@@ -290,6 +378,14 @@ namespace platform
          return _interested;
       }
 
+      void refreshTools()
+      {
+         _outImage.notify();
+      }
+
+   protected:
+      void updateToolsList();
+
    private:
       void _displayProgression( float progress )
       {
@@ -312,11 +408,11 @@ namespace platform
          }
       }
 
-      void _refreshDisplay()
-      {
-      }
-
    private:
+      typedef RefcountedTyped<MipToolWrapper>      Wrapper;
+      typedef std::vector<Wrapper>                 Wrappers;
+
+
       std::set<OrderClassId>  _interested;
       ui32                    _nbMips;
       RefcountedTyped<impl::OrderMipPrecompute> _order;
@@ -326,6 +422,9 @@ namespace platform
       nll::core::vector2ui    _cacheOldSize;
       nll::core::Timer        _timer;
       ToolsStorage            _tools;
+
+      RefcountedTyped<MipToolSorter>      _sorter;
+      Wrappers                            _wrappers;
    };
 }
 }
