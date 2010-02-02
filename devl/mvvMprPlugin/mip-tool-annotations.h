@@ -34,7 +34,7 @@ namespace platform
       }
 
 
-      virtual void updateSegment( ResourceSliceuc s, Mip&  )
+      virtual void updateMip( ResourceSliceuc s, Mip&  )
       {
          for ( ResourceAnnotations::Iterator it = _annotations.begin(); it != _annotations.end(); ++it )
          {

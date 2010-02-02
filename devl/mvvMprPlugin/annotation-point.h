@@ -17,6 +17,14 @@ namespace platform
       virtual void updateSegment( ResourceSliceuc s )
       {
          Sliceuc& slice = s.getValue();
+         if ( !slice.size()[ 0 ] ||
+              !slice.size()[ 1 ] ||
+              !slice.size()[ 2 ] ||
+              slice.getAxisX().norm2() < 1e-4 || 
+              slice.getAxisY().norm2() < 1e-4 )
+         {
+            return;
+         }
 
          nll::core::vector3f p1 = slice.getOrthogonalProjection( _position );
          nll::core::vector2f p2 = slice.worldToSliceCoordinate( p1 );

@@ -37,6 +37,7 @@ namespace mvv
       RefcountedTyped<SegmentToolPointer> segmentPointer;
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
       RefcountedTyped<SegmentToolAnnotations>  segmentToolAnnotations;
+      RefcountedTyped<MipToolAnnotations>  mipToolAnnotations;
       ResourceAnnotations                 annotations;
 
       RefcountedTyped<Mip>                mip;
@@ -48,6 +49,13 @@ namespace mvv
          // MIP
          mip = RefcountedTyped<Mip>( new Mip( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager ) );
          (*mip).volumes.insert( SymbolVolume::create( "pt1" ) );
+
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, 0 ) ) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 300, 0, 0 ) ) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 1, 0 ) ) ) );
+
+         mipToolAnnotations = RefcountedTyped<MipToolAnnotations>( new MipToolAnnotations( annotations, engineHandler ) );
+         (*mip).connect( mipToolAnnotations.getDataPtr() );
 
          initLayout();
 
@@ -81,10 +89,6 @@ namespace mvv
          (*segment1).connect( segmentToolCamera.getDataPtr() );
          segmentToolAnnotations = RefcountedTyped<SegmentToolAnnotations>( new SegmentToolAnnotations( annotations, engineHandler ) );
          (*segment1).connect( segmentToolAnnotations.getDataPtr() );
-
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, 0 ) ) ) );
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 1, 0, 0 ) ) ) );
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 1, 0 ) ) ) );
 
          // segment 2
          RefcountedTyped<Segment> segment2;
