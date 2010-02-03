@@ -90,6 +90,9 @@ namespace platform
 
       virtual ~Engine();
 
+      /**
+       @brief Returns true if this resource is connected to this engine
+       */
       bool isConnected( impl::Resource r ) const;
 
       /**
