@@ -21,7 +21,7 @@ namespace platform
 
       virtual f32 priority() const
       {
-         return 200;
+         return 50;
       }
 
       virtual bool _run()

@@ -34,11 +34,6 @@ namespace platform
          virtual OrderResult* _compute()
          {
             OrderMipDisplayResult* result = new OrderMipDisplayResult();
-            result->slice = Sliceuc( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 3 ),
-                                        _sliceOrig.getAxisX(),
-                                        _sliceOrig.getAxisY(),
-                                        _sliceOrig.getOrigin(),
-                                        _sliceOrig.getSpacing() );
 
             if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] != _size[ 1 ] )
             {
@@ -54,6 +49,12 @@ namespace platform
                nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _sliceOrig, slice );
                _slice = slice;
             }
+
+            result->slice = Sliceuc( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 3 ),
+                                     _slice.getAxisX(),
+                                     _slice.getAxisY(),
+                                     _slice.getOrigin(),
+                                     _slice.getSpacing() );
 
             Sliceuc::Storage::DirectionalIterator out = result->slice.getIterator( 0, 0 );
             for ( Slice::Storage::ConstDirectionalIterator it = _slice.getStorage().getIterator( 0, 0, 0 );

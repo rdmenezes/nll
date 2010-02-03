@@ -24,6 +24,8 @@ namespace platform
    /**
     @ingroup platform
     @brief Defines an order that can be run synchronously/asynchronously
+    @note internally an order should not use resources as they are refcounted
+          and can cause some problems if the orders are multithreaded...
     */
    class MVVPLATFORM_API Order
    {

@@ -303,10 +303,12 @@ namespace platform
       class OrderSliceBlender : public Order
       {
       public:
-		  OrderSliceBlender( clock_t time,
-                           std::set<Order*> orders,
-                           ResourceMapTransferFunction& maplut,
-                           ResourceFloats& intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _time( time ), _maplut( maplut ), _intensities( intensities ), _orders( orders )
+         typedef std::map<SymbolVolume, ResourceLut::lut_type*> MapLuts;
+
+		   OrderSliceBlender( clock_t time,
+                            std::set<Order*> orders,
+                            MapLuts mapluts,
+                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _time( time ), _mapLuts( mapluts ), _intensities( intensities ), _orders( orders )
          {
           
          }
@@ -337,15 +339,15 @@ namespace platform
                SymbolVolume volume = orderCreator->getVolume();
 
                float intensity = 0;
-               ResourceLut lut;
 
                // we have to be careful here: we don't wan't to have side effects with
                // multithreading (i.e. unsafely increase/decrease refcount of a shared object...)
                // so we use refereces 
-               bool res  = _maplut.find( volume, lut ) && _intensities.find( volume, intensity );
+               MapLuts::iterator itLut = _mapLuts.find( volume );
+               bool res  = itLut != _mapLuts.end() && _intensities.find( volume, intensity );
                if ( res )
                {
-                  sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, lut.getValue().lut ) );
+                  sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, *itLut->second ) );
                }
             }
             
@@ -374,13 +376,15 @@ namespace platform
       protected:
          clock_t                             _time;
 		   std::set<Order*>                    _orders;
-         ResourceMapTransferFunction&        _maplut;
-         ResourceFloats&                     _intensities;
+         MapLuts                             _mapLuts;
+         ResourceFloats                      _intensities;
       };
 
       /**
        @ingroup platform
        @brief Blend slices
+       @TODO replace all the resources by plain objects instead: the refcounting
+             is a potential problem for multithreaded orders!!!
        */
       class EngineSliceBlender : public EngineOrder
       {
@@ -452,8 +456,14 @@ namespace platform
 
                     //std::cout << "create blend=" << &_ready << " clock=" << orderCreator->getTime() << " sent=" << _nbOrdersSend << " handled=" << _nbOrdersHandled << " id=" << (**it).getId() << std::endl;
                 }
+                OrderSliceBlender::MapLuts mapLuts;
+                for ( ResourceMapTransferFunction::Iterator it = lut.begin(); it != lut.end(); ++it )
+                {
+                   mapLuts[ (*it).first ] = &( (*it).second.getValue().lut );
+                }
+
                _ready = true;
-               _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, lut, intensities ) );
+               _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, mapLuts, intensities ) );
                _orderProvider.pushOrder( &*_orderSend );
                return _nbOrdersHandled == _nbOrdersSend;
             }
