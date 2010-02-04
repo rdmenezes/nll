@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_FONT_H_
 
 # include "mvvPlatform.h"
+# include "types.h"
 # include <nll/nll.h>
 
 namespace mvv
@@ -73,7 +74,7 @@ namespace platform
          Image    mask;
 
          ImageSet( Image imaget,
-                   Image maskt ) : image( imaget ), mask( mask )
+                   Image maskt ) : image( imaget ), mask( maskt )
          {}
 
          ImageSet()
@@ -87,13 +88,30 @@ namespace platform
 
          bool operator<( const Key& k ) const
          {
-            return size < k.size;
+            ui32 v1 = size + ( static_cast<ui32>( color[ 0 ] ) << 8 ) + ( static_cast<ui32>( color[ 1 ] ) << 16 ) + ( static_cast<ui32>( color[ 2 ] ) << 24 );
+            ui32 v2 = k.size + ( static_cast<ui32>( k.color[ 0 ] ) << 8 ) + ( static_cast<ui32>( k.color[ 1 ] ) << 16 ) + ( static_cast<ui32>( k.color[ 2 ] ) << 24 );
+            return v1 < v2;
+         }
+
+         bool operator==( const Key& k ) const
+         {
+            return size == k.size && color == k.color;
          }
 
          ui32                 size;
          nll::core::vector3uc color;
       };
+      /*
+      struct KeyCompareLess
+      {
+         bool operator()(const Key& s1, const Key& s2) const
+         {
+            return s1 < s2;
+         }
+      };*/
+
       typedef std::map<Key, FontSet> FontSets;
+
 
    public:
       /**
@@ -101,6 +119,7 @@ namespace platform
        @param characterSize the size of each character, they must be the same for all characters
        @param layout the number of column and row of characters
        @param charactersMapping the mapped characters, one letter for each line by line from left to right concatenated
+       @param cropAlignX if true, the font will be cropped on X and aligned on X only
        @param transparentColor the transparent color to use (the only color that won't be printed on the screen from the font image)
        @param margin an initial margin (top-left and top margin)
        @param an empty space between each character
@@ -109,15 +128,21 @@ namespace platform
                         const nll::core::vector2ui& characterSize,
                         const nll::core::vector2ui& layout,
                         const std::vector<char>& charactersMapping,
+                        bool cropAlignX = true,
                         nll::core::vector3uc transparentColor = nll::core::vector3uc( 0, 0, 0 ),
                         nll::core::vector2ui margin = nll::core::vector2ui( 0, 0),
-                        nll::core::vector2ui space = nll::core::vector2ui( 0, 0) ) : _reference( 0 )
+                        nll::core::vector2ui space = nll::core::vector2ui( 0, 0) ) : _reference( 0 ), _sizeXRef( characterSize[ 0 ] )
       {
-         _populateFont( fontResourcePath, characterSize, layout, charactersMapping, transparentColor, margin, space );
+         _populateFont( fontResourcePath, characterSize, layout, charactersMapping, cropAlignX, transparentColor, margin, space );
       }
 
+      /**
+       @brief Write a string using the current size & color
+       */
       virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image )
       {
+         ensure( image.getNbComponents() == 3, "error: it must be a RGB image!" );
+
          // find the font
          Key key( _size, _color );
          FontSets::const_iterator it = _fontsets.find( key );
@@ -128,23 +153,100 @@ namespace platform
          }
 
          FontSet& font = _fontsets[ key ];
+         nll::core::vector2ui p = position;
+         for ( ui32 n = 0; n < str.size(); ++n )
+         {
+            FontSet::const_iterator it = font.find( str[ n ] );
+            ui32 sizex = it->second.image.sizex();
+            ui32 sizey = it->second.image.sizey();
+            if ( it == font.end() )
+            {
+               // the character is not in the charset...
+               throw std::exception( "character not found in charset" );
+            }
+
+            if ( p[ 0 ] + sizex > image.sizex() ||
+                 p[ 1 ] + sizey > image.sizey() )
+            {
+               // we are out of bound, just don't write the next letters...
+               break;
+            }
+            _writeLetter( it->second, p, image );
+            p[ 0 ] += sizex;
+         }
       }
 
    protected:
+      void _writeLetter( const ImageSet& font, const nll::core::vector2ui& position, Image& image )
+      {
+         // we now it is a row-based storage so we can optimize a bit...
+         Image::const_iterator itFont = font.image.begin();
+         Image::const_iterator itMask = font.mask.begin();
+         Image::DirectionalIterator itImage = image.getIterator( position[ 0 ], position[ 1 ], 0 );
+
+         const ui32 sizex = font.image.sizex();
+         const ui32 sizey = font.image.sizey();
+         for ( ui32 y = 0; y < sizey; ++y )
+         {
+            Image::DirectionalIterator line = itImage;
+            for ( ui32 x = 0; x < sizex; ++x )
+            {
+               if ( *itMask > 32  )
+               {
+                  line.pickcol( 0 ) = *itFont++;
+                  line.pickcol( 1 ) = *itFont++;
+                  line.pickcol( 2 ) = *itFont++;
+               } else {
+                  itFont += 3;
+               }
+
+               line.addx();
+               ++itMask;
+            }
+            itImage.addy();
+         }
+      }
+
       void _generate( Key key )
       {
+         std::cout << "generating font..." << std::endl;
          ensure( _reference, "Critical error: font reference can't be null" );
 
          // get a character
          ImageSet& refI = _reference->begin()->second;
 
-         // compute it's new size
-         float ratio = static_cast<float>( key.size ) / static_cast<float>( refI.image.sizex() );
-         int size = nll::core::round( refI.image.sizey() * ratio );
+         // new color
+         const float ratioR = static_cast<float>( key.color[ 0 ] ) / 255; 
+         const float ratioG = static_cast<float>( key.color[ 1 ] ) / 255; 
+         const float ratioB = static_cast<float>( key.color[ 2 ] ) / 255; 
 
+         // compute it's new size
+         float ratio = static_cast<float>( key.size ) / static_cast<float>( _sizeXRef );
+         int sizey = nll::core::round( refI.image.sizey() * ratio );
+
+         FontSet newFontSet;
          for ( FontSet::const_iterator it = _reference->begin(); it != _reference->end(); ++it )
          {
+            ImageSet imageSet( it->second );
+            ui32 sizex = static_cast<ui32>( it->second.image.sizex() * ratio );
+            nll::core::rescaleBilinear( imageSet.image, sizex, sizey );
+            nll::core::rescaleBilinear( imageSet.mask, sizex, sizey );
+            for ( ui32 y = 0; y < imageSet.image.sizey(); ++y )
+            {
+               for ( ui32 x = 0; x < imageSet.image.sizex(); ++x )
+               {
+                  imageSet.image( x, y, 0 ) = static_cast<Image::value_type>( imageSet.image( x, y, 0 ) * ratioR );
+                  imageSet.image( x, y, 1 ) = static_cast<Image::value_type>( imageSet.image( x, y, 1 ) * ratioG );
+                  imageSet.image( x, y, 2 ) = static_cast<Image::value_type>( imageSet.image( x, y, 2 ) * ratioB );
+                  if ( imageSet.mask( x, y, 0 ) <= 128 )
+                  {
+                     imageSet.mask( x, y, 0 ) = 0;
+                  }
+               }
+            }
+            newFontSet.insert( std::make_pair( it->first, imageSet ) );
          }
+         _fontsets[ key ] = newFontSet;
       }
 
       /**
@@ -154,10 +256,12 @@ namespace platform
                           const nll::core::vector2ui& characterSize,
                           const nll::core::vector2ui& layout,
                           const std::vector<char>& charactersMapping,
+                          bool cropAlignX, 
                           nll::core::vector3uc transparentColor,
                           nll::core::vector2ui margin,
                           nll::core::vector2ui space )
       {
+         std::cout << "loading font..." << std::endl;
          Image full;
          bool loaded = nll::core::readBmp( full, fontResourcePath );
          if ( !loaded )
@@ -171,8 +275,8 @@ namespace platform
 
          ui32 minSizeX = margin[ 0 ] + ( layout[ 0 ] - 1 ) * space[ 0 ] + layout[ 0 ] * characterSize[ 0 ];
          ui32 minSizeY = margin[ 1 ] + ( layout[ 1 ] - 1 ) * space[ 1 ] + layout[ 1 ] * characterSize[ 1 ];
-         if ( minSizeX >= full.sizex() ||
-              minSizeY >= full.sizey() ||
+         if ( minSizeX > full.sizex() ||
+              minSizeY > full.sizey() ||
               charactersMapping.size() != layout[ 0 ] * layout[ 1 ] )
          {
             throw std::exception( "font size is incorrect: computed minium size is bigger than the bitmap, or all characters of the font are not mapped." );
@@ -206,10 +310,21 @@ namespace platform
                      {
                         mask( dx, dy, 0 ) = 0;
                      } else {
-                        mask( dx, dy, 0 ) = 1;
+                        mask( dx, dy, 0 ) = 255;
                      }
                   }
                }
+
+               if ( cropAlignX )
+               {
+                  ensure( transparentColor == nll::core::vector3uc( 0, 0, 0 ), "only handled for transparentColor=(0, 0, 0)" );
+                  ui32 x1, x2;
+                  nll::core::cropVertical( c, 0, 0, &x1, &x2 );
+                  nll::core::addBorder( c, 1, 0 );
+                  nll::core::extract( mask, x1, 0, x2, c.sizey() - 1 );
+                  nll::core::addBorder( mask, 1, 0 );
+               }
+
                reference[ charactersMapping[ x + y * layout[ 0 ] ] ] = ImageSet( c, mask );
             }
          }
@@ -219,8 +334,9 @@ namespace platform
       }
 
    protected:
-      FontSet*             _reference; // this is the inital font as loaded (so we know what font to use for optimal resampling)
+      FontSet*             _reference; /// this is the inital font as loaded (so we know what font to use for optimal resampling)
       FontSets             _fontsets;
+      ui32                 _sizeXRef; /// the initial size X which is used to compute resampling coefficients
    };
 }
 }

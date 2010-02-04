@@ -9,7 +9,7 @@ namespace imaging
     @ingroup imaging
     @brief handle a medical volume
 
-    The center of a voxel is its top left corner.
+    The (0, 0) of a voxel is the center of the voxel.
     */
    template <class T, class VolumeMemoryBufferType = VolumeMemoryBuffer<T> >
    class VolumeSpatial : public Volume<T, VolumeMemoryBufferType>

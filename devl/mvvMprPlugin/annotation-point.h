@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_ANNOTATION_POINT_H_
 
 # include "annotation.h"
+# include <mvvPlatform/font.h>
 
 namespace mvv
 {
@@ -15,7 +16,10 @@ namespace platform
    {
    public:
       AnnotationPoint( const nll::core::vector3f& position,
-                       nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 0 ) ) : _position( position ), _color( color )
+                       const std::string& caption,
+                       Font& font,
+                       ui32 fontSize = 16,
+                       nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 0 ) ) : _position( position ), _caption( caption ), _font( font ), _fontSize( fontSize ),_color( color )
       {}
 
       virtual void updateSegment( ResourceSliceuc s )
@@ -62,11 +66,23 @@ namespace platform
                it.pickcol( 1 ) = _color[ 1 ];
                it.pickcol( 2 ) = _color[ 2 ];
             }
+
+            _font.setSize( _fontSize );
+            _font.setColor( _color );
+            _font.write( _caption, nll::core::vector2ui( pi[ 0 ] + 10 + size[ 0 ] / 2, pi[ 1 ] + size[ 1 ] / 2 ), slice.getStorage() );
          }
       }
 
    private:
+      // copy disabled
+      AnnotationPoint( const AnnotationPoint& );
+      AnnotationPoint& operator=( const AnnotationPoint& );
+
+   private:
       nll::core::vector3f  _position;
+      std::string          _caption;
+      Font&                _font;
+      ui32                 _fontSize;
       nll::core::vector3uc _color;
    };
 }

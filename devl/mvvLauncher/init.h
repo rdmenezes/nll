@@ -41,26 +41,28 @@ namespace mvv
       ResourceAnnotations                 annotations;
 
       RefcountedTyped<Mip>                mip;
+      RefcountedTyped<Font>               font;
 
       ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 6 )
       {  
+         initFont();
          initContext();
 
          // MIP
          mip = RefcountedTyped<Mip>( new Mip( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager ) );
          (*mip).volumes.insert( SymbolVolume::create( "pt1" ) );
 
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, 0 ) ) ) );
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 60, 0, 0 ), nll::core::vector3uc( 0, 255, 255 ) ) ) );
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 1, 0 ) ) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, -30 ), "point1", *font, 12, nll::core::vector3uc( 255, 255, 255 )) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 60, 0, 0 ), "point2", *font, 12, nll::core::vector3uc( 255, 255, 255 ) ) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 20, 0 ), "point3", *font, 12, nll::core::vector3uc( 255, 255, 255 ) ) ) );
 
          mipToolAnnotations = RefcountedTyped<MipToolAnnotations>( new MipToolAnnotations( annotations, engineHandler ) );
          (*mip).connect( mipToolAnnotations.getDataPtr() );
 
          initLayout();
 
-       //  context.get<ContextTools>()->loadVolume( "c:/tmp/case2.mf2", SymbolVolume::create( "ct1" ) );
-       //  context.get<ContextTools>()->loadVolume( "c:/tmp/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
+    //     context.get<ContextTools>()->loadVolume( "c:/tmp/case2.mf2", SymbolVolume::create( "ct1" ) );
+    //     context.get<ContextTools>()->loadVolume( "c:/tmp/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
 
         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
         context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
@@ -86,7 +88,7 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
-         segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( engineHandler ) );
+         segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( *font, engineHandler ) );
          (*segment1).connect( segmentPointer.getDataPtr() );
          segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
          (*segment1).connect( segmentToolCamera.getDataPtr() );
@@ -161,6 +163,24 @@ namespace mvv
       }
 
    private:
+      void initFont()
+      {
+         std::vector<char> chars;
+         std::ifstream i( "../../nllTest/data/font/bitmapfont1_24.txt" );
+         std::string line;
+         while ( !i.eof() )
+         {
+            std::getline( i, line );
+            ensure( line.size() < 2, "expected 1 character by line" );
+            if ( line.size() == 1 )
+            {
+               chars.push_back( line[ 0 ] );
+            } else chars.push_back( static_cast<char>( 0 ) );
+         }
+         ensure( chars.size() == 256, "we are expecting 256 chars, currently=" + nll::core::val2str( chars.size() ) );
+         font = RefcountedTyped<Font>( new FontBitmapMatrix( "../../nllTest/data/font/bitmapfont1_24.bmp", nll::core::vector2ui( 16, 16 ), nll::core::vector2ui( 16, 16 ), chars ) );
+      }
+
       void initContext()
       {
          ContextVolumes* ctxVolumes = new ContextVolumes();

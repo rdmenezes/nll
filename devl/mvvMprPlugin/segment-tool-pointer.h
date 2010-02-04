@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_SEGMENT_TOOL_POINTER_H_
 
 # include "segment-tool-pointer.h"
+# include <mvvPlatform/font.h>
 
 namespace mvv
 {
@@ -63,7 +64,7 @@ namespace platform
       };
 
    public:
-      SegmentToolPointer( EngineHandler& handler ) : SegmentTool( true ), _handler( handler )
+      SegmentToolPointer( Font& font, EngineHandler& handler ) : SegmentTool( true ), _font( font ), _handler( handler )
       {
       }
 
@@ -135,6 +136,12 @@ namespace platform
          {
             *it = val;
          }
+
+         std::stringstream ss;
+         ss << "position=(" << _position[ 0 ] << ", " << _position[ 1 ] << ", " << _position[ 2 ] << ") mm";
+         _font.setSize( 12 );
+         _font.setColor( nll::core::vector3uc( 255, 255, 255 ) );
+         _font.write( ss.str(), nll::core::vector2ui( 0, 0 ), slice.getStorage() );
       }
 
       void refreshConnectedSegments()
@@ -309,7 +316,13 @@ namespace platform
          _position = p;
       }
 
+   private:
+      // copy disabled
+      SegmentToolPointer& operator=( const SegmentToolPointer& );
+      SegmentToolPointer( const SegmentToolPointer& );
+
    protected:
+      Font&                   _font;
       nll::core::vector3f     _position;
       MapSegments             _active;
       nll::core::vector2ui    _leftMouseLastPos;
