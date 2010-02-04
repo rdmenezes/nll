@@ -7,6 +7,10 @@ namespace mvv
 {
 namespace platform
 {
+   /**
+    @ingroup platform
+    @brief Annotate a specific point on a slice with a target and linked caption
+    */
    class MVVMPRPLUGIN_API AnnotationPoint : public Annotation
    {
    public:
