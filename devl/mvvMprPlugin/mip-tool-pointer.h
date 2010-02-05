@@ -38,8 +38,6 @@ namespace platform
             _lastLeftClick = clock();
          }
 
-
-
          if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
          {
             float newAngle = sender.anglex.getValue() + ( static_cast<float>( e.mousePosition[ 0 ] ) - static_cast<float>( _initialOrientation[ 0 ] ) ) / 100.0f;
@@ -48,9 +46,10 @@ namespace platform
                newAngle -= static_cast<float>( nll::core::PI * 2 );
             }
             sender.anglex.setValue( newAngle );
-            _initialOrientation = e.mousePosition;
          }
-         
+
+         // just reset the position to avoid moving artifact while LC and or RC
+         _initialOrientation = e.mousePosition;
       }
 
    private:

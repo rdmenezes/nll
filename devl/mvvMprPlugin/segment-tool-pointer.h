@@ -64,7 +64,7 @@ namespace platform
       };
 
    public:
-      SegmentToolPointer( Font& font, ui32 fontSize, EngineHandler& handler ) : SegmentTool( true ), _font( font ), _fontSize( fontSize ), _handler( handler )
+      SegmentToolPointer( Font& font, ui32 fontSize, EngineHandler& handler, nll::core::vector3uc fontColor = nll::core::vector3uc( 255, 255, 255), nll::core::vector3uc pointerColor = nll::core::vector3uc( 255, 0, 0 )  ) : SegmentTool( true ), _font( font ), _fontSize( fontSize ), _handler( handler ), _fontColor( fontColor ), _pointerColor( pointerColor )
       {
       }
 
@@ -124,23 +124,30 @@ namespace platform
             return;
          }
 
-         ui8 val = isHighlighted ? 255 : 180;
+         float v = isHighlighted ? 1.0f : 0.7f;
+         nll::core::vector3uc val( static_cast<ui8>( v * _pointerColor[ 0 ] ), 
+                                   static_cast<ui8>( v * _pointerColor[ 1 ] ),
+                                   static_cast<ui8>( v * _pointerColor[ 2 ] ) );
          ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( static_cast<ui32>( pplane[ 0 ] + slice.size()[ 0 ] / 2 ),                                                                       0 );
          for ( ui32 n = 0; n < slice.size()[ 1 ]; ++n, it.addy() )
          {
-            *it = val;
+            it.pickcol( 0 ) = val[ 0 ];
+            it.pickcol( 1 ) = val[ 1 ];
+            it.pickcol( 2 ) = val[ 2 ];
          }
 
          it = slice.getIterator( 0, static_cast<ui32>( pplane[ 1 ] + slice.size()[ 1 ] / 2 ) );
          for ( ui32 n = 0; n < slice.size()[ 0 ]; ++n, ++it )
          {
-            *it = val;
+            it.pickcol( 0 ) = val[ 0 ];
+            it.pickcol( 1 ) = val[ 1 ];
+            it.pickcol( 2 ) = val[ 2 ];
          }
 
          std::stringstream ss;
          ss << "position=(" << _position[ 0 ] << ", " << _position[ 1 ] << ", " << _position[ 2 ] << ") mm";
          _font.setSize( _fontSize );
-         _font.setColor( nll::core::vector3uc( 255, 255, 255 ) );
+         _font.setColor( _fontColor );
          _font.write( ss.str(), nll::core::vector2ui( 0, 0 ), slice.getStorage() );
       }
 
@@ -330,6 +337,9 @@ namespace platform
 
       EngineHandler&          _handler;
       std::vector< RefcountedTyped<SegmentPositionListener> > _positionListeners;
+
+      nll::core::vector3uc    _fontColor;
+      nll::core::vector3uc    _pointerColor;
    };
 }
 }
