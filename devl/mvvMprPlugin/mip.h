@@ -27,7 +27,7 @@ namespace platform
       class OrderMipDisplay : public Order
       {
       public:
-         OrderMipDisplay( const Slice& sliceOrig, Slice& slice, const ResourceLut& lut, const nll::core::vector2ui& size ) : Order( MVV_PLATFORM_ORDER_DISPLAY_MIP, Order::Predecessors(), true ), _slice( slice ), _lut( lut ), _size( size ), _sliceOrig( sliceOrig )
+         OrderMipDisplay( const Slice& sliceOrig, Slice& slice, const ResourceLut& lut, const nll::core::vector2ui& size, float zoom, float& oldZoom ) : Order( MVV_PLATFORM_ORDER_DISPLAY_MIP, Order::Predecessors(), true ), _slice( slice ), _lut( lut ), _size( size ), _sliceOrig( sliceOrig ), _zoom( zoom ), _oldZoom( oldZoom )
          {
          }
 
@@ -35,7 +35,7 @@ namespace platform
          {
             OrderMipDisplayResult* result = new OrderMipDisplayResult();
 
-            if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] != _size[ 1 ] )
+            if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] != _size[ 1 ] || _zoom != _oldZoom )
             {
                float sx = static_cast<f32>(_size[ 0 ] ) / _sliceOrig.size()[ 0 ] * _sliceOrig.getSpacing()[ 0 ];
                float sy = static_cast<f32>(_size[ 1 ] ) / _sliceOrig.size()[ 1 ] * _sliceOrig.getSpacing()[ 1 ];
@@ -44,10 +44,13 @@ namespace platform
                             _sliceOrig.getAxisX(),
                             _sliceOrig.getAxisY(),
                             _sliceOrig.getOrigin(),
-                            nll::core::vector2f( _sliceOrig.getSpacing()[ 0 ] / s,
-                                                 _sliceOrig.getSpacing()[ 1 ] / s ) );
+                            nll::core::vector2f( _sliceOrig.getSpacing()[ 0 ] / s * _zoom,
+                                                 _sliceOrig.getSpacing()[ 1 ] / s * _zoom ) );
                nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _sliceOrig, slice );
+
+               // cache the result for future usage...
                _slice = slice;
+               _oldZoom = _zoom;
             }
 
             result->slice = Sliceuc( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 3 ),
@@ -79,6 +82,8 @@ namespace platform
          const Slice&                  _sliceOrig;
          const ResourceLut&            _lut;
          nll::core::vector2ui          _size;
+         float                         _zoom;
+         float&                        _oldZoom;
       };
 
       class OrderMipPrecomputeResult : public OrderResult
@@ -93,6 +98,7 @@ namespace platform
          float                progress;
          std::vector<Slice>   slices;
          std::vector<Slice>   slicesOrig;
+         std::vector<f32>     currentZoomFactor;
       };
 
       class OrderMipPrecompute : public Order
@@ -123,6 +129,7 @@ namespace platform
                Slice cpy;
                cpy.clone( result->slices[ n ] );
                result->slicesOrig.push_back( cpy );
+               result->currentZoomFactor.push_back( 1.0f );
 
                //result->slices.push_back( mip.getAutoOrientedMip< nll::imaging::InterpolatorTriLinear<Volume> >( angle, _size[ 0 ], _size[ 1 ], minSpacing, minSpacing ) );
                result->progress = static_cast<float>( n + 1 ) / _nbMips;
@@ -259,6 +266,7 @@ namespace platform
       ResourceFloat           anglex;
       ResourceVolumes         volumes;    // we are expecting only 1 volume
       ResourceUi32            fps;
+      ResourceFloat           zoom;
 
    public:
       Mip( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ui32 nbMips = 48 ) : EngineOrder( handler, provider, dispatcher ), volumes( storage ), _nbMips( nbMips )
@@ -266,13 +274,15 @@ namespace platform
          _interested.insert( MVV_PLATFORM_ORDER_DISPLAY_MIP );
          dispatcher.connect( this );
 
-         fps.setValue( 10 );
+         fps.setValue( 7 );
+         zoom.setValue( 1.0f );
 
          size.connect( this );
          lut.connect( this );
          anglex.connect( this );
          volumes.connect( this );
          fps.connect( this );
+         zoom.connect( this );
 
          _orderDisplay.unref();
          _outImage = outImage;
@@ -345,16 +355,6 @@ namespace platform
             {
                // everything else has triggered an update of the precomputed MIP, just update the slice
                float newAngle = anglex.getValue();
-               /*
-               if ( newAngle > nll::core::PI * 2 )
-               {
-                  newAngle = newAngle - nll::core::PI * 2;
-               }
-               if ( newAngle < 0 )
-               {
-                  newAngle = newAngle + nll::core::PI * 2;
-               }
-               */
                while ( newAngle > nll::core::PI * 2 )
                {
                   newAngle -= static_cast<float>( nll::core::PI * 2 );
@@ -366,7 +366,7 @@ namespace platform
                anglex.setValue( newAngle );
                ui32 sliceId = static_cast<ui32>( newAngle / ( nll::core::PI * 2 ) * order->slices.size() );
                ensure( sliceId < order->slicesOrig.size(), "out of bound slice..." );
-               _orderDisplay = RefcountedTyped<impl::OrderMipDisplay>( new impl::OrderMipDisplay( order->slicesOrig[ sliceId ], order->slices[ sliceId ], lut, size.getValue() ) );
+               _orderDisplay = RefcountedTyped<impl::OrderMipDisplay>( new impl::OrderMipDisplay( order->slicesOrig[ sliceId ], order->slices[ sliceId ], lut, size.getValue(), zoom.getValue(), order->currentZoomFactor[ sliceId ] ) );
                _orderProvider.pushOrder( &*_orderDisplay );
             }
          } else {
