@@ -331,6 +331,7 @@ namespace platform
          Key key( characterSize[ 0 ], nll::core::vector3uc( 255, 255, 255 ) );
          _fontsets[ key ] = reference;
          _reference = &_fontsets[ key ];
+         std::cout << "font loaded!" << std::endl;
       }
 
    protected:

@@ -451,6 +451,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mip-tool-pointer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mip-tool-sorter.h"
 				>
 			</File>

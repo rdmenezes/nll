@@ -43,7 +43,7 @@ namespace platform
 
          if ( slice.contains( p2 ) )
          {
-            const int pointSize = 6;
+            const int pointSize = 5;
 
             i32 xmin = std::max( pi[ 0 ] - pointSize, -size[ 0 ] / 2 + 1 );
             i32 xmax = std::min( pi[ 0 ] + pointSize,  size[ 0 ] / 2 - 1 );

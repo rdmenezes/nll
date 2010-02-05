@@ -63,6 +63,12 @@ namespace platform
          (*_mip).size.setValue( _size );
       }
 
+   protected:
+      virtual void _receive( const EventMouse& e )
+      {
+         (*_mip).receive( e, _origin );
+      }
+
 
    private:
       RefcountedTyped<Mip>    _mip;

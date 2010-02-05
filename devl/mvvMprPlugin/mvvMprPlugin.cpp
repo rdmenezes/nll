@@ -13,6 +13,8 @@
 #include "segment-tool-camera.h"
 #include "segment-tool-annotations.h"
 #include "mip.h"
+#include "mip-tool.h"
+#include "mip-tool-pointer.h"
 #include "layout-mip.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)

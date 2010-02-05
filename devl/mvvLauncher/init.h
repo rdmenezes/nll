@@ -16,6 +16,7 @@
 # include <mvvMprPlugin/segment-tool-annotations.h>
 # include <mvvMprPlugin/layout-mip.h>
 # include <mvvMprPlugin/annotation-point.h>
+# include <mvvMprPlugin/mip-tool-pointer.h>
 
 
 using namespace mvv;
@@ -38,6 +39,7 @@ namespace mvv
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
       RefcountedTyped<SegmentToolAnnotations>  segmentToolAnnotations;
       RefcountedTyped<MipToolAnnotations>  mipToolAnnotations;
+      RefcountedTyped<MipToolPointer>     mipToolPointer;
       ResourceAnnotations                 annotations;
 
       RefcountedTyped<Mip>                mip;
@@ -52,12 +54,14 @@ namespace mvv
          mip = RefcountedTyped<Mip>( new Mip( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager ) );
          (*mip).volumes.insert( SymbolVolume::create( "pt1" ) );
 
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, -30 ), "point1", *font, 12, nll::core::vector3uc( 255, 255, 255 )) ) );
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 60, 0, 0 ), "point2", *font, 12, nll::core::vector3uc( 255, 255, 255 ) ) ) );
-         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 20, 0 ), "point3", *font, 12, nll::core::vector3uc( 255, 255, 255 ) ) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 0, -30 ), "point1", *font, 10, nll::core::vector3uc( 255, 255, 255 )) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 60, 0, 0 ), "point2", *font, 10, nll::core::vector3uc( 255, 255, 255 ) ) ) );
+         annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 20, 0 ), "point3", *font, 10, nll::core::vector3uc( 255, 255, 255 ) ) ) );
 
          mipToolAnnotations = RefcountedTyped<MipToolAnnotations>( new MipToolAnnotations( annotations, engineHandler ) );
          (*mip).connect( mipToolAnnotations.getDataPtr() );
+         mipToolPointer = RefcountedTyped<MipToolPointer>( new MipToolPointer() );
+         (*mip).connect( mipToolPointer.getDataPtr() );
 
          initLayout();
 
@@ -88,7 +92,7 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
-         segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( *font, engineHandler ) );
+         segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( *font, 12, engineHandler ) );
          (*segment1).connect( segmentPointer.getDataPtr() );
          segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
          (*segment1).connect( segmentToolCamera.getDataPtr() );

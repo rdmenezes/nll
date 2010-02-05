@@ -64,7 +64,7 @@ namespace platform
       };
 
    public:
-      SegmentToolPointer( Font& font, EngineHandler& handler ) : SegmentTool( true ), _font( font ), _handler( handler )
+      SegmentToolPointer( Font& font, ui32 fontSize, EngineHandler& handler ) : SegmentTool( true ), _font( font ), _fontSize( fontSize ), _handler( handler )
       {
       }
 
@@ -139,7 +139,7 @@ namespace platform
 
          std::stringstream ss;
          ss << "position=(" << _position[ 0 ] << ", " << _position[ 1 ] << ", " << _position[ 2 ] << ") mm";
-         _font.setSize( 12 );
+         _font.setSize( _fontSize );
          _font.setColor( nll::core::vector3uc( 255, 255, 255 ) );
          _font.write( ss.str(), nll::core::vector2ui( 0, 0 ), slice.getStorage() );
       }
@@ -323,6 +323,7 @@ namespace platform
 
    protected:
       Font&                   _font;
+      ui32                    _fontSize;
       nll::core::vector3f     _position;
       MapSegments             _active;
       nll::core::vector2ui    _leftMouseLastPos;

@@ -344,7 +344,28 @@ namespace platform
             if ( _orderDisplay.isEmpty() )
             {
                // everything else has triggered an update of the precomputed MIP, just update the slice
-               ui32 sliceId = static_cast<ui32>( anglex.getValue() / ( nll::core::PI * 2 ) * order->slices.size() );
+               float newAngle = anglex.getValue();
+               /*
+               if ( newAngle > nll::core::PI * 2 )
+               {
+                  newAngle = newAngle - nll::core::PI * 2;
+               }
+               if ( newAngle < 0 )
+               {
+                  newAngle = newAngle + nll::core::PI * 2;
+               }
+               */
+               while ( newAngle > nll::core::PI * 2 )
+               {
+                  newAngle -= static_cast<float>( nll::core::PI * 2 );
+               }
+               while ( newAngle < 0 )
+               {
+                  newAngle += static_cast<float>( nll::core::PI * 2 );
+               }
+               anglex.setValue( newAngle );
+               ui32 sliceId = static_cast<ui32>( newAngle / ( nll::core::PI * 2 ) * order->slices.size() );
+               ensure( sliceId < order->slicesOrig.size(), "out of bound slice..." );
                _orderDisplay = RefcountedTyped<impl::OrderMipDisplay>( new impl::OrderMipDisplay( order->slicesOrig[ sliceId ], order->slices[ sliceId ], lut, size.getValue() ) );
                _orderProvider.pushOrder( &*_orderDisplay );
             }
@@ -383,6 +404,8 @@ namespace platform
       {
          _outImage.notify();
       }
+
+      virtual void receive( const EventMouse& event, const nll::core::vector2ui& windowOrigin );
 
    protected:
       void updateToolsList();
