@@ -411,11 +411,27 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lex.yy.cc"
+				RelativePath=".\lex.yy.c"
 				>
 			</File>
 			<File
 				RelativePath=".\lexer.ll"
+				>
+			</File>
+			<File
+				RelativePath=".\location.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parser-context.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parser.yy"
+				>
+			</File>
+			<File
+				RelativePath=".\position.h"
 				>
 			</File>
 		</Filter>
