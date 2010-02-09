@@ -1,9 +1,37 @@
 #ifndef MVV_PARSER_PARSER_CONTEXT_H_
 # define MVV_PARSER_PARSER_CONTEXT_H_
 
+# include <stack>
+# include "location.h"
+# include "parser.tab.hh"
+
+// configuring...
+# define YY_NO_UNISTD_H
+# define isatty(x) false
+
+namespace yy
+{
+  // From parsetiger.yy.
+  class parser;
+  class location;
+}
+
+// From scantiger.cc.
+union YYSTYPE;
+
+// From scantiger.cc.
+struct yy_buffer_state;
+
+namespace mvv
+{
+namespace parser
+{
+   class ParserContext;
+}
+}
+
 // Announce to Flex the prototype we want for lexing function
-# define YY_DECL						\
-   int ::yylex (YYSTYPE* yylval, yy::location* yylloc, mvv::parser::ParserContext& tp)
+# define YY_DECL  int yylex (YYSTYPE* yylval, yy::location* yylloc, mvv::parser::ParserContext& context)
 
 // Announce to Bison the lexing function it must use.
 YY_DECL;

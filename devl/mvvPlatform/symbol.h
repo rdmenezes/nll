@@ -59,6 +59,13 @@ namespace platform
    protected:
       static Strings _strings;
    };
+
+   inline std::ostream&
+   operator<<( std::ostream& ostr, const Symbol& s )
+   {
+      ostr << s.getName();
+      return ostr;
+   }
 }
 }
 

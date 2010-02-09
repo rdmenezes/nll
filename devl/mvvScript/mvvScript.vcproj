@@ -407,11 +407,7 @@
 			Name="flex/bison"
 			>
 			<File
-				RelativePath=".\FlexLexer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\lex.yy.c"
+				RelativePath=".\lex.yy.cpp"
 				>
 			</File>
 			<File
@@ -424,6 +420,14 @@
 			</File>
 			<File
 				RelativePath=".\parser-context.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parser.tab.cc"
+				>
+			</File>
+			<File
+				RelativePath=".\parser.tab.hh"
 				>
 			</File>
 			<File

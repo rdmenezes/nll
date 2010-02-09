@@ -18,8 +18,9 @@ namespace mvv
    typedef     nll::core::Image<ui8>   Image;
    typedef     nll::core::Image<f32>   Imagef;
 
-   typedef     nll::imaging::VolumeSpatial<f32> Volume;
-   typedef     platform::SymbolTyped<Volume>    SymbolVolume;
+   typedef     nll::imaging::VolumeSpatial<f32>       Volume;
+   typedef     platform::SymbolTyped<Volume>          SymbolVolume;
+   typedef     platform::Symbol                       Symbol;
 }
 
 #endif

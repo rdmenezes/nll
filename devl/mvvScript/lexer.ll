@@ -4,6 +4,8 @@
 %option batch
 %option stack
 
+
+
 /**
  Declare the different states
  */
@@ -11,15 +13,15 @@
 
 %{
    #define YYDEBUG 1
-   #define YY_USER_ACTION yylloc->columns (yyleng);
-   #include <string.h>
+   #define YY_USER_ACTION yylloc->columns(yyleng);
+   
 	#include <iostream>
 	#include <stdexcept>
 	#include <sstream>
 	#include <string>
 	
 	#include "parser-context.h"
-	#include "parser.h"
+	//#include "parser.h"
 	
 	std::string	add_location (yy::location& l, const char* msg)
    {
@@ -107,6 +109,7 @@ STRCHR	[A-Za-z_]
 }
 
 "if"		return IF;
+"="		return ASSIGN;
 
 
 "."		return DOT;
@@ -127,7 +130,7 @@ STRCHR	[A-Za-z_]
 "+"		return PLUS;
 "*"		return TIMES;
 "/"		return DIVIDE;
-"="		return EQ;
+"=="		return EQ;
 ">"		return GT;
 "<"		return LT;
 "&"		return AND;
@@ -140,7 +143,7 @@ STRCHR	[A-Za-z_]
 }
 
 {LETTER}({LETTER}|{DIGIT}|"_")* {
-  yylval->symbol = &(symbol::Symbol::create (yytext));
+  yylval->symbol = &(mvv::Symbol::create (yytext));
   return ID;
 }
 
@@ -148,7 +151,7 @@ STRCHR	[A-Za-z_]
 {NEWLINE}+  yylloc->lines (yyleng); yylloc->step ();
 <<EOF>> yyterminate ();
 .           {
-	exit( 1 ) /* invalid character */
+	exit( 1 ); /* invalid character */
 }
 
 
@@ -177,7 +180,7 @@ namespace parser
       // Save the current state.
       _states.push (YY_CURRENT_BUFFER);
 
-      if ( filename_ != "" )
+      if ( _filename != "" )
       {
          yyin = _filename == "-" ? stdin : fopen (_filename.c_str (), "r");
 
@@ -195,7 +198,7 @@ namespace parser
       else
       {
          yyin = 0;
-         yy_switch_to_buffer (yy_scan_string (input_.c_str ()));
+         yy_switch_to_buffer (yy_scan_string (_input.c_str ()));
       }
    }
    

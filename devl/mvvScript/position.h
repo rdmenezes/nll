@@ -28,6 +28,7 @@
 
 # include <iostream>
 # include <string>
+# include <mvvPlatform/types.h>
 
 namespace yy
 {
@@ -77,7 +78,7 @@ namespace yy
 
   public:
     /// File name to which this position refers.
-    const symbol::Symbol* filename;
+    const mvv::Symbol* filename;
     /// Current line number.
     unsigned int line;
     /// Current column number.
