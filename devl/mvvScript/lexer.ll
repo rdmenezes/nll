@@ -1,49 +1,161 @@
 %option noyywrap
-%option c++
+%option nounput
+%option debug
+%option batch
+%option stack
+
+/**
+ Declare the different states
+ */
+%x SC_COMMENT SC_STRING
 
 %{
-int mylineno = 0;
+	#include <iostream>
+	#include <stdexcept>
+	#include <sstream>
 %}
 
-string  \"[^\n"]+\"
+/* any character, including newline */
+ANY       (.|"\n")
 
-ws      [ \t]+
+/* starting character in a name */
+LETTER    [a-zA-Z]
 
-alpha   [A-Za-z]
-dig     [0-9]
-name    ({alpha}|{dig}|\$)({alpha}|{dig}|[_.\-/$])*
-num1    [-+]?{dig}+\.?([eE][-+]?{dig}+)?
-num2    [-+]?{dig}*\.{dig}+([eE][-+]?{dig}+)?
-number  {num1}|{num2}
+/* starting character in a numeric literal */
+DIGIT     [0-9]
 
-%%
+/* double-quote */
+DQUOTE    "\""
 
-{ws}    /* skip blanks and tabs */
+/* non-newline whitespace */
+HWHITE    [ \t\f\v]
 
-"/*"    {
-        int c;
+/* newline Characters */
+NEWLINE ("\n\r"|"\r\n"|"\n"|"\r")
 
-        while((c = yyinput()) != 0)
-            {
-            if(c == '\n')
-                ++mylineno;
+/* Definition for C-String character */
+STRCHR	[A-Za-z_]
 
-            else if(c == '*')
-                {
-                if((c = yyinput()) == '/')
-                    break;
-                else
-                    unput(c);
-                }
-            }
-        }
-
-{number}  std::cout << "number " << YYText() << '\n';
-
-\n        mylineno++;
-
-{name}    std::cout << "name " << YYText() << '\n';
-
-{string}  std::cout << "string " << YYText() << '\n';
 
 %%
+
+/**
+ * ----------- Comments ----------
+ */
+"/""*" {
+  /* C-style comments */
+  yy_push_state (SC_COMMENT);
+}
+
+<SC_COMMENT>{
+  "*/" {
+    yy_pop_state ();
+  }
+  "/*" {
+    yy_push_state (SC_COMMENT);
+  }
+
+  . { /*skip*/ }
+
+  "\n"+ {
+    yylloc->lines (yyleng);
+    yylloc->step ();
+  }
+
+   <<EOF>> {
+    //    misc::fatal (misc::exit_scan, add_location (*yylloc, "Unterminated Comment."));
+    exit(1);
+   }
+}
+
+/**
+ * ----------- Strings ----------
+ */
+ {DQUOTE} {
+  yylval->str = new std::string ();
+  yy_push_state (SC_STRING);
+}
+
+<SC_STRING>{
+  "\"" {
+    yy_top_state ();
+    yy_pop_state ();
+    return STRING;
+  }
+
+  "\n"+ {
+    yylloc->lines (yyleng);
+    yylloc->step ();
+  }
+
+  . {
+    yylval->str->append(yytext);
+  }
+
+  <<EOF>> {
+    exit(1);
+  }
+}
+
+/**
+ * ----------- Keywords ----------
+ */
+"if"		return IF;
+
+/**
+ * ----------- Symbols ----------
+ */
+"."		return DOT;
+";"		return SEMI;
+":"		return COLON;
+","		return COMA;
+"]"		return RBRACK;
+"["		return LBRACK;
+"("		return LPAREN;
+")"		return RPAREN;
+"{"		return LBRACE;
+"}"		return RBRACE;
+ 
+/**
+ * ----------- Operators ----------
+ */
+">="	return GE;
+"<="	return LE;
+"<>"	return NE;
+"-"		return MINUS;
+"+"		return PLUS;
+"*"		return TIMES;
+"/"		return DIVIDE;
+"="		return EQ;
+">"		return GT;
+"<"		return LT;
+"&"		return AND;
+"|"		return OR;
+
+/**
+ * ----------- Numeric ----------
+ */
+{DIGIT}+ {
+  std::istringstream iss (yytext);
+  iss >> yylval->ival;
+  return INT;
+}
+
+/**
+ * ----------- Identifier ----------
+ */
+{LETTER}({LETTER}|{DIGIT}|"_")* {
+  yylval->symbol = &(symbol::Symbol::create (yytext));
+  return ID;
+}
+
+/**
+ * ----------- STEP ----------
+ */
+{HWHITE}    yylloc->step ();
+{NEWLINE}+  yylloc->lines (yyleng); yylloc->step ();
+<<EOF>> yyterminate ();
+.           {
+	exit( 1 ) /* invalid character */
+}
+ 
