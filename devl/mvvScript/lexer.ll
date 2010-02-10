@@ -13,7 +13,14 @@
 
 %{
    #define YYDEBUG 1
-   #define YY_USER_ACTION yylloc->columns(yyleng);
+   
+   #define YY_USER_ACTION  yylloc->last_column += yyleng;
+   
+   /*
+   #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
+    yylloc->first_column = yylloc->current_column; yylloc->last_column = yylloc->current_column+yyleng-1; \
+    yylloc->current_column += yyleng;
+   */
    
 	#include <iostream>
 	#include <stdexcept>
@@ -21,15 +28,6 @@
 	#include <string>
 	
 	#include "parser-context.h"
-	//#include "parser.h"
-	
-	std::string	add_location (yy::location& l, const char* msg)
-   {
-     std::ostringstream	os;
-
-     os << l << ": " << msg;
-     return os.str ();
-   }
 %}
 
 /* any character, including newline */
@@ -72,8 +70,11 @@ STRCHR	[A-Za-z_]
   . { /*skip*/ }
 
   "\n"+ {
-    yylloc->lines (yyleng);
-    yylloc->step ();
+    // update location
+    yylloc->last_column = 0;
+    yylloc->last_line += yyleng;
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
   }
 
    <<EOF>> {
@@ -95,8 +96,10 @@ STRCHR	[A-Za-z_]
   }
 
   "\n"+ {
-    yylloc->lines (yyleng);
-    yylloc->step ();
+    yylloc->last_column = 0;
+    yylloc->last_line += yyleng;
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
   }
 
   . {
@@ -143,15 +146,25 @@ STRCHR	[A-Za-z_]
 }
 
 {LETTER}({LETTER}|{DIGIT}|"_")* {
-  yylval->symbol = &(mvv::Symbol::create (yytext));
-  return ID;
+    yylval->symbol = &(mvv::Symbol::create (yytext));
+    return ID;
 }
 
-{HWHITE}    yylloc->step ();
-{NEWLINE}+  yylloc->lines (yyleng); yylloc->step ();
+{HWHITE}    {
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
+}
+
+{NEWLINE}+  {
+    yylloc->last_column = 0;
+    yylloc->last_line += yyleng;
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
+}
+
 <<EOF>> yyterminate ();
-.           {
-	exit( 1 ); /* invalid character */
+. {
+    exit( 1 ); /* invalid character */
 }
 
 
@@ -183,6 +196,7 @@ namespace parser
       if ( _filename != "" )
       {
          yyin = _filename == "-" ? stdin : fopen (_filename.c_str (), "r");
+         std::cout << "filename opened=" << _filename << std::endl;
 
          /*
          if (!yyin)

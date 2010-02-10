@@ -1,6 +1,11 @@
 #ifndef MVV_PARSER_FORWARD_H_
 # define MVV_PARSER_FORWARD_H_
 
+# include <mvvPlatform/types.h>
+
+# define YY_NO_UNISTD_H
+# define isatty(x) false
+
 namespace yy
 {
   // From parsetiger.yy.
@@ -13,6 +18,25 @@ union YYSTYPE;
 
 // From scantiger.cc.
 struct yy_buffer_state;
+
+// Define our location type
+struct YYLTYPE
+{
+   YYLTYPE() : filename( mvv::Symbol::create("") )
+   {
+      first_line = 1;
+      first_column = 0;
+      last_line = 1;
+      last_column = 0;
+   }
+
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+  mvv::Symbol filename;
+};
+# define YYLTYPE_IS_DECLARED 1
 
 namespace mvv
 {

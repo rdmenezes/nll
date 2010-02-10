@@ -566,10 +566,10 @@ int yy_flex_debug = 1;
 
 static yyconst flex_int16_t yy_rule_linenum[39] =
     {   0,
-       59,   65,   68,   72,   74,   85,   91,   97,  102,  111,
-      112,  115,  116,  117,  118,  119,  120,  121,  122,  123,
-      124,  126,  127,  128,  129,  130,  131,  132,  133,  134,
-      135,  136,  137,  139,  145,  150,  151,  153
+       57,   63,   66,   70,   72,   86,   92,   98,  105,  114,
+      115,  118,  119,  120,  121,  122,  123,  124,  125,  126,
+      127,  129,  130,  131,  132,  133,  134,  135,  136,  137,
+      138,  139,  140,  142,  148,  153,  158,  166
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -587,7 +587,14 @@ char *yytext;
 
 #line 15 "lexer.ll"
    #define YYDEBUG 1
-   #define YY_USER_ACTION yylloc->columns(yyleng);
+   
+   #define YY_USER_ACTION  yylloc->last_column += yyleng;
+   
+   /*
+   #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
+    yylloc->first_column = yylloc->current_column; yylloc->last_column = yylloc->current_column+yyleng-1; \
+    yylloc->current_column += yyleng;
+   */
    
 	#include <iostream>
 	#include <stdexcept>
@@ -595,15 +602,6 @@ char *yytext;
 	#include <string>
 	
 	#include "parser-context.h"
-	//#include "parser.h"
-	
-	std::string	add_location (yy::location& l, const char* msg)
-   {
-     std::ostringstream	os;
-
-     os << l << ": " << msg;
-     return os.str ();
-   }
 /* any character, including newline */
 /* starting character in a name */
 /* starting character in a numeric literal */
@@ -611,7 +609,7 @@ char *yytext;
 /* non-newline whitespace */
 /* newline Characters */
 /* Definition for C-String character */
-#line 615 "lex.yy.cpp"
+#line 613 "lex.yy.cpp"
 
 #define INITIAL 0
 #define SC_COMMENT 1
@@ -863,10 +861,10 @@ YY_DECL
 	register int yy_act;
     
 /* %% [7.0] user's declarations go here */
-#line 57 "lexer.ll"
+#line 55 "lexer.ll"
 
 
-#line 870 "lex.yy.cpp"
+#line 868 "lex.yy.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -978,7 +976,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 59 "lexer.ll"
+#line 57 "lexer.ll"
 {
   /* C-style comments */
   yy_push_state (SC_COMMENT);
@@ -987,34 +985,37 @@ YY_RULE_SETUP
 
 case 2:
 YY_RULE_SETUP
-#line 65 "lexer.ll"
+#line 63 "lexer.ll"
 {
     yy_pop_state ();
   }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 68 "lexer.ll"
+#line 66 "lexer.ll"
 {
     yy_push_state (SC_COMMENT);
   }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 72 "lexer.ll"
+#line 70 "lexer.ll"
 { /*skip*/ }
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 74 "lexer.ll"
+#line 72 "lexer.ll"
 {
-    yylloc->lines (yyleng);
-    yylloc->step ();
+    // update location
+    yylloc->last_column = 0;
+    yylloc->last_line += yyleng;
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
   }
 	YY_BREAK
 case YY_STATE_EOF(SC_COMMENT):
-#line 79 "lexer.ll"
+#line 80 "lexer.ll"
 {
     //    misc::fatal (misc::exit_scan, add_location (*yylloc, "Unterminated Comment."));
     exit(1);
@@ -1023,7 +1024,7 @@ case YY_STATE_EOF(SC_COMMENT):
 
 case 6:
 YY_RULE_SETUP
-#line 85 "lexer.ll"
+#line 86 "lexer.ll"
 {
   yylval->str = new std::string ();
   yy_push_state (SC_STRING);
@@ -1032,7 +1033,7 @@ YY_RULE_SETUP
 
 case 7:
 YY_RULE_SETUP
-#line 91 "lexer.ll"
+#line 92 "lexer.ll"
 {
     yy_top_state ();
     yy_pop_state ();
@@ -1042,21 +1043,23 @@ YY_RULE_SETUP
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 97 "lexer.ll"
+#line 98 "lexer.ll"
 {
-    yylloc->lines (yyleng);
-    yylloc->step ();
+    yylloc->last_column = 0;
+    yylloc->last_line += yyleng;
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
   }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 102 "lexer.ll"
+#line 105 "lexer.ll"
 {
     yylval->str->append(yytext);
   }
 	YY_BREAK
 case YY_STATE_EOF(SC_STRING):
-#line 106 "lexer.ll"
+#line 109 "lexer.ll"
 {
     exit(1);
   }
@@ -1064,127 +1067,127 @@ case YY_STATE_EOF(SC_STRING):
 
 case 10:
 YY_RULE_SETUP
-#line 111 "lexer.ll"
+#line 114 "lexer.ll"
 return IF;
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 112 "lexer.ll"
+#line 115 "lexer.ll"
 return ASSIGN;
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 115 "lexer.ll"
+#line 118 "lexer.ll"
 return DOT;
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 116 "lexer.ll"
+#line 119 "lexer.ll"
 return SEMI;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 117 "lexer.ll"
+#line 120 "lexer.ll"
 return COLON;
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 118 "lexer.ll"
+#line 121 "lexer.ll"
 return COMA;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 119 "lexer.ll"
+#line 122 "lexer.ll"
 return RBRACK;
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 120 "lexer.ll"
+#line 123 "lexer.ll"
 return LBRACK;
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 121 "lexer.ll"
+#line 124 "lexer.ll"
 return LPAREN;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 122 "lexer.ll"
+#line 125 "lexer.ll"
 return RPAREN;
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 123 "lexer.ll"
+#line 126 "lexer.ll"
 return LBRACE;
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 124 "lexer.ll"
+#line 127 "lexer.ll"
 return RBRACE;
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 126 "lexer.ll"
+#line 129 "lexer.ll"
 return GE;
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 127 "lexer.ll"
+#line 130 "lexer.ll"
 return LE;
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 128 "lexer.ll"
+#line 131 "lexer.ll"
 return NE;
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 129 "lexer.ll"
+#line 132 "lexer.ll"
 return MINUS;
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 130 "lexer.ll"
+#line 133 "lexer.ll"
 return PLUS;
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 131 "lexer.ll"
+#line 134 "lexer.ll"
 return TIMES;
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 132 "lexer.ll"
+#line 135 "lexer.ll"
 return DIVIDE;
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 133 "lexer.ll"
+#line 136 "lexer.ll"
 return EQ;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 134 "lexer.ll"
+#line 137 "lexer.ll"
 return GT;
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 135 "lexer.ll"
+#line 138 "lexer.ll"
 return LT;
 	YY_BREAK
 case 32:
 YY_RULE_SETUP
-#line 136 "lexer.ll"
+#line 139 "lexer.ll"
 return AND;
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
-#line 137 "lexer.ll"
+#line 140 "lexer.ll"
 return OR;
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
-#line 139 "lexer.ll"
+#line 142 "lexer.ll"
 {
   std::istringstream iss (yytext);
   iss >> yylval->ival;
@@ -1193,40 +1196,48 @@ YY_RULE_SETUP
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
-#line 145 "lexer.ll"
+#line 148 "lexer.ll"
 {
-  yylval->symbol = &(mvv::Symbol::create (yytext));
-  return ID;
+    yylval->symbol = &(mvv::Symbol::create (yytext));
+    return ID;
 }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
-#line 150 "lexer.ll"
-yylloc->step ();
+#line 153 "lexer.ll"
+{
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
+}
 	YY_BREAK
 case 37:
 /* rule 37 can match eol */
 YY_RULE_SETUP
-#line 151 "lexer.ll"
-yylloc->lines (yyleng); yylloc->step ();
+#line 158 "lexer.ll"
+{
+    yylloc->last_column = 0;
+    yylloc->last_line += yyleng;
+    yylloc->first_column = yylloc->last_column;
+    yylloc->first_line = yylloc->last_line;
+}
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 152 "lexer.ll"
+#line 165 "lexer.ll"
 yyterminate ();
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 153 "lexer.ll"
+#line 166 "lexer.ll"
 {
-	exit( 1 ); /* invalid character */
+    exit( 1 ); /* invalid character */
 }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 158 "lexer.ll"
+#line 171 "lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1230 "lex.yy.cpp"
+#line 1241 "lex.yy.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2374,7 +2385,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 158 "lexer.ll"
+#line 171 "lexer.ll"
 
 
 
@@ -2404,6 +2415,7 @@ namespace parser
       if ( _filename != "" )
       {
          yyin = _filename == "-" ? stdin : fopen (_filename.c_str (), "r");
+         std::cout << "filename opened=" << _filename << std::endl;
 
          /*
          if (!yyin)

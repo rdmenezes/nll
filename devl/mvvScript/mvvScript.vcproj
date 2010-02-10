@@ -407,6 +407,10 @@
 			Name="flex/bison"
 			>
 			<File
+				RelativePath=".\ast.h"
+				>
+			</File>
+			<File
 				RelativePath=".\forward.h"
 				>
 			</File>
@@ -420,6 +424,10 @@
 			</File>
 			<File
 				RelativePath=".\location.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parser-context.cpp"
 				>
 			</File>
 			<File

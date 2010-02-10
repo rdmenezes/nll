@@ -1,16 +1,19 @@
 #include <tester/register.h>
 #include <mvvPlatform/types.h>
-
+#include <mvvScript/parser-context.h>
 
 using namespace mvv;
 using namespace mvv::platform;
-
+using namespace mvv::parser;
 
 struct TestBasic
 {
    void test1()
    {
-
+      ParserContext context;
+      //Ast* exp = context.parseFile( "c:/tmp/test1.txt" );
+      Ast* exp = context.parseString( "1212 sttr " );
+      std::cout << " --------ast=" << exp << std::endl;
    }
 };
 

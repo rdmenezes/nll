@@ -5,6 +5,8 @@
    #include <sstream>
    #include "parser-context.h"
    # include "forward.h"
+   
+   //int MVVSCRIPT_API yyparse (mvv::parser::ParserContext& tp);
 %}
 
 %define filename_type "const mvv::Symbol"
@@ -58,9 +60,13 @@
 %token TIMES        "*"
 %token YYEOF   0    "end of file"
 
+%start program
+
 %%
+program:
+      exp               { tp._root = new mvv::parser::Ast()}
 
 exp :
-      INT			        {  }
+      INT			        { std::cout << "int" << std::endl; }
       
 %%
