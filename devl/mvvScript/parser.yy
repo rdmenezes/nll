@@ -4,14 +4,18 @@
    #include <list>
    #include <sstream>
    #include "parser-context.h"
+   # include "forward.h"
 %}
 
-%error-verbose
-%define "filename_type" "const mvv::Symbol"
+%define filename_type "const mvv::Symbol"
 %locations
+
+%error-verbose
+
 %parse-param { mvv::parser::ParserContext& tp }
 %lex-param { mvv::parser::ParserContext& tp }
 %debug
+%pure_parser
 
 %union
 {

@@ -3,43 +3,25 @@
 
 # include <stack>
 # include "location.h"
+# include "forward.h"
 # include "parser.tab.hh"
 
 // configuring...
 # define YY_NO_UNISTD_H
 # define isatty(x) false
 
-namespace yy
-{
-  // From parsetiger.yy.
-  class parser;
-  class location;
-}
-
-// From scantiger.cc.
-union YYSTYPE;
-
-// From scantiger.cc.
-struct yy_buffer_state;
-
-namespace mvv
-{
-namespace parser
-{
-   class ParserContext;
-}
-}
-
 // Announce to Flex the prototype we want for lexing function
 # define YY_DECL  int yylex (YYSTYPE* yylval, yy::location* yylloc, mvv::parser::ParserContext& context)
 
-// Announce to Bison the lexing function it must use.
-YY_DECL;
+
 
 namespace mvv
 {
 namespace parser
 {
+   // Announce to Bison the lexing function it must use.
+   YY_DECL;
+
    class ParserContext
    {
    public:

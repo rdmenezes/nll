@@ -52,7 +52,7 @@
 #define YYSKELETON_NAME "yacc.c"
 
 /* Pure parsers.  */
-#define YYPURE 0
+#define YYPURE 1
 
 /* Push parsers.  */
 #define YYPUSH 0
@@ -75,10 +75,11 @@
    #include <list>
    #include <sstream>
    #include "parser-context.h"
+   # include "forward.h"
 
 
 /* Line 189 of yacc.c  */
-#line 82 "parser.tab.cc"
+#line 83 "parser.tab.cc"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -143,7 +144,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 17 "parser.yy"
+#line 21 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -153,7 +154,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 157 "parser.tab.cc"
+#line 158 "parser.tab.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -178,7 +179,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 182 "parser.tab.cc"
+#line 183 "parser.tab.cc"
 
 #ifdef short
 # undef short
@@ -464,7 +465,7 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    60,    60
+       0,    64,    64
 };
 #endif
 
@@ -584,7 +585,7 @@ do								\
     }								\
   else								\
     {								\
-      yyerror (tp, YY_("syntax error: cannot back up")); \
+      yyerror (&yylloc, tp, YY_("syntax error: cannot back up")); \
       YYERROR;							\
     }								\
 while (YYID (0))
@@ -639,9 +640,9 @@ while (YYID (0))
 /* YYLEX -- calling `yylex' with the right arguments.  */
 
 #ifdef YYLEX_PARAM
-# define YYLEX yylex (YYLEX_PARAM)
+# define YYLEX yylex (&yylval, &yylloc, YYLEX_PARAM)
 #else
-# define YYLEX yylex (tp)
+# define YYLEX yylex (&yylval, &yylloc, tp)
 #endif
 
 /* Enable debugging if requested.  */
@@ -1079,11 +1080,11 @@ yydestruct (yymsg, yytype, yyvaluep, yylocationp, tp)
       case 3: /* "\"string\"" */
 
 /* Line 1000 of yacc.c  */
-#line 28 "parser.yy"
+#line 32 "parser.yy"
 	{ delete (yyvaluep->str); };
 
 /* Line 1000 of yacc.c  */
-#line 1087 "parser.tab.cc"
+#line 1088 "parser.tab.cc"
 	break;
 
       default:
@@ -1107,17 +1108,6 @@ int yyparse ();
 #endif /* ! YYPARSE_PARAM */
 
 
-/* The lookahead symbol.  */
-int yychar;
-
-/* The semantic value of the lookahead symbol.  */
-YYSTYPE yylval;
-
-/* Location data for the lookahead symbol.  */
-YYLTYPE yylloc;
-
-/* Number of syntax errors so far.  */
-int yynerrs;
 
 
 
@@ -1147,7 +1137,17 @@ yyparse (tp)
 #endif
 #endif
 {
+/* The lookahead symbol.  */
+int yychar;
 
+/* The semantic value of the lookahead symbol.  */
+YYSTYPE yylval;
+
+/* Location data for the lookahead symbol.  */
+YYLTYPE yylloc;
+
+    /* Number of syntax errors so far.  */
+    int yynerrs;
 
     int yystate;
     /* Number of tokens to shift before error messages enabled.  */
@@ -1415,7 +1415,7 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 60 "parser.yy"
+#line 64 "parser.yy"
     {  ;}
     break;
 
@@ -1458,7 +1458,7 @@ yyerrlab:
     {
       ++yynerrs;
 #if ! YYERROR_VERBOSE
-      yyerror (tp, YY_("syntax error"));
+      yyerror (&yylloc, tp, YY_("syntax error"));
 #else
       {
 	YYSIZE_T yysize = yysyntax_error (0, yystate, yychar);
@@ -1482,11 +1482,11 @@ yyerrlab:
 	if (0 < yysize && yysize <= yymsg_alloc)
 	  {
 	    (void) yysyntax_error (yymsg, yystate, yychar);
-	    yyerror (tp, yymsg);
+	    yyerror (&yylloc, tp, yymsg);
 	  }
 	else
 	  {
-	    yyerror (tp, YY_("syntax error"));
+	    yyerror (&yylloc, tp, YY_("syntax error"));
 	    if (yysize != 0)
 	      goto yyexhaustedlab;
 	  }
@@ -1607,7 +1607,7 @@ yyabortlab:
 | yyexhaustedlab -- memory exhaustion comes here.  |
 `-------------------------------------------------*/
 yyexhaustedlab:
-  yyerror (tp, YY_("memory exhausted"));
+  yyerror (&yylloc, tp, YY_("memory exhausted"));
   yyresult = 2;
   /* Fall through.  */
 #endif
@@ -1641,6 +1641,6 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 62 "parser.yy"
+#line 66 "parser.yy"
 
 

@@ -309,7 +309,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="$(SolutionDir)"
+				AdditionalIncludeDirectories="$(SolutionDir);$(ProjectDir)"
 				PreprocessorDefinitions="WIN32;MVVSCRIPT_EXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -406,6 +406,10 @@
 		<Filter
 			Name="flex/bison"
 			>
+			<File
+				RelativePath=".\forward.h"
+				>
+			</File>
 			<File
 				RelativePath=".\lex.yy.cpp"
 				>

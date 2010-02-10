@@ -77,7 +77,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 17 "parser.yy"
+#line 21 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -94,7 +94,7 @@ typedef union YYSTYPE
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
-extern YYSTYPE yylval;
+
 
 #if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
 typedef struct YYLTYPE
@@ -109,5 +109,5 @@ typedef struct YYLTYPE
 # define YYLTYPE_IS_TRIVIAL 1
 #endif
 
-extern YYLTYPE yylloc;
+
 
