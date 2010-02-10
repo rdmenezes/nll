@@ -43,30 +43,30 @@
      STRING = 258,
      ID = 259,
      INT = 260,
-     AND = 261,
-     ASSIGN = 262,
-     COLON = 263,
-     COMA = 264,
-     DIVIDE = 265,
-     DOT = 266,
-     EQ = 267,
-     GE = 268,
-     GT = 269,
-     IF = 270,
-     LBRACE = 271,
-     LBRACK = 272,
-     LE = 273,
-     LPAREN = 274,
-     LT = 275,
-     MINUS = 276,
-     NE = 277,
-     OR = 278,
-     PLUS = 279,
-     RBRACE = 280,
-     RBRACK = 281,
-     RPAREN = 282,
-     SEMI = 283,
-     TIMES = 284
+     AND = 262,
+     ASSIGN = 263,
+     COLON = 264,
+     COMA = 265,
+     DIVIDE = 266,
+     DOT = 267,
+     EQ = 268,
+     GE = 269,
+     GT = 270,
+     IF = 271,
+     LBRACE = 272,
+     LBRACK = 273,
+     LE = 274,
+     LPAREN = 275,
+     LT = 276,
+     MINUS = 277,
+     NE = 278,
+     OR = 279,
+     PLUS = 280,
+     RBRACE = 281,
+     RBRACK = 282,
+     RPAREN = 283,
+     SEMI = 284,
+     TIMES = 285
    };
 #endif
 
@@ -77,7 +77,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 23 "parser.yy"
+#line 39 "parser.yy"
 
    // Tokens.
    int                        ival;

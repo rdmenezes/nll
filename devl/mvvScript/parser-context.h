@@ -6,9 +6,10 @@
 # include "forward.h"
 # include "parser.tab.hh"
 # include "mvvScript.h"
+# include "error.h"
 
 // Announce to Flex the prototype we want for lexing function
-# define YY_DECL_BODY yylex (YYSTYPE* yylval, YYLTYPE* yylloc, mvv::parser::ParserContext& context)
+# define YY_DECL_BODY yylex (YYSTYPE* yylval, YYLTYPE* yylloc, mvv::parser::ParserContext& tp)
 # define YY_DECL  int ::YY_DECL_BODY
 
 // Announce to Bison the lexing function it must use.
@@ -18,16 +19,6 @@ int YY_DECL_BODY;
 #define YYPARSE_DECL int MVVSCRIPT_API yyparse (mvv::parser::ParserContext& tp);
 YYPARSE_DECL;
 
-// 
-inline void yyerror( YYLTYPE* yylloc, mvv::parser::ParserContext& context, char* msg )
-{
-   std::cerr << yylloc->filename.getName() << ": L"  << yylloc->first_line << "." << yylloc->first_column
-                                           << "-L"   << yylloc->last_line  << "." << yylloc->last_column
-                                           << " " << msg    << std::endl;
-}
-
-
-
 namespace mvv
 {
 namespace parser
@@ -36,6 +27,7 @@ namespace parser
    {
    public:
       friend int ::yyparse (mvv::parser::ParserContext& tp);
+      friend YY_DECL;
       
       ParserContext()
       {
@@ -45,6 +37,11 @@ namespace parser
       Ast* parseFile( const std::string& file );
 
       Ast* parseString( const std::string& string );
+
+      Error& getError()
+      {
+         return _error;
+      }
 
    private:
       // open the scanner, defined in lexer.ll
@@ -88,8 +85,17 @@ namespace parser
 
       // ast root
       Ast*  _root;
+
+      Error _error;
    };
 }
+}
+
+inline void yyerror( YYLTYPE* yylloc, mvv::parser::ParserContext& context, char* msg )
+{
+   std::stringstream txt;
+   txt << *yylloc << msg << std::endl;
+   context.getError() << txt.str() << mvv::parser::Error::PARSE;
 }
 
 #endif

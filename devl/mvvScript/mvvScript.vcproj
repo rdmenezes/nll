@@ -374,22 +374,36 @@
 	</References>
 	<Files>
 		<Filter
-			Name="Source Files"
-			Filter="cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx"
-			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
-			>
-			<File
-				RelativePath=".\mvvScript.cpp"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="Header Files"
+			Name="files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\ast.h"
+				>
+			</File>
+			<File
+				RelativePath=".\error.h"
+				>
+			</File>
+			<File
+				RelativePath=".\forward.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mvvScript.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mvvScript.h"
+				>
+			</File>
+			<File
+				RelativePath=".\parser-context.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\parser-context.h"
 				>
 			</File>
 		</Filter>
@@ -407,31 +421,11 @@
 			Name="flex/bison"
 			>
 			<File
-				RelativePath=".\ast.h"
-				>
-			</File>
-			<File
-				RelativePath=".\forward.h"
-				>
-			</File>
-			<File
 				RelativePath=".\lex.yy.cpp"
 				>
 			</File>
 			<File
 				RelativePath=".\lexer.ll"
-				>
-			</File>
-			<File
-				RelativePath=".\location.h"
-				>
-			</File>
-			<File
-				RelativePath=".\parser-context.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\parser-context.h"
 				>
 			</File>
 			<File
@@ -444,10 +438,6 @@
 			</File>
 			<File
 				RelativePath=".\parser.yy"
-				>
-			</File>
-			<File
-				RelativePath=".\position.h"
 				>
 			</File>
 		</Filter>

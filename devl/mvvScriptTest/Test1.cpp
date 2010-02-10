@@ -11,9 +11,11 @@ struct TestBasic
    void test1()
    {
       ParserContext context;
-      //Ast* exp = context.parseFile( "c:/tmp/test1.txt" );
-      Ast* exp = context.parseString( "1212 sttr " );
+      Ast* exp = context.parseFile( "c:/tmp/test1.txt" );
+      //Ast* exp = context.parseString( "1212 sttr " );
       std::cout << " --------ast=" << exp << std::endl;
+
+      std::cout << "msg=" << context.getError();
    }
 };
 

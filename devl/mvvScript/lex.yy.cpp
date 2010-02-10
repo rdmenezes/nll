@@ -566,10 +566,10 @@ int yy_flex_debug = 1;
 
 static yyconst flex_int16_t yy_rule_linenum[39] =
     {   0,
-       57,   63,   66,   70,   72,   86,   92,   98,  105,  114,
+       52,   58,   61,   65,   67,   83,   89,   95,  102,  114,
       115,  118,  119,  120,  121,  122,  123,  124,  125,  126,
       127,  129,  130,  131,  132,  133,  134,  135,  136,  137,
-      138,  139,  140,  142,  148,  153,  158,  166
+      138,  139,  140,  142,  148,  153,  158,  167
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -590,18 +590,13 @@ char *yytext;
    
    #define YY_USER_ACTION  yylloc->last_column += yyleng;
    
-   /*
-   #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
-    yylloc->first_column = yylloc->current_column; yylloc->last_column = yylloc->current_column+yyleng-1; \
-    yylloc->current_column += yyleng;
-   */
-   
 	#include <iostream>
 	#include <stdexcept>
 	#include <sstream>
 	#include <string>
 	
 	#include "parser-context.h"
+	#include "error.h"
 /* any character, including newline */
 /* starting character in a name */
 /* starting character in a numeric literal */
@@ -609,7 +604,7 @@ char *yytext;
 /* non-newline whitespace */
 /* newline Characters */
 /* Definition for C-String character */
-#line 613 "lex.yy.cpp"
+#line 608 "lex.yy.cpp"
 
 #define INITIAL 0
 #define SC_COMMENT 1
@@ -861,10 +856,10 @@ YY_DECL
 	register int yy_act;
     
 /* %% [7.0] user's declarations go here */
-#line 55 "lexer.ll"
+#line 50 "lexer.ll"
 
 
-#line 868 "lex.yy.cpp"
+#line 863 "lex.yy.cpp"
 
 	if ( !(yy_init) )
 		{
@@ -976,7 +971,7 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 57 "lexer.ll"
+#line 52 "lexer.ll"
 {
   /* C-style comments */
   yy_push_state (SC_COMMENT);
@@ -985,27 +980,27 @@ YY_RULE_SETUP
 
 case 2:
 YY_RULE_SETUP
-#line 63 "lexer.ll"
+#line 58 "lexer.ll"
 {
     yy_pop_state ();
   }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 66 "lexer.ll"
+#line 61 "lexer.ll"
 {
     yy_push_state (SC_COMMENT);
   }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 70 "lexer.ll"
+#line 65 "lexer.ll"
 { /*skip*/ }
 	YY_BREAK
 case 5:
 /* rule 5 can match eol */
 YY_RULE_SETUP
-#line 72 "lexer.ll"
+#line 67 "lexer.ll"
 {
     // update location
     yylloc->last_column = 0;
@@ -1015,16 +1010,18 @@ YY_RULE_SETUP
   }
 	YY_BREAK
 case YY_STATE_EOF(SC_COMMENT):
-#line 80 "lexer.ll"
+#line 75 "lexer.ll"
 {
-    //    misc::fatal (misc::exit_scan, add_location (*yylloc, "Unterminated Comment."));
-    exit(1);
+    std::stringstream msg;
+    msg << *yylloc << "unterminated comment." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    yyterminate();
    }
 	YY_BREAK
 
 case 6:
 YY_RULE_SETUP
-#line 86 "lexer.ll"
+#line 83 "lexer.ll"
 {
   yylval->str = new std::string ();
   yy_push_state (SC_STRING);
@@ -1033,7 +1030,7 @@ YY_RULE_SETUP
 
 case 7:
 YY_RULE_SETUP
-#line 92 "lexer.ll"
+#line 89 "lexer.ll"
 {
     yy_top_state ();
     yy_pop_state ();
@@ -1043,7 +1040,7 @@ YY_RULE_SETUP
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 98 "lexer.ll"
+#line 95 "lexer.ll"
 {
     yylloc->last_column = 0;
     yylloc->last_line += yyleng;
@@ -1053,15 +1050,18 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 105 "lexer.ll"
+#line 102 "lexer.ll"
 {
     yylval->str->append(yytext);
   }
 	YY_BREAK
 case YY_STATE_EOF(SC_STRING):
-#line 109 "lexer.ll"
+#line 106 "lexer.ll"
 {
-    exit(1);
+    std::stringstream msg;
+    msg << *yylloc << "unterminated string." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    yyterminate();
   }
 	YY_BREAK
 
@@ -1198,7 +1198,7 @@ case 35:
 YY_RULE_SETUP
 #line 148 "lexer.ll"
 {
-    yylval->symbol = &(mvv::Symbol::create (yytext));
+    yylval->symbol = ( new mvv::Symbol( mvv::Symbol::create ( yytext ) ) );
     return ID;
 }
 	YY_BREAK
@@ -1227,17 +1227,21 @@ yyterminate ();
 	YY_BREAK
 case 38:
 YY_RULE_SETUP
-#line 166 "lexer.ll"
+#line 167 "lexer.ll"
 {
-    exit( 1 ); /* invalid character */
+    std::stringstream msg;
+    msg << *yylloc << "invalid character." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    
+    ++yylloc->first_column;
 }
 	YY_BREAK
 case 39:
 YY_RULE_SETUP
-#line 171 "lexer.ll"
+#line 176 "lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1241 "lex.yy.cpp"
+#line 1245 "lex.yy.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2385,7 +2389,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 171 "lexer.ll"
+#line 176 "lexer.ll"
 
 
 

@@ -47,6 +47,12 @@ namespace platform
          return _s;
       }
 
+   public:
+      Symbol()
+      {
+         *this = create( "" );
+      }
+
    protected:
       // to be created internally only!
       Symbol( const char* s ) : _s( s )

@@ -1,23 +1,39 @@
 %{								// -*- C++ -*-
+
+   //
+   // scanner/parser generator:
+   //   FLEX 2.5.35
+   //   BISON 2.4.1
+   //
+   // command:
+   //   flex -o lex.yy.cpp lexer.ll
+   //   bison parser.yy -d
+   //
+   
    #include <string>
    #include <iostream>
    #include <list>
    #include <sstream>
    #include "parser-context.h"
-   # include "forward.h"
-   
-   //int MVVSCRIPT_API yyparse (mvv::parser::ParserContext& tp);
 %}
 
-%define filename_type "const mvv::Symbol"
 %locations
 
 %error-verbose
 
 %parse-param { mvv::parser::ParserContext& tp }
 %lex-param { mvv::parser::ParserContext& tp }
+
 %debug
 %pure_parser
+
+%initial-action
+{
+   /**
+    setup the filename each time before parsing
+    */
+   @$.filename = mvv::Symbol::create( tp._filename == "" ? "(input)" : tp._filename );
+}
 
 %union
 {
@@ -31,7 +47,8 @@
 %token <symbol> ID     "identifier"
 %token <ival>   INT    "integer"
 
-%destructor { delete $$; }  		      "string"
+%destructor { delete $$; }  		            "string"
+%destructor { delete $$.symbol; }  	         "symbol"
 
 %token AND          "&"
 %token ASSIGN       "="
@@ -67,6 +84,6 @@ program:
       exp               { tp._root = new mvv::parser::Ast()}
 
 exp :
-      INT			        { std::cout << "int" << std::endl; }
+      INT INT			        { std::cout << "int" << std::endl; }
       
 %%

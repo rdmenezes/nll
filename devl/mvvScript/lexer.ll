@@ -16,18 +16,13 @@
    
    #define YY_USER_ACTION  yylloc->last_column += yyleng;
    
-   /*
-   #define YY_USER_ACTION yylloc->first_line = yylloc->last_line = yylineno; \
-    yylloc->first_column = yylloc->current_column; yylloc->last_column = yylloc->current_column+yyleng-1; \
-    yylloc->current_column += yyleng;
-   */
-   
 	#include <iostream>
 	#include <stdexcept>
 	#include <sstream>
 	#include <string>
 	
 	#include "parser-context.h"
+	#include "error.h"
 %}
 
 /* any character, including newline */
@@ -78,8 +73,10 @@ STRCHR	[A-Za-z_]
   }
 
    <<EOF>> {
-    //    misc::fatal (misc::exit_scan, add_location (*yylloc, "Unterminated Comment."));
-    exit(1);
+    std::stringstream msg;
+    msg << *yylloc << "unterminated comment." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    yyterminate();
    }
 }
 
@@ -107,7 +104,10 @@ STRCHR	[A-Za-z_]
   }
 
   <<EOF>> {
-    exit(1);
+    std::stringstream msg;
+    msg << *yylloc << "unterminated string." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    yyterminate();
   }
 }
 
@@ -146,7 +146,7 @@ STRCHR	[A-Za-z_]
 }
 
 {LETTER}({LETTER}|{DIGIT}|"_")* {
-    yylval->symbol = &(mvv::Symbol::create (yytext));
+    yylval->symbol = ( new mvv::Symbol( mvv::Symbol::create ( yytext ) ) );
     return ID;
 }
 
@@ -163,8 +163,13 @@ STRCHR	[A-Za-z_]
 }
 
 <<EOF>> yyterminate ();
+
 . {
-    exit( 1 ); /* invalid character */
+    std::stringstream msg;
+    msg << *yylloc << "invalid character." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    
+    ++yylloc->first_column;
 }
 
 
