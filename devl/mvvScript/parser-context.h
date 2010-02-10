@@ -55,7 +55,13 @@ namespace parser
       {
          _root = 0;
          scanOpen();
-         int result = yyparse( *this );
+
+         int result = 1;
+         if ( !_error.getStatus() )
+         {
+            // parse a file only if the context doesn't have any error
+            result = yyparse( *this );
+         }
          scanClose();
 
          // if parsing fails, deallocate the current AST if any

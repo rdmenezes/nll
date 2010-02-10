@@ -39,6 +39,7 @@
 {
    // Tokens.
    int                        ival;
+   float                      fval;
    std::string*			      str;
    const mvv::Symbol*		   symbol;
 }
@@ -46,6 +47,7 @@
 %token <str>    STRING "string"
 %token <symbol> ID     "identifier"
 %token <ival>   INT    "integer"
+%token <fval>   FLOAT  "float"
 
 %destructor { delete $$; }  		            "string"
 %destructor { delete $$.symbol; }  	         "symbol"

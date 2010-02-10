@@ -9,7 +9,7 @@
 /**
  Declare the different states
  */
-%x SC_COMMENT SC_STRING
+%x SC_COMMENT SC_STRING SC_COMMENT_LINE
 
 %{
    #define YYDEBUG 1
@@ -111,10 +111,27 @@ STRCHR	[A-Za-z_]
   }
 }
 
+"//" {
+  /* one line comment */
+  yy_push_state (SC_COMMENT_LINE);
+}
+
+<SC_COMMENT_LINE>{
+ <<EOF>>          { yy_pop_state (); }
+ {NEWLINE}        { yy_pop_state (); }
+ .                {}
+}
+
+{DIGIT}+"."{DIGIT}+ {
+  std::istringstream iss (yytext);
+  iss >> yylval->ival;
+  return FLOAT;
+}
+
 "if"		return IF;
 "="		return ASSIGN;
 
-
+   
 "."		return DOT;
 ";"		return SEMI;
 ":"		return COLON;
@@ -203,14 +220,16 @@ namespace parser
          yyin = _filename == "-" ? stdin : fopen (_filename.c_str (), "r");
          std::cout << "filename opened=" << _filename << std::endl;
 
-         /*
          if (!yyin)
-         error_ << misc::Error::failure
-         << program_name
-         << ": cannot open `" << filename_ << "': "
-         << strerror (errno) << std::endl
-         << &misc::Error::exit;
-         */
+         {
+            std::stringstream msg;
+            msg << "cannot open '" << _filename << "': "
+                << strerror (errno) << std::endl;
+                
+            _error << mvv::parser::Error::FAILURE << msg.str();
+            return;
+         }
+         
          
          yy_switch_to_buffer (yy_create_buffer (yyin, YY_BUF_SIZE));
       }
