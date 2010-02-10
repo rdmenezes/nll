@@ -45,33 +45,13 @@ namespace parser
 
    private:
       // open the scanner, defined in lexer.ll
-      void scanOpen();
+      void _scanOpen();
 
       // close the scanner, defined in lexer.ll
-      void scanClose();
+      void _scanClose();
 
       // parse
-      void parse()
-      {
-         _root = 0;
-         scanOpen();
-
-         int result = 1;
-         if ( !_error.getStatus() )
-         {
-            // parse a file only if the context doesn't have any error
-            result = yyparse( *this );
-         }
-         scanClose();
-
-         // if parsing fails, deallocate the current AST if any
-         // we won't need it...
-         if ( result )
-         {
-            delete _root;
-            _root = 0;
-         }
-      }
+      void _parse();
 
    private:
       // save the string we have to parse, if parsing a string

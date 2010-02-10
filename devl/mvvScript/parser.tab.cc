@@ -1104,7 +1104,7 @@ yydestruct (yymsg, yytype, yyvaluep, yylocationp, tp)
 
 /* Line 1000 of yacc.c  */
 #line 53 "parser.yy"
-	{ delete (*yyvaluep).symbol; };
+	{ /*delete $$.symbol;*/ };
 
 /* Line 1000 of yacc.c  */
 #line 1111 "parser.tab.cc"

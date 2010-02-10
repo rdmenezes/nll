@@ -571,7 +571,7 @@ int yy_flex_debug = 1;
 
 static yyconst flex_int16_t yy_rule_linenum[43] =
     {   0,
-       52,   58,   61,   65,   67,   83,   89,   95,  102,  114,
+       52,   58,   61,   65,   67,   83,   89,   94,  101,  114,
       121,  122,  125,  131,  132,  135,  136,  137,  138,  139,
       140,  141,  142,  143,  144,  146,  147,  148,  149,  150,
       151,  152,  153,  154,  155,  156,  157,  159,  165,  170,
@@ -1039,7 +1039,6 @@ case 7:
 YY_RULE_SETUP
 #line 89 "lexer.ll"
 {
-    yy_top_state ();
     yy_pop_state ();
     return STRING;
   }
@@ -1047,7 +1046,7 @@ YY_RULE_SETUP
 case 8:
 /* rule 8 can match eol */
 YY_RULE_SETUP
-#line 95 "lexer.ll"
+#line 94 "lexer.ll"
 {
     yylloc->last_column = 0;
     yylloc->last_line += yyleng;
@@ -1057,14 +1056,15 @@ YY_RULE_SETUP
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 102 "lexer.ll"
+#line 101 "lexer.ll"
 {
     yylval->str->append(yytext);
   }
 	YY_BREAK
 case YY_STATE_EOF(SC_STRING):
-#line 106 "lexer.ll"
+#line 105 "lexer.ll"
 {
+    yylval->str = 0;
     std::stringstream msg;
     msg << *yylloc << "unterminated string." << std::endl;
     tp._error << mvv::parser::Error::SCAN << msg.str();
@@ -1102,7 +1102,7 @@ YY_RULE_SETUP
 #line 125 "lexer.ll"
 {
   std::istringstream iss (yytext);
-  iss >> yylval->ival;
+  iss >> yylval->fval;
   return FLOAT;
 }
 	YY_BREAK
@@ -2442,7 +2442,7 @@ namespace parser
    // yyrestart) so that for instance using a SWIG interpreter we may
    // load several files.
    void
-   ParserContext::scanOpen ()
+   ParserContext::_scanOpen ()
    {
       static bool first = true;
       if ( first )
@@ -2490,7 +2490,7 @@ namespace parser
    }
 
    void
-   ParserContext::scanClose ()
+   ParserContext::_scanClose ()
    {
       if (yyin)
          fclose (yyin);

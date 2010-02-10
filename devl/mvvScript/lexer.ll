@@ -124,7 +124,7 @@ STRCHR	[A-Za-z_]
 
 {DIGIT}+"."{DIGIT}+ {
   std::istringstream iss (yytext);
-  iss >> yylval->ival;
+  iss >> yylval->fval;
   return FLOAT;
 }
 
@@ -200,7 +200,7 @@ namespace parser
    // yyrestart) so that for instance using a SWIG interpreter we may
    // load several files.
    void
-   ParserContext::scanOpen ()
+   ParserContext::_scanOpen ()
    {
       static bool first = true;
       if ( first )
@@ -248,7 +248,7 @@ namespace parser
    }
 
    void
-   ParserContext::scanClose ()
+   ParserContext::_scanClose ()
    {
       if (yyin)
          fclose (yyin);

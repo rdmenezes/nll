@@ -49,8 +49,8 @@
 %token <ival>   INT    "integer"
 %token <fval>   FLOAT  "float"
 
-%destructor { delete $$; }  		            "string"
-%destructor { delete $$.symbol; }  	         "symbol"
+%destructor { delete $$; }  		                  "string"
+%destructor { /*delete $$.symbol;*/ }  	         "symbol"
 
 %token AND          "&"
 %token ASSIGN       "="
