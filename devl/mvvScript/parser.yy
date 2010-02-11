@@ -49,7 +49,7 @@
 %token <ival>   INT    "integer"
 %token <fval>   FLOAT  "float"
 
-%destructor { delete $$; }  		                  "string"
+%destructor { std::cout << "DELETE STR=" << $$ << std::endl; delete $$; }  		                  "string"
 %destructor { /*delete $$.symbol;*/ }  	         "symbol"
 
 %token AND          "&"

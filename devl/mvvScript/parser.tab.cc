@@ -1095,7 +1095,7 @@ yydestruct (yymsg, yytype, yyvaluep, yylocationp, tp)
 
 /* Line 1000 of yacc.c  */
 #line 52 "parser.yy"
-	{ delete (yyvaluep->str); };
+	{ std::cout << "DELETE STR=" << (yyvaluep->str) << std::endl; delete (yyvaluep->str); };
 
 /* Line 1000 of yacc.c  */
 #line 1102 "parser.tab.cc"

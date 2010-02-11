@@ -17,8 +17,28 @@ struct TestBasic
 
       std::cout << "msg=" << context.getError();
    }
+
+   void testDummy1()
+   {
+      ParserContext context;
+      Ast* exp = 0;
+      
+      exp = context.parseString( " \" 123 asd  " );
+      context.getError().clear();
+
+      exp = context.parseString( " \" 123 asd  " );
+      context.getError().clear();
+
+      std::cout << "-----------------------------" << std::endl;
+      exp = context.parseString( "987 123 asd  \"" );
+      context.getError().clear();
+
+      std::cout << " --------ast=" << exp << std::endl;
+
+      std::cout << "msg=" << context.getError();
+   }
 };
 
 TESTER_TEST_SUITE(TestBasic);
-TESTER_TEST(test1);
+TESTER_TEST(testDummy1);
 TESTER_TEST_SUITE_END();

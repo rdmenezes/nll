@@ -59,7 +59,7 @@ namespace parser
          return _status;
       }
 
-      const std::ostringstream& getMessage() const
+      const std::stringstream& getMessage() const
       {
          return _stream;
       }
@@ -72,7 +72,7 @@ namespace parser
 
 
    private:
-      std::ostringstream   _stream; 
+      std::stringstream    _stream; 
       ErrorType            _status;
    };
 

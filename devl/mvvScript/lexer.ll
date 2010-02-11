@@ -73,6 +73,9 @@ STRCHR	[A-Za-z_]
   }
 
    <<EOF>> {
+    /* reset the state: else if other calls are made, we are in a wrong state */
+    BEGIN(0);
+   
     std::stringstream msg;
     msg << *yylloc << "unterminated comment." << std::endl;
     tp._error << mvv::parser::Error::SCAN << msg.str();
@@ -82,12 +85,12 @@ STRCHR	[A-Za-z_]
 
  {DQUOTE} {
   yylval->str = new std::string ();
+  std::cout << "CREATTE STR=" << yylval->str << std::endl;
   yy_push_state (SC_STRING);
 }
 
 <SC_STRING>{
   "\"" {
-    yy_top_state ();
     yy_pop_state ();
     return STRING;
   }
@@ -104,6 +107,9 @@ STRCHR	[A-Za-z_]
   }
 
   <<EOF>> {
+    /* reset the state: else if other calls are made, we are in a wrong state */
+    BEGIN(0);
+    
     std::stringstream msg;
     msg << *yylloc << "unterminated string." << std::endl;
     tp._error << mvv::parser::Error::SCAN << msg.str();
@@ -217,19 +223,23 @@ namespace parser
 
       if ( _filename != "" )
       {
-         yyin = _filename == "-" ? stdin : fopen (_filename.c_str (), "r");
-         std::cout << "filename opened=" << _filename << std::endl;
-
-         if (!yyin)
-         {
-            std::stringstream msg;
-            msg << "cannot open '" << _filename << "': "
-                << strerror (errno) << std::endl;
-                
-            _error << mvv::parser::Error::FAILURE << msg.str();
-            return;
-         }
-         
+		 if ( _filename == "-" )
+		 {
+			yyin = stdin;
+		 } else {
+			FILE* f = fopen (_filename.c_str (), "r");
+			if ( f )
+			{
+				yyrestart( f );
+			} else {
+				std::stringstream msg;
+				msg << "cannot open '" << _filename << "': "
+					<< strerror (errno) << std::endl;
+	                
+				_error << mvv::parser::Error::FAILURE << msg.str();
+				return;
+			}
+		 }         
          
          yy_switch_to_buffer (yy_create_buffer (yyin, YY_BUF_SIZE));
       }
@@ -255,8 +265,12 @@ namespace parser
          
       // Restore the current scanning state.
       yy_delete_buffer (YY_CURRENT_BUFFER);
-      yy_switch_to_buffer (_states.top ());
       _states.pop ();
+      
+      if ( _states.size() )
+      {
+		yy_switch_to_buffer (_states.top ());
+	  }
       std::atexit ((void (*) ()) destroy_stack);
    }
 }
