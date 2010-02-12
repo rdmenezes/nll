@@ -134,13 +134,20 @@ STRCHR	[A-Za-z_]
   return FLOAT;
 }
 
+"operator[]" return OPERATORBRACKET;
+"operator()" return OPERATORPARENT;
+"for"    return FOR;
 "if"		return IF;
-"="		return ASSIGN;
+"var"    return VAR;
+"class"  return CLASS;
+"void"   return VOID;
+"in"     return IN;
+"NULL"   return NIL;
 
-   
+
+"="		return ASSIGN;
 "."		return DOT;
 ";"		return SEMI;
-":"		return COLON;
 ","		return COMA;
 "]"		return RBRACK;
 "["		return LBRACK;
@@ -159,8 +166,8 @@ STRCHR	[A-Za-z_]
 "=="		return EQ;
 ">"		return GT;
 "<"		return LT;
-"&"		return AND;
-"|"		return OR;
+"&&"		return AND;
+"||"		return OR;
 
 {DIGIT}+ {
   std::istringstream iss (yytext);

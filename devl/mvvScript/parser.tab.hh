@@ -46,28 +46,36 @@
      FLOAT = 261,
      AND = 263,
      ASSIGN = 264,
-     COLON = 265,
-     COMA = 266,
-     DIVIDE = 267,
-     DOT = 268,
-     EQ = 269,
-     GE = 270,
-     GT = 271,
-     IF = 272,
-     LBRACE = 273,
-     LBRACK = 274,
-     LE = 275,
-     LPAREN = 276,
-     LT = 277,
-     MINUS = 278,
-     NE = 279,
-     OR = 280,
-     PLUS = 281,
-     RBRACE = 282,
-     RBRACK = 283,
-     RPAREN = 284,
-     SEMI = 285,
-     TIMES = 286
+     COMA = 265,
+     DIVIDE = 266,
+     DOT = 267,
+     EQ = 268,
+     GE = 269,
+     GT = 270,
+     IF = 271,
+     LBRACE = 272,
+     LBRACK = 273,
+     LE = 274,
+     LPAREN = 275,
+     LT = 276,
+     MINUS = 277,
+     NE = 278,
+     OR = 279,
+     PLUS = 280,
+     RBRACE = 281,
+     RBRACK = 282,
+     RPAREN = 283,
+     SEMI = 284,
+     TIMES = 285,
+     OPERATORPARENT = 286,
+     OPERATORBRACKET = 287,
+     FOR = 288,
+     IN = 289,
+     VAR = 290,
+     CLASS = 291,
+     VOID = 292,
+     NIL = 293,
+     UMINUS = 294
    };
 #endif
 
@@ -78,7 +86,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 39 "parser.yy"
+#line 41 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -89,7 +97,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 93 "parser.tab.hh"
+#line 101 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
