@@ -64,6 +64,8 @@
 %token GT           ">"
 
 %token IF           "if"
+%token ELSE         "else"
+
 %token LBRACE       "{"
 %token LBRACK       "["
 %token LE           "<="
@@ -87,10 +89,17 @@
 %token CLASS               "class"
 %token VOID                "void"
 %token NIL                 "NULL"
-
 %token YYEOF   0    "end of file"
 
+/* TODO CHECK*/
+%left SEMI
+
 %left ID
+%left LBRACK
+
+%left IFX
+%left ELSE
+%left ASSIGN
 
 %left OR
 %left AND
@@ -103,27 +112,30 @@
 %start program
 
 %%
-program:
-      rvalue               { tp._root = new mvv::parser::Ast()}
+program: statement               { tp._root = new mvv::parser::Ast()}
       
-  
+statement: IF LPAREN rvalue RPAREN statement %prec IFX
+          |IF LPAREN rvalue RPAREN statement ELSE statement
+          |rvalue SEMI
+          |statement SEMI statement
      
-rvalue :
-      INT                  { std::cout << "INT" << std::endl;}
-     |FLOAT                { std::cout << "FLOAT" << std::endl;}
-     |rvalue PLUS rvalue   { std::cout << "+" << std::endl;}
-     |rvalue MINUS rvalue  { std::cout << "-" << std::endl;}
-     |rvalue TIMES rvalue  { std::cout << "*" << std::endl;}
-     |rvalue DIVIDE rvalue { std::cout << "/" << std::endl;}
-     |MINUS rvalue %prec UMINUS{ std::cout << "UMINUS" << std::endl;}
-     |LPAREN rvalue RPAREN { std::cout << "()" << std::endl;}
-     |STRING
-     |lvalue
+rvalue : INT                  { std::cout << "INT" << std::endl;}
+        |FLOAT                { std::cout << "FLOAT" << std::endl;}
+        |rvalue PLUS rvalue   { std::cout << "+" << std::endl;}
+        |rvalue MINUS rvalue  { std::cout << "-" << std::endl;}
+        |rvalue TIMES rvalue  { std::cout << "*" << std::endl;}
+        |rvalue DIVIDE rvalue { std::cout << "/" << std::endl;}
+        |rvalue AND rvalue
+        |rvalue OR rvalue
+        |MINUS rvalue %prec UMINUS{ std::cout << "UMINUS" << std::endl;}
+        |LPAREN rvalue RPAREN { std::cout << "()" << std::endl;}
+        |STRING
+        |lvalue
+        |lvalue ASSIGN rvalue
 
      
-lvalue :
-     |ID
-     |ID LBRACK rvalue RBRACK
-     |lvalue LBRACK rvalue RBRACK
-     |lvalue DOT ID
+lvalue : ID
+        |ID LBRACK rvalue RBRACK
+        |lvalue LBRACK rvalue RBRACK
+        |lvalue DOT ID
 %%

@@ -138,6 +138,7 @@ STRCHR	[A-Za-z_]
 "operator()" return OPERATORPARENT;
 "for"    return FOR;
 "if"		return IF;
+"else"   return ELSE;
 "var"    return VAR;
 "class"  return CLASS;
 "void"   return VOID;
