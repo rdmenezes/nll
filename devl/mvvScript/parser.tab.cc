@@ -87,10 +87,11 @@
    #include <sstream>
    #include <nll/nll.h>
    #include "parser-context.h"
+   #include "ast-files.h"
 
 
 /* Line 189 of yacc.c  */
-#line 94 "parser.tab.cc"
+#line 95 "parser.tab.cc"
 
 /* Enabling traces.  */
 #ifndef YYDEBUG
@@ -166,7 +167,7 @@ typedef union YYSTYPE
 {
 
 /* Line 214 of yacc.c  */
-#line 41 "parser.yy"
+#line 42 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -177,7 +178,7 @@ typedef union YYSTYPE
 
 
 /* Line 214 of yacc.c  */
-#line 181 "parser.tab.cc"
+#line 182 "parser.tab.cc"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -202,7 +203,7 @@ typedef struct YYLTYPE
 
 
 /* Line 264 of yacc.c  */
-#line 206 "parser.tab.cc"
+#line 207 "parser.tab.cc"
 
 #ifdef short
 # undef short
@@ -499,9 +500,9 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,   115,   115,   117,   118,   119,   120,   122,   123,   124,
-     125,   126,   127,   128,   129,   130,   131,   132,   133,   134,
-     137,   138,   139,   140
+       0,   116,   116,   118,   119,   120,   121,   123,   124,   125,
+     126,   127,   128,   129,   130,   131,   132,   133,   134,   135,
+     138,   139,   140,   141
 };
 #endif
 
@@ -1161,20 +1162,20 @@ yydestruct (yymsg, yytype, yyvaluep, yylocationp, tp)
       case 3: /* "\"string\"" */
 
 /* Line 1000 of yacc.c  */
-#line 54 "parser.yy"
+#line 55 "parser.yy"
 	{ delete (yyvaluep->str); };
 
 /* Line 1000 of yacc.c  */
-#line 1169 "parser.tab.cc"
+#line 1170 "parser.tab.cc"
 	break;
       case 7: /* "\"symbol\"" */
 
 /* Line 1000 of yacc.c  */
-#line 55 "parser.yy"
+#line 56 "parser.yy"
 	{ delete (*yyvaluep).symbol; };
 
 /* Line 1000 of yacc.c  */
-#line 1178 "parser.tab.cc"
+#line 1179 "parser.tab.cc"
 	break;
 
       default:
@@ -1323,7 +1324,7 @@ YYLTYPE yylloc;
 /* User initialization code.  */
 
 /* Line 1242 of yacc.c  */
-#line 32 "parser.yy"
+#line 33 "parser.yy"
 {
    /**
     setup the filename each time before parsing
@@ -1333,7 +1334,7 @@ YYLTYPE yylloc;
 }
 
 /* Line 1242 of yacc.c  */
-#line 1337 "parser.tab.cc"
+#line 1338 "parser.tab.cc"
   yylsp[0] = yylloc;
 
   goto yysetstate;
@@ -1521,70 +1522,70 @@ yyreduce:
         case 2:
 
 /* Line 1455 of yacc.c  */
-#line 115 "parser.yy"
-    { tp._root = new mvv::parser::Ast();}
+#line 116 "parser.yy"
+    { tp._root = new mvv::parser::AstInt( (yyloc), 0 );}
     break;
 
   case 7:
 
 /* Line 1455 of yacc.c  */
-#line 122 "parser.yy"
+#line 123 "parser.yy"
     { std::cout << "INT" << std::endl;;}
     break;
 
   case 8:
 
 /* Line 1455 of yacc.c  */
-#line 123 "parser.yy"
+#line 124 "parser.yy"
     { std::cout << "FLOAT" << std::endl;;}
     break;
 
   case 9:
 
 /* Line 1455 of yacc.c  */
-#line 124 "parser.yy"
+#line 125 "parser.yy"
     { std::cout << "+" << std::endl;;}
     break;
 
   case 10:
 
 /* Line 1455 of yacc.c  */
-#line 125 "parser.yy"
+#line 126 "parser.yy"
     { std::cout << "-" << std::endl;;}
     break;
 
   case 11:
 
 /* Line 1455 of yacc.c  */
-#line 126 "parser.yy"
+#line 127 "parser.yy"
     { std::cout << "*" << std::endl;;}
     break;
 
   case 12:
 
 /* Line 1455 of yacc.c  */
-#line 127 "parser.yy"
+#line 128 "parser.yy"
     { std::cout << "/" << std::endl;;}
     break;
 
   case 15:
 
 /* Line 1455 of yacc.c  */
-#line 130 "parser.yy"
+#line 131 "parser.yy"
     { std::cout << "UMINUS" << std::endl;;}
     break;
 
   case 16:
 
 /* Line 1455 of yacc.c  */
-#line 131 "parser.yy"
+#line 132 "parser.yy"
     { std::cout << "()" << std::endl;;}
     break;
 
 
 
 /* Line 1455 of yacc.c  */
-#line 1588 "parser.tab.cc"
+#line 1589 "parser.tab.cc"
       default: break;
     }
   YY_SYMBOL_PRINT ("-> $$ =", yyr1[yyn], &yyval, &yyloc);
@@ -1803,6 +1804,6 @@ yyreturn:
 
 
 /* Line 1675 of yacc.c  */
-#line 141 "parser.yy"
+#line 142 "parser.yy"
 
 

@@ -379,15 +379,19 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\ast.h"
-				>
-			</File>
-			<File
 				RelativePath=".\error.h"
 				>
 			</File>
 			<File
 				RelativePath=".\forward.h"
+				>
+			</File>
+			<File
+				RelativePath=".\indent.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\indent.h"
 				>
 			</File>
 			<File
@@ -438,6 +442,38 @@
 			</File>
 			<File
 				RelativePath=".\parser.yy"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="ast"
+			>
+			<File
+				RelativePath=".\ast-files.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-float.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-int.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-string.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast.h"
+				>
+			</File>
+			<File
+				RelativePath=".\visitor-print.h"
+				>
+			</File>
+			<File
+				RelativePath=".\visitor.h"
 				>
 			</File>
 		</Filter>

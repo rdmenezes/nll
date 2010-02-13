@@ -2,6 +2,9 @@
 //
 
 #include "mvvScript.h"
+#include "error.h"
+#include "ast-files.h"
+#include "visitor-print.h"
 
 int MVVSCRIPT_API dummy = 0;
 

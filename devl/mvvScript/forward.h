@@ -2,6 +2,7 @@
 # define MVV_PARSER_FORWARD_H_
 
 # include <mvvPlatform/types.h>
+# include "mvvScript.h"
 
 # define YY_NO_UNISTD_H
 # define isatty(x) false
@@ -20,7 +21,7 @@ union YYSTYPE;
 struct yy_buffer_state;
 
 // Define our location type
-struct YYLTYPE
+struct MVVSCRIPT_API YYLTYPE
 {
    YYLTYPE() : filename( mvv::Symbol::create("") )
    {

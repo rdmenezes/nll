@@ -16,6 +16,7 @@
    #include <sstream>
    #include <nll/nll.h>
    #include "parser-context.h"
+   #include "ast-files.h"
 %}
 
 %locations
@@ -112,7 +113,7 @@
 %start program
 
 %%
-program: statement               { tp._root = new mvv::parser::Ast()}
+program: statement               { tp._root = new mvv::parser::AstInt( @$, 0 )}
       
 statement: IF LPAREN rvalue RPAREN statement %prec IFX
           |IF LPAREN rvalue RPAREN statement ELSE statement
