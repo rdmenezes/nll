@@ -1,18 +1,18 @@
 #ifndef MVV_PARSER_AST_INT_H_
 # define MVV_PARSER_AST_INT_H_
 
-# include "ast.h"
+# include "ast-exp.h"
 
 namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API AstInt : public Ast
+   class MVVSCRIPT_API AstInt : public AstExp
    {
    public:
       typedef int    value_type;
 
-      AstInt( const YYLTYPE& location, value_type value ) : Ast( location )
+      AstInt( const YYLTYPE& location, value_type value ) : AstExp( location ), _value( value )
       {
       }
 

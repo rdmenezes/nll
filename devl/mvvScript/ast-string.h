@@ -1,5 +1,5 @@
-#ifndef MVV_PARSER_AST_FLOAT_H_
-# define MVV_PARSER_AST_FLOAT_H_
+#ifndef MVV_PARSER_AST_STRING_H_
+# define MVV_PARSER_AST_STRING_H_
 
 # include "ast-exp.h"
 
@@ -7,12 +7,12 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API AstFloat : public AstExp
+   class MVVSCRIPT_API AstString : public AstExp
    {
    public:
-      typedef float    value_type;
+      typedef std::string    value_type;
 
-      AstFloat( const YYLTYPE& location, value_type value ) : AstExp( location ), _value( value )
+      AstString( const YYLTYPE& location, value_type value ) : AstExp( location ), _value( value )
       {
       }
 

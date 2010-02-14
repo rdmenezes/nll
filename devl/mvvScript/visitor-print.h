@@ -18,17 +18,17 @@ namespace parser
       {
          _o << e.getValue();
       }
-/*
+
       virtual void operator()( nll::core::Constify<AstFloat>::type& e )
       {
-         o << e.getValue();
+         _o << e.getValue();
       }
 
       virtual void operator()( nll::core::Constify<AstString>::type& e )
       {
-         o << e.getValue();
+         _o << e.getValue();
       }
-*/
+
    private:
       std::ostream&     _o;
    };

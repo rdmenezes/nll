@@ -9,6 +9,11 @@ namespace parser
 {
    class Ast;
    class AstInt;
+   class AstFloat;
+   class AstString;
+   class AstBinOp;
+   class AstIf;
+   class AstStatements;
 
    /**
     @brief root of all the visitors
@@ -27,8 +32,8 @@ namespace parser
       }
 
       virtual void operator()( typename Const<AstInt>::type& e ) = 0;
-  //    virtual void operator()( typename Const<AstFloat>::type& e ) = 0;
-  //    virtual void operator()( typename Const<AstString>::type& e ) = 0;
+      virtual void operator()( typename Const<AstFloat>::type& e ) = 0;
+      virtual void operator()( typename Const<AstString>::type& e ) = 0;
    };
 
    /// defines a visitor that is constant

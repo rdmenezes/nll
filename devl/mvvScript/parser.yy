@@ -44,13 +44,17 @@
    int                        ival;
    float                      fval;
    std::string*			      str;
-   const mvv::Symbol*		   symbol;
+   const mvv::Symbol*		  symbol;
+   mvv::parser::AstExp*		  astExp;
+   mvv::parser::Ast*		  ast;
 }
 
 %token <str>    STRING "string"
 %token <symbol> ID     "identifier"
 %token <ival>   INT    "integer"
 %token <fval>   FLOAT  "float"
+
+%type<ast>	statement
 
 %destructor { delete $$; }  		                  "string"
 %destructor { delete $$.symbol; }  	               "symbol"
@@ -113,12 +117,14 @@
 %start program
 
 %%
-program: statement               { tp._root = new mvv::parser::AstInt( @$, 0 )}
-      
-statement: IF LPAREN rvalue RPAREN statement %prec IFX
-          |IF LPAREN rvalue RPAREN statement ELSE statement
-          |rvalue SEMI
-          |statement SEMI statement
+program: statement               { tp._root = $1; }
+
+statements: /* empty */					{ $$ = new AstStatements( @$ ); }
+			|statement SEMI statements	{}
+
+statement: IF LPAREN rvalue RPAREN statement %prec IFX			{ $$ = new AstIf( @$, $3, $5, 0 ); }
+          |IF LPAREN rvalue RPAREN statement ELSE statement		{ $$ = new AstIf( @$, $3, $5, $7 ); }
+          |rvalue												{ $$ = $1;}
      
 rvalue : INT                  { std::cout << "INT" << std::endl;}
         |FLOAT                { std::cout << "FLOAT" << std::endl;}

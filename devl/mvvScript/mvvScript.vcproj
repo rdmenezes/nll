@@ -449,6 +449,10 @@
 			Name="ast"
 			>
 			<File
+				RelativePath=".\ast-exp.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ast-files.h"
 				>
 			</File>
@@ -457,7 +461,19 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ast-if.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ast-int.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-op-bin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-statements.h"
 				>
 			</File>
 			<File
@@ -466,6 +482,10 @@
 			</File>
 			<File
 				RelativePath=".\ast.h"
+				>
+			</File>
+			<File
+				RelativePath=".\typable.h"
 				>
 			</File>
 			<File

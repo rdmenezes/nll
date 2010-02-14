@@ -94,12 +94,15 @@ typedef union YYSTYPE
    int                        ival;
    float                      fval;
    std::string*			      str;
-   const mvv::Symbol*		   symbol;
+   const mvv::Symbol*		  symbol;
+   
+   AstExp*					  astExp;
+   Ast*						  ast;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 103 "parser.tab.hh"
+#line 106 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
