@@ -11,10 +11,11 @@ namespace parser
    class AstInt;
    class AstFloat;
    class AstString;
-   class AstBinOp;
+   class AstOpBin;
    class AstIf;
    class AstStatements;
    class AstExp;
+   class AstExpAssign;
 
    /**
     @brief root of all the visitors

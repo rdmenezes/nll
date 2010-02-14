@@ -449,6 +449,26 @@
 			Name="ast"
 			>
 			<File
+				RelativePath=".\ast-exp-assign.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-exp-float.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-exp-int.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-exp-op-bin.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-exp-string.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ast-exp.h"
 				>
 			</File>
@@ -457,27 +477,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\ast-float.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ast-if.h"
 				>
 			</File>
 			<File
-				RelativePath=".\ast-int.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ast-op-bin.h"
-				>
-			</File>
-			<File
 				RelativePath=".\ast-statements.h"
-				>
-			</File>
-			<File
-				RelativePath=".\ast-string.h"
 				>
 			</File>
 			<File

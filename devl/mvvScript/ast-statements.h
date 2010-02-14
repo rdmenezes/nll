@@ -10,18 +10,19 @@ namespace parser
    class MVVSCRIPT_API AstStatements : public Ast
    {
    public:
+      typedef std::list<Ast*> Statements;
       AstStatements( const YYLTYPE& location ) : Ast( location )
       {
       }
 
-      const std::vector<Ast*>& getStatements() const
+      const Statements& getStatements() const
       {
          return _statements;
       }
 
-      void push_back( Ast* ast )
+      void insert( Ast* ast )
       {
-         _statements.push_back( ast );
+         _statements.push_front( ast );
       }
 
       /// Accept a const visitor \a v.
@@ -37,7 +38,7 @@ namespace parser
       }
 
    private:
-      std::vector<Ast*> _statements;
+      Statements _statements;
    };
 }
 }

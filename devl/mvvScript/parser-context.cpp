@@ -39,7 +39,7 @@ namespace parser
 
       // if parsing fails, deallocate the current AST if any
       // we won't need it...
-      if ( result )
+      if ( result || _error.getStatus() != Error::SUCCESS )
       {
          delete _root;
          _root = 0;

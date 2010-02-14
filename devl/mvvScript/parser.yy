@@ -124,27 +124,25 @@
 program: statements									{ tp._root = $1; }        
 
 statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); std::cout << "create statements" << $$ << std::endl }		
-			|statement statements					{}
-			|rvalue SEMI statements					{}
+			|statement statements					{ $$ = $2; $2->insert( $1 ); }
+			|rvalue SEMI statements					{ $$ = $3; $3->insert( $1 ); }
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX			{ $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE		{ $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
      
-rvalue : INT                  { std::cout << "INT" << std::endl;}
-        |FLOAT                { std::cout << "FLOAT" << std::endl;}
-        |rvalue PLUS rvalue   { std::cout << "+" << std::endl;}
-        |rvalue MINUS rvalue  { std::cout << "-" << std::endl;}
-        |rvalue TIMES rvalue  { std::cout << "*" << std::endl;}
-        |rvalue DIVIDE rvalue { std::cout << "/" << std::endl;}
-        |rvalue AND rvalue
-        |rvalue OR rvalue
-        /*
-        |MINUS rvalue %prec UMINUS{ std::cout << "UMINUS" << std::endl;}
-        */
-        |LPAREN rvalue RPAREN { std::cout << "()" << std::endl;}
-        |STRING
-        |lvalue
-        |lvalue ASSIGN rvalue
+rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
+        |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
+        |rvalue PLUS rvalue   { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::PLUS ); }
+        |rvalue MINUS rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::MINUS ); }
+        |rvalue TIMES rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::TIMES ); }
+        |rvalue DIVIDE rvalue { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::DIVIDE ); }
+        |rvalue AND rvalue	  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::AND ); }
+        |rvalue OR rvalue	  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::OR ); }
+        |MINUS rvalue %prec UMINUS{ $$ = new mvv::parser::AstOpBin( @$, new mvv::parser::AstInt( @$, 0 ) , $2, mvv::parser::AstOpBin::MINUS ); }
+        |LPAREN rvalue RPAREN { $$ = $2; }
+        |STRING				  { $$ = new mvv::parser::AstString( @$, *$1 ); }
+        |lvalue				  { $$ = $1; }
+        |lvalue ASSIGN rvalue { $$ = new mvv::parser::AstExpAssign( @$, $3 ); }
 
      
 lvalue : ID
