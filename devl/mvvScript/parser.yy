@@ -31,7 +31,7 @@
 
 %initial-action
 {
-	yydebug = 0;
+	yydebug = 1;
    /**
     setup the filename each time before parsing
     */
@@ -131,6 +131,9 @@ statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); std:
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX			{ $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE		{ $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
+          |CLASS ID LBRACE var_decs RBRACE SEMI
+          |ID LPAREN args RPAREN SEMI
+          |ID ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE
      
 rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
@@ -151,4 +154,23 @@ lvalue : ID								{ $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }
         |ID LBRACK rvalue RBRACK		{ $$ = new mvv::parser::AstVarArray( @$, new mvv::parser::AstVarSimple( @$, *$1, true ), true, $3 ); }
         |lvalue DOT ID					{ $$ = new mvv::parser::AstVarField( @$, $1, *$3 ); }
         |lvalue LBRACK rvalue RBRACK	{ $$ = new mvv::parser::AstVarArray( @$, $1, true, $3 ); }
+
+var_decs: /* empty */					{}
+	  |var_dec_simple SEMI var_decs		{}
+	  
+var_dec_simple: VAR ID					{}
+	   		    |ID ID					{}
+
+args_add: /* empty */
+		  |COMA rvalue args_add			{}
+		  	  
+args: /* empty */						{}
+	  |rvalue args_add					{}
+	  
+fn_var_dec_add: /* empty */						{}
+		  |COMA var_dec_simple fn_var_dec_add	{}
+		  	  
+fn_var_dec: /* empty */							{}
+	  |var_dec_simple fn_var_dec_add			{}
+	 
 %%
