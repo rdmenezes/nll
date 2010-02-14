@@ -88,16 +88,16 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 42 "parser.yy"
+#line 43 "parser.yy"
 
    // Tokens.
    int                        ival;
    float                      fval;
    std::string*			      str;
    const mvv::Symbol*		  symbol;
-   
-   AstExp*					  astExp;
-   Ast*						  ast;
+   mvv::parser::AstExp*		  astExp;
+   mvv::parser::Ast*		  ast;
+   mvv::parser::AstStatements*astStatements;
 
 
 

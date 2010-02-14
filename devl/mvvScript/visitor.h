@@ -14,6 +14,7 @@ namespace parser
    class AstBinOp;
    class AstIf;
    class AstStatements;
+   class AstExp;
 
    /**
     @brief root of all the visitors

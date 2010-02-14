@@ -215,7 +215,7 @@ namespace parser
    // load several files.
    void
    ParserContext::_scanOpen ()
-   {
+   {  
       static bool first = true;
       if ( first )
       {
