@@ -100,6 +100,7 @@
 %token CLASS               "class"
 %token VOID                "void"
 %token NIL                 "NULL"
+%token RETURN			   "return"
 %token YYEOF   0    "end of file"
 
 /* TODO CHECK*/
@@ -131,9 +132,11 @@ statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); std:
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX			{ $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE		{ $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
-          |CLASS ID LBRACE var_decs RBRACE SEMI
-          |ID LPAREN args RPAREN SEMI
-          |ID ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE
+          |CLASS ID LBRACE var_decs_class RBRACE SEMI
+          |type LPAREN args RPAREN SEMI
+          |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE
+          |type ID SEMI
+          |type ID ASSIGN rvalue SEMI
      
 rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
@@ -155,11 +158,22 @@ lvalue : ID								{ $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }
         |lvalue DOT ID					{ $$ = new mvv::parser::AstVarField( @$, $1, *$3 ); }
         |lvalue LBRACK rvalue RBRACK	{ $$ = new mvv::parser::AstVarArray( @$, $1, true, $3 ); }
 
-var_decs: /* empty */					{}
-	  |var_dec_simple SEMI var_decs		{}
+
 	  
-var_dec_simple: VAR ID					{}
-	   		    |ID ID					{}
+var_decs_class: /* empty */				{}
+	  |var_dec_simple SEMI var_decs_class		{}
+	  |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class	{}	
+	  
+type: VAR					{}
+	  |ID					{}
+	  |INT					{}
+	  |FLOAT				{}
+	  |STRING				{}
+	  |VOID					{}
+	  | type RBRACE LBRACE	{}
+	  
+var_dec_simple: type ID		{}
+	   		    
 
 args_add: /* empty */
 		  |COMA rvalue args_add			{}

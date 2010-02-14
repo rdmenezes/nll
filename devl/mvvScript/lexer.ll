@@ -144,6 +144,7 @@ STRCHR	[A-Za-z_]
 "void"   return VOID;
 "in"     return IN;
 "NULL"   return NIL;
+"return" return RETURN;
 
 
 "="		return ASSIGN;

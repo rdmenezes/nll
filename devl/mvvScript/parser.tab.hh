@@ -76,8 +76,9 @@
      CLASS = 292,
      VOID = 293,
      NIL = 294,
-     IFX = 295,
-     UMINUS = 296
+     RETURN = 295,
+     IFX = 296,
+     UMINUS = 297
    };
 #endif
 
@@ -103,7 +104,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 107 "parser.tab.hh"
+#line 108 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
