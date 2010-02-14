@@ -4,7 +4,7 @@
  
 namespace mvv
 {
-namespace parse
+namespace parser
 {
    /// The slot to store the current indentation level.
   static long int indent_index = std::ios::xalloc();

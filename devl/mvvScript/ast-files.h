@@ -10,5 +10,9 @@
 # include "ast-if.h"
 # include "ast-statements.h"
 # include "ast-exp-assign.h"
+# include "ast-var.h"
+# include "ast-var-simple.h"
+# include "ast-var-array.h"
+# include "ast-var-field.h"
 
 #endif

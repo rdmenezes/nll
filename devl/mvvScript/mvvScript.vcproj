@@ -485,6 +485,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ast-var-array.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-var-field.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-var-simple.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-var.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ast.h"
 				>
 			</File>

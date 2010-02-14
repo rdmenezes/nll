@@ -16,6 +16,10 @@ namespace parser
    class AstStatements;
    class AstExp;
    class AstExpAssign;
+   class AstVar;
+   class AstVarSimple;
+   class AstVarArray;
+   class AstVarField;
 
    /**
     @brief root of all the visitors
@@ -36,6 +40,13 @@ namespace parser
       virtual void operator()( typename Const<AstInt>::type& e ) = 0;
       virtual void operator()( typename Const<AstFloat>::type& e ) = 0;
       virtual void operator()( typename Const<AstString>::type& e ) = 0;
+      virtual void operator()( typename Const<AstOpBin>::type& e ) = 0;
+      virtual void operator()( typename Const<AstIf>::type& e ) = 0;
+      virtual void operator()( typename Const<AstStatements>::type& e ) = 0;
+      virtual void operator()( typename Const<AstExpAssign>::type& e ) = 0;
+      virtual void operator()( typename Const<AstVarSimple>::type& e ) = 0;
+      virtual void operator()( typename Const<AstVarArray>::type& e ) = 0;
+      virtual void operator()( typename Const<AstVarField>::type& e ) = 0;
    };
 
    /// defines a visitor that is constant

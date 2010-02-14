@@ -98,11 +98,12 @@ typedef union YYSTYPE
    mvv::parser::AstExp*		  astExp;
    mvv::parser::Ast*		  ast;
    mvv::parser::AstStatements*astStatements;
+   mvv::parser::AstVar*		  astVar;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 106 "parser.tab.hh"
+#line 107 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

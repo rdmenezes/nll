@@ -49,6 +49,7 @@
    mvv::parser::AstExp*		  astExp;
    mvv::parser::Ast*		  ast;
    mvv::parser::AstStatements*astStatements;
+   mvv::parser::AstVar*		  astVar;
 }
 
 %token <str>    STRING "string"
@@ -58,7 +59,8 @@
 
 %type<ast>				statement
 %type<astStatements>	statements program
-%type<astExp>			rvalue lvalue
+%type<astExp>			rvalue
+%type<astVar>			lvalue
 
 %destructor { delete $$; }  		                  "string"
 %destructor { delete $$.symbol; }  	               "symbol"
@@ -145,8 +147,8 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |lvalue ASSIGN rvalue { $$ = new mvv::parser::AstExpAssign( @$, $3 ); }
 
      
-lvalue : ID
-        |ID LBRACK rvalue RBRACK
-        |lvalue LBRACK rvalue RBRACK
-        |lvalue DOT ID
+lvalue : ID								{ $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }
+        |ID LBRACK rvalue RBRACK		{ $$ = new mvv::parser::AstVarArray( @$, new mvv::parser::AstVarSimple( @$, *$1, true ), true, $3 ); }
+        |lvalue DOT ID					{ $$ = new mvv::parser::AstVarField( @$, $1, *$3 ); }
+        |lvalue LBRACK rvalue RBRACK	{ $$ = new mvv::parser::AstVarArray( @$, $1, true, $3 ); }
 %%
