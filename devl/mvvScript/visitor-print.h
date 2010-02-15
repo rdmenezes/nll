@@ -15,29 +15,29 @@ namespace parser
       {
          switch ( op )
          {
-         case AstOpBin::Op::GE:
+         case AstOpBin::GE:
             return " >= ";
-         case AstOpBin::Op::LE:
+         case AstOpBin::LE:
             return " <= ";
-         case AstOpBin::Op::NE:
+         case AstOpBin::NE:
             return " != ";
-         case AstOpBin::Op::MINUS:
+         case AstOpBin::MINUS:
             return " - ";
-         case AstOpBin::Op::PLUS:
+         case AstOpBin::PLUS:
             return " + ";
-         case AstOpBin::Op::TIMES:
+         case AstOpBin::TIMES:
             return " * ";
-         case AstOpBin::Op::DIVIDE:
+         case AstOpBin::DIVIDE:
             return " / ";
-         case AstOpBin::Op::EQ:
+         case AstOpBin::EQ:
             return " == ";
-         case AstOpBin::Op::GT:
+         case AstOpBin::GT:
             return " > ";
-         case AstOpBin::Op::LT:
+         case AstOpBin::LT:
             return " < ";
-         case AstOpBin::Op::AND:
+         case AstOpBin::AND:
             return " && ";
-         case AstOpBin::Op::OR:
+         case AstOpBin::OR:
             return " || ";
          };
          ensure( 0, "unreachable, or missing a case..." );

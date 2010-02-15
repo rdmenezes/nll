@@ -101,6 +101,11 @@
 %token VOID                "void"
 %token NIL                 "NULL"
 %token RETURN			   "return"
+
+%token INT_T			   "int type"
+%token FLOAT_T			   "float type"
+%token STRING_T			   "string type"
+
 %token YYEOF   0    "end of file"
 
 /* TODO CHECK*/
@@ -133,10 +138,14 @@ statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); std:
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX			{ $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE		{ $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
           |CLASS ID LBRACE var_decs_class RBRACE SEMI
-          |type LPAREN args RPAREN SEMI
+          |lvalue LPAREN args RPAREN SEMI
           |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE
           |type ID SEMI
           |type ID ASSIGN rvalue SEMI
+          |type ID ASSIGN LBRACE args RBRACE SEMI
+          |RETURN rvalue SEMI
+          |RETURN SEMI
+          |LBRACE statements RBRACE
      
 rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
@@ -149,6 +158,7 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |MINUS rvalue %prec UMINUS{ $$ = new mvv::parser::AstOpBin( @$, new mvv::parser::AstInt( @$, 0 ) , $2, mvv::parser::AstOpBin::MINUS ); }
         |LPAREN rvalue RPAREN { $$ = $2; }
         |STRING				  { $$ = new mvv::parser::AstString( @$, *$1 ); }
+        |lvalue ASSIGN LBRACE args RBRACE
         |lvalue				  { $$ = $1; }
         |lvalue ASSIGN rvalue { $$ = new mvv::parser::AstExpAssign( @$, $3 ); }
 
@@ -166,11 +176,11 @@ var_decs_class: /* empty */				{}
 	  
 type: VAR					{}
 	  |ID					{}
-	  |INT					{}
-	  |FLOAT				{}
-	  |STRING				{}
+	  |INT_T				{}
+	  |FLOAT_T				{}
+	  |STRING_T				{}
 	  |VOID					{}
-	  | type RBRACE LBRACE	{}
+	  |type LBRACK RBRACK	{}
 	  
 var_dec_simple: type ID		{}
 	   		    

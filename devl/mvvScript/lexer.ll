@@ -145,6 +145,9 @@ STRCHR	[A-Za-z_]
 "in"     return IN;
 "NULL"   return NIL;
 "return" return RETURN;
+"int"	 return INT_T;
+"float"	 return FLOAT_T;
+"string" return STRING_T;
 
 
 "="		return ASSIGN;
