@@ -17,8 +17,14 @@
 # include "ast-type.h"
 # include "ast-decl.h"
 # include "ast-decl-var.h"
+# include "ast-decl-fun.h"
 # include "ast-decl-vars.h"
 # include "ast-decls.h"
 # include "ast-args.h"
+# include "ast-return.h"
+# include "ast-import.h"
+# include "ast-include.h"
+# include "ast-exp-call.h"
+# include "ast-decl-class.h"
 
 #endif

@@ -16,6 +16,7 @@ namespace parser
    class AstStatements;
    class AstExp;
    class AstExpAssign;
+   class AstExpCall;
    class AstVar;
    class AstVarSimple;
    class AstVarArray;
@@ -27,6 +28,11 @@ namespace parser
    class AstDecls;
    class AstDeclVars;
    class AstArgs;
+   class AstDeclFun;
+   class AstReturn;
+   class AstImport;
+   class AstInclude;
+   class AstDeclClass;
 
    /**
     @brief root of all the visitors

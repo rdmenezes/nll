@@ -22,9 +22,9 @@ namespace parser
          return _name;
       }
 
-      const AstType* getType() const
+      const AstType& getType() const
       {
-         return _type;
+         return *_type;
       }
 
       const AstExp* getInit() const
