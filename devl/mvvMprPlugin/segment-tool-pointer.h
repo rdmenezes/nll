@@ -124,6 +124,9 @@ namespace platform
             return;
          }
 
+         //
+         // TODO: bug lurking around... check the bound
+         //
          float v = isHighlighted ? 1.0f : 0.7f;
          nll::core::vector3uc val( static_cast<ui8>( v * _pointerColor[ 0 ] ), 
                                    static_cast<ui8>( v * _pointerColor[ 1 ] ),
