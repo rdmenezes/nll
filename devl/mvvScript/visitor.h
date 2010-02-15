@@ -21,6 +21,13 @@ namespace parser
    class AstVarArray;
    class AstVarField;
 
+   class AstType;
+   class AstDecl;
+   class AstDeclVar;
+   class AstDecls;
+   class AstDeclVars;
+   class AstArgs;
+
    /**
     @brief root of all the visitors
     */

@@ -31,7 +31,7 @@
 
 %initial-action
 {
-	yydebug = 1;
+	yydebug = tp._parse_trace_p;
    /**
     setup the filename each time before parsing
     */
@@ -45,11 +45,16 @@
    int                        ival;
    float                      fval;
    std::string*			      str;
-   const mvv::Symbol*		  symbol;
-   mvv::parser::AstExp*		  astExp;
-   mvv::parser::Ast*		  ast;
+   const mvv::Symbol*		   symbol;
+   mvv::parser::AstExp*		   astExp;
+   mvv::parser::Ast*		      ast;
    mvv::parser::AstStatements*astStatements;
-   mvv::parser::AstVar*		  astVar;
+   mvv::parser::AstVar*		   astVar;
+   mvv::parser::AstType*      astType;
+   mvv::parser::AstDeclVar*   astDeclVar;
+   mvv::parser::AstDecls*     astDecls;
+   mvv::parser::AstDeclVars*  astDeclVars;
+   mvv::parser::AstArgs*      astArgs;
 }
 
 %token <str>    STRING "string"
@@ -57,10 +62,17 @@
 %token <ival>   INT    "integer"
 %token <fval>   FLOAT  "float"
 
-%type<ast>				statement
-%type<astStatements>	statements program
-%type<astExp>			rvalue
-%type<astVar>			lvalue
+%type<ast>				   statement
+%type<astStatements>	   statements program
+%type<astExp>			   rvalue
+%type<astVar>			   lvalue
+%type<astType>          type
+%type<astDeclVar>       var_dec_simple
+%type<astDecls>         var_decs_class
+%type<astDeclVars>      fn_var_dec_add
+%type<astDeclVars>      fn_var_dec
+%type<astArgs>          args_add
+%type<astArgs>          args
 
 %destructor { delete $$; }  		                  "string"
 %destructor { delete $$.symbol; }  	               "symbol"
@@ -92,24 +104,25 @@
 %token SEMI         ";"
 %token TIMES        "*"
 
-%token OPERATORPARENT      "operator()"
-%token OPERATORBRACKET     "operator[]"
-%token FOR                 "for"
-%token IN                  "in"
-%token VAR                 "var"
-%token CLASS               "class"
-%token VOID                "void"
-%token NIL                 "NULL"
+%token OPERATORPARENT   "operator()"
+%token OPERATORBRACKET  "operator[]"
+%token FOR              "for"
+%token IN               "in"
+%token VAR              "var"
+%token CLASS            "class"
+%token VOID             "void"
+%token NIL              "NULL"
 %token RETURN			   "return"
 
 %token INT_T			   "int type"
 %token FLOAT_T			   "float type"
-%token STRING_T			   "string type"
+%token STRING_T			"string type"
+%token ARRAY_T          "[]"
 
-%token YYEOF   0    "end of file"
+%token IMPORT           "import"
+%token INCLUDE          "include"
 
-/* TODO CHECK*/
-/*%left SEMI*/
+%token YYEOF   0        "end of file"
 
 %left ID
 %left LBRACK
@@ -137,15 +150,18 @@ statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); std:
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX			{ $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE		{ $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
-          |CLASS ID LBRACE var_decs_class RBRACE SEMI
+          |CLASS ID LBRACE var_decs_class RBRACE
           |lvalue LPAREN args RPAREN SEMI
           |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE
           |type ID SEMI
           |type ID ASSIGN rvalue SEMI
           |type ID ASSIGN LBRACE args RBRACE SEMI
+          |type ID LPAREN fn_var_dec RPAREN SEMI
           |RETURN rvalue SEMI
           |RETURN SEMI
           |LBRACE statements RBRACE
+          |IMPORT STRING
+          |INCLUDE STRING
      
 rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
@@ -170,31 +186,37 @@ lvalue : ID								{ $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }
 
 
 	  
-var_decs_class: /* empty */				{}
-	  |var_dec_simple SEMI var_decs_class		{}
-	  |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class	{}	
+var_decs_class: /* empty */				                                                      { $$ = new mvv::parser::AstDecls( @$ ); }
+	  |var_dec_simple SEMI var_decs_class		                                                { $$ = $3; $$->insert( $1 ); }
+	  |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class	            {}	
+	  |type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                   {}
+	  |type OPERATORBRACKET LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class	{}	
+	  |type OPERATORBRACKET LPAREN fn_var_dec RPAREN SEMI var_decs_class                      {}
+	  |type OPERATORPARENT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class	{}	
+	  |type OPERATORPARENT LPAREN fn_var_dec RPAREN SEMI var_decs_class                       {}
 	  
-type: VAR					{}
-	  |ID					{}
-	  |INT_T				{}
-	  |FLOAT_T				{}
-	  |STRING_T				{}
-	  |VOID					{}
-	  |type LBRACK RBRACK	{}
+type: VAR				{ $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
+	  |ID					{ $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR, $1 );}
+	  |INT_T				{ $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::INT ); }
+	  |FLOAT_T			{ $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::FLOAT );}
+	  |STRING_T			{ $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::STRING ); }
+	  |VOID				{ $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VOID );}
+	  |type ARRAY_T	{ $$ = $1; $$->setArray( true ); }
 	  
-var_dec_simple: type ID		{}
+var_dec_simple: type ID		                  { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 ); }
+               |type ID ASSIGN rvalue        { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }
 	   		    
 
-args_add: /* empty */
-		  |COMA rvalue args_add			{}
+args_add: /* empty */                        { $$ = new mvv::parser::AstArgs( @$ ); }
+		  |COMA rvalue args_add			         { $$ = $3; $$->insert( $2 ); }
 		  	  
-args: /* empty */						{}
-	  |rvalue args_add					{}
+args: /* empty */						            { $$ = new mvv::parser::AstArgs( @$ ); }
+	  |rvalue args_add			               { $$ = $2; $$->insert( $1 ); }
 	  
-fn_var_dec_add: /* empty */						{}
-		  |COMA var_dec_simple fn_var_dec_add	{}
+fn_var_dec_add: /* empty */						{ $$ = new mvv::parser::AstDeclVars( @$ ); }
+		  |COMA var_dec_simple fn_var_dec_add	{ $$ = $3; $$->insert( $2 ); }
 		  	  
-fn_var_dec: /* empty */							{}
-	  |var_dec_simple fn_var_dec_add			{}
+fn_var_dec: /* empty */							   { $$ = new mvv::parser::AstDeclVars( @$ ); }
+	  |var_dec_simple fn_var_dec_add			   { $$ = $2; $$->insert( $1 ); }
 	 
 %%

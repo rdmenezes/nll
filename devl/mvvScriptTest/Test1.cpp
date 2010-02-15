@@ -53,32 +53,32 @@ struct TestBasic
       TESTER_ASSERT( exp );
       exp = context.parseString( "if (1 * atest1.val[a[8]+3] ) { 2.5; 5; } else { 3; }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class test { var a; int n; };" );
+      exp = context.parseString( "class test { var a; int n; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "call(4, 3); call(); call(4);" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int call( int n ){5;5;}" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class Test{ int haha( test a){5;} };" );
+      exp = context.parseString( "class Test{ int haha( test a){5;} }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int test = 0; int main(){ dsf haha; int test; }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class Test{ int aa; int haha( test a){5;} };" );
+      exp = context.parseString( "class Test{ int aa; int haha( test a){5;} }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class Test{ int aa; int haha( test a){5;} float test2; };" );
+      exp = context.parseString( "class Test{ int aa; int haha( test a){5;} float test2; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int main(){test.print(\"asf\"); return 0;}" );
       TESTER_ASSERT( exp );
-      
       exp = context.parseString( "{var list; list = {5, 4, 3};}" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "var list = {3, 4};" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "{int a = 3 + test;}" );
       TESTER_ASSERT( exp );
-      /*
       exp = context.parseString( "int[] list = {3, 4};" );
-      TESTER_ASSERT( exp );*/
+      TESTER_ASSERT( exp );
+      exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
+      TESTER_ASSERT( exp );
 
       std::cout << "msg=" << context.getError();
    }
@@ -90,7 +90,7 @@ struct TestBasic
        Ast* exp = 0;
       
 
-       exp = context.parseString( "dfkn[] a;" );
+       exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
        std::cout << "msg=" << context.getError();
        TESTER_ASSERT( exp );
 

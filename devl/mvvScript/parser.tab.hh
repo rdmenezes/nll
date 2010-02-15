@@ -80,8 +80,11 @@
      INT_T = 296,
      FLOAT_T = 297,
      STRING_T = 298,
-     IFX = 299,
-     UMINUS = 300
+     ARRAY_T = 299,
+     IMPORT = 300,
+     INCLUDE = 301,
+     IFX = 302,
+     UMINUS = 303
    };
 #endif
 
@@ -98,16 +101,21 @@ typedef union YYSTYPE
    int                        ival;
    float                      fval;
    std::string*			      str;
-   const mvv::Symbol*		  symbol;
-   mvv::parser::AstExp*		  astExp;
-   mvv::parser::Ast*		  ast;
+   const mvv::Symbol*		   symbol;
+   mvv::parser::AstExp*		   astExp;
+   mvv::parser::Ast*		      ast;
    mvv::parser::AstStatements*astStatements;
-   mvv::parser::AstVar*		  astVar;
+   mvv::parser::AstVar*		   astVar;
+   mvv::parser::AstType*      astType;
+   mvv::parser::AstDeclVar*   astDeclVar;
+   mvv::parser::AstDecls*     astDecls;
+   mvv::parser::AstDeclVars*  astDeclVars;
+   mvv::parser::AstArgs*      astArgs;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 111 "parser.tab.hh"
+#line 119 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

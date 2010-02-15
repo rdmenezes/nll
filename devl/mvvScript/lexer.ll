@@ -134,20 +134,23 @@ STRCHR	[A-Za-z_]
   return FLOAT;
 }
 
-"operator[]" return OPERATORBRACKET;
-"operator()" return OPERATORPARENT;
-"for"    return FOR;
-"if"		return IF;
-"else"   return ELSE;
-"var"    return VAR;
-"class"  return CLASS;
-"void"   return VOID;
-"in"     return IN;
-"NULL"   return NIL;
-"return" return RETURN;
-"int"	 return INT_T;
-"float"	 return FLOAT_T;
-"string" return STRING_T;
+"operator[]"   return OPERATORBRACKET;
+"operator()"   return OPERATORPARENT;
+"for"          return FOR;
+"if"		      return IF;
+"else"         return ELSE;
+"var"          return VAR;
+"class"        return CLASS;
+"void"         return VOID;
+"in"           return IN;
+"NULL"         return NIL;
+"return"       return RETURN;
+"int"	         return INT_T;
+"float"	      return FLOAT_T;
+"string"       return STRING_T;
+"[]"           return ARRAY_T;
+"import"       return IMPORT;
+"include"      return INCLUDE;
 
 
 "="		return ASSIGN;

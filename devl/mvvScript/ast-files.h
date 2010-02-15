@@ -14,5 +14,11 @@
 # include "ast-var-simple.h"
 # include "ast-var-array.h"
 # include "ast-var-field.h"
+# include "ast-type.h"
+# include "ast-decl.h"
+# include "ast-decl-var.h"
+# include "ast-decl-vars.h"
+# include "ast-decls.h"
+# include "ast-args.h"
 
 #endif
