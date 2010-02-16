@@ -300,6 +300,11 @@ namespace parser
       }
 
    private:
+      // disabled
+      VisitorPrint& operator=( const VisitorPrint& );
+      VisitorPrint( const VisitorPrint& );
+
+   private:
       std::ostream&     _o;
    };
 }

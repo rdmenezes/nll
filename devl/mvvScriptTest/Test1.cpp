@@ -3,6 +3,7 @@
 #include <mvvScript/parser-context.h>
 #include <mvvScript/visitor-print.h>
 #include <mvvScript/visitor-default.h>
+#include <mvvScript/visitor-bind.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -87,21 +88,25 @@ struct TestBasic
 
    void testTmp()
    {
-       ParserContext context;
-       VisitorPrint visitor( std::cout );
-       Ast* exp = 0;
-      
-       exp = context.parseString( "class Test{ int aa; int haha( test a){ return 5;} float test2 = -1.0; }" );
-       std::cout << "msg=" << context.getError();
-       TESTER_ASSERT( exp );
+      SymbolTableVars vars;
+      vars.insert( mvv::Symbol::create(""), 0 );
+      vars.find( mvv::Symbol::create("") );
 
-       std::cout << std::endl;
-       visitor( *exp );
+      ParserContext context;
+      VisitorPrint visitor( std::cout );
+      Ast* exp = 0;
+      
+      exp = context.parseString( "class Test{ int aa; int haha( test a){ return 5;} float test2 = -1.0; }" );
+      std::cout << "msg=" << context.getError();
+      TESTER_ASSERT( exp );
+
+      std::cout << std::endl;
+      visitor( *exp );
    }
 };
 
 TESTER_TEST_SUITE(TestBasic);
 TESTER_TEST(testDummy2);
 //TESTER_TEST(testDummy1);
-//TESTER_TEST(testTmp);
+TESTER_TEST(testTmp);
 TESTER_TEST_SUITE_END();

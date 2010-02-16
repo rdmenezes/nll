@@ -5,6 +5,10 @@
 #include "error.h"
 #include "ast-files.h"
 #include "visitor-print.h"
+#include "visitor-default.h"
+#include "visitor-bind.h"
+#include "symbol-table.h"
+
 
 int MVVSCRIPT_API dummy = 0;
 
