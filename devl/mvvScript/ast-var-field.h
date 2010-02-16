@@ -28,6 +28,11 @@ namespace parser
          return *_field;
       }
 
+      AstVar& getField()
+      {
+         return *_field;
+      }
+
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {

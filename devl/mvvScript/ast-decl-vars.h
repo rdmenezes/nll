@@ -27,6 +27,11 @@ namespace parser
          return _decls;
       }
 
+      Decls& getVars()
+      {
+         return _decls;
+      }
+
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {

@@ -7,12 +7,12 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API AstCall : public AstExp
+   class MVVSCRIPT_API AstExpCall : public AstExp
    {
    public:
       typedef float    value_type;
 
-      AstCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstExp( location ), _name( name ), _args( args )
+      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstExp( location ), _name( name ), _args( args )
       {
          ensure( name && args, "can't be null" );
       }
@@ -22,7 +22,17 @@ namespace parser
          return *_name;
       }
 
+      AstVar& getName()
+      {
+         return *_name;
+      }
+
       const AstArgs& getArgs() const
+      {
+         return *_args;
+      }
+
+      AstArgs& getArgs()
       {
          return *_args;
       }

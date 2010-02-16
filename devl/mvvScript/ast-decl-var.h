@@ -27,7 +27,17 @@ namespace parser
          return *_type;
       }
 
+      AstType& getType()
+      {
+         return *_type;
+      }
+
       const AstExp* getInit() const
+      {
+         return _init;
+      }
+
+      AstExp* getInit()
       {
          return _init;
       }

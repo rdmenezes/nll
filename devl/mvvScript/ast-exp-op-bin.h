@@ -37,10 +37,21 @@ namespace parser
          return *_left;
       }
 
+      Ast& getLeft()
+      {
+         return *_left;
+      }
+
       const Ast& getRight() const
       {
          return *_right;
       }
+
+      Ast& getRight()
+      {
+         return *_right;
+      }
+
 
       Op getOp() const
       {

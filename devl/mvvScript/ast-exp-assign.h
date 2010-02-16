@@ -20,7 +20,17 @@ namespace parser
          return *_value;
       }
 
+      AstExp& getValue()
+      {
+         return *_value;
+      }
+
       const AstExp& getLValue() const
+      {
+         return *_lvalue;
+      }
+
+      AstExp& getLValue()
       {
          return *_lvalue;
       }

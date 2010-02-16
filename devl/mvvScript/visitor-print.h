@@ -76,18 +76,13 @@ namespace parser
       {
          _o << "if ( ";
          operator()( e.getCondition() );
-         _o << " )"  << iendl
-            << "{"   << incendl;
+         _o << " )"  << iendl;
          operator()( e.getThen() );
-         _o << decendl
-            << "}";
 
          if ( e.getElse() )
          {
-            _o << " else {"   << incendl;
+            _o << " else ";
          operator()( *e.getElse() );
-         _o << decendl
-            << "}";
          } else {
             _o << iendl;
          }
@@ -96,6 +91,11 @@ namespace parser
       virtual void operator()( const AstStatements& e )
       {
          unsigned n = 0;
+         if ( e.getStatements().size() )
+         {
+            _o << "{" << incendl;
+         }
+
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
                ++it, ++n )
@@ -111,6 +111,11 @@ namespace parser
             }
             if ( n + 1 != e.getStatements().size() )
                _o << iendl;
+         }
+
+         if ( e.getStatements().size() )
+         {
+            _o << decendl << "}";
          }
       }
 
@@ -235,9 +240,8 @@ namespace parser
          
          if ( e.getBody() )
          {
-            _o << iendl << "{" << incendl;
+            _o << iendl;
             operator()( *e.getBody() );
-            _o << decendl << "}";
          }
       }
 
@@ -272,6 +276,19 @@ namespace parser
       virtual void operator()( const AstInclude& e )
       {
          _o << "include \"" << e.getStr() << "\"";
+      }
+
+      virtual void operator()( const AstExpCall& e )
+      {
+         operator()( e.getName() );
+         if ( e.getArgs().getArgs().size() )
+         {
+            _o << "( ";
+            operator()( e.getArgs() );
+            _o << " )";
+         } else {
+            _o << "()";
+         }
       }
 
 

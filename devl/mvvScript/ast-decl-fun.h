@@ -28,12 +28,27 @@ namespace parser
          return *_type;
       }
 
+      AstType& getType()
+      {
+         return *_type;
+      }
+
       const AstStatements* getBody() const
       {
          return _body;
       }
 
+      AstStatements* getBody()
+      {
+         return _body;
+      }
+
       const AstDeclVars& getVars() const
+      {
+         return *_vars;
+      }
+
+      AstDeclVars& getVars()
       {
          return *_vars;
       }

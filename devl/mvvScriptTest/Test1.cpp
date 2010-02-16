@@ -2,6 +2,7 @@
 #include <mvvPlatform/types.h>
 #include <mvvScript/parser-context.h>
 #include <mvvScript/visitor-print.h>
+#include <mvvScript/visitor-default.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -9,16 +10,9 @@ using namespace mvv::parser;
 
 struct TestBasic
 {
-   void test1()
-   {
-      ParserContext context;
-      Ast* exp = context.parseFile( "c:/tmp/test1.txt" );
-      //Ast* exp = context.parseString( "1212 sttr " );
-      std::cout << " --------ast=" << exp << std::endl;
-
-      std::cout << "msg=" << context.getError();
-   }
-
+   /**
+    @brief basic input to test the lexer && parser only
+    */
    void testDummy1()
    {
       ParserContext context;
@@ -44,7 +38,6 @@ struct TestBasic
        ParserContext context;
        Ast* exp = 0;
       
-
       exp = context.parseString( "if (1) { 2.5; 5; } else { 3; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "4;5;6;" );
@@ -85,6 +78,8 @@ struct TestBasic
       TESTER_ASSERT( exp );
       exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string[] strings; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
       TESTER_ASSERT( exp );
+      exp = context.parseString( "getVal(5);" );
+      TESTER_ASSERT( exp );
 
 
       std::cout << "msg=" << context.getError();
@@ -96,7 +91,7 @@ struct TestBasic
        VisitorPrint visitor( std::cout );
        Ast* exp = 0;
       
-       exp = context.parseString( "getVal(5);" );
+       exp = context.parseString( "class Test{ int aa; int haha( test a){ return 5;} float test2 = -1.0; }" );
        std::cout << "msg=" << context.getError();
        TESTER_ASSERT( exp );
 
@@ -106,7 +101,7 @@ struct TestBasic
 };
 
 TESTER_TEST_SUITE(TestBasic);
-//TESTER_TEST(testDummy2);
+TESTER_TEST(testDummy2);
 //TESTER_TEST(testDummy1);
-TESTER_TEST(testTmp);
+//TESTER_TEST(testTmp);
 TESTER_TEST_SUITE_END();

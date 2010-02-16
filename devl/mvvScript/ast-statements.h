@@ -20,6 +20,11 @@ namespace parser
          return _statements;
       }
 
+      Statements& getStatements()
+      {
+         return _statements;
+      }
+
       void insert( Ast* ast )
       {
          _statements.push_front( ast );

@@ -20,12 +20,27 @@ namespace parser
          return *_condition;
       }
 
+      Ast& getCondition()
+      {
+         return *_condition;
+      }
+
       const Ast& getThen() const
       {
          return *_then;
       }
 
+      Ast& getThen()
+      {
+         return *_then;
+      }
+
       const Ast* getElse() const
+      {
+         return _else;
+      }
+
+      Ast* getElse()
       {
          return _else;
       }

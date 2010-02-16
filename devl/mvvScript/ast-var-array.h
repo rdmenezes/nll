@@ -20,7 +20,17 @@ namespace parser
          return *_name;
       }
 
+      AstVar& getName()
+      {
+         return *_name;
+      }
+
       const AstExp& getIndex() const
+      {
+         return *_index;
+      }
+
+      AstExp& getIndex()
       {
          return *_index;
       }

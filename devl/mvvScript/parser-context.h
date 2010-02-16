@@ -32,6 +32,8 @@ namespace parser
       ParserContext()
       {
          _root = 0;
+         _parse_trace_p = false;
+         _scan_trace_p = false;
       }
 
       Ast* parseFile( const std::string& file );

@@ -14,7 +14,12 @@ namespace parser
       {
       }
 
-      AstExp* getReturnValue() const
+      const AstExp* getReturnValue() const
+      {
+         return _retVal;
+      }
+
+      AstExp* getReturnValue()
       {
          return _retVal;
       }

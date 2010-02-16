@@ -144,7 +144,7 @@
 %%
 program: statements									{ tp._root = $1; }        
 
-statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); std::cout << "create statements" << $$ << std::endl }		
+statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); }		
 			|statement statements					{ $$ = $2; $2->insert( $1 ); }
 			|rvalue SEMI statements					{ $$ = $3; $3->insert( $1 ); }
 
@@ -176,7 +176,7 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |lvalue ASSIGN LBRACE args RBRACE { /* TODO*/ }
         |lvalue				  { $$ = $1; }
         |lvalue ASSIGN rvalue { $$ = new mvv::parser::AstExpAssign( @$, $1, $3 ); }
-        |lvalue LPAREN args RPAREN SEMI { $$ = new mvv::parser::AstCall( @$, $1, $3 ); }
+        |lvalue LPAREN args RPAREN { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
 
      
 lvalue : ID								{ $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }

@@ -28,6 +28,11 @@ namespace parser
          return _args;
       }
 
+      Args& getArgs()
+      {
+         return _args;
+      }
+
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {

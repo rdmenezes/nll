@@ -69,6 +69,7 @@ namespace parser
       virtual void operator()( typename Const<AstReturn>::type& e ) = 0;
       virtual void operator()( typename Const<AstImport>::type& e ) = 0;
       virtual void operator()( typename Const<AstInclude>::type& e ) = 0;
+      virtual void operator()( typename Const<AstExpCall>::type& e ) = 0;
    };
 
    /// defines a visitor that is constant

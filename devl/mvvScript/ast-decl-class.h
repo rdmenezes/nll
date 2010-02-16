@@ -28,6 +28,11 @@ namespace parser
          return *_decls;
       }
 
+      AstDecls& getDeclarations()
+      {
+         return *_decls;
+      }
+
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {
