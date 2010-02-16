@@ -1,5 +1,5 @@
-#ifndef MVV_PARSER_AST_TYPE_H_
-# define MVV_PARSER_AST_TYPE_H_
+#ifndef MVV_PARSER_AST_TYPE2_H_
+# define MVV_PARSER_AST_TYPE2_H_
 
 # include "typable.h"
 # include "ast-exp.h"
@@ -21,11 +21,13 @@ namespace parser
          SYMBOL
       };
 
-      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0 ) : Ast( location ), _type( type )
+      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0 ) : Ast( location ), _type( type ), _isArray( false )
       {
          if ( symbol )
          {
             _symbol = new mvv::Symbol( *symbol );
+         } else {
+            _symbol = 0;
          }
       }
 

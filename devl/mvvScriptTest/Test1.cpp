@@ -79,6 +79,13 @@ struct TestBasic
       TESTER_ASSERT( exp );
       exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
       TESTER_ASSERT( exp );
+      exp = context.parseString( "a[1].a[5] = 2*3+1;" );
+      TESTER_ASSERT( exp );
+      exp = context.parseString( "int[] n = 2 * 3;" );
+      TESTER_ASSERT( exp );
+      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string[] strings; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
+      TESTER_ASSERT( exp );
+
 
       std::cout << "msg=" << context.getError();
    }
@@ -89,8 +96,7 @@ struct TestBasic
        VisitorPrint visitor( std::cout );
        Ast* exp = 0;
       
-
-       exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
+       exp = context.parseString( "getVal(5);" );
        std::cout << "msg=" << context.getError();
        TESTER_ASSERT( exp );
 

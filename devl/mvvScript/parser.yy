@@ -175,7 +175,7 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |STRING				  { $$ = new mvv::parser::AstString( @$, *$1 ); }
         |lvalue ASSIGN LBRACE args RBRACE { /* TODO*/ }
         |lvalue				  { $$ = $1; }
-        |lvalue ASSIGN rvalue { $$ = new mvv::parser::AstExpAssign( @$, $3 ); }
+        |lvalue ASSIGN rvalue { $$ = new mvv::parser::AstExpAssign( @$, $1, $3 ); }
         |lvalue LPAREN args RPAREN SEMI { $$ = new mvv::parser::AstCall( @$, $1, $3 ); }
 
      

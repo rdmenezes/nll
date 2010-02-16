@@ -19,7 +19,7 @@ namespace parser
 
       void insert( AstExp* ast )
       {
-         assert( ast, "can't be null" );
+         ensure( ast, "can't be null" );
          _args.push_front( ast );
       }
 

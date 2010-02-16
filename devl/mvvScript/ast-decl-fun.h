@@ -15,10 +15,10 @@ namespace parser
    public:
       AstDeclFun( const YYLTYPE& location, AstType* type, const mvv::Symbol& name, AstDeclVars* vars, AstStatements * body = 0 ) : AstDecl( location ), _type( type ), _name( name ), _vars( vars ), _body( body )
       {
-         ensure( type, "can't be null" );
+         ensure( type && vars, "can't be null" );
       }
 
-      mvv::Symbol getName() const
+      const mvv::Symbol& getName() const
       {
          return _name;
       }
@@ -31,6 +31,11 @@ namespace parser
       const AstStatements* getBody() const
       {
          return _body;
+      }
+
+      const AstDeclVars& getVars() const
+      {
+         return *_vars;
       }
 
       /// Accept a const visitor \a v.

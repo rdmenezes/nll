@@ -1848,7 +1848,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 178 "parser.yy"
-    { (yyval.astExp) = new mvv::parser::AstExpAssign( (yyloc), (yyvsp[(3) - (3)].astExp) ); ;}
+    { (yyval.astExp) = new mvv::parser::AstExpAssign( (yyloc), (yyvsp[(1) - (3)].astVar), (yyvsp[(3) - (3)].astExp) ); ;}
     break;
 
   case 33:

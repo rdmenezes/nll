@@ -62,7 +62,7 @@ namespace parser
 
       virtual void operator()( const AstString& e )
       {
-         _o << e.getValue();
+         _o << "\"" << e.getValue() << "\"";
       }
 
       virtual void operator()( const AstOpBin& e )
@@ -95,21 +95,30 @@ namespace parser
 
       virtual void operator()( const AstStatements& e )
       {
+         unsigned n = 0;
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
-               ++it )
+               ++it, ++n )
          {
             operator()( **it );
 
-            if ( !dynamic_cast<AstIf*>( *it ) )
+            if ( !dynamic_cast<AstIf*>( *it ) &&
+                 !dynamic_cast<AstDeclClass*>( *it ) && 
+                 !dynamic_cast<AstImport*>( *it )    &&
+                 !dynamic_cast<AstInclude*>( *it ) )
             {
                _o << ";";
             }
+            if ( n + 1 != e.getStatements().size() )
+               _o << iendl;
          }
       }
 
       virtual void operator()( const AstExpAssign& e )
       {
+         operator()( e.getLValue() );
+         _o << " = ";
+         operator()( e.getValue() );
       }
 
       virtual void operator()( const AstVarSimple& e )
@@ -130,6 +139,143 @@ namespace parser
          operator()( e.getField() );
          _o << "." << e.getName();
       }
+
+      virtual void operator()( const AstType& e )
+      {
+         if ( e.getSymbol() )
+            _o << *e.getSymbol();
+         else
+         {
+            switch ( e.getType() )
+            {
+            case AstType::INT:
+               _o << "int";
+               break;
+            case AstType::FLOAT:
+               _o << "float";
+               break;
+            case AstType::STRING:
+               _o << "string";
+               break;
+            case AstType::VOID:
+               _o << "void";
+               break;
+            case AstType::VAR:
+               _o << "var";
+               break;
+            default:
+               ensure( 0, "runtime error: unknown type" );
+            }
+         }
+         if ( e.isArray() )
+         {
+            _o << "[]";
+         }
+      }
+
+      virtual void operator()( const AstDeclVar& e )
+      {
+         operator()( e.getType() );
+         _o << " " << e.getName();
+         if ( e.getInit() )
+         {
+            _o << " = ";
+            operator()( *e.getInit() );
+         }
+      }
+
+      virtual void operator()( const AstDecls& e )
+      {
+         unsigned n = 0;
+         for ( AstDecls::Decls::const_iterator it = e.getDecls().begin(); it != e.getDecls().end(); ++it, ++n )
+         {
+            operator()( **it );
+
+            const AstDeclFun* fun = dynamic_cast<const AstDeclFun*>( *it );
+            const AstDeclVar* var = dynamic_cast<const AstDeclVar*>( *it );
+            if ( ( fun && !fun->getBody() ) || var )
+            {
+               _o << ";";
+            }
+            if ( n + 1 != e.getDecls().size() )
+               _o << iendl;
+         }
+      }
+
+      virtual void operator()( const AstDeclVars& e )
+      {
+         ui32 n = 0;
+         for ( AstDeclVars::Decls::const_iterator it = e.getVars().begin(); it != e.getVars().end(); ++it, ++n )
+         {
+            operator()( **it );
+            if ( n != e.getVars().size() - 1 )
+               _o << ", ";
+         }
+      }
+
+      virtual void operator()( const AstDeclClass& e )
+      {
+         _o << "class " << e.getName() << iendl << "{" << incendl;
+         operator()( e.getDeclarations() );
+         _o << decendl << "}";
+      }
+
+      virtual void operator()( const AstDeclFun& e ) 
+      {
+         operator()( e.getType() );
+         _o << " " << e.getName();
+         if ( e.getVars().getVars().size() )
+         {
+            _o << "( ";
+            operator()( e.getVars() );
+            _o << " )";
+         } else {
+            _o << "()";
+         }
+         
+         if ( e.getBody() )
+         {
+            _o << iendl << "{" << incendl;
+            operator()( *e.getBody() );
+            _o << decendl << "}";
+         }
+      }
+
+      virtual void operator()( const AstArgs& e )
+      {
+         unsigned n = 0;
+         for ( AstArgs::Args::const_iterator it = e.getArgs().begin(); it != e.getArgs().end(); ++it, ++n )
+         {
+            operator()( **it );
+            if ( n + 1 != e.getArgs().size() )
+            {
+               _o << ", ";
+            }
+         }
+      }
+
+      virtual void operator()( const AstReturn& e )
+      {
+         _o << "return";
+         if ( e.getReturnValue() )
+         {
+            _o << " ";
+            operator()( *e.getReturnValue() );
+         }
+      }
+
+      virtual void operator()( const AstImport& e )
+      {
+         _o << "import \"" << e.getStr() << "\"";
+      }
+
+      virtual void operator()( const AstInclude& e )
+      {
+         _o << "include \"" << e.getStr() << "\"";
+      }
+
+
+
 
       virtual void operator()( const Ast& e )
       {

@@ -21,18 +21,17 @@ namespace parser
    class AstVarSimple;
    class AstVarArray;
    class AstVarField;
-
    class AstType;
    class AstDecl;
    class AstDeclVar;
    class AstDecls;
    class AstDeclVars;
-   class AstArgs;
+   class AstDeclClass;
    class AstDeclFun;
+   class AstArgs;
    class AstReturn;
    class AstImport;
    class AstInclude;
-   class AstDeclClass;
 
    /**
     @brief root of all the visitors
@@ -60,6 +59,16 @@ namespace parser
       virtual void operator()( typename Const<AstVarSimple>::type& e ) = 0;
       virtual void operator()( typename Const<AstVarArray>::type& e ) = 0;
       virtual void operator()( typename Const<AstVarField>::type& e ) = 0;
+      virtual void operator()( typename Const<AstType>::type& e ) = 0;
+      virtual void operator()( typename Const<AstDeclVar>::type& e ) = 0;
+      virtual void operator()( typename Const<AstDecls>::type& e ) = 0;
+      virtual void operator()( typename Const<AstDeclVars>::type& e ) = 0;
+      virtual void operator()( typename Const<AstDeclClass>::type& e ) = 0;
+      virtual void operator()( typename Const<AstDeclFun>::type& e ) = 0;
+      virtual void operator()( typename Const<AstArgs>::type& e ) = 0;
+      virtual void operator()( typename Const<AstReturn>::type& e ) = 0;
+      virtual void operator()( typename Const<AstImport>::type& e ) = 0;
+      virtual void operator()( typename Const<AstInclude>::type& e ) = 0;
    };
 
    /// defines a visitor that is constant

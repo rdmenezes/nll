@@ -17,7 +17,7 @@ namespace parser
          ensure( type, "can't be null" );
       }
 
-      mvv::Symbol getName() const
+      const mvv::Symbol& getName() const
       {
          return _name;
       }

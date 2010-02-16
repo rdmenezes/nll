@@ -10,14 +10,19 @@ namespace parser
    class MVVSCRIPT_API AstExpAssign : public AstExp
    {
    public:
-      AstExpAssign( const YYLTYPE& location, AstExp* value ) : AstExp( location ), _value( value )
+      AstExpAssign( const YYLTYPE& location, AstExp* lvalue,  AstExp* value ) : AstExp( location ), _value( value ), _lvalue( lvalue )
       {
-         ensure( value, "can't be null" );
+         ensure( lvalue && value, "can't be null" );
       }
 
       const AstExp& getValue() const
       {
          return *_value;
+      }
+
+      const AstExp& getLValue() const
+      {
+         return *_lvalue;
       }
 
       /// Accept a const visitor \a v.
@@ -33,6 +38,7 @@ namespace parser
       }
 
    private:
+      AstExp*   _lvalue;
       AstExp*   _value;
    };
 }
