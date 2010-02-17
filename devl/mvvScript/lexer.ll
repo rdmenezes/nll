@@ -153,7 +153,6 @@ STRCHR	[A-Za-z_]
 "int"	         return INT_T;
 "float"	      return FLOAT_T;
 "string"       return STRING_T;
-"[]"           return ARRAY_T;
 "import"       return IMPORT;
 "include"      return INCLUDE;
 

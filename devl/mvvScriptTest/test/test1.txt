@@ -33,3 +33,7 @@ int nn[] = {-1, 1, 10};
 Test::Test2 test2;
 Test test = Test(2);
 print( "test=" + test.computeSum() );
+
+{
+   hg = 3.0 + test.nn[ 0 ];
+}
