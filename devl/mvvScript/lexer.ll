@@ -124,7 +124,12 @@ STRCHR	[A-Za-z_]
 
 <SC_COMMENT_LINE>{
  <<EOF>>          { yy_pop_state (); }
- {NEWLINE}        { yy_pop_state (); }
+ {NEWLINE}        { 
+                     yylloc->last_column = 0;
+                     ++yylloc->last_line;
+                     yylloc->first_column = 0;
+                     yylloc->first_line = yylloc->last_line;
+                     yy_pop_state (); }
  .                {}
 }
 
@@ -155,6 +160,7 @@ STRCHR	[A-Za-z_]
 
 "="		return ASSIGN;
 "."		return DOT;
+"::"     return DCOLON;
 ";"		return SEMI;
 ","		return COMA;
 "]"		return RBRACK;

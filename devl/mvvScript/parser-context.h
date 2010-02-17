@@ -32,7 +32,7 @@ namespace parser
       ParserContext()
       {
          _root = 0;
-         _parse_trace_p = false;
+         _parse_trace_p = true;
          _scan_trace_p = false;
       }
 

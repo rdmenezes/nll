@@ -9,6 +9,8 @@ using namespace mvv;
 using namespace mvv::platform;
 using namespace mvv::parser;
 
+#define TEST_PATH    "../../mvvScriptTest/test/"
+
 struct TestBasic
 {
    /**
@@ -86,27 +88,20 @@ struct TestBasic
       std::cout << "msg=" << context.getError();
    }
 
-   void testTmp()
+   void testFull1()
    {
-      SymbolTableVars vars;
-      vars.insert( mvv::Symbol::create(""), 0 );
-      vars.find( mvv::Symbol::create("") );
-
       ParserContext context;
-      VisitorPrint visitor( std::cout );
       Ast* exp = 0;
       
-      exp = context.parseString( "class Test{ int aa; int haha( test a){ return 5;} float test2 = -1.0; }" );
+      exp = context.parseFile( TEST_PATH "test1.txt" );
       std::cout << "msg=" << context.getError();
       TESTER_ASSERT( exp );
 
-      std::cout << std::endl;
-      visitor( *exp );
    }
 };
 
 TESTER_TEST_SUITE(TestBasic);
-TESTER_TEST(testDummy2);
+//TESTER_TEST(testDummy2);
 //TESTER_TEST(testDummy1);
-TESTER_TEST(testTmp);
+TESTER_TEST(testFull1);
 TESTER_TEST_SUITE_END();

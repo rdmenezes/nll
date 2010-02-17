@@ -1,0 +1,35 @@
+class Test
+{
+   class Test2
+   {
+      int test;
+   }
+   
+   float    val;
+   float    vals[3];
+   int      nn[] = {-1, 1, 10};
+
+   void Test( float valDefault = 0.0 )
+   {
+      val = valDefault;
+      
+      if ( valDefault != -1.0 )
+      {      
+         vals[ 0 ] = val;
+         vals[ 1 ] = val;
+         vals[ 2 ] = val;
+      } else {
+         print( "error" );
+      }
+   }
+   
+   int computeSum()
+   {
+      return vals[ 0 ] + vals[ 1 ] + vals[ 2 ];
+   }
+}
+
+int nn[] = {-1, 1, 10};
+Test::Test2 test2;
+Test test = Test(2);
+print( "test=" + test.computeSum() );
