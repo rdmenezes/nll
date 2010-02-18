@@ -8,32 +8,11 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API AstType : public Ast, public Typable
+   class MVVSCRIPT_API AstTypeT : public Ast, public Typable
    {
    public:
-      enum Type
+      AstTypeT( const YYLTYPE& location, AstExp* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize )
       {
-         INT,
-         FLOAT,
-         STRING,
-         VOID,
-         VAR,
-         SYMBOL
-      };
-
-      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, AstExp* defaultSize = 0 ) : Ast( location ), _type( type ), _isArray( false ), _defaultSize( defaultSize )
-      {
-         if ( symbol )
-         {
-            _symbol = new mvv::Symbol( *symbol );
-         } else {
-            _symbol = 0;
-         }
-      }
-
-      ~AstType()
-      {
-         delete _symbol;
       }
 
       void setSize( AstExp* defaultSize )
@@ -61,6 +40,41 @@ namespace parser
          return _isArray;
       }
 
+   private:
+      bool                 _isArray;
+      AstExp*              _defaultSize;
+   };
+
+   class MVVSCRIPT_API AstType : public AstTypeT
+   {
+   public:
+      enum Type
+      {
+         INT,
+         FLOAT,
+         STRING,
+         VOID,
+         VAR,
+         SYMBOL
+      };
+
+      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, AstExp* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type )
+      {
+         if ( symbol )
+         {
+            _symbol = new mvv::Symbol( *symbol );
+         } else {
+            _symbol = 0;
+         }
+      }
+
+      ~AstType()
+      {
+         delete _symbol;
+      }
+
+      
+
       const mvv::Symbol* getSymbol() const
       {
          return _symbol;
@@ -84,10 +98,8 @@ namespace parser
       }
 
    private:
-      bool                 _isArray;
       mvv::Symbol*         _symbol;
       Type                 _type;
-      AstExp*              _defaultSize;
    };
 }
 }

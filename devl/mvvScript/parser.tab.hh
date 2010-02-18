@@ -106,7 +106,7 @@ typedef union YYSTYPE
    mvv::parser::Ast*		      ast;
    mvv::parser::AstStatements*astStatements;
    mvv::parser::AstVar*		   astVar;
-   mvv::parser::AstType*      astType;
+   mvv::parser::AstTypeT*     astTypeT;
    mvv::parser::AstDeclVar*   astDeclVar;
    mvv::parser::AstDecls*     astDecls;
    mvv::parser::AstDeclVars*  astDeclVars;

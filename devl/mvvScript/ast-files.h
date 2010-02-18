@@ -26,5 +26,7 @@
 # include "ast-include.h"
 # include "ast-exp-call.h"
 # include "ast-decl-class.h"
+# include "ast-exp-seq.h"
+# include "ast-typefield.h"
 
 #endif

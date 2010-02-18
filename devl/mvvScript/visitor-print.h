@@ -172,10 +172,13 @@ namespace parser
                ensure( 0, "runtime error: unknown type" );
             }
          }
+         /*
+         // The array will be displayed in the declaration...
          if ( e.isArray() )
          {
             _o << "[]";
          }
+         */
       }
 
       virtual void operator()( const AstDecls& e )
@@ -288,11 +291,45 @@ namespace parser
       {
          operator()( e.getType() );
          _o << " " << e.getName();
+         if ( e.getType().isArray() )
+         {
+            if ( e.getType().getSize() )
+            {
+               _o << "[ ";
+               operator()( *e.getType().getSize() );
+               _o << " ]";
+            } else {
+               _o << "[]";
+            }
+            if ( e.getInit() )
+            {
+               _o << " = ";
+               operator()( *e.getInit() );
+            } else if ( e.getDeclarationList() )
+            {
+               _o << " = { ";
+               operator()( *e.getDeclarationList() );
+               _o << " }";
+            }
+         }
          if ( e.getInit() )
          {
             _o << " = ";
             operator()( *e.getInit() );
          }
+      }
+
+      virtual void operator()( const AstExpSeq& e )
+      {
+         _o << "( ";
+         operator()( e.getExp() );
+         _o << " )";
+      }
+
+      virtual void operator()( const AstTypeField& e )
+      {
+         operator()( e.getField() );
+         _o << "::" << e.getName();
       }
 
       virtual void operator()( const Ast& e )

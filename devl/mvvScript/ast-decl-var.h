@@ -12,7 +12,7 @@ namespace parser
    class MVVSCRIPT_API AstDeclVar : public AstDecl
    {
    public:
-      AstDeclVar( const YYLTYPE& location, AstType* type, const mvv::Symbol& name, AstExp* init = 0, AstArgs* declarationList = 0 ) : AstDecl( location ), _type( type ), _name( name ), _init( init ), _declarationList( declarationList )
+      AstDeclVar( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstExp* init = 0, AstArgs* declarationList = 0 ) : AstDecl( location ), _type( type ), _name( name ), _init( init ), _declarationList( declarationList )
       {
          ensure( type, "can't be null" );
       }
@@ -22,7 +22,7 @@ namespace parser
          return _name;
       }
 
-      const AstType& getType() const
+      const AstTypeT& getType() const
       {
          return *_type;
       }
@@ -37,7 +37,7 @@ namespace parser
          return _declarationList;
       }
 
-      AstType& getType()
+      AstTypeT& getType()
       {
          return *_type;
       }
@@ -65,9 +65,8 @@ namespace parser
       }
 
    private:
-      bool                 _isArray;
       mvv::Symbol          _name;
-      AstType*             _type;
+      AstTypeT*            _type;
       AstExp*              _init;
       AstArgs*             _declarationList;
    };
