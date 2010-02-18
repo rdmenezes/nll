@@ -32,6 +32,7 @@ namespace parser
    class AstReturn;
    class AstImport;
    class AstInclude;
+   //class AstDeclarationList;
 
    /**
     @brief root of all the visitors

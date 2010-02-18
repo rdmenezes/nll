@@ -178,17 +178,6 @@ namespace parser
          }
       }
 
-      virtual void operator()( const AstDeclVar& e )
-      {
-         operator()( e.getType() );
-         _o << " " << e.getName();
-         if ( e.getInit() )
-         {
-            _o << " = ";
-            operator()( *e.getInit() );
-         }
-      }
-
       virtual void operator()( const AstDecls& e )
       {
          unsigned n = 0;
@@ -293,6 +282,18 @@ namespace parser
 
 
 
+      // TODO update other visitors...
+
+      virtual void operator()( const AstDeclVar& e )
+      {
+         operator()( e.getType() );
+         _o << " " << e.getName();
+         if ( e.getInit() )
+         {
+            _o << " = ";
+            operator()( *e.getInit() );
+         }
+      }
 
       virtual void operator()( const Ast& e )
       {

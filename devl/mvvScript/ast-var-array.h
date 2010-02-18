@@ -10,7 +10,7 @@ namespace parser
    class MVVSCRIPT_API AstVarArray : public AstVar
    {
    public:
-      AstVarArray( const YYLTYPE& location, AstVar* name, bool isDeduced, AstExp* index ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced ), _index( index )
+      AstVarArray( const YYLTYPE& location, AstVar* name, AstExp* index ) : AstVar( location ), _name( name ), _index( index )
       {
          ensure( name && index, "can't be null" );
       }
@@ -50,7 +50,6 @@ namespace parser
 
    private:
       AstVar*       _name;
-      bool          _isDeduced;
       AstExp*       _index;
    };
 }

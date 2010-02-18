@@ -22,13 +22,20 @@ class Test
          print( "error" );
       }
    }
+
+   int operator()( int n )
+   {
+	return 2 * n;
+   }
+
    
    int computeSum()
    {
-      return vals[ 0 ] + vals[ 1 ] + vals[ 2 ];
+      return ( vals[ 0 ] + vals[ 1 ] ) + vals[ 2 ];
    }
 }
 
+int nn[ 4 ];
 int nn[] = {-1, 1, 10};
 Test::Test2 test2;
 Test test = Test(2);

@@ -1767,7 +1767,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 161 "parser.yy"
-    {  ;}
+    { (yyval.ast) = new mvv::parser::AstDeclVar( (yyloc), (yyvsp[(1) - (7)].astType), *(yyvsp[(2) - (7)].symbol), 0, (yyvsp[(5) - (7)].astArgs) ); ;}
     break;
 
   case 11:
@@ -1788,14 +1788,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 164 "parser.yy"
-    { (yyval.ast) = new mvv::parser::AstVarArray( (yyloc), new mvv::parser::AstVarSimple( (yyloc), *(yyvsp[(1) - (6)].astType), true ), true, (yyvsp[(4) - (6)].astExp) ); ;}
+    { (yyval.ast) = new mvv::parser::AstDeclVar( (yyloc), (yyvsp[(1) - (6)].astType), *(yyvsp[(2) - (6)].symbol) ); (yyvsp[(1) - (6)].astType)->setArray( true ); (yyvsp[(1) - (6)].astType)->setSize( (yyvsp[(4) - (6)].astExp) ); ;}
     break;
 
   case 14:
 
 /* Line 1455 of yacc.c  */
 #line 165 "parser.yy"
-    { ;}
+    { (yyval.ast) = new mvv::parser::AstDeclVar( (yyloc), (yyvsp[(1) - (9)].astType), *(yyvsp[(2) - (9)].symbol), 0, (yyvsp[(7) - (9)].astArgs) ); (yyvsp[(1) - (9)].astType)->setArray( true ); ;}
     break;
 
   case 15:
@@ -1998,7 +1998,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 197 "parser.yy"
-    { (yyval.astVar) = new mvv::parser::AstVarArray( (yyloc), new mvv::parser::AstVarSimple( (yyloc), *(yyvsp[(1) - (4)].symbol), true ), true, (yyvsp[(3) - (4)].astExp) ); ;}
+    { (yyval.astVar) = new mvv::parser::AstVarArray( (yyloc), new mvv::parser::AstVarSimple( (yyloc), *(yyvsp[(1) - (4)].symbol), true ), (yyvsp[(3) - (4)].astExp) ); ;}
     break;
 
   case 44:
@@ -2012,7 +2012,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 199 "parser.yy"
-    { (yyval.astVar) = new mvv::parser::AstVarArray( (yyloc), (yyvsp[(1) - (4)].astVar), true, (yyvsp[(3) - (4)].astExp) ); ;}
+    { (yyval.astVar) = new mvv::parser::AstVarArray( (yyloc), (yyvsp[(1) - (4)].astVar), (yyvsp[(3) - (4)].astExp) ); ;}
     break;
 
   case 46:
@@ -2033,21 +2033,21 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 205 "parser.yy"
-    {/* TODO FIXME*/ (yyval.astDecls) = (yyvsp[(7) - (7)].astDecls) ;}
+    { (yyval.astDecls) = (yyvsp[(7) - (7)].astDecls); mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( (yyloc), (yyvsp[(1) - (7)].astType), *(yyvsp[(2) - (7)].symbol) ); (yyvsp[(1) - (7)].astType)->setArray( true ); (yyvsp[(1) - (7)].astType)->setSize( (yyvsp[(4) - (7)].astExp) ); ;}
     break;
 
   case 49:
 
 /* Line 1455 of yacc.c  */
 #line 206 "parser.yy"
-    {/* TODO FIXME*/ (yyval.astDecls) = (yyvsp[(10) - (10)].astDecls) ;}
+    { (yyval.astDecls) = (yyvsp[(10) - (10)].astDecls); mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( (yyloc), (yyvsp[(1) - (10)].astType), *(yyvsp[(2) - (10)].symbol), 0, (yyvsp[(7) - (10)].astArgs) ); (yyvsp[(1) - (10)].astType)->setArray( true ); ;}
     break;
 
   case 50:
 
 /* Line 1455 of yacc.c  */
 #line 207 "parser.yy"
-    {/* TODO FIXME*/ (yyval.astDecls) = (yyvsp[(6) - (6)].astDecls) ;}
+    { (yyval.astDecls) = (yyvsp[(6) - (6)].astDecls); (yyval.astDecls)->insert( new mvv::parser::AstDeclClass( (yyloc), *(yyvsp[(2) - (6)].symbol), (yyvsp[(4) - (6)].astDecls) ) ); ;}
     break;
 
   case 51:

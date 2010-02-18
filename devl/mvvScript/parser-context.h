@@ -29,11 +29,11 @@ namespace parser
       friend int ::yyparse (mvv::parser::ParserContext& tp);
       friend YY_DECL;
       
-      ParserContext()
+      ParserContext( bool parseTrace = false, bool scanTrace = false)
       {
          _root = 0;
-         _parse_trace_p = true;
-         _scan_trace_p = false;
+         _parse_trace_p = parseTrace;
+         _scan_trace_p = scanTrace;
       }
 
       Ast* parseFile( const std::string& file );

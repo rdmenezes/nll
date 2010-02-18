@@ -97,6 +97,8 @@ struct TestBasic
       std::cout << "msg=" << context.getError();
       TESTER_ASSERT( exp );
 
+      VisitorPrint p( std::cout );
+      p( *exp );
    }
 };
 

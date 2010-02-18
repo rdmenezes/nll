@@ -21,7 +21,7 @@ namespace parser
          SYMBOL
       };
 
-      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0 ) : Ast( location ), _type( type ), _isArray( false )
+      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, AstExp* defaultSize = 0 ) : Ast( location ), _type( type ), _isArray( false ), _defaultSize( defaultSize )
       {
          if ( symbol )
          {
@@ -34,6 +34,21 @@ namespace parser
       ~AstType()
       {
          delete _symbol;
+      }
+
+      void setSize( AstExp* defaultSize )
+      {
+         _defaultSize = defaultSize;
+      }
+
+      const AstExp* getSize() const
+      {
+         return _defaultSize;
+      }
+
+      AstExp* getSize()
+      {
+         return _defaultSize;
       }
 
       void setArray( bool val )
@@ -72,6 +87,7 @@ namespace parser
       bool                 _isArray;
       mvv::Symbol*         _symbol;
       Type                 _type;
+      AstExp*              _defaultSize;
    };
 }
 }
