@@ -1,8 +1,46 @@
+Test::Test2 a = typename Test::Test2(5) + typename Test();
+
+
 class Test
 {
    class Test2
    {
       int test;
+      
+      void Test2( int t )
+      {
+         test = t;
+      }
+      
+      int getValue()
+      {
+         return test;
+      }
+      
+      Test getTest()
+      {
+         return Test2( 2.5 );
+      }
+      
+      class Test3
+      {
+         int haha;
+         
+         void Test3( int t )
+         {
+            haha = t;
+         }
+         
+         int getValue()
+         {
+            return haha;
+         }
+         
+         Test2 getTest()
+         {
+            return Test2( 3 );
+         }
+      }
    }
    
    float    val;
@@ -22,6 +60,8 @@ class Test
          print( "error" );
       }
    }
+   
+   //Test2
 
    int operator()( int n )
    {
@@ -31,14 +71,22 @@ class Test
    
    int computeSum()
    {
-      return ( vals[ 0 ] + vals[ 1 ] ) + vals[ 2 ];
+      return  2 * 
+      ( vals[ 0 ] + vals[ 1 ] ) + vals[ 2 ];
    }
 }
 
+test(5).res[4] = 3;
+
 int nn[ 4 ];
 int nn[] = {-1, 1, 10};
-Test::Test2 test2;
+test2[ 8 ] = 5;
+test3 = Test( 30 );
 Test test = Test(2);
+Test::Test2 test;
+Test::Test2 test();
+Test test8 = {1};
+print( "test.test=");
 print( "test=" + test.computeSum() );
 
 {

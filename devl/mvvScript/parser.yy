@@ -113,17 +113,17 @@
 %token CLASS            "class"
 %token VOID             "void"
 %token NIL              "NULL"
-%token RETURN			"return"
+%token RETURN           "return"
+%token TYPENAME         "typename"
 
-%token INT_T			"int type"
-%token FLOAT_T			"float type"
-%token STRING_T			"string type"
+%token INT_T            "int type"
+%token FLOAT_T          "float type"
+%token STRING_T         "string type"
 
 %token IMPORT           "import"
 %token INCLUDE          "include"
 
 %token YYEOF   0        "end of file"
-
 
 %left ID
 %left LBRACK
@@ -138,6 +138,7 @@
 %left PLUS MINUS
 %left TIMES DIVIDE
 %nonassoc UMINUS
+%nonassoc TYPENAME
 
 
 %start program
@@ -187,16 +188,17 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |MINUS rvalue %prec UMINUS        { $$ = new mvv::parser::AstOpBin( @$, new mvv::parser::AstInt( @$, 0 ) , $2, mvv::parser::AstOpBin::MINUS ); }
         |LPAREN rvalue RPAREN             { $$ = new mvv::parser::AstExpSeq( @$, $2 ); }
         |STRING                           { $$ = new mvv::parser::AstString( @$, *$1 ); }
-        /*|lvalue ASSIGN LBRACE args RBRACE { TODO? useless? }*/
         |lvalue				               { $$ = $1; }
         |lvalue ASSIGN rvalue             { $$ = new mvv::parser::AstExpAssign( @$, $1, $3 ); }
-        |lvalue LPAREN args RPAREN        { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
+        |TYPENAME type LPAREN args RPAREN { }
 
      
+
 lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }
         |ID LBRACK rvalue RBRACK          { $$ = new mvv::parser::AstVarArray( @$, new mvv::parser::AstVarSimple( @$, *$1, true ), $3 ); }
         |lvalue DOT ID                    { $$ = new mvv::parser::AstVarField( @$, $1, *$3 ); }
         |lvalue LBRACK rvalue RBRACK      { $$ = new mvv::parser::AstVarArray( @$, $1, $3 ); }
+        |lvalue LPAREN args RPAREN        { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
 
 
 	  
@@ -217,7 +219,7 @@ type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::p
 	         |FLOAT_T                 { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::FLOAT );}
 	         |STRING_T                { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::STRING ); }
 	         |VOID                    { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VOID );}
-	  
+	         
 type_field: ID                        { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::SYMBOL, $1 ); }
            |type_field DCOLON ID      { $$ = new mvv::parser::AstTypeField( @$, $1, *$3 ); }
           

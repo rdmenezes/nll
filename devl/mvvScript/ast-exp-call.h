@@ -7,12 +7,12 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API AstExpCall : public AstExp
+   class MVVSCRIPT_API AstExpCall : public AstVar
    {
    public:
       typedef float    value_type;
 
-      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstExp( location ), _name( name ), _args( args )
+      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstVar( location ), _name( name ), _args( args )
       {
          ensure( name && args, "can't be null" );
       }

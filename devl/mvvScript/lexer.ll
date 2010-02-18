@@ -155,6 +155,7 @@ STRCHR	[A-Za-z_]
 "string"       return STRING_T;
 "import"       return IMPORT;
 "include"      return INCLUDE;
+"typename"     return TYPENAME;
 
 
 "="		return ASSIGN;
