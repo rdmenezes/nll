@@ -55,7 +55,8 @@ namespace parser
          STRING,
          VOID,
          VAR,
-         SYMBOL
+         SYMBOL,
+         EMPTY
       };
 
       AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, AstExp* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type )

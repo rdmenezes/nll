@@ -213,6 +213,8 @@ var_decs_class: /* empty */				                                                 
 	  |type OPERATORBRACKET LPAREN fn_var_dec RPAREN SEMI var_decs_class                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4 ) ); }
 	  |type OPERATORPARENT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class  { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4, $7 ) ); }	
 	  |type OPERATORPARENT LPAREN fn_var_dec RPAREN SEMI var_decs_class                      { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4 ) ); }
+	  |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; /*$$->insert( new mvv::parser::AstDeclFun( @$, mvv::parser::AstType::EMPTY, mvv::Symbol::create("_contructor"), $6 ) );*/ }
+	  |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; /*$$->insert( new mvv::parser::AstDeclFun( @$, mvv::parser::AstType::EMPTY, mvv::Symbol::create("_contructor"), $4 ) );*/}
 	  
 type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
 	         |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::INT ); }
