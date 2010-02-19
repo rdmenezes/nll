@@ -10,11 +10,11 @@ namespace parser
    class MVVSCRIPT_API AstInclude : public Ast
    {
    public:
-      AstInclude( const YYLTYPE& location, const std::string& str ) : Ast( location ), _str( str )
+      AstInclude( const YYLTYPE& location, const std::string& str ) : Ast( location ), _str( mvv::Symbol::create( str ) )
       {
       }
 
-      const std::string& getStr() const
+      const mvv::Symbol& getStr() const
       {
          return _str;
       }
@@ -32,7 +32,7 @@ namespace parser
       }
 
    private:
-      std::string _str;
+      mvv::Symbol _str;
    };
 }
 }

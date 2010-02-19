@@ -56,8 +56,8 @@ namespace parser
 
       virtual void operator()( AstExpAssign& e )
       {
-         operator()( e.getLValue() );
          operator()( e.getValue() );
+         operator()( e.getLValue() );
       }
 
       virtual void operator()( AstVarSimple& )
@@ -66,8 +66,8 @@ namespace parser
 
       virtual void operator()( AstVarArray& e )
       {
-         operator()( e.getName() );
          operator()( e.getIndex() );
+         operator()( e.getName() );
       }
 
       virtual void operator()( AstVarField& e )
@@ -79,18 +79,9 @@ namespace parser
       {
       }
 
-      virtual void operator()( AstDeclVar& e )
-      {
-         operator()( e.getType() );
-         if ( e.getInit() )
-         {
-            operator()( *e.getInit() );
-         }
-      }
-
       virtual void operator()( AstDecls& e )
       {
-         for ( AstDecls::Decls::const_iterator it = e.getDecls().begin(); it != e.getDecls().end(); ++it)
+         for ( AstDecls::Decls::const_iterator it = e.getDecls().begin(); it != e.getDecls().end(); ++it )
          {
             operator()( **it );
          }
@@ -98,8 +89,7 @@ namespace parser
 
       virtual void operator()( AstDeclVars& e )
       {
-         ui32 n = 0;
-         for ( AstDeclVars::Decls::const_iterator it = e.getVars().begin(); it != e.getVars().end(); ++it, ++n )
+         for ( AstDeclVars::Decls::const_iterator it = e.getVars().begin(); it != e.getVars().end(); ++it )
          {
             operator()( **it );
          }
@@ -116,6 +106,11 @@ namespace parser
          {
             operator()( *e.getType() );
          }
+         if ( e.getVars().getVars().size() )
+         {
+            operator()( e.getVars() );
+         }
+         
          if ( e.getBody() )
          {
             operator()( *e.getBody() );
@@ -148,7 +143,48 @@ namespace parser
 
       virtual void operator()( AstExpCall& e )
       {
+         operator()( e.getArgs() );
          operator()( e.getName() );
+      }
+
+      virtual void operator()( AstDeclVar& e )
+      {
+         if ( e.getInit() )
+         {
+            operator()( *e.getInit() );
+         } else if ( e.getDeclarationList() )
+         {
+            operator()( *e.getDeclarationList() );
+         }
+
+         operator()( e.getType() );
+
+         if ( e.getType().isArray() )
+         {
+            if ( e.getType().getSize() )
+            {
+               operator()( *e.getType().getSize() );
+            } 
+         }
+      }
+
+      virtual void operator()( AstExpSeq& e )
+      {
+         operator()( e.getExp() );
+      }
+
+      virtual void operator()( AstTypeField& e )
+      {
+         operator()( e.getField() );
+      }
+
+      virtual void operator()( AstExpTypename& e )
+      {
+         operator()( e.getType() );
+         if ( e.getArgs().getArgs().size() )
+         {
+            operator()( e.getArgs() );
+         } 
       }
 
       virtual void operator()( Ast& e )

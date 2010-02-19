@@ -7,7 +7,9 @@
 #include "visitor-print.h"
 #include "visitor-default.h"
 #include "visitor-bind.h"
+#include "visitor-register-declarations.h"
 #include "symbol-table.h"
+
 
 
 int MVVSCRIPT_API dummy = 0;
