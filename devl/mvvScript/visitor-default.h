@@ -112,7 +112,10 @@ namespace parser
 
       virtual void operator()( AstDeclFun& e ) 
       {
-         operator()( e.getType() );
+         if ( e.getType() )
+         {
+            operator()( *e.getType() );
+         }
          if ( e.getBody() )
          {
             operator()( *e.getBody() );

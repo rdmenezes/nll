@@ -28,5 +28,6 @@
 # include "ast-decl-class.h"
 # include "ast-exp-seq.h"
 # include "ast-typefield.h"
+# include "ast-exp-typename.h"
 
 #endif

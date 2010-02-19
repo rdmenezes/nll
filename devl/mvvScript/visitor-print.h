@@ -219,8 +219,12 @@ namespace parser
 
       virtual void operator()( const AstDeclFun& e ) 
       {
-         operator()( e.getType() );
-         _o << " " << e.getName();
+         if ( e.getType() )
+         {
+            operator()( *e.getType() );
+            _o << " ";
+         }
+         _o << e.getName();
          if ( e.getVars().getVars().size() )
          {
             _o << "( ";
@@ -301,21 +305,17 @@ namespace parser
             } else {
                _o << "[]";
             }
-            if ( e.getInit() )
-            {
-               _o << " = ";
-               operator()( *e.getInit() );
-            } else if ( e.getDeclarationList() )
-            {
-               _o << " = { ";
-               operator()( *e.getDeclarationList() );
-               _o << " }";
-            }
          }
+
          if ( e.getInit() )
          {
             _o << " = ";
             operator()( *e.getInit() );
+         } else if ( e.getDeclarationList() )
+         {
+            _o << " = { ";
+            operator()( *e.getDeclarationList() );
+            _o << " }";
          }
       }
 
@@ -330,6 +330,20 @@ namespace parser
       {
          operator()( e.getField() );
          _o << "::" << e.getName();
+      }
+
+      virtual void operator()( const AstExpTypename& e )
+      {
+         _o << " typename ";
+         operator()( e.getType() );
+         if ( e.getArgs().getArgs().size() )
+         {
+            _o << "( ";
+            operator()( e.getArgs() );
+            _o << " )";
+         } else {
+            _o << "()";
+         }
       }
 
       virtual void operator()( const Ast& e )

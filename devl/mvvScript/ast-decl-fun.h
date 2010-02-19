@@ -15,7 +15,7 @@ namespace parser
    public:
       AstDeclFun( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstDeclVars* vars, AstStatements * body = 0 ) : AstDecl( location ), _type( type ), _name( name ), _vars( vars ), _body( body )
       {
-         ensure( type && vars, "can't be null" );
+         ensure( vars, "can't be null" );
       }
 
       const mvv::Symbol& getName() const
@@ -23,14 +23,14 @@ namespace parser
          return _name;
       }
 
-      const AstTypeT& getType() const
+      AstTypeT* getType() const
       {
-         return *_type;
+         return _type;
       }
 
-      AstTypeT& getType()
+      AstTypeT* getType()
       {
-         return *_type;
+         return _type;
       }
 
       const AstStatements* getBody() const

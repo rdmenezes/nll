@@ -1989,7 +1989,7 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 193 "parser.yy"
-    { ;}
+    { (yyval.astExp) = new mvv::parser::AstExpTypename( (yyloc), (yyvsp[(2) - (5)].astTypeT), (yyvsp[(4) - (5)].astArgs) );;}
     break;
 
   case 41:
@@ -2108,14 +2108,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 216 "parser.yy"
-    { (yyval.astDecls) = (yyvsp[(8) - (8)].astDecls); /*TODO*/;}
+    { (yyval.astDecls) = (yyvsp[(8) - (8)].astDecls); (yyval.astDecls)->insert( new mvv::parser::AstDeclFun( (yyloc), 0, *(yyvsp[(1) - (8)].symbol), (yyvsp[(3) - (8)].astDeclVars), (yyvsp[(6) - (8)].astStatements) ) ); ;}
     break;
 
   case 58:
 
 /* Line 1455 of yacc.c  */
 #line 217 "parser.yy"
-    { (yyval.astDecls) = (yyvsp[(6) - (6)].astDecls); /*TODO*/;}
+    { (yyval.astDecls) = (yyvsp[(6) - (6)].astDecls); (yyval.astDecls)->insert( new mvv::parser::AstDeclFun( (yyloc), 0, *(yyvsp[(1) - (6)].symbol), (yyvsp[(3) - (6)].astDeclVars) ) ); ;}
     break;
 
   case 59:
