@@ -41,49 +41,47 @@ struct TestBasic
        ParserContext context;
        Ast* exp = 0;
       
-      exp = context.parseString( "if (1) { 2.5; 5; } else { 3; }" );
+      exp = context.parseString( "if (a) { print( a ); print( a ); } else { print( a3 ); }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "4;5;6;" );
+      exp = context.parseString( "if (1 && 1 + 1) { return 2.5; } else { return 3; }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "if (1 && 1 + 1) { 2.5; } else { 3; }" );
-      TESTER_ASSERT( exp );
-      exp = context.parseString( "if (1 * atest1.val[a[8]+3] ) { 2.5; 5; } else { 3; }" );
+      exp = context.parseString( "if (1 * atest1.val[a[8]+3] ) { print(2.5); return 5; } else { print(3); }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "class test { var a; int n; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "call(4, 3); call(); call(4);" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "int call( int n ){5;5;}" );
+      exp = context.parseString( "int call( int n ){return 5;}" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class Test{ int haha( test a){5;} }" );
+      exp = context.parseString( "class Test{ int haha( test a){return 5;} }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int test = 0; int main(){ dsf haha; int test; }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class Test{ int aa; int haha( test a){5;} }" );
+      exp = context.parseString( "class Test{ int aa; int haha( test a){ return 5;} }" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "class Test{ int aa; int haha( test a){5;} float test2; }" );
+      exp = context.parseString( "class Test{ int aa; int haha( test a){ return 5;} float test2; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int main(){test.print(\"asf\"); return 0;}" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "{var list; list = {5, 4, 3};}" );
-      TESTER_ASSERT( exp );
-      exp = context.parseString( "var list = {3, 4};" );
+      exp = context.parseString( "{var list[] = {5, 4, 3};}" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "{int a = 3 + test;}" );
-      TESTER_ASSERT( exp );
-      exp = context.parseString( "int[] list = {3, 4};" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "a[1].a[5] = 2*3+1;" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "int[] n = 2 * 3;" );
+      exp = context.parseString( "int n[] = {2 * 3};" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string[] strings; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
+      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string strings[5]; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "getVal(5);" );
       TESTER_ASSERT( exp );
+      exp = context.parseString( "int n[ 5 ][ 4 ][ 3 ]; print( n[ 0 ][ 1 ][ 2 ] );" );
+      TESTER_ASSERT( exp );
 
+      exp = context.parseString( "class Test{ int a[] = {1}; int a[2][2][3];}" );
+      TESTER_ASSERT( exp );
 
       std::cout << "msg=" << context.getError();
    }
@@ -103,7 +101,7 @@ struct TestBasic
 };
 
 TESTER_TEST_SUITE(TestBasic);
-//TESTER_TEST(testDummy2);
+TESTER_TEST(testDummy2);
 //TESTER_TEST(testDummy1);
 TESTER_TEST(testFull1);
 TESTER_TEST_SUITE_END();

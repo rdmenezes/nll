@@ -13,7 +13,7 @@ namespace parser
    class MVVSCRIPT_API AstTypeField : public AstTypeT
    {
    public:
-      AstTypeField( const YYLTYPE& location, AstTypeT* field, mvv::Symbol name, AstExp* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _field( field ), _name( name )
+      AstTypeField( const YYLTYPE& location, AstTypeT* field, mvv::Symbol name, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _field( field ), _name( name )
       {
          ensure( field, "can't be null" );
       }

@@ -96,27 +96,28 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 43 "parser.yy"
+#line 57 "parser.yy"
 
    // Tokens.
    int                        ival;
    float                      fval;
    std::string*			      str;
-   const mvv::Symbol*		   symbol;
-   mvv::parser::AstExp*		   astExp;
-   mvv::parser::Ast*		      ast;
+   const mvv::Symbol*         symbol;
+   mvv::parser::AstExp*	      astExp;
+   mvv::parser::Ast*          ast;
    mvv::parser::AstStatements*astStatements;
-   mvv::parser::AstVar*		   astVar;
+   mvv::parser::AstVar*	      astVar;
    mvv::parser::AstTypeT*     astTypeT;
    mvv::parser::AstDeclVar*   astDeclVar;
    mvv::parser::AstDecls*     astDecls;
    mvv::parser::AstDeclVars*  astDeclVars;
    mvv::parser::AstArgs*      astArgs;
+   std::vector<mvv::parser::AstExp*>*      arrayDim;
 
 
 
 /* Line 1676 of yacc.c  */
-#line 120 "parser.tab.hh"
+#line 121 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

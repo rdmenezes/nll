@@ -287,21 +287,20 @@ namespace parser
          }
       }
 
-
-
-      // TODO update other visitors...
-
       virtual void operator()( const AstDeclVar& e )
       {
          operator()( e.getType() );
          _o << " " << e.getName();
          if ( e.getType().isArray() )
          {
-            if ( e.getType().getSize() )
+            if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
-               _o << "[ ";
-               operator()( *e.getType().getSize() );
-               _o << " ]";
+               for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
+               {
+                  _o << "[ ";
+                  operator()( *( (*e.getType().getSize())[ n ] ) );
+                  _o << " ]";
+               }
             } else {
                _o << "[]";
             }

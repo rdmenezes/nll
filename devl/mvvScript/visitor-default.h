@@ -161,9 +161,12 @@ namespace parser
 
          if ( e.getType().isArray() )
          {
-            if ( e.getType().getSize() )
+            if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
-               operator()( *e.getType().getSize() );
+               for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
+               {
+                  operator()( *( (*e.getType().getSize())[ n ] ) );
+               }
             } 
          }
       }

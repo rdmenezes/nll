@@ -10,6 +10,20 @@
    //   bison parser.yy -d
    //
    
+   /**
+    Notes:
+    
+    - Test()			is a rvalue
+    - val fn(args);		so we can import a function
+    - var[] array;		can contain any time of classes, type is directly known...
+    - typename Test::Test2(); we need to be less accurate on the type so we can Test::test.a
+    - namespace, static, public: namespace = class, default is public, static, can be in several files
+    - a name of function/variable/class must be unique
+    - operator +, = -, /, *, [], () have special meanings if not a primitive...
+    - prmitive int, float, string
+    - delc: int a[][][] = { {}{}{}... } not handled ->int a[] = {x, x, x...}, but not int a[5] = {...} => we should not give size, quite difficult to parse, not very useful...
+    */
+   
    #include <string>
    #include <iostream>
    #include <list>
@@ -45,16 +59,17 @@
    int                        ival;
    float                      fval;
    std::string*			      str;
-   const mvv::Symbol*		   symbol;
-   mvv::parser::AstExp*		   astExp;
-   mvv::parser::Ast*		      ast;
+   const mvv::Symbol*         symbol;
+   mvv::parser::AstExp*	      astExp;
+   mvv::parser::Ast*          ast;
    mvv::parser::AstStatements*astStatements;
-   mvv::parser::AstVar*		   astVar;
+   mvv::parser::AstVar*	      astVar;
    mvv::parser::AstTypeT*     astTypeT;
    mvv::parser::AstDeclVar*   astDeclVar;
    mvv::parser::AstDecls*     astDecls;
    mvv::parser::AstDeclVars*  astDeclVars;
    mvv::parser::AstArgs*      astArgs;
+   std::vector<mvv::parser::AstExp*>*      arrayDim;
 }
 
 %token <str>    STRING "string"
@@ -62,10 +77,10 @@
 %token <ival>   INT    "integer"
 %token <fval>   FLOAT  "float"
 
-%type<ast>				   statement
-%type<astStatements>	   statements program
-%type<astExp>			   rvalue
-%type<astVar>			   lvalue
+%type<ast>              statement
+%type<astStatements>    statements program
+%type<astExp>           rvalue
+%type<astVar>           lvalue
 %type<astTypeT>         type type_simple type_field
 %type<astDeclVar>       var_dec_simple
 %type<astDecls>         var_decs_class
@@ -73,9 +88,10 @@
 %type<astDeclVars>      fn_var_dec
 %type<astArgs>          args_add
 %type<astArgs>          args
+%type<arrayDim>         array_decl
 
-%destructor { delete $$; }  		                  "string"
-%destructor { delete $$.symbol; }  	               "symbol"
+%destructor { delete $$; }                   "string"
+%destructor { delete $$.symbol; }            "symbol"
 
 %token AND          "&&"
 %token ASSIGN       "="
@@ -157,13 +173,19 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           /**
            Test a = Test() -> type ID = rvalue, Test() is a rvalue!
            */
-          |type ID SEMI	                                             { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 ); }
           |type ID ASSIGN rvalue SEMI                                { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }
           |type ID ASSIGN LBRACE args RBRACE SEMI                    { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $5 ); }
-/*        |type ID LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ); } Disabled as useless for now... might have to introduce an 'import' token for functions & classes*/
+          |type ID LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ); }
           |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ); }
-          |type ID LBRACK rvalue RBRACK SEMI                         { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 ); $1->setArray( true ); $1->setSize( $4 ); }
-          |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI      { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); }
+          |type ID array_decl SEMI                                   { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 );
+                                                                       if ( $3->size() )
+                                                                       {
+                                                                          $1->setArray( true );
+                                                                          $1->setSize( $3 );
+                                                                       } 
+                                                                     }
+                                                                     
+          |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI       { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); /* we don't handle several dimensions*/ }
           |lvalue ASSIGN rvalue SEMI                                 { $$ = new mvv::parser::AstExpAssign( @$, $1, $3 ); }
           |lvalue LPAREN args RPAREN SEMI                            { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
           |RETURN rvalue SEMI                                        { $$ = new mvv::parser::AstReturn( @$, $2 ); }
@@ -171,6 +193,12 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           |LBRACE statements RBRACE                                  { $$ = $2; }
           |IMPORT STRING                                             { $$ = new mvv::parser::AstImport( @$, *$2 ); }
           |INCLUDE STRING                                            { $$ = new mvv::parser::AstInclude( @$, *$2 ); }
+
+			
+array_decl: /* empty */                                              { $$ = new std::vector<mvv::parser::AstExp*>(); }
+           |LBRACK rvalue RBRACK array_decl                          { $$ = $4; $$->push_back( $2 ); }
+           
+
      
 rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
@@ -203,19 +231,18 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
 
 	  
 var_decs_class: /* empty */				                                                     { $$ = new mvv::parser::AstDecls( @$ ); }
-	  |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
-	  |type ID LBRACK rvalue RBRACK SEMI var_decs_class                                      { $$ = $7; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2 ); $1->setArray( true ); $1->setSize( $4 ); $$->insert( var ); }
-     |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                   { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); }
-     |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; $$->insert( new mvv::parser::AstDeclClass( @$, *$2, $4 ) ); }
-	  |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
-/*	  |type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                  { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }*/
-	  |type OPERATORBRACKET LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4, $7 ) ); }	
-	  |type OPERATORBRACKET LPAREN fn_var_dec RPAREN SEMI var_decs_class                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4 ) ); }
-	  |type OPERATORPARENT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class  { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4, $7 ) ); }	
-	  |type OPERATORPARENT LPAREN fn_var_dec RPAREN SEMI var_decs_class                      { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4 ) ); }
-	  |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3, $6 ) ); }
-	  |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }
-	  
+      |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
+      |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                   { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); }
+      |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; $$->insert( new mvv::parser::AstDeclClass( @$, *$2, $4 ) ); }
+      |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
+      |type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                  { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }
+      |type OPERATORBRACKET LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4, $7 ) ); }	
+      |type OPERATORBRACKET LPAREN fn_var_dec RPAREN SEMI var_decs_class                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4 ) ); }
+      |type OPERATORPARENT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class  { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4, $7 ) ); }	
+      |type OPERATORPARENT LPAREN fn_var_dec RPAREN SEMI var_decs_class                      { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4 ) ); }
+      |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3, $6 ) ); }
+      |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }
+  
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
              |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::INT ); }
              |FLOAT_T                 { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::FLOAT );}
@@ -229,8 +256,14 @@ type: type_field                      { $$ = $1; }
      |type_simple                     { $$ = $1; }
      
 	  
-var_dec_simple: type ID               { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 ); }
-               |type ID ASSIGN rvalue { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }
+var_dec_simple: type ID ASSIGN rvalue { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }
+               |type ID array_decl    { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 );
+                                        if ( $3->size() )
+                                        {
+                                           $1->setArray( true );
+                                           $1->setSize( $3 );
+                                        } 
+                                      }                                                                     
 	   		    
 
 args_add: /* empty */                 { $$ = new mvv::parser::AstArgs( @$ ); }

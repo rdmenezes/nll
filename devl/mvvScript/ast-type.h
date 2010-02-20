@@ -11,21 +11,21 @@ namespace parser
    class MVVSCRIPT_API AstTypeT : public Ast, public Typable
    {
    public:
-      AstTypeT( const YYLTYPE& location, AstExp* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize )
+      AstTypeT( const YYLTYPE& location, std::vector<AstExp*>* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize )
       {
       }
 
-      void setSize( AstExp* defaultSize )
+      void setSize( std::vector<AstExp*>* defaultSize )
       {
          _defaultSize = defaultSize;
       }
 
-      const AstExp* getSize() const
+      const std::vector<AstExp*>* getSize() const
       {
          return _defaultSize;
       }
 
-      AstExp* getSize()
+      std::vector<AstExp*>* getSize()
       {
          return _defaultSize;
       }
@@ -41,8 +41,8 @@ namespace parser
       }
 
    private:
-      bool                 _isArray;
-      AstExp*              _defaultSize;
+      bool                  _isArray;
+      std::vector<AstExp*>* _defaultSize;
    };
 
    class MVVSCRIPT_API AstType : public AstTypeT
@@ -59,7 +59,7 @@ namespace parser
          EMPTY
       };
 
-      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, AstExp* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type )
+      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type )
       {
          if ( symbol )
          {

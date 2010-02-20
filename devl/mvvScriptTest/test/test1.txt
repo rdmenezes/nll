@@ -81,7 +81,7 @@ test(5).res(4) = 3;
 
 int nn[ 4 ];
 int nn[] = {-1, 1, 10};
-test2[ 8 ] = 5;
+test2[ 8 ][ 8 ] = 5;
 test3 = Test( 30 );
 Test test = Test(2);
 Test::Test2 test;
@@ -89,6 +89,8 @@ Test::Test2 test();
 Test test8 = {1};
 print( "test.test=");
 print( "test=" + test.computeSum() );
+
+var test[5][8];
 
 {
    hg = 3.0 + test.nn[ 0 ];
