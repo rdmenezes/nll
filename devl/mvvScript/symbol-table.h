@@ -56,10 +56,10 @@ namespace parser
        */
       const T* find( const Symbol& s ) const
       {
-         for ( i32 n = static_cast<int>( _scopes.size() ) - 1; i >= 0; --i )
+         for ( i32 n = static_cast<int>( _scopes.size() ) - 1; n >= 0; --n )
          {
-            Symbols::const_iterator ii = _scopes[ n ]->find( s );
-            if ( ii != _scopes[ n ]->end() )
+            Symbols::const_iterator ii = _scopes[ n ].find( s );
+            if ( ii != _scopes[ n ].end() )
                return ii->second;
             if ( _barrier[ n ] )
                return 0;
@@ -69,10 +69,10 @@ namespace parser
 
       T* find( const Symbol& s )
       {
-         for ( i32 n = static_cast<int>( _scopes.size() ) - 1; i >= 0; --i )
+         for ( i32 n = static_cast<int>( _scopes.size() ) - 1; n >= 0; --n )
          {
-            Symbols::iterator ii = _scopes[ n ]->find( s );
-            if ( ii != _scopes[ n ]->end() )
+            Symbols::iterator ii = _scopes[ n ].find( s );
+            if ( ii != _scopes[ n ].end() )
                return ii->second;
             if ( _barrier[ n ] )
                return 0;
@@ -95,6 +95,16 @@ namespace parser
       {
          Node( const mvv::Symbol& n, AstDeclClass* d ) : name( n ), previous( 0 ), decl( d )
          {}
+
+         AstDeclClass* find_in_scope( const mvv::Symbol& s )
+         {
+            if ( s == name )
+               return decl;
+            if ( previous )
+               return previous->find_in_scope( s );
+            else
+               return 0;
+         }
 
          AstDeclClass* find( const std::vector<mvv::Symbol>& classPath, int begining )
          {
@@ -171,9 +181,16 @@ namespace parser
 
       const AstDeclClass* find( const std::vector<mvv::Symbol>& s ) const
       {
-         if ( !_current )
+         if ( !_root )
             return 0;
-         return _current->find( s, -1 );
+         return _root->find( s, -1 );
+      }
+
+      const AstDeclClass* find_in_scope( const mvv::Symbol& s ) const
+      {
+         if ( !_root )
+            return 0;
+         return _current->find_in_scope( s );
       }
 
    private:
@@ -186,9 +203,9 @@ namespace parser
       Node* _current;
    };
 
-   typedef SymbolTable<AstDeclVar>              SymbolTableVars;     /// Scoped symbol table
-   typedef std::map<mvv::Symbol, AstDeclFun*>   SymbolTableFuncs;    /// We only need to store functions in global scope
-   typedef SymbolTable<AstDeclClass>            SymbolTableClasses;  /// tree-like storage for classes
+   typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table
+   typedef std::map<mvv::Symbol, std::vector<AstDeclFun*> >   SymbolTableFuncs;    /// We only need to store functions in global scope
+   typedef SymbolTableDictionary                              SymbolTableClasses;  /// tree-like storage for classes
 }
 }
 

@@ -23,6 +23,8 @@
     - operator +, = -, /, *, [], () have special meanings if not a primitive...
     - prmitive int, float, string
     - delc: int a[][][] = { {}{}{}... } not handled ->int a[] = {x, x, x...}, but not int a[5] = {...} => we should not give size, quite difficult to parse, not very useful...
+    - function name & class can't have the same name: class Test{} int Test(); print( Test() );
+    - Test Test; int Test(); => Test()
     */
    
    #include <string>
@@ -66,6 +68,7 @@
     */
    static int mvvParserInputNumber = 0;
    @$.filename = mvv::Symbol::create( tp._filename == "" ? "(input" + nll::core::val2str( mvvParserInputNumber++ ) + ")" : tp._filename );
+   std::cout << "File=" << @$.filename << std::endl;
 }
 
 %union

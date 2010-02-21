@@ -9,6 +9,7 @@
 #include "visitor-bind.h"
 #include "visitor-register-declarations.h"
 #include "symbol-table.h"
+#include "utils.h"
 
 
 

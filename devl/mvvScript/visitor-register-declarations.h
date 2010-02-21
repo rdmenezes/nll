@@ -4,6 +4,7 @@
 # include "visitor-default.h"
 # include "parser-context.h"
 # include "symbol-table.h"
+# include "utils.h"
 
 namespace mvv
 {
@@ -67,9 +68,37 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         if ( _vars.find( e.getName() ) )
+         {
+            // we know we have at least 1 function declared...
+            impl::reportAlreadyDeclaredType( _vars.find( e.getName() )->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
+            operator()( e.getDeclarations() );
+            return;
+         }
+
+         SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
+         if ( it != _funcs.end() )
+         {
+            // we know we have at least 1 function declared...
+            impl::reportAlreadyDeclaredType( it->second[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
+            operator()( e.getDeclarations() );
+            return;
+         }
+
+         const AstDeclClass* decl = _classes.find_in_scope( e.getName() );
+         if ( decl )
+         {
+            impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
+            operator()( e.getDeclarations() );
+            return;
+         } 
+
+         // no error
          ++_scopeDepth;
+         _classes.begin_scope( e.getName(), &e );
          operator()( e.getDeclarations() );
          --_scopeDepth;
+         _classes.end_scope();
       }
 
       /**
@@ -116,9 +145,44 @@ namespace parser
       virtual void operator()( AstDeclFun& e ) 
       {
          // discard type and body
-         // if body is undeclared, multiple function definitions can be delcared
+         // if body is undeclared, it can't be multiple times declared...
 
-         // TODO must check it's arguments for overloading...
+         if ( _scopeDepth == 1 )
+         {
+            const AstDeclVar* var = _vars.find( e.getName() );
+            if ( var )
+            {
+               impl::reportAlreadyDeclaredType( var->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
+               return;
+            }
+            const AstDeclClass* decl = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ) );
+            if ( decl )
+            {
+               impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
+               return;
+            }
+
+            // it means it is a global function. Else it is a member function.
+            // in the case where it is declared outside of a class/global scope, the declaration
+            // will not be created (nodes are not visited) and a binding error will be issued
+            SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
+            if ( it == _funcs.end() )
+            {
+               _funcs[ e.getName() ].push_back( &e );
+            } else {
+               for ( std::vector<AstDeclFun*>::iterator ii = it->second.begin();
+                     ii != it->second.end();
+                     ++ii )
+               {
+                  if ( areDeclVarsEqual( &(*ii)->getVars(), &e.getVars() ) )
+                  {
+                     impl::reportAlreadyDeclaredType( (*ii)->getLocation(), e.getLocation(), _context, "a function with the same prototype has already been declared" );
+                  }
+               }
+
+               it->second.push_back( &e );
+            }
+         }
       }
 
       virtual void operator()( AstImport& e )
@@ -136,28 +200,32 @@ namespace parser
          // if global scope, add it to the symbol table
          if ( _scopeDepth == 1 )
          {
-            Ast* check = checkSymbol( e.getName() );
-            if ( check )
+            const AstDeclClass* decl = _classes.find_in_scope( e.getName() );
+            if ( decl )
             {
-               impl::reportAlreadyDeclaredType( check->getLocation(), e.getLocation(), _context, "variable already declared" );
+               impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
+               return;
+            }
+
+            SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
+            if ( it != _funcs.end() )
+            {
+               // we know we have at lest 1 function of this name declared
+               impl::reportAlreadyDeclaredType( it->second[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
+               return;
+            }
+
+            if ( _vars.find( e.getName() ) )
+            {
+               impl::reportAlreadyDeclaredType( _vars.find( e.getName() )->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
             } else {
                _vars.insert( e.getName(), &e );
-               _symbolsUsed[ e.getName() ] = &e;
             }
          }
       }
 
 
    private:
-      Ast* checkSymbol( const mvv::Symbol& s ) const
-      {
-         std::map<mvv::Symbol, Ast*>::const_iterator it = _symbolsUsed.find( s );
-         if ( it != _symbolsUsed.end() )
-         {
-            return it->second;
-         }
-         return 0;
-      }
 
       // disabled
       VisitorRegisterDeclarations& operator=( const VisitorRegisterDeclarations& );
@@ -172,7 +240,6 @@ namespace parser
       SymbolTableVars                  _vars;
       SymbolTableFuncs                 _funcs;
       SymbolTableClasses               _classes;
-      std::map<mvv::Symbol, Ast*>      _symbolsUsed;
    };
 }
 }
