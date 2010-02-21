@@ -131,7 +131,7 @@ namespace platform
          nll::core::vector3uc val( static_cast<ui8>( v * _pointerColor[ 0 ] ), 
                                    static_cast<ui8>( v * _pointerColor[ 1 ] ),
                                    static_cast<ui8>( v * _pointerColor[ 2 ] ) );
-         ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( static_cast<ui32>( pplane[ 0 ] + slice.size()[ 0 ] / 2 ),                                                                       0 );
+         ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( std::max<i32>( std::min<i32>( slice.size()[ 0 ] - 1, static_cast<i32>( pplane[ 0 ] + slice.size()[ 0 ] / 2 ) ), 0 ), 0 );
          for ( ui32 n = 0; n < slice.size()[ 1 ]; ++n, it.addy() )
          {
             it.pickcol( 0 ) = val[ 0 ];
@@ -139,7 +139,8 @@ namespace platform
             it.pickcol( 2 ) = val[ 2 ];
          }
 
-         it = slice.getIterator( 0, static_cast<ui32>( pplane[ 1 ] + slice.size()[ 1 ] / 2 ) );
+         nll::core::vector2i startx( 0, std::max<i32>( std::min<i32>( static_cast<i32>( pplane[ 1 ] + slice.size()[ 1 ] / 2 ), slice.size()[ 1 ] - 1 ), 0 ) );
+         it = slice.getIterator( startx[ 0 ], startx[ 1 ] );
          for ( ui32 n = 0; n < slice.size()[ 0 ]; ++n, ++it )
          {
             it.pickcol( 0 ) = val[ 0 ];
