@@ -23,7 +23,7 @@ struct yy_buffer_state;
 // Define our location type
 struct MVVSCRIPT_API YYLTYPE
 {
-   YYLTYPE() : filename( mvv::Symbol::create("") )
+   YYLTYPE() : filename( mvv::Symbol::create("(input)") )
    {
       first_line = 1;
       first_column = 0;
@@ -39,7 +39,7 @@ struct MVVSCRIPT_API YYLTYPE
 };
 
 // define the printing of our location
-inline std::ostream& operator<<( std::ostream& o, YYLTYPE& loc )
+inline std::ostream& operator<<( std::ostream& o, const YYLTYPE& loc )
 {
    o << loc.filename.getName() << ": L"  << loc.first_line << "." << loc.first_column
                                << "-L"   << loc.last_line  << "." << loc.last_column

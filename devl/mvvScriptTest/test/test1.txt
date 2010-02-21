@@ -78,6 +78,7 @@ class Test
 
 test(5).res[4] = 3;
 test(5).res(4) = 3;
+test(5)(4) = 3;
 
 int nn[ 4 ];
 int nn[] = {-1, 1, 10};

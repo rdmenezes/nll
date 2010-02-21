@@ -7,6 +7,9 @@ namespace mvv
 {
 namespace parser
 {
+   /**
+    @brief hold ( exp ) node
+    */
    class MVVSCRIPT_API AstExpSeq : public AstExp
    {
    public:

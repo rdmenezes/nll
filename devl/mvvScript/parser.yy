@@ -18,7 +18,8 @@
     - var[] array;		can contain any time of classes, type is directly known...
     - typename Test::Test2(); we need to be less accurate on the type so we can Test::test.a
     - namespace, static, public: namespace = class, default is public, static, can be in several files
-    - a name of function/variable/class must be unique
+    - a name of function/variable/class must be unique, else confusing
+    - class declaration are global, function can only be declared in global scope but may have several functions with same name for overloading
     - operator +, = -, /, *, [], () have special meanings if not a primitive...
     - prmitive int, float, string
     - delc: int a[][][] = { {}{}{}... } not handled ->int a[] = {x, x, x...}, but not int a[5] = {...} => we should not give size, quite difficult to parse, not very useful...
@@ -31,6 +32,20 @@
    #include <nll/nll.h>
    #include "parser-context.h"
    #include "ast-files.h"
+   
+ inline void linkFunctionToClass( mvv::parser::AstDeclClass& c )
+ {
+  typedef mvv::parser::AstDecls::Decls	Container;
+
+  for ( Container::iterator it = c.getDeclarations().getDecls().begin(); it != c.getDeclarations().getDecls().end(); ++it )
+  {
+   mvv::parser::AstDeclFun* decl = dynamic_cast<mvv::parser::AstDeclFun*>( *it );
+   if ( decl )
+   {
+    decl->setMemberOfClass( &c );
+   }
+  }
+ }
 %}
 
 %locations
@@ -167,7 +182,7 @@ statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); }
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX                     { $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE { $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
-          |CLASS ID LBRACE var_decs_class RBRACE                                          { $$ = new mvv::parser::AstDeclClass( @$, *$2, $4 ); }
+          |CLASS ID LBRACE var_decs_class RBRACE                                          { mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$ = decl; linkFunctionToClass( *decl ); }
 
 
           /**
@@ -233,7 +248,7 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
 var_decs_class: /* empty */				                                                     { $$ = new mvv::parser::AstDecls( @$ ); }
       |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
       |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                   { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); }
-      |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; $$->insert( new mvv::parser::AstDeclClass( @$, *$2, $4 ) ); }
+      |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                  { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }
       |type OPERATORBRACKET LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4, $7 ) ); }	

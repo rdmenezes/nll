@@ -7,15 +7,6 @@ namespace mvv
 {
 namespace parser
 {
-   struct Function
-   {
-      Function( mvv::Symbol& n, AstArgs* a ) : name( n ), args( a )
-      {}
-
-      mvv::Symbol name;
-      AstArgs*    args;
-   };
-
    /**
     @brief Customizable symbol table: search range can be limited, possible to not deconstruct the scopes.
            Store symbols as LIFO
@@ -96,48 +87,108 @@ namespace parser
    };
 
 
-   template <class T>
-   struct SymbolTableDictionaryNode
-   {
-      SymbolTableDictionaryNode( const mvv::Symbol& n ) : name( n ), next( 0 ), previous( 0 )
-      {}
+   
 
-      mvv::Symbol                name;
-      SymbolTableDictionaryNode* next;
-      SymbolTableDictionaryNode* previous;
-      std::set<T*>               declarations;
-   };
-
-   template <class T>
    class SymbolTableDictionary
    {
-      typedef SymbolTableDictionaryNode<T*>  Node;
+      struct Node
+      {
+         Node( const mvv::Symbol& n, AstDeclClass* d ) : name( n ), previous( 0 ), decl( d )
+         {}
+
+         AstDeclClass* find( const std::vector<mvv::Symbol>& classPath, int begining )
+         {
+            if ( name == mvv::Symbol::create( "" ) || classPath[ begining ] == name )
+            {
+               if ( static_cast<int>( classPath.size() ) == begining + 1 )
+                  return decl;
+               for ( ui32 n = 0; n < next.size(); ++n )
+               {
+                  AstDeclClass* res = next[ n ]->find( classPath, begining + 1 );
+                  if ( res )
+                  {
+                     return res;
+                  }
+               }
+            }
+            return 0;
+         }
+
+         void destroy()
+         {
+            for ( ui32 n = 0; n < next.size(); ++n )
+            {
+               next[ n ]->destroy();
+               delete next[ n ];
+            }
+         }
+
+         mvv::Symbol          name;
+         std::vector<Node*>   next;
+         Node*                previous;
+         AstDeclClass*        decl;
+      };
 
    public:
-      SymbolTableDictionary() : _node( 0 ), _current( 0 )
+      SymbolTableDictionary() : _root( 0 ), _current( 0 )
       {
+         // create the global scope
+         begin_scope( mvv::Symbol::create( "" ), 0 );
       }
 
-      void begin_scope( mvv::Symbol s )
+      ~SymbolTableDictionary()
       {
-         Node* node = new Node( s );
-         if ( _current )
+         if ( _root )
          {
-            _node
-         } else {
+            _root->destroy();
+            delete _root;
+            _root = 0;
+            _current = 0;
          }
       }
 
+      void begin_scope( mvv::Symbol s, AstDeclClass* decl )
+      {
+         ensure( decl || _current == 0, "can't insert a null decl except the first one" );
+
+         Node* node = new Node( s, decl );
+         if ( _current )
+         {
+            _current->next.push_back( node );
+            node->previous = _current;
+            _current = node;
+         } else {
+            _current = node;
+            _root = node;
+         }
+      }
+
+      void end_scope()
+      {
+         ensure( _current, "can't be null: poped too much..." );
+         _current = _current->previous;
+      }
+
+      const AstDeclClass* find( const std::vector<mvv::Symbol>& s ) const
+      {
+         if ( !_current )
+            return 0;
+         return _current->find( s, -1 );
+      }
+
    private:
-      Node* _node;
+      // copy disabled
+      SymbolTableDictionary( const SymbolTableDictionary& );
+      SymbolTableDictionary& operator=( const SymbolTableDictionary& );
+
+   private:
+      Node* _root;
       Node* _current;
    };
 
-   typedef SymbolTable<AstDeclVar>              SymbolTableVars;
-   typedef SymbolTable<AstDeclFun, Function>    SymbolTableFuncs;
-
-   typedef SymbolTable<AstDeclClass>   SymbolTableClasses;
-
+   typedef SymbolTable<AstDeclVar>              SymbolTableVars;     /// Scoped symbol table
+   typedef std::map<mvv::Symbol, AstDeclFun*>   SymbolTableFuncs;    /// We only need to store functions in global scope
+   typedef SymbolTable<AstDeclClass>            SymbolTableClasses;  /// tree-like storage for classes
 }
 }
 

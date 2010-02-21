@@ -4,6 +4,7 @@
 #include <mvvScript/visitor-print.h>
 #include <mvvScript/visitor-default.h>
 #include <mvvScript/visitor-bind.h>
+#include <mvvScript/visitor-register-declarations.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -16,24 +17,34 @@ struct TestBasic
    /**
     @brief basic input to test the lexer && parser only
     */
-   void testDummy1()
+   void testBinding1()
    {
-      ParserContext context;
-      Ast* exp = 0;
-      
-      exp = context.parseString( " \" 123 asd  " );
-      context.getError().clear();
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;" 
+                                    "{"
+                                    "  int n = 1;"
+                                    "}" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
 
-      exp = context.parseString( " \" 123 asd  " );
-      context.getError().clear();
-
-      std::cout << "-----------------------------" << std::endl;
-      exp = context.parseString( "987 123 asd  \"" );
-      context.getError().clear();
-
-      std::cout << " --------ast=" << exp << std::endl;
-
-      std::cout << "msg=" << context.getError();
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;\n" 
+                                    "  int n = 1;" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         std::cout << context.getError().getMessage().str();
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
    }
 
    void testDummy2()
@@ -98,10 +109,42 @@ struct TestBasic
       VisitorPrint p( std::cout );
       p( *exp );
    }
+
+   void testSymbolTableDisctionary()
+   {
+      YYLTYPE loc;
+      AstDecls decls( loc );
+      AstDeclClass c1( loc, mvv::Symbol::create("C1"), &decls );
+      AstDeclClass c2( loc, mvv::Symbol::create("C2"), &decls );
+      AstDeclClass c3( loc, mvv::Symbol::create("C3"), &decls );
+      AstDeclClass c4( loc, mvv::Symbol::create("C4"), &decls );
+
+      SymbolTableDictionary dictionary;
+      dictionary.begin_scope( c1.getName(), &c1 );
+      
+      dictionary.begin_scope( c2.getName(), &c2 );
+      dictionary.end_scope();
+      dictionary.begin_scope( c3.getName(), &c3 );
+      dictionary.end_scope();
+      dictionary.end_scope();
+      dictionary.begin_scope( c4.getName(), &c4 );
+      dictionary.end_scope();
+
+      const AstDeclClass* tc1 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C1") ) );
+      const AstDeclClass* tc2 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C1"), mvv::Symbol::create("C2") ) );
+      const AstDeclClass* tc3 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C1"), mvv::Symbol::create("C3") ) );
+      const AstDeclClass* tc4 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C4") ) );
+      TESTER_ASSERT( tc1 == &c1 );
+      TESTER_ASSERT( tc2 == &c2 );
+      TESTER_ASSERT( tc3 == &c3 );
+      TESTER_ASSERT( tc4 == &c4 );
+   }
 };
 
 TESTER_TEST_SUITE(TestBasic);
-TESTER_TEST(testDummy2);
-//TESTER_TEST(testDummy1);
-TESTER_TEST(testFull1);
+TESTER_TEST(testBinding1);
+
+//TESTER_TEST(testDummy2);
+//TESTER_TEST(testFull1);
+//TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST_SUITE_END();
