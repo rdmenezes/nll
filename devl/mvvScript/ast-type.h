@@ -59,7 +59,7 @@ namespace parser
          EMPTY
       };
 
-      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type )
+      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type ), _symbolClass( 0 )
       {
          if ( symbol )
          {

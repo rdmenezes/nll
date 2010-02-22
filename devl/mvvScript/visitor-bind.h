@@ -111,7 +111,7 @@ namespace parser
             AstDeclClass* declLocal = 0;
             if ( !current )
             {
-               _classes.find_within_scope( _defaultClassPath, *e.getSymbol() );
+               declLocal = _classes.find_within_scope( _defaultClassPath, *e.getSymbol() );
             }
             
             if ( !declLocal && !current )

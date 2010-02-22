@@ -28,6 +28,7 @@
     - type find rule: -check in current class (if any)
                       -check if name of the class
                       -check declared in the scope outside the class has been declared and so on until global scope
+    - construtor: checked when type checking, must be the same name than class
     */
    
    #include <string>

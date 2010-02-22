@@ -123,13 +123,13 @@ namespace parser
             Node* res = _find( classPath, -1 );
             if ( !res )
                return 0;
-            if ( name == s )
-               return decl;
-            for ( ui32 n = 0; n < next.size(); ++n )
+            if ( res->name == s )
+               return res->decl;
+            for ( ui32 n = 0; n < res->next.size(); ++n )
             {
-               if ( next[ n ]->name == s )
+               if ( res->next[ n ]->name == s )
                {
-                  return next[ n ]->decl;
+                  return res->next[ n ]->decl;
                }
             }
             return 0;
@@ -159,6 +159,7 @@ namespace parser
                      return res->next[ n ]->decl;
                   }
                }
+               res = res->previous;
             }
             return 0;
          }
