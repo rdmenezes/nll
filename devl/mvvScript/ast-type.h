@@ -86,6 +86,17 @@ namespace parser
          return _type;
       }
 
+      void setReference( AstDeclClass* decl )
+      {
+         ensure( _type == SYMBOL, "only for symbol type" );
+         _symbolClass = decl;
+      }
+
+      AstDeclClass* getReference() const
+      {
+         return _symbolClass;
+      }
+
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {
@@ -101,6 +112,7 @@ namespace parser
    private:
       mvv::Symbol*         _symbol;
       Type                 _type;
+      AstDeclClass*        _symbolClass;
    };
 }
 }

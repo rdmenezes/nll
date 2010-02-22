@@ -10,16 +10,6 @@ namespace mvv
 {
 namespace parser
 {
-   namespace impl
-   {
-      inline void reportAlreadyDeclaredType( const YYLTYPE& previous, const YYLTYPE& current, mvv::parser::ParserContext& context, const std::string& msg )
-      {
-         std::stringstream ss;
-         ss << current << msg <<" (see " << previous << ")" << std::endl;
-         context.getError() << ss.str() << mvv::parser::Error::BIND;
-      }
-   }
-
    /**
     @brief Defines a visitor that will reference all global definitions:
            _global_ variable/ _global_ function/ all class declaration.
@@ -38,7 +28,10 @@ namespace parser
 
    public:
       VisitorRegisterDeclarations( ParserContext& context ) : _context( context ), _scopeDepth( 0 )
-      {}
+      {
+         // global scope
+         _vars.beginScope();
+      }
 
       const Symbols& getFilesToInclude() const
       {
@@ -224,6 +217,20 @@ namespace parser
          }
       }
 
+      const SymbolTableVars& getVars() const
+      {
+         return _vars;
+      }
+
+      const SymbolTableFuncs& getFuncs() const
+      {
+         return _funcs;
+      }
+
+      const SymbolTableClasses& getClasses() const
+      {
+         return _classes;
+      }
 
    private:
 

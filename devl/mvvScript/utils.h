@@ -7,6 +7,16 @@ namespace mvv
 {
 namespace parser
 {
+   namespace impl
+   {
+      inline void reportAlreadyDeclaredType( const YYLTYPE& previous, const YYLTYPE& current, mvv::parser::ParserContext& context, const std::string& msg )
+      {
+         std::stringstream ss;
+         ss << current << msg <<" (see " << previous << ")" << std::endl;
+         context.getError() << ss.str() << mvv::parser::Error::BIND;
+      }
+   }
+
    inline bool areTypesEqual( const AstTypeT* t1, const AstTypeT* t2 )
    {
       ensure( t1 && t2, "can be null" );

@@ -42,7 +42,6 @@ struct TestBasic
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
-         std::cout << context.getError().getMessage().str();
          TESTER_ASSERT( context.getError().getStatus() );
       }
 
@@ -65,7 +64,6 @@ struct TestBasic
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
-         std::cout << context.getError().getMessage().str();
          TESTER_ASSERT( context.getError().getStatus() );
       }
 
@@ -77,7 +75,6 @@ struct TestBasic
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
-         std::cout << context.getError().getMessage().str();
          TESTER_ASSERT( context.getError().getStatus() );
       }
 
@@ -100,7 +97,6 @@ struct TestBasic
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
-         std::cout << context.getError().getMessage().str();
          TESTER_ASSERT( context.getError().getStatus() );
       }
 
@@ -252,12 +248,175 @@ struct TestBasic
       TESTER_ASSERT( tc3 == &c3 );
       TESTER_ASSERT( tc4 == &c4 );
    }
+
+   void testBinding2()
+   {
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;" 
+                                    "{"
+                                    "  int n = 1;"
+                                    "}" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;" 
+                                    "{"
+                                    "  int n = 1;"
+                                    "  int n;"
+                                    "}" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;" 
+                                    "{"
+                                    "  int n = 1;"
+                                    "  int nn = n * 3;"
+                                    "}" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;" 
+                                    "{"
+                                    "  int n = 1;"
+                                    "  int nn = n2 * 3;"
+                                    "}" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 0;" 
+                                    "{"
+                                    "  int n = 1;"
+                                    "  int nn = n2[15] * 3;"
+                                    "}" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "Test test = 0;" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int fn( Test t );" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "class Test{} int fn( Test t );" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "class Test{ Test clone(); }" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+   }
 };
 
 TESTER_TEST_SUITE(TestBasic);
+TESTER_TEST(testBinding2);
+/*
 TESTER_TEST(testBinding1);
-
-//TESTER_TEST(testDummy2);
-//TESTER_TEST(testFull1);
-//TESTER_TEST(testSymbolTableDisctionary);
+TESTER_TEST(testDummy2);
+TESTER_TEST(testFull1);
+TESTER_TEST(testSymbolTableDisctionary);*/
 TESTER_TEST_SUITE_END();

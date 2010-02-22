@@ -25,6 +25,9 @@
     - delc: int a[][][] = { {}{}{}... } not handled ->int a[] = {x, x, x...}, but not int a[5] = {...} => we should not give size, quite difficult to parse, not very useful...
     - function name & class can't have the same name: class Test{} int Test(); print( Test() );
     - Test Test; int Test(); => Test()
+    - type find rule: -check in current class (if any)
+                      -check if name of the class
+                      -check declared in the scope outside the class has been declared and so on until global scope
     */
    
    #include <string>

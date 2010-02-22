@@ -85,7 +85,6 @@ STRCHR	[A-Za-z_]
 
  {DQUOTE} {
   yylval->str = new std::string ();
-  std::cout << "CREATTE STR=" << yylval->str << std::endl;
   yy_push_state (SC_STRING);
 }
 
