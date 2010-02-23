@@ -75,8 +75,6 @@ namespace parser
          // check the context
          if ( field.size() )
          {
-            //std::vector<mvv::Symbol> up( field );
-
             // if field, and find in class failed, we need to check from global scope
             return _classes.find( field );
          } else {
@@ -141,7 +139,7 @@ namespace parser
 
       virtual void operator()( AstVarField& e )
       {
-         // TODO check declaration
+         // do nothing: we need type value to check if the fields are correctly used
          operator()( e.getField() );
       }
 
@@ -161,29 +159,35 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         // TODO handle scope - should be ok
-
+         ++_scopeDepth;
          _vars.beginScope( true );
          _defaultClassPath.push_back( e.getName() );
          operator()( e.getDeclarations() );
          _defaultClassPath.pop_back();
          _vars.endScope();
+         --_scopeDepth;
       }
 
       virtual void operator()( AstDeclFun& e ) 
       {
-         // CHECK name if in look up table->else error->declared in scope/classes?
+         if ( _defaultClassPath.size() == 0 )
+         {
+            // if we are in class, it means it is a member function
+            SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
+            if ( it == _funcs.end() )
+            {
+               impl::reportUndeclaredType( e.getLocation(), _context, "a function can only be declared in the global scope" );
+            }
+         }
+
          if ( e.getType() )
          {
             operator()( *e.getType() );
          }
-         if ( e.getVars().getVars().size() )
-         {
-            operator()( e.getVars() );
-         }
          
          if ( e.getBody() )
          {
+            ++_scopeDepth;
             if ( _defaultClassPath.size () )
             {
                // it means we are in a  class, so don't create a blocking scope
@@ -192,16 +196,30 @@ namespace parser
                _vars.beginScope( true );
             }
 
-            // TODO add variables in scope
+            // read the vars in the body
+            if ( e.getVars().getVars().size() )
+            {
+               operator()( e.getVars() );
+            }
+
             _canReturn.push( true );
             operator()( *e.getBody() );
             _canReturn.pop();
             _vars.endScope();
+
+            --_scopeDepth;
+         } else {
+            // if there is no body, we still need to go through the arguments and bind them
+            if ( e.getVars().getVars().size() )
+            {
+               operator()( e.getVars() );
+            }
          }
       }
 
       virtual void operator()( AstReturn& e )
       {
+         // check if we are in a function
          if ( !_canReturn.size() || !_canReturn.top() )
          {
             impl::reportUndeclaredType( e.getLocation(), _context, "return statements are only allowed in the body of a function" );

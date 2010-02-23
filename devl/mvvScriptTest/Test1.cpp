@@ -495,14 +495,104 @@ struct TestBasic
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( context.getError().getStatus() );
       }
+
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n; void test( int n, float f ) { return n * f;}" );
+         VisitorPrint p( std::cout );
+         p( *exp );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n; void test( float f ) { return n * f;}" );
+         VisitorPrint p( std::cout );
+         p( *exp );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "class Test{ int n; int get(){ return n; } }" );
+         VisitorPrint p( std::cout );
+         p( *exp );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n; class Test{ int n; class Test2{ int get(){ return n; } } }" );
+         VisitorPrint p( std::cout );
+         p( *exp );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+       {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "{ int test(){ return 0;} }" );
+         VisitorPrint p( std::cout );
+         p( *exp );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestBasic);
 TESTER_TEST(testBinding2);
-/*
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
-TESTER_TEST(testSymbolTableDisctionary);*/
+TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST_SUITE_END();
