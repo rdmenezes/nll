@@ -91,10 +91,9 @@ namespace parser
       virtual void operator()( const AstStatements& e )
       {
          unsigned n = 0;
+         _o << "{";
          if ( e.getStatements().size() )
-         {
-            _o << "{" << incendl;
-         }
+            _o << incendl;
 
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
@@ -116,6 +115,8 @@ namespace parser
          if ( e.getStatements().size() )
          {
             _o << decendl << "}";
+         } else {
+            _o << iendl << "}";
          }
       }
 
@@ -141,8 +142,8 @@ namespace parser
 
       virtual void operator()( const AstVarField& e )
       {
+         _o << e.getName() << ".";
          operator()( e.getField() );
-         _o << "." << e.getName();
       }
 
       virtual void operator()( const AstType& e )
@@ -212,9 +213,18 @@ namespace parser
 
       virtual void operator()( const AstDeclClass& e )
       {
-         _o << "class " << e.getName() << iendl << "{" << incendl;
+         _o << "class " << e.getName() << iendl << "{";
+         if ( e.getDeclarations().getDecls().size() )
+         {
+            _o << incendl;
+         }
          operator()( e.getDeclarations() );
-         _o << decendl << "}";
+         if ( e.getDeclarations().getDecls().size() )
+         {
+            _o << decendl << "}";
+         } else {
+            _o << iendl << "}";
+         }
       }
 
       virtual void operator()( const AstDeclFun& e ) 
@@ -238,6 +248,8 @@ namespace parser
          {
             _o << iendl;
             operator()( *e.getBody() );
+         } else {
+            //_o << ";";
          }
       }
 
@@ -327,8 +339,8 @@ namespace parser
 
       virtual void operator()( const AstTypeField& e )
       {
+         _o << e.getName() << "::";
          operator()( e.getField() );
-         _o << "::" << e.getName();
       }
 
       virtual void operator()( const AstExpTypename& e )

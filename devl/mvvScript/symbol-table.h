@@ -167,7 +167,6 @@ namespace parser
          /**
           Use the current position, find predecessors until global scope
           */
-         // TODO check
          AstDeclClass* find_in_scope( const mvv::Symbol& s )
          {
             if ( s == name )

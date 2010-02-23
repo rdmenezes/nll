@@ -50,6 +50,39 @@ namespace parser
          _scopeDepth = 0;
       }
 
+      AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
+      {
+         if ( field.size() )
+         {
+            // concatenate the field to the path
+            std::vector<mvv::Symbol> up( path );
+            for ( size_t n = 0; n < field.size(); ++n )
+            {
+               up.push_back( field[ n ] );
+            }
+            AstDeclClass* current = _classes.find_in_class( up, name );
+            if ( current )
+               return current;
+
+         } else {
+            // current class
+            AstDeclClass* current = _classes.find_in_class( _defaultClassPath, name );
+            if ( current )
+               return current;
+         }
+
+         // check the context
+         if ( field.size() )
+         {
+            //std::vector<mvv::Symbol> up( field );
+
+            // if field, and find in class failed, we need to check from global scope
+            return _classes.find( field );
+         } else {
+            return _classes.find_within_scope( _defaultClassPath, name );
+         }
+      }
+
       virtual void operator()( AstStatements& e )
       {
          ++_scopeDepth;
@@ -100,30 +133,12 @@ namespace parser
       {
          if ( e.getType() == AstType::SYMBOL )
          {
-            //
-            // first check if we have the symbol declared in the class, then outer scope, then outer outer scope...
-            //
-
-            // current class
-            AstDeclClass* current = _classes.find_in_class( _defaultClassPath, *e.getSymbol() );
-
-            // check the context
-            AstDeclClass* declLocal = 0;
-            if ( !current )
-            {
-               declLocal = _classes.find_within_scope( _defaultClassPath, *e.getSymbol() );
-            }
-            
-            if ( !declLocal && !current )
+            AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, *e.getSymbol() );
+            if ( !decl )
             {
                impl::reportUndeclaredType( e.getLocation(), _context, "undeclared type" );
             } else {
-               if ( current )
-               {
-                  e.setReference( current );
-               } else {
-                  e.setReference( declLocal );
-               }
+               e.setReference( decl );
             }
          }
       }
@@ -220,8 +235,19 @@ namespace parser
 
       virtual void operator()( AstTypeField& e )
       {
-         // TODO check field
+         _currentFieldList.push_back( e.getName() );
+         AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+         if ( !decl )
+         {
+            std::stringstream ss;
+            ss << "can't find the declaration for this field: \"" << e.getName() << "\"";
+            impl::reportUndeclaredType( e.getLocation(), _context, ss.str() );
+         } else {
+            e.setReference( decl );
+         }
+
          operator()( e.getField() );
+         _currentFieldList.pop_back();
       }
 
 
@@ -235,6 +261,7 @@ namespace parser
       int                        _scopeDepth;
       std::stack<bool>           _canReturn;
       std::vector<mvv::Symbol>   _defaultClassPath;
+      std::vector<mvv::Symbol>   _currentFieldList;
 
       ParserContext&      _context;
       SymbolTableVars     _vars;

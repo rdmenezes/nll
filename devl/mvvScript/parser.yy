@@ -272,7 +272,7 @@ var_decs_class: /* empty */				                                                 
              |VOID                    { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VOID );}
 	         
 type_field: ID                        { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::SYMBOL, $1 ); }
-           |type_field DCOLON ID      { $$ = new mvv::parser::AstTypeField( @$, $1, *$3 ); }
+           |ID DCOLON type_field      { $$ = new mvv::parser::AstTypeField( @$, $3, *$1 ); }
           
 type: type_field                      { $$ = $1; }
      |type_simple                     { $$ = $1; }
