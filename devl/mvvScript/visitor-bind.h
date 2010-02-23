@@ -159,6 +159,8 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         // TODO: check if created in global scope => check if in symbol table, else error
+
          ++_scopeDepth;
          _vars.beginScope( true );
          _defaultClassPath.push_back( e.getName() );

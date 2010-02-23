@@ -537,6 +537,24 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
+         exp = context.parseString( "int n; void test( float f ) { float f; return f;}" );
+         VisitorPrint p( std::cout );
+         p( *exp );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
          exp = context.parseString( "class Test{ int n; int get(){ return n; } }" );
          VisitorPrint p( std::cout );
          p( *exp );
