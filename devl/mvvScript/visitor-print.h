@@ -47,7 +47,7 @@ namespace parser
    class VisitorPrint : public ConstVisitor
    {
    public:
-      VisitorPrint( std::ostream& o ) : _o( o )
+      VisitorPrint( std::ostream& o ) : _o( o ), _statementDepth( 0 )
       {}
 
       virtual void operator()( const AstInt& e )
@@ -91,9 +91,14 @@ namespace parser
       virtual void operator()( const AstStatements& e )
       {
          unsigned n = 0;
-         _o << "{";
-         if ( e.getStatements().size() )
-            _o << incendl;
+         if ( _statementDepth > 0 )
+         {
+            _o << "{";
+            if ( e.getStatements().size() )
+               _o << incendl;
+         }
+
+         ++_statementDepth;
 
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
@@ -104,7 +109,9 @@ namespace parser
             if ( !dynamic_cast<AstIf*>( *it ) &&
                  !dynamic_cast<AstDeclClass*>( *it ) && 
                  !dynamic_cast<AstImport*>( *it )    &&
-                 !dynamic_cast<AstInclude*>( *it ) )
+                 !dynamic_cast<AstInclude*>( *it )   &&
+                 !dynamic_cast<AstDeclFun*>( *it )   &&
+                 !dynamic_cast<AstStatements*>( *it ) )
             {
                _o << ";";
             }
@@ -112,11 +119,16 @@ namespace parser
                _o << iendl;
          }
 
-         if ( e.getStatements().size() )
+         --_statementDepth;
+
+         if ( _statementDepth )
          {
-            _o << decendl << "}";
-         } else {
-            _o << iendl << "}";
+            if ( e.getStatements().size()  )
+            {
+               _o << decendl << "}";
+            } else {
+               _o << iendl << "}";
+            }
          }
       }
 
@@ -249,7 +261,7 @@ namespace parser
             _o << iendl;
             operator()( *e.getBody() );
          } else {
-            //_o << ";";
+        //    _o << ";";
          }
       }
 
@@ -369,6 +381,7 @@ namespace parser
 
    private:
       std::ostream&     _o;
+      int               _statementDepth;
    };
 }
 }

@@ -12,6 +12,7 @@ namespace parser
    public:
       AstVarSimple( const YYLTYPE& location, mvv::Symbol name, bool isDeduced ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced )
       {
+         _isFuncCall = false;
       }
 
       const Symbol& getName() const
@@ -31,9 +32,20 @@ namespace parser
          v( *this );
       }
 
+      void setFunctionCall( bool val )
+      {
+         _isFuncCall = val;
+      }
+
+      bool isFunctionCall() const
+      {
+         return _isFuncCall;
+      }
+
    private:
       mvv::Symbol   _name;
-      bool          _isDeduced;
+      bool          _isDeduced;  // deprecated?
+      bool          _isFuncCall; // true if this node is a function call and not a reference to a variable
    };
 }
 }

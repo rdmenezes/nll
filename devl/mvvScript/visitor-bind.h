@@ -48,6 +48,7 @@ namespace parser
                    const SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
          _scopeDepth = 0;
+         _functionCallsNeeded = 0;
       }
 
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
@@ -117,7 +118,22 @@ namespace parser
          AstDeclVar* var = _vars.find( e.getName() );
          if ( !var )
          {
-            impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
+            // there is still the case of the function call: "func( 0 )" -> 
+            // in case it is actually a global function
+            if ( _functionCallsNeeded )
+            {
+               SymbolTableFuncs::iterator it = _funcs.find( e.getName() ); 
+               if ( it == _funcs.end() )
+               {
+                  impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function" );
+               } else {
+                  std::cout << "function declared:" << e.getName() << std::endl;
+                  e.setFunctionCall( true );
+                  --_functionCallsNeeded;
+               }
+            } else {
+               impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
+            }
          } else {
             e.setReference( var );
          }
@@ -145,17 +161,17 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         // TODO handle scope
+         // TODO handle scope - should be ok
 
+         _vars.beginScope( true );
          _defaultClassPath.push_back( e.getName() );
          operator()( e.getDeclarations() );
          _defaultClassPath.pop_back();
+         _vars.endScope();
       }
 
       virtual void operator()( AstDeclFun& e ) 
       {
-
-         // TODO handle scope
          // CHECK name if in look up table->else error->declared in scope/classes?
          if ( e.getType() )
          {
@@ -168,18 +184,49 @@ namespace parser
          
          if ( e.getBody() )
          {
-            // TODO SCOPE
+            if ( _defaultClassPath.size () )
+            {
+               // it means we are in a  class, so don't create a blocking scope
+               _vars.beginScope( false );
+            } else {
+               _vars.beginScope( true );
+            }
+
+            // TODO add variables in scope
             _canReturn.push( true );
             operator()( *e.getBody() );
             _canReturn.pop();
+            _vars.endScope();
+         }
+      }
+
+      virtual void operator()( AstReturn& e )
+      {
+         if ( !_canReturn.size() || !_canReturn.top() )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "return statements are only allowed in the body of a function" );
+         }
+         if ( e.getReturnValue() )
+         {
+            operator()( *e.getReturnValue() );
          }
       }
 
       virtual void operator()( AstExpCall& e )
       {
-         // TODO check name
+         // nothing to do: i.e. a[ 0 ]( 5 ) => a will be checked part of "e.getName()"
+         ++_functionCallsNeeded;
          operator()( e.getArgs() );
          operator()( e.getName() );
+         --_functionCallsNeeded;
+
+         /*
+         // TODO check conflicts?
+         if ( _functionCallsNeeded != 0 )
+         {
+            // safeguard to check that functions have been called exactly the expected number of times
+            impl::reportUndeclaredType( e.getName().getLocation(), _context, "function call not declared as such" );
+         }*/
       }
 
       virtual void operator()( AstDeclVar& e )
@@ -262,6 +309,7 @@ namespace parser
       std::stack<bool>           _canReturn;
       std::vector<mvv::Symbol>   _defaultClassPath;
       std::vector<mvv::Symbol>   _currentFieldList;
+      int                        _functionCallsNeeded;
 
       ParserContext&      _context;
       SymbolTableVars     _vars;
