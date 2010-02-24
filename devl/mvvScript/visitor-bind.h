@@ -107,8 +107,9 @@ namespace parser
 
       virtual void operator()( AstExpAssign& e )
       {
-         operator()( e.getValue() );
+         // first visit the declaration, in case rvalue reference itself
          operator()( e.getLValue() );
+         operator()( e.getValue() );
       }
 
       virtual void operator()( AstVarSimple& e )
@@ -159,7 +160,10 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         // TODO: check if created in global scope => check if in symbol table, else error
+         if ( _defaultClassPath.size() == 0 && _scopeDepth > 1 )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "a class can only be declared in the global scope/or nested in another class" );
+         }
 
          ++_scopeDepth;
          _vars.beginScope( true );
@@ -317,7 +321,36 @@ namespace parser
          _currentFieldList.pop_back();
       }
 
+      virtual void operator()( AstImport& e )
+      {
+         if ( _scopeDepth != 1 )
+         {
+            impl::reportError( e.getLocation(), _context, "include statement can only be found in global scope" );
+         }
+      }
 
+      virtual void operator()( AstInclude& e )
+      {
+         if ( _scopeDepth != 1 )
+         {
+            impl::reportError( e.getLocation(), _context, "include statement can only be found in global scope" );
+         }
+      }
+
+      const SymbolTableVars& getVars() const
+      {
+         return _vars;
+      }
+
+      const SymbolTableFuncs& getFuncs() const
+      {
+         return _funcs;
+      }
+
+      const SymbolTableClasses& getClasses() const
+      {
+         return _classes;
+      }
 
    private:
       // disabled

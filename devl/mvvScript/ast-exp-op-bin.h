@@ -32,22 +32,22 @@ namespace parser
          ensure( left && right, "must not be null" );
       }
 
-      const Ast& getLeft() const
+      const AstExp& getLeft() const
       {
          return *_left;
       }
 
-      Ast& getLeft()
+      AstExp& getLeft()
       {
          return *_left;
       }
 
-      const Ast& getRight() const
+      const AstExp& getRight() const
       {
          return *_right;
       }
 
-      Ast& getRight()
+      AstExp& getRight()
       {
          return *_right;
       }

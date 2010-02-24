@@ -33,6 +33,11 @@ namespace parser
          _memberOfClass = memberOfClass;
       }
 
+      AstDeclClass* getMemberOfClass() const
+      {
+         return _memberOfClass;
+      }
+
       AstTypeT* getType()
       {
          return _type;

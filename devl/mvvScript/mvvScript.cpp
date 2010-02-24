@@ -10,7 +10,8 @@
 #include "visitor-register-declarations.h"
 #include "symbol-table.h"
 #include "utils.h"
-
+#include "type.h"
+#include "visitor-type.h"
 
 
 int MVVSCRIPT_API dummy = 0;

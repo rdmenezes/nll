@@ -7,7 +7,7 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API AstReturn : public Ast
+   class MVVSCRIPT_API AstReturn : public Ast, public Typable
    {
    public:
       AstReturn( const YYLTYPE& location, AstExp* retVal = 0 ) : Ast( location ), _retVal( retVal )

@@ -15,6 +15,20 @@ namespace parser
          ss << current << msg <<" (see " << previous << ")" << std::endl;
          context.getError() << ss.str() << mvv::parser::Error::BIND;
       }
+
+      inline void reportError( const YYLTYPE& current, mvv::parser::ParserContext& context, const std::string& msg )
+      {
+         std::stringstream ss;
+         ss << current << msg << std::endl;
+         context.getError() << ss.str() << mvv::parser::Error::BIND;
+      }
+
+      inline void reportTypeError( const YYLTYPE& current, mvv::parser::ParserContext& context, const std::string& msg )
+      {
+         std::stringstream ss;
+         ss << current << msg << std::endl;
+         context.getError() << ss.str() << mvv::parser::Error::TYPE;
+      }
    }
 
    inline bool areTypesEqual( const AstTypeT* t1, const AstTypeT* t2 )
