@@ -36,9 +36,9 @@ namespace parser
       return new TypeString();
    }
 
-   bool TypeVoid::isCompatibleWith( const Type& ) const
+   bool TypeVoid::isCompatibleWith( const Type& t ) const
    {
-      return false;
+      return dynamic_cast<const TypeVoid*>( & t );
    }
 
    Type* TypeVoid::clone() const

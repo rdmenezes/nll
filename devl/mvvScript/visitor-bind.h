@@ -49,7 +49,7 @@ namespace parser
       {
          _scopeDepth = 0;
          _functionCallsNeeded = 0;
-         _isInFunction = false;
+         _isInFunction = 0;
       }
 
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
@@ -194,7 +194,8 @@ namespace parser
 
       virtual void operator()( AstDeclFun& e ) 
       {
-         _isInFunction = true;
+         ++_isInFunction;
+
          if ( _defaultClassPath.size() == 0 )
          {
             // if we are in class, it means it is a member function
@@ -205,6 +206,11 @@ namespace parser
             }
          }
 
+         if ( _isInFunction > 1 )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "a member function can't be created inside another member function" );
+         }
+
          if ( e.getType() )
          {
             operator()( *e.getType() );
@@ -212,6 +218,7 @@ namespace parser
          
          if ( e.getBody() )
          {
+            _currentFunc.push_back( &e );
             ++_scopeDepth;
             if ( _defaultClassPath.size () )
             {
@@ -233,6 +240,7 @@ namespace parser
             _vars.endScope();
 
             --_scopeDepth;
+            _currentFunc.pop_back();
          } else {
             // if there is no body, we still need to go through the arguments and bind them
             if ( e.getVars().getVars().size() )
@@ -240,7 +248,7 @@ namespace parser
                operator()( e.getVars() );
             }
          }
-         _isInFunction = false;
+         --_isInFunction;
       }
 
       virtual void operator()( AstReturn& e )
@@ -249,7 +257,9 @@ namespace parser
          if ( !_canReturn.size() || !_canReturn.top() )
          {
             impl::reportUndeclaredType( e.getLocation(), _context, "return statements are only allowed in the body of a function" );
+            return;
          }
+         e.setFunction( *_currentFunc.rbegin() );
          if ( e.getReturnValue() )
          {
             operator()( *e.getReturnValue() );
@@ -427,8 +437,9 @@ namespace parser
       std::stack<bool>           _canReturn;
       std::vector<mvv::Symbol>   _defaultClassPath;
       std::vector<mvv::Symbol>   _currentFieldList;
+      std::vector<AstDeclFun*>   _currentFunc;
       int                        _functionCallsNeeded;
-      bool                       _isInFunction;
+      int                        _isInFunction;
 
       ParserContext&      _context;
       SymbolTableVars     _vars;

@@ -29,6 +29,8 @@
                       -check if name of the class
                       -check declared in the scope outside the class has been declared and so on until global scope
     - construtor: checked when type checking, must be the same name than class
+    
+    -check function decl inside function
     */
    
    #include <string>

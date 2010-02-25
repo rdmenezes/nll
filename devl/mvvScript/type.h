@@ -48,6 +48,19 @@ namespace parser
       virtual Type* clone() const;
    };
 
+   class MVVSCRIPT_API TypeError : public Type
+   {
+      virtual bool isCompatibleWith( const Type& ) const
+      {
+         return true;
+      }
+
+      virtual Type* clone() const
+      {
+         return new TypeError();
+      }
+   };
+
    class MVVSCRIPT_API TypeArray : public Type
    {
    public:

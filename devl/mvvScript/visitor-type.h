@@ -5,6 +5,11 @@
 # include "ast-files.h"
 # include "type.h"
 
+//
+// TODO node type must all be cloned when copied! else memory problems...
+//
+//
+
 namespace mvv
 {
 namespace parser
@@ -46,15 +51,15 @@ namespace parser
 
          if ( !e.getLeft().getNodeType() )
          {
-            e.setNodeType( new TypeVoid() );
             impl::reportTypeError( e.getLeft().getLocation(), _context, "expression cannot be typed");
+            e.setNodeType( new TypeError() );
             return;
          }
 
          if ( !e.getRight().getNodeType() )
          {
-            e.setNodeType( new TypeVoid() );
             impl::reportTypeError( e.getRight().getLocation(), _context, "expression cannot be typed");
+            e.setNodeType( new TypeError() );
             return;
          }
 
@@ -62,6 +67,8 @@ namespace parser
          if ( !e.getRight().getNodeType()->isCompatibleWith( *e.getLeft().getNodeType() ) )
          {
             impl::reportTypeError( e.getLocation(), _context, "incompatible types");
+            e.setNodeType( new TypeError() );
+            return;
          }
 
          // TODO: promotion?
@@ -107,6 +114,7 @@ namespace parser
          if ( !e.getValue().getNodeType()->isCompatibleWith( *e.getLValue().getNodeType() ) )
          {
             impl::reportTypeError( e.getLocation(), _context, "incompatible types");
+            e.setNodeType( new TypeError() );
          }
       }
 
@@ -125,12 +133,14 @@ namespace parser
 
       virtual void operator()( AstVarArray& e )
       {
+         // TODO set the type
          operator()( e.getName() );
          operator()( e.getIndex() );
       }
 
       virtual void operator()( AstVarField& e )
       {
+         // TODO set the type
          operator()( e.getField() );
       }
 
@@ -182,13 +192,8 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         // TODO remove?
-         _defaultClassPath.push_back( e.getName() );
-
          e.setNodeType( new TypeNamed( &e ) );
          operator()( e.getDeclarations() );
-
-         _defaultClassPath.pop_back();
       }
 
       virtual void operator()( AstDeclFun& e ) 
@@ -211,6 +216,7 @@ namespace parser
                if ( e.getName() != e.getMemberOfClass()->getName() )
                {
                   impl::reportTypeError( e.getLocation(), _context, "constructor must have the same name than class, or missing function type" );
+                  e.setNodeType( new TypeError() );
                   return;
                }
             }
@@ -223,9 +229,19 @@ namespace parser
          
          if ( e.getBody() )
          {
+            ensure( e.getNodeType(), "error: a function doesn't have a return type" );
             _returnType.push_back( e.getNodeType() );
             operator()( *e.getBody() );
             _returnType.pop_back();
+
+            // check return has been called, or void type
+            if ( !e.getExpectedFunctionType() && !TypeVoid().isCompatibleWith( *e.getNodeType() )  )
+            {
+               impl::reportTypeError( e.getLocation(), _context, "return type statement has not been called in a function returning a value" );
+               return;
+            }
+
+            // return should have checked incorrect types... so don't check it again
          }
       }
 
@@ -239,12 +255,22 @@ namespace parser
 
       virtual void operator()( AstReturn& e )
       {
+         ensure( e.getFunction(), "unknown error" );
          if ( e.getReturnValue() )
          {
             operator()( *e.getReturnValue() );
+            e.setNodeType( e.getReturnValue()->getNodeType() );
+         } else {
+            e.setNodeType( new TypeVoid() );
          }
-         
-         // TODO check type (and void)
+         e.getFunction()->setExpectedFunctionType( e.getNodeType() );
+
+         ensure( _returnType.size(), "error: return allowed outside of a function..." );
+         if ( !e.getNodeType()->isCompatibleWith( **_returnType.rbegin() ) )
+         {
+            impl::reportTypeError( e.getLocation(), _context, "function return type and actual type are incompatible" );
+            e.setNodeType( new TypeError() );
+         }
       }
 
       virtual void operator()( AstExpCall& e )
@@ -321,7 +347,6 @@ namespace parser
 
 
    private:
-      std::vector<mvv::Symbol>   _defaultClassPath;
       std::vector<const Type*>   _returnType;
 
 

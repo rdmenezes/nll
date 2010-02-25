@@ -10,7 +10,7 @@ namespace parser
    class MVVSCRIPT_API AstReturn : public Ast, public Typable
    {
    public:
-      AstReturn( const YYLTYPE& location, AstExp* retVal = 0 ) : Ast( location ), _retVal( retVal )
+      AstReturn( const YYLTYPE& location, AstExp* retVal = 0 ) : Ast( location ), _retVal( retVal ), _func( 0 )
       {
       }
 
@@ -22,6 +22,16 @@ namespace parser
       AstExp* getReturnValue()
       {
          return _retVal;
+      }
+
+      void setFunction( AstDeclFun* f )
+      {
+         _func = f;
+      }
+
+      AstDeclFun* getFunction() const
+      {
+         return _func;
       }
 
       /// Accept a const visitor \a v.
@@ -37,7 +47,8 @@ namespace parser
       }
 
    private:
-      AstExp* _retVal;
+      AstExp*        _retVal;
+      AstDeclFun*    _func;
    };
 }
 }
