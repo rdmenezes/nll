@@ -19,7 +19,7 @@ namespace parser
          delete _type;
       }
 
-      void setNodeType( const Type* t )
+      void setNodeType( Type* t )
       {
          ensure( t, "compiler error: can't evaluate the type of a tree node" );
          _type = t;
@@ -30,8 +30,13 @@ namespace parser
          return _type;
       }
 
+      Type* getNodeType()
+      {
+         return _type;
+      }
+
    protected:
-      const Type*    _type;
+      Type*    _type;
    };
 }
 }

@@ -104,7 +104,7 @@ namespace parser
          e.setNodeType( e.getValue().getNodeType() );
 
          ensure( e.getLValue().getNodeType(), "compiler error: cannot evaluate expression type" );
-         if ( e.getValue().getNodeType()->isCompatibleWith( *e.getLValue().getNodeType() ) )
+         if ( !e.getValue().getNodeType()->isCompatibleWith( *e.getLValue().getNodeType() ) )
          {
             impl::reportTypeError( e.getLocation(), _context, "incompatible types");
          }
@@ -258,11 +258,26 @@ namespace parser
       virtual void operator()( AstDeclVar& e )
       {
          // TODO must not be void
+
+         // we first must visite the type!
          operator()( e.getType() );
 
-         //take into account array
-         //e.setNodeType( e.getType().getNodeType() );
-         //
+         if ( e.getType().isArray() )
+         {
+            ensure( e.getType().getSize()->size(), "must have a dimensionality >= 1" );
+            if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
+            {
+               for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
+               {
+                  // TODO must be an int exp
+                  operator()( *( (*e.getType().getSize())[ n ] ) );
+               }
+            }
+            ensure( e.getType().getNodeType(), "can't type properly a tree" );
+            e.setNodeType( new TypeArray( e.getType().getSize()->size(), *e.getType().getNodeType() ) );
+         } else {
+            e.setNodeType( e.getType().getNodeType() );
+         }
 
          if ( e.getInit() )
          {
@@ -272,18 +287,6 @@ namespace parser
          {
             // TODO check type // ARRAY
             operator()( *e.getDeclarationList() );
-         }
-
-         if ( e.getType().isArray() )
-         {
-            if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
-            {
-               for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
-               {
-                  // TODO must be an int exp
-                  operator()( *( (*e.getType().getSize())[ n ] ) );
-               }
-            } 
          }
       }
 
