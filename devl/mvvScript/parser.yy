@@ -248,7 +248,7 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
         |ID LBRACK rvalue RBRACK          { $$ = new mvv::parser::AstVarArray( @$, new mvv::parser::AstVarSimple( @$, *$1, true ), $3 ); }
         |lvalue DOT ID                    { $$ = new mvv::parser::AstVarField( @$, $1, *$3 ); }
         |lvalue LBRACK rvalue RBRACK      { $$ = new mvv::parser::AstVarArray( @$, $1, $3 ); }
-        |lvalue LPAREN args RPAREN        { /* in case we have an object with operator() */$$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
+        |lvalue LPAREN args RPAREN        { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
 
 
 	  

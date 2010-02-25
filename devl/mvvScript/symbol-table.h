@@ -118,6 +118,7 @@ namespace parser
          Node( const mvv::Symbol& n, AstDeclClass* d ) : name( n ), previous( 0 ), decl( d )
          {}
 
+         // goto the classpath specified and find s in this scope only
          AstDeclClass* find_in_class( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
          {
             Node* res = _find( classPath, -1 );
@@ -175,6 +176,32 @@ namespace parser
                return previous->find_in_scope( s );
             else
                return 0;
+         }
+
+         // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
+         AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
+         {
+            Node* res = _find( path, -1 );
+            if ( !res )
+            {
+               // path not found
+               return 0;
+            }
+            if ( !res->previous )
+            {
+               // we are already looking in global scope
+               return 0;
+            }
+
+            res = res->previous;
+            while ( res->previous )
+            {
+               Node* final = res->_find( fieldpath, 0 );
+               if ( final )
+                  return final->decl;
+               res = res->previous;
+            }
+            return 0;
          }
 
          AstDeclClass* find( const std::vector<mvv::Symbol>& classPath, int begining )
@@ -300,6 +327,14 @@ namespace parser
          if ( !_root )
             return 0;
          return _root->find_within_scope( path, s );
+      }
+
+      // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
+      AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
+      {
+         if ( !_root )
+            return 0;
+         return _root->find_within_scope( path, fieldpath );
       }
 
       const AstDeclClass* find_in_scope( const mvv::Symbol& s ) const

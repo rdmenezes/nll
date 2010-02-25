@@ -54,8 +54,15 @@ namespace parser
 
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
       {
+         // A::D  B C
+         // first: - check the local path A::D, look for C from here
+         //        - check if declared within source class: check from D if B::C, else check from A if B::C
+         //        - else check in global scope B::C
+         //
+
          if ( field.size() )
          {
+            // local
             // concatenate the field to the path
             std::vector<mvv::Symbol> up( path );
             for ( size_t n = 0; n < field.size(); ++n )
@@ -66,20 +73,24 @@ namespace parser
             if ( current )
                return current;
 
+            // check within class
+            std::vector<mvv::Symbol> up2( field );
+            up2.push_back( name );
+            AstDeclClass* within = _classes.find_within_scope( path, up2 );
+            if ( within )
+               return within;
+
+            // finally check global scope
+            return _classes.find( up2 );
          } else {
             // current class
             AstDeclClass* current = _classes.find_in_class( _defaultClassPath, name );
             if ( current )
                return current;
-         }
-
-         // check the context
-         if ( field.size() )
-         {
-            // if field, and find in class failed, we need to check from global scope
-            return _classes.find( field );
-         } else {
-            return _classes.find_within_scope( _defaultClassPath, name );
+            AstDeclClass* within = _classes.find_within_scope( _defaultClassPath, name );
+            if ( within )
+               return within;
+            return _classes.find( nll::core::make_vector<mvv::Symbol>( name ) );
          }
       }
 
@@ -326,6 +337,8 @@ namespace parser
       {
          _currentFieldList.push_back( e.getName() );
          AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+         /*
+         // the final type will be checked, we don't need to check each typefield...
          if ( !decl )
          {
             std::stringstream ss;
@@ -333,13 +346,13 @@ namespace parser
             impl::reportUndeclaredType( e.getLocation(), _context, ss.str() );
          } else {
             e.setReference( decl );
-         }
+         }*/
 
          operator()( e.getField() );
          _currentFieldList.pop_back();
 
-         AstTypeField* field = reinterpret_cast<AstTypeField*>( &e.getField() );
-         AstType* isTernimal = reinterpret_cast<AstType*>( &e.getField() );
+         AstTypeField* field = dynamic_cast<AstTypeField*>( &e.getField() );
+         AstType* isTernimal = dynamic_cast<AstType*>( &e.getField() );
          //
          // TODO error here -> terminal is the next one, not this one...
          //

@@ -251,7 +251,7 @@ struct TestBasic
    }
 
    void testBinding2()
-   {/*
+   {
       {
          ParserContext context;
          Ast* exp = 0;
@@ -766,14 +766,113 @@ struct TestBasic
          visitorBind( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
       }
-*/
+
       {
          ParserContext context;
          Ast* exp = 0;
          
          // var can't have the same name than a class
-         exp = context.parseString( "class Test{ class Test2{} } Test::Test2 Test2 = typename Test::Test2::Test(3);" );
+         exp = context.parseString( "class Test{ class Test2{} } int Test2 = typename Test::Test2::Test3(3);" );
          TESTER_ASSERT( exp );
+
+         VisitorPrint p( std::cout );
+         p( *exp );
+
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         // var can't have the same name than a class
+         exp = context.parseString( "class Test{ class Test2{ class Test3{}} } int Test2 = typename Test::Test2::Test3(3);" );
+         TESTER_ASSERT( exp );
+
+         VisitorPrint p( std::cout );
+         p( *exp );
+
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         // var can't have the same name than a class
+         exp = context.parseString( "class Test{ class Test2{ class Test3{ class Test4{ Test2::Test3 haha; }}} }" );
+         TESTER_ASSERT( exp );
+
+         VisitorPrint p( std::cout );
+         p( *exp );
+
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         // var can't have the same name than a class
+         exp = context.parseString( "class Test{ class Test2{ Test3::Test4 haha; class Test3{ class Test4{ }}} }" );
+         TESTER_ASSERT( exp );
+
+         VisitorPrint p( std::cout );
+         p( *exp );
+
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         // var can't have the same name than a class
+         exp = context.parseString( "class Test{ class Test2{ class Test3{ class Test4{ Test2 haha; }}} }" );
+         TESTER_ASSERT( exp );
+
+         VisitorPrint p( std::cout );
+         p( *exp );
+
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         // var can't have the same name than a class
+         exp = context.parseString( "class Test{ class Test2{} } int Test2 = typename Test::Test2::Test(3);" );
+         TESTER_ASSERT( exp );
+
+         VisitorPrint p( std::cout );
+         p( *exp );
+
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );

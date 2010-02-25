@@ -45,6 +45,7 @@ namespace parser
          v( *this );
       }
 
+      // reference the symbol holded by the field points to
       void setReference( AstDeclClass* ref )
       {
          _nameRef = ref;
@@ -55,6 +56,7 @@ namespace parser
          return _nameRef;
       }
 
+      // hold the final type (what the full typefield points to)
       void setFinalReference( AstDeclClass* ref )
       {
          _nameFinalRef = ref;
