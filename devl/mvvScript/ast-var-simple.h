@@ -10,7 +10,7 @@ namespace parser
    class MVVSCRIPT_API AstVarSimple : public AstVar
    {
    public:
-      AstVarSimple( const YYLTYPE& location, mvv::Symbol name, bool isDeduced ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced )
+      AstVarSimple( const YYLTYPE& location, mvv::Symbol name, bool isDeduced ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced ), _class( 0 )
       {
          _isFuncCall = false;
       }
@@ -37,6 +37,16 @@ namespace parser
          _isFuncCall = val;
       }
 
+      void setClassConstructorCall( AstDeclClass* decl )
+      {
+         _class = decl;
+      }
+
+      AstDeclClass* getClassConstructorCall() const
+      {
+         return _class;
+      }
+
       bool isFunctionCall() const
       {
          return _isFuncCall;
@@ -46,6 +56,7 @@ namespace parser
       mvv::Symbol   _name;
       bool          _isDeduced;  // deprecated?
       bool          _isFuncCall; // true if this node is a function call and not a reference to a variable
+      AstDeclClass* _class;
    };
 }
 }

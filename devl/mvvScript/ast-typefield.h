@@ -13,7 +13,7 @@ namespace parser
    class MVVSCRIPT_API AstTypeField : public AstTypeT
    {
    public:
-      AstTypeField( const YYLTYPE& location, AstTypeT* field, mvv::Symbol name, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _field( field ), _name( name ), _nameRef( 0 )
+      AstTypeField( const YYLTYPE& location, AstTypeT* field, mvv::Symbol name, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _field( field ), _name( name ), _nameRef( 0 ), _nameFinalRef( 0 )
       {
          ensure( field, "can't be null" );
       }
@@ -55,10 +55,21 @@ namespace parser
          return _nameRef;
       }
 
+      void setFinalReference( AstDeclClass* ref )
+      {
+         _nameFinalRef = ref;
+      }
+
+      AstDeclClass* getFinalReference()
+      {
+         return _nameFinalRef;
+      }
+
    private:
       AstTypeT*     _field;
       mvv::Symbol   _name;
       AstDeclClass* _nameRef;
+      AstDeclClass* _nameFinalRef;
    };
 }
 }

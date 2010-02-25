@@ -13,7 +13,7 @@ namespace parser
     @brief Defines a visitor visiting all the nodes but doing nothing
     @note this is usefull if a visitor is only handling a limited number of nodes
     */
-   class VisitorType : public Visitor
+   class VisitorType : public VisitorDefault
    {
    public:
       VisitorType( ParserContext& context,
@@ -100,6 +100,7 @@ namespace parser
       {
          operator()( e.getValue() );
          operator()( e.getLValue() );
+         // TODO handle "var" here
          e.setNodeType( e.getValue().getNodeType() );
 
          ensure( e.getLValue().getNodeType(), "compiler error: cannot evaluate expression type" );
@@ -111,6 +112,8 @@ namespace parser
 
       virtual void operator()( AstVarSimple& e )
       {
+         // TODO constructor overloading...
+
          if ( e.isFunctionCall() )
          {
             // TODO resolve overloading
@@ -241,7 +244,7 @@ namespace parser
             operator()( *e.getReturnValue() );
          }
          
-         // TODO check type
+         // TODO check type (and void)
       }
 
       virtual void operator()( AstExpCall& e )

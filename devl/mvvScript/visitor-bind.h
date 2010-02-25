@@ -49,6 +49,7 @@ namespace parser
       {
          _scopeDepth = 0;
          _functionCallsNeeded = 0;
+         _isInFunction = false;
       }
 
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
@@ -124,7 +125,13 @@ namespace parser
                SymbolTableFuncs::iterator it = _funcs.find( e.getName() ); 
                if ( it == _funcs.end() )
                {
-                  impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function" );
+                  AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+                  if ( decl )
+                  {
+                     e.setClassConstructorCall( decl );
+                  } else {
+                     impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
+                  }
                } else {
                   std::cout << "function declared:" << e.getName() << std::endl;
                   e.setFunctionCall( true );
@@ -176,6 +183,7 @@ namespace parser
 
       virtual void operator()( AstDeclFun& e ) 
       {
+         _isInFunction = true;
          if ( _defaultClassPath.size() == 0 )
          {
             // if we are in class, it means it is a member function
@@ -221,6 +229,7 @@ namespace parser
                operator()( e.getVars() );
             }
          }
+         _isInFunction = false;
       }
 
       virtual void operator()( AstReturn& e )
@@ -258,7 +267,7 @@ namespace parser
          // don't reference again the global scope...
          if ( _scopeDepth > 1 )
          {
-            const AstDeclClass* decl = _classes.find_in_scope( e.getName() );
+            const AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
             if ( decl )
             {
                impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
@@ -277,6 +286,15 @@ namespace parser
             {
                impl::reportAlreadyDeclaredType( _vars.find( e.getName() )->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
             } else {
+               if ( !_isInFunction )
+               {
+                  // if we are in a class && not in a function, we must link variable to the class
+                  AstDeclClass* currentClass = _classes.find( _defaultClassPath );
+                  if ( currentClass )
+                  {
+                     e.setClassMember( currentClass );
+                  }
+               }
                _vars.insert( e.getName(), &e );
             }
          }
@@ -319,6 +337,20 @@ namespace parser
 
          operator()( e.getField() );
          _currentFieldList.pop_back();
+
+         AstTypeField* field = reinterpret_cast<AstTypeField*>( &e.getField() );
+         AstType* isTernimal = reinterpret_cast<AstType*>( &e.getField() );
+         //
+         // TODO error here -> terminal is the next one, not this one...
+         //
+         if ( isTernimal )
+         {
+            // we are the last node of a typefield, we need to save the final class it is pointing to!
+            e.setFinalReference( isTernimal->getReference() );
+         } else {
+            // else propagate the type to earlier node
+            e.setFinalReference( e.getFinalReference() );
+         }
       }
 
       virtual void operator()( AstImport& e )
@@ -352,6 +384,26 @@ namespace parser
          return _classes;
       }
 
+      virtual void operator()( AstExpTypename& e )
+      {
+         operator()( e.getType() );
+         AstType* type = dynamic_cast<AstType*>( &e.getType() );
+         AstTypeField* typefield = dynamic_cast<AstTypeField*>( &e.getType() );
+
+         if ( type )
+         {
+            if ( type->getType() != AstType::SYMBOL )
+            {
+               impl::reportError( type->getLocation(), _context, "typename must only be used with class declaration" );
+            } else {
+               e.setReference( type->getReference() );
+            }
+         } else if ( typefield )
+         {
+            e.setReference( typefield->getFinalReference() );
+         }
+      }
+
    private:
       // disabled
       VisitorBind& operator=( const VisitorBind& );
@@ -363,6 +415,7 @@ namespace parser
       std::vector<mvv::Symbol>   _defaultClassPath;
       std::vector<mvv::Symbol>   _currentFieldList;
       int                        _functionCallsNeeded;
+      bool                       _isInFunction;
 
       ParserContext&      _context;
       SymbolTableVars     _vars;

@@ -200,6 +200,13 @@ namespace parser
                return;
             }
 
+            const AstDeclClass* decl2 = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ) );
+            if ( decl2 )
+            {
+               impl::reportAlreadyDeclaredType( decl2->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
+               return;
+            }
+
             SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
             if ( it != _funcs.end() )
             {
