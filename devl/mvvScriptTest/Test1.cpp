@@ -1244,11 +1244,11 @@ struct TestBasic
          visitorBind( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( !context.getError().getStatus() );
-/*
+
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
-         TESTER_ASSERT( context.getError().getStatus() );*/
+         TESTER_ASSERT( context.getError().getStatus() );
       }
 
 /*

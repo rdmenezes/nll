@@ -125,6 +125,18 @@ namespace parser
          // TODO use constructor...?
       }
 
+      AstDecl* getDeclFromClass( AstDeclClass& declClass, const mvv::Symbol& name )
+      {
+         for ( AstDecls::Decls::iterator it = declClass.getDeclarations().getDecls().begin();
+               it != declClass.getDeclarations().getDecls().end();
+               ++it )
+         {
+            if ( (*it)->getName() == name )
+               return *it;
+         }
+         return 0;
+      }
+
       virtual void operator()( AstInt& e )
       {
          e.setNodeType( new TypeInt() );
@@ -269,9 +281,34 @@ namespace parser
 
       virtual void operator()( AstVarField& e )
       {
-         // TODO late binding...
-         // TODO set the type
+         // we are storing the field in reverse order, so first run node, then set up the type
          operator()( e.getField() );
+
+         //
+         // when a.b.c() => we are assuming a has a type, now follow th link
+         //
+         AstDeclVar* decl = dynamic_cast<AstDeclVar*>( e.getField().getReference() );
+         if ( !decl )
+         {
+            // should never happen
+            impl::reportTypeError( e.getLocation(), _context, "error can't find class definition" );
+            e.setNodeType( new TypeError() );
+            return;
+         }
+
+         // TODO: we want to find the final class of the type->must refactor : AstType->reference
+         ensure( 0, "error: field type must be a class" );
+         
+
+
+         AstDecl* member = getDeclFromClass( *decl->isClassMember(), e.getName() );
+         if ( !member )
+         {
+            impl::reportTypeError( e.getLocation(), _context, "error can't member definition" );
+            e.setNodeType( new TypeError() );
+            return;
+         }
+         e.setNodeType( member->getNodeType() );
       }
 
       virtual void operator()( AstType& e )

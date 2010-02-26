@@ -12,14 +12,9 @@ namespace parser
    class MVVSCRIPT_API AstDeclVar : public AstDecl
    {
    public:
-      AstDeclVar( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstExp* init = 0, AstArgs* declarationList = 0 ) : AstDecl( location ), _type( type ), _name( name ), _init( init ), _declarationList( declarationList ), _class( 0 )
+      AstDeclVar( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstExp* init = 0, AstArgs* declarationList = 0 ) : AstDecl( location, name ), _type( type ), _init( init ), _declarationList( declarationList ), _class( 0 )
       {
          ensure( type, "can't be null" );
-      }
-
-      const mvv::Symbol& getName() const
-      {
-         return _name;
       }
 
       const AstTypeT& getType() const
@@ -52,6 +47,7 @@ namespace parser
          return _init;
       }
 
+      // if not null, this type is nested in another type
       AstDeclClass* isClassMember() const
       {
          return _class;
@@ -75,7 +71,6 @@ namespace parser
       }
 
    private:
-      mvv::Symbol          _name;
       AstTypeT*            _type;
       AstExp*              _init;
       AstArgs*             _declarationList;

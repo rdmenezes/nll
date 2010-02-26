@@ -7,7 +7,7 @@
    //
    // command:
    //   flex -o lex.yy.cpp lexer.ll
-   //   bison parser.yy -d
+   //   bison parser.yy -d -v
    //
    
    /**

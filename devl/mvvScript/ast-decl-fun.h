@@ -13,14 +13,9 @@ namespace parser
    class MVVSCRIPT_API AstDeclFun : public AstDecl
    {
    public:
-      AstDeclFun( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstDeclVars* vars, AstStatements * body = 0, AstDeclClass* memberOfClass = 0 ) : AstDecl( location ), _type( type ), _name( name ), _vars( vars ), _body( body ), _memberOfClass( memberOfClass ), _expectedFunctionType( 0 )
+      AstDeclFun( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstDeclVars* vars, AstStatements * body = 0, AstDeclClass* memberOfClass = 0 ) : AstDecl( location, name ), _type( type ), _vars( vars ), _body( body ), _memberOfClass( memberOfClass ), _expectedFunctionType( 0 )
       {
          ensure( vars, "can't be null" );
-      }
-
-      const mvv::Symbol& getName() const
-      {
-         return _name;
       }
 
       AstTypeT* getType() const
@@ -87,7 +82,6 @@ namespace parser
       }
 
    private:
-      mvv::Symbol          _name;
       AstTypeT*            _type;
       AstDeclVars*         _vars;
       AstStatements*       _body;

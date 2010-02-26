@@ -319,6 +319,8 @@ namespace parser
                }
                _vars.insert( e.getName(), &e );
             }
+         } else {
+            // we need to bind the classes level 1
          }
 
 

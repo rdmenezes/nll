@@ -154,8 +154,8 @@ namespace parser
 
       virtual void operator()( const AstVarField& e )
       {
-         _o << e.getName() << ".";
          operator()( e.getField() );
+         _o << "." << e.getName();
       }
 
       virtual void operator()( const AstType& e )

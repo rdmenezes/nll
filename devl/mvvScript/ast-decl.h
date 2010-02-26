@@ -12,9 +12,17 @@ namespace parser
    class MVVSCRIPT_API AstDecl : public Ast, public Typable
    {
    public:
-      AstDecl( const YYLTYPE& location ) : Ast( location )
+      AstDecl( const YYLTYPE& location, const mvv::Symbol& n ) : Ast( location ), _name( n )
       {
       }
+
+      const mvv::Symbol& getName() const
+      {
+         return _name;
+      }
+
+   protected:
+      mvv::Symbol          _name;
    };
 }
 }
