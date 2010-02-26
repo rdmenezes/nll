@@ -7,7 +7,8 @@
 
 //
 // TODO node type must all be cloned when copied! else memory problems...
-//
+// TODO check int n[3] = {n[ 0 ]}; recursive...
+// TODO int fn( int a = 0, int b ) => check this never actually happen!
 //
 
 namespace mvv
@@ -26,6 +27,102 @@ namespace parser
                    const SymbolTableFuncs& funcs,
                    const SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
+      }
+
+      /**
+       @brief Return the result of a dereferenced type, must be deallocated
+       */
+      Type* dereference( Type& t )
+      {
+         TypeArray* array = dynamic_cast<TypeArray*>( &t );
+         if ( !array )
+         {
+            return 0;
+         }
+         if ( array->getDimentionality() == 1 )
+         {
+            return array->getRoot().clone();
+         }
+         return new TypeArray( array->getDimentionality() - 1, array->getRoot() );
+      }
+
+      /**
+       @brief Given a set of functions, find the ones that are compatible with the args
+
+       First check if a function match exactly the args - in this case exactly 1 func will be returned,
+       else check all functions that are possible. If several, there is a conflict and an error must be issued.
+       */
+      std::vector<AstDeclFun*> getMatchingFunctionsFromArgs( const std::vector<AstDeclFun*>& funcs, const AstArgs& args )
+      {
+         std::vector<AstDeclFun*> res;
+         std::vector<AstDeclFun*> possible;
+         for ( AstArgs::Args::const_iterator it = args.getArgs().begin();
+               it != args.getArgs().end();
+               ++it )
+         {
+            ensure( !(*it)->getNodeType(), "can't type an expression" );
+         }
+
+         for ( size_t n = 0; n < funcs.size(); ++n )
+         {
+         lbl_continue:
+            bool succeeded = true;
+            bool equal = true;
+
+            AstDeclVars::Decls::const_iterator decls = funcs[ n ]->getVars().getVars().begin();
+            for ( AstArgs::Args::const_iterator it = args.getArgs().begin();
+                  decls != funcs[ n ]->getVars().getVars().end();
+               ++it )
+            {
+               if ( it == args.getArgs().end() )
+               {
+                  // there are more decls than args, check the remaining ones have all an initialization
+                  for ( ; decls != funcs[ n ]->getVars().getVars().end(); ++decls )
+                  {
+                     if ( !(*decls)->getInit() )
+                     {
+                        // if not init, just skip the function
+                        ++n;
+                        goto lbl_continue;
+                     }
+                  }
+
+                  // check if types are equal, compatible, incompatible
+                  if ( (*it)->getNodeType()->isEqual( *(*decls)->getNodeType() ) )
+                  {
+                     // do nothing
+                  } else if ( (*it)->getNodeType()->isEqual( *(*decls)->getNodeType() ) )
+                  {
+                     equal = false;
+                  } else {
+                     succeeded = false;
+                     break;
+                  }
+               }
+            }
+
+            if ( equal )
+            {
+               res.push_back( funcs[ n ] );
+            } else if ( succeeded )
+            {
+               possible.push_back( funcs[ n ] );
+            }
+         }
+
+         if ( res.size() == 1 )
+         {
+            return res;
+         }
+         if ( possible.size() == 1 )
+         {
+            return possible;
+         }
+         if ( res.size() > 1 )
+            return res;
+         return possible;
+
+         // TODO use constructor...?
       }
 
       virtual void operator()( AstInt& e )
@@ -82,8 +179,13 @@ namespace parser
 
       virtual void operator()( AstIf& e )
       {
-         // TODO check type condition
          operator()( e.getCondition() );
+
+         ensure( e.getCondition().getNodeType(), "tree can't be typed" );
+         if ( !TypeInt().isEqual( *e.getCondition().getNodeType() ) )
+         {
+            impl::reportTypeError( e.getCondition().getLocation(), _context, "if condition type must be an int" );
+         }
 
          operator()( e.getThen() );
 
@@ -133,13 +235,41 @@ namespace parser
 
       virtual void operator()( AstVarArray& e )
       {
-         // TODO set the type
          operator()( e.getName() );
          operator()( e.getIndex() );
+         ensure( e.getIndex().getNodeType(), "tree can't be typed" );
+         ensure( e.getName().getNodeType(), "tree can't be typed" );
+         if ( !TypeInt().isEqual( *e.getIndex().getNodeType() ) )
+         {
+            impl::reportTypeError( e.getLocation(), _context, "index must be of type int" );
+         }
+
+         // TODO opersator[] if class, must be operator[](int) // and free deref!!!
+         Type* deref = dereference( *e.getName().getNodeType() );
+         if ( !deref )
+         {
+            impl::reportTypeError( e.getName().getLocation(), _context, "dereferencement of a variable incorrect" );
+            e.setNodeType( new TypeVoid() );
+            return;
+         } else {
+            e.setNodeType( deref );
+         }
+      }
+
+      virtual void operator()( AstExpCall& e )
+      {
+         operator()( e.getArgs() );
+         operator()( e.getName() );
+
+
+         //std::vector<AstDeclFun*> funcs&
+         // TODO overloading
+         // TODO set type of this exp
       }
 
       virtual void operator()( AstVarField& e )
       {
+         // TODO late binding...
          // TODO set the type
          operator()( e.getField() );
       }
@@ -273,20 +403,15 @@ namespace parser
          }
       }
 
-      virtual void operator()( AstExpCall& e )
-      {
-         // TODO overloading
-         // TODO set type
-         operator()( e.getArgs() );
-         operator()( e.getName() );
-      }
-
       virtual void operator()( AstDeclVar& e )
       {
-         // TODO must not be void
-
          // we first must visite the type!
          operator()( e.getType() );
+         ensure( e.getType().getNodeType(), "tree can't be typed" );
+         if ( TypeVoid().isCompatibleWith( *e.getType().getNodeType() ) )
+         {
+            impl::reportTypeError( e.getLocation(), _context, "variable type must not be void" );
+         }
 
          if ( e.getType().isArray() )
          {
@@ -295,35 +420,68 @@ namespace parser
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
                {
-                  // TODO must be an int exp
                   operator()( *( (*e.getType().getSize())[ n ] ) );
+
+                  ensure( (*e.getType().getSize())[ n ]->getNodeType(), "must have a dimensionality >= 1" );
+                  if ( !TypeInt().isEqual( *(*e.getType().getSize())[ n ]->getNodeType() ) )
+                  {
+                     impl::reportTypeError( (*e.getType().getSize())[ n ]->getLocation(), _context, "variable type must be of integer type" );
+                  }
                }
             }
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
-            e.setNodeType( new TypeArray( e.getType().getSize()->size(), *e.getType().getNodeType() ) );
+            e.setNodeType( new TypeArray( static_cast<ui32>( e.getType().getSize()->size() ), *e.getType().getNodeType() ) );
          } else {
             e.setNodeType( e.getType().getNodeType() );
          }
 
          if ( e.getInit() )
          {
-            // TODO check type
             operator()( *e.getInit() );
+            ensure( e.getInit()->getNodeType(), "tree can't be typed" );
+            if ( !e.getInit()->getNodeType()->isCompatibleWith( *e.getNodeType() ) )
+            {
+               impl::reportTypeError( e.getInit()->getLocation(), _context, "variable and asignment types are not compatible" );
+            }
          } else if ( e.getDeclarationList() )
          {
-            // TODO check type // ARRAY
             operator()( *e.getDeclarationList() );
+
+            Type* deref = dereference( *e.getType().getNodeType() );
+            if ( deref )
+            {
+               // all the values must be compatible with
+               for ( AstArgs::Args::iterator it = e.getDeclarationList()->getArgs().begin();
+                     it != e.getDeclarationList()->getArgs().end();
+                     ++it )
+               {
+                  if ( !deref->isCompatibleWith( *(*it)->getNodeType() ) )
+                  {
+                     impl::reportTypeError( (*it)->getLocation(), _context, "type in initialization list is not compatible with te variable type" );
+                  }
+               }
+            } else if ( dynamic_cast<TypeNamed*>( e.getType().getNodeType() ) )
+            {
+               // TODO check type
+               // then TODO check member function type
+            } else {
+               impl::reportTypeError( e.getDeclarationList()->getLocation(), _context, "variable must be an array or a class to use initialization list" );
+            }
+
+            delete deref;
          }
       }
 
       virtual void operator()( AstExpSeq& e )
       {
          operator()( e.getExp() );
+         e.setNodeType( e.getExp().getNodeType() );
       }
 
       virtual void operator()( AstTypeField& e )
       {
          operator()( e.getField() );
+         e.setNodeType( new TypeNamed( e.getFinalReference() ) );
       }
 
       virtual void operator()( AstExpTypename& e )
@@ -332,7 +490,8 @@ namespace parser
          if ( e.getArgs().getArgs().size() )
          {
             operator()( e.getArgs() );
-         } 
+         }
+         e.setNodeType( new TypeNamed( e.getReference() ) );
       }
 
       virtual void operator()( Ast& e )

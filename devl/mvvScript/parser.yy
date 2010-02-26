@@ -31,6 +31,8 @@
     - construtor: checked when type checking, must be the same name than class
     
     -check function decl inside function
+    - int a[ 5 ]; float b[ 5 ]; a = b; => we copy the content of b in a and cast if necessary
+    - int[] fun(){} : we can't return an array (but they have the correct semantic! TODO should be added in the grammar)
     */
    
    #include <string>

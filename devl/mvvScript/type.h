@@ -18,6 +18,9 @@ namespace parser
 
       // clone the type
       virtual Type* clone() const = 0;
+
+      // return true if the types are exactly the same
+      virtual bool isEqual( const Type& t ) const = 0;
    };
 
    class MVVSCRIPT_API TypeFloat : public Type
@@ -25,6 +28,10 @@ namespace parser
    public:
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
+      virtual bool isEqual( const Type& t ) const
+      {
+         return dynamic_cast<const TypeFloat*>( &t ) != 0;
+      }
    };
 
    class MVVSCRIPT_API TypeInt : public Type
@@ -32,6 +39,10 @@ namespace parser
    public:
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
+      virtual bool isEqual( const Type& t ) const
+      {
+         return dynamic_cast<const TypeInt*>( &t ) != 0;
+      }
    };
 
    class MVVSCRIPT_API TypeString : public Type
@@ -39,6 +50,10 @@ namespace parser
    public:
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
+      virtual bool isEqual( const Type& t ) const
+      {
+         return dynamic_cast<const TypeString*>( &t ) != 0;
+      }
    };
 
    class MVVSCRIPT_API TypeVoid : public Type
@@ -46,10 +61,15 @@ namespace parser
    public:
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
+      virtual bool isEqual( const Type& t ) const
+      {
+         return dynamic_cast<const TypeVoid*>( &t ) != 0;
+      }
    };
 
    class MVVSCRIPT_API TypeError : public Type
    {
+   public:
       virtual bool isCompatibleWith( const Type& ) const
       {
          return true;
@@ -59,12 +79,17 @@ namespace parser
       {
          return new TypeError();
       }
+
+      virtual bool isEqual( const Type& t ) const
+      {
+         return dynamic_cast<const TypeError*>( &t ) != 0;
+      }
    };
 
    class MVVSCRIPT_API TypeArray : public Type
    {
    public:
-      TypeArray( ui32 dimensionality, Type& root ) : _dimensionality( dimensionality ), _root( root )
+      TypeArray( ui32 dimensionality, const Type& root ) : _dimensionality( dimensionality ), _root( root )
       {
       }
 
@@ -73,7 +98,15 @@ namespace parser
          const TypeArray* array = reinterpret_cast<const TypeArray* >( &t );
          if ( !array )
             return 0;
-         return array && array->getDimentionality() == getDimentionality();
+         return array && array->getDimentionality() == getDimentionality() && _root.isCompatibleWith( array->getRoot() );
+      }
+
+      virtual bool isEqual( const Type& t ) const
+      {
+         const TypeArray* array = reinterpret_cast<const TypeArray* >( &t );
+         if ( !array )
+            return false;
+         return array && array->getDimentionality() == getDimentionality() && _root.isEqual( array->getRoot() );
       }
 
       virtual Type* clone() const
@@ -86,6 +119,7 @@ namespace parser
          return _root;
       }
 
+
       ui32 getDimentionality() const
       {
         return  _dimensionality;
@@ -97,7 +131,7 @@ namespace parser
 
    private:
       ui32  _dimensionality;
-      Type& _root;
+      const Type& _root;
    };
 
    class MVVSCRIPT_API TypeNamed : public Type
@@ -115,6 +149,14 @@ namespace parser
          // else // TODO case where the constructor is 1 argument -> automatic promotion to handle here
          return false;
       }
+
+      virtual bool isEqual( const Type& t ) const
+      {
+         const TypeNamed* tt = dynamic_cast<const TypeNamed*>( &t );
+         return tt != 0 && tt->getDecl() == getDecl();
+      }
+
+
 
       AstDeclClass* getDecl() const
       {

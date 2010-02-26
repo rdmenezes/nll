@@ -272,6 +272,7 @@ namespace parser
          ++_functionCallsNeeded;
          operator()( e.getArgs() );
          operator()( e.getName() );
+         e.setReference( e.getName().getReference() );
          --_functionCallsNeeded;
 
          /*
@@ -346,8 +347,8 @@ namespace parser
       virtual void operator()( AstTypeField& e )
       {
          _currentFieldList.push_back( e.getName() );
-         AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
          /*
+         AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
          // the final type will be checked, we don't need to check each typefield...
          if ( !decl )
          {
@@ -361,15 +362,15 @@ namespace parser
          operator()( e.getField() );
          _currentFieldList.pop_back();
 
-         AstTypeField* field = dynamic_cast<AstTypeField*>( &e.getField() );
-         AstType* isTernimal = dynamic_cast<AstType*>( &e.getField() );
+         //AstTypeField* field = dynamic_cast<AstTypeField*>( &e.getField() );
+         AstType* isTerminal = dynamic_cast<AstType*>( &e.getField() );
          //
          // TODO error here -> terminal is the next one, not this one...
          //
-         if ( isTernimal )
+         if ( isTerminal )
          {
             // we are the last node of a typefield, we need to save the final class it is pointing to!
-            e.setFinalReference( isTernimal->getReference() );
+            e.setFinalReference( isTerminal->getReference() );
          } else {
             // else propagate the type to earlier node
             e.setFinalReference( e.getFinalReference() );

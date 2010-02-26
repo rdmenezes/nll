@@ -10,17 +10,17 @@ namespace parser
    class MVVSCRIPT_API AstIf : public Ast
    {
    public:
-      AstIf( const YYLTYPE& location, Ast* condition, Ast* thenexp, Ast* elseexp ) : Ast( location ), _condition( condition ), _then( thenexp ), _else( elseexp )
+      AstIf( const YYLTYPE& location, AstExp* condition, Ast* thenexp, Ast* elseexp ) : Ast( location ), _condition( condition ), _then( thenexp ), _else( elseexp )
       {
          ensure( condition && thenexp, "can't be null" );
       }
 
-      const Ast& getCondition() const
+      const AstExp& getCondition() const
       {
          return *_condition;
       }
 
-      Ast& getCondition()
+      AstExp& getCondition()
       {
          return *_condition;
       }
@@ -59,7 +59,7 @@ namespace parser
       }
 
    private:
-      Ast*     _condition;
+      AstExp*  _condition;
       Ast*     _then;
       Ast*     _else;
    };

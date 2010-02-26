@@ -18,12 +18,12 @@ namespace parser
          ensure( exp, "must not be null" );
       }
 
-      const Ast& getExp() const
+      const AstExp& getExp() const
       {
          return *_exp;
       }
 
-      Ast& getExp()
+      AstExp& getExp()
       {
          return *_exp;
       }
