@@ -29,6 +29,22 @@ namespace parser
          ss << current << msg << std::endl;
          context.getError() << ss.str() << mvv::parser::Error::TYPE;
       }
+
+      inline void reportTypeMultipleCallableFunction( const std::vector<AstDeclFun*>& fns, mvv::parser::ParserContext& context )
+      {
+         std::stringstream ss;
+         ss << "ambiguous function call. See possible functions:" << std::endl;
+
+         for ( size_t n = 0; n < fns.size(); ++n )
+         {
+            ss << fns[ n ]->getLocation();
+            if ( ( n + 1 ) !=  fns.size() )
+            {
+               ss << ", ";
+            }
+         }
+         context.getError() << ss.str() << mvv::parser::Error::TYPE;
+      }
    }
 
    inline bool areTypesEqual( const AstTypeT* t1, const AstTypeT* t2 )

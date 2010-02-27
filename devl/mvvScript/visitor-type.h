@@ -47,6 +47,25 @@ namespace parser
       }
 
       /**
+       @brief Returns the member function of a class
+       */
+      std::vector<AstDeclFun*> getFunctionsFromClass( AstDeclClass& c, const mvv::Symbol& s )
+      {
+         std::vector<AstDeclFun*> res;
+         for ( AstDecls::Decls::iterator it = c.getDeclarations().getDecls().begin();
+               it != c.getDeclarations().getDecls().end();
+               ++it )
+         {
+            AstDeclFun* fn = dynamic_cast<AstDeclFun*>( *it );
+            if ( (*it)->getName() == s && fn )
+            {
+               res.push_back( fn );
+            }
+         }
+         return res;
+      }
+
+      /**
        @brief Given a set of functions, find the ones that are compatible with the args
 
        First check if a function match exactly the args - in this case exactly 1 func will be returned,
@@ -60,7 +79,7 @@ namespace parser
                it != args.getArgs().end();
                ++it )
          {
-            ensure( !(*it)->getNodeType(), "can't type an expression" );
+            ensure( (*it)->getNodeType(), "can't type an expression" );
          }
 
          for ( size_t n = 0; n < funcs.size(); ++n )
@@ -241,7 +260,7 @@ namespace parser
          {
             // if it is a simple variable, we will have a type
             e.setNodeType( e.getReference()->getNodeType() );
-         }
+         } // else we know it is a call exp, so don't do anything
       }
 
       virtual void operator()( AstVarArray& e )
@@ -267,15 +286,54 @@ namespace parser
          }
       }
 
+      // choices are:
+      // - global function
+      // - class instanciation
+      // - varfield
       virtual void operator()( AstExpCall& e )
       {
          operator()( e.getArgs() );
          operator()( e.getName() );
 
+         std::vector<AstDeclFun*> funcs;
+         if ( e.getSimpleName() )
+         {
+            // we are in the case where we are calling a global function/class constructor
+            SymbolTableFuncs::iterator it = _funcs.find( *e.getSimpleName() );
+            if ( it != _funcs.end() )
+            {
+               funcs = getMatchingFunctionsFromArgs( it->second, e.getArgs() );
+            } else {
+               ensure( e.getInstanciation(), "error: unexpected problem" );
+               funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getInstanciation(), *e.getSimpleName() ), e.getArgs() );
+            }
+         } else {
+            AstVarField* field = dynamic_cast<AstVarField*>( &e.getName() );
+            if ( field )
+            {
+               AstDeclClass* decl = dynamic_cast<AstDeclClass*>( field->getReference() );
+               ensure( decl, "field must be of class type" );
+               funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *decl, field->getName() ), e.getArgs() );
+            } else {
+               ensure( 0, "Error: unexpected node type..." );
+            }
+         }
 
-         //std::vector<AstDeclFun*> funcs&
-         // TODO overloading
-         // TODO set type of this exp
+         if ( funcs.size() == 0 )
+         {
+            impl::reportTypeError( e.getName().getLocation(), _context, "no function matching the arguments found" );
+            e.setNodeType( new TypeVoid() );
+            return;
+         }
+
+         if ( funcs.size() > 1 )
+         {
+            impl::reportTypeMultipleCallableFunction( funcs, _context );
+            e.setNodeType( funcs[ 0 ]->getNodeType() );
+            return;
+         }
+
+         e.setNodeType( funcs[ 0 ]->getNodeType() );
       }
 
       virtual void operator()( AstVarField& e )

@@ -300,6 +300,12 @@ namespace parser
          {
             // if we only have a simple var, it means we are calling a global function, or global class, so link it!
             e.setSimpleName( var->getName() );
+
+            AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );
+            if ( decl )
+            {
+               e.setInstanciation( decl );
+            }
          } else {
             e.setReference( e.getName().getReference() );
          }
