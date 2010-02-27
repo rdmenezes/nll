@@ -125,6 +125,9 @@ namespace parser
          // TODO use constructor...?
       }
 
+      /**
+       @brief Find a declaration inside a class
+       */
       AstDecl* getDeclFromClass( AstDeclClass& declClass, const mvv::Symbol& name )
       {
          for ( AstDecls::Decls::iterator it = declClass.getDeclarations().getDecls().begin();
@@ -284,27 +287,26 @@ namespace parser
          // we are storing the field in reverse order, so first run node, then set up the type
          operator()( e.getField() );
 
-         //
-         // when a.b.c() => we are assuming a has a type, now follow th link
-         //
-         AstDeclVar* decl = dynamic_cast<AstDeclVar*>( e.getField().getReference() );
-         if ( !decl )
+         if ( !e.getField().getNodeType() )
          {
-            // should never happen
-            impl::reportTypeError( e.getLocation(), _context, "error can't find class definition" );
+            impl::reportTypeError( e.getLocation(), _context, "cannot evaluate type of an expression" );
             e.setNodeType( new TypeError() );
             return;
          }
 
-         // TODO: we want to find the final class of the type->must refactor : AstType->reference
-         ensure( 0, "error: field type must be a class" );
-         
+         TypeNamed* type = dynamic_cast<TypeNamed*>( e.getField().getNodeType() );
+         if ( !type )
+         {
+            impl::reportTypeError( e.getLocation(), _context, "field must be of class type" );
+            e.setNodeType( new TypeError() );
+            return;
+         }
 
-
-         AstDecl* member = getDeclFromClass( *decl->isClassMember(), e.getName() );
+         e.setReference( type->getDecl() );
+         AstDecl* member = getDeclFromClass( *type->getDecl(), e.getName() );
          if ( !member )
          {
-            impl::reportTypeError( e.getLocation(), _context, "error can't member definition" );
+            impl::reportTypeError( e.getLocation(), _context, "error can't find member in class definition" );
             e.setNodeType( new TypeError() );
             return;
          }
@@ -518,7 +520,7 @@ namespace parser
       virtual void operator()( AstTypeField& e )
       {
          operator()( e.getField() );
-         e.setNodeType( new TypeNamed( e.getFinalReference() ) );
+         e.setNodeType( new TypeNamed( e.getReference() ) );
       }
 
       virtual void operator()( AstExpTypename& e )

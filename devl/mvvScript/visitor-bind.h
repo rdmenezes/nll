@@ -372,10 +372,10 @@ namespace parser
          if ( isTerminal )
          {
             // we are the last node of a typefield, we need to save the final class it is pointing to!
-            e.setFinalReference( isTerminal->getReference() );
+            e.setReference( isTerminal->getReference() );
          } else {
             // else propagate the type to earlier node
-            e.setFinalReference( e.getFinalReference() );
+            e.setReference( e.getReference() );
          }
       }
 
@@ -426,7 +426,7 @@ namespace parser
             }
          } else if ( typefield )
          {
-            e.setReference( typefield->getFinalReference() );
+            e.setReference( typefield->getReference() );
          }
       }
 

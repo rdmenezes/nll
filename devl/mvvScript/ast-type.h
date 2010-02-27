@@ -11,7 +11,7 @@ namespace parser
    class MVVSCRIPT_API AstTypeT : public Ast, public Typable
    {
    public:
-      AstTypeT( const YYLTYPE& location, std::vector<AstExp*>* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize )
+      AstTypeT( const YYLTYPE& location, std::vector<AstExp*>* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize ), _symbolClass( 0 )
       {
       }
 
@@ -40,9 +40,20 @@ namespace parser
          return _isArray;
       }
 
+      void setReference( AstDeclClass* decl )
+      {
+         _symbolClass = decl;
+      }
+
+      AstDeclClass* getReference() const
+      {
+         return _symbolClass;
+      }
+
    private:
       bool                  _isArray;
       std::vector<AstExp*>* _defaultSize;
+      AstDeclClass*         _symbolClass;
    };
 
    class MVVSCRIPT_API AstType : public AstTypeT
@@ -59,7 +70,7 @@ namespace parser
          EMPTY
       };
 
-      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type ), _symbolClass( 0 )
+      AstType( const YYLTYPE& location, Type type, const mvv::Symbol* symbol = 0, std::vector<AstExp*>* defaultSize = 0 ) : AstTypeT( location, defaultSize ), _type( type )
       {
          if ( symbol )
          {
@@ -86,17 +97,6 @@ namespace parser
          return _type;
       }
 
-      void setReference( AstDeclClass* decl )
-      {
-         ensure( _type == SYMBOL, "only for symbol type" );
-         _symbolClass = decl;
-      }
-
-      AstDeclClass* getReference() const
-      {
-         return _symbolClass;
-      }
-
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {
@@ -112,7 +112,6 @@ namespace parser
    private:
       mvv::Symbol*         _symbol;
       Type                 _type;
-      AstDeclClass*        _symbolClass;
    };
 }
 }
