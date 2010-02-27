@@ -12,7 +12,7 @@ namespace parser
    public:
       typedef float    value_type;
 
-      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstVar( location ), _name( name ), _args( args )
+      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstVar( location ), _name( name ), _args( args ), _simpleName( 0 )
       {
          ensure( name && args, "can't be null" );
       }
@@ -49,9 +49,20 @@ namespace parser
          v( *this );
       }
 
+      void setSimpleName( const mvv::Symbol& name )
+      {
+         _simpleName = &name;
+      }
+
+      const mvv::Symbol* getSimpleName() const
+      {
+         return _simpleName;
+      }
+
    private:
-      AstVar*   _name;
-      AstArgs*  _args;
+      AstVar*     _name;
+      AstArgs*    _args;
+      const mvv::Symbol*_simpleName;   // dont deallocate // if true: means it is a call to a global function/or construction of a class
    };
 }
 }

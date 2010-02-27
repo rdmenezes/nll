@@ -126,7 +126,27 @@ namespace parser
 
       virtual void operator()( AstVarSimple& e )
       {
+         // a variable can be simple var, or class constructor or global function
+         // if none of these then we have a problem...
          AstDeclVar* var = _vars.find( e.getName() );
+         if ( !var )
+         {
+            if ( _functionCallsNeeded )
+            {
+               // there is a callExp so check class/function
+               SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
+               AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+               if ( !decl && it == _funcs.end() )
+               {
+                  impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
+               }
+            } else {
+               impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
+            }
+         } else {
+            e.setReference( var );
+         }
+/*
          if ( !var )
          {
             // there is still the case of the function call: "func( 0 )" -> 
@@ -153,7 +173,7 @@ namespace parser
             }
          } else {
             e.setReference( var );
-         }
+         }*/
       }
 
       virtual void operator()( AstVarField& e )
@@ -272,16 +292,18 @@ namespace parser
          ++_functionCallsNeeded;
          operator()( e.getArgs() );
          operator()( e.getName() );
-         e.setReference( e.getName().getReference() );
          --_functionCallsNeeded;
 
-         /*
-         // TODO check conflicts?
-         if ( _functionCallsNeeded != 0 )
+         // 
+         AstVarSimple* var = dynamic_cast<AstVarSimple*>( &e.getName() );
+         if ( var )
          {
-            // safeguard to check that functions have been called exactly the expected number of times
-            impl::reportUndeclaredType( e.getName().getLocation(), _context, "function call not declared as such" );
-         }*/
+            // if we only have a simple var, it means we are calling a global function, or global class, so link it!
+            e.setSimpleName( var->getName() );
+         } else {
+            e.setReference( e.getName().getReference() );
+         }
+
       }
 
       virtual void operator()( AstDeclVar& e )

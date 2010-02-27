@@ -7,12 +7,12 @@ namespace mvv
 {
 namespace parser
 {
+   // if we have a reference for var, it means it is a simple variable (and not used in a function call)
    class MVVSCRIPT_API AstVarSimple : public AstVar
    {
    public:
-      AstVarSimple( const YYLTYPE& location, mvv::Symbol name, bool isDeduced ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced ), _class( 0 )
+      AstVarSimple( const YYLTYPE& location, mvv::Symbol name, bool isDeduced ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced )
       {
-         _isFuncCall = false;
       }
 
       const Symbol& getName() const
@@ -32,31 +32,9 @@ namespace parser
          v( *this );
       }
 
-      void setFunctionCall( bool val )
-      {
-         _isFuncCall = val;
-      }
-
-      void setClassConstructorCall( AstDeclClass* decl )
-      {
-         _class = decl;
-      }
-
-      AstDeclClass* getClassConstructorCall() const
-      {
-         return _class;
-      }
-
-      bool isFunctionCall() const
-      {
-         return _isFuncCall;
-      }
-
    private:
       mvv::Symbol   _name;
       bool          _isDeduced;  // deprecated?
-      bool          _isFuncCall; // true if this node is a function call and not a reference to a variable
-      AstDeclClass* _class;
    };
 }
 }

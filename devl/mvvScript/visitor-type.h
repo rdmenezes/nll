@@ -237,13 +237,9 @@ namespace parser
 
       virtual void operator()( AstVarSimple& e )
       {
-         // TODO constructor overloading...
-
-         if ( e.isFunctionCall() )
+         if ( e.getReference() )
          {
-            // TODO resolve overloading
-         } else {
-            ensure( e.getReference(), "compiler error: cannot find reference" );
+            // if it is a simple variable, we will have a type
             e.setNodeType( e.getReference()->getNodeType() );
          }
       }

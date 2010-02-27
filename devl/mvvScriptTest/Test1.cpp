@@ -903,7 +903,6 @@ struct TestBasic
 
    void testType1()
    {
-      /*
       {
          ParserContext context;
          Ast* exp = 0;
@@ -1225,7 +1224,6 @@ struct TestBasic
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( context.getError().getStatus() );
       }
-      */
 
 
       {
@@ -1463,10 +1461,10 @@ struct TestBasic
 };
 
 TESTER_TEST_SUITE(TestBasic);
-/*
+
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
-TESTER_TEST(testDummy2);
+/*TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);*/
 TESTER_TEST(testType1);
