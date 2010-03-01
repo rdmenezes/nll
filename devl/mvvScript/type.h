@@ -143,7 +143,7 @@ namespace parser
 
       virtual bool isCompatibleWith( const Type& t ) const
       {
-         const TypeNamed* named = reinterpret_cast<const TypeNamed* >( &t );
+         const TypeNamed* named = dynamic_cast<const TypeNamed* >( &t );
          if ( named && named->getDecl() == getDecl() )
             return true;
          // else // TODO case where the constructor is 1 argument -> automatic promotion to handle here

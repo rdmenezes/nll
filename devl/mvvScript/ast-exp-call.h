@@ -12,7 +12,7 @@ namespace parser
    public:
       typedef float    value_type;
 
-      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstVar( location ), _name( name ), _args( args ), _simpleName( 0 ), _instanciation( 0 )
+      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstVar( location ), _name( name ), _args( args ), _simpleName( 0 ), _instanciation( 0 ), _construction( 0 )
       {
          ensure( name && args, "can't be null" );
       }
@@ -69,11 +69,22 @@ namespace parser
          return _instanciation;
       }
 
+      void setConstructed( AstDeclClass* i )
+      {
+         _construction = i;
+      }
+
+      AstDeclClass* getConstructed() const
+      {
+         return _construction;
+      }
+
    private:
       AstVar*     _name;
       AstArgs*    _args;
       const mvv::Symbol*_simpleName;    // dont deallocate // if true: means it is a call to a global function/or construction of a class
-      AstDeclClass*     _instanciation; // the reference will hold a class if it is a class instanciation
+      AstDeclClass*     _instanciation; // the reference will hold a class if it is a class to be called with operator()
+      AstDeclClass*     _construction;  // refernce will hold a class def if the class need to be constructed
    };
 }
 }

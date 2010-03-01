@@ -18,6 +18,21 @@ namespace parser
          ss << current << msg << std::endl;
          context.getError() << ss.str() << mvv::parser::Error::BIND;
       }
+
+      /**
+       Order the definition first by variable, then anything else...
+       */
+      struct ClassDefinitionSorter
+      {
+         bool operator()( const AstDecl* a, const AstDecl* b ) const
+         {
+            if ( dynamic_cast<const AstDeclVar*>( a ) && !dynamic_cast<const AstDeclVar*>( b ) )
+            {
+               return false;
+            }
+            return true;
+         }
+      };
    }
 
    /**
@@ -206,6 +221,12 @@ namespace parser
          ++_scopeDepth;
          _vars.beginScope( true );
          _defaultClassPath.push_back( e.getName() );
+
+         // sort member definition:
+         /*
+         std::sort( e.getDeclarations().getDecls().begin(),
+                    e.getDeclarations().getDecls().end() );
+                    */
          operator()( e.getDeclarations() );
          _defaultClassPath.pop_back();
          _vars.endScope();
@@ -301,10 +322,22 @@ namespace parser
             // if we only have a simple var, it means we are calling a global function, or global class, so link it!
             e.setSimpleName( var->getName() );
 
-            AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );
+            // if the declaration is a class, store it!
+            AstDeclVar* decl = dynamic_cast<AstDeclVar*>( var->getReference() );
             if ( decl )
             {
-               e.setInstanciation( decl );
+               // operator()
+               e.setInstanciation( decl->getType().getReference() );
+            } else {
+               // construction of an object
+               AstDeclClass* declClass = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );
+               if ( declClass )
+               {
+                  e.setConstructed( declClass );
+               } else {
+                  // simple function call, nothing to do in the binding visitor
+                  //impl::reportUndeclaredType( var->getLocation(), _context, "can't find construct an undefined class" );
+               }
             }
          } else {
             e.setReference( e.getName().getReference() );

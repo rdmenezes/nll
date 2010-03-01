@@ -9,6 +9,7 @@
 // TODO node type must all be cloned when copied! else memory problems...
 // TODO check int n[3] = {n[ 0 ]}; recursive...
 // TODO int fn( int a = 0, int b ) => check this never actually happen!
+// TODO declaration order in class
 //
 
 namespace mvv
@@ -32,7 +33,7 @@ namespace parser
       /**
        @brief Return the result of a dereferenced type, must be deallocated
        */
-      Type* dereference( Type& t )
+      static Type* dereference( Type& t )
       {
          TypeArray* array = dynamic_cast<TypeArray*>( &t );
          if ( !array )
@@ -49,7 +50,7 @@ namespace parser
       /**
        @brief Returns the member function of a class
        */
-      std::vector<AstDeclFun*> getFunctionsFromClass( AstDeclClass& c, const mvv::Symbol& s )
+      static std::vector<AstDeclFun*> getFunctionsFromClass( AstDeclClass& c, const mvv::Symbol& s )
       {
          std::vector<AstDeclFun*> res;
          for ( AstDecls::Decls::iterator it = c.getDeclarations().getDecls().begin();
@@ -71,7 +72,7 @@ namespace parser
        First check if a function match exactly the args - in this case exactly 1 func will be returned,
        else check all functions that are possible. If several, there is a conflict and an error must be issued.
        */
-      std::vector<AstDeclFun*> getMatchingFunctionsFromArgs( const std::vector<AstDeclFun*>& funcs, const AstArgs& args )
+      static std::vector<AstDeclFun*> getMatchingFunctionsFromArgs( const std::vector<AstDeclFun*>& funcs, const AstArgs& args )
       {
          std::vector<AstDeclFun*> res;
          std::vector<AstDeclFun*> possible;
@@ -85,13 +86,17 @@ namespace parser
          for ( size_t n = 0; n < funcs.size(); ++n )
          {
          lbl_continue:
+            if ( n >= funcs.size() )
+               break;
+
             bool succeeded = true;
             bool equal = true;
 
+            // check all the arguments
             AstDeclVars::Decls::const_iterator decls = funcs[ n ]->getVars().getVars().begin();
             for ( AstArgs::Args::const_iterator it = args.getArgs().begin();
-                  decls != funcs[ n ]->getVars().getVars().end();
-               ++it )
+                  ;
+               ++it, ++decls )
             {
                if ( it == args.getArgs().end() )
                {
@@ -100,12 +105,12 @@ namespace parser
                   {
                      if ( !(*decls)->getInit() )
                      {
-                        // if not init, just skip the function
+                        // if not init, just discard the function
                         ++n;
                         goto lbl_continue;
                      }
                   }
-
+               } else {
                   // check if types are equal, compatible, incompatible
                   if ( (*it)->getNodeType()->isEqual( *(*decls)->getNodeType() ) )
                   {
@@ -118,6 +123,8 @@ namespace parser
                      break;
                   }
                }
+               if ( decls == funcs[ n ]->getVars().getVars().end() )
+                  break;
             }
 
             if ( equal )
@@ -147,7 +154,7 @@ namespace parser
       /**
        @brief Find a declaration inside a class
        */
-      AstDecl* getDeclFromClass( AstDeclClass& declClass, const mvv::Symbol& name )
+      static AstDecl* getDeclFromClass( AstDeclClass& declClass, const mvv::Symbol& name )
       {
          for ( AstDecls::Decls::iterator it = declClass.getDeclarations().getDecls().begin();
                it != declClass.getDeclarations().getDecls().end();
@@ -208,7 +215,7 @@ namespace parser
          // restrict type
          //
          // TODO operator handling, require function overloading resolution
-         //
+         //T
       }
 
       virtual void operator()( AstIf& e )
@@ -274,15 +281,35 @@ namespace parser
             impl::reportTypeError( e.getLocation(), _context, "index must be of type int" );
          }
 
-         // TODO opersator[] if class, must be operator[](int) // and free deref!!!
-         Type* deref = dereference( *e.getName().getNodeType() );
-         if ( !deref )
+         TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getName().getNodeType() );
+         if ( ty )
          {
-            impl::reportTypeError( e.getName().getLocation(), _context, "dereferencement of a variable incorrect" );
-            e.setNodeType( new TypeVoid() );
-            return;
+            // if it is a type, just find an operator[]
+            std::vector<AstDeclFun*> funcs = getFunctionsFromClass( *ty->getDecl(), mvv::Symbol::create( "operator[]" ) );
+            if ( funcs.size() == 0 )
+            {
+               impl::reportTypeError( e.getName().getLocation(), _context, "operator[] could not be found in class" );
+               e.setNodeType( new TypeError() );
+               return;
+            } else {
+               if ( funcs.size() > 1 )
+               {
+                  impl::reportTypeMultipleCallableFunction( funcs, _context );
+                  e.setNodeType( funcs[ 0 ]->getNodeType() );
+                  return;
+               }
+               e.setNodeType( funcs[ 0 ]->getNodeType() );
+            }
          } else {
-            e.setNodeType( deref );
+            Type* deref = dereference( *e.getName().getNodeType() );
+            if ( !deref )
+            {
+               impl::reportTypeError( e.getName().getLocation(), _context, "dereferencement of a variable incorrect" );
+               e.setNodeType( new TypeError() );
+               return;
+            } else {
+               e.setNodeType( deref );
+            }
          }
       }
 
@@ -302,10 +329,18 @@ namespace parser
             SymbolTableFuncs::iterator it = _funcs.find( *e.getSimpleName() );
             if ( it != _funcs.end() )
             {
+               // use the simple name for the function
                funcs = getMatchingFunctionsFromArgs( it->second, e.getArgs() );
             } else {
-               ensure( e.getInstanciation(), "error: unexpected problem" );
-               funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getInstanciation(), *e.getSimpleName() ), e.getArgs() );
+               if ( e.getInstanciation() )
+               {
+                  // else we know it is an object, so operator() must be called
+                  funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getInstanciation(), mvv::Symbol::create( "operator()" ) ), e.getArgs() );
+               } else {
+                  ensure( e.getConstructed(), "error" );
+                  // else, it is a class intanciated, check if the constructor is appropriate
+                  funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), *e.getSimpleName() ), e.getArgs() );
+               }
             }
          } else {
             AstVarField* field = dynamic_cast<AstVarField*>( &e.getName() );
@@ -421,6 +456,7 @@ namespace parser
 
       virtual void operator()( AstDeclFun& e ) 
       {
+         bool isAConstructor = false;
          if ( e.getType() )
          {
             operator()( *e.getType() );
@@ -434,7 +470,9 @@ namespace parser
                return;
             } else {
                // else it is a constructor and must have the same name than the class
-               e.setNodeType( new TypeVoid() );
+               // a constructor returns the same type than the class it is nested
+               e.setNodeType( e.getMemberOfClass()->getNodeType() );
+               isAConstructor = true;
 
                if ( e.getName() != e.getMemberOfClass()->getName() )
                {
@@ -457,8 +495,8 @@ namespace parser
             operator()( *e.getBody() );
             _returnType.pop_back();
 
-            // check return has been called, or void type
-            if ( !e.getExpectedFunctionType() && !TypeVoid().isCompatibleWith( *e.getNodeType() )  )
+            // check return has been called, ( else it must be a void type or class constructor)
+            if ( !isAConstructor && !e.getExpectedFunctionType() && !TypeVoid().isCompatibleWith( *e.getNodeType() )  )
             {
                impl::reportTypeError( e.getLocation(), _context, "return type statement has not been called in a function returning a value" );
                return;
@@ -508,7 +546,7 @@ namespace parser
 
          if ( e.getType().isArray() )
          {
-            ensure( e.getType().getSize()->size(), "must have a dimensionality >= 1" );
+            //ensure( e.getType().getSize()->size(), "must have a dimensionality >= 1" );
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
@@ -523,7 +561,9 @@ namespace parser
                }
             }
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
-            e.setNodeType( new TypeArray( static_cast<ui32>( e.getType().getSize()->size() ), *e.getType().getNodeType() ) );
+            // TODO: use the nb of types to set the actual number of elements
+            ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
+            e.setNodeType( new TypeArray( size, *e.getType().getNodeType() ) );
          } else {
             e.setNodeType( e.getType().getNodeType() );
          }
@@ -540,7 +580,7 @@ namespace parser
          {
             operator()( *e.getDeclarationList() );
 
-            Type* deref = dereference( *e.getType().getNodeType() );
+            Type* deref = dereference( *e.getNodeType() );
             if ( deref )
             {
                // all the values must be compatible with
@@ -555,8 +595,30 @@ namespace parser
                }
             } else if ( dynamic_cast<TypeNamed*>( e.getType().getNodeType() ) )
             {
-               // TODO check type
-               // then TODO check member function type
+               impl::reportTypeError( e.getLocation(), _context, "only array can have initialization list" );
+               // TODO: is it worth adding classes with init list?
+
+               /*
+               AstDeclClass* c = dynamic_cast<TypeNamed*>( e.getType().getNodeType() )->getDecl();
+               ensure( c, "critical error" );
+
+               AstDecls::Decls::iterator itDecl = c->getDeclarations().getDecls().begin()
+               for ( AstArgs::Args::iterator it = e.getDeclarationList()->getArgs().begin();
+                     it != e.getDeclarationList()->getArgs().end();
+                     ++it, ++itDecl )
+               {
+                  if ( itDecl == c->getDeclarations().getDecls().end() )
+                  {
+                     impl::reportTypeError( (*it)->getLocation(), _context, "too many field in initialization list for this type" );
+                     break;
+                  }
+
+                  AstDeclVar* v = dynamic_cast<AstDeclVar*>( *itDecl );
+                  if ( v )
+                  {
+
+                  }
+               }*/
             } else {
                impl::reportTypeError( e.getDeclarationList()->getLocation(), _context, "variable must be an array or a class to use initialization list" );
             }

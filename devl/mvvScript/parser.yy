@@ -76,7 +76,6 @@
     */
    static int mvvParserInputNumber = 0;
    @$.filename = mvv::Symbol::create( tp._filename == "" ? "(input" + nll::core::val2str( mvvParserInputNumber++ ) + ")" : tp._filename );
-   std::cout << "File=" << @$.filename << std::endl;
 }
 
 %union
