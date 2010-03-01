@@ -172,6 +172,26 @@ namespace parser
       AstDeclClass* _decl;
    };
 
+   class MVVSCRIPT_API TypeNil : public Type
+   {
+   public:
+      virtual bool isCompatibleWith( const Type& t ) const
+      {
+         return dynamic_cast<const TypeNamed*>( &t ) != 0;
+      }
+
+      virtual Type* clone() const
+      {
+         return new TypeNil();
+      }
+
+      virtual bool isEqual( const Type& ) const
+      {
+         // we never want to check nil == nil
+         return 0;
+      }
+   };
+
 }
 }
 

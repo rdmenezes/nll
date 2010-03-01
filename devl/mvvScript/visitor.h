@@ -37,6 +37,7 @@ namespace parser
    class AstTypeField;
    class AstTypeT;
    class AstExpTypename;
+   class AstNil;
 
    /**
     @brief root of all the visitors
@@ -78,6 +79,7 @@ namespace parser
       virtual void operator()( typename Const<AstExpSeq>::type& e ) = 0;
       virtual void operator()( typename Const<AstTypeField>::type& e ) = 0;
       virtual void operator()( typename Const<AstExpTypename>::type& e ) = 0;
+      virtual void operator()( typename Const<AstNil>::type& e ) = 0;
    };
 
    /// defines a visitor that is constant

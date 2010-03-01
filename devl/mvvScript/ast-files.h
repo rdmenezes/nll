@@ -29,5 +29,6 @@
 # include "ast-exp-seq.h"
 # include "ast-typefield.h"
 # include "ast-exp-typename.h"
+# include "ast-nil.h"
 
 #endif

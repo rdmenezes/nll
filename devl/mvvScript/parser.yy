@@ -33,6 +33,13 @@
     -check function decl inside function
     - int a[ 5 ]; float b[ 5 ]; a = b; => we copy the content of b in a and cast if necessary
     - int[] fun(){} : we can't return an array (but they have the correct semantic! TODO should be added in the grammar)
+    - TODO: specific operators on string, float, int...
+    
+    
+    principles:
+    - int, float, string are primitive types. the are copied by value
+    - String class is "boxing" string 
+    - structures are copied by reference and are automatically allocated/deallocated using ref counting
     */
    
    #include <string>
@@ -83,6 +90,7 @@
    // Tokens.
    int                        ival;
    float                      fval;
+   mvv::parser::AstNil*       nil;
    std::string*			      str;
    const mvv::Symbol*         symbol;
    mvv::parser::AstExp*	      astExp;
@@ -101,6 +109,7 @@
 %token <symbol> ID     "identifier"
 %token <ival>   INT    "integer"
 %token <fval>   FLOAT  "float"
+%token <nil>    NIL    "NULL"
 
 %type<ast>              statement
 %type<astStatements>    statements program
@@ -153,7 +162,6 @@
 %token VAR              "var"
 %token CLASS            "class"
 %token VOID             "void"
-%token NIL              "NULL"
 %token RETURN           "return"
 %token TYPENAME         "typename"
 
@@ -227,6 +235,7 @@ array_decl: /* empty */                                              { $$ = new 
      
 rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
+        |NIL                  { $$ = new mvv::parser::AstNil( @$ ); }
         |rvalue PLUS rvalue   { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::PLUS ); }
         |rvalue MINUS rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::MINUS ); }
         |rvalue TIMES rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::TIMES ); }

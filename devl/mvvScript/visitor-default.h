@@ -19,6 +19,10 @@ namespace parser
       {
       }
 
+      virtual void operator()( AstNil& )
+      {
+      }
+
       virtual void operator()( AstFloat& )
       {
       }

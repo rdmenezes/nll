@@ -8,7 +8,7 @@
 //
 // TODO node type must all be cloned when copied! else memory problems...
 // TODO check int n[3] = {n[ 0 ]}; recursive...
-// TODO int fn( int a = 0, int b ) => check this never actually happen!
+// TODO int fn( int a = 0, int b ) => improve message error
 // TODO declaration order in class
 //
 
@@ -171,6 +171,11 @@ namespace parser
          e.setNodeType( new TypeInt() );
       }
 
+      virtual void operator()( AstNil& e )
+      {
+         e.setNodeType( new TypeNil() );
+      }
+
       virtual void operator()( AstFloat& e )
       {
          e.setNodeType( new TypeFloat() );
@@ -202,6 +207,7 @@ namespace parser
          }
 
          // types must be compatible
+         // TODO update this as it is not true if default operators are overloaded...
          if ( !e.getRight().getNodeType()->isCompatibleWith( *e.getLeft().getNodeType() ) )
          {
             impl::reportTypeError( e.getLocation(), _context, "incompatible types");
@@ -209,13 +215,25 @@ namespace parser
             return;
          }
 
-         // TODO: promotion?
-         e.setNodeType( e.getLeft().getNodeType() );
+         if ( e.getOp() == AstOpBin::GE ||
+              e.getOp() == AstOpBin::EQ ||
+              e.getOp() == AstOpBin::LE ||
+              e.getOp() == AstOpBin::NE ||
+              e.getOp() == AstOpBin::LT ||
+              e.getOp() == AstOpBin::GT ||
+              e.getOp() == AstOpBin::AND||
+              e.getOp() == AstOpBin::OR )
+         {
+            e.setNodeType( new TypeInt() );
+         } else {
+            e.setNodeType( e.getLeft().getNodeType() );
+         }
 
-         // restrict type
-         //
-         // TODO operator handling, require function overloading resolution
-         //T
+         // TODO additionally, first, 
+         // - first if TypeNamed, look up for a function in the class (operator...), else
+         // - check the list of global function (with operator+, ...)
+         // if true then set the type for these functions
+         // if funtcion not found, issue an error
       }
 
       virtual void operator()( AstIf& e )
@@ -251,6 +269,7 @@ namespace parser
          operator()( e.getValue() );
          operator()( e.getLValue() );
          // TODO handle "var" here
+         // TODO handle operator= here
          e.setNodeType( e.getValue().getNodeType() );
 
          ensure( e.getLValue().getNodeType(), "compiler error: cannot evaluate expression type" );
@@ -546,7 +565,6 @@ namespace parser
 
          if ( e.getType().isArray() )
          {
-            //ensure( e.getType().getSize()->size(), "must have a dimensionality >= 1" );
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
@@ -561,7 +579,6 @@ namespace parser
                }
             }
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
-            // TODO: use the nb of types to set the actual number of elements
             ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
             e.setNodeType( new TypeArray( size, *e.getType().getNodeType() ) );
          } else {

@@ -60,6 +60,11 @@ namespace parser
          _o << e.getValue();
       }
 
+      virtual void operator()( const AstNil& )
+      {
+         _o << "NULL";
+      }
+
       virtual void operator()( const AstString& e )
       {
          _o << "\"" << e.getValue() << "\"";

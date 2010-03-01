@@ -44,39 +44,39 @@
      ID = 259,
      INT = 260,
      FLOAT = 261,
-     AND = 263,
-     ASSIGN = 264,
-     COMA = 265,
-     DIVIDE = 266,
-     DOT = 267,
-     EQ = 268,
-     GE = 269,
-     GT = 270,
-     DCOLON = 271,
-     IF = 272,
-     ELSE = 273,
-     LBRACE = 274,
-     LBRACK = 275,
-     LE = 276,
-     LPAREN = 277,
-     LT = 278,
-     MINUS = 279,
-     NE = 280,
-     OR = 281,
-     PLUS = 282,
-     RBRACE = 283,
-     RBRACK = 284,
-     RPAREN = 285,
-     SEMI = 286,
-     TIMES = 287,
-     OPERATORPARENT = 288,
-     OPERATORBRACKET = 289,
-     FOR = 290,
-     IN = 291,
-     VAR = 292,
-     CLASS = 293,
-     VOID = 294,
-     NIL = 295,
+     NIL = 262,
+     AND = 264,
+     ASSIGN = 265,
+     COMA = 266,
+     DIVIDE = 267,
+     DOT = 268,
+     EQ = 269,
+     GE = 270,
+     GT = 271,
+     DCOLON = 272,
+     IF = 273,
+     ELSE = 274,
+     LBRACE = 275,
+     LBRACK = 276,
+     LE = 277,
+     LPAREN = 278,
+     LT = 279,
+     MINUS = 280,
+     NE = 281,
+     OR = 282,
+     PLUS = 283,
+     RBRACE = 284,
+     RBRACK = 285,
+     RPAREN = 286,
+     SEMI = 287,
+     TIMES = 288,
+     OPERATORPARENT = 289,
+     OPERATORBRACKET = 290,
+     FOR = 291,
+     IN = 292,
+     VAR = 293,
+     CLASS = 294,
+     VOID = 295,
      RETURN = 296,
      TYPENAME = 297,
      INT_T = 298,
@@ -96,11 +96,12 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 82 "parser.yy"
+#line 89 "parser.yy"
 
    // Tokens.
    int                        ival;
    float                      fval;
+   mvv::parser::AstNil*       nil;
    std::string*			      str;
    const mvv::Symbol*         symbol;
    mvv::parser::AstExp*	      astExp;
@@ -117,7 +118,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 121 "parser.tab.hh"
+#line 122 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
