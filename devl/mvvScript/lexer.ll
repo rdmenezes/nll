@@ -140,6 +140,21 @@ STRCHR	[A-Za-z_]
 
 "operator[]"   return OPERATORBRACKET;
 "operator()"   return OPERATORPARENT;
+
+"operator+"    return OPERATOR_PLUS;
+"operator-"    return OPERATOR_MINUS;
+"operator*"    return OPERATOR_TIMES;
+"operator/"    return OPERATOR_DIVIDE;
+"operator<"    return OPERATOR_LT;
+"operator>"    return OPERATOR_GT;
+"operator<="   return OPERATOR_LE;
+"operator>="   return OPERATOR_GE;
+"operator=="   return OPERATOR_EQ;
+"operator!="   return OPERATOR_NE;
+"operator&&"   return OPERATOR_AND;
+"operator||"   return OPERATOR_OR;
+
+
 "for"          return FOR;
 "if"		      return IF;
 "else"         return ELSE;

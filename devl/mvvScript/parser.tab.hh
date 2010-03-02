@@ -72,20 +72,32 @@
      TIMES = 288,
      OPERATORPARENT = 289,
      OPERATORBRACKET = 290,
-     FOR = 291,
-     IN = 292,
-     VAR = 293,
-     CLASS = 294,
-     VOID = 295,
-     RETURN = 296,
-     TYPENAME = 297,
-     INT_T = 298,
-     FLOAT_T = 299,
-     STRING_T = 300,
-     IMPORT = 301,
-     INCLUDE = 302,
-     IFX = 303,
-     UMINUS = 304
+     OPERATOR_PLUS = 291,
+     OPERATOR_MINUS = 292,
+     OPERATOR_TIMES = 293,
+     OPERATOR_DIVIDE = 294,
+     OPERATOR_LT = 295,
+     OPERATOR_GT = 296,
+     OPERATOR_LE = 297,
+     OPERATOR_GE = 298,
+     OPERATOR_EQ = 299,
+     OPERATOR_NE = 300,
+     OPERATOR_AND = 301,
+     OPERATOR_OR = 302,
+     FOR = 303,
+     IN = 304,
+     VAR = 305,
+     CLASS = 306,
+     VOID = 307,
+     RETURN = 308,
+     TYPENAME = 309,
+     INT_T = 310,
+     FLOAT_T = 311,
+     STRING_T = 312,
+     IMPORT = 313,
+     INCLUDE = 314,
+     IFX = 315,
+     UMINUS = 316
    };
 #endif
 
@@ -118,7 +130,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 122 "parser.tab.hh"
+#line 134 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

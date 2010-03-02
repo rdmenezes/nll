@@ -10,7 +10,9 @@
 // TODO check int n[3] = {n[ 0 ]}; recursive...
 // TODO int fn( int a = 0, int b ) => improve message error
 // TODO declaration order in class
+// TODO class and operator overloading: in a class, (this) not shown...
 //
+
 
 namespace mvv
 {
@@ -205,6 +207,18 @@ namespace parser
             e.setNodeType( new TypeError() );
             return;
          }
+
+         // First, if left operand is a class, check if we have a matching function member on the right
+         // else find a global function
+         // if not check special case == !=
+         // else error.
+         //
+         // TODO
+         // After finding the correct operator, rewite the binary operator as a function call
+         // mvv::Symbol ops = impl::toString( e.getOp() );
+         // TypeNamed* t = dynamic_cast<>
+         // if ( 
+         //std::vector<AstDeclFun*> funcs 
 
          // types must be compatible
          // TODO update this as it is not true if default operators are overloaded...
