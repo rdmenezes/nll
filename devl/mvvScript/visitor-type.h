@@ -50,6 +50,25 @@ namespace parser
       }
 
       /**
+       @check a class is constructible with 0 arguments
+       */
+      void checkDefaultConstructible( TypeNamed* ty, const YYLTYPE& loc )
+      {
+         if ( ty )
+         {
+            AstArgs args( loc );
+            std::vector<AstDeclFun*> funcs = getMatchingFunctionsFromArgs(getFunctionsFromClass( *ty->getDecl(), ty->getDecl()->getName() ), args );
+            if ( funcs.size() == 0 )
+            {
+               impl::reportTypeError( loc, _context, "the class is not constructible" );
+            } else if ( funcs.size() > 1 )
+            {
+               impl::reportTypeError( loc, _context, "ambiguous constructor to construct a class in this array" );
+            }
+         }
+      }
+
+      /**
        @brief Returns the member function of a class
        */
       static std::vector<AstDeclFun*> getFunctionsFromClass( AstDeclClass& c, const mvv::Symbol& s )
@@ -113,6 +132,13 @@ namespace parser
                      }
                   }
                } else {
+                  if ( decls == funcs[ n ]->getVars().getVars().end() )
+                  {
+                     // not enough decl field
+                     ++n;
+                     goto lbl_continue;
+                  }
+
                   // check if types are equal, compatible, incompatible
                   if ( (*it)->getNodeType()->isEqual( *(*decls)->getNodeType() ) )
                   {
@@ -149,8 +175,6 @@ namespace parser
          if ( res.size() > 1 )
             return res;
          return possible;
-
-         // TODO use constructor...?
       }
 
       /**
@@ -579,6 +603,12 @@ namespace parser
 
          if ( e.getType().isArray() )
          {
+            // check there is a default contructor
+            TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
+            if ( ty )
+               checkDefaultConstructible( ty, e.getType().getLocation() );
+            
+            // else carry on...
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
@@ -607,54 +637,59 @@ namespace parser
             {
                impl::reportTypeError( e.getInit()->getLocation(), _context, "variable and asignment types are not compatible" );
             }
-         } else if ( e.getDeclarationList() )
-         {
-            operator()( *e.getDeclarationList() );
+         } else {
+            TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
+            checkDefaultConstructible( ty, e.getType().getLocation() );
 
-            Type* deref = dereference( *e.getNodeType() );
-            if ( deref )
+            if ( e.getDeclarationList() )
             {
-               // all the values must be compatible with
-               for ( AstArgs::Args::iterator it = e.getDeclarationList()->getArgs().begin();
-                     it != e.getDeclarationList()->getArgs().end();
-                     ++it )
+               operator()( *e.getDeclarationList() );
+
+               Type* deref = dereference( *e.getNodeType() );
+               if ( deref )
                {
-                  if ( !deref->isCompatibleWith( *(*it)->getNodeType() ) )
+                  // all the values must be compatible with
+                  for ( AstArgs::Args::iterator it = e.getDeclarationList()->getArgs().begin();
+                        it != e.getDeclarationList()->getArgs().end();
+                        ++it )
                   {
-                     impl::reportTypeError( (*it)->getLocation(), _context, "type in initialization list is not compatible with te variable type" );
+                     if ( !deref->isCompatibleWith( *(*it)->getNodeType() ) )
+                     {
+                        impl::reportTypeError( (*it)->getLocation(), _context, "type in initialization list is not compatible with te variable type" );
+                     }
                   }
+               } else if ( ty )
+               {
+                  impl::reportTypeError( e.getLocation(), _context, "only array can have initialization list" );
+                  // TODO: is it worth adding classes with init list?
+
+                  /*
+                  AstDeclClass* c = dynamic_cast<TypeNamed*>( e.getType().getNodeType() )->getDecl();
+                  ensure( c, "critical error" );
+
+                  AstDecls::Decls::iterator itDecl = c->getDeclarations().getDecls().begin()
+                  for ( AstArgs::Args::iterator it = e.getDeclarationList()->getArgs().begin();
+                        it != e.getDeclarationList()->getArgs().end();
+                        ++it, ++itDecl )
+                  {
+                     if ( itDecl == c->getDeclarations().getDecls().end() )
+                     {
+                        impl::reportTypeError( (*it)->getLocation(), _context, "too many field in initialization list for this type" );
+                        break;
+                     }
+
+                     AstDeclVar* v = dynamic_cast<AstDeclVar*>( *itDecl );
+                     if ( v )
+                     {
+
+                     }
+                  }*/
+               } else {
+                  impl::reportTypeError( e.getDeclarationList()->getLocation(), _context, "variable must be an array or a class to use initialization list" );
                }
-            } else if ( dynamic_cast<TypeNamed*>( e.getType().getNodeType() ) )
-            {
-               impl::reportTypeError( e.getLocation(), _context, "only array can have initialization list" );
-               // TODO: is it worth adding classes with init list?
 
-               /*
-               AstDeclClass* c = dynamic_cast<TypeNamed*>( e.getType().getNodeType() )->getDecl();
-               ensure( c, "critical error" );
-
-               AstDecls::Decls::iterator itDecl = c->getDeclarations().getDecls().begin()
-               for ( AstArgs::Args::iterator it = e.getDeclarationList()->getArgs().begin();
-                     it != e.getDeclarationList()->getArgs().end();
-                     ++it, ++itDecl )
-               {
-                  if ( itDecl == c->getDeclarations().getDecls().end() )
-                  {
-                     impl::reportTypeError( (*it)->getLocation(), _context, "too many field in initialization list for this type" );
-                     break;
-                  }
-
-                  AstDeclVar* v = dynamic_cast<AstDeclVar*>( *itDecl );
-                  if ( v )
-                  {
-
-                  }
-               }*/
-            } else {
-               impl::reportTypeError( e.getDeclarationList()->getLocation(), _context, "variable must be an array or a class to use initialization list" );
+               delete deref;
             }
-
-            delete deref;
          }
       }
 
