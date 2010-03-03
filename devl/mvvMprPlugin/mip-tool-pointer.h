@@ -50,7 +50,7 @@ namespace platform
                                            - (int)e.mousePosition[ 1 ] + (int)_initialOrientation[ 1 ] );
             float d = static_cast<float>( fabs( (float)diffMouse[ 1 ] ) );
             float zoom;
-            if ( (int)e.mousePosition[ 1 ] >= _initialOrientation[ 1 ] )
+            if ( (int)e.mousePosition[ 1 ] <= _initialOrientation[ 1 ] )
             {
                zoom = sender.zoom.getValue() * (float)( 1 + d / 100 );
             } else {
