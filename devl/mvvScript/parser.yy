@@ -114,7 +114,7 @@
 %type<ast>              statement
 %type<astStatements>    statements program
 %type<astExp>           rvalue
-%type<astVar>           lvalue
+%type<astVar>           lvalue thislvalue
 %type<astTypeT>         type type_simple type_field
 %type<astDeclVar>       var_dec_simple
 %type<astDecls>         var_decs_class
@@ -154,6 +154,7 @@
 %token RPAREN       ")"
 %token SEMI         ";"
 %token TIMES        "*"
+%token THIS         "this"
 
 %token OPERATORPARENT   "operator()"
 %token OPERATORBRACKET  "operator[]"
@@ -282,13 +283,16 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |lvalue ASSIGN rvalue             { $$ = new mvv::parser::AstExpAssign( @$, $1, $3 ); }
         |TYPENAME type LPAREN args RPAREN { $$ = new mvv::parser::AstExpTypename( @$, $2, $4 );}
 
-     
+/* note that nothing prevent from this.this.varname, however as "this" is a token, there will be a binding error: you can't declare a variable named 'this' */
+thislvalue : THIS                            { $$ = new mvv::parser::AstThis( @$ ); }
+           | lvalue DOT THIS                 { $$ = new mvv::parser::AstVarField( @$, $1, mvv::Symbol::create( "this" ) ); }
 
 lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( @$, *$1, true ); }
         |ID LBRACK rvalue RBRACK          { $$ = new mvv::parser::AstVarArray( @$, new mvv::parser::AstVarSimple( @$, *$1, true ), $3 ); }
         |lvalue DOT ID                    { $$ = new mvv::parser::AstVarField( @$, $1, *$3 ); }
         |lvalue LBRACK rvalue RBRACK      { $$ = new mvv::parser::AstVarArray( @$, $1, $3 ); }
         |lvalue LPAREN args RPAREN        { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
+        |thislvalue                       { $$ = $1; }
 
 
 	  

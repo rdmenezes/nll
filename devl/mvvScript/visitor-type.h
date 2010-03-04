@@ -239,8 +239,28 @@ namespace parser
          //
          // TODO
          // After finding the correct operator, rewite the binary operator as a function call
-         // mvv::Symbol ops = impl::toString( e.getOp() );
-         // TypeNamed* t = dynamic_cast<>
+
+         // TODO: change the AST when it is built...
+         /*
+         mvv::Symbol ops = impl::toSymbol( e.getOp() );
+         TypeNamed* t = dynamic_cast<TypeNamed*>( &e.getLeft() );
+         if ( t )
+         {
+            AstArgs args( e.getRight().getLocation() );
+            // TODO: pb dealloc...
+            args.insert( &e.getRight() );
+            std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *t->getDecl(), ops ), args );
+            if ( funs.size() == 1 )
+            {
+               // TODO we need to update the ast
+            } else if ( funs.size() > 1 )
+            {
+               impl::reportTypeError( e.getRight().getLocation(), _context, "ambiguous call to " + std::string( ops.getName() ) );
+               e.setNodeType( new TypeError() );
+               return;
+            }
+         }
+         */
          // if ( 
          //std::vector<AstDeclFun*> funcs 
 
@@ -325,6 +345,11 @@ namespace parser
             // if it is a simple variable, we will have a type
             e.setNodeType( e.getReference()->getNodeType() );
          } // else we know it is a call exp, so don't do anything
+      }
+
+      virtual void operator()( AstThis& e )
+      {
+         e.setNodeType( e.getReference()->getNodeType() );
       }
 
       virtual void operator()( AstVarArray& e )
@@ -457,6 +482,8 @@ namespace parser
             return;
          }
          e.setNodeType( member->getNodeType() );
+
+         // Note: handle "this" in the interpreter
       }
 
       virtual void operator()( AstType& e )

@@ -195,6 +195,17 @@ namespace parser
       {
          // do nothing: we need type value to check if the fields are correctly used
          operator()( e.getField() );
+
+         // special case for "this"
+         if ( e.getName() == mvv::Symbol::create( "this" ) )
+         {
+            if ( _defaultClassPath.size() == 0 )
+            {
+               impl::reportUndeclaredType( e.getLocation(), _context, "this can only be declared in a class scope" );
+               return;
+            }
+            e.setReference( _classes.find( _defaultClassPath ) );
+         }
       }
 
       virtual void operator()( AstType& e )
@@ -290,6 +301,17 @@ namespace parser
             }
          }
          --_isInFunction;
+      }
+
+      virtual void operator()( AstThis& e )
+      {
+         if ( _defaultClassPath.size() == 0 )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "this can only be declared in a class scope" );
+            return;
+         } else {
+            e.setReference( _classes.find( _defaultClassPath ) );
+         }
       }
 
       virtual void operator()( AstReturn& e )

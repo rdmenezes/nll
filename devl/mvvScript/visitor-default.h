@@ -19,6 +19,10 @@ namespace parser
       {
       }
 
+      virtual void operator()( AstThis& )
+      {
+      }
+
       virtual void operator()( AstNil& )
       {
       }

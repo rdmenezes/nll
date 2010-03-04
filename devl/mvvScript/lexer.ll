@@ -154,7 +154,7 @@ STRCHR	[A-Za-z_]
 "operator&&"   return OPERATOR_AND;
 "operator||"   return OPERATOR_OR;
 
-
+"this"         return THIS;
 "for"          return FOR;
 "if"		      return IF;
 "else"         return ELSE;

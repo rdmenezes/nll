@@ -44,11 +44,17 @@ namespace parser
       }
    }
 
+
    class VisitorPrint : public ConstVisitor
    {
    public:
       VisitorPrint( std::ostream& o ) : _o( o ), _statementDepth( 0 )
       {}
+
+      virtual void operator()( const AstThis& e )
+      {
+         _o << "this";
+      }
 
       virtual void operator()( const AstInt& e )
       {

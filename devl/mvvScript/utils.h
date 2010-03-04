@@ -9,6 +9,38 @@ namespace parser
 {
    namespace impl
    {
+      inline mvv::Symbol toSymbol( AstOpBin::Op op )
+      {
+         switch ( op )
+         {
+         case AstOpBin::GE:
+            return mvv::Symbol::create( "operator>=" );
+         case AstOpBin::LE:
+            return mvv::Symbol::create( "operator<=" );
+         case AstOpBin::NE:
+            return mvv::Symbol::create( "operator!=" );
+         case AstOpBin::MINUS:
+            return mvv::Symbol::create( "operator-" );
+         case AstOpBin::PLUS:
+            return mvv::Symbol::create( "operator+" );
+         case AstOpBin::TIMES:
+            return mvv::Symbol::create( "operator*" );
+         case AstOpBin::DIVIDE:
+            return mvv::Symbol::create( "operator/" );
+         case AstOpBin::EQ:
+            return mvv::Symbol::create( "operator==" );
+         case AstOpBin::GT:
+            return mvv::Symbol::create( "operator>" );
+         case AstOpBin::LT:
+            return mvv::Symbol::create( "operator<" );
+         case AstOpBin::AND:
+            return mvv::Symbol::create( "operator&&" );
+         case AstOpBin::OR:
+            return mvv::Symbol::create( "operator||" );
+         };
+         ensure( 0, "unreachable, or missing a case..." );
+      }
+
       inline void reportAlreadyDeclaredType( const YYLTYPE& previous, const YYLTYPE& current, mvv::parser::ParserContext& context, const std::string& msg )
       {
          std::stringstream ss;
@@ -97,39 +129,7 @@ namespace parser
       }
 
       return true;
-   }
-
-   inline mvv::Symbol toString( AstOpBin::Op op )
-   {
-      switch ( op )
-      {
-      case AstOpBin::GE:
-         return mvv::Symbol::create( "operator>=" );
-      case AstOpBin::LE:
-         return mvv::Symbol::create( "operator<=" );
-      case AstOpBin::NE:
-         return mvv::Symbol::create( "operator!=" );
-      case AstOpBin::MINUS:
-         return mvv::Symbol::create( "operator-" );
-      case AstOpBin::PLUS:
-         return mvv::Symbol::create( "operator+" );
-      case AstOpBin::TIMES:
-         return mvv::Symbol::create( "operator*" );
-      case AstOpBin::DIVIDE:
-         return mvv::Symbol::create( "operator/" );
-      case AstOpBin::EQ:
-         return mvv::Symbol::create( "operator==" );
-      case AstOpBin::GT:
-         return mvv::Symbol::create( "operator>" );
-      case AstOpBin::LT:
-         return mvv::Symbol::create( "operator<" );
-      case AstOpBin::AND:
-         return mvv::Symbol::create( "operator&&" );
-      case AstOpBin::OR:
-         return mvv::Symbol::create( "operator||" );
-      };
-      ensure( 0, "unreachable, or missing a case..." );
-   }
+   }   
 }
 }
 

@@ -30,5 +30,6 @@
 # include "ast-typefield.h"
 # include "ast-exp-typename.h"
 # include "ast-nil.h"
+# include "ast-this.h"
 
 #endif

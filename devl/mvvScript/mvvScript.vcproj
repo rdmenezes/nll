@@ -545,6 +545,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ast-this.h"
+				>
+			</File>
+			<File
 				RelativePath=".\ast-type.h"
 				>
 			</File>
