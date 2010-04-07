@@ -939,13 +939,28 @@ struct TestBasic
       }
    }
 
+   /*
+   static AstDeclFun* createFunctionPrototype( mvv::Symbol& name, AstTypeT* returnType, const std::vector<AstType*>& args )
+   {
+      YYLTYPE loc;
+      AstDeclVars* vars = new AstDeclVars( loc );
+      for ( ui32 n = 0; n < args.size(); ++n )
+      {
+         vars->insert( new AstDeclVar( loc, args[ n ], mvv::Symbol::create("unnamed"), 0 ) );
+      }
+      AstDeclFun* fn = new AstDeclFun( loc, returnType, name, vars, 0 );
+      fn->setNodeType( returnType->getNodeType() );
+      return fn;
+   }
+   */
+
    void testType1()
    {
       {
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int n; int testint = 0; testint = n + testint;" );
+         exp = context.parseString( "int operator+(int a, int b); int n; int testint = 0; testint = n + testint;" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -955,7 +970,10 @@ struct TestBasic
          visitorBind( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
 
-         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         SymbolTableVars vars = visitorBind.getVars();
+         SymbolTableFuncs funcs = visitorBind.getFuncs();
+         SymbolTableClasses classes = visitorBind.getClasses();
+         VisitorType visitorType( context, vars, funcs, classes );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
       }
@@ -1101,7 +1119,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int n = 3; float f = 2.5; int nn = f + n;" );
+         exp = context.parseString( "float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n;" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1633,7 +1651,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "if ( 1.0 > 5){}");
+         exp = context.parseString( "int operator>( float n, int nn); if ( 1.0 > 5){}");
          
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
@@ -1647,6 +1665,26 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "float operator>( float n, int nn); if ( 1.0 > 5){}");
+         
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
       }
 
       {
@@ -1714,7 +1752,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "void print( string s ){} string s = \"tralala\"; print(\"hahaha\" + s ); ");
+         exp = context.parseString( "string operator+( string n, string nn); void print( string s ){} string s = \"tralala\"; print(\"hahaha\" + s ); ");
          
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
@@ -1814,7 +1852,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ int n; void test(){ this.n = this.n + 1;}}");
+         exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; void test(){ this.n = this.n + 1;}}");
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1833,7 +1871,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ int n; void test(){ this.n = this.this.n + 1;}}");
+         exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; void test(){ this.n = this.this.n + 1;}}");
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1852,7 +1890,27 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
+         exp = context.parseString( "class Test{ Test( string str ){} Test( int n ){} Test( Test t ){} } Test str("");");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
          TESTER_ASSERT( !exp );
       }
 
@@ -1898,6 +1956,7 @@ TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
-TESTER_TEST(testSymbolTableDisctionary);*/
+TESTER_TEST(testSymbolTableDisctionary);
+*/
 TESTER_TEST(testType1);
 TESTER_TEST_SUITE_END();

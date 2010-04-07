@@ -40,6 +40,8 @@
     - int, float, string are primitive types. the are copied by value
     - String class is "boxing" string 
     - structures are copied by reference and are automatically allocated/deallocated using ref counting
+    - operator= can't be overloaded: just refcounting. To create a new instance, just recreate another object...
+    - operator== checks the address for types... and not the semantic
     */
    
    #include <string>
@@ -123,6 +125,7 @@
 %type<astArgs>          args_add
 %type<astArgs>          args
 %type<arrayDim>         array_decl
+%type<symbol>           operator_def
 
 %destructor { delete $$; }                   "string"
 %destructor { delete $$.symbol; }            "symbol"
@@ -159,18 +162,18 @@
 %token OPERATORPARENT   "operator()"
 %token OPERATORBRACKET  "operator[]"
 
-%token OPERATOR_PLUS    "operator+"
-%token OPERATOR_MINUS   "operator-"
-%token OPERATOR_TIMES   "operator*"
-%token OPERATOR_DIVIDE  "operator/"
-%token OPERATOR_LT      "operator<"
-%token OPERATOR_GT      "operator>"
-%token OPERATOR_LE      "operator<="
-%token OPERATOR_GE      "operator>="
-%token OPERATOR_EQ      "operator=="
-%token OPERATOR_NE      "operator!="
-%token OPERATOR_AND     "operator&&"
-%token OPERATOR_OR      "operator||"
+%token <symbol> OPERATOR_PLUS    "operator+"
+%token <symbol> OPERATOR_MINUS   "operator-"
+%token <symbol> OPERATOR_TIMES   "operator*"
+%token <symbol> OPERATOR_DIVIDE  "operator/"
+%token <symbol> OPERATOR_LT      "operator<"
+%token <symbol> OPERATOR_GT      "operator>"
+%token <symbol> OPERATOR_LE      "operator<="
+%token <symbol> OPERATOR_GE      "operator>="
+%token <symbol> OPERATOR_EQ      "operator=="
+%token <symbol> OPERATOR_NE      "operator!="
+%token <symbol> OPERATOR_AND     "operator&&"
+%token <symbol> OPERATOR_OR      "operator||"
 
 %token FOR              "for"
 %token IN               "in"
@@ -243,22 +246,26 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           |INCLUDE STRING                                            { $$ = new mvv::parser::AstInclude( @$, *$2 ); }
           
           /* operator overloading*/
-          |type OPERATOR_PLUS LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator+"), $4, $7 ); }
-          |type OPERATOR_MINUS LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator-"), $4, $7 ); }
-          |type OPERATOR_TIMES LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator*"), $4, $7 ); }
-          |type OPERATOR_DIVIDE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator/"), $4, $7 ); }
-          |type OPERATOR_LT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator<"), $4, $7 ); }
-          |type OPERATOR_GT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator>"), $4, $7 ); }
-          |type OPERATOR_LE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator<="), $4, $7 ); }
-          |type OPERATOR_GE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator>="), $4, $7 ); }
-          |type OPERATOR_EQ LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator=="), $4, $7 ); }
-          |type OPERATOR_NE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator!="), $4, $7 ); }
-          |type OPERATOR_AND LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator&&"), $4, $7 ); }
-          |type OPERATOR_OR LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator||"), $4, $7 ); }
+          |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ); }
+          |type operator_def LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ); }
+          
 
 			
 array_decl: /* empty */                                              { $$ = new std::vector<mvv::parser::AstExp*>(); }
            |LBRACK rvalue RBRACK array_decl                          { $$ = $4; $$->push_back( $2 ); }
+           
+operator_def: OPERATOR_PLUS                                          { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator+" ) ); }
+          |OPERATOR_MINUS                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator-" ) ); }
+          |OPERATOR_TIMES                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator*" ) ); }
+          |OPERATOR_DIVIDE                                           { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator/" ) ); }
+          |OPERATOR_LT                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<" ) ); }
+          |OPERATOR_GT                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>" ) ); }
+          |OPERATOR_LE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<=" ) ); }
+          |OPERATOR_GE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>=" ) ); }
+          |OPERATOR_EQ                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator==" ) ); }
+          |OPERATOR_NE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator!=" ) ); }
+          |OPERATOR_AND                                              { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator&&" ) ); }
+          |OPERATOR_OR                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator||" ) ); }
            
 
      

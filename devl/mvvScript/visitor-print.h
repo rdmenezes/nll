@@ -51,7 +51,7 @@ namespace parser
       VisitorPrint( std::ostream& o ) : _o( o ), _statementDepth( 0 )
       {}
 
-      virtual void operator()( const AstThis& e )
+      virtual void operator()( const AstThis& )
       {
          _o << "this";
       }

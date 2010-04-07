@@ -50,6 +50,12 @@ namespace parser
          return _symbolClass;
       }
 
+      virtual ~AstTypeT() = 0
+      {
+      }
+
+
+
    private:
       bool                  _isArray;
       std::vector<AstExp*>* _defaultSize;

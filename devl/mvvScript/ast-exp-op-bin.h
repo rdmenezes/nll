@@ -7,6 +7,7 @@ namespace mvv
 {
 namespace parser
 {
+   // TODO: we need to annotate with what function to use!
    class MVVSCRIPT_API AstOpBin : public AstExp
    {
    public:
@@ -27,7 +28,7 @@ namespace parser
       };
 
    public:
-      AstOpBin( const YYLTYPE& location, AstExp* left, AstExp* right, Op op ) : AstExp( location ), _left( left ), _right( right ), _op( op )
+      AstOpBin( const YYLTYPE& location, AstExp* left, AstExp* right, Op op ) : AstExp( location ), _left( left ), _right( right ), _op( op ), _fn( 0 )
       {
          ensure( left && right, "must not be null" );
       }
@@ -58,6 +59,19 @@ namespace parser
          return _op;
       }
 
+      /**
+       the operators are in fact all shortcuts to global functions/member functions, except operator== and operator!= which are a specific case
+       */
+      void setFunctionCall( AstDeclFun* fn )
+      {
+         _fn = fn;
+      }
+
+      AstDeclFun* getFunctionCall() const
+      {
+         return _fn;
+      }
+
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
       {
@@ -71,9 +85,11 @@ namespace parser
       }
 
    private:
-      AstExp*  _left;
-      AstExp*  _right;
-      Op       _op;
+      AstExp*     _left;
+      AstExp*     _right;
+      Op          _op;
+      AstDeclFun* _fn;
+
    };
 }
 }

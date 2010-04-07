@@ -11,7 +11,7 @@
 // TODO int fn( int a = 0, int b ) => improve message error
 // TODO declaration order in class
 // TODO class and operator overloading: in a class, (this) not shown...
-//
+// TODO float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n; : function returns a float, but argument does not->need conversion
 
 
 namespace mvv
@@ -85,6 +85,19 @@ namespace parser
             }
          }
          return res;
+      }
+
+      /**
+       @brief Returns the member function of a class
+       */
+      static std::vector<AstDeclFun*> getFunctionsFromGlobal( const SymbolTableFuncs& funcs, const mvv::Symbol& s )
+      {
+         SymbolTableFuncs::const_iterator it = funcs.find( s );
+         if ( it != funcs.end() )
+         {
+            return it->second;
+         }
+         return std::vector<AstDeclFun*>();
       }
 
       /**
@@ -189,6 +202,7 @@ namespace parser
             if ( (*it)->getName() == name )
                return *it;
          }
+
          return 0;
       }
 
@@ -232,18 +246,24 @@ namespace parser
             return;
          }
 
-         // First, if left operand is a class, check if we have a matching function member on the right
-         // else find a global function
-         // if not check special case == !=
-         // else error.
-         //
-         // TODO
-         // After finding the correct operator, rewite the binary operator as a function call
-
-         // TODO: change the AST when it is built...
-         /*
-         mvv::Symbol ops = impl::toSymbol( e.getOp() );
+         // if type && operator== operator!=, special case: check the adress and return an int
          TypeNamed* t = dynamic_cast<TypeNamed*>( &e.getLeft() );
+         if ( t &&
+              e.getOp() == AstOpBin::EQ ||
+              e.getOp() == AstOpBin::NE )
+         {
+            if ( !e.getRight().getNodeType()->isCompatibleWith( *e.getLeft().getNodeType() ) )
+            {
+               impl::reportTypeError( e.getLocation(), _context, "incompatible types");
+               e.setNodeType( new TypeError() );
+               return;
+            } else {
+               e.setNodeType( new TypeInt() );
+            }
+         }
+
+         mvv::Symbol ops = impl::toSymbol( e.getOp() );
+         // if it is a type, check the class has a specific member for this operator
          if ( t )
          {
             AstArgs args( e.getRight().getLocation() );
@@ -252,46 +272,43 @@ namespace parser
             std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *t->getDecl(), ops ), args );
             if ( funs.size() == 1 )
             {
-               // TODO we need to update the ast
-            } else if ( funs.size() > 1 )
-            {
-               impl::reportTypeError( e.getRight().getLocation(), _context, "ambiguous call to " + std::string( ops.getName() ) );
-               e.setNodeType( new TypeError() );
+               e.setNodeType( funs[ 0 ]->getNodeType() );
+               e.setFunctionCall( funs[ 0 ] );
                return;
+            } else {
+               if ( funs.size() > 1 )
+               {
+                  // ambiguous call
+                  impl::reportTypeError( e.getRight().getLocation(), _context, "ambiguous call to " + std::string( ops.getName() ) );
+                  e.setNodeType( new TypeError() );
+                  return;
+               }
             }
          }
-         */
-         // if ( 
-         //std::vector<AstDeclFun*> funcs 
 
-         // types must be compatible
-         // TODO update this as it is not true if default operators are overloaded...
-         if ( !e.getRight().getNodeType()->isCompatibleWith( *e.getLeft().getNodeType() ) )
+         // this is a basic type, or a type but operator is not member
+         AstArgs args( e.getRight().getLocation() );
+         // TODO: pb dealloc...
+         args.insert( &e.getLeft() );
+         args.insert( &e.getRight() );
+         std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromGlobal( _funcs, ops ), args );
+         if ( funs.size() == 1 )
          {
-            impl::reportTypeError( e.getLocation(), _context, "incompatible types");
+            e.setNodeType( funs[ 0 ]->getNodeType() );
+            e.setFunctionCall( funs[ 0 ] );
+            return;
+         } else if ( funs.size() > 1 )
+         {
+            // ambiguous call
+            impl::reportTypeError( e.getRight().getLocation(), _context, "ambiguous call to " + std::string( ops.getName() ) );
+            e.setNodeType( new TypeError() );
+            return;
+         } else {
+            // no function found
+            impl::reportTypeError( e.getLocation(), _context, "no function found associated with this operator");
             e.setNodeType( new TypeError() );
             return;
          }
-
-         if ( e.getOp() == AstOpBin::GE ||
-              e.getOp() == AstOpBin::EQ ||
-              e.getOp() == AstOpBin::LE ||
-              e.getOp() == AstOpBin::NE ||
-              e.getOp() == AstOpBin::LT ||
-              e.getOp() == AstOpBin::GT ||
-              e.getOp() == AstOpBin::AND||
-              e.getOp() == AstOpBin::OR )
-         {
-            e.setNodeType( new TypeInt() );
-         } else {
-            e.setNodeType( e.getLeft().getNodeType() );
-         }
-
-         // TODO additionally, first, 
-         // - first if TypeNamed, look up for a function in the class (operator...), else
-         // - check the list of global function (with operator+, ...)
-         // if true then set the type for these functions
-         // if funtcion not found, issue an error
       }
 
       virtual void operator()( AstIf& e )
@@ -322,12 +339,12 @@ namespace parser
          }
       }
 
+      // we can't overload operator=, because all structures are refcounted and so is incompatible
       virtual void operator()( AstExpAssign& e )
       {
          operator()( e.getValue() );
          operator()( e.getLValue() );
          // TODO handle "var" here
-         // TODO handle operator= here
          e.setNodeType( e.getValue().getNodeType() );
 
          ensure( e.getLValue().getNodeType(), "compiler error: cannot evaluate expression type" );
