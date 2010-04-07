@@ -30,6 +30,7 @@ namespace parser
                    const SymbolTableFuncs& funcs,
                    const SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
+         _isInFunctionDeclaration = false;
       }
 
       /**
@@ -156,11 +157,12 @@ namespace parser
                   if ( (*it)->getNodeType()->isEqual( *(*decls)->getNodeType() ) )
                   {
                      // do nothing
-                  } else if ( (*it)->getNodeType()->isEqual( *(*decls)->getNodeType() ) )
+                  } else if ( (*it)->getNodeType()->isCompatibleWith( *(*decls)->getNodeType() ) )
                   {
                      equal = false;
                   } else {
                      succeeded = false;
+                     equal = false;
                      break;
                   }
                }
@@ -586,7 +588,9 @@ namespace parser
 
          if ( e.getVars().getVars().size() )
          {
+            _isInFunctionDeclaration = true;
             operator()( e.getVars() );
+            _isInFunctionDeclaration = false;
          }
          
          if ( e.getBody() )
@@ -683,7 +687,11 @@ namespace parser
             }
          } else {
             TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
-            checkDefaultConstructible( ty, e.getType().getLocation() );
+            if ( !_isInFunctionDeclaration )
+            {
+               // if we are in the declaration of a function, we are not constructing an object... so we shouldn't test this
+               checkDefaultConstructible( ty, e.getType().getLocation() );
+            }
 
             if ( e.getDeclarationList() )
             {
@@ -778,6 +786,7 @@ namespace parser
       SymbolTableVars     _vars;
       SymbolTableFuncs    _funcs;
       SymbolTableClasses  _classes;
+      bool                _isInFunctionDeclaration;
    };
 }
 }

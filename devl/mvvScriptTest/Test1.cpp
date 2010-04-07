@@ -1569,7 +1569,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ Test(){} int vala; float valb; Test( int a, float b ){ \nvala = a; valb = b; } } Test a = Test( 0, \"hah\" );");
+         exp = context.parseString( "class Test{ Test(){} int vala; float valb; Test( int a, float b ){ vala = a; valb = b; } } Test a = Test( 0, 1.5 );");
          
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
@@ -1890,7 +1890,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ Test( string str ){} Test( int n ){} Test( Test t ){} } Test str("");");
+         exp = context.parseString( "class Test{ Test( string str2 ){ string str;} Test( int n ){} Test( Test t ){} } Test str = Test(\"\");");
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1947,6 +1947,7 @@ struct TestBasic
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( !context.getError().getStatus() );
       }*/
+      std::cout << "done" << std::endl;
    }
 };
 

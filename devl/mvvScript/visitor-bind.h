@@ -65,6 +65,7 @@ namespace parser
          _scopeDepth = 0;
          _functionCallsNeeded = 0;
          _isInFunction = 0;
+         _isInFunctionDeclaration = false;
       }
 
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
@@ -283,7 +284,9 @@ namespace parser
             // read the vars in the body
             if ( e.getVars().getVars().size() )
             {
+               _isInFunctionDeclaration = true;
                operator()( e.getVars() );
+               _isInFunctionDeclaration = false;
             }
 
             _canReturn.push( true );
@@ -387,7 +390,7 @@ namespace parser
                return;
             }
 
-            if ( _vars.find_in_scope( e.getName() ) )
+            if ( _vars.find_in_scope( e.getName() ) && !_isInFunctionDeclaration )
             {
                impl::reportAlreadyDeclaredType( _vars.find( e.getName() )->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
             } else {
@@ -526,6 +529,7 @@ namespace parser
       std::vector<AstDeclFun*>   _currentFunc;
       int                        _functionCallsNeeded;
       int                        _isInFunction;
+      bool                       _isInFunctionDeclaration; /* true if we are checking the function parameter declaration */
 
       ParserContext&      _context;
       SymbolTableVars     _vars;
