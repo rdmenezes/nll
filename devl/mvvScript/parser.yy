@@ -41,7 +41,11 @@
     - String class is "boxing" string 
     - structures are copied by reference and are automatically allocated/deallocated using ref counting
     - operator= can't be overloaded: just refcounting. To create a new instance, just recreate another object...
-    - operator== checks the address for types... and not the semantic
+    - operator== checks the address for types... and not the semantic==
+    - the type of a function doesn't belong to the signature of the function, the signature of a function is unique
+    
+    - TODO add covariant return type when inheritance added
+    - TODO class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } : check function prototypes when added, not just when used
     */
    
    #include <string>
@@ -266,6 +270,8 @@ operator_def: OPERATOR_PLUS                                          { $$ = new 
           |OPERATOR_NE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator!=" ) ); }
           |OPERATOR_AND                                              { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator&&" ) ); }
           |OPERATOR_OR                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator||" ) ); }
+          |OPERATORBRACKET                                           { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator[]" ) ); }
+          |OPERATORPARENT                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator()" ) ); }
            
 
      
@@ -309,26 +315,11 @@ var_decs_class: /* empty */				                                                 
       |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                  { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }
-      |type OPERATORBRACKET LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4, $7 ) ); }	
-      |type OPERATORBRACKET LPAREN fn_var_dec RPAREN SEMI var_decs_class                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator[]"), $4 ) ); }
-      |type OPERATORPARENT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class  { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4, $7 ) ); }	
-      |type OPERATORPARENT LPAREN fn_var_dec RPAREN SEMI var_decs_class                      { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator()"), $4 ) ); }
       |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3, $6 ) ); }
       |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }
-      
-      |type OPERATOR_PLUS LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class   { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator+"), $4, $7 ) ); }
-      |type OPERATOR_MINUS LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class  { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator-"), $4, $7 ) ); }
-      |type OPERATOR_TIMES LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class  { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator*"), $4, $7 ) ); }
-      |type OPERATOR_DIVIDE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator/"), $4, $7 ) ); }
-      |type OPERATOR_LT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator<"), $4, $7 ) ); }
-      |type OPERATOR_GT LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator>"), $4, $7 ) ); }
-      |type OPERATOR_LE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator<="), $4, $7 ) ); }
-      |type OPERATOR_GE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator>="), $4, $7 ) ); }
-      |type OPERATOR_EQ LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator=="), $4, $7 ) ); }
-      |type OPERATOR_NE LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator!="), $4, $7 ) ); }
-      |type OPERATOR_AND LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class    { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator&&"), $4, $7 ) ); }
-      |type OPERATOR_OR LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class     { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, mvv::Symbol::create("operator||"), $4, $7 ) ); }
-          
+      |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class    { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
+      |type operator_def LPAREN fn_var_dec RPAREN SEMI var_decs_class                        { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }
+                   
   
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
              |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::INT ); }

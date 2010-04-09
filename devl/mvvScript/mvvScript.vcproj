@@ -581,6 +581,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\type-runtime.h"
+				>
+			</File>
+			<File
 				RelativePath=".\type.cpp"
 				>
 			</File>

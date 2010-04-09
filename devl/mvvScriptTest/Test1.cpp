@@ -1910,6 +1910,26 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
+         exp = context.parseString( "class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } Test t = Test(); t.tralala(); ");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
          exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
          TESTER_ASSERT( !exp );
       }
@@ -1952,12 +1972,12 @@ struct TestBasic
 };
 
 TESTER_TEST_SUITE(TestBasic);
-/*
+
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
-*/
+
 TESTER_TEST(testType1);
 TESTER_TEST_SUITE_END();
