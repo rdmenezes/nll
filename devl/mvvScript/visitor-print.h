@@ -326,30 +326,43 @@ namespace parser
       {
          operator()( e.getType() );
          _o << " " << e.getName();
-         if ( e.getType().isArray() )
-         {
-            if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
-            {
-               for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
-               {
-                  _o << "[ ";
-                  operator()( *( (*e.getType().getSize())[ n ] ) );
-                  _o << " ]";
-               }
-            } else {
-               _o << "[]";
-            }
-         }
 
-         if ( e.getInit() )
+         // if object initialization, cant make array!
+         if ( e.getObjectInitialization() )
          {
-            _o << " = ";
-            operator()( *e.getInit() );
-         } else if ( e.getDeclarationList() )
-         {
-            _o << " = { ";
-            operator()( *e.getDeclarationList() );
-            _o << " }";
+            // don't print more if size == 0
+            if ( e.getObjectInitialization()->getArgs().size() )
+            {
+               _o << "( ";
+               operator()( *e.getObjectInitialization() );
+               _o << " )";
+            }
+         } else {
+            if ( e.getType().isArray() )
+            {
+               if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
+               {
+                  for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
+                  {
+                     _o << "[ ";
+                     operator()( *( (*e.getType().getSize())[ n ] ) );
+                     _o << " ]";
+                  }
+               } else {
+                  _o << "[]";
+               }
+            }
+
+            if ( e.getInit() )
+            {
+               _o << " = ";
+               operator()( *e.getInit() );
+            } else if ( e.getDeclarationList() )
+            {
+               _o << " = { ";
+               operator()( *e.getDeclarationList() );
+               _o << " }";
+            }
          }
       }
 

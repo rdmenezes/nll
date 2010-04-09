@@ -177,6 +177,11 @@ namespace parser
                }
             } 
          }
+
+         if ( e.getObjectInitialization() )
+         {
+            operator()( *e.getObjectInitialization() );
+         }
       }
 
       virtual void operator()( AstExpSeq& e )

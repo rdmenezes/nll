@@ -230,8 +230,14 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
            */
           |type ID ASSIGN rvalue SEMI                                { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }
           |type ID ASSIGN LBRACE args RBRACE SEMI                    { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $5 ); }
-          |type ID LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ); }
+          |IMPORT type ID LPAREN fn_var_dec RPAREN SEMI              { $$ = new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ); }
           |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ); }
+          |type ID LPAREN rvalue args_add RPAREN SEMI                { /* first, concatenate the args*/
+                                                                       mvv::parser::AstArgs* args = $5;
+                                                                       args->getArgs().push_front( $4 );
+                                                                       $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, 0, args );
+                                                                     }
+                                                                       
           |type ID array_decl SEMI                                   { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 );
                                                                        if ( $3->size() )
                                                                        {
@@ -251,7 +257,7 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           
           /* operator overloading*/
           |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ); }
-          |type operator_def LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ); }
+          |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ); }
           
 
 			
@@ -318,7 +324,7 @@ var_decs_class: /* empty */				                                                 
       |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3, $6 ) ); }
       |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }
       |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class    { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
-      |type operator_def LPAREN fn_var_dec RPAREN SEMI var_decs_class                        { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }
+      |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI var_decs_class                 { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
                    
   
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }

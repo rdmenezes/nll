@@ -687,10 +687,34 @@ namespace parser
             }
          } else {
             TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
-            if ( !_isInFunctionDeclaration )
+            if ( e.getObjectInitialization() )
             {
-               // if we are in the declaration of a function, we are not constructing an object... so we shouldn't test this
-               checkDefaultConstructible( ty, e.getType().getLocation() );
+               // visit the arguments first
+               operator()( *e.getObjectInitialization() );
+
+               // if object initialization, check we can construct the object
+               ensure( ty->getDecl(), "Internal compiler error" );
+
+               std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *ty->getDecl(), ty->getDecl()->getName() ), *e.getObjectInitialization() );
+               if ( funs.size() == 1 )
+               {
+                  e.setConstructorCall( funs[ 0 ] );
+                  return;
+               } else {
+                  if ( funs.size() > 1 )
+                  {
+                     // ambiguous call
+                     impl::reportTypeError( e.getLocation(), _context, "ambiguous constructor call to " + std::string( ty->getDecl()->getName().getName() ) );
+                     e.setNodeType( new TypeError() );
+                     return;
+                  }
+               }
+            } else {
+               if ( !_isInFunctionDeclaration )
+               {
+                  // if we are in the declaration of a function, we are not constructing an object... so we shouldn't test this
+                  checkDefaultConstructible( ty, e.getType().getLocation() );
+               }
             }
 
             if ( e.getDeclarationList() )
