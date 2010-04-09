@@ -94,7 +94,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int Test(); int Test();" );
+         exp = context.parseString( "import int Test(); import int Test();" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -105,7 +105,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int Test(); int Test( int a ); int Test2;" );
+         exp = context.parseString( "import int Test(); import int Test( int a ); int Test2;" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -116,7 +116,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int Test(); class Test{}" );
+         exp = context.parseString( "import int Test(); class Test{}" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -127,7 +127,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{} int Test( int a );" );
+         exp = context.parseString( "class Test{} import int Test( int a );" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -138,7 +138,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( " int Test( int a ); class Test{}" );
+         exp = context.parseString( " import int Test( int a ); class Test{}" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -149,7 +149,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( " class Aha{ class Test{}} int Test( int a );" );
+         exp = context.parseString( " class Aha{ class Test{}} import int Test( int a );" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -194,7 +194,7 @@ struct TestBasic
       TESTER_ASSERT( exp );
       exp = context.parseString( "int n[] = {2 * 3};" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string strings[5]; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
+      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; import int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string strings[5]; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "getVal(5);" );
       TESTER_ASSERT( exp );
@@ -368,7 +368,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int fn( Test t );" );
+         exp = context.parseString( "import int fn( Test t );" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -384,7 +384,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{} int fn( Test t );" );
+         exp = context.parseString( "class Test{} import int fn( Test t );" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -399,23 +399,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ Test clone(); }" );
-         TESTER_ASSERT( exp );
-         VisitorRegisterDeclarations visitor( context );
-         visitor( *exp );
-         TESTER_ASSERT( !context.getError().getStatus() );
-
-         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
-         visitorBind( *exp );
-         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
-         TESTER_ASSERT( !context.getError().getStatus() );
-      }
-
-      {
-         ParserContext context;
-         Ast* exp = 0;
-         
-         exp = context.parseString( "class Test{ class Test2{} class Test3{ Test2 clone(); } }" );
+         exp = context.parseString( "class Test{ import Test clone(); }" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -431,7 +415,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ class Test2{} int empty( Test3 c ); class Test3{ } }" );
+         exp = context.parseString( "class Test{ class Test2{} class Test3{ import Test2 clone(); } }" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -447,7 +431,23 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "class Test{ class Test2{ class Test3{ Test4 haha(); } } Test2::Test3 create(){} Test::Test2::Test3 create2(); class Test4{ } }" );
+         exp = context.parseString( "class Test{ class Test2{} import int empty( Test3 c ); class Test3{ } }" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+         TESTER_ASSERT( !context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "class Test{ class Test2{ class Test3{ import Test4 haha(); } } Test2::Test3 create(){} import Test::Test2::Test3 create2(); class Test4{ } }" );
          VisitorPrint p( std::cout );
          p( *exp );
          TESTER_ASSERT( exp );
@@ -956,12 +956,11 @@ struct TestBasic
 
    void testType1()
    {
-      /*
       {
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int operator+(int a, int b); int n; int testint = 0; testint = n + testint;" );
+         exp = context.parseString( "import int operator+(int a, int b); int n; int testint = 0; testint = n + testint;" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1120,7 +1119,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n;" );
+         exp = context.parseString( "import float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n;" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1652,7 +1651,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int operator>( float n, int nn); if ( 1.0 > 5){}");
+         exp = context.parseString( "import int operator>( float n, int nn); if ( 1.0 > 5){}");
          
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
@@ -1672,7 +1671,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "float operator>( float n, int nn); if ( 1.0 > 5){}");
+         exp = context.parseString( "import float operator>( float n, int nn); if ( 1.0 > 5){}");
          
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
@@ -1753,7 +1752,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "string operator+( string n, string nn); void print( string s ){} string s = \"tralala\"; print(\"hahaha\" + s ); ");
+         exp = context.parseString( "import string operator+( string n, string nn); void print( string s ){} string s = \"tralala\"; print(\"hahaha\" + s ); ");
          
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
@@ -1853,7 +1852,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; void test(){ this.n = this.n + 1;}}");
+         exp = context.parseString( "import int operator+(int n, int nn); class Test{ int n; void test(){ this.n = this.n + 1;}}");
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1872,7 +1871,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; void test(){ this.n = this.this.n + 1;}}");
+         exp = context.parseString( "import int operator+(int n, int nn); class Test{ int n; void test(){ this.n = this.this.n + 1;}}");
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context );
          visitor( *exp );
@@ -1931,7 +1930,7 @@ struct TestBasic
          ParserContext context;
          Ast* exp = 0;
          
-         exp = context.parseString( "int operator+(int n, int nn); class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
+         exp = context.parseString( "import int operator+(int n, int nn); class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
          TESTER_ASSERT( !exp );
       }
 
@@ -1944,7 +1943,6 @@ struct TestBasic
          
          TESTER_ASSERT( !exp );
       }
-      */
 
       {
          ParserContext context;
@@ -2060,12 +2058,12 @@ struct TestBasic
 };
 
 TESTER_TEST_SUITE(TestBasic);
-/*
+
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
-*/
+
 TESTER_TEST(testType1);
 TESTER_TEST_SUITE_END();

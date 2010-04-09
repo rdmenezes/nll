@@ -44,6 +44,7 @@
     - operator== checks the address for types... and not the semantic==
     - the type of a function doesn't belong to the signature of the function, the signature of a function is unique
     
+    - TODO if func imported: don't allow default parameter
     - TODO add covariant return type when inheritance added
     - TODO class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } : check function prototypes when added, not just when used
     */
@@ -320,7 +321,7 @@ var_decs_class: /* empty */				                                                 
       |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                   { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); }
       |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
-      |type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                  { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4 ) ); }
+      |IMPORT type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                           { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
       |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3, $6 ) ); }
       |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }
       |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class    { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	

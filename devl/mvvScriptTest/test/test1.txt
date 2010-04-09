@@ -86,7 +86,7 @@ test2[ 8 ][ 8 ] = 5;
 test3 = Test( 30 );
 Test test = Test(2);
 Test::Test2 test;
-Test::Test2 test();
+import Test::Test2 test();
 Test test8 = {1};
 print( "test.test=");
 print( "test=" + test.computeSum() );
