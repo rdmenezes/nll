@@ -15,6 +15,14 @@ namespace parser
       {
       }
 
+      ~AstStatements()
+      {
+         for ( Statements::iterator i = _statements.begin(); i != _statements.end(); ++i )
+         {
+            delete *i;
+         }
+      }
+
       const Statements& getStatements() const
       {
          return _statements;

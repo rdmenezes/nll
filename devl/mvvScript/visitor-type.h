@@ -19,8 +19,7 @@ namespace mvv
 namespace parser
 {
    /**
-    @brief Defines a visitor visiting all the nodes but doing nothing
-    @note this is usefull if a visitor is only handling a limited number of nodes
+    @brief Defines a visitor visiting all the nodes and typing all typable nodes
     */
    class VisitorType : public VisitorDefault
    {
@@ -47,7 +46,7 @@ namespace parser
          {
             return array->getRoot().clone();
          }
-         return new TypeArray( array->getDimentionality() - 1, array->getRoot() );
+         return new TypeArray( array->getDimentionality() - 1, array->getRoot(), array->isReference() );
       }
 
       /**
@@ -57,7 +56,7 @@ namespace parser
       {
          if ( ty )
          {
-            AstArgs args( loc );
+            AstArgs args( loc, false );
             std::vector<AstDeclFun*> funcs = getMatchingFunctionsFromArgs(getFunctionsFromClass( *ty->getDecl(), ty->getDecl()->getName() ), args );
             if ( funcs.size() == 0 )
             {
@@ -210,7 +209,7 @@ namespace parser
 
       virtual void operator()( AstInt& e )
       {
-         e.setNodeType( new TypeInt() );
+         e.setNodeType( new TypeInt( false ) );
       }
 
       virtual void operator()( AstNil& e )
@@ -220,12 +219,12 @@ namespace parser
 
       virtual void operator()( AstFloat& e )
       {
-         e.setNodeType( new TypeFloat() );
+         e.setNodeType( new TypeFloat( false ) );
       }
 
       virtual void operator()( AstString& e )
       {
-         e.setNodeType( new TypeString() );
+         e.setNodeType( new TypeString( false ) );
       }
 
       virtual void operator()( AstOpBin& e )
@@ -260,7 +259,7 @@ namespace parser
                e.setNodeType( new TypeError() );
                return;
             } else {
-               e.setNodeType( new TypeInt() );
+               e.setNodeType( new TypeInt( e.getLeft().getNodeType()->isReference() ) );
             }
          }
 
@@ -268,13 +267,12 @@ namespace parser
          // if it is a type, check the class has a specific member for this operator
          if ( t )
          {
-            AstArgs args( e.getRight().getLocation() );
-            // TODO: pb dealloc...
+            AstArgs args( e.getRight().getLocation(), false );
             args.insert( &e.getRight() );
             std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *t->getDecl(), ops ), args );
             if ( funs.size() == 1 )
             {
-               e.setNodeType( funs[ 0 ]->getNodeType() );
+               e.setNodeType( funs[ 0 ]->getNodeType()->clone() );
                e.setFunctionCall( funs[ 0 ] );
                return;
             } else {
@@ -289,16 +287,15 @@ namespace parser
          }
 
          // this is a basic type, or a type but operator is not member
-         AstArgs args( e.getRight().getLocation() );
-         // TODO: pb dealloc...
+         AstArgs args( e.getRight().getLocation(), false );
          args.insert( &e.getLeft() );
          args.insert( &e.getRight() );
          std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromGlobal( _funcs, ops ), args );
          if ( funs.size() == 1 )
          {
-            e.setNodeType( funs[ 0 ]->getNodeType() );
+            e.setNodeType( funs[ 0 ]->getNodeType()->clone() );
             e.setFunctionCall( funs[ 0 ] );
-            return;
+                  return;
          } else if ( funs.size() > 1 )
          {
             // ambiguous call
@@ -318,7 +315,7 @@ namespace parser
          operator()( e.getCondition() );
 
          ensure( e.getCondition().getNodeType(), "tree can't be typed" );
-         if ( !TypeInt().isEqual( *e.getCondition().getNodeType() ) )
+         if ( !TypeInt( false ).isEqual( *e.getCondition().getNodeType() ) )
          {
             impl::reportTypeError( e.getCondition().getLocation(), _context, "if condition type must be an int" );
          }
@@ -347,7 +344,7 @@ namespace parser
          operator()( e.getValue() );
          operator()( e.getLValue() );
          // TODO handle "var" here
-         e.setNodeType( e.getValue().getNodeType() );
+         e.setNodeType( e.getValue().getNodeType()->clone() );
 
          ensure( e.getLValue().getNodeType(), "compiler error: cannot evaluate expression type" );
          if ( !e.getValue().getNodeType()->isCompatibleWith( *e.getLValue().getNodeType() ) )
@@ -362,13 +359,13 @@ namespace parser
          if ( e.getReference() )
          {
             // if it is a simple variable, we will have a type
-            e.setNodeType( e.getReference()->getNodeType() );
+            e.setNodeType( e.getReference()->getNodeType()->clone() );
          } // else we know it is a call exp, so don't do anything
       }
 
       virtual void operator()( AstThis& e )
       {
-         e.setNodeType( e.getReference()->getNodeType() );
+         e.setNodeType( e.getReference()->getNodeType()->clone() );
       }
 
       virtual void operator()( AstVarArray& e )
@@ -377,7 +374,7 @@ namespace parser
          operator()( e.getIndex() );
          ensure( e.getIndex().getNodeType(), "tree can't be typed" );
          ensure( e.getName().getNodeType(), "tree can't be typed" );
-         if ( !TypeInt().isEqual( *e.getIndex().getNodeType() ) )
+         if ( !TypeInt( false ).isEqual( *e.getIndex().getNodeType() ) )
          {
             impl::reportTypeError( e.getLocation(), _context, "index must be of type int" );
          }
@@ -396,10 +393,10 @@ namespace parser
                if ( funcs.size() > 1 )
                {
                   impl::reportTypeMultipleCallableFunction( funcs, _context );
-                  e.setNodeType( funcs[ 0 ]->getNodeType() );
+                  e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
                   return;
                }
-               e.setNodeType( funcs[ 0 ]->getNodeType() );
+               e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
             }
          } else {
             Type* deref = dereference( *e.getName().getNodeType() );
@@ -409,7 +406,7 @@ namespace parser
                e.setNodeType( new TypeError() );
                return;
             } else {
-               e.setNodeType( deref );
+               e.setNodeType( deref->clone() );
             }
          }
       }
@@ -465,11 +462,11 @@ namespace parser
          if ( funcs.size() > 1 )
          {
             impl::reportTypeMultipleCallableFunction( funcs, _context );
-            e.setNodeType( funcs[ 0 ]->getNodeType() );
+            e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
             return;
          }
 
-         e.setNodeType( funcs[ 0 ]->getNodeType() );
+         e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
       }
 
       virtual void operator()( AstVarField& e )
@@ -500,7 +497,7 @@ namespace parser
             e.setNodeType( new TypeError() );
             return;
          }
-         e.setNodeType( member->getNodeType() );
+         e.setNodeType( member->getNodeType()->clone() );
 
          // Note: handle "this" in the interpreter
       }
@@ -510,15 +507,15 @@ namespace parser
          switch ( e.getType() )
          {
          case AstType::FLOAT:
-            e.setNodeType( new TypeFloat() );
+            e.setNodeType( new TypeFloat( e.isAReference() ) );
             break;
 
          case AstType::INT:
-            e.setNodeType( new TypeInt() );
+            e.setNodeType( new TypeInt( e.isAReference() ) );
             break;
 
          case AstType::STRING:
-            e.setNodeType( new TypeString() );
+            e.setNodeType( new TypeString( e.isAReference() ) );
             break;
 
          case AstType::VOID:
@@ -527,7 +524,8 @@ namespace parser
 
          case AstType::SYMBOL:
             ensure( e.getReference(), "compiler error: can't find a link on a symbol" );
-            e.setNodeType( e.getReference()->getNodeType() );
+            e.setNodeType( e.getReference()->getNodeType()->clone() );
+            // TODO check Test& getdsjkskj
             break;
 
          default:
@@ -553,7 +551,7 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         e.setNodeType( new TypeNamed( &e ) );
+         e.setNodeType( new TypeNamed( &e, false ) );
          operator()( e.getDeclarations() );
       }
 
@@ -563,7 +561,7 @@ namespace parser
          if ( e.getType() )
          {
             operator()( *e.getType() );
-            e.setNodeType( e.getType()->getNodeType() );
+            e.setNodeType( e.getType()->getNodeType()->clone() );
          } else {
             // if not in class, type can't be empty
             if ( !e.getMemberOfClass() )
@@ -574,7 +572,7 @@ namespace parser
             } else {
                // else it is a constructor and must have the same name than the class
                // a constructor returns the same type than the class it is nested
-               e.setNodeType( e.getMemberOfClass()->getNodeType() );
+               e.setNodeType( e.getMemberOfClass()->getNodeType()->clone() );
                isAConstructor = true;
 
                if ( e.getName() != e.getMemberOfClass()->getName() )
@@ -625,7 +623,7 @@ namespace parser
          if ( e.getReturnValue() )
          {
             operator()( *e.getReturnValue() );
-            e.setNodeType( e.getReturnValue()->getNodeType() );
+            e.setNodeType( e.getReturnValue()->getNodeType()->clone() );
          } else {
             e.setNodeType( new TypeVoid() );
          }
@@ -637,6 +635,34 @@ namespace parser
             impl::reportTypeError( e.getLocation(), _context, "function return type and actual type are incompatible" );
             e.setNodeType( new TypeError() );
          }
+
+         if ( e.getFunction()->getType()->isAReference() && e.getReturnValue() ) // if there is no return type, no ref!
+         {
+            // if function type is ref, check we have a valid expression
+            bool isRef = checkValidReferenceInitialization( *e.getReturnValue() );
+            if ( !isRef )
+            {
+               impl::reportTypeError( e.getLocation(), _context, "function return type must be a referencable value (variable, function with reference type)" );
+            }
+            e.getNodeType()->setReference( true );
+         }
+      }
+
+      // check a variable with reference has a correct initialization
+      static bool checkValidReferenceInitialization( AstExp& e )
+      {
+         //
+         // TODO update the type system:
+         //  "Type" class must have ConstInt, ConstFloat, ConstString, isNotComposed()...
+         //
+
+         AstVar* v = dynamic_cast<AstVar*>( &e );
+         if ( v )
+         {
+            // we are aliasing a reference
+            return true;
+         }
+         return e.getNodeType()->isReference();
       }
 
       virtual void operator()( AstDeclVar& e )
@@ -664,7 +690,7 @@ namespace parser
                   operator()( *( (*e.getType().getSize())[ n ] ) );
 
                   ensure( (*e.getType().getSize())[ n ]->getNodeType(), "must have a dimensionality >= 1" );
-                  if ( !TypeInt().isEqual( *(*e.getType().getSize())[ n ]->getNodeType() ) )
+                  if ( !TypeInt( false ).isEqual( *(*e.getType().getSize())[ n ]->getNodeType() ) )
                   {
                      impl::reportTypeError( (*e.getType().getSize())[ n ]->getLocation(), _context, "variable type must be of integer type" );
                   }
@@ -672,9 +698,10 @@ namespace parser
             }
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
             ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
-            e.setNodeType( new TypeArray( size, *e.getType().getNodeType() ) );
+            e.setNodeType( new TypeArray( size, *e.getType().getNodeType(), false ) );
+            // TODO check ref array
          } else {
-            e.setNodeType( e.getType().getNodeType() );
+            e.setNodeType( e.getType().getNodeType()->clone() );
          }
 
          if ( e.getInit() )
@@ -767,18 +794,27 @@ namespace parser
                delete deref;
             }
          }
+
+         if ( e.getInit() && e.getInit()->getNodeType() && e.getType().isAReference() ) // in case function declaration, there is no init, but this error is already catched in binding, so it is correct to not check
+         {
+            if ( !checkValidReferenceInitialization( *e.getInit() ) )
+            {
+               // wrong init of a variable with reference...
+               impl::reportTypeError( e.getLocation(), _context, "variable with reference must be initialized with another variable or method returning reference" );
+            }
+         }
       }
 
       virtual void operator()( AstExpSeq& e )
       {
          operator()( e.getExp() );
-         e.setNodeType( e.getExp().getNodeType() );
+         e.setNodeType( e.getExp().getNodeType()->clone() );
       }
 
       virtual void operator()( AstTypeField& e )
       {
          operator()( e.getField() );
-         e.setNodeType( new TypeNamed( e.getReference() ) );
+         e.setNodeType( new TypeNamed( e.getReference(), false ) );
       }
 
       virtual void operator()( AstExpTypename& e )
@@ -788,7 +824,7 @@ namespace parser
          {
             operator()( e.getArgs() );
          }
-         e.setNodeType( new TypeNamed( e.getReference() ) );
+         e.setNodeType( new TypeNamed( e.getReference(), false ) );
       }
 
       virtual void operator()( Ast& e )

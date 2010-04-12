@@ -18,6 +18,13 @@ namespace parser
          ensure( vars, "can't be null" );
       }
 
+      ~AstDeclFun()
+      {
+         delete _type;
+         delete _vars;
+         delete _body;
+      }
+
       AstTypeT* getType() const
       {
          return _type;

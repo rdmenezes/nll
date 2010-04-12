@@ -13,8 +13,17 @@ namespace parser
    public:
       typedef std::list<AstExp*>   Args;
 
-      AstArgs( const YYLTYPE& location ) : Ast( location )
+      AstArgs( const YYLTYPE& location, bool toDeallocate = true ) : Ast( location ), _toDeallocate( toDeallocate )
       {
+      }
+
+      ~AstArgs()
+      {
+         if ( _toDeallocate )
+         {
+            for ( Args::iterator i = _args.begin(); i != _args.end(); ++i )
+               delete *i;
+         }
       }
 
       void insert( AstExp* ast )
@@ -47,6 +56,7 @@ namespace parser
 
    private:
       Args    _args;
+      bool    _toDeallocate;
    };
 }
 }

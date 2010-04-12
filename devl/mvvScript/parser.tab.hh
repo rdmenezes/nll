@@ -71,34 +71,35 @@
      SEMI = 287,
      TIMES = 288,
      THIS = 289,
-     OPERATORPARENT = 290,
-     OPERATORBRACKET = 291,
-     OPERATOR_PLUS = 292,
-     OPERATOR_MINUS = 293,
-     OPERATOR_TIMES = 294,
-     OPERATOR_DIVIDE = 295,
-     OPERATOR_LT = 296,
-     OPERATOR_GT = 297,
-     OPERATOR_LE = 298,
-     OPERATOR_GE = 299,
-     OPERATOR_EQ = 300,
-     OPERATOR_NE = 301,
-     OPERATOR_AND = 302,
-     OPERATOR_OR = 303,
-     FOR = 304,
-     IN = 305,
-     VAR = 306,
-     CLASS = 307,
-     VOID = 308,
-     RETURN = 309,
-     TYPENAME = 310,
-     INT_T = 311,
-     FLOAT_T = 312,
-     STRING_T = 313,
-     IMPORT = 314,
-     INCLUDE = 315,
-     IFX = 316,
-     UMINUS = 317
+     REF = 290,
+     OPERATORPARENT = 291,
+     OPERATORBRACKET = 292,
+     OPERATOR_PLUS = 293,
+     OPERATOR_MINUS = 294,
+     OPERATOR_TIMES = 295,
+     OPERATOR_DIVIDE = 296,
+     OPERATOR_LT = 297,
+     OPERATOR_GT = 298,
+     OPERATOR_LE = 299,
+     OPERATOR_GE = 300,
+     OPERATOR_EQ = 301,
+     OPERATOR_NE = 302,
+     OPERATOR_AND = 303,
+     OPERATOR_OR = 304,
+     FOR = 305,
+     IN = 306,
+     VAR = 307,
+     CLASS = 308,
+     VOID = 309,
+     RETURN = 310,
+     TYPENAME = 311,
+     INT_T = 312,
+     FLOAT_T = 313,
+     STRING_T = 314,
+     IMPORT = 315,
+     INCLUDE = 316,
+     IFX = 317,
+     UMINUS = 318
    };
 #endif
 
@@ -109,7 +110,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 95 "parser.yy"
+#line 96 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -131,7 +132,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 135 "parser.tab.hh"
+#line 136 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -17,6 +17,12 @@ namespace parser
          ensure( name && args, "can't be null" );
       }
 
+      ~AstExpCall()
+      {
+         delete _name;
+         delete _args;
+      }
+
       const AstVar& getName() const
       {
          return *_name;

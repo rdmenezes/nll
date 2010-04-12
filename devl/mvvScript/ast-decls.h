@@ -17,6 +17,12 @@ namespace parser
       {
       }
 
+      ~AstDecls()
+      {
+         for ( Decls::iterator i = _decls.begin(); i != _decls.end(); ++i )
+            delete *i;
+      }
+
       void insert( AstDecl* ast )
       {
          _decls.push_front( ast );

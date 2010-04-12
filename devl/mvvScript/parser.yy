@@ -43,10 +43,15 @@
     - operator= can't be overloaded: just refcounting. To create a new instance, just recreate another object...
     - operator== checks the address for types... and not the semantic==
     - the type of a function doesn't belong to the signature of the function, the signature of a function is unique
+    - a type can be referenced. In this case the reference is directly modified. If a type which is not a primitive
+	  is referenced & used as argument in a function call, refcounting is not updated
+	- include: the included file will be parsed, inclusion order doesn't matter
+	- import: the source file will be imported & dll dynamically loaded (with the same name) & entry point run
     
     - TODO if func imported: don't allow default parameter
     - TODO add covariant return type when inheritance added
-    - TODO class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } : check function prototypes when added, not just when used
+    - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
+    - TODO: decl variable with ref, improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n;
     */
    
    #include <string>
@@ -163,6 +168,7 @@
 %token SEMI         ";"
 %token TIMES        "*"
 %token THIS         "this"
+%token REF			"&"
 
 %token OPERATORPARENT   "operator()"
 %token OPERATORBRACKET  "operator[]"
@@ -266,19 +272,19 @@ array_decl: /* empty */                                              { $$ = new 
            |LBRACK rvalue RBRACK array_decl                          { $$ = $4; $$->push_back( $2 ); }
            
 operator_def: OPERATOR_PLUS                                          { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator+" ) ); }
-          |OPERATOR_MINUS                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator-" ) ); }
-          |OPERATOR_TIMES                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator*" ) ); }
-          |OPERATOR_DIVIDE                                           { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator/" ) ); }
-          |OPERATOR_LT                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<" ) ); }
-          |OPERATOR_GT                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>" ) ); }
-          |OPERATOR_LE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<=" ) ); }
-          |OPERATOR_GE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>=" ) ); }
-          |OPERATOR_EQ                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator==" ) ); }
-          |OPERATOR_NE                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator!=" ) ); }
-          |OPERATOR_AND                                              { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator&&" ) ); }
-          |OPERATOR_OR                                               { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator||" ) ); }
-          |OPERATORBRACKET                                           { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator[]" ) ); }
-          |OPERATORPARENT                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator()" ) ); }
+             |OPERATOR_MINUS                                         { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator-" ) ); }
+             |OPERATOR_TIMES                                         { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator*" ) ); }
+             |OPERATOR_DIVIDE                                        { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator/" ) ); }
+             |OPERATOR_LT                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<" ) ); }
+             |OPERATOR_GT                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>" ) ); }
+             |OPERATOR_LE                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<=" ) ); }
+             |OPERATOR_GE                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>=" ) ); }
+             |OPERATOR_EQ                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator==" ) ); }
+             |OPERATOR_NE                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator!=" ) ); }
+             |OPERATOR_AND                                           { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator&&" ) ); }
+             |OPERATOR_OR                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator||" ) ); }
+             |OPERATORBRACKET                                        { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator[]" ) ); }
+             |OPERATORPARENT                                         { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator()" ) ); }
            
 
      
@@ -339,6 +345,8 @@ type_field: ID                        { $$ = new mvv::parser::AstType( @$, mvv::
           
 type: type_field                      { $$ = $1; }
      |type_simple                     { $$ = $1; }
+     |type_simple REF                 { $$ = $1; $1->setIsAReference( true ); }
+     |type_field REF                  { $$ = $1; $1->setIsAReference( true ); }
      
 	  
 var_dec_simple: type ID ASSIGN rvalue { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }

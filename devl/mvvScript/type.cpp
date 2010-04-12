@@ -12,7 +12,7 @@ namespace parser
 
    Type* TypeFloat::clone() const
    {
-      return new TypeFloat();
+      return new TypeFloat( isReference() );
    }
 
    bool TypeInt::isCompatibleWith( const Type& t ) const
@@ -23,7 +23,7 @@ namespace parser
 
    Type* TypeInt::clone() const
    {
-      return new TypeInt();
+      return new TypeInt( isReference() );
    }
 
    bool TypeString::isCompatibleWith( const Type& t ) const
@@ -33,7 +33,7 @@ namespace parser
 
    Type* TypeString::clone() const
    {
-      return new TypeString();
+      return new TypeString( isReference() );
    }
 
    bool TypeVoid::isCompatibleWith( const Type& t ) const

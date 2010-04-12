@@ -15,6 +15,13 @@ namespace parser
          ensure( condition && thenexp, "can't be null" );
       }
 
+      ~AstIf()
+      {
+         delete _condition;
+         delete _then;
+         delete _else;
+      }
+
       const AstExp& getCondition() const
       {
          return *_condition;

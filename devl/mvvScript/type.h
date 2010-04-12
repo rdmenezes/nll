@@ -13,6 +13,10 @@ namespace parser
    class MVVSCRIPT_API Type
    {
    public:
+      Type( bool ref) : _ref( ref )
+      {
+      }
+
       // return true if types are compatible.
       virtual bool isCompatibleWith( const Type& t ) const = 0;
 
@@ -21,11 +25,25 @@ namespace parser
 
       // return true if the types are exactly the same
       virtual bool isEqual( const Type& t ) const = 0;
+
+      bool isReference() const
+      {
+         return _ref;
+      }
+
+      void setReference( bool ref )
+      {
+         _ref = ref;
+      }
+
+   protected:
+      bool _ref;  // true if the type is a reference i.e. "int&"
    };
 
    class MVVSCRIPT_API TypeFloat : public Type
    {
    public:
+      TypeFloat( bool isRef ) : Type( isRef ){}
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
       virtual bool isEqual( const Type& t ) const
@@ -37,6 +55,7 @@ namespace parser
    class MVVSCRIPT_API TypeInt : public Type
    {
    public:
+      TypeInt( bool isRef ) : Type( isRef ){}
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
       virtual bool isEqual( const Type& t ) const
@@ -48,6 +67,7 @@ namespace parser
    class MVVSCRIPT_API TypeString : public Type
    {
    public:
+      TypeString( bool isRef ) : Type( isRef ){}
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
       virtual bool isEqual( const Type& t ) const
@@ -59,6 +79,9 @@ namespace parser
    class MVVSCRIPT_API TypeVoid : public Type
    {
    public:
+      TypeVoid() : Type( false )
+      {}
+
       virtual bool isCompatibleWith( const Type& t ) const;
       virtual Type* clone() const;
       virtual bool isEqual( const Type& t ) const
@@ -70,6 +93,9 @@ namespace parser
    class MVVSCRIPT_API TypeError : public Type
    {
    public:
+      TypeError() : Type( false )
+      {}
+
       virtual bool isCompatibleWith( const Type& ) const
       {
          return true;
@@ -89,7 +115,7 @@ namespace parser
    class MVVSCRIPT_API TypeArray : public Type
    {
    public:
-      TypeArray( ui32 dimensionality, const Type& root ) : _dimensionality( dimensionality ), _root( root )
+      TypeArray( ui32 dimensionality, const Type& root, bool isRef ) : _dimensionality( dimensionality ), _root( root ), Type( isRef )
       {
       }
 
@@ -111,7 +137,7 @@ namespace parser
 
       virtual Type* clone() const
       {
-         return new TypeArray( _dimensionality, _root );
+         return new TypeArray( _dimensionality, _root, isReference() );
       }
 
       const Type& getRoot() const
@@ -137,7 +163,7 @@ namespace parser
    class MVVSCRIPT_API TypeNamed : public Type
    {
    public:
-      TypeNamed( AstDeclClass* decl ) : _decl( decl )
+      TypeNamed( AstDeclClass* decl, bool isRef ) : _decl( decl ), Type( isRef )
       {
       }
 
@@ -165,7 +191,7 @@ namespace parser
 
       virtual Type* clone() const
       {
-         return new TypeNamed( _decl );
+         return new TypeNamed( _decl, isReference() );
       }
 
    private:
@@ -175,6 +201,10 @@ namespace parser
    class MVVSCRIPT_API TypeNil : public Type
    {
    public:
+      TypeNil() : Type( false )
+      {
+      }
+
       virtual bool isCompatibleWith( const Type& t ) const
       {
          return dynamic_cast<const TypeNamed*>( &t ) != 0;

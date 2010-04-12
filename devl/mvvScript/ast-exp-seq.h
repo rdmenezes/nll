@@ -18,6 +18,11 @@ namespace parser
          ensure( exp, "must not be null" );
       }
 
+      ~AstExpSeq()
+      {
+         delete _exp;
+      }
+
       const AstExp& getExp() const
       {
          return *_exp;

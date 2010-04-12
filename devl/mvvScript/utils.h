@@ -122,7 +122,7 @@ namespace parser
          return false;
       for ( AstDeclVars::Decls::const_iterator it1 = t1->getVars().begin(),
                                                it2 = t2->getVars().begin();
-            it1 != t1->getVars().end(); ++t1, ++t2 )
+            it1 != t1->getVars().end(); ++it1, ++it2 )
       {
          if ( !areTypesEqual( &(*it1)->getType(), &(*it2)->getType() ) )
             return false;

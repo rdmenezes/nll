@@ -17,6 +17,14 @@ namespace parser
          ensure( type, "can't be null" );
       }
 
+      ~AstDeclVar()
+      {
+         delete _type;
+         delete _init;
+         delete _declarationList;
+         delete _objectInit;
+      }
+
       const AstTypeT& getType() const
       {
          return *_type;
@@ -75,7 +83,7 @@ namespace parser
          v( *this );
       }
 
-      // incase a variable is a class, it needs to call the constructor
+      // in case a variable is a class, it needs to call the constructor
       void setConstructorCall( AstDeclFun* c )
       {
          _constructor = c;

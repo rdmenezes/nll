@@ -15,6 +15,12 @@ namespace parser
          ensure( name && index, "can't be null" );
       }
 
+      ~AstVarArray()
+      {
+         delete _name;
+         delete _index;
+      }
+
       const AstVar& getName() const
       {
          return *_name;

@@ -11,10 +11,33 @@ namespace parser
    class MVVSCRIPT_API AstTypeT : public Ast, public Typable
    {
    public:
-      AstTypeT( const YYLTYPE& location, std::vector<AstExp*>* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize ), _symbolClass( 0 )
+      AstTypeT( const YYLTYPE& location, std::vector<AstExp*>* defaultSize = 0 ) : Ast( location ), _isArray( false ), _defaultSize( defaultSize ), _symbolClass( 0 ), _typeIsReference( false )
       {
       }
 
+      virtual ~AstTypeT()
+      {
+         if ( _defaultSize )
+         {
+            for ( ui32 n = 0; n < _defaultSize->size(); ++n )
+            {
+               delete ( *_defaultSize )[ n ];
+            }
+         }
+         delete _defaultSize;
+      }
+
+      void setIsAReference( bool isRef )
+      {
+         _typeIsReference = isRef;
+      }
+
+      bool isAReference() const
+      {
+         return _typeIsReference;
+      }
+
+      // if this is an array, set the size
       void setSize( std::vector<AstExp*>* defaultSize )
       {
          _defaultSize = defaultSize;
@@ -50,16 +73,11 @@ namespace parser
          return _symbolClass;
       }
 
-      virtual ~AstTypeT() = 0
-      {
-      }
-
-
-
    private:
       bool                  _isArray;
       std::vector<AstExp*>* _defaultSize;
       AstDeclClass*         _symbolClass;
+      bool                  _typeIsReference;
    };
 
    class MVVSCRIPT_API AstType : public AstTypeT

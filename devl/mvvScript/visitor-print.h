@@ -121,10 +121,14 @@ namespace parser
                  !dynamic_cast<AstDeclClass*>( *it ) && 
                  !dynamic_cast<AstImport*>( *it )    &&
                  !dynamic_cast<AstInclude*>( *it )   &&
-                 !dynamic_cast<AstDeclFun*>( *it )   &&
                  !dynamic_cast<AstStatements*>( *it ) )
             {
-               _o << ";";
+               AstDeclFun* f = dynamic_cast<AstDeclFun*>( *it );
+               if ( !f || f && !f->getBody() )
+               {
+                  // if not a function or a function and not body
+                  _o << ";";
+               }
             }
             if ( n + 1 != e.getStatements().size() )
                _o << iendl;
@@ -196,6 +200,12 @@ namespace parser
                ensure( 0, "runtime error: unknown type" );
             }
          }
+
+         if ( e.isAReference() )
+         {
+            _o << "&";
+         }
+
          /*
          // The array will be displayed in the declaration...
          if ( e.isArray() )
@@ -252,6 +262,8 @@ namespace parser
 
       virtual void operator()( const AstDeclFun& e ) 
       {
+         if ( !e.getBody() )
+            _o << "import ";
          if ( e.getType() )
          {
             operator()( *e.getType() );

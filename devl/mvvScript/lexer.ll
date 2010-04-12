@@ -156,7 +156,7 @@ STRCHR	[A-Za-z_]
 
 "this"         return THIS;
 "for"          return FOR;
-"if"		      return IF;
+"if"           return IF;
 "else"         return ELSE;
 "var"          return VAR;
 "class"        return CLASS;
@@ -164,38 +164,39 @@ STRCHR	[A-Za-z_]
 "in"           return IN;
 "NULL"         return NIL;
 "return"       return RETURN;
-"int"	         return INT_T;
-"float"	      return FLOAT_T;
+"int"          return INT_T;
+"float"	       return FLOAT_T;
 "string"       return STRING_T;
 "import"       return IMPORT;
 "include"      return INCLUDE;
 "typename"     return TYPENAME;
 
 
-"="		return ASSIGN;
-"."		return DOT;
-"::"     return DCOLON;
-";"		return SEMI;
-","		return COMA;
-"]"		return RBRACK;
-"["		return LBRACK;
-"("		return LPAREN;
-")"		return RPAREN;
-"{"		return LBRACE;
-"}"		return RBRACE;
+"="     return ASSIGN;
+"."     return DOT;
+"::"    return DCOLON;
+";"     return SEMI;
+","     return COMA;
+"]"     return RBRACK;
+"["     return LBRACK;
+"("     return LPAREN;
+")"	    return RPAREN;
+"{"	    return LBRACE;
+"}"     return RBRACE;
  
-">="	   return GE;
-"<="	   return LE;
-"!="	   return NE;
-"-"		return MINUS;
-"+"		return PLUS;
-"*"		return TIMES;
-"/"		return DIVIDE;
-"=="		return EQ;
-">"		return GT;
-"<"		return LT;
-"&&"		return AND;
-"||"		return OR;
+">="    return GE;
+"<="    return LE;
+"!="    return NE;
+"-"     return MINUS;
+"+"     return PLUS;
+"*"     return TIMES;
+"/"	    return DIVIDE;
+"=="    return EQ;
+">"     return GT;
+"<"     return LT;
+"&&"    return AND;
+"||"    return OR;
+"&"     return REF;
 
 {DIGIT}+ {
   std::istringstream iss (yytext);

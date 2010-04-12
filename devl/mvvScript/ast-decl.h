@@ -16,6 +16,10 @@ namespace parser
       {
       }
 
+      virtual ~AstDecl()
+      {
+      }
+
       const mvv::Symbol& getName() const
       {
          return _name;

@@ -33,6 +33,12 @@ namespace parser
          ensure( left && right, "must not be null" );
       }
 
+      ~AstOpBin()
+      {
+         delete _left;
+         delete _right;
+      }
+
       const AstExp& getLeft() const
       {
          return *_left;

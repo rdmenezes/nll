@@ -300,7 +300,9 @@ namespace parser
             // if there is no body, we still need to go through the arguments and bind them
             if ( e.getVars().getVars().size() )
             {
+               _isInFunctionDeclaration = true;
                operator()( e.getVars() );
+               _isInFunctionDeclaration = false;
             }
          }
          --_isInFunction;
@@ -413,9 +415,18 @@ namespace parser
          if ( e.getInit() )
          {
             operator()( *e.getInit() );
-         } else if ( e.getDeclarationList() )
-         {
-            operator()( *e.getDeclarationList() );
+         } else {
+            // if a reference, then it must be initialized
+            if ( !_isInFunctionDeclaration && e.getType().isAReference() ) // we don't check reference init if in function prototype -> must be done in the call
+            {
+               impl::reportUndeclaredType( e.getLocation(), _context, "type with reference must be initialized" );
+               return;
+            }
+
+            if ( e.getDeclarationList() )
+            {
+               operator()( *e.getDeclarationList() );
+            }
          }
 
          operator()( e.getType() );

@@ -20,6 +20,11 @@ namespace parser
          ensure( field, "can't be null" );
       }
 
+      ~AstTypeField()
+      {
+         delete _field;
+      }
+
       const Symbol& getName() const
       {
          return _name;

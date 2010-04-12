@@ -17,6 +17,12 @@ namespace parser
          ensure( type && args, "must not be null" );
       }
 
+      ~AstExpTypename()
+      {
+         delete _type;
+         delete _args;
+      }
+
       const AstTypeT& getType() const
       {
          return *_type;

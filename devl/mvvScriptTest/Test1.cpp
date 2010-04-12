@@ -220,34 +220,61 @@ struct TestBasic
       p( *exp );
    }
 
+   void testFull2()
+   {
+      ParserContext context;
+      Ast* exp = 0;
+      
+      exp = context.parseFile( TEST_PATH "std.txt" );
+      std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+      TESTER_ASSERT( exp );
+      VisitorRegisterDeclarations visitor( context );
+      visitor( *exp );
+      std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+      TESTER_ASSERT( !context.getError().getStatus() );
+
+      VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+      visitorBind( *exp );
+      std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+      TESTER_ASSERT( !context.getError().getStatus() );
+
+      VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+      visitorType( *exp );
+
+      VisitorPrint p( std::cout );
+      p( *exp );
+      std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
+      TESTER_ASSERT( !context.getError().getStatus() );
+      delete exp;
+   }
+
    void testSymbolTableDisctionary()
    {
       YYLTYPE loc;
-      AstDecls decls( loc );
-      AstDeclClass c1( loc, mvv::Symbol::create("C1"), &decls );
-      AstDeclClass c2( loc, mvv::Symbol::create("C2"), &decls );
-      AstDeclClass c3( loc, mvv::Symbol::create("C3"), &decls );
-      AstDeclClass c4( loc, mvv::Symbol::create("C4"), &decls );
+      AstDeclClass* c1 = new AstDeclClass( loc, mvv::Symbol::create("C1"), new AstDecls( loc ) );
+      AstDeclClass* c2 = new AstDeclClass( loc, mvv::Symbol::create("C2"), new AstDecls( loc ) );
+      AstDeclClass* c3 = new AstDeclClass( loc, mvv::Symbol::create("C3"), new AstDecls( loc ) );
+      AstDeclClass* c4 = new AstDeclClass( loc, mvv::Symbol::create("C4"), new AstDecls( loc ) );
 
       SymbolTableDictionary dictionary;
-      dictionary.begin_scope( c1.getName(), &c1 );
+      dictionary.begin_scope( c1->getName(), c1 );
       
-      dictionary.begin_scope( c2.getName(), &c2 );
+      dictionary.begin_scope( c2->getName(), c2 );
       dictionary.end_scope();
-      dictionary.begin_scope( c3.getName(), &c3 );
+      dictionary.begin_scope( c3->getName(), c3 );
       dictionary.end_scope();
       dictionary.end_scope();
-      dictionary.begin_scope( c4.getName(), &c4 );
+      dictionary.begin_scope( c4->getName(), c4 );
       dictionary.end_scope();
 
       const AstDeclClass* tc1 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C1") ) );
       const AstDeclClass* tc2 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C1"), mvv::Symbol::create("C2") ) );
       const AstDeclClass* tc3 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C1"), mvv::Symbol::create("C3") ) );
       const AstDeclClass* tc4 = dictionary.find( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("C4") ) );
-      TESTER_ASSERT( tc1 == &c1 );
-      TESTER_ASSERT( tc2 == &c2 );
-      TESTER_ASSERT( tc3 == &c3 );
-      TESTER_ASSERT( tc4 == &c4 );
+      TESTER_ASSERT( tc1 == c1 );
+      TESTER_ASSERT( tc2 == c2 );
+      TESTER_ASSERT( tc3 == c3 );
+      TESTER_ASSERT( tc4 == c4 );
    }
 
    void testBinding2()
@@ -959,6 +986,49 @@ struct TestBasic
       {
          ParserContext context;
          Ast* exp = 0;
+
+         exp = context.parseString( "class Test{Test(){}} Test test; int test2; test2 = test + test2;" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int operator+(int a, int b); int testint = testint + testint;" );
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         SymbolTableVars vars = visitorBind.getVars();
+         SymbolTableFuncs funcs = visitorBind.getFuncs();
+         SymbolTableClasses classes = visitorBind.getClasses();
+         VisitorType visitorType( context, vars, funcs, classes );
+         visitorType( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
          
          exp = context.parseString( "import int operator+(int a, int b); int n; int testint = 0; testint = n + testint;" );
          TESTER_ASSERT( exp );
@@ -976,25 +1046,7 @@ struct TestBasic
          VisitorType visitorType( context, vars, funcs, classes );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
-      }
-
-      {
-         ParserContext context;
-         Ast* exp = 0;
-
-         exp = context.parseString( "class Test{Test(){}} Test test; int test2; test2 = test + test2;" );
-         TESTER_ASSERT( exp );
-         VisitorRegisterDeclarations visitor( context );
-         visitor( *exp );
-         TESTER_ASSERT( !context.getError().getStatus() );
-
-         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
-         visitorBind( *exp );
-         TESTER_ASSERT( !context.getError().getStatus() );
-
-         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
-         visitorType( *exp );
-         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1014,6 +1066,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1033,6 +1086,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1052,6 +1106,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1071,6 +1126,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1079,6 +1135,7 @@ struct TestBasic
          
          exp = context.parseString( "void func( int n ){ return void; }" );
          TESTER_ASSERT( !exp );
+         delete exp;
       }
 
       {
@@ -1098,6 +1155,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1113,6 +1171,7 @@ struct TestBasic
          VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
          visitorBind( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1132,6 +1191,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1151,6 +1211,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1170,6 +1231,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1189,6 +1251,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1210,6 +1273,7 @@ struct TestBasic
          visitorType( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1229,6 +1293,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
 
@@ -1250,6 +1315,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1270,6 +1336,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1286,6 +1353,7 @@ struct TestBasic
          VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
          visitorBind( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1306,6 +1374,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
        {
@@ -1326,6 +1395,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1346,6 +1416,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1366,6 +1437,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1386,6 +1458,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1405,6 +1478,7 @@ struct TestBasic
 
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1425,6 +1499,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1445,6 +1520,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1465,6 +1541,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1481,6 +1558,7 @@ struct TestBasic
          VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
          visitorBind( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
 
@@ -1502,6 +1580,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
 
@@ -1523,6 +1602,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1543,6 +1623,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1563,6 +1644,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1583,6 +1665,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1603,6 +1686,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1623,6 +1707,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
 
@@ -1645,6 +1730,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1665,6 +1751,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1685,6 +1772,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1705,6 +1793,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1726,6 +1815,7 @@ struct TestBasic
          visitorType( *exp );
 
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1746,6 +1836,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1766,6 +1857,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1786,6 +1878,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1806,6 +1899,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1826,6 +1920,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1846,6 +1941,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1865,6 +1961,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1884,6 +1981,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1904,6 +2002,7 @@ struct TestBasic
          VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
          visitorType( *exp );
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1924,6 +2023,7 @@ struct TestBasic
          visitorType( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1932,6 +2032,7 @@ struct TestBasic
          
          exp = context.parseString( "import int operator+(int n, int nn); class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
          TESTER_ASSERT( !exp );
+         delete exp;
       }
 
 
@@ -1942,6 +2043,7 @@ struct TestBasic
          exp = context.parseString( "NULL n = 0; ");
          
          TESTER_ASSERT( !exp );
+         delete exp;
       }
 
       {
@@ -1962,6 +2064,7 @@ struct TestBasic
          visitorType( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -1982,6 +2085,7 @@ struct TestBasic
          visitorType( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -2002,6 +2106,7 @@ struct TestBasic
          visitorType( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
       {
@@ -2026,7 +2131,212 @@ struct TestBasic
          p( *exp );
          std::cout << "exp=" << context.getError().getMessage().str() << std::endl;
          TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
 
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "class Test{int n; Test(){} int& ref(){ return n; } }");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int& ref;");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int operator+( int n, int n2 ); int n; int n2; int& ref = n + n2;");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int operator+( int n, int n2 ); int n; int n2; int& ref = n; ref = n2;");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int& operator+( int n, int n2 ); int n; int n2; int& ref = n+n2;");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import void test( int& a[3] );");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import void test( int& a[3] ); int a[4]; test( a );");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "class Test { class Test2{ Test2(){} int val; int& tt(){return val;} }} Test::Test2 test; int& t = test.tt();");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int& fun(int& a){return a;}");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int& fun(int& a){return 0;}");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
       }
 
 
@@ -2066,4 +2376,6 @@ TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
 
 TESTER_TEST(testType1);
+
+TESTER_TEST(testFull2);
 TESTER_TEST_SUITE_END();

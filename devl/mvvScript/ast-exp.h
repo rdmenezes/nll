@@ -14,6 +14,10 @@ namespace parser
       AstExp( const YYLTYPE& location ) : Ast( location )
       {
       }
+
+      virtual ~AstExp()
+      {
+      }
    };
 }
 }

@@ -15,6 +15,9 @@ namespace parser
       {
       }
 
+      virtual ~AstVar()
+      {}
+
       void setReference( AstDecl* decl )
       {
          _decl = decl;

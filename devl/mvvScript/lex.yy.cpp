@@ -446,8 +446,8 @@ static void yy_fatal_error (yyconst char msg[]  );
 	(yy_c_buf_p) = yy_cp;
 
 /* %% [4.0] data tables for the DFA and the user's section 1 definitions go here */
-#define YY_NUM_RULES 72
-#define YY_END_OF_BUFFER 73
+#define YY_NUM_RULES 73
+#define YY_END_OF_BUFFER 74
 /* This struct is not used in this scanner,
    but its presence is necessary. */
 struct yy_trans_info
@@ -457,21 +457,21 @@ struct yy_trans_info
 	};
 static yyconst flex_int16_t yy_accept[161] =
     {   0,
-        0,    0,    0,    0,    0,    0,    0,    0,   73,   71,
-       69,   70,   70,   71,    6,   71,   51,   52,   60,   59,
-       48,   58,   45,   61,   67,   71,   47,   64,   44,   63,
-       68,   68,   50,   49,   68,   68,   68,   68,   68,   68,
-       68,   68,   68,   53,   71,   54,    4,    5,    4,    4,
-        9,    8,    7,   12,   11,   11,   70,   70,   70,   70,
-       57,   65,    1,   10,    0,   67,   46,   56,   62,   55,
-       68,   68,   68,   68,   68,   68,   30,   68,   35,   68,
-       68,   68,   68,   68,   68,   68,   66,    5,    2,    3,
-        8,   11,   13,   68,   68,   68,   68,   29,   68,   68,
+        0,    0,    0,    0,    0,    0,    0,    0,   74,   72,
+       70,   71,   71,   72,    6,   67,   51,   52,   60,   59,
+       48,   58,   45,   61,   68,   72,   47,   64,   44,   63,
+       69,   69,   50,   49,   69,   69,   69,   69,   69,   69,
+       69,   69,   69,   53,   72,   54,    4,    5,    4,    4,
+        9,    8,    7,   12,   11,   11,   71,   71,   71,   71,
+       57,   65,    1,   10,    0,   68,   46,   56,   62,   55,
+       69,   69,   69,   69,   69,   69,   30,   69,   35,   69,
+       69,   69,   69,   69,   69,   69,   66,    5,    2,    3,
+        8,   11,   13,   69,   69,   69,   69,   29,   69,   69,
 
-       38,   68,   68,   68,   68,   68,   32,   68,   36,   68,
-       31,   68,   68,   68,   68,   68,   68,   28,   68,   34,
-       33,   39,   68,   68,   68,   68,   68,   68,   41,   68,
-       68,   37,   40,   68,   42,   68,   68,   68,   43,    0,
+       38,   69,   69,   69,   69,   69,   32,   69,   36,   69,
+       31,   69,   69,   69,   69,   69,   69,   28,   69,   34,
+       33,   39,   69,   69,   69,   69,   69,   69,   41,   69,
+       69,   37,   40,   69,   42,   69,   69,   69,   43,    0,
         0,    0,   18,   16,   17,   19,   20,    0,   21,    0,
         0,   25,   26,   15,   22,   24,   23,   14,   27,    0
     } ;
@@ -627,7 +627,7 @@ static char *yy_last_accepting_cpos;
 extern int yy_flex_debug;
 int yy_flex_debug = 1;
 
-static yyconst flex_int16_t yy_rule_linenum[72] =
+static yyconst flex_int16_t yy_rule_linenum[73] =
     {   0,
        52,   58,   61,   65,   67,   86,   92,   97,  104,  119,
       126,  132,  135,  141,  142,  144,  145,  146,  147,  148,
@@ -635,8 +635,8 @@ static yyconst flex_int16_t yy_rule_linenum[72] =
       160,  161,  162,  163,  164,  165,  166,  167,  168,  169,
       170,  171,  172,  175,  176,  177,  178,  179,  180,  181,
       182,  183,  184,  185,  187,  188,  189,  190,  191,  192,
-      193,  194,  195,  196,  197,  198,  200,  206,  211,  216,
-      225
+      193,  194,  195,  196,  197,  198,  199,  201,  207,  212,
+      217,  226
     } ;
 
 /* The intent behind this definition is that it'll catch
@@ -1015,13 +1015,13 @@ do_action:	/* This label is used only to access EOF actions. */
 			{
 			if ( yy_act == 0 )
 				fprintf( stderr, "--scanner backing up\n" );
-			else if ( yy_act < 72 )
+			else if ( yy_act < 73 )
 				fprintf( stderr, "--accepting rule at line %ld (\"%s\")\n",
 				         (long)yy_rule_linenum[yy_act], yytext );
-			else if ( yy_act == 72 )
+			else if ( yy_act == 73 )
 				fprintf( stderr, "--accepting default rule (\"%s\")\n",
 				         yytext );
-			else if ( yy_act == 73 )
+			else if ( yy_act == 74 )
 				fprintf( stderr, "--(end of buffer or a NUL)\n" );
 			else
 				fprintf( stderr, "--EOF (start condition %d)\n", YY_START );
@@ -1444,33 +1444,38 @@ return OR;
 	YY_BREAK
 case 67:
 YY_RULE_SETUP
-#line 200 "lexer.ll"
+#line 199 "lexer.ll"
+return REF;
+	YY_BREAK
+case 68:
+YY_RULE_SETUP
+#line 201 "lexer.ll"
 {
   std::istringstream iss (yytext);
   iss >> yylval->ival;
   return INT;
 }
 	YY_BREAK
-case 68:
+case 69:
 YY_RULE_SETUP
-#line 206 "lexer.ll"
+#line 207 "lexer.ll"
 {
     yylval->symbol = ( new mvv::Symbol( mvv::Symbol::create ( yytext ) ) );
     return ID;
 }
 	YY_BREAK
-case 69:
+case 70:
 YY_RULE_SETUP
-#line 211 "lexer.ll"
+#line 212 "lexer.ll"
 {
     yylloc->first_column = yylloc->last_column;
     yylloc->first_line = yylloc->last_line;
 }
 	YY_BREAK
-case 70:
-/* rule 70 can match eol */
+case 71:
+/* rule 71 can match eol */
 YY_RULE_SETUP
-#line 216 "lexer.ll"
+#line 217 "lexer.ll"
 {
     yylloc->last_column = 0;
     yylloc->last_line += yyleng;
@@ -1479,12 +1484,12 @@ YY_RULE_SETUP
 }
 	YY_BREAK
 case YY_STATE_EOF(INITIAL):
-#line 223 "lexer.ll"
+#line 224 "lexer.ll"
 yyterminate ();
 	YY_BREAK
-case 71:
+case 72:
 YY_RULE_SETUP
-#line 225 "lexer.ll"
+#line 226 "lexer.ll"
 {
     std::stringstream msg;
     msg << *yylloc << "invalid character." << std::endl;
@@ -1493,12 +1498,12 @@ YY_RULE_SETUP
     ++yylloc->first_column;
 }
 	YY_BREAK
-case 72:
+case 73:
 YY_RULE_SETUP
-#line 234 "lexer.ll"
+#line 235 "lexer.ll"
 ECHO;
 	YY_BREAK
-#line 1502 "lex.yy.cpp"
+#line 1507 "lex.yy.cpp"
 
 	case YY_END_OF_BUFFER:
 		{
@@ -2646,7 +2651,7 @@ void yyfree (void * ptr )
 
 /* %ok-for-header */
 
-#line 234 "lexer.ll"
+#line 235 "lexer.ll"
 
 
 

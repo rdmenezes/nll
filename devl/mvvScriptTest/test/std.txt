@@ -1,0 +1,90 @@
+/**
+ @brief Defines the basic operators + - * /
+ */
+import int operator+( int a, int b );
+import int operator-( int a, int b );
+import int operator/( int a, int b );
+import int operator*( int a, int b );
+
+import float operator+( float a, int b );
+import float operator-( float a, int b );
+import float operator/( float a, int b );
+import float operator*( float a, int b );
+
+import float operator+( float a, float b );
+import float operator-( float a, float b );
+import float operator/( float a, float b );
+import float operator*( float a, float b );
+
+import float operator+( int a, float b );
+import float operator-( int a, float b );
+import float operator/( int a, float b );
+import float operator*( int a, float b );
+
+/**
+ @brief Defines the basic operators || &&
+ */
+import int operator||( int a, int b );
+import int operator&&( int a, int b );
+
+/**
+ @brief Defines the basic operators on strings
+ */
+import string operator+( string s );
+
+/**
+ @brief Defines basic datatypes
+ */
+class Vector3i
+{
+	int vals[ 3 ];
+
+	Vector3i( int x = 0, int y = 0, int z = 0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+		vals[ 2 ] = z;
+	}
+
+	int& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+}
+
+class Matrixf
+{
+	float vals[ 0 ];
+	int sizex;
+	int sizey;
+
+	Matrixf( int sy, int sx )
+	{
+		// TODO init..
+		sizey = sy;
+		sizex = sx;
+	}
+
+	import float norm_inf();
+	import Matrixf invert();
+}
+
+class Matrix3f
+{
+	float vals[ 9 ];
+
+	Matrix3f( float a00 = 1, float a01 = 0, float a02 = 0,
+		    float a10 = 0, float a11 = 1, float a12 = 0,
+		    float a20 = 0, float a21 = 0, float a22 = 1 )
+	{
+		vals[ 0 ] = a00;
+		vals[ 1 ] = a01;
+		vals[ 2 ] = a02;
+		vals[ 3 ] = a10;
+		vals[ 4 ] = a11;
+		vals[ 5 ] = a12;
+		vals[ 6 ] = a20;
+		vals[ 7 ] = a21;
+		vals[ 8 ] = a22;
+	}
+}

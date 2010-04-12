@@ -18,6 +18,11 @@ namespace parser
          ensure( field, "can't be null" );
       }
 
+      ~AstVarField()
+      {
+         delete _field;
+      }
+
       const Symbol& getName() const
       {
          return _name;

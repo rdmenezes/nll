@@ -15,6 +15,12 @@ namespace parser
          ensure( lvalue && value, "can't be null" );
       }
 
+      ~AstExpAssign()
+      {
+         delete _lvalue;
+         delete _value;
+      }
+
       const AstExp& getValue() const
       {
          return *_value;

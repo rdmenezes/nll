@@ -14,6 +14,11 @@ namespace parser
       {
       }
 
+      ~AstReturn()
+      {
+         delete _retVal;
+      }
+
       const AstExp* getReturnValue() const
       {
          return _retVal;

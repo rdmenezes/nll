@@ -18,6 +18,11 @@ namespace parser
          ensure( decls, "can't be null" );
       }
 
+      ~AstDeclClass()
+      {
+         delete _decls;
+      }
+
       const AstDecls& getDeclarations() const
       {
          return *_decls;
