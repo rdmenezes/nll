@@ -7,7 +7,22 @@ namespace parser
 {
    class RuntimeType
    {
+   public:
+      RuntimeType( TypeEnum t, Type* v ) : type( t ), val( v )
+      {
+      }
 
+      enum TypeEnum
+      {
+         INT,
+         FLOAT,
+         STRING,
+         TYPE,
+         ARRAY
+      };
+
+      TypeEnum    type;
+      Type*       val;
    };
 }
 }

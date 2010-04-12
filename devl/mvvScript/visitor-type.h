@@ -8,7 +8,6 @@
 //
 // TODO node type must all be cloned when copied! else memory problems...
 // TODO check int n[3] = {n[ 0 ]}; recursive...
-// TODO int fn( int a = 0, int b ) => improve message error
 // TODO declaration order in class
 // TODO class and operator overloading: in a class, (this) not shown...
 // TODO float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n; : function returns a float, but argument does not->need conversion
@@ -467,6 +466,17 @@ namespace parser
          }
 
          e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
+
+         // check if the parameter must be referenced, it can be!
+         AstArgs::Args::iterator itarg = e.getArgs().getArgs().begin(); // we know the number of parameters given is compatible with the one in the function decl.
+         AstDeclVars::Decls::iterator it = funcs[ 0 ]->getVars().getVars().begin();
+         for ( ; itarg != e.getArgs().getArgs().end(); ++it, ++itarg )
+         {
+            if ( ( *it )->getType().isAReference() && !checkValidReferenceInitialization( **itarg )  )
+            {
+               impl::reportTypeError( (*it)->getLocation(), _context, "argument cannot be referenced" );
+            }
+         }
       }
 
       virtual void operator()( AstVarField& e )
@@ -525,7 +535,6 @@ namespace parser
          case AstType::SYMBOL:
             ensure( e.getReference(), "compiler error: can't find a link on a symbol" );
             e.setNodeType( e.getReference()->getNodeType()->clone() );
-            // TODO check Test& getdsjkskj
             break;
 
          default:
@@ -699,7 +708,6 @@ namespace parser
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
             ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
             e.setNodeType( new TypeArray( size, *e.getType().getNodeType(), false ) );
-            // TODO check ref array
          } else {
             e.setNodeType( e.getType().getNodeType()->clone() );
          }

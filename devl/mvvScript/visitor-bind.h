@@ -245,6 +245,26 @@ namespace parser
          --_scopeDepth;
       }
 
+      /**
+       @brief Check the parameters with default init in function declaration are properly used
+       @return true if correct
+       */
+      static bool checkDefaultInitizalizationInFunctionDeclaration( AstDeclFun& e )
+      {
+         bool mustHaveDefaultInit = false;
+         for ( AstDeclVars::Decls::iterator it = e.getVars().getVars().begin(); it != e.getVars().getVars().end(); ++it )
+         {
+            if ( (*it)->getInit() )
+            {
+               mustHaveDefaultInit = true;
+            } else {
+               if ( mustHaveDefaultInit )
+                  return false;
+            }
+         }
+         return true;
+      }
+
       virtual void operator()( AstDeclFun& e ) 
       {
          ++_isInFunction;
@@ -306,6 +326,11 @@ namespace parser
             }
          }
          --_isInFunction;
+
+         if ( !checkDefaultInitizalizationInFunctionDeclaration( e ) )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "default initialisation is not correctly used. (a parameter with default initialization cannot be followed by one without)" );
+         }
       }
 
       virtual void operator()( AstThis& e )

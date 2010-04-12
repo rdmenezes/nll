@@ -44,10 +44,11 @@
     - operator== checks the address for types... and not the semantic==
     - the type of a function doesn't belong to the signature of the function, the signature of a function is unique
     - a type can be referenced. In this case the reference is directly modified. If a type which is not a primitive
-	  is referenced & used as argument in a function call, refcounting is not updated
-	- include: the included file will be parsed, inclusion order doesn't matter
-	- import: the source file will be imported & dll dynamically loaded (with the same name) & entry point run
+      is referenced & used as argument in a function call, refcounting is not updated
+    - include: the included file will be parsed, inclusion order doesn't matter
+    - import: the source file will be imported & dll dynamically loaded (with the same name) & entry point run
     
+    - TODO arg ref -> create the ref for runtime!
     - TODO if func imported: don't allow default parameter
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error

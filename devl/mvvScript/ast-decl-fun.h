@@ -5,6 +5,7 @@
 # include "ast-exp.h"
 # include "ast-decl.h"
 # include "ast-type.h"
+# include "ast-decl-vars.h"
 
 namespace mvv
 {

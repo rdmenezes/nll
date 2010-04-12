@@ -1639,12 +1639,7 @@ struct TestBasic
 
          VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
          visitorBind( *exp );
-         TESTER_ASSERT( !context.getError().getStatus() );
-
-         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
-         visitorType( *exp );
          TESTER_ASSERT( context.getError().getStatus() );
-         delete exp;
       }
 
       {
@@ -2339,6 +2334,101 @@ struct TestBasic
          delete exp;
       }
 
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int test( int n = 0, int b, float nn = 0 ){ return 0; }");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int test( string& s ){ return \"haha\"; }");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "string test( string& s ){ string s; return s; }");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "string test( string& s ){ return s; } test(\"sdfsd\");");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "string tt; string test( string& s = tt ){ return s; } ");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
+
 
 /*
       {
@@ -2368,13 +2458,13 @@ struct TestBasic
 };
 
 TESTER_TEST_SUITE(TestBasic);
-
+/*
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
-
+*/
 TESTER_TEST(testType1);
 
 TESTER_TEST(testFull2);
