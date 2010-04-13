@@ -466,6 +466,7 @@ namespace parser
          }
 
          e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
+         e.setFunctionCall( funcs[ 0 ] );
 
          // check if the parameter must be referenced, it can be!
          AstArgs::Args::iterator itarg = e.getArgs().getArgs().begin(); // we know the number of parameters given is compatible with the one in the function decl.
@@ -838,6 +839,21 @@ namespace parser
       virtual void operator()( Ast& e )
       {
          e.accept( *this );
+      }
+
+      const SymbolTableVars& getVars() const
+      {
+         return _vars;
+      }
+
+      const SymbolTableFuncs& getFuncs() const
+      {
+         return _funcs;
+      }
+
+      const SymbolTableClasses& getClasses() const
+      {
+         return _classes;
       }
 
    private:

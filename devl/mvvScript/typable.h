@@ -2,6 +2,7 @@
 # define MVV_PARSER_TYPABLE_H_
 
 # include "type.h"
+# include "type-runtime.h"
 
 namespace mvv
 {
@@ -35,8 +36,14 @@ namespace parser
          return _type;
       }
 
+      RuntimeValue& getRuntimeValue()
+      {
+         return _value;
+      }
+
    protected:
-      Type*    _type;
+      Type*          _type;
+      RuntimeValue   _value;
    };
 }
 }

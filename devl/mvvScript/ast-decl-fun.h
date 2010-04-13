@@ -89,12 +89,19 @@ namespace parser
          v( *this );
       }
 
+      RuntimeValue& getRuntimeObjectSource()
+      {
+         return _runtimeObjectSource;
+      }
+
    private:
       AstTypeT*            _type;
       AstDeclVars*         _vars;
       AstStatements*       _body;
       AstDeclClass*        _memberOfClass;
       Type*                _expectedFunctionType;
+
+      RuntimeValue         _runtimeObjectSource; // in case this function is a member function, the visitorEvaluate will fetch the object
    };
 }
 }

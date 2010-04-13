@@ -605,6 +605,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\visitor-evaluate.h"
+				>
+			</File>
+			<File
 				RelativePath=".\visitor-print.h"
 				>
 			</File>
