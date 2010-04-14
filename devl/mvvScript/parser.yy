@@ -47,6 +47,9 @@
       is referenced & used as argument in a function call, refcounting is not updated
     - include: the included file will be parsed, inclusion order doesn't matter
     - import: the source file will be imported & dll dynamically loaded (with the same name) & entry point run
+    - import function: can be from class/global function. Because all declarations must be loaded in memory, it can't be declared multiple times
+    - array are also refcounted so they can be shared quickly
+    - multidimentional arrays can have a several unknow dim
     
     - TODO arg ref -> create the ref for runtime!
     - TODO if func imported: don't allow default parameter
@@ -271,6 +274,7 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
 			
 array_decl: /* empty */                                              { $$ = new std::vector<mvv::parser::AstExp*>(); }
            |LBRACK rvalue RBRACK array_decl                          { $$ = $4; $$->push_back( $2 ); }
+           |LBRACK RBRACK array_decl                                 { $$ = $3; $$->push_back( new mvv::parser::AstInt( @$, 0 ) ); }
            
 operator_def: OPERATOR_PLUS                                          { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator+" ) ); }
              |OPERATOR_MINUS                                         { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator-" ) ); }

@@ -47,6 +47,7 @@ struct TestEval
 {
    void eval1()
    {
+      /*
       EVAL( "int n = 5;" );
       TESTER_ASSERT( !context.getError().getStatus() );
       AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
@@ -86,6 +87,40 @@ struct TestEval
       TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::INT );
       TESTER_ASSERT( val->getRuntimeValue().intval == 11 );
       EVAL_END;
+   */
+      EVAL( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 3 ];" );
+      TESTER_ASSERT( !context.getError().getStatus() );
+      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
+      TESTER_ASSERT( val );
+      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::ARRAY );
+
+      AstDeclVar* val2 = vars.find( mvv::Symbol::create("nn" ) );
+      TESTER_ASSERT( val2 );
+      TESTER_ASSERT( val2->getRuntimeValue().type == RuntimeValue::INT );
+      TESTER_ASSERT( val2->getRuntimeValue().intval == 7 );
+      EVAL_END;
+
+      try
+      {
+         EVAL( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 13 ];" );
+         EVAL_END;
+         TESTER_ASSERT( 0 );
+      } catch ( RuntimeException e )
+      {
+         TESTER_ASSERT( 1 );
+      }
+
+      /*
+      // TODO activate
+      try
+      {
+         EVAL( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ -13 ];" );
+         EVAL_END;
+         TESTER_ASSERT( 0 );
+      } catch ( RuntimeException e )
+      {
+      }
+      */
    }
 
 

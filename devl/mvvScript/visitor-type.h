@@ -94,7 +94,7 @@ namespace parser
          SymbolTableFuncs::const_iterator it = funcs.find( s );
          if ( it != funcs.end() )
          {
-            return it->second;
+            return it->second.list;
          }
          return std::vector<AstDeclFun*>();
       }
@@ -427,7 +427,7 @@ namespace parser
             if ( it != _funcs.end() )
             {
                // use the simple name for the function
-               funcs = getMatchingFunctionsFromArgs( it->second, e.getArgs() );
+               funcs = getMatchingFunctionsFromArgs( it->second.list, e.getArgs() );
             } else {
                if ( e.getInstanciation() )
                {

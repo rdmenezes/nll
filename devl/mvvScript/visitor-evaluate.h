@@ -8,6 +8,25 @@ namespace mvv
 {
 namespace parser
 {
+   class RuntimeException : std::exception
+   {
+   public:
+      RuntimeException( const char* c ) : std::exception( c )
+      {}
+   };
+
+   namespace impl
+   {
+      inline void runtimeError( const YYLTYPE& loc, mvv::parser::ParserContext& context, const std::string& msg )
+      {
+         std::stringstream ss;
+         ss << loc << msg << std::endl;
+         context.getError() << ss.str() << mvv::parser::Error::RUNTIME;
+
+         throw RuntimeException( ss.str().c_str() );
+      }
+   }
+
    /**
     @brief Defines a visitor visiting all the nodes but doing nothing
     @note this is usefull if a visitor is only handling a limited number of nodes
@@ -96,6 +115,18 @@ namespace parser
       {
          operator()( e.getIndex() );
          operator()( e.getName() );
+
+         ensure( e.getName().getRuntimeValue().type == RuntimeValue::ARRAY, "compiler error: must be an array" );
+         int index = e.getIndex().getRuntimeValue().intval;
+
+         if ( index < 0 || static_cast<unsigned int>( index ) >= (*e.getName().getRuntimeValue().vals).size() )
+         {
+            std::stringstream msg;
+            msg << "out of bound index: array size=" << (*e.getName().getRuntimeValue().vals).size() << " index=" << index;
+            impl::runtimeError( e.getIndex().getLocation(), _context, msg.str() );
+         }
+
+         e.getRuntimeValue() = (*e.getName().getRuntimeValue().vals)[ index ];
       }
 
       virtual void operator()( AstVarField& e )
@@ -128,7 +159,7 @@ namespace parser
          operator()( e.getDeclarations() );
       }
 
-      virtual void operator()( AstDeclFun& e ) 
+      virtual void operator()( AstDeclFun& ) 
       {
          // the definition has been hadnled before...
       }
@@ -213,14 +244,25 @@ namespace parser
             return;
          } else if ( e.getDeclarationList() )
          {
-            // TODO
             operator()( *e.getDeclarationList() );
-         }
 
-         operator()( e.getType() );
+            // check we have an array
+            ensure( e.getType().isArray(), "compiler error: current implementation: it must be an array" );
+
+            // copy the value from the initialization list
+            e.getRuntimeValue().setType( RuntimeValue::ARRAY, e.getNodeType() );
+            e.getRuntimeValue().vals = platform::RefcountedTyped< RuntimeValues >( new RuntimeValues( e.getDeclarationList()->getArgs().size() ) );
+
+            ui32 n = 0;
+            for ( AstArgs::Args::iterator itArg = e.getDeclarationList()->getArgs().begin(); itArg != e.getDeclarationList()->getArgs().end(); ++itArg, ++n )
+            {
+               (*e.getRuntimeValue().vals)[ n ] = (*itArg)->getRuntimeValue();
+            }
+         }
 
          if ( e.getType().isArray() )
          {
+            // TODO
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
@@ -232,6 +274,7 @@ namespace parser
 
          if ( e.getObjectInitialization() )
          {
+            // TODO
             operator()( *e.getObjectInitialization() );
          }
       }

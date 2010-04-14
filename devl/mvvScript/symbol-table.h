@@ -373,8 +373,19 @@ namespace parser
       Node* _current;
    };
 
+   struct FunctionTable
+   {
+      FunctionTable()
+      {
+         hasImplementation = false;
+      }
+
+      std::vector<AstDeclFun*>   list;
+      bool hasImplementation;
+   };
+
    typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table
-   typedef std::map<mvv::Symbol, std::vector<AstDeclFun*> >   SymbolTableFuncs;    /// We only need to store functions in global scope
+   typedef std::map<mvv::Symbol, FunctionTable>               SymbolTableFuncs;    /// We only need to store functions in global scope
    typedef SymbolTableDictionary                              SymbolTableClasses;  /// tree-like storage for classes
 }
 }

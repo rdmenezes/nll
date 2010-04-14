@@ -2429,6 +2429,70 @@ struct TestBasic
          delete exp;
       }
 
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int operator+( int a, int b ); import int operator+( int a, int b );");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int operator+( int a, int b ){} int operator+( int a, int b ){}");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int n = 100; int a[ n ];");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "int a[];");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
 
 /*
       {
@@ -2464,9 +2528,8 @@ TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
+TESTER_TEST(testFull2);
 
 TESTER_TEST(testType1);
-
-TESTER_TEST(testFull2);
 */
 TESTER_TEST_SUITE_END();

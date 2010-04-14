@@ -20,7 +20,8 @@ namespace parser
          SCAN,          /// lexical error
          PARSE,         /// parse error
          BIND,          /// binding error
-         TYPE           /// type checking error
+         TYPE,          /// type checking error
+         RUNTIME        /// runtime error
       };
    public:
       Error() : _status( SUCCESS )

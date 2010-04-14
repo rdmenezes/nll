@@ -413,7 +413,7 @@ namespace parser
             if ( it != _funcs.end() )
             {
                // we know we have at lest 1 function of this name declared
-               impl::reportAlreadyDeclaredType( it->second[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
+               impl::reportAlreadyDeclaredType( it->second.list[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
                return;
             }
 

@@ -55,7 +55,8 @@ namespace parser
       float       floatval;      // hold the value of the runtime value is of this type
       int         intval;        // hold the value of the runtime value is of this type
       std::string stringval;     // hold the value of the runtime value is of this type
-      platform::RefcountedTyped<RuntimeValues> namedval; // hold a named value
+
+      platform::RefcountedTyped<RuntimeValues>                 vals; // hold a named value or array
    };
 }
 }

@@ -73,7 +73,7 @@ namespace parser
          if ( it != _funcs.end() )
          {
             // we know we have at least 1 function declared...
-            impl::reportAlreadyDeclaredType( it->second[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
+            impl::reportAlreadyDeclaredType( it->second.list[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
             operator()( e.getDeclarations() );
             return;
          }
@@ -138,7 +138,7 @@ namespace parser
       virtual void operator()( AstDeclFun& e ) 
       {
          // discard type and body
-         // if body is undeclared, it can't be multiple times declared...
+         // if body is undeclared, it can be multiple times declared...
 
          if ( _scopeDepth == 1 )
          {
@@ -161,19 +161,29 @@ namespace parser
             SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
             if ( it == _funcs.end() )
             {
-               _funcs[ e.getName() ].push_back( &e );
+               _funcs[ e.getName() ].list.push_back( &e );
+               if ( e.getBody() )
+               {
+                  // if we have a body, then the function can only be declared once
+                  _funcs.begin()->second.hasImplementation = true;
+               }
             } else {
-               for ( std::vector<AstDeclFun*>::iterator ii = it->second.begin();
-                     ii != it->second.end();
+               for ( std::vector<AstDeclFun*>::iterator ii = it->second.list.begin();
+                     ii != it->second.list.end();
                      ++ii )
                {
-                  if ( areDeclVarsEqual( &(*ii)->getVars(), &e.getVars() ) )
+                  if ( /*e.getBody() && it->second.hasImplementation && TODO inactivated: we can only have one instance declared!*/ areDeclVarsEqual( &(*ii)->getVars(), &e.getVars() ) )
                   {
                      impl::reportAlreadyDeclaredType( (*ii)->getLocation(), e.getLocation(), _context, "a function with the same prototype has already been declared" );
                   }
                }
 
-               it->second.push_back( &e );
+               it->second.list.push_back( &e );
+               if ( e.getBody() )
+               {
+                  // if we have a body, then the function can only be declared once
+                  it->second.hasImplementation = true;
+               }
             }
          }
       }
@@ -211,7 +221,7 @@ namespace parser
             if ( it != _funcs.end() )
             {
                // we know we have at lest 1 function of this name declared
-               impl::reportAlreadyDeclaredType( it->second[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
+               impl::reportAlreadyDeclaredType( it->second.list[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
                return;
             }
 
