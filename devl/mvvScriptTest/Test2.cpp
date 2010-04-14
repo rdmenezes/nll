@@ -8,103 +8,72 @@ using namespace mvv::parser;
 
 #define TEST_PATH    "../../mvvScriptTest/test/"
 
-#define EVAL(str)\
-   {\
-      ParserContext       context;\
-      SymbolTableVars     vars;\
-      SymbolTableFuncs    funcs;\
-      SymbolTableClasses  classes;\
-      Ast* exp = 0;\
-      exp = context.parseString( str );\
-      TESTER_ASSERT( exp );\
-      VisitorRegisterDeclarations visitor( context );\
-      visitor( *exp );\
-      TESTER_ASSERT( !context.getError().getStatus() );\
-      VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );\
-      visitorBind( *exp );\
-      TESTER_ASSERT( !context.getError().getStatus() );\
-      VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );\
-      visitorType( *exp );\
-      vars = visitorType.getVars();\
-      funcs = visitorType.getFuncs();\
-      classes = visitorType.getClasses();\
-      TESTER_ASSERT( !context.getError().getStatus() );\
-      VisitorEvaluate visitorEval( context, vars, funcs, classes );\
-      visitorEval( *exp );
-
-#define EVAL_END  \
-       delete exp;\
-   }
-
-
 struct TestEval
 {
    void eval1()
    {
-      /*
-      EVAL( "int n = 5;" );
-      TESTER_ASSERT( !context.getError().getStatus() );
-      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
-      TESTER_ASSERT( val );
-      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::INT );
-      TESTER_ASSERT( val->getRuntimeValue().intval == 5 );
-      EVAL_END
-
-      EVAL( "float n = 5.5;" );
-      TESTER_ASSERT( !context.getError().getStatus() );
-      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
-      TESTER_ASSERT( val );
-      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::FLOAT );
-      TESTER_ASSERT( val->getRuntimeValue().floatval == 5.5 );
-      EVAL_END
-
-      EVAL( "string n = \"123456\";" );
-      TESTER_ASSERT( !context.getError().getStatus() );
-      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
-      TESTER_ASSERT( val );
-      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::STRING );
-      TESTER_ASSERT( val->getRuntimeValue().stringval == "123456" );
-      EVAL_END;
-      
-      EVAL( "int test( int n ){return n;} int n = test(5);" );
-      TESTER_ASSERT( !context.getError().getStatus() );
-      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
-      TESTER_ASSERT( val );
-      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::INT );
-      TESTER_ASSERT( val->getRuntimeValue().intval == 5 );
-      EVAL_END;
-
-      EVAL( "int test( int n, int nn = 11 ){return nn;} int n = test(5);" );
-      TESTER_ASSERT( !context.getError().getStatus() );
-      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
-      TESTER_ASSERT( val );
-      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::INT );
-      TESTER_ASSERT( val->getRuntimeValue().intval == 11 );
-      EVAL_END;
-   
-      EVAL( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 3 ];" );
-      TESTER_ASSERT( !context.getError().getStatus() );
-      AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
-      TESTER_ASSERT( val );
-      TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::ARRAY );
-
-      AstDeclVar* val2 = vars.find( mvv::Symbol::create("nn" ) );
-      TESTER_ASSERT( val2 );
-      TESTER_ASSERT( val2->getRuntimeValue().type == RuntimeValue::INT );
-      TESTER_ASSERT( val2->getRuntimeValue().intval == 7 );
-      EVAL_END;
-
-      try
       {
-         EVAL( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 13 ];" );
-         EVAL_END;
-         TESTER_ASSERT( 0 );
-      } catch ( RuntimeException e )
-      {
-         TESTER_ASSERT( 1 );
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "float n = 5.5;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt.floatval == 5.5 );
       }
 
-      */
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "string n = \"123456\";" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt.stringval == "123456" );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int test( int n ){return n;} int n = test(5);" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 5 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int test( int n, int nn = 11 ){return nn;} int n = test(5);" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 11 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int n = 1;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 3 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::ARRAY );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.intval == 7 );
+      }
 
       {
          CompilerFrontEnd fe;
