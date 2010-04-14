@@ -32,6 +32,11 @@ namespace parser
          return _location;
       }
 
+   private:
+      // disabled copy
+      Ast& operator=( Ast& );
+      Ast( Ast& );
+
    protected:
       YYLTYPE  _location;
    };

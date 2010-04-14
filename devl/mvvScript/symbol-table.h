@@ -28,6 +28,13 @@ namespace parser
          */
       }
 
+      void clear()
+      {
+         _scopes.clear();
+         _barrier.clear();
+         _currentScope = 0;
+      }
+
       void beginScope( bool barrier = false )
       {
          if ( _currentScope == _scopes.size() )
@@ -267,6 +274,11 @@ namespace parser
       }
 
       ~SymbolTableDictionary()
+      {
+         clear();
+      }
+
+      void clear()
       {
          if ( _root )
          {

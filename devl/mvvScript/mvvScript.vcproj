@@ -581,10 +581,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\type-runtime.h"
-				>
-			</File>
-			<File
 				RelativePath=".\type.cpp"
 				>
 			</File>
@@ -622,6 +618,18 @@
 			</File>
 			<File
 				RelativePath=".\visitor.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="api"
+			>
+			<File
+				RelativePath=".\compiler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\type-runtime.h"
 				>
 			</File>
 		</Filter>

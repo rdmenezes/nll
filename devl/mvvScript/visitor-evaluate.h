@@ -8,7 +8,7 @@ namespace mvv
 {
 namespace parser
 {
-   class RuntimeException : std::exception
+   class RuntimeException : public std::exception
    {
    public:
       RuntimeException( const char* c ) : std::exception( c )
@@ -48,12 +48,17 @@ namespace parser
          val.intval = e.getValue();
       }
 
-      virtual void operator()( AstThis& )
+      virtual void operator()( AstThis& e )
       {
+         AstDeclClass* decl = dynamic_cast<AstDeclClass*>( e.getReference() );
+         ensure( decl, "compiler error: this reference is incorrect" );
+         e.getRuntimeValue() = decl->getRuntimeObjectSource();
       }
 
-      virtual void operator()( AstNil& )
+      virtual void operator()( AstNil& e )
       {
+         RuntimeValue& val = e.getRuntimeValue();
+         val.setType( RuntimeValue::NIL, e.getNodeType() );
       }
 
       virtual void operator()( AstFloat& e )
@@ -74,6 +79,7 @@ namespace parser
       {
          operator()( e.getLeft() );
          operator()( e.getRight() );
+         // TODO
       }
 
       virtual void operator()( AstIf& e )
@@ -85,6 +91,8 @@ namespace parser
          {
             operator()( *e.getElse() );
          }
+
+         // TODO
       }
 
       virtual void operator()( AstStatements& e )
@@ -102,7 +110,10 @@ namespace parser
          operator()( e.getValue() );
          operator()( e.getLValue() );
 
-
+         // we need to find the reference of the lvalue and update it's runtime value
+         ensure( e.getLValue().getReference(), "compiler error: lvalue not linked to a reference" );
+         e.getRuntimeValue() = e.getValue().getRuntimeValue();
+         e.getLValue().getReference()->getRuntimeValue() = e.getValue().getRuntimeValue();
       }
 
       virtual void operator()( AstVarSimple& e )
@@ -116,47 +127,46 @@ namespace parser
          operator()( e.getIndex() );
          operator()( e.getName() );
 
+         // ensure the variable is an array... else we missed something in the type visitor!
          ensure( e.getName().getRuntimeValue().type == RuntimeValue::ARRAY, "compiler error: must be an array" );
          int index = e.getIndex().getRuntimeValue().intval;
 
          if ( index < 0 || static_cast<unsigned int>( index ) >= (*e.getName().getRuntimeValue().vals).size() )
          {
+            // out of bound error
             std::stringstream msg;
             msg << "out of bound index: array size=" << (*e.getName().getRuntimeValue().vals).size() << " index=" << index;
             impl::runtimeError( e.getIndex().getLocation(), _context, msg.str() );
          }
 
+         // just get the value
          e.getRuntimeValue() = (*e.getName().getRuntimeValue().vals)[ index ];
       }
 
       virtual void operator()( AstVarField& e )
       {
          operator()( e.getField() );
+         // TODO propagate values
       }
 
       virtual void operator()( AstType& )
       {
+         // the definition has been hadnled before...
       }
 
-      virtual void operator()( AstDecls& e )
+      virtual void operator()( AstDecls& )
       {
-         for ( AstDecls::Decls::const_iterator it = e.getDecls().begin(); it != e.getDecls().end(); ++it )
-         {
-            operator()( **it );
-         }
+         // the definition has been hadnled before...
       }
 
-      virtual void operator()( AstDeclVars& e )
+      virtual void operator()( AstDeclVars& )
       {
-         for ( AstDeclVars::Decls::const_iterator it = e.getVars().begin(); it != e.getVars().end(); ++it )
-         {
-            operator()( **it );
-         }
+         // the definition has been hadnled before...
       }
 
-      virtual void operator()( AstDeclClass& e )
+      virtual void operator()( AstDeclClass& )
       {
-         operator()( e.getDeclarations() );
+         // the definition has been hadnled before...
       }
 
       virtual void operator()( AstDeclFun& ) 
@@ -201,13 +211,11 @@ namespace parser
          ensure( e.getFunctionCall(), "compiler error: function call not set" );
          if ( e.getConstructed() )
          {
-            // TODO e.getFunctionCall()->getRuntimeObjectSource() = sourceObject
+            // TODO
+            //e.getConstructed()->getRuntimeObjectSource() = construct the object from the members...
          } else if ( e.getFunctionCall() )
          {
             // TODO
-         } else {
-            // TODO: only in debug mode
-            e.getFunctionCall()->getRuntimeObjectSource().setType( RuntimeValue::EMPTY, 0 );
          }
 
          // fetch the arguments

@@ -45,6 +45,12 @@ namespace parser
          return _error;
       }
 
+      void clear()
+      {
+         _root = 0;
+         _error.clear();
+      }
+
    private:
       // open the scanner, defined in lexer.ll
       void _scanOpen();

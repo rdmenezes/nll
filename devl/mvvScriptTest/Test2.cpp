@@ -1,12 +1,6 @@
 #include <tester/register.h>
-#include <mvvPlatform/types.h>
-#include <mvvScript/parser-context.h>
-#include <mvvScript/visitor-print.h>
-#include <mvvScript/visitor-default.h>
-#include <mvvScript/visitor-bind.h>
-#include <mvvScript/visitor-register-declarations.h>
-#include <mvvScript/visitor-type.h>
-#include <mvvScript/visitor-evaluate.h>
+
+#include <mvvScript/compiler.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -87,7 +81,7 @@ struct TestEval
       TESTER_ASSERT( val->getRuntimeValue().type == RuntimeValue::INT );
       TESTER_ASSERT( val->getRuntimeValue().intval == 11 );
       EVAL_END;
-   */
+   
       EVAL( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 3 ];" );
       TESTER_ASSERT( !context.getError().getStatus() );
       AstDeclVar* val = vars.find( mvv::Symbol::create("n" ) );
@@ -109,6 +103,40 @@ struct TestEval
       {
          TESTER_ASSERT( 1 );
       }
+
+      */
+
+      {
+         CompilerFrontEnd fe;
+         try
+         {
+            fe.run( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 13 ];" );
+            TESTER_ASSERT( 0 );
+         } catch( RuntimeException e )
+         {
+         }
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int nn1 = 8; int nn2 = nn1; int n; n = nn2;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 8 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( " int test = 5;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "test" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 5 );
+      }
+
 
       /*
       // TODO activate

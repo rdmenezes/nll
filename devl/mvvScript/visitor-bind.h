@@ -58,9 +58,9 @@ namespace parser
 
    public:
       VisitorBind( ParserContext& context,
-                   const SymbolTableVars& vars,
-                   const SymbolTableFuncs& funcs,
-                   const SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
+                   SymbolTableVars& vars,
+                   SymbolTableFuncs& funcs,
+                   SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
          _scopeDepth = 0;
          _functionCallsNeeded = 0;
@@ -517,17 +517,17 @@ namespace parser
          }
       }
 
-      const SymbolTableVars& getVars() const
+      SymbolTableVars& getVars()
       {
          return _vars;
       }
 
-      const SymbolTableFuncs& getFuncs() const
+      SymbolTableFuncs& getFuncs()
       {
          return _funcs;
       }
 
-      const SymbolTableClasses& getClasses() const
+      SymbolTableClasses& getClasses()
       {
          return _classes;
       }
@@ -568,9 +568,9 @@ namespace parser
       bool                       _isInFunctionDeclaration; /* true if we are checking the function parameter declaration */
 
       ParserContext&      _context;
-      SymbolTableVars     _vars;
-      SymbolTableFuncs    _funcs;
-      SymbolTableClasses  _classes;
+      SymbolTableVars&    _vars;
+      SymbolTableFuncs&   _funcs;
+      SymbolTableClasses& _classes;
    };
 }
 }

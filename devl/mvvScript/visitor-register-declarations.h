@@ -27,7 +27,10 @@ namespace parser
       using VisitorDefault::operator();
 
    public:
-      VisitorRegisterDeclarations( ParserContext& context ) : _context( context ), _scopeDepth( 0 )
+      VisitorRegisterDeclarations( ParserContext& context,
+                                   SymbolTableVars& vars,
+                                   SymbolTableFuncs& funcs,
+                                   SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _scopeDepth( 0 )
       {
          // global scope
          _vars.beginScope();
@@ -234,17 +237,17 @@ namespace parser
          }
       }
 
-      const SymbolTableVars& getVars() const
+      SymbolTableVars& getVars()
       {
          return _vars;
       }
 
-      const SymbolTableFuncs& getFuncs() const
+      SymbolTableFuncs& getFuncs()
       {
          return _funcs;
       }
 
-      const SymbolTableClasses& getClasses() const
+      SymbolTableClasses& getClasses()
       {
          return _classes;
       }
@@ -261,9 +264,9 @@ namespace parser
       Symbols           _filesToImport;
       int               _scopeDepth;
 
-      SymbolTableVars                  _vars;
-      SymbolTableFuncs                 _funcs;
-      SymbolTableClasses               _classes;
+      SymbolTableVars&                  _vars;
+      SymbolTableFuncs&                 _funcs;
+      SymbolTableClasses&               _classes;
    };
 }
 }

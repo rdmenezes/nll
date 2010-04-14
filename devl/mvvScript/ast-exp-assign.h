@@ -2,6 +2,7 @@
 # define MVV_PARSER_AST_ASSIGN_H_
 
 # include "ast-exp.h"
+# include "ast-var.h"
 
 namespace mvv
 {
@@ -10,7 +11,7 @@ namespace parser
    class MVVSCRIPT_API AstExpAssign : public AstExp
    {
    public:
-      AstExpAssign( const YYLTYPE& location, AstExp* lvalue,  AstExp* value ) : AstExp( location ), _value( value ), _lvalue( lvalue )
+      AstExpAssign( const YYLTYPE& location, AstVar* lvalue,  AstExp* value ) : AstExp( location ), _value( value ), _lvalue( lvalue )
       {
          ensure( lvalue && value, "can't be null" );
       }
@@ -31,12 +32,12 @@ namespace parser
          return *_value;
       }
 
-      const AstExp& getLValue() const
+      const AstVar& getLValue() const
       {
          return *_lvalue;
       }
 
-      AstExp& getLValue()
+      AstVar& getLValue()
       {
          return *_lvalue;
       }
@@ -54,7 +55,7 @@ namespace parser
       }
 
    private:
-      AstExp*   _lvalue;
+      AstVar*   _lvalue;
       AstExp*   _value;
    };
 }

@@ -24,9 +24,9 @@ namespace parser
    {
    public:
       VisitorType( ParserContext& context,
-                   const SymbolTableVars& vars,
-                   const SymbolTableFuncs& funcs,
-                   const SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
+                   SymbolTableVars& vars,
+                   SymbolTableFuncs& funcs,
+                   SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
          _isInFunctionDeclaration = false;
       }
@@ -867,9 +867,9 @@ namespace parser
 
 
       ParserContext&      _context;
-      SymbolTableVars     _vars;
-      SymbolTableFuncs    _funcs;
-      SymbolTableClasses  _classes;
+      SymbolTableVars&    _vars;
+      SymbolTableFuncs&   _funcs;
+      SymbolTableClasses& _classes;
       bool                _isInFunctionDeclaration;
    };
 }

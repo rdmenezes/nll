@@ -45,8 +45,15 @@ namespace parser
          v( *this );
       }
 
+      RuntimeValue& getRuntimeObjectSource()
+      {
+         return _runtimeObjectSource;
+      }
+
    private:
       AstDecls*            _decls;
+
+      RuntimeValue         _runtimeObjectSource; // this hold the current object context (used for example for 'this')
    };
 }
 }
