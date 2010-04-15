@@ -98,6 +98,17 @@ namespace core
       s.push_back( &str[ last ] );
       return s;
    }
+
+   /**
+    @ingroup core
+    @brief convert a string to a wstring
+    */
+   inline std::wstring stringTowstring( const std::string& s )
+   {
+      std::wstring temp( s.length(), L' ' );
+      std::copy( s.begin(), s.end(), temp.begin() );
+      return temp; 
+   }
 }
 }
 

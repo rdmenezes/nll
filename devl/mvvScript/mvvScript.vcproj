@@ -625,7 +625,23 @@
 			Name="api"
 			>
 			<File
+				RelativePath=".\compiler.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\compiler.h"
+				>
+			</File>
+			<File
+				RelativePath=".\function-runnable.h"
+				>
+			</File>
+			<File
+				RelativePath=".\import.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\import.h"
 				>
 			</File>
 			<File

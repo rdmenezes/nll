@@ -6,6 +6,7 @@
 # include "ast-decl.h"
 # include "ast-type.h"
 # include "ast-decl-vars.h"
+# include "function-runnable.h"
 
 namespace mvv
 {
@@ -89,12 +90,19 @@ namespace parser
          v( *this );
       }
 
+      void setImportedFunction( platform::RefcountedTyped<FunctionRunnable> f )
+      {
+         _functionImported = f;
+      }
+
    private:
       AstTypeT*            _type;
       AstDeclVars*         _vars;
       AstStatements*       _body;
       AstDeclClass*        _memberOfClass;
       Type*                _expectedFunctionType;
+
+      platform::RefcountedTyped<FunctionRunnable> _functionImported; // when a function must be imported, at runtime, this is what will be run
    };
 }
 }

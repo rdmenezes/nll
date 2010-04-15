@@ -143,6 +143,20 @@ struct TestEval
          TESTER_ASSERT( fn5 );
       }
 
+      {
+         CompilerFrontEnd fe;
+         fe.importDll("core");
+
+         /*
+         Error::ErrorType result = fe.run( " int test = 5;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "test" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 5 );
+         */
+      }
+
 
       /*
       // TODO activate

@@ -10,6 +10,7 @@
 # include "visitor-register-declarations.h"
 # include "visitor-type.h"
 # include "visitor-evaluate.h"
+# include "function-runnable.h"
 
 namespace mvv
 {
@@ -21,7 +22,8 @@ namespace parser
    class MVVSCRIPT_API CompilerFrontEnd
    {
    public:
-      typedef std::vector< platform::RefcountedTyped<Ast> > Trees;
+      typedef std::vector< platform::RefcountedTyped<Ast> >                         Trees;
+      typedef std::map<const AstDeclFun*, platform::RefcountedTyped<FunctionRunnable> >   ImportedFunctions;
 
    public:
       /**
@@ -141,7 +143,30 @@ namespace parser
          return getMatchingFunction( possible, prototype );
       }
 
+      /**
+       @brief Registers a function to be called at runtime when the runtime detect function.getFunctionPointer()
+              is about to be run
+       */
+      void registerFunctionImport( platform::RefcountedTyped<FunctionRunnable> function )
+      {
+         _imported[ (*function).getFunctionPointer() ] = function;
+
+         // we const_cast as the user should not be able to modify the function pointer himself...
+         // however we need to update the function declaration to run the imported function...
+         AstDeclFun* f = const_cast<AstDeclFun*>( (*function).getFunctionPointer() );
+         f->setImportedFunction( function );
+      }
+
+      /**
+       @brief This function is parsing the declaration file "name.ludo", then the "name.dll" will be dynamically
+              loaded and invoke the function <code>void importFunctions( CompilerFrontEnd )</code>
+       */
+      void importDll( const std::string& name );
+
    private:
+      /**
+       @brief Find the possible match from a set of functions and argument types
+       */
       AstDeclFun* getMatchingFunction( const std::vector<AstDeclFun*>& fn, const std::vector< const Type* >& prototype )
       {
          std::vector<AstDeclFun*> possibleFunctions;
@@ -186,6 +211,7 @@ namespace parser
       SymbolTableClasses  _classes; // current list of class definition
 
       Trees               _executionTrees;   // the trees that have been parsed
+      ImportedFunctions   _imported;         // the function htat have been imported
    };
 }
 }
