@@ -46,7 +46,7 @@ namespace parser
       }
 
       /**
-       @brief Parse the string.
+       @brief run the string.
        @throw RuntimeException when the compiler fails execute incorrectly (i.e. out of bounds, dangling reference...)
        @note variables, functions & classes declared in this string are saved in the current context and available
              for later usage.
@@ -82,7 +82,7 @@ namespace parser
 
       /**
        @brief find a global variable in the execution context
-       @throw std::exception if the varaible can't be found
+       @throw std::exception if the variable can't be found
        @return it's runtime value & type
        */
       const RuntimeValue& getVariable( const mvv::Symbol& name ) const
@@ -93,6 +93,89 @@ namespace parser
             throw std::exception("can't find this variable in the current execution context" );
          }
          return val->getRuntimeValue();
+      }
+
+      /**
+       @brief find a class definition using it's full path (i.e. Class1::Class2::ClassWeWant => create the vector (Class1, Class2, ClassWeWant))
+       @brief return 0 if class not found
+       */
+      const Type* getClass( const std::vector<mvv::Symbol>& path ) const
+      {
+         const AstDeclClass* c = _classes.find( path );
+         if ( !c )
+         {
+            return 0;
+         }
+
+         return c->getNodeType();
+      }
+
+      /**
+       @brief find a function/member function given a path and a prototype
+       @param path path to a class + function for a member function or function name for global function
+       @param prototype the prototype to mach (prototype = all argument types)
+       @return 0 if function not found
+       */
+      const AstDeclFun* getFunction( const std::vector<mvv::Symbol>& path, const std::vector< const Type* >& prototype )
+      {
+         std::vector<AstDeclFun*> possible;
+
+         if ( path.size() == 0 )
+            return 0;
+         if ( path.size() == 1 )
+         {
+            possible = VisitorType::getFunctionsFromGlobal( _funcs, path[ 0 ] );
+         } else {
+            std::vector<mvv::Symbol> pathToClass( path );
+            pathToClass.pop_back();
+
+            AstDeclClass* c = _classes.find( pathToClass );
+            if ( !c )
+            {
+               return 0;
+            }
+
+            possible = VisitorType::getFunctionsFromClass( *c, path[ path.size() - 1 ] );
+         }
+
+         return getMatchingFunction( possible, prototype );
+      }
+
+   private:
+      AstDeclFun* getMatchingFunction( const std::vector<AstDeclFun*>& fn, const std::vector< const Type* >& prototype )
+      {
+         std::vector<AstDeclFun*> possibleFunctions;
+         for ( ui32 n = 0; n < fn.size(); ++n )
+         {
+            if ( fn[ n ]->getVars().getVars().size() != prototype.size() )
+            {
+               // different number of arguments
+               continue;
+            }
+
+            ui32 nn = 0;
+            bool match = true;
+            for ( AstDeclVars::Decls::const_iterator it = fn[ n ]->getVars().getVars().begin(); it != fn[ n ]->getVars().getVars().end(); ++it, ++nn )
+            {
+               if ( !(*it)->getNodeType()->isEqual( *prototype[ nn ] ) )
+               {
+                  match = false;
+                  break;
+               }
+            }
+
+            if ( !match )
+               continue;
+
+            possibleFunctions.push_back( fn[ n ] );
+         }
+         if ( possibleFunctions.size() )
+         {
+            ensure( possibleFunctions.size() <= 1, "compiler error: a prototype must be unique" );
+            return possibleFunctions[ 0 ];
+         } else {
+            return 0;
+         }
       }
 
 

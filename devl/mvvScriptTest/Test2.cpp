@@ -106,6 +106,43 @@ struct TestEval
          TESTER_ASSERT( rt.intval == 5 );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{int n; Test(){ n = 5; }}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const Type* rt = fe.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ) ) );
+         TESTER_ASSERT( dynamic_cast<const TypeNamed*>( rt ) );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{class Test2{}}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const Type* rt = fe.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Test2" ) ) );
+         TESTER_ASSERT( dynamic_cast<const TypeNamed*>( rt ) );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int Fun1( string s ){return 5;} class Test{int Fun1(int n, float nn){return 0;} } int Fun1( Test t ){ return 1;}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const AstDeclFun* fn0 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) )  );
+         const AstDeclFun* fn1 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) )  );
+         const AstDeclFun* fn2 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) )  );
+         const AstDeclFun* fn3 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Fun2" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) )  );
+         const AstDeclFun* fn4 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Fun2" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) )  );
+         const AstDeclFun* fn5 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( fe.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ) ) ) )  );
+         TESTER_ASSERT( fn0 );
+         TESTER_ASSERT( !fn1 );
+         TESTER_ASSERT( fn2 );
+         TESTER_ASSERT( !fn3 );
+         TESTER_ASSERT( !fn4 );
+         TESTER_ASSERT( fn5 );
+      }
+
 
       /*
       // TODO activate
