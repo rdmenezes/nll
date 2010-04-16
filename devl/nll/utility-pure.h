@@ -5,6 +5,7 @@
 # include <string>
 # include <vector>
 # include <sstream>
+# include "types.h"
 
 # ifdef NLL_BOUND
 #  undef NLL_BOUND
@@ -105,8 +106,12 @@ namespace core
     */
    inline std::wstring stringTowstring( const std::string& s )
    {
-      std::wstring temp( s.length(), L' ' );
-      std::copy( s.begin(), s.end(), temp.begin() );
+      std::wstring temp;
+      temp.assign( s.begin(), s.end() );
+      if ( temp.size() )
+      {
+         temp[ 0 ] = s[ 0 ];
+      }
       return temp; 
    }
 }

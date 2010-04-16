@@ -11,6 +11,7 @@
 # include "visitor-type.h"
 # include "visitor-evaluate.h"
 # include "function-runnable.h"
+# include "import.h"
 
 namespace mvv
 {
@@ -22,8 +23,10 @@ namespace parser
    class MVVSCRIPT_API CompilerFrontEnd
    {
    public:
-      typedef std::vector< platform::RefcountedTyped<Ast> >                         Trees;
+      typedef std::set< platform::RefcountedTyped<Ast> >                         Trees;
       typedef std::map<const AstDeclFun*, platform::RefcountedTyped<FunctionRunnable> >   ImportedFunctions;
+      typedef std::set<mvv::Symbol> Files;
+      typedef std::vector<mvv::Symbol> FilesOrder;
 
    public:
       /**
@@ -33,6 +36,14 @@ namespace parser
        */
       CompilerFrontEnd( bool parseTrace = false, bool scanTrace = false ) : _context( parseTrace, scanTrace )
       {
+      }
+
+      ~CompilerFrontEnd()
+      {
+         for ( ui32 n = 0; n < _handleLibs.size(); ++n )
+         {
+            FreeLibraryWrapper( _handleLibs[ n ] );
+         }
       }
 
       /**
@@ -48,6 +59,18 @@ namespace parser
       }
 
       /**
+       @brief Returns the directories that will be searched to find an include/import code file
+
+       This 
+       */
+      FilesOrder& getImportDirectories()
+      {
+         return _importDirectories;
+      }
+
+
+
+      /**
        @brief run the string.
        @throw RuntimeException when the compiler fails execute incorrectly (i.e. out of bounds, dangling reference...)
        @note variables, functions & classes declared in this string are saved in the current context and available
@@ -55,31 +78,88 @@ namespace parser
        */
       Error::ErrorType run( const std::string& s )
       {
+         _context.clear(); // clear the previous errors
+
+         // local copy, so that if there is an error, we don't mess up the correct AST...
+         SymbolTableVars     vars = _vars;
+         SymbolTableFuncs    funcs = _funcs;
+         SymbolTableClasses  classes = _classes;
+
+         std::list<Ast*> exps;
          Ast* exp = _context.parseString( s );
-         _executionTrees.push_back( platform::RefcountedTyped<Ast>( exp ) );
+
+         Files importedLib;      // lib to be imported (just before runtime, we need to link function body...)
 
          if ( exp )
          {
-            VisitorRegisterDeclarations visitor( _context, _vars, _funcs, _classes );
-            visitor( *exp );
+            // explore all files: current + includes + import
+            exps.push_back( exp );
+            _explore( _context, vars, funcs, classes, exps, exp, importedLib );
             if ( !_context.getError().getStatus() )
             {
-               VisitorBind visitorBind( _context, _vars, _funcs, _classes );
-               visitorBind( *exp );
+               // run the binding visitor on all the trees
+               for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+               {
+                  VisitorBind visitorBind( _context, vars, funcs, classes );
+                  visitorBind( **it );
+               }
+
                if ( !_context.getError().getStatus() )
                {
-                  VisitorType visitorType( _context, _vars, _funcs, _classes );
-                  visitorType( *exp );
+                  // run the typing visitor on all the trees
+                  for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+                  {
+                     VisitorType visitorType( _context, vars, funcs, classes );
+                     visitorType( **it );
+                  }
+
                   if ( !_context.getError().getStatus() )
                   {
-                     VisitorEvaluate visitorEvaluate( _context, _vars, _funcs, _classes );
+                     // before runtime, load the new DLL
+                     for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
+                     {
+                        importDll( it->getName() );
+                     }
+
+                     // evaluate only the initial file
+                     VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes );
                      visitorEvaluate( *exp );
                   }
                }
             }
          }
 
+         if ( _context.getError().getStatus() == Error::SUCCESS )
+         {
+            // propagate if no error...
+            _vars = vars;
+            _funcs = funcs;
+            _classes = classes;
+
+            // save the tree for further execution
+            for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+            {
+               _executionTrees.insert( platform::RefcountedTyped<Ast>( *it ) );
+            }
+         } else {
+
+            // free the memory, we don;t want to save the results
+            for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+            {
+               delete *it;
+            }
+         }
+
+         _lastErrors = _context.getError().getMessage().str();
          return _context.getError().getStatus();
+      }
+
+      /**
+       @brief Returns the latest error message if any, associated to the latest run
+       */
+      const std::string& getLastErrorMesage() const
+      {
+         return _lastErrors;
       }
 
       /**
@@ -146,6 +226,10 @@ namespace parser
       /**
        @brief Registers a function to be called at runtime when the runtime detect function.getFunctionPointer()
               is about to be run
+
+       @note it is expected form an import DLL to use this function to populate the imported
+             function. As the dynamic memory is created by the import DLL and released from this DLL,
+             these 2 DLLs must share exactly the same CRT version!
        */
       void registerFunctionImport( platform::RefcountedTyped<FunctionRunnable> function )
       {
@@ -164,6 +248,61 @@ namespace parser
       void importDll( const std::string& name );
 
    private:
+      /**
+       @brief explore (parse, visit declaration) the the import & include files recursively & original file
+       */
+      void _explore( ParserContext& context,
+                     SymbolTableVars& vars,
+                     SymbolTableFuncs& funcs,
+                     SymbolTableClasses& classes,
+                     std::list<Ast*>& store,
+                     Ast* toExplore,
+                     Files& importedLib )
+      {
+         VisitorRegisterDeclarations visitor( context, vars, funcs, classes );
+         visitor( *toExplore );
+
+         if ( !_context.getError().getStatus() )
+         {
+            const VisitorRegisterDeclarations::Symbols& includes = visitor.getFilesToInclude();
+            const VisitorRegisterDeclarations::Symbols& imports =  visitor.getFilesToImport();
+
+            // parse the import/include
+            for ( VisitorRegisterDeclarations::Symbols::const_iterator it = includes.begin(); it != includes.end(); ++it )
+            {
+               // check it has never been pared before
+               if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
+               {
+                  Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  if ( exp )
+                  {
+                     // recursively check the dependencies
+                     store.push_back( exp );
+                     _explore( context, vars, funcs, classes, store, exp, importedLib );
+                  }
+                  _parsedFiles.insert( *it );
+               }
+            }
+
+            for ( VisitorRegisterDeclarations::Symbols::const_iterator it = imports.begin(); it != imports.end(); ++it )
+            {
+               // check it has never been pared before
+               if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
+               {
+                  Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  if ( exp )
+                  {
+                     // recursively check the dependencies
+                     store.push_back( exp );
+                     _explore( context, vars, funcs, classes, store, exp, importedLib );
+                     importedLib.insert( *it );   // after type visitor, we must link the imported functions
+                  }
+                  _parsedFiles.insert( *it );
+               }
+            }
+         }
+      }
+
       /**
        @brief Find the possible match from a set of functions and argument types
        */
@@ -211,7 +350,13 @@ namespace parser
       SymbolTableClasses  _classes; // current list of class definition
 
       Trees               _executionTrees;   // the trees that have been parsed
-      ImportedFunctions   _imported;         // the function htat have been imported
+      ImportedFunctions   _imported;         // the functions that have been imported
+      std::string         _lastErrors;       // save the last errors
+
+      Files               _parsedFiles;      // the set of files that have been already parsed (so an import/include with this file won't do anything...)
+      FilesOrder          _importDirectories;// directories where the import/include files will be searched, form first to last order
+      FilesOrder          _runtimePath;      // directories where the DLL will be looked at while a import is done
+      std::vector<void*>  _handleLibs;       // save the handles on the DLL manually loaded
    };
 }
 }

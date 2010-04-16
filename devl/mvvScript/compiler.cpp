@@ -1,6 +1,8 @@
-#include "import.h"
 #include "compiler.h"
 
+/**
+ @brief isolates the window header...
+ */
 namespace mvv
 {
 namespace parser
@@ -9,7 +11,7 @@ namespace parser
 
    void CompilerFrontEnd::importDll( const std::string& name )
    {
-      void* hMod = LoadLibraryWrapper( name + ".dll" );
+      void* hMod = LoadLibraryWrapper( name );
       if ( !hMod )
       {
          throw RuntimeException( ( std::string( "LoadLibrary failed to load the library:" ) + name + ".dll" ).c_str() );
@@ -20,6 +22,8 @@ namespace parser
       {
          throw RuntimeException( "GetProcAdress failed to find the starting point in the dll" );
       }
+
+      pfn( *this );
    }
 }
 }

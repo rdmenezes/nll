@@ -12,6 +12,7 @@ struct TestEval
 {
    void eval1()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -142,20 +143,13 @@ struct TestEval
          TESTER_ASSERT( !fn4 );
          TESTER_ASSERT( fn5 );
       }
-
+*/
       {
          CompilerFrontEnd fe;
-         fe.importDll("core");
-
-         /*
-         Error::ErrorType result = fe.run( " int test = 5;" );
+         Error::ErrorType result = fe.run( "import \"core\"" );
          TESTER_ASSERT( result == Error::SUCCESS );
-
-         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "test" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
-         TESTER_ASSERT( rt.intval == 5 );
-         */
       }
+
 
 
       /*

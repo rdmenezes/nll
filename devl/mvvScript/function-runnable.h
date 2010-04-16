@@ -23,8 +23,10 @@ namespace parser
    class MVVSCRIPT_API FunctionRunnable
    {
    public:
-      FunctionRunnable( AstDeclFun* fun ) : _fun( fun )
+      FunctionRunnable( const AstDeclFun* fun ) : _fun( fun )
       {
+      //   if ( !fun )
+      //      throw RuntimeException( "can't run null function" );
       }
 
       virtual ~FunctionRunnable()
@@ -48,7 +50,7 @@ namespace parser
       FunctionRunnable( const FunctionRunnable& );
 
    protected:
-      AstDeclFun* _fun;
+      const AstDeclFun* _fun;
    };
 }
 }

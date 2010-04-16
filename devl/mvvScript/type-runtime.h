@@ -48,7 +48,6 @@ namespace parser
 
       void setType( TypeEnum t, Type* tv )
       {
-         ensure( tv, "can't be null" );
          type = t;
          typeval = tv;
       }
