@@ -100,8 +100,8 @@ namespace parser
       AstVar*     _name;
       AstArgs*    _args;
       const mvv::Symbol*_simpleName;    // dont deallocate // if true: means it is a call to a global function/or construction of a class
-      AstDeclClass*     _instanciation; // the reference will hold a class if it is a class to be called with operator()
-      AstDeclClass*     _construction;  // refernce will hold a class def if the class need to be constructed
+      AstDeclClass*     _instanciation; // BINDING // the reference will hold a class if it is a class to be called with operator()
+      AstDeclClass*     _construction;  // BINDING // refernce will hold a class def if the class need to be constructed
       AstDeclFun*       _call;          // the function that needs to be called
    };
 }

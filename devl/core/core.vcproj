@@ -100,7 +100,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy &quot;$(SolutionDir)/core/core.ludo&quot; &quot;$(OutDir)&quot;"
+				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration

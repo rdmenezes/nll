@@ -12,7 +12,7 @@ struct TestEval
 {
    void eval1()
    {
-     
+      /* 
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -146,16 +146,51 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" int nn = 3 + 5; Vector3i v;" );
+         Error::ErrorType result = fe.run( "import \"core\" int nn = 1 == 2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
 
-         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "v" ) );
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
          
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
-         TESTER_ASSERT( rt.intval == 8 );
+         TESTER_ASSERT( rt.intval == 0 );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" int nn = 1 == 1;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" int nn1 = 1; int nn2 = 1; int nn = nn1 == nn2;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+*/
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n; Test( int nn ){ n = nn; } int operator+( Test t ){ return n + t.n; } } Test n1( 5 ); Test n2( 3 ); int nn = n1 + n2;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
 
 
       /*

@@ -58,6 +58,25 @@ public:
    }
 };
 
+class FunctionRunnableEqII : public FunctionRunnable
+{
+public:
+   FunctionRunnableEqII( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 || args[ 0 ]->type != RuntimeValue::INT || args[ 1 ]->type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT, 0 );
+      rt.intval = args[ 0 ]->intval == args[ 1 ]->intval;
+      return rt;
+   }
+};
+
 
 void importFunctions( CompilerFrontEnd& e)
 {
@@ -66,5 +85,10 @@ void importFunctions( CompilerFrontEnd& e)
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator+" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePlusII( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator==" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableEqII( fn ) ) );
    }
 }

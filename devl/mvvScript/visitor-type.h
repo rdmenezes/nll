@@ -261,7 +261,7 @@ namespace parser
          }
 
          // if type && operator== operator!=, special case: check the adress and return an int
-         TypeNamed* t = dynamic_cast<TypeNamed*>( &e.getLeft() );
+         TypeNamed* t = dynamic_cast<TypeNamed*>( e.getLeft().getNodeType() );
          if ( t &&
               e.getOp() == AstOpBin::EQ ||
               e.getOp() == AstOpBin::NE )
@@ -287,6 +287,7 @@ namespace parser
             {
                e.setNodeType( funs[ 0 ]->getNodeType()->clone() );
                e.setFunctionCall( funs[ 0 ] );
+               e.setIsBinOpInClass( true );
                return;
             } else {
                if ( funs.size() > 1 )

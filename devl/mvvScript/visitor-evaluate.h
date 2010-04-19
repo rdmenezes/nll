@@ -79,7 +79,45 @@ namespace parser
       {
          operator()( e.getLeft() );
          operator()( e.getRight() );
-         // TODO
+
+         // special case: named type with operator == and !=, we need to check the refcount pointer
+         TypeNamed* tl = dynamic_cast<TypeNamed*>( e.getLeft().getNodeType() );
+         if ( tl )
+         {
+            if ( e.getOp() == AstOpBin::EQ )
+            {
+               e.getRuntimeValue().setType( RuntimeValue::INT, 0 );
+               e.getRuntimeValue().intval = e.getLeft().getRuntimeValue().vals.getDataPtr() == e.getRight().getRuntimeValue().vals.getDataPtr();
+               return;
+            } else if ( e.getOp() == AstOpBin::NE )
+            {
+               e.getRuntimeValue().setType( RuntimeValue::INT, 0 );
+               e.getRuntimeValue().intval = e.getLeft().getRuntimeValue().vals.getDataPtr() != e.getRight().getRuntimeValue().vals.getDataPtr();
+               return;
+            }
+
+            // fetch object (in case A + B, with A a class and defined member operator+( B )
+            assert( e.getFunctionCall() ); // if object but not operator == != and no compile error => we must call a function
+            if ( e.getFunctionCall()->getMemberOfClass() )
+            {
+               e.getFunctionCall()->getMemberOfClass()->getRuntimeValue() = e.getLeft().getRuntimeValue();
+            }
+         }
+
+         // other cases: we need to call a function
+         AstArgs args( e.getLocation(), false );
+         ensure( e.getFunctionCall(), "compiler error: no function to call" );
+         if ( e.isBinOpInClass() )
+         {
+            // bin op declared in class, we need to fecth the source object, decrease one arg count
+            assert( e.getFunctionCall()->getMemberOfClass() ); // must have a class ref as it is a class member
+            e.getFunctionCall()->getMemberOfClass()->getRuntimeObjectSource() = e.getLeft().getRuntimeValue();
+            args.insert( &e.getRight() );
+         } else {
+            args.insert( &e.getLeft() );
+            args.insert( &e.getRight() );
+         }
+         _callFunction( e, args, *e.getFunctionCall() );
       }
 
       virtual void operator()( AstIf& e )
@@ -201,31 +239,28 @@ namespace parser
          // nothing to do
       }
 
-      virtual void operator()( AstExpCall& e )
+      /**
+       @brief Evaluate the function fun, with arguments args and save the result in nodeToEval
+       @note if the function to evalaute is a member function, the source object must be
+             fecthed beforehand
+       */
+      void _callFunction( AstExp& nodeToEval, AstArgs& args, AstDeclFun& fun, bool skipFirstArg = false )
       {
-         // first, evaluate the arguments
-         operator()( e.getArgs() );
-
-         
-         // if the function is actually a member function, fetch the object
-         ensure( e.getFunctionCall(), "compiler error: function call not set" );
-         if ( e.getConstructed() )
+         // fetch the arguments
+         AstDeclVars::Decls::iterator itVar = fun.getVars().getVars().begin();
+         AstArgs::Args::iterator itArg = args.getArgs().begin();
+         if ( skipFirstArg )
          {
-            // TODO
-            //e.getConstructed()->getRuntimeObjectSource() = construct the object from the members...
-         } else if ( e.getFunctionCall() )
-         {
-            // TODO
+            // skip the first argument (for example is bin op declared in class)
+            ++itArg;
          }
 
-         // fetch the arguments
-         AstDeclVars::Decls::iterator itVar = e.getFunctionCall()->getVars().getVars().begin();
-         AstArgs::Args::iterator itArg = e.getArgs().getArgs().begin();
-         for ( ; itArg != e.getArgs().getArgs().end(); ++itVar, ++itArg )
+         for ( ; itArg != args.getArgs().end(); ++itVar, ++itArg )
          {
+            assert( itVar != fun.getVars().getVars().end() ); // compiler error: number of arguments must be compatible with function declaration
             (*itVar)->getRuntimeValue() = (*itArg)->getRuntimeValue();
          }
-         while ( itVar != e.getFunctionCall()->getVars().getVars().end() )
+         while ( itVar != fun.getVars().getVars().end() )
          {
             // if we are not done, we must first evaluate the default value and fetch it to the argument
             ensure( (*itVar)->getInit(), "compiler error: there must be a default value!" );
@@ -236,11 +271,46 @@ namespace parser
          }
 
          // call the function
-         ensure( e.getFunctionCall()->getBody(), "compiler error: body function undeclared" );
-         operator()( *e.getFunctionCall()->getBody() );
+         if ( fun.getBody() )
+         {
+            operator()( *fun.getBody() );
+            nodeToEval.getRuntimeValue() = fun.getRuntimeValue();
+            return;
+         } else if ( fun.getImportedFunction() )
+         {
+            // construct arg list
+            std::vector<RuntimeValue*> vals( fun.getVars().getVars().size() );
+            int n = 0;
+            for ( AstDeclVars::Decls::iterator it = fun.getVars().getVars().begin(); it != fun.getVars().getVars().end(); ++it, ++n )
+            {
+               vals[ n ] = &((*it)->getRuntimeValue());
+            }
+            nodeToEval.getRuntimeValue() = fun.getImportedFunction()->run( vals );
+            return;
+         }
 
-         // fetch the value
-         e.getRuntimeValue() = e.getFunctionCall()->getRuntimeValue();
+         throw RuntimeException( "unable to find function implementation" );
+      }
+
+
+      virtual void operator()( AstExpCall& e )
+      {
+         // first, evaluate the arguments
+         operator()( e.getArgs() );
+
+         /*
+         // if the function is actually a member function, fetch the object
+         ensure( e.getFunctionCall(), "compiler error: function call not set" );
+         if ( e.getConstructed() )
+         {
+            // TODO
+            //e.getConstructed()->getRuntimeObjectSource() = construct the object from the members...
+         } else if ( e.getFunctionCall() )
+         {
+            // TODO
+         }*/
+
+         _callFunction( e, e.getArgs(), *e.getFunctionCall() );
       }
 
       virtual void operator()( AstDeclVar& e )

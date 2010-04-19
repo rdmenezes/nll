@@ -306,6 +306,7 @@ rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |rvalue GT rvalue     { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::GT ); }
         |rvalue GE rvalue     { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::GE ); }
         |rvalue NE rvalue     { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::NE ); }
+        |rvalue EQ rvalue     { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::EQ ); }
         |MINUS rvalue %prec UMINUS        { $$ = new mvv::parser::AstOpBin( @$, new mvv::parser::AstInt( @$, 0 ) , $2, mvv::parser::AstOpBin::MINUS ); }
         |LPAREN rvalue RPAREN             { $$ = new mvv::parser::AstExpSeq( @$, $2 ); }
         |STRING                           { $$ = new mvv::parser::AstString( @$, *$1 ); }

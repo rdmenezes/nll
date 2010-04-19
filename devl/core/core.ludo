@@ -2,6 +2,9 @@
  @brief Defines the basic operators + - * /
  */
 import int operator+( int a, int b );
+import int operator==( int a, int b );
+
+/*
 import int operator-( int a, int b );
 import int operator/( int a, int b );
 import int operator*( int a, int b );
@@ -20,21 +23,24 @@ import float operator+( int a, float b );
 import float operator-( int a, float b );
 import float operator/( int a, float b );
 import float operator*( int a, float b );
+*/
 
 /**
  @brief Defines the basic operators || &&
  */
+ /*
 import int operator||( int a, int b );
 import int operator&&( int a, int b );
-
+*/
 /**
  @brief Defines the basic operators on strings
  */
-import string operator+( string s );
+//import string operator+( string s );
 
 /**
  @brief Defines basic datatypes
  */
+ /*
 class Vector3i
 {
 	int vals[ 3 ];
@@ -88,3 +94,4 @@ class Matrix3f
 		vals[ 8 ] = a22;
 	}
 }
+*/

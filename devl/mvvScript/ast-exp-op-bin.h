@@ -28,7 +28,7 @@ namespace parser
       };
 
    public:
-      AstOpBin( const YYLTYPE& location, AstExp* left, AstExp* right, Op op ) : AstExp( location ), _left( left ), _right( right ), _op( op ), _fn( 0 )
+      AstOpBin( const YYLTYPE& location, AstExp* left, AstExp* right, Op op ) : AstExp( location ), _left( left ), _right( right ), _op( op ), _fn( 0 ), _isBinOpInClass( false )
       {
          ensure( left && right, "must not be null" );
       }
@@ -90,11 +90,23 @@ namespace parser
          v( *this );
       }
 
+      void setIsBinOpInClass( bool val )
+      {
+         _isBinOpInClass = val;
+      }
+
+      bool isBinOpInClass() const
+      {
+         return _isBinOpInClass;
+      }
+
+
    private:
       AstExp*     _left;
       AstExp*     _right;
       Op          _op;
       AstDeclFun* _fn;
+      bool        _isBinOpInClass;     // true if the Binary operator is declared in the class
 
    };
 }

@@ -95,6 +95,11 @@ namespace parser
          _functionImported = f;
       }
 
+      FunctionRunnable* getImportedFunction()
+      {
+         return _functionImported.getDataPtr();
+      }
+
    private:
       AstTypeT*            _type;
       AstDeclVars*         _vars;
