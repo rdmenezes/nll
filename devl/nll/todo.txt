@@ -136,3 +136,9 @@
 [ INFO ]
 - digit database: http://www.vision.ime.usp.br/~daniel/sibgrapi2005/
 - preprocessing + classifier + result + database : http://yann.lecun.com/exdb/mnist/
+
+
+[ SPEED ]
+- MIP: 2.4ghz Intel Pentium IV 512*512*246 < 48 seconds
+                               128*128*172 < 8 seconds
+       single processor to produce 120 mip frames

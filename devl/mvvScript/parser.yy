@@ -52,10 +52,9 @@
     - multidimentional arrays can have a several unknow dim
     
     - TODO arg ref -> create the ref for runtime!
-    - TODO if func imported: don't allow default parameter
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
-    - TODO: decl variable with ref, improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n;
+    - TODO: declared variable with ref: improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n;
     */
    
    #include <string>

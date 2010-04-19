@@ -40,10 +40,7 @@ namespace parser
 
       ~CompilerFrontEnd()
       {
-         for ( ui32 n = 0; n < _handleLibs.size(); ++n )
-         {
-            FreeLibraryWrapper( _handleLibs[ n ] );
-         }
+         clear();
       }
 
       /**
@@ -56,6 +53,15 @@ namespace parser
          _funcs.clear();
          _classes.clear();
          _executionTrees.clear();
+
+         for ( ui32 n = 0; n < _handleLibs.size(); ++n )
+         {
+            FreeLibraryWrapper( _handleLibs[ n ] );
+         }
+         _handleLibs.clear();
+         _imported.clear();
+         _lastErrors.clear();
+         _parsedFiles.clear();
       }
 
       /**
@@ -113,8 +119,20 @@ namespace parser
                      visitorType( **it );
                   }
 
-                  if ( !_context.getError().getStatus() )
+                  // update variables and stuff..
+                  if ( _context.getError().getStatus() == Error::SUCCESS )
                   {
+                     // propagate if no error...
+                     _vars = vars;
+                     _funcs = funcs;
+                     _classes = classes;
+
+                     // save the tree for further execution
+                     for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+                     {
+                        _executionTrees.insert( platform::RefcountedTyped<Ast>( *it ) );
+                     }
+
                      // before runtime, load the new DLL
                      for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
                      {
@@ -124,29 +142,15 @@ namespace parser
                      // evaluate only the initial file
                      VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes );
                      visitorEvaluate( *exp );
+                  } else {
+
+                     // free the memory, we don;t want to save the results
+                     for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+                     {
+                        delete *it;
+                     }
                   }
                }
-            }
-         }
-
-         if ( _context.getError().getStatus() == Error::SUCCESS )
-         {
-            // propagate if no error...
-            _vars = vars;
-            _funcs = funcs;
-            _classes = classes;
-
-            // save the tree for further execution
-            for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
-            {
-               _executionTrees.insert( platform::RefcountedTyped<Ast>( *it ) );
-            }
-         } else {
-
-            // free the memory, we don;t want to save the results
-            for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
-            {
-               delete *it;
             }
          }
 
@@ -277,7 +281,7 @@ namespace parser
                   if ( exp )
                   {
                      // recursively check the dependencies
-                     store.push_back( exp );
+                     store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
                      _explore( context, vars, funcs, classes, store, exp, importedLib );
                   }
                   _parsedFiles.insert( *it );
@@ -293,7 +297,7 @@ namespace parser
                   if ( exp )
                   {
                      // recursively check the dependencies
-                     store.push_back( exp );
+                     store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
                      _explore( context, vars, funcs, classes, store, exp, importedLib );
                      importedLib.insert( *it );   // after type visitor, we must link the imported functions
                   }

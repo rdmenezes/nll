@@ -6,11 +6,9 @@
 # include "type.h"
 
 //
-// TODO node type must all be cloned when copied! else memory problems...
-// TODO check int n[3] = {n[ 0 ]}; recursive...
-// TODO declaration order in class
+// TODO declaration order in class => should be independent
 // TODO class and operator overloading: in a class, (this) not shown...
-// TODO float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n; : function returns a float, but argument does not->need conversion
+// TODO float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n; : function returns a float, but argument does not->need conversion or type error
 
 
 namespace mvv
@@ -19,6 +17,14 @@ namespace parser
 {
    /**
     @brief Defines a visitor visiting all the nodes and typing all typable nodes
+
+    @note Because we want to remove forward declarations, in the case of includes that mutually
+    need each other, we sometimes will need to start typing a file while some part of the ohter
+    have not been typed, so we manually need to launch the typing on the nodes that are missing
+    (the mutual dependencies). => we need to type the classes and function declarations!
+    The scenario is: - use a function imported -> we need to type it! (when lookup the possible functions)
+                       also, if the imported function uses types that have not been typed -> type them! (AstDeclVar)
+                     - use a type declared in another file( which have not yet been parsed)
     */
    class VisitorType : public VisitorDefault
    {
@@ -105,7 +111,7 @@ namespace parser
        First check if a function match exactly the args - in this case exactly 1 func will be returned,
        else check all functions that are possible. If several, there is a conflict and an error must be issued.
        */
-      static std::vector<AstDeclFun*> getMatchingFunctionsFromArgs( const std::vector<AstDeclFun*>& funcs, const AstArgs& args )
+      std::vector<AstDeclFun*> getMatchingFunctionsFromArgs( const std::vector<AstDeclFun*>& funcs, const AstArgs& args )
       {
          std::vector<AstDeclFun*> res;
          std::vector<AstDeclFun*> possible;
@@ -121,6 +127,14 @@ namespace parser
          lbl_continue:
             if ( n >= funcs.size() )
                break;
+
+            // check the function has been typed (in case mutual inclusion, this may not be true as we need to parse 1 file at a time)
+            if ( funcs[ n ]->getNodeType() == 0 )
+            {
+               // manually type the function...
+               VisitorType visitor( _context, _vars, _funcs, _classes );
+               visitor( *funcs[ n ] );
+            }
 
             bool succeeded = true;
             bool equal = true;
@@ -515,6 +529,12 @@ namespace parser
 
       virtual void operator()( AstType& e )
       {
+         if ( e.getNodeType() )
+         {
+            // this node has already been manually parsed before
+            return;
+         }
+
          switch ( e.getType() )
          {
          case AstType::FLOAT:
@@ -535,6 +555,14 @@ namespace parser
 
          case AstType::SYMBOL:
             ensure( e.getReference(), "compiler error: can't find a link on a symbol" );
+
+            if ( e.getReference()->getNodeType() == 0)
+            {
+               // we manually need to type this node as it is due to mutual inclusion, with one
+               // of the header that has not been parsed yet
+               VisitorType visitor( _context, _vars, _funcs, _classes );
+               visitor( *e.getReference() );
+            }
             e.setNodeType( e.getReference()->getNodeType()->clone() );
             break;
 
@@ -561,12 +589,24 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         if ( e.getNodeType() )
+         {
+            // this node has been manually typed (i.e. manual inclusion)
+            return;
+         }
+
          e.setNodeType( new TypeNamed( &e, false ) );
          operator()( e.getDeclarations() );
       }
 
       virtual void operator()( AstDeclFun& e ) 
       {
+         if ( e.getNodeType() )
+         {
+            // this node has been manually typed (i.e. manual inclusion)
+            return;
+         }
+
          bool isAConstructor = false;
          if ( e.getType() )
          {
@@ -679,6 +719,11 @@ namespace parser
       {
          // we first must visite the type!
          operator()( e.getType() );
+         if ( e.getType().getNodeType() == 0 )
+         {
+            // this mean we have at least 2 files with mutual inclusion, try to type the class
+            std::cout << "TODO" << std::endl;
+         }
          ensure( e.getType().getNodeType(), "tree can't be typed" );
          if ( TypeVoid().isCompatibleWith( *e.getType().getNodeType() ) )
          {

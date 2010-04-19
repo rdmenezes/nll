@@ -37,7 +37,7 @@ namespace platform
             bool loaded = nll::imaging::loadSimpleFlatFile( _location, *volume );
             if ( loaded )
             {
-               std::cout << "volume loaded: " << _location << std::endl;
+               std::cout << "volume loaded: " << _location << " size=" << (*volume).getSize()[ 0 ] << ":" << (*volume).getSize()[ 1 ] << ":" << (*volume).getSize()[ 2 ] << std::endl;
             } else {
                std::cout << "error: cant' load volume!!! " << _location << std::endl;
             }
