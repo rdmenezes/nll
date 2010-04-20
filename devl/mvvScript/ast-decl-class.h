@@ -13,9 +13,15 @@ namespace parser
    class MVVSCRIPT_API AstDeclClass : public AstDecl
    {
    public:
-      AstDeclClass( const YYLTYPE& location, const mvv::Symbol& name, AstDecls* decls ) : AstDecl( location, name ), _decls( decls )
+      AstDeclClass( const YYLTYPE& location, const mvv::Symbol& name, AstDecls* decls ) : AstDecl( location, name ), _decls( decls ), _memberVariableSize( 0 )
       {
          ensure( decls, "can't be null" );
+
+         for ( AstDecls::Decls::iterator it = decls->getDecls().begin(); it != decls->getDecls().end(); ++it )
+         {
+            if ( dynamic_cast<AstDeclVar*>( *it ) )
+               ++_memberVariableSize;
+         }
       }
 
       ~AstDeclClass()
@@ -50,9 +56,14 @@ namespace parser
          return _runtimeObjectSource;
       }
 
+      ui32 getMemberVariableSize() const
+      {
+         return _memberVariableSize;
+      }
+
    private:
       AstDecls*            _decls;
-
+      ui32                 _memberVariableSize; // hold the number of field an object contains
       RuntimeValue         _runtimeObjectSource; // this hold the current object context (used for example for 'this')
    };
 }

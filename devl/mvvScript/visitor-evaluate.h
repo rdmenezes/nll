@@ -30,6 +30,9 @@ namespace parser
    /**
     @brief Defines a visitor visiting all the nodes but doing nothing
     @note this is usefull if a visitor is only handling a limited number of nodes
+    @note TODO for class type efficiency: before doing any computations on a class,
+          we must fetch all the member to the class declaration, do processing,
+          then copy back the results, which is extremly inefficient for big structures...
     */
    class VisitorEvaluate : public Visitor
    {
@@ -112,6 +115,7 @@ namespace parser
             // bin op declared in class, we need to fecth the source object, decrease one arg count
             assert( e.getFunctionCall()->getMemberOfClass() ); // must have a class ref as it is a class member
             e.getFunctionCall()->getMemberOfClass()->getRuntimeObjectSource() = e.getLeft().getRuntimeValue();
+            _runtimeValueToClass( e.getLeft().getRuntimeValue(), *e.getFunctionCall()->getMemberOfClass() );
             args.insert( &e.getRight() );
          } else {
             args.insert( &e.getLeft() );
@@ -183,8 +187,30 @@ namespace parser
 
       virtual void operator()( AstVarField& e )
       {
+         AstDeclClass* c = dynamic_cast<AstDeclClass*>( e.getReference() );
+         assert( c ); /* Compiler error: the reference must be a class! */
+
+         ui32 index = 0;
+         AstDecls::Decls::iterator it = c->getDeclarations().getDecls().begin();
+         for ( ; it != c->getDeclarations().getDecls().end(); ++it )
+         {
+            if ( (*it)->getName() == e.getName() )
+            {
+               break;
+            }
+            if ( dynamic_cast<AstDeclVar*>( *it ) )
+            {
+               ++index;
+            }
+         }
+         assert( it != c->getDeclarations().getDecls().end() ); // compiler error: we must be able to find the var name!
+         /*
+         // TODO check assert
+         assert( c->getRuntimeValue().type == RuntimeValue::TYPE );
+         assert( c->getRuntimeValue().vals.getDataPtr() && ( *c->getRuntimeValue().vals ).size() > index );
+         */
+         e.getRuntimeValue() = ( *e.getField().getReference()->getRuntimeValue().vals )[ index ];
          operator()( e.getField() );
-         // TODO propagate values
       }
 
       virtual void operator()( AstType& )
@@ -244,7 +270,7 @@ namespace parser
        @note if the function to evalaute is a member function, the source object must be
              fecthed beforehand
        */
-      void _callFunction( AstExp& nodeToEval, AstArgs& args, AstDeclFun& fun, bool skipFirstArg = false )
+      void _callFunction( Typable& nodeToEval, AstArgs& args, AstDeclFun& fun, bool skipFirstArg = false )
       {
          // fetch the arguments
          AstDeclVars::Decls::iterator itVar = fun.getVars().getVars().begin();
@@ -275,7 +301,6 @@ namespace parser
          {
             operator()( *fun.getBody() );
             nodeToEval.getRuntimeValue() = fun.getRuntimeValue();
-            return;
          } else if ( fun.getImportedFunction() )
          {
             // construct arg list
@@ -286,10 +311,9 @@ namespace parser
                vals[ n ] = &((*it)->getRuntimeValue());
             }
             nodeToEval.getRuntimeValue() = fun.getImportedFunction()->run( vals );
-            return;
+         } else {
+            throw RuntimeException( "unable to find function implementation" );
          }
-
-         throw RuntimeException( "unable to find function implementation" );
       }
 
 
@@ -347,13 +371,61 @@ namespace parser
                {
                   operator()( *( (*e.getType().getSize())[ n ] ) );
                }
-            } 
+            }
+            // TODO set object type
+            return;
          }
 
          if ( e.getObjectInitialization() )
          {
-            // TODO
+            ensure( e.getConstructorCall(), "compiler error: object init is always associated with a function call")
             operator()( *e.getObjectInitialization() );
+            _callFunction( e, *e.getObjectInitialization(), *e.getConstructorCall() );
+            assert( e.getConstructorCall()->getMemberOfClass() ); // error
+
+            e.getRuntimeValue().vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+            _classToRuntimeValue( *e.getConstructorCall()->getMemberOfClass(), e.getRuntimeValue() );
+            return;
+         }
+      }
+
+      /**
+       @brief assumes the runtime r has enough space to store the values
+       */
+      static void _classToRuntimeValue( AstDeclClass& c, RuntimeValue& r )
+      {
+         r.setType( RuntimeValue::TYPE, c.getNodeType() );
+         if ( (*r.vals).size() != c.getMemberVariableSize() )
+         {
+            (*r.vals).resize( c.getMemberVariableSize() );
+         }
+
+         ui32 index = 0;
+         for ( AstDecls::Decls::iterator it = c.getDeclarations().getDecls().begin(); it != c.getDeclarations().getDecls().end(); ++it )
+         {
+            if ( dynamic_cast<AstDeclVar*>( *it ) )
+            {
+               (*r.vals)[ index ] = (*it)->getRuntimeValue();
+               ++index;
+            }
+         }
+      }
+
+      /**
+       @brief fetch the runtime value of a class to its definition
+       */
+      static void _runtimeValueToClass( RuntimeValue& r, AstDeclClass& c )
+      {
+         ui32 index = 0;
+         assert( (*r.vals).size() == c.getMemberVariableSize() ); // compiler problem, the object must be of the same memory layout
+         for ( AstDecls::Decls::iterator it = c.getDeclarations().getDecls().begin(); index != c.getMemberVariableSize(); ++it )
+         {
+            assert( it != c.getDeclarations().getDecls().end() ); // compiler problem
+            if ( dynamic_cast<AstDeclVar*>( *it ) )
+            {
+               (*it)->getRuntimeValue() = (*r.vals)[ index ];
+               ++index;
+            }
          }
       }
 
