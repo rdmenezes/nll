@@ -36,19 +36,8 @@ namespace parser
          return _type;
       }
 
-      RuntimeValue& getRuntimeValue()
-      {
-         return _value;
-      }
-
-      const RuntimeValue& getRuntimeValue() const
-      {
-         return _value;
-      }
-
    protected:
       Type*          _type;
-      RuntimeValue   _value;
    };
 }
 }

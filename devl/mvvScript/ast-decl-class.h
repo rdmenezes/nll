@@ -19,8 +19,12 @@ namespace parser
 
          for ( AstDecls::Decls::iterator it = decls->getDecls().begin(); it != decls->getDecls().end(); ++it )
          {
-            if ( dynamic_cast<AstDeclVar*>( *it ) )
+            AstDeclVar* v = dynamic_cast<AstDeclVar*>( *it );
+            if ( v )
+            {
+               v->setRuntimeIndex( _memberVariableSize );
                ++_memberVariableSize;
+            }
          }
       }
 

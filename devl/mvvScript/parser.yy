@@ -50,6 +50,7 @@
     - import function: can be from class/global function. Because all declarations must be loaded in memory, it can't be declared multiple times
     - array are also refcounted so they can be shared quickly
     - multidimentional arrays can have a several unknow dim
+    - includes/import are evaluated first
     
     - TODO arg ref -> create the ref for runtime!
     - TODO add covariant return type when inheritance added

@@ -11,7 +11,7 @@ namespace parser
    class MVVSCRIPT_API AstArgs : public Ast
    {
    public:
-      typedef std::list<AstExp*>   Args;
+      typedef std::deque<AstExp*>   Args;
 
       AstArgs( const YYLTYPE& location, bool toDeallocate = true ) : Ast( location ), _toDeallocate( toDeallocate )
       {

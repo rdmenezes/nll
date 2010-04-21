@@ -16,6 +16,8 @@ namespace parser
       AstDeclVar( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstExp* init = 0, AstArgs* declarationList = 0, AstArgs* objectInit = 0 ) : AstDecl( location, name ), _type( type ), _init( init ), _declarationList( declarationList ), _class( 0 ), _objectInit( objectInit ), _constructor( 0 )
       {
          ensure( type, "can't be null" );
+  //       _index = -1;
+         _indexRuntime = static_cast<ui32>( -1 );
       }
 
       ~AstDeclVar()
@@ -94,6 +96,28 @@ namespace parser
       {
          return _constructor;
       }
+/*
+      void setIndex( ui32 index )
+      {
+         _index = 0;
+      }
+
+      ui32 getIndex() const
+      {
+         return _index;
+      }
+*/
+      void setRuntimeIndex( ui32 index )
+      {
+         _indexRuntime = index;
+      }
+
+      ui32 getRuntimeIndex() const
+      {
+         return _indexRuntime;
+      }
+
+
 
    private:
       AstTypeT*            _type;
@@ -102,6 +126,7 @@ namespace parser
       AstDeclClass*        _class;
       AstArgs*             _objectInit;      // like "Test a(1, "sdfsf", Test3() )"
       AstDeclFun*          _constructor;
+      ui32                 _indexRuntime;    // the index of the declaration in the runtime stack relative to the current frame pointer
    };
 }
 }

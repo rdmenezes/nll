@@ -2,6 +2,7 @@
 # define MVV_PARSER_AST_DECL_VARS_H_
 
 # include "ast.h"
+# include <deque>
 
 
 namespace mvv
@@ -11,7 +12,7 @@ namespace parser
    class MVVSCRIPT_API AstDeclVars : public Ast
    {
    public:
-      typedef std::list<AstDeclVar*>   Decls;
+      typedef std::deque<AstDeclVar*>   Decls;
 
       AstDeclVars( const YYLTYPE& location ) : Ast( location )
       {

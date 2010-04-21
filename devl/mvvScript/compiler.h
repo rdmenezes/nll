@@ -33,9 +33,12 @@ namespace parser
        @brief construct the frontend
        @param parseTrace if true, the parsing trace will be displayed on std::cout
        @param scanTrace if true, the tokens will be displayed on std::cout
+       @param stackSize the number of elements the stack can contain at maximum
        */
-      CompilerFrontEnd( bool parseTrace = false, bool scanTrace = false ) : _context( parseTrace, scanTrace )
+      CompilerFrontEnd( bool parseTrace = false, bool scanTrace = false, ui32 stackSize = 10000 ) : _context( parseTrace, scanTrace )
       {
+         // if we are bigger than that, expect very wrong result due to vector resizing which invalidate references...
+         _env.stack.reserve( stackSize );
       }
 
       ~CompilerFrontEnd()
@@ -139,8 +142,19 @@ namespace parser
                         importDll( it->getName() );
                      }
 
-                     // evaluate only the initial file
-                     VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes );
+                     // evaluate ALL the files
+                     if ( exps.size() > 1 )
+                     {
+                        // we must evaluate in the same order than explore, so that the static link match the reality!
+                        for ( std::list<Ast*>::reverse_iterator it = ++exps.rbegin(); it != exps.rend(); ++it )
+                        {
+                           VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env );
+                           visitorEvaluate( **it );
+                        }
+                     }
+
+                     // finally update our source file
+                     VisitorEvaluate visitorEvaluate( _context, _vars, _funcs, _classes, _env );
                      visitorEvaluate( *exp );
                   } else {
 
@@ -171,14 +185,24 @@ namespace parser
        @throw std::exception if the variable can't be found
        @return it's runtime value & type
        */
-      const RuntimeValue& getVariable( const mvv::Symbol& name ) const
+      const RuntimeValue& getVariable( const mvv::Symbol& name )
       {
          const AstDeclVar* val = _vars.find( name );
          if ( !val )
          {
             throw std::exception("can't find this variable in the current execution context" );
          }
-         return val->getRuntimeValue();
+         if ( val->getRuntimeIndex() >= _env.stack.size() )
+         {
+            throw std::exception("incorrect frame pointer" );
+         }
+
+         RuntimeValue& res = _env.stack[ val->getRuntimeIndex() ];
+         while ( res.type == RuntimeValue::REF )
+         {
+            res = *res.ref;
+         }
+         return res;
       }
 
       /**
@@ -263,7 +287,7 @@ namespace parser
                      Ast* toExplore,
                      Files& importedLib )
       {
-         VisitorRegisterDeclarations visitor( context, vars, funcs, classes );
+         VisitorRegisterDeclarations visitor( context, vars, funcs, classes, _env.framePointer );
          visitor( *toExplore );
 
          if ( !_context.getError().getStatus() )
@@ -361,6 +385,7 @@ namespace parser
       FilesOrder          _importDirectories;// directories where the import/include files will be searched, form first to last order
       FilesOrder          _runtimePath;      // directories where the DLL will be looked at while a import is done
       std::vector<void*>  _handleLibs;       // save the handles on the DLL manually loaded
+      RuntimeEnvironment  _env;              // the current environment
    };
 }
 }

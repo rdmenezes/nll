@@ -30,7 +30,8 @@ namespace parser
       VisitorRegisterDeclarations( ParserContext& context,
                                    SymbolTableVars& vars,
                                    SymbolTableFuncs& funcs,
-                                   SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _scopeDepth( 0 )
+                                   SymbolTableClasses& classes,
+                                   ui32& currentFramePointer ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _scopeDepth( 0 ), _currentFramePointer( currentFramePointer )
       {
          // global scope
          _vars.beginScope();
@@ -233,6 +234,7 @@ namespace parser
                impl::reportAlreadyDeclaredType( _vars.find( e.getName() )->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
             } else {
                _vars.insert( e.getName(), &e );
+               e.setRuntimeIndex( _currentFramePointer++ ); // save the current FP so we can have debug values...
             }
          }
       }
@@ -267,6 +269,7 @@ namespace parser
       SymbolTableVars&                  _vars;
       SymbolTableFuncs&                 _funcs;
       SymbolTableClasses&               _classes;
+      ui32&                             _currentFramePointer;  // used for debugging so we can access particular variable
    };
 }
 }

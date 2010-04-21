@@ -3,6 +3,7 @@
 
 # include "mvvScript.h"
 # include <mvvPlatform/refcounted.h>
+# include <stack>
 
 namespace mvv
 {
@@ -33,34 +34,63 @@ namespace parser
          STRING,     /// string
          TYPE,       /// class type
          ARRAY,      /// array type
+         REF,        /// reference type
          NIL         /// empty pointer type
       };
+
    public:
       RuntimeValue()
       {
          type = EMPTY;
-         typeval = 0;
+         ref = 0;
       }
 
-      RuntimeValue( TypeEnum t, Type* v ) : type( t ), typeval( v )
+      RuntimeValue( TypeEnum t ) : type( t )
       {
+         ref = 0;
       }
 
-      void setType( TypeEnum t, Type* tv )
+      void setType( TypeEnum t )
       {
          type = t;
-         typeval = tv;
       }
-
-      TypeEnum    type;          /// shortcut for the type of value
-      Type*       typeval;       /// the underlying type
-
+  
+      
+      // values...
       float       floatval;      /// hold the value of the runtime value is of this type
       int         intval;        /// hold the value of the runtime value is of this type
-      std::string stringval;     /// hold the value of the runtime value is of this type
-
       platform::RefcountedTyped<RuntimeValues> vals; /// hold a list of values (i.e. named value or array)
+      std::string stringval;     // hold a string
+      RuntimeValue* ref;         // hold a reference
+
+      TypeEnum    type;          /// shortcut for the type of value    
    };
+
+   struct RuntimeEnvironment
+   {
+      RuntimeEnvironment()
+      {
+         framePointer = 0;
+      }
+
+      RuntimeValues     stack;            // stack, 1 object = 1 entry in the stack
+      RuntimeValue      resultRegister;   // when a function returns, var is evaluated... this register is updated
+      ui32              framePointer;     // the active frame
+      std::stack<ui32>  stackFrame;       // a list of frame pointers
+   };
+
+   /**
+    @brief unref a variable (in case of a variable, we must create an alias using reference to transmit its value)
+    */
+   inline RuntimeValue& unref( RuntimeValue& r )
+   {
+      RuntimeValue* rr = &r;
+      while ( rr->type == RuntimeValue::REF )
+      {
+         rr = rr->ref;
+      }
+      return *rr;
+   }
 }
 }
 

@@ -15,6 +15,14 @@ namespace parser
       {}
    };
 
+   inline void unstack( RuntimeValues& stack, ui32 nb )
+   {
+      while ( nb-- )
+      {
+         stack.pop_back();
+      }
+   }
+
    namespace impl
    {
       inline void runtimeError( const YYLTYPE& loc, mvv::parser::ParserContext& context, const std::string& msg )
@@ -28,11 +36,20 @@ namespace parser
    }
 
    /**
-    @brief Defines a visitor visiting all the nodes but doing nothing
-    @note this is usefull if a visitor is only handling a limited number of nodes
-    @note TODO for class type efficiency: before doing any computations on a class,
-          we must fetch all the member to the class declaration, do processing,
-          then copy back the results, which is extremly inefficient for big structures...
+    @brief Evaluate a fully annotated Ast.
+
+    ResultRegister: is used to store indermediate results
+
+    Frame pointer: points to the current frame. example : int ( int, int )
+                  => stack growing direction
+                   int int
+                   ^
+                   |
+                   FP
+                   It is only changed when a function is called
+    Stack frame: When a function run/finish we need to push the current FP/then pop
+
+    AstDeclVar runtimeIndex is relative to the current frame pointer, ex: runtimeIndex = 3, FP = 100, index in frame = FP + runtimeIndex
     */
    class VisitorEvaluate : public Visitor
    {
@@ -40,92 +57,83 @@ namespace parser
       VisitorEvaluate( ParserContext& context,
                        SymbolTableVars& vars,
                        SymbolTableFuncs& funcs,
-                       SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
+                       SymbolTableClasses& classes,
+                       RuntimeEnvironment& env ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _env( env )
       {
+         // TODO: set to zero FP only when run, not constructed (i.e. run multiple times...)
+         env.framePointer = 0;
+
+         // reinit the stack frame
+         env.stackFrame = std::stack<ui32>();
+         env.stackFrame.push( 0 );
+
       }
 
       virtual void operator()( AstInt& e )
       {
-         RuntimeValue& val = e.getRuntimeValue();
-         val.setType( RuntimeValue::INT, e.getNodeType() );
-         val.intval = e.getValue();
+         _env.resultRegister.setType( RuntimeValue::INT );
+         _env.resultRegister.intval = e.getValue();
       }
 
       virtual void operator()( AstThis& e )
       {
-         AstDeclClass* decl = dynamic_cast<AstDeclClass*>( e.getReference() );
-         ensure( decl, "compiler error: this reference is incorrect" );
-         e.getRuntimeValue() = decl->getRuntimeObjectSource();
+         // "this" is stored at FP[0]
+         _env.resultRegister.setType( RuntimeValue::TYPE );
+         _env.resultRegister = _env.stack[ _env.framePointer ];
       }
 
       virtual void operator()( AstNil& e )
       {
-         RuntimeValue& val = e.getRuntimeValue();
-         val.setType( RuntimeValue::NIL, e.getNodeType() );
+         _env.resultRegister.setType( RuntimeValue::NIL );
       }
 
       virtual void operator()( AstFloat& e )
       {
-         RuntimeValue& val = e.getRuntimeValue();
-         val.setType( RuntimeValue::FLOAT, e.getNodeType() );
-         val.floatval = e.getValue();
+         _env.resultRegister.setType( RuntimeValue::FLOAT );
+         _env.resultRegister.floatval = e.getValue();
       }
 
       virtual void operator()( AstString& e )
       {
-         RuntimeValue& val = e.getRuntimeValue();
-         val.setType( RuntimeValue::STRING, e.getNodeType() );
-         val.stringval = e.getValue();
+         _env.resultRegister.setType( RuntimeValue::STRING );
+         _env.resultRegister.stringval = e.getValue();
       }
 
       virtual void operator()( AstOpBin& e )
       {
+         RuntimeValues vals( 2 );
+         
          operator()( e.getLeft() );
-         operator()( e.getRight() );
+         vals[ 0 ] = _env.resultRegister;
 
-         // special case: named type with operator == and !=, we need to check the refcount pointer
-         TypeNamed* tl = dynamic_cast<TypeNamed*>( e.getLeft().getNodeType() );
-         if ( tl )
+         operator()( e.getRight() );
+         vals[ 1 ] = _env.resultRegister;
+
+
+         // check we have a specific operator== or !=
+         RuntimeValue& ur0 = unref( vals[ 0 ] );
+         RuntimeValue& ur1 = unref( vals[ 1 ] );
+         if ( ur0.type == RuntimeValue::TYPE || ur0.type == RuntimeValue::ARRAY )
          {
             if ( e.getOp() == AstOpBin::EQ )
             {
-               e.getRuntimeValue().setType( RuntimeValue::INT, 0 );
-               e.getRuntimeValue().intval = e.getLeft().getRuntimeValue().vals.getDataPtr() == e.getRight().getRuntimeValue().vals.getDataPtr();
+               _env.resultRegister.type = RuntimeValue::INT;
+               _env.resultRegister.intval = ur0.vals.getDataPtr() == ur1.vals.getDataPtr();
                return;
             } else if ( e.getOp() == AstOpBin::NE )
             {
-               e.getRuntimeValue().setType( RuntimeValue::INT, 0 );
-               e.getRuntimeValue().intval = e.getLeft().getRuntimeValue().vals.getDataPtr() != e.getRight().getRuntimeValue().vals.getDataPtr();
+               _env.resultRegister.type = RuntimeValue::INT;
+               _env.resultRegister.intval = ur0.vals.getDataPtr() != ur1.vals.getDataPtr();
                return;
             }
-
-            // fetch object (in case A + B, with A a class and defined member operator+( B )
-            assert( e.getFunctionCall() ); // if object but not operator == != and no compile error => we must call a function
-            if ( e.getFunctionCall()->getMemberOfClass() )
-            {
-               e.getFunctionCall()->getMemberOfClass()->getRuntimeValue() = e.getLeft().getRuntimeValue();
-            }
          }
 
-         // other cases: we need to call a function
-         AstArgs args( e.getLocation(), false );
-         ensure( e.getFunctionCall(), "compiler error: no function to call" );
-         if ( e.isBinOpInClass() )
-         {
-            // bin op declared in class, we need to fecth the source object, decrease one arg count
-            assert( e.getFunctionCall()->getMemberOfClass() ); // must have a class ref as it is a class member
-            e.getFunctionCall()->getMemberOfClass()->getRuntimeObjectSource() = e.getLeft().getRuntimeValue();
-            _runtimeValueToClass( e.getLeft().getRuntimeValue(), *e.getFunctionCall()->getMemberOfClass() );
-            args.insert( &e.getRight() );
-         } else {
-            args.insert( &e.getLeft() );
-            args.insert( &e.getRight() );
-         }
-         _callFunction( e, args, *e.getFunctionCall() );
+         _callFunction( *e.getFunctionCall(), vals );
       }
 
       virtual void operator()( AstIf& e )
       {
+         /*
          operator()( e.getCondition() );
          operator()( e.getThen() );
 
@@ -135,6 +143,7 @@ namespace parser
          }
 
          // TODO
+         */
       }
 
       virtual void operator()( AstStatements& e )
@@ -150,30 +159,37 @@ namespace parser
       virtual void operator()( AstExpAssign& e )
       {
          operator()( e.getValue() );
+         RuntimeValue val = _env.resultRegister;
+
          operator()( e.getLValue() );
 
-         // we need to find the reference of the lvalue and update it's runtime value
-         ensure( e.getLValue().getReference(), "compiler error: lvalue not linked to a reference" );
-         e.getRuntimeValue() = e.getValue().getRuntimeValue();
-         e.getLValue().getReference()->getRuntimeValue() = e.getValue().getRuntimeValue();
+         assert( _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
 
-         // if type or array, we must update the structure
-         TypeNamed* decl = dynamic_cast<TypeNamed*>( e.getLValue().getReference()->getNodeType() );
-         if ( decl )
+         if ( e.getLValue().getNodeType()->isReference() )
          {
-            // update the result
-            //_classToRuntimeValue( *decl->getDecl(), e.getLValue().getReference()->getRuntimeValue() );
+            // derefernce double...
+            assert( _env.resultRegister.ref->type == RuntimeValue::REF );
+            *_env.resultRegister.ref->ref = val;
+         } else {
+            *_env.resultRegister.ref = val;
          }
       }
 
       virtual void operator()( AstVarSimple& e )
       {
-         ensure( e.getReference(), "compiler error: can't find variable declaration" );
-         e.getRuntimeValue() = e.getReference()->getRuntimeValue();
+         AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
+         assert( v ); // compiler error if this is not a decl
+         ui32 index = _env.framePointer + v->getRuntimeIndex();
+         assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
+         
+         // we create a ref on the declaration
+         _env.resultRegister.type = RuntimeValue::REF;
+         _env.resultRegister.ref = &_env.stack[ index ];
       }
 
       virtual void operator()( AstVarArray& e )
       {
+         /*
          operator()( e.getIndex() );
          operator()( e.getName() );
 
@@ -196,12 +212,14 @@ namespace parser
 
          // just get the value
          e.getRuntimeValue() = (*e.getName().getRuntimeValue().vals)[ index ];
+         */
       }
 
       virtual void operator()( AstVarField& e )
       {
+         /*
          AstDeclClass* c = dynamic_cast<AstDeclClass*>( e.getReference() );
-         assert( c ); /* Compiler error: the reference must be a class! */
+         assert( c ); 
 
          ui32 index = 0;
          AstDecls::Decls::iterator it = c->getDeclarations().getDecls().begin();
@@ -217,38 +235,10 @@ namespace parser
             }
          }
          assert( it != c->getDeclarations().getDecls().end() ); // compiler error: we must be able to find the var name!
-         /*
-         // TODO check assert
-         assert( c->getRuntimeValue().type == RuntimeValue::TYPE );
-         assert( c->getRuntimeValue().vals.getDataPtr() && ( *c->getRuntimeValue().vals ).size() > index );
-         */
+         
          e.getRuntimeValue() = ( *e.getField().getReference()->getRuntimeValue().vals )[ index ];
          operator()( e.getField() );
-      }
-
-      virtual void operator()( AstType& )
-      {
-         // the definition has been hadnled before...
-      }
-
-      virtual void operator()( AstDecls& )
-      {
-         // the definition has been hadnled before...
-      }
-
-      virtual void operator()( AstDeclVars& )
-      {
-         // the definition has been hadnled before...
-      }
-
-      virtual void operator()( AstDeclClass& )
-      {
-         // the definition has been hadnled before...
-      }
-
-      virtual void operator()( AstDeclFun& ) 
-      {
-         // the definition has been hadnled before...
+         */
       }
 
       virtual void operator()( AstArgs& e )
@@ -264,134 +254,121 @@ namespace parser
          if ( e.getReturnValue() )
          {
             operator()( *e.getReturnValue() );
-            e.getFunction()->getRuntimeValue() = e.getReturnValue()->getRuntimeValue();
+            // we have nothing to do. The return value is stored in the result register already!
+            // however, because it is returned as a reference, we must dereference it
+            // indeed, it is a reference on the stack!
+            if ( _env.resultRegister.type == RuntimeValue::REF && !e.getNodeType()->isReference() )
+            {
+               _env.resultRegister = *_env.resultRegister.ref;
+            }
          }
       }
 
-      virtual void operator()( AstImport& )
-      {
-         // nothing to do
-      }
-
-      virtual void operator()( AstInclude& )
-      {
-         // nothing to do
-      }
+      
 
       /**
-       @brief Evaluate the function fun, with arguments args and save the result in nodeToEval
-       @note if the function to evalaute is a member function, the source object must be
-             fecthed beforehand
+       @brief evaluate a function/memberfunction
+       @note if memberfunction, just put the object in vals[0]
+       @note vals can me modified...
        */
-      void _callFunction( Typable& nodeToEval, AstArgs& args, AstDeclFun& fun, bool skipFirstArg = false )
+      void _callFunction( AstDeclFun& fun, std::vector<RuntimeValue>& vals )
       {
-         // fetch the arguments
-         AstDeclVars::Decls::iterator itVar = fun.getVars().getVars().begin();
-         AstArgs::Args::iterator itArg = args.getArgs().begin();
-         if ( skipFirstArg )
+         AstDeclVars::Decls& vars = fun.getVars().getVars();
+
+         ui32 stackframeSize = static_cast<ui32>( vars.size() );
+         const ui32 initVectorSize = static_cast<ui32>( vals.size() );
+
+         // prepare the stack, FP and restaure points
+         _env.stackFrame.push( _env.framePointer );
+         for ( ui32 n = 0; n < vals.size(); ++n )
          {
-            // skip the first argument (for example is bin op declared in class)
-            ++itArg;
+            _env.stack.push_back( vals[ n ] );
+         }
+         _env.framePointer += static_cast<ui32>( stackframeSize );
+
+         // we need to compute the default parameter that have not beend transmitted
+         for ( size_t t = vals.size(); t < vars.size(); ++t )
+         {
+            AstDeclVar* var = dynamic_cast<AstDeclVar*>( vars[ t ] );
+            assert( var && var->getInit() );
+            operator()( *var->getInit() );
+
+            // the result should be located in the result register
+            _env.stack.push_back( _env.resultRegister );
          }
 
-         for ( ; itArg != args.getArgs().end(); ++itVar, ++itArg )
-         {
-            assert( itVar != fun.getVars().getVars().end() ); // compiler error: number of arguments must be compatible with function declaration
-            (*itVar)->getRuntimeValue() = (*itArg)->getRuntimeValue();
-         }
-         while ( itVar != fun.getVars().getVars().end() )
-         {
-            // if we are not done, we must first evaluate the default value and fetch it to the argument
-            ensure( (*itVar)->getInit(), "compiler error: there must be a default value!" );
-            operator()( *(*itVar)->getInit() );
-            (*itVar)->getRuntimeValue() = (*itVar)->getInit()->getRuntimeValue();
-
-            ++itVar;
-         }
-
-         // call the function
+         // run the function
          if ( fun.getBody() )
          {
             operator()( *fun.getBody() );
-            nodeToEval.getRuntimeValue() = fun.getRuntimeValue();
+            // we expect the result to be in the resultRegister
          } else if ( fun.getImportedFunction() )
          {
             // construct arg list
-            std::vector<RuntimeValue*> vals( fun.getVars().getVars().size() );
-            int n = 0;
-            for ( AstDeclVars::Decls::iterator it = fun.getVars().getVars().begin(); it != fun.getVars().getVars().end(); ++it, ++n )
+            std::vector<RuntimeValue*> valsPtr( stackframeSize );
+            for ( ui32 n = 0; n < initVectorSize; ++n )
             {
-               vals[ n ] = &((*it)->getRuntimeValue());
+               valsPtr[ n ] = ( &vals[ n ] );
             }
-            nodeToEval.getRuntimeValue() = fun.getImportedFunction()->run( vals );
+
+            if ( initVectorSize != stackframeSize )
+            {   
+               for ( ui32 n = initVectorSize; n < stackframeSize; ++n )
+               {
+                  valsPtr[ n ] = ( &_env.stack[ _env.framePointer + n ] );
+               }
+            }
+            _env.resultRegister = fun.getImportedFunction()->run( valsPtr );
          } else {
             throw RuntimeException( "unable to find function implementation" );
          }
+
+         // restaure FP, frame pointer & stack
+         _env.framePointer = _env.stackFrame.top();
+         _env.stackFrame.pop();
+         unstack( _env.stack, stackframeSize );
       }
+      
 
 
       virtual void operator()( AstExpCall& e )
       {
-         // first, evaluate the arguments
-         operator()( e.getArgs() );
-
-         /*
-         // if the function is actually a member function, fetch the object
-         ensure( e.getFunctionCall(), "compiler error: function call not set" );
-         if ( e.getConstructed() )
+         AstArgs::Args& args = e.getArgs().getArgs();
+         std::vector<RuntimeValue> vals( args.size() );
+         for ( size_t n = 0; n < args.size(); ++n )
          {
-            // TODO
-            //e.getConstructed()->getRuntimeObjectSource() = construct the object from the members...
-         } else if ( e.getFunctionCall() )
-         {
-            // TODO
-         }*/
-
-         _callFunction( e, e.getArgs(), *e.getFunctionCall() );
-      }
-
-      /**
-       @brief Construct an array with the specific size
-       */
-      static void _buildArray( Typable& nodeToType, std::vector<AstExp*>& size )
-      {
-#ifndef NDEBUG
-         for ( ui32 n = 0; n < size.size(); ++n )
-         {
-            assert( size[ n ]->getRuntimeValue().type == RuntimeValue::INT );
+            operator()( *args[ n ] );
+            vals[ n ] = _env.resultRegister;
          }
-#endif
 
-         // TODO build array
+         _callFunction( *e.getFunctionCall(), vals );
       }
+
+
 
       virtual void operator()( AstDeclVar& e )
       {
          if ( e.getInit() )
          {
             operator()( *e.getInit() );
-            e.getRuntimeValue() = e.getInit()->getRuntimeValue();
+            _env.stack.push_back( _env.resultRegister );
             return;
          } else if ( e.getDeclarationList() )
          {
+            /*
             operator()( *e.getDeclarationList() );
 
-            // check we have an array
-            ensure( e.getType().isArray(), "compiler error: current implementation: it must be an array" );
-
-            // copy the value from the initialization list
-            e.getRuntimeValue().setType( RuntimeValue::ARRAY, e.getNodeType() );
-            e.getRuntimeValue().vals = platform::RefcountedTyped< RuntimeValues >( new RuntimeValues( e.getDeclarationList()->getArgs().size() ) );
-
-            ui32 n = 0;
+            
             for ( AstArgs::Args::iterator itArg = e.getDeclarationList()->getArgs().begin(); itArg != e.getDeclarationList()->getArgs().end(); ++itArg, ++n )
             {
                (*e.getRuntimeValue().vals)[ n ] = (*itArg)->getRuntimeValue();
-            }
+            }*/
+            return;
          }
 
          if ( e.getType().isArray() )
          {
+            /*
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
@@ -405,10 +382,12 @@ namespace parser
                _buildArray( e, *e.getType().getSize() );
             }
             return;
+            */
          }
 
          if ( e.getConstructorCall() )
          {
+            /*
             if ( e.getObjectInitialization() )
             {
                operator()( *e.getObjectInitialization() );
@@ -422,12 +401,17 @@ namespace parser
             e.getRuntimeValue().vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
             _classToRuntimeValue( *e.getConstructorCall()->getMemberOfClass(), e.getRuntimeValue() );
             return;
+            */
          }
+
+         // uninitialized variable
+         _env.stack.push_back( RuntimeValue( RuntimeValue::EMPTY ) );
       }
 
       /**
        @brief assumes the runtime r has enough space to store the values
        */
+      /*
       static void _classToRuntimeValue( AstDeclClass& c, RuntimeValue& r )
       {
          r.setType( RuntimeValue::TYPE, c.getNodeType() );
@@ -445,11 +429,12 @@ namespace parser
                ++index;
             }
          }
-      }
+      }*/
 
       /**
        @brief fetch the runtime value of a class to its definition
        */
+      /*
       static void _runtimeValueToClass( RuntimeValue& r, AstDeclClass& c )
       {
          ui32 index = 0;
@@ -463,7 +448,7 @@ namespace parser
                ++index;
             }
          }
-      }
+      }*/
 
       virtual void operator()( AstExpSeq& e )
       {
@@ -489,6 +474,44 @@ namespace parser
          e.accept( *this );
       }
 
+      //
+      // cut the tree...
+      //
+      virtual void operator()( AstType& )
+      {
+         // the definition has been hadnled before...
+      }
+
+      virtual void operator()( AstDecls& )
+      {
+         // the definition has been hadnled before...
+      }
+
+      virtual void operator()( AstDeclVars& )
+      {
+         // the definition has been hadnled before...
+      }
+
+      virtual void operator()( AstDeclClass& )
+      {
+         // the definition has been hadnled before...
+      }
+
+      virtual void operator()( AstDeclFun& ) 
+      {
+         // the definition has been hadnled before...
+      }
+
+      virtual void operator()( AstImport& )
+      {
+         // nothing to do
+      }
+
+      virtual void operator()( AstInclude& )
+      {
+         // nothing to do
+      }
+
    private:
       // disabled copy
       VisitorEvaluate( const VisitorEvaluate& );
@@ -500,6 +523,7 @@ namespace parser
       SymbolTableVars&     _vars;
       SymbolTableFuncs&    _funcs;
       SymbolTableClasses&  _classes;
+      RuntimeEnvironment&  _env;
    };
 }
 }
