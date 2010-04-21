@@ -57,7 +57,7 @@ namespace parser
       /**
        @check a class is constructible with 0 arguments
        */
-      void checkDefaultConstructible( TypeNamed* ty, const YYLTYPE& loc )
+      AstDeclFun* checkDefaultConstructible( TypeNamed* ty, const YYLTYPE& loc )
       {
          if ( ty )
          {
@@ -66,11 +66,16 @@ namespace parser
             if ( funcs.size() == 0 )
             {
                impl::reportTypeError( loc, _context, "the class is not constructible" );
+               return 0;
             } else if ( funcs.size() > 1 )
             {
                impl::reportTypeError( loc, _context, "ambiguous constructor to construct a class in this array" );
+               return 0;
             }
+
+            return funcs[ 0 ];
          }
+         return 0;
       }
 
       /**
@@ -720,11 +725,15 @@ namespace parser
       {
          // we first must visite the type!
          operator()( e.getType() );
+
+         /*
+         // I think this is fine now?
          if ( e.getType().getNodeType() == 0 )
          {
             // this mean we have at least 2 files with mutual inclusion, try to type the class
             std::cout << "TODO" << std::endl;
          }
+         */
          ensure( e.getType().getNodeType(), "tree can't be typed" );
          if ( TypeVoid().isCompatibleWith( *e.getType().getNodeType() ) )
          {
@@ -736,7 +745,10 @@ namespace parser
             // check there is a default contructor
             TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
             if ( ty )
-               checkDefaultConstructible( ty, e.getType().getLocation() );
+            {
+               AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
+               e.setConstructorCall( fn );
+            }
             
             // else carry on...
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
@@ -795,7 +807,8 @@ namespace parser
                if ( !_isInFunctionDeclaration )
                {
                   // if we are in the declaration of a function, we are not constructing an object... so we shouldn't test this
-                  checkDefaultConstructible( ty, e.getType().getLocation() );
+                  AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
+                  e.setConstructorCall( fn );
                }
             }
 

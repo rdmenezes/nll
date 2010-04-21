@@ -156,6 +156,14 @@ namespace parser
          ensure( e.getLValue().getReference(), "compiler error: lvalue not linked to a reference" );
          e.getRuntimeValue() = e.getValue().getRuntimeValue();
          e.getLValue().getReference()->getRuntimeValue() = e.getValue().getRuntimeValue();
+
+         // if type or array, we must update the structure
+         TypeNamed* decl = dynamic_cast<TypeNamed*>( e.getLValue().getReference()->getNodeType() );
+         if ( decl )
+         {
+            // update the result
+            //_classToRuntimeValue( *decl->getDecl(), e.getLValue().getReference()->getRuntimeValue() );
+         }
       }
 
       virtual void operator()( AstVarSimple& e )
@@ -169,8 +177,13 @@ namespace parser
          operator()( e.getIndex() );
          operator()( e.getName() );
 
+         if ( e.getName().getRuntimeValue().vals.getDataPtr() == 0 )
+         {
+            throw RuntimeException( "uninitialized array" );
+         }
+
          // ensure the variable is an array... else we missed something in the type visitor!
-         ensure( e.getName().getRuntimeValue().type == RuntimeValue::ARRAY, "compiler error: must be an array" );
+         assert( e.getName().getRuntimeValue().type == RuntimeValue::ARRAY ); // "compiler error: must be an array" 
          int index = e.getIndex().getRuntimeValue().intval;
 
          if ( index < 0 || static_cast<unsigned int>( index ) >= (*e.getName().getRuntimeValue().vals).size() )
@@ -337,6 +350,21 @@ namespace parser
          _callFunction( e, e.getArgs(), *e.getFunctionCall() );
       }
 
+      /**
+       @brief Construct an array with the specific size
+       */
+      static void _buildArray( Typable& nodeToType, std::vector<AstExp*>& size )
+      {
+#ifndef NDEBUG
+         for ( ui32 n = 0; n < size.size(); ++n )
+         {
+            assert( size[ n ]->getRuntimeValue().type == RuntimeValue::INT );
+         }
+#endif
+
+         // TODO build array
+      }
+
       virtual void operator()( AstDeclVar& e )
       {
          if ( e.getInit() )
@@ -364,7 +392,6 @@ namespace parser
 
          if ( e.getType().isArray() )
          {
-            // TODO
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
@@ -372,15 +399,24 @@ namespace parser
                   operator()( *( (*e.getType().getSize())[ n ] ) );
                }
             }
-            // TODO set object type
+
+            if ( e.getType().getSize() )
+            {
+               _buildArray( e, *e.getType().getSize() );
+            }
             return;
          }
 
-         if ( e.getObjectInitialization() )
+         if ( e.getConstructorCall() )
          {
-            ensure( e.getConstructorCall(), "compiler error: object init is always associated with a function call")
-            operator()( *e.getObjectInitialization() );
-            _callFunction( e, *e.getObjectInitialization(), *e.getConstructorCall() );
+            if ( e.getObjectInitialization() )
+            {
+               operator()( *e.getObjectInitialization() );
+               _callFunction( e, *e.getObjectInitialization(), *e.getConstructorCall() );
+            } else {
+               AstArgs emptyArgs( e.getLocation() );
+               _callFunction( e, emptyArgs, *e.getConstructorCall() );
+            }
             assert( e.getConstructorCall()->getMemberOfClass() ); // error
 
             e.getRuntimeValue().vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );

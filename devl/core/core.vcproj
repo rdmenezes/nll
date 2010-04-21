@@ -187,6 +187,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -277,6 +278,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -368,6 +370,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
 			/>
 		</Configuration>
 	</Configurations>
