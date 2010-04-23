@@ -206,7 +206,8 @@ namespace parser
       virtual void operator()( AstExpAssign& e )
       {
          operator()( e.getValue() );
-         RuntimeValue val = _env.resultRegister;
+         RuntimeValue val = unref( _env.resultRegister );   // when a 'value' is copyied, this is always by value, so we need to remove ref... except if the type of lvalue is a reference
+         RuntimeValue valRef = _env.resultRegister;   // in case it is a ref we need to save it...
 
          operator()( e.getLValue() );
 
@@ -214,9 +215,9 @@ namespace parser
 
          if ( e.getLValue().getNodeType()->isReference() )
          {
-            // derefernce double...
-            assert( _env.resultRegister.ref->type == RuntimeValue::REF );
-            *_env.resultRegister.ref->ref = val;
+            // TODO is this ok?
+            assert( _env.resultRegister.type == RuntimeValue::REF );
+            *_env.resultRegister.ref = valRef;
          } else {
             *_env.resultRegister.ref = val;
          }
@@ -462,7 +463,13 @@ namespace parser
          if ( e.getInit() )
          {
             operator()( *e.getInit() );
-            _env.stack.push_back( _env.resultRegister );
+            if ( e.getType().isAReference() )
+            {
+               _env.stack.push_back( _env.resultRegister );
+            } else {
+               // when you do int& fn(); int a = fn(); => we want to copy the value only!
+               _env.stack.push_back( unref( _env.resultRegister ) );
+            }
             return;
          } else if ( e.getDeclarationList() )
          {

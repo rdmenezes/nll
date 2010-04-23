@@ -12,7 +12,7 @@ struct TestEval
 {
    void eval1()
    {
-   /*
+   
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -61,7 +61,7 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
-*/
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int& fn( int& n ){ return n; } int n = 5; int nn = fn( n );" );
@@ -71,7 +71,7 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
-/*
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int& fn( int& n ){ return n; } int n = 5; int nn = fn( n ); nn = 3;" );
@@ -84,8 +84,8 @@ struct TestEval
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 5 );
-      }*/
-/*
+      }
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int& fn( int& n ){ return n; } int n = 5; int& nn = fn( n ); nn = 3;" );
@@ -331,7 +331,7 @@ struct TestEval
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::TYPE );
       }
-      */
+      
 /*
       {
          CompilerFrontEnd fe;
