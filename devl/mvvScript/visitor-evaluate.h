@@ -99,8 +99,16 @@ namespace parser
          if ( val.type == RuntimeValue::TYPE )
          {
             std::cout << "TYPE:" << val.vals.getDataPtr() << std::endl;
+            
             for ( ui32 n = 0; n < (*val.vals).size(); ++n )
             {
+               RuntimeValue& ptr = ( (*val.vals.getDataPtr())[ n ] );
+               if ( &unref( ptr ) == &unref( val ) )
+               {
+                  std::cout << "  SELF" << std::endl;
+                  // recursive check...
+                  continue;
+               }
                std::cout << "  ";
                _debug( (*val.vals)[ n ] );
             }
@@ -200,13 +208,7 @@ namespace parser
          operator()( e.getValue() );
          RuntimeValue val = _env.resultRegister;
 
-         std::cout << "assign rval=";
-         _debug( _env.resultRegister );
-
          operator()( e.getLValue() );
-
-         std::cout << "assign lval=";
-         _debug( _env.resultRegister );
 
          assert( _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
 
@@ -232,8 +234,7 @@ namespace parser
             assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE );
 
             // if class member, the result must be in the class itself
-            _env.resultRegister.type = RuntimeValue::REF;
-            _env.resultRegister.ref = &(*_env.stack[ index ].vals)[ v->getRuntimeIndex() ];
+            _createRef( _env.resultRegister, (*_env.stack[ index ].vals)[ v->getRuntimeIndex() ] );
          } else {
             // else, just compute its position on the stack
             ui32 index = _env.framePointer + v->getRuntimeIndex();
@@ -241,7 +242,21 @@ namespace parser
 
             // we create a ref on the declaration
             _env.resultRegister.type = RuntimeValue::REF;
-            _env.resultRegister.ref = &_env.stack[ index ];
+            _createRef( _env.resultRegister, _env.stack[ index ] );
+         }
+      }
+
+      /**
+       @brief We never want to have a ref of a ref (it can be cyclic...)
+       */
+      void _createRef( RuntimeValue& dst, RuntimeValue& src )
+      {
+         dst.type = RuntimeValue::REF;
+         if ( src.type == RuntimeValue::REF )
+         {
+            dst.ref = src.ref;
+         } else {
+            dst.ref = &src;
          }
       }
 
@@ -293,13 +308,22 @@ namespace parser
          operator()( *last );
 
          // evaluate the field
-         for ( size_t n = 0; n < fields.size(); ++n )   // TODO remove -1
+         for ( int n = static_cast<int>( fields.size() ) - 1; n >= 0; --n )
          {
             AstDeclVar* var = dynamic_cast<AstDeclVar*>( fields[ n ]->getPointee() );
             if ( var )
             {
                RuntimeValue& val = unref( _env.resultRegister );
-               assert( val.type == RuntimeValue::TYPE );   // it must be a type
+               RuntimeValue::TypeEnum type = val.type;
+               if ( type != RuntimeValue::TYPE )
+               {
+                  if ( val.type == RuntimeValue::EMPTY )
+                  {
+                     throw RuntimeException( "null reference" );
+                  }
+                  assert( 0 );   // we are expecting a null ref in case user made a mistake, else compiler error
+               }
+
                _env.resultRegister.type = RuntimeValue::REF;
                _env.resultRegister.ref = &(*val.vals)[ var->getRuntimeIndex() ];
             } else {
@@ -307,9 +331,6 @@ namespace parser
                assert( dynamic_cast<AstDeclFun*>( fields[ n ]->getPointee() ) );
             }
          }
-
-         std::cout << "result fieldval=";
-         _debug( _env.resultRegister );
       }
 
       virtual void operator()( AstArgs& e )
@@ -352,11 +373,15 @@ namespace parser
 
          // prepare the stack, FP and restaure points
          _env.stackFrame.push( _env.framePointer );
+
+         // we move the frame pointer to the end of the stack
+         _env.framePointer = _env.stack.size();
+
+         // populate the stack
          for ( ui32 n = 0; n < vals.size(); ++n )
          {
             _env.stack.push_back( vals[ n ] );
          }
-         _env.framePointer += static_cast<ui32>( stackframeSize );
 
          // we need to compute the default parameter that have not beend transmitted
          for ( size_t t = vals.size(); t < vars.size(); ++t )

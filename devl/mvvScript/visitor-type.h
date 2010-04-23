@@ -34,7 +34,9 @@ namespace parser
                    SymbolTableFuncs& funcs,
                    SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
+         // TODO: we actually want it when the visitor is run... not created
          _isInFunctionDeclaration = false;
+         _currentFp = 0;
       }
 
       /**
@@ -378,6 +380,10 @@ namespace parser
          if ( e.getReference() )
          {
             // if it is a simple variable, we will have a type
+            if ( !e.getReference()->getNodeType() )   // check if the node has already been evaluated // TODO check why? - not from different includes: "class Test2{ Test2 tt; int ttt; Test2(){ttt=42;} } Test2 t; t.tt = t; int nn = t.tt.ttt;"
+            {
+               operator()( *e.getReference() );
+            }
             e.setNodeType( e.getReference()->getNodeType()->clone() );
          } // else we know it is a call exp, so don't do anything
       }
@@ -608,6 +614,10 @@ namespace parser
 
       virtual void operator()( AstDeclFun& e ) 
       {
+         // beacuse we are modifying the FP at runtime when we enter a function, we need to 
+         _fp.push( _currentFp );
+         _currentFp = 0;
+
          if ( e.getNodeType() )
          {
             // this node has been manually typed (i.e. manual inclusion)
@@ -664,6 +674,9 @@ namespace parser
 
             // return should have checked incorrect types... so don't check it again
          }
+
+         _currentFp = _fp.top();
+         _fp.pop();
       }
 
       virtual void operator()( AstArgs& e )
@@ -724,6 +737,11 @@ namespace parser
 
       virtual void operator()( AstDeclVar& e )
       {
+         if ( e.getRuntimeIndex() == -1 )
+         {
+            e.setRuntimeIndex( _currentFp++ );
+         }
+
          // we first must visite the type!
          operator()( e.getType() );
 
@@ -931,6 +949,9 @@ namespace parser
       SymbolTableFuncs&   _funcs;
       SymbolTableClasses& _classes;
       bool                _isInFunctionDeclaration;
+
+      std::stack<ui32>    _fp;   // we locally need to compute the frame pointer & update reference variable for all declared variables in class & function (this is local)
+      ui32                _currentFp;
    };
 }
 }

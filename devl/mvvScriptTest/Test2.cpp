@@ -12,7 +12,7 @@ struct TestEval
 {
    void eval1()
    {
-      /*
+   /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -50,7 +50,8 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 5 );
       }
-*/
+
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int fn( int n ){ return n; } int nn = fn( 42 );" );
@@ -60,7 +61,7 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
-/*
+*/
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int& fn( int& n ){ return n; } int n = 5; int nn = fn( n );" );
@@ -70,7 +71,7 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
-
+/*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int& fn( int& n ){ return n; } int n = 5; int nn = fn( n ); nn = 3;" );
@@ -83,8 +84,8 @@ struct TestEval
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 5 );
-      }
-
+      }*/
+/*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int& fn( int& n ){ return n; } int n = 5; int& nn = fn( n ); nn = 3;" );
@@ -230,19 +231,33 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
-      */
-/*
+
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Test2{ Test2 tt; Test2(){}} class Test{int n; Test2 tt; Test ttt; Test(){}} Test t; Test2 ttt; t.tt.tt = ttt; t.n = 5; " );
+         Error::ErrorType result = fe.run( "class Test2{ Test2 tt; int ttt; Test2(){ttt=42;} } Test2 t; t.tt = t; t.tt.ttt = 43; int nn = t.tt.ttt;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
-         //const Type* rt = fe.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ) ) );
-         //TESTER_ASSERT( dynamic_cast<const TypeNamed*>( rt ) );
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 43 );
       }
-      */
-/*
+      
+      
+
+      {
+         try
+         {
+            CompilerFrontEnd fe;
+            Error::ErrorType result = fe.run( "class Test2{ Test2 tt; Test2(){}} class Test{int n; Test2 tt; Test ttt; Test(){}} Test t; Test2 ttt; t.tt.tt = ttt; t.n = 5; " );
+            TESTER_ASSERT( 0 );
+         } catch ( RuntimeException e )
+         {
+            // good!
+         }
+      }
+      
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{class Test2{}}" );
@@ -316,7 +331,8 @@ struct TestEval
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::TYPE );
       }
-
+      */
+/*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\" class Test{ int n; Test( int nn ){ n = nn; } int operator+( Test t ){ return n + t.n; } } Test n1( 5 ); Test n2( 3 ); int nn = n1 + n2;" );
