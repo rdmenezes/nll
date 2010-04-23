@@ -12,7 +12,7 @@ struct TestEval
 {
    void eval1()
    {
-   /*
+   
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -354,24 +354,20 @@ struct TestEval
          TESTER_ASSERT( rt.intval == 8 );
       }
       
-*/
+
       
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n; Test( int nn ){ n = nn; } int operator+( Test t ){ return n + t.n; } } Test n1( 5 ); Test n2( 3 ); /*int nn = n1 + n2;*/" );
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n; Test( int nn ){ n = nn; } int operator+( Test t ){ return n + t.n; } } Test n1( 5 ); Test n2( 3 ); int nn = n1 + n2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
-
-
-         VisitorEvaluate::_debug( const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n1" ) ) ) );
-         VisitorEvaluate::_debug( const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n2" ) ) ) );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
       
-/*
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\" class Test2{ int nn; int nnn; int n; Test2( int nx ){ n = nx; nn = 123; nnn = 0; }} Test2 n2( 3 ); int nn1 = n2.nn;" );
@@ -382,7 +378,7 @@ struct TestEval
          TESTER_ASSERT( rt2.intval == 123 );
       }
 
-/*
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\" class Test2{ int nn; int nnn; int n; Test2( int nx ){ n = nx; nn = 123; nnn = 0; }} class Test{ int n; Test( int nn ){ n = nn; } int operator+( Test2 t ){ return n + t.n; } } Test n1( 5 ); Test2 n2( 3 ); int nn = n1 + n2; int nn1 = n2.nn;" );
@@ -397,7 +393,7 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 123 );
       }
-
+/*
       {
          CompilerFrontEnd fe;
          try

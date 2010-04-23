@@ -616,7 +616,7 @@ namespace parser
       {
          // beacuse we are modifying the FP at runtime when we enter a function, we need to 
          _fp.push( _currentFp );
-         _currentFp = 0;
+         _currentFp = ( e.getMemberOfClass() != 0 );  // if we are in a class, we need to shift decl var as FP[0]=object
 
          if ( e.getNodeType() )
          {
