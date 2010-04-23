@@ -156,6 +156,7 @@ namespace parser
                {
                   impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
                }
+               //e.setReference( decl );
             } else {
                impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
             }

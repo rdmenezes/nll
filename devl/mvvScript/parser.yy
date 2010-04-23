@@ -55,7 +55,7 @@
     - TODO arg ref -> create the ref for runtime!
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
-    - TODO: declared variable with ref: improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n;
+    - TODO: declared variable with ref: improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n; // int fn( int& n ){ return n; } int& n = fn(5);
     */
    
    #include <string>
@@ -172,7 +172,7 @@
 %token SEMI         ";"
 %token TIMES        "*"
 %token THIS         "this"
-%token REF			"&"
+%token REF          "&"
 
 %token OPERATORPARENT   "operator()"
 %token OPERATORBRACKET  "operator[]"

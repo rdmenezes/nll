@@ -529,6 +529,7 @@ namespace parser
             return;
          }
          e.setNodeType( member->getNodeType()->clone() );
+         e.setPointee( member );
 
          // Note: handle "this" in the interpreter
       }

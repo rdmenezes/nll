@@ -8,12 +8,12 @@ namespace mvv
 namespace parser
 {
    /**
-    type Struct1.Struct2.ID
+    type test1.test2.val stored as: varfield_test1( varfield_test2( varsimple_test1 ) )
     */
    class MVVSCRIPT_API AstVarField : public AstVar
    {
    public:
-      AstVarField( const YYLTYPE& location, AstVar* field, mvv::Symbol name ) : AstVar( location ), _field( field ), _name( name )
+      AstVarField( const YYLTYPE& location, AstVar* field, mvv::Symbol name ) : AstVar( location ), _field( field ), _name( name ), _pointee( 0 )
       {
          ensure( field, "can't be null" );
       }
@@ -50,8 +50,20 @@ namespace parser
          v( *this );
       }
 
+      // when a.b, set the type b in the var field
+      void setPointee( AstDecl* pointee )
+      {
+         _pointee = pointee;
+      }
+
+      AstDecl* getPointee() const
+      {
+         return _pointee;
+      }
+
    private:
       AstVar*       _field;
+      AstDecl*      _pointee;    // don't deallocate!
       mvv::Symbol   _name;
    };
 }
