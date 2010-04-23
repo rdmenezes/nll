@@ -235,29 +235,36 @@ namespace parser
             assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE );
 
             // if class member, the result must be in the class itself
-            _createRef( _env.resultRegister, (*_env.stack[ index ].vals)[ v->getRuntimeIndex() ] );
+            _createRef( _env.resultRegister, (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ], false );
          } else {
             // else, just compute its position on the stack
             ui32 index = _env.framePointer + v->getRuntimeIndex();
             assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
 
             // we create a ref on the declaration
-            _env.resultRegister.type = RuntimeValue::REF;
-            _createRef( _env.resultRegister, _env.stack[ index ] );
+            _createRef( _env.resultRegister, _env.stack[ index ], false );
          }
       }
 
       /**
        @brief We never want to have a ref of a ref (it can be cyclic...)
        */
-      void _createRef( RuntimeValue& dst, RuntimeValue& src )
+      void _createRef( RuntimeValue& dst, RuntimeValue& src, bool forceRef )
       {
-         dst.type = RuntimeValue::REF;
-         if ( src.type == RuntimeValue::REF )
+         if ( src.type == RuntimeValue::TYPE )
          {
-            dst.ref = src.ref;
+            // TODO ref of a class!!!
+            dst.type = RuntimeValue::TYPE;
+            dst.vals = src.vals;
          } else {
-            dst.ref = &src;
+            dst.type = RuntimeValue::REF;
+            if ( forceRef || src.type == RuntimeValue::REF )
+            {
+               // avoid the ref
+               dst.ref = src.ref;
+            } else {
+               dst.ref = &src;
+            }
          }
       }
 
@@ -325,8 +332,7 @@ namespace parser
                   assert( 0 );   // we are expecting a null ref in case user made a mistake, else compiler error
                }
 
-               _env.resultRegister.type = RuntimeValue::REF;
-               _env.resultRegister.ref = &(*val.vals)[ var->getRuntimeIndex() ];
+               _createRef( _env.resultRegister, (*val.vals)[ var->getRuntimeIndex() ], false );
             } else {
                // if this is not a variable, it must be a cuntion call
                assert( dynamic_cast<AstDeclFun*>( fields[ n ]->getPointee() ) );

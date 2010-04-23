@@ -48,10 +48,18 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( args.size() != 2 || v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      std::cout << "operator+ for int, int" << std::endl;
+      VisitorEvaluate::_debug( v1 );
+      VisitorEvaluate::_debug( v2 );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
@@ -71,12 +79,19 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 2 || args[ 0 ]->type != RuntimeValue::INT || args[ 1 ]->type != RuntimeValue::INT  )
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::INT );
-      rt.intval = args[ 0 ]->intval == args[ 1 ]->intval;
+      rt.intval = v1.intval == v2.intval;
       return rt;
    }
 };
