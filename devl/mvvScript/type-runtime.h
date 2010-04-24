@@ -77,6 +77,7 @@ namespace parser
       RuntimeValue      resultRegister;   // when a function returns, var is evaluated... this register is updated
       ui32              framePointer;     // the active frame
       std::stack<ui32>  stackFrame;       // a list of frame pointers
+      std::stack<ui32>  stackUnstack;     // a list of end of frame pointers
    };
 
    /**

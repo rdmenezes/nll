@@ -5,6 +5,8 @@ v0.12
 -added new formats for volume serialization (text, binary)
 -added Allocator parameter for Matrix, Images & Buffer for specific allocators
 -added common operations on geometry (plane, box)
+-added affine transformation (volume resampling & MPR)
+
 
 v0.11
 -improved logging
@@ -18,7 +20,7 @@ v0.11
 v0.10
 -reimplementation of the multilayer neural network (added weight decay)
 -bug fixes
--improved documentation & tesing
+-improved documentation & testing
 
 v0.09
 -bug fixes (small bias corrected in a sample generator)

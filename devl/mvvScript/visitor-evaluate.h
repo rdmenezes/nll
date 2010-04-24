@@ -63,6 +63,8 @@ namespace parser
          // TODO: set to zero FP only when run, not constructed (i.e. run multiple times...)
          env.framePointer = 0;
 
+         _level = 0;
+
          // reinit the stack frame
          env.stackFrame = std::stack<ui32>();
          env.stackFrame.push( 0 );
@@ -195,12 +197,32 @@ namespace parser
 
       virtual void operator()( AstStatements& e )
       {
+         ++_level;
+
+         if ( _level > 1 )
+         {
+            // update the stackframe
+            _env.stackUnstack.push( _env.stack.size() );
+         }
+
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
                ++it )
          {
             operator()( **it );
          }
+
+         if ( _level > 1 )
+         {
+            ui32 origSize = _env.stackUnstack.top();
+
+            // unstack all the temporaries, except for global
+            while ( _env.stack.size() > origSize )
+               _env.stack.pop_back();
+            _env.stackUnstack.pop();
+         }
+
+         --_level;
       }
 
       virtual void operator()( AstExpAssign& e )
@@ -451,15 +473,28 @@ namespace parser
          std::vector<RuntimeValue> vals( args.size() + tab );
          if ( tab )
          {
-            vals[ 0 ] = _env.resultRegister;
+            if ( e.getConstructed() )
+            {
+               // because it is constructed, we need to allocate a temporary, start constructor, move the object
+               // in the result register, unstack the object
+               vals[ 0 ] = RuntimeValue( RuntimeValue::TYPE );
+               vals[ 0 ].vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
+            } else  {
+               vals[ 0 ] = _env.resultRegister;
+            }
          }
-         for ( size_t n = tab; n < args.size(); ++n )
+         for ( size_t n = 0; n < args.size(); ++n )
          {
             operator()( *args[ n ] );
-            vals[ n ] = _env.resultRegister;
+            vals[ n + tab ] = _env.resultRegister;
          }
 
          _callFunction( *e.getFunctionCall(), vals );
+
+         if ( e.getConstructed() )
+         {
+            _env.resultRegister = vals[ 0 ];
+         }
       }
 
 
@@ -614,6 +649,7 @@ namespace parser
       SymbolTableFuncs&    _funcs;
       SymbolTableClasses&  _classes;
       RuntimeEnvironment&  _env;
+      ui32                 _level;     // scope depth
    };
 }
 }

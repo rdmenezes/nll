@@ -65,6 +65,8 @@ namespace parser
          _imported.clear();
          _lastErrors.clear();
          _parsedFiles.clear();
+
+         // TODO and _env?
       }
 
       /**
@@ -88,6 +90,7 @@ namespace parser
       Error::ErrorType run( const std::string& s )
       {
          _context.clear(); // clear the previous errors
+         _env.framePointer = _env.stack.size(); // we need to set the FP to the end, so the need tree will be correct!
 
          // local copy, so that if there is an error, we don't mess up the correct AST...
          SymbolTableVars     vars = _vars;
@@ -143,18 +146,18 @@ namespace parser
                      }
 
                      // evaluate ALL the files
+                     VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env ); // only one visitor so the FP is correct
                      if ( exps.size() > 1 )
                      {
                         // we must evaluate in the same order than explore, so that the static link match the reality!
+
                         for ( std::list<Ast*>::reverse_iterator it = ++exps.rbegin(); it != exps.rend(); ++it )
                         {
-                           VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env );
                            visitorEvaluate( **it );
                         }
                      }
 
                      // finally update our source file
-                     VisitorEvaluate visitorEvaluate( _context, _vars, _funcs, _classes, _env );
                      visitorEvaluate( *exp );
                   } else {
 

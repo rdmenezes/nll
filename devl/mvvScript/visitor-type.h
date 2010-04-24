@@ -351,12 +351,19 @@ namespace parser
 
       virtual void operator()( AstStatements& e )
       {
+         // save the current FP: in case: "int a; { int b; } int c;"
+         _fp.push( _currentFp );
+
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
                ++it )
          {
             operator()( **it );
          }
+
+         // restaure the FP
+         _currentFp = _fp.top();
+         _fp.pop();
       }
 
       // we can't overload operator=, because all structures are refcounted and so is incompatible
@@ -739,8 +746,9 @@ namespace parser
       {
          if ( e.getRuntimeIndex() == -1 )
          {
-            e.setRuntimeIndex( _currentFp++ );
+            e.setRuntimeIndex( _currentFp );
          }
+         ++_currentFp;  // we don't reassign index, but we still need to take into account the space of this global
 
          // we first must visite the type!
          operator()( e.getType() );
