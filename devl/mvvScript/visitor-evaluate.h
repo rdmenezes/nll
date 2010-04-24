@@ -233,15 +233,28 @@ namespace parser
 
          operator()( e.getLValue() );
 
-         assert( _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
+         assert( _env.resultRegister.type == RuntimeValue::ARRAY || _env.resultRegister.type == RuntimeValue::TYPE || _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
 
-         if ( e.getLValue().getNodeType()->isReference() )
+         if ( _env.resultRegister.type == RuntimeValue::ARRAY || _env.resultRegister.type == RuntimeValue::TYPE )
          {
-            // TODO is this ok?
-            assert( _env.resultRegister.type == RuntimeValue::REF );
-            *_env.resultRegister.ref = valRef;
+            // in the case of an array/type, we don't need a ref to access it!
+            /*
+            if ( e.getLValue().getNodeType()->isReference() )
+            {
+               std::cout << "REF";
+            } else {
+               _env.resultRegister = val;
+            }*/
+            _env.resultRegister = val;
          } else {
-            *_env.resultRegister.ref = val;
+            if ( e.getLValue().getNodeType()->isReference() )
+            {
+               // TODO is this ok?
+               assert( _env.resultRegister.type == RuntimeValue::REF );
+               *_env.resultRegister.ref = valRef;
+            } else {
+               *_env.resultRegister.ref = val;
+            }
          }
       }
 
@@ -250,6 +263,7 @@ namespace parser
          AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
          assert( v ); // compiler error if this is not a decl
 
+         // for a class, always create a ref...
          if ( v->isClassMember() )
          {
             ui32 index = _env.framePointer;
@@ -257,14 +271,16 @@ namespace parser
             assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE );
 
             // if class member, the result must be in the class itself
-            _createRef( _env.resultRegister, (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ], false );
+            RuntimeValue& src = (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ];
+            _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
          } else {
             // else, just compute its position on the stack
             ui32 index = _env.framePointer + v->getRuntimeIndex();
             assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
 
             // we create a ref on the declaration
-            _createRef( _env.resultRegister, _env.stack[ index ], false );
+            RuntimeValue& src = _env.stack[ index ];
+            _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
          }
       }
 
@@ -275,9 +291,14 @@ namespace parser
       {
          if ( src.type == RuntimeValue::TYPE )
          {
-            // TODO ref of a class!!!
-            dst.type = RuntimeValue::TYPE;
-            dst.vals = src.vals;
+            if ( forceRef )
+            {
+               dst.type = RuntimeValue::REF;
+               dst.ref = &src;
+            } else {
+               dst.type = RuntimeValue::TYPE;
+               dst.vals = src.vals;
+            }
          } else {
             dst.type = RuntimeValue::REF;
             if ( forceRef || src.type == RuntimeValue::REF )
@@ -397,7 +418,8 @@ namespace parser
       {
          AstDeclVars::Decls& vars = fun.getVars().getVars();
 
-         ui32 stackframeSize = static_cast<ui32>( vars.size() + ( fun.getMemberOfClass() != 0 ) ); // if it is a member decl, then we need to add object on the stack, so +1
+         ui32 isClass = fun.getMemberOfClass() != 0;
+         ui32 stackframeSize = static_cast<ui32>( vars.size() + isClass ); // if it is a member decl, then we need to add object on the stack, so +1
          const ui32 initVectorSize = static_cast<ui32>( vals.size() );
 
          // prepare the stack, FP and restaure points
@@ -587,11 +609,14 @@ namespace parser
 
       virtual void operator()( AstExpTypename& e )
       {
+         // TODO: create a AstExpCall, and run it!
+
+         /*
          operator()( e.getType() );
          if ( e.getArgs().getArgs().size() )
          {
             operator()( e.getArgs() );
-         } 
+         } */
       }
 
       virtual void operator()( Ast& e )

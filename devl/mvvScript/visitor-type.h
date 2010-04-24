@@ -584,6 +584,12 @@ namespace parser
                visitor( *e.getReference() );
             }
             e.setNodeType( e.getReference()->getNodeType()->clone() );
+            if ( e.isAReference() )
+            {
+               // we need to check if this is a reference
+               e.setIsAReference( true );
+               e.getNodeType()->setReference( true );
+            }
             break;
 
          default:
