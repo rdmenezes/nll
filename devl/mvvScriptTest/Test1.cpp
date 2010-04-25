@@ -2472,12 +2472,51 @@ struct TestBasic
          TESTER_ASSERT( !context.getError().getStatus() );
          delete exp;
       }
+
+      {
+         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int operator==(int a, int b); import int operator+(int a, int b); int n = 0; while ( 1 ){ n = n + 1; if ( 1 == 5 ){ break; } }");
+         //exp = context.parseString( "break;");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context, vars, funcs, classes, fp );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorType visitorType( context, visitorBind.getVars(), visitorBind.getFuncs(), visitorBind.getClasses() );
+         visitorType( *exp );
+
+         TESTER_ASSERT( !context.getError().getStatus() );
+         delete exp;
+      }
+
+      {
+         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+         Ast* exp = 0;
+         
+         exp = context.parseString( "import int operator==(int a, int b); import int operator+(int a, int b); int n = 0; while ( 1 ){ n = n + 1; if ( 1 == 5 ){  } } break;");
+         //exp = context.parseString( "break;");
+         TESTER_ASSERT( exp );
+         VisitorRegisterDeclarations visitor( context, vars, funcs, classes, fp );
+         visitor( *exp );
+         TESTER_ASSERT( !context.getError().getStatus() );
+
+         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses() );
+         visitorBind( *exp );
+         TESTER_ASSERT( context.getError().getStatus() );
+         delete exp;
+      }
    }
 };
 
 
 TESTER_TEST_SUITE(TestBasic);
-/*
+
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
@@ -2486,7 +2525,7 @@ TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST(testFull2);
 
 TESTER_TEST(testType1);
-*/
+
 TESTER_TEST_SUITE_END();
 
 

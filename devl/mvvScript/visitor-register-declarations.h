@@ -103,6 +103,11 @@ namespace parser
        */
 
 
+      virtual void operator()( AstBreak& )
+      {
+         // nothing to do
+      }
+
       virtual void operator()( AstIf& )
       {
          // nothing to do: just don't go through these nodes, we don't have to!

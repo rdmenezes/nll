@@ -378,6 +378,20 @@ namespace parser
          }
       }
 
+      virtual void operator()( const AstBreak& )
+      {
+         _o << "break";
+      }
+
+      virtual void operator()( const AstWhile& e )
+      {
+         _o << "while ( ";
+         operator()( e.getCondition() );
+         _o << ")" << iendl << incendl << "{" << iendl;
+         operator()( e.getStatements() );
+         _o << decendl << iendl;
+      }
+
       virtual void operator()( const AstExpSeq& e )
       {
          _o << "( ";

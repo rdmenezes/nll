@@ -110,6 +110,25 @@ namespace parser
          }
       }
 
+      virtual void operator()( AstBreak& e )
+      {
+         if ( _whiles.empty() )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "a break statement must be in the scope of a while or for loop" );
+         } else {
+            e.setLoop( _whiles.top() );
+         }
+      }
+
+      virtual void operator()( AstWhile& e )
+      {
+         operator()( e.getCondition() );
+
+         _whiles.push( &e );
+         operator()( e.getStatements() );
+         _whiles.pop();
+      }
+
       virtual void operator()( AstStatements& e )
       {
          ++_scopeDepth;
@@ -564,6 +583,7 @@ namespace parser
       std::vector<mvv::Symbol>   _defaultClassPath;
       std::vector<mvv::Symbol>   _currentFieldList;
       std::vector<AstDeclFun*>   _currentFunc;
+      std::stack<AstWhile*>      _whiles;
       int                        _functionCallsNeeded;
       int                        _isInFunction;
       bool                       _isInFunctionDeclaration; /* true if we are checking the function parameter declaration */

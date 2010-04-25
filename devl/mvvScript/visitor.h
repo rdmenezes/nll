@@ -39,6 +39,8 @@ namespace parser
    class AstExpTypename;
    class AstNil;
    class AstThis;
+   class AstWhile;
+   class AstBreak;
 
    /**
     @brief root of all the visitors
@@ -82,6 +84,8 @@ namespace parser
       virtual void operator()( typename Const<AstExpTypename>::type& e ) = 0;
       virtual void operator()( typename Const<AstNil>::type& e ) = 0;
       virtual void operator()( typename Const<AstThis>::type& e ) = 0;
+      virtual void operator()( typename Const<AstWhile>::type& e ) = 0;
+      virtual void operator()( typename Const<AstBreak>::type& e ) = 0;
    };
 
    /// defines a visitor that is constant

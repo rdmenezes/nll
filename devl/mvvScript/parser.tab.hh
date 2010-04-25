@@ -54,52 +54,54 @@
      GE = 270,
      GT = 271,
      DCOLON = 272,
-     IF = 273,
-     ELSE = 274,
-     LBRACE = 275,
-     LBRACK = 276,
-     LE = 277,
-     LPAREN = 278,
-     LT = 279,
-     MINUS = 280,
-     NE = 281,
-     OR = 282,
-     PLUS = 283,
-     RBRACE = 284,
-     RBRACK = 285,
-     RPAREN = 286,
-     SEMI = 287,
-     TIMES = 288,
-     THIS = 289,
-     REF = 290,
-     OPERATORPARENT = 291,
-     OPERATORBRACKET = 292,
-     OPERATOR_PLUS = 293,
-     OPERATOR_MINUS = 294,
-     OPERATOR_TIMES = 295,
-     OPERATOR_DIVIDE = 296,
-     OPERATOR_LT = 297,
-     OPERATOR_GT = 298,
-     OPERATOR_LE = 299,
-     OPERATOR_GE = 300,
-     OPERATOR_EQ = 301,
-     OPERATOR_NE = 302,
-     OPERATOR_AND = 303,
-     OPERATOR_OR = 304,
-     FOR = 305,
-     IN = 306,
-     VAR = 307,
-     CLASS = 308,
-     VOID = 309,
-     RETURN = 310,
-     TYPENAME = 311,
-     INT_T = 312,
-     FLOAT_T = 313,
-     STRING_T = 314,
-     IMPORT = 315,
-     INCLUDE = 316,
-     IFX = 317,
-     UMINUS = 318
+     WHILE = 273,
+     BREAK = 274,
+     IF = 275,
+     ELSE = 276,
+     LBRACE = 277,
+     LBRACK = 278,
+     LE = 279,
+     LPAREN = 280,
+     LT = 281,
+     MINUS = 282,
+     NE = 283,
+     OR = 284,
+     PLUS = 285,
+     RBRACE = 286,
+     RBRACK = 287,
+     RPAREN = 288,
+     SEMI = 289,
+     TIMES = 290,
+     THIS = 291,
+     REF = 292,
+     OPERATORPARENT = 293,
+     OPERATORBRACKET = 294,
+     OPERATOR_PLUS = 295,
+     OPERATOR_MINUS = 296,
+     OPERATOR_TIMES = 297,
+     OPERATOR_DIVIDE = 298,
+     OPERATOR_LT = 299,
+     OPERATOR_GT = 300,
+     OPERATOR_LE = 301,
+     OPERATOR_GE = 302,
+     OPERATOR_EQ = 303,
+     OPERATOR_NE = 304,
+     OPERATOR_AND = 305,
+     OPERATOR_OR = 306,
+     FOR = 307,
+     IN = 308,
+     VAR = 309,
+     CLASS = 310,
+     VOID = 311,
+     RETURN = 312,
+     TYPENAME = 313,
+     INT_T = 314,
+     FLOAT_T = 315,
+     STRING_T = 316,
+     IMPORT = 317,
+     INCLUDE = 318,
+     IFX = 319,
+     UMINUS = 320
    };
 #endif
 
@@ -110,7 +112,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 104 "parser.yy"
+#line 105 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -132,7 +134,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 136 "parser.tab.hh"
+#line 138 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

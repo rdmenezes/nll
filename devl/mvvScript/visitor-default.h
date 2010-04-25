@@ -19,6 +19,8 @@ namespace parser
       {
       }
 
+
+
       virtual void operator()( AstThis& )
       {
       }
@@ -33,6 +35,16 @@ namespace parser
 
       virtual void operator()( AstString& )
       {
+      }
+
+      virtual void operator()( AstBreak& e )
+      {
+      }
+
+      virtual void operator()( AstWhile& e )
+      {
+         operator()( e.getCondition() );
+         operator()( e.getStatements() );
       }
 
       virtual void operator()( AstOpBin& e )

@@ -153,6 +153,8 @@
 %token GE           ">="
 %token GT           ">"
 %token DCOLON       "::"
+%token WHILE		"while"
+%token BREAK		"break"
 
 %token IF           "if"
 %token ELSE         "else"
@@ -234,6 +236,8 @@ statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); }
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX                     { $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
           |IF LPAREN rvalue RPAREN LBRACE statements RBRACE ELSE LBRACE statements RBRACE { $$ = new mvv::parser::AstIf( @$, $3, $6, $10 ); }
           |CLASS ID LBRACE var_decs_class RBRACE                                          { mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$ = decl; linkFunctionToClass( *decl ); }
+          |WHILE LPAREN rvalue RPAREN LBRACE statements RBRACE                            { $$ = new mvv::parser::AstWhile( @$, $3, $6 ); }
+          |BREAK SEMI                                                                     { $$ = new mvv::parser::AstBreak( @$ ); }
 
 
           /**

@@ -31,5 +31,7 @@
 # include "ast-exp-typename.h"
 # include "ast-nil.h"
 # include "ast-this.h"
+# include "ast-while.h"
+# include "ast-break.h"
 
 #endif

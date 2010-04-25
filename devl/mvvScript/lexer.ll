@@ -156,6 +156,8 @@ STRCHR	[A-Za-z_]
 
 "this"         return THIS;
 "for"          return FOR;
+"while"        return WHILE;
+"break"        return BREAK;
 "if"           return IF;
 "else"         return ELSE;
 "var"          return VAR;

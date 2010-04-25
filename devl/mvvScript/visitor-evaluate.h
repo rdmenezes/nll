@@ -51,7 +51,7 @@ namespace parser
 
     AstDeclVar runtimeIndex is relative to the current frame pointer, ex: runtimeIndex = 3, FP = 100, index in frame = FP + runtimeIndex
     */
-   class VisitorEvaluate : public Visitor
+   class VisitorEvaluate : public VisitorDefault
    {
    public:
       VisitorEvaluate( ParserContext& context,
