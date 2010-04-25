@@ -2,7 +2,21 @@
  @brief Defines the basic operators + - * /
  */
 import int operator+( int a, int b );
+import int operator-( int a, int b );
+import int operator*( int a, int b );
+import int operator/( int a, int b );
+
 import int operator==( int a, int b );
+
+// print a string and finish by '\n'
+import void println( string s );
+
+// print a string
+import void print( string s );
+
+// concatene 2 strings
+import string operator+( string s1, string s2 );
+
 
 /*
 import int operator-( int a, int b );
