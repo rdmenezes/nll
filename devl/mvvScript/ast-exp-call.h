@@ -12,15 +12,18 @@ namespace parser
    public:
       typedef float    value_type;
 
-      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args ) : AstVar( location ), _name( name ), _args( args ), _simpleName( 0 ), _instanciation( 0 ), _construction( 0 ), _call( 0 )
+      AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args, bool deallocate = true ) : AstVar( location ), _name( name ), _args( args ), _simpleName( 0 ), _instanciation( 0 ), _construction( 0 ), _call( 0 ), _deallocate( deallocate )
       {
          ensure( name && args, "can't be null" );
       }
 
       ~AstExpCall()
       {
-         delete _name;
-         delete _args;
+         if ( _deallocate )
+         {
+            delete _name;
+            delete _args;
+         }
       }
 
       const AstVar& getName() const
@@ -103,6 +106,7 @@ namespace parser
       AstDeclClass*     _instanciation; // BINDING // the reference will hold a class if it is a class to be called with operator()
       AstDeclClass*     _construction;  // BINDING // refernce will hold a class def if the class need to be constructed
       AstDeclFun*       _call;          // the function that needs to be called
+      bool              _deallocate;
    };
 }
 }

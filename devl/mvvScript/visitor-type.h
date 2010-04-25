@@ -926,6 +926,28 @@ namespace parser
             operator()( e.getArgs() );
          }
          e.setNodeType( new TypeNamed( e.getReference(), false ) );
+
+         // check it can be constructed
+         // if object initialization, check we can construct the object
+         assert( e.getReference() );
+         std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getReference(), e.getReference()->getName() ), e.getArgs() );
+         if ( funs.size() == 1 )
+         {
+            e.setConstructor( funs[ 0 ] );
+            return;
+         } else {
+            if ( funs.size() > 1 )
+            {
+               // ambiguous call
+               impl::reportTypeError( e.getLocation(), _context, "ambiguous constructor call to " + std::string( e.getReference()->getName().getName() ) );
+               e.setNodeType( new TypeError() );
+               return;
+            } else {
+               impl::reportTypeError( e.getLocation(), _context, "no matching constructor call for the class " + std::string( e.getReference()->getName().getName() ) );
+               e.setNodeType( new TypeError() );
+               return;
+            }
+         }
       }
 
       virtual void operator()( Ast& e )

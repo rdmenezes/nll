@@ -12,7 +12,6 @@ struct TestEval
 {
    void eval1()
    {
-      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -506,7 +505,13 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Test{class Test2{int n; Test2(){ n = 44;}}} Test::Test2 t2 = typename Test::Test2(); int n1 = t2.n;" );
+         Error::ErrorType result = fe.run( "class Test{class Test2{int n; Test2(int nn){ n = 44;}}} Test::Test2 t2 = typename Test::Test2(); int n1 = t2.n;" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{class Test2{int n; Test2(){ n = 44; }}} Test::Test2 t2 = typename Test::Test2(); int n1 = t2.n;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );

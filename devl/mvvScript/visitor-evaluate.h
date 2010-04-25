@@ -609,6 +609,14 @@ namespace parser
 
       virtual void operator()( AstExpTypename& e )
       {
+         AstVarSimple var( e.getLocation(), mvv::platform::Symbol::create("TMP"), false );
+         AstExpCall exp( e.getLocation(), &var, &e.getArgs(), false );
+         exp.setNodeType( e.getNodeType()->clone() );
+         exp.setFunctionCall( e.getConstructor() );
+         exp.setConstructed( e.getReference() );
+
+         operator()( exp );
+         
          // TODO: create a AstExpCall, and run it!
 
          /*

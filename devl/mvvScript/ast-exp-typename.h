@@ -12,7 +12,7 @@ namespace parser
    public:
       typedef int    value_type;
 
-      AstExpTypename( const YYLTYPE& location, AstTypeT* type, AstArgs* args ) : AstExp( location ), _type( type ), _args( args ), _ref( 0 )
+      AstExpTypename( const YYLTYPE& location, AstTypeT* type, AstArgs* args ) : AstExp( location ), _type( type ), _args( args ), _ref( 0 ), _constructor( 0 )
       {
          ensure( type && args, "must not be null" );
       }
@@ -48,6 +48,16 @@ namespace parser
          return _ref;
       }
 
+      AstDeclFun* getConstructor() const
+      {
+         return _constructor;
+      }
+
+      void setConstructor( AstDeclFun* c )
+      {
+         _constructor = c;
+      }
+
       const AstArgs& getArgs() const
       {
          return *_args;
@@ -69,6 +79,7 @@ namespace parser
       AstTypeT*      _type;
       AstArgs*       _args;
       AstDeclClass*  _ref;
+      AstDeclFun*    _constructor;
    };
 }
 }
