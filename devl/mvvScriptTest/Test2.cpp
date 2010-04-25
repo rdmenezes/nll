@@ -12,6 +12,7 @@ struct TestEval
 {
    void eval1()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -557,6 +558,34 @@ struct TestEval
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         nll::core::Timer tt;
+         Error::ErrorType result = fe.run( "import \"core\" int n = 0; while ( 1 ){ if ( n == 150000){break;} n = n + 1;}" );
+         std::cout << "Time 150000 loops=" << tt.getCurrentTime() << std::endl;
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 150000 );
+      }
+*/
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" print(\"test123456\"); println(\"789\"); " );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" string s = \"123\" + \"456\";" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "s" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt.stringval == "123456" );
       }
 
 

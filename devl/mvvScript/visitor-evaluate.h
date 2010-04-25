@@ -64,6 +64,7 @@ namespace parser
          env.framePointer = 0;
 
          _level = 0;
+         _mustBreak = false;
 
          // reinit the stack frame
          env.stackFrame = std::stack<ui32>();
@@ -198,6 +199,10 @@ namespace parser
 
       virtual void operator()( AstStatements& e )
       {
+         // when we need to break, we need to exit any statements, until the loop has been found
+         if ( _mustBreak )
+            return;
+
          ++_level;
 
          if ( _level > 1 )
@@ -211,6 +216,9 @@ namespace parser
                ++it )
          {
             operator()( **it );
+
+            if ( _mustBreak )
+               break;
          }
 
          if ( _level > 1 )
@@ -620,6 +628,28 @@ namespace parser
          operator()( exp );
       }
 
+      virtual void operator()( AstBreak& e )
+      {
+         _mustBreak = true;
+      }
+
+      virtual void operator()( AstWhile& e )
+      {
+         while ( 1 )
+         {
+            operator()( e.getCondition() );
+            assert( _env.resultRegister.type == RuntimeValue::INT ); // the condition must be an int
+
+            operator()( e.getStatements() );
+            if ( _mustBreak )
+            {
+               _mustBreak = false;
+               break;
+            }
+         }
+      }
+
+
       virtual void operator()( Ast& e )
       {
          e.accept( *this );
@@ -676,6 +706,7 @@ namespace parser
       SymbolTableClasses&  _classes;
       RuntimeEnvironment&  _env;
       ui32                 _level;     // scope depth
+      bool                 _mustBreak; // true if we must break the current loop
    };
 }
 }
