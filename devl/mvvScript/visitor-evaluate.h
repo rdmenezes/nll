@@ -182,17 +182,18 @@ namespace parser
 
       virtual void operator()( AstIf& e )
       {
-         /*
          operator()( e.getCondition() );
-         operator()( e.getThen() );
 
-         if ( e.getElse() )
+         assert( _env.resultRegister.type == RuntimeValue::INT ); // only INT should be handled
+         if ( _env.resultRegister.intval )
          {
-            operator()( *e.getElse() );
+            operator()( e.getThen() );
+         } else {
+            if ( e.getElse() )
+            {
+               operator()( *e.getElse() );
+            }
          }
-
-         // TODO
-         */
       }
 
       virtual void operator()( AstStatements& e )
@@ -604,11 +605,12 @@ namespace parser
 
       virtual void operator()( AstTypeField& e )
       {
-         operator()( e.getField() );
+         //operator()( e.getField() );
       }
 
       virtual void operator()( AstExpTypename& e )
       {
+         // construct an AstExpCall and eval as we want to do exactly the same thing!
          AstVarSimple var( e.getLocation(), mvv::platform::Symbol::create("TMP"), false );
          AstExpCall exp( e.getLocation(), &var, &e.getArgs(), false );
          exp.setNodeType( e.getNodeType()->clone() );
@@ -616,15 +618,6 @@ namespace parser
          exp.setConstructed( e.getReference() );
 
          operator()( exp );
-         
-         // TODO: create a AstExpCall, and run it!
-
-         /*
-         operator()( e.getType() );
-         if ( e.getArgs().getArgs().size() )
-         {
-            operator()( e.getArgs() );
-         } */
       }
 
       virtual void operator()( Ast& e )
