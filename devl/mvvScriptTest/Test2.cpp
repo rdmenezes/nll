@@ -588,6 +588,16 @@ struct TestEval
          TESTER_ASSERT( rt.stringval == "123456" );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" int n = 1 * 2 + 4 / 2" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "s" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 4 );
+      }
+
 
 
 /*
