@@ -636,6 +636,8 @@ struct TestEval
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 5 );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "n" ) );
       }
 
       {

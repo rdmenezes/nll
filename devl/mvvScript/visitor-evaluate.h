@@ -507,7 +507,7 @@ namespace parser
                // because it is constructed, we need to allocate a temporary, start constructor, move the object
                // in the result register, unstack the object
                vals[ 0 ] = RuntimeValue( RuntimeValue::TYPE );
-               vals[ 0 ].vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
+               vals[ 0 ].vals = RuntimeValue::RefcountedValues( new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
             } else  {
                vals[ 0 ] = _env.resultRegister;
             }
@@ -537,7 +537,7 @@ namespace parser
          {
             // if we are not at the last level, just allocate the next level...
             src.type = RuntimeValue::TYPE;
-            src.vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( size[ currentIndex ] ) );
+            src.vals = RuntimeValue::RefcountedValues( new RuntimeValues( size[ currentIndex ] ) );
 
             // recursively populates the other dimensions
             for ( ui32 n = 0; n < size[ currentIndex ]; ++n )
@@ -554,7 +554,7 @@ namespace parser
             {
                // create the object
                (*src.vals)[ n ].type = RuntimeValue::TYPE;
-               (*src.vals)[ n ].vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
+               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
 
                // call the constructor
                RuntimeValues init( 1 );
@@ -581,7 +581,7 @@ namespace parser
          {
             AstArgs::Args& args = e.getDeclarationList()->getArgs();
             _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
-            _env.stack.rbegin()->vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( args.size() ) );
+            _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( new RuntimeValues( args.size() ) );
             for ( ui32 n = 0; n < args.size(); ++n )
             {
                operator()( *args[ n ] );
@@ -615,7 +615,7 @@ namespace parser
                // construct an object
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
-               _env.stack.rbegin()->vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+               _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
                if ( e.getObjectInitialization() )
                {
                   AstArgs::Args& args = e.getObjectInitialization()->getArgs();
