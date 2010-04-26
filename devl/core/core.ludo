@@ -1,10 +1,24 @@
-/**
- @brief Defines the basic operators + - * /
- */
+
+// Defines the basic operators + - * == != /
 import int operator+( int a, int b );
 import int operator-( int a, int b );
 import int operator*( int a, int b );
 import int operator/( int a, int b );
+
+import float operator+( float a, int b );
+import float operator-( float a, int b );
+import float operator/( float a, int b );
+import float operator*( float a, int b );
+
+import float operator+( int a, float b );
+import float operator-( int a, float b );
+import float operator/( int a, float b );
+import float operator*( int a, float b );
+
+import float operator+( float a, float b );
+import float operator-( float a, float b );
+import float operator/( float a, float b );
+import float operator*( float a, float b );
 
 import int operator==( int a, int b );
 

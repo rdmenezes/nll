@@ -33,7 +33,7 @@ namespace parser
          FLOAT,      /// float type
          STRING,     /// string
          TYPE,       /// class type
-         ARRAY,      /// array type
+        // ARRAY,      /// array type => the array is actually a type!
          REF,        /// reference type
          NIL         /// empty pointer type
       };

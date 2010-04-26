@@ -50,6 +50,8 @@ namespace parser
     Stack frame: When a function run/finish we need to push the current FP/then pop
 
     AstDeclVar runtimeIndex is relative to the current frame pointer, ex: runtimeIndex = 3, FP = 100, index in frame = FP + runtimeIndex
+
+    lvalue: we need a ref runtime value to handle them as we need to modify them
     */
    class VisitorEvaluate : public VisitorDefault
    {
@@ -163,7 +165,7 @@ namespace parser
          // check we have a specific operator== or !=
          RuntimeValue& ur0 = unref( vals[ 0 ] );
          RuntimeValue& ur1 = unref( vals[ 1 ] );
-         if ( ur0.type == RuntimeValue::TYPE || ur0.type == RuntimeValue::ARRAY )
+         if ( ur0.type == RuntimeValue::TYPE  )
          {
             if ( e.getOp() == AstOpBin::EQ )
             {
@@ -242,9 +244,9 @@ namespace parser
 
          operator()( e.getLValue() );
 
-         assert( _env.resultRegister.type == RuntimeValue::ARRAY || _env.resultRegister.type == RuntimeValue::TYPE || _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
+         assert( _env.resultRegister.type == RuntimeValue::TYPE || _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
 
-         if ( _env.resultRegister.type == RuntimeValue::ARRAY || _env.resultRegister.type == RuntimeValue::TYPE )
+         if ( _env.resultRegister.type == RuntimeValue::TYPE )
          {
             // in the case of an array/type, we don't need a ref to access it!
             /*
@@ -322,30 +324,26 @@ namespace parser
 
       virtual void operator()( AstVarArray& e )
       {
-         /*
          operator()( e.getIndex() );
-         operator()( e.getName() );
+         assert( _env.resultRegister.type == RuntimeValue::INT );
+         int index = _env.resultRegister.intval;
 
-         if ( e.getName().getRuntimeValue().vals.getDataPtr() == 0 )
+         operator()( e.getName() );
+         RuntimeValue& array = unref( _env.resultRegister );
+
+         if ( array.type == RuntimeValue::EMPTY )
          {
             throw RuntimeException( "uninitialized array" );
          }
+         assert( array.type == RuntimeValue::TYPE );
 
-         // ensure the variable is an array... else we missed something in the type visitor!
-         assert( e.getName().getRuntimeValue().type == RuntimeValue::ARRAY ); // "compiler error: must be an array" 
-         int index = e.getIndex().getRuntimeValue().intval;
-
-         if ( index < 0 || static_cast<unsigned int>( index ) >= (*e.getName().getRuntimeValue().vals).size() )
+         if ( index >= (*array.vals).size() || index < 0 )
          {
-            // out of bound error
-            std::stringstream msg;
-            msg << "out of bound index: array size=" << (*e.getName().getRuntimeValue().vals).size() << " index=" << index;
-            impl::runtimeError( e.getIndex().getLocation(), _context, msg.str() );
+            throw RuntimeException( "out of bound exception" );
          }
 
-         // just get the value
-         e.getRuntimeValue() = (*e.getName().getRuntimeValue().vals)[ index ];
-         */
+         // a L-value must return a ref
+         _createRef( _env.resultRegister, (*array.vals)[ index ], false );
       }
 
       // this node will only produce a.b.c, then they will be interpreted function call: ->(a.b)<- .c[(something)]
@@ -364,7 +362,7 @@ namespace parser
             cur = dynamic_cast<AstVarField*>( &cur->getField() );
          }
 
-         assert( dynamic_cast<AstVarSimple*>( last ) ); // expect only simple variable decl for now // TODO array?
+         assert( dynamic_cast<AstVarSimple*>( last ) || dynamic_cast<AstThis*>( last ) || dynamic_cast<AstVarArray*>( last ) ); // expect only simple variable decl for now // TODO array?
          operator()( *last );
 
          // evaluate the field
@@ -528,7 +526,43 @@ namespace parser
          }
       }
 
+      /**
+       @brief Recursively populate the array
+       */
+      void createArray( RuntimeValue& src, const std::vector<ui32>& size, ui32 currentIndex, AstDeclFun* constructor )
+      {
+         if ( currentIndex > size.size() )
+            return;
+         if ( currentIndex < size.size() )
+         {
+            // if we are not at the last level, just allocate the next level...
+            src.type = RuntimeValue::TYPE;
+            src.vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( size[ currentIndex ] ) );
 
+            // recursively populates the other dimensions
+            for ( ui32 n = 0; n < size[ currentIndex ]; ++n )
+            {
+               createArray( (*src.vals)[ n ], size, currentIndex + 1, constructor );
+            }
+         }
+         
+         if ( currentIndex + 1 == size.size() && constructor )
+         {
+            // if last level & type, initialize the type
+            // initialize the objects
+            for ( ui32 n = 0; n < size[ currentIndex ]; ++n )
+            {
+               // create the object
+               (*src.vals)[ n ].type = RuntimeValue::TYPE;
+               (*src.vals)[ n ].vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
+
+               // call the constructor
+               RuntimeValues init( 1 );
+               init[ 0 ] = (*src.vals)[ n ];
+               _callFunction( *constructor, init );
+            }
+         }
+      }
 
       virtual void operator()( AstDeclVar& e )
       {
@@ -545,61 +579,63 @@ namespace parser
             return;
          } else if ( e.getDeclarationList() )
          {
-            /*
-            operator()( *e.getDeclarationList() );
-
-            
-            for ( AstArgs::Args::iterator itArg = e.getDeclarationList()->getArgs().begin(); itArg != e.getDeclarationList()->getArgs().end(); ++itArg, ++n )
+            AstArgs::Args& args = e.getDeclarationList()->getArgs();
+            _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
+            _env.stack.rbegin()->vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( args.size() ) );
+            for ( ui32 n = 0; n < args.size(); ++n )
             {
-               (*e.getRuntimeValue().vals)[ n ] = (*itArg)->getRuntimeValue();
-            }*/
+               operator()( *args[ n ] );
+               (*_env.stack.rbegin()->vals)[ n ] = unref( _env.resultRegister ); // copy the value, not a ref!
+            }
             return;
          }
 
          if ( e.getType().isArray() )
          {
-            /*
+            
             if ( e.getType().getSize() && e.getType().getSize()->size() > 0 )
             {
+               std::vector<ui32> vals( e.getType().getSize()->size() );
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
                {
                   operator()( *( (*e.getType().getSize())[ n ] ) );
+                  assert( _env.resultRegister.type == RuntimeValue::INT );
+                  vals[ vals.size() - 1 - n ] = unref( _env.resultRegister ).intval; // we need to unref: in case we use ++operator
                }
+
+               // create the root of the array
+               _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
+               createArray( *_env.stack.rbegin(), vals, 0, e.getConstructorCall() );
+               return;
             }
-
-            if ( e.getType().getSize() )
+         } else {
+            // if not an array & constructor call
+            if ( e.getConstructorCall() )
             {
-               _buildArray( e, *e.getType().getSize() );
-            }
-            return;
-            */
-         }
-
-         if ( e.getConstructorCall() )
-         {
-            // construct an object
-            _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
-            assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
-            _env.stack.rbegin()->vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
-            if ( e.getObjectInitialization() )
-            {
-               AstArgs::Args& args = e.getObjectInitialization()->getArgs();
-               RuntimeValues vals( args.size() + 1 );
-
-               vals[ 0 ] = *_env.stack.rbegin();
-               for ( size_t n = 0; n < args.size(); ++n )
+               // construct an object
+               _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
+               assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
+               _env.stack.rbegin()->vals = platform::RefcountedTyped<RuntimeValues>( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+               if ( e.getObjectInitialization() )
                {
-                  operator()( *args[ n ] );
-                  vals[ n + 1 ] = _env.resultRegister;
-               }
+                  AstArgs::Args& args = e.getObjectInitialization()->getArgs();
+                  RuntimeValues vals( args.size() + 1 );
 
-               _callFunction( *e.getConstructorCall(), vals );
-            } else {
-               RuntimeValues vals( 1 );
-               vals[ 0 ] = *_env.stack.rbegin();
-               _callFunction( *e.getConstructorCall(), vals );
+                  vals[ 0 ] = *_env.stack.rbegin();
+                  for ( size_t n = 0; n < args.size(); ++n )
+                  {
+                     operator()( *args[ n ] );
+                     vals[ n + 1 ] = _env.resultRegister;
+                  }
+
+                  _callFunction( *e.getConstructorCall(), vals );
+               } else {
+                  RuntimeValues vals( 1 );
+                  vals[ 0 ] = *_env.stack.rbegin();
+                  _callFunction( *e.getConstructorCall(), vals );
+               }
+               return;
             }
-            return;
          }
 
          // uninitialized variable
@@ -609,11 +645,6 @@ namespace parser
       virtual void operator()( AstExpSeq& e )
       {
          operator()( e.getExp() );
-      }
-
-      virtual void operator()( AstTypeField& e )
-      {
-         //operator()( e.getField() );
       }
 
       virtual void operator()( AstExpTypename& e )
@@ -653,6 +684,11 @@ namespace parser
       virtual void operator()( Ast& e )
       {
          e.accept( *this );
+      }
+
+      virtual void operator()( AstTypeField& e )
+      {
+         // nothing to do
       }
 
       //

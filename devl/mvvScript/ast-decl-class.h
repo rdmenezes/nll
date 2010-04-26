@@ -68,7 +68,7 @@ namespace parser
    private:
       AstDecls*            _decls;
       ui32                 _memberVariableSize; // hold the number of field an object contains
-      RuntimeValue         _runtimeObjectSource; // this hold the current object context (used for example for 'this')
+      RuntimeValue         _runtimeObjectSource; // this hold the current object context (used for example for 'this') // TODO remove useless...
    };
 }
 }
