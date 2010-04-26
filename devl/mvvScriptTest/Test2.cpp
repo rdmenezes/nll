@@ -974,6 +974,8 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
+
+      std::cout << "sizeof(int)=" << sizeof(long long)<< std::endl;
    }
 
 

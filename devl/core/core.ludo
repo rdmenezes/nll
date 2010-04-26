@@ -73,6 +73,14 @@ import string operator+( string s1, string s2 );
 import int operator||( int a, int b );
 import int operator&&( int a, int b );
 
+/**
+ @brief Basic types conversion & roundings
+ */
+import float toFloat( int a );
+import int round( float a );
+import int floor( float a );
+import string toString( int a );
+import string toString( float a );
 
 /**
  @brief Defines basic datatypes

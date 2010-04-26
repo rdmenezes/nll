@@ -23,6 +23,8 @@ namespace parser
    class MVVSCRIPT_API RuntimeValue
    {
    public:
+      typedef platform::RefcountedTyped<RuntimeValues>   RefcountedValues;
+
       /**
        @brief Basically classify types in these categories
        */
@@ -59,7 +61,7 @@ namespace parser
       // values...
       float       floatval;      /// hold the value of the runtime value is of this type
       int         intval;        /// hold the value of the runtime value is of this type
-      platform::RefcountedTyped<RuntimeValues> vals; /// hold a list of values (i.e. named value or array)
+      RefcountedValues vals;     /// hold a list of values (i.e. named value or array)
       std::string stringval;     // hold a string
       RuntimeValue* ref;         // hold a reference
 
