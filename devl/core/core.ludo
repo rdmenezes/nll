@@ -1,5 +1,7 @@
 
-// Defines the basic operators + - * == != /
+/**
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator+( int a, int b );
 import int operator-( int a, int b );
 import int operator*( int a, int b );
@@ -21,49 +23,56 @@ import float operator/( float a, float b );
 import float operator*( float a, float b );
 
 import int operator==( int a, int b );
+import int operator==( float a, float b );
+import int operator==( int a, float b );
+import int operator==( float a, int b );
 
-// print a string and finish by '\n'
+import int operator!=( int a, int b );
+import int operator!=( float a, float b );
+import int operator!=( int a, float b );
+import int operator!=( float a, int b );
+
+import int operator<=( int a, int b );
+import int operator<=( float a, float b );
+import int operator<=( int a, float b );
+import int operator<=( float a, int b );
+
+import int operator>=( int a, int b );
+import int operator>=( float a, float b );
+import int operator>=( int a, float b );
+import int operator>=( float a, int b );
+
+import int operator>( int a, int b );
+import int operator>( float a, float b );
+import int operator>( int a, float b );
+import int operator>( float a, int b );
+
+import int operator<( int a, int b );
+import int operator<( float a, float b );
+import int operator<( int a, float b );
+import int operator<( float a, int b );
+
+/**
+ @brief print a string and finish by '\n'
+ */
 import void println( string s );
 
-// print a string
+/**
+ @brief print a string
+ */
 import void print( string s );
 
-// concatene 2 strings
+/**
+ @brief concatene 2 strings
+ */
 import string operator+( string s1, string s2 );
-
-
-/*
-import int operator-( int a, int b );
-import int operator/( int a, int b );
-import int operator*( int a, int b );
-
-import float operator+( float a, int b );
-import float operator-( float a, int b );
-import float operator/( float a, int b );
-import float operator*( float a, int b );
-
-import float operator+( float a, float b );
-import float operator-( float a, float b );
-import float operator/( float a, float b );
-import float operator*( float a, float b );
-
-import float operator+( int a, float b );
-import float operator-( int a, float b );
-import float operator/( int a, float b );
-import float operator*( int a, float b );
-*/
 
 /**
  @brief Defines the basic operators || &&
  */
- /*
 import int operator||( int a, int b );
 import int operator&&( int a, int b );
-*/
-/**
- @brief Defines the basic operators on strings
- */
-//import string operator+( string s );
+
 
 /**
  @brief Defines basic datatypes

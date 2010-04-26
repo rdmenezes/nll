@@ -617,6 +617,657 @@ public:
    }
 };
 
+class FunctionRunnableEqFI : public FunctionRunnable
+{
+public:
+   FunctionRunnableEqFI( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = fabs( v1.floatval - static_cast<float>( v2.intval ) ) < 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableEqIF : public FunctionRunnable
+{
+public:
+   FunctionRunnableEqIF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = fabs( v2.floatval - static_cast<float>( v1.intval ) ) < 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableEqFF : public FunctionRunnable
+{
+public:
+   FunctionRunnableEqFF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = fabs( v1.floatval - v2.floatval ) < 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableNEqII : public FunctionRunnable
+{
+public:
+   FunctionRunnableNEqII( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval != v2.intval;
+      return rt;
+   }
+};
+
+class FunctionRunnableNEqFI : public FunctionRunnable
+{
+public:
+   FunctionRunnableNEqFI( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = fabs( v1.floatval - static_cast<float>( v2.intval ) ) > 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableNEqIF : public FunctionRunnable
+{
+public:
+   FunctionRunnableNEqIF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = fabs( v2.floatval - static_cast<float>( v1.intval ) ) > 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableNEqFF : public FunctionRunnable
+{
+public:
+   FunctionRunnableNEqFF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = fabs( v1.floatval - v2.floatval ) > 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableLEqII : public FunctionRunnable
+{
+public:
+   FunctionRunnableLEqII( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval <= v2.intval;
+      return rt;
+   }
+};
+
+class FunctionRunnableLEqFI : public FunctionRunnable
+{
+public:
+   FunctionRunnableLEqFI( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval <= static_cast<float>( v2.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableLEqIF : public FunctionRunnable
+{
+public:
+   FunctionRunnableLEqIF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v2.floatval <= static_cast<float>( v1.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableLEqFF : public FunctionRunnable
+{
+public:
+   FunctionRunnableLEqFF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval <= v2.floatval;
+      return rt;
+   }
+};
+
+class FunctionRunnableGEqII : public FunctionRunnable
+{
+public:
+   FunctionRunnableGEqII( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval >= v2.intval;
+      return rt;
+   }
+};
+
+class FunctionRunnableGEqFI : public FunctionRunnable
+{
+public:
+   FunctionRunnableGEqFI( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval >= static_cast<float>( v2.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableGEqIF : public FunctionRunnable
+{
+public:
+   FunctionRunnableGEqIF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v2.floatval >= static_cast<float>( v1.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableGEqFF : public FunctionRunnable
+{
+public:
+   FunctionRunnableGEqFF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval >= v2.floatval;
+      return rt;
+   }
+};
+
+class FunctionRunnableLTII : public FunctionRunnable
+{
+public:
+   FunctionRunnableLTII( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval < v2.intval;
+      return rt;
+   }
+};
+
+class FunctionRunnableLTFI : public FunctionRunnable
+{
+public:
+   FunctionRunnableLTFI( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval < static_cast<float>( v2.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableLTIF : public FunctionRunnable
+{
+public:
+   FunctionRunnableLTIF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v2.floatval < static_cast<float>( v1.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableLTFF : public FunctionRunnable
+{
+public:
+   FunctionRunnableLTFF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval < v2.floatval;
+      return rt;
+   }
+};
+
+class FunctionRunnableGTII : public FunctionRunnable
+{
+public:
+   FunctionRunnableGTII( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval > v2.intval;
+      return rt;
+   }
+};
+
+class FunctionRunnableGTFI : public FunctionRunnable
+{
+public:
+   FunctionRunnableGTFI( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval > static_cast<float>( v2.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableGTIF : public FunctionRunnable
+{
+public:
+   FunctionRunnableGTIF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v2.floatval > static_cast<float>( v1.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableGTFF : public FunctionRunnable
+{
+public:
+   FunctionRunnableGTFF( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.floatval > v2.floatval;
+      return rt;
+   }
+};
+
+class FunctionRunnableAnd : public FunctionRunnable
+{
+public:
+   FunctionRunnableAnd( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval && v2.intval;
+      return rt;
+   }
+};
+
+class FunctionRunnableOr : public FunctionRunnable
+{
+public:
+   FunctionRunnableOr( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      {
+         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::INT );
+      rt.intval = v1.intval || v2.intval;
+      return rt;
+   }
+};
+
+
 
 void importFunctions( CompilerFrontEnd& e)
 {
@@ -723,6 +1374,144 @@ void importFunctions( CompilerFrontEnd& e)
    }
 
    {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator==" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableEqIF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator==" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableEqFI( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator==" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableEqFF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator!=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableNEqII( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator!=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableNEqIF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator!=" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableNEqFI( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator!=" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableNEqFF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLEqII( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLEqIF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<=" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLEqFI( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<=" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLEqFF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGEqII( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGEqIF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>=" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGEqFI( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>=" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGEqFF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLTII( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLTIF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLTFI( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator<" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableLTFF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGTII( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGTIF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGTFI( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator>" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableGTFF( fn ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "println" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintlnS( fn ) ) );
@@ -738,5 +1527,17 @@ void importFunctions( CompilerFrontEnd& e)
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator+" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePlusSS( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator&&" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableAnd( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator||" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableOr( fn ) ) );
    }
 }

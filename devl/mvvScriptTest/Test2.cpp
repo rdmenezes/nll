@@ -12,7 +12,6 @@ struct TestEval
 {
    void eval1()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -562,13 +561,13 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          nll::core::Timer tt;
-         Error::ErrorType result = fe.run( "import \"core\" int n = 0; while ( 1 ){ if ( n == 15000){break;} n = n + 1;}" );
-         std::cout << "Time 15000 loops=" << tt.getCurrentTime() << std::endl;
+         Error::ErrorType result = fe.run( "import \"core\" int n = 0; while ( 1 ){ if ( n == 150000){break;} n = n + 1;}" );
+         std::cout << "Time 150000 loops=" << tt.getCurrentTime() << std::endl;
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
-         TESTER_ASSERT( rt.intval == 15000 );
+         TESTER_ASSERT( rt.intval == 150000 );
       }
 
       {
@@ -610,7 +609,7 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 46 );
       }
-*/
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int n[] = {1, 2, 3, 4, 5}; int n1 = n[ 0 ]; int n2 = n[ 4 ];" );
@@ -765,6 +764,215 @@ struct TestEval
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( fabs( rt.floatval - 5.5 ) < 1e-6 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" float f = ((3.5 + 2.5));" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( fabs( rt.floatval - 6 ) < 1e-6 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 == 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 == 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 == 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 == 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 != 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 0 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 != 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 0 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 != 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 0 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 != 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 0 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 <= 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 <= 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 <= 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 <= 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 >= 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 >= 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 >= 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 >= 3.000;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 3 && 2;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" int f = 0 || -1;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 1 );
       }
    }
 
