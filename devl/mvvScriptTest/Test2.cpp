@@ -12,6 +12,7 @@ struct TestEval
 {
    void eval1()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -609,7 +610,7 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::INT );
          TESTER_ASSERT( rt2.intval == 46 );
       }
-
+*/
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int n[] = {1, 2, 3, 4, 5}; int n1 = n[ 0 ]; int n2 = n[ 4 ];" );
@@ -743,17 +744,28 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
-/*
+
       {
          CompilerFrontEnd fe;
          // we don't run it so no runtime error...
          Error::ErrorType result = fe.run( "import \"core\" float f = 3.5 + 2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
-         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( fabs( rt.floatval - 5.5 ) < 1e-6 );
-      }*/
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // we don't run it so no runtime error...
+         Error::ErrorType result = fe.run( "import \"core\" float f = ((3 + 2.5));" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( fabs( rt.floatval - 5.5 ) < 1e-6 );
+      }
    }
 
 

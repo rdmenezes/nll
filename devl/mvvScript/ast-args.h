@@ -29,7 +29,13 @@ namespace parser
       void insert( AstExp* ast )
       {
          ensure( ast, "can't be null" );
-         _args.push_front( ast );
+         _args.push_front( ast );   // we usually push_front because in the scanner the list is recursively build from last to first, so invert it!
+      }
+
+      void insert_back( AstExp* ast )
+      {
+         ensure( ast, "can't be null" );
+         _args.push_back( ast );
       }
 
       const Args& getArgs() const

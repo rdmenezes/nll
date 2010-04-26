@@ -288,7 +288,7 @@ namespace parser
          if ( t )
          {
             AstArgs args( e.getRight().getLocation(), false );
-            args.insert( &e.getRight() );
+            args.insert_back( &e.getRight() );
             std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *t->getDecl(), ops ), args );
             if ( funs.size() == 1 )
             {
@@ -309,8 +309,8 @@ namespace parser
 
          // this is a basic type, or a type but operator is not member
          AstArgs args( e.getRight().getLocation(), false );
-         args.insert( &e.getLeft() );
-         args.insert( &e.getRight() );
+         args.insert_back( &e.getLeft() );
+         args.insert_back( &e.getRight() );
          std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromGlobal( _funcs, ops ), args );
          if ( funs.size() == 1 )
          {
