@@ -655,9 +655,9 @@ namespace parser
                e.setNodeType( e.getMemberOfClass()->getNodeType()->clone() );
                isAConstructor = true;
 
-               if ( e.getName() != e.getMemberOfClass()->getName() )
+               if ( e.getName() != e.getMemberOfClass()->getName() && e.getName() != e.getMemberOfClass()->getDestructorName() )
                {
-                  impl::reportTypeError( e.getLocation(), _context, "constructor must have the same name than class, or missing function type" );
+                  impl::reportTypeError( e.getLocation(), _context, "constructor and destructor must have the same name than class, or missing function type" );
                   e.setNodeType( new TypeError() );
                   return;
                }

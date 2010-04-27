@@ -12,6 +12,7 @@ struct TestEval
 {
    void eval1()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -644,7 +645,7 @@ struct TestEval
          CompilerFrontEnd fe;
          try
          {
-            // we don't run it so no runtime error...
+            
             Error::ErrorType result = fe.run( "import \"core\" class Test{ int a[]; Test(){ a[ 1 ] = 0; } }" );
             TESTER_ASSERT( result == Error::SUCCESS );
          } catch ( RuntimeException e ){
@@ -656,7 +657,7 @@ struct TestEval
          CompilerFrontEnd fe;
          try
          {
-            // we don't run it so no runtime error...
+            
             Error::ErrorType result = fe.run( "import \"core\" class Test{ int a[]; Test(){ a[ 1 ] = 0; } } Test t;" );
             TESTER_ASSERT( 0 );
          } catch ( RuntimeException e ){
@@ -737,7 +738,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" class Test{ int a[]; Test(){ int array[ 5 ]; array[ 0 ] = 5; a = array;} } Test t; int n = t.a[ 0 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -748,7 +749,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" float f = 3.5 + 2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -759,7 +760,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" float f = ((3 + 2.5));" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -770,7 +771,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" float f = ((3.5 + 2.5));" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -781,7 +782,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 == 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -792,7 +793,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 == 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -803,7 +804,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 == 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -814,7 +815,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 == 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -825,7 +826,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 != 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -836,7 +837,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 != 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -847,7 +848,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 != 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -858,7 +859,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 != 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -869,7 +870,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 <= 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -880,7 +881,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 <= 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -891,7 +892,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 <= 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -902,7 +903,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 <= 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -913,7 +914,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
+         
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 >= 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -924,7 +925,6 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 >= 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -935,7 +935,6 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 >= 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -946,7 +945,6 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
          Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 >= 3.000;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -957,7 +955,6 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
          Error::ErrorType result = fe.run( "import \"core\" int f = 3 && 2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -968,7 +965,6 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         // we don't run it so no runtime error...
          Error::ErrorType result = fe.run( "import \"core\" int f = 0 || -1;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -976,6 +972,32 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int Test(){}}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+*/
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ import ~Test(); }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ ~Test(){} }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ import int ~Test(); }" );
+         TESTER_ASSERT( result == Error::PARSE );
+      }
+
+      
 
       std::cout << "sizeof(int)=" << sizeof(long long)<< std::endl;
    }

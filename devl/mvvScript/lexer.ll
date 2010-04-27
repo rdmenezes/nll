@@ -173,7 +173,7 @@ STRCHR	[A-Za-z_]
 "include"      return INCLUDE;
 "typename"     return TYPENAME;
 
-
+"~"     return TILDE;
 "="     return ASSIGN;
 "."     return DOT;
 "::"    return DCOLON;
@@ -182,8 +182,8 @@ STRCHR	[A-Za-z_]
 "]"     return RBRACK;
 "["     return LBRACK;
 "("     return LPAREN;
-")"	    return RPAREN;
-"{"	    return LBRACE;
+")"     return RPAREN;
+"{"     return LBRACE;
 "}"     return RBRACE;
  
 ">="    return GE;
@@ -192,7 +192,7 @@ STRCHR	[A-Za-z_]
 "-"     return MINUS;
 "+"     return PLUS;
 "*"     return TIMES;
-"/"	    return DIVIDE;
+"/"     return DIVIDE;
 "=="    return EQ;
 ">"     return GT;
 "<"     return LT;

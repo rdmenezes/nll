@@ -15,6 +15,7 @@ namespace parser
    class MVVSCRIPT_API AstDeclFun : public AstDecl
    {
    public:
+      // Note type can be null in case of constructor/destructor
       AstDeclFun( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name, AstDeclVars* vars, AstStatements * body = 0, AstDeclClass* memberOfClass = 0 ) : AstDecl( location, name ), _type( type ), _vars( vars ), _body( body ), _memberOfClass( memberOfClass ), _expectedFunctionType( 0 )
       {
          ensure( vars, "can't be null" );

@@ -144,6 +144,7 @@
 %destructor { delete $$; }                   "string"
 %destructor { delete $$.symbol; }            "symbol"
 
+%token TILDE        "~"
 %token AND          "&&"
 %token ASSIGN       "="
 %token COMA         ","
@@ -342,7 +343,8 @@ var_decs_class: /* empty */				                                                 
       |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }
       |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class    { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI var_decs_class                 { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
-                   
+      |IMPORT TILDE ID LPAREN RPAREN SEMI var_decs_class                                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $3->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$) ) ); }
+      |TILDE ID LPAREN RPAREN LBRACE statements RBRACE var_decs_class                        { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $2->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$), $6 ) ); }
   
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
              |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::INT ); }

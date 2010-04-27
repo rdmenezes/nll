@@ -351,6 +351,11 @@ namespace parser
          {
             impl::reportUndeclaredType( e.getLocation(), _context, "default initialisation is not correctly used. (a parameter with default initialization cannot be followed by one without)" );
          }
+
+         if ( e.getMemberOfClass() && e.getName() == e.getMemberOfClass()->getName() && e.getType() )
+         {
+            impl::reportUndeclaredType( e.getLocation(), _context, "a constructor can't have a return type" );
+         }
       }
 
       virtual void operator()( AstThis& e )
