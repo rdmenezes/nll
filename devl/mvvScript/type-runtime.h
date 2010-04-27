@@ -169,8 +169,15 @@ namespace parser
       void clear()
       {
          // we need to clear these values as they can save a smart pointer...
-         stack.clear();
          resultRegister.vals.unref();
+
+         // we need to unref all share pointers: in case an object is calling a destructor, it will push on the stack which is being destroyed...
+         for ( int n = static_cast<int>( stack.size() ) - 1; n >= 0; --n )
+         {
+            stack[ n ].vals.unref();
+         }
+
+         stack.clear();
       }
 
       RuntimeValues     stack;            // stack, 1 object = 1 entry in the stack
