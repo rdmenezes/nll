@@ -13,7 +13,7 @@ namespace parser
    class MVVSCRIPT_API AstDeclClass : public AstDecl
    {
    public:
-      AstDeclClass( const YYLTYPE& location, const mvv::Symbol& name, AstDecls* decls ) : AstDecl( location, name ), _decls( decls ), _memberVariableSize( 0 ), _destructorName( mvv::Symbol::create( ("~" + std::string( name.getName() )).c_str() ) )
+      AstDeclClass( const YYLTYPE& location, const mvv::Symbol& name, AstDecls* decls ) : AstDecl( location, name ), _decls( decls ), _memberVariableSize( 0 ), _destructorName( mvv::Symbol::create( ("~" + std::string( name.getName() )).c_str() ) ), _destructor( 0 )
       {
          ensure( decls, "can't be null" );
 
@@ -70,11 +70,22 @@ namespace parser
          return _destructorName;
       }
 
+      AstDeclFun* getDestructor() const
+      {
+         return _destructor;
+      }
+
+      void setDestructor(AstDeclFun* des)
+      {
+         _destructor = des;
+      }
+
    private:
       AstDecls*            _decls;
       ui32                 _memberVariableSize; // hold the number of field an object contains
       RuntimeValue         _runtimeObjectSource; // this hold the current object context (used for example for 'this') // TODO remove useless...
       mvv::Symbol          _destructorName;     // hold the name of the destructor for easy look up (this doesn't mean the class has a constructor!!!)
+      AstDeclFun*          _destructor;         // the destructor to be called
    };
 }
 }

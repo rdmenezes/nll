@@ -993,6 +993,18 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ ~Test(){} ~Test(){} }" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ ~Test( int n ){} }" );
+         TESTER_ASSERT( result == Error::PARSE );
+      }
+
+      {
+         CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ import int ~Test(); }" );
          TESTER_ASSERT( result == Error::PARSE );
       }

@@ -655,7 +655,20 @@ namespace parser
                e.setNodeType( e.getMemberOfClass()->getNodeType()->clone() );
                isAConstructor = true;
 
-               if ( e.getName() != e.getMemberOfClass()->getName() && e.getName() != e.getMemberOfClass()->getDestructorName() )
+               if ( e.getName() == e.getMemberOfClass()->getDestructorName() )
+               {
+                  if ( e.getMemberOfClass()->getDestructor() )
+                  {
+                     // destructor already declared
+                     impl::reportTypeError( e.getLocation(), _context, "a destructor has already been declared for this class" );
+                     e.setNodeType( new TypeError() );
+                     return;
+                  }
+
+                  // we found a destructor!
+                  e.getMemberOfClass()->setDestructor( &e );
+
+               } else if ( e.getName() != e.getMemberOfClass()->getName() )
                {
                   impl::reportTypeError( e.getLocation(), _context, "constructor and destructor must have the same name than class, or missing function type" );
                   e.setNodeType( new TypeError() );
