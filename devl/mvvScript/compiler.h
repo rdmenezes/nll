@@ -19,6 +19,7 @@ namespace parser
 {
    /**
     @brief Front end for the compiler & interpreter
+    @note the front end can throw exception if it is not correctly used: if we store a reference on a runtime value, and if this trees are destroyed->we can't deallocate correctly the constructor
     */
    class MVVSCRIPT_API CompilerFrontEnd
    {
@@ -51,12 +52,13 @@ namespace parser
        */
       void clear()
       {
+         _env.clear();
          _context.clear();
          _vars.clear();
          _funcs.clear();
          _classes.clear();
          _executionTrees.clear();
-
+         
          for ( ui32 n = 0; n < _handleLibs.size(); ++n )
          {
             FreeLibraryWrapper( _handleLibs[ n ] );
@@ -90,7 +92,7 @@ namespace parser
       Error::ErrorType run( const std::string& s )
       {
          _context.clear(); // clear the previous errors
-         _env.framePointer = _env.stack.size(); // we need to set the FP to the end, so the need tree will be correct!
+         _env.framePointer = static_cast<ui32>( _env.stack.size() ); // we need to set the FP to the end, so the need tree will be correct!
 
          // local copy, so that if there is an error, we don't mess up the correct AST...
          SymbolTableVars     vars = _vars;

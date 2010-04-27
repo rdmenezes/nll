@@ -37,7 +37,7 @@ namespace parser
       {
       }
 
-      virtual void operator()( AstBreak& e )
+      virtual void operator()( AstBreak& )
       {
       }
 

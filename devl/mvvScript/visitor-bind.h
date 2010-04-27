@@ -467,7 +467,7 @@ namespace parser
             operator()( *e.getInit() );
          } else {
             // if a reference, then it must be initialized
-            if ( !_isInFunctionDeclaration && e.getType().isAReference() ) // we don't check reference init if in function prototype -> must be done in the call
+            if ( !_isInFunctionDeclaration && e.getType().isAReference() && _defaultClassPath.size() == 0 ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
             {
                impl::reportUndeclaredType( e.getLocation(), _context, "type with reference must be initialized" );
                return;
@@ -490,6 +490,11 @@ namespace parser
                   operator()( *( (*e.getType().getSize())[ n ] ) );
                }
             } 
+         }
+
+         if ( e.getObjectInitialization() )
+         {
+            operator()( *e.getObjectInitialization() );
          }
       }
 

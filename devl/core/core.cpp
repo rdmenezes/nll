@@ -1287,7 +1287,7 @@ public:
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::INT );
-      rt.intval = std::floor( v1.floatval + 0.5 );
+      rt.intval = static_cast<int>( std::floor( v1.floatval + 0.5 ) );
       return rt;
    }
 };
@@ -1312,7 +1312,7 @@ public:
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::INT );
-      rt.intval = std::floor( v1.floatval );
+      rt.intval = static_cast<int>( std::floor( v1.floatval ) );
       return rt;
    }
 };

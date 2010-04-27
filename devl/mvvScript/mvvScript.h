@@ -18,4 +18,6 @@
 #define MVVSCRIPT_API
 #endif
 
+# pragma warning( disable:4127 ) // disable the 'conditional expression is constant' warning
+
 #endif

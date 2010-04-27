@@ -51,8 +51,11 @@
     - array are also refcounted so they can be shared quickly
     - multidimentional arrays can have a several unknow dim
     - includes/import are evaluated first
+    - destructor: will be invoked very soon after the end of life of the object. However as the object
+                  is stored using smart pointers, they might still have a ref in the result register!
+    - reference: in a class (TODO extend?) a reference will be taken to the first assignment if it is not initialized
     
-    - TODO arg ref -> create the ref for runtime!
+    - TODO use the same visitor eval all the way -> else destructor is not valid
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
     - TODO: declared variable with ref: improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n; // int fn( int& n ){ return n; } int& n = fn(5);

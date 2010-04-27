@@ -4,15 +4,110 @@
 # include "mvvScript.h"
 # include <mvvPlatform/refcounted.h>
 # include <stack>
+# include "type.h"
 
 namespace mvv
 {
 namespace parser
 {
+   class VisitorEvaluate;
+
    class RuntimeValue;
 
    /// Represents a set of value, typically used for named type
    typedef std::vector<RuntimeValue>   RuntimeValues;
+
+   namespace impl
+   {
+      /**
+       @brief This is only used to refcount an "class" or an array
+       @note _data->extension stores the internal type of the object we are representing
+       */
+      class RefcountedTypedDestructor : public platform::Refcounted
+      {
+         /**
+          @brief we need to be able to call the constructor through the current evaluation context!
+          */
+         struct Extension
+         {
+            Extension( VisitorEvaluate* e, Type* t )
+            {
+               type = t;
+               evaluator = e;
+            }
+
+            Type*             type;
+            VisitorEvaluate*  evaluator;
+         };
+
+      public:
+         typedef RuntimeValues   value_type;
+
+         virtual ~RefcountedTypedDestructor()
+         {
+            if ( _data )
+            {
+               // we unref here to avoid virtual call to destroy! a second unref() might be run
+               // in the base destructor but this doesn't do anything.
+               unref();
+            }
+         }
+
+         RefcountedTypedDestructor()
+         {}
+
+         RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own = true )
+         {
+            _data->own = own;
+            _data->data = data;
+            _data->extension = new Extension( eval, t );   // we are using the extension param to store the type of this object
+         }
+
+         virtual void destroy();
+
+         RuntimeValues& getData()
+         {
+            return *reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         RuntimeValues* getDataPtr()
+         {
+            return reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         const RuntimeValues* getDataPtr() const
+         {
+            return reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         const RuntimeValues& getData() const
+         {
+            return *reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         RuntimeValues& operator*()
+         {
+            ensure( getNumberOfReference(), "invalid operation" );
+            return *reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         RuntimeValues* operator&()
+         {
+            return reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         const RuntimeValues& operator*() const
+         {
+            ensure( getNumberOfReference(), "invalid operation" );
+            return *reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         const RuntimeValues* operator&() const
+         {
+            return reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+      };
+   }
 
    /**
     @brief Represents a runtime value with its runtime type
@@ -23,7 +118,7 @@ namespace parser
    class MVVSCRIPT_API RuntimeValue
    {
    public:
-      typedef platform::RefcountedTyped<RuntimeValues>   RefcountedValues;
+      typedef impl::RefcountedTypedDestructor   RefcountedValues;
 
       /**
        @brief Basically classify types in these categories
@@ -35,21 +130,17 @@ namespace parser
          FLOAT,      /// float type
          STRING,     /// string
          TYPE,       /// class type
-        // ARRAY,      /// array type => the array is actually a type!
          REF,        /// reference type
-         NIL         /// empty pointer type
+         NIL         /// empty pointer type  // TODO test!
       };
 
    public:
-      RuntimeValue()
+      RuntimeValue() : type( EMPTY ), ref( 0 )
       {
-         type = EMPTY;
-         ref = 0;
       }
 
-      RuntimeValue( TypeEnum t ) : type( t )
+      RuntimeValue( TypeEnum t ) : type( t ), ref( 0 )
       {
-         ref = 0;
       }
 
       void setType( TypeEnum t )
@@ -73,6 +164,13 @@ namespace parser
       RuntimeEnvironment()
       {
          framePointer = 0;
+      }
+
+      void clear()
+      {
+         // we need to clear these values as they can save a smart pointer...
+         stack.clear();
+         resultRegister.vals.unref();
       }
 
       RuntimeValues     stack;            // stack, 1 object = 1 entry in the stack

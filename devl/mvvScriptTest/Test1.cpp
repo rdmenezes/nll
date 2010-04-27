@@ -159,7 +159,7 @@ struct TestBasic
 
    void testDummy2()
    {
-       ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+       ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes;
        Ast* exp = 0;
       
       exp = context.parseString( "if (a) { print( a ); print( a ); } else { print( a3 ); }" );
@@ -209,7 +209,7 @@ struct TestBasic
 
    void testFull1()
    {
-      ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+      ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes;
       Ast* exp = 0;
       
       exp = context.parseFile( TEST_PATH "test1.txt" );
@@ -1110,7 +1110,7 @@ struct TestBasic
       }
 
       {
-         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes;
          Ast* exp = 0;
          
          exp = context.parseString( "void func( int n ){ return void; }" );
@@ -2002,7 +2002,7 @@ struct TestBasic
       }
 
       {
-         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes;
          Ast* exp = 0;
          
          exp = context.parseString( "import int operator+(int n, int nn); class Test{ int n; int this; void test(){ this.n = this.this.n + 1;}}");
@@ -2012,7 +2012,7 @@ struct TestBasic
 
 
       {
-         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
+         ParserContext context; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes;
          Ast* exp = 0;
          
          exp = context.parseString( "NULL n = 0; ");
@@ -2524,7 +2524,8 @@ TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST(testFull2);
 
-TESTER_TEST(testType1);*/
+TESTER_TEST(testType1);
+*/
 TESTER_TEST_SUITE_END();
 
 

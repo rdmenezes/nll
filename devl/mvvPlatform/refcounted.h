@@ -25,12 +25,14 @@ namespace platform
          void*    data;
          mutable int ref;
          bool     own;
+         void*    extension;
 
          Internals()
          {
             data = 0;
             ref = 0;
             own = false;
+            extension = 0;
          }
       };
 

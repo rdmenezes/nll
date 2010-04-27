@@ -3,6 +3,7 @@
 
 # include "visitor.h"
 # include "ast-files.h"
+# include "visitor-default.h"
 
 namespace mvv
 {
@@ -127,14 +128,14 @@ namespace parser
          _env.resultRegister.intval = e.getValue();
       }
 
-      virtual void operator()( AstThis& e )
+      virtual void operator()( AstThis& )
       {
          // "this" is stored at FP[0]
          _env.resultRegister.setType( RuntimeValue::TYPE );
          _env.resultRegister = _env.stack[ _env.framePointer ];
       }
 
-      virtual void operator()( AstNil& e )
+      virtual void operator()( AstNil& )
       {
          _env.resultRegister.setType( RuntimeValue::NIL );
       }
@@ -210,7 +211,7 @@ namespace parser
          if ( _level > 1 )
          {
             // update the stackframe
-            _env.stackUnstack.push( _env.stack.size() );
+            _env.stackUnstack.push( static_cast<ui32>( _env.stack.size() ) );
          }
 
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
@@ -244,21 +245,23 @@ namespace parser
 
          operator()( e.getLValue() );
 
+         const bool isRef = e.getLValue().getNodeType()->isReference();
+
+         /*
+         if ( isRef && _env.resultRegister.type == RuntimeValue::EMPTY )
+         {
+         // TODO? doesn't seem to be necessary
+            // reference not initialized
+            std::cout << "haha" << std::endl;
+         }*/
+
          assert( _env.resultRegister.type == RuntimeValue::TYPE || _env.resultRegister.type == RuntimeValue::REF && _env.resultRegister.ref ); // compiler error, we are expecting a reference
 
          if ( _env.resultRegister.type == RuntimeValue::TYPE )
          {
-            // in the case of an array/type, we don't need a ref to access it!
-            /*
-            if ( e.getLValue().getNodeType()->isReference() )
-            {
-               std::cout << "REF";
-            } else {
-               _env.resultRegister = val;
-            }*/
             _env.resultRegister = val;
          } else {
-            if ( e.getLValue().getNodeType()->isReference() )
+            if ( isRef )
             {
                // TODO is this ok?
                assert( _env.resultRegister.type == RuntimeValue::REF );
@@ -304,10 +307,10 @@ namespace parser
          {
             if ( forceRef )
             {
-               dst.type = RuntimeValue::REF;
+               dst.setType( RuntimeValue::REF );   // ref so we don't update to the real type
                dst.ref = &src;
             } else {
-               dst.type = RuntimeValue::TYPE;
+               dst.setType( RuntimeValue::TYPE );
                dst.vals = src.vals;
             }
          } else {
@@ -337,7 +340,7 @@ namespace parser
          }
          assert( array.type == RuntimeValue::TYPE );
 
-         if ( index >= (*array.vals).size() || index < 0 )
+         if ( index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
          {
             throw RuntimeException( "out of bound exception" );
          }
@@ -433,7 +436,7 @@ namespace parser
          _env.stackFrame.push( _env.framePointer );
 
          // we move the frame pointer to the end of the stack
-         _env.framePointer = _env.stack.size();
+         _env.framePointer = static_cast<ui32>( _env.stack.size() );
 
          // populate the stack
          for ( ui32 n = 0; n < vals.size(); ++n )
@@ -507,7 +510,7 @@ namespace parser
                // because it is constructed, we need to allocate a temporary, start constructor, move the object
                // in the result register, unstack the object
                vals[ 0 ] = RuntimeValue( RuntimeValue::TYPE );
-               vals[ 0 ].vals = RuntimeValue::RefcountedValues( new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
+               vals[ 0 ].vals = RuntimeValue::RefcountedValues( this, e.getNodeType(), new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
             } else  {
                vals[ 0 ] = _env.resultRegister;
             }
@@ -537,7 +540,7 @@ namespace parser
          {
             // if we are not at the last level, just allocate the next level...
             src.type = RuntimeValue::TYPE;
-            src.vals = RuntimeValue::RefcountedValues( new RuntimeValues( size[ currentIndex ] ) );
+            src.vals = RuntimeValue::RefcountedValues( this, 0, new RuntimeValues( size[ currentIndex ] ) );
 
             // recursively populates the other dimensions
             for ( ui32 n = 0; n < size[ currentIndex ]; ++n )
@@ -554,7 +557,7 @@ namespace parser
             {
                // create the object
                (*src.vals)[ n ].type = RuntimeValue::TYPE;
-               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
+               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( this, 0 /* TODO TODO: send the destructor if class...*/ , new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
 
                // call the constructor
                RuntimeValues init( 1 );
@@ -581,7 +584,7 @@ namespace parser
          {
             AstArgs::Args& args = e.getDeclarationList()->getArgs();
             _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
-            _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( new RuntimeValues( args.size() ) );
+            _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( this, e.getNodeType(), new RuntimeValues( args.size() ) );
             for ( ui32 n = 0; n < args.size(); ++n )
             {
                operator()( *args[ n ] );
@@ -615,7 +618,7 @@ namespace parser
                // construct an object
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
-               _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+               _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( this, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
                if ( e.getObjectInitialization() )
                {
                   AstArgs::Args& args = e.getObjectInitialization()->getArgs();
@@ -659,7 +662,7 @@ namespace parser
          operator()( exp );
       }
 
-      virtual void operator()( AstBreak& e )
+      virtual void operator()( AstBreak& )
       {
          _mustBreak = true;
       }
@@ -686,7 +689,7 @@ namespace parser
          e.accept( *this );
       }
 
-      virtual void operator()( AstTypeField& e )
+      virtual void operator()( AstTypeField& )
       {
          // nothing to do
       }
