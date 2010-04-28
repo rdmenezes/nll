@@ -58,6 +58,7 @@ namespace parser
 
          RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own = true )
          {
+            ensure( eval, "evaluator can't be null" );   
             _data->own = own;
             _data->data = data;
             _data->extension = new Extension( eval, t );   // we are using the extension param to store the type of this object
@@ -172,7 +173,8 @@ namespace parser
          resultRegister.vals.unref();
 
          // we need to unref all share pointers: in case an object is calling a destructor, it will push on the stack which is being destroyed...
-         for ( int n = static_cast<int>( stack.size() ) - 1; n >= 0; --n )
+         for ( int n = 0; n < static_cast<int>( stack.size() ); ++n )
+         //for ( int n = static_cast<int>( stack.size() ) - 1; n >= 0; --n )
          {
             stack[ n ].vals.unref();
          }

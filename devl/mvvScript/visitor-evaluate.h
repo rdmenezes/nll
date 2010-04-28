@@ -57,22 +57,35 @@ namespace parser
    class VisitorEvaluate : public VisitorDefault
    {
    public:
+      /**
+       @param destructorEvaluator this is the evaluator used to run the destuctor
+       */
       VisitorEvaluate( ParserContext& context,
                        SymbolTableVars& vars,
                        SymbolTableFuncs& funcs,
                        SymbolTableClasses& classes,
-                       RuntimeEnvironment& env ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _env( env )
+                       RuntimeEnvironment& env,
+                       VisitorEvaluate* destructorEvaluator = 0 ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _env( env ), _destructorEvaluator( destructorEvaluator )
       {
          // TODO: set to zero FP only when run, not constructed (i.e. run multiple times...)
-         env.framePointer = 0;
+         
+         init();
+      }
 
+      /**
+       @brief prepare the evaluator to run
+       */
+      void init()
+      {
+         _env.framePointer = 0;
          _level = 0;
          _mustBreak = false;
 
          // reinit the stack frame
-         env.stackFrame = std::stack<ui32>();
-         env.stackFrame.push( 0 );
+         _env.stackFrame = std::stack<ui32>();
+         _env.stackFrame.push( 0 );
 
+         _env.stackUnstack = std::stack<ui32>();
       }
 
       static void _debug( RuntimeValue& val )
@@ -510,7 +523,7 @@ namespace parser
                // because it is constructed, we need to allocate a temporary, start constructor, move the object
                // in the result register, unstack the object
                vals[ 0 ] = RuntimeValue( RuntimeValue::TYPE );
-               vals[ 0 ].vals = RuntimeValue::RefcountedValues( this, e.getNodeType(), new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
+               vals[ 0 ].vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
             } else  {
                vals[ 0 ] = _env.resultRegister;
             }
@@ -540,7 +553,7 @@ namespace parser
          {
             // if we are not at the last level, just allocate the next level...
             src.type = RuntimeValue::TYPE;
-            src.vals = RuntimeValue::RefcountedValues( this, 0, new RuntimeValues( size[ currentIndex ] ) );
+            src.vals = RuntimeValue::RefcountedValues( _destructorEvaluator, 0, new RuntimeValues( size[ currentIndex ] ) );
 
             // recursively populates the other dimensions
             for ( ui32 n = 0; n < size[ currentIndex ]; ++n )
@@ -557,7 +570,7 @@ namespace parser
             {
                // create the object
                (*src.vals)[ n ].type = RuntimeValue::TYPE;
-               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( this, 0 /* TODO TODO: send the destructor if class...*/ , new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
+               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( _destructorEvaluator, 0 /* TODO TODO: send the destructor if class...*/ , new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
 
                // call the constructor
                RuntimeValues init( 1 );
@@ -584,7 +597,7 @@ namespace parser
          {
             AstArgs::Args& args = e.getDeclarationList()->getArgs();
             _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
-            _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( this, e.getNodeType(), new RuntimeValues( args.size() ) );
+            _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( args.size() ) );
             for ( ui32 n = 0; n < args.size(); ++n )
             {
                operator()( *args[ n ] );
@@ -618,7 +631,7 @@ namespace parser
                // construct an object
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
-               _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( this, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+               _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
                if ( e.getObjectInitialization() )
                {
                   AstArgs::Args& args = e.getObjectInitialization()->getArgs();
@@ -746,6 +759,7 @@ namespace parser
       RuntimeEnvironment&  _env;
       ui32                 _level;     // scope depth
       bool                 _mustBreak; // true if we must break the current loop
+      VisitorEvaluate*     _destructorEvaluator;
    };
 }
 }

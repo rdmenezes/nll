@@ -12,7 +12,6 @@ struct TestEval
 {
    void eval1()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -1030,19 +1029,21 @@ struct TestEval
       {
          // check destructor call!
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Test{ int n1 = 5; int& n; int n2 = 6; Test( int& nn ){ n = nn; } ~Test(){ n = 1; } } int res = 0; {Test test( res );}" );
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1 = 5; int& n; int n2 = 6; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0; {Test test( res );}" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
-*/
+
       {
          // check destructor call!
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\" class Test{Test(){} ~Test(){print(\"Destroyed\");}} Test t; int n = 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
+
+         fe.clear();
       }
 
    }

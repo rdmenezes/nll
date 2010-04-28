@@ -40,6 +40,8 @@ namespace parser
       {
          // if we are bigger than that, expect very wrong result due to vector resizing which invalidate references...
          _env.stack.reserve( stackSize );
+
+         _eval = platform::RefcountedTyped<VisitorEvaluate>( new VisitorEvaluate( _context, _vars, _funcs, _classes, _env ) );
       }
 
       ~CompilerFrontEnd()
@@ -148,7 +150,7 @@ namespace parser
                      }
 
                      // evaluate ALL the files
-                     VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env ); // only one visitor so the FP is correct
+                     VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env, _eval.getDataPtr() ); // only one visitor so the FP is correct
                      if ( exps.size() > 1 )
                      {
                         // we must evaluate in the same order than explore, so that the static link match the reality!
@@ -391,6 +393,7 @@ namespace parser
       FilesOrder          _runtimePath;      // directories where the DLL will be looked at while a import is done
       std::vector<void*>  _handleLibs;       // save the handles on the DLL manually loaded
       RuntimeEnvironment  _env;              // the current environment
+      platform::RefcountedTyped<VisitorEvaluate>   _eval;   // the evaluate visitor. We must keep him alive as we are expecting delayed evaluation due to the destructor of some objects
    };
 }
 }
