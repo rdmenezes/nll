@@ -1046,6 +1046,71 @@ struct TestEval
          fe.clear();
       }
 
+      {
+         // interactive test simulation
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1 = 5; int& n; int n2 = 6; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 0 );
+
+         result = fe.run( "res = 5;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "res" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.intval == 5 );
+
+         result = fe.run( "{ Test t( res ); }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "res" ) );
+         TESTER_ASSERT( rt3.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt3.intval == 6 );
+
+         result = fe.run( "int res = 18;" );
+         TESTER_ASSERT( result == Error::BIND );
+
+         const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "res" ) );
+         TESTER_ASSERT( rt4.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt4.intval == 6 );
+
+         result = fe.run( "import \"core\"" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         result = fe.run( "include \"core\"" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         result = fe.run( "res = 2 * res;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt5 = fe.getVariable( mvv::Symbol::create( "res" ) );
+         TESTER_ASSERT( rt5.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt5.intval == 12 );
+
+         result = fe.run( "int size = 10; int array[ size ]; int tmp = 0; while ( tmp < size ){ array[ tmp ] = tmp; tmp = tmp + 1; }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         result = fe.run( "int n0 = array[ 0 ]; int n1 = array[ 1 ]; int n9 = array[ 9 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt6 = fe.getVariable( mvv::Symbol::create( "n0" ) );
+         TESTER_ASSERT( rt6.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt6.intval == 0 );
+
+         const RuntimeValue& rt7 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt7.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt7.intval == 1 );
+
+         const RuntimeValue& rt8 = fe.getVariable( mvv::Symbol::create( "n9" ) );
+         TESTER_ASSERT( rt8.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt8.intval == 9 );
+      }
+
+
+
    }
 
 

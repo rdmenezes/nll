@@ -341,8 +341,9 @@ namespace parser
       virtual void operator()( AstVarArray& e )
       {
          operator()( e.getIndex() );
-         assert( _env.resultRegister.type == RuntimeValue::INT );
-         int index = _env.resultRegister.intval;
+         RuntimeValue& indexVal = unref( _env.resultRegister );
+         assert( indexVal.type == RuntimeValue::INT );
+         int index = indexVal.intval;
 
          operator()( e.getName() );
          RuntimeValue& array = unref( _env.resultRegister );
@@ -615,8 +616,9 @@ namespace parser
                for ( size_t n = 0; n < e.getType().getSize()->size(); ++n )
                {
                   operator()( *( (*e.getType().getSize())[ n ] ) );
-                  assert( _env.resultRegister.type == RuntimeValue::INT );
-                  vals[ vals.size() - 1 - n ] = unref( _env.resultRegister ).intval; // we need to unref: in case we use ++operator
+                  RuntimeValue& val = unref( _env.resultRegister );
+                  assert( val.type == RuntimeValue::INT );
+                  vals[ vals.size() - 1 - n ] = val.intval; // we need to unref: in case we use ++operator
                }
 
                // create the root of the array
@@ -686,6 +688,8 @@ namespace parser
          {
             operator()( e.getCondition() );
             assert( _env.resultRegister.type == RuntimeValue::INT ); // the condition must be an int
+            if ( !_env.resultRegister.intval )
+               break;
 
             operator()( e.getStatements() );
             if ( _mustBreak )

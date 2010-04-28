@@ -19,7 +19,10 @@ namespace parser
 {
    /**
     @brief Front end for the compiler & interpreter
-    @note the front end can throw exception if it is not correctly used: if we store a reference on a runtime value, and if this trees are destroyed->we can't deallocate correctly the constructor
+    @note the front end can throw exception if it is not correctly used: if we store
+          a reference on a runtime value, and if this trees are destroyed->we can't
+          deallocate correctly the constructor as the tree and runtime environment has
+          been destroyed
     */
    class MVVSCRIPT_API CompilerFrontEnd
    {
