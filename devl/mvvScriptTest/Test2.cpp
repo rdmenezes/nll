@@ -12,6 +12,7 @@ struct TestEval
 {
    void eval1()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -1109,7 +1110,32 @@ struct TestEval
          TESTER_ASSERT( rt8.intval == 9 );
       }
 
+      {
+         // check destructor call!
+         CompilerFrontEnd fe;
+         try
+         {
+            Error::ErrorType result = fe.run( "import \"core\" class Test{Test(){} ~Test(){print(\"Destroyed\");}} Test t; int a[ 4 ]; a[ 5 ] = 0; int n = 3;" );
+            TESTER_ASSERT( 0 );
+         } catch ( RuntimeException e )
+         {
+            // true
+         }
+      }
 
+      {
+         // check code export
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int n2 = 6; Test(){ } ~Test(){ } } int res = 0; int res2 = 0; {Test test( res ); }" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+      */
+      {
+         // check code export
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int n2 = 6; Test(){ } ~Test(){ } } int res = 0; int res2 = 0; {Test test; res2 = test.n2; }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
 
    }
 

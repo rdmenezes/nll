@@ -26,8 +26,33 @@ namespace parser
     */
    class MVVSCRIPT_API CompilerFrontEnd
    {
+      /**
+       @brief Stores info on the tree built
+       */
+      struct TreeInfo
+      {
+         TreeInfo( platform::RefcountedTyped<Ast> t, bool isucode ) : tree( t ), isUserCode( isucode )
+         {
+            static ui32 val = 0;
+            ++val;
+
+            _id = val;
+         }
+
+         bool operator<( const TreeInfo& t ) const
+         {
+            return _id < t._id;
+         }
+
+         platform::RefcountedTyped<Ast>  tree;  // store the AST
+         bool  isUserCode;                      // true if the code is the one defined in interactive mode (the file or command to parse, but no includes or imports)
+
+      private:
+         ui32     _id;  // we must keep the user code ordered from first to last in case we want to export it
+      };
+
    public:
-      typedef std::set< platform::RefcountedTyped<Ast> >                         Trees;
+      typedef std::set< TreeInfo > Trees;
       typedef std::map<const AstDeclFun*, platform::RefcountedTyped<FunctionRunnable> >   ImportedFunctions;
       typedef std::set<mvv::Symbol> Files;
       typedef std::vector<mvv::Symbol> FilesOrder;
@@ -72,18 +97,46 @@ namespace parser
          _imported.clear();
          _lastErrors.clear();
          _parsedFiles.clear();
-
-         // TODO and _env?
       }
 
       /**
        @brief Returns the directories that will be searched to find an include/import code file
-
-       This 
        */
-      FilesOrder& getImportDirectories()
+      const FilesOrder& getImportDirectories() const
       {
          return _importDirectories;
+      }
+
+      /**
+       @brief Returns the path, from first directory to last, where the DLL will be searched for
+       */
+      const FilesOrder& getRuntimePath() const
+      {
+         return _runtimePath;
+      }
+
+      /**
+       @brief Export of the user code in text format
+       @note it is assumed that the first file to parse or all the interactive commands are user code
+             (i.e. includes, imports are not and won't be exported)
+       */
+      void exportCode( std::ostream& o ) const
+      {
+         for ( Trees::const_iterator it = _executionTrees.begin(); it != _executionTrees.end(); ++it )
+         {
+            if ( it->isUserCode )
+            {
+               VisitorPrint visitor( o );
+               visitor( *it->tree );
+            }
+         }
+      }
+
+      /**
+       @brief Export the user code to the specified path
+       */
+      void exportCode( const std::string& name )
+      {
       }
 
 
@@ -143,8 +196,10 @@ namespace parser
                      // save the tree for further execution
                      for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
                      {
-                        _executionTrees.insert( platform::RefcountedTyped<Ast>( *it ) );
+                        _executionTrees.insert( TreeInfo( platform::RefcountedTyped<Ast>( *it ), false ) );
                      }
+                     _executionTrees.rbegin()->isUserCode = true; // the last exp parse is always user code
+                     
 
                      // before runtime, load the new DLL
                      for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
@@ -194,6 +249,7 @@ namespace parser
        @brief find a global variable in the execution context
        @throw std::exception if the variable can't be found
        @return it's runtime value & type
+       @note if a RuntimeValue& is used still, while the front end is destroyed, this will crash (destructor)
        */
       const RuntimeValue& getVariable( const mvv::Symbol& name )
       {
@@ -392,7 +448,7 @@ namespace parser
       std::string         _lastErrors;       // save the last errors
 
       Files               _parsedFiles;      // the set of files that have been already parsed (so an import/include with this file won't do anything...)
-      FilesOrder          _importDirectories;// directories where the import/include files will be searched, form first to last order
+      FilesOrder          _importDirectories;// directories where the import/include files will be searched, from first to last order
       FilesOrder          _runtimePath;      // directories where the DLL will be looked at while a import is done
       std::vector<void*>  _handleLibs;       // save the handles on the DLL manually loaded
       RuntimeEnvironment  _env;              // the current environment

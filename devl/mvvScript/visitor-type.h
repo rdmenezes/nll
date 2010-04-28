@@ -615,6 +615,9 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         _fp.push( _currentFp );
+         _currentFp = 0;
+
          if ( e.getNodeType() )
          {
             // this node has been manually typed (i.e. manual inclusion)
@@ -623,6 +626,9 @@ namespace parser
 
          e.setNodeType( new TypeNamed( &e, false ) );
          operator()( e.getDeclarations() );
+
+         _currentFp = _fp.top();
+         _fp.pop();
       }
 
       virtual void operator()( AstDeclFun& e ) 
@@ -845,6 +851,10 @@ namespace parser
                   {
                      // ambiguous call
                      impl::reportTypeError( e.getLocation(), _context, "ambiguous constructor call to " + std::string( ty->getDecl()->getName().getName() ) );
+                     e.setNodeType( new TypeError() );
+                     return;
+                  } else {
+                     impl::reportTypeError( e.getLocation(), _context, "no constructor found in class definition that matches this prototype" );
                      e.setNodeType( new TypeError() );
                      return;
                   }
