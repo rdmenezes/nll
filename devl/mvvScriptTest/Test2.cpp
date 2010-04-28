@@ -12,7 +12,6 @@ struct TestEval
 {
    void eval1()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -1047,10 +1046,11 @@ struct TestEval
          fe.clear();
       }
 
+      std::stringstream save;
       {
          // interactive test simulation
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1; int& n; int n2; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0;" );
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1; int& n; int n2; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; println(\"Destroyed1\"); } } int res = 0;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
@@ -1077,12 +1077,13 @@ struct TestEval
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "res" ) );
          TESTER_ASSERT( rt4.type == RuntimeValue::INT );
          TESTER_ASSERT( rt4.intval == 6 );
-
+/*
          result = fe.run( "import \"core\"" );
          TESTER_ASSERT( result == Error::SUCCESS );
-
+*/
          result = fe.run( "include \"core\"" );
          TESTER_ASSERT( result == Error::SUCCESS );
+         
 
          result = fe.run( "res = 2 * res;" );
          TESTER_ASSERT( result == Error::SUCCESS );
@@ -1108,8 +1109,33 @@ struct TestEval
          const RuntimeValue& rt8 = fe.getVariable( mvv::Symbol::create( "n9" ) );
          TESTER_ASSERT( rt8.type == RuntimeValue::INT );
          TESTER_ASSERT( rt8.intval == 9 );
+
+         fe.exportCode( save );
       }
-*/
+
+      {
+         // interactive test simulation
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( save.str() );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt5 = fe.getVariable( mvv::Symbol::create( "res" ) );
+         TESTER_ASSERT( rt5.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt5.intval == 12 );
+
+         const RuntimeValue& rt6 = fe.getVariable( mvv::Symbol::create( "n0" ) );
+         TESTER_ASSERT( rt6.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt6.intval == 0 );
+
+         const RuntimeValue& rt7 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt7.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt7.intval == 1 );
+
+         const RuntimeValue& rt8 = fe.getVariable( mvv::Symbol::create( "n9" ) );
+         TESTER_ASSERT( rt8.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt8.intval == 9 );
+      }
+
       {
          // check destructor call!
          CompilerFrontEnd fe;

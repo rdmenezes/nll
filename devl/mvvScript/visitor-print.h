@@ -121,7 +121,8 @@ namespace parser
                  !dynamic_cast<AstDeclClass*>( *it ) && 
                  !dynamic_cast<AstImport*>( *it )    &&
                  !dynamic_cast<AstInclude*>( *it )   &&
-                 !dynamic_cast<AstStatements*>( *it ) )
+                 !dynamic_cast<AstStatements*>( *it ) &&
+                 !dynamic_cast<AstWhile*>( *it ) )
             {
                AstDeclFun* f = dynamic_cast<AstDeclFun*>( *it );
                if ( !f || f && !f->getBody() )
@@ -387,9 +388,9 @@ namespace parser
       {
          _o << "while ( ";
          operator()( e.getCondition() );
-         _o << ")" << iendl << incendl << "{" << iendl;
+         _o << " )" << iendl << "{" << incendl;
          operator()( e.getStatements() );
-         _o << decendl << iendl;
+         _o << decendl << "}" << iendl;
       }
 
       virtual void operator()( const AstExpSeq& e )

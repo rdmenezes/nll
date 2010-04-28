@@ -129,6 +129,7 @@ namespace parser
                VisitorPrint visitor( o );
                visitor( *it->tree );
             }
+            o << iendl;
          }
       }
 
@@ -361,23 +362,7 @@ namespace parser
             const VisitorRegisterDeclarations::Symbols& includes = visitor.getFilesToInclude();
             const VisitorRegisterDeclarations::Symbols& imports =  visitor.getFilesToImport();
 
-            // parse the import/include
-            for ( VisitorRegisterDeclarations::Symbols::const_iterator it = includes.begin(); it != includes.end(); ++it )
-            {
-               // check it has never been pared before
-               if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
-               {
-                  Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
-                  if ( exp )
-                  {
-                     // recursively check the dependencies
-                     store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
-                     _explore( context, vars, funcs, classes, store, exp, importedLib );
-                  }
-                  _parsedFiles.insert( *it );
-               }
-            }
-
+            // in case import & include, => we import it!
             for ( VisitorRegisterDeclarations::Symbols::const_iterator it = imports.begin(); it != imports.end(); ++it )
             {
                // check it has never been pared before
@@ -390,6 +375,23 @@ namespace parser
                      store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
                      _explore( context, vars, funcs, classes, store, exp, importedLib );
                      importedLib.insert( *it );   // after type visitor, we must link the imported functions
+                  }
+                  _parsedFiles.insert( *it );
+               }
+            }
+
+            // parse the import/include
+            for ( VisitorRegisterDeclarations::Symbols::const_iterator it = includes.begin(); it != includes.end(); ++it )
+            {
+               // check it has never been pared before
+               if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
+               {
+                  Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  if ( exp )
+                  {
+                     // recursively check the dependencies
+                     store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
+                     _explore( context, vars, funcs, classes, store, exp, importedLib );
                   }
                   _parsedFiles.insert( *it );
                }
