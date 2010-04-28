@@ -5,7 +5,7 @@ class Test
 {
    class Test2
    {
-      int test = 9;
+      int test;
       
       Test2( int t )
       {
@@ -45,7 +45,7 @@ class Test
    
    float    val;
    float    vals[3];
-   int      nn[] = {-1, 1, 10};
+   int      nn[];
 
    void Test( float valDefault = 0.0 )
    {

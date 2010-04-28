@@ -188,20 +188,23 @@ struct TestBasic
       TESTER_ASSERT( exp );
       exp = context.parseString( "{int a = 3 + test;}" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
+      //exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n = 0; }" );
+      exp = context.parseString( "int n = 1 * 2; int main( float a, int test = 2 * 3 ){return 0;} class A{ void init( int n = 0 ){} int n; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "a[1].a[5] = 2*3+1;" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int n[] = {2 * 3};" );
       TESTER_ASSERT( exp );
-      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; import int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string strings[5]; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
+      //exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; import int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string strings[5]; strings[ 0 ] = \"test2\"; return a + b;} string str = \"test\"; }" );
+      exp = context.parseString( "import \"test1.v\" include \"test2.v\" class Test{TTest test; import int getVal( int a = 2 * 5, float b ); int getVal(){ int a; int b; string strings[5]; strings[ 0 ] = \"test2\"; return a + b;} string str; }" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "getVal(5);" );
       TESTER_ASSERT( exp );
       exp = context.parseString( "int n[ 5 ][ 4 ][ 3 ]; print( n[ 0 ][ 1 ][ 2 ] );" );
       TESTER_ASSERT( exp );
 
-      exp = context.parseString( "class Test{ int a[] = {1}; int a[2][2][3];}" );
+      // not anymore: exp = context.parseString( "class Test{ int a[] = {1}; int a[2][2][3];}" );
+      exp = context.parseString( "class Test{ int a[]; int a[2][2][3];}" );
       TESTER_ASSERT( exp );
 
       std::cout << "msg=" << context.getError();
@@ -2516,7 +2519,7 @@ struct TestBasic
 
 
 TESTER_TEST_SUITE(TestBasic);
-/*
+
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
@@ -2524,7 +2527,7 @@ TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST(testFull2);
 TESTER_TEST(testType1);
-*/
+
 TESTER_TEST_SUITE_END();
 
 

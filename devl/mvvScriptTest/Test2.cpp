@@ -1030,7 +1030,7 @@ struct TestEval
       {
          // check destructor call!
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1 = 5; int& n; int n2 = 6; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0; {Test test( res );}" );
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1; int& n; int n2; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0; {Test test( res );}" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
@@ -1050,7 +1050,7 @@ struct TestEval
       {
          // interactive test simulation
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1 = 5; int& n; int n2 = 6; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0;" );
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int n1; int& n; int n2; Test( int& nn ){ n = nn; } ~Test(){ n = n + 1; } } int res = 0;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
@@ -1109,7 +1109,7 @@ struct TestEval
          TESTER_ASSERT( rt8.type == RuntimeValue::INT );
          TESTER_ASSERT( rt8.intval == 9 );
       }
-
+*/
       {
          // check destructor call!
          CompilerFrontEnd fe;
@@ -1126,15 +1126,23 @@ struct TestEval
       {
          // check code export
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Test{ int n2 = 6; Test(){ } ~Test(){ } } int res = 0; int res2 = 0; {Test test( res ); }" );
+         Error::ErrorType result = fe.run( "class Test{ int n2; Test(){ } ~Test(){ } } int res = 0; int res2 = 0; {Test test( res ); }" );
          TESTER_ASSERT( result == Error::TYPE );
       }
-      */
+
+      {
+         // check code export
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int a[] = {1, 2}; } " );
+         TESTER_ASSERT( result == Error::PARSE );
+      }
+
+
       {
          // check code export
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ int n2 = 6; Test(){ } ~Test(){ } } int res = 0; int res2 = 0; {Test test; res2 = test.n2; }" );
-         TESTER_ASSERT( result == Error::SUCCESS );
+         TESTER_ASSERT( result == Error::PARSE );
       }
 
    }
