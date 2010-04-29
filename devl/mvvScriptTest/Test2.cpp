@@ -1213,6 +1213,6 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-//TESTER_TEST(eval1);
+TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST_SUITE_END();

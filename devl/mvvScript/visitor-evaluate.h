@@ -637,7 +637,6 @@ namespace parser
                _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
 
                // init the var that need to!
-               // TODO CHECK THISCASE
                _initObject( e ); // populate the object if necessary
 
                if ( e.getObjectInitialization() )
@@ -666,17 +665,22 @@ namespace parser
          _env.stack.push_back( RuntimeValue( RuntimeValue::EMPTY ) );
       }
 
+      /**
+       @brief Initialize an object that must be automatically constructed (so member variable in a class such as array/other class!)
+       */
       void _initObject( AstDeclVar& e )
       {
+         // for all members, instanciate the variable, then copy it in result dir, finally restore the stack
          const std::vector<AstDeclVar*>& toInit = e.getConstructorCall()->getMemberOfClass()->getMemberToInit();
          for ( size_t n = 0; n < toInit.size(); ++n )
          {
             operator()( *toInit[ n ] );
             _debug( *_env.stack.rbegin() );
 
-            // TODO PROBLEM
-            (*_env.stack.rbegin()->vals)[ toInit[ n ]->getRuntimeIndex() ] = _env.resultRegister;
+            _env.resultRegister = *_env.stack.rbegin();
             _env.stack.pop_back();
+
+            (*_env.stack.rbegin()->vals)[ toInit[ n ]->getRuntimeIndex() ] = _env.resultRegister;
          }
       }
 
