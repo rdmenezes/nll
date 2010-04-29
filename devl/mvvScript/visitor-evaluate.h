@@ -53,6 +53,11 @@ namespace parser
     AstDeclVar runtimeIndex is relative to the current frame pointer, ex: runtimeIndex = 3, FP = 100, index in frame = FP + runtimeIndex
 
     lvalue: we need a ref runtime value to handle them as we need to modify them
+
+    When an object is constructed: first, initalize automatic variables (member variable (init, class construction, array))
+    then call the constructor.
+
+
     */
    class VisitorEvaluate : public VisitorDefault
    {
@@ -526,6 +531,10 @@ namespace parser
                // in the result register, unstack the object
                vals[ 0 ] = RuntimeValue( RuntimeValue::TYPE );
                vals[ 0 ].vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
+
+               // init some of the values
+               _initObject( *e.getFunctionCall()->getMemberOfClass(), vals[ 0 ] );
+
             } else  {
                vals[ 0 ] = _env.resultRegister;
             }
@@ -572,7 +581,8 @@ namespace parser
             {
                // create the object
                (*src.vals)[ n ].type = RuntimeValue::TYPE;
-               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( _destructorEvaluator, 0 /* TODO TODO: send the destructor if class...*/ , new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
+               (*src.vals)[ n ].vals = RuntimeValue::RefcountedValues( _destructorEvaluator, constructor->getMemberOfClass()->getNodeType(), new RuntimeValues( constructor->getMemberOfClass()->getMemberVariableSize() ) );
+               _initObject( *constructor->getMemberOfClass(), (*src.vals)[ n ] );
 
                // call the constructor
                RuntimeValues init( 1 );
@@ -637,7 +647,7 @@ namespace parser
                _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
 
                // init the var that need to!
-               _initObject( e ); // populate the object if necessary
+               _initObject( *e.getConstructorCall()->getMemberOfClass(), *_env.stack.rbegin() ); // populate the object if necessary
 
                if ( e.getObjectInitialization() )
                {
@@ -666,21 +676,20 @@ namespace parser
       }
 
       /**
-       @brief Initialize an object that must be automatically constructed (so member variable in a class such as array/other class!)
+       @brief Initialize an object that is on top of the stack that must be automatically constructed (so member variable in a class such as array/other class!)
        */
-      void _initObject( AstDeclVar& e )
+      void _initObject( AstDeclClass& e, RuntimeValue& dst )
       {
          // for all members, instanciate the variable, then copy it in result dir, finally restore the stack
-         const std::vector<AstDeclVar*>& toInit = e.getConstructorCall()->getMemberOfClass()->getMemberToInit();
+         const std::vector<AstDeclVar*>& toInit = e.getMemberToInit();
          for ( size_t n = 0; n < toInit.size(); ++n )
          {
             operator()( *toInit[ n ] );
-            _debug( *_env.stack.rbegin() );
 
             _env.resultRegister = *_env.stack.rbegin();
             _env.stack.pop_back();
 
-            (*_env.stack.rbegin()->vals)[ toInit[ n ]->getRuntimeIndex() ] = _env.resultRegister;
+            (*dst.vals)[ toInit[ n ]->getRuntimeIndex() ] = _env.resultRegister;
          }
       }
 

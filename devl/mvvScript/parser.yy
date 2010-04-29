@@ -29,6 +29,7 @@
                       -check if name of the class
                       -check declared in the scope outside the class has been declared and so on until global scope
     - construtor: checked when type checking, must be the same name than class
+   
     
     -check function decl inside function
     - int a[ 5 ]; float b[ 5 ]; a = b; => we copy the content of b in a and cast if necessary
@@ -55,7 +56,11 @@
                   is stored using smart pointers, they might still have a ref in the result register!
     - reference: in a class (TODO extend?) a reference will be taken to the first assignment if it is not initialized
     - default init for var member in a class [array (the array itself, not the contained values), object, default member init], other are not initilized
+    - When an object is constructed: first, initalize automatic variables (member variable (init, class construction, array))
+      then call the constructor.
+    - automatic construction in class members
     
+    - TODO check destructor called in an array
     - TODO use the same visitor eval all the way -> else destructor is not valid
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error

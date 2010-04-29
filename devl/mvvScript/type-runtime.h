@@ -56,6 +56,9 @@ namespace parser
          RefcountedTypedDestructor()
          {}
 
+         /**
+          @param t expected the TypeNamed
+          */
          RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own = true )
          {
             ensure( eval, "evaluator can't be null" );   
