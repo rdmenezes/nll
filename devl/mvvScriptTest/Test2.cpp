@@ -1182,10 +1182,6 @@ struct TestEval
          TESTER_ASSERT( rt.intval == 8 );
       }
 
-   }
-
-   void eval2()
-   {
       {
          // double constructor
          CompilerFrontEnd fe;
@@ -1257,6 +1253,33 @@ struct TestEval
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int haha; class Vector2i{ int n = haha; Vector2i(){} } " );
          TESTER_ASSERT( result == Error::BIND );
+      }
+   }
+
+   void eval2()
+   {
+      {
+         // double constructor (init array)
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{} Test t = NULL;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "t" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::NIL );
+      }
+
+      {
+         // double constructor (init array)
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ Test t = NULL; Test(){} } Test t;" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+
+      {
+         // double constructor (init array)
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ Test t; Test(){} } Test t;" );
+         TESTER_ASSERT( result == Error::TYPE );
       }
 
       /*
