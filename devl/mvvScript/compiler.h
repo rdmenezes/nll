@@ -369,6 +369,7 @@ namespace parser
                if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
                {
                   Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  _parsedFiles.insert( *it );
                   if ( exp )
                   {
                      // recursively check the dependencies
@@ -376,7 +377,6 @@ namespace parser
                      _explore( context, vars, funcs, classes, store, exp, importedLib );
                      importedLib.insert( *it );   // after type visitor, we must link the imported functions
                   }
-                  _parsedFiles.insert( *it );
                }
             }
 
@@ -387,13 +387,13 @@ namespace parser
                if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
                {
                   Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  _parsedFiles.insert( *it );
                   if ( exp )
                   {
                      // recursively check the dependencies
                      store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
                      _explore( context, vars, funcs, classes, store, exp, importedLib );
                   }
-                  _parsedFiles.insert( *it );
                }
             }
          }

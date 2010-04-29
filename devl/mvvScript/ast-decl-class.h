@@ -80,12 +80,23 @@ namespace parser
          _destructor = des;
       }
 
+      void addMemberToInitialize( AstDeclVar* v )
+      {
+         _memberToInit.push_back( v );
+      }
+
+      const std::vector<AstDeclVar*>& getMemberToInit() const
+      {
+         return _memberToInit;
+      }
+
    private:
       AstDecls*            _decls;
       ui32                 _memberVariableSize; // hold the number of field an object contains
-      RuntimeValue         _runtimeObjectSource; // this hold the current object context (used for example for 'this') // TODO remove useless...
+      RuntimeValue         _runtimeObjectSource;// this hold the current object context (used for example for 'this') // TODO remove useless...
       mvv::Symbol          _destructorName;     // hold the name of the destructor for easy look up (this doesn't mean the class has a constructor!!!)
       AstDeclFun*          _destructor;         // the destructor to be called
+      std::vector<AstDeclVar*>   _memberToInit; // the list of member that require initialization
    };
 }
 }

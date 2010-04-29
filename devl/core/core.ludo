@@ -85,7 +85,7 @@ import string toString( float a );
 /**
  @brief Defines basic datatypes
  */
- /*
+
 class Vector3i
 {
 	int vals[ 3 ];
@@ -103,6 +103,40 @@ class Vector3i
 	}
 }
 
+class Vector3f
+{
+	float vals[ 3 ];
+
+	Vector3f( float x = 0, float y = 0, float z = 0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+		vals[ 2 ] = z;
+	}
+
+	float& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+}
+
+class Vector2f
+{
+	float vals[ 2 ];
+
+	Vector2f( float x = 0, float y = 0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+	}
+
+	float& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+}
+
+/*
 class Matrixf
 {
 	float vals[ 0 ];
@@ -140,3 +174,6 @@ class Matrix3f
 	}
 }
 */
+
+
+include "mvv"

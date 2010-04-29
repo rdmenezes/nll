@@ -1171,11 +1171,48 @@ struct TestEval
          TESTER_ASSERT( result == Error::PARSE );
       }
 
+      {
+         // check code export
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Vector2i{ int vals; Vector2i( int x = 9 ){ vals = x; } } class Test{ Vector2i pos; Test( Vector2i a = Vector2i( 8 ) ){ pos = a; } } Test t; int n = t.pos.vals;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 8 );
+      }
+
    }
 
+   void eval2()
+   {
+      {
+         // check code export
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Vector2i{ int vals; Vector2i( int x = 9 ){ vals = x; } } class Test{ Vector2i pos;  Test(){} } Test t; int n = t.pos.vals;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
 
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 9 );
+      }
+
+      /*
+      {
+         // check code export
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" Segment s;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 8 );
+      }
+*/
+   }
 };
 
 TESTER_TEST_SUITE(TestEval);
-TESTER_TEST(eval1);
+//TESTER_TEST(eval1);
+TESTER_TEST(eval2);
 TESTER_TEST_SUITE_END();

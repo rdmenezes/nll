@@ -927,6 +927,13 @@ namespace parser
                impl::reportTypeError( e.getLocation(), _context, "variable with reference must be initialized with another variable or method returning reference" );
             }
          }
+
+         // check if this class member need to be initialized before hand (array, default value & class+constructor)
+         // in case of ref, the init will occur at the firs affectation
+         if ( !e.getType().isAReference() && e.isClassMember() && ( e.getInit() || e.getConstructorCall() || e.getType().isArray() ) )
+         {
+            e.isClassMember()->addMemberToInitialize( &e );
+         }
       }
 
       virtual void operator()( AstExpSeq& e )

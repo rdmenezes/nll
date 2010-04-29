@@ -459,7 +459,8 @@ namespace parser
          }
 
          // we need to compute the default parameter that have not beend transmitted
-         for ( size_t t = vals.size(); t < vars.size(); ++t )
+         // we need to remove 1 if a class!
+         for ( size_t t = vals.size() - isClass; t < vars.size(); ++t )
          {
             AstDeclVar* var = dynamic_cast<AstDeclVar*>( vars[ t ] );
             assert( var && var->getInit() );
@@ -634,6 +635,11 @@ namespace parser
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
                _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+
+               // init the var that need to!
+               // TODO CHECK THISCASE
+               _initObject( e ); // populate the object if necessary
+
                if ( e.getObjectInitialization() )
                {
                   AstArgs::Args& args = e.getObjectInitialization()->getArgs();
@@ -658,6 +664,20 @@ namespace parser
 
          // uninitialized variable
          _env.stack.push_back( RuntimeValue( RuntimeValue::EMPTY ) );
+      }
+
+      void _initObject( AstDeclVar& e )
+      {
+         const std::vector<AstDeclVar*>& toInit = e.getConstructorCall()->getMemberOfClass()->getMemberToInit();
+         for ( size_t n = 0; n < toInit.size(); ++n )
+         {
+            operator()( *toInit[ n ] );
+            _debug( *_env.stack.rbegin() );
+
+            // TODO PROBLEM
+            (*_env.stack.rbegin()->vals)[ toInit[ n ]->getRuntimeIndex() ] = _env.resultRegister;
+            _env.stack.pop_back();
+         }
       }
 
       virtual void operator()( AstExpSeq& e )

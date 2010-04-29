@@ -54,7 +54,7 @@
     - destructor: will be invoked very soon after the end of life of the object. However as the object
                   is stored using smart pointers, they might still have a ref in the result register!
     - reference: in a class (TODO extend?) a reference will be taken to the first assignment if it is not initialized
-    - no default init for var member in a class -> else we need to go through all the members...
+    - default init for var member in a class [array (the array itself, not the contained values), object, default member init], other are not initilized
     
     - TODO use the same visitor eval all the way -> else destructor is not valid
     - TODO add covariant return type when inheritance added
@@ -136,7 +136,7 @@
 %type<astExp>           rvalue
 %type<astVar>           lvalue thislvalue
 %type<astTypeT>         type type_simple type_field
-%type<astDeclVar>       var_dec_simple var_dec_no_default
+%type<astDeclVar>       var_dec_simple /* var_dec_no_default */
 %type<astDecls>         var_decs_class
 %type<astDeclVars>      fn_var_dec_add
 %type<astDeclVars>      fn_var_dec
@@ -338,8 +338,8 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
 
 	  
 var_decs_class: /* empty */				                                                     { $$ = new mvv::parser::AstDecls( @$ ); }
-      /*|var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }*/
-      |var_dec_no_default SEMI var_decs_class                                                { $$ = $3; $$->insert( $1 ); }
+      |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
+      /*|var_dec_no_default SEMI var_decs_class                                                { $$ = $3; $$->insert( $1 ); }*/
      /* |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                   { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); } */
       |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
@@ -374,6 +374,8 @@ var_dec_simple: type ID ASSIGN rvalue { $$ = new mvv::parser::AstDeclVar( @$, $1
                                            $1->setSize( $3 );
                                         } 
                                       }
+                                      
+                                      /*
 var_dec_no_default: type ID array_decl    { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2 );
                                             if ( $3->size() )
                                             {
@@ -381,6 +383,7 @@ var_dec_no_default: type ID array_decl    { $$ = new mvv::parser::AstDeclVar( @$
                                                $1->setSize( $3 );
                                             } 
                                            }                                            
+                                           */
 	   		    
 
 args_add: /* empty */                 { $$ = new mvv::parser::AstArgs( @$ ); }

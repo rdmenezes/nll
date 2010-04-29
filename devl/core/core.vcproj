@@ -100,7 +100,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -187,7 +187,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -278,7 +278,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -370,7 +370,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\core.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 	</Configurations>
@@ -435,6 +435,17 @@
 			<File
 				RelativePath=".\core.ludo"
 				>
+			</File>
+			<File
+				RelativePath=".\mvv.ludo"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
