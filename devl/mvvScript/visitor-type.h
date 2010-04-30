@@ -615,20 +615,28 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         _fp.push( _currentFp );
-         _currentFp = 0;
-
          if ( e.getNodeType() )
          {
             // this node has been manually typed (i.e. manual inclusion)
             return;
          }
 
+         _fp.push( _currentFp );
+         _currentFp = 0;
+
          e.setNodeType( new TypeNamed( &e, false ) );
          operator()( e.getDeclarations() );
 
          _currentFp = _fp.top();
          _fp.pop();
+
+         // check if a class has cyclic dependencies
+         std::set<AstDeclClass*> visited;
+         bool check = _checkCyclicDependencies( &e, visited );
+         if ( check )
+         {
+            impl::reportTypeError( e.getLocation(), _context, "instanciation of a member variable that has cyclic type dependencies" );
+         }
       }
 
       virtual void operator()( AstDeclFun& e ) 
@@ -778,14 +786,6 @@ namespace parser
          // we first must visite the type!
          operator()( e.getType() );
 
-         /*
-         // I think this is fine now?
-         if ( e.getType().getNodeType() == 0 )
-         {
-            // this mean we have at least 2 files with mutual inclusion, try to type the class
-            std::cout << "TODO" << std::endl;
-         }
-         */
          ensure( e.getType().getNodeType(), "tree can't be typed" );
          if ( TypeVoid().isCompatibleWith( *e.getType().getNodeType() ) )
          {
@@ -823,6 +823,7 @@ namespace parser
             e.setNodeType( e.getType().getNodeType()->clone() );
          }
 
+         TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
          if ( e.getInit() )
          {
             operator()( *e.getInit() );
@@ -831,8 +832,20 @@ namespace parser
             {
                impl::reportTypeError( e.getInit()->getLocation(), _context, "variable and asignment types are not compatible" );
             }
+
+            
+            if ( e.isClassMember() && ty && !e.getInit()->getNodeType()->isEqual( TypeNil() ) )
+            {
+               // prepare cyclic dependency check
+               e.isClassMember()->addInstanciatedType( ty->getDecl() );
+            }
          } else {
-            TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
+            if ( e.isClassMember() && ty )
+            {
+               // prepare cyclic dependency check
+               e.isClassMember()->addInstanciatedType( ty->getDecl() );
+            }
+
             if ( e.getObjectInitialization() )
             {
                // visit the arguments first
@@ -978,6 +991,25 @@ namespace parser
                return;
             }
          }
+      }
+
+      /**
+       @brief check if a class has cyclic dependencies
+       */
+      static bool _checkCyclicDependencies( AstDeclClass* currentClass, std::set<AstDeclClass*>& visited )
+      {
+         if ( visited.find( currentClass ) != visited.end() )  // we already visited it...
+            return true;
+         visited.insert( currentClass );
+
+
+         bool res = false;
+         const std::set<AstDeclClass*>& classes = currentClass->getInstanciatedType();
+         for ( std::set<AstDeclClass*>::const_iterator it = classes.begin(); it != classes.end(); ++it )
+         {
+            res = res | _checkCyclicDependencies( *it, visited );
+         }  
+         return res;
       }
 
       virtual void operator()( Ast& e )

@@ -353,7 +353,7 @@ namespace parser
          operator()( e.getName() );
          RuntimeValue& array = unref( _env.resultRegister );
 
-         if ( array.type == RuntimeValue::EMPTY )
+         if ( array.type == RuntimeValue::EMPTY || array.type == RuntimeValue::NIL )
          {
             throw RuntimeException( "uninitialized array" );
          }
@@ -397,7 +397,7 @@ namespace parser
                RuntimeValue::TypeEnum type = val.type;
                if ( type != RuntimeValue::TYPE )
                {
-                  if ( val.type == RuntimeValue::EMPTY )
+                  if ( val.type == RuntimeValue::EMPTY || val.type == RuntimeValue::NIL )
                   {
                      throw RuntimeException( "null reference" );
                   }

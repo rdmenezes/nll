@@ -215,10 +215,9 @@ namespace parser
          return new TypeNil();
       }
 
-      virtual bool isEqual( const Type& ) const
+      virtual bool isEqual( const Type& t ) const
       {
-         // we never want to check nil == nil
-         return 0;
+         return dynamic_cast<const TypeNil*>( &t ) != 0;
       }
    };
 

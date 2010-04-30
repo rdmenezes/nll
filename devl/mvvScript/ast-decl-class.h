@@ -90,13 +90,25 @@ namespace parser
          return _memberToInit;
       }
 
+      const std::set<AstDeclClass*>& getInstanciatedType() const
+      {
+         return _memberVarType;
+      }
+
+      void addInstanciatedType( AstDeclClass* c )
+      {
+         _memberVarType.insert( c );
+      }
+
+
    private:
       AstDecls*            _decls;
       ui32                 _memberVariableSize; // hold the number of field an object contains
       RuntimeValue         _runtimeObjectSource;// this hold the current object context (used for example for 'this') // TODO remove useless...
       mvv::Symbol          _destructorName;     // hold the name of the destructor for easy look up (this doesn't mean the class has a constructor!!!)
       AstDeclFun*          _destructor;         // the destructor to be called
-      std::vector<AstDeclVar*>   _memberToInit; // the list of member that require initialization
+      std::vector<AstDeclVar*>   _memberToInit; // the list of members that require automatic initialization
+      std::set<AstDeclClass*> _memberVarType;// list the variable type that must be instanciated by the object. This is used to check cyclic dependencies
    };
 }
 }
