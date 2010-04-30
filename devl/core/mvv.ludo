@@ -1,0 +1,11 @@
+include "core"
+
+class Segment
+{
+   Segment( Vector3f position    = Vector3f( 0, 0, 0 ) /*,
+            Vector3f directionx  = Vector3f( 1, 0, 0 ),
+            Vector3f directiony  = Vector3f( 0, 1, 0 ),
+            Vector2f scaling     = Vector2f( 1, 1 ) */)
+   {
+   }
+}
