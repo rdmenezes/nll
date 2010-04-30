@@ -59,13 +59,7 @@ namespace parser
          /**
           @param t expected the TypeNamed
           */
-         RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own = true )
-         {
-            ensure( eval, "evaluator can't be null" );   
-            _data->own = own;
-            _data->data = data;
-            _data->extension = new Extension( eval, t );   // we are using the extension param to store the type of this object
-         }
+         RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own = true );
 
          virtual void destroy();
 

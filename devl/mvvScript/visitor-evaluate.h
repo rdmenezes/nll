@@ -258,6 +258,7 @@ namespace parser
       virtual void operator()( AstExpAssign& e )
       {
          operator()( e.getValue() );
+         // TODO REF TEST
          RuntimeValue val = unref( _env.resultRegister );   // when a 'value' is copyied, this is always by value, so we need to remove ref... except if the type of lvalue is a reference
          RuntimeValue valRef = _env.resultRegister;   // in case it is a ref we need to save it...
 
@@ -782,6 +783,8 @@ namespace parser
          // nothing to do
       }
 
+      RuntimeEnvironment&  _env;
+
    private:
       // disabled copy
       VisitorEvaluate( const VisitorEvaluate& );
@@ -793,7 +796,6 @@ namespace parser
       SymbolTableVars&     _vars;
       SymbolTableFuncs&    _funcs;
       SymbolTableClasses&  _classes;
-      RuntimeEnvironment&  _env;
       ui32                 _level;     // scope depth
       bool                 _mustBreak; // true if we must break the current loop
       VisitorEvaluate*     _destructorEvaluator;

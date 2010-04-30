@@ -20,6 +20,7 @@ namespace platform
     */
    class MVVPLATFORM_API Refcounted
    {
+   public:
       struct      Internals
       {
          void*    data;

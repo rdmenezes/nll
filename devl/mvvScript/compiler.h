@@ -234,7 +234,9 @@ namespace parser
             }
          }
 
-         _env.resultRegister.vals.unref();   // unref the result in case it is holding a ref on a var that need to call a destructor...
+         _env.resultRegister = RuntimeValue();
+
+          //_env.resultRegister.vals.unref();   // unref the result in case it is holding a ref on a var that need to call a destructor...
          _lastErrors = _context.getError().getMessage().str();
          return _context.getError().getStatus();
       }
