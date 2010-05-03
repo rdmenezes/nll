@@ -1255,11 +1255,7 @@ struct TestEval
          Error::ErrorType result = fe.run( "int haha; class Vector2i{ int n = haha; Vector2i(){} } " );
          TESTER_ASSERT( result == Error::BIND );
       }
-   }
 
-   void eval2()
-   {
-      
       {
          // double constructor (init array)
          CompilerFrontEnd fe;
@@ -1303,8 +1299,6 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
       }
       
-
-      
       {
          // multiple destructor
          CompilerFrontEnd fe;
@@ -1315,6 +1309,23 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
+
+      {
+         // multiple destructor
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int& n; Test(){} ~Test(){ n = n + 1; int nn = 0; println(\"=====\");} } int n = 0; {Test t[ 3 ]; int ba;  t[ 0 ].n = n; t[ 1 ].n = n; t[ 2 ].n = n; int ab[4];}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.intval == 3 );
+      }
+   }
+
+   void eval2()
+   {
+      
+      
       
 /*
       

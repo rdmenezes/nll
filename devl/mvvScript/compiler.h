@@ -138,6 +138,10 @@ namespace parser
        */
       void exportCode( const std::string& name )
       {
+         std::ofstream file( name.c_str() );
+         if ( !file.good() )
+            return;
+         exportCode( file );
       }
 
 

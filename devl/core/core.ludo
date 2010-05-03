@@ -136,24 +136,6 @@ class Vector2f
 	}
 }
 
-/*
-class Matrixf
-{
-	float vals[ 0 ];
-	int sizex;
-	int sizey;
-
-	Matrixf( int sy, int sx )
-	{
-		// TODO init..
-		sizey = sy;
-		sizex = sx;
-	}
-
-	import float norm_inf();
-	import Matrixf invert();
-}
-
 class Matrix3f
 {
 	float vals[ 9 ];
@@ -173,7 +155,27 @@ class Matrix3f
 		vals[ 8 ] = a22;
 	}
 }
+
+/*
+class Matrixf
+{
+	float vals[ 0 ];
+	int sizex;
+	int sizey;
+
+	Matrixf( int sy, int sx )
+	{
+		// TODO init..
+		sizey = sy;
+		sizex = sx;
+	}
+
+	import float norm_inf();
+	import Matrixf invert();
+}
+
+
 */
 
 
-include "mvv"
+//include "mvv"

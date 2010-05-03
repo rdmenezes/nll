@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include "core.h"
+#include "mvv.h"
 #include <mvvScript/function-runnable.h>
 
 using namespace mvv::parser;
