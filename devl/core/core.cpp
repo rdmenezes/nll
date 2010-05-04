@@ -1696,4 +1696,29 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableToStringI( fn ) ) );
    }
+
+   //
+   // MVV bindings
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "loadVolumeMF2" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLoadVolumeMF2( fn, context ) ) );
+   }
+
+   {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      assert( ty );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "getVolume" ) ), nll::core::make_vector<const Type*>( ty ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionGetVolumeId( fn, context, &e.getEvaluator(), ty ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "loadVolumeAsynchronous" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLoadVolumeAsynchronous( fn, context ) ) );
+   }
+
+   //FunctionLoadVolumeMF2
 }

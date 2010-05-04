@@ -12,7 +12,7 @@ namespace platform
    class MVVPLATFORM_API ContextTools : public ContextInstance
    {
    public:
-      ContextTools( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : _loader( storage, handler, provider, dispatcher )
+      ContextTools( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : _loader( storage, handler, provider, dispatcher ), _orderProvider( provider )
       {
          handler.connect( _loader );
       }
@@ -26,9 +26,17 @@ namespace platform
       {
          return _loader.getVolume( name );
       }
+/*
+      OrderProvider& getOrderProvider()
+      {
+         return _orderProvider;
+      }
+*/
+
 
    private:
       EngineOrderVolumeLoader    _loader;
+//      OrderProvider&             _orderProvider;
    };
 }
 }

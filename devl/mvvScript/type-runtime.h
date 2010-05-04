@@ -23,7 +23,7 @@ namespace parser
        @brief This is only used to refcount an "class" or an array
        @note _data->extension stores the internal type of the object we are representing
        */
-      class RefcountedTypedDestructor : public platform::Refcounted
+      class MVVSCRIPT_API RefcountedTypedDestructor : public platform::Refcounted
       {
          /**
           @brief we need to be able to call the constructor through the current evaluation context!
@@ -129,7 +129,8 @@ namespace parser
          STRING,     /// string
          TYPE,       /// class type
          REF,        /// reference type
-         NIL         /// empty pointer type  // TODO test!
+         NIL,        /// empty pointer type  // TODO test!
+         PTR         /// a pointer from external resource stores in the ref field
       };
 
    public:

@@ -35,6 +35,14 @@ namespace platform
          _execWaitList.push_back( order );
       }
 
+      /**
+       @brief Returns true if orders have not yet started
+       */
+      virtual bool hasOrdersWaiting()
+      {
+         return _execWaitList.size() != 0;
+      }
+
    protected:
       Orders   _execWaitList;
    };

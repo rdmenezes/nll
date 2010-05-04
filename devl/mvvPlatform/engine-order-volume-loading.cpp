@@ -10,7 +10,13 @@ namespace platform
    {
       struct RecordOrder
       {
-         boost::mutex   mutex;
+         RecordOrder() : order( 0 )
+         {}
+
+         RecordOrder( Order* o ) : order( o )
+         {}
+
+         Order* order;
       };
 
       struct OrderVolumeLoaderResult : OrderResult
@@ -26,7 +32,7 @@ namespace platform
       class OrderVolumeLoader : public Order
       {
       public:
-         OrderVolumeLoader( const std::string& location, SymbolVolume name, boost::mutex& mutex ) : Order( MVV_ORDER_VOLUME_LOADING, Order::Predecessors(), true ), _location( location ), _name( name ), _mutex( mutex )
+         OrderVolumeLoader( const std::string& location, SymbolVolume name ) : Order( MVV_ORDER_VOLUME_LOADING, Order::Predecessors(), true ), _location( location ), _name( name )
          {
          }
 
@@ -36,7 +42,6 @@ namespace platform
             OrderVolumeLoaderResult* result = 0;
 
             {
-               boost::mutex::scoped_lock lock( _mutex );
                RefcountedTyped<Volume> volume( new Volume() );
                bool loaded = nll::imaging::loadSimpleFlatFile( _location, *volume );
                if ( loaded )
@@ -53,7 +58,6 @@ namespace platform
       private:
          std::string             _location;
          SymbolVolume            _name;
-         boost::mutex&           _mutex;
       };
    }
 
@@ -62,7 +66,7 @@ namespace platform
    {
       impl::RecordOrder* record = new impl::RecordOrder();
       _records[ name ] = record;
-      _orderProvider.pushOrder( new impl::OrderVolumeLoader( location, name, record->mutex ) );
+      _orderProvider.pushOrder( new impl::OrderVolumeLoader( location, name ) );
    }
 
    void EngineOrderVolumeLoader::consume( Order* order )
@@ -70,6 +74,8 @@ namespace platform
       impl::OrderVolumeLoaderResult* result = dynamic_cast<impl::OrderVolumeLoaderResult*>( (*order).getResult() );
       _resourceVolumes.insert( result->name, result->volume );
       _resourceVolumes.notify();
+
+      // TODO remove from list
    }
 
    EngineOrderVolumeLoader::~EngineOrderVolumeLoader()
@@ -97,8 +103,9 @@ namespace platform
          } else return vol;
       }
 
-      // we have a record, block the call until it is loaded
-      boost::mutex::scoped_lock lock( it->second->mutex );
+      // lock the thread while the volume is being loaded
+      boost::mutex::scoped_lock lock( it->second->order->getMutex() );
+
       bool found = _resourceVolumes.find( name, vol );
       assert( found );  // hmm how can we not find as it just finished loading?
       return vol;

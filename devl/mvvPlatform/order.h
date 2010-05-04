@@ -6,6 +6,11 @@
 # include "refcounted.h"
 # include "types.h"
 
+# pragma warning( push )
+# pragma warning( disable:4244 ) // conversion from 'const double' to XXX, possible loss of data
+
+# include <boost/thread/mutex.hpp>
+
 namespace mvv
 {
 namespace platform
@@ -43,6 +48,7 @@ namespace platform
       {
          static ui32 orderId = 0;
          _orderId = ++orderId;
+         _mutex.lock();
       }
 
       ui32 getId() const
@@ -63,6 +69,7 @@ namespace platform
       void setResult( OrderResult* r )
       {
          _result = r;
+         _mutex.unlock();
       }
 
       /**
@@ -105,6 +112,11 @@ namespace platform
          return _multithreaded;
       }
 
+      boost::mutex& getMutex()
+      {
+         return _mutex;
+      }
+
    protected:
       /**
        @brief Compute the order. It must return an OrderResult that has been allocated
@@ -117,8 +129,10 @@ namespace platform
       bool           _multithreaded;
       OrderResult*   _result;
       ui32           _orderId;
+      boost::mutex   _mutex;        // in case we need to wait for the result, we need to be able to block the thread. By default, mutex acquired at construction, unacquired when the result is set
    };
 }
 }
 
+# pragma warning( pop )
 #endif

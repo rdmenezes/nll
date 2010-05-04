@@ -85,7 +85,7 @@ namespace parser
        @brief Context mecanism needed to safely transmit context info for import libraries
               i.e. in the case of mvv, we can send info on the volume context & segments...
        */
-      void setContextExtension( platform::RefcountedTyped<platform::Context>& c )
+      void setContextExtension( platform::RefcountedTyped<platform::Context> c )
       {
          _contextExt = c;
       }
@@ -118,6 +118,11 @@ namespace parser
       const FilesOrder& getImportDirectories() const
       {
          return _importDirectories;
+      }
+
+      VisitorEvaluate& getEvaluator()
+      {
+         return *_eval;
       }
 
       /**
@@ -296,7 +301,7 @@ namespace parser
        @brief find a class definition using it's full path (i.e. Class1::Class2::ClassWeWant => create the vector (Class1, Class2, ClassWeWant))
        @brief return 0 if class not found
        */
-      const Type* getClass( const std::vector<mvv::Symbol>& path ) const
+      const Type* getType( const std::vector<mvv::Symbol>& path ) const
       {
          const AstDeclClass* c = _classes.find( path );
          if ( !c )
@@ -305,6 +310,21 @@ namespace parser
          }
 
          return c->getNodeType();
+      }
+
+      /**
+       @brief find a class definition using it's full path (i.e. Class1::Class2::ClassWeWant => create the vector (Class1, Class2, ClassWeWant))
+       @brief return 0 if class not found
+       */
+      const AstDeclClass* getClass( const std::vector<mvv::Symbol>& path ) const
+      {
+         const AstDeclClass* c = _classes.find( path );
+         if ( !c )
+         {
+            return 0;
+         }
+
+         return c;
       }
 
       /**

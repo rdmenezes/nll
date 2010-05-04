@@ -1,6 +1,11 @@
 #include <tester/register.h>
 
 #include <mvvScript/compiler.h>
+#include <mvvPlatform/context-volumes.h>
+#include <mvvPlatform/context-tools.h>
+#include <mvvPlatform/engine-handler-impl.h>
+#include <mvvPlatform/order-dispatcher-impl.h>
+#include <mvvPlatform/order-provider-impl.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -260,7 +265,7 @@ struct TestEval
          Error::ErrorType result = fe.run( "class Test{class Test2{}}" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
-         const Type* rt = fe.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Test2" ) ) );
+         const Type* rt = fe.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Test2" ) ) );
          TESTER_ASSERT( dynamic_cast<const TypeNamed*>( rt ) );
       }
 
@@ -274,7 +279,7 @@ struct TestEval
          const AstDeclFun* fn2 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) )  );
          const AstDeclFun* fn3 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Fun2" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) )  );
          const AstDeclFun* fn4 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ), mvv::Symbol::create( "Fun2" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) )  );
-         const AstDeclFun* fn5 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( fe.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ) ) ) )  );
+         const AstDeclFun* fn5 = fe.getFunction( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Fun1" ) ), nll::core::make_vector<const Type*>( fe.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Test" ) ) ) )  );
          TESTER_ASSERT( fn0 );
          TESTER_ASSERT( !fn1 );
          TESTER_ASSERT( fn2 );
@@ -646,7 +651,7 @@ struct TestEval
          try
          {
             
-            Error::ErrorType result = fe.run( "import \"core\" class Test{ int a[]; Test(){ a[ 1 ] = 0; } } Test t;" );
+            fe.run( "import \"core\" class Test{ int a[]; Test(){ a[ 1 ] = 0; } } Test t;" );
             TESTER_ASSERT( 0 );
          } catch ( RuntimeException e ){
             // good
@@ -1143,7 +1148,7 @@ struct TestEval
          CompilerFrontEnd fe;
          try
          {
-            Error::ErrorType result = fe.run( "import \"core\" class Test{Test(){} ~Test(){print(\"Destroyed\");}} Test t; int a[ 4 ]; a[ 5 ] = 0; int n = 3;" );
+            fe.run( "import \"core\" class Test{Test(){} ~Test(){print(\"Destroyed\");}} Test t; int a[ 4 ]; a[ 5 ] = 0; int n = 3;" );
             TESTER_ASSERT( 0 );
          } catch ( RuntimeException e )
          {
@@ -1363,6 +1368,52 @@ struct TestEval
 
    void eval2()
    {
+      /*
+      {
+         //
+         // test volume loading
+         //
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+         TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
+      }*/
+
+      {
+         //
+         // test volume loading asynchronous
+         //
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeAsynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+         TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
+      }
    }
       
 /*
@@ -1377,6 +1428,6 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-TESTER_TEST(eval1);
+//TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST_SUITE_END();

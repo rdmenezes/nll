@@ -29,6 +29,11 @@ namespace platform
        @param order must be a valid pointer for its whole lifecycle
        */
       virtual void pushOrder( Order* order ) = 0;
+
+      /**
+       @brief Returns true if orders have not yet started
+       */
+      virtual bool hasOrdersWaiting() = 0;
    };
 }
 }

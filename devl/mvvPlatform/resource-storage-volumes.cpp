@@ -22,6 +22,8 @@ namespace platform
 
    void ResourceStorageVolumes::insert( SymbolVolume name, RefcountedTyped<Volume> volume )
    {
+      boost::mutex::scoped_lock( *getValue().mutex );
+
       getValue().volumes[ name ] = volume;
 
       notify();

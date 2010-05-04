@@ -10,8 +10,7 @@ namespace parser
 namespace impl
 {
    RefcountedTypedDestructor::RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own )
-   {
-      ensure( eval, "evaluator can't be null" );   
+   {  
       _data->own = own;
       _data->data = data;
       _data->extension = new Extension( eval, t );   // we are using the extension param to store the type of this object
@@ -34,6 +33,7 @@ namespace impl
                AstDeclFun* fun = named->getDecl()->getDestructor();
                if ( fun )
                {
+                  assert( ext->evaluator ); // we need an evaluator to run the destructor
                   if ( ext->evaluator->_env.resultRegister.vals._data == i )
                   {
                      // if the result is stored in the result register, we need to unref

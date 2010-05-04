@@ -15,14 +15,17 @@ class Volume
 {
 	import Vector3f getSize();
 	import Vector3f getScaling();
-	import vector3f getPosition();
+	import Vector3f getPosition();
 	import Matrix3f getRotation();
-	import void setVoxel( int x, int, y, int z );
+	import void setVoxel( int x, int y, int z );
 	import float getVoxel( float x, float y, float z );
 }
 
+// synchronously load the volume
+import VolumeID loadVolumeMF2( string name );
+
 // asynchronously load a volume
-import VolumeID loadVolume( string name );
+import VolumeID loadVolumeAsynchronous( string name );
 
 // get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
-import Volume getVolume( VolumeID );
+import Volume getVolume( VolumeID id );
