@@ -1385,7 +1385,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::STRING );
       rt.stringval = nll::core::val2str( v1.floatval );
@@ -1395,7 +1395,7 @@ public:
 
 
 
-void importFunctions( CompilerFrontEnd& e)
+void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 {
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator+" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );

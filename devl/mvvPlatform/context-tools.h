@@ -22,6 +22,11 @@ namespace platform
          _loader.loadVolume( path, name );
       }
 
+      RefcountedTyped<Volume> getVolume( SymbolVolume name )
+      {
+         return _loader.getVolume( name );
+      }
+
    private:
       EngineOrderVolumeLoader    _loader;
    };

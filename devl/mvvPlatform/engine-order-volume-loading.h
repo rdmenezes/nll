@@ -13,49 +13,20 @@ namespace platform
 {
    namespace impl
    {
-      struct OrderVolumeLoaderResult : OrderResult
-      {
-         OrderVolumeLoaderResult( RefcountedTyped<Volume> v, SymbolVolume name ) : volume( v ), name( name )
-         {
-         }
-
-         SymbolVolume name;
-         RefcountedTyped<Volume> volume;
-      };
-
-      class OrderVolumeLoader : public Order
-      {
-      public:
-         OrderVolumeLoader( const std::string& location, SymbolVolume name ) : Order( MVV_ORDER_VOLUME_LOADING, Order::Predecessors(), true ), _location( location ), _name( name )
-         {
-         }
-
-      protected:
-         virtual OrderResult* _compute()
-         {
-            RefcountedTyped<Volume> volume( new Volume() );
-            bool loaded = nll::imaging::loadSimpleFlatFile( _location, *volume );
-            if ( loaded )
-            {
-               std::cout << "volume loaded: " << _location << " size=" << (*volume).getSize()[ 0 ] << ":" << (*volume).getSize()[ 1 ] << ":" << (*volume).getSize()[ 2 ] << std::endl;
-            } else {
-               std::cout << "error: cant' load volume!!! " << _location << std::endl;
-            }
-            return new OrderVolumeLoaderResult( volume, _name );
-         }
-
-      private:
-         std::string             _location;
-         SymbolVolume            _name;
-      };
+      class OrderVolumeLoader;
+      struct RecordOrder;
    }
 
    /**
     @ingroup platform
     @brief Helper method to asynchronously load volumes and store them in a ResourceVolumes object
+
+    All volumes must be loaded using this helper
     */
    class MVVPLATFORM_API EngineOrderVolumeLoader : public EngineOrder
    {
+      typedef std::map<SymbolVolume, impl::RecordOrder*> Records;
+
    public:
       EngineOrderVolumeLoader( ResourceStorageVolumes resourceVolumes, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ), _resourceVolumes( resourceVolumes )
       {
@@ -68,22 +39,15 @@ namespace platform
          construct();
       }
 
-      ~EngineOrderVolumeLoader()
-      {
-         _dispatcher.disconnect( this );
-      }
+      ~EngineOrderVolumeLoader();
 
-      void loadVolume( const std::string& location, SymbolVolume name )
-      {
-         _orderProvider.pushOrder( new impl::OrderVolumeLoader( location, name ) );
-      }
+      // asynchronously load a volume
+      void loadVolume( const std::string& location, SymbolVolume name );
 
-      virtual void consume( Order* order )
-      {
-         impl::OrderVolumeLoaderResult* result = dynamic_cast<impl::OrderVolumeLoaderResult*>( (*order).getResult() );
-         _resourceVolumes.insert( result->name, result->volume );
-         _resourceVolumes.notify();
-      }
+      // get a volume. If it is currently being loaded, the call to this method will be blocked, until the volume is fully loaded
+      RefcountedTyped<Volume> getVolume( SymbolVolume name );
+
+      virtual void consume( Order* order );
 
       virtual const std::set<OrderClassId>& interestedOrder() const
       {
@@ -107,6 +71,7 @@ namespace platform
    protected:
       ResourceStorageVolumes  _resourceVolumes;
       std::set<OrderClassId>  _interested;
+      Records _records;     // the record stores the volumes currently being loaded. A mutex is aquired, so that we a blocking function can be implemented, waiting for the volume to be fully loaded
    };
 }
 }

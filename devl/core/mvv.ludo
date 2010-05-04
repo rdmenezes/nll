@@ -26,6 +26,3 @@ import VolumeID loadVolume( string name );
 
 // get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
 import Volume getVolume( VolumeID );
-
-// load a volume
-import Volume getVolume( string name );

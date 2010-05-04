@@ -7,7 +7,7 @@ namespace mvv
 {
 namespace parser
 {
-   typedef void (*functionImportDecl)( CompilerFrontEnd& );
+   typedef void (*functionImportDecl)( CompilerFrontEnd&, platform::Context& );
 
    void CompilerFrontEnd::importDll( const std::string& name )
    {
@@ -23,7 +23,7 @@ namespace parser
          throw RuntimeException( "GetProcAdress failed to find the starting point in the dll" );
       }
 
-      pfn( *this );
+      pfn( *this, *_contextExt );
    }
 }
 }

@@ -1078,10 +1078,10 @@ struct TestEval
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "res" ) );
          TESTER_ASSERT( rt4.type == RuntimeValue::INT );
          TESTER_ASSERT( rt4.intval == 6 );
-/*
+
          result = fe.run( "import \"core\"" );
          TESTER_ASSERT( result == Error::SUCCESS );
-*/
+
          result = fe.run( "include \"core\"" );
          TESTER_ASSERT( result == Error::SUCCESS );
          
@@ -1112,6 +1112,7 @@ struct TestEval
          TESTER_ASSERT( rt8.intval == 9 );
 
          fe.exportCode( save );
+         fe.exportCode( std::cout );
       }
 
       {
@@ -1320,12 +1321,49 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
+
+      {
+         // multiple destructor
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Vector3f{ float vals[ 3 ]; Vector3f(){} float& operator[]( int index ){ return vals[ index ]; } } Vector3f v; v[ 1 ] = 16; v[ 0 ] = 15; v[ 2 ] = 17; int n0 = v[ 0 ]; int n1 = v[ 1 ]; int n2 = v[ 2 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n0" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt1.intval == 15 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.intval == 16 );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "n2" ) );
+         TESTER_ASSERT( rt3.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt3.intval == 17 );
+      }
+
+      {
+         // multiple destructor
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Vector3fT{ float vals[ 3 ]; Vector3fT(){}  float& operator()( int index ){ return vals[ index ]; } } Vector3fT v; v( 1 ) = 16.0;  v( 0 ) = 15.0; v( 2 ) = 17.0; int n0 = v( 0 ); int n1 = v( 1 ); int n2 = v( 2 );" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n0" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt1.floatval == 15 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.floatval == 16 );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "n2" ) );
+         TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt3.floatval == 17 );
+      }
    }
 
    void eval2()
    {
-      
-      
+   }
       
 /*
       
@@ -1336,7 +1374,6 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
       }
 */
-   }
 };
 
 TESTER_TEST_SUITE(TestEval);

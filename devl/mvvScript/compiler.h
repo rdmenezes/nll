@@ -12,6 +12,7 @@
 # include "visitor-evaluate.h"
 # include "function-runnable.h"
 # include "import.h"
+# include <mvvPlatform/context.h>
 
 namespace mvv
 {
@@ -70,11 +71,23 @@ namespace parser
          _env.stack.reserve( stackSize );
 
          _eval = platform::RefcountedTyped<VisitorEvaluate>( new VisitorEvaluate( _context, _vars, _funcs, _classes, _env ) );
+
+         // empty context
+         _contextExt = platform::RefcountedTyped<platform::Context>( new platform::Context() );
       }
 
       ~CompilerFrontEnd()
       {
          clear();
+      }
+
+      /**
+       @brief Context mecanism needed to safely transmit context info for import libraries
+              i.e. in the case of mvv, we can send info on the volume context & segments...
+       */
+      void setContextExtension( platform::RefcountedTyped<platform::Context>& c )
+      {
+         _contextExt = c;
       }
 
       /**
@@ -462,6 +475,7 @@ namespace parser
       std::vector<void*>  _handleLibs;       // save the handles on the DLL manually loaded
       RuntimeEnvironment  _env;              // the current environment
       platform::RefcountedTyped<VisitorEvaluate>   _eval;   // the evaluate visitor. We must keep him alive as we are expecting delayed evaluation due to the destructor of some objects
+      platform::RefcountedTyped<platform::Context> _contextExt;// context necessary for external lib...
    };
 }
 }

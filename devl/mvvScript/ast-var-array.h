@@ -10,7 +10,7 @@ namespace parser
    class MVVSCRIPT_API AstVarArray : public AstVar
    {
    public:
-      AstVarArray( const YYLTYPE& location, AstVar* name, AstExp* index ) : AstVar( location ), _name( name ), _index( index )
+      AstVarArray( const YYLTYPE& location, AstVar* name, AstExp* index ) : AstVar( location ), _name( name ), _index( index ), _fun( 0 )
       {
          ensure( name && index, "can't be null" );
       }
@@ -41,6 +41,15 @@ namespace parser
          return *_index;
       }
 
+      void setFunction( AstDeclFun* f )
+      {
+         _fun = f;
+      }
+
+      AstDeclFun* getFunction() const
+      {
+         return _fun;
+      }
 
       /// Accept a const visitor \a v.
       virtual void accept( ConstVisitor& v ) const
@@ -57,6 +66,7 @@ namespace parser
    private:
       AstVar*       _name;
       AstExp*       _index;
+      AstDeclFun*   _fun;     // in case we have defined a custom operator[]
    };
 }
 }

@@ -428,7 +428,10 @@ namespace parser
                   e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
                   return;
                }
+
+               // it means funcs.size() == 1
                e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
+               e.setFunction( funcs[ 0 ] );
             }
          } else {
             Type* deref = dereference( *e.getName().getNodeType() );

@@ -289,6 +289,8 @@ namespace parser
                *_env.resultRegister.ref = val;
             }
          }
+
+         //_debug( unref( _env.resultRegister ) );
       }
 
       virtual void operator()( AstVarSimple& e )
@@ -354,19 +356,30 @@ namespace parser
          operator()( e.getName() );
          RuntimeValue& array = unref( _env.resultRegister );
 
-         if ( array.type == RuntimeValue::EMPTY || array.type == RuntimeValue::NIL )
+         if ( e.getFunction() )
          {
-            throw RuntimeException( "uninitialized array" );
-         }
-         assert( array.type == RuntimeValue::TYPE );
+            // user defined array
+            RuntimeValues vals( 2 );
+            vals[ 0 ] = array;
+            vals[ 1 ] = RuntimeValue( RuntimeValue::INT );
+            vals[ 1 ].intval = index;
+            _callFunction( *e.getFunction(), vals );
+         } else {
+            // regular array
+            if ( array.type == RuntimeValue::EMPTY || array.type == RuntimeValue::NIL )
+            {
+               throw RuntimeException( "uninitialized array" );
+            }
+            assert( array.type == RuntimeValue::TYPE );
 
-         if ( index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
-         {
-            throw RuntimeException( "out of bound exception" );
-         }
+            if ( index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
+            {
+               throw RuntimeException( "out of bound exception" );
+            }
 
-         // a L-value must return a ref
-         _createRef( _env.resultRegister, (*array.vals)[ index ], false );
+            // a L-value must return a ref
+            _createRef( _env.resultRegister, (*array.vals)[ index ], false );
+         }
       }
 
       // this node will only produce a.b.c, then they will be interpreted function call: ->(a.b)<- .c[(something)]
@@ -526,7 +539,11 @@ namespace parser
          std::vector<RuntimeValue> vals( args.size() + tab );
          if ( tab )
          {
-            if ( e.getConstructed() )
+            if ( e.getInstanciation() )
+            {
+               // we are calling operator() of a class, just fetch the object
+               vals[ 0 ] = _env.stack[ _env.framePointer ];
+            } else if ( e.getConstructed() )
             {
                // because it is constructed, we need to allocate a temporary, start constructor, move the object
                // in the result register, unstack the object

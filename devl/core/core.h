@@ -22,4 +22,4 @@
 
 #endif
 
-extern "C" _declspec(dllexport) void importFunctions( mvv::parser::CompilerFrontEnd& );
+extern "C" _declspec(dllexport) void importFunctions( mvv::parser::CompilerFrontEnd&, mvv::platform::Context& );
