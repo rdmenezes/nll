@@ -69,7 +69,6 @@ namespace platform
       void setResult( OrderResult* r )
       {
          _result = r;
-         _mutex.unlock();
       }
 
       /**
@@ -93,7 +92,7 @@ namespace platform
        */
       void compute()
       {
-         _result = _compute();
+         setResult( _compute() );
       }
 
       /**
@@ -129,7 +128,7 @@ namespace platform
       bool           _multithreaded;
       OrderResult*   _result;
       ui32           _orderId;
-      boost::mutex   _mutex;        // in case we need to wait for the result, we need to be able to block the thread. By default, mutex acquired at construction, unacquired when the result is set
+      boost::mutex   _mutex;        // in case we need to wait for the result, we need to be able to block the thread. By default, mutex acquired at construction, unacquired when the result is set // the unlock will take place in the order dispatcher
    };
 }
 }

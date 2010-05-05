@@ -6,6 +6,8 @@
 #include <mvvPlatform/engine-handler-impl.h>
 #include <mvvPlatform/order-dispatcher-impl.h>
 #include <mvvPlatform/order-provider-impl.h>
+#include <mvvPlatform/order-manager-thread-pool.h>
+#include <boost/thread/thread.hpp>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -1366,9 +1368,36 @@ struct TestEval
       }
    }
 
+   static void wait( float seconds )
+   {
+     clock_t endwait;
+     endwait = (clock_t)(clock () + seconds * CLOCKS_PER_SEC);
+     while (clock() < endwait) {}
+   }
+
+   class Launcher
+   {
+   public:
+      Launcher( CompilerFrontEnd& fe, const std::string& cmd ) : _fe( fe ), _cmd( cmd )
+      {}
+
+      void operator()()
+      {
+         std::cout << "running scripting thread" << std::endl;
+         Error::ErrorType result = _fe.run( _cmd );
+         std::cout << "end scripting running" << std::endl;
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+
+   private:
+      CompilerFrontEnd&    _fe;
+      std::string          _cmd;
+   };
+
    void eval2()
    {
-      /*
+      
       {
          //
          // test volume loading
@@ -1390,29 +1419,47 @@ struct TestEval
          Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
-      }*/
+      }
 
       {
          //
          // test volume loading asynchronous
          //
 
-         // handler setup
+         // set up a pool that will run asynchronous order
+         OrderManagerThreadPool pool( 4 );
          EngineHandlerImpl handler;
-         OrderProviderImpl provider;
-         OrderDispatcherImpl dispatcher;
+
 
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool, pool ) );
 
+
+         // create a front end and run it in another thread
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = loadVolumeAsynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i size = vol1.getSize(); int x = size[ 0 ];" );
+         boost::thread dispatchThread( boost::ref( launcher ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeAsynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
-         TESTER_ASSERT( result == Error::SUCCESS );
+         // in the meantime, for this thread, wait a bit to receive the orders
+         wait( 1 );
+
+         // run the orders
+         pool.run();
+
+         wait( 7 );
+         // dispatch the results
+         pool.run();
+
+         // final check
+         wait( 2 );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "x" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt1.intval == 128 );
       }
    }
       

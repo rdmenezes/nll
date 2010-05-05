@@ -23,6 +23,7 @@ namespace platform
        @brief Distach an order to some consumers. The implementation should take advantage of the
               <code>interestedOrder</code> of the consumer to not dispatch an order to all consumers
        @param order must be a valid pointer for its whole lifecycle
+       @note TODO: do it automatically in a _dispatch method: order->getMutex().unlock() must be run after the order has been dispatched, in case someone is waiting for the result...
        */
       virtual void dispatch( Order* order ) = 0;
 

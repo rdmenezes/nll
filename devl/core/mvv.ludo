@@ -9,12 +9,12 @@ class VolumeID
 }
 
 /**
- @brief Hold a volume
+ @brief Hold a volume, this is only valid until its associated VolumeID is alive
  */
 class Volume
 {
-	import Vector3f getSize();
-	import Vector3f getScaling();
+	import Vector3i getSize();
+	import Vector3f getSpacing();
 	import Vector3f getPosition();
 	import Matrix3f getRotation();
 	import void setVoxel( int x, int y, int z );

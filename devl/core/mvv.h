@@ -4,6 +4,7 @@
 # include "core.h"
 # include <mvvLauncher/init.h>
 # include <mvvScript/function-runnable.h>
+# include <mvvScript/compiler-helper.h>
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -109,7 +110,7 @@ private:
 class FunctionLoadVolumeMF2 : public FunctionRunnable
 {
 public:
-   FunctionLoadVolumeMF2( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionLoadVolumeMF2( const AstDeclFun* fun, mvv::platform::Context& context, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _context( context ), _e( e )
    {
    }
 
@@ -141,7 +142,10 @@ public:
       
       // create the volume ID
       RuntimeValue rt( RuntimeValue::TYPE );
-      rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) );
+      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("Volume") ) ) );
+      assert( ty );
+
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
       (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
       (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
       return rt;
@@ -149,6 +153,104 @@ public:
 
 private:
    mvv::platform::Context&  _context;
+   CompilerFrontEnd&        _e;
 };
+
+class FunctionRunnableVolumeGetSize : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetSize( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*args[ 0 ]->vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*args[ 0 ]->vals)[ 0 ].ref );
+
+
+      // create a vector3i
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3i( rt, volume->getSize()[ 0 ], volume->getSize()[ 1 ], volume->getSize()[ 2 ] );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeGetSpacing : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetSpacing( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*args[ 0 ]->vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*args[ 0 ]->vals)[ 0 ].ref );
+
+
+      // create a vector3i
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, volume->getSpacing()[ 0 ], volume->getSpacing()[ 1 ], volume->getSpacing()[ 2 ] );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeGetPosition : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*args[ 0 ]->vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*args[ 0 ]->vals)[ 0 ].ref );
+
+
+      // create a vector3i
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, volume->getSpacing()[ 0 ], volume->getSpacing()[ 1 ], volume->getSpacing()[ 2 ] );
+      return rt;
+   }
+};
+
 
 #endif

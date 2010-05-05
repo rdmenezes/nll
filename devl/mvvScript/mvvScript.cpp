@@ -15,6 +15,7 @@
 #include "type-runtime.h"
 #include "visitor-evaluate.h"
 #include "compiler.h"
+#include "compiler-helper.h"
 
 
 int MVVSCRIPT_API dummy = 0;

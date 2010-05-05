@@ -633,6 +633,10 @@
 			Name="api"
 			>
 			<File
+				RelativePath=".\compiler-helper.h"
+				>
+			</File>
+			<File
 				RelativePath=".\compiler.cpp"
 				>
 			</File>

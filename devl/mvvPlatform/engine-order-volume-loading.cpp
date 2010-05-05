@@ -64,9 +64,10 @@ namespace platform
 
    void EngineOrderVolumeLoader::loadVolume( const std::string& location, SymbolVolume name )
    {
-      impl::RecordOrder* record = new impl::RecordOrder();
+      Order* order = new impl::OrderVolumeLoader( location, name );
+      impl::RecordOrder* record = new impl::RecordOrder( order );
       _records[ name ] = record;
-      _orderProvider.pushOrder( new impl::OrderVolumeLoader( location, name ) );
+      _orderProvider.pushOrder( order );
    }
 
    void EngineOrderVolumeLoader::consume( Order* order )
@@ -75,7 +76,9 @@ namespace platform
       _resourceVolumes.insert( result->name, result->volume );
       _resourceVolumes.notify();
 
-      // TODO remove from list
+      Records::iterator it = _records.find( result->name );
+      assert( it != _records.end() );  // it HAS to be here!
+      _records.erase( it );
    }
 
    EngineOrderVolumeLoader::~EngineOrderVolumeLoader()
