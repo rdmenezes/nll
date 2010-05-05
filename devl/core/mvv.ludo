@@ -6,6 +6,7 @@ include "core"
 class VolumeID
 {
 	string name;
+	import ~VolumeID();  // remove the reference of this volume from the mvv context leading eventually to its deallocation
 }
 
 /**

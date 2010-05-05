@@ -18,7 +18,7 @@ static ui32 volumeId = 0;
 class FunctionLoadVolumeAsynchronous : public FunctionRunnable
 {
 public:
-   FunctionLoadVolumeAsynchronous( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionLoadVolumeAsynchronous( const AstDeclFun* fun, mvv::platform::Context& context, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _context( context ), _e( e )
    {
    }
 
@@ -43,8 +43,11 @@ public:
       }
       tools->loadVolume( v1.stringval, mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ) );
 
+
+      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+
       RuntimeValue rt( RuntimeValue::TYPE );
-      rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) );
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
       (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
       (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
       return rt;
@@ -52,6 +55,7 @@ public:
 
 private:
    mvv::platform::Context&  _context;
+   CompilerFrontEnd&        _e;
 };
 
 /**
@@ -142,7 +146,7 @@ public:
       
       // create the volume ID
       RuntimeValue rt( RuntimeValue::TYPE );
-      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("Volume") ) ) );
+      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
       assert( ty );
 
       rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
@@ -250,6 +254,46 @@ public:
       createVector3f( rt, volume->getSpacing()[ 0 ], volume->getSpacing()[ 1 ], volume->getSpacing()[ 2 ] );
       return rt;
    }
+};
+
+/**
+ @brief synchronously load volumes
+ */
+class FunctionVolumeIDDestructor : public FunctionRunnable
+{
+public:
+   FunctionVolumeIDDestructor( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+
+      std::string vol = (*args[ 0 ]->vals)[ 0 ].stringval;
+
+      std::cout << "TODO: implement VolumeID destructor:" << vol << std::endl;
+      std::cout << "@vals=" << &(*args[ 0 ]->vals) << std::endl;
+      //
+      // TODO: remove the reference from the mvv context
+      //
+
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&  _context;
 };
 
 

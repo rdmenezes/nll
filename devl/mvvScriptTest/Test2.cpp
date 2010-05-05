@@ -1416,11 +1416,11 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); /*Volume vol1 = getVolume( vid1 );*/" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
       }
-
+/*
       {
          //
          // test volume loading asynchronous
@@ -1460,7 +1460,7 @@ struct TestEval
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "x" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::INT );
          TESTER_ASSERT( rt1.intval == 128 );
-      }
+      }*/
    }
       
 /*

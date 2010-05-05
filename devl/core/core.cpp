@@ -1722,11 +1722,11 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "loadVolumeAsynchronous" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLoadVolumeAsynchronous( fn, context ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLoadVolumeAsynchronous( fn, context, e ) ) );
    }
 
    //
-   // volume
+   // Volume
    //
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "getSize" ) ), std::vector<const Type*>() );
@@ -1738,6 +1738,15 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "getSpacing" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeGetSpacing( fn ) ) );
+   }
+
+   //
+   // VolumeID
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "VolumeID"), platform::Symbol::create( "~VolumeID" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionVolumeIDDestructor( fn, context ) ) );
    }
 
 
