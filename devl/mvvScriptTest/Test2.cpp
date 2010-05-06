@@ -1470,7 +1470,7 @@ struct TestEval
          TESTER_ASSERT( fabs( rt3.floatval - -334.684 ) < 1e-4 );
       }
       */
-
+      /*
       {
          //
          // test volume loading
@@ -1508,6 +1508,37 @@ struct TestEval
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "rot11" ) );
          TESTER_ASSERT( rt4.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( rt4.floatval == 1 );
+      }*/
+
+      {
+         //
+         // test volume loading
+         //
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setPst( Matrix4f() ); Matrix4f pst = vol1.getPst(); float a00 = pst.vals[ 0 ]; vol1.setRotation( Matrix3f() ); Matrix3f rot = vol1.getRotation(); float r00 = rot.vals[ 0 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+         TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "a00" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt1.floatval == 1 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "r00" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.floatval == 1 );
       }
    }
       

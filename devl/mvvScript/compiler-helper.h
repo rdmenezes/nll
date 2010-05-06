@@ -87,7 +87,7 @@ namespace parser
 
       createFields( val, 1 );
       (*val.vals)[ 0 ].type = RuntimeValue::TYPE;
-      createFields( (*val.vals)[ 0 ], 9 );
+      createFields( (*val.vals)[ 0 ], 16 );
 
       RuntimeValues& vals = (*(*val.vals)[ 0 ].vals);
 

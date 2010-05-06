@@ -297,6 +297,40 @@ public:
    }
 };
 
+class FunctionRunnableVolumeGetPst : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetPst( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+
+      // create a vector3i
+      RuntimeValue rt( RuntimeValue::TYPE );
+
+      nll::core::Matrix<float> rotation = volume->getPst();
+      createMatrix4f( rt, rotation );
+      return rt;
+   }
+};
+
 class FunctionRunnableVolumeSetRotation : public FunctionRunnable
 {
 public:
@@ -329,9 +363,77 @@ public:
 
       nll::core::Matrix<float> rot( 3, 3 );
       rot( 0, 0 ) = value[ 0 ].floatval;
+      rot( 0, 1 ) = value[ 1 ].floatval;
+      rot( 0, 2 ) = value[ 2 ].floatval;
+
+      rot( 1, 0 ) = value[ 3 ].floatval;
+      rot( 1, 1 ) = value[ 4 ].floatval;
+      rot( 1, 2 ) = value[ 5 ].floatval;
+
+      rot( 2, 0 ) = value[ 6 ].floatval;
+      rot( 2, 1 ) = value[ 7 ].floatval;
+      rot( 2, 2 ) = value[ 8 ].floatval;
+
+      volume->setRotation( rot );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeSetPst : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeSetPst( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+      RuntimeValues& value = *(*v2.vals)[ 0 ].vals;
+
+      assert( v2.type == RuntimeValue::TYPE && (*v2.vals).size() == 1 );   // we are expecting a vector3f
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::TYPE && value.size() == 16 );   // we are expecting a vector3f
+
+      nll::core::Matrix<float> rot( 4, 4 );
+      rot( 0, 0 ) = value[ 0 ].floatval;
+      rot( 0, 1 ) = value[ 1 ].floatval;
+      rot( 0, 2 ) = value[ 2 ].floatval;
+      rot( 0, 3 ) = value[ 3 ].floatval;
+
+      rot( 1, 0 ) = value[ 4 ].floatval;
+      rot( 1, 1 ) = value[ 5 ].floatval;
+      rot( 1, 2 ) = value[ 6 ].floatval;
+      rot( 1, 3 ) = value[ 7 ].floatval;
+
+      rot( 2, 0 ) = value[ 8 ].floatval;
+      rot( 2, 1 ) = value[ 9 ].floatval;
+      rot( 2, 2 ) = value[ 10 ].floatval;
+      rot( 2, 3 ) = value[ 11 ].floatval;
+
+      rot( 3, 0 ) = value[ 12 ].floatval;
+      rot( 3, 1 ) = value[ 13 ].floatval;
+      rot( 3, 2 ) = value[ 14 ].floatval;
+      rot( 3, 3 ) = value[ 15 ].floatval;
 
       
-      volume->setRotation( rot );
+      volume->setPst( rot );
 
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -379,6 +481,7 @@ public:
       return rt;
    }
 };
+
 
 class FunctionRunnableVolumeSetSpacing : public FunctionRunnable
 {

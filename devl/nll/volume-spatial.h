@@ -208,6 +208,16 @@ namespace imaging
       }
 
       /**
+       @brief Set a new PST
+       */
+      void setPst( const Matrix& m )
+      {
+         _pst = m;
+
+         _constructVolume();
+      }
+
+      /**
        @return return the inversed Pst
        */
       const Matrix& getInvertedPst() const
