@@ -50,6 +50,70 @@ namespace parser
       (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::FLOAT;
       (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::FLOAT;
    }
+
+   inline void createMatrix3f( RuntimeValue& val, const nll::core::Matrix<float>& m )
+   {
+      assert( m.sizex() == 3 && m.sizey() == 3 );
+
+      val.type = RuntimeValue::TYPE;
+
+      createFields( val, 1 );
+      (*val.vals)[ 0 ].type = RuntimeValue::TYPE;
+      createFields( (*val.vals)[ 0 ], 9 );
+
+      RuntimeValues& vals = (*(*val.vals)[ 0 ].vals);
+
+      vals[ 0 ].floatval = m( 0, 0 );
+      vals[ 1 ].floatval = m( 0, 1 );
+      vals[ 2 ].floatval = m( 0, 2 );
+
+      vals[ 3 ].floatval = m( 1, 0 );
+      vals[ 4 ].floatval = m( 1, 1 );
+      vals[ 5 ].floatval = m( 1, 2 );
+
+      vals[ 6 ].floatval = m( 2, 0 );
+      vals[ 7 ].floatval = m( 2, 1 );
+      vals[ 8 ].floatval = m( 2, 2 );
+
+      for ( int n = 0; n < 9; ++n )
+         vals[ n ].type = RuntimeValue::FLOAT;
+   }
+
+   inline void createMatrix4f( RuntimeValue& val, const nll::core::Matrix<float>& m )
+   {
+      assert( m.sizex() == 4 && m.sizey() == 4 );
+
+      val.type = RuntimeValue::TYPE;
+
+      createFields( val, 1 );
+      (*val.vals)[ 0 ].type = RuntimeValue::TYPE;
+      createFields( (*val.vals)[ 0 ], 9 );
+
+      RuntimeValues& vals = (*(*val.vals)[ 0 ].vals);
+
+      vals[ 0 ].floatval = m( 0, 0 );
+      vals[ 1 ].floatval = m( 0, 1 );
+      vals[ 2 ].floatval = m( 0, 2 );
+      vals[ 3 ].floatval = m( 0, 3 );
+
+      vals[ 4 ].floatval = m( 1, 0 );
+      vals[ 5 ].floatval = m( 1, 1 );
+      vals[ 6 ].floatval = m( 1, 2 );
+      vals[ 7 ].floatval = m( 1, 3 );
+
+      vals[ 8  ].floatval = m( 2, 0 );
+      vals[ 9  ].floatval = m( 2, 1 );
+      vals[ 10 ].floatval = m( 2, 2 );
+      vals[ 11 ].floatval = m( 2, 3 );
+
+      vals[ 12 ].floatval = m( 3, 0 );
+      vals[ 13 ].floatval = m( 3, 1 );
+      vals[ 14 ].floatval = m( 3, 2 );
+      vals[ 15 ].floatval = m( 3, 3 );
+
+      for ( int n = 0; n < 16; ++n )
+         vals[ n ].type = RuntimeValue::FLOAT;
+   }
 }
 }
 

@@ -15,9 +15,24 @@ class VolumeID
 class Volume
 {
 	import Vector3i getSize();
+   
+   // note that it is not possible to modify the value directly
 	import Vector3f getSpacing();
-	import Vector3f getPosition();
+   import void setSpacing( Vector3f spacing );
+   
+   // note that it is not possible to modify the value directly
+	import Vector3f getOrigin();
+   import void setOrigin( Vector3f origin );
+   
+   // note that it is not possible to modify the value directly
 	import Matrix3f getRotation();
+   import void setRotation( Matrix3f rotation );
+   
+   import void setPst( Matrix4f pst );
+   
+   // note that it is not possible to modify the value directly
+   import Matrix4f getPst();
+   
 	import void setVoxel( int x, int y, int z );
 	import float getVoxel( float x, float y, float z );
 }

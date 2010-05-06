@@ -1397,7 +1397,7 @@ struct TestEval
 
    void eval2()
    {
-      
+      /*
       {
          //
          // test volume loading
@@ -1416,11 +1416,11 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); /*Volume vol1 = getVolume( vid1 );*/" );
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
       }
-/*
+
       {
          //
          // test volume loading asynchronous
@@ -1440,7 +1440,7 @@ struct TestEval
          // create a front end and run it in another thread
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
-         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = loadVolumeAsynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i size = vol1.getSize(); int x = size[ 0 ];" );
+         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = loadVolumeAsynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i size = vol1.getSize(); int x = size[ 0 ]; Vector3f spacing = vol1.getSpacing(); float spx = spacing[ 0 ]; Vector3f pos = vol1.getOrigin(); float posx = pos[ 0 ];" );
          boost::thread dispatchThread( boost::ref( launcher ) );
 
          // in the meantime, for this thread, wait a bit to receive the orders
@@ -1454,13 +1454,61 @@ struct TestEval
          pool.run();
 
          // final check
-         wait( 2 );
+         wait( 4 );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "x" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::INT );
          TESTER_ASSERT( rt1.intval == 128 );
-      }*/
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "spx" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( fabs( rt2.floatval - 5.30673 ) < 1e-4 );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "posx" ) );
+         TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( fabs( rt3.floatval - -334.684 ) < 1e-4 );
+      }
+      */
+
+      {
+         //
+         // test volume loading
+         //
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setOrigin( Vector3f( 1.0, 2.0, 3.0 ) ); int x = vol1.getOrigin()[ 0 ]; vol1.setSpacing( Vector3f( 1.0, 2.0, 3.0 ) ); float spy = vol1.getSpacing()[ 1 ]; Matrix3f rot = vol1.getRotation(); float rot00 = rot.vals[ 0 ]; float rot11 = rot.vals[ 4 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+         TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "x" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt1.floatval == 1 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "spy" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.floatval == 2 );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "rot00" ) );
+         TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt3.floatval == 1 );
+
+         const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "rot11" ) );
+         TESTER_ASSERT( rt4.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt4.floatval == 1 );
+      }
    }
       
 /*

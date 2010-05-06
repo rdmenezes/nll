@@ -138,6 +138,14 @@ namespace parser
             }
             return;
          }
+
+         if ( val.type == RuntimeValue::PTR )
+         {
+            std::cout << "PTR:" << val.ref << std::endl;
+            return;
+         }
+
+         std::cout << "UNDEFINED TYPE" << std::endl;
       }
 
       virtual void operator()( AstInt& e )

@@ -102,11 +102,93 @@ namespace imaging
       }
 
       /**
+       @brief set the new origin
+       */
+      void setOrigin( const core::vector3f& o )
+      {
+         _pst( 0, 3 ) = o[ 0 ];
+         _pst( 1, 3 ) = o[ 1 ];
+         _pst( 2, 3 ) = o[ 2 ];
+
+         // reset the inverted PST
+         _invertedPst.clone( _pst );
+         bool inversed = core::inverse( _invertedPst );
+         ensure( inversed, "error: the PST is singular, meaning the pst is malformed" );
+      }
+
+      /**
        @return the spacing of the image
        */
       const core::vector3f& getSpacing() const
       {
          return _spacing;
+      }
+
+      /**
+       @brief set a new spacing
+       */
+      void setSpacing( const core::vector3f& sp )
+      {
+         assert( sp[ 0 ] > 0 && sp[ 1 ] > 0 && sp[ 2 ] > 0 );
+
+         // normalize the PST
+         for ( ui32 n = 0; n < 3; ++n )
+         {
+            _pst( 0, n ) /= _spacing[ n ];
+            _pst( 1, n ) /= _spacing[ n ];
+            _pst( 2, n ) /= _spacing[ n ];
+         }
+
+         // apply the new scaling
+         for ( ui32 n = 0; n < 3; ++n )
+         {
+            _pst( 0, n ) *= sp[ n ];
+            _pst( 1, n ) *= sp[ n ];
+            _pst( 2, n ) *= sp[ n ];
+         }
+         _spacing = sp;
+
+         // reset the inverted PST
+         _invertedPst.clone( _pst );
+         bool inversed = core::inverse( _invertedPst );
+         ensure( inversed, "error: the PST is singular, meaning the pst is malformed" );
+      }
+
+      /**
+       @brief returns the rotational part of the PST
+       */
+      Matrix getRotation() const
+      {
+         Matrix m( 3, 3 );
+         // normalize the PST
+         for ( ui32 n = 0; n < 3; ++n )
+         {
+            m( 0, n ) = _pst( 0, n ) / _spacing[ n ];
+            m( 1, n ) = _pst( 1, n ) / _spacing[ n ];
+            m( 2, n ) = _pst( 2, n ) / _spacing[ n ];
+         }
+
+         return m;
+      }
+
+      /**
+       @brief sets the rotational part of the PST. It must be a 3x3 matrix. There must be not scaling
+       */
+      void setRotation( Matrix& rot )
+      {
+         assert( rot.sizex() == 3 && rot.sizey() == 3 );
+
+         // normalize the PST
+         for ( ui32 n = 0; n < 3; ++n )
+         {
+            _pst( 0, n ) = m( 0, n ) * _spacing[ n ];
+            _pst( 1, n ) = m( 1, n ) * _spacing[ n ];
+            _pst( 2, n ) = m( 2, n ) * _spacing[ n ];
+         }
+
+         _invertedPst.clone( _pst );
+         bool inversed = core::inverse( _invertedPst );
+         ensure( inversed, "error: the PST is singular, meaning the pst is malformed" );
       }
 
       /**

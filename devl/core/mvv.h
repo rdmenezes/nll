@@ -50,6 +50,7 @@ public:
       rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
       (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
       (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
+      std::cout << "created volume:" << volumeId << std::endl;
       return rt;
    }
 
@@ -94,7 +95,7 @@ public:
       mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
 
       RuntimeValue rt( RuntimeValue::TYPE );
-      rt.vals = RuntimeValue::RefcountedValues( _eval, _volumeClass, new RuntimeValues( 1 ) );
+      rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) );
 
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( vol.getDataPtr() ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
@@ -142,6 +143,10 @@ public:
       // load and store the type
       RefcountedTyped<Volume> volume( new Volume() );
       bool loaded = nll::imaging::loadSimpleFlatFile( v1.stringval, *volume );
+      if ( !loaded )
+      {
+         throw RuntimeException( "can't find the volume" );
+      }
       volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
       
       // create the volume ID
@@ -152,6 +157,8 @@ public:
       rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
       (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
       (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
+
+      std::cout << "created volume:" << volumeId << std::endl;
       return rt;
    }
 
@@ -181,8 +188,8 @@ public:
       }
 
       // check we have the data
-      assert( (*args[ 0 ]->vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
-      Volume* volume = reinterpret_cast<Volume*>( (*args[ 0 ]->vals)[ 0 ].ref );
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
 
 
       // create a vector3i
@@ -213,8 +220,8 @@ public:
       }
 
       // check we have the data
-      assert( (*args[ 0 ]->vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
-      Volume* volume = reinterpret_cast<Volume*>( (*args[ 0 ]->vals)[ 0 ].ref );
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
 
 
       // create a vector3i
@@ -224,10 +231,10 @@ public:
    }
 };
 
-class FunctionRunnableVolumeGetPosition : public FunctionRunnable
+class FunctionRunnableVolumeGetOrigin : public FunctionRunnable
 {
 public:
-   FunctionRunnableVolumeGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnableVolumeGetOrigin( const AstDeclFun* fun ) : FunctionRunnable( fun )
    {
    }
 
@@ -245,13 +252,131 @@ public:
       }
 
       // check we have the data
-      assert( (*args[ 0 ]->vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
-      Volume* volume = reinterpret_cast<Volume*>( (*args[ 0 ]->vals)[ 0 ].ref );
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
 
 
       // create a vector3i
       RuntimeValue rt( RuntimeValue::TYPE );
-      createVector3f( rt, volume->getSpacing()[ 0 ], volume->getSpacing()[ 1 ], volume->getSpacing()[ 2 ] );
+      createVector3f( rt, volume->getOrigin()[ 0 ], volume->getOrigin()[ 1 ], volume->getOrigin()[ 2 ] );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeGetRotation : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetRotation( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+
+      // create a vector3i
+      RuntimeValue rt( RuntimeValue::TYPE );
+
+      nll::core::Matrix<float> rotation = volume->getRotation();
+      createMatrix3f( rt, rotation );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeSetOrigin : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeSetOrigin( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      VisitorEvaluate::_debug( v2 );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+      assert( v2.type == RuntimeValue::TYPE && (*v2.vals).size() == 1 );   // we are expecting a vector3f
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::TYPE && (*(*v2.vals)[ 0 ].vals).size() == 3 );   // we are expecting a vector3f
+
+      RuntimeValue& vector3f = (*v2.vals)[ 0 ];
+      nll::core::vector3f origin( ( *vector3f.vals )[ 0 ].floatval,
+                                  ( *vector3f.vals )[ 1 ].floatval,
+                                  ( *vector3f.vals )[ 2 ].floatval );
+      volume->setOrigin( origin );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeSetSpacing : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeSetSpacing( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      VisitorEvaluate::_debug( v2 );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+      assert( v2.type == RuntimeValue::TYPE && (*v2.vals).size() == 1 );   // we are expecting a vector3f
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::TYPE && (*(*v2.vals)[ 0 ].vals).size() == 3 );   // we are expecting a vector3f
+
+      RuntimeValue& vector3f = (*v2.vals)[ 0 ];
+      nll::core::vector3f value ( ( *vector3f.vals )[ 0 ].floatval,
+                                  ( *vector3f.vals )[ 1 ].floatval,
+                                  ( *vector3f.vals )[ 2 ].floatval );
+      volume->setSpacing( value );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 };
@@ -273,16 +398,21 @@ public:
          throw RuntimeException( "unexpected number of arguments" );
       }
 
+      RuntimeValue& v1 = unref( *args[ 0 ] );
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
          throw RuntimeException( "ContextVolumes context has not been loaded" );
       }
 
-      std::string vol = (*args[ 0 ]->vals)[ 0 ].stringval;
+      //std::string vol = (*args[ 0 ]->vals)[ 0 ].stringval;
 
-      std::cout << "TODO: implement VolumeID destructor:" << vol << std::endl;
-      std::cout << "@vals=" << &(*args[ 0 ]->vals) << std::endl;
+      std::cout << "destroy volume:" << (*v1.vals)[ 0 ].stringval << std::endl;
+      RefcountedTyped<Volume> vol;
+      volumes->volumes.erase( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval.c_str() ) );
+
+      //std::cout << "TODO: implement VolumeID destructor:" << vol << std::endl;
+      //std::cout << "@vals=" << &(*args[ 0 ]->vals) << std::endl;
       //
       // TODO: remove the reference from the mvv context
       //

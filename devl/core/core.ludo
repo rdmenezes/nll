@@ -107,7 +107,7 @@ class Vector3f
 {
 	float vals[ 3 ];
 
-	Vector3f( float x = 0, float y = 0, float z = 0 )
+	Vector3f( float x = 0.0, float y = 0.0, float z = 0.0 )
 	{
 	   print( "Vector3f construction" );
 		vals[ 0 ] = x;
@@ -117,7 +117,6 @@ class Vector3f
 
 	float& operator[]( int index )
 	{
-	   print( "operator[]" );
 		return vals[ index ];
 	}
 }
@@ -126,7 +125,7 @@ class Vector2f
 {
 	float vals[ 2 ];
 
-	Vector2f( float x = 0, float y = 0 )
+	Vector2f( float x = 0.0, float y = 0.0 )
 	{
 		vals[ 0 ] = x;
 		vals[ 1 ] = y;
@@ -142,9 +141,9 @@ class Matrix3f
 {
 	float vals[ 9 ];
 
-	Matrix3f( float a00 = 1, float a01 = 0, float a02 = 0,
-		    float a10 = 0, float a11 = 1, float a12 = 0,
-		    float a20 = 0, float a21 = 0, float a22 = 1 )
+	Matrix3f( float a00 = 1.0, float a01 = 0.0, float a02 = 0.0,
+             float a10 = 0.0, float a11 = 1.0, float a12 = 0.0,
+             float a20 = 0.0, float a21 = 0.0, float a22 = 1.0 )
 	{
 		vals[ 0 ] = a00;
 		vals[ 1 ] = a01;
@@ -155,6 +154,38 @@ class Matrix3f
 		vals[ 6 ] = a20;
 		vals[ 7 ] = a21;
 		vals[ 8 ] = a22;
+	}
+}
+
+class Matrix4f
+{
+	float vals[ 16 ];
+
+	Matrix4f( float a00 = 1.0, float a01 = 0.0, float a02 = 0.0, float a03 = 0.0,
+             float a10 = 0.0, float a11 = 1.0, float a12 = 0.0, float a13 = 0.0,
+             float a20 = 0.0, float a21 = 0.0, float a22 = 1.0, float a23 = 0.0,
+             float a30 = 0.0, float a31 = 0.0, float a32 = 0.0, float a33 = 1.0 )
+	{
+		vals[ 0 ] = a00;
+		vals[ 1 ] = a01;
+		vals[ 2 ] = a02;
+      vals[ 3 ] = a03;
+      
+		vals[ 4 ] = a10;
+		vals[ 5 ] = a11;
+		vals[ 6 ] = a12;
+      vals[ 7 ] = a13;
+      
+		vals[ 8 ]  = a20;
+		vals[ 9 ]  = a21;
+		vals[ 10 ] = a22;
+      vals[ 11 ] = a23;
+      
+      vals[ 12 ] = a30;
+		vals[ 13 ] = a31;
+		vals[ 14 ] = a32;
+      vals[ 15 ] = a33;
+      
 	}
 }
 

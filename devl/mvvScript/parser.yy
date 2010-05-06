@@ -60,8 +60,7 @@
       then call the constructor.
     - automatic construction in class members. Problem of cyclic dependencies: the member must be initialized by NULL
     
-    - TODO check Test::Test2 is automaticall constructed
-    - TODO use the same visitor eval all the way -> else destructor is not valid
+    - TODO check same function & prototypes several times
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
     - TODO: declared variable with ref: improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n; // int fn( int& n ){ return n; } int& n = fn(5);

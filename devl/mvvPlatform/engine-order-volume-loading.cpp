@@ -47,6 +47,8 @@ namespace platform
                if ( loaded )
                {
                   std::cout << "volume loaded: " << _location << " size=" << (*volume).getSize()[ 0 ] << ":" << (*volume).getSize()[ 1 ] << ":" << (*volume).getSize()[ 2 ] << std::endl;
+                  std::cout << " spacing:" << (*volume).getSpacing()[ 0 ] << " " << (*volume).getSpacing()[ 1 ] << " " << (*volume).getSpacing()[ 2 ] << std::endl;
+                  std::cout << " position:" << (*volume).getOrigin()[ 0 ] << " " << (*volume).getOrigin()[ 1 ] << " " << (*volume).getOrigin()[ 2 ] << std::endl;
                } else {
                   std::cout << "error: cant' load volume!!! " << _location << std::endl;
                }
