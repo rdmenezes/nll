@@ -174,9 +174,9 @@ namespace imaging
       /**
        @brief sets the rotational part of the PST. It must be a 3x3 matrix. There must be not scaling
        */
-      void setRotation( Matrix& rot )
+      void setRotation( const Matrix& m )
       {
-         assert( rot.sizex() == 3 && rot.sizey() == 3 );
+         assert( m.sizex() == 3 && m.sizey() == 3 );
 
          // normalize the PST
          for ( ui32 n = 0; n < 3; ++n )
@@ -194,7 +194,7 @@ namespace imaging
       /**
        @return the size of the volume
        */
-      core::vector3ui getSize() const
+      const core::vector3ui& getSize() const
       {
          return Base::size();
       }

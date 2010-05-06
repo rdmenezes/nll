@@ -297,6 +297,47 @@ public:
    }
 };
 
+class FunctionRunnableVolumeSetRotation : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeSetRotation( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+      RuntimeValues& value = *(*v2.vals)[ 0 ].vals;
+
+      assert( v2.type == RuntimeValue::TYPE && (*v2.vals).size() == 1 );   // we are expecting a vector3f
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::TYPE && value.size() == 9 );   // we are expecting a vector3f
+
+      nll::core::Matrix<float> rot( 3, 3 );
+      rot( 0, 0 ) = value[ 0 ].floatval;
+
+      
+      volume->setRotation( rot );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionRunnableVolumeSetOrigin : public FunctionRunnable
 {
 public:

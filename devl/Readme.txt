@@ -18,7 +18,7 @@ The makefile has several target:
 - tutorial: to compile and run the turotials
 - tarball: will create a new package from
   the SVN repository.
-Example: make clan tutorial
+Example: make clean tutorial
 It will recompile NLL and the tutorials then it will run
 them.
 
