@@ -381,6 +381,90 @@ public:
    }
 };
 
+class FunctionRunnableVolumeSetValue : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeSetValue( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 5 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
+
+      const int x = v2.intval;
+      const int y = v3.intval;
+      const int z = v4.intval;
+      const float val = v5.floatval;
+
+      if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::INT || v3.type != RuntimeValue::INT || v4.type != RuntimeValue::INT || v5.type != RuntimeValue::FLOAT )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+      if ( !volume->inside( x, y, z ) )
+      {
+         throw RuntimeException( "voxel index out of bound" );
+      }
+
+      (*volume)( x, y, z ) = val;
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionRunnableVolumeGetValue : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetValue( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 4 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+
+      float pos[] = { v2.floatval, v3.floatval, v4.floatval, 0 };
+      if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::FLOAT || v3.type != RuntimeValue::FLOAT || v4.type != RuntimeValue::FLOAT )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+      
+      nll::imaging::InterpolatorTriLinear<Volume> interpolator( *volume );
+      interpolator.startInterpolation();
+      float val = interpolator( pos );
+      interpolator.endInterpolation();
+
+      RuntimeValue rt( RuntimeValue::FLOAT );
+      rt.floatval = val;
+      return rt;
+   }
+};
+
 class FunctionRunnableVolumeSetPst : public FunctionRunnable
 {
 public:

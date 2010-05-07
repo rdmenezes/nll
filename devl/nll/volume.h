@@ -475,6 +475,14 @@ namespace imaging
                 z < _buffer.getSize()[ 2 ];
       }
 
+      bool inside( int x, int y, int z ) const
+      {
+         return x >= 0 && y >= 0 && z >= 0 &&
+                x < static_cast<int>( _buffer.getSize()[ 0 ] ) &&
+                y < static_cast<int>( _buffer.getSize()[ 1 ] ) &&
+                z < static_cast<int>( _buffer.getSize()[ 2 ] );
+      }
+
       /**
        @brief return an iterator
        */

@@ -1,40 +1,116 @@
 include "core"
 
 /**
- @brief Represent a volume, can't be instanciated directly!
+ @brief Represent a volume, can't be instanciated directly! When a VolumeID is destroyed, it's associated volume is unloaded from mvv context
  */
 class VolumeID
 {
-	string name;
-	import ~VolumeID();  // remove the reference of this volume from the mvv context leading eventually to its deallocation
+   /**
+    @brief a unique identifier for the volume
+    */
+   string name;
+   import ~VolumeID();  // remove the reference of this volume from the mvv context leading eventually to its deallocation
+}
+   
+/**
+ @brief Look up table - assign a color to a voxel value, given a window level
+ */
+class Lut
+{   
+   /**
+    @brief Replace the color on an index by another one
+    @param index an index ranging from 0 to 255
+    @param colorR, colorG, colorB a RGB value
+    */
+   import void setColorIndex( int index, int colorR, int colorG, int colorB );
+   
+   /**
+    @brief Defines the min and max value of the window. Internally, 256 levels will be linearly computed between this min and max.
+    */
+   import Lut( float minIntensity, float maxIntensity );
+   
+   import ~Lut();
 }
 
 /**
+ @brief Contains a set of volume with associated display info
+ */
+class VolumeContainer
+{
+   import VolumeContainer();
+   import ~VolumeContainer();
+   
+   /** 
+    @brief add a volume with a lut & intensity info
+    @param volume the volume to add
+    @param lut the lut associated with this volume. the lut object is *not* cloned!
+    @param intensity intensity factor - example lets assume we have 3 volumes with intensity 0.5 1 and 0.5, the intensity will be normalized according to their intensity factor
+           the actual intensity will be  0.5 / (0.5 + 1 + 0.5) for the first volume
+    */
+   import void addVolume( VolumeID volume, Lut lut, float intensity );
+   
+   /**
+    @brief remove a volume from the container
+    */
+   import void eraseVolume( VolumeID volume );
+   
+   /**
+    @brief remove a volume from the container
+    */
+   import void eraseVolume( string volume );
+   
+   /**
+    @brief set a new Lut for this VolumeID. This is transmitted by reference (so a modification of the original object will modify the lut)
+    */
+   import void setLut( VolumeID volume, Lut newLut );
+   
+   /**
+    @brief set a new intensity for this VolumeID
+    */
+   import void setIntensity( VolumeID volume, float newIntensity );
+}
+
+/**
+ @brief Convert a VolumeID to a string
+ */
+import string toString( VolumeID volume );
+
+/**
  @brief Hold a volume, this is only valid until its associated VolumeID is alive
+ @note internally, the volume contains only one PTR field, holding a reference on the volume. This reference is only valid until it's associated VolumeID is alive.
  */
 class Volume
 {
-	import Vector3i getSize();
+   // return the number of voxels for each dimension
+   import Vector3i getSize();
    
    // note that it is not possible to modify the value directly
-	import Vector3f getSpacing();
+   import Vector3f getSpacing();
    import void setSpacing( Vector3f spacing );
    
    // note that it is not possible to modify the value directly
-	import Vector3f getOrigin();
+   import Vector3f getOrigin();
+   
+   // set a new origin
    import void setOrigin( Vector3f origin );
    
    // note that it is not possible to modify the value directly
-	import Matrix3f getRotation();
+   import Matrix3f getRotation();
+   
+   // set a new rotation (it will be automatically rescaled using the spacing)
    import void setRotation( Matrix3f rotation );
    
+   // set a new Patient Space Transform
    import void setPst( Matrix4f pst );
    
    // note that it is not possible to modify the value directly
    import Matrix4f getPst();
    
-	import void setVoxel( int x, int y, int z );
-	import float getVoxel( float x, float y, float z );
+   // the intensity of a voxel
+   import void setValue( int x, int y, int z, float value );
+   
+   // get a voxel value using bilinear interpolation
+   import float getValue( float x, float y, float z );
 }
 
 // synchronously load the volume
@@ -45,3 +121,76 @@ import VolumeID loadVolumeAsynchronous( string name );
 
 // get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
 import Volume getVolume( VolumeID id );
+
+/**
+ @brief TODO
+ */
+class SegmentToolPointer
+{
+   import SegmentToolPointer();
+   import ~SegmentToolPointer();
+}
+
+/**
+ @brief Tool displaying annotations
+ */
+class SegmentToolAnnotations
+{
+   import SegmentToolAnnotations();
+   import ~SegmentToolAnnotations();
+}
+
+/**
+ @brief Tool allowing a segment to be moved/zoomed/panned
+ */
+class SegmentToolCamera
+{
+   // TODO fix the volumes reference-> should not have this
+   import SegmentToolCamera();
+   import ~SegmentToolCamera();
+   
+   /**
+    @brief Set the position of the camera
+    */
+   import void setPosition( float x, float y, float z );
+}
+
+/**
+ @brief Represents a MPR segment
+ */
+class Segment
+{
+   import ~Segment();
+   
+   /**
+    @brief Construct a new segment.
+    @param container the volumes to display (note the object is not cloned!)
+    @param axisx the x-axis of the segment. its norm defines the spacing used
+    @param axisy the y-axis of the segment. its norm defines the spacing used
+    @param position the inital position of the segment
+    */
+   import Segment( VolumeContainer container,
+                   Vector3f axisx    = Vector3f( 1, 0, 0 ),
+                   Vector3f axisy    = Vector3f( 0, 1, 0 ),
+                   Vector3f position = Vector3f( 0, 0, 0 ) );
+
+   /**
+    @brief Refresh the entire segment
+    */
+   import void refresh();
+   
+   /**
+    @brief attach a pointer
+    */
+   import void setTool( SegmentToolPointer pointer );
+   
+   /**
+    @brief attach a camera
+    */
+   import void setTool( SegmentToolCamera camera );
+   
+   /**
+    @brief attach annotations
+    */
+   import void setTool( SegmentToolAnnotations annotations );
+}

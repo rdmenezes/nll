@@ -1397,7 +1397,7 @@ struct TestEval
 
    void eval2()
    {
-      /*
+      
       {
          //
          // test volume loading
@@ -1469,8 +1469,8 @@ struct TestEval
          TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( fabs( rt3.floatval - -334.684 ) < 1e-4 );
       }
-      */
-      /*
+      
+      
       {
          //
          // test volume loading
@@ -1508,7 +1508,7 @@ struct TestEval
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "rot11" ) );
          TESTER_ASSERT( rt4.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( rt4.floatval == 1 );
-      }*/
+      }
 
       {
          //

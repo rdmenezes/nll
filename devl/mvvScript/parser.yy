@@ -349,7 +349,7 @@ var_decs_class: /* empty */				                                                 
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |IMPORT type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                           { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
       |ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class                   { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3, $6 ) ); }
-     /* |ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                       { $$ = $6; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$1, $3 ) ); }*/
+      |IMPORT ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                                { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, 0, *$2, $4 ) ); }
       |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class    { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI var_decs_class                 { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
       |IMPORT TILDE ID LPAREN RPAREN SEMI var_decs_class                                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $3->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$) ) ); }
