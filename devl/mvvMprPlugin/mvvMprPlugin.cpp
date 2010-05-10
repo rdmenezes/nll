@@ -12,6 +12,7 @@
 #include "segment-tool-pointer.h"
 #include "segment-tool-camera.h"
 #include "segment-tool-annotations.h"
+#include "segment-tool-autocenter.h"
 #include "mip.h"
 #include "mip-tool.h"
 #include "mip-tool-pointer.h"

@@ -13,80 +13,14 @@ namespace platform
     @brief This tool will center the attached segment when a bigger volume has just been loaded,
            it will also handle navigation (slice by slice, padding, zooming)
     */
-   class MVVMPRPLUGIN_API SegmentToolCamera : public SegmentTool, public Engine
+   class MVVMPRPLUGIN_API SegmentToolCamera : public SegmentTool
    {
    public:
       /**
        @param storage has a new volume added, and this added volume is bigger than all others, the camera is centering this volume
        */
-      SegmentToolCamera( ResourceStorageVolumes storage, EngineHandler& handler ) : Engine( handler ), _storage( storage ), SegmentTool( false )
+      SegmentToolCamera() : SegmentTool( false )
       {
-         handler.connect( *this );
-         storage.connect( this );
-         _nbMaxVoxels = 0;
-      }
-
-      /**
-       @brief on a volume loaded
-       */
-      virtual bool _run()
-      {
-         /*
-         if ( _nbMaxVoxels > 0 )
-         {
-            // Todo: if several volumes, sometimes tool is not perfectly synchronized...
-            return true;
-         }*/
-
-         // check if a volume has more voxel than previously
-         ui32 maxVoxel = 0;
-         bool updatePosition = false;
-         nll::core::vector3f newPosition;
-         for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
-         {
-            for ( ResourceVolumes::Iterator volit = (**it).volumes.begin(); volit != (**it).volumes.end(); ++volit )
-            {
-               // check if the volume moved
-               nll::core::vector3ui size = (**volit).size();
-               const ui32 nbVoxels = (**volit).size()[ 0 ] * (**volit).size()[ 1 ] * (**volit).size()[ 2 ];
-               if ( nbVoxels > _nbMaxVoxels )
-               {
-                  maxVoxel = nbVoxels;
-                  updatePosition = true;
-                  newPosition = (**volit).indexToPosition( nll::core::vector3f( static_cast<f32>( size[ 0 ] ) / 2,
-                                                                                static_cast<f32>( size[ 1 ] ) / 2,
-                                                                                static_cast<f32>( size[ 2 ] ) / 2 )  );
-               }
-            }
-         }
-
-         if ( !maxVoxel )
-         {
-            // empty so don't do anything
-            return true;
-         }
-
-         // if true, update the segments connected on the _same_ point, even if the volume is not in the segment (else segments are not synchronized)
-         if ( updatePosition )
-         {
-            for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
-            {
-               // update segment position
-               (**it).position.setValue( newPosition );
-
-               // update the position of the pointer: all connected segments must point at the same position
-               typedef std::set<SegmentToolPointer*> Pointers;
-               Pointers pointers = (**it).getTools<SegmentToolPointer>();
-               for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
-               {
-                  (*it)->setPosition( newPosition );
-                  (*it)->refreshConnectedSegments();
-               }
-            }
-         }
-
-         _nbMaxVoxels = maxVoxel;
-         return true;
       }
 
       virtual void receive( Segment& s, const EventMouse& e, const nll::core::vector2ui& )
@@ -185,8 +119,6 @@ namespace platform
       }
 
    protected:
-      ResourceStorageVolumes  _storage;
-      ui32                    _nbMaxVoxels;
       nll::core::vector2ui    _paddingLastPos;
       nll::core::vector2ui    _sliceLastPos;
    };

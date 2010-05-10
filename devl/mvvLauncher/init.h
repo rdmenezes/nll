@@ -14,6 +14,7 @@
 # include <mvvMprPlugin/segment-tool-pointer.h>
 # include <mvvMprPlugin/segment-tool-camera.h>
 # include <mvvMprPlugin/segment-tool-annotations.h>
+# include <mvvMprPlugin/segment-tool-autocenter.h>
 # include <mvvMprPlugin/layout-mip.h>
 # include <mvvMprPlugin/annotation-point.h>
 # include <mvvMprPlugin/mip-tool-pointer.h>
@@ -35,6 +36,7 @@ namespace mvv
       EngineHandlerImpl                   engineHandler;
       OrderManagerThreadPool              orderManager;
 
+      RefcountedTyped<SegmentToolAutocenter> segmentToolAutocenter;
       RefcountedTyped<SegmentToolPointer> segmentPointer;
       RefcountedTyped<SegmentToolCamera>  segmentToolCamera;
       RefcountedTyped<SegmentToolAnnotations>  segmentToolAnnotations;
@@ -51,6 +53,7 @@ namespace mvv
          initContext();
 
          // MIP
+         
          mip = RefcountedTyped<Mip>( new Mip( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager ) );
          (*mip).volumes.insert( SymbolVolume::create( "pt1" ) );
 
@@ -58,21 +61,29 @@ namespace mvv
          annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 60, 0, 0 ), "point2", *font, 10, nll::core::vector3uc( 255, 255, 255 ) ) ) );
          annotations.insert( RefcountedTyped<Annotation>( new AnnotationPoint( nll::core::vector3f( 0, 20, 0 ), "point3", *font, 10, nll::core::vector3uc( 255, 255, 255 ) ) ) );
 
+
          mipToolAnnotations = RefcountedTyped<MipToolAnnotations>( new MipToolAnnotations( annotations, engineHandler ) );
          (*mip).connect( mipToolAnnotations.getDataPtr() );
          mipToolPointer = RefcountedTyped<MipToolPointer>( new MipToolPointer() );
          (*mip).connect( mipToolPointer.getDataPtr() );
+         
 
          initLayout();
 
-    //     context.get<ContextTools>()->loadVolume( "c:/tmp/case2.mf2", SymbolVolume::create( "ct1" ) );
-    //     context.get<ContextTools>()->loadVolume( "c:/tmp/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
+         context.get<ContextTools>()->loadVolume( "c:/tmp/hrezct.mf2", SymbolVolume::create( "ct1" ) );
+         context.get<ContextTools>()->loadVolume( "c:/tmp/hrezpet.mf2", SymbolVolume::create( "pt1" ) );
 
-        context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
-        context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
+ //        context.get<ContextTools>()->loadVolume( "c:/tmp/cc69_ct.mf2", SymbolVolume::create( "ct1" ) );
+ //        context.get<ContextTools>()->loadVolume( "c:/tmp/cc69_pet.mf2", SymbolVolume::create( "pt1" ) );
 
-		//   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
-      //   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
+         //context.get<ContextTools>()->loadVolume( "c:/tmp/ctvol.mf2", SymbolVolume::create( "ct1" ) );
+         //context.get<ContextTools>()->loadVolume( "c:/tmp/petvol.mf2", SymbolVolume::create( "pt1" ) );
+
+    //    context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-NAC.mf2", SymbolVolume::create( "pt1" ) );
+    //    context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/1_-CT.mf2", SymbolVolume::create( "ct1" ) );
+
+	//	   context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/pet.mf2", SymbolVolume::create( "pt1" ) );
+   //      context.get<ContextTools>()->loadVolume( "../../nllTest/data/medical/ct.mf2", SymbolVolume::create( "ct1" ) );
 
 
          // segment 1
@@ -87,14 +98,16 @@ namespace mvv
          float red[] = {255, 0, 0};
          lutPetImpl.createColorScale( red );
          ResourceLut lutPet( lutPetImpl );
-         ResourceLut lutCt( -200, 1000 );
+         ResourceLut lutCt( -200, 200 );
 
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
+         segmentToolAutocenter = RefcountedTyped<SegmentToolAutocenter>( new SegmentToolAutocenter( context.get<ContextVolumes>()->volumes, engineHandler ) );
+         (*segment1).connect( segmentToolAutocenter.getDataPtr() );
          segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( *font, 12, engineHandler ) );
          (*segment1).connect( segmentPointer.getDataPtr() );
-         segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera( context.get<ContextVolumes>()->volumes, engineHandler ) );
+         segmentToolCamera = RefcountedTyped<SegmentToolCamera>( new SegmentToolCamera() );
          (*segment1).connect( segmentToolCamera.getDataPtr() );
          segmentToolAnnotations = RefcountedTyped<SegmentToolAnnotations>( new SegmentToolAnnotations( annotations, engineHandler ) );
          (*segment1).connect( segmentToolAnnotations.getDataPtr() );
@@ -110,6 +123,7 @@ namespace mvv
          (*segment2).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment2).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
+         (*segment2).connect( segmentToolAutocenter.getDataPtr() );
          (*segment2).connect( segmentToolCamera.getDataPtr() );
          (*segment2).connect( segmentPointer.getDataPtr() );
          (*segment2).connect( segmentToolAnnotations.getDataPtr() );
@@ -125,6 +139,7 @@ namespace mvv
          (*segment3).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment3).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
+         (*segment3).connect( segmentToolAutocenter.getDataPtr() );
          (*segment3).connect( segmentToolCamera.getDataPtr() );
          (*segment3).connect( segmentPointer.getDataPtr() );
          (*segment3).connect( segmentToolAnnotations.getDataPtr() );
@@ -144,12 +159,12 @@ namespace mvv
          // segment 4
          RefcountedTyped<Segment> segment4;
          context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment4"), segment4 );
-         //(*segment4).volumes.insert( SymbolVolume::create( "ct1" ) );
+         (*segment4).volumes.insert( SymbolVolume::create( "ct1" ) );
          (*segment4).volumes.insert( SymbolVolume::create( "pt1" ) );
-         //(*segment4).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
+         (*segment4).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
          (*segment4).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
 
-         //(*segment4).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
+         (*segment4).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment4).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
          (*segment4).connect( segmentToolCamera.getDataPtr() );
@@ -214,13 +229,13 @@ namespace mvv
          segment2->directionx.setValue( nll::core::vector3f( 1, 0, 0 ) );
          segment2->directiony.setValue( nll::core::vector3f( 0, 0, 1 ) );
 
-         /*
+         
          Segment* segment3 = new Segment( context.get<ContextVolumes>()->volumes, engineHandler, orderManager, orderManager );
          context.get<ContextSegments>()->segments.insert( SymbolSegment::create( "segment4" ), RefcountedTyped<Segment>( segment3 ) );
          segment3->directionx.setValue( nll::core::vector3f( 0, 1, 0 ) );
          segment3->directiony.setValue( nll::core::vector3f( 0, 0, -1 ) );
-         segment3->interpolation.setValue( NEAREST );
-         */
+         //segment3->interpolation.setValue( NEAREST );
+         
 
          PaneSegment* e0 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
                                            nll::core::vector2ui( 0, 0 ),
@@ -314,3 +329,5 @@ layout = RefcountedTyped<Pane>( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
                droplist.push_back( dropDown2 );
                //(*layout).insert( dropDown2 );
 */
+
+extern mvv::ApplicationVariables* applicationVariables;

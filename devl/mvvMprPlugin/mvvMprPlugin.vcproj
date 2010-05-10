@@ -475,6 +475,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\segment-tool-autocenter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\segment-tool-camera.h"
 				>
 			</File>
