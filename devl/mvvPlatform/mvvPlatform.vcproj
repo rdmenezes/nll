@@ -438,6 +438,10 @@
 			Name="API"
 			>
 			<File
+				RelativePath=".\context-global.h"
+				>
+			</File>
+			<File
 				RelativePath=".\context-tools.h"
 				>
 			</File>

@@ -103,7 +103,7 @@ namespace mvv
          (*segment1).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
          (*segment1).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
 
-         segmentToolAutocenter = RefcountedTyped<SegmentToolAutocenter>( new SegmentToolAutocenter( context.get<ContextVolumes>()->volumes, engineHandler ) );
+         segmentToolAutocenter = RefcountedTyped<SegmentToolAutocenter>( new SegmentToolAutocenter( engineHandler ) );
          (*segment1).connect( segmentToolAutocenter.getDataPtr() );
          segmentPointer = RefcountedTyped<SegmentToolPointer>( new SegmentToolPointer( *font, 12, engineHandler ) );
          (*segment1).connect( segmentPointer.getDataPtr() );

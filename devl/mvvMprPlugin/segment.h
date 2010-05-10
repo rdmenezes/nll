@@ -19,7 +19,7 @@ namespace platform
     @ingroup platform
     @brief Display a MPR and all supporting information
     */
-   class MVVMPRPLUGIN_API Segment : LinkableDouble<SegmentTool*, Segment*>
+   class MVVMPRPLUGIN_API Segment : public LinkableDouble<SegmentTool*, Segment*>
    {
       friend class SegmentTool;
 

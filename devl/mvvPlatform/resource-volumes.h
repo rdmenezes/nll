@@ -21,6 +21,8 @@ namespace platform
     @brief Hold reference volumes stored in a specific storage. A volume name can be potentially
            associated with an empty volume (example: we preallocate the name for loading, but
            voxel data is not yet available)
+    @note the volumes should share the same storage, but with different ResourceVolumes for each segment-timepoint
+          for example
     */
    class MVVPLATFORM_API ResourceVolumes : public Resource< impl::ResourceVolumesList >
    {
@@ -99,6 +101,11 @@ namespace platform
       {
          volumeStorage.connect( *this );
          getValue()._volumeStorage = volumeStorage;
+      }
+
+      ResourceStorageVolumes& getStorage()
+      {
+         return getValue()._volumeStorage;
       }
 
       bool find( SymbolVolume name, RefcountedTyped<Volume>& volume )

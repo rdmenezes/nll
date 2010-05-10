@@ -32,6 +32,7 @@
 #include "context-tools.h"
 #include "engine-handler-impl.h"
 #include "font.h"
+#include "context-global.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

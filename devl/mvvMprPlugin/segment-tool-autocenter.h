@@ -13,9 +13,8 @@ namespace platform
    class MVVMPRPLUGIN_API SegmentToolAutocenter : public SegmentTool, public Engine
    {
    public:
-      SegmentToolAutocenter( ResourceStorageVolumes storage, EngineHandler& handler ) : SegmentTool( false ), Engine( handler ), _storage( storage )
+      SegmentToolAutocenter( EngineHandler& handler ) : SegmentTool( false ), Engine( handler )
       {
-         storage.connect( this );
          _nbMaxVoxels = 0;
       }
 
@@ -27,6 +26,23 @@ namespace platform
       virtual void updateSegment( ResourceSliceuc, Segment& )
       {
          // do nothing
+      }
+
+      // we need to override, as we need to register the volume storage
+      virtual void connect( Segment* o )
+      {
+         SegmentTool::_addSimpleLink( o );
+         o->_addSimpleLink( this );
+         _storages.insert( o->volumes.getStorage() );
+         o->volumes.getStorage().connect( this );
+      }
+
+      // we need to override, as we need to unregister the volume storage
+      virtual void disconnect( Segment* o )
+      {
+         SegmentTool::_eraseSimpleLink( o );
+         o->_eraseSimpleLink( this );
+         // TODO: how do we remove safely from the list? (i.e. all segments points to the same storage)
       }
 
       /**
@@ -86,8 +102,8 @@ namespace platform
       }
 
    private:
-      ResourceStorageVolumes  _storage;
       ui32                    _nbMaxVoxels;
+      std::set<ResourceStorageVolumes> _storages;
    };
 }
 }
