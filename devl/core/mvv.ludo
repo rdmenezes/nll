@@ -1,7 +1,15 @@
 include "core"
 
 /**
- @brief Represent a volume, can't be instanciated directly! When a VolumeID is destroyed, it's associated volume is unloaded from mvv context
+ Principles:
+ - volumes are loaded to a central store
+ - volume ID hold reference on the actual volumes, if VolumeID is destroyed, then its associated volume too
+ - layout holds UI elements, segments & MIP
+ - segments && MIP can have tools tailoring their behaviour
+ */
+
+/**
+ @brief Represent a volume, can't be instanciated directly! When a VolumeID is destroyed, it's associated volume is unloaded from mvv context and volume's data are not accessible anymore
  */
 class VolumeID
 {
@@ -9,7 +17,11 @@ class VolumeID
     @brief a unique identifier for the volume
     */
    string name;
-   import ~VolumeID();  // remove the reference of this volume from the mvv context leading eventually to its deallocation
+
+   /**
+    @brief remove the reference of this volume from the mvv context leading eventually to its deallocation
+    */
+   import ~VolumeID();
 }
    
 /**
@@ -23,21 +35,39 @@ class Lut
     @param colorR, colorG, colorB a RGB value
     */
    import void setColorIndex( int index, int colorR, int colorG, int colorB );
+
+   /**
+    @brief Returns the color mapped to this index
+    */
+   import Vector3i getColorIndex( int index );
    
    /**
     @brief Defines the min and max value of the window. Internally, 256 levels will be linearly computed between this min and max.
     */
    import Lut( float minIntensity, float maxIntensity );
    
+   /**
+    @brief destroy native resources
+    */
    import ~Lut();
 }
 
 /**
  @brief Contains a set of volume with associated display info
+ @note it is not storing a VolumeID reference (just a reference on the volume), so if the
+       original VolumeID is destroyed, the VolumeContainer will stop displaying the volume
  */
 class VolumeContainer
 {
+   //  //PRIVATE DATA for Volume//                   //
+   //  //PRIVATE DATA for VolumeID//                 //
+   //  //PRIVATE DATA for Lut//                      //
+
    import VolumeContainer();
+
+   /**
+    @brief destroy native resources
+    */
    import ~VolumeContainer();
    
    /** 
@@ -46,34 +76,35 @@ class VolumeContainer
     @param lut the lut associated with this volume. the lut object is *not* cloned!
     @param intensity intensity factor - example lets assume we have 3 volumes with intensity 0.5 1 and 0.5, the intensity will be normalized according to their intensity factor
            the actual intensity will be  0.5 / (0.5 + 1 + 0.5) for the first volume
+    @note VolumeID reference is not held by the VolumeContainer!
+    @note VolumeID may not be actually be loaded
     */
    import void addVolume( VolumeID volume, Lut lut, float intensity );
    
    /**
     @brief remove a volume from the container
+    @note volume must be stored in this VolumeContainer
     */
    import void eraseVolume( VolumeID volume );
    
    /**
     @brief remove a volume from the container
+    @note volume must be stored in this VolumeContainer
     */
    import void eraseVolume( string volume );
    
    /**
     @brief set a new Lut for this VolumeID. This is transmitted by reference (so a modification of the original object will modify the lut)
+    @note volume must be stored in this VolumeContainer
     */
    import void setLut( VolumeID volume, Lut newLut );
    
    /**
     @brief set a new intensity for this VolumeID
+    @note volume must be stored in this VolumeContainer
     */
    import void setIntensity( VolumeID volume, float newIntensity );
 }
-
-/**
- @brief Convert a VolumeID to a string
- */
-import string toString( VolumeID volume );
 
 /**
  @brief Hold a volume, this is only valid until its associated VolumeID is alive
@@ -123,43 +154,79 @@ import VolumeID loadVolumeAsynchronous( string name );
 import Volume getVolume( VolumeID id );
 
 /**
- @brief TODO
+ @brief Center segments when new volumes are loaded
+ */
+class SegmentToolCentering
+{
+   import SegmentToolCentering();
+   import ~SegmentToolCentering();
+}
+
+/**
+ @brief Synchronize all the linked segments on a unique position
  */
 class SegmentToolPointer
 {
    import SegmentToolPointer();
    import ~SegmentToolPointer();
-}
 
-/**
- @brief Tool displaying annotations
- */
-class SegmentToolAnnotations
-{
-   import SegmentToolAnnotations();
-   import ~SegmentToolAnnotations();
-}
-
-/**
- @brief Tool allowing a segment to be moved/zoomed/panned
- */
-class SegmentToolCamera
-{
-   // TODO fix the volumes reference-> should not have this
-   import SegmentToolCamera();
-   import ~SegmentToolCamera();
-   
    /**
     @brief Set the position of the camera
     */
    import void setPosition( float x, float y, float z );
+
+   /**
+    @brief Returns the position of the camera
+    */
+   import Vector3f getPosition();
+}
+
+/**
+ @brief Tool displaying annotations on segments
+ */
+class SegmentToolAnnotations
+{
+   // not constructible ID
+   class AnnotationID
+   {}
+
+   import SegmentToolAnnotations();
+   import ~SegmentToolAnnotations();
+
+   /**
+    @brief create an annotation
+    @returns a unique annotation ID
+    */
+   import AnnotationID add( Vector3f position, string text );
+
+   /**
+    @brief erase the annotation represented by this ID
+    */
+   import erase( AnnotationID id );
+}
+
+/**
+ @brief Tool allowing a segment to be manipulated (zmoved/zoomed/panned)
+ @note all the segments must be orthogonal
+ */
+class SegmentToolCamera
+{
+   import SegmentToolCamera();
+   import ~SegmentToolCamera();
 }
 
 /**
  @brief Represents a MPR segment
+ @note reference on tools are saved in the segment
  */
 class Segment
 {
+   //  //PRIVATE DATA for segment//                   //
+   //  //PRIVATE DATA for SegmentToolPointer//        //
+   //  //PRIVATE DATA for SegmentToolCamera//         //
+   //  //PRIVATE DATA for SegmentToolAnnotations//    //
+   //  //PRIVATE DATA for SegmentToolCentering//      //
+
    import ~Segment();
    
    /**
@@ -180,12 +247,12 @@ class Segment
    import void refresh();
    
    /**
-    @brief attach a pointer
+    @brief attach a pointer: segments will be synchronized & crosshair displayed
     */
    import void setTool( SegmentToolPointer pointer );
    
    /**
-    @brief attach a camera
+    @brief attach a camera: segments can be manipulated
     */
    import void setTool( SegmentToolCamera camera );
    
@@ -193,4 +260,38 @@ class Segment
     @brief attach annotations
     */
    import void setTool( SegmentToolAnnotations annotations );
+
+   /**
+    @brief attach centering tool
+    */
+   import void setTool( SegmentToolCentering centering );
+}
+
+// TAG
+class LayoutVertical
+{
+   LayoutVertical(){}
+}
+
+// TAG
+class LayoutHorizontal
+{
+   LayoutHorizontal(){}
+}
+
+/**
+ @brief 
+ */
+class Layout
+{
+   //  //PRIVATE DATA for Layout//                   //
+   //  //PRIVATE DATA for segment//                  //
+   //  //PRIVATE DATA for left//                     //
+   //  //PRIVATE DATA for right//                    //
+
+   import ~Layout();
+
+   import Layout( LayoutVertical   tag, Layout left, Layout right, float ratio );
+   import Layout( LayoutHorizontal tag, Layout left, Layout right, float ratio );
+   import Layout( Segment segment );   // a reference on the segment is saved in the layout
 }
