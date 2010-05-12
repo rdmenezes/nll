@@ -101,7 +101,7 @@ namespace platform
       void erase( Key k )
       {
          typename BaseValue::iterator it = getValue().find( k );
-         if ( k != getValue().end() )
+         if ( it != getValue().end() )
          {
             getValue().erase( k );
             notify();

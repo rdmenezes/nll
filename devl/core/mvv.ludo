@@ -40,6 +40,11 @@ class Lut
     @brief Returns the color mapped to this index
     */
    import Vector3i getColorIndex( int index );
+
+   /**
+    @brief transform a real value to a RGB color
+    */
+   import Vector3i transform( float val );
    
    /**
     @brief Defines the min and max value of the window. Internally, 256 levels will be linearly computed between this min and max.
@@ -59,7 +64,6 @@ class Lut
  */
 class VolumeContainer
 {
-   //  //PRIVATE DATA for Volume//                   //
    //  //PRIVATE DATA for VolumeID//                 //
    //  //PRIVATE DATA for Lut//                      //
 
@@ -79,19 +83,13 @@ class VolumeContainer
     @note VolumeID reference is not held by the VolumeContainer!
     @note VolumeID may not be actually be loaded
     */
-   import void addVolume( VolumeID volume, Lut lut, float intensity );
+   import void add( VolumeID volume, Lut lut, float intensity );  // TODO add registration matrix
    
    /**
     @brief remove a volume from the container
     @note volume must be stored in this VolumeContainer
     */
-   import void eraseVolume( VolumeID volume );
-   
-   /**
-    @brief remove a volume from the container
-    @note volume must be stored in this VolumeContainer
-    */
-   import void eraseVolume( string volume );
+   import void erase( VolumeID volume );
    
    /**
     @brief set a new Lut for this VolumeID. This is transmitted by reference (so a modification of the original object will modify the lut)
@@ -202,7 +200,7 @@ class SegmentToolAnnotations
    /**
     @brief erase the annotation represented by this ID
     */
-   import erase( AnnotationID id );
+   import void erase( AnnotationID id );
 }
 
 /**
@@ -222,6 +220,7 @@ class SegmentToolCamera
 class Segment
 {
    //  //PRIVATE DATA for segment//                   //
+   //  //PRIVATE DATA for VolumeContainer//           //
    //  //PRIVATE DATA for SegmentToolPointer//        //
    //  //PRIVATE DATA for SegmentToolCamera//         //
    //  //PRIVATE DATA for SegmentToolAnnotations//    //
@@ -280,7 +279,7 @@ class LayoutHorizontal
 }
 
 /**
- @brief 
+ @brief Define a layout displaying the UI elements, segments & MIPs
  */
 class Layout
 {

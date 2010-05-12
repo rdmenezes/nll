@@ -14,6 +14,7 @@ namespace impl
       _data->own = own;
       _data->data = data;
       _data->extension = new Extension( eval, t );   // we are using the extension param to store the type of this object
+      std::cout << "create extension:" << _data->extension << std::endl;
    }
 
    void RefcountedTypedDestructor::destroy()

@@ -45,6 +45,16 @@ namespace platform
          return getValue().lut.transform( inValue );
       }
 
+      const TransferFunction::value_type* getIndex( ui32 index ) const
+      {
+         return getValue().lut.get( index );
+      }
+
+      void setIndex( ui32 index, const TransferFunction::value_type* val )
+      {
+         return getValue().lut.set( index, val );
+      }
+
       virtual ui32 nbComponents() const
       {
          return 3;

@@ -57,7 +57,10 @@ namespace parser
          {}
 
          /**
-          @param t expected the TypeNamed
+          @brief a tailored refcountedtyped calling a destructor just before the object is deallocated
+          @param t expected the TypeNamed of the class where the destructor will be called
+          @param eval the evaluator used to evaluate the destructor
+          @note if t && eval are null, no destructor is called
           */
          RefcountedTypedDestructor( VisitorEvaluate* eval, Type* t, RuntimeValues* data, bool own = true );
 

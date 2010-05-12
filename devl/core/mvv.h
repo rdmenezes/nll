@@ -609,9 +609,6 @@ public:
    }
 };
 
-/**
- @brief synchronously load volumes
- */
 class FunctionVolumeIDDestructor : public FunctionRunnable
 {
 public:
@@ -653,6 +650,7 @@ public:
 private:
    mvv::platform::Context&  _context;
 };
+
 
 
 #endif

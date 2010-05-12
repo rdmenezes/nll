@@ -1397,7 +1397,7 @@ struct TestEval
 
    void eval2()
    {
-      
+      /*
       {
          //
          // test volume loading
@@ -1539,8 +1539,69 @@ struct TestEval
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "r00" ) );
          TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( rt2.floatval == 1 );
+      }*/
+
+      {
+         // multiple destructor
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" Lut lut( 0.0, 255.0 ); lut.setColorIndex(10, 16, 17, 18); Vector3i res = lut.getColorIndex(10); int r = res[ 0 ]; int g = res[ 1 ]; int b = res[ 2 ]; Vector3i res2 = lut.transform( 10.0 ); int r2 = res2[ 0 ]; int g2 = res2[ 1 ]; int b2 = res2[ 2 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "r" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt1.intval == 16 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "g" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.intval == 17 );
+
+         const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "b" ) );
+         TESTER_ASSERT( rt3.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt3.intval == 18 );
+
+         const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "r2" ) );
+         TESTER_ASSERT( rt4.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt4.intval == 16 );
+
+         const RuntimeValue& rt5 = fe.getVariable( mvv::Symbol::create( "g2" ) );
+         TESTER_ASSERT( rt5.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt5.intval == 17 );
+
+         const RuntimeValue& rt6 = fe.getVariable( mvv::Symbol::create( "b2" ) );
+         TESTER_ASSERT( rt6.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt6.intval == 18 );
+      }
+
+      {
+         //
+         // test VolumeContainer
+         //
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  Lut lut(0.0, 255.0); VolumeID vol1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\" ); VolumeContainer container; container.add( vol1, lut, 0.5 );" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
+
+         result = fe.run( "container.erase( vol1 ); vol1 = NULL;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 0 );   // check we have correctly unloaded the volume
       }
    }
+
       
 /*
       

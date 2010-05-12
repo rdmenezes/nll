@@ -329,6 +329,11 @@ namespace imaging
          _lut.set( index, value );
       }
 
+      const value_type* get( ui32 index ) const
+      {
+         return _lut[ index ];
+      }
+
       void createGreyscale()
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );

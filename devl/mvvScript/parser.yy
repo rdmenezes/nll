@@ -60,6 +60,8 @@
       then call the constructor.
     - automatic construction in class members. Problem of cyclic dependencies: the member must be initialized by NULL
     
+    - when importing custom type: if a destructor has to be called, we MUST modify in the constructor the original object and NOT returning a new one! (and so might need to resize the vector)
+    
     - TODO check same function & prototypes several times
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
