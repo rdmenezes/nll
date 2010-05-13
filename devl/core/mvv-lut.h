@@ -2,16 +2,13 @@
 # define CORE_MVV_LUT_H_
 
 # include "core.h"
-# include <mvvLauncher/init.h>
+# include <mvvPlatform/resource-lut.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
 
 using namespace mvv::parser;
 using namespace mvv;
 
-/**
- @brief synchronously load volumes
- */
 class FunctionLutConstructor : public FunctionRunnable
 {
 public:

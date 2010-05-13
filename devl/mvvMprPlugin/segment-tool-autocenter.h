@@ -92,7 +92,7 @@ namespace platform
                for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
                {
                   (*it)->setPosition( newPosition );
-                  (*it)->refreshConnectedSegments();
+                  //(*it)->refreshConnectedSegments();
                }
             }
          }

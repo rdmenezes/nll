@@ -2,9 +2,10 @@
 # define CORE_MVV_VOLUME_CONTAINER_H_
 
 # include "core.h"
-# include <mvvLauncher/init.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
+# include <mvvPlatform/resource-typedef.h>
+# include <mvvPlatform/resource-volumes.h>
 # include "mvv-lut.h"
 
 using namespace mvv::parser;
@@ -17,8 +18,8 @@ namespace impl
       VolumeContainer( ResourceStorageVolumes volumeStorage ) : volumes( volumeStorage )
       {}
 
-      std::vector<RuntimeValue>  volumeIdList;
-      std::vector<RuntimeValue>  lutList;
+      std::vector<RuntimeValue>  volumeIdList;  // hold a VolumeID
+      std::vector<RuntimeValue>  lutList;       // hold a Lut, Lut.stringval = Volume ID
 
       ResourceMapTransferFunction luts;
       ResourceFloats              intensities;
@@ -169,6 +170,7 @@ public:
       mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
 
       // first remove from the volume ID
+      bool erased = false;
       std::vector<RuntimeValue>::iterator it = pointee->volumeIdList.begin();
       for ( ; it != pointee->volumeIdList.end(); )
       {
@@ -178,7 +180,13 @@ public:
          if ( vol == volume )
          {
             it = pointee->volumeIdList.erase( cur );
+            erased = true;
          }
+      }
+
+      if ( !erased )
+      {
+         throw RuntimeException( "The volume doesn't belong to this volume container" );
       }
 
       // remove from the volumes
@@ -200,6 +208,108 @@ public:
 
       
 
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionVolumeContainerSetLut : public FunctionRunnable
+{
+   typedef ::impl::VolumeContainer Pointee;
+
+public:
+   FunctionVolumeContainerSetLut( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // preconditions
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::STRING );
+      assert( (*v3.vals)[ 0 ].type == RuntimeValue::PTR );
+
+      // set the lut
+      mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
+      pointee->luts.insert( volume, *reinterpret_cast<FunctionLutConstructor::Pointee*>( (*v3.vals)[ 0 ].ref ) );
+
+      // clean the cache
+      bool found = false;
+      std::vector<RuntimeValue>::iterator it = pointee->lutList.begin();
+      for ( ; it != pointee->lutList.end(); )
+      {
+         std::vector<RuntimeValue>::iterator cur = it++;
+         
+         mvv::SymbolVolume vol = mvv::SymbolVolume::create( cur->stringval );
+         if ( vol == volume )
+         {
+            it = pointee->lutList.erase( cur );
+            found = true;
+         }
+      }
+
+      if ( !found )
+         throw RuntimeException( "VolumeID not contained in this volume container" );
+
+      // cache the lut
+      pointee->lutList.push_back( v3 ); // keep a reference on the lut
+      pointee->lutList.rbegin()->stringval = (*v2.vals)[ 0 ].stringval; // we save the associated VolumeID so we can remove it later on
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionVolumeContainerSetIntensity : public FunctionRunnable
+{
+   typedef ::impl::VolumeContainer Pointee;
+
+public:
+   FunctionVolumeContainerSetIntensity( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // preconditions
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::STRING );
+      assert( v3.type == RuntimeValue::FLOAT );
+
+      mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
+
+      float val;
+      bool found = pointee->intensities.find( volume, val );
+      if ( !found )
+      {
+         throw RuntimeException( "VolumeID is not contained in this VolumeContainer" );
+      }
+      pointee->intensities.insert( volume, v3.floatval );
+      
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }

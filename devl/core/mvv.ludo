@@ -80,7 +80,6 @@ class VolumeContainer
     @param lut the lut associated with this volume. the lut object is *not* cloned!
     @param intensity intensity factor - example lets assume we have 3 volumes with intensity 0.5 1 and 0.5, the intensity will be normalized according to their intensity factor
            the actual intensity will be  0.5 / (0.5 + 1 + 0.5) for the first volume
-    @note VolumeID reference is not held by the VolumeContainer!
     @note VolumeID may not be actually be loaded
     */
    import void add( VolumeID volume, Lut lut, float intensity );  // TODO add registration matrix
@@ -152,7 +151,7 @@ import VolumeID loadVolumeAsynchronous( string name );
 import Volume getVolume( VolumeID id );
 
 /**
- @brief Center segments when new volumes are loaded
+ @brief Center segments when new bigger volumes are loaded
  */
 class SegmentToolCentering
 {
@@ -165,7 +164,10 @@ class SegmentToolCentering
  */
 class SegmentToolPointer
 {
-   import SegmentToolPointer();
+   /**
+    @param fontSize the size to be used to display position information
+    */
+   import SegmentToolPointer( int fontSize = 12 );
    import ~SegmentToolPointer();
 
    /**
@@ -176,7 +178,7 @@ class SegmentToolPointer
    /**
     @brief Returns the position of the camera
     */
-   import Vector3f getPosition();
+   //import Vector3f getPosition(); // TODO: implement
 }
 
 /**
@@ -184,7 +186,7 @@ class SegmentToolPointer
  */
 class SegmentToolAnnotations
 {
-   // not constructible ID
+   // not constructible ID. hold an intval
    class AnnotationID
    {}
 
@@ -195,7 +197,7 @@ class SegmentToolAnnotations
     @brief create an annotation
     @returns a unique annotation ID
     */
-   import AnnotationID add( Vector3f position, string text );
+   import AnnotationID add( Vector3f position, string text, Vector3i color = Vector3i( 255, 255, 255 ) );
 
    /**
     @brief erase the annotation represented by this ID
@@ -266,23 +268,23 @@ class Segment
    import void setTool( SegmentToolCentering centering );
 }
 
-// TAG
-class LayoutVertical
-{
-   LayoutVertical(){}
-}
-
-// TAG
-class LayoutHorizontal
-{
-   LayoutHorizontal(){}
-}
 
 /**
  @brief Define a layout displaying the UI elements, segments & MIPs
  */
 class Layout
 {
+   // TAG
+   class Vertical
+   {
+      Vertical(){}
+   }
+
+   // TAG
+   class Horizontal
+   {
+      Horizontal(){}
+   }
    //  //PRIVATE DATA for Layout//                   //
    //  //PRIVATE DATA for segment//                  //
    //  //PRIVATE DATA for left//                     //
@@ -290,7 +292,7 @@ class Layout
 
    import ~Layout();
 
-   import Layout( LayoutVertical   tag, Layout left, Layout right, float ratio );
-   import Layout( LayoutHorizontal tag, Layout left, Layout right, float ratio );
+   import Layout( Vertical   tag, Layout left, Layout right, float ratio );
+   import Layout( Horizontal tag, Layout left, Layout right, float ratio );
    import Layout( Segment segment );   // a reference on the segment is saved in the layout
 }

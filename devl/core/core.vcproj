@@ -441,6 +441,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-segment-tool.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-volume-container.h"
 				>
 			</File>

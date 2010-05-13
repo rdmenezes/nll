@@ -1,6 +1,8 @@
 #ifndef MVV_PLATFORM_SEGMENT_TOOL_POINTER_H_
 # define MVV_PLATFORM_SEGMENT_TOOL_POINTER_H_
 
+# include "mvvMprPlugin.h"
+# include "segment-tool.h"
 # include "segment-tool-pointer.h"
 # include <mvvPlatform/font.h>
 
@@ -322,9 +324,13 @@ namespace platform
          }
       }
 
+      /**
+       @brief set the position of the pointer and update the connected segments
+       */
       void setPosition( const nll::core::vector3f& p )
       {
          _position = p;
+         refreshConnectedSegments();
       }
 
    private:

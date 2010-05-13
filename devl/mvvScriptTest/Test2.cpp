@@ -8,6 +8,8 @@
 #include <mvvPlatform/order-provider-impl.h>
 #include <mvvPlatform/order-manager-thread-pool.h>
 #include <boost/thread/thread.hpp>
+#include <mvvPlatform/font.h>
+#include <mvvPlatform/context-global.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -1395,6 +1397,24 @@ struct TestEval
       std::string          _cmd;
    };
 
+   static RefcountedTyped<Font> initFont()
+   {
+      std::vector<char> chars;
+      std::ifstream i( "../../nllTest/data/font/bitmapfont1_24.txt" );
+      std::string line;
+      while ( !i.eof() )
+      {
+         std::getline( i, line );
+         ensure( line.size() < 2, "expected 1 character by line" );
+         if ( line.size() == 1 )
+         {
+            chars.push_back( line[ 0 ] );
+         } else chars.push_back( static_cast<char>( 0 ) );
+      }
+      ensure( chars.size() == 256, "we are expecting 256 chars, currently=" + nll::core::val2str( chars.size() ) );
+      return RefcountedTyped<Font>( new FontBitmapMatrix( "../../nllTest/data/font/bitmapfont1_24.bmp", nll::core::vector2ui( 16, 16 ), nll::core::vector2ui( 16, 16 ), chars ) );
+   }
+
    void eval2()
    {
       /*
@@ -1539,7 +1559,7 @@ struct TestEval
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "r00" ) );
          TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
          TESTER_ASSERT( rt2.floatval == 1 );
-      }*/
+      }
 
       {
          // multiple destructor
@@ -1590,7 +1610,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  Lut lut(0.0, 255.0); VolumeID vol1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\" ); VolumeContainer container; container.add( vol1, lut, 0.5 );" );
+         Error::ErrorType result = fe.run( "import \"core\"  Lut lut(0.0, 255.0); VolumeID vol1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\" ); VolumeContainer container; container.add( vol1, lut, 0.5 ); container.setLut( vol1, lut ); container.setIntensity( vol1, 0.5 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
@@ -1599,6 +1619,30 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 0 );   // check we have correctly unloaded the volume
+      }*/
+
+
+      {
+         // test tools
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+         OrderManagerThreadPool pool( 4 );
+         RefcountedTyped<Font> font = initFont();
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr() ) );
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); SegmentToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; SegmentToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1);" );
+         TESTER_ASSERT( result == Error::SUCCESS );
       }
    }
 

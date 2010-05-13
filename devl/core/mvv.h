@@ -2,10 +2,12 @@
 # define CORE_MVV_H_
 
 # include "core.h"
-# include <mvvLauncher/init.h>
+//# include <mvvLauncher/init.h>
+# include <mvvPlatform/context-tools.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
 
+using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
 
