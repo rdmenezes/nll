@@ -29,6 +29,7 @@ namespace impl
 
 class FunctionVolumeContainerConstructor : public FunctionRunnable
 {
+public:
    typedef ::impl::VolumeContainer Pointee;
 
 public:

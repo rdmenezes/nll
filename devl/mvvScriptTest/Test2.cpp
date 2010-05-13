@@ -1641,7 +1641,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); SegmentToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; SegmentToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1);" );
+         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); SegmentToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; SegmentToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container );" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
    }

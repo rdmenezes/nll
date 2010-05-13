@@ -35,10 +35,14 @@ namespace platform
 
    void Segment::connect( SegmentTool* tool )
    {
-      _tools.push_back( tool );
-      (*tool).connect( this );
+      ToolsStorage::iterator it = std::find( _tools.begin(), _tools.end(), tool );
+      if ( it == _tools.end() )  // only if the tool isn't attached yet
+      {
+         _tools.push_back( tool );
+         (*tool).connect( this );
 
-      updateToolsList();
+         updateToolsList();
+      }
    }
 
    void Segment::disconnect( SegmentTool* tool )
