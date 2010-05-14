@@ -27,6 +27,13 @@ namespace impl
       {}
 
       platform::Segment segment;
+
+      // hold a reference on other objects
+      RuntimeValue      volumeContainer;
+      RuntimeValue      toolPointer;
+      RuntimeValue      toolCamera;
+      RuntimeValue      toolAnnotations;
+      RuntimeValue      toolAutocenter;
    };
 }
 
@@ -65,6 +72,7 @@ public:
       assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       FunctionVolumeContainerConstructor::Pointee* storage = reinterpret_cast<FunctionVolumeContainerConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
 
+
       // read the other parameters
       nll::core::vector3f axisx;
       getVector3fValues( v3, axisx );
@@ -83,6 +91,8 @@ public:
 
       // construct the type
       Pointee* pointee = new Pointee( storage->volumes.getStorage(), global->engineHandler, global->orderManager, global->orderManager );
+      pointee->volumeContainer = v2;
+
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
       (*v1.vals).resize( 1 );    // resize the original field
@@ -152,6 +162,194 @@ public:
 
       // refresh the segment (force the tools to redraw...)
       pointee->segment.refreshTools();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionSegmentSetToolPointer: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+
+public:
+   FunctionSegmentSetToolPointer( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionSegmentToolPointerConstructor::Pointee* tool = reinterpret_cast<FunctionSegmentToolPointerConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<SegmentToolPointer*> tools = pointee->segment.getTools<SegmentToolPointer>();
+      for ( std::set<SegmentToolPointer*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->segment.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->segment.connect( tool );
+      pointee->toolPointer = v2;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionSegmentSetToolAutocenter: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+
+public:
+   FunctionSegmentSetToolAutocenter( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionSegmentToolCenteringConstructor::Pointee* tool = reinterpret_cast<FunctionSegmentToolCenteringConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<SegmentToolAutocenter*> tools = pointee->segment.getTools<SegmentToolAutocenter>();
+      for ( std::set<SegmentToolAutocenter*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->segment.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->segment.connect( tool );
+      pointee->toolAutocenter = v2;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionSegmentSetToolCamera: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+
+public:
+   FunctionSegmentSetToolCamera( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionSegmentToolCameraConstructor::Pointee* tool = reinterpret_cast<FunctionSegmentToolCameraConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<SegmentToolCamera*> tools = pointee->segment.getTools<SegmentToolCamera>();
+      for ( std::set<SegmentToolCamera*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->segment.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->segment.connect( tool );
+      pointee->toolCamera = v2;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionSegmentSetToolAnnotations: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+
+public:
+   FunctionSegmentSetToolAnnotations( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionSegmentToolAnnotationsConstructor::Pointee* tool = reinterpret_cast<FunctionSegmentToolAnnotationsConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<SegmentToolAnnotations*> tools = pointee->segment.getTools<SegmentToolAnnotations>();
+      for ( std::set<SegmentToolAnnotations*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->segment.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->segment.connect( &tool->tool );
+      pointee->toolAnnotations = v2;
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
