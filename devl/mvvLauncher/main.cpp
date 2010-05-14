@@ -21,8 +21,6 @@ void handleOrders( int )
 
 void renderObjects()
 {
-   std::cout << "VOLUME size=" << applicationVariables->context.get<ContextVolumes>()->volumes.size() << std::endl;
-
    // we need to flush all the engines for rendering: if there are some actions in the pipeline,
    // the rendering may flicker...
    applicationVariables->engineHandler.run();

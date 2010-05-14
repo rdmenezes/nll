@@ -157,7 +157,21 @@ namespace platform
 
          // use a default priority sorter
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );
-         _authorizeRecenteringOnLoading = true;
+      }
+
+      void updateResourceSource()
+      {
+         _slicer.updateResourceSource( volumes,
+                                       position,
+                                       directionx,
+                                       directiony,
+                                       panning,
+                                       zoom,
+                                       size,
+                                       luts,
+                                       intensities,
+                                       isInteracting,
+                                       interpolation);
       }
 
       virtual ~Segment();
@@ -207,7 +221,6 @@ namespace platform
       RefcountedTyped<SegmentToolSorter>  _sorter;
       Wrappers                            _wrappers;
       EngineHandler&                      _handler;
-      bool                                _authorizeRecenteringOnLoading;
    };
 }
 }

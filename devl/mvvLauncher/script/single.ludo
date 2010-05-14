@@ -7,7 +7,7 @@ Lut petLut( 0.0, 10000.0 );
 Lut ctLut( -200.0, 200.0 );
 
 VolumeContainer volumes;
-volumes.add( ct, ctLut, 0.5 );
+volumes.add( ct, ctLut, 0.04 );
 volumes.add( pet, petLut, 0.5 );
 
 SegmentToolCentering    toolCentering;
@@ -21,4 +21,14 @@ segment1.setTool( toolPointer );
 segment1.setTool( toolAnnotations );
 segment1.setTool( toolCamera );
 
-Layout layout( segment1 );
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment2.setTool( toolCentering );
+segment2.setTool( toolPointer );
+segment2.setTool( toolAnnotations );
+segment2.setTool( toolCamera );
+
+Layout::Vertical vertical;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout layout( vertical, l1, l2, 0.51 );
+//Layout layout( segment1 );

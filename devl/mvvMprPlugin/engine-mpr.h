@@ -197,6 +197,45 @@ namespace platform
             _nbOrdersSend = 0;
          }
 
+         void updateResourceSource(  ResourceVolumes vvolumes,
+                                     ResourceVector3f vposition,
+                                     ResourceVector3f vdirectionx,
+                                     ResourceVector3f vdirectiony,
+                                     ResourceVector3f vpanning,
+                                     ResourceVector2f vzoom,
+                                     ResourceVector2ui vsize,
+                                     ResourceBool visInteracting,
+                                     ResourceInterpolationMode vinterpolation )
+         {
+            position.disconnect( this );
+            directionx.disconnect( this );
+            directiony.disconnect( this );
+            panning.disconnect( this );
+            zoom.disconnect( this );
+            size.disconnect( this );
+            volumes.disconnect( this );
+            interpolation.disconnect( this );
+
+            volumes = vvolumes;
+            position = vposition;
+            directionx = vdirectionx;
+            directiony = vdirectiony;
+            panning = vpanning;
+            zoom = vzoom;
+            size = vsize;
+            isInteracting = visInteracting;
+            interpolation = vinterpolation;
+
+            position.connect( this );
+            directionx.connect( this );
+            directiony.connect( this );
+            panning.connect( this );
+            zoom.connect( this );
+            size.connect( this );
+            volumes.connect( this );
+            interpolation.connect( this );
+         }
+
          virtual void consume( Order* )
          {
             if ( _ordersCheck.size() == 0 )
@@ -244,13 +283,12 @@ namespace platform
                return false;
             }
 
+            std::cout << "run:" << this << std::endl;
+
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
 
-            std::cout << "segment storage @=" << volumes.getStorage().getDataPtr() << std::endl;
-            std::cout << "nb volumes=" << volumes.size() << std::endl;
             bool hasVolumes = false;
-
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
             {
                hasVolumes = true;
@@ -432,6 +470,21 @@ namespace platform
             _dispatcher.disconnect( this );
          }
 
+      void updateResourceSource( ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps )
+      {
+         lut.disconnect( this );
+         intensities.disconnect( this );
+         fps.disconnect( this );
+
+         lut= vlut;
+         intensities = vintensities;
+         fps = vfps;
+
+         lut.connect( this );
+         intensities.connect( this );
+         fps.connect( this );
+      }
+
       protected:
          virtual bool _run()
          {
@@ -440,6 +493,7 @@ namespace platform
                // we have nothing to wait for...
                return _nbOrdersHandled == _nbOrdersSend;
             }
+
 
             if ( _orderSend.isEmpty() )
             {
@@ -562,20 +616,20 @@ namespace platform
                  ResourceBool visInteracting,
                  ResourceInterpolationMode vinterpolation,
                  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting = false ) : 
-      EngineOrder( handler, provider, dispatcher ),
-      _mprSlicer( _nbOrdersSend,
-                  _ready,
-                  vvolumes,
-                  vposition,
-                  vdirectionx,
-                  vdirectiony,
-                  vpanning,
-                  vzoom,
-                  vsize,
-                  visInteracting,
-                  vinterpolation,
-                  handler, provider, dispatcher, fasterDisplayWhenInteracting ),
-      _sliceBlender( _nbOrdersSend, _ready, _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
+         EngineOrder( handler, provider, dispatcher ),
+         _mprSlicer( _nbOrdersSend,
+                     _ready,
+                     vvolumes,
+                     vposition,
+                     vdirectionx,
+                     vdirectiony,
+                     vpanning,
+                     vzoom,
+                     vsize,
+                     visInteracting,
+                     vinterpolation,
+                     handler, provider, dispatcher, fasterDisplayWhenInteracting ),
+         _sliceBlender( _nbOrdersSend, _ready, _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
       {
          _ready = true;
          dispatcher.connect( this );
@@ -597,6 +651,36 @@ namespace platform
       {
          // no insteresting orders
          return _interested;
+      }
+
+      // if the segment->volumes is reconnected to another resource, the EngineMpr still points to the old one,
+      // so we might need to reconnect it!
+      void updateResourceSource( ResourceVolumes vvolumes,
+                                 ResourceVector3f vposition,
+                                 ResourceVector3f vdirectionx,
+                                 ResourceVector3f vdirectiony,
+                                 ResourceVector3f vpanning,
+                                 ResourceVector2f vzoom,
+                                 ResourceVector2ui vsize,
+                                 ResourceMapTransferFunction vlut,
+                                 ResourceFloats vintensities,
+                                 ResourceBool visInteracting,
+                                 ResourceInterpolationMode vinterpolation )
+      {
+         _mprSlicer.updateResourceSource(
+            vvolumes,
+            vposition,
+            vdirectionx,
+            vdirectiony,
+            vpanning,
+            vzoom,
+            vsize,
+            visInteracting,
+            vinterpolation );
+         _sliceBlender.updateResourceSource(
+            vlut,
+            vintensities,
+            fps );
       }
 
    private:

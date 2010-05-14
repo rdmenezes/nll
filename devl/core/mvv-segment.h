@@ -105,6 +105,7 @@ public:
       pointee->segment.directiony.setValue( axisy );
       pointee->segment.position.setValue( position );
       pointee->segment.zoom.setValue( nll::core::vector2f( 1.0f, 1.0f ) );
+      pointee->segment.updateResourceSource();
 
       std::cout << "nb volumes in light store from segment=" << pointee->segment.volumes.size() << std::endl;
 
