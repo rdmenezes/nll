@@ -85,8 +85,8 @@ namespace parser
    public:
       enum Type
       {
-         INT,
-         FLOAT,
+         CMP_INT,
+         CMP_FLOAT,
          STRING,
          VOID,
          VAR,

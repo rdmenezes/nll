@@ -1,0 +1,24 @@
+import "core"
+
+VolumeID ct = loadVolumeAsynchronous("c:/tmp/hrezct.mf2");
+VolumeID pet = loadVolumeAsynchronous("c:/tmp/hrezpet.mf2");
+
+Lut petLut( 0.0, 10000.0 );
+Lut ctLut( -200.0, 200.0 );
+
+VolumeContainer volumes;
+volumes.add( ct, ctLut, 0.5 );
+volumes.add( pet, petLut, 0.5 );
+
+SegmentToolCentering    toolCentering;
+SegmentToolPointer      toolPointer;
+SegmentToolAnnotations  toolAnnotations;
+SegmentToolCamera       toolCamera;
+
+Segment segment1( volumes );
+segment1.setTool( toolCentering );
+segment1.setTool( toolPointer );
+segment1.setTool( toolAnnotations );
+segment1.setTool( toolCamera );
+
+Layout layout( segment1 );

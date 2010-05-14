@@ -247,7 +247,10 @@ namespace platform
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
 
+            std::cout << "segment storage @=" << volumes.getStorage().getDataPtr() << std::endl;
+            std::cout << "nb volumes=" << volumes.size() << std::endl;
             bool hasVolumes = false;
+
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
             {
                hasVolumes = true;

@@ -560,11 +560,11 @@ namespace parser
 
          switch ( e.getType() )
          {
-         case AstType::FLOAT:
+         case AstType::CMP_FLOAT:
             e.setNodeType( new TypeFloat( e.isAReference() ) );
             break;
 
-         case AstType::INT:
+         case AstType::CMP_INT:
             e.setNodeType( new TypeInt( e.isAReference() ) );
             break;
 

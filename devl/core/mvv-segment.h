@@ -2,11 +2,14 @@
 # define CORE_MVV_SEGMENT_H_
 
 # include "core.h"
+# include "mvv-volume-container.h"
+# include "mvv-segment-tool.h"
 
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
 
 # include <mvvPlatform/context-global.h>
+# include <mvvPlatform/resource-storage-volumes.h>
 
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/segment-tool-pointer.h>
@@ -15,6 +18,7 @@
 # include <mvvMprPlugin/segment-tool-autocenter.h>
 # include <mvvMprPlugin/annotation-point.h>
 
+using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
 
@@ -22,9 +26,13 @@ namespace impl
 {
    struct SegmentStorage
    {
-      SegmentStorage( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
-         segment( storage, handler, provider, dispatcher )
-      {}
+      SegmentStorage( ResourceVolumes volumes, ResourceMapTransferFunction luts, ResourceFloats intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
+         segment( volumes.getStorage(), handler, provider, dispatcher )
+      {
+         segment.volumes = volumes;
+         segment.intensities = intensities;
+         segment.luts = luts;
+      }
 
       platform::Segment segment;
 
@@ -71,15 +79,7 @@ public:
       // read the storage value
       assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       FunctionVolumeContainerConstructor::Pointee* storage = reinterpret_cast<FunctionVolumeContainerConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
-
-
-      // read the other parameters
-      nll::core::vector3f axisx;
-      getVector3fValues( v3, axisx );
-      nll::core::vector3f axisy;
-      getVector3fValues( v4, axisy );
-      nll::core::vector3f position;
-      getVector3fValues( v5, position );
+      std::cout << "storage @=" << storage->volumes.getStorage().getDataPtr() << std::endl;
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
@@ -90,8 +90,24 @@ public:
 
 
       // construct the type
-      Pointee* pointee = new Pointee( storage->volumes.getStorage(), global->engineHandler, global->orderManager, global->orderManager );
+      Pointee* pointee = new Pointee( storage->volumes, storage->luts, storage->intensities, global->engineHandler, global->orderManager, global->orderManager );
       pointee->volumeContainer = v2;
+
+      // read the other parameters
+      nll::core::vector3f axisx;
+      getVector3fValues( v3, axisx );
+      nll::core::vector3f axisy;
+      getVector3fValues( v4, axisy );
+      nll::core::vector3f position;
+      getVector3fValues( v5, position );
+
+      pointee->segment.directionx.setValue( axisx );
+      pointee->segment.directiony.setValue( axisy );
+      pointee->segment.position.setValue( position );
+      pointee->segment.zoom.setValue( nll::core::vector2f( 1.0f, 1.0f ) );
+
+      std::cout << "nb volumes in light store from segment=" << pointee->segment.volumes.size() << std::endl;
+
 
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed

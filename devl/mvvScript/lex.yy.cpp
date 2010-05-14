@@ -1183,7 +1183,7 @@ YY_RULE_SETUP
 {
   std::istringstream iss (yytext);
   iss >> yylval->fval;
-  return FLOAT;
+  return CMP_FLOAT;
 }
 	YY_BREAK
 case 14:
@@ -1477,7 +1477,7 @@ YY_RULE_SETUP
 {
   std::istringstream iss (yytext);
   iss >> yylval->ival;
-  return INT;
+  return CMP_INT;
 }
 	YY_BREAK
 case 72:

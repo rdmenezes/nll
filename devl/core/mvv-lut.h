@@ -29,7 +29,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
       RuntimeValue& v3 = unref( *args[ 2 ] );
-      if ( v2.type != RuntimeValue::FLOAT || v3.type != RuntimeValue::FLOAT )
+      if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong arguments: expecting 2 floats as arguments" );
       }
@@ -97,7 +97,7 @@ public:
       RuntimeValue& v3 = unref( *args[ 2 ] );
       RuntimeValue& v4 = unref( *args[ 3 ] );
       RuntimeValue& v5 = unref( *args[ 4 ] );
-      if ( v2.type != RuntimeValue::INT || v3.type != RuntimeValue::INT || v4.type != RuntimeValue::INT || v5.type != RuntimeValue::INT )
+      if ( v2.type != RuntimeValue::CMP_INT || v3.type != RuntimeValue::CMP_INT || v4.type != RuntimeValue::CMP_INT || v5.type != RuntimeValue::CMP_INT )
       {
          throw RuntimeException( "wrong arguments: expecting 2 ints as arguments" );
       }
@@ -141,7 +141,7 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v2.type != RuntimeValue::INT  )
+      if ( v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
       }
@@ -183,7 +183,7 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v2.type != RuntimeValue::FLOAT  )
+      if ( v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
       }

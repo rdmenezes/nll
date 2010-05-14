@@ -8,6 +8,7 @@
 # include <mvvPlatform/context.h>
 # include <mvvPlatform/context-volumes.h>
 # include <mvvPlatform/context-tools.h>
+# include <mvvPlatform/context-global.h>
 # include <mvvPlatform/engine-handler-impl.h>
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/layout-segment.h>
@@ -18,11 +19,108 @@
 # include <mvvMprPlugin/layout-mip.h>
 # include <mvvMprPlugin/annotation-point.h>
 # include <mvvMprPlugin/mip-tool-pointer.h>
+# include <mvvScript/compiler.h>
+# include <core/mvv-layout.h>
 
 
 using namespace mvv;
 using namespace mvv::platform;
+using namespace mvv::parser;
 
+namespace mvv
+{
+   struct ApplicationVariables
+   {
+      unsigned int                        screenTextureId;
+      Image                               screen;
+      EventMouse                          mouseEvent;
+
+      Context                             context;
+      EngineHandlerImpl                   engineHandler;
+      OrderManagerThreadPool              orderManager;
+
+      RefcountedTyped<Font>               font;
+      RefcountedTyped<Pane>               layout;
+
+      CompilerFrontEnd                    compiler;
+
+      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 6 )
+      {  
+         initFont();
+         initContext();
+         initScript();
+
+         // event
+         mouseEvent.isMouseRightButtonJustReleased = false;
+         mouseEvent.isMouseLeftButtonJustReleased = false;
+         mouseEvent.isMouseRightButtonJustPressed = false;
+         mouseEvent.isMouseLeftButtonJustPressed = false;
+         mouseEvent.isMouseRightButtonPressed = false;
+         mouseEvent.isMouseLeftButtonPressed = false;
+      }
+
+   private:
+      void initScript()
+      {
+         // set the extension, so we can access the context
+         compiler.setContextExtension( RefcountedTyped<Context>( &context, false ) );
+
+         //Error::ErrorType state = compiler.run( "D:/Devel/sandbox/mvvLauncher/script/single.ludo" );
+         Error::ErrorType state = compiler.run( "include \"../../mvvLauncher/script/single\"" );
+         if ( state != Error::SUCCESS )
+         {
+            throw std::exception( "initialization script couldn't be parsed successfully" );
+         }
+
+         // the only thing we absolutely need to find is a handle on the "layout", which MUST be defined in the script
+         // the reference must be kept alive until the end of the program
+         const RuntimeValue& layoutRef = compiler.getVariable( mvv::Symbol::create( "layout" ) );
+         FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
+         layout = pointee->pane;
+
+         (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
+         (*layout).updateLayout();
+      }
+
+      void initFont()
+      {
+         std::vector<char> chars;
+         std::ifstream i( "../../nllTest/data/font/bitmapfont1_24.txt" );
+         std::string line;
+         while ( !i.eof() )
+         {
+            std::getline( i, line );
+            ensure( line.size() < 2, "expected 1 character by line" );
+            if ( line.size() == 1 )
+            {
+               chars.push_back( line[ 0 ] );
+            } else chars.push_back( static_cast<char>( 0 ) );
+         }
+         ensure( chars.size() == 256, "we are expecting 256 chars, currently=" + nll::core::val2str( chars.size() ) );
+         font = RefcountedTyped<Font>( new FontBitmapMatrix( "../../nllTest/data/font/bitmapfont1_24.bmp", nll::core::vector2ui( 16, 16 ), nll::core::vector2ui( 16, 16 ), chars ) );
+      }
+
+      void initContext()
+      {
+         ContextVolumes* ctxVolumes = new ContextVolumes();
+         context.add( ctxVolumes );
+
+         ContextTools* ctxTools = new ContextTools( ctxVolumes->volumes, engineHandler, orderManager, orderManager );
+         context.add( ctxTools );
+
+         ContextSegments* ctxSegments = new ContextSegments();
+         context.add( ctxSegments );
+
+         ContextGlobal* ctxGlobal = new ContextGlobal( engineHandler, orderManager, *font );
+         context.add( ctxGlobal );
+      }
+   };
+}
+
+#endif
+
+
+/*
 namespace mvv
 {
    struct ApplicationVariables
@@ -94,7 +192,7 @@ namespace mvv
          (*segment1).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
          (*segment1).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
 
-         nll::imaging::LookUpTransformWindowingRGB lutPetImpl( 0, 10000, 4500 );
+         nll::imaging::LookUpTransformWindowingRGB lutPetImpl( 0, 10000, 255 );
          float red[] = {255, 0, 0};
          lutPetImpl.createColorScale( red );
          ResourceLut lutPet( lutPetImpl );
@@ -154,22 +252,6 @@ namespace mvv
          }
          ResourceLut lutPet2( lutPetImpl2 );
          (*mip).lut = lutPet2;
-
-         /*
-         // segment 4
-         RefcountedTyped<Segment> segment4;
-         context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment4"), segment4 );
-         (*segment4).volumes.insert( SymbolVolume::create( "ct1" ) );
-         (*segment4).volumes.insert( SymbolVolume::create( "pt1" ) );
-         (*segment4).intensities.insert( SymbolVolume::create( "ct1" ), 0.5f );
-         (*segment4).intensities.insert( SymbolVolume::create( "pt1" ), 0.5f );
-
-         (*segment4).luts.insert( SymbolVolume::create( "ct1" ), lutCt );
-         (*segment4).luts.insert( SymbolVolume::create( "pt1" ), lutPet );
-
-         (*segment4).connect( segmentToolCamera.getDataPtr() );
-         (*segment4).connect( segmentPointer.getDataPtr() );
-         */
 
 
          // event
@@ -249,11 +331,6 @@ namespace mvv
                                            nll::core::vector2ui( 0, 0 ),
                                            RefcountedTyped<Segment>( segment2 ) );
 
-         /*
-         PaneSegment* e3 = new PaneSegment(nll::core::vector2ui( 0, 0 ),
-                                           nll::core::vector2ui( 0, 0 ),
-                                           RefcountedTyped<Segment>( segment3 ) );
-         */
 
          PaneMip* e3 = new PaneMip( nll::core::vector2ui( 0, 0 ),
                                     nll::core::vector2ui( 0, 0 ),
@@ -279,55 +356,4 @@ namespace mvv
       }
    };
 }
-
-#endif
-
-/*
-layout = RefcountedTyped<Pane>( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                        nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                        nll::core::vector3uc( 0, 0, 0 ) ) );
-
-        
-            Pane::PaneRef entry( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                nll::core::vector2ui( 0, 0 ),
-                                                nll::core::vector3uc( 0, 0, 100 ) ) );
-            Pane::Panes droplist;
-            Pane::PaneRef drop1( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                nll::core::vector3uc( 0, 255, 0 ) ) );
-            Pane::PaneRef drop2( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                nll::core::vector3uc( 0, 200, 0 ) ) );
-            Pane::PaneRef drop3( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                nll::core::vector3uc( 0, 150, 0 ) ) );
-            droplist.push_back( drop1 );
-            droplist.push_back( drop2 );
-            droplist.push_back( drop3 );
-
-            {
-               Pane::PaneRef entry2( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector3uc( 0, 0, 100 ) ) );
-               Pane::Panes droplist2;
-               Pane::PaneRef drop21( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                    nll::core::vector3uc( 0, 255, 0 ) ) );
-               Pane::PaneRef drop22( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                    nll::core::vector3uc( 0, 200, 0 ) ) );
-               Pane::PaneRef drop23( new PaneEmpty( nll::core::vector2ui( 0, 0 ),
-                                                    nll::core::vector2ui( screen.sizex(), screen.sizey() ),
-                                                    nll::core::vector3uc( 0, 150, 0 ) ) );
-               droplist2.push_back( drop21 );
-               droplist2.push_back( drop22 );
-               droplist2.push_back( drop23 );
-
-
-               Pane::PaneRef dropDown2( new WidgetDropDown( nll::core::vector2ui( 100, 256 ), nll::core::vector2ui( 40, 20 ), entry2, droplist2 ) );
-
-               droplist.push_back( dropDown2 );
-               //(*layout).insert( dropDown2 );
 */
-
-extern mvv::ApplicationVariables* applicationVariables;

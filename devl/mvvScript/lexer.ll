@@ -135,7 +135,7 @@ STRCHR	[A-Za-z_]
 {DIGIT}+"."{DIGIT}+ {
   std::istringstream iss (yytext);
   iss >> yylval->fval;
-  return FLOAT;
+  return CMP_FLOAT;
 }
 
 "operator[]"   return OPERATORBRACKET;
@@ -203,7 +203,7 @@ STRCHR	[A-Za-z_]
 {DIGIT}+ {
   std::istringstream iss (yytext);
   iss >> yylval->ival;
-  return INT;
+  return CMP_INT;
 }
 
 {LETTER}({LETTER}|{DIGIT}|"_")* {

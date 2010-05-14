@@ -133,8 +133,8 @@
 
 %token <str>    STRING "string"
 %token <symbol> ID     "identifier"
-%token <ival>   INT    "integer"
-%token <fval>   FLOAT  "float"
+%token <ival>   CMP_INT    "integer"
+%token <fval>   CMP_FLOAT  "float"
 %token <nil>    NIL    "NULL"
 
 %type<ast>              statement
@@ -308,8 +308,8 @@ operator_def: OPERATOR_PLUS                                          { $$ = new 
            
 
      
-rvalue : INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
-        |FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
+rvalue : CMP_INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
+        |CMP_FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
         |NIL                  { $$ = new mvv::parser::AstNil( @$ ); }
         |rvalue PLUS rvalue   { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::PLUS ); }
         |rvalue MINUS rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::MINUS ); }
@@ -358,8 +358,8 @@ var_decs_class: /* empty */				                                                 
       |TILDE ID LPAREN RPAREN LBRACE statements RBRACE var_decs_class                        { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $2->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$), $6 ) ); }
   
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
-             |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::INT ); }
-             |FLOAT_T                 { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::FLOAT );}
+             |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::CMP_INT ); }
+             |FLOAT_T                 { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::CMP_FLOAT );}
              |STRING_T                { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::STRING ); }
              |VOID                    { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VOID );}
 	         

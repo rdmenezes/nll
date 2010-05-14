@@ -2,6 +2,7 @@
 # define CORE_MVV_LAYOUT_H_
 
 # include "core.h"
+# include "mvv-segment.h"
 
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
@@ -54,7 +55,7 @@ public:
       if ( v2.type != RuntimeValue::TYPE ||
            v3.type != RuntimeValue::TYPE ||
            v4.type != RuntimeValue::TYPE ||
-           v5.type != RuntimeValue::FLOAT )
+           v5.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong arguments: expecting Vertical, Layout, Layout, float" );
       }
@@ -116,7 +117,7 @@ public:
       if ( v2.type != RuntimeValue::TYPE ||
            v3.type != RuntimeValue::TYPE ||
            v4.type != RuntimeValue::TYPE ||
-           v5.type != RuntimeValue::FLOAT )
+           v5.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong arguments: expecting Vertical, Layout, Layout, float" );
       }
@@ -196,7 +197,7 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 5 )
+      if ( args.size() != 2 )
       {
          throw RuntimeException( "unexpected number of arguments" );
       }

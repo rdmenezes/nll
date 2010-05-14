@@ -19,6 +19,7 @@ namespace platform
 
       virtual void _draw( Image& image )
       {
+         std::cout << "layout:segment:nbvol=" << (*_segment).volumes.size() << std::endl;
          // source image
          Image& src = (*_segment).segment.getValue().getStorage();
          if ( !src.getBuf() )

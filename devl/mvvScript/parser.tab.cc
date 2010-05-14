@@ -191,8 +191,8 @@
      YYEOF = 0,
      STRING = 258,
      ID = 259,
-     INT = 260,
-     FLOAT = 261,
+     CMP_INT = 260,
+     CMP_FLOAT = 261,
      NIL = 262,
      TILDE = 264,
      AND = 265,
@@ -2498,14 +2498,14 @@ yyreduce:
 
 /* Line 1455 of yacc.c  */
 #line 359 "parser.yy"
-    { (yyval.astTypeT) = new mvv::parser::AstType( (yyloc), mvv::parser::AstType::INT ); ;}
+    { (yyval.astTypeT) = new mvv::parser::AstType( (yyloc), mvv::parser::AstType::CMP_INT ); ;}
     break;
 
   case 85:
 
 /* Line 1455 of yacc.c  */
 #line 360 "parser.yy"
-    { (yyval.astTypeT) = new mvv::parser::AstType( (yyloc), mvv::parser::AstType::FLOAT );;}
+    { (yyval.astTypeT) = new mvv::parser::AstType( (yyloc), mvv::parser::AstType::CMP_FLOAT );;}
     break;
 
   case 86:

@@ -32,12 +32,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval + v2.floatval;
       return rt;
    }
@@ -60,12 +60,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval - v2.floatval;
       return rt;
    }
@@ -88,12 +88,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval * v2.floatval;
       return rt;
    }
@@ -116,7 +116,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
@@ -126,7 +126,7 @@ public:
          throw RuntimeException( "division by zero" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval / v2.floatval;
       return rt;
    }
@@ -149,12 +149,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.intval + v2.floatval;
       return rt;
    }
@@ -177,12 +177,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.intval - v2.floatval;
       return rt;
    }
@@ -205,12 +205,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.intval * v2.floatval;
       return rt;
    }
@@ -233,7 +233,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
@@ -243,7 +243,7 @@ public:
          throw RuntimeException( "division by zero" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.intval / v2.floatval;
       return rt;
    }
@@ -266,12 +266,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval + v2.intval;
       return rt;
    }
@@ -294,12 +294,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval - v2.intval;
       return rt;
    }
@@ -322,12 +322,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval * v2.intval;
       return rt;
    }
@@ -350,7 +350,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
@@ -360,7 +360,7 @@ public:
          throw RuntimeException( "division by zero" );
       }
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = v1.floatval / v2.intval;
       return rt;
    }
@@ -383,12 +383,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval + v2.intval;
       return rt;
    }
@@ -411,12 +411,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval - v2.intval;
       return rt;
    }
@@ -439,12 +439,12 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
 
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval * v2.intval;
       return rt;
    }
@@ -467,7 +467,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
@@ -477,7 +477,7 @@ public:
          throw RuntimeException( "division by zero" );
       }
 
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval / v2.intval;
       return rt;
    }
@@ -584,11 +584,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval == v2.intval;
       return rt;
    }
@@ -610,11 +610,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - static_cast<float>( v2.intval ) ) < 1e-6;
       return rt;
    }
@@ -636,11 +636,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v2.floatval - static_cast<float>( v1.intval ) ) < 1e-6;
       return rt;
    }
@@ -662,11 +662,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - v2.floatval ) < 1e-6;
       return rt;
    }
@@ -688,11 +688,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval != v2.intval;
       return rt;
    }
@@ -714,11 +714,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - static_cast<float>( v2.intval ) ) > 1e-6;
       return rt;
    }
@@ -740,11 +740,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v2.floatval - static_cast<float>( v1.intval ) ) > 1e-6;
       return rt;
    }
@@ -766,11 +766,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - v2.floatval ) > 1e-6;
       return rt;
    }
@@ -792,11 +792,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval <= v2.intval;
       return rt;
    }
@@ -818,11 +818,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval <= static_cast<float>( v2.intval );
       return rt;
    }
@@ -844,11 +844,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval <= static_cast<float>( v1.intval );
       return rt;
    }
@@ -870,11 +870,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval <= v2.floatval;
       return rt;
    }
@@ -896,11 +896,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval >= v2.intval;
       return rt;
    }
@@ -922,11 +922,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval >= static_cast<float>( v2.intval );
       return rt;
    }
@@ -948,11 +948,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval >= static_cast<float>( v1.intval );
       return rt;
    }
@@ -974,11 +974,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval >= v2.floatval;
       return rt;
    }
@@ -1000,11 +1000,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval < v2.intval;
       return rt;
    }
@@ -1026,11 +1026,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval < static_cast<float>( v2.intval );
       return rt;
    }
@@ -1052,11 +1052,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval < static_cast<float>( v1.intval );
       return rt;
    }
@@ -1078,11 +1078,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval < v2.floatval;
       return rt;
    }
@@ -1104,11 +1104,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval > v2.intval;
       return rt;
    }
@@ -1130,11 +1130,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval > static_cast<float>( v2.intval );
       return rt;
    }
@@ -1156,11 +1156,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval > static_cast<float>( v1.intval );
       return rt;
    }
@@ -1182,11 +1182,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::FLOAT || v2.type != RuntimeValue::FLOAT  )
+      if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval > v2.floatval;
       return rt;
    }
@@ -1208,11 +1208,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval && v2.intval;
       return rt;
    }
@@ -1234,11 +1234,11 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v1.type != RuntimeValue::INT || v2.type != RuntimeValue::INT  )
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval || v2.intval;
       return rt;
    }
@@ -1259,11 +1259,11 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
-      if ( v1.type != RuntimeValue::FLOAT   )
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = static_cast<int>( std::floor( v1.floatval + 0.5 ) );
       return rt;
    }
@@ -1284,11 +1284,11 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
-      if ( v1.type != RuntimeValue::FLOAT   )
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::INT );
+      RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = static_cast<int>( std::floor( v1.floatval ) );
       return rt;
    }
@@ -1309,11 +1309,11 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
-      if ( v1.type != RuntimeValue::INT   )
+      if ( v1.type != RuntimeValue::CMP_INT   )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = static_cast<float>( v1.intval );
       return rt;
    }
@@ -1334,7 +1334,7 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
-      if ( v1.type != RuntimeValue::INT   )
+      if ( v1.type != RuntimeValue::CMP_INT   )
       {
          throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
       }
@@ -1359,7 +1359,7 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
-      if ( v1.type != RuntimeValue::INT   )
+      if ( v1.type != RuntimeValue::CMP_INT   )
       {
          throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
       }

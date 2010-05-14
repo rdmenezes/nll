@@ -127,8 +127,8 @@ namespace parser
       enum TypeEnum
       {
          EMPTY,      /// empty type
-         INT,        /// int type
-         FLOAT,      /// float type
+         CMP_INT,        /// int type
+         CMP_FLOAT,      /// float type
          STRING,     /// string
          TYPE,       /// class type
          REF,        /// reference type

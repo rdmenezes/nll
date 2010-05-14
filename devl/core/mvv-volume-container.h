@@ -6,8 +6,10 @@
 # include <mvvScript/compiler-helper.h>
 # include <mvvPlatform/resource-typedef.h>
 # include <mvvPlatform/resource-volumes.h>
+# include <mvvPlatform/resource-storage-volumes.h>
 # include "mvv-lut.h"
 
+using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
 
@@ -43,6 +45,8 @@ public:
       {
          throw RuntimeException( "unexpected number of arguments" );
       }
+
+      std::cout << "volume container created" << std::endl;
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
 
@@ -126,7 +130,7 @@ public:
       // preconditions
       assert( (*v2.vals)[ 0 ].type == RuntimeValue::STRING );
       assert( (*v3.vals)[ 0 ].type == RuntimeValue::PTR );
-      assert( v4.type == RuntimeValue::FLOAT );
+      assert( v4.type == RuntimeValue::CMP_FLOAT );
 
       pointee->volumeIdList.push_back( v2 ); // keep a reference on the VolumeID
       pointee->lutList.push_back( v3 ); // keep a reference on the lut
@@ -135,6 +139,8 @@ public:
       mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
       pointee->luts.insert( volume, *reinterpret_cast<FunctionLutConstructor::Pointee*>( (*v3.vals)[ 0 ].ref ) );
       pointee->volumes.insert( volume );
+
+      std::cout << "volume in light store=" << pointee->volumes.size() << std::endl;
       pointee->intensities.insert( volume, v4.floatval );
 
       RuntimeValue rt( RuntimeValue::EMPTY );
@@ -299,7 +305,7 @@ public:
 
       // preconditions
       assert( (*v2.vals)[ 0 ].type == RuntimeValue::STRING );
-      assert( v3.type == RuntimeValue::FLOAT );
+      assert( v3.type == RuntimeValue::CMP_FLOAT );
 
       mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
 

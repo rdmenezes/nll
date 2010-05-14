@@ -29,9 +29,9 @@ namespace parser
       (*(*val.vals)[ 0 ].vals)[ 1 ].intval = y;
       (*(*val.vals)[ 0 ].vals)[ 2 ].intval = z;
 
-      (*(*val.vals)[ 0 ].vals)[ 0 ].type = RuntimeValue::INT;
-      (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::INT;
-      (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::INT;
+      (*(*val.vals)[ 0 ].vals)[ 0 ].type = RuntimeValue::CMP_INT;
+      (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::CMP_INT;
+      (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::CMP_INT;
    }
 
    inline void createVector3f( RuntimeValue& val, float x, float y, float z )
@@ -46,9 +46,9 @@ namespace parser
       (*(*val.vals)[ 0 ].vals)[ 1 ].floatval = y;
       (*(*val.vals)[ 0 ].vals)[ 2 ].floatval = z;
 
-      (*(*val.vals)[ 0 ].vals)[ 0 ].type = RuntimeValue::FLOAT;
-      (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::FLOAT;
-      (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::FLOAT;
+      (*(*val.vals)[ 0 ].vals)[ 0 ].type = RuntimeValue::CMP_FLOAT;
+      (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::CMP_FLOAT;
+      (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::CMP_FLOAT;
    }
 
    inline void createMatrix3f( RuntimeValue& val, const nll::core::Matrix<float>& m )
@@ -76,7 +76,7 @@ namespace parser
       vals[ 8 ].floatval = m( 2, 2 );
 
       for ( int n = 0; n < 9; ++n )
-         vals[ n ].type = RuntimeValue::FLOAT;
+         vals[ n ].type = RuntimeValue::CMP_FLOAT;
    }
 
    inline void createMatrix4f( RuntimeValue& val, const nll::core::Matrix<float>& m )
@@ -112,7 +112,7 @@ namespace parser
       vals[ 15 ].floatval = m( 3, 3 );
 
       for ( int n = 0; n < 16; ++n )
-         vals[ n ].type = RuntimeValue::FLOAT;
+         vals[ n ].type = RuntimeValue::CMP_FLOAT;
    }
 
    void getVector3iValues( RuntimeValue& vector, nll::core::vector3i& out )

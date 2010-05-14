@@ -408,7 +408,7 @@ public:
       const int z = v4.intval;
       const float val = v5.floatval;
 
-      if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::INT || v3.type != RuntimeValue::INT || v4.type != RuntimeValue::INT || v5.type != RuntimeValue::FLOAT )
+      if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::CMP_INT || v3.type != RuntimeValue::CMP_INT || v4.type != RuntimeValue::CMP_INT || v5.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );
       }
@@ -447,7 +447,7 @@ public:
       RuntimeValue& v4 = unref( *args[ 3 ] );
 
       float pos[] = { v2.floatval, v3.floatval, v4.floatval, 0 };
-      if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::FLOAT || v3.type != RuntimeValue::FLOAT || v4.type != RuntimeValue::FLOAT )
+      if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v4.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );
       }
@@ -461,7 +461,7 @@ public:
       float val = interpolator( pos );
       interpolator.endInterpolation();
 
-      RuntimeValue rt( RuntimeValue::FLOAT );
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = val;
       return rt;
    }

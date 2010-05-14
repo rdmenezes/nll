@@ -95,15 +95,15 @@ namespace parser
 
       static void _debug( RuntimeValue& val )
       {
-         if ( val.type == RuntimeValue::INT )
+         if ( val.type == RuntimeValue::CMP_INT )
          {
-            std::cout << "INT:" << val.intval << std::endl;
+            std::cout << "CMP_INT:" << val.intval << std::endl;
             return;
          }
 
-         if ( val.type == RuntimeValue::FLOAT )
+         if ( val.type == RuntimeValue::CMP_FLOAT )
          {
-            std::cout << "FLOAT:" << val.floatval << std::endl;
+            std::cout << "CMP_FLOAT:" << val.floatval << std::endl;
             return;
          }
 
@@ -150,7 +150,7 @@ namespace parser
 
       virtual void operator()( AstInt& e )
       {
-         _env.resultRegister.setType( RuntimeValue::INT );
+         _env.resultRegister.setType( RuntimeValue::CMP_INT );
          _env.resultRegister.intval = e.getValue();
       }
 
@@ -168,7 +168,7 @@ namespace parser
 
       virtual void operator()( AstFloat& e )
       {
-         _env.resultRegister.setType( RuntimeValue::FLOAT );
+         _env.resultRegister.setType( RuntimeValue::CMP_FLOAT );
          _env.resultRegister.floatval = e.getValue();
       }
 
@@ -196,12 +196,12 @@ namespace parser
          {
             if ( e.getOp() == AstOpBin::EQ )
             {
-               _env.resultRegister.type = RuntimeValue::INT;
+               _env.resultRegister.type = RuntimeValue::CMP_INT;
                _env.resultRegister.intval = ur0.vals.getDataPtr() == ur1.vals.getDataPtr();
                return;
             } else if ( e.getOp() == AstOpBin::NE )
             {
-               _env.resultRegister.type = RuntimeValue::INT;
+               _env.resultRegister.type = RuntimeValue::CMP_INT;
                _env.resultRegister.intval = ur0.vals.getDataPtr() != ur1.vals.getDataPtr();
                return;
             }
@@ -214,7 +214,7 @@ namespace parser
       {
          operator()( e.getCondition() );
 
-         assert( _env.resultRegister.type == RuntimeValue::INT ); // only INT should be handled
+         assert( _env.resultRegister.type == RuntimeValue::CMP_INT ); // only CMP_INT should be handled
          if ( _env.resultRegister.intval )
          {
             operator()( e.getThen() );
@@ -358,7 +358,7 @@ namespace parser
       {
          operator()( e.getIndex() );
          RuntimeValue& indexVal = unref( _env.resultRegister );
-         assert( indexVal.type == RuntimeValue::INT );
+         assert( indexVal.type == RuntimeValue::CMP_INT );
          int index = indexVal.intval;
 
          operator()( e.getName() );
@@ -369,7 +369,7 @@ namespace parser
             // user defined array
             RuntimeValues vals( 2 );
             vals[ 0 ] = array;
-            vals[ 1 ] = RuntimeValue( RuntimeValue::INT );
+            vals[ 1 ] = RuntimeValue( RuntimeValue::CMP_INT );
             vals[ 1 ].intval = index;
             _callFunction( *e.getFunction(), vals );
          } else {
@@ -654,7 +654,7 @@ namespace parser
                {
                   operator()( *( (*e.getType().getSize())[ n ] ) );
                   RuntimeValue& val = unref( _env.resultRegister );
-                  assert( val.type == RuntimeValue::INT );
+                  assert( val.type == RuntimeValue::CMP_INT );
                   vals[ vals.size() - 1 - n ] = val.intval; // we need to unref: in case we use ++operator
                }
 
@@ -746,7 +746,7 @@ namespace parser
          while ( 1 )
          {
             operator()( e.getCondition() );
-            assert( _env.resultRegister.type == RuntimeValue::INT ); // the condition must be an int
+            assert( _env.resultRegister.type == RuntimeValue::CMP_INT ); // the condition must be an int
             if ( !_env.resultRegister.intval )
                break;
 

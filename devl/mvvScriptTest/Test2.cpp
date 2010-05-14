@@ -27,7 +27,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt.floatval == 5.5 );
       }
       
@@ -37,11 +37,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 7 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 8 );
       }
 
@@ -51,11 +51,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 5 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 5 );
       }
 
@@ -66,7 +66,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
 
@@ -76,7 +76,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
 
@@ -86,11 +86,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 3 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 5 );
       }
 
@@ -100,11 +100,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 3 );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
 
@@ -124,7 +124,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
 
@@ -134,7 +134,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 11 );
       }
 
@@ -144,7 +144,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -168,7 +168,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 10 );
       }
 
@@ -178,7 +178,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 12 );
       }
 
@@ -188,7 +188,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
 
@@ -198,7 +198,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "test" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
 
@@ -208,11 +208,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 5 );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
       
@@ -222,7 +222,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
 
@@ -233,7 +233,7 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
 
@@ -244,7 +244,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 43 );
       }
       
@@ -300,7 +300,7 @@ struct TestEval
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
          
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 0 );
       }
 
@@ -312,7 +312,7 @@ struct TestEval
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
          
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -324,7 +324,7 @@ struct TestEval
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
          
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -345,7 +345,7 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
 
@@ -356,7 +356,7 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
       
@@ -369,7 +369,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
       
@@ -380,7 +380,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn1" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 123 );
       }
 
@@ -392,11 +392,11 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn1" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 123 );
       }
 
@@ -407,7 +407,7 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 4 );
       }
 
@@ -418,7 +418,7 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 10 );
       }
 
@@ -429,7 +429,7 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 10 );
       }
 
@@ -440,11 +440,11 @@ struct TestEval
 
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 42 );
       }
       
@@ -455,7 +455,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
 
@@ -466,7 +466,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
 
@@ -478,11 +478,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "a" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "b" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 43 );
       }
 
@@ -492,7 +492,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 43 );
       }
 
@@ -502,11 +502,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 43 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 42 );
       }
 
@@ -523,7 +523,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 44 );
       }
 
@@ -533,7 +533,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
       }
 
@@ -543,7 +543,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 43 );
       }
 
@@ -553,7 +553,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -565,7 +565,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 150000 );
       }
 
@@ -591,7 +591,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 4 );
       }
 
@@ -601,11 +601,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 46 );
       }
 
@@ -615,11 +615,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 5 );
       }
 
@@ -629,11 +629,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 5 );
 
       }
@@ -670,7 +670,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 42 );
 
       }
@@ -684,7 +684,7 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::TYPE );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 7 );
       }
 
@@ -705,7 +705,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );       
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 7 );
       }
 
@@ -715,7 +715,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );       
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 42 );
       }
       
@@ -725,11 +725,11 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );       
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 2 );
       }
 
@@ -740,7 +740,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
 
@@ -751,7 +751,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( fabs( rt.floatval - 5.5 ) < 1e-6 );
       }
 
@@ -762,7 +762,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( fabs( rt.floatval - 5.5 ) < 1e-6 );
       }
 
@@ -773,7 +773,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( fabs( rt.floatval - 6 ) < 1e-6 );
       }
 
@@ -784,7 +784,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -795,7 +795,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -806,7 +806,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -817,7 +817,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -828,7 +828,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 0 );
       }
 
@@ -839,7 +839,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 0 );
       }
 
@@ -850,7 +850,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 0 );
       }
 
@@ -861,7 +861,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 0 );
       }
 
@@ -872,7 +872,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -883,7 +883,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -894,7 +894,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -905,7 +905,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -916,7 +916,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -926,7 +926,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -936,7 +936,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -946,7 +946,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -956,7 +956,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -966,7 +966,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -1012,7 +1012,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n8" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -1022,7 +1022,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n9" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 5 );
       }
 
@@ -1032,7 +1032,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n8" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 4 );
       }
 
@@ -1043,7 +1043,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -1064,28 +1064,28 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 0 );
 
          result = fe.run( "res = 5;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 5 );
 
          result = fe.run( "{ Test t( res ); }" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt3.intval == 6 );
 
          result = fe.run( "int res = 18;" );
          TESTER_ASSERT( result == Error::BIND );
 
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt4.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt4.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt4.intval == 6 );
 
          result = fe.run( "import \"core\"" );
@@ -1099,7 +1099,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt5 = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt5.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt5.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt5.intval == 12 );
 
          result = fe.run( "int size = 10; int array[ size ]; int tmp = 0; while ( tmp < size ){ array[ tmp ] = tmp; tmp = tmp + 1; }" );
@@ -1109,15 +1109,15 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt6 = fe.getVariable( mvv::Symbol::create( "n0" ) );
-         TESTER_ASSERT( rt6.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt6.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt6.intval == 0 );
 
          const RuntimeValue& rt7 = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt7.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt7.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt7.intval == 1 );
 
          const RuntimeValue& rt8 = fe.getVariable( mvv::Symbol::create( "n9" ) );
-         TESTER_ASSERT( rt8.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt8.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt8.intval == 9 );
 
          fe.exportCode( save );
@@ -1131,19 +1131,19 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt5 = fe.getVariable( mvv::Symbol::create( "res" ) );
-         TESTER_ASSERT( rt5.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt5.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt5.intval == 12 );
 
          const RuntimeValue& rt6 = fe.getVariable( mvv::Symbol::create( "n0" ) );
-         TESTER_ASSERT( rt6.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt6.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt6.intval == 0 );
 
          const RuntimeValue& rt7 = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt7.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt7.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt7.intval == 1 );
 
          const RuntimeValue& rt8 = fe.getVariable( mvv::Symbol::create( "n9" ) );
-         TESTER_ASSERT( rt8.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt8.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt8.intval == 9 );
       }
 
@@ -1189,7 +1189,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
 
@@ -1200,7 +1200,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 9 );
       }
 
@@ -1211,7 +1211,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 9 );
       }
 
@@ -1222,7 +1222,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
 
@@ -1233,7 +1233,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 11 );
       }
 
@@ -1244,7 +1244,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 9 );
       }
 
@@ -1255,7 +1255,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 9 );
       }
 
@@ -1298,7 +1298,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 1 );
       }
 
@@ -1316,7 +1316,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
 
@@ -1327,7 +1327,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 3 );
       }
 
@@ -1338,15 +1338,15 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n0" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 15 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 16 );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt3.intval == 17 );
       }
 
@@ -1357,15 +1357,15 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n0" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt1.floatval == 15 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt2.floatval == 16 );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt3.floatval == 17 );
       }
    }
@@ -1478,15 +1478,15 @@ struct TestEval
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "x" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 128 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "spx" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( fabs( rt2.floatval - 5.30673 ) < 1e-4 );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "posx" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( fabs( rt3.floatval - -334.684 ) < 1e-4 );
       }
       
@@ -1514,19 +1514,19 @@ struct TestEval
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "x" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt1.floatval == 1 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "spy" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt2.floatval == 2 );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "rot00" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt3.floatval == 1 );
 
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "rot11" ) );
-         TESTER_ASSERT( rt4.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt4.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt4.floatval == 1 );
       }
 
@@ -1553,11 +1553,11 @@ struct TestEval
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "a00" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt1.floatval == 1 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "r00" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::FLOAT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt2.floatval == 1 );
       }
 
@@ -1568,27 +1568,27 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "r" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 16 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "g" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 17 );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "b" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt3.intval == 18 );
 
          const RuntimeValue& rt4 = fe.getVariable( mvv::Symbol::create( "r2" ) );
-         TESTER_ASSERT( rt4.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt4.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt4.intval == 16 );
 
          const RuntimeValue& rt5 = fe.getVariable( mvv::Symbol::create( "g2" ) );
-         TESTER_ASSERT( rt5.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt5.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt5.intval == 17 );
 
          const RuntimeValue& rt6 = fe.getVariable( mvv::Symbol::create( "b2" ) );
-         TESTER_ASSERT( rt6.type == RuntimeValue::INT );
+         TESTER_ASSERT( rt6.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt6.intval == 18 );
       }
 

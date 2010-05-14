@@ -1,5 +1,12 @@
 #include "init.h"
+
+#undef FLOAT
+#undef INT
+
 #include <GL/freeglut.h>
+
+#undef FLOAT
+#undef INT
 
 static mvv::ApplicationVariables* applicationVariables;
 
@@ -10,32 +17,12 @@ void handleOrders( int )
    // run orders & engines
    applicationVariables->engineHandler.run();
    applicationVariables->orderManager.run();
-
-/*
-   RefcountedTyped<Segment> segment1;
-   applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
-   (*segment1).position.notify();
-
-   RefcountedTyped<Segment> segment2;
-   bool found = applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
-   if ( found )
-      (*segment2).position.notify();
-*/
-   /*
-   static int nbFps = 0;
-   static unsigned last = clock();
-   ++nbFps;
-
-   if ( ( clock() - last ) / (double)CLOCKS_PER_SEC >= 1 )
-   {
-      std::cout << "----------------------------fps=" << nbFps << std::endl;
-      nbFps = 0;
-      last = clock();
-   }*/
 }
 
 void renderObjects()
 {
+   std::cout << "VOLUME size=" << applicationVariables->context.get<ContextVolumes>()->volumes.size() << std::endl;
+
    // we need to flush all the engines for rendering: if there are some actions in the pipeline,
    // the rendering may flicker...
    applicationVariables->engineHandler.run();
@@ -221,32 +208,6 @@ void mouseMotion(int x, int y)
 
 void keyboard(unsigned char key, int, int)
 {
-   if ( key == 'n' )
-   {
-      RefcountedTyped<Segment> segment1;
-      applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
-      (*applicationVariables->segmentToolCamera).setPosition( nll::core::vector3f( 4.9, -158.2, 1230.38 ) );
-      applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment1 );
-      (*applicationVariables->segmentToolCamera).setPosition( nll::core::vector3f( 4.9, -158.2, 1230.38 ) );
-      applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment3"), segment1 );
-      (*applicationVariables->segmentToolCamera).setPosition( nll::core::vector3f( 4.9, -158.2, 1230.38 ) );
-      applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment4"), segment1 );
-      (*applicationVariables->segmentToolCamera).setPosition( nll::core::vector3f( 4.9, -158.2, 1230.38 ) );
-   }
-   if ( key == 'm' )
-   {
-      (*applicationVariables->mip).anglex.notify();
-   }
-
-   if ( key == '7' )
-   {
-      (*applicationVariables->layout).setSize( nll::core::vector2ui( 300, 300 ) );
-   }
-   if ( key == '8' )
-   {
-      (*applicationVariables->layout).setSize( nll::core::vector2ui( 700, 700 ) );
-   }
-
    if ( key == 'q' )
    {
       applicationVariables->layout.unref();
@@ -284,4 +245,3 @@ int main(int argc, char** argv)
   glutMainLoop ();
   return 0;
 }
- 

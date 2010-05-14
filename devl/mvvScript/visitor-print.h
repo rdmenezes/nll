@@ -182,10 +182,10 @@ namespace parser
          {
             switch ( e.getType() )
             {
-            case AstType::INT:
+            case AstType::CMP_INT:
                _o << "int";
                break;
-            case AstType::FLOAT:
+            case AstType::CMP_FLOAT:
                _o << "float";
                break;
             case AstType::STRING:

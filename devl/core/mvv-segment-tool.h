@@ -107,7 +107,7 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( v2.type != RuntimeValue::INT )
+      if ( v2.type != RuntimeValue::CMP_INT )
       {
          throw RuntimeException( "expected int as argument" );
       }
@@ -185,7 +185,7 @@ public:
       RuntimeValue& v2 = unref( *args[ 1 ] );
       RuntimeValue& v3 = unref( *args[ 2 ] );
       RuntimeValue& v4 = unref( *args[ 3 ] );
-      if ( v2.type != RuntimeValue::FLOAT || v3.type != RuntimeValue::FLOAT || v3.type != RuntimeValue::FLOAT )
+      if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong argument type: expecting 3 floats" );
       }
@@ -341,7 +341,7 @@ public:
       // return the annotation ID      
       RuntimeValue rt( RuntimeValue::TYPE );
       rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) ); // no associated destructor
-      (*rt.vals)[ 0 ].setType( RuntimeValue::INT );
+      (*rt.vals)[ 0 ].setType( RuntimeValue::CMP_INT );
       (*rt.vals)[ 0 ].intval = annotationId;
       return rt;
    }
@@ -369,7 +369,7 @@ public:
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::INT )
+      if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::CMP_INT )
       {
          throw RuntimeException( "wrong argument type: expecting AnnotationID" );
       }
