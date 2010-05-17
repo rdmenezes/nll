@@ -48,8 +48,9 @@ class Lut
    
    /**
     @brief Defines the min and max value of the window. Internally, 256 levels will be linearly computed between this min and max.
+    @param color the color of the LUT
     */
-   import Lut( float minIntensity, float maxIntensity );
+   import Lut( float minIntensity, float maxIntensity, Vector3i color = Vector3i( 255, 255, 255 ) );
    
    /**
     @brief destroy native resources

@@ -369,6 +369,10 @@
 				RelativePath=".\main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\script\single.ludo"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

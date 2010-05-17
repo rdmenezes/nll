@@ -21,7 +21,7 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 3 )
+      if ( args.size() != 4 )
       {
          throw RuntimeException( "unexpected number of arguments" );
       }
@@ -29,13 +29,27 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
       RuntimeValue& v3 = unref( *args[ 2 ] );
-      if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT )
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+      if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v4.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 floats as arguments" );
+         throw RuntimeException( "wrong arguments: expecting 2 floats, 1 vector3i as arguments" );
       }
 
+      nll::core::vector3i vals;
+      getVector3iValues( v4, vals );
+
+      float color[ 3 ] =
+      {
+         vals[ 0 ], vals[ 1 ], vals[ 2 ]
+      };
+
+      nll::imaging::LookUpTransformWindowingRGB lutImpl( v2.floatval, v3.floatval, 255, 3 );
+      lutImpl.createColorScale( color );
+
       // construct the type
-      Pointee* lut = new Pointee( v2.floatval, v3.floatval );
+      Pointee* lut = new Pointee( lutImpl );
+
+
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( lut ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
       (*v1.vals).resize( 1 );    // resize the original field
