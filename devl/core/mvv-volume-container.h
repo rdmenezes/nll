@@ -17,7 +17,7 @@ namespace impl
 {
    struct VolumeContainer
    {
-      VolumeContainer( ResourceStorageVolumes volumeStorage ) : volumes( volumeStorage )
+      VolumeContainer( ResourceStorageVolumes& volumeStorage ) : volumes( volumeStorage )
       {}
 
       std::vector<RuntimeValue>  volumeIdList;  // hold a VolumeID
