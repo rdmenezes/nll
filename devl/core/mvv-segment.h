@@ -26,7 +26,7 @@ namespace impl
 {
    struct SegmentStorage
    {
-      SegmentStorage( ResourceVolumes volumes, ResourceMapTransferFunction luts, ResourceFloats intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
+      SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction luts, ResourceFloats intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
          segment( volumes.getStorage(), handler, provider, dispatcher )
       {
          segment.volumes = volumes;

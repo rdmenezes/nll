@@ -7,7 +7,7 @@ Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
 Lut ctLut( -200.0, 200.0 );
 
 VolumeContainer volumes;
-volumes.add( ct, ctLut, 0.5 );
+volumes.add( ct, ctLut, 1.0 );
 volumes.add( pet, petLut, 0.5 );
 
 SegmentToolCentering    toolCentering;
@@ -15,12 +15,13 @@ SegmentToolPointer      toolPointer;
 SegmentToolAnnotations  toolAnnotations;
 SegmentToolCamera       toolCamera;
 
-
+toolAnnotations.add(Vector3f(29.8695, -216.523, -667.7), "test1");
+/*
 SegmentToolCentering    toolCentering2;
 SegmentToolPointer      toolPointer2;
 SegmentToolAnnotations  toolAnnotations2;
 SegmentToolCamera       toolCamera2;
-
+*/
 Segment segment1( volumes );
 segment1.setTool( toolCentering );
 segment1.setTool( toolPointer );
@@ -28,12 +29,12 @@ segment1.setTool( toolAnnotations );
 segment1.setTool( toolCamera );
 
 
-Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+Segment segment2( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 1.0, 0.0 ) );
 segment2.setTool( toolCentering );
 segment2.setTool( toolPointer );
 segment2.setTool( toolAnnotations );
 segment2.setTool( toolCamera );
-
+/*
 Segment segment3( volumes );
 segment3.setTool( toolCentering2 );
 segment3.setTool( toolPointer2 );
@@ -45,12 +46,14 @@ segment4.setTool( toolCentering2 );
 segment4.setTool( toolPointer2 );
 segment4.setTool( toolAnnotations2 );
 segment4.setTool( toolCamera2 );
-
+*/
 Layout::Vertical vertical;
 Layout::Horizontal horizontal;
 Layout l1( segment1 );
 Layout l2( segment2 );
-Layout l3( segment3 );
-Layout l4( segment4 );
-Layout layout( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.81 );
+//Layout l3( segment3 );
+//Layout l4( segment4 );
+//Layout layout( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.81 );
 //Layout layout( segment1 );
+
+Layout layout( vertical, l1, l2, 0.51 );

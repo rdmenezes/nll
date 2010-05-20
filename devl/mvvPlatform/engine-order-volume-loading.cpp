@@ -109,8 +109,12 @@ namespace platform
       }
 
       // lock the thread while the volume is being loaded
-      boost::mutex::scoped_lock lock( it->second->order->getMutex() );
-
+      (*it->second->order->getFuture()).wait();
+      //boost::mutex::scoped_lock lock( it->second->order->getMutex() );
+//
+      //
+      // TODO
+      //
       bool found = _resourceVolumes.find( name, vol );
       assert( found );  // hmm how can we not find as it just finished loading?
       return vol;

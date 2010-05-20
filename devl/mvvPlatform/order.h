@@ -28,6 +28,44 @@ namespace platform
 
    /**
     @ingroup platform
+    @brief Returns a mean to wait for an operation to be completed
+    @note the future must be created in the current thread, and unlock() called when the order result is to be dispatched
+    */
+   class MVVPLATFORM_API Future
+   {
+   public:
+      void wait()
+      {
+         // just try to aquire the lock, if succeed, then the order has finished
+         boost::mutex::scoped_lock lock( _mutex );
+      }
+
+      Future()
+      {
+         _mutex.lock();
+      }
+
+      /**
+       @brief should not be used user
+       */
+      void _unlock()
+      {
+         _mutex.unlock();
+      }
+
+
+
+   private:
+      // disabled copy
+      Future( const Future& );
+      Future& operator=( Future& );
+
+   private:
+      boost::mutex _mutex;
+   };
+
+   /**
+    @ingroup platform
     @brief Defines an order that can be run synchronously/asynchronously
     @note internally an order should not use resources as they are refcounted
           and can cause some problems if the orders are multithreaded...
@@ -48,7 +86,8 @@ namespace platform
       {
          static ui32 orderId = 0;
          _orderId = ++orderId;
-         _mutex.lock();
+
+         _future = RefcountedTyped<Future>( new Future() );
       }
 
       ui32 getId() const
@@ -111,9 +150,12 @@ namespace platform
          return _multithreaded;
       }
 
-      boost::mutex& getMutex()
+      /**
+       @brief returns a reference on the furture of this order
+       */
+      RefcountedTyped<Future>& getFuture()
       {
-         return _mutex;
+         return _future;
       }
 
    protected:
@@ -128,7 +170,7 @@ namespace platform
       bool           _multithreaded;
       OrderResult*   _result;
       ui32           _orderId;
-      boost::mutex   _mutex;        // in case we need to wait for the result, we need to be able to block the thread. By default, mutex acquired at construction, unacquired when the result is set // the unlock will take place in the order dispatcher
+      RefcountedTyped<Future> _future;
    };
 }
 }

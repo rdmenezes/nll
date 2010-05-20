@@ -47,6 +47,7 @@ namespace platform
       for ( Orders::iterator it = orders.begin(); it != orders.end(); ++it )
       {
          //std::cout << "dispatch order:" << (**it).getId() << std::endl;
+         (*(*it)->getFuture())._unlock();
          dispatch( *it );
       }
    }

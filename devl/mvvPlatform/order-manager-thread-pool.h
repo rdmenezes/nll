@@ -55,6 +55,7 @@ namespace platform
        @brief Start a new cycle: first order queue will be send to the order manager thread. The order manager thread
               will be notified and run orders if resources are available. Finally orders that have been computed
               will be dispatched to the consumers interested.
+       @note the order will be populated with a reference to a future object, allowing synchronization
        */
       void run();
 

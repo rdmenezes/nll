@@ -369,7 +369,19 @@ namespace platform
          {
             std::vector< nll::imaging::BlendSliceInfof<ResourceLut::lut_type> > sliceInfos;
 
+            // compute the sum of the intensities for normalization...
             int n = 0;
+            float sumIntensities = 0;
+            for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
+            {
+               float intensity = 0;
+               OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( *it );
+               SymbolVolume volume = orderCreator->getVolume();
+               _intensities.find( volume, intensity );
+               sumIntensities += intensity;
+            }
+
+            // prepare blending
 			   for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
             {
                OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( *it );
@@ -388,7 +400,7 @@ namespace platform
                bool res  = itLut != _mapLuts.end() && _intensities.find( volume, intensity );
                if ( res )
                {
-                  sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity, *itLut->second ) );
+                  sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity / sumIntensities, *itLut->second ) );
                }
             }
             

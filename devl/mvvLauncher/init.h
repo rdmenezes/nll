@@ -44,7 +44,7 @@ namespace mvv
 
       CompilerFrontEnd                    compiler;
 
-      ApplicationVariables() : screen( 1280 * 2, 1024, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 6 )
       {  
          initFont();
          initContext();
@@ -69,6 +69,7 @@ namespace mvv
          Error::ErrorType state = compiler.run( "include \"../../mvvLauncher/script/single\"" );
          if ( state != Error::SUCCESS )
          {
+            std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
             throw std::exception( "initialization script couldn't be parsed successfully" );
          }
 
