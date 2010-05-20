@@ -24,8 +24,13 @@ void renderObjects()
    // we need to flush all the engines for rendering: if there are some actions in the pipeline,
    // the rendering may flicker...
    applicationVariables->engineHandler.run();
+   /*
    applicationVariables->engineHandler.run();
-
+   applicationVariables->engineHandler.run();
+   applicationVariables->engineHandler.run();
+   applicationVariables->engineHandler.run();
+   applicationVariables->engineHandler.run();
+*/
    // generate the texture we are going to draw
    (*applicationVariables->layout).draw( applicationVariables->screen );
 

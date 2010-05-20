@@ -32,7 +32,7 @@ namespace platform
       class Iterator
       {
       public:
-         Iterator( ResourceStorageVolumes storage, ResourceSet< SymbolVolume >::Storage::iterator it, ResourceSet< SymbolVolume >::Storage::iterator end ) : _storage( storage ), _it( it ), _end( end )
+         Iterator( ResourceStorageVolumes& storage, ResourceSet< SymbolVolume >::Storage::iterator it, ResourceSet< SymbolVolume >::Storage::iterator end ) : _storage( storage ), _it( it ), _end( end )
          {
             // init
             if ( _it != _end )
@@ -97,7 +97,7 @@ namespace platform
          RefcountedTyped<Volume> _vol;
       };
 
-      ResourceVolumes( ResourceStorageVolumes volumeStorage ) : Resource( new impl::ResourceVolumesList )
+      ResourceVolumes( ResourceStorageVolumes& volumeStorage ) : Resource( new impl::ResourceVolumesList )
       {
          volumeStorage.connect( *this );
          getValue()._volumeStorage = volumeStorage;
