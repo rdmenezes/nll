@@ -4,7 +4,7 @@ VolumeID ct = loadVolumeAsynchronous("c:/tmp/hrezct.mf2");
 VolumeID pet = loadVolumeAsynchronous("c:/tmp/hrezpet.mf2");
 
 Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
-Lut ctLut( -200.0, 200.0 );
+Lut ctLut( -100.0, 200.0 );
 
 VolumeContainer volumes;
 volumes.add( ct, ctLut, 0.3 );
@@ -29,18 +29,19 @@ segment1.setTool( toolAnnotations );
 segment1.setTool( toolCamera );
 
 
-Segment segment2( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment2.setTool( toolCentering );
 segment2.setTool( toolPointer );
 segment2.setTool( toolAnnotations );
 segment2.setTool( toolCamera );
-/*
-Segment segment3( volumes );
-segment3.setTool( toolCentering2 );
-segment3.setTool( toolPointer2 );
-segment3.setTool( toolAnnotations2 );
-segment3.setTool( toolCamera2 );
 
+Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment3.setTool( toolCentering );
+segment3.setTool( toolPointer );
+segment3.setTool( toolAnnotations );
+segment3.setTool( toolCamera );
+
+/*
 Segment segment4( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment4.setTool( toolCentering2 );
 segment4.setTool( toolPointer2 );
@@ -51,9 +52,10 @@ Layout::Vertical vertical;
 Layout::Horizontal horizontal;
 Layout l1( segment1 );
 Layout l2( segment2 );
+Layout l3( segment3 );
 //Layout l3( segment3 );
 //Layout l4( segment4 );
 //Layout layout( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.81 );
 //Layout layout( segment1 );
 
-Layout layout( typename Layout::Vertical(), l1, l2, 0.51 );
+Layout layout( typename Layout::Vertical(), Layout( typename Layout::Horizontal(), l1, l2, 0.51), l3, 0.51 );

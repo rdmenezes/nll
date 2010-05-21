@@ -24,7 +24,7 @@ namespace platform
            the result must be recomputed.
     @note when destroyed, the engines will unregister all the resources
     */
-   class MVVPLATFORM_API Engine : public LinkableDouble< impl::Resource, Engine* >
+   class MVVPLATFORM_API Engine : public LinkableDouble< impl::ResourceSharedData*, Engine* >
    {
    public:
       typedef LinkableDouble< impl::Resource, Engine* > Linkable;
@@ -110,16 +110,31 @@ namespace platform
          _notifiedResources.clear();
       }
 
+   public:
+      //
+      // should not be used by the client!
+      //
+
       /**
        @brief connect the resource to the engine and add the resource to the resources (we need to hold a reference
               in case all references are lost externally, guaranteeing no resource used by the engine can be lost...)
        */
-      virtual void connect( impl::Resource r );
+      virtual void connect( impl::ResourceSharedData* r );
+
+      virtual void connect( impl::Resource& r )
+      {
+         connect( &r.getData() );
+      }
 
       /**
        @brief Disconnect the resource from the engine and clear this resource for the list of used resources
        */
-      virtual void disconnect( impl::Resource r );
+      virtual void disconnect( impl::ResourceSharedData* r );
+
+      virtual void disconnect( impl::Resource& r )
+      {
+         disconnect( &r.getData() );
+      }
 
    private:
       // disable copy operators

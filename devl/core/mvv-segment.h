@@ -29,9 +29,11 @@ namespace impl
       SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction luts, ResourceFloats intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
          segment( volumes.getStorage(), handler, provider, dispatcher )
       {
+         /*
          segment.volumes = volumes;
          segment.intensities = intensities;
          segment.luts = luts;
+         */
       }
 
       platform::Segment segment;
@@ -105,7 +107,7 @@ public:
       pointee->segment.directiony.setValue( axisy );
       pointee->segment.position.setValue( position );
       pointee->segment.zoom.setValue( nll::core::vector2f( 1.0f, 1.0f ) );
-      pointee->segment.updateResourceSource();
+     // pointee->segment.updateResourceSource();
 
       std::cout << "nb volumes in light store from segment=" << pointee->segment.volumes.size() << std::endl;
 

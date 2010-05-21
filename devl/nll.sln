@@ -57,6 +57,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mvvScriptTest", "mvvScriptT
 		{E521E98A-44AD-4C3C-B475-E35B72941267} = {E521E98A-44AD-4C3C-B475-E35B72941267}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mvvPlatformTest", "mvvPlatformTest\mvvPlatformTest.vcproj", "{1117A824-2171-4393-9ED1-4D74F6616C0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -145,6 +147,14 @@ Global
 		{D05EE8EE-CE84-4092-B2C3-78067DEEA271}.Release|Win32.Build.0 = Release|Win32
 		{D05EE8EE-CE84-4092-B2C3-78067DEEA271}.Release|x64.ActiveCfg = Release|x64
 		{D05EE8EE-CE84-4092-B2C3-78067DEEA271}.Release|x64.Build.0 = Release|x64
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Debug|Win32.Build.0 = Debug|Win32
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Debug|x64.ActiveCfg = Debug|x64
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Debug|x64.Build.0 = Debug|x64
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Release|Win32.ActiveCfg = Release|Win32
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Release|Win32.Build.0 = Release|Win32
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Release|x64.ActiveCfg = Release|x64
+		{1117A824-2171-4393-9ED1-4D74F6616C0F}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -6,21 +6,21 @@ namespace mvv
 namespace platform
 {
    
-   void Engine::connect( impl::Resource r )
+   void Engine::connect( impl::ResourceSharedData* r )
    {
       _addSimpleLink( r );
-      r._addSimpleLink( this );
+      r->_addSimpleLink( this );
    }
 
-   void Engine::disconnect( impl::Resource r )
+   void Engine::disconnect( impl::ResourceSharedData* r )
    {
       _eraseSimpleLink( r );
-      r._eraseSimpleLink( this );
+      r->_eraseSimpleLink( this );
    }
 
    bool Engine::isConnected( impl::Resource r ) const
    {
-      LinkStorage::const_iterator it = _links.find( r );
+      LinkStorage::const_iterator it = _links.find( &r.getData() );
       if ( it != _links.end() )
          return true;
       return false;

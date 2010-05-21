@@ -22,10 +22,14 @@ namespace platform
 
    namespace impl
    {
+      class Resource;
+
       struct MVVPLATFORM_API ResourceSharedData
       {
          typedef std::set<Engine*>              EngineStorage;
          typedef std::set<ResourceSharedData*>  ResourceStorage;
+         typedef std::set<Resource*>            ResourceHolder;
+
          ResourceSharedData() : privateData( 0 ), own( false ), state( STATE_ENABLED ), needNotification( false )
          {}
 
@@ -36,7 +40,8 @@ namespace platform
          bool              own;
          EngineStorage     links;
          ResourceStorage   resources;        /// the connected resources
-         ResourceStorage   resourcesLinks;   /// double linkage for connected resource as when a resource is destroyed, it must be erased from the connected resources both ways!
+         ResourceHolder    resourceHolder;   /// the link to all resources pointing to this ResourceSharedData
+         ResourceStorage   resourcesLinks;   /// when destroyed, and it is a resource connected to another resource, we must remove the of the other resource from 'this'
          ResourceState     state;
          bool              needNotification; /// when the resource is asleep, we need to recompute when reactivated hence this flag!
 
@@ -46,6 +51,18 @@ namespace platform
             {
                resources.insert( r );
             }
+         }
+
+         void _addSimpleLink( Resource* r )
+         {
+            resourceHolder.insert( r );
+         }
+
+         void _eraseSimpleLink( Resource* r )
+         {
+            ResourceHolder::iterator it = resourceHolder.find( r );
+            if ( it != resourceHolder.end() )
+               resourceHolder.erase( it );
          }
 
          void _addSimpleLinkConnection( ResourceSharedData* r )
@@ -74,6 +91,23 @@ namespace platform
             }
          }
 
+          void _addSimpleLink( Engine* o )
+         {
+            assert( o );
+            links.insert( o );
+         }
+
+         //
+         // this should be only called internally
+         //
+         void _eraseSimpleLink( Engine* o )
+         {
+            assert( o );
+            impl::ResourceSharedData::EngineStorage::iterator it = links.find( o );
+            if ( it != links.end() )
+               links.erase( it );
+         }
+
          void notify();
       };
 
@@ -88,6 +122,7 @@ namespace platform
       public:
          Resource( void* resourceData, bool own = true ) : Base( new ResourceSharedData( resourceData, own ), true )
          {
+            getData()._addSimpleLink( this );
          }
 
          virtual void notify();
@@ -122,36 +157,7 @@ namespace platform
 
          virtual ~Resource();
 
-         Resource& operator=( const Resource& r )
-         {
-            if ( r._data != _data )
-            {
-               // in case the resource is different, we need to notify it has changed
-               notify();
-            }
-            Base::operator=( r );
-            return *this;
-         }
-
-         //
-         // this should be only called internally
-         //
-         void _addSimpleLink( Engine* o )
-         {
-            assert( o );
-            getData().links.insert( o );
-         }
-
-         //
-         // this should be only called internally
-         //
-         void _eraseSimpleLink( Engine* o )
-         {
-            assert( o );
-            impl::ResourceSharedData::EngineStorage::iterator it = getData().links.find( o );
-            if ( it != getData().links.end() )
-               getData().links.erase( it );
-         }
+         Resource& operator=( const Resource& r );
       };
    }
 

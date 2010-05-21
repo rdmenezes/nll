@@ -70,7 +70,7 @@ namespace mvv
          if ( state != Error::SUCCESS )
          {
             std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
-            throw std::exception( "initialization script couldn't be parsed successfully" );
+            exit(1);
          }
 
          // the only thing we absolutely need to find is a handle on the "layout", which MUST be defined in the script
