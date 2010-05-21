@@ -125,6 +125,11 @@ namespace platform
             getData()._addSimpleLink( this );
          }
 
+         Resource( const Resource& r )
+         {
+            operator=( r );
+         }
+
          virtual void notify();
 
          ui32 getNbConnectedEngines() const

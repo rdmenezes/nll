@@ -29,11 +29,11 @@ namespace impl
       SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction luts, ResourceFloats intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
          segment( volumes.getStorage(), handler, provider, dispatcher )
       {
-         /*
+         
          segment.volumes = volumes;
          segment.intensities = intensities;
          segment.luts = luts;
-         */
+         
       }
 
       platform::Segment segment;

@@ -140,7 +140,7 @@ namespace platform
       static const nll::core::vector3f UNINITIALIZED_POSITION;
 
    public:
-      Segment( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false ), _handler( handler )
+      Segment( ResourceStorageVolumes& storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false ), _handler( handler )
       {
          // we are in an undefined position, we need to wait for the volumes to be loaded/initialized
          position.setValue( UNINITIALIZED_POSITION );
@@ -158,7 +158,7 @@ namespace platform
          // use a default priority sorter
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );
       }
-
+/*
       void updateResourceSource()
       {
          _slicer.updateResourceSource( volumes,
@@ -172,7 +172,7 @@ namespace platform
                                        intensities,
                                        isInteracting,
                                        interpolation);
-      }
+      }*/
 
       virtual ~Segment();
 
