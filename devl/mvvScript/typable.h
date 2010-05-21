@@ -11,13 +11,16 @@ namespace parser
    class MVVSCRIPT_API Typable
    {
    public:
-      Typable() : _type( 0 )
+      Typable( bool deallocate = true ) : _type( 0 ), _deallocate( deallocate )
       {
       }
 
       virtual ~Typable()
       {
-         delete _type;
+         if ( _deallocate )
+         {
+            delete _type;
+         }
       }
 
       void setNodeType( Type* t )
@@ -38,6 +41,7 @@ namespace parser
 
    protected:
       Type*          _type;
+      bool           _deallocate;
    };
 }
 }

@@ -14,7 +14,7 @@ namespace impl
       _data->own = own;
       _data->data = data;
       _data->extension = new Extension( eval, t );   // we are using the extension param to store the type of this object
-      std::cout << "create extension:" << _data->extension << std::endl;
+      std::cout << "create extension:" << _data->extension << " e=" << eval << " t=" << t << std::endl;
    }
 
    void RefcountedTypedDestructor::destroy()
@@ -26,6 +26,7 @@ namespace impl
          {
             
             Extension* ext = reinterpret_cast<Extension*>( i->extension );
+            std::cout << "delete extension:" << ext << std::endl;
             Type* type = ext->type;
             TypeNamed* named = dynamic_cast<TypeNamed*>( type );
             if ( named )

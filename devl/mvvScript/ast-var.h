@@ -11,7 +11,7 @@ namespace parser
    class MVVSCRIPT_API AstVar : public AstExp
    {
    public:
-      AstVar( const YYLTYPE& location ) : AstExp( location ), _decl( 0 )
+      AstVar( const YYLTYPE& location, bool deallocate = true ) : AstExp( location, deallocate ), _decl( 0 )
       {
       }
 

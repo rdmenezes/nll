@@ -56,4 +56,4 @@ Layout l2( segment2 );
 //Layout layout( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.81 );
 //Layout layout( segment1 );
 
-Layout layout( vertical, l1, l2, 0.51 );
+Layout layout( typename Layout::Vertical(), l1, l2, 0.51 );

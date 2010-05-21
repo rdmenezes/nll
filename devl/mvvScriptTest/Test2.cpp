@@ -1417,7 +1417,7 @@ struct TestEval
 
    void eval2()
    {
-      /*
+    /* 
       {
          //
          // test volume loading
@@ -1440,6 +1440,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
       }
+      
 
       {
          //
@@ -1564,7 +1565,7 @@ struct TestEval
       {
          // multiple destructor
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" Lut lut( 0.0, 255.0 ); lut.setColorIndex(10, 16, 17, 18); Vector3i res = lut.getColorIndex(10); int r = res[ 0 ]; int g = res[ 1 ]; int b = res[ 2 ]; Vector3i res2 = lut.transform( 10.0 ); int r2 = res2[ 0 ]; int g2 = res2[ 1 ]; int b2 = res2[ 2 ];" );
+         Error::ErrorType result = fe.run( "import \"core\" Lut lut( 0.0, 255.0 ); lut.setColorIndex(10, 16, 17, 18); Vector3i res = lut.getColorIndex(10); int r = res[ 0 ]; int g = res[ 1 ]; int b = res[ 2 ]; Vector3i res2 = lut.transform( 10.5 ); int r2 = res2[ 0 ]; int g2 = res2[ 1 ]; int b2 = res2[ 2 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "r" ) );
@@ -1619,7 +1620,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
 
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 0 );   // check we have correctly unloaded the volume
-      }*/
+      }
 
 
       {
@@ -1642,6 +1643,29 @@ struct TestEval
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
          Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); SegmentToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; SegmentToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container ); segment1.setTool(toolPointer); segment1.setTool(toolPointer);" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+*/
+     {
+         // test tools
+
+         // handler setup
+         EngineHandlerImpl handler;
+         OrderProviderImpl provider;
+         OrderDispatcherImpl dispatcher;
+         OrderManagerThreadPool pool( 4 );
+         RefcountedTyped<Font> font = initFont();
+
+         // context setup
+         platform::Context context;
+         context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr() ) );
+         context.add( new platform::ContextVolumes() );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+
+         CompilerFrontEnd fe;
+         fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
+
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeContainer container; Segment s1( container ); Layout l2(s1); Layout l1( typename Layout::Vertical(), l2, l2, 0.5);" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
    }

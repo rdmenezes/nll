@@ -729,7 +729,7 @@ namespace parser
          // construct an AstExpCall and eval as we want to do exactly the same thing!
          AstVarSimple var( e.getLocation(), mvv::platform::Symbol::create("TMP"), false );
          AstExpCall exp( e.getLocation(), &var, &e.getArgs(), false );
-         exp.setNodeType( e.getNodeType()->clone() );
+         exp.setNodeType( e.getNodeType() ); // no clone as we don't destroy it!
          exp.setFunctionCall( e.getConstructor() );
          exp.setConstructed( e.getReference() );
 

@@ -108,8 +108,10 @@ namespace platform
          } else return vol;
       }
 
+      std::cout << "wating..." << std::endl;
       // lock the thread while the volume is being loaded
       (*it->second->order->getFuture()).wait();
+      std::cout << "stop waiting" << std::endl;
       //boost::mutex::scoped_lock lock( it->second->order->getMutex() );
 //
       //
