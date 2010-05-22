@@ -23,7 +23,7 @@ namespace platform
    class MVVPLATFORM_API ResourceScopedBarrier
    {
    public:
-      ResourceScopedBarrier( impl::Resource resource ) : _resource( resource ), _initialState( resource.getState() )
+      ResourceScopedBarrier( impl::Resource& resource ) : _resource( resource ), _initialState( resource.getState() )
       {
          _resource.setState( STATE_DISABLED );
       }

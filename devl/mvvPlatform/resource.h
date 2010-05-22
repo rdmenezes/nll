@@ -123,15 +123,22 @@ namespace platform
          Resource( void* resourceData, bool own = true ) : Base( new ResourceSharedData( resourceData, own ), true )
          {
             assert( resourceData );
-            std::cout << "_data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
+            //std::cout << "_data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
             getData()._addSimpleLink( this );
          }
 
          Resource( const Resource& r )
          {
-            std::cout << "cpy _data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
+            //std::cout << "cpy _data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
             operator=( r );
             getData()._addSimpleLink( this );
+         }
+
+         void simpleCopy( Resource& r )
+         {
+            copy( r );
+            getData()._addSimpleLink( this );
+            notify();
          }
 
          virtual void notify();

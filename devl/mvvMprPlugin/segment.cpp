@@ -29,7 +29,7 @@ namespace platform
       if ( _wrappers.size() )
       {
          segment = (**_wrappers.rbegin()).outputSegment;
-         std::cout << " connected out=" << (void*)segment.getValue().getStorage().begin() << std::endl;
+         //std::cout << " connected out=" << (void*)segment.getValue().getStorage().begin() << std::endl;
       }
    }
 

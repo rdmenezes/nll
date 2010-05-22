@@ -35,7 +35,7 @@ namespace platform
          ResourceSliceuc   outputSegment;
 
       public:
-         SegmentToolWrapper( ResourceSliceuc vinputSegment,
+         SegmentToolWrapper( ResourceSliceuc& vinputSegment,
                              Segment& segment,
                              SegmentTool* tool,
                              EngineHandler& handler ) : Engine( handler ), inputSegment( vinputSegment ), _tool( tool ), _segment( segment )

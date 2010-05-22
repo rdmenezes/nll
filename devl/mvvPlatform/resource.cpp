@@ -90,7 +90,7 @@ namespace platform
             // we need to update engine connections
             if ( _data && _data->data )   // else it is a copy constructor call...
             {
-               std::cout << "update resource=" <<  r._data << " old=" << _data << std::endl;
+               //std::cout << "update resource=" <<  r._data << " old=" << _data << std::endl;
                // destroy the now unused resource
                if ( getData().own )
                {
@@ -137,7 +137,7 @@ namespace platform
               for ( ResourceSharedData::ResourceHolder::iterator it = old.resourceHolder.begin(); it != old.resourceHolder.end(); ++it )
               {
                  (*it)->_data = _data;
-                 std::cout << "resource holder change:" << *it << " to=" << _data << std::endl;
+                 //std::cout << "resource holder change:" << *it << " to=" << _data << std::endl;
                  getData().resourceHolder.insert( *it );
               }
 

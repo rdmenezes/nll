@@ -162,15 +162,15 @@ namespace platform
 
          EngineMprSlice( ui32& nbOrdersSend,
                          bool& ready,
-                         ResourceVolumes vvolumes,
-                         ResourceVector3f vposition,
-                         ResourceVector3f vdirectionx,
-                         ResourceVector3f vdirectiony,
-                         ResourceVector3f vpanning,
-                         ResourceVector2f vzoom,
-                         ResourceVector2ui vsize,
-                         ResourceBool visInteracting,
-                         ResourceInterpolationMode vinterpolation,
+                         ResourceVolumes& vvolumes,
+                         ResourceVector3f& vposition,
+                         ResourceVector3f& vdirectionx,
+                         ResourceVector3f& vdirectiony,
+                         ResourceVector3f& vpanning,
+                         ResourceVector2f& vzoom,
+                         ResourceVector2ui& vsize,
+                         ResourceBool& visInteracting,
+                         ResourceInterpolationMode& vinterpolation,
                          EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting ) : 
             volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), isInteracting( visInteracting ), interpolation( vinterpolation ),
             EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting ),
@@ -195,45 +195,6 @@ namespace platform
             }
             interpolation.connect( this );
             _nbOrdersSend = 0;
-         }
-
-         void updateResourceSource(  ResourceVolumes vvolumes,
-                                     ResourceVector3f vposition,
-                                     ResourceVector3f vdirectionx,
-                                     ResourceVector3f vdirectiony,
-                                     ResourceVector3f vpanning,
-                                     ResourceVector2f vzoom,
-                                     ResourceVector2ui vsize,
-                                     ResourceBool visInteracting,
-                                     ResourceInterpolationMode vinterpolation )
-         {
-            position.disconnect( this );
-            directionx.disconnect( this );
-            directiony.disconnect( this );
-            panning.disconnect( this );
-            zoom.disconnect( this );
-            size.disconnect( this );
-            volumes.disconnect( this );
-            interpolation.disconnect( this );
-
-            volumes = vvolumes;
-            position = vposition;
-            directionx = vdirectionx;
-            directiony = vdirectiony;
-            panning = vpanning;
-            zoom = vzoom;
-            size = vsize;
-            isInteracting = visInteracting;
-            interpolation = vinterpolation;
-
-            position.connect( this );
-            directionx.connect( this );
-            directiony.connect( this );
-            panning.connect( this );
-            zoom.connect( this );
-            size.connect( this );
-            volumes.connect( this );
-            interpolation.connect( this );
          }
 
          virtual void consume( Order* )
@@ -348,8 +309,8 @@ namespace platform
 
 		   OrderSliceBlender( clock_t time,
                             std::set<Order*> orders,
-                            MapLuts mapluts,
-                            ResourceFloats intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _time( time ), _mapLuts( mapluts ), _intensities( intensities ), _orders( orders )
+                            MapLuts& mapluts,
+                            ResourceFloats& intensities ) : Order( MVV_PLATFORM_ORDER_BLEND_SLICE, Order::Predecessors() ), _time( time ), _mapLuts( mapluts ), _intensities( intensities ), _orders( orders )
          {
           
          }
@@ -456,7 +417,7 @@ namespace platform
          ResourceSliceuc               blendedSlice;
 
       public:
-         EngineSliceBlender( ui32& nbOrdersSend, bool& ready, ResourceOrders vordersToBlend, ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps,
+         EngineSliceBlender( ui32& nbOrdersSend, bool& ready, ResourceOrders& vordersToBlend, ResourceMapTransferFunction& vlut, ResourceFloats& vintensities, ResourceUi32& vfps,
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
             ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities ),
             _ready( ready ),
@@ -481,21 +442,6 @@ namespace platform
          {
             _dispatcher.disconnect( this );
          }
-
-      void updateResourceSource( ResourceMapTransferFunction vlut, ResourceFloats vintensities, ResourceUi32 vfps )
-      {
-         lut.disconnect( this );
-         intensities.disconnect( this );
-         fps.disconnect( this );
-
-         lut= vlut;
-         intensities = vintensities;
-         fps = vfps;
-
-         lut.connect( this );
-         intensities.connect( this );
-         fps.connect( this );
-      }
 
       protected:
          virtual bool _run()
@@ -616,17 +562,17 @@ namespace platform
          _dispatcher.disconnect( this );
       }
 
-      EngineMpr( ResourceVolumes vvolumes,
-                 ResourceVector3f vposition,
-                 ResourceVector3f vdirectionx,
-                 ResourceVector3f vdirectiony,
-                 ResourceVector3f vpanning,
-                 ResourceVector2f vzoom,
-                 ResourceVector2ui vsize,
-                 ResourceMapTransferFunction vlut,
-                 ResourceFloats vintensities,
-                 ResourceBool visInteracting,
-                 ResourceInterpolationMode vinterpolation,
+      EngineMpr( ResourceVolumes& vvolumes,
+                 ResourceVector3f& vposition,
+                 ResourceVector3f& vdirectionx,
+                 ResourceVector3f& vdirectiony,
+                 ResourceVector3f& vpanning,
+                 ResourceVector2f& vzoom,
+                 ResourceVector2ui& vsize,
+                 ResourceMapTransferFunction& vlut,
+                 ResourceFloats& vintensities,
+                 ResourceBool& visInteracting,
+                 ResourceInterpolationMode& vinterpolation,
                  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting = false ) : 
          EngineOrder( handler, provider, dispatcher ),
          _mprSlicer( _nbOrdersSend,
@@ -663,36 +609,6 @@ namespace platform
       {
          // no insteresting orders
          return _interested;
-      }
-
-      // if the segment->volumes is reconnected to another resource, the EngineMpr still points to the old one,
-      // so we might need to reconnect it!
-      void updateResourceSource( ResourceVolumes vvolumes,
-                                 ResourceVector3f vposition,
-                                 ResourceVector3f vdirectionx,
-                                 ResourceVector3f vdirectiony,
-                                 ResourceVector3f vpanning,
-                                 ResourceVector2f vzoom,
-                                 ResourceVector2ui vsize,
-                                 ResourceMapTransferFunction vlut,
-                                 ResourceFloats vintensities,
-                                 ResourceBool visInteracting,
-                                 ResourceInterpolationMode vinterpolation )
-      {
-         _mprSlicer.updateResourceSource(
-            vvolumes,
-            vposition,
-            vdirectionx,
-            vdirectiony,
-            vpanning,
-            vzoom,
-            vsize,
-            visInteracting,
-            vinterpolation );
-         _sliceBlender.updateResourceSource(
-            vlut,
-            vintensities,
-            fps );
       }
 
    private:
