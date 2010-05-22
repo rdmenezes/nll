@@ -28,13 +28,13 @@ namespace platform
       typedef std::map<SymbolVolume, impl::RecordOrder*> Records;
 
    public:
-      EngineOrderVolumeLoader( ResourceStorageVolumes resourceVolumes, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ), _resourceVolumes( resourceVolumes )
+      EngineOrderVolumeLoader( ResourceStorageVolumes& resourceVolumes, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ), _resourceVolumes( resourceVolumes )
       {
          construct();
          dispatcher.connect( this );
       }
 
-      EngineOrderVolumeLoader( ResourceStorageVolumes resourceVolumes, EngineHandler& handler, OrderManagerThreadPool& manager ) : EngineOrder( handler, manager, manager ), _resourceVolumes( resourceVolumes )
+      EngineOrderVolumeLoader( ResourceStorageVolumes& resourceVolumes, EngineHandler& handler, OrderManagerThreadPool& manager ) : EngineOrder( handler, manager, manager ), _resourceVolumes( resourceVolumes )
       {
          construct();
       }

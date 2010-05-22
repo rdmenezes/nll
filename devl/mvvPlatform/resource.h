@@ -122,12 +122,16 @@ namespace platform
       public:
          Resource( void* resourceData, bool own = true ) : Base( new ResourceSharedData( resourceData, own ), true )
          {
+            assert( resourceData );
+            std::cout << "_data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
             getData()._addSimpleLink( this );
          }
 
          Resource( const Resource& r )
          {
+            std::cout << "cpy _data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
             operator=( r );
+            getData()._addSimpleLink( this );
          }
 
          virtual void notify();
@@ -179,6 +183,7 @@ namespace platform
    public:
       Resource( T* resourceData, bool own = true ) : impl::Resource( resourceData, own )
       {
+         assert( resourceData );
       };
 
       virtual void destroy()

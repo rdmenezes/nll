@@ -85,9 +85,10 @@ namespace platform
       {
          if ( r._data != _data )
          {
-            
+            Refcounted::Internals* internals = _data;
+
             // we need to update engine connections
-            if ( _data )
+            if ( _data && _data->data )   // else it is a copy constructor call...
             {
                std::cout << "update resource=" <<  r._data << " old=" << _data << std::endl;
                // destroy the now unused resource
@@ -98,7 +99,6 @@ namespace platform
                }
 
                // point to the same data and update ref count & links
-               Refcounted::Internals* internals = _data;
                ResourceSharedData& old = getData();
 
                _data = r._data;
@@ -137,14 +137,18 @@ namespace platform
               for ( ResourceSharedData::ResourceHolder::iterator it = old.resourceHolder.begin(); it != old.resourceHolder.end(); ++it )
               {
                  (*it)->_data = _data;
+                 std::cout << "resource holder change:" << *it << " to=" << _data << std::endl;
                  getData().resourceHolder.insert( *it );
               }
+
+              notify();
             }
 
-            // todo: clean up memory
+            // clean up memory
+            internals->data = 0;
+            delete internals->data;
 
             // in case the resource is different, we need to notify it has changed
-            notify();
             Base::operator=( r );
          }
          return *this;

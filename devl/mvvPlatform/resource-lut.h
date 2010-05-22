@@ -26,8 +26,9 @@ namespace platform
       typedef TransferFunction::value_type               value_type;
       typedef nll::imaging::LookUpTransformWindowingRGB  lut_type;
 
-      ResourceLut() : Resource( 0 )
+      ResourceLut() : Resource( new impl::ResourceLutImpl( 0, 255 ), true )
       {
+         getValue().lut.createGreyscale();
       }
 
       ResourceLut( const nll::imaging::LookUpTransformWindowingRGB& lut ) : Resource( new impl::ResourceLutImpl( 0, 1 ), true )
