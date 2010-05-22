@@ -153,7 +153,8 @@ namespace platform
 
          // point to the correct resource..
          _segment = _slicer.blendedSlice;
-         segment = _segment;
+         
+         //segment = _segment;
 
          // use a default priority sorter
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );

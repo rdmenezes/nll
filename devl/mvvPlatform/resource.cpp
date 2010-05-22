@@ -92,11 +92,14 @@ namespace platform
             {
                //std::cout << "update resource=" <<  r._data << " old=" << _data << std::endl;
                // destroy the now unused resource
+               destroy();
+
+               /*
                if ( getData().own )
                {
                   delete getData().privateData;
                   getData().privateData = 0;
-               }
+               }*/
 
                // point to the same data and update ref count & links
                ResourceSharedData& old = getData();
@@ -145,8 +148,13 @@ namespace platform
             }
 
             // clean up memory
-            internals->data = 0;
-            delete internals->data;
+            //_data = internals;
+            //destroy();
+            //_data = r._data;
+
+            //internals->data = 0;
+            //delete internals->data;
+            delete internals;
 
             // in case the resource is different, we need to notify it has changed
             Base::operator=( r );
