@@ -83,13 +83,7 @@ namespace platform
                resourcesLinks.erase( it );
          }
 
-         ~ResourceSharedData()
-         {
-            for ( ResourceStorage::iterator it = resourcesLinks.begin(); it != resourcesLinks.end(); ++it )
-            {
-               (*it)->_eraseSimpleLink( this );
-            }
-         }
+         ~ResourceSharedData();
 
           void _addSimpleLink( Engine* o )
          {

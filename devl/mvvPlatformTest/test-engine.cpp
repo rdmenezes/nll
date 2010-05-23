@@ -153,6 +153,11 @@ public:
       return o;
    }
 
+   bool OrderProvider::hasOrdersWaiting()
+   {
+      return false;
+   }
+
    virtual void pushOrder( Order* order )
    {
       orders.push_back( order );
@@ -240,8 +245,8 @@ struct TestEngine
       DummyEngineHandler handler;
 
       DummyEngine engine1( handler, resource1, resource2 );
-      TESTER_ASSERT( resource1.getNumberOfReference() == 2 );
-      TESTER_ASSERT( resource2.getNumberOfReference() == 2 );
+      TESTER_ASSERT( resource1.getNumberOfReference() == 1 );// engine don't take a "reference" using refcount
+      TESTER_ASSERT( resource2.getNumberOfReference() == 1 );
 
       handler.run();
       int val = engine1.getResult();

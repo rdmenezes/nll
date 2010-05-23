@@ -23,12 +23,13 @@ SegmentToolAnnotations  toolAnnotations2;
 SegmentToolCamera       toolCamera2;
 
 Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+//segment1.setTool( toolCentering );
 segment1.setTool( toolPointer );
+
 segment1.setTool( toolAnnotations );
 segment1.setTool( toolCamera );
-segment1.setTool( toolCentering );
 
-
+/*
 Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment2.setTool( toolPointer );
 segment2.setTool( toolAnnotations );
@@ -60,6 +61,7 @@ Layout l4( segment4 );
 //Layout l3( segment3 );
 //Layout l4( segment4 );
 Layout layout( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
-//Layout layout( segment1 );
+*/
+Layout layout( segment1 );
 
 //Layout layout( typename Layout::Vertical(), Layout( typename Layout::Horizontal(), l1, l2, 0.51), l3, 0.51 );

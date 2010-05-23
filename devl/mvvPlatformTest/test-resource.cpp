@@ -94,6 +94,11 @@ namespace
          Base::getValue() = v;
          notify();
       }
+
+      ~DummyResource()
+      {
+         std::cout << "destroyed" << std::endl;
+      }
    };
 
    class DummyEngine : public Engine
@@ -197,6 +202,7 @@ struct TestResource
       TESTER_ASSERT( m2.getNumberOfReference() == 1 );
 
       m2 = m1;
+      // TODO: don't ref if same pointer!
       TESTER_ASSERT( m1.getNumberOfReference() == 2 );
       TESTER_ASSERT( m2.getNumberOfReference() == 2 );
 
@@ -333,6 +339,7 @@ struct TestResource
       int n[] = { 1, 2, 3, 4, 5 };
       DummyEngineHandler handler;
 
+      
       {
          DummyResource n1( n + 1, false );
          {
@@ -361,66 +368,19 @@ struct TestResource
          DummyResource n0( n + 1, false );
          DummyResource n1( n + 1, false );
          DummyEngine e1( handler, n0, n1 );
-
          {
             DummyResource n2( n + 1, false );
             e1.connect( &n2 );
          }
       }
-
-
-
-
-/*
-      DummyResource n1( n + 1, false );
-      DummyResource n2( n + 2, false );
-      DummyResource n3( n + 3, false );
-      DummyResource n4( n + 4, false );
-*/
-
    }
-
-   /*
-   void testReplace()
-   {
-      DummyEngineHandler handler;
-
-      // engine connected with a resource
-      ResourceVector2ui r1;
-      DummyEnginea e1( handler, r1 );
-
-      TESTER_ASSERT( e1.isConnected( r1 ) );
-      TESTER_ASSERT( e1.isNotified() );
-      handler.run();
-      TESTER_ASSERT( !e1.isNotified() );
-
-      // exchange a connected resource
-      ResourceVector2ui r2;
-      r2.copyAndAddConnections( r1 );
-
-      // the engine must be notified as we have connected to a new resource. As me don't know how
-      // to compare the resources, we need to notify
-      TESTER_ASSERT( e1.isNotified() );
-      handler.run();
-      TESTER_ASSERT( !e1.isNotified() );
-      handler.run();
-
-      // r1 should be disconnected from the engine
-      TESTER_ASSERT( !e1.isConnected( r1 ) );
-
-      r1.notify();
-      TESTER_ASSERT( !e1.isNotified() );
-   }*/
 };
 
 TESTER_TEST_SUITE(TestResource);
-/*
 TESTER_TEST(testResourceVolumes);
 TESTER_TEST(testResourceMap);
 TESTER_TEST(testResourceScopedBarrier);
 TESTER_TEST(testResourceSimpleCount);
-*/
-
 TESTER_TEST(testUpdate);
 TESTER_TEST(testUpdate2);
 TESTER_TEST(testLifetime);

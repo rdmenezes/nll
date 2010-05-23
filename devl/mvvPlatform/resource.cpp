@@ -31,6 +31,21 @@ namespace platform
          }
       }
 
+      ResourceSharedData::~ResourceSharedData()
+      {
+         for ( ResourceStorage::iterator it = resourcesLinks.begin(); it != resourcesLinks.end(); ++it )
+         {
+            (*it)->_eraseSimpleLink( this );
+         }
+
+         while ( links.size() )
+         {
+            // disconnect and reconnect the engine
+            Engine* e = *links.begin();
+            e->disconnect( this );
+         }
+      }
+
       void Resource::notify()
       {
          getData().notify();
@@ -54,7 +69,16 @@ namespace platform
 
       Resource::~Resource()
       {
+         /*
+         while ( getData().links.size() )
+         {
+            // disconnect and reconnect the engine
+            Engine* e = *getData().links.begin();
+            e->disconnect( &getData() );
+         }*/
+
          getData()._eraseSimpleLink( this );
+         
       }
 
       void Resource::setState( ResourceState s )
@@ -94,12 +118,6 @@ namespace platform
                // destroy the now unused resource
                destroy();
 
-               /*
-               if ( getData().own )
-               {
-                  delete getData().privateData;
-                  getData().privateData = 0;
-               }*/
 
                // point to the same data and update ref count & links
                ResourceSharedData& old = getData();
@@ -145,19 +163,15 @@ namespace platform
               }
 
               notify();
+            } else {
+               _data = r._data;
+
+               // we need to add a ref!
+               ref();
             }
 
             // clean up memory
-            //_data = internals;
-            //destroy();
-            //_data = r._data;
-
-            //internals->data = 0;
-            //delete internals->data;
             delete internals;
-
-            // in case the resource is different, we need to notify it has changed
-            Base::operator=( r );
          }
          return *this;
       }
