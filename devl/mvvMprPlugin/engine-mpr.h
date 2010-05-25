@@ -244,8 +244,6 @@ namespace platform
                return false;
             }
 
-            std::cout << "run:" << this << std::endl;
-
             std::vector< RefcountedTyped<Order> > orders;
             InterpolationMode currentInterpolation = _fasterDisplayWhenInteracting ? NEAREST : interpolation.getValue();
 
@@ -421,7 +419,8 @@ namespace platform
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
             ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities ),
             _ready( ready ),
-            _nbOrdersSend( nbOrdersSend )
+            _nbOrdersSend( nbOrdersSend ),
+            blendedSlice( true )
          {
             _construct();
             _orderSend.unref();

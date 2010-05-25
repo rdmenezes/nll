@@ -16,7 +16,7 @@ namespace platform
    class ResourceValue<Sliceuc> : public Resource<Sliceuc>
    {
    public:
-      ResourceValue() : Resource( new Sliceuc(), true )
+      ResourceValue( bool simple = false ) : Resource( new Sliceuc(), true, simple )
       {
       }
 

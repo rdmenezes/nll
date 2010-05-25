@@ -27,6 +27,9 @@ using namespace mvv;
 using namespace mvv::platform;
 using namespace mvv::parser;
 
+/**
+ -BUG: script VolumeContainer v1 -> create segments, VolumeContainer v2 -> v1 = v2 -> should replace all the volumes, we must define a kind of operator=
+ */
 namespace mvv
 {
    struct ApplicationVariables

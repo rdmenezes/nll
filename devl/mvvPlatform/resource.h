@@ -30,10 +30,10 @@ namespace platform
          typedef std::set<ResourceSharedData*>  ResourceStorage;
          typedef std::set<Resource*>            ResourceHolder;
 
-         ResourceSharedData() : privateData( 0 ), own( false ), state( STATE_ENABLED ), needNotification( false )
+         ResourceSharedData() : privateData( 0 ), own( false ), state( STATE_ENABLED ), needNotification( false ), simple( false )
          {}
 
-         ResourceSharedData( void* d, bool o ) : privateData( d ), own( o ), state( STATE_ENABLED ), needNotification( false )
+         ResourceSharedData( void* d, bool o, bool s ) : privateData( d ), own( o ), state( STATE_ENABLED ), needNotification( false ), simple( s )
          {}
 
          void*             privateData;
@@ -44,6 +44,7 @@ namespace platform
          ResourceStorage   resourcesLinks;   /// when destroyed, and it is a resource connected to another resource, we must remove the of the other resource from 'this'
          ResourceState     state;
          bool              needNotification; /// when the resource is asleep, we need to recompute when reactivated hence this flag!
+         bool              simple;           /// if true, we are using a simple resource model: b = d, a = b, then a = c, then b still points to d until it is alive
 
          void _addSimpleLink( ResourceSharedData* r )
          {
@@ -108,33 +109,34 @@ namespace platform
       /**
        @brief Resource. Should not be used in client code as it is not type safe
 
-       A resource can be connected to other resources, in this case
+       A resource can be connected to other resources, with 2 models:
+       - simple: resource are refcounted, connected resources & engines are not modified when operator=
+       - not simple: all connected resources, resource holders & engines will be updated upon operator=
        */
       class MVVPLATFORM_API Resource : public RefcountedTyped<ResourceSharedData>, public Notifiable
       {
          typedef RefcountedTyped<ResourceSharedData>  Base;
       public:
-         Resource( void* resourceData, bool own = true ) : Base( new ResourceSharedData( resourceData, own ), true )
+         Resource( void* resourceData, bool own = true, bool simple = false ) : Base( new ResourceSharedData( resourceData, own, simple ), true )
          {
             assert( resourceData );
             //std::cout << "_data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
-            getData()._addSimpleLink( this );
+            if ( !getData().simple )
+               getData()._addSimpleLink( this );
          }
 
          Resource( const Resource& r )
          {
             //std::cout << "cpy _data=" << _data << " data=" << _data->data << " HOLDER=" << this << std::endl;
             operator=( r );
-            getData()._addSimpleLink( this );
+
+            if ( !getData().simple )
+               getData()._addSimpleLink( this );
          }
 
-         void simpleCopy( Resource& r )
-         {
-            copy( r );
-            getData()._addSimpleLink( this );
-            notify();
-         }
-
+         /**
+          @brief notifies all the connected resources & engines
+          */
          virtual void notify();
 
          ui32 getNbConnectedEngines() const
@@ -142,10 +144,18 @@ namespace platform
             return static_cast<ui32>( getData().links.size() );
          }
 
+         /**
+          @brief connect an engine. An engine cannot be 'moved', it should always be at the same position in memory,
+                 as we only take a reference on it
+          */
          void connect( Engine* e );
 
          void disconnect( Engine* e );
 
+         /**
+          @brief connect a resource, meaming if the resource is notified, the connected resources
+                 will also be notified
+          */
          void connect( Resource& e )
          {
             e.getData()._addSimpleLinkConnection( &getData() );
@@ -174,6 +184,9 @@ namespace platform
    /**
     @brief Resource that notifies engines when its value changes...
     @note this version is the type safe version of impl::Engine
+    @note simple: if true, the resource, if replaced, doesn't replace the other connected resources.
+          when a simple resource is copied/replaced, the target is transformed into a simple resource
+          if simple = false, if a resource is replaced _all_ the connections will be replaced (resource dependencies, resource holders & engines)
     */
    template <class T>
    class Resource : public impl::Resource
@@ -182,7 +195,7 @@ namespace platform
       typedef T   value_type;
 
    public:
-      Resource( T* resourceData, bool own = true ) : impl::Resource( resourceData, own )
+      Resource( T* resourceData, bool own = true, bool simple = false ) : impl::Resource( resourceData, own, simple )
       {
          assert( resourceData );
       };

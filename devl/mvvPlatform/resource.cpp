@@ -109,6 +109,14 @@ namespace platform
       {
          if ( r._data != _data )
          {
+            if ( _data && _data->data && r._data && r._data->data && ( r.getData().simple || getData().simple ) )
+            {
+               Base::operator=( r );
+               getData().simple = true;
+               notify();
+               return *this;
+            }
+
             Refcounted::Internals* internals = _data;
 
             // we need to update engine connections

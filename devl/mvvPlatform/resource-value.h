@@ -16,7 +16,7 @@ namespace platform
    class ResourceValue : public Resource<T>
    {
    public:
-      ResourceValue() : Resource( new T(), true )
+      ResourceValue( bool simple = false ) : Resource( new T(), true, simple )
       {
       }
 
