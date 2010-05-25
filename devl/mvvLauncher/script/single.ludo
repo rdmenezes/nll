@@ -16,19 +16,19 @@ Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
 Lut ctLut( -250.0, 250.0 );
 
 VolumeContainer volumes;
-volumes.add( ct, ctLut, 0.6 );
+volumes.add( ct, ctLut, 0.3 );
 volumes.add( pet, petLut, 0.5 );
 
 SegmentToolCentering    toolCentering;
 SegmentToolPointer      toolPointer;
-SegmentToolAnnotations  toolAnnotations;
+ToolAnnotations         toolAnnotations;
 SegmentToolCamera       toolCamera;
 
 toolAnnotations.add(Vector3f(29.8695, -216.523, -667.7), "test1", Vector3i(0, 255, 255));
 
 SegmentToolCentering    toolCentering2;
 SegmentToolPointer      toolPointer2;
-SegmentToolAnnotations  toolAnnotations2;
+ToolAnnotations         toolAnnotations2;
 SegmentToolCamera       toolCamera2;
 
 Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 1.0, 0.0 ) );
@@ -53,10 +53,10 @@ segment3.setTool( toolCentering );
 
 
 Segment segment4( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment4.setTool( toolPointer2 );
-segment4.setTool( toolAnnotations2 );
-segment4.setTool( toolCamera2 );
-segment4.setTool( toolCentering2 );
+segment4.setTool( toolPointer );
+segment4.setTool( toolAnnotations );
+segment4.setTool( toolCamera );
+segment4.setTool( toolCentering );
 
 
 Layout::Vertical vertical;

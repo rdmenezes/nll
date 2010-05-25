@@ -40,6 +40,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mvvPlatform", "mvvPlatform\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mvvScript", "mvvScript\mvvScript.vcproj", "{E521E98A-44AD-4C3C-B475-E35B72941267}"
+	ProjectSection(ProjectDependencies) = postProject
+		{859D4214-0EA1-499F-B20D-2DA6C0DC5AFE} = {859D4214-0EA1-499F-B20D-2DA6C0DC5AFE}
+		{CF45E989-F4E1-405D-8549-40A4D2C42C73} = {CF45E989-F4E1-405D-8549-40A4D2C42C73}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "core\core.vcproj", "{AC694867-1504-461F-AE4E-52593B0EE89C}"
 	ProjectSection(ProjectDependencies) = postProject

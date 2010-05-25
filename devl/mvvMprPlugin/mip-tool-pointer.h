@@ -4,6 +4,7 @@
 # include "mvvMprPlugin.h"
 # include "types.h"
 # include "mip-tool.h"
+# include "mip.h"
 
 namespace mvv
 {
@@ -30,7 +31,7 @@ namespace platform
             float time = static_cast<float>( clock() - _lastLeftClick ) / CLOCKS_PER_SEC;
             if ( time < 0.2 )
             {
-               sender.fps.setValue( 7 );
+               sender.fps.setValue( _mipFps );
             } else sender.fps.setValue( 0 );
             _lastLeftClick = clock();
          }

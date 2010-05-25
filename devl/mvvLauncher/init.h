@@ -47,7 +47,7 @@ namespace mvv
 
       CompilerFrontEnd                    compiler;
 
-      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 6 )
+      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 8 )
       {  
          initFont();
          initContext();

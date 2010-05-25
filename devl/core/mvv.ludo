@@ -185,14 +185,14 @@ class SegmentToolPointer
 /**
  @brief Tool displaying annotations on segments
  */
-class SegmentToolAnnotations
+class ToolAnnotations
 {
    // not constructible ID. hold an intval
    class AnnotationID
    {}
 
-   import SegmentToolAnnotations();
-   import ~SegmentToolAnnotations();
+   import ToolAnnotations();
+   import ~ToolAnnotations();
 
    /**
     @brief create an annotation
@@ -261,7 +261,7 @@ class Segment
    /**
     @brief attach annotations
     */
-   import void setTool( SegmentToolAnnotations annotations );
+   import void setTool( ToolAnnotations annotations );
 
    /**
     @brief attach centering tool
@@ -269,6 +269,25 @@ class Segment
    import void setTool( SegmentToolCentering centering );
 }
 
+/**
+ @brief Allows a mip to be manipulated
+ */
+class MipToolPointer
+{
+   import MipToolPointer( int frameRate = 7 );
+   import ~MipToolPointer();
+}
+
+/**
+ @brief Display a maximum intensity projection volume
+ */
+class Mip
+{
+   import Mip( VolumeID volume, Lut lut, int nbFrame = 48 );
+   import ~Mip();
+   import void setTool( MipToolPointer pointer );
+   import void setTool( ToolAnnotations annotations );
+}
 
 /**
  @brief Define a layout displaying the UI elements, segments & MIPs
@@ -287,7 +306,7 @@ class Layout
       Horizontal(){}
    }
    //  //PRIVATE DATA for Layout//                   //
-   //  //PRIVATE DATA for segment//                  //
+   //  //PRIVATE DATA for segment/MIP//              //
    //  //PRIVATE DATA for left//                     //
    //  //PRIVATE DATA for right//                    //
 
@@ -296,4 +315,5 @@ class Layout
    import Layout( Vertical   tag, Layout left, Layout right, float ratio );
    import Layout( Horizontal tag, Layout left, Layout right, float ratio );
    import Layout( Segment segment );   // a reference on the segment is saved in the layout
+   import Layout( Mip mip );
 }

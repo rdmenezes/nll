@@ -154,26 +154,12 @@ namespace platform
          // point to the correct resource..
          _segment = _slicer.blendedSlice;
          
-         //segment = _segment;
+         segment = _segment;
 
          // use a default priority sorter
          _sorter = RefcountedTyped<SegmentToolSorter>( new SegmentToolSorterPriorityQueue() );
       }
-/*
-      void updateResourceSource()
-      {
-         _slicer.updateResourceSource( volumes,
-                                       position,
-                                       directionx,
-                                       directiony,
-                                       panning,
-                                       zoom,
-                                       size,
-                                       luts,
-                                       intensities,
-                                       isInteracting,
-                                       interpolation);
-      }*/
+
 
       virtual ~Segment();
 

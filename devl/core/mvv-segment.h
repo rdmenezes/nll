@@ -26,7 +26,7 @@ namespace impl
 {
    struct SegmentStorage
    {
-      SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction luts, ResourceFloats intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
+      SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction& luts, ResourceFloats& intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
          segment( volumes.getStorage(), handler, provider, dispatcher )
       {
          
@@ -357,7 +357,7 @@ public:
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
       assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
-      FunctionSegmentToolAnnotationsConstructor::Pointee* tool = reinterpret_cast<FunctionSegmentToolAnnotationsConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+      FunctionToolAnnotationsConstructor::Pointee* tool = reinterpret_cast<FunctionToolAnnotationsConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
 
       // we first need to remove all the tools of this category to ensure there is no inconsistencies...
       std::set<SegmentToolAnnotations*> tools = pointee->segment.getTools<SegmentToolAnnotations>();

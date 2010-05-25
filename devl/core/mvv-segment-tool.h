@@ -14,6 +14,7 @@
 # include <mvvMprPlugin/segment-tool-annotations.h>
 # include <mvvMprPlugin/segment-tool-autocenter.h>
 # include <mvvMprPlugin/annotation-point.h>
+# include <mvvMprPlugin/mip-tool-annotations.h>
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -206,22 +207,23 @@ namespace impl
    struct ToolAnnotationsStorage
    {
       typedef std::map<ui32, RefcountedTyped<Annotation> > AnnotationDictionary;
-      ToolAnnotationsStorage( EngineHandler& handler ) : tool( annotations, handler )
+      ToolAnnotationsStorage( EngineHandler& handler ) : tool( annotations, handler ), toolMip( annotations, handler )
       {}
 
       ResourceAnnotations     annotations;
       SegmentToolAnnotations  tool;
+      MipToolAnnotations      toolMip;
       AnnotationDictionary    dictionary;    // link an ID to a specific annotation
    };
 }
 
-class FunctionSegmentToolAnnotationsConstructor: public FunctionRunnable
+class FunctionToolAnnotationsConstructor: public FunctionRunnable
 {
 public:
    typedef ::impl::ToolAnnotationsStorage Pointee;
 
 public:
-   FunctionSegmentToolAnnotationsConstructor( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionToolAnnotationsConstructor( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -253,13 +255,13 @@ private:
    Context& _context;
 };
 
-class FunctionSegmentToolAnnotationsDestructor: public FunctionRunnable
+class FunctionToolAnnotationsDestructor: public FunctionRunnable
 {
 public:
    typedef ::impl::ToolAnnotationsStorage Pointee;
 
 public:
-   FunctionSegmentToolAnnotationsDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionToolAnnotationsDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
    {
    }
 
@@ -285,13 +287,13 @@ public:
    }
 };
 
-class FunctionSegmentToolAnnotationsAdd: public FunctionRunnable
+class FunctionToolAnnotationsAdd: public FunctionRunnable
 {
 public:
    typedef ::impl::ToolAnnotationsStorage Pointee;
 
 public:
-   FunctionSegmentToolAnnotationsAdd( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionToolAnnotationsAdd( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -350,13 +352,13 @@ private:
    Context&    _context;
 };
 
-class FunctionSegmentToolAnnotationsErase: public FunctionRunnable
+class FunctionToolAnnotationsErase: public FunctionRunnable
 {
 public:
    typedef ::impl::ToolAnnotationsStorage Pointee;
 
 public:
-   FunctionSegmentToolAnnotationsErase( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionToolAnnotationsErase( const AstDeclFun* fun ) : FunctionRunnable( fun )
    {
    }
 

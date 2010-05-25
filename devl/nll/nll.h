@@ -18,6 +18,8 @@
 #define NLL_API
 #endif
 
+#define NDEBUG
+
 // define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
 // #define NLL_DISABLE_SSE_SUPPORT
 
