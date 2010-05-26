@@ -274,7 +274,7 @@ namespace platform
          _interested.insert( MVV_PLATFORM_ORDER_DISPLAY_MIP );
          dispatcher.connect( this );
 
-         fps.setValue( 7 );
+         fps.setValue( 17 );
          zoom.setValue( 1.0f );
 
          size.connect( this );
@@ -304,7 +304,9 @@ namespace platform
       {
          //const bool isMipComputed = !_order.isEmpty() || (*_order).getResultInProgress()->progress >= 1;
          if ( volumes.begin() == volumes.end() )
+         {
             return false;
+         }
          if ( volumes.size() > 1 )
             throw std::exception( "Unexpected number of volumes (only zero or one)" );
          if ( volumes.size() == 1 && ( *volumes.begin() ).getDataPtr() != _cacheOldVolume )
@@ -345,11 +347,12 @@ namespace platform
          if ( progress >= 1 )
          {
             ui32 f = fps.getValue();
-            if ( f && _timer.getCurrentTime() > 1 / f )
+            if ( f && _timer.getCurrentTime() > 1.0f / ( 60 * f ) )
             {
                float newAngle = anglex.getValue() + (float)f / 360;
                newAngle = ( newAngle > 2 * nll::core::PI ) ? 0 : newAngle;
                anglex.setValue( newAngle );
+               _timer.start();
             }
             if ( _orderDisplay.isEmpty() )
             {

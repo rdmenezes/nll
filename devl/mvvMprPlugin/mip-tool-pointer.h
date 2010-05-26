@@ -16,11 +16,16 @@ namespace platform
    class MVVMPRPLUGIN_API MipToolPointer : public MipTool
    {
    public:
-      MipToolPointer( ui32 mipFps = 7 ) : MipTool( false ), _mipFps( mipFps )
+      MipToolPointer( ui32 mipFps = 17 ) : MipTool( false ), _mipFps( mipFps )
       {}
 
       virtual void updateMip( ResourceSliceuc&, Mip& )
       {
+      }
+
+      ui32 getFpsTarget() const
+      {
+         return _mipFps;
       }
 
       virtual void receive( Mip& sender, const EventMouse& e, const nll::core::vector2ui& )

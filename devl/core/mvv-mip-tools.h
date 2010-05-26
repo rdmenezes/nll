@@ -141,15 +141,17 @@ public:
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       platform::ContextVolumes* volumes = _context.get<platform::ContextVolumes>();
-      if ( !volumes )
+      if ( !volumes || !volumes )
       {
          throw RuntimeException( "mvv global || volumes context have not been initialized" );
       }
 
 
-      mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval );
-      FunctionLutConstructor::Pointee* lutPointee = reinterpret_cast<FunctionLutConstructor::Pointee*>( v3.ref );
-      Pointee* pointee = new Pointee( volume, volumes->volumes, *lutPointee, global->engineHandler, global->orderManager, global->orderManager, v3.intval );
+
+
+      mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
+      FunctionLutConstructor::Pointee* lutPointee = reinterpret_cast<FunctionLutConstructor::Pointee*>( (*v3.vals)[ 0 ].ref );
+      Pointee* pointee = new Pointee( volume, volumes->volumes, *lutPointee, global->engineHandler, global->orderManager, global->orderManager, v4.intval );
 
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
@@ -236,6 +238,7 @@ public:
       // finally add the tool
       pointee->mip.connect( tool );
       pointee->toolPointer = v2;
+      pointee->mip.fps.setValue( tool->getFpsTarget() );
 
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;

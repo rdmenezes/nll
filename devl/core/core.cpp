@@ -2033,7 +2033,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 
    {
       Type* mip = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Mip" ) ) ) );
-      assert( segment );
+      assert( mip );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Layout"), platform::Symbol::create( "Layout" ) ), nll::core::make_vector<const Type*>( mip ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLayoutConstructorMip( fn ) ) );

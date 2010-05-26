@@ -48,6 +48,7 @@ public:
 
       // construct the type
       Pointee* lut = new Pointee( lutImpl );
+      std::cout << "create lut=" << lut << std::endl;
 
 
       RuntimeValue field( RuntimeValue::PTR );
