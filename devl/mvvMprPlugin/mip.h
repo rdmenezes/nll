@@ -170,10 +170,10 @@ namespace platform
          ResourceSliceuc   outputMip;
 
       public:
-         MipToolWrapper( ResourceSliceuc vinputMip,
+         MipToolWrapper( ResourceSliceuc& vinputMip,
                          Mip& mip,
                          MipTool* tool,
-                         EngineHandler& handler ) : Engine( handler ), inputMip( vinputMip ), _tool( tool ), _mip( mip )
+                         EngineHandler& handler ) : Engine( handler ), inputMip( vinputMip ), _tool( tool ), _mip( mip ), outputMip( true )
          {
             ensure( tool, "must not be zero" );
 
@@ -269,7 +269,7 @@ namespace platform
       ResourceFloat           zoom;
 
    public:
-      Mip( ResourceStorageVolumes storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ui32 nbMips = 48 ) : EngineOrder( handler, provider, dispatcher ), volumes( storage ), _nbMips( nbMips )
+      Mip( ResourceStorageVolumes& storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ui32 nbMips = 48 ) : EngineOrder( handler, provider, dispatcher ), volumes( storage ), _nbMips( nbMips ), _outImage( true ), outImage( true )
       {
          _interested.insert( MVV_PLATFORM_ORDER_DISPLAY_MIP );
          dispatcher.connect( this );
@@ -398,6 +398,19 @@ namespace platform
       {
          // no insteresting orders
          return _interested;
+      }
+
+      template <class T>
+      std::set<T*> getTools()
+      {
+         std::set<T*> tools;
+         for ( ToolsStorage::iterator it = _tools.begin(); it != _tools.end(); ++it )
+         {
+            T* tool = dynamic_cast<T*>( *it );
+            if ( tool )
+               tools.insert( tool );
+         }
+         return tools;
       }
 
       void refreshTools()

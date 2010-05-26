@@ -16,7 +16,7 @@ namespace platform
    class MVVMPRPLUGIN_API MipToolAnnotations : public MipTool, public Engine
    {
    public:
-      MipToolAnnotations( ResourceAnnotations annotations, EngineHandler& handler ) : MipTool( true ), Engine( handler ), _annotations( annotations )
+      MipToolAnnotations( ResourceAnnotations& annotations, EngineHandler& handler ) : MipTool( true ), Engine( handler ), _annotations( annotations )
       {
          _annotations.connect( this );
       }
@@ -34,7 +34,7 @@ namespace platform
       }
 
 
-      virtual void updateMip( ResourceSliceuc s, Mip&  )
+      virtual void updateMip( ResourceSliceuc& s, Mip&  )
       {
          for ( ResourceAnnotations::Iterator it = _annotations.begin(); it != _annotations.end(); ++it )
          {

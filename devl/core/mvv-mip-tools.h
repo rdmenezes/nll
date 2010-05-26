@@ -90,11 +90,29 @@ public:
    }
 };
 
+namespace impl
+{
+   struct MipStorage
+   {
+      MipStorage( mvv::SymbolVolume& volume, ResourceStorageVolumes& volumeStore, ResourceLut& lut,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ui32 nbFrames ) :
+         mip( volumeStore, handler, provider, dispatcher, nbFrames )
+      {
+         mip.volumes.insert( volume );
+         mip.lut = lut;
+      }
+
+      platform::Mip mip;
+
+      // hold a reference on other objects
+      RuntimeValue      toolPointer;
+      RuntimeValue      toolAnnotations;
+   };
+}
 
 class FunctionMipConstructor: public FunctionRunnable
 {
 public:
-   typedef Mip Pointee;
+   typedef ::impl::MipStorage Pointee;
 
 public:
    FunctionMipConstructor( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
@@ -129,12 +147,9 @@ public:
       }
 
 
-      Pointee* pointee = new Pointee( volumes->volumes, global->engineHandler, global->orderManager, global->orderManager, v3.intval );
       mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval );
-      pointee->volumes.insert( volume );
-
       FunctionLutConstructor::Pointee* lutPointee = reinterpret_cast<FunctionLutConstructor::Pointee*>( v3.ref );
-      pointee->lut = *lutPointee;
+      Pointee* pointee = new Pointee( volume, volumes->volumes, *lutPointee, global->engineHandler, global->orderManager, global->orderManager, v3.intval );
 
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
@@ -146,6 +161,132 @@ public:
 
 private:
    Context& _context;
+};
+
+class FunctionMipDestructor: public FunctionRunnable
+{
+public:
+   typedef ::impl::MipStorage Pointee;
+
+public:
+   FunctionMipDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // deallocate data
+      delete pointee;
+      (*v1.vals)[ 0 ].ref = 0;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionMipSetToolPointer: public FunctionRunnable
+{
+public:
+   typedef ::impl::MipStorage Pointee;
+
+public:
+   FunctionMipSetToolPointer( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionMipToolPointerConstructor::Pointee* tool = reinterpret_cast<FunctionMipToolPointerConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<MipToolPointer*> tools = pointee->mip.getTools<MipToolPointer>();
+      for ( std::set<MipToolPointer*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->mip.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->mip.connect( tool );
+      pointee->toolPointer = v2;
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionMipSetToolAnnotations: public FunctionRunnable
+{
+public:
+   typedef ::impl::MipStorage Pointee;
+
+public:
+   FunctionMipSetToolAnnotations( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionToolAnnotationsConstructor::Pointee* tool = reinterpret_cast<FunctionToolAnnotationsConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<MipToolAnnotations*> tools = pointee->mip.getTools<MipToolAnnotations>();
+      for ( std::set<MipToolAnnotations*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->mip.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->mip.connect( &tool->toolMip );
+      pointee->toolAnnotations = v2;
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
 };
 
 #endif

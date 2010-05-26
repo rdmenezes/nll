@@ -59,7 +59,7 @@ namespace platform
       /**
        @brief action need to be run when the input slice changed.
        */
-      virtual void updateMip( ResourceSliceuc mip, Mip& holder ) = 0;
+      virtual void updateMip( ResourceSliceuc& mip, Mip& holder ) = 0;
 
       /**
        @param sender the mip where the signal originate's from

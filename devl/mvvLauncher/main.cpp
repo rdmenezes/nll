@@ -12,7 +12,7 @@ static mvv::ApplicationVariables* applicationVariables;
 
 void handleOrders( int )
 {
-   glutTimerFunc( 1, handleOrders, 0 );
+   glutTimerFunc( 0, handleOrders, 0 );
 
    // run orders & engines
    applicationVariables->engineHandler.run();

@@ -19,7 +19,7 @@ namespace platform
       MipToolPointer( ui32 mipFps = 7 ) : MipTool( false ), _mipFps( mipFps )
       {}
 
-      virtual void updateMip( ResourceSliceuc, Mip& )
+      virtual void updateMip( ResourceSliceuc&, Mip& )
       {
       }
 
