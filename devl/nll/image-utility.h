@@ -201,11 +201,14 @@ namespace core
 		for (ui32 x = 0; x < img.sizex(); ++x)
 			for (ui32 y = 0; y < img.sizey(); ++y)
 				for (ui32 c = 0; c < img.getNbComponents(); ++c)
-					if (img(x, y, c) > threshold)
+            {
+               const type t = img(x, y, c);
+					if (t > threshold)
 					{
 						++nbPixel;
 						break;
 					}
+            }
 		f32 nbPixelSkipped = noiseRatio * nbPixel;
 
 		// scan from the left

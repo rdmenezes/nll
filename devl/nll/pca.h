@@ -112,6 +112,14 @@ namespace algorithm
          }
       }
 
+      void read( const std::string& path )
+      {
+         std::ifstream f( path.c_str(), std::ios::binary );
+         ensure( f.good(), "can't load PCA binaries" );
+
+         read( f );
+      }
+
       /**
        @brief Write to a file the status of the algorithm
        */
@@ -129,6 +137,14 @@ namespace algorithm
             core::write<double>( _pairs[ n ].first, o );
             core::write<ui32>( _pairs[ n ].second, o );
          }
+      }
+
+      void write( const std::string& path )
+      {
+         std::ofstream f( path.c_str(), std::ios::binary );
+         ensure( f.good(), "can't write PCA binaries" );
+
+         write( f );
       }
 
       /**

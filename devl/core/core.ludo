@@ -109,7 +109,7 @@ class Vector3f
 
 	Vector3f( float x = 0.0, float y = 0.0, float z = 0.0 )
 	{
-	   print( "Vector3f construction" );
+	   print( "Vector3f construction=" + toString( x ) + " " + toString( y ) + " " + toString( z ) );
 		vals[ 0 ] = x;
 		vals[ 1 ] = y;
 		vals[ 2 ] = z;

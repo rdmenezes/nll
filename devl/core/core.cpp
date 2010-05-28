@@ -1360,7 +1360,7 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
-      if ( v1.type != RuntimeValue::CMP_INT   )
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
          throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
       }

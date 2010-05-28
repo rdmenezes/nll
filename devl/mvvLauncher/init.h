@@ -68,8 +68,7 @@ namespace mvv
          // set the extension, so we can access the context
          compiler.setContextExtension( RefcountedTyped<Context>( &context, false ) );
 
-         //Error::ErrorType state = compiler.run( "D:/Devel/sandbox/mvvLauncher/script/single.ludo" );
-         Error::ErrorType state = compiler.run( "include \"../../mvvLauncher/script/single\"" );
+         Error::ErrorType state = compiler.run( "include \"../../mvvLauncher/script/single2\"" );
          if ( state != Error::SUCCESS )
          {
             std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;

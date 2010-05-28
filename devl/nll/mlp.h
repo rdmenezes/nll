@@ -85,13 +85,6 @@ namespace algorithm
       typedef core::Buffer1D<ui32>  Vectori;
       typedef std::vector<double>   Vectorf;
 
-      struct Result
-      {
-         double learningError;
-         double validationError;
-         double testerror;
-      };
-
       struct Unit
       {
          // these variables are mutable as they dont define the network, but simply a temporary state
@@ -116,6 +109,14 @@ namespace algorithm
       };
       typedef std::vector<Unit>  Layer;
       typedef std::vector<Layer> Layers;
+
+   public:
+      struct Result
+      {
+         double learningError;
+         double validationError;
+         double testerror;
+      };
 
    public:
       /**

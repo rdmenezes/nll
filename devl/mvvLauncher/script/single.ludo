@@ -1,18 +1,19 @@
 import "core"
 
-/*
-VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
-VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
-*/
 
-/*
-VolumeID pet = loadVolumeAsynchronous("c:/tmp/hrezpet.mf2");
-VolumeID ct = loadVolumeAsynchronous("c:/tmp/hrezct.mf2");
-*/
+//VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
+//VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
+
+
+
+//VolumeID pet = loadVolumeAsynchronous("c:/tmp/hrezpet.mf2");
+//VolumeID ct = loadVolumeAsynchronous("c:/tmp/hrezct.mf2");
+
 
 VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/pet.mf2");
-VolumeID pet2 = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
 VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/ct.mf2");
+
+VolumeID pet2 = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
 
 Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
 Lut ctLut( -250.0, 250.0 );

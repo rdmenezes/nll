@@ -480,6 +480,13 @@ namespace core
       res[ 2 ] = a[ 0 ] * b[ 1 ] - a[ 1 ] * b[ 0 ];
       return res;
    }
+
+   template <class T, int SIZE>
+   std::ostream& operator<<( std::ostream& o, const StaticVector<T, SIZE>& v )
+   {
+      v.print( o );
+      return o;
+   }
 }
 }
 
