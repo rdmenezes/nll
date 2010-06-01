@@ -78,9 +78,9 @@ struct TestRegion
       std::cout << "dim=" << dat[0].output.size() << std::endl;
 
       typedef Mlp<FunctionSimpleDifferenciableSigmoid> Mlp;
-      Mlp mlp( make_vector<ui32>( REGION_DETECTION_PCA_SIZE, 10, 3 ) );
+      Mlp mlp( make_vector<ui32>( REGION_DETECTION_PCA_SIZE, 20, 3 ) );
 
-      StopConditionMlpThreshold stopCondition( 1, -1, -1, 0.02 );
+      StopConditionMlpThreshold stopCondition( 1, -1, -1, -1 );
       mlp.learn( dat, stopCondition, 0.05f );
       mlp.write( NN_ENGINE_PATH );
 
