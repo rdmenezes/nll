@@ -13,9 +13,9 @@ namespace utility
    typedef nll::imaging::VolumeSpatial<float>         Volumef;
 
    /**
-    @brief Normalize the image to a 64*128 image
+    @brief Simply extract fron & side view of the volume
     */
-   inline std::vector< core::Image<ui8> > normalizeImage( const Volumef& volume )
+   inline void extractMpr( const Volumef& volume, core::Image<ui8>& mpr1, core::Image<ui8>& mpr2 )
    {
       typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
       Lut lut( REGION_DETECTION_BARYCENTRE_LUT_MIN, REGION_DETECTION_BARYCENTRE_LUT_MAX, 256 );
@@ -44,20 +44,30 @@ namespace utility
       core::Image<ui8> mprxz, mpryz;
       ui32 sx1 = static_cast<ui32>( volume.size()[ 0 ] * volume.getSpacing()[ 0 ] / volume.getSpacing()[ 2 ] );
       ui32 sx2 = static_cast<ui32>( volume.size()[ 1 ] * volume.getSpacing()[ 1 ] / volume.getSpacing()[ 2 ] );
-      mprxz = extractMpr( volume,
-                          core::vector2ui( sx1, volume.size()[ 2 ] ),
-                          vector_x,
-                          vector_z,
-                          mprCentre1,
-                          core::vector2f( volume.getSpacing()[ 2 ], volume.getSpacing()[ 2 ] ),
-                          lut );
-      mpryz = extractMpr( volume,
-                          core::vector2ui( sx2, volume.size()[ 2 ] ),
-                          vector_y,
-                          vector_z,
-                          mprCentre2,
-                          core::vector2f( volume.getSpacing()[ 2 ], volume.getSpacing()[ 2 ] ),
-                          lut );
+      mpr1 = extractMpr( volume,
+                         core::vector2ui( sx1, volume.size()[ 2 ] ),
+                         vector_x,
+                         vector_z,
+                         mprCentre1,
+                         core::vector2f( volume.getSpacing()[ 2 ], volume.getSpacing()[ 2 ] ),
+                         lut );
+      mpr2 = extractMpr( volume,
+                         core::vector2ui( sx2, volume.size()[ 2 ] ),
+                         vector_y,
+                         vector_z,
+                         mprCentre2,
+                         core::vector2f( volume.getSpacing()[ 2 ], volume.getSpacing()[ 2 ] ),
+                         lut );
+   }
+
+   /**
+    @brief Normalize the image to a REGION_DETECTION_SOURCE_IMG_X*REGION_DETECTION_SOURCE_IMG_Y image
+    */
+   inline std::vector< core::Image<ui8> > normalizeImage( const Volumef& volume )
+   {
+      core::Image<ui8> mprxz, mpryz;
+
+      extractMpr( volume, mprxz, mpryz );
 
       // crop th x part of the image
       cropVertical( mprxz, 0.05f, 20 );
@@ -71,6 +81,9 @@ namespace utility
       return core::make_vector< core::Image<ui8> >( mprxz, mpryz );
    }
 
+   /**
+    @brief Create a single buffer for feature
+    */
    inline core::Buffer1D<double> createFeatures( const Volumef& volume )
    {
       std::vector< core::Image<ui8> > res = normalizeImage( volume );
