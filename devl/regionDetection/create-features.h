@@ -70,13 +70,15 @@ namespace utility
       extractMpr( volume, mprxz, mpryz );
 
       // crop th x part of the image
-      cropVertical( mprxz, 0.05f, 20 );
-      cropVertical( mpryz, 0.05f, 20 );
+      cropVertical( mprxz, 0.1f, 20 );
+      cropVertical( mpryz, 0.1f, 20 );
 
 
       // resample the image, so that all images have exactly the same dimension
       core::rescaleBilinear( mprxz, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
       core::rescaleBilinear( mpryz, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
+      //core::rescaleFast( mprxz, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
+      //core::rescaleFast( mpryz, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
 
       return core::make_vector< core::Image<ui8> >( mprxz, mpryz );
    }

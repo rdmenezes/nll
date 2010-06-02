@@ -19,9 +19,6 @@ namespace algorithm
     Base class for all the classifiers.
     As template parameter, any class defining the methods size(), operator[], typedef value_type,
     and a constructor(size) need to be defined.
-
-    This base class defines the main operations (validation, testing, learning, database) as well as different optimizers could
-    be used to find the best learning parameters.
     */
    template <class TPoint, class Output = ui32, class TSample = core::ClassificationSample<TPoint, Output> >
    class Classifier : public ClassifierBase<TPoint, Output, TSample>
@@ -29,6 +26,7 @@ namespace algorithm
    public:
       typedef ClassifierBase<TPoint, Output, TSample> Base;             // superclass
       typedef Classifier<TPoint, Output, TSample>     BaseClassifier;   // root of the classifiers
+      typedef Output                                  Class;
 
       // import the other functions
       using Base::test;
@@ -135,6 +133,48 @@ namespace algorithm
          return Result( nbLearn ? ( static_cast<double> ( nbLearnError ) / nbLearn) : -1,
                         nbTest ? ( static_cast<double> ( nbError ) / nbTest ) : -1,
                         nbValidation ? ( static_cast<double> ( nbValidationError ) / nbValidation ) : -1 );
+      }
+
+   protected:
+      // generate nbBins bins out of the database. Each bin is drawing the same distribution as database's class
+      virtual std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const
+      {
+         // create statistics
+         ui32 nbClass = core::getNumberOfClass( dat );
+         ensure( nbClass >= 2, "useless to learn on less than 2 classes" );
+         std::vector<double> nbSamplesPerClass( nbClass );
+         for ( ui32 n = 0; n < dat.size(); ++n )
+            ++nbSamplesPerClass[ dat[ n ].output ];
+
+         // compute the number of samples by class a bin must contain
+         std::vector< std::vector< ui32 > > remaining( nbBins - 1 );
+         for ( ui32 n = 0; n < nbBins - 1; ++n )
+         {
+            remaining[ n ] = std::vector< ui32 >( nbClass );
+            for ( ui32 nn = 0; nn < nbClass; ++nn )
+               remaining[ n ][ nn ] = (ui32)( nbSamplesPerClass[ nn ] / nbBins );
+         }
+            
+         // because of the rounding, the last bin will have more samples than the others
+         // only the (nbBins - 1) bins will be allocated, the last bin will have all the others
+         std::vector<ui32> binId( dat.size() );
+         for ( ui32 n = 0; n < dat.size(); ++n )
+            binId[ n ] = nbBins - 1;
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            ui32 sclass = dat[ n ].output;
+            for ( ui32 nn = 0; nn < nbBins; ++nn )
+            {
+               ui32 bin = nn;
+               if ( ( bin != nbBins - 1 ) && remaining[ bin ][ sclass ] )
+               {
+                  --remaining[ bin ][ sclass ];
+                  binId[ n ] = nn;  // so the bin is not the same each time it is run
+                  break;
+               }
+            }
+         }
+         return binId;
       }
    };
 }

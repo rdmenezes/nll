@@ -231,6 +231,7 @@
 # include "feature-selection-best-first.h"
 # include "feature-selection-pearson.h"
 # include "feature-selection-relieff.h"
+# include "regression.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

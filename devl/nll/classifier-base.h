@@ -11,12 +11,12 @@ namespace algorithm
    /**
     @brief Base class for Classification and regression based algorithms
     */
-   template <class TPoint, class Output, class TSample = core::ClassificationSample<TPoint, Output> >
+   template <class TPoint, class TOutput, class TSample = core::ClassificationSample<TPoint, TOutput> >
    class ClassifierBase
    {
    public:
       typedef TPoint                                     Point;
-      typedef Output                                     Class;
+      typedef TOutput                                    Output;
       typedef core::Buffer1D<f64>                        ClassifierParameters;
 
       typedef TSample                                    Sample;
@@ -88,7 +88,7 @@ namespace algorithm
       /**
         @return the class of a point
         */
-      virtual Class test( const Point& p ) const = 0;
+      virtual Output test( const Point& p ) const = 0;
 
       /**
         @brief function used to evaluate classifier performance. It is used for optimizing
@@ -266,46 +266,8 @@ namespace algorithm
       ClassifierBase& operator=( const ClassifierBase& );
 
    protected:
-      // generate nbBins bins out of the database. Each bin is drawing the same distribution as database's class
-      std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const
-      {
-         // create statistics
-         ui32 nbClass = core::getNumberOfClass( dat );
-         ensure( nbClass >= 2, "useless to learn on less than 2 classes" );
-         std::vector<double> nbSamplesPerClass( nbClass );
-         for ( ui32 n = 0; n < dat.size(); ++n )
-            ++nbSamplesPerClass[ dat[ n ].output ];
-
-         // compute the number of samples by class a bin must contain
-         std::vector< std::vector< ui32 > > remaining( nbBins - 1 );
-         for ( ui32 n = 0; n < nbBins - 1; ++n )
-         {
-            remaining[ n ] = std::vector< ui32 >( nbClass );
-            for ( ui32 nn = 0; nn < nbClass; ++nn )
-               remaining[ n ][ nn ] = (ui32)( nbSamplesPerClass[ nn ] / nbBins );
-         }
-            
-         // because of the rounding, the last bin will have more samples than the others
-         // only the (nbBins - 1) bins will be allocated, the last bin will have all the others
-         std::vector<ui32> binId( dat.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
-            binId[ n ] = nbBins - 1;
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            ui32 sclass = dat[ n ].output;
-            for ( ui32 nn = 0; nn < nbBins; ++nn )
-            {
-               ui32 bin = nn;
-               if ( ( bin != nbBins - 1 ) && remaining[ bin ][ sclass ] )
-               {
-                  --remaining[ bin ][ sclass ];
-                  binId[ n ] = nn;  // so the bin is not the same each time it is run
-                  break;
-               }
-            }
-         }
-         return binId;
-      }
+      // set a bin ID for each datasets
+      virtual std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const = 0;
 
       // generate a database for crossvalidation : currentBin == bins[n] => n testing, else n learning example
       void _generateDatabase( Database& dat, const std::vector<ui32>& bins, ui32 currentBin ) const

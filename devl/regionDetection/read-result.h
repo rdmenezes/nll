@@ -91,7 +91,7 @@ namespace utility
 
             output.print( std::cout );
 
-            database.add( Sample( input, output, n < 40 ? Sample::LEARNING : Sample::TESTING, core::make_buffer1D_from_string( filename ) ) );
+            database.add( Sample( input, output, n < 53 ? Sample::LEARNING : Sample::TESTING, core::make_buffer1D_from_string( filename ) ) );
          }
 
          database.write( outputDatabase );

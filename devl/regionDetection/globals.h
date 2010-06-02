@@ -5,10 +5,10 @@
 #define REGION_DETECTION_BARYCENTRE_LUT_MIN  -100
 #define REGION_DETECTION_BARYCENTRE_LUT_MAX  300
 
-#define REGION_DETECTION_SOURCE_IMG_X  32
-#define REGION_DETECTION_SOURCE_IMG_Y  64
+#define REGION_DETECTION_SOURCE_IMG_X  16
+#define REGION_DETECTION_SOURCE_IMG_Y  32
 
-#define REGION_DETECTION_PCA_SIZE 128/20
+#define REGION_DETECTION_PCA_SIZE 4
 
 #define DATA_PATH "../../regionDetectionTest/data/"
 
@@ -20,5 +20,7 @@
 
 #define PREVIEW_CASE             DATA_PATH "/preview/xz-case-"
 #define PREVIEW_CASE_MARK        DATA_PATH "/preview-mark/xz-case-"
+
+#define NBCASES                 62
 
 #endif

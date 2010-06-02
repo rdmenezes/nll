@@ -17,7 +17,7 @@ struct TestRegion
 {
    void normalizeImageTest()
    {
-      for ( ui32 n = 1; n < 52; ++n )
+      for ( ui32 n = 1; n < NBCASES; ++n )
       {
          std::cout << "case=" << n << std::endl;
          Volume volume1;
@@ -78,7 +78,7 @@ struct TestRegion
       std::cout << "dim=" << dat[0].output.size() << std::endl;
 
       typedef Mlp<FunctionSimpleDifferenciableSigmoid> Mlp;
-      Mlp mlp( make_vector<ui32>( REGION_DETECTION_PCA_SIZE, 20, 3 ) );
+      Mlp mlp( make_vector<ui32>( REGION_DETECTION_PCA_SIZE, 15, 3 ) );
 
       StopConditionMlpThreshold stopCondition( 1, -1, -1, -1 );
       mlp.learn( dat, stopCondition, 0.05f );
@@ -114,7 +114,7 @@ struct TestRegion
     */
    void createPreview()
    {
-      for ( ui32 n = 0; n < 52; ++n )
+      for ( ui32 n = 52; n < NBCASES; ++n )
       {
          std::cout << "generate preview:" << n << std::endl;
 
@@ -193,7 +193,7 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(normalizeImageTest);
 //TESTER_TEST(createSourceDataset);
-//TESTER_TEST(createPcaDatabase);
+TESTER_TEST(createPcaDatabase);
 TESTER_TEST(testLearning);
 //TESTER_TEST(createPreview);
 TESTER_TEST(createPreviewMark);

@@ -794,6 +794,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\regression.h"
+				>
+			</File>
+			<File
 				RelativePath=".\stopping-condition.h"
 				>
 			</File>
