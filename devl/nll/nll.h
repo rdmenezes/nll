@@ -232,6 +232,8 @@
 # include "feature-selection-pearson.h"
 # include "feature-selection-relieff.h"
 # include "regression.h"
+# include "regression-mlp.h"
+# include "regression-svm-nu.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

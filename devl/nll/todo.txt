@@ -142,3 +142,8 @@
 - MIP: 2.4ghz Intel Pentium IV 512*512*246 < 48 seconds
                                128*128*172 < 8 seconds
        single processor to produce 120 mip frames
+       
+       
+[ feature extraction]
+- Zernike Moments
+- SURF: ftp://ftp.vision.ee.ethz.ch/publications/articles/eth_biwi_00517.pdf

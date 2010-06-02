@@ -67,21 +67,21 @@ namespace algorithm
 				   ++nbLearn;
                Output result = test( dat[n].input );
                ensure( result.size() == dat[ n ].output.size(), "error: size doesn't match" );
-               nbLearnError += core::generic_norm2<Output, float>( result, dat[ n ].output, result.size() );
+               nbLearnError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<ui32>( result.size() ) );
 			   } 
             if ( dat[ n ].type == Database::Sample::VALIDATION )
 			   {
 				   ++nbValidation;
                Output result = test( dat[n].input );
                ensure( result.size() == dat[ n ].output.size(), "error: size doesn't match" );
-               nbValidationError += core::generic_norm2<Output, float>( result, dat[ n ].output, result.size() );
+               nbValidationError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<ui32>( result.size() ) );
 			   } 
             if ( dat[ n ].type == Database::Sample::TESTING )
             {
 				   ++nbTest;
 				   Output result = test( dat[n].input );
                ensure( result.size() == dat[ n ].output.size(), "error: size doesn't match" );
-               nbError += core::generic_norm2<Output, float>( result, dat[ n ].output, result.size() );
+               nbError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<ui32>( result.size() ) );
 			   }
 		   }
 
@@ -124,7 +124,7 @@ namespace algorithm
    // template classifier
    //
    template <class Point>
-   class ClassifierTest : public nll::algorithm::Regression<Point, Vector>
+   class RegressionTest : public nll::algorithm::Regression<Point, Vector>
    {
    public:
       typedef Regression<Point, Vector>  Base;
@@ -144,9 +144,9 @@ namespace algorithm
       }
 
    public:
-      ClassifierTest() : Regression( buildParameters() )
+      RegressionTest () : Regression( buildParameters() )
       {}
-      virtual ClassifierTest* deepCopy() const
+      virtual RegressionTest * deepCopy() const
       {
          c->_crossValidationBin = _crossValidationBin;
          return 0;

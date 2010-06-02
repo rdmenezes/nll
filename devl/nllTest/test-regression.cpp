@@ -1,6 +1,7 @@
 #include "stdafx.h"
 #include <nll/nll.h>
 
+using namespace nll;
 using namespace nll::core;
 using namespace nll::algorithm;
 
@@ -74,10 +75,76 @@ public:
       TESTER_ASSERT( equal<double>( r.testingError, 1.0 ) );
       TESTER_ASSERT( equal<double>( r.validationError, 4.0 ) );
    }
+
+   void testRegressionMlp()
+   {
+      typedef RegressionMlp< Buffer1D<double>, Buffer1D<double> > RegressionMlp;
+      typedef RegressionMlp::Database Database;
+
+      RegressionMlp mlp;
+      Database dat;
+
+      srand( 0 );
+      for ( ui32 n = 0; n < 500; ++n )
+      {
+         double val = static_cast<double>( rand() ) / RAND_MAX;
+         double output = fabs( cos( val * 4 ) );
+
+         dat.add( Database::Sample( make_buffer1D<double>( val ), make_buffer1D<double>( output ), Database::Sample::LEARNING ) );
+      }
+
+      for ( ui32 n = 0; n < 100; ++n )
+      {
+         double val = static_cast<double>( rand() ) / RAND_MAX;
+         double output = fabs( cos( val * 4 ) );
+
+         dat.add( Database::Sample( make_buffer1D<double>( val ), make_buffer1D<double>( output ), Database::Sample::TESTING ) );
+      }
+
+      mlp.learn( dat, make_buffer1D<double>( 20, 2, 10 ) );
+      RegressionMlp::Result r = mlp.test( dat );
+
+      TESTER_ASSERT( r.learningError < 0.09 );
+      TESTER_ASSERT( r.testingError < 0.09 );
+   }
+
+   void testRegressionSvrNu()
+   {
+      typedef RegressionSvmNu< Buffer1D<double>, Buffer1D<double> > RegressionSvm;
+      typedef RegressionSvm::Database Database;
+
+      RegressionSvm svm;
+      Database dat;
+
+      srand( 0 );
+      for ( ui32 n = 0; n < 500; ++n )
+      {
+         double val = static_cast<double>( rand() ) / RAND_MAX;
+         double output = fabs( cos( val * 4 ) );
+
+         dat.add( Database::Sample( make_buffer1D<double>( val ), make_buffer1D<double>( output ), Database::Sample::LEARNING ) );
+      }
+
+      for ( ui32 n = 0; n < 100; ++n )
+      {
+         double val = static_cast<double>( rand() ) / RAND_MAX;
+         double output = fabs( cos( val * 4 ) );
+
+         dat.add( Database::Sample( make_buffer1D<double>( val ), make_buffer1D<double>( output ), Database::Sample::TESTING ) );
+      }
+
+      svm.learn( dat, make_buffer1D<double>( 10, 100, 0.2 ) );
+      RegressionSvm::Result r = svm.test( dat );
+
+      TESTER_ASSERT( r.learningError < 0.09 );
+      TESTER_ASSERT( r.testingError < 0.09 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRegression);
 TESTER_TEST(testBasic);
+TESTER_TEST(testRegressionMlp);
+TESTER_TEST(testRegressionSvrNu);
 TESTER_TEST_SUITE_END();
 #endif
