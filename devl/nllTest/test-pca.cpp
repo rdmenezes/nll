@@ -66,7 +66,8 @@ public:
    {
       typedef std::vector<double>                              Point;
       typedef nll::algorithm::FeatureTransformationPca<Point>  Pca;
-      typedef Pca::Database                                    Database;
+      typedef nll::algorithm::Classifier<Point>::Database      Database;
+      //typedef Pca::Database                                    Database;
 
       Database dat;
       dat.add( Database::Sample( nll::core::make_vector<double>( 0, 0 ), 0, Database::Sample::LEARNING ) );

@@ -1,6 +1,9 @@
 #ifndef NLL_CORE_GEOMETRY_H_
 # define NLL_CORE_GEOMETRY_H_
 
+# pragma warning( push )
+# pragma warning( disable:4189 ) // unused param
+
 namespace nll
 {
 namespace core
@@ -670,5 +673,7 @@ namespace core
    };
 }
 }
+
+# pragma warning( pop )
 
 #endif

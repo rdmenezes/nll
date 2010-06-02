@@ -16,7 +16,6 @@ namespace algorithm
    {
    public:
       typedef FeatureTransformation<Point>          Base;
-      typedef typename Classifier<Point>::Database  Database;
 
    public:
       // don't override these
@@ -25,8 +24,9 @@ namespace algorithm
       using Base::write;
 
    private:
-      typedef core::DatabaseInputAdapterRead<Database>   Points;
-      typedef PrincipalComponentAnalysis<Points>         Pca;
+      typedef typename Classifier<Point>::Database          PcaDatabase;
+      typedef core::DatabaseInputAdapterRead<PcaDatabase>   Points;
+      typedef PrincipalComponentAnalysis<Points>            Pca;
 
    public:
       FeatureTransformationPca() : _pca( 0 )
@@ -43,6 +43,7 @@ namespace algorithm
               used.
        @return true if successful
        */
+      template <class Database>
       bool compute( const Database& _dat, ui32 nbComponents )
       {
          if ( _pca )

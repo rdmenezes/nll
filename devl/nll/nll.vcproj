@@ -678,6 +678,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\classifier-base.h"
+				>
+			</File>
+			<File
 				RelativePath=".\classifier-gmm.h"
 				>
 			</File>

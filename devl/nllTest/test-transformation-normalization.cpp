@@ -11,15 +11,16 @@ public:
    {
       typedef std::vector<float> Point;
       typedef nll::algorithm::FeatureTransformationNormalization<Point> Transform;
+      typedef nll::algorithm::Classifier<Point>::Database   Database;
 
-      Transform::Database dat;
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 1 ), 0, Transform::Database::Sample::LEARNING ) );
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 3 ), 0, Transform::Database::Sample::LEARNING ) );
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 2 ), 0, Transform::Database::Sample::LEARNING ) );
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 3.5 ), 0, Transform::Database::Sample::VALIDATION ) );
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 3 ), 0, Transform::Database::Sample::VALIDATION ) );
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 3000 ), 0, Transform::Database::Sample::TESTING ) );
-      dat.add( Transform::Database::Sample( nll::core::make_vector<float>( 3000 ), 0, Transform::Database::Sample::TESTING ) );
+      Database dat;
+      dat.add( Database::Sample( nll::core::make_vector<float>( 1 ), 0, Database::Sample::LEARNING ) );
+      dat.add( Database::Sample( nll::core::make_vector<float>( 3 ), 0, Database::Sample::LEARNING ) );
+      dat.add( Database::Sample( nll::core::make_vector<float>( 2 ), 0, Database::Sample::LEARNING ) );
+      dat.add( Database::Sample( nll::core::make_vector<float>( 3.5 ), 0, Database::Sample::VALIDATION ) );
+      dat.add( Database::Sample( nll::core::make_vector<float>( 3 ), 0, Database::Sample::VALIDATION ) );
+      dat.add( Database::Sample( nll::core::make_vector<float>( 3000 ), 0, Database::Sample::TESTING ) );
+      dat.add( Database::Sample( nll::core::make_vector<float>( 3000 ), 0, Database::Sample::TESTING ) );
 
       Transform tfm;
       tfm.compute( dat );

@@ -13,9 +13,6 @@ namespace algorithm
    class FeatureTransformation
    {
    public:
-      typedef typename Classifier<Point>::Database  Database;
-
-   public:
       /**
        @brief Process a point according to the transformation.
        */
@@ -59,16 +56,14 @@ namespace algorithm
 
       /**
        @brief Process a full database according to the transformation defined by <code>process</code>
-
-       It is made virtual so that it could be changed if an optimized way other than the
-       generic one is possible.
        */
-      virtual Database process( const Database& dat ) const
+      template <class TDatabase>
+      TDatabase process( const TDatabase& dat ) const
       {
-         Database newDat;
+         TDatabase newDat;
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
-            typename Database::Sample  sample;
+            typename TDatabase::Sample  sample;
             sample.input   = process( dat[ n ].input );
             sample.output  = dat[ n ].output;
             sample.type    = dat[ n ].type;

@@ -22,7 +22,6 @@ namespace algorithm
    public:
       typedef core::Buffer1D<double>         Vector;
       typedef FeatureTransformation<Point>   Base;
-      typedef typename Base::Database        Database;
 
       // don't override these
       using Base::process;
@@ -34,6 +33,7 @@ namespace algorithm
        @brief Computes the mean and variance independantly for each feature. Only the
               LEARNING|VALIDATION data are used to compute the parameters.
        */
+      template <class Database>
       bool compute( const Database& points )
       {
          Database learningDat = core::filterDatabase( points,

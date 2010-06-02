@@ -18,8 +18,6 @@
 #define NLL_API
 #endif
 
-#define NDEBUG
-
 // define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
 // #define NLL_DISABLE_SSE_SUPPORT
 
@@ -201,6 +199,7 @@
 # include "optimizer-harmony-search-memory.h"
 # include "optimizer-grid-search.h"
 # include "optimizer-powell.h"
+# include "classifier-base.h"
 # include "classifier.h"
 # include "kmeans.h"
 # include "gmm.h"

@@ -234,7 +234,7 @@ public:
 
       std::cout << "loadind..." << std::endl;
       bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
-      assert( loaded );
+      TESTER_ASSERT( loaded );
 
       std::cout << "loaded" << std::endl;
       Mpr mpr( volume );

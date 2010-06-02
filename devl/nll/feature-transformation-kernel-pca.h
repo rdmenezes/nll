@@ -13,15 +13,11 @@ namespace algorithm
    {
    public:
       typedef  FeatureTransformation<Point>  Base;
-      typedef  typename Base::Database       Database;
 
       // don't override these
       using Base::process;
       using Base::read;
       using Base::write;
-
-   protected:
-      typedef core::DatabaseInputAdapterRead<Database>   PointsAdapter;
 
    public:
       FeatureTransformationKernelPca( const Kernel& kernel )
@@ -37,8 +33,10 @@ namespace algorithm
       /**
        Compute the principal components using only the LEARNING|VALIDATION samples
        */
+      template <class Database>
       bool compute( const Database& dat, ui32 nbFeatures )
       {
+         typedef core::DatabaseInputAdapterRead<Database>   PointsAdapter;
          Database learningDat = core::filterDatabase( dat,
                                                       core::make_vector<nll::ui32>( Database::Sample::LEARNING,
                                                                                     Database::Sample::VALIDATION ),
