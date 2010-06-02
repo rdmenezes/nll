@@ -16,13 +16,13 @@ namespace algorithm
     only suitable for low dimensionality
     greedy search
     */
-   template <class Point>
-   class FeatureSelectionBestFirst : public FeatureSelectionWrapper<Point>
+   template <class Point, class TClassifier = ClassifierBase<Point, ui32> >
+   class FeatureSelectionBestFirst : public FeatureSelectionWrapper<Point, TClassifier>
    {
    public:
-      typedef FeatureSelectionWrapper<Point> Base;
-      typedef typename Base::Database        Database;
-      typedef typename Base::Classifier      Classifier;
+      typedef FeatureSelectionWrapper<Point, TClassifier>   Base;
+      typedef typename Base::Database                       Database;
+      typedef typename Base::Classifier                     Classifier;
 
       // don't override these
       using Base::process;

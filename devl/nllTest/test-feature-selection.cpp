@@ -31,6 +31,7 @@ public:
       return dat;
    }
    
+   /*
    void testNllFeatureSelectionPreprocessingUnitBestFirst()
    {
       std::cout << "START" << std::endl;
@@ -69,7 +70,7 @@ public:
 
       Point presult = pipeline.process( p );
       TESTER_ASSERT( nll::core::equal<nll::f32>(presult[ 0 ], 1) && nll::core::equal<nll::f32>(presult[ 1 ], 2) );
-   }
+   }*/
 
    void testNllFeatureSelectionBestFirst()
    {

@@ -17,8 +17,6 @@ namespace algorithm
    {
    public:
       typedef FeatureTransformation<Point>   Base;
-      typedef Classifier<Point>              TClassifier;
-      typedef typename TClassifier::Database Database;
 
       // don't override these
       using Base::read;
@@ -105,14 +103,16 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Actual base class for feature selection using a wrapper approach
+
+    The Classifier is directly used to mark the feature set, this can be real classifier, or regression
     */
-   template <class Point>
+   template <class Point, class ClassifierBase = ClassifierBase<Point, ui32> >
    class FeatureSelectionWrapper : public FeatureSelectionBase<Point>
    {
    public:
-      typedef FeatureSelectionBase<Point> Base;
-      typedef typename Base::TClassifier  Classifier;
-      typedef typename Base::Database     Database;
+      typedef FeatureSelectionBase<Point>       Base;
+      typedef ClassifierBase                    Classifier;
+      typedef typename ClassifierBase::Database Database;
 
       // don't override these
       using Base::process;
@@ -120,7 +120,11 @@ namespace algorithm
       using Base::write;
 
    public:
-      FeatureSelectionWrapper(){}
+      FeatureSelectionWrapper()
+      {
+         enum {RESULT = core::Equal<Point, typename ClassifierBase::Sample::Input>::value };
+         STATIC_ASSERT( RESULT ); // the input & database must match!
+      }
       virtual ~FeatureSelectionWrapper(){}
 
       FeatureSelectionWrapper( const core::Buffer1D<bool>& selectedFeatures ) : Base( selectedFeatures )
@@ -143,14 +147,15 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Actual base class for feature selection using a filter approach
+
+    The class information & input only are used to select the feature subset
     */
    template <class Point>
    class FeatureSelectionFilter : public FeatureSelectionBase<Point>
    {
    public:
-      typedef FeatureSelectionBase<Point> Base;
-      typedef typename Base::TClassifier  Classifier;
-      typedef typename Base::Database     Database;
+      typedef FeatureSelectionBase<Point>                      Base;
+      typedef typename Classifier<Point>::Database             Database;
 
       // don't override these
       using Base::process;

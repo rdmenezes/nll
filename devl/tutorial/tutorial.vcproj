@@ -644,6 +644,14 @@
 			<File
 				RelativePath=".\tutorial-pipeline.cpp"
 				>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\tutorial-pipeline.h"

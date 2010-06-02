@@ -232,25 +232,6 @@
 # include "feature-selection-pearson.h"
 # include "feature-selection-relieff.h"
 
-/**
- @defgroup preprocessing
- This group is integrating the algorithm group to a higher level. It tries to add
- the workflow notion: the processing of the data must comply with a specific set of transformations
- to eventually feed the classifier's inputs.
- */
-# include "preprocessing-typelist.h"
-# include "preprocessing-typelist-operation.h"
-# include "preprocessing-typelist-concatenate.h"
-# include "preprocessing-classifier.h"
-# include "preprocessing-unit.h"
-# include "preprocessing-raw-select.h"
-# include "preprocessing-raw-normalize.h"
-# include "preprocessing-image-center.h"
-# include "preprocessing-image-place.h"
-# include "preprocessing-image-resample.h"
-# include "preprocessing-image-gabor.h"
-# include "preprocessing-bridge-image-vector.h"
-
 /// @defgroup utility
 # include "mask-exporter.h"
 

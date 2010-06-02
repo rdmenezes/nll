@@ -23,7 +23,7 @@ namespace algorithm
    public:
       typedef FeatureSelectionFilter<Point> Base;
       typedef typename Base::Database       Database;
-      typedef typename Base::Classifier     Classifier;
+      typedef Classifier<Point>             Classifier;
 
       // don't override these
       using Base::process;

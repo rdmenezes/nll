@@ -8,6 +8,9 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @brief Base class for Classification and regression based algorithms
+    */
    template <class TPoint, class Output, class TSample = core::ClassificationSample<TPoint, Output> >
    class ClassifierBase
    {
@@ -18,7 +21,6 @@ namespace algorithm
 
       typedef TSample                                    Sample;
       typedef core::Database<Sample>                     Database;
-      //typedef ClassifierBase<Point, Output>              BaseClassifier;
 
       /**
        @brief Define the accuracy of the classifier.

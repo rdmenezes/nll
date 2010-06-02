@@ -12,13 +12,13 @@ namespace algorithm
            GA. As for all the wrapper techniques, it is rather slow, thus not suitable
            for a very high dimentional feature set.
     */
-   template <class Point>
-   class FeatureSelectionGeneticAlgorithm : public FeatureSelectionWrapper<Point>
+   template <class Point, class TClassifier = ClassifierBase<Point, ui32> >
+   class FeatureSelectionGeneticAlgorithm : public FeatureSelectionWrapper<Point, TClassifier>
    {
-      typedef FeatureSelectionWrapper<Point> Base;
-      typedef typename Base::Database        Database;
-      typedef typename Base::Classifier      Classifier;
-      typedef core::Buffer1D<bool>           Gene;
+      typedef FeatureSelectionWrapper<Point, TClassifier>   Base;
+      typedef typename Base::Database                       Database;
+      typedef typename Base::Classifier                     Classifier;
+      typedef core::Buffer1D<bool>                          Gene;
 
    public:
       // don't override these
@@ -65,12 +65,12 @@ namespace algorithm
       {
       public:
          // null feature selection, only used to process the database
-         class FeatureSelectionUtility : public FeatureSelectionWrapper<Point>
+         class FeatureSelectionUtility : public FeatureSelectionWrapper<Point, TClassifier>
          {
          public:
-            typedef FeatureSelectionWrapper<Point>    Base;
-            typedef typename Base::Classifier         Classifier;
-            typedef typename Classifier::Database     Database;
+            typedef FeatureSelectionWrapper<Point, TClassifier>   Base;
+            typedef typename Base::Classifier                     Classifier;
+            typedef typename Classifier::Database                 Database;
 
          public:
             FeatureSelectionUtility( const core::Buffer1D<bool> buf ) : Base( buf ){}
