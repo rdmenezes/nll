@@ -1,6 +1,7 @@
 #include <tester/register.h>
 #include "globals.h"
 #include <regionDetection/features.h>
+#include <regionDetection/read-result.h>
 
 using namespace nll;
 using namespace nll::core;
@@ -159,7 +160,8 @@ struct TestRegion
 
    void testExtractSlice()
    {
-      for ( ui32 n = 1; n < NBCASES; ++n )
+      /*
+      for ( ui32 n = 0; n < 5; ++n )
       {
          std::cout << "case=" << n << std::endl;
          Volume volume;
@@ -172,12 +174,19 @@ struct TestRegion
 
          core::extend( image, 3 );
          writeBmp( image, std::string( "c:/tmp/mpr-1-" ) + val2str( n ) + ".bmp" );
-      }
+      }*/
+   }
+
+   void createSourceDataset()
+   {
+      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
    }
 };
 
 TESTER_TEST_SUITE(TestRegion);
-TESTER_TEST(testExtractSlice);
+//TESTER_TEST(testExtractSlice);
+TESTER_TEST(createSourceDataset);
+
 /*
 //TESTER_TEST(normalizeImageTest);
 //TESTER_TEST(createSourceDataset);

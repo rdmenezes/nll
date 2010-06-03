@@ -233,7 +233,7 @@
 # include "feature-selection-relieff.h"
 # include "regression.h"
 # include "regression-mlp.h"
-//# include "regression-svm-nu.h"
+# include "regression-svm-nu.h"
 # include "haar-features.h"
 
 /// @defgroup utility

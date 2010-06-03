@@ -14,6 +14,7 @@ namespace detect
    inline core::Image<ui8> extractSlice( const Volume& v, double zposition_mm )
    {
       typedef imaging::Mpr< Volume, imaging::InterpolatorTriLinear<Volume> >  Mpr;
+      std::cout << "pos=" << zposition_mm << std::endl;
 
       // extract a centered slice, should have the same size than number of voxels in x/y
       Lut lut( REGION_DETECTION_BARYCENTRE_LUT_MIN, REGION_DETECTION_BARYCENTRE_LUT_MAX, 256 );
@@ -31,7 +32,7 @@ namespace detect
       core::vector3f position = v.indexToPosition( core::vector3f( static_cast<f32>( v.size()[ 0 ] ) / 2,
                                                                    static_cast<f32>( v.size()[ 1 ] ) / 2,
                                                                    static_cast<f32>( v.size()[ 2 ] ) / 2 ) );
-      position[ 2 ] = zposition_mm;
+      position[ 2 ] = static_cast<f32>( zposition_mm );
       Slice slice( core::vector3ui( v.size()[ 0 ] - 1, v.size()[ 1 ] - 1, 3 ),   // we extract a smaller slice => rounding errors, which can create one full row of non zero voxel, depending on the lut...
                    vx,
                    vy,
@@ -56,6 +57,10 @@ namespace detect
       // center the image
       cropVertical( sliceTfm, 0.02f, 20 );
       cropHorizontal( sliceTfm, 0.06f, 20 );
+
+      // normalize the size
+      core::rescaleFast( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
+      //core::rescaleBilinear( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
       return sliceTfm;
    }
 }

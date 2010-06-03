@@ -63,8 +63,8 @@ namespace core
 		f64 dysize = static_cast<f64> ( img.sizey() ) / newSizeY;
 
 		assert( dxsize * dysize ); // "error: image too small"
-      f64 divsize = ( ( ( dxsize < 1 ) ? 1 : dxsize ) *
-                      ( ( dysize < 1 ) ? 1 : dysize ) );
+      f64 divsize = ( ( ( dxsize < 1 ) ? 1 : (int)( dxsize + 1 ) ) *
+                      ( ( dysize < 1 ) ? 1 : (int)( dysize + 1 ) ) );
       for ( ui32 c = 0; c < img.getNbComponents(); ++c )
 		   for ( ui32 y = 0; y < newSizeY; ++y )
             for ( ui32 x = 0; x < newSizeX; ++x )

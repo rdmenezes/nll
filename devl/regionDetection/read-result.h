@@ -29,7 +29,7 @@ namespace detect
       typedef core::ClassificationSample<Point, Point>   Sample;
       typedef core::Database<Sample>                     Database;
 
-      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase )
+      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase, ui32 sliceIncrement = 5 )
       {
          std::ifstream f( input_cfg.c_str() );
          if ( !f.good() )
@@ -70,7 +70,6 @@ namespace detect
          Database database;
          for ( size_t n = 0; n < results.size(); ++n )
          {
-            // normalize images
             nll::imaging::VolumeSpatial<float> volume;
             const std::string filename = std::string( DATA_PATH "case" ) + core::val2str( results[ n ].id ) + ".mf2";
 
@@ -79,16 +78,39 @@ namespace detect
             ensure( loaded, "error: can't load case:" + filename );
 
             // export
-            Point input; // TODO = createFeatures( volume );
+            ui32 size = volume.size()[ 2 ];
+            for ( ui32 nn = 1; nn < size; nn += sliceIncrement )
+            {
+               if ( fabs( nn - results[ n ].neckStart ) < sliceIncrement ||
+                    fabs( nn - results[ n ].lungStart ) < sliceIncrement ||
+                    fabs( nn - results[ n ].neckStart ) < sliceIncrement )
+               {
+                  // skip: too close from the marker
+                  continue;
+               }
+               core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                               volume.size()[ 1 ] / 2.0f,
+                                                                               nn ) );
+               core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
 
-            Point output( 3 );
-            output[ 0 ] = results[ n ].neckStart / volume.size()[ 2 ];
-            output[ 1 ] = results[ n ].heartStart / volume.size()[ 2 ];
-            output[ 2 ] = results[ n ].lungStart / volume.size()[ 2 ];
+               //
+               // transform to features
+               //
 
-            output.print( std::cout );
+               core::extend( mpr_xy, 3 );
+               writeBmp( mpr_xy, std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( nn ) + ".bmp" );
 
-            database.add( Sample( input, output, n < 53 ? Sample::LEARNING : Sample::TESTING, core::make_buffer1D_from_string( filename ) ) );
+               /*
+               Point input = 
+
+               Point output( 1 );
+               output[ 0 ] = results[ n ].neckStart / volume.size()[ 2 ];
+
+               output.print( std::cout );
+
+               database.add( Sample( input, output, n < 53 ? Sample::LEARNING : Sample::TESTING, core::make_buffer1D_from_string( filename ) ) );
+               */
+            }
          }
 
          database.write( outputDatabase );
