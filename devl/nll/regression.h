@@ -34,6 +34,7 @@ namespace algorithm
       Regression( const ParameterOptimizers& parameters ) : Base( parameters )
       {
          // test output capabilities: if the compilation fails, we are missing something needed
+         typename Output::value_type t;
          Output out( 5 );
          out[ 0 ];
          out.size();
@@ -92,7 +93,7 @@ namespace algorithm
 	      o << " nb testing=" << nbTest << std::endl;
 	      o << " testing error rate:" << static_cast<double>(nbError) / nbTest << std::endl;
          o << " learning error rate:" << static_cast<double>(nbLearnError) / nbLearn << std::endl;
-	      o << " TODO nb errors:" << nbError << std::endl;
+	      o << " sum of testing errors:" << nbError << std::endl;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, o.str() );
 
          return Result( nbLearn ? ( static_cast<double> ( nbLearnError ) / nbLearn) : -1,
