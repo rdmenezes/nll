@@ -2,6 +2,9 @@
 //
 
 #include "regionDetection.h"
+#include "types.h"
+#include "read-result.h"
+#include "features.h"
 
 REGIONDETECTION_API int dummy = 0;
 

@@ -1,20 +1,15 @@
 #include <tester/register.h>
 #include "globals.h"
-#include <regionDetection/compute-barycentre.h>
-#include <regionDetection/extract-mpr.h>
-#include <regionDetection/create-features.h>
-#include <regionDetection/read-result.h>
-
-typedef nll::imaging::VolumeSpatial<float>         Volume;
-typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
+#include <regionDetection/features.h>
 
 using namespace nll;
 using namespace nll::core;
 using namespace nll::algorithm;
-using namespace nll::utility;
+using namespace nll::detect;
 
 struct TestRegion
 {
+   /*
    void normalizeImageTest()
    {
       for ( ui32 n = 1; n < NBCASES; ++n )
@@ -83,35 +78,9 @@ struct TestRegion
       StopConditionMlpThreshold stopCondition( 1, -1, -1, -1 );
       mlp.learn( dat, stopCondition, 0.05f );
       mlp.write( NN_ENGINE_PATH );
-
-      /*
-      // test
-      Volume volume1;
-      bool loaded = loadSimpleFlatFile( "D:/Devel/sandbox/nllTest/data/medical/ct.mf2", volume1 );
-      TESTER_ASSERT( loaded );
-
-      Buffer1D<double> points = createFeatures( volume1 );
-
-      PrincipalComponentAnalysis< Buffer1D< Buffer1D<double> > > pca( 1 );
-      pca.read( PCA_ENGINE_PATH );
-
-      Buffer1D<double> input = pca.process( points );
-      const core::Buffer1D<double>& result = mlp.propagate( input );
-      std::cout << "result=";
-      result.print( std::cout );
-
-      vector3f head = volume1.indexToPosition( vector3f( volume1.size()[ 0 ] / 2, volume1.size()[ 1 ] / 2, ( result[ 0 ] ) * volume1.size()[ 2 ] ) );
-      vector3f heart = volume1.indexToPosition( vector3f( volume1.size()[ 0 ] / 2, volume1.size()[ 1 ] / 2, ( result[ 1 ] ) * volume1.size()[ 2 ] ) );
-      vector3f lung = volume1.indexToPosition( vector3f( volume1.size()[ 0 ] / 2, volume1.size()[ 1 ] / 2, ( result[ 2 ] ) * volume1.size()[ 2 ] ) );
-      head.print( std::cout );
-      heart.print( std::cout );
-      lung.print( std::cout );
-      */
    }
 
-   /**
-    @brief Source to create xz MPR used to display algo results
-    */
+
    void createPreview()
    {
       for ( ui32 n = 52; n < NBCASES; ++n )
@@ -131,9 +100,7 @@ struct TestRegion
       }
    }
 
-   /**
-    @brief Display the results
-    */
+
    void createPreviewMark()
    {
       std::cout << "reading engines..." << std::endl;
@@ -188,13 +155,35 @@ struct TestRegion
          writeBmp( mpr, PREVIEW_CASE_MARK + val2str( n ) + ".bmp" );
       }
    }
+   */
+
+   void testExtractSlice()
+   {
+      for ( ui32 n = 1; n < NBCASES; ++n )
+      {
+         std::cout << "case=" << n << std::endl;
+         Volume volume;
+         bool loaded = loadSimpleFlatFile( datasets[ n ], volume );
+         TESTER_ASSERT( loaded );
+         
+         vector3f center = volume.indexToPosition( vector3f( 0, 0, static_cast<f32>( volume.size()[ 2 ] ) / 2 ) );
+         Image<ui8> image = extractSlice( volume, center[ 2 ] );
+
+
+         core::extend( image, 3 );
+         writeBmp( image, std::string( "c:/tmp/mpr-1-" ) + val2str( n ) + ".bmp" );
+      }
+   }
 };
 
 TESTER_TEST_SUITE(TestRegion);
+TESTER_TEST(testExtractSlice);
+/*
 //TESTER_TEST(normalizeImageTest);
 //TESTER_TEST(createSourceDataset);
 TESTER_TEST(createPcaDatabase);
 TESTER_TEST(testLearning);
 //TESTER_TEST(createPreview);
 TESTER_TEST(createPreviewMark);
+*/
 TESTER_TEST_SUITE_END();

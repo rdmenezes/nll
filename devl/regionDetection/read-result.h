@@ -5,11 +5,11 @@
 # include <map>
 # include <fstream>
 # include "globals.h"
-# include "create-features.h"
+# include "features.h"
 
 namespace nll
 {
-namespace utility
+namespace detect
 {
    class RegionResult
    {
@@ -79,15 +79,12 @@ namespace utility
             ensure( loaded, "error: can't load case:" + filename );
 
             // export
-            Point input = createFeatures( volume );
+            Point input; // TODO = createFeatures( volume );
 
             Point output( 3 );
             output[ 0 ] = results[ n ].neckStart / volume.size()[ 2 ];
-            //output[ 1 ] = results[ n ].neckEnd / volume.size()[ 2 ];
             output[ 1 ] = results[ n ].heartStart / volume.size()[ 2 ];
-            //output[ 3 ] = results[ n ].heartEnd / volume.size()[ 2 ];
             output[ 2 ] = results[ n ].lungStart / volume.size()[ 2 ];
-            //output[ 5 ] = results[ n ].lungEnd / volume.size()[ 2 ];
 
             output.print( std::cout );
 

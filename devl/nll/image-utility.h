@@ -262,6 +262,89 @@ namespace core
 		img = result;
 	}
 
+      /**
+    @ingroup core
+    @brief horizontally crop an image.
+
+    y-crop the image : used for example on a noisy image, we can remove a specific proportion of the image.
+
+    @param p1y export the first left cropped point
+    @param p2y export the first right cropped point
+    */
+	template <class type, class mapper, class allocator>
+	void cropHorizontal(Image<type, mapper, allocator>& img, f32 noiseRatio, f32 threshold = 15, ui32* p1y = 0, ui32* p2y = 0)
+	{
+		if (p1y)
+			*p1y = 0;
+		if (p2y)
+			*p2y = 0;
+
+		// compute the number of actual pixels
+		ui32 nbPixel = 0;
+		for (ui32 x = 0; x < img.sizex(); ++x)
+			for (ui32 y = 0; y < img.sizey(); ++y)
+				for (ui32 c = 0; c < img.getNbComponents(); ++c)
+            {
+               const type t = img(x, y, c);
+					if (t > threshold)
+					{
+						++nbPixel;
+						break;
+					}
+            }
+		f32 nbPixelSkipped = noiseRatio * nbPixel;
+
+		// scan from the left
+		i32 y1;
+		ui32 n = 0;
+		for (y1 = 0; y1 < static_cast<i32>(img.sizey()); ++y1)
+		{
+			for (ui32 x = 0; x < img.sizex(); ++x)
+				for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					if (img(x, y1, c) > threshold)
+					{
+						++n;
+						break;
+					}
+
+			if (n > nbPixelSkipped)
+				break;
+		}
+
+		// scan form the right
+		i32 y2;
+		n = 0;
+		for (y2 = img.sizey() - 1; y2 >= 0; --y2)
+		{
+			for (ui32 x = 0; x < img.sizex(); ++x)
+				for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					if (img(x, y2, c) > threshold)
+					{
+						++n;
+						break;
+					}
+
+			if (n > nbPixelSkipped)
+				break;
+		}
+
+		if (y2 <= y1)
+			return;
+		if (p1y)
+			*p1y = y1;
+		if (p2y)
+			*p2y = y2;
+
+		// crop the image
+		Image<type, mapper, allocator> result(img.sizex(), y2 - y1 + 1, img.getNbComponents(), false, img.getAllocator());
+		for (i32 y = y1; y <= y2; ++y)
+			for (ui32 x = 0; x < img.sizex(); ++x)
+				for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					result(x, y - y1, c) = img (x, y, c);
+
+		img = result;
+	}
+
    /**
     @ingroup core
     @brief replace a specific color by another one.
