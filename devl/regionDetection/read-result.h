@@ -83,7 +83,7 @@ namespace detect
             {
                if ( fabs( nn - results[ n ].neckStart ) < sliceIncrement ||
                     fabs( nn - results[ n ].lungStart ) < sliceIncrement ||
-                    fabs( nn - results[ n ].neckStart ) < sliceIncrement )
+                    fabs( nn - results[ n ].heartStart ) < sliceIncrement )
                {
                   // skip: too close from the marker
                   continue;

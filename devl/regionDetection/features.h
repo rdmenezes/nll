@@ -55,12 +55,12 @@ namespace detect
       }
 
       // center the image
-      cropVertical( sliceTfm, 0.02f, 20 );
-      cropHorizontal( sliceTfm, 0.06f, 20 );
+      cropVertical( sliceTfm, 0.04f, 20 );
+      cropHorizontal( sliceTfm, 0.08f, 20 );
 
       // normalize the size
-      core::rescaleFast( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
-      //core::rescaleBilinear( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
+      //core::rescaleFast( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
+      core::rescaleBilinear( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
       return sliceTfm;
    }
 }
