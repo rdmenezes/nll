@@ -5,7 +5,7 @@
 
 namespace nll
 {
-namespace utility
+namespace detect
 {
    /**
     @brief Computes the barycentre of the volume, using this specific LUT

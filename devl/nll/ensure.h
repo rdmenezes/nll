@@ -3,6 +3,10 @@
 
 //#define NLL_NO_ENSURE
 
+# ifndef nllWarning
+#  define nllWarning(str)   std::cerr << "warning: " << str << std::endl;
+# endif
+
 /**
  * @brief Ensure that the expression is true, else log the error and stop the program
           it can be turned off by setting the flag <code>NLL_NO_ENSURE</code>
@@ -11,11 +15,12 @@
    However it should be disabled for a released version. It is different from <code>assert</code> since
    it won't really slow down the components as it is not used in internal loops/critical code.
  */
-# ifdef NLL_NO_ENSURE
-#  define ensure( _Expression, _String )                 (_Expression)                  
-# else
-#  ifdef _MSC_VER
-#   define ensure( _Expression, _String )							      \
+#ifndef ensure
+#  ifdef NLL_NO_ENSURE
+#   define ensure( _Expression, _String )                 (_Expression)                  
+#  else
+#   ifdef _MSC_VER
+#    define ensure( _Expression, _String )							      \
       if ( !( _Expression ) )										         \
       {															               \
          nll::core::LoggerNll::write( nll::core::LoggerNll::ERROR, _String );			\
@@ -26,8 +31,8 @@
          _CrtDbgBreak();                                          \
          exit( 1 );                                               \
       }
-#  else
-#   define ensure( _Expression, _String )							      \
+#   else
+#    define ensure( _Expression, _String )							      \
       if ( !( _Expression ) )										         \
       {															               \
          nll::core::LoggerNll::write( nll::core::LoggerNll::ERROR, _String );			\
@@ -37,6 +42,7 @@
 	      std::cout << "  Line     : " << __LINE__ << std::endl;	\
          exit( 1 );                                               \
       }
+#   endif
 #  endif
 # endif
 #endif

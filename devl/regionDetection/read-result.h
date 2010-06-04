@@ -7,6 +7,9 @@
 # include "globals.h"
 # include "features.h"
 
+# pragma warning( push )
+# pragma warning( disable:4996 ) // unsafe functions
+
 namespace nll
 {
 namespace detect
@@ -26,10 +29,10 @@ namespace detect
 
    public:
       typedef core::Buffer1D<double>                     Point;
-      typedef core::ClassificationSample<Point, Point>   Sample;
+      typedef core::ClassificationSample<Point, ui32>    Sample;
       typedef core::Database<Sample>                     Database;
 
-      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase, ui32 sliceIncrement = 5 )
+      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase, ui32 sliceIncrement = 20 )
       {
          std::ifstream f( input_cfg.c_str() );
          if ( !f.good() )
@@ -81,42 +84,143 @@ namespace detect
             ui32 size = volume.size()[ 2 ];
             for ( ui32 nn = 1; nn < size; nn += sliceIncrement )
             {
-               if ( fabs( nn - results[ n ].neckStart ) < sliceIncrement ||
-                    fabs( nn - results[ n ].lungStart ) < sliceIncrement ||
+               if ( fabs( nn - results[ n ].neckStart  ) < sliceIncrement ||
+                    fabs( nn - results[ n ].lungStart  ) < sliceIncrement ||
                     fabs( nn - results[ n ].heartStart ) < sliceIncrement )
                {
                   // skip: too close from the marker
                   continue;
                }
-               core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
-                                                                               volume.size()[ 1 ] / 2.0f,
-                                                                               nn ) );
-               core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
+               
 
-               //
-               // transform to features
-               //
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( nn ) + ".bmp";
+               Point input = _convert( volume, nn, sliceName );
 
-               core::extend( mpr_xy, 3 );
-               writeBmp( mpr_xy, std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( nn ) + ".bmp" );
+               // we know all these slices are not what we are looking for...
+               ui32 output = 0;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( nn ) ) ) );
+            }
 
-               /*
-               Point input = 
+            // export the intertsing slices
+            {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart ) + "-neck.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].neckStart, sliceName );
+               ui32 output = 1;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+            }
 
-               Point output( 1 );
-               output[ 0 ] = results[ n ].neckStart / volume.size()[ 2 ];
+            {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart ) + "-heart.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].heartStart, sliceName );
+               ui32 output = 2;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
+            }
 
-               output.print( std::cout );
-
-               database.add( Sample( input, output, n < 53 ? Sample::LEARNING : Sample::TESTING, core::make_buffer1D_from_string( filename ) ) );
-               */
+            {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart ) + "-lung.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].lungStart, sliceName );
+               ui32 output = 3;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
             }
          }
 
          database.write( outputDatabase );
       }
+
+      static void generateFeatureDatabase()
+      {
+         std::cout << "generate feature database..." << std::endl;
+         algorithm::Haar2dFeatures::Features features = _generateRandomFeatures();
+         algorithm::Haar2dFeatures::write( features, HAAR_FEATURES );
+
+         std::cout << " read source database..." << std::endl;
+         Database sourceDatabase;
+         sourceDatabase.read( DATABASE_SOURCE );
+
+         std::cout << " computes haar features..." << std::endl;
+         Database haarDatabase;
+         ui32 nbLearning = static_cast<ui32>( 0.8f * sourceDatabase.size() );
+         for ( ui32 n = 0; n < sourceDatabase.size(); ++n )
+         {
+            // recreate the normalized image
+            core::Image<Point::value_type> image( sourceDatabase[ n ].input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
+
+            // process it
+            Point point = algorithm::Haar2dFeatures::process( features, image );
+            //point.print( std::cout );
+
+            Database::Sample::Type type = ( n < nbLearning ) ? Database::Sample::LEARNING: Database::Sample::TESTING;
+            haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type ) );
+         }
+
+         haarDatabase.write( DATABASE_HAAR );
+
+         std::cout << " normalize data..." << std::endl;
+         algorithm::FeatureTransformationNormalization<Point> featureNormalization;
+         featureNormalization.compute( haarDatabase );
+         featureNormalization.write( PREPROCESSING_HAAR );
+
+         Database haarDatabaseNormalized = featureNormalization.process( haarDatabase );
+         haarDatabaseNormalized.write( NORMALIZED_HAAR );
+
+      }
+
+   private:
+      static algorithm::Haar2dFeatures::Features _generateRandomFeatures( int seed = 0 )
+      {
+         algorithm::Haar2dFeatures::Features features;
+
+         srand( seed );
+         for ( ui32 n = 0; n < HAAR_FEATURE_SIZE; ++n )
+         {
+            core::vector2d v1( core::generateUniformDistribution( 0, 1 ),
+                               core::generateUniformDistribution( 0, 1 ) );
+            core::vector2d v2( core::generateUniformDistribution( 0, 1 ),
+                               core::generateUniformDistribution( 0, 1 ) );
+            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 4.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of 4 pixels features
+                 fabs( v1[ 1 ] - v2[ 1 ] ) < 4.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
+            {
+               --n;
+               continue;
+            }
+            if ( v1[ 0 ] > v2 [ 0 ] )
+               std::swap( v1[ 0 ], v2[ 0 ] );
+            if ( v1[ 1 ] > v2 [ 1 ] )
+               std::swap( v1[ 1 ], v2[ 1 ] );
+            ui32 dir = rand() % 2;
+
+            features.push_back( algorithm::Haar2dFeatures::Feature( (algorithm::Haar2dFeatures::Feature::Direction)dir,
+                                                                v1,
+                                                                v2 ) );
+         }
+         return features;
+      }
+
+      static Point _convert( const Volume& volume, ui32 sliceIndex, const std::string& sliceName )
+      {
+         core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                         volume.size()[ 1 ] / 2.0f,
+                                                                         static_cast<f32>( sliceIndex ) ) );
+         core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
+
+         //
+         // transform to features
+         //
+         Point result( mpr_xy.size(), false );
+         for ( ui32 n = 0; n < result.size(); ++n )
+         {
+            result[ n ] = static_cast<Point::value_type>( mpr_xy[ n ] ) / 256.0;
+         }
+
+         // export the slice
+         core::extend( mpr_xy, 3 );
+         writeBmp( mpr_xy, sliceName );
+         return result;
+      }
    };
 }
 }
+
+# pragma warning( pop )
 
 #endif

@@ -39,7 +39,7 @@ namespace algorithm
        */
       void read( const std::string& f )
       {
-         std::ifstream i( f.c_str() );
+         std::ifstream i( f.c_str(), std::ios::binary );
          ensure( i.is_open(), "file not found" );
          read( i );
       }
@@ -49,7 +49,7 @@ namespace algorithm
        */
       void write( const std::string& f )
       {
-         std::ofstream o( f.c_str() );
+         std::ofstream o( f.c_str(), std::ios::binary );
          ensure( o.is_open(), "file not found" );
          write( o );
       }

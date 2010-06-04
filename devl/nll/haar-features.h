@@ -172,6 +172,9 @@ namespace algorithm
        */
       struct Feature
       {
+         //
+         // TODO: change Features implementation to Buffer1D<Feature> and implement read/write method for serialization
+         //
          enum Direction
          {
             VERTICAL,
@@ -201,6 +204,59 @@ namespace algorithm
       typedef core::Buffer1D<internal_type>  Buffer;
 
    public:
+      static void write( const Features& features, const std::string& f )
+      {
+         std::ofstream file( f.c_str(), std::ios::binary );
+         ensure( file.good(), "can't open the file" );
+         write( features, file );
+      }
+
+      static void write( const Features& features, std::ostream& f )
+      {
+         ensure( f.good(), "file not open correctly" );
+         core::write<ui32>( static_cast<ui32>( features.size() ), f );
+         for ( ui32 n = 0; n < static_cast<ui32>( features.size() ); ++n )
+         {
+            core::write<ui32>( static_cast<ui32>( features[ n ].direction ), f );
+            core::write<f64> ( features[ n ].bottomLeft[ 0 ], f );
+            core::write<f64> ( features[ n ].bottomLeft[ 1 ], f );
+            core::write<f64> ( features[ n ].topRight[ 0 ], f );
+            core::write<f64> ( features[ n ].topRight[ 1 ], f );
+         }
+      }
+
+      static void read( Features& features, const std::string& f )
+      {
+         std::ifstream file( f.c_str(), std::ios::binary );
+         ensure( file.good(), "can't open the file" );
+         read( features, file );
+      }
+
+      static void read( Features& features, std::istream& f )
+      {
+         ensure( f.good(), "file not open correctly" );
+         features.clear();
+
+         ui32 size = 0;
+         core::read<ui32>( size, f );
+         for ( ui32 n = 0; n < size; ++n )
+         {
+            f64 bottomLeft[ 2 ];
+            f64 topRight[ 2 ];
+            ui32 direction;
+
+            core::read<ui32>( direction, f );
+            core::read<f64> ( bottomLeft[ 0 ], f );
+            core::read<f64> ( bottomLeft[ 1 ], f );
+            core::read<f64> ( topRight[ 0 ], f );
+            core::read<f64> ( topRight[ 1 ], f );
+
+            core::vector2d bl( bottomLeft[ 0 ], bottomLeft[ 1 ] );
+            core::vector2d tr( topRight[ 0 ],   topRight[ 1 ] );
+            features.push_back( Feature( (Feature::Direction)direction, bl, tr ) );
+         }
+      }
+
       /**
        @brief computes the Haar features on an integral image
        @param scale the scale applied to the features

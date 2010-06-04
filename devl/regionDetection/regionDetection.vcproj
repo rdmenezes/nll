@@ -379,6 +379,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\compute-barycentre.h"
+				>
+			</File>
+			<File
 				RelativePath=".\features.h"
 				>
 			</File>
@@ -399,6 +403,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\test.h"
+				>
+			</File>
+			<File
 				RelativePath=".\types.h"
 				>
 			</File>
@@ -416,10 +424,6 @@
 		<Filter
 			Name="old"
 			>
-			<File
-				RelativePath=".\compute-barycentre.h"
-				>
-			</File>
 			<File
 				RelativePath=".\create-features.h"
 				>

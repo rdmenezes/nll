@@ -74,12 +74,16 @@ namespace core
       STATIC_ASSERT( VAL );
       Database ndat;
       for ( ui32 n = 0; n < dat.size(); ++n )
+      {
          for ( ui32 nn = 0; nn < types.size(); ++nn )
+         {
             if ( static_cast<ui32>( dat[ n ].type ) == types[ nn ] )
             {
                ndat.add( dat[ n ] );
                ndat[ ndat.size() - 1 ].type = static_cast<typename Database::Sample::Type>( newType );
             }
+         }
+      }
       return ndat;
    }
 

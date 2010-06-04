@@ -2,6 +2,7 @@
 #include "globals.h"
 #include <regionDetection/features.h>
 #include <regionDetection/read-result.h>
+#include <regionDetection/test.h>
 
 using namespace nll;
 using namespace nll::core;
@@ -177,15 +178,82 @@ struct TestRegion
       }*/
    }
 
-   void createSourceDataset()
+   void createDatasets()
    {
       RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      RegionResult::generateFeatureDatabase();
+   }
+
+   void learnMlp()
+   {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      Database haarDatabaseNormalized;
+      haarDatabaseNormalized.read( NORMALIZED_HAAR );
+
+      Classifier classifier;
+      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 20, 0.05, 15 ) );
+      classifier.test( haarDatabaseNormalized );
+   }
+
+   void learnSvm()
+   {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierSvm<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      Database haarDatabaseNormalized;
+      haarDatabaseNormalized.read( NORMALIZED_HAAR );
+
+      Classifier classifier;
+      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.001, 100 ) );
+      classifier.test( haarDatabaseNormalized );
+
+      testResult( &classifier );
+   }
+
+   void testResult( Classifier< Buffer1D<double> >* classifier )
+   {
+      TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
+      for ( ui32 n = static_cast<ui32>( NBCASES * 0.8 ); n < NBCASES; ++n )
+      {
+         Volume v;
+         bool loaded = loadSimpleFlatFile( datasets[ n ], v );
+         TESTER_ASSERT( loaded );
+
+         const std::string exportNmae = "c:/tmp/result-" + val2str( n ) + ".bmp";
+         Image<ui8> i = test.exportTest( v );
+/*
+         ui8 colors[ 4 ][ 3 ] = 
+         {
+            { 0, 0, 0},
+            { 255, 255, 255 },
+            { 255, 0, 0 },
+            { 0, 255, 0 }
+         };
+
+         ui32 min = std::min<ui32>( sliceTfm.sizex(), 10 );
+         ui32 max = std::min<ui32>( sliceTfm.sizex(), 20 );
+         for ( ui32 n = min; n < max; ++n )
+         {
+            ui8* p = i.point( nn, n );
+            p[ 0 ] = colors[ r[ n ] ][ 0 ];
+            p[ 1 ] = colors[ r[ n ] ][ 1 ];
+            p[ 2 ] = colors[ r[ n ] ][ 2 ];
+         }
+         */
+         writeBmp( i, exportNmae );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(testExtractSlice);
-TESTER_TEST(createSourceDataset);
+TESTER_TEST(createDatasets);
+//TESTER_TEST(learnMlp);
+TESTER_TEST(learnSvm);
 
 /*
 //TESTER_TEST(normalizeImageTest);
