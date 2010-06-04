@@ -21,6 +21,6 @@
 #define NORMALIZED_HAAR          DATA_PATH "haar-normalized.database"
 
 #define NBCASES                  62
-#define HAAR_FEATURE_SIZE        2048
+#define HAAR_FEATURE_SIZE        4048
 
 #endif

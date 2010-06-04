@@ -180,7 +180,7 @@ struct TestRegion
 
    void createDatasets()
    {
-      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       RegionResult::generateFeatureDatabase();
    }
 
@@ -208,7 +208,7 @@ struct TestRegion
       haarDatabaseNormalized.read( NORMALIZED_HAAR );
 
       Classifier classifier;
-      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.001, 100 ) );
+      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.005, 100 ) );
       classifier.test( haarDatabaseNormalized );
 
       testResult( &classifier );
