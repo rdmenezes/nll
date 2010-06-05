@@ -16,6 +16,7 @@ namespace detect
 {
    class RegionResult
    {
+   public:
       struct Result
       {
          ui32  id;
@@ -32,7 +33,7 @@ namespace detect
       typedef core::ClassificationSample<Point, ui32>    Sample;
       typedef core::Database<Sample>                     Database;
 
-      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase, ui32 sliceIncrement = 20 )
+      static std::vector<Result> readResults( const std::string& input_cfg )
       {
          std::ifstream f( input_cfg.c_str() );
          if ( !f.good() )
@@ -68,6 +69,15 @@ namespace detect
             std::getline( f, line );
             results.push_back( r );
          }
+
+         return results;
+      }
+
+      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase, ui32 sliceIncrement = 15 )
+      {
+         // read the cases
+         std::vector<Result> results = readResults( input_cfg );
+         
 
          // generate the database
          Database database;
@@ -110,6 +120,21 @@ namespace detect
             }
 
             {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart - 1 ) + "-neck.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].neckStart + 1, sliceName );
+               ui32 output = 1;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+            }
+
+            {
+               // the neck is often cut... so don't do it!
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart -2 ) + "-neck.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].neckStart + 2, sliceName );
+               ui32 output = 1;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+            }
+
+            {
                const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart ) + "-heart.bmp";
                Point input = _convert( volume, (ui32)results[ n ].heartStart, sliceName );
                ui32 output = 2;
@@ -117,8 +142,36 @@ namespace detect
             }
 
             {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart + 1 ) + "-heart.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].heartStart + 1, sliceName );
+               ui32 output = 2;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
+            }
+
+            {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 ) + "-heart.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].heartStart - 1, sliceName );
+               ui32 output = 2;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
+            }
+
+            {
                const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart ) + "-lung.bmp";
                Point input = _convert( volume, (ui32)results[ n ].lungStart, sliceName );
+               ui32 output = 3;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
+            }
+
+            {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 ) + "-lung.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].lungStart - 1, sliceName );
+               ui32 output = 3;
+               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
+            }
+
+            {
+               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart + 1 ) + "-lung.bmp";
+               Point input = _convert( volume, (ui32)results[ n ].lungStart + 1, sliceName );
                ui32 output = 3;
                database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
             }
@@ -177,8 +230,8 @@ namespace detect
                                core::generateUniformDistribution( 0, 1 ) );
             core::vector2d v2( core::generateUniformDistribution( 0, 1 ),
                                core::generateUniformDistribution( 0, 1 ) );
-            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 4.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of 4 pixels features
-                 fabs( v1[ 1 ] - v2[ 1 ] ) < 4.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
+            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 8.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of 4 pixels features
+                 fabs( v1[ 1 ] - v2[ 1 ] ) < 8.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
             {
                --n;
                continue;

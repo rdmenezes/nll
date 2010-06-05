@@ -9,6 +9,14 @@ using namespace nll::core;
 using namespace nll::algorithm;
 using namespace nll::detect;
 
+ui8 colors[ 4 ][ 3 ] = 
+{
+   { 0, 0, 0},
+   { 255, 255, 255 },
+   { 255, 0, 0 },
+   { 0, 255, 0 }
+};
+
 struct TestRegion
 {
    /*
@@ -184,6 +192,36 @@ struct TestRegion
       RegionResult::generateFeatureDatabase();
    }
 
+   // create a database for each volume, containing all raw MPR
+   void createVolumeDatabase()
+   {
+      typedef Buffer1D<ui8>         Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         std::cout << "processing case:" << n << std::endl;
+         Database dat;
+
+         Volume volume;
+         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume );
+         TESTER_ASSERT( loaded );
+
+         for ( ui32 nn = 0; nn < volume.size()[ 2 ]; ++nn )
+         {
+            core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                            volume.size()[ 1 ] / 2.0f,
+                                                                            static_cast<f32>( nn ) ) );
+            core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
+            dat.add( Database::Sample( mpr_xy, 0, Database::Sample::LEARNING ) );
+         }
+
+         dat.write( DATABASE_FULL_CASE( results[ n ].id ) );
+      }
+   }
+
    void learnMlp()
    {
       typedef Buffer1D<double>      Point;
@@ -208,12 +246,95 @@ struct TestRegion
       haarDatabaseNormalized.read( NORMALIZED_HAAR );
 
       Classifier classifier;
-      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.005, 100 ) );
+      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.002, 100 ) );
       classifier.test( haarDatabaseNormalized );
 
-      testResult( &classifier );
+      //testResult( &classifier );
+      testResultVolumeDatabase( &classifier );
    }
 
+   // create a XZ MPR for every volume
+   void createPreview()
+   {
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         std::cout << "generate preview id=" << results[ n ].id << std::endl;
+
+         Volume volume1;
+         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume1 );
+         TESTER_ASSERT( loaded );
+
+         Image<ui8> xz = extractXZ( volume1 );
+         extend( xz, 3 );
+         writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
+      }
+   }
+
+   // use the volume database (where each MPR is already computed) and export the result + ground truth
+   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier )
+   {
+      typedef Buffer1D<ui8>         Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+      
+
+      TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         std::cout << "test case database:" << n << std::endl;
+         Database dat;
+         dat.read( DATABASE_FULL_CASE( results[ n ].id ) );
+         Image<ui8> mprz;
+         readBmp( mprz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
+
+         
+         std::cout << "size im=" << mprz.sizey() << " dat=" << dat.size() << std::endl;
+
+         // export ground truth
+         std::cout << "write ground truth" << std::endl;
+         for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
+         {
+            ui8* p = mprz.point( nnn, (ui32)results[ n ].neckStart );
+            p[ 0 ] = colors[ 1 ][ 0 ];
+            p[ 1 ] = colors[ 1 ][ 1 ];
+            p[ 2 ] = colors[ 1 ][ 2 ];
+
+            p = mprz.point( nnn, (ui32)results[ n ].heartStart );
+            p[ 0 ] = colors[ 2 ][ 0 ];
+            p[ 1 ] = colors[ 2 ][ 1 ];
+            p[ 2 ] = colors[ 2 ][ 2 ];
+
+            p = mprz.point( nnn, (ui32)results[ n ].lungStart );
+            p[ 0 ] = colors[ 3 ][ 0 ];
+            p[ 1 ] = colors[ 3 ][ 1 ];
+            p[ 2 ] = colors[ 3 ][ 2 ];
+         }
+
+         std::cout << "export result" << std::endl;
+         for ( ui32 nn = 0; nn < dat.size(); ++nn )
+         {
+            Image<ui8> i( dat[ nn ].input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
+            Buffer1D<double> f = test.getFeatures( i );
+            ui32 r = classifier->test( f );
+
+
+            // mark result
+            for ( ui32 nnn = 0; nnn < std::min<ui32>( mprz.sizex(), 10 ); ++nnn )
+            {
+               ui8* p = mprz.point( nnn, nn );
+               p[ 0 ] = colors[ r ][ 0 ];
+               p[ 1 ] = colors[ r ][ 1 ];
+               p[ 2 ] = colors[ r ][ 2 ];
+            }
+         }
+
+         writeBmp( mprz, std::string( PREVIEW_CASE_MARK ) + val2str( results[ n ].id ) + ".bmp" );
+      }
+   }
+
+   // for all test, create a XZ MPR displaying the results
    void testResult( Classifier< Buffer1D<double> >* classifier )
    {
       TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
@@ -250,10 +371,13 @@ struct TestRegion
 };
 
 TESTER_TEST_SUITE(TestRegion);
-//TESTER_TEST(testExtractSlice);
-TESTER_TEST(createDatasets);
-//TESTER_TEST(learnMlp);
+//TESTER_TEST(createDatasets);
 TESTER_TEST(learnSvm);
+//TESTER_TEST(createVolumeDatabase);
+//TESTER_TEST(createPreview);
+
+//TESTER_TEST(learnMlp);
+//TESTER_TEST(testExtractSlice);
 
 /*
 //TESTER_TEST(normalizeImageTest);

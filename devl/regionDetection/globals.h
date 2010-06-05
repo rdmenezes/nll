@@ -10,8 +10,8 @@
 
 #define DATA_PATH "../../regionDetectionTest/data/"
 
-#define PREVIEW_CASE             DATA_PATH "/preview/xz-case-"
-#define PREVIEW_CASE_MARK        DATA_PATH "/preview-mark/xz-case-"
+#define PREVIEW_CASE             DATA_PATH "preview/xz-case-"
+#define PREVIEW_CASE_MARK        DATA_PATH "preview-mark/xz-case-"
 
 #define DATABASE_SOURCE          DATA_PATH "source.database"
 #define CASES_DESC               DATA_PATH "cases.txt"
@@ -19,8 +19,9 @@
 #define DATABASE_HAAR            DATA_PATH "haar.database"
 #define PREPROCESSING_HAAR       DATA_PATH "haar-preprocessing.bin"
 #define NORMALIZED_HAAR          DATA_PATH "haar-normalized.database"
+#define DATABASE_FULL_CASE(n)    ( DATA_PATH "rawmpr" + nll::core::val2str(n) + ".database" )
 
 #define NBCASES                  62
-#define HAAR_FEATURE_SIZE        4048
+#define HAAR_FEATURE_SIZE        4048 * 2
 
 #endif

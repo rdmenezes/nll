@@ -21,17 +21,31 @@ namespace detect
          _normalization.read( haarNormalization );
       }
 
+      /**
+       @brief returns the class ID for each slice of the volume
+       */
       std::vector<ui32> rawTest( const Volume& volume )
       {
          std::vector<ui32> results( volume.size()[ 2 ] );
          for ( ui32 n = 0; n < volume.size()[ 2 ]; ++n )
          {
-            Point features = _getFeatures( volume, n );
+            Point features = getFeatures( volume, n );
             results[ n ] = _classifier->test( features );
          }
          return results;
       }
 
+      /**
+       @param feature: haar normalized feature
+       */
+      ui32 rawTest( const Point& features )
+      {
+         return _classifier->test( features );
+      }
+
+      /**
+       @brief export on a XZ mpr the classification result
+       */
       core::Image<ui8> exportTest( const Volume& volume )
       {
          typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
@@ -108,19 +122,11 @@ namespace detect
          return sliceTfm;
       }
 
-
-
-
-   private:
-      Point _getFeatures( const Volume& volume, ui32 sliceIndex )
+      /**
+       @brief Create normalized haar features from raw mpr
+       */
+      Point getFeatures( core::Image<ui8>& mpr_xy )
       {
-         // extract MPR
-         core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
-                                                                         volume.size()[ 1 ] / 2.0f,
-                                                                         static_cast<f32>( sliceIndex ) ) );
-         core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
-         std::cout << "mpr_xy size=" << mpr_xy.sizex() << " " << mpr_xy.sizey() << std::endl;
-
          // convert to a f32 image
          Point sliceFeature( mpr_xy.size(), false );
          for ( ui32 n = 0; n < sliceFeature.size(); ++n )
@@ -133,8 +139,21 @@ namespace detect
          Point haarFeature = algorithm::Haar2dFeatures::process( _haar, mprf );
 
          // normalize
-         std::cout << "nb features=" << haarFeature.size() << std::endl;
          return _normalization.process( haarFeature );
+      }
+
+      /**
+       @brief Create normalized Haar features from a volume & slice index
+       */
+      Point getFeatures( const Volume& volume, ui32 sliceIndex )
+      {
+         // extract MPR
+         core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                         volume.size()[ 1 ] / 2.0f,
+                                                                         static_cast<f32>( sliceIndex ) ) );
+         core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
+         std::cout << "mpr_xy size=" << mpr_xy.sizex() << " " << mpr_xy.sizey() << std::endl;
+         return getFeatures( mpr_xy );
       }
 
    private:
