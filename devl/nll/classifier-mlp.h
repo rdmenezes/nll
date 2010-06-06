@@ -74,6 +74,12 @@ namespace algorithm
 
       virtual typename Base::Class test( const Point& p ) const
       {
+         core::Buffer1D<double> pb;
+         return test( p, pb );
+      }
+
+      virtual Output test( const Point& p, core::Buffer1D<double>& probability ) const
+      {
          assert( p.size() == _pmc.getInputSize() );
          core::Buffer1D<double> i( p.size() );
          for ( ui32 n = 0; n < _pmc.getInputSize(); ++n )
@@ -81,12 +87,23 @@ namespace algorithm
          core::Buffer1D<double> buf = _pmc.propagate( i );
          double maxp = INT_MIN;
          ui32 index = 0;
+         double sum = 1e-6;
          for ( ui32 n = 0; n < _pmc.getOutputSize(); ++n )
+         {
             if ( buf[ n ] > maxp )
             {
                maxp = buf[ n ];
                index = n;
             }
+            sum += buf[ n ];
+         }
+
+         probability = core::Buffer1D<double>( _pmc.getOutputSize() );
+         ensure( sum > 0, "error: probability error" );
+         for ( ui32 n = 0; n < _pmc.getOutputSize(); ++n )
+         {
+            probability[ n ] = buf[ n ] / sum;
+         }
          assert( !core::equal<double>( INT_MIN, maxp ) );
          return index;
       }

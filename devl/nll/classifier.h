@@ -8,6 +8,9 @@
 # include "types.h"
 # include "database.h"
 
+# pragma warning( push )
+# pragma warning( disable:4127 ) // conditional expression constant
+
 namespace nll
 {
 namespace algorithm
@@ -46,6 +49,16 @@ namespace algorithm
        */
       Classifier() : ClassifierBase()
       {}
+
+      /**
+        @return the class of a point
+        @param probability returns an array of the size equals the number of classes, returning the class probability
+        */
+      virtual Output test( const Point& /*p*/, core::Buffer1D<double>& /*probability*/ ) const
+      {
+         ensure( 0, "this classifier doesn't support this capability" );
+         return 0;
+      }
 
       /**
        @brief test a database and return some statistics on the database (supposing we have a dataset splitted in
@@ -232,5 +245,7 @@ namespace algorithm
       }
    };
 */
+
+# pragma warning( pop )
 
 #endif

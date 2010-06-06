@@ -80,6 +80,7 @@ namespace algorithm
          _kernelType = RBF;
 		   _model = 0;
          _vector = 0;
+         _nbClasses = 0;
       }
 
       /**
@@ -93,6 +94,7 @@ namespace algorithm
          c->_inputSize = _inputSize;
          c->_vector = 0;
          c->_crossValidationBin = this->_crossValidationBin;
+         c->_nbClasses = _nbClasses;
          return c;
       }
 
@@ -117,13 +119,31 @@ namespace algorithm
          unreachable("TODO implement");
       }
 
-      virtual typename Base::Class test( const Point& p ) const
+      virtual Output test( const Point& p ) const
+      {
+         core::Buffer1D<double> pb;
+         return test( p, pb );
+      }
+
+      virtual Output test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          assert( _model ); // "no svm model loaded"
          assert( _inputSize == p.size() );
          svm_node* i = implementation::build_svm_input_from_vector( p, _inputSize );
-		   f64 res = svm_predict( _model, i );
+
+         core::Buffer1D<double> pb( _nbClasses );
+		   f64 res = svm_predict_probability( _model, i, pb.getBuf() );
 		   delete [] i;
+
+         // normalize the probability
+         f64 sum = 1e-6;
+         for ( ui32 n = 0; n < pb.size(); ++n )
+            sum += pb[ n ];
+         ensure( sum > 0, "error: probability error" );
+         for ( ui32 n = 0; n < pb.size(); ++n )
+            pb[ n ] /= sum;
+
+         probability = pb;
 		   return static_cast<ui32>( res - 1 );
       }
 
@@ -146,6 +166,8 @@ namespace algorithm
 
 		   if ( dat.size() == 0 )
 			   return;
+         _nbClasses = getNumberOfClass( dat );
+
          _inputSize = dat[ 0 ].input.size();
 		   std::vector<ui32> learningIndex;
 		   for (ui32 n = 0; n < dat.size(); ++n)
@@ -217,6 +239,7 @@ namespace algorithm
 
       svm_node**  _vector;
       ui32        _vectorSize;
+      ui32        _nbClasses;
    };
 }
 }

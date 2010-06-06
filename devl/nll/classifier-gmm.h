@@ -87,6 +87,7 @@ namespace algorithm
          assert( ! core::equal<double>( likelihood_max, INT_MIN ) );
          return class_max;
       }
+
       /**
        @param parameters parameters of the learning phase 
               - parameters[ 0 ] = nbGaussians
