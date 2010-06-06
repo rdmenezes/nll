@@ -524,10 +524,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test-boosting.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\test-bracketing.cpp"
 				>
 				<FileConfiguration

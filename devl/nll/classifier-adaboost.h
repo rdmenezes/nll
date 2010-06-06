@@ -16,6 +16,9 @@ namespace algorithm
       virtual WeakClassifier<T>* create() const = 0;
    };
 
+   /**
+    @brief Factory creating a new instance of a MLP classifier
+    */
    template <class T>
    class FactoryClassifierMlp : public FactoryClassifier<T, ClassifierMlp>
    {
@@ -27,15 +30,16 @@ namespace algorithm
    };
 
 
-
+   /**
+    @brief Adaboost.M1 implementation for binary classification
+    @note see http://en.wikipedia.org/wiki/AdaBoost for implementation details
+    @param WeakClassifier it must be an instance of <code>Classifier</code>
+    */
    template <class T, template <typename> class WeakClassifier>
    class ClassifierAdaboostM1 : public Classifier<T>
    {
       typedef WeakClassifier<T>        BaseWeakLearner;
       typedef Classifier<T>            Base;
-
-   public:
-      typedef typename Base::Database  Database;
 
       struct WeakClassifierTest
       {
@@ -45,6 +49,10 @@ namespace algorithm
          double            alpha;
          BaseWeakLearner*  classifier;
       };
+
+   public:
+      typedef typename Base::Database  Database;
+
 
       // don't override these
       using Base::read;
@@ -63,6 +71,11 @@ namespace algorithm
       }
 
    public:
+      /**
+       @param factory the factory to create a new weak classifier, note that only a reference is taken and must be kept alive
+       @param nbWeakLearner the number of weak learner that will be created for the strong classifier
+       @param learningSubsetRate the size of learning database for each weak classifier
+       */
       ClassifierAdaboostM1( const Factory& factory, ui32 nbWeakLearner, f64 learningSubsetRate = 0.5 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
       {
       }
@@ -135,7 +148,6 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "ClassifierAdaboostM1::learn()" );
          ui32 nbClass = core::getNumberOfClass( dat );
          ensure(  nbClass == 2, "Adaboost M1 is only for binary classification problem" );
-         //ensure( parameters.size() == this->_parametersPrototype.size(), "Incorrect parameters." );
 
          // get the LEARNING sample only
          Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
