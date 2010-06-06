@@ -6,6 +6,10 @@ v0.12
 -added Allocator parameter for Matrix, Images & Buffer for specific allocators
 -added common operations on geometry (plane, box)
 -added affine transformation (volume resampling & MPR)
+-fixed adaboost classifier
+-added regression (MLP & SVR)
+-reduced dependencies between classifiers & feature processing
+-various interface imporments & bugfixes
 
 
 v0.11
