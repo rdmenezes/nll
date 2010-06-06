@@ -71,7 +71,8 @@ namespace algorithm
             core::write<TGmm>( _gmms[ n ], o );
       }
 
-      virtual typename Base::Class test( const Points& p ) const
+
+      virtual Output test( const Points& p ) const
       {
          double likelihood_max = INT_MIN;
          ui32 class_max = INT_MAX;
@@ -84,6 +85,35 @@ namespace algorithm
                likelihood_max = l;
             }
          }
+         assert( ! core::equal<double>( likelihood_max, INT_MIN ) );
+         return class_max;
+      }
+
+      virtual Output test( const Point& p, core::Buffer1D<double>& probability ) const
+      {
+         probability = core::Buffer1D<double>( (ui32)_gmms.size() );
+
+         double likelihood_max = INT_MIN;
+         double sum = 0;
+         ui32 class_max = INT_MAX;
+         for ( ui32 n = 0; n < _gmms.size(); ++n )
+         {
+            double l = _gmms[ n ].likelihood( p );
+            if ( l > likelihood_max )
+            {
+               class_max = n;
+               likelihood_max = l;
+            }
+
+            probability[ n ] = exp( l );
+            sum += probability[ n ];
+         }
+
+         ensure( sum > 0, "probability error" );
+         for ( ui32 n = 0; n < _gmms.size(); ++n )
+            probability[ n ] /= sum;
+
+
          assert( ! core::equal<double>( likelihood_max, INT_MIN ) );
          return class_max;
       }
