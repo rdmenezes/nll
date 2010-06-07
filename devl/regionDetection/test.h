@@ -74,22 +74,19 @@ namespace detect
             if ( maxPos[ id ] == -1 )
                continue;
 
-            ui32 nbSlices = 0;
             double renorm = 0;   // probability renormalisation factor
             for ( int n = maxPos[ id ]; n < (int)results.probabilities.size() && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; ++n )
             {
                maxFinalPos[ id ] += results.probabilities[ n ] * n;  // average
                renorm += results.probabilities[ n ];
-               ++nbSlices;
             }
-            for ( int n = maxPos[ id ] - 1; n >= 0 && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; ++n )
+            for ( int n = maxPos[ id ] - 1; n >= 0 && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; --n )
             {
                maxFinalPos[ id ] += results.probabilities[ n ] * n;  // average
                renorm += results.probabilities[ n ];
-               ++nbSlices;
             }
 
-            maxFinalPos[ id ] = maxFinalPos[ id ] / ( renorm * nbSlices );
+            maxFinalPos[ id ] = maxFinalPos[ id ] / ( renorm );
          }
 
          r.neckStart =  (ui32)maxFinalPos[ 1 ];

@@ -26,6 +26,6 @@
 #define REGISTRATION_INPUT       REGISTRATION_DATA_PATH "results-register-choice.txt"
 
 #define NBCASES                  62
-#define HAAR_FEATURE_SIZE        4048 * 2
+#define HAAR_FEATURE_SIZE        4096
 
 #endif

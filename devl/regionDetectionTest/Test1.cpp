@@ -101,7 +101,7 @@ struct TestRegion
       haarDatabaseNormalized.read( NORMALIZED_HAAR );
 
       Classifier classifier( 1 );
-      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.001, 50 ) );
+      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.0001, 100 ) );
       classifier.test( haarDatabaseNormalized );
 
       //testResult( &classifier );
@@ -132,11 +132,17 @@ struct TestRegion
       typedef Buffer1D<ui8>         Point;
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
+
+      ui32 nbCases = 0;
+      double errorNeck = 0;
+      double errorHeart = 0;
+      double errorLung = 0;
       
 
       TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
-      for ( int n = (int)results.size() - 1; n >= 0; --n )
+      //for ( int n = (int)results.size() - 1; n >= 0; --n )
+      for ( int n = 43; n < 54; ++n )
       {
          std::cout << "test case database:" << n << std::endl;
          Database dat;
@@ -205,26 +211,53 @@ struct TestRegion
 
          // compute the final result
          TestVolume::ResultFinal final = test.test( idresult );
+
+         if ( final.neckStart > 0 )
+            errorNeck  +=  fabs( results[ n ].neckStart - final.neckStart );
+
+         if ( final.heartStart > 0 )
+            errorHeart += fabs( results[ n ].heartStart - final.heartStart );
+         std::cout << "heart found:" << final.heartStart << " truth=" << results[ n ].heartStart << std::endl;
+
+         if ( final.lungStart > 0 )
+            errorLung  +=  fabs( results[ n ].lungStart - final.lungStart );
+         ++nbCases;
+
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
          {
-            ui8* p = mprz.point( nnn, final.neckStart );
-            p[ 0 ] = colors[ 1 ][ 0 ];
-            p[ 1 ] = colors[ 1 ][ 1 ];
-            p[ 2 ] = colors[ 1 ][ 2 ];
+            ui8* p = 0;
+            if ( final.neckStart > 0 && final.neckStart < mprz.sizey() )
+            {
+               p = mprz.point( nnn, final.neckStart );
+               p[ 0 ] = colors[ 1 ][ 0 ];
+               p[ 1 ] = colors[ 1 ][ 1 ];
+               p[ 2 ] = colors[ 1 ][ 2 ];
+            }
 
-            p = mprz.point( nnn, final.heartStart );
-            p[ 0 ] = colors[ 2 ][ 0 ];
-            p[ 1 ] = colors[ 2 ][ 1 ];
-            p[ 2 ] = colors[ 2 ][ 2 ];
+            if ( final.heartStart > 0  && final.heartStart < mprz.sizey() )
+            {
+               p = mprz.point( nnn, final.heartStart );
+               p[ 0 ] = colors[ 2 ][ 0 ];
+               p[ 1 ] = colors[ 2 ][ 1 ];
+               p[ 2 ] = colors[ 2 ][ 2 ];
+            }
 
-            p = mprz.point( nnn, final.lungStart );
-            p[ 0 ] = colors[ 3 ][ 0 ];
-            p[ 1 ] = colors[ 3 ][ 1 ];
-            p[ 2 ] = colors[ 3 ][ 2 ];
+            if ( final.lungStart > 0  && final.lungStart < mprz.sizey() )
+            {
+               p = mprz.point( nnn, final.lungStart );
+               p[ 0 ] = colors[ 3 ][ 0 ];
+               p[ 1 ] = colors[ 3 ][ 1 ];
+               p[ 2 ] = colors[ 3 ][ 2 ];
+            }
          }
 
          writeBmp( mprz, std::string( PREVIEW_CASE_MARK ) + val2str( results[ n ].id ) + ".bmp" );
       }
+
+      std::cout << "mean error in slice:" << std::endl
+                << "neck:"  <<( errorNeck  / nbCases ) << std::endl
+                << "heart:" <<( errorHeart / nbCases ) << std::endl
+                << "lung:"  <<( errorLung  / nbCases ) << std::endl;
    }
 
    /*
