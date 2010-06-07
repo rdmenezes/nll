@@ -144,6 +144,11 @@ struct TestRegion
          Image<ui8> mprz;
          readBmp( mprz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
 
+
+         TestVolume::Result idresult;
+         idresult.sliceIds = std::vector<ui32>( mprz.sizey() );
+         idresult.probabilities = std::vector<f64>( mprz.sizey() );
+
          
          std::cout << "size im=" << mprz.sizey() << " dat=" << dat.size() << std::endl;
 
@@ -179,6 +184,8 @@ struct TestRegion
 
             f64 proba = 0;
             ui32 r = test.rawTest( f, proba );
+            idresult.sliceIds[ nn ] = r;
+            idresult.probabilities[ nn ] = proba;
 
             setColorIntensity( 0, proba );
             setColorIntensity( 1, proba );
@@ -194,6 +201,26 @@ struct TestRegion
                p[ 1 ] = colors[ r ][ 1 ];
                p[ 2 ] = colors[ r ][ 2 ];
             }
+         }
+
+         // compute the final result
+         TestVolume::ResultFinal final = test.test( idresult );
+         for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
+         {
+            ui8* p = mprz.point( nnn, final.neckStart );
+            p[ 0 ] = colors[ 1 ][ 0 ];
+            p[ 1 ] = colors[ 1 ][ 1 ];
+            p[ 2 ] = colors[ 1 ][ 2 ];
+
+            p = mprz.point( nnn, final.heartStart );
+            p[ 0 ] = colors[ 2 ][ 0 ];
+            p[ 1 ] = colors[ 2 ][ 1 ];
+            p[ 2 ] = colors[ 2 ][ 2 ];
+
+            p = mprz.point( nnn, final.lungStart );
+            p[ 0 ] = colors[ 3 ][ 0 ];
+            p[ 1 ] = colors[ 3 ][ 1 ];
+            p[ 2 ] = colors[ 3 ][ 2 ];
          }
 
          writeBmp( mprz, std::string( PREVIEW_CASE_MARK ) + val2str( results[ n ].id ) + ".bmp" );

@@ -16,6 +16,20 @@ namespace detect
          std::vector<f64>     probabilities;
       };
 
+      struct ResultFinal
+      {
+         ResultFinal()
+         {
+            neckStart = -1;
+            heartStart = -1;
+            lungStart = -1;
+         }
+
+         int   neckStart;
+         int   heartStart;
+         int   lungStart;
+      };
+
       typedef core::Buffer1D<double>                                 Point;
       typedef algorithm::Classifier<Point>                           Classifier;
       typedef algorithm::FeatureTransformationNormalization<Point>   Normalization;
@@ -25,6 +39,63 @@ namespace detect
          _classifier = classifier;
          algorithm::Haar2dFeatures::read( _haar, haarFeatures );
          _normalization.read( haarNormalization );
+      }
+
+      /**
+       @brief from a set of slice results, guess the real locations
+       */
+      ResultFinal test( const Result& results )
+      {
+         ResultFinal r;
+
+         core::Buffer1D<double>  max( 4 );
+         core::Buffer1D<int>     maxPos( 4 );
+         for ( ui32 n = 0; n < 4; ++n )
+            maxPos[ n ] = -1;
+
+         // select the highest probability
+         for ( ui32 n = 0; n < results.probabilities.size(); ++n )
+         {
+            for ( ui32 nn = 0; nn < 4; ++nn )
+            {
+               if ( results.probabilities[ n ] > max[ results.sliceIds[ n ] ] )
+               {
+                  max[ results.sliceIds[ n ] ] = results.probabilities[ n ];
+                  maxPos[ results.sliceIds[ n ] ] = n;
+               }
+            }
+         }
+
+         core::Buffer1D<double>     maxFinalPos( 4 );
+         // then average with contiguous slices with same ID
+         for ( ui32 id = 1; id < 4; ++id )
+         {
+            // haven't found any, just skip this label
+            if ( maxPos[ id ] == -1 )
+               continue;
+
+            ui32 nbSlices = 0;
+            double renorm = 0;   // probability renormalisation factor
+            for ( int n = maxPos[ id ]; n < (int)results.probabilities.size() && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; ++n )
+            {
+               maxFinalPos[ id ] += results.probabilities[ n ] * n;  // average
+               renorm += results.probabilities[ n ];
+               ++nbSlices;
+            }
+            for ( int n = maxPos[ id ] - 1; n >= 0 && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; ++n )
+            {
+               maxFinalPos[ id ] += results.probabilities[ n ] * n;  // average
+               renorm += results.probabilities[ n ];
+               ++nbSlices;
+            }
+
+            maxFinalPos[ id ] = maxFinalPos[ id ] / ( renorm * nbSlices );
+         }
+
+         r.neckStart =  (ui32)maxFinalPos[ 1 ];
+         r.heartStart = (ui32)maxFinalPos[ 2 ];
+         r.lungStart =  (ui32)maxFinalPos[ 3 ];
+         return r;
       }
 
       /**
