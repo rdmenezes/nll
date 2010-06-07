@@ -76,7 +76,7 @@ namespace algorithm
        @param nbWeakLearner the number of weak learner that will be created for the strong classifier
        @param learningSubsetRate the size of learning database for each weak classifier
        */
-      ClassifierAdaboostM1( const Factory& factory, ui32 nbWeakLearner, f64 learningSubsetRate = 0.5 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
+      ClassifierAdaboostM1( const Factory& factory, ui32 nbWeakLearner, f64 learningSubsetRate = 0.3 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
       {
       }
 
@@ -176,47 +176,53 @@ namespace algorithm
             weak->learn( subset, parameters );
 
             std::vector<Output> res( subset.size() );
-            ui32 nbErrors = 0;
+            double eps = 0;
             for ( ui32 nn = 0; nn < subset.size(); ++nn )
             {
                res[ nn ] = weak->test( subset[ nn ].input );
                if ( res[ nn ] != subset[ nn ].output )
-                  ++nbErrors;
+               {
+                  eps += distribution[ samplingIndexes[ nn ] ];
+               }
             }
-            double eps = static_cast<double>( nbErrors ) / subset.size();
 
             std::stringstream ss;
             ss << "weak classifier:" << n << " learning error rate=" << eps;
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
 
-            ensure( eps < 0.5, "must be < 0.5" );
-            double alpha_t = 0.5 * log( ( 1.0 - eps ) / ( eps + 1e-4 ) ) / log( 10.0 );
-
-            // update the distribution
-            for ( ui32 nn = 0; nn < samplingIndexes.size(); ++nn )
+            if ( eps < 0.5 )
             {
-               if ( res[ nn ] != subset[ nn ].output )
+               double alpha_t = 0.5 * log( ( 1.0 - eps ) / ( eps + 1e-4 ) ) / log( 10.0 );
+
+               // update the distribution
+               for ( ui32 nn = 0; nn < samplingIndexes.size(); ++nn )
                {
-                  distribution[ samplingIndexes[ nn ] ] *= exp( alpha_t );
-               } else {
-                  distribution[ samplingIndexes[ nn ] ] *= exp( -alpha_t );
+                  if ( res[ nn ] != subset[ nn ].output )
+                  {
+                     distribution[ samplingIndexes[ nn ] ] *= exp( alpha_t );
+                  } else {
+                     distribution[ samplingIndexes[ nn ] ] *= exp( -alpha_t );
+                  }
                }
-            }
 
-            double sum = 0;
-            for ( ui32 nn = 0; nn < distribution.size(); ++nn )
-            {
-               sum += distribution[ nn ];
-            }
+               double sum = 0;
+               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               {
+                  sum += distribution[ nn ];
+               }
 
-            // renormalize the distribution
-            ensure( sum > 0, "must be > 0" );
-            for ( ui32 nn = 0; nn < distribution.size(); ++nn )
-            {
-               distribution[ nn ] /= sum;
-            }
+               // renormalize the distribution
+               ensure( sum > 0, "must be > 0" );
+               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               {
+                  distribution[ nn ] /= sum;
+               }
 
-            _weakClassifiers.push_back( WeakClassifierTest( weak, alpha_t ) );
+               _weakClassifiers.push_back( WeakClassifierTest( weak, alpha_t ) );
+            } else {
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "weak classifier's error is too large, reduced to=" + core::val2str( n ) );
+               break;
+            }
          }
       }
 

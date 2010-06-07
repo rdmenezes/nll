@@ -9,16 +9,16 @@ class TestBoosting
 public:
    void test1()
    {
-      srand( 0 );
+      srand( 2 );
       typedef Buffer1D<double>   Point;
       typedef ClassifierAdaboostM1<Point, ClassifierMlp >  Boosting;
 
       FactoryClassifierMlp<Point> factory;
 
-      Boosting boosting( factory, 30, 0.5 );
+      Boosting boosting( factory, 20, 0.3 );
       Boosting::Database dat = loadDatabaseSpect<Point>();
 
-      boosting.learn( dat, nll::core::make_buffer1D<double>( 2, 0.1, 0.1 ) );
+      boosting.learn( dat, nll::core::make_buffer1D<double>( 4, 0.1, 0.2 ) );
       Boosting::Result r = boosting.test( dat );
       TESTER_ASSERT( r.learningError < 0.15 );
       TESTER_ASSERT( r.testingError < 0.25 );
