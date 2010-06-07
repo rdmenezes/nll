@@ -75,12 +75,17 @@ namespace algorithm
       }
 
    public:
-      ClassifierSvm() : Base( buildParameters() )
+      /**
+       @param createProbabilityModel this enable the probability computation that is used by <code>test(p, probabilities)</code>
+              if not set to 1, this will return 0
+       */
+      ClassifierSvm( bool createProbabilityModel = 0 ) : Base( buildParameters() )
       {
          _kernelType = RBF;
 		   _model = 0;
          _vector = 0;
          _nbClasses = 0;
+         _createProbabilityModel = createProbabilityModel;
       }
 
       /**
@@ -136,7 +141,7 @@ namespace algorithm
 		   delete [] i;
 
          // normalize the probability
-         f64 sum = 1e-6;
+         f64 sum = 1e-15;
          for ( ui32 n = 0; n < pb.size(); ++n )
             sum += pb[ n ];
          ensure( sum > 0, "error: probability error" );
@@ -206,7 +211,7 @@ namespace algorithm
 		   param.eps = 1e-3;
 		   param.p = 0.1;
 		   param.shrinking = 1;
-		   param.probability = 0;
+		   param.probability = _createProbabilityModel;
 		   param.nr_weight = 0;
 		   param.weight_label = NULL;
 		   param.weight = NULL;
@@ -240,6 +245,7 @@ namespace algorithm
       svm_node**  _vector;
       ui32        _vectorSize;
       ui32        _nbClasses;
+      ui32        _createProbabilityModel;
    };
 }
 }

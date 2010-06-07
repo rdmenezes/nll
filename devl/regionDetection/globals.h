@@ -8,10 +8,12 @@
 #define REGION_DETECTION_SOURCE_IMG_X  100
 #define REGION_DETECTION_SOURCE_IMG_Y  ( static_cast<ui32>( REGION_DETECTION_SOURCE_IMG_X / 1.5 ) )
 
-#define DATA_PATH "../../regionDetectionTest/data/"
+#define DATA_PATH                "../../regionDetectionTest/data/"
+#define REGISTRATION_DATA_PATH   "D:/Devel/RegionDetectionAlgorithm/data/"
 
 #define PREVIEW_CASE             DATA_PATH "preview/xz-case-"
 #define PREVIEW_CASE_MARK        DATA_PATH "preview-mark/xz-case-"
+#define PREVIEW_CASE_REG         DATA_PATH "preview-registration/xz-case-"
 
 #define DATABASE_SOURCE          DATA_PATH "source.database"
 #define CASES_DESC               DATA_PATH "cases.txt"
@@ -20,6 +22,8 @@
 #define PREPROCESSING_HAAR       DATA_PATH "haar-preprocessing.bin"
 #define NORMALIZED_HAAR          DATA_PATH "haar-normalized.database"
 #define DATABASE_FULL_CASE(n)    ( DATA_PATH "rawmpr" + nll::core::val2str(n) + ".database" )
+
+#define REGISTRATION_INPUT       REGISTRATION_DATA_PATH "results-register-choice.txt"
 
 #define NBCASES                  62
 #define HAAR_FEATURE_SIZE        4048 * 2

@@ -11,165 +11,34 @@ using namespace nll::detect;
 
 ui8 colors[ 4 ][ 3 ] = 
 {
-   { 0, 0, 0},
-   { 255, 255, 255 },
+   { 255, 255, 255},
+   { 0, 0, 255 },
    { 255, 0, 0 },
    { 0, 255, 0 }
 };
 
+ui8 colors_src[ 4 ][ 3 ] = 
+{
+   { 255, 255, 255},
+   { 0, 0, 255 },
+   { 255, 0, 0 },
+   { 0, 255, 0 }
+};
+
+void setColorIntensity( ui32 index, double val )
+{
+   colors[ index ][ 0 ] = (ui8)( colors_src[ index ][ 0 ] * val );
+   colors[ index ][ 1 ] = (ui8)( colors_src[ index ][ 1 ] * val );
+   colors[ index ][ 2 ] = (ui8)( colors_src[ index ][ 2 ] * val );
+}
+
 struct TestRegion
 {
-   /*
-   void normalizeImageTest()
-   {
-      for ( ui32 n = 1; n < NBCASES; ++n )
-      {
-         std::cout << "case=" << n << std::endl;
-         Volume volume1;
-         bool loaded = loadSimpleFlatFile( datasets[ n ], volume1 );
-         TESTER_ASSERT( loaded );
-         
-         std::vector< Image<ui8> > images = normalizeImage( volume1 );
-
-
-         writeBmp( images[ 0 ], std::string( "c:/tmp/mpr-1-" ) + val2str( n ) + ".bmp" );
-         writeBmp( images[ 1 ], std::string( "c:/tmp/mpr-2-" ) + val2str( n ) + ".bmp" );
-      }
-   }
-
-   void createSourceDataset()
-   {
-      RegionResult::generateSourceDatabase( DATA_PATH "cases.txt", DATABASE_SOURCE );
-   }
-
-   void createPcaDatabase()
-   {
-      RegionResult::Database dat;
-      dat.read( DATABASE_SOURCE );
-
-      typedef RegionResult::Database::Sample Sample;
-      typedef Sample::Input                  Point;
-      typedef Buffer1D<Point>                Points;
-
-      // create the PCA input
-      Points points( dat.size() );
-      for ( ui32 n = 0; n < dat.size(); ++n )
-      {
-         points[ n ] = dat[n].input;
-      }
-      PrincipalComponentAnalysis<Points> pca( REGION_DETECTION_PCA_SIZE );
-      pca.compute( points );
-      pca.write( PCA_ENGINE_PATH );
-
-      // transform the database
-      RegionResult::Database datPca;
-      for ( ui32 n = 0; n < dat.size(); ++n )
-      {
-         Sample s = dat[ n ];
-         s.input = pca.process( s.input );
-         datPca.add( s );
-      }
-
-      datPca.write( DATABASE_PCA );
-   }
-
-   void testLearning()
-   {
-      srand(time(0));
-      RegionResult::Database dat;
-      dat.read( DATABASE_PCA );
-      std::cout << "dat loaded" << std::endl;
-
-      std::cout << "dim=" << dat[0].output.size() << std::endl;
-
-      typedef Mlp<FunctionSimpleDifferenciableSigmoid> Mlp;
-      Mlp mlp( make_vector<ui32>( REGION_DETECTION_PCA_SIZE, 15, 3 ) );
-
-      StopConditionMlpThreshold stopCondition( 1, -1, -1, -1 );
-      mlp.learn( dat, stopCondition, 0.05f );
-      mlp.write( NN_ENGINE_PATH );
-   }
-
-
-   void createPreview()
-   {
-      for ( ui32 n = 52; n < NBCASES; ++n )
-      {
-         std::cout << "generate preview:" << n << std::endl;
-
-         Volume volume1;
-         bool loaded = loadSimpleFlatFile( datasets[ n ], volume1 );
-         TESTER_ASSERT( loaded );
-
-         Image<ui8> xz, yz;
-         
-         extractMpr( volume1, xz, yz );
-
-
-         writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( n ) + ".bmp" );
-      }
-   }
-
-
-   void createPreviewMark()
-   {
-      std::cout << "reading engines..." << std::endl;
-
-      typedef Mlp<FunctionSimpleDifferenciableSigmoid> Mlp;
-      Mlp mlp;
-      mlp.read( NN_ENGINE_PATH );
-      
-      RegionResult::Database dat;
-      dat.read( DATABASE_PCA );
-
-      const ui8 green[ 3 ] = { 0, 255, 0 };
-
-      for ( ui32 n = 0; n < dat.size(); ++n )
-      {
-         std::cout << "generate results:" << n << " " << string_from_Buffer1D( dat[ n ].debug ) << std::endl;
-
-         Image<ui8> mpr;
-         readBmp( mpr, std::string( PREVIEW_CASE ) + val2str( n ) + ".bmp" );
-         const core::Buffer1D<double>& result = mlp.propagate( dat[ n ].input );
-         
-         ui32 neck = static_cast<ui32>( mpr.sizey() * result[ 0 ] );
-         ui32 neckg = static_cast<ui32>( mpr.sizey() * dat[ n ].output[ 0 ] );
-         if ( neckg >= mpr.sizey() )
-            neckg = mpr.sizey() - 1;
-         for ( ui32 nn = 0; nn < mpr.sizex(); ++nn )
-         {
-            mpr.setPixel( nn, neck, Image<ui8>::white() );
-            mpr.setPixel( nn, neckg, green );
-         }
-
-         ui32 heart = static_cast<ui32>( mpr.sizey() * result[ 1 ] );
-         ui32 heartg = static_cast<ui32>( mpr.sizey() * dat[ n ].output[ 1 ] );
-         if ( heartg >= mpr.sizey() )
-            heartg = mpr.sizey() - 1;
-         for ( ui32 nn = 0; nn < mpr.sizex(); ++nn )
-         {
-            mpr.setPixel( nn, heart, Image<ui8>::red() );
-            mpr.setPixel( nn, heartg, green );
-         }
-
-         ui32 lung = static_cast<ui32>( mpr.sizey() * result[ 2 ] );
-         ui32 lungg = static_cast<ui32>( mpr.sizey() * dat[ n ].output[ 2 ] );
-         if ( lungg >= mpr.sizey() )
-            lungg = mpr.sizey() - 1;
-         for ( ui32 nn = 0; nn < mpr.sizex(); ++nn )
-         {
-            mpr.setPixel( nn, lung, Image<ui8>::blue() );
-            mpr.setPixel( nn, lungg, green );
-         }
-
-         writeBmp( mpr, PREVIEW_CASE_MARK + val2str( n ) + ".bmp" );
-      }
-   }
-   */
-
+   
+/*
    void testExtractSlice()
    {
-      /*
+      
       for ( ui32 n = 0; n < 5; ++n )
       {
          std::cout << "case=" << n << std::endl;
@@ -183,8 +52,8 @@ struct TestRegion
 
          core::extend( image, 3 );
          writeBmp( image, std::string( "c:/tmp/mpr-1-" ) + val2str( n ) + ".bmp" );
-      }*/
-   }
+      }
+   }*/
 
    void createDatasets()
    {
@@ -222,20 +91,6 @@ struct TestRegion
       }
    }
 
-   void learnMlp()
-   {
-      typedef Buffer1D<double>      Point;
-      typedef ClassifierMlp<Point>  Classifier;
-      typedef Classifier::Database  Database;
-
-      Database haarDatabaseNormalized;
-      haarDatabaseNormalized.read( NORMALIZED_HAAR );
-
-      Classifier classifier;
-      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 20, 0.05, 15 ) );
-      classifier.test( haarDatabaseNormalized );
-   }
-
    void learnSvm()
    {
       typedef Buffer1D<double>      Point;
@@ -245,8 +100,8 @@ struct TestRegion
       Database haarDatabaseNormalized;
       haarDatabaseNormalized.read( NORMALIZED_HAAR );
 
-      Classifier classifier;
-      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.002, 100 ) );
+      Classifier classifier( 1 );
+      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.001, 50 ) );
       classifier.test( haarDatabaseNormalized );
 
       //testResult( &classifier );
@@ -281,7 +136,7 @@ struct TestRegion
 
       TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
-      for ( ui32 n = 0; n < results.size(); ++n )
+      for ( int n = (int)results.size() - 1; n >= 0; --n )
       {
          std::cout << "test case database:" << n << std::endl;
          Database dat;
@@ -294,6 +149,10 @@ struct TestRegion
 
          // export ground truth
          std::cout << "write ground truth" << std::endl;
+         setColorIntensity( 0, 1 );
+         setColorIntensity( 1, 1 );
+         setColorIntensity( 2, 1 );
+         setColorIntensity( 3, 1 );
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
          {
             ui8* p = mprz.point( nnn, (ui32)results[ n ].neckStart );
@@ -317,9 +176,16 @@ struct TestRegion
          {
             Image<ui8> i( dat[ nn ].input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
             Buffer1D<double> f = test.getFeatures( i );
-            ui32 r = classifier->test( f );
 
+            f64 proba = 0;
+            ui32 r = test.rawTest( f, proba );
 
+            setColorIntensity( 0, proba );
+            setColorIntensity( 1, proba );
+            setColorIntensity( 2, proba );
+            setColorIntensity( 3, proba );
+
+            
             // mark result
             for ( ui32 nnn = 0; nnn < std::min<ui32>( mprz.sizex(), 10 ); ++nnn )
             {
@@ -334,6 +200,7 @@ struct TestRegion
       }
    }
 
+   /*
    // for all test, create a XZ MPR displaying the results
    void testResult( Classifier< Buffer1D<double> >* classifier )
    {
@@ -346,45 +213,141 @@ struct TestRegion
 
          const std::string exportNmae = "c:/tmp/result-" + val2str( n ) + ".bmp";
          Image<ui8> i = test.exportTest( v );
-/*
-         ui8 colors[ 4 ][ 3 ] = 
-         {
-            { 0, 0, 0},
-            { 255, 255, 255 },
-            { 255, 0, 0 },
-            { 0, 255, 0 }
-         };
 
-         ui32 min = std::min<ui32>( sliceTfm.sizex(), 10 );
-         ui32 max = std::min<ui32>( sliceTfm.sizex(), 20 );
-         for ( ui32 n = min; n < max; ++n )
-         {
-            ui8* p = i.point( nn, n );
-            p[ 0 ] = colors[ r[ n ] ][ 0 ];
-            p[ 1 ] = colors[ r[ n ] ][ 1 ];
-            p[ 2 ] = colors[ r[ n ] ][ 2 ];
-         }
-         */
          writeBmp( i, exportNmae );
       }
+   }*/
+
+   int findIndexFromId( const std::vector<RegionResult::Result>& results, ui32 id )
+   {
+      for ( size_t n = 0; n < results.size(); ++n )
+      {
+         if ( results[ n ].id == id )
+            return (int)n;
+      }
+      return -1;
+   }
+
+   void registrationExport()
+   {
+      std::vector<RegionResult::Result> resultsReg = RegionResult::readResults( REGISTRATION_INPUT );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+
+      double errorNeck = 0;
+      double errorLung = 0;
+      double errorHeart = 0;
+      for ( ui32 n = 0; n < resultsReg.size(); ++n )
+      {
+         Image<ui8> mprz;
+         readBmp( mprz, std::string( PREVIEW_CASE ) + val2str( resultsReg[ n ].id ) + ".bmp" );
+
+         
+         // result found
+         for ( ui32 nnn = 0; nnn < std::min<ui32>( mprz.sizex(), 10 ); ++nnn )
+         {
+            ui8* p = mprz.point( nnn, (ui32)resultsReg[ n ].neckStart );
+            p[ 0 ] = colors[ 1 ][ 0 ];
+            p[ 1 ] = colors[ 1 ][ 1 ];
+            p[ 2 ] = colors[ 1 ][ 2 ];
+
+            p = mprz.point( nnn, (ui32)resultsReg[ n ].heartStart );
+            p[ 0 ] = colors[ 2 ][ 0 ];
+            p[ 1 ] = colors[ 2 ][ 1 ];
+            p[ 2 ] = colors[ 2 ][ 2 ];
+
+            p = mprz.point( nnn, (ui32)resultsReg[ n ].lungStart );
+            p[ 0 ] = colors[ 3 ][ 0 ];
+            p[ 1 ] = colors[ 3 ][ 1 ];
+            p[ 2 ] = colors[ 3 ][ 2 ];
+         }
+         
+         // ground truth
+         ui32 id = findIndexFromId( results, resultsReg[ n ].id );   // look up the ID from the gound thruth
+         for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
+         {
+            ui8* p = 0;
+            if ( (ui32)results[ id ].neckStart < mprz.sizey() && results[ id ].neckStart >= 0 )
+            {
+               p = mprz.point( nnn, (ui32)results[ id ].neckStart );
+               p[ 0 ] = colors[ 1 ][ 0 ];
+               p[ 1 ] = colors[ 1 ][ 1 ];
+               p[ 2 ] = colors[ 1 ][ 2 ];
+            }
+
+            p = mprz.point( nnn, (ui32)results[ id ].heartStart );
+            p[ 0 ] = colors[ 2 ][ 0 ];
+            p[ 1 ] = colors[ 2 ][ 1 ];
+            p[ 2 ] = colors[ 2 ][ 2 ];
+
+            p = mprz.point( nnn, (ui32)results[ id ].lungStart );
+            p[ 0 ] = colors[ 3 ][ 0 ];
+            p[ 1 ] = colors[ 3 ][ 1 ];
+            p[ 2 ] = colors[ 3 ][ 2 ];
+         }
+
+         errorNeck +=  fabs( results[ id ].neckStart - resultsReg[ n ].neckStart );
+         errorHeart += fabs( results[ id ].heartStart - resultsReg[ n ].heartStart );
+         errorLung +=  fabs( results[ id ].lungStart - resultsReg[ n ].lungStart );
+         
+         writeBmp( mprz, std::string( PREVIEW_CASE_REG ) + val2str( resultsReg[ n ].id ) + ".bmp" );
+      }
+
+      std::cout << "mean error in slice:" << std::endl
+                << "neck:"  <<( errorNeck  / resultsReg.size() ) << std::endl
+                << "heart:" <<( errorHeart / resultsReg.size() ) << std::endl
+                << "lung:"  <<( errorLung  / resultsReg.size() ) << std::endl;
+   }
+
+   void test()
+   {
+      Volume testVol;
+      bool loaded = loadSimpleFlatFile( DATA_PATH "case2.mf2", testVol );
+      TESTER_ASSERT( loaded );
+
+      Volume refVol;
+      loaded = loadSimpleFlatFile( DATA_PATH "case1.mf2", refVol );
+      TESTER_ASSERT( loaded );
+
+      std::cout << "origin_test=" << testVol.getOrigin()[ 0 ] << " " << testVol.getOrigin()[ 1 ] << " " << testVol.getOrigin()[ 2 ] << std::endl;
+
+      core::Matrix<double> reg(4, 4);
+      reg( 0, 0 ) = 1.14;
+      reg( 0, 1 ) = 0.02;
+      reg( 0, 2 ) = -0.0015;
+      reg( 0, 3 ) = 8.377;
+
+      reg( 1, 0 ) = -0.0225;
+      reg( 1, 1 ) = 1.2237;
+      reg( 1, 2 ) = -0.0044;
+      reg( 1, 3 ) = -2.3748;
+
+      reg( 2, 0 ) = 0.0059;
+      reg( 2, 1 ) = 0.0167;
+      reg( 2, 2 ) = 0.9741;
+      reg( 2, 3 ) = -164.4553;
+
+      reg( 3, 0 ) = 0;
+      reg( 3, 1 ) = 0;
+      reg( 3, 2 ) = 0;
+      reg( 3, 3 ) = 1.0;
+
+      vector3f posmm = testVol.indexToPosition( core::vector3f( 0, 0, 340.0 ) );
+      std::cout << "posmm=" << posmm[ 0 ] << " " << posmm[ 1 ] << " " << posmm[ 2 ] << std::endl;
+      vector3f posmmt = transf4( reg, posmm );
+      std::cout << "posmmt=" << posmmt[ 0 ] << " " << posmmt[ 1 ] << " " << posmmt[ 2 ] << std::endl;
+      vector3f index = refVol.positionToIndex( posmmt );
+      std::cout << "index=" << index[ 0 ] << " " << index[ 1 ] << " " << index[ 2 ] << std::endl;
    }
 };
 
 TESTER_TEST_SUITE(TestRegion);
-//TESTER_TEST(createDatasets);
-TESTER_TEST(learnSvm);
+
+TESTER_TEST(createDatasets);
 //TESTER_TEST(createVolumeDatabase);
 //TESTER_TEST(createPreview);
+TESTER_TEST(learnSvm);
 
-//TESTER_TEST(learnMlp);
-//TESTER_TEST(testExtractSlice);
 
-/*
-//TESTER_TEST(normalizeImageTest);
-//TESTER_TEST(createSourceDataset);
-TESTER_TEST(createPcaDatabase);
-TESTER_TEST(testLearning);
-//TESTER_TEST(createPreview);
-TESTER_TEST(createPreviewMark);
-*/
+//TESTER_TEST(registrationExport);
+//TESTER_TEST(test);
 TESTER_TEST_SUITE_END();

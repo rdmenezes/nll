@@ -50,19 +50,19 @@ namespace detect
             sscanf( line.c_str(), "case%u:", &r.id );
 
             std::getline( f, line );
-            unsigned int n1;
-            unsigned int n2;
-            sscanf( line.c_str(), "neck:%u:%u", &n1, &n2 );
+            float n1;
+            float n2;
+            sscanf( line.c_str(), "neck:%f:%f", &n1, &n2 );
             r.neckStart = static_cast<float>( n1 );
             r.neckEnd = static_cast<float>( n2 );
 
             std::getline( f, line );
-            sscanf( line.c_str(), "heart:%u:%u", &n1, &n2 );
+            sscanf( line.c_str(), "heart:%f:%f", &n1, &n2 );
             r.heartStart = static_cast<float>( n1 );
             r.heartEnd = static_cast<float>( n2 );
 
             std::getline( f, line );
-            sscanf( line.c_str(), "lung:%u:%u", &n1, &n2 );
+            sscanf( line.c_str(), "lung:%f:%f", &n1, &n2 );
             r.lungStart = static_cast<float>( n1 );
             r.lungEnd = static_cast<float>( n2 );
 

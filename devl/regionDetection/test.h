@@ -10,6 +10,12 @@ namespace detect
    class TestVolume
    {
    public:
+      struct Result
+      {
+         std::vector<ui32>    sliceIds;
+         std::vector<f64>     probabilities;
+      };
+
       typedef core::Buffer1D<double>                                 Point;
       typedef algorithm::Classifier<Point>                           Classifier;
       typedef algorithm::FeatureTransformationNormalization<Point>   Normalization;
@@ -24,23 +30,32 @@ namespace detect
       /**
        @brief returns the class ID for each slice of the volume
        */
-      std::vector<ui32> rawTest( const Volume& volume )
+      Result rawTest( const Volume& volume )
       {
-         std::vector<ui32> results( volume.size()[ 2 ] );
+         Result results;
+         std::vector<ui32> ids( volume.size()[ 2 ] );
+         std::vector<f64> pbs( volume.size()[ 2 ] );
          for ( ui32 n = 0; n < volume.size()[ 2 ]; ++n )
          {
+            core::Buffer1D<double> pb;
             Point features = getFeatures( volume, n );
-            results[ n ] = _classifier->test( features );
+            ids[ n ] = _classifier->test( features, pb );
+            pbs[ n ] = pb[ ids[ n ] ];
          }
+         results.sliceIds = ids;
+         results.probabilities = pbs;
          return results;
       }
 
       /**
        @param feature: haar normalized feature
        */
-      ui32 rawTest( const Point& features )
+      ui32 rawTest( const Point& features, f64& probability )
       {
-         return _classifier->test( features );
+         core::Buffer1D<double> pb;
+         ui32 c = _classifier->test( features, pb );
+         probability = pb[ c ];
+         return c;
       }
 
       /**
@@ -51,7 +66,7 @@ namespace detect
          typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
 
          // classifiy the slices
-         std::vector<ui32> r = rawTest( volume );
+         std::vector<ui32> r = rawTest( volume ).sliceIds;
 
          // extract the slice on XZ plan
          Lut lut( REGION_DETECTION_BARYCENTRE_LUT_MIN, REGION_DETECTION_BARYCENTRE_LUT_MAX, 256 );
