@@ -30,7 +30,7 @@ public:
       nll::core::Buffer1D<double> params = nll::core::make_buffer1D<double>( optm[ 0 ], optm[ 1 ] );
       nll::algorithm::FeatureSelectionFilterRelieff<Point> relief( 18 );
       relief.compute( dat2 );
-      Database datp = relief.process( dat2 );
+      Database datp = relief.transform( dat2 );
       
       // evaluate the solution
       classifier.learn( dat2, params );

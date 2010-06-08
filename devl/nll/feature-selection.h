@@ -35,11 +35,13 @@ namespace algorithm
    public:
       void read( std::istream& f )
       {
+         core::read<ui32>( _nbSelectedFeatures, f );
          this->_selectedFeatures.read( f );
       }
 
       void write( std::ostream& f ) const
       {
+         core::write<ui32>( _nbSelectedFeatures, f );
          this->_selectedFeatures.write( f );
       }
 

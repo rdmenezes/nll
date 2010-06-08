@@ -31,7 +31,7 @@ public:
       nll::algorithm::FeatureSelectionWrapper<Point>* fs = new nll::algorithm::FeatureSelectionBestFirst<Point>();
       nll::core::Buffer1D<bool> result = fs->compute( mlp, optimizedParameters, dat );
 
-      Database newdat = fs->process( dat );
+      Database newdat = fs->transform( dat );
       mlp->learn(newdat, optimizedParameters);
       const Mlp::Result resultTest = mlp->test(newdat);
       std::cout << "BestClassifierTestingErrorRate=" << resultTest.testingError << std::endl;
@@ -45,7 +45,7 @@ public:
       Database dat = loadDatabaseSpect<Point>();
       nll::algorithm::FeatureTransformationPca<Point> pca;
       pca.compute( dat, 9 );
-      Database datProcessed = pca.process( dat );
+      Database datProcessed = pca.transform( dat );
 
       Classifier classifier;
       classifier.learn( datProcessed, nll::core::make_buffer1D<double>( 10, 100 ) );

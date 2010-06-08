@@ -60,7 +60,7 @@ namespace algorithm
                   testFeatures.clone( selectedFeatures );
                   testFeatures[ n ] = true;
                   FeatureSelectionBase<Point> utility( testFeatures );
-                  Database dnew = utility.process( dat );
+                  Database dnew = utility.transform( dat );
 
                   double res = classifier->evaluate( parameters, dnew );
                   if ( res > best )

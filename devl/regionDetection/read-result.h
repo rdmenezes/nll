@@ -213,7 +213,7 @@ namespace detect
          featureNormalization.compute( haarDatabase );
          featureNormalization.write( PREPROCESSING_HAAR );
 
-         Database haarDatabaseNormalized = featureNormalization.process( haarDatabase );
+         Database haarDatabaseNormalized = featureNormalization.transform( haarDatabase );
          haarDatabaseNormalized.write( NORMALIZED_HAAR );
 
       }

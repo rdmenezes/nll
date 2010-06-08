@@ -57,8 +57,23 @@ struct TestRegion
 
    void createDatasets()
    {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
       //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       RegionResult::generateFeatureDatabase();
+
+
+      std::cout << "haar selection..." << std::endl;
+      Database haarDatabaseNormalized;
+      haarDatabaseNormalized.read( NORMALIZED_HAAR );
+      FeatureSelectionFilterPearson<Point> pearson( FEATURE_SELECTION_SIZE );
+      pearson.compute( haarDatabaseNormalized );
+      Database features = pearson.transform( haarDatabaseNormalized );
+
+      pearson.write( HAAR_SELECTION );
+      features.write( HAAR_SELECTION_DATABASE );
    }
 
    // create a database for each volume, containing all raw MPR
@@ -97,14 +112,29 @@ struct TestRegion
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      Database haarDatabaseNormalized;
-      haarDatabaseNormalized.read( NORMALIZED_HAAR );
+      Database selectedHaarDatabaseNormalized;
+      selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
       Classifier classifier( 1 );
-      classifier.learn( haarDatabaseNormalized, make_buffer1D<double>( 0.0001, 100 ) );
-      classifier.test( haarDatabaseNormalized );
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
+      classifier.test( selectedHaarDatabaseNormalized );
 
-      //testResult( &classifier );
+      testResultVolumeDatabase( &classifier );
+   }
+
+   void learnMlp()
+   {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      Database selectedHaarDatabaseNormalized;
+      selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE );
+
+      Classifier classifier;
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 25, 1, 30 ) );
+      classifier.test( selectedHaarDatabaseNormalized );
+
       testResultVolumeDatabase( &classifier );
    }
 
@@ -139,7 +169,7 @@ struct TestRegion
       double errorLung = 0;
       
 
-      TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
+      TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       //for ( int n = (int)results.size() - 1; n >= 0; --n )
       for ( int n = 43; n < 54; ++n )
@@ -406,6 +436,7 @@ TESTER_TEST(createDatasets);
 //TESTER_TEST(createVolumeDatabase);
 //TESTER_TEST(createPreview);
 TESTER_TEST(learnSvm);
+//TESTER_TEST(learnMlp);
 
 
 //TESTER_TEST(registrationExport);

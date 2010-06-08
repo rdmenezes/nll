@@ -86,7 +86,7 @@ namespace algorithm
             FeatureSelectionUtility utility( parameters );
             if ( utility.getNumberOfSelectedFeatures() == 0 )
                return static_cast<f64>( INT_MIN );
-            Database dat = utility.process( _dat );
+            Database dat = utility.transform( _dat );
             return _classifier->evaluate( _parameters, dat );
          }
          f64 operator()( const Gene& parameters ) const

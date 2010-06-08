@@ -9,6 +9,8 @@ namespace detect
 {
    class TestVolume
    {
+      typedef algorithm::FeatureSelectionFilterPearson< core::Buffer1D<double> > FeatureSelection;
+
    public:
       struct Result
       {
@@ -34,11 +36,12 @@ namespace detect
       typedef algorithm::Classifier<Point>                           Classifier;
       typedef algorithm::FeatureTransformationNormalization<Point>   Normalization;
 
-      TestVolume( Classifier* classifier, const std::string& haarFeatures, const std::string& haarNormalization )
+      TestVolume( Classifier* classifier, const std::string& haarFeatures, const std::string& haarNormalization, const std::string& featureSelection ) : _selection( 0 )
       {
          _classifier = classifier;
          algorithm::Haar2dFeatures::read( _haar, haarFeatures );
          _normalization.read( haarNormalization );
+         _selection.read( featureSelection );
       }
 
       /**
@@ -222,7 +225,7 @@ namespace detect
          Point haarFeature = algorithm::Haar2dFeatures::process( _haar, mprf );
 
          // normalize
-         return _normalization.process( haarFeature );
+         return _selection.process( _normalization.process( haarFeature ) );
       }
 
       /**
@@ -243,6 +246,7 @@ namespace detect
       Normalization                          _normalization;
       algorithm::Haar2dFeatures::Features    _haar;
       Classifier*                            _classifier;
+      FeatureSelection                       _selection;
    };
 }
 }

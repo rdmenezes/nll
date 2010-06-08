@@ -58,7 +58,7 @@ namespace algorithm
        @brief Process a full database according to the transformation defined by <code>process</code>
        */
       template <class TDatabase>
-      TDatabase process( const TDatabase& dat ) const
+      TDatabase transform( const TDatabase& dat ) const
       {
          TDatabase newDat;
          for ( ui32 n = 0; n < dat.size(); ++n )

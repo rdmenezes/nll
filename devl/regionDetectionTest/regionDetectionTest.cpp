@@ -7,6 +7,10 @@
 
 int main()
 {
+   // erase logger
+   std::ofstream f("nll.log");
+   f.close();
+
    Register::instance().run();
 }
 
