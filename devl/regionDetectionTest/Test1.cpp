@@ -116,7 +116,7 @@ struct TestRegion
       selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
       Classifier classifier( 1 );
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 10, 100 ) );
       classifier.test( selectedHaarDatabaseNormalized );
 
       testResultVolumeDatabase( &classifier );
@@ -124,6 +124,7 @@ struct TestRegion
 
    void learnMlp()
    {
+      srand( time(0) );
       typedef Buffer1D<double>      Point;
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
@@ -132,7 +133,7 @@ struct TestRegion
       selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE );
 
       Classifier classifier;
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 25, 1, 30 ) );
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 15, 1, 30 ) );
       classifier.test( selectedHaarDatabaseNormalized );
 
       testResultVolumeDatabase( &classifier );
