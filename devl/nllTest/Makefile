@@ -35,11 +35,13 @@ test-quaternion.o\
 test-region-growing.o\
 test-regression.o\
 test-relieff.o\
+test-slice.o\
 test-transformation-normalization.o\
 test-transformation.o\
 test-volume-io.o\
 test-volume-resampling.o\
-test-volume.o
+test-volume.o\
+test.o
 
 .cpp.o: $(DEPS)
 	$(CC) $(FLAGS) $(INCL) -c -o $@ $<

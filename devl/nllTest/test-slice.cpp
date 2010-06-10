@@ -86,7 +86,7 @@ public:
       nll::core::Image<nll::ui8>             im1;
       typedef nll::imaging::Slice<nll::ui8>  Slice;
 
-      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp", nll::core::Image<nll::ui8>::Allocator() );
       nll::core::decolor( im1 );
 
       Slice t1( nll::core::vector3ui( 128, 129, 1 ),
@@ -119,7 +119,7 @@ public:
       nll::core::Image<nll::ui8>             im1;
       typedef nll::imaging::Slice<nll::ui8>  Slice;
 
-      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp", nll::core::Image<nll::ui8>::Allocator() );
 
       Slice t1( nll::core::vector3ui( 128, 129, 3 ),
                 nll::core::vector3f( 1.0f, 0, 0 ),
@@ -144,7 +144,7 @@ public:
       nll::core::Image<nll::ui8>             im1;
       typedef nll::imaging::Slice<nll::ui8>  Slice;
 
-      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp", nll::core::Image<nll::ui8>::Allocator() );
 
       Slice t1( nll::core::vector3ui( 128, 129, 3 ),
                 nll::core::vector3f( 1.0f, 0, 0 ),
@@ -169,7 +169,7 @@ public:
       nll::core::Image<nll::ui8>             im1;
       typedef nll::imaging::Slice<nll::ui8>  Slice;
 
-      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp" );
+      nll::core::readBmp( im1, NLL_TEST_PATH "data/image/test-image1.bmp", nll::core::Image<nll::ui8>::Allocator() );
 
       Slice t1( nll::core::vector3ui( 128, 129, 3 ),
                 nll::core::vector3f( 1.0f, 0, 0 ),

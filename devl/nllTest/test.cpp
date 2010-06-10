@@ -474,7 +474,7 @@ public:
    {
       typedef nll::core::Image<unsigned char> image;
       image i1;
-      TESTER_ASSERT( nll::core::readBmp(i1, NLL_TEST_PATH "data/image/test-image1.bmp") );
+      TESTER_ASSERT( nll::core::readBmp(i1, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator() ) );
       TESTER_ASSERT( i1.equal(0, 0, image::white()) );
       TESTER_ASSERT( i1.equal(0, i1.sizey() - 1, image::red()) );
 
@@ -502,7 +502,7 @@ public:
 
       nll::core::writeBmp(i1, NLL_TEST_PATH "data/tmp.bmp");
       image i4;
-      nll::core::readBmp(i4, NLL_TEST_PATH "data/tmp.bmp");
+      nll::core::readBmp(i4, NLL_TEST_PATH "data/tmp.bmp", image::Allocator() );
       TESTER_ASSERT( i4 == i1 );
       TESTER_ASSERT( !(i2 == i1) );
 
@@ -511,7 +511,7 @@ public:
       nll::core::threshold(i4, nll::core::ThresholdGreater<nll::ui32> (200));
       TESTER_ASSERT( i4.equal(0, i3.sizey() - 1, image::black()) );
 
-      nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp");
+      nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator() );
       nll::core::convolve(i4, nll::core::buildGaussian());
       TESTER_ASSERT( i4(1, 1, 0) > 30 );
       TESTER_ASSERT( (int)i4(2, 1, 0) > 20 );
@@ -519,7 +519,7 @@ public:
 
       // resampling
       image i5, i6, i7, i8, i9;
-      nll::core::readBmp(i5, NLL_TEST_PATH "data/image/test-image1.bmp");
+      nll::core::readBmp(i5, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator());
       i6.clone(i5);
       i9.clone(i5);
       nll::core::rescaleFast(i9, 256, 16);
@@ -801,7 +801,7 @@ public:
 
       // test convolution
       nll::core::Image<nll::ui8> im1;
-      nll::core::readBmp(im1, NLL_TEST_PATH "data/image/test-image1.bmp");
+      nll::core::readBmp(im1, NLL_TEST_PATH "data/image/test-image1.bmp", Image::Allocator());
       nll::core::decolor(im1);
       nll::core::convolveBorder(im1, gabors[1]);
       nll::core::extend(im1, 3);
@@ -819,7 +819,7 @@ public:
       nll::algorithm::GaborFilters<nll::ui8, Image::IndexMapper, nll::ui8> gabors2( gdescs2 );
 
       Image im2;
-      nll::core::readBmp( im2, NLL_TEST_PATH "data/image/test-image2.bmp" );
+      nll::core::readBmp( im2, NLL_TEST_PATH "data/image/test-image2.bmp", Image::Allocator() );
       nll::core::decolor( im2 );
 
       
