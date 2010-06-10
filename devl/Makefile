@@ -18,7 +18,7 @@ tester:
 .PHONY: clean tester doc nll all
 
 clean:
-	rm -rf *.o *~ core *~ $(LIBNAME) tarball docs html latex
+	rm -rf *.o *~ *~ $(LIBNAME) tarball docs html latex
 	cd nll && make clean
 	cd tester && make clean
 	cd nllTest && make clean

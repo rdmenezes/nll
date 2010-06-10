@@ -24,8 +24,7 @@ tutorial-classifier-optimization.o\
 tutorial-distance-transform.o\
 tutorial-feature-pca.o\
 tutorial-feature-selection.o\
-tutorial-partition-database.o\
-tutorial-pipeline.o
+tutorial-partition-database.o
 
 %.o: %.cpp $(DEPS)
 	$(CC) $(FLAGS) $(INCL) -c -o $@ $<
