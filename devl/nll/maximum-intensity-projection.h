@@ -39,7 +39,7 @@ namespace imaging
          ensure( slice.size()[ 0 ] && slice.size()[ 1 ], "slice must not be empty" );
          if ( !_volume.getSize()[ 0 ] || !_volume.getSize()[ 1 ] || !_volume.getSize()[ 2 ] )
          {
-            for ( SliceType::iterator it = slice.begin(); it != slice.end(); ++it )
+            for ( typename SliceType::iterator it = slice.begin(); it != slice.end(); ++it )
                *it = _volume.getBackgroundValue();
          }
 
@@ -66,9 +66,9 @@ namespace imaging
          core::vector3f intersection2;
          core::vector3f startLine = startIndex;
 
-         SliceType::DirectionalIterator itLine = slice.getIterator( 0, 0 );
-         SliceType::DirectionalIterator itLineNext = itLine;
-         SliceType::DirectionalIterator itLineEnd = slice.getIterator( 0, slice.size()[ 1 ] );
+         typename SliceType::DirectionalIterator itLine = slice.getIterator( 0, 0 );
+         typename SliceType::DirectionalIterator itLineNext = itLine;
+         typename SliceType::DirectionalIterator itLineEnd = slice.getIterator( 0, slice.size()[ 1 ] );
          itLineNext.addy();
 
          VolumeInterpolator interpolator( _volume );
@@ -78,7 +78,7 @@ namespace imaging
          const core::vector3f dirOppose = core::vector3f( -dir[ 0 ], -dir[ 1 ], -dir[ 2 ] );
          for ( ; itLine != itLineEnd; )
          {
-            SliceType::DirectionalIterator itPixels = itLine;
+            typename SliceType::DirectionalIterator itPixels = itLine;
             core::vector3f position = startLine;
             for ( ; itPixels != itLineNext; ++itPixels )
             {

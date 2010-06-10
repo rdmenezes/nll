@@ -95,6 +95,7 @@
  - databases
  - math
  */
+# include "exception.h"
 # include "singleton.h"
 # include "configuration.h"
 # include "types.h"

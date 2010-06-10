@@ -91,7 +91,7 @@ namespace core
          // normalize the normal
          float norm = static_cast<float>( normal.norm2() );
          if ( core::equal<double>( norm, 0, 1e-5f ) )
-            throw std::exception( "error: normal is null" );
+            throw core::Exception( "error: normal is null" );
          _orthonorm = normal / norm;
 
          // computes constant for plane a * x + b * y + c * z + planed = 0
@@ -235,7 +235,7 @@ namespace core
       core::vector2f worldToPlaneCoordinate( const core::vector3f& v ) const
       {
          if ( !contains( v ) )
-            throw std::exception( "error: the point is not on the plane" );
+            throw core::Exception( "error: the point is not on the plane" );
 
          // Let's have M a point on the slice plane with coordinate (x, y, z), O the the origin of the world U=(1, 0, 0) V=(0, 1, 0) W=(0, 0, 1) a base of the world coordinate system
          // O' origin of the slice, S and T base vectors of the slice. We are looking for (X, Y) coordinate in
@@ -289,7 +289,7 @@ namespace core
                break;
             }
          if ( i0 == -1 || i1 == -1 )
-            throw std::exception( "error: the slice base is invalid" );
+            throw core::Exception( "error: the slice base is invalid" );
 
          // create some alias for code readability
          const float x   = m[ i0 ][ 0 ];
@@ -303,7 +303,7 @@ namespace core
          const float ay2 = m[ i1 ][ 3 ];
 
          if ( ( ay2 * ax1 - ay1 * ax2 ) == 0 )
-            throw std::exception( "error: base is not valid, vectors are colinear" );
+            throw core::Exception( "error: base is not valid, vectors are colinear" );
 
          const float Y = ( y - oy - ay1 * ( x - ox ) / ax1 ) / ( ay2 * ( 1 - ay1 * ax2 / ( ay2 * ax1 ) ) );
          const float X = ( x - ox - Y * ax2 ) / ax1;

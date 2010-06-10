@@ -124,7 +124,7 @@ namespace imaging
       template <class Interpolator>
       void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
-         Slice::DirectionalIterator it = slice.getIterator( 0, 0 );
+         typename Slice::DirectionalIterator it = slice.getIterator( 0, 0 );
          for ( ui32 y = 0; y < slice.size()[ 1 ]; ++y )
          {
             NLL_ALIGN_16 float pos[ 4 ] =

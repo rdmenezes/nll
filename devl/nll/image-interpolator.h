@@ -130,7 +130,7 @@ namespace core
          if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
               yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
          {
-            for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
+            for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
                output[ nbcomp ] = 0;
             return;
          }
@@ -142,7 +142,7 @@ namespace core
          const float a3 = ( 1 - dx ) * ( dy );
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
-         for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp, iterOrig.addcol() )
+         for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp, iterOrig.addcol() )
          {
             typename Base::TImage::ConstDirectionalIterator iter = iterOrig;
             buf[ 0 ] = *iter;
@@ -190,13 +190,13 @@ namespace core
          if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
               yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
          {
-            for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
+            for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
                *output++ = 0;
             return;
          }
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
-         for ( ui32 nbcomp = 0; nbcomp < _img.getNbComponents(); ++nbcomp )
+         for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
             *output++ = iterOrig.pickcol( nbcomp );
       }
    };

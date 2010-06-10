@@ -112,7 +112,7 @@ namespace imaging
       ss >> background;
 
       // get PSR
-      VolumeSpatial<T, Storage>::Matrix tfm( 4, 4 );
+      typename VolumeSpatial<T, Storage>::Matrix tfm( 4, 4 );
       for ( ui32 y = 0; y < 4; ++y )
       {
 
@@ -122,7 +122,7 @@ namespace imaging
             throw std::exception( "error: can't parse volume header: transformation matrix" );
          for ( ui32 x = 0; x < 4; ++x )
          {
-            tfm( y, x ) = static_cast<VolumeSpatial<T, Storage>::Matrix::value_type>( atof( lineSpt[ x ] ) );
+            tfm( y, x ) = static_cast<typename VolumeSpatial<T, Storage>::Matrix::value_type>( atof( lineSpt[ x ] ) );
          }
       }
    

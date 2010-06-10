@@ -29,6 +29,7 @@ namespace core
    public:
       typedef IndexMapper2D                              IndexMapper;
       typedef Buffer1D<T, IndexMapperFlat1D, AllocatorT> Base;
+      typedef typename Base::Allocator                   Allocator;
 
       /**
        @brief A matrix iterator. It allows to iterate over all values, columns and lines. It is also able to pick without moving

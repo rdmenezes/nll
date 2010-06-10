@@ -44,7 +44,9 @@ namespace imaging
    template <class Lut>
    struct BlendSliceInfof : public BlendSliceInfo<Lut, f32>
    {
-      BlendSliceInfof( Slice& s, float bf, Lut& l ) : BlendSliceInfo( s, bf, l )
+      typedef  BlendSliceInfo<Lut, f32>      Base;
+
+      BlendSliceInfof( typename Base::Slice& s, float bf, Lut& l ) : Base( s, bf, l )
       {}
    };
 
@@ -126,7 +128,7 @@ namespace imaging
    void blendDummy( const std::vector< BlendSliceInfof<Lut> >& sliceInfos, Slice<OutType>& out )
    {
       typedef typename Slice<OutType>::value_type                  OutputType;
-      typedef Slice<OutType>::iterator                             OutputIterator;
+      typedef typename Slice<OutType>::iterator                    OutputIterator;
       typedef typename BlendSliceInfof<Lut>::Slice::const_iterator InputIterator;
 
       if ( !sliceInfos.size() )
@@ -197,7 +199,7 @@ namespace imaging
    {
       typedef typename BlendSliceInfof<Lut>::Slice::value_type     InputType;
       typedef typename Slice<OutType>::value_type                  OutputType;
-      typedef Slice<OutType>::iterator                             OutputIterator;
+      typedef typename Slice<OutType>::iterator                    OutputIterator;
       typedef typename BlendSliceInfof<Lut>::Slice::ConstDirectionalIterator InputIterator;
 
       if ( !sliceInfos.size() )
@@ -238,7 +240,7 @@ namespace imaging
       const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
       for ( ui32 ny = ymin; ny < ymax; ++ny )
       {
-         Slice<OutType>::DirectionalIterator oit = out.getIterator( xmin, ny );
+         typename Slice<OutType>::DirectionalIterator oit = out.getIterator( xmin, ny );
          for ( ui32 n = 0; n < sliceInfos.size(); ++n )
          {
             inputIteratorsStartLine[ n ].addcol();

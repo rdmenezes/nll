@@ -49,7 +49,7 @@ namespace imaging
 
    protected:
       // copy disabled
-      Transformation& operator=( const Transformation );
+      //Transformation& operator=( const Transformation );
       Transformation( const Transformation& );
    };
 

@@ -37,7 +37,7 @@ namespace imaging
 
 
       Interpolator2D interpolator( input.getStorage() );
-      SliceType::DirectionalIterator it = output.getIterator( 0, 0 );
+      typename SliceType::DirectionalIterator it = output.getIterator( 0, 0 );
 
       // find the top left corner of the output slice in world coordinate
       const core::vector3f cornerInWorldSpace = output.sliceToWorldCoordinate( core::vector2f( - static_cast<float>( output.size()[ 0 ] ) / 2,
@@ -47,7 +47,7 @@ namespace imaging
       for ( ui32 y = 0; y < output.size()[ 1 ]; ++y )
       {
          core::vector2f pixelIter = start;
-         SliceType::DirectionalIterator itline = it;
+         typename SliceType::DirectionalIterator itline = it;
          it.addy();
          while ( itline != it ) 
          {

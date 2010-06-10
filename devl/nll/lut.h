@@ -140,21 +140,22 @@ namespace imaging
          }
       }
 
+#  ifndef NLL_DISABLE_SSE_SUPPORT
       template <>
       void transformToIndex( float* first, float* last, ui32* output ) const
       {
          std::cout << "specialized" << std::endl;
          size_t size = last - first;
 
-# ifndef NLL_NOT_MULTITHREADED
+#  ifndef NLL_NOT_MULTITHREADED
          // finally the multithreaded version doesn't not improve the time performance
          // usuall it is a very small fraction of time for blending a frame and it costs
          // more to create the threads and synchronize them, it is only worth it when
          // the number of indexes to convert is huge
          //#pragma omp parallel
-# endif
+#  endif
          {
-# ifndef NLL_NOT_MULTITHREADED
+#  ifndef NLL_NOT_MULTITHREADED
             const int numberOfThreads = omp_get_num_threads();
 				const int threadNumber = omp_get_thread_num();
 
@@ -163,9 +164,9 @@ namespace imaging
             const float* l = first  + size * ( threadNumber + 1 ) / numberOfThreads;
             std::cout << "thread=" << threadNumber << " size=" << l - i << std::endl;
 
-#  ifdef NLL_DISABLE_SSE_SUPPORT
+#   ifdef NLL_DISABLE_SSE_SUPPORT
             transformSingleThreaded( i, l, o );
-#   else
+#    else
             if ( core::Configuration::instance().isSupportedSSE2() )
             {
                const unsigned int rm = _MM_GET_ROUNDING_MODE();
@@ -177,10 +178,10 @@ namespace imaging
             }
             else
                transformSingleThreaded( i, l, o );
-#  endif
-#  else
+#   endif
+#   else
             transformSingleThreaded( first, last, output );
-# endif
+#  endif
          }
       }
 
@@ -191,6 +192,7 @@ namespace imaging
             *output++ = transformToIndex( *first );
          }
       }
+# endif
 
 # ifndef NLL_DISABLE_SSE_SUPPORT
       void transformSingleThreadedSSE( const float* first, const float* last, ui32* output ) const

@@ -130,6 +130,7 @@ volume.h
 OBJ=math-floor.o math.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
 
 %.o: %.cpp $(DEPS)
+	slafm;kdmf
 	$(CC) $(FLAGS) -c -o $@ $<
 
 all: $(OBJ)
