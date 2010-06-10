@@ -108,6 +108,7 @@ struct TestRegion
 
    void learnSvm()
    {
+      srand( 10);
       typedef Buffer1D<double>      Point;
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
@@ -116,7 +117,7 @@ struct TestRegion
       selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
       Classifier classifier( 1 );
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 10, 100 ) );
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
       classifier.test( selectedHaarDatabaseNormalized );
 
       testResultVolumeDatabase( &classifier );
@@ -172,8 +173,7 @@ struct TestRegion
 
       TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
-      //for ( int n = (int)results.size() - 1; n >= 0; --n )
-      for ( int n = 43; n < 54; ++n )
+      for ( int n = (int)results.size() - 1; n != 41; --n )
       {
          std::cout << "test case database:" << n << std::endl;
          Database dat;
@@ -257,7 +257,7 @@ struct TestRegion
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
          {
             ui8* p = 0;
-            if ( final.neckStart > 0 && final.neckStart < mprz.sizey() )
+            if ( final.neckStart > 0 && final.neckStart < (int)mprz.sizey() )
             {
                p = mprz.point( nnn, final.neckStart );
                p[ 0 ] = colors[ 1 ][ 0 ];
@@ -265,7 +265,7 @@ struct TestRegion
                p[ 2 ] = colors[ 1 ][ 2 ];
             }
 
-            if ( final.heartStart > 0  && final.heartStart < mprz.sizey() )
+            if ( final.heartStart > 0  && final.heartStart < (int)mprz.sizey() )
             {
                p = mprz.point( nnn, final.heartStart );
                p[ 0 ] = colors[ 2 ][ 0 ];
@@ -273,7 +273,7 @@ struct TestRegion
                p[ 2 ] = colors[ 2 ][ 2 ];
             }
 
-            if ( final.lungStart > 0  && final.lungStart < mprz.sizey() )
+            if ( final.lungStart > 0  && final.lungStart < (int)mprz.sizey() )
             {
                p = mprz.point( nnn, final.lungStart );
                p[ 0 ] = colors[ 3 ][ 0 ];
@@ -433,13 +433,13 @@ struct TestRegion
 
 TESTER_TEST_SUITE(TestRegion);
 
-TESTER_TEST(createDatasets);
+//TESTER_TEST(createDatasets);
 //TESTER_TEST(createVolumeDatabase);
 //TESTER_TEST(createPreview);
-TESTER_TEST(learnSvm);
+//TESTER_TEST(learnSvm);
 //TESTER_TEST(learnMlp);
 
 
-//TESTER_TEST(registrationExport);
+TESTER_TEST(registrationExport);
 //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();

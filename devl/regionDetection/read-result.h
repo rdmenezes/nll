@@ -26,6 +26,7 @@ namespace detect
          float  heartEnd;
          float  lungStart;
          float  lungEnd;
+         float  skullStart;
       };
 
    public:
@@ -67,6 +68,10 @@ namespace detect
             r.lungEnd = static_cast<float>( n2 );
 
             std::getline( f, line );
+            sscanf( line.c_str(), "skull:%f:%f", &n1, &n2 );
+            r.skullStart = static_cast<float>( n1 );
+
+            std::getline( f, line );
             results.push_back( r );
          }
 
@@ -92,7 +97,7 @@ namespace detect
 
             // export
             ui32 size = volume.size()[ 2 ];
-            for ( ui32 nn = 1; nn < size; nn += sliceIncrement )
+            for ( ui32 nn = 0; nn < size; nn += sliceIncrement )
             {
                if ( fabs( nn - results[ n ].neckStart  ) < sliceIncrement ||
                     fabs( nn - results[ n ].lungStart  ) < sliceIncrement ||
@@ -111,69 +116,79 @@ namespace detect
                database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( nn ) ) ) );
             }
 
-            // export the intertsing slices
+            // export the interesting slices
+            // note that we need to substract 1 for each slice, as the file is based on 1-XX notation
+            if ( results[ n ].neckStart > 0 )
             {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart ) + "-neck.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].neckStart, sliceName );
-               ui32 output = 1;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart ) + "-neck.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].neckStart - 1, sliceName );
+                  ui32 output = 1;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+               }
+
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart - 1 ) + "-neck.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].neckStart - 1 - 1, sliceName );
+                  ui32 output = 1;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+               }
+
+               {
+                  // the neck is often cut... so don't do it!
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart -2 ) + "-neck.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].neckStart - 1 - 2, sliceName );
+                  ui32 output = 1;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+               }
             }
 
+            if ( results[ n ].heartStart > 0 )
             {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart - 1 ) + "-neck.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].neckStart + 1, sliceName );
-               ui32 output = 1;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 ) + "-heart.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].heartStart - 1, sliceName );
+                  ui32 output = 2;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
+               }
+
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 + 1 ) + "-heart.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].heartStart - 1 + 1, sliceName );
+                  ui32 output = 2;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
+               }
+
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 - 1 ) + "-heart.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].heartStart - 1 - 1, sliceName );
+                  ui32 output = 2;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
+               }
             }
 
+            if ( results[ n ].lungStart > 0 )
             {
-               // the neck is often cut... so don't do it!
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart -2 ) + "-neck.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].neckStart + 2, sliceName );
-               ui32 output = 1;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
-            }
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 ) + "-lung.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].lungStart - 1, sliceName );
+                  ui32 output = 3;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
+               }
 
-            {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart ) + "-heart.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].heartStart, sliceName );
-               ui32 output = 2;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
-            }
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 - 1 ) + "-lung.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].lungStart - 1 - 1, sliceName );
+                  ui32 output = 3;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
+               }
 
-            {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart + 1 ) + "-heart.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].heartStart + 1, sliceName );
-               ui32 output = 2;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
-            }
-
-            {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 ) + "-heart.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].heartStart - 1, sliceName );
-               ui32 output = 2;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
-            }
-
-            {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart ) + "-lung.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].lungStart, sliceName );
-               ui32 output = 3;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
-            }
-
-            {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 ) + "-lung.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].lungStart - 1, sliceName );
-               ui32 output = 3;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
-            }
-
-            {
-               const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart + 1 ) + "-lung.bmp";
-               Point input = _convert( volume, (ui32)results[ n ].lungStart + 1, sliceName );
-               ui32 output = 3;
-               database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 + 1 ) + "-lung.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].lungStart - 1 + 1, sliceName );
+                  ui32 output = 3;
+                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
+               }
             }
          }
 
@@ -200,10 +215,9 @@ namespace detect
 
             // process it
             Point point = algorithm::Haar2dFeatures::process( features, image );
-            //point.print( std::cout );
 
             Database::Sample::Type type = ( n < nbLearning ) ? Database::Sample::LEARNING: Database::Sample::TESTING;
-            haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type ) );
+            haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type, sourceDatabase[ n ].debug ) );
          }
 
          haarDatabase.write( DATABASE_HAAR );

@@ -92,9 +92,16 @@ namespace detect
             maxFinalPos[ id ] = maxFinalPos[ id ] / ( renorm );
          }
 
+         
+         r.neckStart =  maxPos[ 1 ]; //(ui32)maxFinalPos[ 1 ];
+         r.heartStart =  maxPos[ 2 ]; //(ui32)maxFinalPos[ 2 ];
+         r.lungStart =  maxPos[ 3 ]; // (ui32)maxFinalPos[ 3 ];
+         
+         /*
          r.neckStart =  (ui32)maxFinalPos[ 1 ];
          r.heartStart = (ui32)maxFinalPos[ 2 ];
          r.lungStart =  (ui32)maxFinalPos[ 3 ];
+         */
          return r;
       }
 

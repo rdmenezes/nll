@@ -25,7 +25,6 @@ const char* datasets[] =
    DATA_PATH "case13.mf2",
    DATA_PATH "case14.mf2",
    DATA_PATH "case15.mf2",
-   DATA_PATH "case16.mf2",
    DATA_PATH "case17.mf2",
    DATA_PATH "case18.mf2",
    DATA_PATH "case19.mf2",
