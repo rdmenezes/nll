@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
 #include <iostream>
+#include <tester/register.h>
 
 struct ackley : public nll::algorithm::OptimizerClient
 {

@@ -1,12 +1,14 @@
 import "core"
 
-VolumeID ct = loadVolumeAsynchronous("D:/Devel/sandbox/nllTest/data/medical/ct.mf2");
+VolumeID ct = loadVolumeAsynchronous("D:/Devel/sandbox/regionDetectionTest/data/case69.mf2");
+//VolumeID ct2 = loadVolumeAsynchronous("c:/tmp/cc67.mf2");
 
-Lut ctLut( -100.0, 300.0 );
+Lut ctLut( -240.0, 320.0 );
 
 
 VolumeContainer volumes;
 volumes.add( ct, ctLut, 0.3 );
+//volumes.add( ct2, ctLut, 0.3 );
 
 SegmentToolCentering    toolCentering;
 SegmentToolPointer      toolPointer;

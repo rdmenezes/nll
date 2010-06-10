@@ -62,6 +62,11 @@ namespace algorithm
       using Base::test;
       using Base::learnTrainingDatabase;
 
+      // for gcc...
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Class                    Class;
+
    public:
       // TODO ONLY RBF kernel is handled
       enum KernelType { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };
@@ -124,13 +129,13 @@ namespace algorithm
          unreachable("TODO implement");
       }
 
-      virtual Output test( const Point& p ) const
+      virtual Class test( const Point& p ) const
       {
          core::Buffer1D<double> pb;
          return test( p, pb );
       }
 
-      virtual Output test( const Point& p, core::Buffer1D<double>& probability ) const
+      virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          assert( _model ); // "no svm model loaded"
          assert( _inputSize == p.size() );
@@ -157,7 +162,7 @@ namespace algorithm
                - parameters[ 0 ] = gamma
                - parameters[ 1 ] = marginCost
        */
-      virtual void learn( const typename Base::Database& dat, const core::Buffer1D<f64>& parameters )
+      virtual void learn( const Database& dat, const core::Buffer1D<f64>& parameters )
       {
          assert( parameters.size() == this->_parametersPrototype.size() );
 
@@ -165,7 +170,7 @@ namespace algorithm
       }
 
    private:
-      void _learnRbfKernel(const typename Base::Database& dat, double gamma, double marginCost)
+      void _learnRbfKernel(const Database& dat, double gamma, double marginCost)
 	   {
 		   _destroy();
 

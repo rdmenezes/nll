@@ -5,6 +5,7 @@
 # include <string>
 # include <vector>
 # include <sstream>
+# include <cstring>
 # include "types.h"
 
 # ifdef NLL_BOUND

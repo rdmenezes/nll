@@ -10,7 +10,7 @@ namespace algorithm
     @brief Regression using multi-layered neural network
     */
    template <class Point, class TOutput>
-   class RegressionMlp : public nll::algorithm::Regression<Point, TOutput>
+   class RegressionMlp : public Regression<Point, TOutput>
    {
    public:
       typedef Regression<Point, TOutput>  Base;
@@ -22,6 +22,11 @@ namespace algorithm
       using Base::createOptimizer;
       using Base::test;
       using Base::learnTrainingDatabase;
+
+      // gcc...
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Output                   Output;
 
    public:
       /**
@@ -40,7 +45,7 @@ namespace algorithm
       }
 
    public:
-      RegressionMlp( double weightDecay = 0 ) : Regression( buildParameters() ), _weightDecay( weightDecay )
+      RegressionMlp( double weightDecay = 0 ) : Base( buildParameters() ), _weightDecay( weightDecay )
       {}
 
       virtual RegressionMlp* deepCopy() const

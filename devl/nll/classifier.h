@@ -31,6 +31,12 @@ namespace algorithm
       typedef Classifier<TPoint, Output, TSample>     BaseClassifier;   // root of the classifiers
       typedef Output                                  Class;
 
+      // for gcc...
+      typedef typename Base::Point                    Point;
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+
+      
       // import the other functions
       using Base::test;
 
@@ -47,7 +53,7 @@ namespace algorithm
       /**
        By default we do a 10-fold cross validation
        */
-      Classifier() : ClassifierBase()
+      Classifier() : Base()
       {}
 
       /**

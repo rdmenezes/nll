@@ -83,21 +83,21 @@ namespace imaging
       std::getline( hdr, line );
       std::vector<const char*> lineSpt = core::split( line, ':' );
       if ( lineSpt.size() != 2 )
-         throw std::exception( "error: can't parse volume header: version" );
+         throw core::Exception( "error: can't parse volume header: version" );
 
       ui32 version = atoi( lineSpt[ 1 ] );
       if ( version != NLL_IMAGING_BINARY_VOLUME_READER_VERSION )
-         throw std::exception( "error: header version not recognized" );
+         throw core::Exception( "error: header version not recognized" );
 
       // get size
       std::getline( hdr, line );
       lineSpt = core::split( line, ':' );
       if ( lineSpt.size() != 2 )
-         throw std::exception( "error: can't parse volume header: size" );
+         throw core::Exception( "error: can't parse volume header: size" );
       std::string sizeStr( lineSpt[ 1 ] );
       lineSpt = core::split( sizeStr, ' ' );
       if ( lineSpt.size() != 3 )
-         throw std::exception( "error: volume header's size is malformed" );
+         throw core::Exception( "error: volume header's size is malformed" );
       core::vector3ui size( atoi( lineSpt[ 0 ] ), atoi( lineSpt[ 1 ] ), atoi( lineSpt[ 2 ] ) );
 
       // get background
@@ -107,7 +107,7 @@ namespace imaging
       std::getline( hdr, line );
       lineSpt = core::split( line, ':' );
       if ( lineSpt.size() != 2 )
-         throw std::exception( "error: can't parse volume header: background" );
+         throw core::Exception( "error: can't parse volume header: background" );
       ss << lineSpt[ 1 ];
       ss >> background;
 
@@ -119,7 +119,7 @@ namespace imaging
          std::getline( hdr, line );
          lineSpt = core::split( line, ' ' );
          if ( lineSpt.size() != 4 )
-            throw std::exception( "error: can't parse volume header: transformation matrix" );
+            throw core::Exception( "error: can't parse volume header: transformation matrix" );
          for ( ui32 x = 0; x < 4; ++x )
          {
             tfm( y, x ) = static_cast<typename VolumeSpatial<T, Storage>::Matrix::value_type>( atof( lineSpt[ x ] ) );
@@ -137,7 +137,7 @@ namespace imaging
             for ( ui32 x = 0; x < volume.getSize()[ 0 ]; ++x )
             {
                if ( bin.eof() )
-                  throw std::exception( "error: read all data of the volume" );
+                  throw core::Exception( "error: read all data of the volume" );
                T val;
                bin.read( (char*)&val, sizeof( T ) );
                volume( x, y, z ) = val;

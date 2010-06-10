@@ -66,7 +66,7 @@ public:
     */
    Buffer1D( T* buf, ui32 size, bool ownsBuffer, Allocator allocator = Allocator() ) : _buffer( buf ), _size( size ), _ownsBuffer( ownsBuffer ), _allocator( allocator )
    {
-      _cpt = Allocator::template rebind<i32>::other( _allocator ).allocate( 1 );
+      _cpt = typename Allocator::template rebind<i32>::other( _allocator ).allocate( 1 );
       *_cpt = 1; //initialRefCount;
    }
 
@@ -262,7 +262,7 @@ public:
 # ifdef DEBUG_BUFFER1D
             std::cout << "destroy buffer1D=" << _size << std::endl;
 # endif
-            Allocator::template rebind<i32>::other( _allocator ).deallocate( _cpt, 1 );
+            typename Allocator::template rebind<i32>::other( _allocator ).deallocate( _cpt, 1 );
             _cpt = 0;
             if ( _ownsBuffer )
                _allocator.deallocate( _buffer, _size );
@@ -391,7 +391,7 @@ protected:
       _ownsBuffer = true;
       if (!_cpt)
       {
-         _cpt = Allocator::template rebind<i32>::other( _allocator ).allocate( 1 );
+         _cpt = typename Allocator::template rebind<i32>::other( _allocator ).allocate( 1 );
          *_cpt = 0;
       }
       _buffer = _allocator.allocate( size );

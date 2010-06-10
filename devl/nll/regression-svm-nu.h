@@ -23,6 +23,11 @@ namespace algorithm
       using Base::test;
       using Base::learnTrainingDatabase;
 
+      // gcc...
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Output                   Output;
+
    public:
       // TODO ONLY RBF kernel is handled
       enum KernelType { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };
@@ -93,7 +98,7 @@ namespace algorithm
 		   f64 res = svm_predict( _model, i );
 		   delete [] i;
          Output out( 1 );
-         out[ 0 ] = static_cast<Output::value_type>( res );
+         out[ 0 ] = static_cast<typename Output::value_type>( res );
 		   return out;
       }
 
@@ -157,6 +162,8 @@ namespace algorithm
 
 		   param.weight_label = NULL;
 		   param.weight = NULL;
+
+         param.degree = 0;
 
 		   const char* err = svm_check_parameter( &pb, &param );
          ensure( !err, "svm parameter error:" + std::string( err ) ); // error

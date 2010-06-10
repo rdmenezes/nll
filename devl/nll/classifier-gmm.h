@@ -23,6 +23,12 @@ namespace algorithm
       typedef std::vector<TGmm>                             Gmms;
       typedef Classifier<Points>                            Base;
 
+      // for gcc...
+      typedef typename Base::Point                    Point;
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Class                    Class;
+
    public:
       // don't override these
       using Base::read;
@@ -72,7 +78,7 @@ namespace algorithm
       }
 
 
-      virtual Output test( const Points& p ) const
+      virtual Class test( const Points& p ) const
       {
          double likelihood_max = INT_MIN;
          ui32 class_max = INT_MAX;
@@ -89,7 +95,7 @@ namespace algorithm
          return class_max;
       }
 
-      virtual Output test( const Point& p, core::Buffer1D<double>& probability ) const
+      virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          probability = core::Buffer1D<double>( (ui32)_gmms.size() );
 

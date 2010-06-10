@@ -23,7 +23,7 @@ namespace imaging
       if ( !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] ||
            !source.getSize()[ 0 ] || !source.getSize()[ 1 ] || !source.getSize()[ 2 ] )
       {
-         throw std::exception( "invalid volume" );
+         throw core::Exception( "invalid volume" );
       }
 
       //

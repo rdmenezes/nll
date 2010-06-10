@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include <tester/register.h>
 
 template <class T, class Mapper>
 static inline nll::core::Matrix<T, Mapper> extractRotation( const nll::core::Matrix<T, Mapper>& m )

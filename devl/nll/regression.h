@@ -21,6 +21,11 @@ namespace algorithm
       typedef ClassifierBase<TPoint, TOutput, TSample> Base;             // superclass
       typedef Regression<TPoint, TOutput, TSample>     BaseRegression;   // root of the regression bases algorithms
 
+      // gcc...
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Output                   Output;
+
       // import the other functions
       using Base::test;
 
@@ -43,7 +48,7 @@ namespace algorithm
       /**
        By default we do a 10-fold cross validation
        */
-      Regression() : ClassifierBase()
+      Regression() : Base()
       {}
 
       /**
@@ -112,7 +117,7 @@ namespace algorithm
             bins[ n ] = n / dat.size() + ( n < reminder );
 
          // randomize the list
-         randomize( bins, 0.8 );
+         core::randomize( bins, 0.8 );
          return bins;
       }
    };

@@ -51,15 +51,18 @@ namespace algorithm
       };
 
    public:
-      typedef typename Base::Database  Database;
-
-
       // don't override these
       using Base::read;
       using Base::write;
       using Base::createOptimizer;
       using Base::test;
       using Base::learnTrainingDatabase;
+
+      // for gcc...
+      typedef typename Base::Point                    Point;
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Class                    Class;
 
       typedef FactoryClassifier< T, WeakClassifier >  Factory;
 
@@ -89,8 +92,8 @@ namespace algorithm
       virtual Base* deepCopy() const
       {
          ClassifierAdaboostM1* c = new ClassifierAdaboostM1( _factory, _nbWeakLearner, _learningSubsetRate );
-         c->_crossValidationBin = _crossValidationBin;
-         c->_learningSubsetRate = _learningSubsetRate;
+         c->_crossValidationBin = this->_crossValidationBin;
+         c->_learningSubsetRate = this->_learningSubsetRate;
          for ( ui32 n = 0; n < (ui32)_weakClassifiers.size(); ++n )
          {
             BaseWeakLearner* l = dynamic_cast<BaseWeakLearner*>( _weakClassifiers[ n ].classifier->deepCopy() );
@@ -124,12 +127,12 @@ namespace algorithm
          }
       }
 
-      virtual typename Base::Class test( const T& p ) const
+      virtual Class test( const T& p ) const
       {
          core::Buffer1D<double> prob( 2 );
          for ( ui32 n = 0; n < _weakClassifiers.size(); ++n )
          {
-            Output t = _weakClassifiers[ n ].classifier->test( p );
+            Class t = _weakClassifiers[ n ].classifier->test( p );
             prob[ t ] += _weakClassifiers[ n ].alpha;
          }
 
@@ -175,7 +178,7 @@ namespace algorithm
             BaseWeakLearner* weak = _factory.create();
             weak->learn( subset, parameters );
 
-            std::vector<Output> res( subset.size() );
+            std::vector<Class> res( subset.size() );
             double eps = 0;
             for ( ui32 nn = 0; nn < subset.size(); ++nn )
             {

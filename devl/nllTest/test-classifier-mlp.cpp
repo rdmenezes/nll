@@ -1,6 +1,7 @@
-#include "stdafx.h"
 #include <nll/nll.h>
 #include <time.h>
+#include <tester/register.h>
+#include "database-builder.h"
 
 class TestNllAlgorithmClassifierMlp
 {

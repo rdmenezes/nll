@@ -140,6 +140,8 @@ namespace imaging
          }
       }
 
+// if we disable SSE, this is pointless to have a specialized template
+// additionally, this is not standard compliant (the specialized template should be outside class, which will force a full spacialization.. Mapper.. which we don't want...)
 #  ifndef NLL_DISABLE_SSE_SUPPORT
       template <>
       void transformToIndex( float* first, float* last, ui32* output ) const

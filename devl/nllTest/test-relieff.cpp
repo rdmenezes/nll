@@ -1,5 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include "database-builder.h"
+#include <tester/register.h>
 
 
 class TestRelieff

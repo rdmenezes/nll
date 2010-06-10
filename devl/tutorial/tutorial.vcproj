@@ -641,6 +641,27 @@
 				RelativePath=".\tutorial-partition-database.cpp"
 				>
 			</File>
+<<<<<<< .mine
+			<File
+				RelativePath=".\tutorial-pipeline.h"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
+			</File>
+=======
+>>>>>>> .r522
 		</Filter>
 	</Files>
 	<Globals>

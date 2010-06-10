@@ -28,6 +28,11 @@ namespace algorithm
       using Base::test;
       using Base::learnTrainingDatabase;
 
+      // for gcc...
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Class                    Class;
+
    public:
       /**
         Create the parameter specification
@@ -72,13 +77,13 @@ namespace algorithm
          assert( res );
       }
 
-      virtual typename Base::Class test( const Point& p ) const
+      virtual Class test( const Point& p ) const
       {
          core::Buffer1D<double> pb;
          return test( p, pb );
       }
 
-      virtual Output test( const Point& p, core::Buffer1D<double>& probability ) const
+      virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          assert( p.size() == _pmc.getInputSize() );
          core::Buffer1D<double> i( p.size() );
@@ -114,7 +119,7 @@ namespace algorithm
              - parameters[ 1 ] = learning rate
              - parameters[ 2 ] = timeout (in sec)
        */
-      virtual void learn( const typename Base::Database& dat, const core::Buffer1D<f64>& parameters )
+      virtual void learn( const Database& dat, const core::Buffer1D<f64>& parameters )
       {
          if ( !dat.size() )
             return;
@@ -132,7 +137,7 @@ namespace algorithm
 
    private:
       // we recreate a new database as the neural network only understand for its output an arrayof doubles
-      inline MlpDatabase _computePmcDatabase( const typename Base::Database& dat )
+      inline MlpDatabase _computePmcDatabase( const Database& dat )
       {
          MlpDatabase pmcDatabase;
          ui32 nbOfclass = core::getNumberOfClass( dat );

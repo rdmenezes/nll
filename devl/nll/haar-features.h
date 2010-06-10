@@ -44,7 +44,7 @@ namespace algorithm
 
          // first compute the first row & column
          Storage::DirectionalIterator it = _img.getIterator( 0, 0, 0 );
-         core::Image<T>::DirectionalIterator itSrc = image.getIterator( 0, 0, 0 );
+         typename core::Image<T>::DirectionalIterator itSrc = image.getIterator( 0, 0, 0 );
 
          // init first step
          s[ 0 ] = *itSrc;

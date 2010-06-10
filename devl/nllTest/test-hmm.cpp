@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include <tester/register.h>
 #include <nll/nll.h>
 
 using namespace nll::algorithm;

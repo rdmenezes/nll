@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
 #include <sstream>
+#include <tester/register.h>
 
 class TestNormalization
 {

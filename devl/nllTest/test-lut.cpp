@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
 #include <sstream>
+#include <tester/register.h>
 
 // alignment float* alignedArray = (array + 15) & (~0x0F);
 const unsigned size = 2048 * 4;

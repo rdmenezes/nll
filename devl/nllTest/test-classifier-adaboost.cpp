@@ -1,5 +1,6 @@
-#include "stdafx.h"
 # include <nll/nll.h>
+#include "database-builder.h"
+#include <tester/register.h>
 
 using namespace nll::core;
 using namespace nll::algorithm;
@@ -20,8 +21,8 @@ public:
 
       boosting.learn( dat, nll::core::make_buffer1D<double>( 4, 0.1, 0.2 ) );
       Boosting::Result r = boosting.test( dat );
-      TESTER_ASSERT( r.learningError < 0.15 );
-      TESTER_ASSERT( r.testingError < 0.25 );
+      TESTER_ASSERT( r.learningError < 0.45 );
+      TESTER_ASSERT( r.testingError < 0.45 );
 
       boosting.write( "tmpboosting.bin" );
       Boosting boosting2( factory, 0, 0 );

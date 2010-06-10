@@ -1,5 +1,8 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include <tester/register.h>
+#include "config.h"
+
+using namespace nll::core;
 
 class TestNllLabelize
 {
@@ -31,7 +34,7 @@ public:
       i(9, 3, 0) = 1;
       i(9, 4, 0) = 1;
 
-      nll::core::readBmp(i, NLL_TEST_PATH "data/image/test-image2.bmp");
+      readBmp(i, NLL_TEST_PATH "data/image/test-image2.bmp");
 
       nll::core::Timer t1;
       //Labelize::DifferentPixel different( 1 );

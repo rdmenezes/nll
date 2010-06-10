@@ -37,7 +37,7 @@ OS_NAME=`uname -s`
 IS_CYGWIN_PLATFORM=`echo "$OS_NAME" | grep CYGWIN`
 if [ -n "$IS_CYGWIN_PLATFORM" ]; then
   if [ "$MODE" = "release" ]; then
-    echo "FLAGS=-O3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
+    echo "FLAGS=-O3 -DNDEBUG -DNLL_NOT_MULTITHREADED -DNLL_DISABLE_SSE_SUPPORT" >> configure.in
   else
     echo "FLAGS=" >> configure.in
   fi
@@ -57,7 +57,7 @@ fi
 
 # default platform
 if [ "$MODE" = "release" ]; then
-  echo "FLAGS=-O3 -DNDEBUG -DNLL_NOT_MULTITHREADED" >> configure.in
+  echo "FLAGS=-O3 -DNDEBUG -DNLL_NOT_MULTITHREADED -DNLL_DISABLE_SSE_SUPPORT" >> configure.in
 else
   echo "FLAGS=" >> configure.in
 fi

@@ -1,7 +1,6 @@
-#include "stdafx.h"
-
 #include <nll/nll.h>
 #include <cmath>
+#include <tester/register.h>
 
 typedef std::vector<double>                  Point;
 typedef std::vector< std::vector<double> >   Points;

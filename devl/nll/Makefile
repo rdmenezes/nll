@@ -127,10 +127,9 @@ volume-io-mf2.h\
 volume-spatial.h\
 volume.h
 
-OBJ=math-floor.o math.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o
+OBJ=math-floor.o math.o nll.o optimizer-harmony-search-memory.o optimizer-harmony-search.o optimizer-parameters.o svm.o configuration.o
 
-%.o: %.cpp $(DEPS)
-	slafm;kdmf
+.cpp.o: $(DEPPS)
 	$(CC) $(FLAGS) -c -o $@ $<
 
 all: $(OBJ)
@@ -139,6 +138,7 @@ all: $(OBJ)
 	mv $(LIBNAME) ../$(LIBPATH)
 
 .PHONY: clean
-	
+
+
 clean:
 	rm -rf *.o *~ core *~ ../$(LIBPATH)/$(LIBNAME) docs

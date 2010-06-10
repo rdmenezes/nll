@@ -1,8 +1,8 @@
-#include "stdafx.h"
-
 #include <fstream>
 #include <sstream>
 #include <nll/nll.h>
+#include <tester/register.h>
+#include "config.h"
 
 #pragma warning( push )
 #pragma warning( disable:4996 ) // unsafe function
