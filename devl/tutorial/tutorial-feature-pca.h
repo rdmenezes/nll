@@ -36,7 +36,7 @@ namespace tutorial
          // The Pca is setted up, and the new database is processed
          Pca pca;
          pca.compute( dat, 2 );
-         Classifier::Database processedDat = pca.process( dat );
+         Classifier::Database processedDat = pca.transform( dat );
 
          // define the classifier to be used
          // a SVM classifier is used

@@ -29,7 +29,7 @@ namespace tutorial
 
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( dat );
-         Classifier::Database preprocessedDat = preprocessor.process( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
          double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 50 ), preprocessedDat );
          TESTER_ASSERT( fabs( error ) <= 0 );
       }
@@ -51,7 +51,7 @@ namespace tutorial
 
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( dat );
-         Classifier::Database preprocessedDat = preprocessor.process( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
          double error = c.evaluate( nll::core::make_buffer1D<double>( 3, 0.1, 3 ), preprocessedDat );
          TESTER_ASSERT( fabs( error ) <= 0.051 );
       }
@@ -76,7 +76,7 @@ namespace tutorial
 
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( dat );
-         Classifier::Database preprocessedDat = preprocessor.process( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
          double error = c.evaluate( nll::core::make_buffer1D<double>( 1 ), preprocessedDat );
          TESTER_ASSERT( fabs( error ) <= 0.09 );
       }
@@ -92,7 +92,7 @@ namespace tutorial
          const nll::benchmark::BenchmarkDatabases::Database& dat = benchmark->database;
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( dat );
-         nll::benchmark::BenchmarkDatabases::Database preprocessedDat = preprocessor.process( dat );
+         nll::benchmark::BenchmarkDatabases::Database preprocessedDat = preprocessor.transform( dat );
 
          // define the classifier to be used
          typedef nll::algorithm::ClassifierGmm< std::vector<Input> > ClassifierImpl;
@@ -127,7 +127,7 @@ namespace tutorial
          Kernel kernel( 0.5 );
          KernelPca kpca( kernel );
          kpca.compute( dat, 100 );
-         Classifier::Database processedDat = kpca.process( dat );
+         Classifier::Database processedDat = kpca.transform( dat );
 
          // define the classifier to be used
          typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
@@ -135,7 +135,7 @@ namespace tutorial
 
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( processedDat );
-         Classifier::Database preprocessedDat = preprocessor.process( processedDat );
+         Classifier::Database preprocessedDat = preprocessor.transform( processedDat );
 
          double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 50 ), preprocessedDat );
          std::cout << "error=" << error << std::endl;

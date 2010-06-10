@@ -29,7 +29,7 @@ namespace tutorial
 
          nll::algorithm::FeatureTransformationNormalization<Input> preprocesser;
          preprocesser.compute( dat );
-         Classifier::Database preprocessedDat = preprocesser.process( dat );
+         Classifier::Database preprocessedDat = preprocesser.transform( dat );
          double error = c.evaluate( nll::core::make_buffer1D<double>( 1, 50 ), preprocessedDat );
          TESTER_ASSERT( fabs( error ) <= 0 );
       }
