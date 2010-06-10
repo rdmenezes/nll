@@ -45,12 +45,12 @@ namespace algorithm
          const ui32 nbFeatures = dat[ 0 ].input.size();
          core::Buffer1D<bool> selectedFeatures( nbFeatures );
          core::Buffer1D<bool> bestSelectedFeatures;
-         double bestSelectedFeaturesRate = LONG_MIN;
+         double bestSelectedFeaturesRate = LONG_MAX;
 
          ui32 nbSelectedFeatures = 0;
          while ( nbSelectedFeatures < _maxFeatures && nbSelectedFeatures < nbFeatures )
          {
-            double best = LONG_MIN;
+            double best = LONG_MAX;
             ui32 index = 0;
             for ( ui32 n = 0; n < nbFeatures; ++n )
             {
@@ -63,7 +63,7 @@ namespace algorithm
                   Database dnew = utility.transform( dat );
 
                   double res = classifier->evaluate( parameters, dnew );
-                  if ( res > best )
+                  if ( res < best )
                   {
                      best = res;
                      index = n;
@@ -81,7 +81,7 @@ namespace algorithm
             // keep track of the best selected features;
             selectedFeatures[ index ] = true;
             ++nbSelectedFeatures;
-            if ( best > bestSelectedFeaturesRate )
+            if ( bestSelectedFeaturesRate > best )
             {
                bestSelectedFeaturesRate = best;
                bestSelectedFeatures.clone( selectedFeatures );

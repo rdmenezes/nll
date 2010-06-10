@@ -12,8 +12,8 @@ public:
    Database createDatabase() const
    {
       Classifier::Database dat;
-      for ( float nx = 0; nx <= 1; nx += 0.01f )
-         for ( float ny = 0; ny <= 1; ny += 0.01f )
+      for ( float nx = -0.5; nx <= 0.5; nx += 0.1f )
+         for ( float ny = -0.5; ny <= 0.5; ny += 0.1f )
          {
             nll::ui32 c;
             if ( nx <= 0 && ny <= 0)
@@ -125,15 +125,10 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestNllFeatureSelection);
-# ifndef DONT_RUN_VERY_SLOW_TEST
-#  ifndef DONT_RUN_SLOW_TEST
-//TESTER_TEST(testNllFeatureSelectionPreprocessingUnitBestFirst);
+TESTER_TEST(testNllFeatureSelectionPearson);
+TESTER_TEST(testNllFeatureSelectionRelieff);
+TESTER_TEST(testNllRelieff);
 TESTER_TEST(testNllFeatureSelectionBestFirst);
-//TESTER_TEST(testNllFeatureSelection);
-#  endif
-# endif
-//TESTER_TEST(testNllFeatureSelectionPearson);
-//TESTER_TEST(testNllFeatureSelectionRelieff);
-//TESTER_TEST(testNllRelieff);
+TESTER_TEST(testNllFeatureSelection);
 TESTER_TEST_SUITE_END();
 #endif

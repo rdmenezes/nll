@@ -19,10 +19,11 @@ public:
       Boosting boosting( factory, 20, 0.3 );
       Boosting::Database dat = loadDatabaseSpect<Point>();
 
-      boosting.learn( dat, nll::core::make_buffer1D<double>( 4, 0.1, 0.2 ) );
+      boosting.learn( dat, nll::core::make_buffer1D<double>( 4, 0.1, 1 ) );
       Boosting::Result r = boosting.test( dat );
-      TESTER_ASSERT( r.learningError < 0.45 );
-      TESTER_ASSERT( r.testingError < 0.45 );
+      std::cout << "adaboost learning error=" << r.learningError << " test error=" << r.testingError <<std::endl;
+      TESTER_ASSERT( r.learningError < 0.3 );
+      TESTER_ASSERT( r.testingError < 0.3 );
 
       boosting.write( "tmpboosting.bin" );
       Boosting boosting2( factory, 0, 0 );
