@@ -25,11 +25,13 @@ namespace detect
             neckStart = -1;
             heartStart = -1;
             lungStart = -1;
+            skullStart = -1;
          }
 
          int   neckStart;
          int   heartStart;
          int   lungStart;
+         int   skullStart;
       };
 
       typedef core::Buffer1D<double>                                 Point;
@@ -51,21 +53,18 @@ namespace detect
       {
          ResultFinal r;
 
-         core::Buffer1D<double>  max( 4 );
-         core::Buffer1D<int>     maxPos( 4 );
-         for ( ui32 n = 0; n < 4; ++n )
+         core::Buffer1D<double>  max( 5 );
+         core::Buffer1D<int>     maxPos( 5 );
+         for ( ui32 n = 0; n < 5; ++n )
             maxPos[ n ] = -1;
 
          // select the highest probability
          for ( ui32 n = 0; n < results.probabilities.size(); ++n )
          {
-            for ( ui32 nn = 0; nn < 4; ++nn )
+            if ( results.probabilities[ n ] > max[ results.sliceIds[ n ] ] )
             {
-               if ( results.probabilities[ n ] > max[ results.sliceIds[ n ] ] )
-               {
-                  max[ results.sliceIds[ n ] ] = results.probabilities[ n ];
-                  maxPos[ results.sliceIds[ n ] ] = n;
-               }
+               max[ results.sliceIds[ n ] ] = results.probabilities[ n ];
+               maxPos[ results.sliceIds[ n ] ] = n;
             }
          }
 
@@ -96,6 +95,7 @@ namespace detect
          r.neckStart =  maxPos[ 1 ]; //(ui32)maxFinalPos[ 1 ];
          r.heartStart =  maxPos[ 2 ]; //(ui32)maxFinalPos[ 2 ];
          r.lungStart =  maxPos[ 3 ]; // (ui32)maxFinalPos[ 3 ];
+         r.skullStart =  maxPos[ 4 ];
          
          /*
          r.neckStart =  (ui32)maxFinalPos[ 1 ];
@@ -195,12 +195,13 @@ namespace detect
 
          // annotate the slice
          ensure( r.size() == sliceTfm.sizey(), "size must match!" );
-         ui8 colors[ 4 ][ 3 ] = 
+         ui8 colors[ 5 ][ 3 ] = 
          {
             { 0, 0, 0},
             { 255, 255, 255 },
             { 255, 0, 0 },
-            { 0, 255, 0 }
+            { 0, 255, 0 },
+            { 0, 255, 255 }
          };
          for ( ui32 n = 0; n < r.size(); ++n )
          {

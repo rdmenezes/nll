@@ -24,7 +24,7 @@ public:
                c = 2;
             if ( nx > 0 && ny > 0)
                c = 3;
-            nll::f32 r = ( (nll::f32)rand() ) / RAND_MAX - 0.5;
+            nll::f32 r = ( (nll::f32)rand() ) / RAND_MAX - 0.5f;
             dat.add(Classifier::Database::Sample(nll::core::make_buffer1D<nll::f32>(nx, ny, r), c, Classifier::Database::Sample::LEARNING ));
             dat.add(Classifier::Database::Sample(nll::core::make_buffer1D<nll::f32>(nx, ny, r), c, Classifier::Database::Sample::TESTING ));
          }

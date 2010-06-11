@@ -9,20 +9,22 @@ using namespace nll::core;
 using namespace nll::algorithm;
 using namespace nll::detect;
 
-ui8 colors[ 4 ][ 3 ] = 
+ui8 colors[ 5 ][ 3 ] = 
 {
    { 255, 255, 255},
    { 0, 0, 255 },
    { 255, 0, 0 },
-   { 0, 255, 0 }
+   { 0, 255, 0 },
+   { 0, 255, 255 }
 };
 
-ui8 colors_src[ 4 ][ 3 ] = 
+ui8 colors_src[ 5 ][ 3 ] = 
 {
    { 255, 255, 255},
    { 0, 0, 255 },
    { 255, 0, 0 },
-   { 0, 255, 0 }
+   { 0, 255, 0 },
+   { 0, 255, 255 }
 };
 
 void setColorIntensity( ui32 index, double val )
@@ -116,7 +118,7 @@ struct TestRegion
       Database selectedHaarDatabaseNormalized;
       selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
-      Classifier classifier( 1 );
+      Classifier classifier( 1, true );
       classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
       classifier.test( selectedHaarDatabaseNormalized );
 
@@ -125,7 +127,7 @@ struct TestRegion
 
    void learnMlp()
    {
-      srand( time(0) );
+      srand( (unsigned)time(0) );
       typedef Buffer1D<double>      Point;
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
@@ -166,14 +168,15 @@ struct TestRegion
       typedef Classifier::Database  Database;
 
       ui32 nbCases = 0;
-      double errorNeck = 0;
-      double errorHeart = 0;
-      double errorLung = 0;
+      Buffer1D<double> counts( 5 );
+      Buffer1D<double> errors( 5 );
       
 
       TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
-      for ( int n = (int)results.size() - 1; n != 41; --n )
+
+      Timer t1;
+      for ( int n = (int)results.size() - 1; results[ n ].id != 59; --n )
       {
          std::cout << "test case database:" << n << std::endl;
          Database dat;
@@ -197,20 +200,38 @@ struct TestRegion
          setColorIntensity( 3, 1 );
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
          {
-            ui8* p = mprz.point( nnn, (ui32)results[ n ].neckStart );
-            p[ 0 ] = colors[ 1 ][ 0 ];
-            p[ 1 ] = colors[ 1 ][ 1 ];
-            p[ 2 ] = colors[ 1 ][ 2 ];
+            ui8* p;
+            if ( results[ n ].neckStart > 0 )
+            {
+               p = mprz.point( nnn, (ui32)results[ n ].neckStart );
+               p[ 0 ] = colors[ 1 ][ 0 ];
+               p[ 1 ] = colors[ 1 ][ 1 ];
+               p[ 2 ] = colors[ 1 ][ 2 ];
+            }
 
-            p = mprz.point( nnn, (ui32)results[ n ].heartStart );
-            p[ 0 ] = colors[ 2 ][ 0 ];
-            p[ 1 ] = colors[ 2 ][ 1 ];
-            p[ 2 ] = colors[ 2 ][ 2 ];
+            if ( results[ n ].heartStart > 0 )
+            {
+               p = mprz.point( nnn, (ui32)results[ n ].heartStart );
+               p[ 0 ] = colors[ 2 ][ 0 ];
+               p[ 1 ] = colors[ 2 ][ 1 ];
+               p[ 2 ] = colors[ 2 ][ 2 ];
+            }
 
-            p = mprz.point( nnn, (ui32)results[ n ].lungStart );
-            p[ 0 ] = colors[ 3 ][ 0 ];
-            p[ 1 ] = colors[ 3 ][ 1 ];
-            p[ 2 ] = colors[ 3 ][ 2 ];
+            if ( results[ n ].lungStart > 0 )
+            {
+               p = mprz.point( nnn, (ui32)results[ n ].lungStart );
+               p[ 0 ] = colors[ 3 ][ 0 ];
+               p[ 1 ] = colors[ 3 ][ 1 ];
+               p[ 2 ] = colors[ 3 ][ 2 ];
+            }
+
+            if ( results[ n ].skullStart > 0 )
+            {
+               p = mprz.point( nnn, (ui32)results[ n ].skullStart );
+               p[ 0 ] = colors[ 3 ][ 0 ];
+               p[ 1 ] = colors[ 3 ][ 1 ];
+               p[ 2 ] = colors[ 3 ][ 2 ];
+            }
          }
 
          std::cout << "export result" << std::endl;
@@ -244,14 +265,29 @@ struct TestRegion
          TestVolume::ResultFinal final = test.test( idresult );
 
          if ( final.neckStart > 0 )
-            errorNeck  +=  fabs( results[ n ].neckStart - final.neckStart );
+         {
+            ++counts[ 1 ];
+            errors[ 1 ]  +=  fabs( results[ n ].neckStart - final.neckStart );
+         }
 
          if ( final.heartStart > 0 )
-            errorHeart += fabs( results[ n ].heartStart - final.heartStart );
+         {
+            ++counts[ 2 ];
+            errors[ 2 ] += fabs( results[ n ].heartStart - final.heartStart );
+         }
          std::cout << "heart found:" << final.heartStart << " truth=" << results[ n ].heartStart << std::endl;
 
          if ( final.lungStart > 0 )
-            errorLung  +=  fabs( results[ n ].lungStart - final.lungStart );
+         {
+            ++counts[ 3 ];
+            errors[ 3 ]  +=  fabs( results[ n ].lungStart - final.lungStart );
+         }
+
+         if ( final.skullStart > 0 )
+         {
+            ++counts[ 4 ];
+            errors[ 4 ]  +=  fabs( results[ n ].skullStart - final.skullStart );
+         }
          ++nbCases;
 
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
@@ -280,15 +316,26 @@ struct TestRegion
                p[ 1 ] = colors[ 3 ][ 1 ];
                p[ 2 ] = colors[ 3 ][ 2 ];
             }
+
+            if ( final.skullStart > 0  && final.skullStart < (int)mprz.sizey() )
+            {
+               p = mprz.point( nnn, final.skullStart );
+               p[ 0 ] = colors[ 4 ][ 0 ];
+               p[ 1 ] = colors[ 4 ][ 1 ];
+               p[ 2 ] = colors[ 4 ][ 2 ];
+            }
          }
 
          writeBmp( mprz, std::string( PREVIEW_CASE_MARK ) + val2str( results[ n ].id ) + ".bmp" );
       }
 
       std::cout << "mean error in slice:" << std::endl
-                << "neck:"  <<( errorNeck  / nbCases ) << std::endl
-                << "heart:" <<( errorHeart / nbCases ) << std::endl
-                << "lung:"  <<( errorLung  / nbCases ) << std::endl;
+                << "neck:"  <<( errors[ 1 ] / counts[ 1 ] ) << std::endl
+                << "heart:" <<( errors[ 2 ] / counts[ 2 ] ) << std::endl
+                << "lung:"  <<( errors[ 3 ]  / counts[ 3 ] ) << std::endl
+                << "skull:"  <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl;
+
+      std::cout << "mean time=" << t1.getCurrentTime() / nbCases << std::endl;
    }
 
    /*
@@ -388,58 +435,17 @@ struct TestRegion
                 << "heart:" <<( errorHeart / resultsReg.size() ) << std::endl
                 << "lung:"  <<( errorLung  / resultsReg.size() ) << std::endl;
    }
-
-   void test()
-   {
-      Volume testVol;
-      bool loaded = loadSimpleFlatFile( DATA_PATH "case2.mf2", testVol );
-      TESTER_ASSERT( loaded );
-
-      Volume refVol;
-      loaded = loadSimpleFlatFile( DATA_PATH "case1.mf2", refVol );
-      TESTER_ASSERT( loaded );
-
-      std::cout << "origin_test=" << testVol.getOrigin()[ 0 ] << " " << testVol.getOrigin()[ 1 ] << " " << testVol.getOrigin()[ 2 ] << std::endl;
-
-      core::Matrix<double> reg(4, 4);
-      reg( 0, 0 ) = 1.14;
-      reg( 0, 1 ) = 0.02;
-      reg( 0, 2 ) = -0.0015;
-      reg( 0, 3 ) = 8.377;
-
-      reg( 1, 0 ) = -0.0225;
-      reg( 1, 1 ) = 1.2237;
-      reg( 1, 2 ) = -0.0044;
-      reg( 1, 3 ) = -2.3748;
-
-      reg( 2, 0 ) = 0.0059;
-      reg( 2, 1 ) = 0.0167;
-      reg( 2, 2 ) = 0.9741;
-      reg( 2, 3 ) = -164.4553;
-
-      reg( 3, 0 ) = 0;
-      reg( 3, 1 ) = 0;
-      reg( 3, 2 ) = 0;
-      reg( 3, 3 ) = 1.0;
-
-      vector3f posmm = testVol.indexToPosition( core::vector3f( 0, 0, 340.0 ) );
-      std::cout << "posmm=" << posmm[ 0 ] << " " << posmm[ 1 ] << " " << posmm[ 2 ] << std::endl;
-      vector3f posmmt = transf4( reg, posmm );
-      std::cout << "posmmt=" << posmmt[ 0 ] << " " << posmmt[ 1 ] << " " << posmmt[ 2 ] << std::endl;
-      vector3f index = refVol.positionToIndex( posmmt );
-      std::cout << "index=" << index[ 0 ] << " " << index[ 1 ] << " " << index[ 2 ] << std::endl;
-   }
 };
 
 TESTER_TEST_SUITE(TestRegion);
-
-//TESTER_TEST(createDatasets);
+ 
+TESTER_TEST(createDatasets);
 //TESTER_TEST(createVolumeDatabase);
 //TESTER_TEST(createPreview);
-//TESTER_TEST(learnSvm);
+TESTER_TEST(learnSvm);
 //TESTER_TEST(learnMlp);
 
 
-TESTER_TEST(registrationExport);
+//TESTER_TEST(registrationExport);
 //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();

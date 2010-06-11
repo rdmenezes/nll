@@ -84,13 +84,14 @@ namespace algorithm
        @param createProbabilityModel this enable the probability computation that is used by <code>test(p, probabilities)</code>
               if not set to 1, this will return 0
        */
-      ClassifierSvm( bool createProbabilityModel = 0 ) : Base( buildParameters() )
+      ClassifierSvm( bool createProbabilityModel = false, bool balanceData = false ) : Base( buildParameters() )
       {
          _kernelType = RBF;
 		   _model = 0;
          _vector = 0;
          _nbClasses = 0;
          _createProbabilityModel = createProbabilityModel;
+         _balanceData = balanceData;
       }
 
       /**
@@ -105,6 +106,7 @@ namespace algorithm
          c->_vector = 0;
          c->_crossValidationBin = this->_crossValidationBin;
          c->_nbClasses = _nbClasses;
+         c->_balanceData = _balanceData;
          return c;
       }
 
@@ -217,9 +219,31 @@ namespace algorithm
 		   param.p = 0.1;
 		   param.shrinking = 1;
 		   param.probability = _createProbabilityModel;
-		   param.nr_weight = 0;
-		   param.weight_label = NULL;
-		   param.weight = NULL;
+
+         core::Buffer1D<int> labels( _nbClasses );
+         core::Buffer1D<double> weights( _nbClasses );
+         if ( _balanceData )
+         {
+            // compute the number of instance for each class
+            for ( ui32 n = 0; n < _nbClasses; ++n )
+               labels[ n ] = n + 1; // svmlib classes start at 1 by default
+            for ( ui32 n = 0; n < learningIndex.size(); ++n )
+               ++weights[ dat[ learningIndex[ n ] ].output ];
+            double norm = 0;
+            for ( ui32 n = 0; n < _nbClasses; ++n )
+               norm += weights[ n ];
+            for ( ui32 n = 0; n < _nbClasses; ++n )
+               weights[ n ] = 1 / ( weights[ n ] / norm );
+
+            // set the penalty factor
+            param.nr_weight = _nbClasses;
+	         param.weight_label = labels.getBuf();
+	         param.weight = weights.getBuf();
+         } else {
+		      param.nr_weight = 0;
+		      param.weight_label = NULL;
+		      param.weight = NULL;
+         }
 
 		   const char* err = svm_check_parameter( &pb, &param );
 		   ensure( !err, "svm parameter error" ); // error
@@ -251,6 +275,7 @@ namespace algorithm
       ui32        _vectorSize;
       ui32        _nbClasses;
       ui32        _createProbabilityModel;
+      bool        _balanceData;
    };
 }
 }
