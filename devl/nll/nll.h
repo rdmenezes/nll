@@ -37,7 +37,7 @@
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
  @version 0.12
- @date 4th December 2009
+ @date 11th June 2010
  */
 
 /// define the version of nll

@@ -86,6 +86,7 @@ public:
 
    void testNllFeatureSelection()
    {
+      srand(0);
       Classifier::Database dat = createDatabase();
       Classifier* classifier = new CMlp();
       nll::core::Buffer1D<nll::f64> parameters = nll::core::make_buffer1D<nll::f64>(8, 0.5, 1.5);
