@@ -63,7 +63,7 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       RegionResult::generateFeatureDatabase();
 
 
@@ -119,7 +119,7 @@ struct TestRegion
       selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
       Classifier classifier( 1, true );
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 5, 100 ) );
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 10, 1 ) );
       classifier.test( selectedHaarDatabaseNormalized );
 
       testResultVolumeDatabase( &classifier );
@@ -161,7 +161,7 @@ struct TestRegion
    }
 
    // use the volume database (where each MPR is already computed) and export the result + ground truth
-   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier )
+   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& idToTest )
    {
       typedef Buffer1D<ui8>         Point;
       typedef ClassifierMlp<Point>  Classifier;
@@ -198,6 +198,7 @@ struct TestRegion
          setColorIntensity( 1, 1 );
          setColorIntensity( 2, 1 );
          setColorIntensity( 3, 1 );
+         setColorIntensity( 4, 1 );
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
          {
             ui8* p;
@@ -228,9 +229,9 @@ struct TestRegion
             if ( results[ n ].skullStart > 0 )
             {
                p = mprz.point( nnn, (ui32)results[ n ].skullStart );
-               p[ 0 ] = colors[ 3 ][ 0 ];
-               p[ 1 ] = colors[ 3 ][ 1 ];
-               p[ 2 ] = colors[ 3 ][ 2 ];
+               p[ 0 ] = colors[ 4 ][ 0 ];
+               p[ 1 ] = colors[ 4 ][ 1 ];
+               p[ 2 ] = colors[ 4 ][ 2 ];
             }
          }
 
@@ -317,9 +318,9 @@ struct TestRegion
                p[ 2 ] = colors[ 3 ][ 2 ];
             }
 
-            if ( final.skullStart > 0  && final.skullStart < (int)mprz.sizey() )
+            if ( final.skullStart > 0  && final.skullStart - 1 < (int)mprz.sizey() )
             {
-               p = mprz.point( nnn, final.skullStart );
+               p = mprz.point( nnn, final.skullStart - 1 );
                p[ 0 ] = colors[ 4 ][ 0 ];
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
@@ -440,8 +441,8 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
  
 TESTER_TEST(createDatasets);
-TESTER_TEST(createVolumeDatabase);
-TESTER_TEST(createPreview);
+//TESTER_TEST(createVolumeDatabase);
+//TESTER_TEST(createPreview);
 TESTER_TEST(learnSvm);
 //TESTER_TEST(learnMlp);
 
