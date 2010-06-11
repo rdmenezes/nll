@@ -8,6 +8,9 @@
 #define REGION_DETECTION_SOURCE_IMG_X  100
 #define REGION_DETECTION_SOURCE_IMG_Y  ( static_cast<ui32>( REGION_DETECTION_SOURCE_IMG_X / 1.5 ) )
 
+#define DATABASE_MIN_INTERVAL_ROI   12
+#define DATABASE_MIN_INTERVAL       10
+
 #define DATA_PATH                "../../regionDetectionTest/data/"
 #define REGISTRATION_DATA_PATH   "D:/Devel/RegionDetectionAlgorithm/data/"
 
@@ -28,7 +31,7 @@
 #define NBCASES                  62
 #define HAAR_FEATURE_SIZE        4096
 
-#define FEATURE_SELECTION_SIZE   std::min( 1024, HAAR_FEATURE_SIZE ) //20*20
+#define FEATURE_SELECTION_SIZE   std::min( 512, HAAR_FEATURE_SIZE ) //20*20
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
 

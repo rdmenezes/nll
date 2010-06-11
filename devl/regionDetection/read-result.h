@@ -78,7 +78,7 @@ namespace detect
          return results;
       }
 
-      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase, ui32 sliceIncrement = 15 )
+      static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase )
       {
          // read the cases
          std::vector<Result> results = readResults( input_cfg );
@@ -97,12 +97,12 @@ namespace detect
 
             // export
             ui32 size = volume.size()[ 2 ];
-            for ( ui32 nn = 0; nn < size; nn += sliceIncrement )
+            for ( ui32 nn = 0; nn < size; nn += DATABASE_MIN_INTERVAL )
             {
-               if ( fabs( nn - results[ n ].neckStart  ) < sliceIncrement ||
-                    fabs( nn - results[ n ].lungStart  ) < sliceIncrement ||
-                    fabs( nn - results[ n ].heartStart ) < sliceIncrement ||
-                    fabs( nn - results[ n ].skullStart ) < sliceIncrement )
+               if ( fabs( nn - results[ n ].neckStart  ) < DATABASE_MIN_INTERVAL_ROI ||
+                    fabs( nn - results[ n ].lungStart  ) < DATABASE_MIN_INTERVAL_ROI ||
+                    fabs( nn - results[ n ].heartStart ) < DATABASE_MIN_INTERVAL_ROI ||
+                    fabs( nn - results[ n ].skullStart ) < DATABASE_MIN_INTERVAL_ROI )
                {
                   // skip: too close from the marker
                   continue;
@@ -127,21 +127,6 @@ namespace detect
                   ui32 output = 1;
                   database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
                }
-
-               {
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart - 1 ) + "-neck.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].neckStart - 1 - 1, sliceName );
-                  ui32 output = 1;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
-               }
-
-               {
-                  // the neck is often cut... so don't do it!
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].neckStart -2 ) + "-neck.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].neckStart - 1 - 2, sliceName );
-                  ui32 output = 1;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].neckStart ) ) ) );
-               }
             }
 
             if ( results[ n ].heartStart > 0 )
@@ -149,20 +134,6 @@ namespace detect
                {
                   const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 ) + "-heart.bmp";
                   Point input = _convert( volume, (ui32)results[ n ].heartStart - 1, sliceName );
-                  ui32 output = 2;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
-               }
-
-               {
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 + 1 ) + "-heart.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].heartStart - 1 + 1, sliceName );
-                  ui32 output = 2;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
-               }
-
-               {
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].heartStart - 1 - 1 ) + "-heart.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].heartStart - 1 - 1, sliceName );
                   ui32 output = 2;
                   database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].heartStart ) ) ) );
                }
@@ -176,44 +147,19 @@ namespace detect
                   ui32 output = 3;
                   database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
                }
-
-               {
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 - 1 ) + "-lung.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].lungStart - 1 - 1, sliceName );
-                  ui32 output = 3;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
-               }
-
-               {
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart - 1 + 1 ) + "-lung.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].lungStart - 1 + 1, sliceName );
-                  ui32 output = 3;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].lungStart ) ) ) );
-               }
             }
 
             if ( results[ n ].skullStart > 0 )
             {
                {
                   const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart ) + "-skull.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].skullStart - 1, sliceName );
-                  ui32 output = 4;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].skullStart ) ) ) );
-               }
-
-               {
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart - 1 ) + "-skull.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].skullStart - 1 - 1, sliceName );
-                  ui32 output = 4;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].skullStart ) ) ) );
-               }
-
-               {
-                  // the neck is often cut... so don't do it!
-                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart -2 ) + "-skull.bmp";
-                  Point input = _convert( volume, (ui32)results[ n ].skullStart - 1 - 2, sliceName );
-                  ui32 output = 4;
-                  database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].skullStart ) ) ) );
+                  ui32 index = std::min( (ui32)results[ n ].skullStart - 1, volume.size()[ 2 ] - 2 );
+                  if ( index < volume.size()[ 2 ] )
+                  {
+                     Point input = _convert( volume, index, sliceName );  // we can't take the first slice as it is empty due to interpolation...
+                     ui32 output = 4;
+                     database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( filename + "-slice-" + core::val2str( results[ n ].skullStart ) ) ) );
+                  }
                }
             }
          }
@@ -233,7 +179,7 @@ namespace detect
 
          std::cout << " computes haar features..." << std::endl;
          Database haarDatabase;
-         ui32 nbLearning = static_cast<ui32>( 0.8f * sourceDatabase.size() );
+         ui32 nbLearning = static_cast<ui32>( 0.75f * sourceDatabase.size() );
          for ( ui32 n = 0; n < sourceDatabase.size(); ++n )
          {
             // recreate the normalized image
@@ -270,8 +216,8 @@ namespace detect
                                core::generateUniformDistribution( 0, 1 ) );
             core::vector2d v2( core::generateUniformDistribution( 0, 1 ),
                                core::generateUniformDistribution( 0, 1 ) );
-            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 12.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of 4 pixels features
-                 fabs( v1[ 1 ] - v2[ 1 ] ) < 12.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
+            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 10.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of 4 pixels features
+                 fabs( v1[ 1 ] - v2[ 1 ] ) < 10.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
             {
                --n;
                continue;

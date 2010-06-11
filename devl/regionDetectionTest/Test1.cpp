@@ -63,7 +63,7 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       RegionResult::generateFeatureDatabase();
 
 
@@ -119,7 +119,7 @@ struct TestRegion
       selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
       Classifier classifier( 1, true );
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 5, 100 ) );
       classifier.test( selectedHaarDatabaseNormalized );
 
       testResultVolumeDatabase( &classifier );
@@ -176,7 +176,7 @@ struct TestRegion
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
 
       Timer t1;
-      for ( int n = (int)results.size() - 1; results[ n ].id != 59; --n )
+      for ( int n = (int)results.size() - 1; n > (int)results.size() - 1 - 14; --n )
       {
          std::cout << "test case database:" << n << std::endl;
          Database dat;
@@ -440,8 +440,8 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
  
 TESTER_TEST(createDatasets);
-//TESTER_TEST(createVolumeDatabase);
-//TESTER_TEST(createPreview);
+TESTER_TEST(createVolumeDatabase);
+TESTER_TEST(createPreview);
 TESTER_TEST(learnSvm);
 //TESTER_TEST(learnMlp);
 
