@@ -207,8 +207,7 @@ namespace detect
       }
       */
 
-   private:
-      static algorithm::Haar2dFeatures::Features _generateRandomFeatures( int seed = 0 )
+      static algorithm::Haar2dFeatures::Features generateRandomFeatures( int seed = 0 )
       {
          algorithm::Haar2dFeatures::Features features;
 
@@ -238,6 +237,7 @@ namespace detect
          return features;
       }
 
+   private:
       static Point _convert( const Volume& volume, ui32 sliceIndex, const std::string& sliceName )
       {
          core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,

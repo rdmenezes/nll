@@ -58,40 +58,13 @@ struct TestRegion
 
 
    // create a XZ MPR for every volume
-   void createPreview()
+   void createPreview( const std::vector<RegionResult::Result>& results, ui32 n, const Volume& volume )
    {
-      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
-      for ( ui32 n = 0; n < results.size(); ++n )
-      {
-         std::cout << "generate preview id=" << results[ n ].id << std::endl;
+      std::cout << "generate preview id=" << results[ n ].id << std::endl;
 
-         Volume volume1;
-         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume1 );
-         TESTER_ASSERT( loaded );
-
-         Image<ui8> xz = extractXZ( volume1 );
-         extend( xz, 3 );
-         writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
-      }
-   }
-
-   void createDatasets()
-   {
-      typedef ClassifierMlp<Point>  Classifier;
-
-      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
-      //RegionResult::generateFeatureDatabase();
-
-
-      std::cout << "haar selection..." << std::endl;
-      Database haarDatabaseNormalized;
-      haarDatabaseNormalized.read( NORMALIZED_HAAR );
-      FeatureSelectionFilterPearson<Point> pearson( FEATURE_SELECTION_SIZE );
-      pearson.compute( haarDatabaseNormalized );
-      Database features = pearson.transform( haarDatabaseNormalized );
-
-      pearson.write( HAAR_SELECTION );
-      features.write( HAAR_SELECTION_DATABASE );
+      Image<ui8> xz = extractXZ( volume );
+      extend( xz, 3 );
+      writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
    }
 
    // create a database for each volume, containing all raw MPR
@@ -110,6 +83,8 @@ struct TestRegion
          Volume volume;
          bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume );
          TESTER_ASSERT( loaded );
+
+         createPreview( results, n, volume );
 
          for ( ui32 nn = 0; nn < volume.size()[ 2 ]; ++nn )
          {
@@ -224,6 +199,45 @@ struct TestRegion
       }
       std::cout << "nbLearning volumes = " << nbLearning << " test=" << nbTest << std::endl;
       return outDat;
+   }
+
+   void computeHaarFeatures()
+   {
+      algorithm::Haar2dFeatures::Features haar = RegionResult::generateRandomFeatures();
+      algorithm::Haar2dFeatures::write( haar, HAAR_FEATURES );
+
+      std::cout << "select haar features loading..." << std::endl;
+      Database outDat;
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         std::cout << "read volume database=" << n << std::endl;
+         typedef ClassifierMlp< Buffer1D<ui8> >::Database   DatImage;
+         DatImage  dat;
+         dat.read( DATABASE_FULL_CASE( results[ n ].id ) );
+         for ( ui32 nn = 0; nn < dat.size(); ++nn )
+         {
+            DatImage::Sample& src = dat[ nn ];
+            core::Image<ui8> image( src.input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
+            core::Image<f32> imagef( REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
+            for ( ui32 index = 0; index < image.size(); ++index )
+               imagef[ index ] = image[ index ] / 255.0;
+            Point point = algorithm::Haar2dFeatures::process( haar, imagef );
+
+            Database::Sample s;
+            s.input = point;
+            s.type = Database::Sample::LEARNING;
+            outDat.add( s );
+         }
+      }
+
+      std::cout << "haar selection..." << std::endl;
+      FeatureSelectionFilterPearson<Point> pearson( FEATURE_SELECTION_SIZE );
+      pearson.compute( outDat );
+      Database features = pearson.transform( outDat );
+
+      pearson.write( HAAR_SELECTION );
+      features.write( HAAR_SELECTION_DATABASE );
    }
 
    // use the volume database (where each MPR is already computed) and export the result + ground truth
@@ -393,9 +407,9 @@ struct TestRegion
                p[ 2 ] = colors[ 3 ][ 2 ];
             }
 
-            if ( final.skullStart > 0  && final.skullStart - 1 < (int)mprz.sizey() )
+            if ( final.skullStart > 0  && final.skullStart < (int)mprz.sizey() )
             {
-               p = mprz.point( nnn, final.skullStart - 1 );
+               p = mprz.point( nnn, final.skullStart );
                p[ 0 ] = colors[ 4 ][ 0 ];
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
@@ -497,8 +511,8 @@ struct TestRegion
 
 TESTER_TEST_SUITE(TestRegion);
  
-TESTER_TEST(createDatasets);
-//TESTER_TEST(createVolumeDatabase);
+//TESTER_TEST(createDatasets);
+TESTER_TEST(computeHaarFeatures);
 //TESTER_TEST(createPreview);
 TESTER_TEST(learnSvm);
 //TESTER_TEST(learnMlp);

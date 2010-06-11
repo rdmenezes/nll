@@ -139,6 +139,7 @@ namespace detect
       /**
        @brief export on a XZ mpr the classification result
        */
+      /*
       core::Image<ui8> exportTest( const Volume& volume )
       {
          typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
@@ -214,7 +215,7 @@ namespace detect
             }
          }
          return sliceTfm;
-      }
+      }*/
 
       /**
        @brief Create normalized haar features from raw mpr
