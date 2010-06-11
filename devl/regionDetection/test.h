@@ -219,7 +219,7 @@ namespace detect
       /**
        @brief Create normalized haar features from raw mpr
        */
-      Point getFeatures( core::Image<ui8>& mpr_xy )
+      Point getFeatures( core::Image<ui8>& mpr_xy ) const
       {
          // convert to a f32 image
          Point sliceFeature( mpr_xy.size(), false );
@@ -239,7 +239,7 @@ namespace detect
       /**
        @brief Create normalized Haar features from a volume & slice index
        */
-      Point getFeatures( const Volume& volume, ui32 sliceIndex )
+      Point getFeatures( const Volume& volume, ui32 sliceIndex ) const
       {
          // extract MPR
          core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,

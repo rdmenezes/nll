@@ -36,35 +36,51 @@ void setColorIntensity( ui32 index, double val )
 
 struct TestRegion
 {
+   typedef Buffer1D<double>                  Point;
+   typedef ClassifierSvm<Point>::Database    Database;
    
-/*
-   void testExtractSlice()
+      /*
+   void learnMlp()
    {
-      
-      for ( ui32 n = 0; n < 5; ++n )
-      {
-         std::cout << "case=" << n << std::endl;
-         Volume volume;
-         bool loaded = loadSimpleFlatFile( datasets[ n ], volume );
-         TESTER_ASSERT( loaded );
-         
-         vector3f center = volume.indexToPosition( vector3f( 0, 0, static_cast<f32>( volume.size()[ 2 ] ) / 2 ) );
-         Image<ui8> image = extractSlice( volume, center[ 2 ] );
+      srand( (unsigned)time(0) );
+      typedef ClassifierMlp<Point>  Classifier;
 
+      Database selectedHaarDatabaseNormalized;
+      selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE );
 
-         core::extend( image, 3 );
-         writeBmp( image, std::string( "c:/tmp/mpr-1-" ) + val2str( n ) + ".bmp" );
-      }
+      Classifier classifier;
+      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 15, 1, 30 ) );
+      classifier.test( selectedHaarDatabaseNormalized );
+
+      testResultVolumeDatabase( &classifier );
    }*/
+
+
+
+   // create a XZ MPR for every volume
+   void createPreview()
+   {
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         std::cout << "generate preview id=" << results[ n ].id << std::endl;
+
+         Volume volume1;
+         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume1 );
+         TESTER_ASSERT( loaded );
+
+         Image<ui8> xz = extractXZ( volume1 );
+         extend( xz, 3 );
+         writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
+      }
+   }
 
    void createDatasets()
    {
-      typedef Buffer1D<double>      Point;
       typedef ClassifierMlp<Point>  Classifier;
-      typedef Classifier::Database  Database;
 
       //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
-      RegionResult::generateFeatureDatabase();
+      //RegionResult::generateFeatureDatabase();
 
 
       std::cout << "haar selection..." << std::endl;
@@ -101,7 +117,17 @@ struct TestRegion
                                                                             volume.size()[ 1 ] / 2.0f,
                                                                             static_cast<f32>( nn ) ) );
             core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
-            dat.add( Database::Sample( mpr_xy, 0, Database::Sample::LEARNING ) );
+
+            ui32 classid = 0;
+            if ( results[ n ].neckStart == nn )
+               classid = 1;
+            if ( results[ n ].heartStart == nn )
+               classid = 2;
+            if ( results[ n ].lungStart == nn )
+               classid = 3;
+            if ( results[ n ].skullStart == nn )
+               classid = 4;
+            dat.add( Database::Sample( mpr_xy, classid, Database::Sample::LEARNING ) );
          }
 
          dat.write( DATABASE_FULL_CASE( results[ n ].id ) );
@@ -110,58 +136,98 @@ struct TestRegion
 
    void learnSvm()
    {
-      srand( 10);
-      typedef Buffer1D<double>      Point;
-      typedef ClassifierSvm<Point>  Classifier;
-      typedef Classifier::Database  Database;
-
-      Database selectedHaarDatabaseNormalized;
-      selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
-
-      Classifier classifier( 1, true );
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 10, 1 ) );
-      classifier.test( selectedHaarDatabaseNormalized );
-
-      testResultVolumeDatabase( &classifier );
-   }
-
-   void learnMlp()
-   {
-      srand( (unsigned)time(0) );
-      typedef Buffer1D<double>      Point;
-      typedef ClassifierMlp<Point>  Classifier;
-      typedef Classifier::Database  Database;
-
-      Database selectedHaarDatabaseNormalized;
-      selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE );
-
-      Classifier classifier;
-      classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 15, 1, 30 ) );
-      classifier.test( selectedHaarDatabaseNormalized );
-
-      testResultVolumeDatabase( &classifier );
-   }
-
-   // create a XZ MPR for every volume
-   void createPreview()
-   {
+      // prepare the bins
+      const ui32 nbBins = 10;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<ui32> bins( results.size() );
       for ( ui32 n = 0; n < results.size(); ++n )
       {
-         std::cout << "generate preview id=" << results[ n ].id << std::endl;
+         bins[ n ] = n / ( (ui32)results.size() / nbBins );
+      }
+      core::randomize( bins );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         std::cout << bins[ n ] << " ";
+      }
 
-         Volume volume1;
-         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume1 );
-         TESTER_ASSERT( loaded );
 
-         Image<ui8> xz = extractXZ( volume1 );
-         extend( xz, 3 );
-         writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
+      for ( ui32 n = 0; n < nbBins; ++n )
+      {
+         std::cout << "test bin:" << n << std::endl;
+
+         // run learning and test on the bins
+         typedef ClassifierSvm<Point>  Classifier;
+
+         Classifier classifier( 1, true );
+         TestVolume test( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
+         Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n, test );
+
+         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 10, 1 ) );
+         classifier.test( selectedHaarDatabaseNormalized );
+
+         testResultVolumeDatabase( test, bins, n );
       }
    }
 
+   // select all slice if it is exactly on a ROI, or at least DATABASE_MIN_INTERVAL_ROI from one
+   bool useSlice( const RegionResult::Result& result, ui32 currentSlice )
+   {
+      return result.lungStart == currentSlice  ||
+             result.heartStart == currentSlice ||
+             result.neckStart == currentSlice  ||
+             result.skullStart == currentSlice ||
+             (
+               fabs( result.lungStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI &&
+               fabs( result.heartStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI &&
+               fabs( result.neckStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI &&
+               fabs( result.skullStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI
+             );
+   }
+
+   Database createLearningDatabase( const std::vector<ui32>& bin, ui32 binTest, const TestVolume& test )
+   {
+      Database outDat;
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( bin.size() == results.size(), "incompatible size, regenerate volume database!" );
+
+      ui32 nbTest = 0;
+      ui32 nbLearning = 0;
+      for ( ui32 n = 0; n < bin.size(); ++n )
+      {
+         std::cout << "read volume database=" << n << std::endl;
+         typedef ClassifierMlp< Buffer1D<ui8> >::Database   DatImage;
+         DatImage  dat;
+         dat.read( DATABASE_FULL_CASE( results[ n ].id ) );
+         for ( ui32 nn = 0; nn < dat.size(); ++nn )
+         {
+            if ( !useSlice( results[ n ], nn ) )
+               continue;
+
+            DatImage::Sample& src = dat[ nn ];
+            Database::Sample s;
+
+            Buffer1D<ui8> buf( src.input );
+            Image<ui8> i( src.input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
+            s.input = test.getFeatures( i );
+            s.output = src.output;
+            s.debug = src.debug;
+            if ( binTest == bin[ n ] )
+            {
+               ++nbTest;
+               s.type = Database::Sample::TESTING;
+            } else {
+               ++nbLearning;
+               s.type = Database::Sample::LEARNING;
+            }
+            outDat.add( s );
+         }
+      }
+      std::cout << "nbLearning volumes = " << nbLearning << " test=" << nbTest << std::endl;
+      return outDat;
+   }
+
    // use the volume database (where each MPR is already computed) and export the result + ground truth
-   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& idToTest )
+   void testResultVolumeDatabase( TestVolume& test, const std::vector<ui32>& bins, ui32 binToTest )
    {
       typedef Buffer1D<ui8>         Point;
       typedef ClassifierMlp<Point>  Classifier;
@@ -171,13 +237,22 @@ struct TestRegion
       Buffer1D<double> counts( 5 );
       Buffer1D<double> errors( 5 );
       
+      // extract the bin that needs to be tested
+      std::vector<ui32> idToTest;
+      for ( ui32 n = 0; n < bins.size(); ++n )
+      {
+         if ( bins[ n ] == binToTest )
+            idToTest.push_back( n );
+      }
 
-      TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
+      
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
 
       Timer t1;
-      for ( int n = (int)results.size() - 1; n > (int)results.size() - 1 - 14; --n )
+      for ( int index = 0; index < idToTest.size(); ++index )
       {
+         ui32 n = idToTest[ index ];
+
          std::cout << "test case database:" << n << std::endl;
          Database dat;
          dat.read( DATABASE_FULL_CASE( results[ n ].id ) );
@@ -338,24 +413,6 @@ struct TestRegion
 
       std::cout << "mean time=" << t1.getCurrentTime() / nbCases << std::endl;
    }
-
-   /*
-   // for all test, create a XZ MPR displaying the results
-   void testResult( Classifier< Buffer1D<double> >* classifier )
-   {
-      TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR );
-      for ( ui32 n = static_cast<ui32>( NBCASES * 0.8 ); n < NBCASES; ++n )
-      {
-         Volume v;
-         bool loaded = loadSimpleFlatFile( datasets[ n ], v );
-         TESTER_ASSERT( loaded );
-
-         const std::string exportNmae = "c:/tmp/result-" + val2str( n ) + ".bmp";
-         Image<ui8> i = test.exportTest( v );
-
-         writeBmp( i, exportNmae );
-      }
-   }*/
 
    int findIndexFromId( const std::vector<RegionResult::Result>& results, ui32 id )
    {

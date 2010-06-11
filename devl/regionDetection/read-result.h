@@ -69,7 +69,7 @@ namespace detect
 
             std::getline( f, line );
             sscanf( line.c_str(), "skull:%f:%f", &n1, &n2 );
-            r.skullStart = static_cast<float>( n1 );
+            r.skullStart = static_cast<float>( n1 ) - 1; // we actually soustract one slice because of the filetring, which has grey firt line & column
 
             std::getline( f, line );
             results.push_back( r );
@@ -78,6 +78,7 @@ namespace detect
          return results;
       }
 
+      /*
       static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase )
       {
          // read the cases
@@ -153,7 +154,7 @@ namespace detect
             {
                {
                   const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart ) + "-skull.bmp";
-                  ui32 index = std::min( (ui32)results[ n ].skullStart - 1, volume.size()[ 2 ] - 2 );
+                  ui32 index = std::min( (ui32)results[ n ].skullStart - 1, volume.size()[ 2 ] - 1 );
                   if ( index < volume.size()[ 2 ] )
                   {
                      Point input = _convert( volume, index, sliceName );  // we can't take the first slice as it is empty due to interpolation...
@@ -166,7 +167,8 @@ namespace detect
 
          database.write( outputDatabase );
       }
-
+      */
+      /*
       static void generateFeatureDatabase()
       {
          std::cout << "generate feature database..." << std::endl;
@@ -203,6 +205,7 @@ namespace detect
          haarDatabaseNormalized.write( NORMALIZED_HAAR );
 
       }
+      */
 
    private:
       static algorithm::Haar2dFeatures::Features _generateRandomFeatures( int seed = 0 )
