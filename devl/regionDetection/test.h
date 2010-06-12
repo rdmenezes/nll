@@ -226,7 +226,7 @@ namespace detect
          Point sliceFeature( mpr_xy.size(), false );
          for ( ui32 n = 0; n < sliceFeature.size(); ++n )
          {
-            sliceFeature[ n ] = static_cast<Point::value_type>( mpr_xy[ n ] ) / 256.0;
+            sliceFeature[ n ] = static_cast<Point::value_type>( mpr_xy[ n ] ) / 255.0;
          }
 
          // extract 2D Haar features

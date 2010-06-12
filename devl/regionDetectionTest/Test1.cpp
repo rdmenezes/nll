@@ -149,14 +149,15 @@ struct TestRegion
          // run learning and test on the bins
          typedef ClassifierSvm<Point>  Classifier;
 
-         Classifier classifier( 1, true );
+         Classifier classifier( 1, false );
          TestVolume test( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
          Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n, test );
 
-         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 5, 1 ) );
+         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 1 ) );
          classifier.test( selectedHaarDatabaseNormalized );
 
-         testResultVolumeDatabase( test, bins, n );
+         TestVolume test2( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
+         testResultVolumeDatabase( test2, bins, n );
       }
    }
 
@@ -238,7 +239,7 @@ struct TestRegion
             core::Image<ui8> image( src.input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
             core::Image<f32> imagef( REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
             for ( ui32 index = 0; index < image.size(); ++index )
-               imagef[ index ] = image[ index ] / 255.0;
+               imagef[ index ] = static_cast<f32>( image[ index ] ) / 255.0;
             Point point = algorithm::Haar2dFeatures::process( haar, imagef );
 
             Database::Sample s;
@@ -346,6 +347,7 @@ struct TestRegion
             }
          }
 
+
          std::cout << "export result" << std::endl;
          for ( ui32 nn = 0; nn < dat.size(); ++nn )
          {
@@ -357,21 +359,28 @@ struct TestRegion
             idresult.sliceIds[ nn ] = r;
             idresult.probabilities[ nn ] = proba;
 
-            setColorIntensity( 0, proba );
-            setColorIntensity( 1, proba );
-            setColorIntensity( 2, proba );
-            setColorIntensity( 3, proba );
+            std::cout << "proba=" << proba << " class=" << r <<std::endl;
+
 
             
             // mark result
+            setColorIntensity( r, proba );
             for ( ui32 nnn = 0; nnn < std::min<ui32>( mprz.sizex(), 10 ); ++nnn )
             {
+               //std::cout << "proba=" << proba << " class=" << r <<std::endl;
+
                ui8* p = mprz.point( nnn, nn );
                p[ 0 ] = colors[ r ][ 0 ];
                p[ 1 ] = colors[ r ][ 1 ];
                p[ 2 ] = colors[ r ][ 2 ];
             }
          }
+
+         setColorIntensity( 0, 1 );
+         setColorIntensity( 1, 1 );
+         setColorIntensity( 2, 1 );
+         setColorIntensity( 3, 1 );
+         setColorIntensity( 4, 1 );
 
          // compute the final result
          TestVolume::ResultFinal final = test.test( idresult );
@@ -529,15 +538,35 @@ struct TestRegion
                 << "heart:" <<( errorHeart / resultsReg.size() ) << std::endl
                 << "lung:"  <<( errorLung  / resultsReg.size() ) << std::endl;
    }
+
+
+   void createDatasets()
+   {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      RegionResult::generateFeatureDatabase();
+
+
+      std::cout << "haar selection..." << std::endl;
+      Database haarDatabaseNormalized;
+      haarDatabaseNormalized.read( NORMALIZED_HAAR );
+      FeatureSelectionFilterPearson<Point> pearson( FEATURE_SELECTION_SIZE );
+      pearson.compute( haarDatabaseNormalized );
+      Database features = pearson.transform( haarDatabaseNormalized );
+
+      pearson.write( HAAR_SELECTION );
+      features.write( HAAR_SELECTION_DATABASE );
+   }
 };
 
 TESTER_TEST_SUITE(TestRegion);
-//TESTER_TEST( createVolumeDatabase);
 //TESTER_TEST(createDatasets);
-TESTER_TEST(computeHaarFeatures);
-//TESTER_TEST(createPreview);
+//TESTER_TEST( createVolumeDatabase);
+//TESTER_TEST(computeHaarFeatures);
 TESTER_TEST(learnSvm);
-//TESTER_TEST(learnMlp);
 
 
 //TESTER_TEST(registrationExport);

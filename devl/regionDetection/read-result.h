@@ -78,7 +78,7 @@ namespace detect
          return results;
       }
 
-      /*
+      
       static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase )
       {
          // read the cases
@@ -167,12 +167,12 @@ namespace detect
 
          database.write( outputDatabase );
       }
-      */
-      /*
+      
+      
       static void generateFeatureDatabase()
       {
          std::cout << "generate feature database..." << std::endl;
-         algorithm::Haar2dFeatures::Features features = _generateRandomFeatures();
+         algorithm::Haar2dFeatures::Features features = generateRandomFeatures();
          algorithm::Haar2dFeatures::write( features, HAAR_FEATURES );
 
          std::cout << " read source database..." << std::endl;
@@ -205,7 +205,7 @@ namespace detect
          haarDatabaseNormalized.write( NORMALIZED_HAAR );
 
       }
-      */
+      
 
       static algorithm::Haar2dFeatures::Features generateRandomFeatures( int seed = 0 )
       {
