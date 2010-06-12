@@ -4,18 +4,6 @@ heart:270:236
 lung:318:247
 skull:404:-1
 
-case74:
-neck:416:387
-heart:274:233
-lung:356:732
-skull:448:-1
-
-case75:
-neck:413:387
-heart:299:264
-lung:355:260
-skull:448:-1
-
 case2:
 neck:332:302
 heart:244:211
@@ -399,6 +387,18 @@ neck:349:308
 heart:226:196
 lung:290:192
 skull:388:-1
+
+case74:
+neck:416:387
+heart:274:233
+lung:356:732
+skull:448:-1
+
+case75:
+neck:413:387
+heart:299:264
+lung:355:260
+skull:448:-1
 
 case77:
 neck:409:373

@@ -92,6 +92,22 @@ struct TestRegion
                                                                             volume.size()[ 1 ] / 2.0f,
                                                                             static_cast<f32>( nn ) ) );
             core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
+            if ( useSlice ( results[ n ], nn ) )
+            {
+               core::Image<ui8> clone;
+               clone.clone( mpr_xy );
+               core::extend( clone, 3 );
+               std::string ext;
+               if ( nn == results[ n ].neckStart )
+                  ext = "neck";
+               if ( nn == results[ n ].lungStart )
+                  ext = "lung";
+               if ( nn == results[ n ].heartStart )
+                  ext = "heart";
+               if ( nn == results[ n ].skullStart )
+                  ext = "skull";
+               writeBmp( clone, "c:/tmp/case-" + core::val2str( results[ n ].id ) + "slice-" + core::val2str( nn ) + ext + ".bmp" );
+            }
 
             ui32 classid = 0;
             if ( results[ n ].neckStart == nn )
@@ -112,7 +128,7 @@ struct TestRegion
    void learnSvm()
    {
       // prepare the bins
-      const ui32 nbBins = 10;
+      const ui32 nbBins = 5;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       std::vector<ui32> bins( results.size() );
       for ( ui32 n = 0; n < results.size(); ++n )
@@ -137,7 +153,7 @@ struct TestRegion
          TestVolume test( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
          Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n, test );
 
-         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 10, 1 ) );
+         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 5, 1 ) );
          classifier.test( selectedHaarDatabaseNormalized );
 
          testResultVolumeDatabase( test, bins, n );
@@ -152,6 +168,7 @@ struct TestRegion
              result.neckStart == currentSlice  ||
              result.skullStart == currentSlice ||
              (
+               ( currentSlice % DATABASE_MIN_INTERVAL ) == 0 &&
                fabs( result.lungStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI &&
                fabs( result.heartStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI &&
                fabs( result.neckStart - currentSlice ) > DATABASE_MIN_INTERVAL_ROI &&
@@ -226,18 +243,23 @@ struct TestRegion
 
             Database::Sample s;
             s.input = point;
+            s.output  = src.output;
             s.type = Database::Sample::LEARNING;
             outDat.add( s );
          }
       }
 
+      std::cout << "feature normalization..." << std::endl;
+      algorithm::FeatureTransformationNormalization<Point> featureNormalization;
+      featureNormalization.compute( outDat );
+      featureNormalization.write( PREPROCESSING_HAAR );
+
+      Database haarDatabaseNormalized = featureNormalization.transform( outDat );
+
       std::cout << "haar selection..." << std::endl;
       FeatureSelectionFilterPearson<Point> pearson( FEATURE_SELECTION_SIZE );
-      pearson.compute( outDat );
-      Database features = pearson.transform( outDat );
-
+      pearson.compute( haarDatabaseNormalized );
       pearson.write( HAAR_SELECTION );
-      features.write( HAAR_SELECTION_DATABASE );
    }
 
    // use the volume database (where each MPR is already computed) and export the result + ground truth
@@ -510,7 +532,7 @@ struct TestRegion
 };
 
 TESTER_TEST_SUITE(TestRegion);
- 
+//TESTER_TEST( createVolumeDatabase);
 //TESTER_TEST(createDatasets);
 TESTER_TEST(computeHaarFeatures);
 //TESTER_TEST(createPreview);

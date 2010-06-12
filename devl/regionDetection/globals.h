@@ -31,6 +31,9 @@
 #define NBCASES                  62
 #define HAAR_FEATURE_SIZE        4096
 
+#define HAAR_MIN_SIZE_X          8.0
+#define HAAR_MIN_SIZE_Y          8.0
+
 #define FEATURE_SELECTION_SIZE   std::min( 512, HAAR_FEATURE_SIZE ) //20*20
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
