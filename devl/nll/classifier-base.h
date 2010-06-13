@@ -204,7 +204,7 @@ namespace algorithm
       /**
        @brief read the classifier from a file
        */
-      void read( const std::string& file )
+      virtual void read( const std::string& file )
       {
          std::ifstream f( file.c_str(), std::ios_base::binary );
          if ( !f.is_open() )
@@ -216,7 +216,7 @@ namespace algorithm
       /**
        @brief write the classifier to a file.
        */
-      void write( const std::string& file ) const
+      virtual void write( const std::string& file ) const
       {
          std::ofstream f( file.c_str(), std::ios_base::binary );
          if ( !f.is_open() )

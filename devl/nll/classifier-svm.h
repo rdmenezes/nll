@@ -94,6 +94,30 @@ namespace algorithm
          _balanceData = balanceData;
       }
 
+      virtual void write( const std::string& file ) const
+      {
+         svm_save_model( file.c_str(), _model );
+
+         std::ofstream f( ( file + ".model").c_str(), std::ios::binary );
+         core::write<ui32>( _kernelType, f );
+         core::write<ui32>( _inputSize, f );
+         core::write<ui32>( _nbClasses, f );
+         core::write<ui32>( _createProbabilityModel, f );
+         core::write<bool>( _balanceData, f );
+      }
+
+      virtual void read( const std::string& file )
+      {
+         _model = svm_load_model( file.c_str() );
+
+         std::ifstream f( ( file + ".model").c_str(), std::ios::binary );
+         core::read<ui32>( _kernelType, f );
+         core::read<ui32>( _inputSize, f );
+         core::read<ui32>( _nbClasses, f );
+         core::read<ui32>( _createProbabilityModel, f );
+         core::read<bool>( _balanceData, f );
+      }
+
       /**
        @todo implement deepcopy
        */
