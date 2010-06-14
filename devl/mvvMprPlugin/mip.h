@@ -35,39 +35,47 @@ namespace platform
          {
             OrderMipDisplayResult* result = new OrderMipDisplayResult();
 
-            if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] != _size[ 1 ] || _zoom != _oldZoom )
+            if ( _size[ 0 ] > 0 && _size[ 1 ] > 0 )
             {
-               float sx = static_cast<f32>(_size[ 0 ] ) / _sliceOrig.size()[ 0 ] * _sliceOrig.getSpacing()[ 0 ];
-               float sy = static_cast<f32>(_size[ 1 ] ) / _sliceOrig.size()[ 1 ] * _sliceOrig.getSpacing()[ 1 ];
-               float s = std::min( sx, sy ) / 3;
-               Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
-                            _sliceOrig.getAxisX(),
-                            _sliceOrig.getAxisY(),
-                            _sliceOrig.getOrigin(),
-                            nll::core::vector2f( _sliceOrig.getSpacing()[ 0 ] / s * _zoom,
-                                                 _sliceOrig.getSpacing()[ 1 ] / s * _zoom ) );
-               nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _sliceOrig, slice );
+               // we display only if we need to...
+               if ( _slice.size()[ 0 ] != _size[ 0 ] || _slice.size()[ 1 ] || _size[ 1 ] || _zoom != _oldZoom )
+               {
+                  float sx = static_cast<f32>(_size[ 0 ] ) / _sliceOrig.size()[ 0 ] * _sliceOrig.getSpacing()[ 0 ];
+                  float sy = static_cast<f32>(_size[ 1 ] ) / _sliceOrig.size()[ 1 ] * _sliceOrig.getSpacing()[ 1 ];
+                  float s = std::min( sx, sy ) / 3;
+                  Slice slice( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 1 ),
+                               _sliceOrig.getAxisX(),
+                               _sliceOrig.getAxisY(),
+                               _sliceOrig.getOrigin(),
+                               nll::core::vector2f( _sliceOrig.getSpacing()[ 0 ] / s * _zoom,
+                                                    _sliceOrig.getSpacing()[ 1 ] / s * _zoom ) );
+                  if ( slice.size()[ 0 ] && slice.size()[ 1 ] && slice.size()[ 2 ] )
+                  {
+                     // if the output slice size is (0, 0, 0), it means a mip segment is created, but not displayed
+                     nll::imaging::resampling<f32, Slice::BilinearInterpolator>( _sliceOrig, slice );
+                  }
 
-               // cache the result for future usage...
-               _slice = slice;
-               _oldZoom = _zoom;
-            }
+                  // cache the result for future usage...
+                  _slice = slice;
+                  _oldZoom = _zoom;
+               }
 
-            result->slice = Sliceuc( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 3 ),
-                                     _slice.getAxisX(),
-                                     _slice.getAxisY(),
-                                     _slice.getOrigin(),
-                                     _slice.getSpacing() );
+               result->slice = Sliceuc( nll::core::vector3ui( _size[ 0 ], _size[ 1 ], 3 ),
+                                        _slice.getAxisX(),
+                                        _slice.getAxisY(),
+                                        _slice.getOrigin(),
+                                        _slice.getSpacing() );
 
-            Sliceuc::Storage::DirectionalIterator out = result->slice.getIterator( 0, 0 );
-            for ( Slice::Storage::ConstDirectionalIterator it = _slice.getStorage().getIterator( 0, 0, 0 );
-                  it != _slice.getStorage().endDirectional();
-                  ++it, ++out )
-            {
-               const float* col = _lut.transform( *it );
-               out.pickcol( 0 ) = static_cast<ui8>( col[ 0 ] );
-               out.pickcol( 1 ) = static_cast<ui8>( col[ 1 ] );
-               out.pickcol( 2 ) = static_cast<ui8>( col[ 2 ] );
+               Sliceuc::Storage::DirectionalIterator out = result->slice.getIterator( 0, 0 );
+               for ( Slice::Storage::ConstDirectionalIterator it = _slice.getStorage().getIterator( 0, 0, 0 );
+                     it != _slice.getStorage().endDirectional();
+                     ++it, ++out )
+               {
+                  const float* col = _lut.transform( *it );
+                  out.pickcol( 0 ) = static_cast<ui8>( col[ 0 ] );
+                  out.pickcol( 1 ) = static_cast<ui8>( col[ 1 ] );
+                  out.pickcol( 2 ) = static_cast<ui8>( col[ 2 ] );
+               }
             }
             return result;
          }
