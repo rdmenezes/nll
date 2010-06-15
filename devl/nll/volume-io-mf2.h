@@ -70,48 +70,79 @@ namespace imaging
       file.read( (char*)&originY, sizeof( double ) );
       file.read( (char*)&originZ, sizeof( double ) );
 
-      // only with RSI type is handled
-      ensure( dataType == 1, "file format not handled" );
-
-      // Create an RSI to maximise dynamic range on each slice
-      std::vector< std::pair<double, double> > rsi( depth );
-
-      core::Matrix<float> id( 3, 3 );
-      for ( ui32 n = 0; n < 3; ++n )
-         id( n, n ) = 1;
-      // origin is from worldorigin->volumeorigin
-      core::Matrix<float> pst = Volume::createPatientSpaceTransform( id, core::vector3f( (float)-originX, (float)-originY, (float)-originZ ), core::vector3f( (float)colSp, (float)rowSp, (float)sliceSp ) );
-
-      for ( unsigned int k = 0; k < depth; ++k )
+      // If we're expecting uint16 data with RSI in the file
+      if ( dataType == 1 )
       {
-         double slope = 0;
-         double intercept = 0;
-         file.read( (char*)&slope, sizeof( double ) );
-         file.read( (char*)&intercept, sizeof( double ) );
-         rsi[k] = std::make_pair( slope, intercept );
-      }
+         // Create an RSI to maximise dynamic range on each slice
+         std::vector< std::pair<double, double> > rsi( depth );
 
-      Volume output( core::vector3ui( width,
-                                      height,
-                                      depth ),
-                     pst );
+         core::Matrix<float> id( 3, 3 );
+         for ( ui32 n = 0; n < 3; ++n )
+            id( n, n ) = 1;
+         // origin is from worldorigin->volumeorigin
+         core::Matrix<float> pst = Volume::createPatientSpaceTransform( id, core::vector3f( (float)-originX, (float)-originY, (float)-originZ ), core::vector3f( (float)colSp, (float)rowSp, (float)sliceSp ) );
 
-      for ( unsigned int k = 0; k < depth; ++k )
-      {
-         for ( unsigned int j = 0; j < height; ++j )
+         for ( unsigned int k = 0; k < depth; ++k )
          {
-            for ( unsigned int i = 0; i < width; ++i )
+            double slope = 0;
+            double intercept = 0;
+            file.read( (char*)&slope, sizeof( double ) );
+            file.read( (char*)&intercept, sizeof( double ) );
+            rsi[k] = std::make_pair( slope, intercept );
+         }
+
+         Volume output( core::vector3ui( width,
+                                         height,
+                                         depth ),
+                        pst );
+
+         for ( unsigned int k = 0; k < depth; ++k )
+         {
+            for ( unsigned int j = 0; j < height; ++j )
             {
-               ensure( !file.eof(), "unexpected eof" );
-               unsigned short value = 0;
-               file.read( (char*)&value, sizeof( unsigned short ) );
-               output( i, j, k ) = static_cast<T>( value * rsi[ k ].first + rsi[ k ].second );
+               for ( unsigned int i = 0; i < width; ++i )
+               {
+                  ensure( !file.eof(), "unexpected eof" );
+                  unsigned short value = 0;
+                  file.read( (char*)&value, sizeof( unsigned short ) );
+                  output( i, j, k ) = static_cast<T>( value * rsi[ k ].first + rsi[ k ].second );
+               }
             }
          }
+
+         vol = output;
+         return true;
       }
 
-      vol = output;
-      return true;
+      // expecting a simple float buffer
+      if ( dataType == 0 )
+      {
+         core::Matrix<float> id( 3, 3 );
+         core::Matrix<float> pst = Volume::createPatientSpaceTransform( id, core::vector3f( (float)-originX, (float)-originY, (float)-originZ ), core::vector3f( (float)colSp, (float)rowSp, (float)sliceSp ) );
+         Volume output( core::vector3ui( width,
+                                         height,
+                                         depth ),
+                        pst );
+
+         // Data
+         for ( unsigned int k = 0; k < depth; ++k )
+         {
+            for ( unsigned int j = 0; j < height; ++j )
+            {
+               for ( unsigned int i = 0; i < width; ++i )
+               {
+                  float value = 0;
+                  file.read( (char*)&value, sizeof( float ) );
+                  output( i, j, k ) = value;
+               }
+            }
+         }
+
+         vol = output;
+         return true;
+      }
+
+      return false;
    }
 }
 }
