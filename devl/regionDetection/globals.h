@@ -35,4 +35,6 @@
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
 
+#define NB_CLASS                 5
+
 #endif

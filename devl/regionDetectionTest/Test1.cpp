@@ -112,7 +112,7 @@ struct TestRegion
 
    static std::vector<ui32> createBins( ui32& nbBins )
    {
-      nbBins = 5;
+      nbBins = 10;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       std::vector<ui32> bins( results.size() );
       for ( ui32 n = 0; n < results.size(); ++n )
@@ -149,19 +149,26 @@ struct TestRegion
 
       Database dat;
       dat.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
+      std::cout << "number of slice in database=" << dat.size() << std::endl;
+
+      ui32 currentCaseId = 0;
       for ( ui32 n = 0; n < dat.size(); ++n )
       {
+         // update the current caseId
          std::string id = string_from_Buffer1D( dat[ n ].debug );
          if ( id != "" && id != "noname" )
          {
-            ui32 caseid = str2val<ui32>( id );
-            int datid = findIndexFromId( results, caseid );
-            if ( datid != -1 && bin[ datid ] == binTest )
-            {
-               dat[ n ].type = Database::Sample::LEARNING;
-            } else {
-               dat[ n ].type = Database::Sample::TESTING;
-            }
+            currentCaseId = str2val<ui32>( id );
+         }
+
+         // assign the learning/testing
+         int datid = findIndexFromId( results, currentCaseId );
+         ensure( datid != -1, "should always find it" );
+         if ( bin[ datid ] != binTest )
+         {
+            dat[ n ].type = Database::Sample::LEARNING;
+         } else {
+            dat[ n ].type = Database::Sample::TESTING;
          }
       }
       return dat;
@@ -176,18 +183,25 @@ struct TestRegion
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
 
+      Buffer1D<double> counts( NB_CLASS );
+      Buffer1D<double> errors( NB_CLASS );
       for ( ui32 n = 0; n < nbBins; ++n )
       {
          Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
-         selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
 
          Classifier classifier( 1, true );
-         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 0.1, 100 ) );
+         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
          classifier.test( selectedHaarDatabaseNormalized );
 
          //testResult( &classifier );
-         testResultVolumeDatabase( &classifier, bins, n );
+         testResultVolumeDatabase( &classifier, bins, n, counts, errors );
       }
+
+      std::cout << "TOTAL mean error in slice:" << std::endl
+                << "neck:"  <<( errors[ 1 ]  / counts[ 1 ] ) << std::endl
+                << "heart:" <<( errors[ 2 ]  / counts[ 2 ] ) << std::endl
+                << "lung:"  <<( errors[ 3 ]  / counts[ 3 ] ) << std::endl
+                << "skull:" <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl;
    }
 /*
    void learnMlp()
@@ -226,15 +240,15 @@ struct TestRegion
    }
 
    // use the volume database (where each MPR is already computed) and export the result + ground truth
-   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& bins, ui32 binTest )
+   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& bins, ui32 binTest, Buffer1D<double>& totalCounts, Buffer1D<double>& totalErrors )
    {
       typedef Buffer1D<ui8>         Point;
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
       ui32 nbCases = 0;
-      Buffer1D<double> counts( 5 );
-      Buffer1D<double> errors( 5 );
+      Buffer1D<double> counts( NB_CLASS );
+      Buffer1D<double> errors( NB_CLASS );
       
 
       TestVolume test( classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
@@ -263,11 +277,10 @@ struct TestRegion
 
          // export ground truth
          std::cout << "write ground truth" << std::endl;
-         setColorIntensity( 0, 1 );
-         setColorIntensity( 1, 1 );
-         setColorIntensity( 2, 1 );
-         setColorIntensity( 3, 1 );
-         setColorIntensity( 4, 1 );
+         for ( ui32 i = 0; i < NB_CLASS; ++i )
+         {
+            setColorIntensity( i, 1 );
+         }
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
          {
             ui8* p;
@@ -315,12 +328,10 @@ struct TestRegion
             idresult.sliceIds[ nn ] = r;
             idresult.probabilities[ nn ] = proba;
 
-            setColorIntensity( 0, proba );
-            setColorIntensity( 1, proba );
-            setColorIntensity( 2, proba );
-            setColorIntensity( 3, proba );
-            setColorIntensity( 4, proba );
-
+            for ( ui32 i = 0; i < NB_CLASS; ++i )
+            {
+               setColorIntensity( i, proba );
+            }
             
             // mark result
             for ( ui32 nnn = 0; nnn < std::min<ui32>( mprz.sizex(), 10 ); ++nnn )
@@ -361,11 +372,10 @@ struct TestRegion
          }
          ++nbCases;
 
-         setColorIntensity( 0, 1 );
-         setColorIntensity( 1, 1 );
-         setColorIntensity( 2, 1 );
-         setColorIntensity( 3, 1 );
-         setColorIntensity( 4, 1 );
+         for ( ui32 i = 0; i < NB_CLASS; ++i )
+         {
+            setColorIntensity( i, 1 );
+         }
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
          {
             ui8* p = 0;
@@ -412,6 +422,12 @@ struct TestRegion
                 << "skull:"  <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl;
 
       std::cout << "mean time=" << t1.getCurrentTime() / nbCases << std::endl;
+
+      for ( ui32 n = 0; n < NB_CLASS; ++n )
+      {
+         totalCounts[ n ] += counts[ n ];
+         totalErrors[ n ] += errors[ n ];
+      }
    }
 
    /*
