@@ -118,6 +118,8 @@ namespace imaging
       if ( dataType == 0 )
       {
          core::Matrix<float> id( 3, 3 );
+         for ( ui32 n = 0; n < 3; ++n )
+            id( n, n ) = 1;
          core::Matrix<float> pst = Volume::createPatientSpaceTransform( id, core::vector3f( (float)-originX, (float)-originY, (float)-originZ ), core::vector3f( (float)colSp, (float)rowSp, (float)sliceSp ) );
          Volume output( core::vector3ui( width,
                                          height,
