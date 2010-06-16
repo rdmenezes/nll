@@ -119,6 +119,7 @@ namespace detect
             Point features = getFeatures( volume, n );
             ids[ n ] = _classifier->test( features, pb );
             pbs[ n ] = pb[ ids[ n ] ];
+            //std::cout << "p=" << pbs[ n ] << "class=" << ids[ n ] << std::endl;
          }
          results.sliceIds = ids;
          results.probabilities = pbs;
@@ -139,7 +140,6 @@ namespace detect
       /**
        @brief export on a XZ mpr the classification result
        */
-      /*
       core::Image<ui8> exportTest( const Volume& volume )
       {
          typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
@@ -215,18 +215,18 @@ namespace detect
             }
          }
          return sliceTfm;
-      }*/
+      }
 
       /**
        @brief Create normalized haar features from raw mpr
        */
-      Point getFeatures( core::Image<ui8>& mpr_xy ) const
+      Point getFeatures( core::Image<ui8>& mpr_xy )
       {
          // convert to a f32 image
          Point sliceFeature( mpr_xy.size(), false );
          for ( ui32 n = 0; n < sliceFeature.size(); ++n )
          {
-            sliceFeature[ n ] = static_cast<Point::value_type>( mpr_xy[ n ] ) / 255.0;
+            sliceFeature[ n ] = static_cast<Point::value_type>( mpr_xy[ n ] ) / 256.0;
          }
 
          // extract 2D Haar features
@@ -240,7 +240,7 @@ namespace detect
       /**
        @brief Create normalized Haar features from a volume & slice index
        */
-      Point getFeatures( const Volume& volume, ui32 sliceIndex ) const
+      Point getFeatures( const Volume& volume, ui32 sliceIndex )
       {
          // extract MPR
          core::vector3f center = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
