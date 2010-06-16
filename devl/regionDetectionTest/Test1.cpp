@@ -128,16 +128,43 @@ struct TestRegion
       return bins;
    }
 
+   int findIndexFromId( const std::vector<RegionResult::Result>& results, ui32 id )
+   {
+      for ( size_t n = 0; n < results.size(); ++n )
+      {
+         if ( results[ n ].id == id )
+            return (int)n;
+      }
+      return -1;
+   }
+
    ClassifierSvm< Buffer1D<double> >::Database createLearningDatabase( const std::vector<ui32>& bin, ui32 binTest )
    {
       typedef Buffer1D<double>      Point;
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( results.size() == bin.size(), "must be the same database..." );
 
 
-      Database selectedHaarDatabaseNormalized;
-      selectedHaarDatabaseNormalized.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
-      return selectedHaarDatabaseNormalized;
+      Database dat;
+      dat.read( HAAR_SELECTION_DATABASE ); // HAAR_SELECTION_DATABASE
+      for ( ui32 n = 0; n < dat.size(); ++n )
+      {
+         std::string id = string_from_Buffer1D( dat[ n ].debug );
+         if ( id != "" && id != "noname" )
+         {
+            ui32 caseid = str2val<ui32>( id );
+            int datid = findIndexFromId( results, caseid );
+            if ( datid != -1 && bin[ datid ] == binTest )
+            {
+               dat[ n ].type = Database::Sample::LEARNING;
+            } else {
+               dat[ n ].type = Database::Sample::TESTING;
+            }
+         }
+      }
+      return dat;
    }
 
    void learnSvm()
@@ -159,7 +186,7 @@ struct TestRegion
          classifier.test( selectedHaarDatabaseNormalized );
 
          //testResult( &classifier );
-         testResultVolumeDatabase( &classifier );
+         testResultVolumeDatabase( &classifier, bins, n );
       }
    }
 /*
@@ -199,7 +226,7 @@ struct TestRegion
    }
 
    // use the volume database (where each MPR is already computed) and export the result + ground truth
-   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier )
+   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& bins, ui32 binTest )
    {
       typedef Buffer1D<ui8>         Point;
       typedef ClassifierMlp<Point>  Classifier;
@@ -214,8 +241,12 @@ struct TestRegion
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
 
       Timer t1;
-      for ( int n = results.size() - 15; n < results.size(); ++n )
+      ensure( bins.size() == results.size(), "should be the same database" );
+      for ( int n = 0; n < results.size(); ++n )
       {
+         std::cout << bins[ n ] << " " << binTest << std::endl;
+         if ( bins[ n ] != binTest )
+            continue;   // we just test the testing samples
          std::cout << "test case database:" << n << std::endl;
          Database dat;
          dat.read( DATABASE_FULL_CASE( results[ n ].id ) );
@@ -236,6 +267,7 @@ struct TestRegion
          setColorIntensity( 1, 1 );
          setColorIntensity( 2, 1 );
          setColorIntensity( 3, 1 );
+         setColorIntensity( 4, 1 );
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
          {
             ui8* p;
@@ -266,9 +298,9 @@ struct TestRegion
             if ( results[ n ].skullStart > 0 )
             {
                p = mprz.point( nnn, (ui32)results[ n ].skullStart );
-               p[ 0 ] = colors[ 3 ][ 0 ];
-               p[ 1 ] = colors[ 3 ][ 1 ];
-               p[ 2 ] = colors[ 3 ][ 2 ];
+               p[ 0 ] = colors[ 4 ][ 0 ];
+               p[ 1 ] = colors[ 4 ][ 1 ];
+               p[ 2 ] = colors[ 4 ][ 2 ];
             }
          }
 
@@ -287,6 +319,7 @@ struct TestRegion
             setColorIntensity( 1, proba );
             setColorIntensity( 2, proba );
             setColorIntensity( 3, proba );
+            setColorIntensity( 4, proba );
 
             
             // mark result
@@ -328,6 +361,11 @@ struct TestRegion
          }
          ++nbCases;
 
+         setColorIntensity( 0, 1 );
+         setColorIntensity( 1, 1 );
+         setColorIntensity( 2, 1 );
+         setColorIntensity( 3, 1 );
+         setColorIntensity( 4, 1 );
          for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
          {
             ui8* p = 0;
@@ -391,15 +429,6 @@ struct TestRegion
       }
    }*/
 
-   int findIndexFromId( const std::vector<RegionResult::Result>& results, ui32 id )
-   {
-      for ( size_t n = 0; n < results.size(); ++n )
-      {
-         if ( results[ n ].id == id )
-            return (int)n;
-      }
-      return -1;
-   }
 
    void registrationExport()
    {
