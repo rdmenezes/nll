@@ -185,6 +185,9 @@ namespace core
    */
    inline std::string string_from_Buffer1D( const Buffer1D<i8>& str )
    {
+      if ( str.size() == 0 )
+         return "";
+
       std::string s( str.getBuf(), str.size() );
       return s;
    }
