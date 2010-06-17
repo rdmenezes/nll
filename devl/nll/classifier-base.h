@@ -142,6 +142,20 @@ namespace algorithm
       }
 
       /**
+       @brief Learn the <code>LEARNING|VALIDATION|TESTING</code> sample
+       */
+      void learnAllDatabase( const Database& dat, const ClassifierParameters& parameters )
+      {
+         Database datl = nll::core::filterDatabase(
+            dat,
+            nll::core::make_vector<nll::ui32>( Database::Sample::LEARNING,
+                                               Database::Sample::VALIDATION,
+                                               Database::Sample::TESTING ),
+            Database::Sample::LEARNING );
+         learn( datl, parameters );
+      }
+
+      /**
        @brief create an optimizer for the classifier. It is used to optimize the parameters's model.
        */
       const OptimizerClientClassifier createOptimizer( const Database& dat ) const { return OptimizerClientClassifier( this, dat ); }
