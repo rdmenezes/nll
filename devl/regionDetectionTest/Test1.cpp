@@ -182,7 +182,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 5, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.1, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -710,10 +710,10 @@ struct TestRegion
 
 TESTER_TEST_SUITE(TestRegion);
  
+//TESTER_TEST(createPreview);
+
 //TESTER_TEST(createDatasets);
 //TESTER_TEST(createVolumeDatabase);
-
-//TESTER_TEST(createPreview);
 //TESTER_TEST(learnSvm);
 TESTER_TEST(testValidationDataSvm);
 //TESTER_TEST(learnMlp);
