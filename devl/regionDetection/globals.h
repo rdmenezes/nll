@@ -34,7 +34,9 @@
 #define FEATURE_SELECTION_SIZE   std::min( 512, HAAR_FEATURE_SIZE ) //20*20
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
+#define DATABASE_MEASURES        DATA_PATH "measures.txt"
 
 #define NB_CLASS                 5
+#define FINAL_SVM_CLASSIFIER     DATA_PATH "svm.bin"
 
 #endif

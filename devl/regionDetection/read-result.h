@@ -17,9 +17,22 @@ namespace detect
    class RegionResult
    {
    public:
-      struct Result
+      struct      Measure
       {
-         ui32  id;
+         Measure( ui32 i, ui32 nb, float h ) : id( i ), numberOfSlices( nb ), height( h )
+         {}
+
+         Measure()
+         {}
+
+         ui32     id;
+         ui32     numberOfSlices;
+         float    height;              // in mm
+      };
+
+      struct    Result
+      {
+         ui32   id;
          float  neckStart;
          float  neckEnd;
          float  heartStart;
@@ -33,6 +46,59 @@ namespace detect
       typedef core::Buffer1D<double>                     Point;
       typedef core::ClassificationSample<Point, ui32>    Sample;
       typedef core::Database<Sample>                     Database;
+
+      static void writeMeasures( const std::vector<Measure>& m, const std::string& input_cfg )
+      {
+         std::ofstream f( input_cfg.c_str() );
+         if ( !f.good() )
+            throw std::exception( "can't find output results" );
+
+         for ( ui32 n = 0; n < (ui32)m.size(); ++n )
+         {
+            f << "case" << m[ n ].id << ":" << std::endl;
+            f << "numberOfSlices:" << m[ n ].numberOfSlices << std::endl;
+            f << "height:" << m[ n ].height;
+            if ( ( n + 1 ) != m.size() )
+            {
+               f << std::endl;
+               f << std::endl;
+            }
+         }
+      }
+
+      static std::vector<Measure> readMeasures( const std::string& input_cfg )
+      {
+         std::ifstream f( input_cfg.c_str() );
+         if ( !f.good() )
+            throw std::exception( "can't find input results" );
+
+         // read the cases
+         std::vector<Measure> results;
+         while ( !f.eof() )
+         {
+            Measure r;
+
+            std::string line;
+            std::getline( f, line );
+            sscanf( line.c_str(), "case%u:", &r.id );
+
+            std::getline( f, line );
+            float n1;
+            ui32  intval;
+            sscanf( line.c_str(), "numberOfSlices:%u", &intval );
+            r.numberOfSlices = intval;
+
+
+            std::getline( f, line );
+            sscanf( line.c_str(), "height:%f", &n1 );
+            r.height = static_cast<float>( n1 );
+
+            std::getline( f, line );
+            results.push_back( r );
+         }
+
+         return results;
+      }
 
       static std::vector<Result> readResults( const std::string& input_cfg )
       {
@@ -82,6 +148,7 @@ namespace detect
       {
          // read the cases
          std::vector<Result> results = readResults( input_cfg );
+         std::vector<Measure> measures;
          
 
          // generate the database
@@ -94,6 +161,7 @@ namespace detect
             std::cout << "generating case:" << filename << std::endl;
             bool loaded = loadSimpleFlatFile( filename, volume );
             ensure( loaded, "error: can't load case:" + filename );
+            measures.push_back( Measure( results[ n ].id, volume.size()[ 2 ], volume.size()[ 2 ] * volume.getSpacing()[ 2 ] ) );
 
             // export
             ui32 size = volume.size()[ 2 ];
@@ -165,6 +233,7 @@ namespace detect
             }
          }
 
+         writeMeasures( measures, DATABASE_MEASURES );
          database.write( outputDatabase );
       }
 

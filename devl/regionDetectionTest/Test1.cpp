@@ -183,8 +183,7 @@ struct TestRegion
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
 
-      Buffer1D<double> counts( NB_CLASS );
-      Buffer1D<double> errors( NB_CLASS );
+      std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
       {
          Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
@@ -194,14 +193,88 @@ struct TestRegion
          classifier.test( selectedHaarDatabaseNormalized );
 
          //testResult( &classifier );
-         testResultVolumeDatabase( &classifier, bins, n, counts, errors );
+         testResultVolumeDatabase( &classifier, bins, n, reporting );
+      }
+
+      // do the results' analysis
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( results.size() == measures.size(), "must be the same" );
+
+      std::vector<float> sumSliceError( NB_CLASS );
+      std::vector< std::vector< float > > errorInMM( NB_CLASS );
+      
+      for ( size_t n = 0; n < reporting.size(); ++n )
+      {
+         int id = findIndexFromId( results, reporting[ n ].id );
+         ensure( id != -1, "error: can't find the case in the measures" );
+         float spacing = measures[ id ].height / (float)measures[ id ].numberOfSlices;
+
+         errorInMM[ reporting[ n ].label ].push_back(  reporting[ n ].errorInSlice * spacing );
+         sumSliceError[ reporting[ n ].label ] += reporting[ n ].errorInSlice;
+      }
+
+      const float moreThanThresholdMm = 10.0f; // 10mm
+      std::vector<float> means( NB_CLASS );
+      std::vector<float> stddev( NB_CLASS );
+      std::vector<float> max( NB_CLASS );
+      std::vector<ui32>  moreThan( NB_CLASS );
+
+      for ( ui32 n = 1; n < NB_CLASS; ++n )
+      {
+         for ( ui32 nn = 0; nn < errorInMM[ n ].size(); ++nn )
+         {
+            float errorMm = errorInMM[ n ][ nn ];
+            max[ n ] = std::max<float>( max[ n ], errorMm );
+            means[ n ] += errorMm;
+            if ( errorMm > moreThanThresholdMm )
+               ++moreThan[ n ];
+         }
+         means[ n ] /= errorInMM[ n ].size();
+      }
+
+      for ( ui32 n = 1; n < NB_CLASS; ++n )
+      {
+         for ( ui32 nn = 0; nn < errorInMM[ n ].size(); ++nn )
+         {
+            float errorMm = errorInMM[ n ][ nn ];
+            stddev[ n ] += sqr( errorMm - means[ n ] );
+         }
+         stddev[ n ] = sqrt( stddev[ n ] / errorInMM[ n ].size() );
       }
 
       std::cout << "TOTAL mean error in slice:" << std::endl
-                << "neck:"  <<( errors[ 1 ]  / counts[ 1 ] ) << std::endl
-                << "heart:" <<( errors[ 2 ]  / counts[ 2 ] ) << std::endl
-                << "lung:"  <<( errors[ 3 ]  / counts[ 3 ] ) << std::endl
-                << "skull:" <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl;
+                << "neck:"  <<( sumSliceError[ 1 ]  / errorInMM[ 1 ].size() ) << std::endl
+                << "heart:" <<( sumSliceError[ 2 ]  / errorInMM[ 2 ].size() ) << std::endl
+                << "lung:"  <<( sumSliceError[ 3 ]  / errorInMM[ 3 ].size() ) << std::endl
+                << "skull:" <<( sumSliceError[ 4 ]  / errorInMM[ 4 ].size() ) << std::endl;
+
+      std::cout << "Total mean error in mm" << std::endl
+                << "neck:"  <<( means[ 1 ] ) << std::endl
+                << "heart:" <<( means[ 2 ] ) << std::endl
+                << "lung:"  <<( means[ 3 ] ) << std::endl
+                << "skull:" <<( means[ 4 ] ) << std::endl;
+
+      std::cout << "Total ROIs more than " << moreThanThresholdMm << " mm" << std::endl
+                << "neck:"  <<( moreThan[ 1 ] ) << std::endl
+                << "heart:" <<( moreThan[ 2 ] ) << std::endl
+                << "lung:"  <<( moreThan[ 3 ] ) << std::endl
+                << "skull:" <<( moreThan[ 4 ] ) << std::endl;
+
+      std::cout << "Max error in mm " << moreThanThresholdMm << " mm" << std::endl
+                << "neck:"  <<( max[ 1 ] ) << std::endl
+                << "heart:" <<( max[ 2 ] ) << std::endl
+                << "lung:"  <<( max[ 3 ] ) << std::endl
+                << "skull:" <<( max[ 4 ] ) << std::endl;
+
+      std::cout << "stddev in mm " << moreThanThresholdMm << " mm" << std::endl
+                << "neck:"  <<( stddev[ 1 ] ) << std::endl
+                << "heart:" <<( stddev[ 2 ] ) << std::endl
+                << "lung:"  <<( stddev[ 3 ] ) << std::endl
+                << "skull:" <<( stddev[ 4 ] ) << std::endl;
+
+      classifier.learnAllDatabase( selectedHaarDatabaseNormalized );
+      classifier.write( FINAL_SVM_CLASSIFIER );
    }
 /*
    void learnMlp()
@@ -239,8 +312,18 @@ struct TestRegion
       }
    }
 
+   struct   ErrorReporting
+   {
+      ui32  id;
+      float errorInSlice;
+      ui32  label;
+
+      ErrorReporting( ui32 i, float e, ui32 l ) : id( i ), errorInSlice( e ), label( l )
+      {}
+   };
+
    // use the volume database (where each MPR is already computed) and export the result + ground truth
-   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& bins, ui32 binTest, Buffer1D<double>& totalCounts, Buffer1D<double>& totalErrors )
+   void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& bins, ui32 binTest, std::vector<ErrorReporting>& reporting  )
    {
       typedef Buffer1D<ui8>         Point;
       typedef ClassifierMlp<Point>  Classifier;
@@ -348,27 +431,35 @@ struct TestRegion
 
          if ( final.neckStart > 0 )
          {
+            float err = fabs( results[ n ].neckStart - final.neckStart );
+            reporting.push_back( ErrorReporting( results[ n ].id, err, 1 ) );
             ++counts[ 1 ];
-            errors[ 1 ]  +=  fabs( results[ n ].neckStart - final.neckStart );
+            errors[ 1 ]  +=  err;
          }
 
          if ( final.heartStart > 0 )
          {
+            float err = fabs( results[ n ].heartStart - final.heartStart );
+            reporting.push_back( ErrorReporting( results[ n ].id, err, 2 ) );
             ++counts[ 2 ];
-            errors[ 2 ] += fabs( results[ n ].heartStart - final.heartStart );
+            errors[ 2 ] += err;
          }
          std::cout << "heart found:" << final.heartStart << " truth=" << results[ n ].heartStart << std::endl;
 
          if ( final.lungStart > 0 )
          {
+            float err = fabs( results[ n ].lungStart - final.lungStart );
             ++counts[ 3 ];
-            errors[ 3 ]  +=  fabs( results[ n ].lungStart - final.lungStart );
+            reporting.push_back( ErrorReporting( results[ n ].id, err, 3 ) );
+            errors[ 3 ]  +=  err;
          }
 
          if ( final.skullStart > 0 )
          {
+            float err = fabs( results[ n ].skullStart - final.skullStart );
             ++counts[ 4 ];
-            errors[ 4 ]  +=  fabs( results[ n ].skullStart - final.skullStart );
+            reporting.push_back( ErrorReporting( results[ n ].id, err, 4 ) );
+            errors[ 4 ]  +=  err;
          }
          ++nbCases;
 
@@ -422,12 +513,6 @@ struct TestRegion
                 << "skull:"  <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl;
 
       std::cout << "mean time=" << t1.getCurrentTime() / nbCases << std::endl;
-
-      for ( ui32 n = 0; n < NB_CLASS; ++n )
-      {
-         totalCounts[ n ] += counts[ n ];
-         totalErrors[ n ] += errors[ n ];
-      }
    }
 
    /*

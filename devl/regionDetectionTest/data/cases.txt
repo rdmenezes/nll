@@ -449,10 +449,10 @@ lung:-1:-1
 skull:129:-1
 
 case85:
-neck:35:-1
+neck:-1:-1
 heart:67:23
 lung:168:31
-skull:129:-1
+skull:-1:-1
 
 case86:
 neck:-1:-1
