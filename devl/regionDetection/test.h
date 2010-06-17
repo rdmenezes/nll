@@ -46,6 +46,11 @@ namespace detect
          _selection.read( featureSelection );
       }
 
+      ResultFinal test( const Volume& v )
+      {
+         return test( rawTest( v ) );
+      }
+
       /**
        @brief from a set of slice results, guess the real locations
        */
@@ -247,7 +252,7 @@ namespace detect
                                                                          volume.size()[ 1 ] / 2.0f,
                                                                          static_cast<f32>( sliceIndex ) ) );
          core::Image<ui8> mpr_xy = extractSlice( volume, center[ 2 ] );
-         std::cout << "mpr_xy size=" << mpr_xy.sizex() << " " << mpr_xy.sizey() << std::endl;
+         //std::cout << "mpr_xy size=" << mpr_xy.sizex() << " " << mpr_xy.sizey() << std::endl;
          return getFeatures( mpr_xy );
       }
 

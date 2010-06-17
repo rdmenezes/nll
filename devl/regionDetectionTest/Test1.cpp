@@ -182,6 +182,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
+      Buffer1D<double> params = make_buffer1D<double>( 5, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -189,7 +190,7 @@ struct TestRegion
          Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
 
          Classifier classifier( 1, true );
-         classifier.learn( selectedHaarDatabaseNormalized, make_buffer1D<double>( 1, 100 ) );
+         classifier.learn( selectedHaarDatabaseNormalized, params );
          classifier.test( selectedHaarDatabaseNormalized );
 
          //testResult( &classifier );
@@ -273,9 +274,114 @@ struct TestRegion
                 << "lung:"  <<( stddev[ 3 ] ) << std::endl
                 << "skull:" <<( stddev[ 4 ] ) << std::endl;
 
-      classifier.learnAllDatabase( selectedHaarDatabaseNormalized );
+      Classifier classifier( 1, true );
+      classifier.learnAllDatabase( createLearningDatabase( bins, 0 ), params );
       classifier.write( FINAL_SVM_CLASSIFIER );
    }
+
+   // do the full process from an actual volume on an independent dataset
+   void testValidationDataSvm()
+   {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierSvm<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
+      Classifier classifier( 1, true );
+      classifier.read( FINAL_SVM_CLASSIFIER );
+      TestVolume test( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
+      for ( ui32 nn = 0; nn < results.size(); ++nn )
+      {
+         std::cout << "test validation case=" << results[ nn ].id << std::endl;
+         // read volume
+         Volume volume;
+         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ nn ].id ) + ".mf2", volume );
+         TESTER_ASSERT( loaded );
+
+         // compute the locations
+         TestVolume::ResultFinal final = test.test( volume );
+
+         // vizualise the results
+         Image<ui8> mprz = extractXZ( volume );
+         extend( mprz, 3 );
+
+         // results
+         for ( ui32 n = 10; n < mprz.sizex(); ++n )
+         {
+            ui8* p;
+            if ( final.neckStart > 0 )
+            {
+               p = mprz.point( n, final.neckStart );
+               p[ 0 ] = colors[ 1 ][ 0 ];
+               p[ 1 ] = colors[ 1 ][ 1 ];
+               p[ 2 ] = colors[ 1 ][ 2 ];
+            }
+
+            if ( final.heartStart > 0 )
+            {
+               p = mprz.point( n, final.heartStart );
+               p[ 0 ] = colors[ 2 ][ 0 ];
+               p[ 1 ] = colors[ 2 ][ 1 ];
+               p[ 2 ] = colors[ 2 ][ 2 ];
+            }
+
+            if ( final.lungStart > 0 )
+            {
+               p = mprz.point( n, final.lungStart );
+               p[ 0 ] = colors[ 3 ][ 0 ];
+               p[ 1 ] = colors[ 3 ][ 1 ];
+               p[ 2 ] = colors[ 3 ][ 2 ];
+            }
+
+            if ( final.skullStart > 0 )
+            {
+               p = mprz.point( n, final.skullStart );
+               p[ 0 ] = colors[ 4 ][ 0 ];
+               p[ 1 ] = colors[ 4 ][ 1 ];
+               p[ 2 ] = colors[ 4 ][ 2 ];
+            }
+         }
+
+         // ground truth
+         for ( ui32 n = 0; n < std::min<int>( 10, (int)mprz.sizex() ); ++n )
+         {
+            ui8* p;
+            if ( results[ nn ].neckStart > 0 )
+            {
+               p = mprz.point( n, results[ nn ].neckStart );
+               p[ 0 ] = colors[ 1 ][ 0 ];
+               p[ 1 ] = colors[ 1 ][ 1 ];
+               p[ 2 ] = colors[ 1 ][ 2 ];
+            }
+
+            if ( results[ nn ].heartStart > 0 )
+            {
+               p = mprz.point( n, results[ nn ].heartStart );
+               p[ 0 ] = colors[ 2 ][ 0 ];
+               p[ 1 ] = colors[ 2 ][ 1 ];
+               p[ 2 ] = colors[ 2 ][ 2 ];
+            }
+
+            if ( results[ nn ].lungStart > 0 )
+            {
+               p = mprz.point( n, results[ nn ].lungStart );
+               p[ 0 ] = colors[ 3 ][ 0 ];
+               p[ 1 ] = colors[ 3 ][ 1 ];
+               p[ 2 ] = colors[ 3 ][ 2 ];
+            }
+
+            if ( results[ nn ].skullStart > 0 )
+            {
+               p = mprz.point( n, results[ nn ].skullStart );
+               p[ 0 ] = colors[ 4 ][ 0 ];
+               p[ 1 ] = colors[ 4 ][ 1 ];
+               p[ 2 ] = colors[ 4 ][ 2 ];
+            }
+         }
+         writeBmp( mprz, std::string( PREVIEW_CASE_VALIDATION ) + val2str( results[ nn ].id ) + ".bmp" );
+      }
+   }
+
 /*
    void learnMlp()
    {
@@ -608,7 +714,8 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(createVolumeDatabase);
 
 //TESTER_TEST(createPreview);
-TESTER_TEST(learnSvm);
+//TESTER_TEST(learnSvm);
+TESTER_TEST(testValidationDataSvm);
 //TESTER_TEST(learnMlp);
 
 

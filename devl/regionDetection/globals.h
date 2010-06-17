@@ -17,9 +17,11 @@
 #define PREVIEW_CASE             DATA_PATH "preview/xz-case-"
 #define PREVIEW_CASE_MARK        DATA_PATH "preview-mark/xz-case-"
 #define PREVIEW_CASE_REG         DATA_PATH "preview-registration/xz-case-"
+#define PREVIEW_CASE_VALIDATION  DATA_PATH "preview-validation/xz-case-"
 
 #define DATABASE_SOURCE          DATA_PATH "source.database"
 #define CASES_DESC               DATA_PATH "cases.txt"
+#define VALIDATION_CASES_DESC    DATA_PATH "validation-cases.txt"
 #define HAAR_FEATURES            DATA_PATH "haar-features.bin"
 #define DATABASE_HAAR            DATA_PATH "haar.database"
 #define PREPROCESSING_HAAR       DATA_PATH "haar-preprocessing.bin"
