@@ -133,11 +133,11 @@ namespace algorithm
 
 		   f64* y = new f64[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
-			   y[  n ] = dat[ n ].output[ 0 ];
+			   y[  n ] = dat[ learningIndex[ n ] ].output[ 0 ];
 
 		   Point* inputs = new Point[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
-			   inputs[ n ] = dat[ n ].input;
+			   inputs[ n ] = dat[ learningIndex[ n ] ].input;
          svm_node** x = implementation::build_svm_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), dat[ 0 ].input.size() );
 		   delete [] inputs;
 
