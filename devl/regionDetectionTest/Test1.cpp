@@ -174,32 +174,19 @@ struct TestRegion
       return dat;
    }
 
-   void learnSvm()
+   struct   ErrorReporting
    {
-      typedef Buffer1D<double>      Point;
-      typedef ClassifierSvm<Point>  Classifier;
-      typedef Classifier::Database  Database;
+      ui32  id;
+      float errorInSlice;
+      ui32  label;
 
-      ui32 nbBins = 0;
-      std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 1, 100 );
-/*
-      std::vector<ErrorReporting> reporting;
-      for ( ui32 n = 0; n < nbBins; ++n )
-      {
-         Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
+      ErrorReporting( ui32 i, float e, ui32 l ) : id( i ), errorInSlice( e ), label( l )
+      {}
+   };
 
-         Classifier classifier( 1, true );
-         classifier.learn( selectedHaarDatabaseNormalized, params );
-         classifier.test( selectedHaarDatabaseNormalized );
-
-         //testResult( &classifier );
-         testResultVolumeDatabase( &classifier, bins, n, reporting );
-      }
-
+   void analyseResults( const std::vector<ErrorReporting>& reporting, const std::vector<RegionResult::Measure>& measures, const std::vector<RegionResult::Result>& results )
+   {
       // do the results' analysis
-      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
-      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       ensure( results.size() == measures.size(), "must be the same" );
 
       std::vector<float> sumSliceError( NB_CLASS );
@@ -273,7 +260,38 @@ struct TestRegion
                 << "heart:" <<( stddev[ 2 ] ) << std::endl
                 << "lung:"  <<( stddev[ 3 ] ) << std::endl
                 << "skull:" <<( stddev[ 4 ] ) << std::endl;
-*/
+   }
+
+   void learnSvm()
+   {
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierSvm<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      ui32 nbBins = 0;
+      std::vector<ui32> bins = createBins( nbBins );
+      Buffer1D<double> params = make_buffer1D<double>( 0.1, 100 );
+
+      std::vector<ErrorReporting> reporting;
+      for ( ui32 n = 0; n < nbBins; ++n )
+      {
+         Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
+
+         Classifier classifier( 1, true );
+         classifier.learn( selectedHaarDatabaseNormalized, params );
+         classifier.test( selectedHaarDatabaseNormalized );
+
+         //testResult( &classifier );
+         testResultVolumeDatabase( &classifier, bins, n, reporting );
+      }
+
+      // do the results' analysis
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( results.size() == measures.size(), "must be the same" );
+      analyseResults( reporting, measures, results );
+
+      // learn the full classifier
       Classifier classifier( 1, true );
       classifier.learnAllDatabase( createLearningDatabase( bins, 0 ), params );
       classifier.write( FINAL_SVM_CLASSIFIER );
@@ -287,9 +305,12 @@ struct TestRegion
       typedef Classifier::Database  Database;
 
       std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
+      std::vector<RegionResult::Measure> measures;
+
       Classifier classifier( 1, true );
       classifier.read( FINAL_SVM_CLASSIFIER );
       TestVolume test( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
+      std::vector<ErrorReporting> reporting;
       for ( ui32 nn = 0; nn < results.size(); ++nn )
       {
          std::cout << "test validation case=" << results[ nn ].id << std::endl;
@@ -297,6 +318,7 @@ struct TestRegion
          Volume volume;
          bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ nn ].id ) + ".mf2", volume );
          TESTER_ASSERT( loaded );
+         measures.push_back( RegionResult::Measure( results[ nn ].id, volume.size()[ 2 ], volume.size()[ 2 ] * volume.getSpacing()[ 2 ] ) );
 
          // compute the locations
          TestVolume::Result pbs;
@@ -371,7 +393,7 @@ struct TestRegion
             ui8* p;
             if ( results[ nn ].neckStart > 0 )
             {
-               p = mprz.point( n, results[ nn ].neckStart );
+               p = mprz.point( n, (ui32)results[ nn ].neckStart );
                p[ 0 ] = colors[ 1 ][ 0 ];
                p[ 1 ] = colors[ 1 ][ 1 ];
                p[ 2 ] = colors[ 1 ][ 2 ];
@@ -379,7 +401,7 @@ struct TestRegion
 
             if ( results[ nn ].heartStart > 0 )
             {
-               p = mprz.point( n, results[ nn ].heartStart );
+               p = mprz.point( n, (ui32)results[ nn ].heartStart );
                p[ 0 ] = colors[ 2 ][ 0 ];
                p[ 1 ] = colors[ 2 ][ 1 ];
                p[ 2 ] = colors[ 2 ][ 2 ];
@@ -387,7 +409,7 @@ struct TestRegion
 
             if ( results[ nn ].lungStart > 0 )
             {
-               p = mprz.point( n, results[ nn ].lungStart );
+               p = mprz.point( n, (ui32)results[ nn ].lungStart );
                p[ 0 ] = colors[ 3 ][ 0 ];
                p[ 1 ] = colors[ 3 ][ 1 ];
                p[ 2 ] = colors[ 3 ][ 2 ];
@@ -395,14 +417,35 @@ struct TestRegion
 
             if ( results[ nn ].skullStart > 0 )
             {
-               p = mprz.point( n, results[ nn ].skullStart );
+               p = mprz.point( n, (ui32)results[ nn ].skullStart );
                p[ 0 ] = colors[ 4 ][ 0 ];
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
             }
          }
+         // reporting
+         if ( results[ nn ].neckStart > 0 && final.neckStart > 0 )
+         {
+            reporting.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].neckStart - final.neckStart ), 1 ) );
+         }
+         if ( results[ nn ].heartStart > 0 && final.heartStart > 0 )
+         {
+            reporting.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].heartStart - final.heartStart ), 2 ) );
+         }
+
+         if ( results[ nn ].lungStart > 0 && final.lungStart > 0 )
+         {
+            reporting.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].lungStart - final.lungStart ), 3 ) );
+         }
+
+         if ( results[ nn ].skullStart > 0 && final.skullStart > 0 )
+         {
+            reporting.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].skullStart - final.skullStart ), 4 ) );
+         }
          writeBmp( mprz, std::string( PREVIEW_CASE_VALIDATION ) + val2str( results[ nn ].id ) + ".bmp" );
       }
+
+      analyseResults( reporting, measures, results );
    }
 
 /*
@@ -440,16 +483,6 @@ struct TestRegion
          writeBmp( xz, std::string( PREVIEW_CASE ) + val2str( results[ n ].id ) + ".bmp" );
       }
    }
-
-   struct   ErrorReporting
-   {
-      ui32  id;
-      float errorInSlice;
-      ui32  label;
-
-      ErrorReporting( ui32 i, float e, ui32 l ) : id( i ), errorInSlice( e ), label( l )
-      {}
-   };
 
    // use the volume database (where each MPR is already computed) and export the result + ground truth
    void testResultVolumeDatabase( Classifier< Buffer1D<double> >* classifier, const std::vector<ui32>& bins, ui32 binTest, std::vector<ErrorReporting>& reporting  )
@@ -735,8 +768,8 @@ TESTER_TEST_SUITE(TestRegion);
  
 //TESTER_TEST(createPreview);
 
-TESTER_TEST(createDatasets);
-//TESTER_TEST(createVolumeDatabase);
+//TESTER_TEST(createDatasets);
+TESTER_TEST(createVolumeDatabase);
 TESTER_TEST(learnSvm);
 TESTER_TEST(testValidationDataSvm);
 //TESTER_TEST(learnMlp);
