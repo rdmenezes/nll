@@ -182,8 +182,8 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.1, 100 );
-
+      Buffer1D<double> params = make_buffer1D<double>( 1, 100 );
+/*
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
       {
@@ -273,7 +273,7 @@ struct TestRegion
                 << "heart:" <<( stddev[ 2 ] ) << std::endl
                 << "lung:"  <<( stddev[ 3 ] ) << std::endl
                 << "skull:" <<( stddev[ 4 ] ) << std::endl;
-
+*/
       Classifier classifier( 1, true );
       classifier.learnAllDatabase( createLearningDatabase( bins, 0 ), params );
       classifier.write( FINAL_SVM_CLASSIFIER );
@@ -299,14 +299,15 @@ struct TestRegion
          TESTER_ASSERT( loaded );
 
          // compute the locations
-         TestVolume::ResultFinal final = test.test( volume );
+         TestVolume::Result pbs;
+         TestVolume::ResultFinal final = test.test( volume, pbs );
 
          // vizualise the results
          Image<ui8> mprz = extractXZ( volume );
          extend( mprz, 3 );
 
          // results
-         for ( ui32 n = 10; n < mprz.sizex(); ++n )
+         for ( ui32 n = 20; n < mprz.sizex(); ++n )
          {
             ui8* p;
             if ( final.neckStart > 0 )
@@ -342,8 +343,30 @@ struct TestRegion
             }
          }
 
+         for ( ui32 i = 0; i < NB_CLASS; ++i )
+            setColorIntensity( i, 1 );
+         
+         for ( ui32 z = 0; z < volume.size()[ 2 ]; ++z )
+         {
+            for ( ui32 i = 0; i < NB_CLASS; ++i )
+               setColorIntensity( pbs.sliceIds[ z ], pbs.probabilities[ z ] );
+
+            for ( ui32 n = 0; n < 10; ++n )
+            {
+               ui8* p;
+
+               p = mprz.point( n, z );
+               p[ 0 ] = colors[ pbs.sliceIds[ z ] ][ 0 ];
+               p[ 1 ] = colors[ pbs.sliceIds[ z ] ][ 1 ];
+               p[ 2 ] = colors[ pbs.sliceIds[ z ] ][ 2 ];
+            }
+         }
+
+         for ( ui32 i = 0; i < NB_CLASS; ++i )
+            setColorIntensity( i, 1 );
+
          // ground truth
-         for ( ui32 n = 0; n < std::min<int>( 10, (int)mprz.sizex() ); ++n )
+         for ( ui32 n = 10; n < 20; ++n )
          {
             ui8* p;
             if ( results[ nn ].neckStart > 0 )
@@ -706,15 +729,15 @@ struct TestRegion
                 << "heart:" <<( errorHeart / resultsReg.size() ) << std::endl
                 << "lung:"  <<( errorLung  / resultsReg.size() ) << std::endl;
    }
-};
+}; 
 
 TESTER_TEST_SUITE(TestRegion);
  
 //TESTER_TEST(createPreview);
 
-//TESTER_TEST(createDatasets);
+TESTER_TEST(createDatasets);
 //TESTER_TEST(createVolumeDatabase);
-//TESTER_TEST(learnSvm);
+TESTER_TEST(learnSvm);
 TESTER_TEST(testValidationDataSvm);
 //TESTER_TEST(learnMlp);
 

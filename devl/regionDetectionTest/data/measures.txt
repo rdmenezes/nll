@@ -2,6 +2,10 @@ case1:
 numberOfSlices:404
 height:1010
 
+case208:
+numberOfSlices:671
+height:1006.5
+
 case2:
 numberOfSlices:356
 height:890

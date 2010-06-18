@@ -46,12 +46,6 @@ heart:279:-1
 lung:315:-1
 skull:-1:-1
 
-case208:
-neck:525:-1
-heart:362:-1
-lung:442:-1
-skull:607:-1
-
 case207:
 neck:626:-1
 heart:467:-1

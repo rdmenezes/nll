@@ -51,6 +51,12 @@ namespace detect
          return test( rawTest( v ) );
       }
 
+      ResultFinal test( const Volume& v, Result& results )
+      {
+         results = rawTest( v );
+         return test( results );
+      }
+
       /**
        @brief from a set of slice results, guess the real locations
        */
@@ -124,7 +130,7 @@ namespace detect
             Point features = getFeatures( volume, n );
             ids[ n ] = _classifier->test( features, pb );
             pbs[ n ] = pb[ ids[ n ] ];
-            //std::cout << "p=" << pbs[ n ] << "class=" << ids[ n ] << std::endl;
+            std::cout << "p=" << pbs[ n ] << "class=" << ids[ n ] << std::endl;
          }
          results.sliceIds = ids;
          results.probabilities = pbs;

@@ -286,8 +286,8 @@ namespace detect
                                core::generateUniformDistribution( 0, 1 ) );
             core::vector2d v2( core::generateUniformDistribution( 0, 1 ),
                                core::generateUniformDistribution( 0, 1 ) );
-            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 10.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of 4 pixels features
-                 fabs( v1[ 1 ] - v2[ 1 ] ) < 10.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
+            if ( fabs( v1[ 0 ] - v2[ 0 ] ) < 6.0 / REGION_DETECTION_SOURCE_IMG_X ||    // allow a minimum of XX pixels features
+                 fabs( v1[ 1 ] - v2[ 1 ] ) < 6.0 / REGION_DETECTION_SOURCE_IMG_Y )     //
             {
                --n;
                continue;
