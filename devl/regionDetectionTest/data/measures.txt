@@ -34,10 +34,6 @@ case14:
 numberOfSlices:154
 height:770
 
-case15:
-numberOfSlices:356
-height:890
-
 case17:
 numberOfSlices:404
 height:1010
@@ -366,10 +362,6 @@ case201:
 numberOfSlices:497
 height:1491
 
-case217:
-numberOfSlices:110
-height:330
-
 case218:
 numberOfSlices:216
 height:324
@@ -377,14 +369,6 @@ height:324
 case220:
 numberOfSlices:159
 height:238.5
-
-case221:
-numberOfSlices:294
-height:735
-
-case222:
-numberOfSlices:568
-height:852
 
 case223:
 numberOfSlices:250
@@ -405,7 +389,3 @@ height:693
 case227:
 numberOfSlices:212
 height:530
-
-case228:
-numberOfSlices:652
-height:978

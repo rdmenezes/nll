@@ -112,14 +112,14 @@ struct TestRegion
 
    static std::vector<ui32> createBins( ui32& nbBins )
    {
-      nbBins = 10;
+      nbBins = 20;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       std::vector<ui32> bins( results.size() );
       for ( ui32 n = 0; n < results.size(); ++n )
       {
          bins[ n ] = n / ( (ui32)results.size() / nbBins );
       }
-      core::randomize( bins );
+      core::randomize( bins, 2.0f );
       for ( ui32 n = 0; n < results.size(); ++n )
       {
          std::cout << bins[ n ] << " ";
@@ -270,7 +270,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.1, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.2, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -591,7 +591,7 @@ struct TestRegion
          // compute the final result
          TestVolume::ResultFinal final = test.test( idresult );
 
-         if ( final.neckStart > 0 )
+         if ( final.neckStart > 0 && results[ n ].neckStart > 0 )
          {
             float err = fabs( results[ n ].neckStart - final.neckStart );
             reporting.push_back( ErrorReporting( results[ n ].id, err, 1 ) );
@@ -599,7 +599,7 @@ struct TestRegion
             errors[ 1 ]  +=  err;
          }
 
-         if ( final.heartStart > 0 )
+         if ( final.heartStart > 0 && results[ n ].heartStart > 0 )
          {
             float err = fabs( results[ n ].heartStart - final.heartStart );
             reporting.push_back( ErrorReporting( results[ n ].id, err, 2 ) );
@@ -608,7 +608,7 @@ struct TestRegion
          }
          std::cout << "heart found:" << final.heartStart << " truth=" << results[ n ].heartStart << std::endl;
 
-         if ( final.lungStart > 0 )
+         if ( final.lungStart > 0 && results[ n ].lungStart > 0 )
          {
             float err = fabs( results[ n ].lungStart - final.lungStart );
             ++counts[ 3 ];
@@ -616,7 +616,7 @@ struct TestRegion
             errors[ 3 ]  +=  err;
          }
 
-         if ( final.skullStart > 0 )
+         if ( final.skullStart > 0 && results[ n ].skullStart > 0 )
          {
             float err = fabs( results[ n ].skullStart - final.skullStart );
             ++counts[ 4 ];
@@ -765,16 +765,23 @@ struct TestRegion
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
- 
+// input: cases, mf2 volumes, output: XZ slice in preview directory
 //TESTER_TEST(createPreview);
 
+// input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
 //TESTER_TEST(createDatasets);
-TESTER_TEST(createVolumeDatabase);
+
+// input: cases, mf2 volumes, output: a database for all volumes of all slices
+//TESTER_TEST(createVolumeDatabase);
+
+// input: cases, haar features, normalization parameters, learning database, output: svm
 TESTER_TEST(learnSvm);
-TESTER_TEST(testValidationDataSvm);
+
+// input: validation-cases, validation volumes mf2
+//TESTER_TEST(testValidationDataSvm);
+
+
 //TESTER_TEST(learnMlp);
-
-
 //TESTER_TEST(registrationExport);
 //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();

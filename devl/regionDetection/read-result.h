@@ -249,7 +249,6 @@ namespace detect
 
          std::cout << " computes haar features..." << std::endl;
          Database haarDatabase;
-         ui32 nbLearning = static_cast<ui32>( 0.75f * sourceDatabase.size() );
          for ( ui32 n = 0; n < sourceDatabase.size(); ++n )
          {
             // recreate the normalized image
@@ -258,7 +257,7 @@ namespace detect
             // process it
             Point point = algorithm::Haar2dFeatures::process( features, image );
 
-            Database::Sample::Type type = ( n < nbLearning ) ? Database::Sample::LEARNING: Database::Sample::TESTING;
+            Database::Sample::Type type = Database::Sample::LEARNING;
             haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type, sourceDatabase[ n ].debug ) );
          }
 

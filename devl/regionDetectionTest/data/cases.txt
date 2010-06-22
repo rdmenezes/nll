@@ -52,12 +52,6 @@ heart:87:73
 lung:105:70
 skull:150:-1
 
-case15:
-neck:339:300
-heart:242:210
-lung:284:216
-skull:356:-1
-
 case17:
 neck:330:301
 heart:232:202
@@ -550,12 +544,6 @@ heart:359:339
 lung:393:-1
 skull:480:-1
 
-case217:
-neck:-1:-1
-heart:58:-1
-lung:94:30
-skull:-1:-1
-
 case218:
 neck:-1:-1
 heart:114:67
@@ -566,18 +554,6 @@ case220:
 neck:-1:-1
 heart:97:47
 lung:142:44
-skull:-1:-1
-
-case221:
-neck:285:263
-heart:189:167
-lung:237:161
-skull:-1:-1
-
-case222:
-neck:553:515
-heart:401:357
-lung:472:338
 skull:-1:-1
 
 case223:
@@ -608,10 +584,4 @@ case227:
 neck:196:165
 heart:100:69
 lung:133:69
-skull:-1:-1
-
-case228:
-neck:625:574
-heart:468:416
-lung:521:410
 skull:-1:-1
