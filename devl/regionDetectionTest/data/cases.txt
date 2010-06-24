@@ -1,5 +1,5 @@
 case1:
-neck:364:336
+neck:361:336
 heart:270:236
 lung:318:247
 skull:404:-1
@@ -11,7 +11,7 @@ lung:442:-1
 skull:607:-1
 
 case2:
-neck:332:302
+neck:338:302
 heart:244:211
 lung:287:215
 skull:356:-1
@@ -41,7 +41,7 @@ lung:285:201
 skull:-1:-1
 
 case13:
-neck:341:308
+neck:339:308
 heart:254:220
 lung:286:226
 skull:356:-1
@@ -53,25 +53,25 @@ lung:105:70
 skull:150:-1
 
 case17:
-neck:330:301
+neck:328:301
 heart:232:202
 lung:281:208
 skull:388:-1
 
 case18:
-neck:147:137
+neck:151:137
 heart:100:85
 lung:126:87
 skull:178:-1
 
 case19:
-neck:137:133
+neck:139:133
 heart:99:84
 lung:117:84
 skull:154:-1
 
 case20:
-neck:147:136
+neck:148:136
 heart:101:87
 lung:123:90
 skull:172:-1
@@ -83,19 +83,19 @@ lung:334:247
 skull:448:-1
 
 case21:
-neck:321:306
+neck:320:306
 heart:266:252
 lung:293:255
 skull:348:-1
 
 case22:
-neck:155:138
+neck:154:138
 heart:102:87
 lung:128:86
 skull:178:-1
 
 case23:
-neck:320:313
+neck:321:313
 heart:279:263
 lung:301:263
 skull:346:-1
@@ -107,13 +107,13 @@ lung:140:102
 skull:197:-1
 
 case25:
-neck:171:159
+neck:170:159
 heart:123:107
 lung:144:107
 skull:196:-1
 
 case26:
-neck:172:161
+neck:175:161
 heart:126:112
 lung:146:106
 skull:203:-1
@@ -125,19 +125,19 @@ lung:835:610
 skull:-1:-1
 
 case27:
-neck:168:150
+neck:171:150
 heart:118:102
 lung:143:102
 skull:196:-1
 
 case28:
-neck:163:151
+neck:167:151
 heart:123:109
 lung:141:113
 skull:192:-1
 
 case29:
-neck:147:132
+neck:149:132
 heart:102:88
 lung:125:88
 skull:171:-1
@@ -149,19 +149,19 @@ lung:142:111
 skull:195:-1
 
 case31:
-neck:338:319
+neck:344:319
 heart:250:221
 lung:299:231
 skull:389:-1
 
 case32:
-neck:357:325
+neck:356:325
 heart:260:232
 lung:309:234
 skull:404:-1
 
 case33:
-neck:364:341
+neck:361:341
 heart:276:249
 lung:310:245
 skull:404:-1
@@ -185,13 +185,13 @@ lung:284:201
 skull:-1:-1
 
 case38:
-neck:241:221
+neck:245:221
 heart:161:140
 lung:203:142
 skull:-1:-1
 
 case39:
-neck:242:218
+neck:246:218
 heart:165:145
 lung:207:144
 skull:-1:-1
@@ -220,26 +220,20 @@ heart:85:73
 lung:106:72
 skull:152:-1
 
-case45:
-neck:352:327
-heart:258:234
-lung:308:234
-skull:403:-1
-
 case46:
-neck:346:319
+neck:344:319
 heart:251:223
 lung:298:237
 skull:392:-1
 
 case47:
-neck:335:301
+neck:330:301
 heart:225:200
 lung:285:207
 skull:385:-1
 
 case48:
-neck:166:157
+neck:169:157
 heart:121:107
 lung:145:107
 skull:194:-1
@@ -251,13 +245,13 @@ lung:119:89
 skull:154:-1
 
 case50:
-neck:152:141
+neck:150:141
 heart:110:98
 lung:128:99
 skull:175:-1
 
 case51:
-neck:339:325
+neck:338:325
 heart:284:271
 lung:310:273
 skull:363:-1
@@ -269,19 +263,19 @@ lung:144:100
 skull:197:-1
 
 case53:
-neck:319:310
+neck:320:310
 heart:275:264
 lung:300:262
 skull:344:-1
 
 case54:
-neck:167:157
+neck:166:157
 heart:112:100
 lung:139:99
 skull:194:-1
 
 case55:
-neck:167:157
+neck:169:157
 heart:121:106
 lung:143:106
 skull:196:-1
@@ -317,25 +311,25 @@ lung:142:108
 skull:196:-1
 
 case61:
-neck:363:331
+neck:362:331
 heart:228:196
 lung:302:197
 skull:388:-1
 
 case62:
-neck:345:324
+neck:354:324
 heart:250:215
 lung:297:225
 skull:388:-1
 
 case63:
-neck:356:325
+neck:357:325
 heart:233:198
 lung:289:186
 skull:388:-1
 
 case64:
-neck:363:330
+neck:369:330
 heart:232:193
 lung:299:187
 skull:-1:-1
@@ -353,19 +347,19 @@ lung:330:216
 skull:448:-1
 
 case67:
-neck:356:325
+neck:357:325
 heart:241:212
 lung:295:200
 skull:-1:-1
 
 case69:
-neck:409:372
+neck:410:372
 heart:275:238
 lung:346:240
 skull:448:-1
 
 case70:
-neck:399:364
+neck:400:364
 heart:268:235
 lung:331:239
 skull:448:-1
@@ -377,7 +371,7 @@ lung:694:525
 skull:-1:-1
 
 case72:
-neck:855:800
+neck:853:800
 heart:636:561
 lung:733:516
 skull:-1:-1
@@ -395,7 +389,7 @@ lung:356:732
 skull:448:-1
 
 case75:
-neck:413:387
+neck:415:387
 heart:299:264
 lung:355:260
 skull:448:-1
@@ -425,13 +419,13 @@ lung:347:246
 skull:448:-1
 
 case81:
-neck:373:335
+neck:372:335
 heart:249:221
 lung:315:215
 skull:-1:-1
 
 case82:
-neck:370:355
+neck:361:355
 heart:265:229
 lung:320:229
 skull:388:-1
@@ -443,7 +437,7 @@ lung:302:198
 skull:388:-1
 
 case84:
-neck:35:-1
+neck:33:-1
 heart:-1:-1
 lung:-1:-1
 skull:129:-1
@@ -455,13 +449,13 @@ lung:-1:29
 skull:-1:-1
 
 case87:
-neck:239:218
+neck:240:218
 heart:172:153
 lung:201:152
 skull:-1:-1
 
 case216:
-neck:314:-1
+neck:315:-1
 heart:224:-1
 lung:267:-1
 skull:341:-1
@@ -473,13 +467,13 @@ lung:95:-1
 skull:-1:-1
 
 case213:
-neck:285:-1
+neck:284:-1
 heart:193:-1
 lung:237:-1
 skull:-1:-1
 
 case212:
-neck:553:-1
+neck:552:-1
 heart:396:-1
 lung:474:-1
 skull:-1:-1
@@ -497,13 +491,13 @@ lung:191:-1
 skull:292:-1
 
 case209:
-neck:376:-1
+neck:377:-1
 heart:279:-1
 lung:315:-1
 skull:-1:-1
 
 case207:
-neck:626:-1
+neck:628:-1
 heart:467:-1
 lung:520:-1
 skull:-1:-1
@@ -521,13 +515,13 @@ lung:126:-1
 skull:-1:-1
 
 case204:
-neck:360:-1
+neck:361:-1
 heart:251:-1
 lung:303:-1
 skull:388:-1
 
 case202:
-neck:143:-1
+neck:142:-1
 heart:29:-1
 lung:84:-1
 skull:175:-1
@@ -581,7 +575,7 @@ lung:216:156
 skull:-1:-1
 
 case227:
-neck:196:165
+neck:198:165
 heart:100:69
 lung:133:69
 skull:-1:-1
