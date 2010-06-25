@@ -1,387 +1,872 @@
 case1:
 numberOfSlices:404
 height:1010
+heightNeck:900
+heightHeart:677.5
+heightLung:792.5
+heightSkull:1005
+heightHips:335
 
 case208:
 numberOfSlices:671
 height:1006.5
+heightNeck:786
+heightHeart:546
+heightLung:661.5
+heightSkull:907.5
+heightHips:205.5
 
 case2:
 numberOfSlices:356
 height:890
+heightNeck:842.5
+heightHeart:610
+heightLung:715
+heightSkull:885
+heightHips:247.5
 
 case3:
 numberOfSlices:404
 height:1010
+heightNeck:905
+heightHeart:702.5
+heightLung:782.5
+heightSkull:1005
+heightHips:342.5
 
 case5:
 numberOfSlices:260
 height:624
+heightNeck:-1
+heightHeart:468
+heightLung:597.6
+heightSkull:-1
+heightHips:168
 
 case8:
 numberOfSlices:171
 height:855
+heightNeck:830
+heightHeart:595
+heightLung:710
+heightSkull:-1
+heightHips:285
 
 case10:
 numberOfSlices:295
 height:708
+heightNeck:-1
+heightHeart:549.6
+heightLung:681.6
+heightSkull:-1
+heightHips:259.2
 
 case13:
 numberOfSlices:356
 height:890
+heightNeck:845
+heightHeart:632.5
+heightLung:712.5
+heightSkull:885
+heightHips:270
 
 case14:
 numberOfSlices:154
 height:770
+heightNeck:605
+heightHeart:430
+heightLung:520
+heightSkull:740
+heightHips:145
 
 case17:
 numberOfSlices:404
 height:1010
+heightNeck:817.5
+heightHeart:577.5
+heightLung:700
+heightSkull:965
+heightHips:272.5
 
 case18:
 numberOfSlices:178
 height:890
+heightNeck:750
+heightHeart:495
+heightLung:625
+heightSkull:880
+heightHips:200
 
 case19:
 numberOfSlices:154
 height:770
+heightNeck:690
+heightHeart:490
+heightLung:580
+heightSkull:760
+heightHips:180
 
 case20:
 numberOfSlices:178
 height:890
+heightNeck:735
+heightHeart:500
+heightLung:610
+heightSkull:850
+heightHips:230
 
 case68:
 numberOfSlices:448
 height:896
+heightNeck:794
+heightHeart:576
+heightLung:666
+heightSkull:892
+heightHips:212
 
 case21:
 numberOfSlices:348
 height:1740
+heightNeck:1595
+heightHeart:1330
+heightLung:1460
+heightSkull:1730
+heightHips:1000
 
 case22:
 numberOfSlices:178
 height:890
+heightNeck:765
+heightHeart:510
+heightLung:635
+heightSkull:880
+heightHips:220
 
 case23:
 numberOfSlices:348
 height:1740
+heightNeck:1600
+heightHeart:1390
+heightLung:1500
+heightSkull:1720
+heightHips:1060
 
 case24:
 numberOfSlices:202
 height:1010
+heightNeck:835
+heightHeart:570
+heightLung:695
+heightSkull:975
+heightHips:220
 
 case25:
 numberOfSlices:202
 height:1010
+heightNeck:845
+heightHeart:610
+heightLung:715
+heightSkull:970
+heightHips:285
 
 case26:
 numberOfSlices:227
 height:1135
+heightNeck:870
+heightHeart:625
+heightLung:725
+heightSkull:1005
+heightHips:230
 
 case76:
 numberOfSlices:1018
 height:1018
+heightNeck:963
+heightHeart:707
+heightLung:834
+heightSkull:-1
+heightHips:349
 
 case27:
 numberOfSlices:202
 height:1010
+heightNeck:850
+heightHeart:585
+heightLung:710
+heightSkull:970
+heightHips:225
 
 case28:
 numberOfSlices:227
 height:1135
+heightNeck:830
+heightHeart:615
+heightLung:700
+heightSkull:950
+heightHips:275
 
 case29:
 numberOfSlices:178
 height:890
+heightNeck:740
+heightHeart:505
+heightLung:620
+heightSkull:845
+heightHips:185
 
 case30:
 numberOfSlices:202
 height:1010
+heightNeck:835
+heightHeart:605
+heightLung:705
+heightSkull:965
+heightHips:265
 
 case31:
 numberOfSlices:404
 height:1010
+heightNeck:857.5
+heightHeart:637.5
+heightLung:745
+heightSkull:967.5
+heightHips:287.5
 
 case32:
 numberOfSlices:404
 height:1010
+heightNeck:887.5
+heightHeart:660
+heightLung:770
+heightSkull:1005
+heightHips:300
 
 case33:
 numberOfSlices:404
 height:1010
+heightNeck:900
+heightHeart:687.5
+heightLung:772.5
+heightSkull:1005
+heightHips:335
 
 case35:
 numberOfSlices:254
 height:609.6
+heightNeck:-1
+heightHeart:472.8
+heightLung:592.8
+heightSkull:-1
+heightHips:168
 
 case36:
 numberOfSlices:250
 height:600
+heightNeck:-1
+heightHeart:453.6
+heightLung:585.6
+heightSkull:-1
+heightHips:163.2
 
 case37:
 numberOfSlices:295
 height:708
+heightNeck:-1
+heightHeart:547.2
+heightLung:679.2
+heightSkull:-1
+heightHips:256.8
 
 case38:
 numberOfSlices:246
 height:738
+heightNeck:732
+heightHeart:489
+heightLung:606
+heightSkull:-1
+heightHips:171
 
 case39:
 numberOfSlices:246
 height:738
+heightNeck:735
+heightHeart:498
+heightLung:618
+heightSkull:-1
+heightHips:192
 
 case40:
 numberOfSlices:260
 height:624
+heightNeck:-1
+heightHeart:470.4
+heightLung:595.2
+heightSkull:-1
+heightHips:168
 
 case41:
 numberOfSlices:254
 height:609.6
+heightNeck:-1
+heightHeart:468
+heightLung:592.8
+heightSkull:-1
+heightHips:168
 
 case42:
 numberOfSlices:250
 height:600
+heightNeck:-1
+heightHeart:463.2
+heightLung:580.8
+heightSkull:-1
+heightHips:160.8
 
 case44:
 numberOfSlices:154
 height:770
+heightNeck:635
+heightHeart:430
+heightLung:525
+heightSkull:750
+heightHips:160
 
 case46:
 numberOfSlices:404
 height:1010
+heightNeck:857.5
+heightHeart:642.5
+heightLung:742.5
+heightSkull:975
+heightHips:290
 
 case47:
 numberOfSlices:404
 height:1010
+heightNeck:822.5
+heightHeart:580
+heightLung:710
+heightSkull:957.5
+heightHips:275
 
 case48:
 numberOfSlices:202
 height:1010
+heightNeck:840
+heightHeart:600
+heightLung:720
+heightSkull:960
+heightHips:290
 
 case49:
 numberOfSlices:154
 height:770
+heightNeck:705
+heightHeart:525
+heightLung:590
+heightSkull:760
+heightHips:195
 
 case50:
 numberOfSlices:178
 height:890
+heightNeck:745
+heightHeart:555
+heightLung:635
+heightSkull:865
+heightHips:260
 
 case51:
 numberOfSlices:372
 height:1860
+heightNeck:1685
+heightHeart:1425
+heightLung:1545
+heightSkull:1805
+heightHips:1090
 
 case52:
 numberOfSlices:203
 height:1015
+heightNeck:850
+heightHeart:585
+heightLung:715
+heightSkull:975
+heightHips:285
 
 case53:
 numberOfSlices:348
 height:1740
+heightNeck:1595
+heightHeart:1390
+heightLung:1495
+heightSkull:1710
+heightHips:1050
 
 case54:
 numberOfSlices:202
 height:1010
+heightNeck:825
+heightHeart:560
+heightLung:690
+heightSkull:960
+heightHips:210
 
 case55:
 numberOfSlices:202
 height:1010
+heightNeck:840
+heightHeart:615
+heightLung:710
+heightSkull:970
+heightHips:275
 
 case56:
 numberOfSlices:227
 height:1135
+heightNeck:880
+heightHeart:640
+heightLung:740
+heightSkull:1015
+heightHips:250
 
 case57:
 numberOfSlices:202
 height:1010
+heightNeck:835
+heightHeart:575
+heightLung:700
+heightSkull:965
+heightHips:210
 
 case58:
 numberOfSlices:202
 height:1010
+heightNeck:810
+heightHeart:610
+heightLung:685
+heightSkull:945
+heightHips:255
 
 case59:
 numberOfSlices:178
 height:890
+heightNeck:750
+heightHeart:525
+heightLung:640
+heightSkull:860
+heightHips:205
 
 case60:
 numberOfSlices:202
 height:1010
+heightNeck:835
+heightHeart:605
+heightLung:705
+heightSkull:970
+heightHips:265
 
 case61:
 numberOfSlices:388
 height:776
+heightNeck:722
+heightHeart:468
+heightLung:602
+heightSkull:772
+heightHips:164
 
 case62:
 numberOfSlices:388
 height:776
+heightNeck:706
+heightHeart:504
+heightLung:592
+heightSkull:772
+heightHips:180
 
 case63:
 numberOfSlices:388
 height:776
+heightNeck:712
+heightHeart:470
+heightLung:576
+heightSkull:772
+heightHips:150
 
 case64:
 numberOfSlices:388
 height:776
+heightNeck:736
+heightHeart:462
+heightLung:596
+heightSkull:-1
+heightHips:150
 
 case65:
 numberOfSlices:448
 height:896
+heightNeck:806
+heightHeart:554
+heightLung:668
+heightSkull:892
+heightHips:204
 
 case66:
 numberOfSlices:448
 height:896
+heightNeck:798
+heightHeart:520
+heightLung:658
+heightSkull:892
+heightHips:192
 
 case67:
 numberOfSlices:388
 height:776
+heightNeck:712
+heightHeart:488
+heightLung:588
+heightSkull:-1
+heightHips:168
 
 case69:
 numberOfSlices:448
 height:896
+heightNeck:818
+heightHeart:548
+heightLung:690
+heightSkull:892
+heightHips:206
 
 case70:
 numberOfSlices:448
 height:896
+heightNeck:798
+heightHeart:542
+heightLung:660
+heightSkull:892
+heightHips:196
 
 case71:
 numberOfSlices:896
 height:896
+heightNeck:828
+heightHeart:608
+heightLung:693
+heightSkull:-1
+heightHips:223
 
 case72:
 numberOfSlices:896
 height:896
+heightNeck:852
+heightHeart:639
+heightLung:732
+heightSkull:-1
+heightHips:241
 
 case73:
 numberOfSlices:388
 height:776
+heightNeck:696
+heightHeart:462
+heightLung:578
+heightSkull:772
+heightHips:174
 
 case74:
 numberOfSlices:448
 height:896
+heightNeck:830
+heightHeart:546
+heightLung:710
+heightSkull:892
+heightHips:268
 
 case75:
 numberOfSlices:448
 height:896
+heightNeck:828
+heightHeart:606
+heightLung:708
+heightSkull:892
+heightHips:242
 
 case77:
 numberOfSlices:448
 height:896
+heightNeck:816
+heightHeart:556
+heightLung:678
+heightSkull:892
+heightHips:218
 
 case78:
 numberOfSlices:388
 height:776
+heightNeck:706
+heightHeart:450
+heightLung:578
+heightSkull:772
+heightHips:178
 
 case79:
 numberOfSlices:448
 height:896
+heightNeck:818
+heightHeart:576
+heightLung:696
+heightSkull:892
+heightHips:262
 
 case80:
 numberOfSlices:448
 height:896
+heightNeck:816
+heightHeart:562
+heightLung:692
+heightSkull:892
+heightHips:254
 
 case81:
 numberOfSlices:388
 height:776
+heightNeck:742
+heightHeart:516
+heightLung:628
+heightSkull:-1
+heightHips:190
 
 case82:
 numberOfSlices:388
 height:776
+heightNeck:720
+heightHeart:542
+heightLung:638
+heightSkull:772
+heightHips:244
 
 case83:
 numberOfSlices:388
 height:776
+heightNeck:712
+heightHeart:476
+heightLung:602
+heightSkull:772
+heightHips:160
 
 case84:
 numberOfSlices:148
 height:222
+heightNeck:48
+heightHeart:-1
+heightLung:-1
+heightSkull:190.5
+heightHips:-1
 
 case86:
 numberOfSlices:83
 height:166
+heightNeck:-1
+heightHeart:130
+heightLung:-1
+heightSkull:-1
+heightHips:-1
 
 case87:
 numberOfSlices:262
 height:890.8
+heightNeck:812.6
+heightHeart:598.4
+heightLung:680
+heightSkull:-1
+heightHips:238
 
 case216:
 numberOfSlices:341
 height:852.5
+heightNeck:785
+heightHeart:572.5
+heightLung:665
+heightSkull:847.5
+heightHips:217.5
 
 case215:
 numberOfSlices:110
 height:330
+heightNeck:-1
+heightHeart:186
+heightLung:282
+heightSkull:-1
+heightHips:-1
 
 case213:
 numberOfSlices:294
 height:735
+heightNeck:707.5
+heightHeart:500
+heightLung:590
+heightSkull:-1
+heightHips:115
 
 case212:
 numberOfSlices:568
 height:852
+heightNeck:826.5
+heightHeart:601.5
+heightLung:709.5
+heightSkull:-1
+heightHips:235.5
 
 case211:
 numberOfSlices:328
 height:820
+heightNeck:597.5
+heightHeart:360
+heightLung:472.5
+heightSkull:722.5
+heightHips:17.5
 
 case210:
 numberOfSlices:307
 height:767.5
+heightNeck:597.5
+heightHeart:367.5
+heightLung:475
+heightSkull:725
+heightHips:15
 
 case209:
 numberOfSlices:392
 height:980
+heightNeck:940
+heightHeart:705
+heightLung:785
+heightSkull:-1
+heightHips:290
 
 case207:
 numberOfSlices:652
 height:978
+heightNeck:940.5
+heightHeart:703.5
+heightLung:778.5
+heightSkull:-1
+heightHips:288
 
 case206:
 numberOfSlices:376
 height:752
+heightNeck:708
+heightHeart:426
+heightLung:592
+heightSkull:-1
+heightHips:158
 
 case205:
 numberOfSlices:139
 height:417
+heightNeck:-1
+heightHeart:288
+heightLung:375
+heightSkull:-1
+heightHips:-1
 
 case204:
 numberOfSlices:388
 height:776
+heightNeck:720
+heightHeart:506
+heightLung:604
+heightSkull:772
+heightHips:198
 
 case202:
 numberOfSlices:175
 height:350
+heightNeck:282
+heightHeart:62
+heightLung:166
+heightSkull:346
+heightHips:-1
 
 case200:
 numberOfSlices:67
 height:335
+heightNeck:-1
+heightHeart:175
+heightLung:295
+heightSkull:-1
+heightHips:-1
 
 case201:
 numberOfSlices:497
 height:1491
+heightNeck:-1
+heightHeart:1083
+heightLung:1176
+heightSkull:1434
+heightHips:768
 
 case218:
 numberOfSlices:216
 height:324
+heightNeck:-1
+heightHeart:180
+heightLung:276
+heightSkull:-1
+heightHips:-1
 
 case220:
 numberOfSlices:159
 height:238.5
+heightNeck:-1
+heightHeart:147
+heightLung:211.5
+heightSkull:-1
+heightHips:-1
 
 case223:
 numberOfSlices:250
 height:750
+heightNeck:-1
+heightHeart:597
+heightLung:708
+heightSkull:-1
+heightHips:234
 
 case224:
 numberOfSlices:671
 height:1006.5
+heightNeck:786
+heightHeart:547.5
+heightLung:666
+heightSkull:913.5
+heightHips:204
 
 case225:
 numberOfSlices:149
 height:298
+heightNeck:-1
+heightHeart:124
+heightLung:238
+heightSkull:-1
+heightHips:-1
 
 case226:
 numberOfSlices:231
 height:693
+heightNeck:-1
+heightHeart:543
+heightLung:645
+heightSkull:-1
+heightHips:192
 
 case227:
 numberOfSlices:212
 height:530
+heightNeck:492.5
+heightHeart:262.5
+heightLung:330
+heightSkull:-1
+heightHips:-1

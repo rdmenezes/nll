@@ -20,14 +20,32 @@ namespace detect
       struct      Measure
       {
          Measure( ui32 i, ui32 nb, float h ) : id( i ), numberOfSlices( nb ), height( h )
-         {}
+         {
+            heightNeck  = -1;
+            heightHeart = -1;
+            heightLung  = -1;
+            heightSkull = -1;
+            heightHips  = -1;
+         }
 
          Measure()
-         {}
+         {
+            heightNeck  = -1;
+            heightHeart = -1;
+            heightLung  = -1;
+            heightSkull = -1;
+            heightHips  = -1;
+         }
 
          ui32     id;
          ui32     numberOfSlices;
          float    height;              // in mm
+
+         float    heightNeck;          // in mm, 0 correspond to the first slice, -1 not defined
+         float    heightHeart;         // in mm, 0 correspond to the first slice, -1 not defined
+         float    heightLung;          // in mm, 0 correspond to the first slice, -1 not defined
+         float    heightSkull;         // in mm, 0 correspond to the first slice, -1 not defined
+         float    heightHips;          // in mm, 0 correspond to the first slice, -1 not defined
       };
 
       struct    Result
@@ -40,6 +58,7 @@ namespace detect
          float  lungStart;
          float  lungEnd;
          float  skullStart;
+         float  hipsStart;
       };
 
    public:
@@ -57,7 +76,12 @@ namespace detect
          {
             f << "case" << m[ n ].id << ":" << std::endl;
             f << "numberOfSlices:" << m[ n ].numberOfSlices << std::endl;
-            f << "height:" << m[ n ].height;
+            f << "height:" << m[ n ].height << std::endl;
+            f << "heightNeck:"  << m[ n ].heightNeck  << std::endl;
+            f << "heightHeart:" << m[ n ].heightHeart << std::endl;
+            f << "heightLung:"  << m[ n ].heightLung  << std::endl;
+            f << "heightSkull:" << m[ n ].heightSkull << std::endl;
+            f << "heightHips:"  << m[ n ].heightHips;
             if ( ( n + 1 ) != m.size() )
             {
                f << std::endl;
@@ -92,6 +116,28 @@ namespace detect
             std::getline( f, line );
             sscanf( line.c_str(), "height:%f", &n1 );
             r.height = static_cast<float>( n1 );
+
+
+
+            std::getline( f, line );
+            sscanf( line.c_str(), "heightNeck:%f", &n1 );
+            r.heightNeck = static_cast<float>( n1 );
+
+            std::getline( f, line );
+            sscanf( line.c_str(), "heightHeart:%f", &n1 );
+            r.heightHeart = static_cast<float>( n1 );
+
+            std::getline( f, line );
+            sscanf( line.c_str(), "heightLung:%f", &n1 );
+            r.heightLung = static_cast<float>( n1 );
+
+            std::getline( f, line );
+            sscanf( line.c_str(), "heightSkull:%f", &n1 );
+            r.heightSkull = static_cast<float>( n1 );
+
+            std::getline( f, line );
+            sscanf( line.c_str(), "heightHips:%f", &n1 );
+            r.heightHips = static_cast<float>( n1 );
 
             std::getline( f, line );
             results.push_back( r );
@@ -138,12 +184,25 @@ namespace detect
             r.skullStart = static_cast<float>( n1 ) - 2;          // TODO -1 bias
 
             std::getline( f, line );
+            sscanf( line.c_str(), "hips:%f:%f", &n1, &n2 );
+            r.hipsStart = static_cast<float>( n1 ) - 1;
+
+            std::getline( f, line );
             results.push_back( r );
          }
 
          return results;
       }
 
+      //
+      // ID:
+      //   0 : nothing
+      //   1 : neck
+      //   2 : heart
+      //   3 : lung
+      //   4 : skull
+      //   5 : hips
+      //
       static void generateSourceDatabase( const std::string& input_cfg, const std::string& outputDatabase )
       {
          // read the cases
@@ -161,7 +220,8 @@ namespace detect
             std::cout << "generating case:" << filename << std::endl;
             bool loaded = loadSimpleFlatFile( filename, volume );
             ensure( loaded, "error: can't load case:" + filename );
-            measures.push_back( Measure( results[ n ].id, volume.size()[ 2 ], volume.size()[ 2 ] * volume.getSpacing()[ 2 ] ) );
+
+            Measure measure( results[ n ].id, volume.size()[ 2 ], volume.size()[ 2 ] * volume.getSpacing()[ 2 ] );
 
             // export
             ui32 size = volume.size()[ 2 ];
@@ -171,7 +231,8 @@ namespace detect
                if ( fabs( nn - results[ n ].neckStart  ) < DATABASE_MIN_INTERVAL_ROI ||
                     fabs( nn - results[ n ].lungStart  ) < DATABASE_MIN_INTERVAL_ROI ||
                     fabs( nn - results[ n ].heartStart ) < DATABASE_MIN_INTERVAL_ROI ||
-                    fabs( nn - results[ n ].skullStart ) < DATABASE_MIN_INTERVAL_ROI )
+                    fabs( nn - results[ n ].skullStart ) < DATABASE_MIN_INTERVAL_ROI ||
+                    fabs( nn - results[ n ].hipsStart  ) < DATABASE_MIN_INTERVAL_ROI )
                {
                   // skip: too close from the marker
                   continue;
@@ -207,6 +268,13 @@ namespace detect
                   ui32 output = 1;
                   database.add( Sample( input, output, Sample::LEARNING ) );
                }
+
+               // measure the heigh of the ROI relatively to the volume origin
+               core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                            volume.size()[ 1 ] / 2.0f,
+                                                                            results[ n ].neckStart ) );
+               measure.heightNeck = pos[ 2 ] - volume.getOrigin()[ 2 ];
+               std::cout << "heightNeck=" << measure.heightNeck << std::endl;
             }
 
             if ( results[ n ].heartStart > 0 )
@@ -217,6 +285,13 @@ namespace detect
                   ui32 output = 2;
                   database.add( Sample( input, output, Sample::LEARNING ) );
                }
+
+               // measure the heigh of the ROI relatively to the volume origin
+               core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                            volume.size()[ 1 ] / 2.0f,
+                                                                            (f32)results[ n ].heartStart ) );
+               measure.heightHeart = pos[ 2 ] - volume.getOrigin()[ 2 ];
+               std::cout << "heightHeart=" << measure.heightHeart << std::endl;
             }
 
             if ( results[ n ].lungStart > 0 )
@@ -227,6 +302,13 @@ namespace detect
                   ui32 output = 3;
                   database.add( Sample( input, output, Sample::LEARNING ) );
                }
+
+               // measure the heigh of the ROI relatively to the volume origin
+               core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                            volume.size()[ 1 ] / 2.0f,
+                                                                            (f32)results[ n ].lungStart ) );
+               measure.heightLung = pos[ 2 ] - volume.getOrigin()[ 2 ];
+               std::cout << "heightLung=" << measure.heightLung << std::endl;
             }
 
             if ( results[ n ].skullStart > 0 )
@@ -241,7 +323,33 @@ namespace detect
                      database.add( Sample( input, output, Sample::LEARNING ) );
                   }
                }
+
+               // measure the heigh of the ROI relatively to the volume origin
+               core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                            volume.size()[ 1 ] / 2.0f,
+                                                                            (f32)results[ n ].skullStart ) );
+               measure.heightSkull = pos[ 2 ] - volume.getOrigin()[ 2 ];
+               std::cout << "heightSkull=" << measure.heightSkull << std::endl;
             }
+
+            if ( results[ n ].hipsStart > 0 )
+            {
+               {
+                  const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].lungStart ) + "-hips.bmp";
+                  Point input = _convert( volume, (ui32)results[ n ].hipsStart, sliceName );
+                  ui32 output = 5;
+                  database.add( Sample( input, output, Sample::LEARNING ) );
+               }
+
+               // measure the heigh of the ROI relatively to the volume origin
+               core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
+                                                                            volume.size()[ 1 ] / 2.0f,
+                                                                            (f32)results[ n ].hipsStart ) );
+               measure.heightHips = pos[ 2 ] - volume.getOrigin()[ 2 ];
+               std::cout << "heightHips=" << measure.heightHips << std::endl;
+            }
+
+            measures.push_back( measure );
          }
 
          writeMeasures( measures, DATABASE_MEASURES );

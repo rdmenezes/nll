@@ -383,6 +383,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\correction.h"
+				>
+			</File>
+			<File
 				RelativePath=".\features.h"
 				>
 			</File>

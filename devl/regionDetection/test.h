@@ -26,12 +26,14 @@ namespace detect
             heartStart = -1;
             lungStart = -1;
             skullStart = -1;
+            hipsStart = -1;
          }
 
          int   neckStart;
          int   heartStart;
          int   lungStart;
          int   skullStart;
+         int   hipsStart;
       };
 
       typedef core::Buffer1D<double>                                 Point;
@@ -64,9 +66,9 @@ namespace detect
       {
          ResultFinal r;
 
-         core::Buffer1D<double>  max( 5 );
-         core::Buffer1D<int>     maxPos( 5 );
-         for ( ui32 n = 0; n < 5; ++n )
+         core::Buffer1D<double>  max( NB_CLASS );
+         core::Buffer1D<int>     maxPos( NB_CLASS );
+         for ( ui32 n = 0; n < NB_CLASS; ++n )
             maxPos[ n ] = -1;
 
          // select the highest probability
@@ -79,40 +81,15 @@ namespace detect
             }
          }
 
-         core::Buffer1D<double>     maxFinalPos( 4 );
-         // then average with contiguous slices with same ID
-         for ( ui32 id = 1; id < 4; ++id )
-         {
-            // haven't found any, just skip this label
-            if ( maxPos[ id ] == -1 )
-               continue;
-
-            double renorm = 0;   // probability renormalisation factor
-            for ( int n = maxPos[ id ]; n < (int)results.probabilities.size() && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; ++n )
-            {
-               maxFinalPos[ id ] += results.probabilities[ n ] * n;  // average
-               renorm += results.probabilities[ n ];
-            }
-            for ( int n = maxPos[ id ] - 1; n >= 0 && results.sliceIds[ n ] == results.sliceIds[ maxPos[ id ] ]; --n )
-            {
-               maxFinalPos[ id ] += results.probabilities[ n ] * n;  // average
-               renorm += results.probabilities[ n ];
-            }
-
-            maxFinalPos[ id ] = maxFinalPos[ id ] / ( renorm );
-         }
-
+         // special rule for the head: we go up until can't find the same class
+         while ( ( maxPos[ 4 ] + 1 ) < (int)results.probabilities.size() && results.sliceIds[ maxPos[ 4 ] + 1 ] == 4 )
+            ++maxPos[ 4 ];
          
-         r.neckStart =  maxPos[ 1 ]; //(ui32)maxFinalPos[ 1 ];
-         r.heartStart =  maxPos[ 2 ]; //(ui32)maxFinalPos[ 2 ];
-         r.lungStart =  maxPos[ 3 ]; // (ui32)maxFinalPos[ 3 ];
+         r.neckStart =   maxPos[ 1 ];
+         r.heartStart =  maxPos[ 2 ];
+         r.lungStart =   maxPos[ 3 ];
          r.skullStart =  maxPos[ 4 ];
-         
-         /*
-         r.neckStart =  (ui32)maxFinalPos[ 1 ];
-         r.heartStart = (ui32)maxFinalPos[ 2 ];
-         r.lungStart =  (ui32)maxFinalPos[ 3 ];
-         */
+         r.hipsStart =   maxPos[ 5 ];
          return r;
       }
 
@@ -151,6 +128,7 @@ namespace detect
       /**
        @brief export on a XZ mpr the classification result
        */
+      /*
       core::Image<ui8> exportTest( const Volume& volume )
       {
          typedef nll::imaging::LookUpTransformWindowingRGB  Lut;
@@ -227,6 +205,7 @@ namespace detect
          }
          return sliceTfm;
       }
+      */
 
       /**
        @brief Create normalized haar features from raw mpr

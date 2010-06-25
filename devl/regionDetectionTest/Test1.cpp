@@ -3,28 +3,31 @@
 #include <regionDetection/features.h>
 #include <regionDetection/read-result.h>
 #include <regionDetection/test.h>
+#include <regionDetection/correction.h>
 
 using namespace nll;
 using namespace nll::core;
 using namespace nll::algorithm;
 using namespace nll::detect;
 
-ui8 colors[ 5 ][ 3 ] = 
+ui8 colors[ NB_CLASS ][ 3 ] = 
 {
    { 255, 255, 255},
    { 0, 0, 255 },
    { 255, 0, 0 },
    { 0, 255, 0 },
-   { 0, 255, 255 }
+   { 0, 255, 255 },
+   { 255, 255, 0 }
 };
 
-ui8 colors_src[ 5 ][ 3 ] = 
+ui8 colors_src[ NB_CLASS ][ 3 ] = 
 {
    { 255, 255, 255},
    { 0, 0, 255 },
    { 255, 0, 0 },
    { 0, 255, 0 },
-   { 0, 255, 255 }
+   { 0, 255, 255 },
+   { 255, 255, 0 }
 };
 
 void setColorIntensity( ui32 index, double val )
@@ -235,31 +238,36 @@ struct TestRegion
                 << "neck:"  <<( sumSliceError[ 1 ]  / errorInMM[ 1 ].size() ) << std::endl
                 << "heart:" <<( sumSliceError[ 2 ]  / errorInMM[ 2 ].size() ) << std::endl
                 << "lung:"  <<( sumSliceError[ 3 ]  / errorInMM[ 3 ].size() ) << std::endl
-                << "skull:" <<( sumSliceError[ 4 ]  / errorInMM[ 4 ].size() ) << std::endl;
+                << "skull:" <<( sumSliceError[ 4 ]  / errorInMM[ 4 ].size() ) << std::endl
+                << "hips:" << ( sumSliceError[ 5 ]  / errorInMM[ 5 ].size() ) << std::endl;
 
       std::cout << "Total mean error in mm" << std::endl
                 << "neck:"  <<( means[ 1 ] ) << std::endl
                 << "heart:" <<( means[ 2 ] ) << std::endl
                 << "lung:"  <<( means[ 3 ] ) << std::endl
-                << "skull:" <<( means[ 4 ] ) << std::endl;
+                << "skull:" <<( means[ 4 ] ) << std::endl
+                << "hips:"  <<( means[ 5 ] ) << std::endl;
 
       std::cout << "Total ROIs more than " << moreThanThresholdMm << " mm" << std::endl
                 << "neck:"  <<( moreThan[ 1 ] ) << std::endl
                 << "heart:" <<( moreThan[ 2 ] ) << std::endl
                 << "lung:"  <<( moreThan[ 3 ] ) << std::endl
-                << "skull:" <<( moreThan[ 4 ] ) << std::endl;
+                << "skull:" <<( moreThan[ 4 ] ) << std::endl
+                << "hips:"  <<( moreThan[ 5 ] ) << std::endl;
 
       std::cout << "Max error in mm " << moreThanThresholdMm << " mm" << std::endl
                 << "neck:"  <<( max[ 1 ] ) << std::endl
                 << "heart:" <<( max[ 2 ] ) << std::endl
                 << "lung:"  <<( max[ 3 ] ) << std::endl
-                << "skull:" <<( max[ 4 ] ) << std::endl;
+                << "skull:" <<( max[ 4 ] ) << std::endl
+                << "hips:" << ( max[ 5 ] ) << std::endl;
 
       std::cout << "stddev in mm " << moreThanThresholdMm << " mm" << std::endl
                 << "neck:"  <<( stddev[ 1 ] ) << std::endl
                 << "heart:" <<( stddev[ 2 ] ) << std::endl
                 << "lung:"  <<( stddev[ 3 ] ) << std::endl
-                << "skull:" <<( stddev[ 4 ] ) << std::endl;
+                << "skull:" <<( stddev[ 4 ] ) << std::endl
+                << "hips:"  <<( stddev[ 5 ] ) << std::endl;
    }
 
    void learnSvm()
@@ -270,7 +278,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.3, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.2, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -363,6 +371,14 @@ struct TestRegion
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
             }
+
+            if ( final.hipsStart > 0 )
+            {
+               p = mprz.point( n, final.hipsStart );
+               p[ 0 ] = colors[ 5 ][ 0 ];
+               p[ 1 ] = colors[ 5 ][ 1 ];
+               p[ 2 ] = colors[ 5 ][ 2 ];
+            }
          }
 
          for ( ui32 i = 0; i < NB_CLASS; ++i )
@@ -422,6 +438,14 @@ struct TestRegion
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
             }
+
+            if ( results[ nn ].hipsStart > 0 )
+            {
+               p = mprz.point( n, (ui32)results[ nn ].hipsStart );
+               p[ 0 ] = colors[ 5 ][ 0 ];
+               p[ 1 ] = colors[ 5 ][ 1 ];
+               p[ 2 ] = colors[ 5 ][ 2 ];
+            }
          }
          // reporting
          if ( results[ nn ].neckStart > 0 && final.neckStart > 0 )
@@ -441,6 +465,11 @@ struct TestRegion
          if ( results[ nn ].skullStart > 0 && final.skullStart > 0 )
          {
             reporting.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].skullStart - final.skullStart ), 4 ) );
+         }
+
+         if ( results[ nn ].hipsStart > 0 && final.hipsStart > 0 )
+         {
+            reporting.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].hipsStart - final.hipsStart ), 5 ) );
          }
          writeBmp( mprz, std::string( PREVIEW_CASE_VALIDATION ) + val2str( results[ nn ].id ) + ".bmp" );
       }
@@ -560,6 +589,14 @@ struct TestRegion
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
             }
+
+            if ( results[ n ].hipsStart > 0 )
+            {
+               p = mprz.point( nnn, (ui32)results[ n ].hipsStart );
+               p[ 0 ] = colors[ 5 ][ 0 ];
+               p[ 1 ] = colors[ 5 ][ 1 ];
+               p[ 2 ] = colors[ 5 ][ 2 ];
+            }
          }
 
          std::cout << "export result" << std::endl;
@@ -623,6 +660,14 @@ struct TestRegion
             reporting.push_back( ErrorReporting( results[ n ].id, err, 4 ) );
             errors[ 4 ]  +=  err;
          }
+
+         if ( final.hipsStart > 0 && results[ n ].hipsStart > 0 )
+         {
+            float err = fabs( results[ n ].hipsStart - final.hipsStart );
+            ++counts[ 5 ];
+            reporting.push_back( ErrorReporting( results[ n ].id, err, 5 ) );
+            errors[ 5 ]  +=  err;
+         }
          ++nbCases;
 
          for ( ui32 i = 0; i < NB_CLASS; ++i )
@@ -663,16 +708,25 @@ struct TestRegion
                p[ 1 ] = colors[ 4 ][ 1 ];
                p[ 2 ] = colors[ 4 ][ 2 ];
             }
+
+            if ( final.hipsStart > 0  && final.hipsStart < (int)mprz.sizey() )
+            {
+               p = mprz.point( nnn, final.hipsStart );
+               p[ 0 ] = colors[ 5 ][ 0 ];
+               p[ 1 ] = colors[ 5 ][ 1 ];
+               p[ 2 ] = colors[ 5 ][ 2 ];
+            }
          }
 
          writeBmp( mprz, std::string( PREVIEW_CASE_MARK ) + val2str( results[ n ].id ) + ".bmp" );
       }
 
       std::cout << "mean error in slice:" << std::endl
-                << "neck:"  <<( errors[ 1 ] / counts[ 1 ] ) << std::endl
-                << "heart:" <<( errors[ 2 ] / counts[ 2 ] ) << std::endl
+                << "neck:"  <<( errors[ 1 ]  / counts[ 1 ] ) << std::endl
+                << "heart:" <<( errors[ 2 ]  / counts[ 2 ] ) << std::endl
                 << "lung:"  <<( errors[ 3 ]  / counts[ 3 ] ) << std::endl
-                << "skull:"  <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl;
+                << "skull:" <<( errors[ 4 ]  / counts[ 4 ] ) << std::endl
+                << "hips:"  <<( errors[ 5 ]  / counts[ 5 ] ) << std::endl;
 
       std::cout << "mean time=" << t1.getCurrentTime() / nbCases << std::endl;
    }
@@ -780,6 +834,10 @@ struct TestRegion
                 << "heart:" <<( errorHeart / resultsReg.size() ) << std::endl
                 << "lung:"  <<( errorLung  / resultsReg.size() ) << std::endl;
    }
+
+   void testSimilarity()
+   {
+   }
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
@@ -793,7 +851,7 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(createVolumeDatabase);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
-TESTER_TEST(learnSvm);
+//TESTER_TEST(learnSvm);
 
 // input: validation-cases, validation volumes mf2
 //TESTER_TEST(testValidationDataSvm);
