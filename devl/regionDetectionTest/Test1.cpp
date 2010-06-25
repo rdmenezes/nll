@@ -278,7 +278,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.2, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.1, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -851,7 +851,7 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(createVolumeDatabase);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
-//TESTER_TEST(learnSvm);
+TESTER_TEST(learnSvm);
 
 // input: validation-cases, validation volumes mf2
 //TESTER_TEST(testValidationDataSvm);
