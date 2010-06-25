@@ -146,10 +146,6 @@ case44:
 numberOfSlices:154
 height:770
 
-case45:
-numberOfSlices:404
-height:1010
-
 case46:
 numberOfSlices:404
 height:1010

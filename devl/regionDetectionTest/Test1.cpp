@@ -270,7 +270,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.2, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.3, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -692,6 +692,24 @@ struct TestRegion
       }
    }*/
 
+   void extractXZFullResolution()
+   {
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      for ( ui32 n = 0; n < results.size(); ++n )
+      {
+         Volume volume;
+         bool loaded = loadSimpleFlatFile( DATA_PATH "case" + val2str( results[ n ].id ) + ".mf2", volume );
+         TESTER_ASSERT( loaded );
+
+         for ( ui32 nn = 0; nn < volume.size()[ 2 ]; ++nn )
+         {
+            Image<ui8> xz = extractSliceFull( volume, nn );
+            extend( xz, 3 );
+            writeBmp( xz, std::string( "c:/tmp/full/case" ) + val2str( results[ n ].id ) + "-slice-" + val2str( nn + 1 ) + ".bmp" );   // +1 as we do it 1-based numerotation, as the reader app to be consistant!
+         }
+      }
+   }
+
 
    void registrationExport()
    {
@@ -780,7 +798,7 @@ TESTER_TEST(learnSvm);
 // input: validation-cases, validation volumes mf2
 //TESTER_TEST(testValidationDataSvm);
 
-
+//TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);
 //TESTER_TEST(registrationExport);
 //TESTER_TEST(test);

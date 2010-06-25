@@ -183,6 +183,17 @@ namespace detect
 
                // we know all these slices are not what we are looking for...
                ui32 output = 0;
+
+               // for the skull: specific rule: all slices between start of the neck + DATABASE_MIN_INTERVAL_ROI and base of the skull will have 'skull' label
+               if ( results[ n ].skullStart > 0 &&
+                    results[ n ].neckStart > 0 &&
+                    nn >=  ( results[ n ].neckStart + DATABASE_MIN_INTERVAL_ROI ) &&
+                    nn <= results[ n ].skullStart )
+               {
+                  continue; // skip the data
+               }
+
+               std::cout << "case:" << results[ n ].id << " slice=" << nn << " class=" << output << std::endl;
                database.add( Sample( input, output, Sample::LEARNING, core::make_buffer1D_from_string( sliceDebugName ) ) );
             }
 
