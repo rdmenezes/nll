@@ -40,4 +40,6 @@
 #define NB_CLASS                 6
 #define FINAL_SVM_CLASSIFIER     DATA_PATH "svm.bin"
 
+#define CORRECTION_DETECTION_RATE   0.2
+
 #endif

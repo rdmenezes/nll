@@ -530,7 +530,7 @@ struct TestRegion
 
       Timer t1;
       ensure( bins.size() == results.size(), "should be the same database" );
-      for ( int n = 0; n < results.size(); ++n )
+      for ( int n = 0; n < (int)results.size(); ++n )
       {
          std::cout << bins[ n ] << " " << binTest << std::endl;
          if ( bins[ n ] != binTest )
