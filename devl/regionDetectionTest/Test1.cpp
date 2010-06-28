@@ -115,12 +115,12 @@ struct TestRegion
 
    static std::vector<ui32> createBins( ui32& nbBins )
    {
-      nbBins = 20;
+      nbBins = LEARNING_NB_BINS;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       std::vector<ui32> bins( results.size() );
       for ( ui32 n = 0; n < results.size(); ++n )
       {
-         bins[ n ] = n / ( (ui32)results.size() / nbBins );
+         bins[ n ] = (ui32)( n / ( (f32)results.size() / ( nbBins ) + 0.001 ) );
       }
       core::randomize( bins, 2.0f );
       for ( ui32 n = 0; n < results.size(); ++n )
@@ -132,6 +132,16 @@ struct TestRegion
    }
 
    int findIndexFromId( const std::vector<RegionResult::Result>& results, ui32 id )
+   {
+      for ( size_t n = 0; n < results.size(); ++n )
+      {
+         if ( results[ n ].id == id )
+            return (int)n;
+      }
+      return -1;
+   }
+
+   int findIndexFromId( const std::vector<RegionResult::Measure>& results, ui32 id )
    {
       for ( size_t n = 0; n < results.size(); ++n )
       {
@@ -268,6 +278,38 @@ struct TestRegion
                 << "lung:"  <<( stddev[ 3 ] ) << std::endl
                 << "skull:" <<( stddev[ 4 ] ) << std::endl
                 << "hips:"  <<( stddev[ 5 ] ) << std::endl;
+
+      const float step = 5.0f;         // in mm
+      const float maxstep  = 60.0f;    // in mm
+      std::cout << "data distribution:" << std::endl;
+      for ( ui32 n = 1; n < NB_CLASS; ++n )
+      {
+         std::cout << " class:" << n << std::endl;
+         for ( float interval = step; interval < maxstep; interval += step )
+         {
+            ui32 nberrors = 0;
+            for ( ui32 nn = 0; nn < reporting.size(); ++nn )
+            {
+               int caseid = findIndexFromId( measures, reporting[ nn ].id );
+               ensure( caseid >= 0, "error:" + val2str( reporting[ nn ].id ) );
+               float errorMM = reporting[ nn ].errorInSlice * measures[ caseid ].height / measures[ caseid ].numberOfSlices;
+               if ( reporting[ nn ].label == n && errorMM >= ( interval - step ) && errorMM < interval )
+                  ++nberrors;
+            }
+            std::cout << "  error[" << interval - step << "|" << interval << "]=" << nberrors << std::endl;
+         }
+
+         ui32 nberrors = 0;
+         for ( ui32 nn = 0; nn < reporting.size(); ++nn )
+         {
+            int caseid = findIndexFromId( measures, reporting[ nn ].id );
+            ensure( caseid >= 0, "error" );
+            float errorMM = reporting[ nn ].errorInSlice * measures[ caseid ].height / measures[ caseid ].numberOfSlices;
+            if ( reporting[ nn ].label == n && errorMM >= maxstep )
+               ++nberrors;
+         }
+         std::cout << "  error[>=" << maxstep << "]=" << nberrors << std::endl;
+      }
    }
 
    void learnSvm()
@@ -276,9 +318,11 @@ struct TestRegion
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
 
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.1, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.2, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -294,7 +338,6 @@ struct TestRegion
       }
 
       // do the results' analysis
-      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       ensure( results.size() == measures.size(), "must be the same" );
       analyseResults( reporting, measures, results );
@@ -532,7 +575,6 @@ struct TestRegion
       ensure( bins.size() == results.size(), "should be the same database" );
       for ( int n = 0; n < (int)results.size(); ++n )
       {
-         std::cout << bins[ n ] << " " << binTest << std::endl;
          if ( bins[ n ] != binTest )
             continue;   // we just test the testing samples
          std::cout << "test case database:" << n << std::endl;
@@ -767,12 +809,11 @@ struct TestRegion
 
    void registrationExport()
    {
+      std::vector<ErrorReporting> reporting;
       std::vector<RegionResult::Result> resultsReg = RegionResult::readResults( REGISTRATION_INPUT );
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
 
-      double errorNeck = 0;
-      double errorLung = 0;
-      double errorHeart = 0;
       for ( ui32 n = 0; n < resultsReg.size(); ++n )
       {
          Image<ui8> mprz;
@@ -782,20 +823,30 @@ struct TestRegion
          // result found
          for ( ui32 nnn = 0; nnn < std::min<ui32>( mprz.sizex(), 10 ); ++nnn )
          {
-            ui8* p = mprz.point( nnn, (ui32)resultsReg[ n ].neckStart );
-            p[ 0 ] = colors[ 1 ][ 0 ];
-            p[ 1 ] = colors[ 1 ][ 1 ];
-            p[ 2 ] = colors[ 1 ][ 2 ];
+            ui8* p;
+            if ( resultsReg[ n ].neckStart > 0 && resultsReg[ n ].neckStart < mprz.sizey() )
+            {
+               p = mprz.point( nnn, (ui32)resultsReg[ n ].neckStart );
+               p[ 0 ] = colors[ 1 ][ 0 ];
+               p[ 1 ] = colors[ 1 ][ 1 ];
+               p[ 2 ] = colors[ 1 ][ 2 ];
+            }
 
-            p = mprz.point( nnn, (ui32)resultsReg[ n ].heartStart );
-            p[ 0 ] = colors[ 2 ][ 0 ];
-            p[ 1 ] = colors[ 2 ][ 1 ];
-            p[ 2 ] = colors[ 2 ][ 2 ];
+            if ( resultsReg[ n ].heartStart > 0 && resultsReg[ n ].heartStart < mprz.sizey() )
+            {
+               p = mprz.point( nnn, (ui32)resultsReg[ n ].heartStart );
+               p[ 0 ] = colors[ 2 ][ 0 ];
+               p[ 1 ] = colors[ 2 ][ 1 ];
+               p[ 2 ] = colors[ 2 ][ 2 ];
+            }
 
-            p = mprz.point( nnn, (ui32)resultsReg[ n ].lungStart );
-            p[ 0 ] = colors[ 3 ][ 0 ];
-            p[ 1 ] = colors[ 3 ][ 1 ];
-            p[ 2 ] = colors[ 3 ][ 2 ];
+            if ( resultsReg[ n ].lungStart > 0 && resultsReg[ n ].lungStart < mprz.sizey() )
+            {
+               p = mprz.point( nnn, (ui32)resultsReg[ n ].lungStart );
+               p[ 0 ] = colors[ 3 ][ 0 ];
+               p[ 1 ] = colors[ 3 ][ 1 ];
+               p[ 2 ] = colors[ 3 ][ 2 ];
+            }
          }
          
          // ground truth
@@ -822,17 +873,17 @@ struct TestRegion
             p[ 2 ] = colors[ 3 ][ 2 ];
          }
 
-         errorNeck +=  fabs( results[ id ].neckStart - resultsReg[ n ].neckStart );
-         errorHeart += fabs( results[ id ].heartStart - resultsReg[ n ].heartStart );
-         errorLung +=  fabs( results[ id ].lungStart - resultsReg[ n ].lungStart );
+         float eNeck =  fabs( results[ id ].neckStart - resultsReg[ n ].neckStart );
+         float eHeart = fabs( results[ id ].heartStart - resultsReg[ n ].heartStart );
+         float eLung = fabs( results[ id ].lungStart - resultsReg[ n ].lungStart );
+
+         reporting.push_back( ErrorReporting( resultsReg[ n ].id, eNeck, 1 ) );
+         reporting.push_back( ErrorReporting( resultsReg[ n ].id, eHeart, 2 ) );
+         reporting.push_back( ErrorReporting( resultsReg[ n ].id, eLung, 3 ) );
          
          writeBmp( mprz, std::string( PREVIEW_CASE_REG ) + val2str( resultsReg[ n ].id ) + ".bmp" );
       }
-
-      std::cout << "mean error in slice:" << std::endl
-                << "neck:"  <<( errorNeck  / resultsReg.size() ) << std::endl
-                << "heart:" <<( errorHeart / resultsReg.size() ) << std::endl
-                << "lung:"  <<( errorLung  / resultsReg.size() ) << std::endl;
+      analyseResults( reporting, measures, results );
    }
 
    void testSimilarity()
@@ -851,13 +902,13 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(createVolumeDatabase);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
-TESTER_TEST(learnSvm);
+//TESTER_TEST(learnSvm);
 
 // input: validation-cases, validation volumes mf2
 //TESTER_TEST(testValidationDataSvm);
 
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);
-//TESTER_TEST(registrationExport);
+TESTER_TEST(registrationExport);
 //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();

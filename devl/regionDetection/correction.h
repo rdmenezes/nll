@@ -131,7 +131,7 @@ namespace detect
          std::vector<ui32> labelToUpdate;
          Matrix ref = getFullDistances( _templates[ bestId ].distances );
          int labelRef = -1;   // the label used as a reference
-         float labelRefDist = INT_MAX;
+         float labelRefDist = (float)INT_MAX;
          for ( ui32 n = 1; n < NB_CLASS; ++n )
          {
             // sum all the distances for a label in ref & test

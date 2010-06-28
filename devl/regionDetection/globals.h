@@ -41,5 +41,6 @@
 #define FINAL_SVM_CLASSIFIER     DATA_PATH "svm.bin"
 
 #define CORRECTION_DETECTION_RATE   0.2
+#define LEARNING_NB_BINS            20
 
 #endif
