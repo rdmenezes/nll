@@ -43,12 +43,21 @@ namespace detect
       typedef std::vector<Template>    Templates;
 
    public:
+      /*
       // the learning data file to use to detect and correct outliers
       CorrectPosition( const std::string& measures )
       {
          Measures m = RegionResult::readMeasures( measures );
          ensure( m.size(), "can't be empty: couldn't load the file" );
 
+         for ( ui32 n = 0; n < m.size(); ++n )
+         {
+            _templates.push_back( Template( m[ n ].id,  m[ n ].heightNeck, m[ n ].heightHeart, m[ n ].heightLung, m[ n ].heightSkull, m[ n ].heightHips ) );
+         }
+      }*/
+
+      CorrectPosition( const Measures& m )
+      {
          for ( ui32 n = 0; n < m.size(); ++n )
          {
             _templates.push_back( Template( m[ n ].id,  m[ n ].heightNeck, m[ n ].heightHeart, m[ n ].heightLung, m[ n ].heightSkull, m[ n ].heightHips ) );

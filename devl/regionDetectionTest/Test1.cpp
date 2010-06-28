@@ -886,8 +886,25 @@ struct TestRegion
       analyseResults( reporting, measures, results );
    }
 
+   // read the measures, split them in a test & learning set, then add gaussian error on the testing set
+   // finally, try to detect & fix the error
    void testSimilarity()
    {
+      const float testingRatio = 0.7f;
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+      std::vector<RegionResult::Measure> measuresTraining;
+      std::vector<RegionResult::Measure> measuresTest;
+
+      // split the database
+      const ui32 nbTraining = static_cast<ui32>( testingRatio * measures.size() );
+      for ( ui32 n = 0; n < measures.size(); ++n )
+         if ( n <= nbTraining )
+            measuresTraining.push_back( measures[ n ] );
+         else
+            measuresTest.push_back( measures[ n ] );
+
+      // training
+      CorrectPosition correct( measuresTraining );
    }
 }; 
 
@@ -909,6 +926,6 @@ TESTER_TEST_SUITE(TestRegion);
 
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);
-TESTER_TEST(registrationExport);
-//TESTER_TEST(test);
+//TESTER_TEST(registrationExport);
+TESTER_TEST(testSimilarity);
 TESTER_TEST_SUITE_END();
