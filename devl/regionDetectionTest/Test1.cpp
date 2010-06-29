@@ -814,8 +814,8 @@ struct TestRegion
                }
             }
 
-            if ( n != 1 || sample != 1 )
-               continue;
+        //    if ( n != 1 || sample != 2 )
+        //       continue;
 
             Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( measuresTest[ n ].id ) + ".bmp" );
             Buffer1D<float> previewRef( NB_CLASS );

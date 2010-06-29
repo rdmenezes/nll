@@ -156,7 +156,7 @@ namespace detect
          }
 
          // check the proportions are ok
-         std::vector<ui32> labelToUpdate;
+         //std::set<ui32> labelToUpdate;
          Matrix ref = getFullDistances( _templates[ bestId ].distances );
          int labelRef = -1;   // the label used as a reference
          float labelRefDist = (float)INT_MAX;
@@ -164,6 +164,9 @@ namespace detect
          ref.print( std::cout );
          test.print( std::cout );
          bool abort = false;
+
+         core::Buffer1D<ui32> correctClass( NB_CLASS );
+         core::Buffer1D<ui32> dontcorrectClass( NB_CLASS );
          for ( ui32 n = 1; n < NB_CLASS; ++n )
          {
             // sum all the distances for a label in ref & test
@@ -175,49 +178,86 @@ namespace detect
             {
                if ( ref( u, n ) < UNDEFINED_NB && test( u, n ) < UNDEFINED_NB )
                {
-                  dtest += fabs( test( u, n ) );
-                  dref += fabs( ref( u, n ) );
+                  float dt = fabs( test( u, n ) );
+                  float dr = fabs( ref( u, n ) );
 
-                  std::cout << "1drf=" << fabs( ref( u, n ) ) << std::endl;
-                  std::cout << "1drft=" << fabs( test( u, n ) ) << std::endl;
+                  dtest += dt;
+                  dref += dr;
+
+                  const float err = fabs( dr - dt ) / dr;
+                  std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
+
+                  if ( err > CORRECTION_DETECTION_RATE )
+                  {
+                     ++correctClass[ n ];
+                     ++correctClass[ u ];
+                     std::cout << "correct:" << u << " " << n << std::endl;
+                  } else {
+                     ++dontcorrectClass[ n ];
+                     ++dontcorrectClass[ u ];
+                     std::cout << "don't correct:" << u << " " << n << std::endl;
+                  }
+
+                 // std::cout << "1drf=" << fabs( ref( u, n ) ) << std::endl;
+                 // std::cout << "1drft=" << fabs( test( u, n ) ) << std::endl;
                }
             }
+
 
             // horizontal
             for ( ui32 u = 1; u < n; ++u )
             {
                if ( ref( n, u ) < UNDEFINED_NB && test( n, u ) < UNDEFINED_NB )
                {
-                  dtest += fabs( test( n, u ) );
-                  dref += fabs( ref( n, u ) );
+                  float dt = fabs( test( n, u ) );
+                  float dr = fabs( ref( n, u ) );
 
-                  std::cout << "2drf=" << fabs( ref( n, u ) ) << std::endl;
-                  std::cout << "2drft=" << fabs( test( n, u ) ) << std::endl;
+                  dtest += dt;
+                  dref += dr;
+
+                  const float err = fabs( dr - dt ) / dr;
+                  std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
+
+                  if ( err > CORRECTION_DETECTION_RATE )
+                  {
+                     ++correctClass[ n ];
+                     ++correctClass[ u ];
+                     //std::cout << "correct:" << u << " " << n << std::endl;
+                  }  else {
+                     ++dontcorrectClass[ n ];
+                     ++dontcorrectClass[ u ];
+                     //std::cout << "don't correct:" << u << " " << n << std::endl;
+                  }
                }
             }
 
+            // select the best pivot
             if ( fabs( dref ) > 0 )
             {
                float rate = fabs( dtest - dref ) / dref;
                std::cout << "label" << n << " error rate=" << rate << std::endl;
                
-               if ( rate > CORRECTION_DETECTION_RATE )
+
+               if ( rate < labelRefDist )
                {
-                  // we need to update this label
-                  labelToUpdate.push_back( n );
-               } else {
-                  if ( fabs( rate - 1 ) < labelRefDist )
-                  {
-                     labelRefDist = fabs( rate - 1 );
-                     labelRef = n;
-                  }
+                  labelRefDist = rate;
+                  labelRef = n;
                }
             }
          }
 
+         correctClass.print( std::cout );
+         dontcorrectClass.print( std::cout );
+
+         std::cout << "----------------------------------" << std::endl;
          std::cout << "label to update=";
-         for ( ui32 n = 0; n < labelToUpdate.size(); ++n )
-            std::cout << labelToUpdate[ n ] << " " << std::endl;
+         for ( ui32 n = 1; n < NB_CLASS; ++n )
+            if ( correctClass[ n ] > dontcorrectClass[ n ] )
+               std::cout << n << " ";
+         std::cout << std::endl;
+         std::cout << "pivot used=" << labelRef << std::endl;
+         //for ( std::set<ui32>::iterator it = labelToUpdate.begin(); it != labelToUpdate.end(); ++it )
+           // std::cout << *it << " " << std::endl;
 
       }
 
