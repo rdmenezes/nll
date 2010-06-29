@@ -37,6 +37,16 @@ namespace detect
             heightHips  = -1;
          }
 
+         core::Buffer1D<float> toArray() const
+         {
+            return core::make_buffer1D<float>( 0,
+                                               heightNeck,
+                                               heightHeart,
+                                               heightLung,
+                                               heightSkull,
+                                               heightHips );
+         }
+
          ui32     id;
          ui32     numberOfSlices;
          float    height;              // in mm

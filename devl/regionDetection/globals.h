@@ -18,6 +18,7 @@
 #define PREVIEW_CASE_MARK        DATA_PATH "preview-mark/xz-case-"
 #define PREVIEW_CASE_REG         DATA_PATH "preview-registration/xz-case-"
 #define PREVIEW_CASE_VALIDATION  DATA_PATH "preview-validation/xz-case-"
+#define PREVIEW_CASE_CORRECTION  DATA_PATH "preview-correction/case"
 
 #define DATABASE_SOURCE          DATA_PATH "source.database"
 #define CASES_DESC               DATA_PATH "cases.txt"
@@ -40,7 +41,8 @@
 #define NB_CLASS                 6
 #define FINAL_SVM_CLASSIFIER     DATA_PATH "svm.bin"
 
-#define CORRECTION_DETECTION_RATE   0.2
-#define LEARNING_NB_BINS            20
+#define CORRECTION_DETECTION_RATE   0.1
+#define CORRECTION_MIN_SIMILARITY   2.5
+#define LEARNING_NB_BINS            10
 
 #endif

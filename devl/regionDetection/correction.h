@@ -11,6 +11,9 @@ namespace detect
    /**
     @brief Detect and correct the position 
     */
+
+   #define UNDEFINED_NB    99999.0f
+
    class CorrectPosition
    {
    public:
@@ -66,7 +69,7 @@ namespace detect
 
       static float distance( float x )
       {
-         return 1 / ( 1 + exp( -15 + 2 * fabs( x ) ) );
+         return 1 / ( 1 + exp( -15 + fabs( x ) / 4 ) );
       }
 
       /**
@@ -78,13 +81,17 @@ namespace detect
          float sum = 0;
          ensure( ref.sizex() == test.sizex() && ref.sizey() == ref.sizey(), "must be the same" );
 
+         //ref.print( std::cout );
+         //test.print( std::cout );
+
          for ( ui32 n = 1; n < NB_CLASS; ++n )  // start a 1, we don't care about the 0 label
          {
-            for ( ui32 m = 1; n < m; ++n )
+            for ( ui32 m = 1; m < n; ++m )
             {
-               if ( ref( m, n ) > 0 && test( m, n ) > 0 )
+               if ( ref( n, m ) < UNDEFINED_NB && test( n, m ) < UNDEFINED_NB )
                {
-                  sum += distance( ref( m, n ) - test( m, n ) );
+                  sum += distance( ref( n, m ) - test( n, m ) );
+                  //std::cout << "sum(" << ref( n, m ) << "," << test( n, m ) << "=" << sum << std::endl;
                }
             }
          }
@@ -96,20 +103,23 @@ namespace detect
       // matrix( x, y ) = -1 if the distance is not valid
       static Matrix getFullDistances( const core::Buffer1D<float>& labels )
       {
+         //labels.print( std::cout );
          Matrix ref( NB_CLASS, NB_CLASS );
+         for ( ui32 n = 0; n < ref.size(); ++n )
+            ref[ n ] = UNDEFINED_NB;
 
          for ( ui32 n = 2; n < NB_CLASS; ++n )  // start a 1, we don't care about the 0 label
          {
-            for ( ui32 m = 1; n < m; ++n )
+            for ( ui32 m = 1; m < n; ++m )
             {
                if ( labels[ n ] > 0 && labels[ m ] > 0 )
                {
-                  ref( m, n ) = labels[ n ] - labels[ m ];
-               } else {
-                  ref( m, n ) = -1;
+                  ref( n, m ) = labels[ m ] - labels[ n ];
                }
             }
          }
+         //ref.print( std::cout );
+         return ref;
       }
 
       /**
@@ -121,26 +131,39 @@ namespace detect
 
          // select the closest template
          int bestId = -1;
-         float bestDist = (float)INT_MAX;
+         float bestDist = (float)-1;
 
          Matrix test = getFullDistances( labels );
          for ( int n = 0; n < (int)_templates.size(); ++n )
          {
             Matrix t = getFullDistances( _templates[ n ].distances );
             float d = similarity( t, test );
-            if ( d < bestDist )
+            //std::cout << "similarity=" << d << std::endl;
+            if ( d > bestDist )
             {
                bestDist = d;
                bestId = n;
             }
          }
-         ensure( bestId > 0, "error: can't find template" );
+
+         ensure( bestId >= 0, "error: can't find template" );
+
+         std::cout << "best similarity=" << bestDist << " caseid=" << _templates[ bestId ].caseId << std::endl;
+         if ( bestDist < CORRECTION_MIN_SIMILARITY )
+         {
+            std::cout << "abort case" << std::endl;
+            return;
+         }
 
          // check the proportions are ok
          std::vector<ui32> labelToUpdate;
          Matrix ref = getFullDistances( _templates[ bestId ].distances );
          int labelRef = -1;   // the label used as a reference
          float labelRefDist = (float)INT_MAX;
+
+         ref.print( std::cout );
+         test.print( std::cout );
+         bool abort = false;
          for ( ui32 n = 1; n < NB_CLASS; ++n )
          {
             // sum all the distances for a label in ref & test
@@ -150,30 +173,52 @@ namespace detect
             // vertical
             for ( ui32 u = n; u < NB_CLASS; ++u )
             {
-               dtest += test( u, n );
-               dref += ref( u, n );
+               if ( ref( u, n ) < UNDEFINED_NB && test( u, n ) < UNDEFINED_NB )
+               {
+                  dtest += fabs( test( u, n ) );
+                  dref += fabs( ref( u, n ) );
+
+                  std::cout << "1drf=" << fabs( ref( u, n ) ) << std::endl;
+                  std::cout << "1drft=" << fabs( test( u, n ) ) << std::endl;
+               }
             }
 
             // horizontal
             for ( ui32 u = 1; u < n; ++u )
             {
-               dtest += test( n, u );
-               dref += ref( n, u );
+               if ( ref( n, u ) < UNDEFINED_NB && test( n, u ) < UNDEFINED_NB )
+               {
+                  dtest += fabs( test( n, u ) );
+                  dref += fabs( ref( n, u ) );
+
+                  std::cout << "2drf=" << fabs( ref( n, u ) ) << std::endl;
+                  std::cout << "2drft=" << fabs( test( n, u ) ) << std::endl;
+               }
             }
 
-            float rate = fabs( dtest - dref ) / dref;
-            if ( rate > CORRECTION_DETECTION_RATE )
+            if ( fabs( dref ) > 0 )
             {
-               // we need to update this label
-               labelToUpdate.push_back( n );
-            } else {
-               if ( fabs( rate - 1 ) < labelRefDist )
+               float rate = fabs( dtest - dref ) / dref;
+               std::cout << "label" << n << " error rate=" << rate << std::endl;
+               
+               if ( rate > CORRECTION_DETECTION_RATE )
                {
-                  labelRefDist = fabs( rate - 1 );
-                  labelRef = n;
+                  // we need to update this label
+                  labelToUpdate.push_back( n );
+               } else {
+                  if ( fabs( rate - 1 ) < labelRefDist )
+                  {
+                     labelRefDist = fabs( rate - 1 );
+                     labelRef = n;
+                  }
                }
             }
          }
+
+         std::cout << "label to update=";
+         for ( ui32 n = 0; n < labelToUpdate.size(); ++n )
+            std::cout << labelToUpdate[ n ] << " " << std::endl;
+
       }
 
    private:

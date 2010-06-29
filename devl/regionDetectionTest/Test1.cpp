@@ -380,49 +380,7 @@ struct TestRegion
          extend( mprz, 3 );
 
          // results
-         for ( ui32 n = 20; n < mprz.sizex(); ++n )
-         {
-            ui8* p;
-            if ( final.neckStart > 0 )
-            {
-               p = mprz.point( n, final.neckStart );
-               p[ 0 ] = colors[ 1 ][ 0 ];
-               p[ 1 ] = colors[ 1 ][ 1 ];
-               p[ 2 ] = colors[ 1 ][ 2 ];
-            }
-
-            if ( final.heartStart > 0 )
-            {
-               p = mprz.point( n, final.heartStart );
-               p[ 0 ] = colors[ 2 ][ 0 ];
-               p[ 1 ] = colors[ 2 ][ 1 ];
-               p[ 2 ] = colors[ 2 ][ 2 ];
-            }
-
-            if ( final.lungStart > 0 )
-            {
-               p = mprz.point( n, final.lungStart );
-               p[ 0 ] = colors[ 3 ][ 0 ];
-               p[ 1 ] = colors[ 3 ][ 1 ];
-               p[ 2 ] = colors[ 3 ][ 2 ];
-            }
-
-            if ( final.skullStart > 0 )
-            {
-               p = mprz.point( n, final.skullStart );
-               p[ 0 ] = colors[ 4 ][ 0 ];
-               p[ 1 ] = colors[ 4 ][ 1 ];
-               p[ 2 ] = colors[ 4 ][ 2 ];
-            }
-
-            if ( final.hipsStart > 0 )
-            {
-               p = mprz.point( n, final.hipsStart );
-               p[ 0 ] = colors[ 5 ][ 0 ];
-               p[ 1 ] = colors[ 5 ][ 1 ];
-               p[ 2 ] = colors[ 5 ][ 2 ];
-            }
-         }
+         previewLabel( mprz, 20, mprz.sizex(), make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
 
          for ( ui32 i = 0; i < NB_CLASS; ++i )
             setColorIntensity( i, 1 );
@@ -447,49 +405,8 @@ struct TestRegion
             setColorIntensity( i, 1 );
 
          // ground truth
-         for ( ui32 n = 10; n < 20; ++n )
-         {
-            ui8* p;
-            if ( results[ nn ].neckStart > 0 )
-            {
-               p = mprz.point( n, (ui32)results[ nn ].neckStart );
-               p[ 0 ] = colors[ 1 ][ 0 ];
-               p[ 1 ] = colors[ 1 ][ 1 ];
-               p[ 2 ] = colors[ 1 ][ 2 ];
-            }
-
-            if ( results[ nn ].heartStart > 0 )
-            {
-               p = mprz.point( n, (ui32)results[ nn ].heartStart );
-               p[ 0 ] = colors[ 2 ][ 0 ];
-               p[ 1 ] = colors[ 2 ][ 1 ];
-               p[ 2 ] = colors[ 2 ][ 2 ];
-            }
-
-            if ( results[ nn ].lungStart > 0 )
-            {
-               p = mprz.point( n, (ui32)results[ nn ].lungStart );
-               p[ 0 ] = colors[ 3 ][ 0 ];
-               p[ 1 ] = colors[ 3 ][ 1 ];
-               p[ 2 ] = colors[ 3 ][ 2 ];
-            }
-
-            if ( results[ nn ].skullStart > 0 )
-            {
-               p = mprz.point( n, (ui32)results[ nn ].skullStart );
-               p[ 0 ] = colors[ 4 ][ 0 ];
-               p[ 1 ] = colors[ 4 ][ 1 ];
-               p[ 2 ] = colors[ 4 ][ 2 ];
-            }
-
-            if ( results[ nn ].hipsStart > 0 )
-            {
-               p = mprz.point( n, (ui32)results[ nn ].hipsStart );
-               p[ 0 ] = colors[ 5 ][ 0 ];
-               p[ 1 ] = colors[ 5 ][ 1 ];
-               p[ 2 ] = colors[ 5 ][ 2 ];
-            }
-         }
+         previewLabel( mprz, 10, 20, make_buffer1D<ui32>( 0, results[ nn ].neckStart, results[nn ].heartStart, results[ nn ].lungStart, results[ nn ].skullStart, results[ nn ].hipsStart ) );
+         
          // reporting
          if ( results[ nn ].neckStart > 0 && final.neckStart > 0 )
          {
@@ -597,49 +514,7 @@ struct TestRegion
          {
             setColorIntensity( i, 1 );
          }
-         for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 10 ); nnn < std::min<ui32>( mprz.sizex(), 20 ); ++nnn )
-         {
-            ui8* p;
-            if ( results[ n ].neckStart > 0 )
-            {
-               p = mprz.point( nnn, (ui32)results[ n ].neckStart );
-               p[ 0 ] = colors[ 1 ][ 0 ];
-               p[ 1 ] = colors[ 1 ][ 1 ];
-               p[ 2 ] = colors[ 1 ][ 2 ];
-            }
-
-            if ( results[ n ].heartStart > 0 )
-            {
-               p = mprz.point( nnn, (ui32)results[ n ].heartStart );
-               p[ 0 ] = colors[ 2 ][ 0 ];
-               p[ 1 ] = colors[ 2 ][ 1 ];
-               p[ 2 ] = colors[ 2 ][ 2 ];
-            }
-
-            if ( results[ n ].lungStart > 0 )
-            {
-               p = mprz.point( nnn, (ui32)results[ n ].lungStart );
-               p[ 0 ] = colors[ 3 ][ 0 ];
-               p[ 1 ] = colors[ 3 ][ 1 ];
-               p[ 2 ] = colors[ 3 ][ 2 ];
-            }
-
-            if ( results[ n ].skullStart > 0 )
-            {
-               p = mprz.point( nnn, (ui32)results[ n ].skullStart );
-               p[ 0 ] = colors[ 4 ][ 0 ];
-               p[ 1 ] = colors[ 4 ][ 1 ];
-               p[ 2 ] = colors[ 4 ][ 2 ];
-            }
-
-            if ( results[ n ].hipsStart > 0 )
-            {
-               p = mprz.point( nnn, (ui32)results[ n ].hipsStart );
-               p[ 0 ] = colors[ 5 ][ 0 ];
-               p[ 1 ] = colors[ 5 ][ 1 ];
-               p[ 2 ] = colors[ 5 ][ 2 ];
-            }
-         }
+         previewLabel( mprz, 10, 20, make_buffer1D<ui32>( 0, results[ n ].neckStart, results[ n ].heartStart, results[ n ].lungStart, results[ n ].skullStart, results[ n ].hipsStart ) );
 
          std::cout << "export result" << std::endl;
          for ( ui32 nn = 0; nn < dat.size(); ++nn )
@@ -716,50 +591,8 @@ struct TestRegion
          {
             setColorIntensity( i, 1 );
          }
-         for ( ui32 nnn = std::min<ui32>( mprz.sizex(), 20 ); nnn < mprz.sizex(); ++nnn )
-         {
-            ui8* p = 0;
-            if ( final.neckStart > 0 && final.neckStart < (int)mprz.sizey() )
-            {
-               p = mprz.point( nnn, final.neckStart );
-               p[ 0 ] = colors[ 1 ][ 0 ];
-               p[ 1 ] = colors[ 1 ][ 1 ];
-               p[ 2 ] = colors[ 1 ][ 2 ];
-            }
 
-            if ( final.heartStart > 0  && final.heartStart < (int)mprz.sizey() )
-            {
-               p = mprz.point( nnn, final.heartStart );
-               p[ 0 ] = colors[ 2 ][ 0 ];
-               p[ 1 ] = colors[ 2 ][ 1 ];
-               p[ 2 ] = colors[ 2 ][ 2 ];
-            }
-
-            if ( final.lungStart > 0  && final.lungStart < (int)mprz.sizey() )
-            {
-               p = mprz.point( nnn, final.lungStart );
-               p[ 0 ] = colors[ 3 ][ 0 ];
-               p[ 1 ] = colors[ 3 ][ 1 ];
-               p[ 2 ] = colors[ 3 ][ 2 ];
-            }
-
-            if ( final.skullStart > 0  && final.skullStart < (int)mprz.sizey() )
-            {
-               p = mprz.point( nnn, final.skullStart );
-               p[ 0 ] = colors[ 4 ][ 0 ];
-               p[ 1 ] = colors[ 4 ][ 1 ];
-               p[ 2 ] = colors[ 4 ][ 2 ];
-            }
-
-            if ( final.hipsStart > 0  && final.hipsStart < (int)mprz.sizey() )
-            {
-               p = mprz.point( nnn, final.hipsStart );
-               p[ 0 ] = colors[ 5 ][ 0 ];
-               p[ 1 ] = colors[ 5 ][ 1 ];
-               p[ 2 ] = colors[ 5 ][ 2 ];
-            }
-         }
-
+         previewLabel( mprz, 20, mprz.sizex(), make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
          writeBmp( mprz, std::string( PREVIEW_CASE_MARK ) + val2str( results[ n ].id ) + ".bmp" );
       }
 
@@ -886,11 +719,39 @@ struct TestRegion
       analyseResults( reporting, measures, results );
    }
 
+   static void previewLabel( Image<ui8>& mprz, ui32 min, ui32 max, const Buffer1D<f32>& labelPosition )
+   {
+      Buffer1D<ui32> l( labelPosition.size() );
+      for ( ui32 n = 0; n < labelPosition.size(); ++n )
+         l[ n ] = (ui32)labelPosition[ n ];
+      previewLabel( mprz, min, max, l );
+   }
+
+   static void previewLabel( Image<ui8>& mprz, ui32 min, ui32 max, const Buffer1D<ui32>& labelPosition )
+   {
+      for ( ui32 nnn = std::max<ui32>( 0, min ); nnn < std::min<ui32>( mprz.sizex(), max ); ++nnn )
+      {
+         for ( ui32 n = 1; n < NB_CLASS; ++n )
+         {
+            if ( labelPosition[ n ] > 0 && labelPosition[ n ] < (int)mprz.sizey() )
+            {
+               ui8* p = mprz.point( nnn, labelPosition[ n ] );
+               p[ 0 ] = colors[ n ][ 0 ];
+               p[ 1 ] = colors[ n ][ 1 ];
+               p[ 2 ] = colors[ n ][ 2 ];
+            }
+         }
+      }
+   }
+
    // read the measures, split them in a test & learning set, then add gaussian error on the testing set
    // finally, try to detect & fix the error
    void testSimilarity()
    {
-      const float testingRatio = 0.7f;
+      srand(13);
+
+      const float testingRatio = 0.15f;
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
       std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
       std::vector<RegionResult::Measure> measuresTraining;
       std::vector<RegionResult::Measure> measuresTest;
@@ -898,13 +759,92 @@ struct TestRegion
       // split the database
       const ui32 nbTraining = static_cast<ui32>( testingRatio * measures.size() );
       for ( ui32 n = 0; n < measures.size(); ++n )
-         if ( n <= nbTraining )
+         if ( n >= nbTraining )
             measuresTraining.push_back( measures[ n ] );
          else
+         {
+            //measuresTraining.push_back( measures[ n ] );
             measuresTest.push_back( measures[ n ] );
+         }
 
       // training
       CorrectPosition correct( measuresTraining );
+
+      // set the sampling statistics
+      const double means[ NB_CLASS ] =
+      {
+         6.23f, 6.87f, 3.38f, 10.4f, 7.0f
+      };
+
+      const double vars[ NB_CLASS ] =
+      {
+         8.16f, 6.55f, 3.74f, 15.88f, 10.0f
+      };
+      const double probaMissing         = 0.1f;
+      const double probaBigDeviation    = 0.05f;
+      
+      const double meanBigDeviation     = 0;
+      const double varBigDeviation      = 150;
+
+
+      // create test data
+      const ui32 nbSamplePerMeasure = 6;
+      std::vector<RegionResult::Measure> measuresTestSampled;
+      for ( ui32 n = 0; n < measuresTest.size(); ++n )
+      {
+         std::cout << "case=" << measuresTest[ n ].id << std::endl;
+         for ( ui32 sample = 0; sample < nbSamplePerMeasure; ++sample )
+         {
+            // sampling
+            core::Buffer1D<float> labels = measuresTest[ n ].toArray();
+            for ( ui32 nn = 1; nn < NB_CLASS; ++nn )
+            {
+               if ( labels[ nn ] < 0 )
+                  continue;   // skip, we don't bother with it as we can't compare gound truth
+               double p = core::generateUniformDistribution( 0, 1 );
+               if ( p <= probaMissing )
+               {
+                  labels[ nn ] = -1;
+                  continue;
+               } else if ( p > probaMissing && ( p - probaMissing ) <= probaBigDeviation )
+               {
+                  labels[ nn ] += (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
+               } else {
+                  labels[ nn ] += (float)generateGaussianDistribution( means[ nn ] * core::generateSign(), vars[ nn ] );
+               }
+            }
+
+            if ( n != 1 || sample != 1 )
+               continue;
+
+            Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( measuresTest[ n ].id ) + ".bmp" );
+            Buffer1D<float> previewRef( NB_CLASS );
+            Buffer1D<float> previewRes( NB_CLASS );
+            for ( ui32 nn = 1; nn < NB_CLASS; ++nn )
+            {
+               // convert to MM
+               previewRef[ nn ] = measuresTest[ n ].toArray()[ nn ] / ( measuresTest[ n ].height / measuresTest[ n ].numberOfSlices );
+               previewRes[ nn ] = labels[ nn ] / ( measuresTest[ n ].height / measuresTest[ n ].numberOfSlices );
+            }
+
+            previewLabel( preview, 20, preview.sizex() / 2, previewRes );
+            previewLabel( preview, 0, 20, previewRef  );
+
+            correct.correct( labels );
+            Buffer1D<float> previewCorrected( NB_CLASS );
+            for ( ui32 nn = 1; nn < NB_CLASS; ++nn )
+            {
+               const float spacing = ( measuresTest[ n ].height / measuresTest[ n ].numberOfSlices );
+               previewCorrected[ nn ] = labels[ nn ] / spacing;
+            }
+            previewCorrected.print( std::cout );
+            previewLabel( preview, preview.sizex() / 2, preview.sizex(), previewCorrected );
+            writeBmp( preview, std::string( PREVIEW_CASE_CORRECTION ) + val2str( measuresTest[ n ].id )+ "-sample-" + val2str( sample ) + ".bmp" );
+
+            std::cout << "case done" << std::endl;
+         }
+      }
+
    }
 }; 
 
@@ -927,5 +867,6 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);
 //TESTER_TEST(registrationExport);
+
 TESTER_TEST(testSimilarity);
 TESTER_TEST_SUITE_END();
