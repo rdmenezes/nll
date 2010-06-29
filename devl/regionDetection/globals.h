@@ -41,8 +41,10 @@
 #define NB_CLASS                 6
 #define FINAL_SVM_CLASSIFIER     DATA_PATH "svm.bin"
 
-#define CORRECTION_DETECTION_RATE   0.2
-#define CORRECTION_MIN_SIMILARITY   2.5
-#define LEARNING_NB_BINS            10
+#define CORRECTION_MAX_PIVOT_TEMPLATE_ERROR  0.1      // the maximum error possible for the pivot points compared the the template points
+#define CORRECTION_DETECTION_RATE            0.2      // the maximum error possible for the distance ratio ROI template/test
+#define CORRECTION_MIN_SIMILARITY            2.5      // the minimum threshold to detect a matching template
+
+#define LEARNING_NB_BINS                     10       // the number of bins for crossvalidation
 
 #endif

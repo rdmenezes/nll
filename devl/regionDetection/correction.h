@@ -129,9 +129,13 @@ namespace detect
        -vote for suitable/unsuitable ROI
        -detect a pivot, used as base to correct the other ROI
        -correct the ROI based on the shape distance ratio
+       -add missing ROI if necessary
        */
-      void correct( const core::Buffer1D<float>& labels )
+      void correct( core::Buffer1D<float>& labels )
       {
+         core::Buffer1D<float> origLabels;
+         origLabels.clone( labels );
+
          struct Pivot
          {
             Pivot( ui32 p1, ui32 p2 ) : a( p1 ), b( p2 )
@@ -165,7 +169,7 @@ namespace detect
          std::cout << "best similarity=" << bestDist << " caseid=" << _templates[ bestId ].caseId << std::endl;
          if ( bestDist < CORRECTION_MIN_SIMILARITY )
          {
-            std::cout << "abort case" << std::endl;
+            std::cout << "-- abort case: similarity is too low for the best matching template --" << std::endl;
             return;
          }
 
@@ -176,7 +180,6 @@ namespace detect
 
          ref.print( std::cout );
          test.print( std::cout );
-         bool abort = false;
 
          PivotContainer pivots;
          core::Buffer1D<ui32> correctClass( NB_CLASS );
@@ -268,12 +271,34 @@ namespace detect
             if ( correctClass[ n ] > dontcorrectClass[ n ] )
                std::cout << n << " ";
          std::cout << std::endl;
-         ensure( pivots.size() >= 2, "must have at least 2 pivots... this is why similarity threshold must be correct!" );
          std::cout << "1pivot used=" << pivots.begin()->second.a <<  " err=" << pivots.begin()->first << std::endl;
          std::cout << "1pivot used=" << pivots.begin()->second.b <<  " err=" << pivots.begin()->first << std::endl;
          //for ( std::set<ui32>::iterator it = labelToUpdate.begin(); it != labelToUpdate.end(); ++it )
            // std::cout << *it << " " << std::endl;
 
+         // finally correct the labels that need to!
+         ensure( pivots.size() >= 1, "must have at least 2 ref points!" );
+         //Pivot& pivot = pivots.begin()->second;
+         if ( pivots.begin()->first > CORRECTION_MAX_PIVOT_TEMPLATE_ERROR )
+         {
+            std::cout << "-- abort pivot error is too big -- pivotError=" << pivots.begin()->first << std::endl;
+            return;
+         }
+
+         for ( ui32 n = 1; n < NB_CLASS; ++n )
+         {
+            if ( correctClass[ n ] > dontcorrectClass[ n ] )
+            {
+               // correct the label
+               Template& temp = _templates[ bestId ];
+               const float dtest = origLabels[ pivots.begin()->second.b ] - origLabels[ pivots.begin()->second.a ];
+               const float tRatio = ( temp.distances[ n ] - temp.distances[ pivots.begin()->second.a ] ) / ( temp.distances[ pivots.begin()->second.b ] - temp.distances[ pivots.begin()->second.a ] );
+               labels[ n ] = origLabels[ pivots.begin()->second.a ] + tRatio * dtest;
+            }
+         }
+
+         // add the missing labels
+         // TODO
       }
 
    private:
