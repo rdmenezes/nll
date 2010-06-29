@@ -748,7 +748,7 @@ struct TestRegion
    // finally, try to detect & fix the error
    void testSimilarity()
    {
-      srand(13);
+      srand(14);
 
       const float testingRatio = 0.15f;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );

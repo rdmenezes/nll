@@ -3,6 +3,7 @@
 
 # include "globals.h"
 # include "read-result.h"
+# include <map>
 
 namespace nll
 {
@@ -124,9 +125,22 @@ namespace detect
 
       /**
        @brief correct the different heights
+       -find a matching template
+       -vote for suitable/unsuitable ROI
+       -detect a pivot, used as base to correct the other ROI
+       -correct the ROI based on the shape distance ratio
        */
       void correct( const core::Buffer1D<float>& labels )
       {
+         struct Pivot
+         {
+            Pivot( ui32 p1, ui32 p2 ) : a( p1 ), b( p2 )
+            {}
+
+            ui32  a;
+            ui32  b;
+         };
+
          ensure( labels.size() == NB_CLASS, "must be the same" );
 
          // select the closest template
@@ -158,13 +172,13 @@ namespace detect
          // check the proportions are ok
          //std::set<ui32> labelToUpdate;
          Matrix ref = getFullDistances( _templates[ bestId ].distances );
-         int labelRef = -1;   // the label used as a reference
-         float labelRefDist = (float)INT_MAX;
+         typedef std::multimap<float, Pivot> PivotContainer;
 
          ref.print( std::cout );
          test.print( std::cout );
          bool abort = false;
 
+         PivotContainer pivots;
          core::Buffer1D<ui32> correctClass( NB_CLASS );
          core::Buffer1D<ui32> dontcorrectClass( NB_CLASS );
          for ( ui32 n = 1; n < NB_CLASS; ++n )
@@ -186,6 +200,7 @@ namespace detect
 
                   const float err = fabs( dr - dt ) / dr;
                   std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
+                  pivots.insert( std::make_pair( err, Pivot( u, n ) ) );
 
                   if ( err > CORRECTION_DETECTION_RATE )
                   {
@@ -216,6 +231,7 @@ namespace detect
                   dref += dr;
 
                   const float err = fabs( dr - dt ) / dr;
+                  pivots.insert( std::make_pair( err, Pivot( u, n ) ) );
                   std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
 
                   if ( err > CORRECTION_DETECTION_RATE )
@@ -232,18 +248,15 @@ namespace detect
             }
 
             // select the best pivot
+
+            /*
             if ( fabs( dref ) > 0 )
             {
                float rate = fabs( dtest - dref ) / dref;
                std::cout << "label" << n << " error rate=" << rate << std::endl;
-               
-
-               if ( rate < labelRefDist )
-               {
-                  labelRefDist = rate;
-                  labelRef = n;
-               }
+               pivots.insert( std::make_pair( rate, n ) );
             }
+            */
          }
 
          correctClass.print( std::cout );
@@ -255,7 +268,9 @@ namespace detect
             if ( correctClass[ n ] > dontcorrectClass[ n ] )
                std::cout << n << " ";
          std::cout << std::endl;
-         std::cout << "pivot used=" << labelRef << std::endl;
+         ensure( pivots.size() >= 2, "must have at least 2 pivots... this is why similarity threshold must be correct!" );
+         std::cout << "1pivot used=" << pivots.begin()->second.a <<  " err=" << pivots.begin()->first << std::endl;
+         std::cout << "1pivot used=" << pivots.begin()->second.b <<  " err=" << pivots.begin()->first << std::endl;
          //for ( std::set<ui32>::iterator it = labelToUpdate.begin(); it != labelToUpdate.end(); ++it )
            // std::cout << *it << " " << std::endl;
 
