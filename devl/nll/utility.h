@@ -173,6 +173,27 @@ namespace core
     @ingroup core
     @brief helper function for making a Buffer1D out of a set of values
    */
+   template <class T> Buffer1D<T> make_buffer1D( typename BestConstArgType<T>::type val1,
+												 typename BestConstArgType<T>::type val2,
+												 typename BestConstArgType<T>::type val3,
+                                     typename BestConstArgType<T>::type val4,
+                                     typename BestConstArgType<T>::type val5,
+                                     typename BestConstArgType<T>::type val6 )
+   {
+      Buffer1D<T> buf( 6, false );
+      buf( 0 ) = val1;
+      buf( 1 ) = val2;
+      buf( 2 ) = val3;
+      buf( 3 ) = val4;
+      buf( 4 ) = val5;
+      buf( 5 ) = val6;
+      return buf;
+   }
+
+   /**
+    @ingroup core
+    @brief helper function for making a Buffer1D out of a set of values
+   */
    inline Buffer1D<i8> make_buffer1D_from_string( const std::string& str )
    {
       Buffer1D<i8> buf( strdup( str.c_str() ), static_cast<ui32> ( str.size() ), true );

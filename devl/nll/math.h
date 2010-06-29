@@ -30,6 +30,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief return the sign of a value
     @return 1 for val >= 0, else -1
     */
@@ -37,6 +38,16 @@ namespace core
    T sign( const T v )
    {
       return ( v >= 0 ) ? 1 : -1;
+   }
+
+   /**
+    @ingroup core
+    @brief randomly generate a sign +/- with equal probability
+    */
+   inline int NLL_API generateSign()
+   {
+      ui32 n = rand() % 2;
+      return n ? -1 : 1;
    }
 }
 }
