@@ -70,7 +70,7 @@ namespace detect
 
       static float distance( float x )
       {
-         return 1 / ( 1 + exp( -15 + fabs( x ) / 4 ) );
+         return 1 / ( 1 + exp( -10 + fabs( 0.5 * x )  ) );
       }
 
       /**
@@ -203,7 +203,12 @@ namespace detect
 
                   const float err = fabs( dr - dt ) / dr;
                   std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
-                  pivots.insert( std::make_pair( err, Pivot( u, n ) ) );
+
+                  if ( u == 4 )
+                     // we don't want to use the skull as the main pivot!
+                     pivots.insert( std::make_pair( err, Pivot( n, u ) ) );
+                  else
+                     pivots.insert( std::make_pair( err, Pivot( u, n ) ) );
 
                   if ( err > CORRECTION_DETECTION_RATE )
                   {
@@ -234,7 +239,12 @@ namespace detect
                   dref += dr;
 
                   const float err = fabs( dr - dt ) / dr;
+                  if ( u == 4 )
+                     // we don't want to use the skull as the main pivot!
+                     pivots.insert( std::make_pair( err, Pivot( n, u ) ) );
+                  else
                   pivots.insert( std::make_pair( err, Pivot( u, n ) ) );
+
                   std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
 
                   if ( err > CORRECTION_DETECTION_RATE )
@@ -293,12 +303,24 @@ namespace detect
                Template& temp = _templates[ bestId ];
                const float dtest = origLabels[ pivots.begin()->second.b ] - origLabels[ pivots.begin()->second.a ];
                const float tRatio = ( temp.distances[ n ] - temp.distances[ pivots.begin()->second.a ] ) / ( temp.distances[ pivots.begin()->second.b ] - temp.distances[ pivots.begin()->second.a ] );
-               labels[ n ] = origLabels[ pivots.begin()->second.a ] + tRatio * dtest;
-            }
-         }
+               const float newPosition = origLabels[ pivots.begin()->second.a ] + tRatio * dtest;
 
-         // add the missing labels
-         // TODO
+               // for the skull, because the template is not annotated correctly (not always at the top of the skull)
+               // so it needs to be corrected! In case we find a position lower than the actual, this is very likely
+               // to be wrong->we choose a template at the base of the skull
+               if ( n == 4 && newPosition < origLabels[ n ] )
+               {
+                  // erf do nothing...
+                  labels[ n ] = origLabels[ n ];
+               } else {
+                  labels[ n ] = newPosition;
+               }
+            } else {
+               // check the position coherency
+            }
+               // add the missing labels
+               // TODO
+         }
       }
 
    private:

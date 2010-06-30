@@ -748,7 +748,8 @@ struct TestRegion
    // finally, try to detect & fix the error
    void testSimilarity()
    {
-      srand(13);
+      std::vector<ErrorReporting> reportingCorrected;
+      srand(18);
 
       const float testingRatio = 0.15f;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
@@ -757,9 +758,9 @@ struct TestRegion
       std::vector<RegionResult::Measure> measuresTest;
 
       // split the database
-      const ui32 nbTraining = static_cast<ui32>( testingRatio * measures.size() );
+      const ui32 nbTesting = static_cast<ui32>( testingRatio * measures.size() );
       for ( ui32 n = 0; n < measures.size(); ++n )
-         if ( n >= nbTraining )
+         if ( n >= nbTesting )
             measuresTraining.push_back( measures[ n ] );
          else
          {
@@ -767,28 +768,47 @@ struct TestRegion
             measuresTest.push_back( measures[ n ] );
          }
 
+      // create new templates by deforming the existing ones
+         /*
+      const ui32 nbTraining = (ui32)measuresTraining.size();
+      for ( ui32 n = 0; n < nbTraining; ++n )
+      {
+         for ( float r = 0.6f; r < 1.4f; r += 0.1f )
+         {
+            RegionResult::Measure m = measuresTraining[ n ];
+            m.heightNeck  *= r;
+            m.heightHeart *= r;
+            m.heightLung  *= r;
+            m.heightSkull *= r;
+            m.heightHips  *= r;
+            measuresTraining.push_back( m );
+         }
+      }*/
+
+
+
       // training
       CorrectPosition correct( measuresTraining );
 
       // set the sampling statistics
       const double means[ NB_CLASS ] =
       {
-         6.23f, 6.87f, 3.38f, 10.4f, 7.0f
+         0, 6.23f, 6.87f, 3.38f, 10.4f, 7.0f
       };
 
       const double vars[ NB_CLASS ] =
       {
-         8.16f, 6.55f, 3.74f, 15.88f, 10.0f
+         0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
       };
-      const double probaMissing         = 0.1f;
-      const double probaBigDeviation    = 0.05f;
+      const double probaMissing         = 0.05f;
+      const double probaBigDeviation    = 0.1f;
       
       const double meanBigDeviation     = 0;
       const double varBigDeviation      = 150;
 
 
       // create test data
-      const ui32 nbSamplePerMeasure = 6;
+      const ui32 nbSamplePerMeasure = 20;
       std::vector<RegionResult::Measure> measuresTestSampled;
       for ( ui32 n = 0; n < measuresTest.size(); ++n )
       {
@@ -814,8 +834,8 @@ struct TestRegion
                }
             }
 
-        //    if ( n != 1 || sample != 2 )
-        //       continue;
+           // if ( n != 9 || sample != 1 )
+           //    continue;
 
             Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( measuresTest[ n ].id ) + ".bmp" );
             Buffer1D<float> previewRef( NB_CLASS );
@@ -830,21 +850,59 @@ struct TestRegion
             previewLabel( preview, 20, preview.sizex() / 2, previewRes );
             previewLabel( preview, 0, 20, previewRef  );
 
+            //
+            //
+            //TODO update the method to compute error...
             correct.correct( labels );
+            //
+            //
+
             Buffer1D<float> previewCorrected( NB_CLASS );
             for ( ui32 nn = 1; nn < NB_CLASS; ++nn )
             {
                const float spacing = ( measuresTest[ n ].height / measuresTest[ n ].numberOfSlices );
                previewCorrected[ nn ] = labels[ nn ] / spacing;
             }
+            if ( previewCorrected[ 4 ] > preview.sizey() )     // we need to clamp the skull: we choose a model with full skull, but it is not in the test volume
+               previewCorrected[ 4 ] = preview.sizey() - 1;
+
+
             previewCorrected.print( std::cout );
             previewLabel( preview, preview.sizex() / 2, preview.sizex(), previewCorrected );
             writeBmp( preview, std::string( PREVIEW_CASE_CORRECTION ) + val2str( measuresTest[ n ].id )+ "-sample-" + val2str( sample ) + ".bmp" );
 
             std::cout << "case done" << std::endl;
+
+            // reporting
+            int nn = findIndexFromId( results, measuresTest[ n ].id );
+            ensure( nn >= 0, "error" );
+            if ( results[ nn ].neckStart > 0 && previewCorrected[ 1 ] > 0 )
+            {
+               reportingCorrected.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].neckStart - previewCorrected[ 1 ] ), 1 ) );
+            }
+            if ( results[ nn ].heartStart > 0 && previewCorrected[ 2 ] > 0 )
+            {
+               reportingCorrected.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].heartStart - previewCorrected[ 2 ] ), 2 ) );
+            }
+
+            if ( results[ nn ].lungStart > 0 && previewCorrected[ 3 ] > 0 )
+            {
+               reportingCorrected.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].lungStart - previewCorrected[ 3 ] ), 3 ) );
+            }
+
+            if ( results[ nn ].skullStart > 0 && previewCorrected[ 4 ] > 0 )
+            {
+               reportingCorrected.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].skullStart - previewCorrected[ 4 ] ), 4 ) );
+            }
+
+            if ( results[ nn ].hipsStart > 0 && previewCorrected[ 5 ] > 0 )
+            {
+               reportingCorrected.push_back( ErrorReporting( results[ nn ].id, fabs( results[ nn ].hipsStart - previewCorrected[ 5 ] ), 5 ) );
+            }
          }
       }
 
+      analyseResults( reportingCorrected, measures, results );
    }
 }; 
 
