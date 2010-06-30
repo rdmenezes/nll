@@ -769,11 +769,11 @@ struct TestRegion
          }
 
       // create new templates by deforming the existing ones
-         /*
+         
       const ui32 nbTraining = (ui32)measuresTraining.size();
       for ( ui32 n = 0; n < nbTraining; ++n )
       {
-         for ( float r = 0.6f; r < 1.4f; r += 0.1f )
+         for ( float r = 0.8f; r < 1.2f; r += 0.1f )
          {
             RegionResult::Measure m = measuresTraining[ n ];
             m.heightNeck  *= r;
@@ -783,7 +783,7 @@ struct TestRegion
             m.heightHips  *= r;
             measuresTraining.push_back( m );
          }
-      }*/
+      }
 
 
 
@@ -800,7 +800,7 @@ struct TestRegion
       {
          0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
       };
-      const double probaMissing         = 0.05f;
+      const double probaMissing         = 0.0f;
       const double probaBigDeviation    = 0.1f;
       
       const double meanBigDeviation     = 0;
@@ -853,7 +853,7 @@ struct TestRegion
             //
             //
             //TODO update the method to compute error...
-            correct.correct( labels );
+            //correct.correct( labels );
             //
             //
 
