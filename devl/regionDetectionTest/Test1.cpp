@@ -769,7 +769,7 @@ struct TestRegion
          }
 
       // create new templates by deforming the existing ones
-         
+         /*
       const ui32 nbTraining = (ui32)measuresTraining.size();
       for ( ui32 n = 0; n < nbTraining; ++n )
       {
@@ -783,7 +783,7 @@ struct TestRegion
             m.heightHips  *= r;
             measuresTraining.push_back( m );
          }
-      }
+      }*/
 
 
 
@@ -853,7 +853,7 @@ struct TestRegion
             //
             //
             //TODO update the method to compute error...
-            //correct.correct( labels );
+            correct.correct( labels );
             //
             //
 

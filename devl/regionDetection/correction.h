@@ -66,6 +66,22 @@ namespace detect
          {
             _templates.push_back( Template( m[ n ].id,  m[ n ].heightNeck, m[ n ].heightHeart, m[ n ].heightLung, m[ n ].heightSkull, m[ n ].heightHips ) );
          }
+
+         // the maximum error possible for the distance ratio ROI template/test
+         _thresholdInterDistance = Matrix( NB_CLASS, NB_CLASS );
+         _thresholdInterDistance( 2, 1 ) = 0.2;
+         _thresholdInterDistance( 3, 1 ) = 0.2;
+         _thresholdInterDistance( 4, 1 ) = 0.2;
+         _thresholdInterDistance( 5, 1 ) = 0.2;
+
+         _thresholdInterDistance( 3, 2 ) = 0.2;
+         _thresholdInterDistance( 4, 2 ) = 0.2;
+         _thresholdInterDistance( 5, 2 ) = 0.2;
+
+         _thresholdInterDistance( 4, 3 ) = 0.2;
+         _thresholdInterDistance( 5, 3 ) = 0.2;
+
+         _thresholdInterDistance( 5, 4 ) = 0.1;
       }
 
       static float distance( float x )
@@ -131,7 +147,7 @@ namespace detect
        -correct the ROI based on the shape distance ratio
        -add missing ROI if necessary
        */
-      void correct( core::Buffer1D<float>& labels )
+      void correct( core::Buffer1D<float>& labels, ui32 maxIter = 10 )
       {
          core::Buffer1D<float> origLabels;
          origLabels.clone( labels );
@@ -210,7 +226,7 @@ namespace detect
                   else
                      pivots.insert( std::make_pair( err, Pivot( u, n ) ) );
 
-                  if ( err > CORRECTION_DETECTION_RATE )
+                  if ( err > _thresholdInterDistance( u, n ) )
                   {
                      ++correctClass[ n ];
                      ++correctClass[ u ];
@@ -247,7 +263,7 @@ namespace detect
 
                   std::cout << "error:" << u << "/" << n << "=" << err << std::endl;
 
-                  if ( err > CORRECTION_DETECTION_RATE )
+                  if ( err > _thresholdInterDistance( n, u ) )
                   {
                      ++correctClass[ n ];
                      ++correctClass[ u ];
@@ -295,15 +311,24 @@ namespace detect
             return;
          }
 
+         //bool corrected = false;
+         labels.print(std::cout);
          for ( ui32 n = 1; n < NB_CLASS; ++n )
          {
             if ( correctClass[ n ] > dontcorrectClass[ n ] )
             {
                // correct the label
+               ui32 pivotb = pivots.begin()->second.b;
+               ui32 pivota = pivots.begin()->second.a;
+               if ( pivota == n )
+               {
+                  std::swap( pivota, pivotb );
+               }
+
                Template& temp = _templates[ bestId ];
-               const float dtest = origLabels[ pivots.begin()->second.b ] - origLabels[ pivots.begin()->second.a ];
-               const float tRatio = ( temp.distances[ n ] - temp.distances[ pivots.begin()->second.a ] ) / ( temp.distances[ pivots.begin()->second.b ] - temp.distances[ pivots.begin()->second.a ] );
-               const float newPosition = origLabels[ pivots.begin()->second.a ] + tRatio * dtest;
+               const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
+               const float tRatio = ( temp.distances[ n ] - temp.distances[ pivota ] ) / ( temp.distances[ pivotb ] - temp.distances[ pivota ] );
+               const float newPosition = origLabels[ pivota ] + tRatio * dtest;
 
                // for the skull, because the template is not annotated correctly (not always at the top of the skull)
                // so it needs to be corrected! In case we find a position lower than the actual, this is very likely
@@ -314,6 +339,7 @@ namespace detect
                   labels[ n ] = origLabels[ n ];
                } else {
                   labels[ n ] = newPosition;
+                  //corrected = true;
                }
             } else {
                // check the position coherency
@@ -321,10 +347,20 @@ namespace detect
                // add the missing labels
                // TODO
          }
+         labels.print(std::cout);
+
+         /*
+         // doesn't seem to help...
+         if ( corrected && maxIter > 0 )
+         {
+            // recursively recheck the resutls
+            correct( labels, maxIter - 1 );
+         }*/
       }
 
    private:
       Templates    _templates;
+      Matrix       _thresholdInterDistance;
    };
 }
 }

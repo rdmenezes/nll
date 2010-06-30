@@ -3,15 +3,18 @@ neck:-1:-1
 heart:67:23
 lung:168:31
 skull:-1:-1
+hips:-1:-1
 
 case214:
 neck:365:-1
 heart:318:-1
 lung:336:-1
 skull:397:-1
+hips:-1:-1
 
 case219:
 neck:324:-1
 heart:194:145
 lung:247:-1
 skull:370:-1
+hips:-1:-1

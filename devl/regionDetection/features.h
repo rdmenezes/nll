@@ -100,8 +100,10 @@ namespace detect
          }
       }
 
+      /*
       // we first rescale, so that we remove the same amount of voxel... // we need to resample at least twice the size, else artefacts will appear
       core::rescaleBilinear( sliceTfm, REGION_DETECTION_SOURCE_IMG_X * 2, REGION_DETECTION_SOURCE_IMG_Y * 2 );
+      */
 
       // center the image
       cropVertical( sliceTfm, 0.06f, 2 );
