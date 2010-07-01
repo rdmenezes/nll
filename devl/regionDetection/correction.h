@@ -5,6 +5,10 @@
 # include "read-result.h"
 # include <map>
 
+# ifndef UNDEFINED_NB
+#  define UNDEFINED_NB    99999.0f
+# endif
+
 namespace nll
 {
 namespace detect
@@ -12,9 +16,6 @@ namespace detect
    /**
     @brief Detect and correct the position 
     */
-
-   #define UNDEFINED_NB    99999.0f
-
    class CorrectPosition
    {
    public:
@@ -69,24 +70,24 @@ namespace detect
 
          // the maximum error possible for the distance ratio ROI template/test
          _thresholdInterDistance = Matrix( NB_CLASS, NB_CLASS );
-         _thresholdInterDistance( 2, 1 ) = 0.2;
-         _thresholdInterDistance( 3, 1 ) = 0.2;
-         _thresholdInterDistance( 4, 1 ) = 0.2;
-         _thresholdInterDistance( 5, 1 ) = 0.2;
+         _thresholdInterDistance( 2, 1 ) = 0.2f;
+         _thresholdInterDistance( 3, 1 ) = 0.2f;
+         _thresholdInterDistance( 4, 1 ) = 0.2f;
+         _thresholdInterDistance( 5, 1 ) = 0.2f;
 
-         _thresholdInterDistance( 3, 2 ) = 0.2;
-         _thresholdInterDistance( 4, 2 ) = 0.2;
-         _thresholdInterDistance( 5, 2 ) = 0.2;
+         _thresholdInterDistance( 3, 2 ) = 0.2f;
+         _thresholdInterDistance( 4, 2 ) = 0.2f;
+         _thresholdInterDistance( 5, 2 ) = 0.2f;
 
-         _thresholdInterDistance( 4, 3 ) = 0.2;
-         _thresholdInterDistance( 5, 3 ) = 0.2;
+         _thresholdInterDistance( 4, 3 ) = 0.2f;
+         _thresholdInterDistance( 5, 3 ) = 0.2f;
 
-         _thresholdInterDistance( 5, 4 ) = 0.1;
+         _thresholdInterDistance( 5, 4 ) = 0.1f;
       }
 
       static float distance( float x )
       {
-         return 1 / ( 1 + exp( -10 + fabs( 0.5 * x )  ) );
+         return 1 / ( 1 + exp( -10 + fabs( 0.5f * x )  ) );
       }
 
       /**
