@@ -57,7 +57,7 @@ namespace detect
          }
          ensure( _templates.size(), "can't have 0 templates" );
          _constructStatistics();
-         _errorCorrection = core::make_buffer1D<float>( 0, 0.2f, 1.0f, 1.0f, 1.0f, 0.2f );
+         _errorCorrection = core::make_buffer1D<float>( 0, 0.2f, 0.5f, 1.0f, 1.0f, 0.2f );
       }
 
       void correct( Vector& distances, ui32 maxIter = 10 )

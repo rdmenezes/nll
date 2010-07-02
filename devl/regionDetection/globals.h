@@ -37,6 +37,7 @@
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
 #define DATABASE_MEASURES        DATA_PATH "measures.txt"
+#define DATABASE_MEASURES_CORRECTION DATA_PATH "measures-correction.txt"
 
 #define NB_CLASS                 6
 #define FINAL_SVM_CLASSIFIER     DATA_PATH "svm.bin"

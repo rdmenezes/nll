@@ -362,6 +362,11 @@ struct TestRegion
       Classifier classifier( 1, true );
       classifier.read( FINAL_SVM_CLASSIFIER );
       TestVolume test( &classifier, HAAR_FEATURES, PREPROCESSING_HAAR, HAAR_SELECTION );
+
+      std::vector<RegionResult::Measure> measuresTraining;
+      measuresTraining = RegionResult::readMeasures( DATABASE_MEASURES_CORRECTION );
+      CorrectPosition2 corrector( measuresTraining );
+
       std::vector<ErrorReporting> reporting;
       for ( ui32 nn = 0; nn < results.size(); ++nn )
       {
@@ -381,7 +386,21 @@ struct TestRegion
          extend( mprz, 3 );
 
          // results
-         previewLabel( mprz, 20, mprz.sizex(), make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
+         previewLabel( mprz, 20, mprz.sizex() / 2, make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
+
+
+         Buffer1D<float> labelsmm = make_buffer1D<float>( 0, final.neckStart * volume.getSpacing()[ 2 ], final.heartStart * volume.getSpacing()[ 2 ], final.lungStart * volume.getSpacing()[ 2 ], final.skullStart * volume.getSpacing()[ 2 ], final.hipsStart * volume.getSpacing()[ 2 ] );
+
+         corrector.correct( labelsmm );
+
+         for ( ui32 i = 1; i < NB_CLASS; ++i )
+            labelsmm[ i ] /= volume.getSpacing()[ 2 ];
+         final.neckStart  = labelsmm[ 1 ];
+         final.heartStart = labelsmm[ 2 ];
+         final.lungStart  = labelsmm[ 3 ];
+         final.skullStart = labelsmm[ 4 ];
+         final.hipsStart  = labelsmm[ 5 ];
+         previewLabel( mprz, mprz.sizex() / 2, mprz.sizex(), make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
 
          for ( ui32 i = 0; i < NB_CLASS; ++i )
             setColorIntensity( i, 1 );
@@ -1053,6 +1072,7 @@ struct TestRegion
          }
       }
 
+      RegionResult::writeMeasures( measuresTraining, DATABASE_MEASURES_CORRECTION );
       analyseResults( reportingCorrected, measures, results );
    }
 }; 
@@ -1071,12 +1091,11 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(learnSvm);
 
 // input: validation-cases, validation volumes mf2
-//TESTER_TEST(testValidationDataSvm);
+TESTER_TEST(testValidationDataSvm);
 
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);
 //TESTER_TEST(registrationExport);
 
-//TESTER_TEST(testSimilarity);
-TESTER_TEST(testSelectedTemplate);
+//TESTER_TEST(testSelectedTemplate);
 TESTER_TEST_SUITE_END();
