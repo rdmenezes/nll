@@ -57,6 +57,7 @@ namespace detect
          }
          ensure( _templates.size(), "can't have 0 templates" );
          _constructStatistics();
+         _errorCorrection = core::make_buffer1D<float>( 0, 0.2f, 1.0f, 1.0f, 1.0f, 0.2f );
       }
 
       void correct( Vector& distances, ui32 maxIter = 10 )
@@ -92,7 +93,7 @@ namespace detect
             std::multimap<ui32, ui32> pivots;     // <nb good, label>
             for ( ui32 n = 1; n < NB_CLASS; ++n )
             {
-               if ( distances[ n ] > 0 && error[ n ] > good[ n ] )
+               if ( distances[ n ] > 0 && error[ n ] * _errorCorrection[ n ] > good[ n ] )
                {
                   std::cout << "recompute label=" << n << std::endl;
                   labelToRecompute.insert( std::make_pair( error[ n ], n ) );
@@ -331,6 +332,7 @@ namespace detect
       Templates    _templates;
       Vector       _means;
       Vector       _stddev;
+      Vector       _errorCorrection;
       std::vector< std::vector<ui32> >   _links;   // ratio interdistance link: store the labels involved for computation
    };
 }

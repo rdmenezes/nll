@@ -926,8 +926,8 @@ struct TestRegion
          {
             ui32 nb = 0;
             Buffer1D<float> f = measures[ n ].toArray();
-            for ( ui32 n = 0; n < f.size(); ++n )
-               nb += f[ n ] > 0;
+            for ( ui32 nn = 0; nn < f.size(); ++nn )
+               nb += f[ nn ] > 0;
             if ( nb == 5 )
                measuresTraining.push_back( measures[ n ] );
          }
@@ -951,7 +951,7 @@ struct TestRegion
          0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
       };
       const double probaMissing         = 0.0f;
-      const double probaBigDeviation    = 0.0f;
+      const double probaBigDeviation    = 0.1f;
       
       const double meanBigDeviation     = 0;
       const double varBigDeviation      = 150;
