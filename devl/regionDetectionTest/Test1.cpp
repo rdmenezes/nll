@@ -910,7 +910,7 @@ struct TestRegion
    void testSelectedTemplate()
    {
       std::vector<ErrorReporting> reportingCorrected;
-      srand(22);
+      srand(24);
 
       const float testingRatio = 0.15f;
       std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
@@ -951,7 +951,7 @@ struct TestRegion
          0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
       };
       const double probaMissing         = 0.0f;
-      const double probaBigDeviation    = 0.1f;
+      const double probaBigDeviation    = 0.0f;
       
       const double meanBigDeviation     = 0;
       const double varBigDeviation      = 150;
@@ -984,8 +984,8 @@ struct TestRegion
                }
             }
 
-           // if ( n != 0 || sample != 2 )
-           //    continue;
+          //  if ( n != 0 || sample != 3 )
+          //     continue;
 
             Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( measuresTest[ n ].id ) + ".bmp" );
             Buffer1D<float> previewRef( NB_CLASS );
@@ -1004,7 +1004,7 @@ struct TestRegion
             //
             //TODO update the method to compute error...
             labels.print( std::cout );
-            //corrector.correct( labels );
+            corrector.correct( labels );
             //
             //
 

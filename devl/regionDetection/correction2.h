@@ -59,7 +59,7 @@ namespace detect
          _constructStatistics();
       }
 
-      void correct( Vector& distances )
+      void correct( Vector& distances, ui32 maxIter = 10 )
       {
          try
          {
@@ -73,8 +73,8 @@ namespace detect
             core::Buffer1D<int>  good( NB_CLASS );
             for ( ui32 n = 0; n < ref.ratios.size(); ++n )
             {
-               if ( ( testRatios[ n ] < ( _means[ n ] - 4 * _stddev[ n ] ) ) ||
-                    ( testRatios[ n ] > ( _means[ n ] + 4 * _stddev[ n ] ) ) )
+               if ( ( testRatios[ n ] < ( _means[ n ] - 2 * _stddev[ n ] ) ) ||
+                    ( testRatios[ n ] > ( _means[ n ] + 2 * _stddev[ n ] ) ) )
                {
                   for ( ui32 nn = 0; nn < 4; ++nn )
                      if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
@@ -86,7 +86,7 @@ namespace detect
                }
             }
 
-            std::set<ui32> labelToRecompute;
+            std::map<ui32, ui32> labelToRecompute;
             error.print( std::cout );
             good.print( std::cout );
             std::multimap<ui32, ui32> pivots;     // <nb good, label>
@@ -95,7 +95,7 @@ namespace detect
                if ( distances[ n ] > 0 && error[ n ] > good[ n ] )
                {
                   std::cout << "recompute label=" << n << std::endl;
-                  labelToRecompute.insert( n );
+                  labelToRecompute.insert( std::make_pair( error[ n ], n ) );
                }
                if ( distances[ n ] > 0 && ref.distances[ n ] > 0 )
                {
@@ -109,17 +109,22 @@ namespace detect
 
             // select 2 pivots
             if ( pivots.size() < 3 )
+            {
+               std::cout << "-------- cancel: not enough pivots ----------" << std::endl;
                return;  // we need at least 3 points for safety!
+            }
 
             ui32 pivota = pivots.rbegin()->second;
             ui32 pivotb = (++pivots.rbegin())->second;
+            if ( pivota == 4 )
+               std::swap( pivota, pivotb );
 
             std::cout << "pivot=" << pivota << " " << pivotb << std::endl;
 
-            for ( std::set<ui32>::iterator it = labelToRecompute.begin(); it != labelToRecompute.end(); ++it )
+            for ( std::map<ui32, ui32>::reverse_iterator it = labelToRecompute.rbegin(); it != labelToRecompute.rend(); ++it )
             {
                const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
-               const float a = ( ref.distances[ *it ] - ref.distances[ pivota ] );
+               const float a = ( ref.distances[ it->second ] - ref.distances[ pivota ] );
                const float b = ( ref.distances[ pivotb ] - ref.distances[ pivota ] );
                const float tRatio = a / b;
                const float newPosition = origLabels[ pivota ] + tRatio * dtest;
@@ -127,13 +132,20 @@ namespace detect
                // for the skull, because the template is not annotated correctly (not always at the top of the skull)
                // so it needs to be corrected! In case we find a position lower than the actual, this is very likely
                // to be wrong->we choose a template at the base of the skull
-               if ( *it == 4 && newPosition < origLabels[ *it ] )
+               if ( it->second == 4 && newPosition < origLabels[ it->second ] )
                {
                   // erf do nothing...
-                  distances[ *it ] = origLabels[ *it ];
+                  distances[ it->second ] = origLabels[ it->second ];
                } else {
-                  distances[ *it ] = newPosition;
-                  //corrected = true;
+                  std::cout << "label updated=" << it->second << std::endl;
+                  distances[ it->second ] = newPosition;
+
+                  if ( maxIter > 0 )
+                  {
+                     // recursively recorrect
+                     correct( distances, maxIter - 1 );
+                     return;
+                  }
                }
             }
          }
@@ -165,6 +177,7 @@ namespace detect
 
          if ( index < 0 )
             throw std::exception("can't find template");
+         std::cout << "template chosen=" << index << std::endl;
          return _templates[ index ];
       }
 
