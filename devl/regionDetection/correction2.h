@@ -122,6 +122,8 @@ namespace detect
 
             std::cout << "pivot=" << pivota << " " << pivotb << std::endl;
 
+
+            // update the ROI
             for ( std::map<ui32, ui32>::reverse_iterator it = labelToRecompute.rbegin(); it != labelToRecompute.rend(); ++it )
             {
                const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
@@ -149,6 +151,59 @@ namespace detect
                   }
                }
             }
+
+            // add missing label
+            for ( ui32 n = 1; n < distances.size(); ++n )
+            {
+               float pos = 0;
+               ui32 nb = 0;
+               for ( ui32 pivota = 1; pivota < distances.size(); ++pivota )
+               {
+                  for ( ui32 pivotb = 1; pivotb < pivota; ++pivotb )
+                  {
+                     if ( pivota != 4 && pivotb != 4 && distances[ pivota ] > 0 && distances[ pivotb ] > 0 )
+                     {
+                        if ( distances[ n ] < 0 && ref.distances[ n ] > 0 )
+                        {
+                           const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
+                           const float a = ( ref.distances[ n ] - ref.distances[ pivota ] );
+                           const float b = ( ref.distances[ pivotb ] - ref.distances[ pivota ] );
+                           const float tRatio = a / b;
+                           const float newPosition = origLabels[ pivota ] + tRatio * dtest;
+
+                           std::cout << "adds:" << pivota << " " << pivotb << "=" << newPosition << std::endl;
+                           pos += newPosition;
+                           ++nb;
+                        }
+                     }
+                  }
+               }
+
+               if ( nb )
+               {
+                  distances[ n ] = pos / nb;
+               }
+            }
+            /*
+            for ( ui32 n = 1; n < distances.size(); ++n )
+            {
+               if ( distances[ n ] < 0 && ref.distances[ n ] > 0 )
+               {
+                  const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
+                  const float a = ( ref.distances[ n ] - ref.distances[ pivota ] );
+                  const float b = ( ref.distances[ pivotb ] - ref.distances[ pivota ] );
+                  const float tRatio = a / b;
+                  const float newPosition = origLabels[ pivota ] + tRatio * dtest;
+
+                  if ( n == 4 && newPosition < origLabels[ n ] )
+                  {
+                     // erf do nothing...
+                  } else {
+                     distances[ n ] = newPosition;
+                  }
+               }
+            }
+            */
          }
          catch (...)
          {

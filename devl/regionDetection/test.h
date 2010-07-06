@@ -82,8 +82,19 @@ namespace detect
          }
 
          // special rule for the head: we go up until can't find the same class
-         while ( ( maxPos[ 4 ] + 1 ) < (int)results.probabilities.size() && results.sliceIds[ maxPos[ 4 ] + 1 ] == 4 )
-            ++maxPos[ 4 ];
+         bool cont = true;
+         while ( cont )
+         {
+            int max = 0;
+            cont = false;
+            for ( int n = 1; n <= 15 && ( maxPos[ 4 ] + n ) < results.sliceIds.size(); ++n )
+               if ( results.sliceIds[ maxPos[ 4 ] + n ] == 4 )
+               {
+                  max = n;
+                  cont = true;
+               }
+            maxPos[ 4 ] += max;
+         }
          
          r.neckStart =   maxPos[ 1 ];
          r.heartStart =  maxPos[ 2 ];

@@ -356,7 +356,7 @@ struct TestRegion
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
       std::vector<RegionResult::Measure> measures;
 
       Classifier classifier( 1, true );
@@ -969,7 +969,7 @@ struct TestRegion
       {
          0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
       };
-      const double probaMissing         = 0.0f;
+      const double probaMissing         = 0.1f;
       const double probaBigDeviation    = 0.1f;
       
       const double meanBigDeviation     = 0;
@@ -1078,11 +1078,12 @@ struct TestRegion
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
-// input: cases, mf2 volumes, output: XZ slice in preview directory
-//TESTER_TEST(createPreview);
 
 // input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
 //TESTER_TEST(createDatasets);
+
+// input: cases, mf2 volumes, output: XZ slice in preview directory
+//TESTER_TEST(createPreview);
 
 // input: cases, mf2 volumes, output: a database for all volumes of all slices
 //TESTER_TEST(createVolumeDatabase);

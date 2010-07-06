@@ -334,6 +334,22 @@ namespace detect
                   }
                }
 
+               // create additional slice for the skull
+               if ( results[ n ].neckStart > 0 && ( results[ n ].skullStart - results[ n ].neckStart ) > 30 )
+               {
+                  ui32 sl1 = (ui32)( results[ n ].skullStart - 1 * ( results[ n ].skullStart - results[ n ].neckStart ) / 4 );
+                  ui32 sl2 = (ui32)( results[ n ].skullStart - 2 * ( results[ n ].skullStart - results[ n ].neckStart ) / 4 );
+
+                  const std::string sliceName1 = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart ) + "-skull-add1.bmp";
+                  Point input = _convert( volume, sl1, sliceName1 );  // we can't take the first slice as it is empty due to interpolation...
+                  ui32 output = 4;
+                  database.add( Sample( input, output, Sample::LEARNING ) );
+
+                  const std::string sliceName2 = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart ) + "-skull-add2.bmp";
+                  input = _convert( volume, sl2, sliceName2 );  // we can't take the first slice as it is empty due to interpolation...
+                  database.add( Sample( input, output, Sample::LEARNING ) );
+               }
+
                // measure the heigh of the ROI relatively to the volume origin
                core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,
                                                                             volume.size()[ 1 ] / 2.0f,
