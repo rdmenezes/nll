@@ -662,3 +662,10 @@ heart:176:-1
 lung:193:-1
 skull:246:-1
 hips:102:-1
+
+case500:
+neck:395:-1
+heart:284:-1
+lung:331:-1
+skull:448:-1
+hips:125:-1

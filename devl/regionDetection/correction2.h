@@ -153,6 +153,7 @@ namespace detect
             }
 
             // add missing label
+            /*
             for ( ui32 n = 1; n < distances.size(); ++n )
             {
                float pos = 0;
@@ -183,8 +184,8 @@ namespace detect
                {
                   distances[ n ] = pos / nb;
                }
-            }
-            /*
+            }*/
+            
             for ( ui32 n = 1; n < distances.size(); ++n )
             {
                if ( distances[ n ] < 0 && ref.distances[ n ] > 0 )
@@ -203,7 +204,7 @@ namespace detect
                   }
                }
             }
-            */
+            
          }
          catch (...)
          {

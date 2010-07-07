@@ -315,6 +315,8 @@ struct TestRegion
 
    void learnSvm()
    {
+      srand( 1 );
+
       typedef Buffer1D<double>      Point;
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
@@ -356,7 +358,7 @@ struct TestRegion
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
       std::vector<RegionResult::Measure> measures;
 
       Classifier classifier( 1, true );
@@ -960,6 +962,7 @@ struct TestRegion
       CorrectPosition2 corrector( measuresTraining );
       
       // set the sampling statistics
+      /*
       const double means[ NB_CLASS ] =
       {
          0, 6.23f, 6.87f, 3.38f, 10.4f, 7.0f
@@ -969,8 +972,19 @@ struct TestRegion
       {
          0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
       };
-      const double probaMissing         = 0.1f;
-      const double probaBigDeviation    = 0.1f;
+      */
+      const double means[ NB_CLASS ] =
+      {
+         0, 0, 0, 0, 0, 0
+      };
+
+      const double vars[ NB_CLASS ] =
+      {
+         0, 0, 0, 0, 0, 0
+      };
+
+      const double probaMissing         = 0.2f;
+      const double probaBigDeviation    = 0.0f;
       
       const double meanBigDeviation     = 0;
       const double varBigDeviation      = 150;
@@ -1003,8 +1017,8 @@ struct TestRegion
                }
             }
 
-          //  if ( n != 0 || sample != 3 )
-          //     continue;
+            //if ( n != 3 || sample != 2 )
+            //   continue;
 
             Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( measuresTest[ n ].id ) + ".bmp" );
             Buffer1D<float> previewRef( NB_CLASS );

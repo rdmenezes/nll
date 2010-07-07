@@ -87,7 +87,7 @@ namespace detect
          {
             int max = 0;
             cont = false;
-            for ( int n = 1; n <= 15 && ( maxPos[ 4 ] + n ) < results.sliceIds.size(); ++n )
+            for ( int n = 1; n <= 20 && ( maxPos[ 4 ] + n ) < results.sliceIds.size(); ++n )
                if ( results.sliceIds[ maxPos[ 4 ] + n ] == 4 )
                {
                   max = n;

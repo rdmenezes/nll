@@ -419,11 +419,10 @@ namespace detect
       }
 
    private:
-      static algorithm::Haar2dFeatures::Features _generateRandomFeatures( int seed = 0 )
+      static algorithm::Haar2dFeatures::Features _generateRandomFeatures()
       {
          algorithm::Haar2dFeatures::Features features;
 
-         srand( seed );
          for ( ui32 n = 0; n < HAAR_FEATURE_SIZE; ++n )
          {
             core::vector2d v1( core::generateUniformDistribution( 0, 1 ),
