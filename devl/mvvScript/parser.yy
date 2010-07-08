@@ -43,7 +43,7 @@
     - structures are copied by reference and are automatically allocated/deallocated using ref counting
     - operator= can't be overloaded: just refcounting. To create a new instance, just recreate another object...
     - operator== checks the address for types... and not the semantic==
-    - the type of a function doesn't belong to the signature of the function, the signature of a function is unique
+    - the type of a function doesn't belong to the signature of the function, the signature of a function must be unique
     - a type can be referenced. In this case the reference is directly modified. If a type which is not a primitive
       is referenced & used as argument in a function call, refcounting is not updated
     - include: the included file will be parsed, inclusion order doesn't matter
@@ -210,6 +210,7 @@
 %token VOID             "void"
 %token RETURN           "return"
 %token TYPENAME         "typename"
+%token TYPEDEF          "typedef"
 
 %token INT_T            "int type"
 %token FLOAT_T          "float type"
@@ -249,6 +250,7 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           |CLASS ID LBRACE var_decs_class RBRACE                                          { mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$ = decl; linkFunctionToClass( *decl ); }
           |WHILE LPAREN rvalue RPAREN LBRACE statements RBRACE                            { $$ = new mvv::parser::AstWhile( @$, $3, $6 ); }
           |BREAK SEMI                                                                     { $$ = new mvv::parser::AstBreak( @$ ); }
+          |TYPEDEF type ID SEMI                                                           { $$ = new mvv::parser::AstTypedef( @$, $2, *$3 );}
 
 
           /**
@@ -343,10 +345,10 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
 
 
 	  
-var_decs_class: /* empty */				                                                     { $$ = new mvv::parser::AstDecls( @$ ); }
+var_decs_class: /* empty */				                                                      { $$ = new mvv::parser::AstDecls( @$ ); }
       |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
-      /*|var_dec_no_default SEMI var_decs_class                                                { $$ = $3; $$->insert( $1 ); }*/
-     /* |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                   { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); } */
+      /*|var_dec_no_default SEMI var_decs_class                                              { $$ = $3; $$->insert( $1 ); }*/
+     /* |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                 { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); } */
       |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |IMPORT type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                           { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
@@ -356,6 +358,7 @@ var_decs_class: /* empty */				                                                 
       |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI var_decs_class                 { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
       |IMPORT TILDE ID LPAREN RPAREN SEMI var_decs_class                                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $3->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$) ) ); }
       |TILDE ID LPAREN RPAREN LBRACE statements RBRACE var_decs_class                        { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $2->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$), $6 ) ); }
+      |TYPEDEF type ID SEMI var_decs_class                                                   { $$ = $5; $$->insert( new mvv::parser::AstTypedef( @$, $2, *$3 ) );}
   
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
              |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::CMP_INT ); }

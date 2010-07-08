@@ -61,7 +61,7 @@ namespace parser
       }
 
       /**
-       @brief Find the symbols from the latest to the first scope. Returns 0 if not found.
+       @brief Find the symbols from the latest to the first scope/or barrier. Returns 0 if not found.
        */
       const T* find( const Symbol& s ) const
       {
@@ -117,16 +117,16 @@ namespace parser
 
 
    
-
+   template <class T>
    class SymbolTableDictionary
    {
       struct Node
       {
-         Node( const mvv::Symbol& n, AstDeclClass* d ) : name( n ), previous( 0 ), decl( d )
+         Node( const mvv::Symbol& n, T* d ) : name( n ), previous( 0 ), decl( d )
          {}
 
          // goto the classpath specified and find s in this scope only
-         AstDeclClass* find_in_class( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
+         T* find_in_class( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
          {
             Node* res = _find( classPath, -1 );
             if ( !res )
@@ -143,7 +143,7 @@ namespace parser
             return 0;
          }
 
-         AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
+         T* find_within_scope( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
          {
             Node* res = _find( classPath, -1 );
             if ( !res )
@@ -175,7 +175,7 @@ namespace parser
          /**
           Use the current position, find predecessors until global scope
           */
-         AstDeclClass* find_in_scope( const mvv::Symbol& s )
+         T* find_in_scope( const mvv::Symbol& s )
          {
             if ( s == name )
                return decl;
@@ -186,7 +186,7 @@ namespace parser
          }
 
          // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
-         AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
+         T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
          {
             Node* res = _find( path, -1 );
             if ( !res )
@@ -211,7 +211,7 @@ namespace parser
             return 0;
          }
 
-         AstDeclClass* find( const std::vector<mvv::Symbol>& classPath, int begining )
+         T* find( const std::vector<mvv::Symbol>& classPath, int begining )
          {
             Node* res = _find( classPath, begining );
             if ( res )
@@ -263,7 +263,7 @@ namespace parser
          mvv::Symbol          name;
          std::vector<Node*>   next;
          Node*                previous;
-         AstDeclClass*        decl;
+         T*        decl;
       };
 
    public:
@@ -289,7 +289,7 @@ namespace parser
          }
       }
 
-      void begin_scope( mvv::Symbol s, AstDeclClass* decl )
+      void begin_scope( mvv::Symbol s, T* decl )
       {
          ensure( decl || _current == 0, "can't insert a null decl except the first one" );
 
@@ -311,14 +311,14 @@ namespace parser
          _current = _current->previous;
       }
 
-      const AstDeclClass* find( const std::vector<mvv::Symbol>& s ) const
+      const T* find( const std::vector<mvv::Symbol>& s ) const
       {
          if ( !_root )
             return 0;
          return _root->find( s, -1 );
       }
 
-      AstDeclClass* find_in_class( const std::vector<mvv::Symbol>& path, const mvv::Symbol& s )
+      T* find_in_class( const std::vector<mvv::Symbol>& path, const mvv::Symbol& s )
       {
          if ( !_root )
             return 0;
@@ -326,7 +326,7 @@ namespace parser
       }
 
 
-      AstDeclClass* find( const std::vector<mvv::Symbol>& s )
+      T* find( const std::vector<mvv::Symbol>& s )
       {
          if ( !_root )
             return 0;
@@ -334,7 +334,7 @@ namespace parser
       }
 
       // find the class with full path, then go up to global scope to find the declaration
-      AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const mvv::Symbol& s )
+      T* find_within_scope( const std::vector<mvv::Symbol>& path, const mvv::Symbol& s )
       {
          if ( !_root )
             return 0;
@@ -342,14 +342,14 @@ namespace parser
       }
 
       // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
-      AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
+      T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
       {
          if ( !_root )
             return 0;
          return _root->find_within_scope( path, fieldpath );
       }
 
-      const AstDeclClass* find_in_scope( const mvv::Symbol& s ) const
+      const T* find_in_scope( const mvv::Symbol& s ) const
       {
          if ( !_root )
             return 0;
@@ -396,9 +396,87 @@ namespace parser
       bool hasImplementation;
    };
 
+   class SymbolTableTypedef
+   {
+      struct Scope
+      {
+         typedef std::map<mvv::Symbol, Scope>::iterator  Iter;
+
+         Scope() : pred( 0 )
+         {
+         }
+
+         Scope( Scope* p ) : pred( p )
+         {
+         }
+
+         std::vector<AstTypedef*>         typedefs;
+         std::map<mvv::Symbol, Scope>     scopes;
+         Scope*                           pred;
+      };
+
+   public:
+      SymbolTableTypedef() : _scopes( Scope( 0 ) )
+      {
+         _current = &_scopes;
+      }
+
+      void begin_scope( mvv::Symbol s )
+      {
+         Scope::Iter iter = _current->scopes.find( s );
+         if ( iter == _current->scopes.end() )
+         {
+            _current->scopes[ s ] = Scope( _current );
+         }
+         
+         _current = &_current->scopes[ s ];
+      }
+
+      void end_scope()
+      {
+         ensure( _current, "error" );
+         ensure( _current->pred, "no predecessor!!!" );
+
+         _current = _current->pred;
+      }
+
+      void insert( AstTypedef* val )
+      {
+         _current->typedefs.push_back( val );
+      }
+
+      const AstTypeT* find_in_scope( mvv::Symbol v ) const;
+
+      AstTypedef* find_typedef_in_scope( mvv::Symbol v );
+
+      AstTypedef* find( mvv::Symbol v );
+
+      SymbolTableTypedef& operator=( const SymbolTableTypedef& cpy )
+      {
+         _scopes = cpy._scopes;
+         _current = &_scopes;
+         return *this;
+      }
+
+      SymbolTableTypedef( const SymbolTableTypedef& cpy )
+      {
+         operator=( cpy );
+      }
+      
+      void resetScope()
+      {
+         _current = &_scopes;
+      }
+
+   private:
+      Scope    _scopes;
+      Scope*   _current;
+   };
+
    typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table
    typedef std::map<mvv::Symbol, FunctionTable>               SymbolTableFuncs;    /// We only need to store functions in global scope
-   typedef SymbolTableDictionary                              SymbolTableClasses;  /// tree-like storage for classes
+   typedef SymbolTableDictionary<AstDeclClass>                SymbolTableClasses;  /// tree-like storage for classes
+  // typedef SymbolTableScope<AstTypedef>                       SymbolTableTypedef;  /// tree-like storage for typedef
 }
 }
 

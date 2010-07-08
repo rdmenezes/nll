@@ -96,13 +96,14 @@
      VOID = 312,
      RETURN = 313,
      TYPENAME = 314,
-     INT_T = 315,
-     FLOAT_T = 316,
-     STRING_T = 317,
-     IMPORT = 318,
-     INCLUDE = 319,
-     IFX = 320,
-     UMINUS = 321
+     TYPEDEF = 315,
+     INT_T = 316,
+     FLOAT_T = 317,
+     STRING_T = 318,
+     IMPORT = 319,
+     INCLUDE = 320,
+     IFX = 321,
+     UMINUS = 322
    };
 #endif
 
@@ -113,7 +114,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1676 of yacc.c  */
-#line 113 "parser.yy"
+#line 115 "parser.yy"
 
    // Tokens.
    int                        ival;
@@ -135,7 +136,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 139 "parser.tab.hh"
+#line 140 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -91,6 +91,7 @@ namespace parser
          VOID,
          VAR,
          SYMBOL,
+         FUNCTION_POINTER,
          EMPTY
       };
 
@@ -108,8 +109,6 @@ namespace parser
       {
          delete _symbol;
       }
-
-      
 
       const mvv::Symbol* getSymbol() const
       {

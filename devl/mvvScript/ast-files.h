@@ -33,5 +33,6 @@
 # include "ast-this.h"
 # include "ast-while.h"
 # include "ast-break.h"
+# include "ast-typedef.h"
 
 #endif

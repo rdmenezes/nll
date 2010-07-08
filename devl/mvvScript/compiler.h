@@ -179,6 +179,7 @@ namespace parser
          SymbolTableVars     vars = _vars;
          SymbolTableFuncs    funcs = _funcs;
          SymbolTableClasses  classes = _classes;
+         SymbolTableTypedef  typedefs = _typedefs;
 
          std::list<Ast*> exps;
          Ast* exp = _context.parseString( s );
@@ -189,13 +190,13 @@ namespace parser
          {
             // explore all files: current + includes + import
             exps.push_back( exp );
-            _explore( _context, vars, funcs, classes, exps, exp, importedLib );
+            _explore( _context, vars, funcs, classes, typedefs, exps, exp, importedLib );
             if ( !_context.getError().getStatus() )
             {
                // run the binding visitor on all the trees
                for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
                {
-                  VisitorBind visitorBind( _context, vars, funcs, classes );
+                  VisitorBind visitorBind( _context, vars, funcs, classes, typedefs );
                   visitorBind( **it );
                }
 
@@ -215,6 +216,7 @@ namespace parser
                      _vars = vars;
                      _funcs = funcs;
                      _classes = classes;
+                     _typedefs = typedefs;
 
                      // save the tree for further execution
                      for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
@@ -390,11 +392,12 @@ namespace parser
                      SymbolTableVars& vars,
                      SymbolTableFuncs& funcs,
                      SymbolTableClasses& classes,
+                     SymbolTableTypedef& typedefs,
                      std::list<Ast*>& store,
                      Ast* toExplore,
                      Files& importedLib )
       {
-         VisitorRegisterDeclarations visitor( context, vars, funcs, classes, _env.framePointer );
+         VisitorRegisterDeclarations visitor( context, vars, funcs, classes, typedefs, _env.framePointer );
          visitor( *toExplore );
 
          if ( !_context.getError().getStatus() )
@@ -414,7 +417,7 @@ namespace parser
                   {
                      // recursively check the dependencies
                      store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
-                     _explore( context, vars, funcs, classes, store, exp, importedLib );
+                     _explore( context, vars, funcs, classes, typedefs, store, exp, importedLib );
                      importedLib.insert( *it );   // after type visitor, we must link the imported functions
                   }
                }
@@ -432,7 +435,7 @@ namespace parser
                   {
                      // recursively check the dependencies
                      store.push_front( exp );   // we push front as we need the include to be parsed before... (it would work else, but les efficient)
-                     _explore( context, vars, funcs, classes, store, exp, importedLib );
+                     _explore( context, vars, funcs, classes, typedefs, store, exp, importedLib );
                   }
                }
             }
@@ -484,6 +487,7 @@ namespace parser
       SymbolTableVars     _vars;    // current list of variable definition
       SymbolTableFuncs    _funcs;   // current list of functions definition
       SymbolTableClasses  _classes; // current list of class definition
+      SymbolTableTypedef  _typedefs;// store the typedefs list
 
       Trees               _executionTrees;   // the trees that have been parsed
       ImportedFunctions   _imported;         // the functions that have been imported

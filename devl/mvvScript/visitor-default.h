@@ -215,6 +215,11 @@ namespace parser
          } 
       }
 
+      virtual void operator()( AstTypedef& e )
+      {
+         operator()( e.getType() );
+      }
+
       virtual void operator()( Ast& e )
       {
          e.accept( *this );

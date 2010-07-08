@@ -411,6 +411,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\symbol-table.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\symbol-table.h"
 				>
 			</File>
@@ -554,6 +558,10 @@
 			</File>
 			<File
 				RelativePath=".\ast-type.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ast-typedef.h"
 				>
 			</File>
 			<File

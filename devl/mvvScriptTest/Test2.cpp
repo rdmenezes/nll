@@ -30,6 +30,20 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt.floatval == 5.5 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ Test(){} int a = 6; int a(){return 7;}} Test t; int n = t.a; int nn = t.a();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt.intval == 6 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt2.intval == 7 );
+      }
       
       {
          CompilerFrontEnd fe;
@@ -1670,6 +1684,34 @@ struct TestEval
       }
    }
 
+   void eval3()
+   {
+      /*
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int INT; typedef float INT;" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int INT; class Test{typedef int INT;} void func(){typedef int INT;}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef crap crap2;" );
+         TESTER_ASSERT( result == Error::BIND );
+      }*/
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int INT; INT n = 0;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+   }
+
       
 /*
       
@@ -1684,5 +1726,6 @@ struct TestEval
 
 TESTER_TEST_SUITE(TestEval);
 //TESTER_TEST(eval1);
-TESTER_TEST(eval2);
+//TESTER_TEST(eval2);
+TESTER_TEST(eval3);
 TESTER_TEST_SUITE_END();

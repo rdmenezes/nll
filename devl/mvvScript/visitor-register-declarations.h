@@ -12,7 +12,7 @@ namespace parser
 {
    /**
     @brief Defines a visitor that will reference all global definitions:
-           _global_ variable/ _global_ function/ all class declaration.
+           _global_ variable/ _global_ function/ all class declaration / all typedef
 
            It will report any redefinition errors.
     
@@ -31,10 +31,12 @@ namespace parser
                                    SymbolTableVars& vars,
                                    SymbolTableFuncs& funcs,
                                    SymbolTableClasses& classes,
-                                   ui32& currentFramePointer ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _scopeDepth( 0 ), _currentFramePointer( currentFramePointer )
+                                   SymbolTableTypedef& typedefs,
+                                   ui32& currentFramePointer ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _scopeDepth( 0 ), _currentFramePointer( currentFramePointer ), _typedefs( typedefs )
       {
          // global scope
          _vars.beginScope();
+         //_typedefs.beginScope();
       }
 
       const Symbols& getFilesToInclude() const
@@ -65,6 +67,8 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         _typedefs.begin_scope( e.getName() );
+
          if ( _vars.find( e.getName() ) )
          {
             // we know we have at least 1 function declared...
@@ -96,12 +100,9 @@ namespace parser
          operator()( e.getDeclarations() );
          --_scopeDepth;
          _classes.end_scope();
+
+         _typedefs.end_scope();
       }
-
-      /**
-       TODO for node
-       */
-
 
       virtual void operator()( AstBreak& )
       {
@@ -143,12 +144,10 @@ namespace parser
          // nothing to do: just don't go through these nodes, we don't have to!
       }
 
-
       virtual void operator()( AstDeclFun& e ) 
       {
          // discard type and body
          // if body is undeclared, it can be multiple times declared...
-
          if ( _scopeDepth == 1 )
          {
             const AstDeclVar* var = _vars.find( e.getName() );
@@ -244,6 +243,17 @@ namespace parser
          }
       }
 
+      virtual void operator()( AstTypedef& e )
+      {
+         const AstTypeT* t = _typedefs.find_in_scope( e.getName() );
+         if ( t )
+         {
+            impl::reportAlreadyDeclaredType( t->getLocation(), e.getLocation(), _context, "a typedef has already been declared with this name" );
+         } else {
+            _typedefs.insert( &e );
+         }
+      }
+
       SymbolTableVars& getVars()
       {
          return _vars;
@@ -274,6 +284,7 @@ namespace parser
       SymbolTableVars&                  _vars;
       SymbolTableFuncs&                 _funcs;
       SymbolTableClasses&               _classes;
+      SymbolTableTypedef&               _typedefs;
       ui32&                             _currentFramePointer;  // used for debugging so we can access particular variable
    };
 }

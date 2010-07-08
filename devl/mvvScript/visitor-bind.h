@@ -60,12 +60,15 @@ namespace parser
       VisitorBind( ParserContext& context,
                    SymbolTableVars& vars,
                    SymbolTableFuncs& funcs,
-                   SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
+                   SymbolTableClasses& classes,
+                   SymbolTableTypedef& typedefs ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _typedefs( typedefs )
       {
          _scopeDepth = 0;
          _functionCallsNeeded = 0;
          _isInFunction = 0;
          _isInFunctionDeclaration = false;
+
+         _typedefs.resetScope();
       }
 
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
@@ -236,7 +239,14 @@ namespace parser
             AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, *e.getSymbol() );
             if ( !decl )
             {
-               impl::reportUndeclaredType( e.getLocation(), _context, "undeclared type" );
+               AstTypedef* f = _typedefs.find( *e.getSymbol() );
+               if ( !f )
+               {
+                  impl::reportUndeclaredType( e.getLocation(), _context, "undeclared type" );
+               } else {
+                  assert( 0 ); // TODO
+                  //e.setReference( f );
+               }
             } else {
                e.setReference( decl );
             }
@@ -245,6 +255,8 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         _typedefs.begin_scope( e.getName() );
+
          if ( _defaultClassPath.size() == 0 && _scopeDepth > 1 )
          {
             impl::reportUndeclaredType( e.getLocation(), _context, "a class can only be declared in the global scope/or nested in another class" );
@@ -263,6 +275,8 @@ namespace parser
          _defaultClassPath.pop_back();
          _vars.endScope();
          --_scopeDepth;
+
+         _typedefs.end_scope();
       }
 
       /**
@@ -283,6 +297,11 @@ namespace parser
             }
          }
          return true;
+      }
+
+      static mvv::Symbol mangling( const AstDeclFun& e )
+      {
+         return mvv::Symbol::create( e.getName().getName() + nll::core::val2str( &e ) );
       }
 
       virtual void operator()( AstDeclFun& e ) 
@@ -311,6 +330,7 @@ namespace parser
          
          if ( e.getBody() )
          {
+            _typedefs.begin_scope( mangling( e ) );
             _currentFunc.push_back( &e );
             ++_scopeDepth;
             if ( _defaultClassPath.size () )
@@ -336,6 +356,7 @@ namespace parser
 
             --_scopeDepth;
             _currentFunc.pop_back();
+            _typedefs.end_scope();
          } else {
             // if there is no body, we still need to go through the arguments and bind them
             if ( e.getVars().getVars().size() )
@@ -582,6 +603,12 @@ namespace parser
          }
       }
 
+      
+      virtual void operator()( AstTypedef& e )
+      {
+         operator()( e.getType() );
+      }
+
    private:
       // disabled
       VisitorBind& operator=( const VisitorBind& );
@@ -602,6 +629,7 @@ namespace parser
       SymbolTableVars&    _vars;
       SymbolTableFuncs&   _funcs;
       SymbolTableClasses& _classes;
+      SymbolTableTypedef& _typedefs;
    };
 }
 }

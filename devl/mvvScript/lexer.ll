@@ -172,6 +172,7 @@ STRCHR	[A-Za-z_]
 "import"       return IMPORT;
 "include"      return INCLUDE;
 "typename"     return TYPENAME;
+"typedef"      return TYPEDEF;
 
 "~"     return TILDE;
 "="     return ASSIGN;

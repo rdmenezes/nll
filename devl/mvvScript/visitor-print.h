@@ -420,6 +420,13 @@ namespace parser
          }
       }
 
+      virtual void operator()( const AstTypedef& e )
+      {
+         _o << "typedef ";
+         operator()( e.getType() );
+         _o << " " << e.getName().getName();
+      }
+
       virtual void operator()( const Ast& e )
       {
          e.accept( *this );
