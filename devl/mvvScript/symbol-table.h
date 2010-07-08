@@ -115,6 +115,83 @@ namespace parser
       ui32                 _currentScope;
    };
 
+   class MVVSCRIPT_API SymbolTableTypedef
+   {
+      struct Scope
+      {
+         typedef std::map<mvv::Symbol, Scope>::iterator  Iter;
+
+         Scope() : pred( 0 )
+         {
+         }
+
+         Scope( Scope* p ) : pred( p )
+         {
+         }
+
+         std::vector<AstTypedef*>         typedefs;
+         std::map<mvv::Symbol, Scope>     scopes;
+         Scope*                           pred;
+      };
+
+   public:
+      SymbolTableTypedef() : _scopes( Scope( 0 ) )
+      {
+         _current = &_scopes;
+      }
+
+      void begin_scope( mvv::Symbol s )
+      {
+         Scope::Iter iter = _current->scopes.find( s );
+         if ( iter == _current->scopes.end() )
+         {
+            _current->scopes[ s ] = Scope( _current );
+         }
+         
+         _current = &_current->scopes[ s ];
+      }
+
+      void end_scope()
+      {
+         ensure( _current, "error" );
+         ensure( _current->pred, "no predecessor!!!" );
+
+         _current = _current->pred;
+      }
+
+      void insert( AstTypedef* val )
+      {
+         _current->typedefs.push_back( val );
+      }
+
+      const AstTypeT* find_in_scope( mvv::Symbol v ) const;
+
+      AstTypedef* find_typedef_in_scope( mvv::Symbol v );
+
+      AstTypedef* find( mvv::Symbol v );
+
+      SymbolTableTypedef& operator=( const SymbolTableTypedef& cpy )
+      {
+         _scopes = cpy._scopes;
+         _current = &_scopes;
+         return *this;
+      }
+
+      SymbolTableTypedef( const SymbolTableTypedef& cpy )
+      {
+         operator=( cpy );
+      }
+      
+      void resetScope()
+      {
+         _current = &_scopes;
+      }
+
+   private:
+      Scope    _scopes;
+      Scope*   _current;
+   };
+
 
    
    template <class T>
@@ -223,6 +300,7 @@ namespace parser
 
          Node* _find( const std::vector<mvv::Symbol>& classPath, int begining )
          {
+            SymbolTableTypedef f;
             if ( name == mvv::Symbol::create( "" ) || classPath[ begining ] == name )
             {
                if ( static_cast<int>( classPath.size() ) == begining + 1 )
@@ -342,7 +420,8 @@ namespace parser
       }
 
       // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
-      T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
+      // the typedefs arg is used to look up field, in case one of the field is actually a typedef...
+      T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath, const SymbolTableTypedef& typedefs )
       {
          if ( !_root )
             return 0;
@@ -394,83 +473,6 @@ namespace parser
 
       std::vector<AstDeclFun*>   list;
       bool hasImplementation;
-   };
-
-   class MVVSCRIPT_API SymbolTableTypedef
-   {
-      struct Scope
-      {
-         typedef std::map<mvv::Symbol, Scope>::iterator  Iter;
-
-         Scope() : pred( 0 )
-         {
-         }
-
-         Scope( Scope* p ) : pred( p )
-         {
-         }
-
-         std::vector<AstTypedef*>         typedefs;
-         std::map<mvv::Symbol, Scope>     scopes;
-         Scope*                           pred;
-      };
-
-   public:
-      SymbolTableTypedef() : _scopes( Scope( 0 ) )
-      {
-         _current = &_scopes;
-      }
-
-      void begin_scope( mvv::Symbol s )
-      {
-         Scope::Iter iter = _current->scopes.find( s );
-         if ( iter == _current->scopes.end() )
-         {
-            _current->scopes[ s ] = Scope( _current );
-         }
-         
-         _current = &_current->scopes[ s ];
-      }
-
-      void end_scope()
-      {
-         ensure( _current, "error" );
-         ensure( _current->pred, "no predecessor!!!" );
-
-         _current = _current->pred;
-      }
-
-      void insert( AstTypedef* val )
-      {
-         _current->typedefs.push_back( val );
-      }
-
-      const AstTypeT* find_in_scope( mvv::Symbol v ) const;
-
-      AstTypedef* find_typedef_in_scope( mvv::Symbol v );
-
-      AstTypedef* find( mvv::Symbol v );
-
-      SymbolTableTypedef& operator=( const SymbolTableTypedef& cpy )
-      {
-         _scopes = cpy._scopes;
-         _current = &_scopes;
-         return *this;
-      }
-
-      SymbolTableTypedef( const SymbolTableTypedef& cpy )
-      {
-         operator=( cpy );
-      }
-      
-      void resetScope()
-      {
-         _current = &_scopes;
-      }
-
-   private:
-      Scope    _scopes;
-      Scope*   _current;
    };
 
    typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table

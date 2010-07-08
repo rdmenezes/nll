@@ -96,7 +96,7 @@ namespace parser
             // check within class
             std::vector<mvv::Symbol> up2( field );
             up2.push_back( name );
-            AstDeclClass* within = _classes.find_within_scope( path, up2 );
+            AstDeclClass* within = _classes.find_within_scope( path, up2, _typedefs );
             if ( within )
                return within;
 
@@ -493,7 +493,7 @@ namespace parser
             operator()( *e.getInit() );
          } else {
             // if a reference, then it must be initialized
-            if ( !_isInFunctionDeclaration && e.getType().isAReference() && _defaultClassPath.size() == 0 ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
+            if ( !_isInFunctionDeclaration && e.getType().isAReference() && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
             {
                impl::reportUndeclaredType( e.getLocation(), _context, "type with reference must be initialized" );
                return;

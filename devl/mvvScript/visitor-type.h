@@ -586,6 +586,12 @@ namespace parser
                VisitorType visitor( _context, _vars, _funcs, _classes );
                visitor( *e.getReference() );
             }
+            if ( e.getReference()->getNodeType() == 0)
+            {
+               impl::reportTypeError( e.getLocation(), _context, "error: can't type this symbol" );
+               e.setNodeType( new TypeError() );
+               return;
+            }
             e.setNodeType( e.getReference()->getNodeType()->clone() );
             if ( e.isAReference() )
             {
@@ -658,7 +664,16 @@ namespace parser
          if ( e.getType() )
          {
             operator()( *e.getType() );
-            e.setNodeType( e.getType()->getNodeType()->clone() );
+
+            // special rule if the type of a function is an array! int[] test() => type returned is int instead of int[], so we need to update it!
+            if ( e.getType()->isArray() )
+            {
+               Type* type = e.getType()->getNodeType();  // don't need to clone, just a ref for an array
+               TypeArray* typeA = new TypeArray(0, *type, false );
+               e.setNodeType( typeA ); // TODO: add reference is this feature is added later on...
+            } else {
+               e.setNodeType( e.getType()->getNodeType()->clone() );
+            }
          } else {
             // if not in class, type can't be empty
             if ( !e.getMemberOfClass() )
@@ -1015,8 +1030,15 @@ namespace parser
 
       virtual void operator()( AstTypedef& e )
       {
-         operator()( e.getType() );
-         e.setNodeType( e.getType().getNodeType()->clone() );
+         bool isVisited = e.getVisited();
+         if ( isVisited )
+         {
+            // do nothing: we already typed this node
+         } else {
+            e.setVisited();
+            operator()( e.getType() );
+            e.setNodeType( e.getType().getNodeType()->clone() );
+         }
       }
 
       /**

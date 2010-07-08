@@ -67,7 +67,9 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
+         e.setAccessPath( _defaultClassPath );
          _typedefs.begin_scope( e.getName() );
+         _defaultClassPath.push_back( e.getName() );
 
          if ( _vars.find( e.getName() ) )
          {
@@ -102,6 +104,7 @@ namespace parser
          _classes.end_scope();
 
          _typedefs.end_scope();
+         _defaultClassPath.pop_back();
       }
 
       virtual void operator()( AstBreak& )
@@ -276,10 +279,11 @@ namespace parser
       VisitorRegisterDeclarations( const VisitorRegisterDeclarations& );
 
    private:
-      ParserContext&    _context;
-      Symbols           _filesToInclude;
-      Symbols           _filesToImport;
-      int               _scopeDepth;
+      ParserContext&             _context;
+      Symbols                    _filesToInclude;
+      Symbols                    _filesToImport;
+      int                        _scopeDepth;
+      std::vector<mvv::Symbol>   _defaultClassPath;
 
       SymbolTableVars&                  _vars;
       SymbolTableFuncs&                 _funcs;

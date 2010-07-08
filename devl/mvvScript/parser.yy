@@ -32,9 +32,7 @@
    
     
     -check function decl inside function
-    - int a[ 5 ]; float b[ 5 ]; a = b; => we copy the content of b in a and cast if necessary
-    - int[] fun(){} : we can't return an array (but they have the correct semantic! TODO should be added in the grammar)
-    - TODO: specific operators on string, float, int...
+    - TODO=> not valid anymore? int a[ 5 ]; float b[ 5 ]; a = b; => we copy the content of b in a and cast if necessary
     
     
     principles:
@@ -59,10 +57,12 @@
     - When an object is constructed: first, initalize automatic variables (member variable (init, class construction, array))
       then call the constructor.
     - automatic construction in class members. Problem of cyclic dependencies: the member must be initialized by NULL
+    - arrays are dynamic: int a[ 5 ]; int b[ 400 ]; a = b; is correct!
     
     - when importing custom type: if a destructor has to be called, we MUST modify in the constructor the original object and NOT returning a new one! (and so might need to resize the vector)
     
     - TODO check same function & prototypes several times
+    - TODO can't mix array & ref? check what should be the behaviour
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
     - TODO: declared variable with ref: improve the detection of wrong case (i.e. int n; int& n2 = n; int& n3 = n2 + n; // int fn( int& n ){ return n; } int& n = fn(5);
@@ -373,6 +373,8 @@ type: type_field                      { $$ = $1; }
      |type_simple                     { $$ = $1; }
      |type_simple REF                 { $$ = $1; $1->setIsAReference( true ); }
      |type_field REF                  { $$ = $1; $1->setIsAReference( true ); }
+     |type_field LBRACK RBRACK        { $$ = $1; $1->setArray( true ) }
+     |type_simple LBRACK RBRACK        { $$ = $1; $1->setArray( true ) }
      
 	  
 var_dec_simple: type ID ASSIGN rvalue { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }

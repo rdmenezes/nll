@@ -14,6 +14,17 @@ namespace parser
    public:
       AstTypedef( const YYLTYPE& location, AstTypeT* type, const mvv::Symbol& name ) : AstDecl( location, name ), _type( type )
       {
+         _visited = false;
+      }
+
+      void setVisited()
+      {
+         _visited = true;
+      }
+
+      bool getVisited() const
+      {
+         return _visited;
       }
 
       virtual ~AstTypedef()
@@ -50,6 +61,7 @@ namespace parser
 
    protected:
       AstTypeT*            _type;
+      bool                 _visited;   // used by the type visitor and recursive typedef...
    };
 }
 }

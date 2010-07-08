@@ -100,6 +100,16 @@ namespace parser
          _memberVarType.insert( c );
       }
 
+      void setAccessPath( const std::vector<mvv::Symbol>& p )
+      {
+         _pathToAccess = p;
+      }
+
+      const std::vector<mvv::Symbol>& setAccessPath() const
+      {
+         return _pathToAccess;
+      }
+
 
    private:
       AstDecls*            _decls;
@@ -108,7 +118,8 @@ namespace parser
       mvv::Symbol          _destructorName;     // hold the name of the destructor for easy look up (this doesn't mean the class has a constructor!!!)
       AstDeclFun*          _destructor;         // the destructor to be called
       std::vector<AstDeclVar*>   _memberToInit; // the list of members that require automatic initialization
-      std::set<AstDeclClass*> _memberVarType;// list the variable type that must be instanciated by the object. This is used to check cyclic dependencies
+      std::set<AstDeclClass*> _memberVarType;   // list the variable type that must be instanciated by the object. This is used to check cyclic dependencies
+      std::vector<mvv::Symbol>   _pathToAccess; // save the path to find it from the global namespace
    };
 }
 }

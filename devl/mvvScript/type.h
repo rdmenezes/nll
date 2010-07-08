@@ -60,7 +60,8 @@ namespace parser
       virtual Type* clone() const;
       virtual bool isEqual( const Type& t ) const
       {
-         return dynamic_cast<const TypeInt*>( &t ) != 0;
+         const TypeInt* tt = dynamic_cast<const TypeInt*>( &t );
+         return tt != 0;
       }
    };
 
@@ -121,18 +122,20 @@ namespace parser
 
       virtual bool isCompatibleWith( const Type& t ) const
       {
-         const TypeArray* array = reinterpret_cast<const TypeArray* >( &t );
+         const TypeArray* array = dynamic_cast<const TypeArray* >( &t );
          if ( !array )
             return 0;
-         return array && array->getDimentionality() == getDimentionality() && _root.isCompatibleWith( array->getRoot() );
+         bool dimOk =  true; //array->getDimentionality() == getDimentionality() || !getDimentionality() || !array->getDimentionality();
+         return array && dimOk && _root.isEqual( array->getRoot() );
       }
 
       virtual bool isEqual( const Type& t ) const
       {
-         const TypeArray* array = reinterpret_cast<const TypeArray* >( &t );
+         const TypeArray* array = dynamic_cast<const TypeArray* >( &t );
          if ( !array )
             return false;
-         return array && array->getDimentionality() == getDimentionality() && _root.isEqual( array->getRoot() );
+         bool dimOk = true; //array->getDimentionality() == getDimentionality() || !getDimentionality() || !array->getDimentionality();
+         return array && dimOk && _root.isEqual( array->getRoot() );
       }
 
       virtual Type* clone() const
