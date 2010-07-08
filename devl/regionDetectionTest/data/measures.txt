@@ -852,12 +852,3 @@ heightHeart:875
 heightLung:960
 heightSkull:1220
 heightHips:505
-
-case500:
-numberOfSlices:448
-height:896
-heightNeck:788
-heightHeart:566
-heightLung:660
-heightSkull:892
-heightHips:248

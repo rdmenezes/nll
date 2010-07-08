@@ -69,7 +69,8 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      srand( 3 );
       RegionResult::generateFeatureDatabase();
 
 
@@ -1094,7 +1095,7 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
-//TESTER_TEST(createDatasets);
+TESTER_TEST(createDatasets);
 
 // input: cases, mf2 volumes, output: XZ slice in preview directory
 //TESTER_TEST(createPreview);
@@ -1103,10 +1104,10 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(createVolumeDatabase);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
-//TESTER_TEST(learnSvm);
+TESTER_TEST(learnSvm);
 
 // input: validation-cases, validation volumes mf2
-TESTER_TEST(testValidationDataSvm);
+//TESTER_TEST(testValidationDataSvm);
 
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);
