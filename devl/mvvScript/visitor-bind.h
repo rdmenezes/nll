@@ -71,6 +71,7 @@ namespace parser
          _typedefs.resetScope();
       }
 
+      // TODO: handle typedef within field
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
       {
          // A::D  B C
@@ -100,7 +101,10 @@ namespace parser
                return within;
 
             // finally check global scope
-            return _classes.find( up2 );
+            AstDeclClass* global = _classes.find( up2 );
+            if ( global )
+               return global;
+            return 0;
          } else {
             // current class
             AstDeclClass* current = _classes.find_in_class( _defaultClassPath, name );
@@ -244,8 +248,7 @@ namespace parser
                {
                   impl::reportUndeclaredType( e.getLocation(), _context, "undeclared type" );
                } else {
-                  assert( 0 ); // TODO
-                  //e.setReference( f );
+                  e.setReference( f );
                }
             } else {
                e.setReference( decl );
@@ -425,7 +428,9 @@ namespace parser
             if ( decl )
             {
                // operator()
-               e.setInstanciation( decl->getType().getReference() );
+               AstDeclClass* c = dynamic_cast<AstDeclClass*>( decl->getType().getReference() );
+               ensure( c, "compiler error: must be a class declaration (no typedef...)" );
+               e.setInstanciation( c );
             } else {
                // construction of an object
                AstDeclClass* declClass = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );
@@ -521,8 +526,9 @@ namespace parser
 
       virtual void operator()( AstTypeField& e )
       {
-         _currentFieldList.push_back( e.getName() );
-         /*
+         _typedefs.begin_scope( e.getName() );
+         
+         
          AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
          // the final type will be checked, we don't need to check each typefield...
          if ( !decl )
@@ -532,8 +538,10 @@ namespace parser
             impl::reportUndeclaredType( e.getLocation(), _context, ss.str() );
          } else {
             e.setReference( decl );
-         }*/
+         }
+         
 
+         _currentFieldList.push_back( e.getName() );
          operator()( e.getField() );
          _currentFieldList.pop_back();
 
@@ -550,6 +558,7 @@ namespace parser
             // else propagate the type to earlier node
             e.setReference( e.getReference() );
          }
+         _typedefs.end_scope();
       }
 
       virtual void operator()( AstImport& e )
@@ -595,17 +604,27 @@ namespace parser
             {
                impl::reportError( type->getLocation(), _context, "typename must only be used with class declaration" );
             } else {
-               e.setReference( type->getReference() );
+               AstDeclClass* c = dynamic_cast<AstDeclClass*>( type->getReference() );
+               ensure( c, "compiler error: must be a class declaration (no typename...)" );
+               e.setReference( c );
             }
          } else if ( typefield )
          {
-            e.setReference( typefield->getReference() );
+            AstDeclClass* c = dynamic_cast<AstDeclClass*>( typefield->getReference() );
+            ensure( c, "compiler error: should be a class declaration (no typename...)" );
+            e.setReference( c );
          }
       }
 
       
       virtual void operator()( AstTypedef& e )
       {
+         // check class & typedef name doesn't clash
+         const AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+         if ( decl )
+         {
+            impl::reportError( decl->getLocation(), _context, "typename: a class has already been declared with this name in this scope" );
+         }
          operator()( e.getType() );
       }
 

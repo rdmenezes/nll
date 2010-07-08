@@ -63,12 +63,12 @@ namespace parser
          return _isArray;
       }
 
-      void setReference( AstDeclClass* decl )
+      void setReference( AstDecl* decl )
       {
          _symbolClass = decl;
       }
 
-      AstDeclClass* getReference() const
+      AstDecl* getReference() const
       {
          return _symbolClass;
       }
@@ -76,7 +76,7 @@ namespace parser
    private:
       bool                  _isArray;
       std::vector<AstExp*>* _defaultSize;
-      AstDeclClass*         _symbolClass;
+      AstDecl*              _symbolClass;          // holds a class or typedef
       bool                  _typeIsReference;
    };
 
@@ -91,7 +91,6 @@ namespace parser
          VOID,
          VAR,
          SYMBOL,
-         FUNCTION_POINTER,
          EMPTY
       };
 
@@ -109,6 +108,8 @@ namespace parser
       {
          delete _symbol;
       }
+
+      
 
       const mvv::Symbol* getSymbol() const
       {

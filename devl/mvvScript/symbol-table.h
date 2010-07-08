@@ -396,7 +396,7 @@ namespace parser
       bool hasImplementation;
    };
 
-   class SymbolTableTypedef
+   class MVVSCRIPT_API SymbolTableTypedef
    {
       struct Scope
       {

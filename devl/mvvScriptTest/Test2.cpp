@@ -1689,6 +1689,12 @@ struct TestEval
       /*
       {
          CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ class Test2{} typedef int Test2;}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+      
+      {
+         CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef int INT; typedef float INT;" );
          TESTER_ASSERT( result == Error::BIND );
       }
@@ -1703,12 +1709,47 @@ struct TestEval
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef crap crap2;" );
          TESTER_ASSERT( result == Error::BIND );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int INT; INT n = 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 3 );
+      }
+
+      
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ typedef int INT; } Test::INT n = 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 3 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ class Test2{ Test2(){} int n = 5;} typedef Test2 INT; } Test::INT t; int n = t.n;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 5 );
       }*/
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "typedef int INT; INT n = 0;" );
+         Error::ErrorType result = fe.run( "class Test{ typedef string STRING; } typedef Test Test_t; Test_t::STRING s = \"123\";" );
          TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "s" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "123" );
       }
    }
 

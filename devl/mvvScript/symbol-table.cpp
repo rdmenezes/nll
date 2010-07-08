@@ -32,7 +32,7 @@ namespace parser
    AstTypedef* SymbolTableTypedef::find( mvv::Symbol v )
    {
       Scope* c = _current;
-      while ( c )
+      while ( _current )
       {
          AstTypedef* t = find_typedef_in_scope( v );
          if ( t )

@@ -44,6 +44,10 @@ namespace parser
          v( *this );
       }
 
+   private:
+      AstTypedef& operator=( const AstTypedef& );
+      AstTypedef( const AstTypedef& );
+
    protected:
       AstTypeT*            _type;
    };

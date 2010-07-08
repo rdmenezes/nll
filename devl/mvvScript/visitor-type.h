@@ -961,7 +961,24 @@ namespace parser
       virtual void operator()( AstTypeField& e )
       {
          operator()( e.getField() );
-         e.setNodeType( new TypeNamed( e.getReference(), false ) );
+         AstDeclClass* c = dynamic_cast<AstDeclClass*>( e.getReference() );
+         if ( c )
+         {
+            e.setNodeType( new TypeNamed( c, false ) );
+         } else {
+            AstTypedef* t = dynamic_cast<AstTypedef*>( e.getReference() );
+            if ( t )
+            {
+               e.setNodeType( t->getType().getNodeType()->clone() );
+            } else {
+               ensure( 0, "unreachable!!" );
+            }
+            /*
+            ensure( t, "compiler error: precondition" );
+            AstDeclClass* c2 = dynamic_cast<AstDeclClass*>( t->getType().getReference() );
+            ensure( c2, "TODO: handle typedef on a typedef..." );
+            e.setNodeType( new TypeNamed( c2, false ) );*/
+         }
       }
 
       virtual void operator()( AstExpTypename& e )
@@ -994,6 +1011,12 @@ namespace parser
                return;
             }
          }
+      }
+
+      virtual void operator()( AstTypedef& e )
+      {
+         operator()( e.getType() );
+         e.setNodeType( e.getType().getNodeType()->clone() );
       }
 
       /**
