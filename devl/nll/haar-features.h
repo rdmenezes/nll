@@ -178,7 +178,9 @@ namespace algorithm
          enum Direction
          {
             VERTICAL,
-            HORIZONTAL
+            HORIZONTAL,
+            VERTICAL_TRIPLE,
+            HORIZONTAL_TRIPLE
          };
 
          /**
@@ -281,6 +283,7 @@ namespace algorithm
             IntegralImage::value_type sump;
             IntegralImage::value_type sumd;
             ui32 mid;
+            ui32 mid1, mid2, d;
             switch ( f.direction )
             {
             case Feature::HORIZONTAL:
@@ -293,6 +296,26 @@ namespace algorithm
                mid = ( y1 + y2 ) / 2;
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid ) );
                sumd = i.getSum( core::vector2ui( x1, mid ), core::vector2ui( x2, y2 ) );
+               buffer[ n ] = static_cast<internal_type>( sump - sumd );
+               break;
+            case Feature::VERTICAL_TRIPLE:
+               d = ( y2 - y1 ) / 4;
+               mid1 = y1 + 1 * d;
+               mid2 = y1 + 3 * d;
+
+               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid1 ) ) +
+                      i.getSum( core::vector2ui( x1, mid2 ), core::vector2ui( x2, y2 ) );
+               sumd = i.getSum( core::vector2ui( x1, mid1 ), core::vector2ui( x2, mid2 ) );
+               buffer[ n ] = static_cast<internal_type>( sump - sumd );
+               break;
+            case Feature::HORIZONTAL_TRIPLE:
+               d = ( x2 - x1 ) / 4;
+               mid1 = x1 + 1 * d;
+               mid2 = x1 + 3 * d;
+
+               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid1, y2 ) ) +
+                      i.getSum( core::vector2ui( mid2, y1 ), core::vector2ui( x2, y2 ) );
+               sumd = i.getSum( core::vector2ui( mid1, y1 ), core::vector2ui( mid2, y2 ) );
                buffer[ n ] = static_cast<internal_type>( sump - sumd );
                break;
             default:
