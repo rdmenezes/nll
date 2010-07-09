@@ -61,6 +61,7 @@
     
     - when importing custom type: if a destructor has to be called, we MUST modify in the constructor the original object and NOT returning a new one! (and so might need to resize the vector)
     
+    - possibly TODO: if we authorize to pass array reference, we need to update the _forceUnref in AstExpAssign (like for typedef int[] IntArray; void fn( IntArray& a ){ int aa[5]; aa[ 0 ] = 18; a = aa;}  IntArray nn; fn( nn ); int n = nn[0]; --but with -- "void fn( int[]& a )" )
     - TODO typedef: class Test{int n; Test(){ n = 42; }} typedef Test Test2; Test2 t = Test2(); int n = t.n; => can't instanciate Test2, can't find constructor
     - TODO check same function & prototypes several times
     - TODO can't mix array & ref? check what should be the behaviour

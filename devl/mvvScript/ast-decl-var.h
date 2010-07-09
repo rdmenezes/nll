@@ -18,6 +18,7 @@ namespace parser
          ensure( type, "can't be null" );
   //       _index = -1;
          _indexRuntime = static_cast<ui32>( -1 );
+         _isFunctionVar = false;
       }
 
       ~AstDeclVar()
@@ -97,6 +98,16 @@ namespace parser
       {
          return _constructor;
       }
+
+      void setIsInFunctionPrototype()
+      {
+         _isFunctionVar = true;
+      }
+
+      bool getIsInFunctionPrototype() const
+      {
+         return _isFunctionVar;
+      }
 /*
       void setIndex( ui32 index )
       {
@@ -128,6 +139,7 @@ namespace parser
       AstArgs*             _objectInit;      // like "Test a(1, "sdfsf", Test3() )"
       AstDeclFun*          _constructor;
       ui32                 _indexRuntime;    // the index of the declaration in the runtime stack relative to the current frame pointer
+      bool                 _isFunctionVar;   // true if the variable is part of a function prototype
    };
 }
 }

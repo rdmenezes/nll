@@ -270,10 +270,21 @@ namespace parser
          RuntimeValue val = unref( _env.resultRegister );   // when a 'value' is copyied, this is always by value, so we need to remove ref... except if the type of lvalue is a reference
          RuntimeValue valRef = _env.resultRegister;   // in case it is a ref we need to save it...
 
+         bool forceCopyValue = false;
+         _forceUnref = false;
          operator()( e.getLValue() );
+         forceCopyValue = _forceUnref;
 
          const bool isRef = e.getLValue().getNodeType()->isReference();
 
+         /*
+         std::cout << "right=" << std::endl;
+         _debug( val );
+
+         std::cout << "left=" << std::endl;
+         _debug( unref(_env.resultRegister) );
+         */
+         
          /*
          if ( isRef && _env.resultRegister.type == RuntimeValue::EMPTY )
          {
@@ -288,7 +299,7 @@ namespace parser
          {
             _env.resultRegister = val;
          } else {
-            if ( isRef )
+            if ( isRef && unref( _env.resultRegister ).type == RuntimeValue::EMPTY && !forceCopyValue )   // if we have a ref and this ref doesn't have value, then copy the ref, else we copy by value
             {
                // TODO is this ok?
                assert( _env.resultRegister.type == RuntimeValue::REF );
@@ -305,6 +316,8 @@ namespace parser
       {
          AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
          assert( v ); // compiler error if this is not a decl
+         if ( v->getIsInFunctionPrototype() )
+            _forceUnref = true;  // in case a variable is in function prototype, if this var is a reference, we must force to copy the value in the assignment
 
          // for a class, always create a ref...
          if ( v->isClassMember() )
@@ -662,7 +675,7 @@ namespace parser
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                createArray( *_env.stack.rbegin(), vals, 0, e.getConstructorCall() );
 
-               _debug( *_env.stack.rbegin() );
+               //_debug( *_env.stack.rbegin() );
                return;
             }
          } else {
@@ -826,6 +839,7 @@ namespace parser
       ui32                 _level;     // scope depth
       bool                 _mustBreak; // true if we must break the current loop
       VisitorEvaluate*     _destructorEvaluator;
+      bool                 _forceUnref;
    };
 }
 }

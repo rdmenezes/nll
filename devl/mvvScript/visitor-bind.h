@@ -450,6 +450,11 @@ namespace parser
 
       virtual void operator()( AstDeclVar& e )
       {
+         if ( _isInFunctionDeclaration )
+         {
+            e.setIsInFunctionPrototype();
+         }
+
          // don't reference again the global scope...
          if ( _scopeDepth > 1 )
          {

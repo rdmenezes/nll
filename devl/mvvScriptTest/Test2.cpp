@@ -1845,23 +1845,29 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 42 );
       }
-/*
-   {
-         CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Vector3i { int vals[ 3 ]; Vector3i(){} int& operator[]( int index ){return vals[ index ];}}" );
-         TESTER_ASSERT( result == Error::SUCCESS );
-      }
+     
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "typedef int[] IntArray; void fn( IntArray& a ){ int aa[5]; aa[ 0 ] = 42; a = aa;}  IntArray nn; fn( n ); int n = nn[ 0 ];" );
+         Error::ErrorType result = fe.run( "class Test{ int& n; Test( int& nn ){ n = nn; } void inc(){ n = 1;}} int n8 = 0; Test test( n8 ); test.inc();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n8" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int[] IntArray; void fn( IntArray& a ){ int aa[5]; aa[ 0 ] = 18; a = aa;}  IntArray nn; fn( nn ); int n = nn[0];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt1.intval == 42 );
+         TESTER_ASSERT( rt1.intval == 18 );
       }
-      
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ typedef string STRING; } typedef Test Test_t; Test_t::STRING s = \"123\";" );
@@ -1872,22 +1878,11 @@ struct TestEval
          TESTER_ASSERT( rt1.stringval == "123" );
       }*/
    }
-
-      
-/*
-      
-      {
-         // check code export
-         CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" Segment s;" );
-         TESTER_ASSERT( result == Error::SUCCESS );
-      }
-*/
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
-TESTER_TEST(eval1);
-TESTER_TEST(eval2);
-TESTER_TEST(eval3);*/
+
+//TESTER_TEST(eval1);
+//TESTER_TEST(eval2);
+TESTER_TEST(eval3);
 TESTER_TEST_SUITE_END();
