@@ -61,6 +61,7 @@
     
     - when importing custom type: if a destructor has to be called, we MUST modify in the constructor the original object and NOT returning a new one! (and so might need to resize the vector)
     
+    - TODO typedef: class Test{int n; Test(){ n = 42; }} typedef Test Test2; Test2 t = Test2(); int n = t.n; => can't instanciate Test2, can't find constructor
     - TODO check same function & prototypes several times
     - TODO can't mix array & ref? check what should be the behaviour
     - TODO add covariant return type when inheritance added

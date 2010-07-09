@@ -59,7 +59,7 @@ namespace parser
       /**
        @check a class is constructible with 0 arguments
        */
-      AstDeclFun* checkDefaultConstructible( TypeNamed* ty, const YYLTYPE& loc )
+      AstDeclFun* checkDefaultConstructible( const TypeNamed* ty, const YYLTYPE& loc )
       {
          if ( ty )
          {
@@ -604,6 +604,27 @@ namespace parser
          default:
             ensure( 0, "compiler error: primitive type not handled" );
          }
+
+         if ( e.isArray() )
+         {
+            ui32 dim = 1;
+            if ( e.getSize() )
+            {
+               // we have this case: int a[ 4 ][ 5 ] => dim = 2
+               dim = e.getSize()->size();
+            } else {
+      
+               TypeArray* type = dynamic_cast<TypeArray*>( e.getNodeType() );
+               if ( type )
+               {
+                  dim += type->getDimentionality();
+                  e.setNodeType( new TypeArray( dim, type->getRoot(), false ) );
+                  return;
+               }
+            }
+
+            e.setNodeType( new TypeArray( dim, *e.getNodeType(), false ) );
+         }
       }
 
       virtual void operator()( AstDecls& e )
@@ -665,15 +686,15 @@ namespace parser
          {
             operator()( *e.getType() );
 
-            // special rule if the type of a function is an array! int[] test() => type returned is int instead of int[], so we need to update it!
-            if ( e.getType()->isArray() )
+            // TODO:REMOVE special rule if the type of a function is an array! int[] test() => type returned is int instead of int[], so we need to update it!
+            /*if ( e.getType()->isArray() )
             {
                Type* type = e.getType()->getNodeType();  // don't need to clone, just a ref for an array
                TypeArray* typeA = new TypeArray(0, *type, false );
                e.setNodeType( typeA ); // TODO: add reference is this feature is added later on...
-            } else {
+            } else {*/
                e.setNodeType( e.getType()->getNodeType()->clone() );
-            }
+            //}
          } else {
             // if not in class, type can't be empty
             if ( !e.getMemberOfClass() )
@@ -813,11 +834,16 @@ namespace parser
          if ( e.getType().isArray() )
          {
             // check there is a default contructor
-            TypeNamed* ty = dynamic_cast<TypeNamed*>( e.getType().getNodeType() );
+            TypeArray* arrayType = dynamic_cast<TypeArray*>( e.getType().getNodeType() );
+            ensure( arrayType, "compiler error: this is an array, so it must have array type!" );
+            const TypeNamed* ty = dynamic_cast<const TypeNamed*>( &arrayType->getRoot() );
             if ( ty )
             {
                AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
-               e.setConstructorCall( fn );
+               if ( fn )
+               {
+                  e.setConstructorCall( fn );
+               }
             }
             
             // else carry on...
@@ -836,7 +862,9 @@ namespace parser
             }
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
             ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
-            e.setNodeType( new TypeArray( size, *e.getType().getNodeType(), false ) );
+
+            Type& typeArray = *e.getType().getNodeType();
+            e.setNodeType( typeArray.clone() );
          } else {
             e.setNodeType( e.getType().getNodeType()->clone() );
          }
@@ -895,7 +923,10 @@ namespace parser
                {
                   // if we are in the declaration of a function, we are not constructing an object... so we shouldn't test this
                   AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
-                  e.setConstructorCall( fn );
+                  if ( fn )
+                  {
+                     e.setConstructorCall( fn );
+                  }
                }
             }
 
@@ -1037,7 +1068,10 @@ namespace parser
          } else {
             e.setVisited();
             operator()( e.getType() );
-            e.setNodeType( e.getType().getNodeType()->clone() );
+
+            // we don't want to have a typedef on a typedef... so unloop it!
+            Type* type = e.getType().getNodeType();
+            e.setNodeType( type->clone() );
          }
       }
 

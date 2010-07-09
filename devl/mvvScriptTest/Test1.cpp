@@ -2536,7 +2536,7 @@ struct TestBasic
 
 
 TESTER_TEST_SUITE(TestBasic);
-/*
+
 TESTER_TEST(testBinding2);
 TESTER_TEST(testBinding1);
 TESTER_TEST(testDummy2);
@@ -2544,7 +2544,7 @@ TESTER_TEST(testFull1);
 TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST(testFull2);
 TESTER_TEST(testType1);
-*/
+
 TESTER_TEST_SUITE_END();
 
 

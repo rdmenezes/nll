@@ -661,6 +661,8 @@ namespace parser
                // create the root of the array
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                createArray( *_env.stack.rbegin(), vals, 0, e.getConstructorCall() );
+
+               _debug( *_env.stack.rbegin() );
                return;
             }
          } else {

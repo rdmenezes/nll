@@ -89,6 +89,7 @@ namespace parser
       // in case a variable is a class, it needs to call the constructor
       void setConstructorCall( AstDeclFun* c )
       {
+         assert( c );
          _constructor = c;
       }
 

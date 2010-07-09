@@ -116,6 +116,7 @@ namespace parser
    class MVVSCRIPT_API TypeArray : public Type
    {
    public:
+      // dimensionality = number of dimensions of the array!
       TypeArray( ui32 dimensionality, const Type& root, bool isRef ) : _dimensionality( dimensionality ), _root( root ), Type( isRef )
       {
       }
@@ -147,7 +148,6 @@ namespace parser
       {
          return _root;
       }
-
 
       ui32 getDimentionality() const
       {
