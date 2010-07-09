@@ -1430,8 +1430,7 @@ struct TestEval
    }
 
    void eval2()
-   {
-    /* 
+   {/*
       {
          //
          // test volume loading
@@ -1636,7 +1635,7 @@ struct TestEval
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 0 );   // check we have correctly unloaded the volume
       }
 
-
+*/
       {
          // test tools
 
@@ -1656,10 +1655,10 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); SegmentToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; SegmentToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container ); segment1.setTool(toolPointer); segment1.setTool(toolPointer);" );
+         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); ToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; ToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container ); segment1.setTool(toolPointer); segment1.setTool(toolPointer);" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
-*/
+
      {
          // test tools
 
@@ -1883,6 +1882,6 @@ struct TestEval
 TESTER_TEST_SUITE(TestEval);
 
 //TESTER_TEST(eval1);
-//TESTER_TEST(eval2);
-TESTER_TEST(eval3);
+TESTER_TEST(eval2);
+//TESTER_TEST(eval3);
 TESTER_TEST_SUITE_END();
