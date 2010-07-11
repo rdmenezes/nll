@@ -1685,6 +1685,7 @@ struct TestEval
 
    void eval3()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ class Test2{} typedef int Test2;}" );
@@ -1866,6 +1867,22 @@ struct TestEval
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 18 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int INT; class INT{}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+*/
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int m; Test(int n ){ m = n; }} typedef Test TEST; TEST t = TEST(3); int n = t.m;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 3 );
+      }
       /*
       {
          CompilerFrontEnd fe;
@@ -1882,6 +1899,6 @@ struct TestEval
 TESTER_TEST_SUITE(TestEval);
 
 //TESTER_TEST(eval1);
-TESTER_TEST(eval2);
-//TESTER_TEST(eval3);
+//TESTER_TEST(eval2);
+TESTER_TEST(eval3);
 TESTER_TEST_SUITE_END();
