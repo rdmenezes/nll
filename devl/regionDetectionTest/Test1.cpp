@@ -69,7 +69,7 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       srand( 3 );
       RegionResult::generateFeatureDatabase();
 
@@ -352,6 +352,44 @@ struct TestRegion
       classifier.write( FINAL_SVM_CLASSIFIER );
    }
 
+   void learnMlp()
+   {
+      srand( 1 );
+
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierMlp<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      ui32 nbBins = 0;
+      std::vector<ui32> bins = createBins( nbBins );
+      Buffer1D<double> params = make_buffer1D<double>( 30, 0.5, 80 );
+
+      std::vector<ErrorReporting> reporting;
+      for ( ui32 n = 0; n < nbBins; ++n )
+      {
+         Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
+
+         Classifier classifier;
+         classifier.learn( selectedHaarDatabaseNormalized, params );
+         classifier.test( selectedHaarDatabaseNormalized );
+
+         //testResult( &classifier );
+         testResultVolumeDatabase( &classifier, bins, n, reporting );
+      }
+
+      // do the results' analysis
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( results.size() == measures.size(), "must be the same" );
+      analyseResults( reporting, measures, results );
+
+      // learn the full classifier
+      Classifier classifier;
+      classifier.learnAllDatabase( createLearningDatabase( bins, 0 ), params );
+      classifier.write( FINAL_SVM_CLASSIFIER );
+   }
+
    // do the full process from an actual volume on an independent dataset
    void testValidationDataSvm()
    {
@@ -546,7 +584,11 @@ struct TestRegion
             Buffer1D<double> f = test.getFeatures( i );
 
             f64 proba = 0;
+            core::Buffer1D<double> probas( NB_CLASS );
             ui32 r = test.rawTest( f, proba );
+            test.rawTest( f, probas );
+            probas.print(std::cout);
+
             idresult.sliceIds[ nn ] = r;
             idresult.probabilities[ nn ] = proba;
 
@@ -562,6 +604,21 @@ struct TestRegion
                p[ 0 ] = colors[ r ][ 0 ];
                p[ 1 ] = colors[ r ][ 1 ];
                p[ 2 ] = colors[ r ][ 2 ];
+            }
+
+            for ( ui32 label = 0; label < NB_CLASS; ++label )
+            {
+               const ui32 size = 3;
+               ui32 start = label * size + 20;
+               ui32 end = start + size;
+               for ( ui32 nnn = start; nnn < end; ++nnn )
+               {
+                  setColorIntensity( label, probas[ label ] );
+                  ui8* p = mprz.point( nnn, nn );
+                  p[ 0 ] = colors[ label ][ 0 ];
+                  p[ 1 ] = colors[ label ][ 1 ];
+                  p[ 2 ] = colors[ label ][ 2 ];
+               }
             }
          }
 
@@ -1095,7 +1152,7 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
-TESTER_TEST(createDatasets);
+//TESTER_TEST(createDatasets);
 
 // input: cases, mf2 volumes, output: XZ slice in preview directory
 //TESTER_TEST(createPreview);
@@ -1105,8 +1162,9 @@ TESTER_TEST(createDatasets);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
 TESTER_TEST(learnSvm);
+//TESTER_TEST(learnMlp);
 
-// input: validation-cases, validation volumes mf2
+// input: SVM model, validation-cases, validation volumes mf2
 //TESTER_TEST(testValidationDataSvm);
 
 //TESTER_TEST(extractXZFullResolution);

@@ -136,6 +136,11 @@ namespace detect
          return c;
       }
 
+      void rawTest( const Point& features, core::Buffer1D<double>& pb )
+      {
+         _classifier->test( features, pb );
+      }
+
       /**
        @brief export on a XZ mpr the classification result
        */

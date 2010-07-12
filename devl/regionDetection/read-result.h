@@ -335,7 +335,7 @@ namespace detect
                }
 
                // create additional slice for the skull
-               if ( results[ n ].neckStart > 0 && ( results[ n ].skullStart - results[ n ].neckStart ) > 30 )
+               if ( results[ n ].neckStart > 0 && ( results[ n ].skullStart - results[ n ].neckStart ) > 40 )
                {
                   ui32 sl1 = (ui32)( results[ n ].skullStart - 1 * ( results[ n ].skullStart - results[ n ].neckStart ) / 4 );
                   ui32 sl2 = (ui32)( results[ n ].skullStart - 2 * ( results[ n ].skullStart - results[ n ].neckStart ) / 4 );
