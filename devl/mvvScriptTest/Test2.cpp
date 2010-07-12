@@ -1873,7 +1873,31 @@ struct TestEval
          Error::ErrorType result = fe.run( "typedef int INT; class INT{}" );
          TESTER_ASSERT( result == Error::BIND );
       }
+
 */
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int TYPE; class Test{ Test(){} typedef string TYPE; TYPE n = \"test\";} Test t; string n = t.n;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "test" );
+      }
+      
+
+/*
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ typedef string STRING; } typedef Test Test_t; Test_t::STRING s = \"123\";" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "s" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "123" );
+      }
+*/
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ int m; Test(int n ){ m = n; }} typedef Test TEST; TEST t = TEST(3); int n = t.m;" );
@@ -1883,16 +1907,7 @@ struct TestEval
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 3 );
       }
-      /*
-      {
-         CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Test{ typedef string STRING; } typedef Test Test_t; Test_t::STRING s = \"123\";" );
-         TESTER_ASSERT( result == Error::SUCCESS );
-
-         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "s" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
-         TESTER_ASSERT( rt1.stringval == "123" );
-      }*/
+     */
    }
 };
 

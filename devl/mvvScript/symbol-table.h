@@ -263,7 +263,7 @@ namespace parser
          }
 
          // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
-         T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath )
+         T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath, const SymbolTableTypedef& typedefs )
          {
             Node* res = _find( path, -1 );
             if ( !res )
@@ -425,7 +425,7 @@ namespace parser
       {
          if ( !_root )
             return 0;
-         return _root->find_within_scope( path, fieldpath );
+         return _root->find_within_scope( path, fieldpath, typedefs );
       }
 
       const T* find_in_scope( const mvv::Symbol& s ) const

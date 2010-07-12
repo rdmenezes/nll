@@ -72,6 +72,9 @@ namespace parser
       }
 
       // TODO: handle typedef within field
+      // path: the current location at the time we request this specific class
+      // field: the field we fully need to match
+      // name: the name of the class
       AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
       {
          // A::D  B C
@@ -243,7 +246,7 @@ namespace parser
             AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, *e.getSymbol() );
             if ( !decl )
             {
-               AstTypedef* f = _typedefs.find( *e.getSymbol() );
+               AstTypedef* f = _typedefs.find( *e.getSymbol() );     // TODO: to remove! this must be integrated with the findClassDecl directly!
                if ( !f )
                {
                   impl::reportUndeclaredType( e.getLocation(), _context, "undeclared type" );
