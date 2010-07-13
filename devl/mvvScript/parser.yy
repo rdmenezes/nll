@@ -18,7 +18,7 @@
     - var[] array;		can contain any time of classes, type is directly known...
     - typename Test::Test2(); we need to be less accurate on the type so we can Test::test.a
     - namespace, static, public: namespace = class, default is public, static, can be in several files
-    - a name of function/variable/class must be unique, else confusing
+    - a name of function/variable/class must be unique, else confusing => to be changed
     - class declaration are global, function can only be declared in global scope but may have several functions with same name for overloading
     - operator +, = -, /, *, [], () have special meanings if not a primitive...
     - prmitive int, float, string

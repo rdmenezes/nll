@@ -611,7 +611,7 @@ namespace parser
             if ( e.getSize() )
             {
                // we have this case: int a[ 4 ][ 5 ] => dim = 2
-               dim = e.getSize()->size();
+               dim = (ui32)e.getSize()->size();
             } else {
       
                TypeArray* type = dynamic_cast<TypeArray*>( e.getNodeType() );

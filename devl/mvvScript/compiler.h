@@ -101,6 +101,7 @@ namespace parser
          _funcs.clear();
          _classes.clear();
          _executionTrees.clear();
+         _typedefs.clear();
          
          for ( ui32 n = 0; n < _handleLibs.size(); ++n )
          {
@@ -305,7 +306,7 @@ namespace parser
        */
       const Type* getType( const std::vector<mvv::Symbol>& path ) const
       {
-         const AstDeclClass* c = _classes.find( path );
+         const AstDeclClass* c = _classes.find( path, _typedefs );
          if ( !c )
          {
             return 0;
@@ -320,7 +321,7 @@ namespace parser
        */
       const AstDeclClass* getClass( const std::vector<mvv::Symbol>& path ) const
       {
-         const AstDeclClass* c = _classes.find( path );
+         const AstDeclClass* c = _classes.find( path, _typedefs );
          if ( !c )
          {
             return 0;
@@ -348,7 +349,7 @@ namespace parser
             std::vector<mvv::Symbol> pathToClass( path );
             pathToClass.pop_back();
 
-            AstDeclClass* c = _classes.find( pathToClass );
+            AstDeclClass* c = _classes.find( pathToClass, _typedefs );
             if ( !c )
             {
                return 0;

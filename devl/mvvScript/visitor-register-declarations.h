@@ -71,13 +71,15 @@ namespace parser
          _typedefs.begin_scope( e.getName() );
          _defaultClassPath.push_back( e.getName() );
 
+         /*
+         // TODO: remove this restriction?
          if ( _vars.find( e.getName() ) )
          {
             // we know we have at least 1 function declared...
             impl::reportAlreadyDeclaredType( _vars.find( e.getName() )->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
             operator()( e.getDeclarations() );
             return;
-         }
+         }*/
 
          SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
          if ( it != _funcs.end() )
@@ -88,13 +90,13 @@ namespace parser
             return;
          }
 
-         const AstDeclClass* decl = _classes.find_in_scope( e.getName() );
+         const AstDeclClass* decl = _classes.find( _defaultClassPath, _typedefs );  // check we don't have 2 classes with the same name
          if ( decl )
          {
             impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
             operator()( e.getDeclarations() );
             return;
-         } 
+         }
 
          // no error
          ++_scopeDepth;
@@ -159,7 +161,7 @@ namespace parser
                impl::reportAlreadyDeclaredType( var->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
                return;
             }
-            const AstDeclClass* decl = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ) );
+            const AstDeclClass* decl = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ), _typedefs );
             if ( decl )
             {
                impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
@@ -214,6 +216,8 @@ namespace parser
          // if global scope, add it to the symbol table
          if ( _scopeDepth == 1 )
          {
+            /*
+            // TODO: check! it is fine to declare a variable that has the same name than a type!
             const AstDeclClass* decl = _classes.find_in_scope( e.getName() );
             if ( decl )
             {
@@ -226,7 +230,7 @@ namespace parser
             {
                impl::reportAlreadyDeclaredType( decl2->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
                return;
-            }
+            }*/
 
             SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
             if ( it != _funcs.end() )

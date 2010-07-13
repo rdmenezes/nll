@@ -174,6 +174,7 @@ struct TestEval
             TESTER_ASSERT(0);
          }
       }
+      
 
 
       {
@@ -1430,7 +1431,7 @@ struct TestEval
    }
 
    void eval2()
-   {/*
+   {
       {
          //
          // test volume loading
@@ -1635,7 +1636,6 @@ struct TestEval
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 0 );   // check we have correctly unloaded the volume
       }
 
-*/
       {
          // test tools
 
@@ -1808,7 +1808,7 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 2 );
       }
-      
+      */
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{int n; Test(){ n = 42; }} typedef Test[] TestArray; TestArray aa; Test aa1[ 5 ]; aa = aa1; int n = aa[ 4 ].n;" );
@@ -1874,7 +1874,7 @@ struct TestEval
          TESTER_ASSERT( result == Error::BIND );
       }
 
-*/
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef int TYPE; class Test{ Test(){} typedef string TYPE; TYPE n = \"test\";} Test t; string n = t.n;" );
@@ -1895,9 +1895,8 @@ struct TestEval
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "s" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
          TESTER_ASSERT( rt1.stringval == "123" );
-      }
-*/
-      /*
+      } */
+/*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ int m; Test(int n ){ m = n; }} typedef Test TEST; TEST t = TEST(3); int n = t.m;" );
@@ -1907,6 +1906,9 @@ struct TestEval
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 3 );
       }
+*/
+      /*
+      
      */
    }
 };

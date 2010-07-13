@@ -170,6 +170,10 @@ namespace parser
 
       AstTypedef* find( mvv::Symbol v );
 
+      // find the exact match of the symbols, assuming v0.. v(n-1) is a class and v(n) is a typedef, returns typedef v(n)
+      AstTypedef* findExact( const std::vector<mvv::Symbol>& v );
+      const AstTypedef* findExact( const std::vector<mvv::Symbol>& v ) const;
+
       SymbolTableTypedef& operator=( const SymbolTableTypedef& cpy )
       {
          _scopes = cpy._scopes;
@@ -187,13 +191,19 @@ namespace parser
          _current = &_scopes;
       }
 
+      void clear()
+      {
+         _scopes = Scope();
+         resetScope();
+      }
+
    private:
       Scope    _scopes;
       Scope*   _current;
    };
 
 
-   
+   /*
    template <class T>
    class SymbolTableDictionary
    {
@@ -249,9 +259,9 @@ namespace parser
             return 0;
          }
 
-         /**
-          Use the current position, find predecessors until global scope
-          */
+         //
+         // Use the current position, find predecessors until global scope
+         //
          T* find_in_scope( const mvv::Symbol& s )
          {
             if ( s == name )
@@ -462,6 +472,166 @@ namespace parser
    private:
       Node* _root;
       Node* _current;
+   };*/
+
+   // we handle separately the typedef and class definition
+   // the typedef and class tables are created independently
+   // the look up of typedef is independent
+   // HOWEVER lookup of a classpath is dependent of the typedefs
+   class MVVSCRIPT_API SymbolTableClasses
+   {
+   public:
+      struct Scope
+      {
+         Scope() : name( mvv::Symbol::create( "" ) ), decl( 0 ), pred( 0 )
+         {
+         }
+
+         Scope( mvv::Symbol s, AstDeclClass* d, Scope* p ) : name( s ), decl( d ), pred( p )
+         {
+         }
+
+         mvv::Symbol                      name;
+         AstDeclClass*                    decl;
+         Scope*                           pred;
+         std::vector<Scope>               scopes;
+      };
+
+      SymbolTableClasses()
+      {
+         // create the global scope with name ""
+         resetScope();
+      }
+
+      // create a new scope from the current position
+      void begin_scope( mvv::Symbol s, AstDeclClass* d )
+      {
+         assert( _current );
+         _current->scopes.push_back( Scope( s, d, _current ) );
+         _current = &_current->scopes[ _current->scopes.size() - 1 ];
+      }
+
+      void end_scope()
+      {
+         assert( _current && _current->pred );
+         //if ( _current->pred )
+         {
+            _current = _current->pred;
+         }
+      }
+
+      void clear()
+      {
+         _scopes = Scope();
+         resetScope();
+      }
+
+      // find a match for, with the full list of symbols
+      AstDeclClass* find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs )
+      {
+         return const_cast<AstDeclClass*>( _find( s, typedefs ) );
+      }
+      
+
+      const AstDeclClass* find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const
+      {
+         return _find( s, typedefs );
+      }
+
+      // find a match for, with the full list of symbols
+      const AstDeclClass* _find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const;
+
+
+      // returns the path of a class, there must be _NO_ typedef in the path
+      const Scope* _findNoTypedef( const std::vector<mvv::Symbol>& s ) const
+      {
+         Scope* current = const_cast<Scope*>( &_scopes );   // we guarantee there will be no change!
+
+         for ( ui32 n = 0; n < s.size(); ++n )
+         {
+            for ( ui32 nn = 0; nn < current->scopes.size(); ++nn )
+            {
+               if ( current->scopes[ nn ].name == s[ n ] )
+               {
+                  // found it!
+                  current = &current->scopes[ nn ];
+                  continue;
+               }
+            }
+            return 0;
+         }
+         return current;
+      }
+
+      Scope* _findNoTypedef( const std::vector<mvv::Symbol>& s )
+      {
+         Scope* current = &_scopes;
+
+         for ( ui32 n = 0; n < s.size(); ++n )
+         {
+            for ( ui32 nn = 0; nn < current->scopes.size(); ++nn )
+            {
+               if ( current->scopes[ nn ].name == s[ n ] )
+               {
+                  // found it!
+                  current = &current->scopes[ nn ];
+                  continue;
+               }
+            }
+            return 0;
+         }
+         return current;
+      }
+
+
+      // find a declaration in the class: it will look in the class for the full field, then the superclass and so on until global scope included
+      AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const SymbolTableTypedef& typedefs )
+      {
+         for ( ui32 nn = 0; nn < path.size(); ++nn )
+         {
+            std::vector<mvv::Symbol> path2( path.size() - nn );
+            for ( ui32 n = 0; n < path2.size(); ++n )
+               path2[ n ] = path[ n ];
+            for ( ui32 n = 0; n < field.size(); ++n )
+               path2.push_back( field[ n ] );
+            AstDeclClass* c = find( path2, typedefs );
+            if ( c )
+               return c;
+         }
+
+         // check global scope
+         return find( field, typedefs );
+      }
+
+      // find a symbol in the class given by the full path
+      AstDeclClass* find_in_class( const std::vector<mvv::Symbol>& path, const mvv::Symbol& field, const SymbolTableTypedef& typedefs )
+      {
+         std::vector<mvv::Symbol> path2 = path;
+         path2.push_back( field );
+         return find( path2, typedefs );
+      }
+
+      // reinit the current scope to the root
+      void resetScope()
+      {
+         _current = &_scopes;
+      }
+
+      SymbolTableClasses& operator=( const SymbolTableClasses& cpy )
+      {
+         _scopes = cpy._scopes;
+         resetScope();
+         return *this;
+      }
+
+      SymbolTableClasses( const SymbolTableClasses& cpy )
+      {
+         operator=( cpy );
+      }
+
+   private:
+      Scope    _scopes;
+      Scope*   _current;
    };
 
    struct FunctionTable
@@ -477,8 +647,6 @@ namespace parser
 
    typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table
    typedef std::map<mvv::Symbol, FunctionTable>               SymbolTableFuncs;    /// We only need to store functions in global scope
-   typedef SymbolTableDictionary<AstDeclClass>                SymbolTableClasses;  /// tree-like storage for classes
-  // typedef SymbolTableScope<AstTypedef>                       SymbolTableTypedef;  /// tree-like storage for typedef
 }
 }
 

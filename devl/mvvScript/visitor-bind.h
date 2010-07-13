@@ -92,7 +92,7 @@ namespace parser
             {
                up.push_back( field[ n ] );
             }
-            AstDeclClass* current = _classes.find_in_class( up, name );
+            AstDeclClass* current = _classes.find_in_class( up, name, _typedefs );
             if ( current )
                return current;
 
@@ -104,19 +104,27 @@ namespace parser
                return within;
 
             // finally check global scope
-            AstDeclClass* global = _classes.find( up2 );
+            AstDeclClass* global = _classes.find( up2, _typedefs );
             if ( global )
                return global;
             return 0;
          } else {
             // current class
-            AstDeclClass* current = _classes.find_in_class( _defaultClassPath, name );
+            AstDeclClass* current = _classes.find_in_class( _defaultClassPath, name, _typedefs );
             if ( current )
                return current;
-            AstDeclClass* within = _classes.find_within_scope( _defaultClassPath, name );
+            AstDeclClass* within = _classes.find_within_scope( _defaultClassPath, nll::core::make_vector<mvv::Symbol>( name ), _typedefs );
             if ( within )
                return within;
-            return _classes.find( nll::core::make_vector<mvv::Symbol>( name ) );
+            AstDeclClass* c = _classes.find( nll::core::make_vector<mvv::Symbol>( name ), _typedefs );
+            if ( c )
+               return c;
+            AstTypedef* t = _typedefs.find( name );
+            if ( t )
+            {
+               return dynamic_cast<AstDeclClass*>( t->getType().getReference() );
+            }
+            return 0;
          }
       }
 
@@ -235,7 +243,7 @@ namespace parser
                impl::reportUndeclaredType( e.getLocation(), _context, "this can only be declared in a class scope" );
                return;
             }
-            e.setReference( _classes.find( _defaultClassPath ) );
+            e.setReference( _classes.find( _defaultClassPath, _typedefs ) );
          }
       }
 
@@ -246,7 +254,7 @@ namespace parser
             AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, *e.getSymbol() );
             if ( !decl )
             {
-               AstTypedef* f = _typedefs.find( *e.getSymbol() );     // TODO: to remove! this must be integrated with the findClassDecl directly!
+               AstTypedef* f = _typedefs.find( *e.getSymbol() );     // TODO? this is fine: it should be only for typedef on basic types!
                if ( !f )
                {
                   impl::reportUndeclaredType( e.getLocation(), _context, "undeclared type" );
@@ -392,7 +400,7 @@ namespace parser
             impl::reportUndeclaredType( e.getLocation(), _context, "this can only be declared in a class scope" );
             return;
          } else {
-            e.setReference( _classes.find( _defaultClassPath ) );
+            e.setReference( _classes.find( _defaultClassPath, _typedefs ) );
          }
       }
 
@@ -483,7 +491,7 @@ namespace parser
                if ( !_isInFunction )
                {
                   // if we are in a class && not in a function, we must link variable to the class
-                  AstDeclClass* currentClass = _classes.find( _defaultClassPath );
+                  AstDeclClass* currentClass = _classes.find( _defaultClassPath, _typedefs );
                   if ( currentClass )
                   {
                      e.setClassMember( currentClass );

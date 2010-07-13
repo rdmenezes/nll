@@ -105,7 +105,7 @@ namespace parser
          _pathToAccess = p;
       }
 
-      const std::vector<mvv::Symbol>& setAccessPath() const
+      const std::vector<mvv::Symbol>& getAccessPath() const
       {
          return _pathToAccess;
       }
