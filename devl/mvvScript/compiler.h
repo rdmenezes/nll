@@ -306,7 +306,7 @@ namespace parser
        */
       const Type* getType( const std::vector<mvv::Symbol>& path ) const
       {
-         const AstDeclClass* c = _classes.find( path, _typedefs );
+         const AstDecl* c = _classes.find( path, _typedefs );
          if ( !c )
          {
             return 0;
@@ -321,13 +321,13 @@ namespace parser
        */
       const AstDeclClass* getClass( const std::vector<mvv::Symbol>& path ) const
       {
-         const AstDeclClass* c = _classes.find( path, _typedefs );
+         const AstDecl* c = _classes.find( path, _typedefs );
          if ( !c )
          {
             return 0;
          }
 
-         return c;
+         return dynamic_cast<const AstDeclClass*>( c );
       }
 
       /**
@@ -349,13 +349,16 @@ namespace parser
             std::vector<mvv::Symbol> pathToClass( path );
             pathToClass.pop_back();
 
-            AstDeclClass* c = _classes.find( pathToClass, _typedefs );
+            AstDecl* c = _classes.find( pathToClass, _typedefs );
             if ( !c )
             {
                return 0;
             }
 
-            possible = VisitorType::getFunctionsFromClass( *c, path[ path.size() - 1 ] );
+            AstDeclClass* cc = dynamic_cast<AstDeclClass*>( c );
+            if ( !cc )
+               return 0;
+            possible = VisitorType::getFunctionsFromClass( *cc, path[ path.size() - 1 ] );
          }
 
          return getMatchingFunction( possible, prototype );

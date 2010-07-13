@@ -67,9 +67,9 @@ namespace parser
 
       virtual void operator()( AstDeclClass& e )
       {
-         e.setAccessPath( _defaultClassPath );
          _typedefs.begin_scope( e.getName() );
          _defaultClassPath.push_back( e.getName() );
+         e.setAccessPath( _defaultClassPath );
 
          /*
          // TODO: remove this restriction?
@@ -90,7 +90,7 @@ namespace parser
             return;
          }
 
-         const AstDeclClass* decl = _classes.find( _defaultClassPath, _typedefs );  // check we don't have 2 classes with the same name
+         const AstDecl* decl = _classes.find( _defaultClassPath, _typedefs );  // check we don't have 2 classes with the same name
          if ( decl )
          {
             impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
@@ -161,7 +161,7 @@ namespace parser
                impl::reportAlreadyDeclaredType( var->getLocation(), e.getLocation(), _context, "a variable has already been declared with this name" );
                return;
             }
-            const AstDeclClass* decl = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ), _typedefs );
+            const AstDecl* decl = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ), _typedefs );
             if ( decl )
             {
                impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );

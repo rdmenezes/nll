@@ -487,6 +487,12 @@ namespace parser
             }
          }
 
+         //
+         // TODO: in "construction" => there is a link to find the class in case a typedef on a class and instanciate it...
+         // class Test{ int m; Test(int n ){ m = n; }} typedef Test TEST; TEST t = TEST(3); int n = t.m;
+         //
+
+
          if ( funcs.size() == 0 )
          {
             impl::reportTypeError( e.getName().getLocation(), _context, "no function matching the arguments found" );

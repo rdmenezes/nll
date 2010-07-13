@@ -83,12 +83,25 @@ namespace parser
             Scope::Iter it = c->scopes.find( v[ n ] );
             if ( it == c->scopes.end() )
                return 0;
+            c = &it->second;
          }
       }
       return 0;
    }
 
-   const AstDeclClass* SymbolTableClasses::_find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const
+   const AstDeclClass* SymbolTableClasses::_findClassFromTypedef( const AstTypedef* match )
+   {
+      // we found a typedef: get the actual class
+      AstDecl* decl = match->getType().getReference();
+      if ( !decl )
+         return 0;
+      //ensure( decl, "compiler error: there must be a reference!" );
+      AstDeclClass* declc = dynamic_cast<AstDeclClass*>( decl );
+      ensure( declc, "compiler error: it must be a class declaration" );
+      return declc;
+   }
+
+   const AstDecl* SymbolTableClasses::_find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const
    {
       Scope* current = const_cast<Scope*>( &_scopes );   // we guarantee there will be no change!
       std::vector<mvv::Symbol> symbolsMatched;
@@ -105,27 +118,23 @@ namespace parser
                symbolsMatched.push_back( s[ n ] );
                found = true;
                break;
-            } else {
-               symbolsMatched.push_back( s[ n ] );
-               const AstTypedef* match = typedefs.findExact( symbolsMatched );
-               if ( !match )
-                  continue;
-               // we found a typedef: get the actual class
-               AstDecl* decl = match->getType().getReference();
-               if ( !decl )
-                  return 0;
-               //ensure( decl, "compiler error: there must be a reference!" );
-               AstDeclClass* declc = dynamic_cast<AstDeclClass*>( decl );
-               ensure( declc, "compiler error: it must be a class declaration" );
-               current = const_cast<Scope*>( _findNoTypedef( declc->getAccessPath() ) );
-               ensure( declc, "compiler error: we must be able to find the typedef declaration!" );
-               found = true;
-               break;
-            }
+            } 
          }
 
          if ( !found )
-            return 0;
+         {
+            // try the typedef, else it doesn't exist...
+            symbolsMatched.push_back( s[ n ] );
+            const AstTypedef* match = typedefs.findExact( symbolsMatched );
+            if ( !match )
+               return 0;
+            if ( match && ( n + 1 ) == s.size() )
+               return match;  // if this is the last, we actually need to return the typedef itselft and not the reference
+            const AstDeclClass* declc = _findClassFromTypedef( match );
+            ensure( declc, "compiler error: we must be able to find the typedef declaration!" );
+            current = const_cast<Scope*>( _findNoTypedef( declc->getAccessPath() ) );
+            symbolsMatched = declc->getAccessPath();  // we need to update the current path
+         }
       }
 
       if ( current )

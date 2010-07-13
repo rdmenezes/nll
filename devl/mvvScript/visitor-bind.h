@@ -75,7 +75,7 @@ namespace parser
       // path: the current location at the time we request this specific class
       // field: the field we fully need to match
       // name: the name of the class
-      AstDeclClass* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
+      AstDecl* findClassDecl( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const mvv::Symbol& name )
       {
          // A::D  B C
          // first: - check the local path A::D, look for C from here
@@ -85,6 +85,11 @@ namespace parser
 
          if ( field.size() )
          {
+            std::vector<mvv::Symbol> up = field;
+            up.push_back( name );
+            AstDecl* current = _classes.find_within_scope( path, up, _typedefs );
+            return current;
+            /*
             // local
             // concatenate the field to the path
             std::vector<mvv::Symbol> up( path );
@@ -92,37 +97,38 @@ namespace parser
             {
                up.push_back( field[ n ] );
             }
-            AstDeclClass* current = _classes.find_in_class( up, name, _typedefs );
+            AstDecl* current = _classes.find_in_class( up, name, _typedefs );
             if ( current )
                return current;
 
             // check within class
             std::vector<mvv::Symbol> up2( field );
             up2.push_back( name );
-            AstDeclClass* within = _classes.find_within_scope( path, up2, _typedefs );
+            AstDecl* within = _classes.find_within_scope( path, up2, _typedefs );
             if ( within )
                return within;
 
             // finally check global scope
-            AstDeclClass* global = _classes.find( up2, _typedefs );
+            AstDecl* global = _classes.find( up2, _typedefs );
             if ( global )
                return global;
             return 0;
+            */
          } else {
             // current class
-            AstDeclClass* current = _classes.find_in_class( _defaultClassPath, name, _typedefs );
+            AstDecl* current = _classes.find_in_class( _defaultClassPath, name, _typedefs );
             if ( current )
                return current;
-            AstDeclClass* within = _classes.find_within_scope( _defaultClassPath, nll::core::make_vector<mvv::Symbol>( name ), _typedefs );
+            AstDecl* within = _classes.find_within_scope( _defaultClassPath, nll::core::make_vector<mvv::Symbol>( name ), _typedefs );
             if ( within )
                return within;
-            AstDeclClass* c = _classes.find( nll::core::make_vector<mvv::Symbol>( name ), _typedefs );
+            AstDecl* c = _classes.find( nll::core::make_vector<mvv::Symbol>( name ), _typedefs );
             if ( c )
                return c;
             AstTypedef* t = _typedefs.find( name );
             if ( t )
             {
-               return dynamic_cast<AstDeclClass*>( t->getType().getReference() );
+               return t;
             }
             return 0;
          }
@@ -188,7 +194,7 @@ namespace parser
             {
                // there is a callExp so check class/function
                SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
-               AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+               AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
                if ( !decl && it == _funcs.end() )
                {
                   impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
@@ -251,7 +257,7 @@ namespace parser
       {
          if ( e.getType() == AstType::SYMBOL )
          {
-            AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, *e.getSymbol() );
+            AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, *e.getSymbol() );
             if ( !decl )
             {
                AstTypedef* f = _typedefs.find( *e.getSymbol() );     // TODO? this is fine: it should be only for typedef on basic types!
@@ -444,10 +450,26 @@ namespace parser
                e.setInstanciation( c );
             } else {
                // construction of an object
-               AstDeclClass* declClass = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );
-               if ( declClass )
+               AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );
+               if ( decl )
                {
-                  e.setConstructed( declClass );
+                  AstDeclClass* declClass = dynamic_cast<AstDeclClass*>( decl );
+                  if ( declClass )
+                  {
+                     // if this is a class, perfect!
+                     e.setConstructed( declClass );
+                  } else {
+                     // else it has to be a typedef...
+                     AstTypedef* declTypedef = dynamic_cast<AstTypedef*>( decl );
+                     ensure( declTypedef, "should normally be a class declaration. TODO Check!" );
+                     ensure( declTypedef->getType().getReference(), "compiler error: no ref" );
+                     AstDeclClass* declClass  = dynamic_cast<AstDeclClass*>( declTypedef->getType().getReference() );
+                     if ( declClass )
+                        e.setConstructed( declClass );
+                     else {
+                        impl::reportUndeclaredType( declTypedef->getLocation(), _context, "this typedef must be a typedef on a type!" );
+                     }
+                  }
                } else {
                   // simple function call, nothing to do in the binding visitor
                   //impl::reportUndeclaredType( var->getLocation(), _context, "can't find construct an undefined class" );
@@ -469,7 +491,7 @@ namespace parser
          // don't reference again the global scope...
          if ( _scopeDepth > 1 )
          {
-            const AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+            const AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
             if ( decl )
             {
                impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
@@ -491,9 +513,11 @@ namespace parser
                if ( !_isInFunction )
                {
                   // if we are in a class && not in a function, we must link variable to the class
-                  AstDeclClass* currentClass = _classes.find( _defaultClassPath, _typedefs );
-                  if ( currentClass )
+                  AstDecl* current = _classes.find( _defaultClassPath, _typedefs );
+                  if ( current )
                   {
+                     AstDeclClass* currentClass = dynamic_cast<AstDeclClass*>( current );
+                     ensure( currentClass, "it must be a class!" );
                      e.setClassMember( currentClass );
                   }
                }
@@ -545,7 +569,7 @@ namespace parser
          _typedefs.begin_scope( e.getName() );
          
          
-         AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+         AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
          // the final type will be checked, we don't need to check each typefield...
          if ( !decl )
          {
@@ -636,8 +660,8 @@ namespace parser
       virtual void operator()( AstTypedef& e )
       {
          // check class & typedef name doesn't clash
-         const AstDeclClass* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
-         if ( decl )
+         const AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
+         if ( decl && dynamic_cast<const AstDeclClass*>( decl ) ) // we only check there is no class with this name
          {
             impl::reportError( decl->getLocation(), _context, "typename: a class has already been declared with this name in this scope" );
          }

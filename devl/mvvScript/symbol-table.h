@@ -527,19 +527,20 @@ namespace parser
       }
 
       // find a match for, with the full list of symbols
-      AstDeclClass* find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs )
+      AstDecl* find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs )
       {
-         return const_cast<AstDeclClass*>( _find( s, typedefs ) );
+         return const_cast<AstDecl*>( _find( s, typedefs ) );
       }
       
 
-      const AstDeclClass* find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const
+      const AstDecl* find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const
       {
          return _find( s, typedefs );
       }
 
       // find a match for, with the full list of symbols
-      const AstDeclClass* _find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const;
+      const AstDecl* _find( const std::vector<mvv::Symbol>& s, const SymbolTableTypedef& typedefs ) const;
+      static const AstDeclClass* _findClassFromTypedef( const AstTypedef* t );
 
 
       // returns the path of a class, there must be _NO_ typedef in the path
@@ -549,16 +550,19 @@ namespace parser
 
          for ( ui32 n = 0; n < s.size(); ++n )
          {
+            bool found = false;
             for ( ui32 nn = 0; nn < current->scopes.size(); ++nn )
             {
                if ( current->scopes[ nn ].name == s[ n ] )
                {
                   // found it!
                   current = &current->scopes[ nn ];
-                  continue;
+                  found = true;
+                  break;
                }
             }
-            return 0;
+            if ( !found )
+               return 0;
          }
          return current;
       }
@@ -569,23 +573,26 @@ namespace parser
 
          for ( ui32 n = 0; n < s.size(); ++n )
          {
+            bool found = false;
             for ( ui32 nn = 0; nn < current->scopes.size(); ++nn )
             {
                if ( current->scopes[ nn ].name == s[ n ] )
                {
                   // found it!
                   current = &current->scopes[ nn ];
-                  continue;
+                  found = true;
+                  break;
                }
             }
-            return 0;
+            if ( !found )
+               return 0;
          }
          return current;
       }
 
 
       // find a declaration in the class: it will look in the class for the full field, then the superclass and so on until global scope included
-      AstDeclClass* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const SymbolTableTypedef& typedefs )
+      AstDecl* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& field, const SymbolTableTypedef& typedefs )
       {
          for ( ui32 nn = 0; nn < path.size(); ++nn )
          {
@@ -594,7 +601,7 @@ namespace parser
                path2[ n ] = path[ n ];
             for ( ui32 n = 0; n < field.size(); ++n )
                path2.push_back( field[ n ] );
-            AstDeclClass* c = find( path2, typedefs );
+            AstDecl* c = find( path2, typedefs );
             if ( c )
                return c;
          }
@@ -604,7 +611,7 @@ namespace parser
       }
 
       // find a symbol in the class given by the full path
-      AstDeclClass* find_in_class( const std::vector<mvv::Symbol>& path, const mvv::Symbol& field, const SymbolTableTypedef& typedefs )
+      AstDecl* find_in_class( const std::vector<mvv::Symbol>& path, const mvv::Symbol& field, const SymbolTableTypedef& typedefs )
       {
          std::vector<mvv::Symbol> path2 = path;
          path2.push_back( field );
