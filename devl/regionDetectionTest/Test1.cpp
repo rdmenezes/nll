@@ -418,21 +418,49 @@ struct TestRegion
          TESTER_ASSERT( loaded );
          measures.push_back( RegionResult::Measure( results[ nn ].id, volume.size()[ 2 ], volume.size()[ 2 ] * volume.getSpacing()[ 2 ] ) );
 
-         // compute the locations
-         TestVolume::Result pbs;
-         TestVolume::ResultFinal final = test.test( volume, pbs );
-
          // vizualise the results
          Image<ui8> mprz = extractXZ( volume );
          extend( mprz, 3 );
 
+         // compute the locations
+         TestVolume::Result pbs;
+         TestVolume::ResultFinal final = test.test( volume, pbs );
+
          // results
-         previewLabel( mprz, 20, mprz.sizex() / 2, make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
-
-
+         previewLabel( mprz, 40, mprz.sizex() / 2, make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
          Buffer1D<float> labelsmm = make_buffer1D<float>( 0, final.neckStart * volume.getSpacing()[ 2 ], final.heartStart * volume.getSpacing()[ 2 ], final.lungStart * volume.getSpacing()[ 2 ], final.skullStart * volume.getSpacing()[ 2 ], final.hipsStart * volume.getSpacing()[ 2 ] );
-
          corrector.correct( labelsmm );
+
+         /*
+         // uncomment to display label probabilities
+         for ( ui32 y = 0; y < mprz.sizey(); ++y )
+         {
+            Buffer1D<double> f = test.getFeatures( volume, y );
+
+            core::Buffer1D<double> probas( NB_CLASS );
+            test.rawTest( f, probas );
+            probas.print(std::cout);
+
+            for ( ui32 i = 0; i < NB_CLASS; ++i )
+            {
+               setColorIntensity( i, probas[ i ] );
+            }
+
+            for ( ui32 label = 0; label < NB_CLASS; ++label )
+            {
+               const ui32 size = 3;
+               ui32 start = label * size + 20;
+               ui32 end = start + size;
+               for ( ui32 nnn = start; nnn < end; ++nnn )
+               {
+                  setColorIntensity( label, probas[ label ] );
+                  ui8* p = mprz.point( nnn, y );
+                  p[ 0 ] = colors[ label ][ 0 ];
+                  p[ 1 ] = colors[ label ][ 1 ];
+                  p[ 2 ] = colors[ label ][ 2 ];
+               }
+            }
+         }*/
 
          for ( ui32 i = 1; i < NB_CLASS; ++i )
             labelsmm[ i ] /= volume.getSpacing()[ 2 ];
@@ -441,6 +469,10 @@ struct TestRegion
          final.lungStart  = labelsmm[ 3 ];
          final.skullStart = labelsmm[ 4 ];
          final.hipsStart  = labelsmm[ 5 ];
+         for ( ui32 i = 0; i < NB_CLASS; ++i )
+         {
+            setColorIntensity( i, 1 );
+         }
          previewLabel( mprz, mprz.sizex() / 2, mprz.sizex(), make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
 
          for ( ui32 i = 0; i < NB_CLASS; ++i )
@@ -1147,6 +1179,11 @@ struct TestRegion
       RegionResult::writeMeasures( measuresTraining, DATABASE_MEASURES_CORRECTION );
       analyseResults( reportingCorrected, measures, results );
    }
+
+   void displaySpacingStatistics()
+   {
+
+   }
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
@@ -1172,4 +1209,5 @@ TESTER_TEST(learnSvm);
 //TESTER_TEST(registrationExport);
 
 //TESTER_TEST(testSelectedTemplate);
+TESTER_TEST(displaySpacingStatistics);
 TESTER_TEST_SUITE_END();
