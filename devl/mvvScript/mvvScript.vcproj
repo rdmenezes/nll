@@ -557,6 +557,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ast-type.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ast-type.h"
 				>
 			</File>

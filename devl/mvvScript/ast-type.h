@@ -137,6 +137,53 @@ namespace parser
       mvv::Symbol*         _symbol;
       Type                 _type;
    };
+
+   class MVVSCRIPT_API AstFunctionType : public AstTypeT
+   {
+   public:
+      AstFunctionType( const YYLTYPE& location, AstTypeT* returnType, AstDeclVars* args ) : AstTypeT( location, 0 ), _returnType( returnType ), _args( args )
+      {
+         ensure( returnType && args, "can't be null" );
+      }
+
+      ~AstFunctionType();
+
+      const AstTypeT& getType() const
+      {
+         return *_returnType;
+      }
+
+      AstTypeT& getType()
+      {
+         return *_returnType;
+      }
+
+      const AstDeclVars& getArgs() const
+      {
+         return *_args;
+      }
+
+      AstDeclVars& getArgs()
+      {
+         return *_args;
+      }
+
+      /// Accept a const visitor \a v.
+      virtual void accept( ConstVisitor& v ) const
+      {
+         v( *this );
+      }
+
+      /// Accept a non-const visitor \a v.
+      virtual void accept( Visitor& v )
+      {
+         v( *this );
+      }
+
+   private:
+      AstTypeT*      _returnType;
+      AstDeclVars*   _args;
+   };
 }
 }
 

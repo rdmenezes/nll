@@ -9,6 +9,7 @@ namespace mvv
 namespace parser
 {
    class AstDeclClass;
+   class TypeFunctionPointer;
 
    class MVVSCRIPT_API Type
    {
@@ -208,10 +209,7 @@ namespace parser
       {
       }
 
-      virtual bool isCompatibleWith( const Type& t ) const
-      {
-         return dynamic_cast<const TypeNamed*>( &t ) != 0;
-      }
+      virtual bool isCompatibleWith( const Type& t ) const;
 
       virtual Type* clone() const
       {
@@ -222,6 +220,48 @@ namespace parser
       {
          return dynamic_cast<const TypeNil*>( &t ) != 0;
       }
+   };
+
+   class MVVSCRIPT_API TypeFunctionPointer : public Type
+   {
+   public:
+      TypeFunctionPointer( bool ref, Type* returnType, const std::vector<Type*>& args, Type* classDecl = 0 ) : Type( ref ), _returnType( returnType ), _args( args ), _classDecl( classDecl )
+      {
+         assert( returnType );
+      }
+
+      virtual bool isCompatibleWith( const Type& t ) const
+      {
+         const TypeNil* fn = dynamic_cast<const TypeNil*>( &t );
+         if ( fn )
+            return true;   // we can assign pointer = NULL
+         return isEqual( t );
+      }
+
+      virtual Type* clone() const
+      {
+         return new TypeFunctionPointer( isReference(), _returnType, _args, _classDecl );
+      }
+
+      virtual bool isEqual( const Type& t ) const
+      {
+         const TypeFunctionPointer* fp = dynamic_cast<const TypeFunctionPointer*>( &t );
+         if ( !fp )
+            return false;
+         if ( fp->_args.size() != _args.size() || ( _classDecl && !fp->_classDecl ) || ( !_classDecl && fp->_classDecl ) )
+            return false;
+         if ( !_returnType->isEqual( *fp->_returnType ) )
+            return false;
+         for ( ui32 n = 0; n < _args.size(); ++n )
+            if ( !_args[ n ]->isEqual( *fp->_args[ n ] ) )
+               return false;
+         return true;
+      }
+
+   private:
+      Type*                _returnType;
+      std::vector<Type*>   _args;
+      Type*                _classDecl;
    };
 
 }

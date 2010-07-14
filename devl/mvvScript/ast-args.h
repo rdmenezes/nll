@@ -17,7 +17,7 @@ namespace parser
       {
       }
 
-      ~AstArgs()
+      virtual ~AstArgs()
       {
          if ( _toDeallocate )
          {

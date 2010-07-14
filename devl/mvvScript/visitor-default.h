@@ -220,6 +220,12 @@ namespace parser
          operator()( e.getType() );
       }
 
+      virtual void operator()( AstFunctionType& e )
+      {
+         operator()( e.getType() );
+         operator()( e.getArgs() );
+      }
+
       virtual void operator()( Ast& e )
       {
          e.accept( *this );

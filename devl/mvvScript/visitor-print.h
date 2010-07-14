@@ -427,6 +427,14 @@ namespace parser
          _o << " " << e.getName().getName();
       }
 
+      virtual void operator()( const AstFunctionType& e )
+      {
+         operator()( e.getType() );
+         _o << "(";
+         operator()( e.getArgs() );
+         _o << ")";
+      }
+
       virtual void operator()( const Ast& e )
       {
          e.accept( *this );

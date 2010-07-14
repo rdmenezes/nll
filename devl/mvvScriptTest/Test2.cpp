@@ -1958,12 +1958,48 @@ struct TestEval
          TESTER_ASSERT( rt1.intval == 3 );
       }
    }
+
+   void eval4()
+   {
+      /*
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef string(int a) pfunc; pfunc f = NULL;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "f" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::NIL );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "string fn; int fn(){return 0;}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int fn(){typedef int INT; return 0;}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+*/
+
+
+      
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+      
+      //Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; " );
+   }
 };
 
 TESTER_TEST_SUITE(TestEval);
-
-
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
-TESTER_TEST(eval3);
+TESTER_TEST(eval3);*/
+TESTER_TEST(eval4);
 TESTER_TEST_SUITE_END();

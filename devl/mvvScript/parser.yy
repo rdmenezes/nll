@@ -29,15 +29,16 @@
                       -check if name of the class
                       -check declared in the scope outside the class has been declared and so on until global scope
     - construtor: checked when type checking, must be the same name than class
+    - fn & var can't have the same name, even in another scope-> we need additonal structure to solve ambiguity: int fn(){return 0;}  void test(){ string fn; /*error!*/}
    
     
-    -check function decl inside function
+    - check function decl inside function
     - TODO=> not valid anymore? int a[ 5 ]; float b[ 5 ]; a = b; => we copy the content of b in a and cast if necessary
+    - no typedef declared inside function->else need to develop a 'temporary type', additionally it helps with the function pointer typedef
     
     
     principles:
     - int, float, string are primitive types. the are copied by value
-    - String class is "boxing" string 
     - structures are copied by reference and are automatically allocated/deallocated using ref counting
     - operator= can't be overloaded: just refcounting. To create a new instance, just recreate another object...
     - operator== checks the address for types... and not the semantic==
@@ -57,13 +58,11 @@
     - When an object is constructed: first, initalize automatic variables (member variable (init, class construction, array))
       then call the constructor.
     - automatic construction in class members. Problem of cyclic dependencies: the member must be initialized by NULL
-    - arrays are dynamic: int a[ 5 ]; int b[ 400 ]; a = b; is correct!
-    
+    - arrays are dynamic: int a[ 5 ]; int b[ 400 ]; a = b; is correct!    
     - when importing custom type: if a destructor has to be called, we MUST modify in the constructor the original object and NOT returning a new one! (and so might need to resize the vector)
     
+    - TODO typedef printing to fix
     - possibly TODO: if we authorize to pass array reference, we need to update the _forceUnref in AstExpAssign (like for typedef int[] IntArray; void fn( IntArray& a ){ int aa[5]; aa[ 0 ] = 18; a = aa;}  IntArray nn; fn( nn ); int n = nn[0]; --but with -- "void fn( int[]& a )" )
-    - TODO typedef: class Test{int n; Test(){ n = 42; }} typedef Test Test2; Test2 t = Test2(); int n = t.n; => can't instanciate Test2, can't find constructor
-    - TODO check same function & prototypes several times
     - TODO can't mix array & ref? check what should be the behaviour
     - TODO add covariant return type when inheritance added
     - TODO check function prototypes when added, not just when used, i.e. class Test{ Test(){} int tralala(){return 0;} float tralala(){return 0.0;} } should have error
@@ -253,6 +252,7 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           |WHILE LPAREN rvalue RPAREN LBRACE statements RBRACE                            { $$ = new mvv::parser::AstWhile( @$, $3, $6 ); }
           |BREAK SEMI                                                                     { $$ = new mvv::parser::AstBreak( @$ ); }
           |TYPEDEF type ID SEMI                                                           { $$ = new mvv::parser::AstTypedef( @$, $2, *$3 );}
+          |TYPEDEF type LPAREN fn_var_dec RPAREN ID SEMI                                  { $$ = new mvv::parser::AstTypedef( @$, new mvv::parser::AstFunctionType( @$, $2, $4 ), *$6 );}
 
 
           /**

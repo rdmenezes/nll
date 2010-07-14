@@ -867,7 +867,7 @@ namespace parser
                }
             }
             ensure( e.getType().getNodeType(), "can't type properly a tree" );
-            ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
+            //ui32 size = static_cast<ui32>( ( e.getType().getSize() && e.getType().getSize()->size() ) ? e.getType().getSize()->size() : 1 );
 
             Type& typeArray = *e.getType().getNodeType();
             e.setNodeType( typeArray.clone() );
@@ -1077,8 +1077,23 @@ namespace parser
 
             // we don't want to have a typedef on a typedef... so unloop it!
             Type* type = e.getType().getNodeType();
+            ensure( type, "compiler error: tree not typed!" );
             e.setNodeType( type->clone() );
          }
+      }
+
+      virtual void operator()( AstFunctionType& e )
+      {
+         operator()( e.getType() );
+         operator()( e.getArgs() );
+
+         std::vector<Type*> args( e.getArgs().getVars().size() );
+         for ( ui32 n = 0; n < args.size(); ++n )
+         {
+            args[ n ] = e.getArgs().getVars()[ n ]->getNodeType();
+         }
+
+         e.setNodeType( new TypeFunctionPointer( e.isAReference(), e.getType().getNodeType(), args ) );
       }
 
       /**

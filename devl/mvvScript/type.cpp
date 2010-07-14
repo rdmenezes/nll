@@ -45,5 +45,11 @@ namespace parser
    {
       return new TypeVoid();
    }
+
+   bool TypeNil::isCompatibleWith( const Type& t ) const
+   {
+      return dynamic_cast<const TypeNamed*>( &t ) != 0 ||
+             dynamic_cast<const TypeFunctionPointer*>( &t ) != 0;
+   }
 }
 }

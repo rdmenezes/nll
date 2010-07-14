@@ -655,6 +655,11 @@ namespace parser
       
       virtual void operator()( AstTypedef& e )
       {
+         if ( _isInFunction )
+         {
+            impl::reportError( e.getLocation(), _context, "a typedef cannot be created in a function" );
+         }
+
          // check class & typedef name doesn't clash
          const AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
          if ( decl && dynamic_cast<const AstDeclClass*>( decl ) ) // we only check there is no class with this name
