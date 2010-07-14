@@ -585,6 +585,7 @@ namespace parser
          operator()( e.getField() );
          _currentFieldList.pop_back();
 
+         /*
          //AstTypeField* field = dynamic_cast<AstTypeField*>( &e.getField() );
          AstType* isTerminal = dynamic_cast<AstType*>( &e.getField() );
          //
@@ -598,6 +599,11 @@ namespace parser
             // else propagate the type to earlier node
             e.setReference( e.getReference() );
          }
+         */
+
+         AstTypeT* t = dynamic_cast<AstTypeT*>( &e.getField() );
+         ensure( t, "compiler error: must have a reference" );
+         e.setReference( t->getReference() );
          _typedefs.end_scope();
       }
 

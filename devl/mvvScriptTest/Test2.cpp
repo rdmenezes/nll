@@ -1895,8 +1895,51 @@ struct TestEval
          TESTER_ASSERT( rt1.stringval == "123" );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{} class Test{}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test2{class Test{} class Test{}}" );
+         TESTER_ASSERT( result == Error::BIND );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int TEST; TEST TEST = 5;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "TEST" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 5 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{typedef int TYPE;} typedef Test Test_t; typedef Test_t::TYPE Test_t2; Test_t2 n = 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 3 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{class Test20{ typedef Test21::INT INT;} class Test21{typedef int INT;}} Test::Test21::INT n = 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 3 );
+      }
+
 /*
       {
+         // the ref is correct in var decl=>construction, just have a special rule in case "construction" to override the class search?
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ int m; Test(int n ){ m = n; }} typedef Test TEST; TEST t = TEST(3); int n = t.m;" );
          TESTER_ASSERT( result == Error::SUCCESS );
