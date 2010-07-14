@@ -585,25 +585,12 @@ namespace parser
          operator()( e.getField() );
          _currentFieldList.pop_back();
 
-         /*
-         //AstTypeField* field = dynamic_cast<AstTypeField*>( &e.getField() );
-         AstType* isTerminal = dynamic_cast<AstType*>( &e.getField() );
-         //
-         // TODO error here -> terminal is the next one, not this one...
-         //
-         if ( isTerminal )
-         {
-            // we are the last node of a typefield, we need to save the final class it is pointing to!
-            e.setReference( isTerminal->getReference() );
-         } else {
-            // else propagate the type to earlier node
-            e.setReference( e.getReference() );
-         }
-         */
-
          AstTypeT* t = dynamic_cast<AstTypeT*>( &e.getField() );
-         ensure( t, "compiler error: must have a reference" );
-         e.setReference( t->getReference() );
+         if ( t )
+         {
+            // in case there is a error node -> we need to check we can cast it!
+            e.setReference( t->getReference() );
+         }
          _typedefs.end_scope();
       }
 
@@ -657,8 +644,11 @@ namespace parser
          } else if ( typefield )
          {
             AstDeclClass* c = dynamic_cast<AstDeclClass*>( typefield->getReference() );
-            ensure( c, "compiler error: should be a class declaration (no typename...)" );
-            e.setReference( c );
+            if ( c )
+            {
+               //ensure( c, "compiler error: should be a class declaration (no typename...)" );
+               e.setReference( c );
+            }
          }
       }
 

@@ -1937,6 +1937,16 @@ struct TestEval
          TESTER_ASSERT( rt1.intval == 3 );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{class Test20{ typedef int INT;}} class Test2{typedef Test::Test20::INT INT;} Test2::INT n = 3;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 3 );
+      }
+
 /*
       {
          // the ref is correct in var decl=>construction, just have a special rule in case "construction" to override the class search?
@@ -1955,6 +1965,6 @@ TESTER_TEST_SUITE(TestEval);
 
 /*
 TESTER_TEST(eval1);
-TESTER_TEST(eval2);
-TESTER_TEST(eval3);*/
+TESTER_TEST(eval2);*/
+TESTER_TEST(eval3);
 TESTER_TEST_SUITE_END();
