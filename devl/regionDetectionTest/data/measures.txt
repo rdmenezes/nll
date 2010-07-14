@@ -808,24 +808,6 @@ heightLung:330
 heightSkull:-1
 heightHips:-1
 
-case403:
-numberOfSlices:202
-height:1010
-heightNeck:855
-heightHeart:625
-heightLung:730
-heightSkull:985
-heightHips:295
-
-case400:
-numberOfSlices:202
-height:1010
-heightNeck:855
-heightHeart:660
-heightLung:750
-heightSkull:975
-heightHips:315
-
 case409:
 numberOfSlices:227
 height:1135
@@ -843,12 +825,3 @@ heightHeart:630
 heightLung:735
 heightSkull:970
 heightHips:265
-
-case411:
-numberOfSlices:251
-height:1255
-heightNeck:1095
-heightHeart:875
-heightLung:960
-heightSkull:1220
-heightHips:505

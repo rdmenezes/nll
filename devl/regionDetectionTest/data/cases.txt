@@ -628,20 +628,6 @@ lung:133:69
 skull:-1:-1
 hips:-1:-1
 
-case403:
-neck:172:-1
-heart:126:-1
-lung:147:-1
-skull:199:-1
-hips:60:-1
-
-case400:
-neck:172:-1
-heart:133:-1
-lung:151:-1
-skull:197:-1
-hips:64:-1
-
 case409:
 neck:193:-1
 heart:156:-1
@@ -655,10 +641,3 @@ heart:127:-1
 lung:148:-1
 skull:196:-1
 hips:54:-1
-
-case411:
-neck:220:-1
-heart:176:-1
-lung:193:-1
-skull:246:-1
-hips:102:-1

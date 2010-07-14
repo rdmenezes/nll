@@ -70,7 +70,7 @@ struct TestRegion
       typedef Classifier::Database  Database;
 
       RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
-      srand( 3 );
+      srand( 5 );
       RegionResult::generateFeatureDatabase();
 
 
@@ -1209,5 +1209,5 @@ TESTER_TEST(learnSvm);
 //TESTER_TEST(registrationExport);
 
 //TESTER_TEST(testSelectedTemplate);
-TESTER_TEST(displaySpacingStatistics);
+//TESTER_TEST(displaySpacingStatistics);
 TESTER_TEST_SUITE_END();
