@@ -29,7 +29,7 @@
                       -check if name of the class
                       -check declared in the scope outside the class has been declared and so on until global scope
     - construtor: checked when type checking, must be the same name than class
-    - fn & var can't have the same name, even in another scope-> we need additonal structure to solve ambiguity: int fn(){return 0;}  void test(){ string fn; /*error!*/}
+    - fn & var CAN have the same name (except at global scope) => binding priority is always var name
    
     
     - check function decl inside function

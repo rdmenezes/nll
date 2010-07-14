@@ -384,15 +384,34 @@ namespace parser
 
       virtual void operator()( AstVarSimple& e )
       {
-         if ( e.getReference() )
+         if ( e.getIsFunctionAddress() )
          {
-            // if it is a simple variable, we will have a type
-            if ( !e.getReference()->getNodeType() )   // check if the node has already been evaluated // TODO check why? - not from different includes: "class Test2{ Test2 tt; int ttt; Test2(){ttt=42;} } Test2 t; t.tt = t; int nn = t.tt.ttt;"
+            std::vector<AstDeclFun*> funcs = getFunctionsFromGlobal( _funcs, e.getName() );
+            if ( funcs.size() == 0 )
             {
-               operator()( *e.getReference() );
+               impl::reportTypeError( e.getLocation(), _context, "couldn't find the function's adress." );
+               e.setNodeType( new TypeError() );
+               return;
             }
-            e.setNodeType( e.getReference()->getNodeType()->clone() );
-         } // else we know it is a call exp, so don't do anything
+            if ( funcs.size() > 1 )
+            {
+               impl::reportTypeError( e.getLocation(), _context, "ambiguous function address: at least 2 functions have the same name. See:" + funcs[ 0 ]->getLocation().toString() );
+               e.setNodeType( new TypeError() );
+               return;
+            }
+            e.setNodeType( createTypeFromFunction( funcs[ 0 ] ) );
+            e.setFunctionAddress( funcs[ 0 ] );
+         } else {
+            if ( e.getReference() )
+            {
+               // if it is a simple variable, we will have a type
+               if ( !e.getReference()->getNodeType() )   // check if the node has already been evaluated // TODO check why? - not from different includes: "class Test2{ Test2 tt; int ttt; Test2(){ttt=42;} } Test2 t; t.tt = t; int nn = t.tt.ttt;"
+               {
+                  operator()( *e.getReference() );
+               }
+               e.setNodeType( e.getReference()->getNodeType()->clone() );
+            } // else we know it is a call exp, so don't do anything
+         }
       }
 
       virtual void operator()( AstThis& e )

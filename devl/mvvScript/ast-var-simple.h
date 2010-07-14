@@ -13,11 +13,23 @@ namespace parser
    public:
       AstVarSimple( const YYLTYPE& location, mvv::Symbol name, bool isDeduced ) : AstVar( location ), _name( name ), _isDeduced ( isDeduced )
       {
+         _isFunctionAddress = false;
+         _functionAddress = 0;
       }
 
       const Symbol& getName() const
       {
          return _name;
+      }
+
+      void setFunctionAddress( bool val )
+      {
+         _isFunctionAddress = val;
+      }
+
+      bool getIsFunctionAddress() const
+      {
+         return _isFunctionAddress;
       }
 
       /// Accept a const visitor \a v.
@@ -32,9 +44,21 @@ namespace parser
          v( *this );
       }
 
+      void setFunctionAddress( AstDeclFun* f )
+      {
+         _functionAddress = f;
+      }
+
+      AstDeclFun* getFunctionAddress() const
+      {
+         return _functionAddress;
+      }
+
    private:
       mvv::Symbol   _name;
-      bool          _isDeduced;  // deprecated?
+      bool          _isDeduced;  // deprecated?.
+      bool          _isFunctionAddress; // true if this must returns the adress of a function
+      AstDeclFun*   _functionAddress;   // the function to return the address
    };
 }
 }

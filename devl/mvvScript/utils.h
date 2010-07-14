@@ -130,6 +130,14 @@ namespace parser
 
       return true;
    }   
+
+   inline Type* createTypeFromFunction( AstDeclFun* f, TypeNamed* classDecl = 0 )
+   {
+      std::vector<Type*> types( f->getVars().getVars().size() );
+      for ( ui32 n = 0; n < types.size(); ++n )
+         types[ n ] = f->getVars().getVars()[ n ]->getNodeType();
+      return new TypeFunctionPointer( false, f->getNodeType(), types, classDecl );
+   }
 }
 }
 

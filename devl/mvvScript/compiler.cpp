@@ -14,7 +14,7 @@ namespace parser
       void* hMod = LoadLibraryWrapper( name );
       if ( !hMod )
       {
-         throw RuntimeException( ( std::string( "LoadLibrary failed to load the library:" ) + name + ".dll" ).c_str() );
+         throw RuntimeException( ( std::string( "LoadLibrary failed to load the library \"" ) + name + ".dll\"" ).c_str() );
       }
 
       functionImportDecl pfn = (functionImportDecl)GetProcAdressWrapper( hMod, "importFunctions" );

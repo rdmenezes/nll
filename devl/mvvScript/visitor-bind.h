@@ -201,7 +201,15 @@ namespace parser
                }
                //e.setReference( decl );
             } else {
-               impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
+               SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
+               if ( it == _funcs.end() )
+               {
+                  // in case we have: typedef string() fp_test; string test1(){return \"123\";} fp_test = test1;
+                  // address of a function
+                  impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
+               } else {
+                  e.setFunctionAddress( true );
+               }
             }
          } else {
             e.setReference( var );
@@ -498,13 +506,15 @@ namespace parser
                return;
             }
 
+            /*
+            // function can have the same name, except at global scope, the priority is variable
             SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
             if ( it != _funcs.end() )
             {
                // we know we have at lest 1 function of this name declared
                impl::reportAlreadyDeclaredType( it->second.list[ 0 ]->getLocation(), e.getLocation(), _context, "a function has already been declared with this name" );
                return;
-            }
+            }*/
 
             if ( _vars.find_in_scope( e.getName() ) && !_isInFunctionDeclaration )
             {

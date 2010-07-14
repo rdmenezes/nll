@@ -133,7 +133,8 @@ namespace parser
          TYPE,       /// class type
          REF,        /// reference type
          NIL,        /// empty pointer type  // TODO test!
-         PTR         /// a pointer from external resource stores in the ref field
+         PTR,         /// a pointer from external resource stores in the ref field
+         FUN_PTR     /// a function pointer
       };
 
    public:
@@ -155,8 +156,9 @@ namespace parser
       float       floatval;      /// hold the value of the runtime value is of this type
       int         intval;        /// hold the value of the runtime value is of this type
       RefcountedValues vals;     /// hold a list of values (i.e. named value or array)
-      std::string stringval;     // hold a string
-      RuntimeValue* ref;         // hold a reference
+      std::string stringval;     /// hold a string
+      RuntimeValue* ref;         /// hold a reference
+      Type*       functionPointer;/// a funtion pointer 
 
       TypeEnum    type;          /// shortcut for the type of value    
    };

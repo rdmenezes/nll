@@ -1699,8 +1699,14 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "typedef int INT; class Test{typedef int INT;} void func(){typedef int INT;}" );
+         Error::ErrorType result = fe.run( "typedef int INT; class Test{typedef int INT;} class Test2{typedef int INT;}" );
          TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "void func(){typedef int INT;}" );
+         TESTER_ASSERT( result == Error::BIND );
       }
 
       {
@@ -1982,15 +1988,24 @@ struct TestEval
          Error::ErrorType result = fe.run( "int fn(){typedef int INT; return 0;}" );
          TESTER_ASSERT( result == Error::BIND );
       }
-*/
-
-
       
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; }" );
+         Error::ErrorType result = fe.run( "int fn(){return 0;}  string test(){ string fn; fn = \"123\"; return fn; } string n = test();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "123" );
+      }*/
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} fp_test fp = test1;" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
+
+
       
       //Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; " );
    }

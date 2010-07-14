@@ -31,6 +31,16 @@ struct MVVSCRIPT_API YYLTYPE
       last_column = 0;
    }
 
+   std::string toString() const
+   {
+      std::stringstream o;
+
+      o << filename.getName() << ": L"  << first_line << "." << first_column
+                              << "-L"   << last_line  << "." << last_column
+                              << " ";
+      return o.str();
+   }
+
   int first_line;
   int first_column;
   int last_line;

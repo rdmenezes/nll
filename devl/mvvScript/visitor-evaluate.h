@@ -314,29 +314,35 @@ namespace parser
 
       virtual void operator()( AstVarSimple& e )
       {
-         AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
-         assert( v ); // compiler error if this is not a decl
-         if ( v->getIsInFunctionPrototype() )
-            _forceUnref = true;  // in case a variable is in function prototype, if this var is a reference, we must force to copy the value in the assignment
-
-         // for a class, always create a ref...
-         if ( v->isClassMember() )
+         if ( e.getIsFunctionAddress() )
          {
-            ui32 index = _env.framePointer;
-            assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
-            assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE );
-
-            // if class member, the result must be in the class itself
-            RuntimeValue& src = (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ];
-            _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
+            _env.resultRegister = RuntimeValue( RuntimeValue::FUN_PTR );
+            _env.resultRegister.functionPointer = e.getFunctionAddress()->getNodeType();
          } else {
-            // else, just compute its position on the stack
-            ui32 index = _env.framePointer + v->getRuntimeIndex();
-            assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
+            AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
+            assert( v ); // compiler error if this is not a decl
+            if ( v->getIsInFunctionPrototype() )
+               _forceUnref = true;  // in case a variable is in function prototype, if this var is a reference, we must force to copy the value in the assignment
 
-            // we create a ref on the declaration
-            RuntimeValue& src = _env.stack[ index ];
-            _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
+            // for a class, always create a ref...
+            if ( v->isClassMember() )
+            {
+               ui32 index = _env.framePointer;
+               assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
+               assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE );
+
+               // if class member, the result must be in the class itself
+               RuntimeValue& src = (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ];
+               _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
+            } else {
+               // else, just compute its position on the stack
+               ui32 index = _env.framePointer + v->getRuntimeIndex();
+               assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
+
+               // we create a ref on the declaration
+               RuntimeValue& src = _env.stack[ index ];
+               _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
+            }
          }
       }
 

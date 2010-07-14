@@ -225,7 +225,7 @@ namespace parser
    class MVVSCRIPT_API TypeFunctionPointer : public Type
    {
    public:
-      TypeFunctionPointer( bool ref, Type* returnType, const std::vector<Type*>& args, Type* classDecl = 0 ) : Type( ref ), _returnType( returnType ), _args( args ), _classDecl( classDecl )
+      TypeFunctionPointer( bool ref, Type* returnType, const std::vector<Type*>& args, TypeNamed* classDecl = 0 ) : Type( ref ), _returnType( returnType ), _args( args ), _classDecl( classDecl )
       {
          assert( returnType );
       }
@@ -261,7 +261,7 @@ namespace parser
    private:
       Type*                _returnType;
       std::vector<Type*>   _args;
-      Type*                _classDecl;
+      TypeNamed*           _classDecl;
    };
 
 }
