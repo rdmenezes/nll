@@ -472,7 +472,7 @@ namespace parser
                } else {
                   ensure( e.getConstructed(), "error" );
                   // else, it is a class intanciated, check if the constructor is appropriate
-                  funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), *e.getSimpleName() ), e.getArgs() );
+                  funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), /**e.getSimpleName()*/ e.getConstructed()->getName() ), e.getArgs() );
                }
             }
          } else {
