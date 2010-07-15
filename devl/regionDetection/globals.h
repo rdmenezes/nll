@@ -9,7 +9,7 @@
 #define REGION_DETECTION_SOURCE_IMG_Y  ( static_cast<ui32>( REGION_DETECTION_SOURCE_IMG_X / 1.5 ) )
 
 #define DATABASE_MIN_INTERVAL_ROI   15
-#define DATABASE_MIN_INTERVAL       10
+#define DATABASE_MIN_INTERVAL       8
 
 #define DATA_PATH                "../../regionDetectionTest/data/"
 #define REGISTRATION_DATA_PATH   "D:/Devel/RegionDetectionAlgorithm/data/"

@@ -81,6 +81,7 @@ namespace algorithm
       {
          _dat.read( i );
 		   core::read<ui32>( _k, i );
+         core::read<ui32>( _nbClasses, i );
          
          // rebuild the tree if the database is not empty
          if ( _adapter )
@@ -94,6 +95,7 @@ namespace algorithm
       {
          _dat.write( o );
 		   core::write<ui32>( _k, o );
+         core::write<ui32>( _nbClasses, o );
       }
 
 	   /**
@@ -101,9 +103,17 @@ namespace algorithm
 	   */
       virtual typename Base::Class test( const Point& p ) const
       {
+         core::Buffer1D<double> probability;
+         return test( p, probability );
+      }
+
+      virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
+      {
          assert( _dat.size() );
          if ( !_dat.size() )
              throw std::runtime_error( "ClassifierNearestNeighbor: the database is empty, can't classify" );
+         probability = core::Buffer1D<double>( _nbClasses );
+
 
          typename NnKdTree::NearestNeighborList list = _tree.findNearestNeighbor( p, _k );
 
@@ -115,11 +125,14 @@ namespace algorithm
          ui32 index = 0;
          ui32 max_index = 0;
          for ( Count::const_iterator it = count.begin(); it != count.end(); ++it )
+         {
             if ( max_index < it->second )
             {
                max_index = it->second;
                index = it->first;
             }
+            probability[ it->first ] = static_cast<double>( it->second ) / list.size();
+         }
          return index;
       }
 
@@ -137,6 +150,8 @@ namespace algorithm
          {
             _tree.build( *_adapter, (*_adapter)[ 0 ].size() );
          }
+
+         _nbClasses = getNumberOfClass( dat );
       }
 
    protected:
@@ -149,6 +164,7 @@ namespace algorithm
 	   ui32                     _k;
       NnKdTree                 _tree;
       Adapter*                 _adapter;
+      ui32                     _nbClasses;
    };
 }
 }

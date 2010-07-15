@@ -352,6 +352,46 @@ struct TestRegion
       classifier.write( FINAL_SVM_CLASSIFIER );
    }
 
+   void learnKnn()
+   {
+      srand( 1 );
+
+      typedef Buffer1D<double>                                  Point;
+      typedef nll::algorithm::MetricEuclidian<Point>            MetricEuclidian;
+      typedef ClassifierNearestNeighbor<Point, MetricEuclidian> Classifier;
+      typedef Classifier::Database                              Database;
+
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+      MetricEuclidian euclidian;
+
+      ui32 nbBins = 0;
+      std::vector<ui32> bins = createBins( nbBins );
+      Buffer1D<double> params = make_buffer1D<double>( 30 );
+
+      std::vector<ErrorReporting> reporting;
+      for ( ui32 n = 0; n < nbBins; ++n )
+      {
+         Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
+
+         Classifier classifier( &euclidian );
+         classifier.learn( selectedHaarDatabaseNormalized, params );
+         classifier.test( selectedHaarDatabaseNormalized );
+
+         //testResult( &classifier );
+         testResultVolumeDatabase( &classifier, bins, n, reporting );
+      }
+
+      // do the results' analysis
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( results.size() == measures.size(), "must be the same" );
+      analyseResults( reporting, measures, results );
+
+      // learn the full classifier
+      Classifier classifier( &euclidian );
+      classifier.learnAllDatabase( createLearningDatabase( bins, 0 ), params );
+      classifier.write( FINAL_SVM_CLASSIFIER );
+   }
+
    void learnMlp()
    {
       srand( 1 );
@@ -1189,7 +1229,7 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
-//TESTER_TEST(createDatasets);
+TESTER_TEST(createDatasets);
 
 // input: cases, mf2 volumes, output: XZ slice in preview directory
 //TESTER_TEST(createPreview);
@@ -1199,6 +1239,7 @@ TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
 TESTER_TEST(learnSvm);
+//TESTER_TEST(learnKnn);
 //TESTER_TEST(learnMlp);
 
 // input: SVM model, validation-cases, validation volumes mf2
