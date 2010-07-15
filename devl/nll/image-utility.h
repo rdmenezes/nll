@@ -431,6 +431,61 @@ namespace core
 			}
 		img = scaled;
 	}
+
+   /**
+    @ingroup core
+    @brief Computes the barycentre of the image. Only handle UI8 greyscale type
+    */
+   template <class Mapper, class Allocator>
+   vector2d computeBarycentre( const Image<ui8, Mapper, Allocator>& i )
+   {
+      ensure( i.getNbComponents() == 1, "only grey level can be used" );
+
+      double weight = 0;
+      double xm = 0;
+      double ym = 0;
+      for ( ui32 x = 0; x < i.sizex(); ++x )
+      {
+         for ( ui32 y = 0; y < i.sizey(); ++y )
+         {
+            double w = static_cast<double>( i( x, y, 0 ) ) / 255;
+            xm += x * w;
+            ym += y * w;
+            weight += w;
+         }
+      }
+
+      if ( weight > 0 )
+         return vector2d( xm / weight, ym / weight );
+      return vector2d( i.sizex() / 2, i.sizey() / 2 );
+   }
+
+   /**
+    @ingroup core
+    @brief Center a greyscaly image
+    */
+   template <class Mapper, class Allocator>
+   void centerImage( Image<ui8, Mapper, Allocator>& i )
+   {
+      ensure( i.getNbComponents() == 1, "only grey level can be used" );
+
+      vector2d t = computeBarycentre( i );
+      vector2ui tfm( - t[ 0 ] + i.sizex() / 2, - t[ 1 ] + i.sizey() / 2 );
+
+      Image<ui8, Mapper, Allocator> ii( i.sizex(), i.sizey(), 1 );
+      for ( ui32 x = 0; x < ii.sizex(); ++x )
+         for ( ui32 y = 0; y < ii.sizey(); ++y )
+         {
+            ui32 posx = x - tfm[ 0 ];
+            ui32 posy = y - tfm[ 1 ];
+            if ( posx < i.sizex() && posy < i.sizey() )
+            {
+               ii( x, y, 0 ) = i( x - tfm[ 0 ], y - tfm[ 1 ], 0 );
+            }
+         }
+
+      i = ii;
+   }
 }
 }
 
