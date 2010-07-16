@@ -2096,12 +2096,16 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "typedef int() fp_test; class Test{int n; Test( int nn){ n = nn; } int test(){return n;} } Test tests[]={Test(42)}; fp_test fp = tests[0].test; int n = fp();" );
+         Error::ErrorType result = fe.run( "typedef int() fp_test; class Test{int n; Test( int nn){ n = nn; } int test(){return n;} } Test tests[]={Test(42), Test(43)}; fp_test fp = tests[0].test; int n = fp(); fp = tests[1].test; int m = fp();" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 42 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "m" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt2.intval == 43 );
       }
 
 
@@ -2112,9 +2116,9 @@ struct TestEval
 
 TESTER_TEST_SUITE(TestEval);
 
-
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
-TESTER_TEST(eval3);
+TESTER_TEST(eval3);*/
 TESTER_TEST(eval4);
 TESTER_TEST_SUITE_END();
