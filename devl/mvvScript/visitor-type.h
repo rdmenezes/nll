@@ -465,6 +465,18 @@ namespace parser
          }
       }
 
+      bool match( const TypeFunctionPointer& fp, const AstArgs& args )
+      {
+         if ( fp.getArgs().size() != args.getArgs().size() )
+            return false;
+
+         //
+         // TODO!!!
+         //
+
+         return true;
+      }
+
       // choices are:
       // - global function
       // - class instanciation
@@ -475,6 +487,7 @@ namespace parser
          operator()( e.getName() );
 
          std::vector<AstDeclFun*> funcs;
+         bool isValid = false;
          if ( e.getSimpleName() )
          {
             // we are in the case where we are calling a global function/class constructor
@@ -489,9 +502,28 @@ namespace parser
                   // else we know it is an object, so operator() must be called
                   funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getInstanciation(), mvv::Symbol::create( "operator()" ) ), e.getArgs() );
                } else {
-                  ensure( e.getConstructed(), "error" );
-                  // else, it is a class intanciated, check if the constructor is appropriate
-                  funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), /**e.getSimpleName()*/ e.getConstructed()->getName() ), e.getArgs() );
+                  if ( e.getConstructed() )
+                  {
+                     // else, it is a class intanciated, check if the constructor is appropriate
+                     funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), /**e.getSimpleName()*/ e.getConstructed()->getName() ), e.getArgs() );
+                  } else {
+                     // it has to be a function pointer: unfortunately it is dynamic, so we don't know the address of the function yet!
+                     TypeFunctionPointer* fp = dynamic_cast<TypeFunctionPointer*>( e.getName().getNodeType() );
+                     //AstVarSimple* var = dynamic_cast<AstVarSimple*>( &e.getName() );
+                     ensure( fp /*&& var*/, "compiler error: case not handled!" );
+
+                     if ( match( *fp, e.getArgs() ) )
+                     {
+                        e.setNodeType( fp->getReturnType().clone() );
+                        e.setFunctionPointerCall( true );
+                        return;
+                     } else {
+                        isValid = false;
+                        impl::reportTypeError( e.getLocation(), _context, "the actual arguments don't mach the function pointer" );
+                        e.setNodeType( new TypeError() );
+                        return;
+                     }
+                  }
                }
             }
          } else {
@@ -512,7 +544,7 @@ namespace parser
          //
 
 
-         if ( funcs.size() == 0 )
+         if ( funcs.size() == 0 && !isValid )
          {
             impl::reportTypeError( e.getName().getLocation(), _context, "no function matching the arguments found" );
             e.setNodeType( new TypeVoid() );

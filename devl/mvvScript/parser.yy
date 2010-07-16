@@ -90,6 +90,16 @@
    }
   }
  }
+ 
+ bool hasDefaultValue( const mvv::parser::AstDeclVars& vars )
+ {
+   for ( unsigned n = 0; n < vars.getVars().size(); ++n )
+   {
+      if ( vars.getVars()[ n ]->getInit() )
+         return true;
+   }
+   return false;
+ }
 %}
 
 %locations
@@ -252,7 +262,14 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           |WHILE LPAREN rvalue RPAREN LBRACE statements RBRACE                            { $$ = new mvv::parser::AstWhile( @$, $3, $6 ); }
           |BREAK SEMI                                                                     { $$ = new mvv::parser::AstBreak( @$ ); }
           |TYPEDEF type ID SEMI                                                           { $$ = new mvv::parser::AstTypedef( @$, $2, *$3 );}
-          |TYPEDEF type LPAREN fn_var_dec RPAREN ID SEMI                                  { $$ = new mvv::parser::AstTypedef( @$, new mvv::parser::AstFunctionType( @$, $2, $4 ), *$6 );}
+          |TYPEDEF type LPAREN fn_var_dec RPAREN ID SEMI                                  { mvv::parser::AstFunctionType* tt = new mvv::parser::AstFunctionType( @$, $2, $4 );
+                                                                                            mvv::parser::AstTypedef* t = new mvv::parser::AstTypedef( @$, tt, *$6 );
+                                                                                            if ( hasDefaultValue( tt->getArgs() ) )
+                                                                                            {
+                                                                                                yyerror( &@$, tp, "funtion pointer cannot have default values" );
+                                                                                            }
+                                                                                            $$ = t;
+                                                                                          }
 
 
           /**

@@ -258,6 +258,16 @@ namespace parser
          return true;
       }
 
+      const std::vector<Type*>& getArgs() const
+      {
+         return _args;
+      }
+
+      const Type& getReturnType() const
+      {
+         return *_returnType;
+      }
+
    private:
       Type*                _returnType;
       std::vector<Type*>   _args;

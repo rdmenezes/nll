@@ -2001,8 +2001,30 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} fp_test fp = test1;" );
+         Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} fp_test fp = test1; string n = fp();" );
          TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "123" );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef string( int a = 3) fp_test;" );
+         TESTER_ASSERT( result == Error::PARSE );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         try
+         {
+            Error::ErrorType result = fe.run( "typedef string() fp_test; fp_test fp = NULL; fp();" );
+            TESTER_ASSERT( 0 );  // expected exception
+         } catch ( RuntimeException )
+         {
+            // good!
+         }
       }
 
 

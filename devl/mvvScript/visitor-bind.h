@@ -454,8 +454,9 @@ namespace parser
             {
                // operator()
                AstDeclClass* c = dynamic_cast<AstDeclClass*>( decl->getType().getReference() );
-               ensure( c, "compiler error: must be a class declaration (no typedef...)" );
-               e.setInstanciation( c );
+               if ( c )
+                  e.setInstanciation( c );
+               // else if could be a function pointer, but we can only solve this later
             } else {
                // construction of an object
                AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, var->getName() );

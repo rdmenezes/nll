@@ -317,7 +317,7 @@ namespace parser
          if ( e.getIsFunctionAddress() )
          {
             _env.resultRegister = RuntimeValue( RuntimeValue::FUN_PTR );
-            _env.resultRegister.functionPointer = e.getFunctionAddress()->getNodeType();
+            _env.resultRegister.functionPointer =  e.getFunctionAddress();
          } else {
             AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
             assert( v ); // compiler error if this is not a decl
@@ -559,10 +559,19 @@ namespace parser
             operator()( e.getName() );
          }
 
+         AstDeclFun* functionToCall = e.getFunctionCall();
+         if ( e.getFunctionPointerCall() )
+         {
+            functionToCall = _env.resultRegister.functionPointer;
+         }
+
+         if ( !functionToCall )
+            throw RuntimeException("Function to call has null pointer");
+
 
          AstArgs::Args& args = e.getArgs().getArgs();
 
-         ui32 tab = ( e.getFunctionCall()->getMemberOfClass() != 0 );   // we need to put the object adress...
+         ui32 tab = ( functionToCall->getMemberOfClass() != 0 );   // we need to put the object adress...
          std::vector<RuntimeValue> vals( args.size() + tab );
          if ( tab )
          {
@@ -578,7 +587,7 @@ namespace parser
                vals[ 0 ].vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructed()->getMemberVariableSize() ) );
 
                // init some of the values
-               _initObject( *e.getFunctionCall()->getMemberOfClass(), vals[ 0 ] );
+               _initObject( *functionToCall->getMemberOfClass(), vals[ 0 ] );
 
             } else  {
                vals[ 0 ] = _env.resultRegister;
@@ -590,7 +599,7 @@ namespace parser
             vals[ n + tab ] = _env.resultRegister;
          }
 
-         _callFunction( *e.getFunctionCall(), vals );
+         _callFunction( *functionToCall, vals );
 
          if ( e.getConstructed() )
          {

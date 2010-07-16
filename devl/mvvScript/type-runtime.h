@@ -14,6 +14,8 @@ namespace parser
 
    class RuntimeValue;
 
+   class AstDeclFun;
+
    /// Represents a set of value, typically used for named type
    typedef std::vector<RuntimeValue>   RuntimeValues;
 
@@ -138,11 +140,11 @@ namespace parser
       };
 
    public:
-      RuntimeValue() : type( EMPTY ), ref( 0 )
+      RuntimeValue() : type( EMPTY ), ref( 0 ), functionPointer( 0 )
       {
       }
 
-      RuntimeValue( TypeEnum t ) : type( t ), ref( 0 )
+      RuntimeValue( TypeEnum t ) : type( t ), ref( 0 ), functionPointer( 0 )
       {
       }
 
@@ -158,7 +160,7 @@ namespace parser
       RefcountedValues vals;     /// hold a list of values (i.e. named value or array)
       std::string stringval;     /// hold a string
       RuntimeValue* ref;         /// hold a reference
-      Type*       functionPointer;/// a funtion pointer 
+      AstDeclFun*   functionPointer;/// a funtion pointer 
 
       TypeEnum    type;          /// shortcut for the type of value    
    };

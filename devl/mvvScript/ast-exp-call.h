@@ -98,6 +98,16 @@ namespace parser
          return _call;
       }
 
+      bool getFunctionPointerCall() const
+      {
+         return _isFunctionPointer;
+      }
+
+      void setFunctionPointerCall( bool val )
+      {
+         _isFunctionPointer = val;
+      }
+
 
    private:
       AstVar*     _name;
@@ -107,6 +117,7 @@ namespace parser
       AstDeclClass*     _construction;  // BINDING // refernce will hold a class def if the class need to be constructed
       AstDeclFun*       _call;          // the function that needs to be called
       bool              _deallocate;
+      bool              _isFunctionPointer;   // true if this function call must be resolved dynamically
    };
 }
 }
