@@ -1967,7 +1967,6 @@ struct TestEval
 
    void eval4()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef string(int a) pfunc; pfunc f = NULL;" );
@@ -1997,9 +1996,8 @@ struct TestEval
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
          TESTER_ASSERT( rt1.stringval == "123" );
-      }*/
+      }
 
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} fp_test fp = test1; string n = fp();" );
@@ -2026,7 +2024,7 @@ struct TestEval
          {
             // good!
          }
-      }*/
+      }
 
       {
          CompilerFrontEnd fe;
@@ -2045,9 +2043,9 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
-TESTER_TEST(eval3);*/
+TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST_SUITE_END();

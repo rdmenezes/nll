@@ -15,6 +15,7 @@ namespace parser
       AstExpCall( const YYLTYPE& location, AstVar* name, AstArgs* args, bool deallocate = true ) : AstVar( location, deallocate ), _name( name ), _args( args ), _simpleName( 0 ), _instanciation( 0 ), _construction( 0 ), _call( 0 ), _deallocate( deallocate )
       {
          ensure( name && args, "can't be null" );
+         _isFunctionPointer = false;
       }
 
       ~AstExpCall()
