@@ -334,6 +334,7 @@ namespace detect
                   }
                }
 
+               /*
                // create additional slice for the skull
                if ( results[ n ].neckStart > 0 && ( results[ n ].skullStart - results[ n ].neckStart ) > 40 )
                {
@@ -348,7 +349,7 @@ namespace detect
                   const std::string sliceName2 = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart ) + "-skull-add2.bmp";
                   input = _convert( volume, sl2, sliceName2 );  // we can't take the first slice as it is empty due to interpolation...
                   database.add( Sample( input, output, Sample::LEARNING ) );
-               }
+               }*/
 
                // measure the heigh of the ROI relatively to the volume origin
                core::vector3f pos = volume.indexToPosition( core::vector3f( volume.size()[ 0 ] / 2.0f,

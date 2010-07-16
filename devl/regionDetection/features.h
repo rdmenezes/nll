@@ -109,6 +109,8 @@ namespace detect
       cropVertical( sliceTfm, 0.06f, 2 );
       cropHorizontal( sliceTfm, 0.13f, 2 );
 
+      centerImage( sliceTfm );
+
       // normalize the size
       //core::rescaleFast( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );
       core::rescaleBilinear( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );

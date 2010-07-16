@@ -69,8 +69,8 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
-      srand( 5 );
+      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      srand( 0 );
       RegionResult::generateFeatureDatabase();
 
 
@@ -366,7 +366,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 30 );
+      Buffer1D<double> params = make_buffer1D<double>( 1 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -1222,7 +1222,27 @@ struct TestRegion
 
    void displaySpacingStatistics()
    {
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+      std::map<float, int> r;
+      for ( ui32 n = 0; n < measures.size(); ++n )
+      {
+         float spacing = measures[ n ].height / measures[ n ].numberOfSlices;
+         ++r[ spacing ];
+      }
 
+      for ( std::map<float, int>::iterator it = r.begin(); it != r.end(); ++it )
+         std::cout << "spacing=" << it->first << " nb=" << it->second << std::endl;
+   }
+
+   
+
+   void testCenter()
+   {
+      Image<ui8> i( "C:/tmp/s3/TEST2.bmp" );
+      decolor( i );
+      centerImage( i );
+      extend( i, 3 );
+      writeBmp( i, "C:/tmp/s3/TEST.bmp" );
    }
 }; 
 
@@ -1249,6 +1269,8 @@ TESTER_TEST(learnSvm);
 //TESTER_TEST(learnMlp);
 //TESTER_TEST(registrationExport);
 
+
+//TESTER_TEST(testCenter);
+
 //TESTER_TEST(testSelectedTemplate);
-//TESTER_TEST(displaySpacingStatistics);
 TESTER_TEST_SUITE_END();
