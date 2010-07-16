@@ -21,6 +21,7 @@ struct TestEval
 {
    void eval1()
    {
+      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -264,19 +265,19 @@ struct TestEval
       }
       
       
-      /*
+      
       // TODO should throw
-      {
-         try
-         {
-            CompilerFrontEnd fe;
-            fe.run( "class Test2{ Test2 tt; Test2(){}} class Test{int n; Test2 tt = NULL; Test ttt = NULL; Test(){}} Test t; Test2 ttt; t.tt.tt = ttt; t.n = 5; " );
-            TESTER_ASSERT( 0 );
-         } catch ( RuntimeException e )
-         {
-            // good!
-         }
-      }*/
+     // {
+     //    try
+     //    {
+     //       CompilerFrontEnd fe;
+     //       fe.run( "class Test2{ Test2 tt; Test2(){}} class Test{int n; Test2 tt = NULL; Test ttt = NULL; Test(){}} Test t; Test2 ttt; t.tt.tt = ttt; t.n = 5; " );
+     //       TESTER_ASSERT( 0 );
+      ///   } catch ( RuntimeException e )
+       //  {
+       //     // good!
+       //  }
+      //}
       
 
       {
@@ -1505,7 +1506,6 @@ struct TestEval
          TESTER_ASSERT( fabs( rt3.floatval - -334.684 ) < 1e-4 );
       }
       
-      
       {
          //
          // test volume loading
@@ -1967,6 +1967,7 @@ struct TestEval
 
    void eval4()
    {
+     
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef string(int a) pfunc; pfunc f = NULL;" );
@@ -2036,6 +2037,73 @@ struct TestEval
          TESTER_ASSERT( rt1.stringval == "124" );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} string test2(){return \"124\";} fp_test fp[] = { test1, test2 }; string n = fp[ 1 ]();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "124" );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // ambiguous function: we don't know which one the adress is needed...
+         Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} string test1(int n){return \"124\";} fp_test fp = test1; string n = fp();" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         // wrong type...
+         Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(int n){return \"123\";} fp_test fp = test1;" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+      
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int() fp_test; class Test{Test(){} int test2(){return 5;} } Test t2; fp_test fp = t2.test2; int n = fp();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 5 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int() fp_test; class Test{int mm; Test( int m ){ mm = m;} int test2(){return mm;} } Test t2( 42 ); fp_test fp = t2.test2; int n = fp();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int(int n) fp_test; class Test{Test( ){ } int test2( int nnn){return 1;} } Test t2; fp_test fp = t2.test2; fp(\"dsf\");" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int(int n) fp_test; class Test{Test( ){}  int test1( int n ){ return 42;} int test1(){return 0;} } Test t; fp_test fp = t.test1;" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int() fp_test; class Test{int n; Test( int nn){ n = nn; } int test(){return n;} } Test tests[]={Test(42)}; fp_test fp = tests[0].test; int n = fp();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 42 );
+      }
+
 
       
       //Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; " );
@@ -2043,6 +2111,7 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
+
 
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);

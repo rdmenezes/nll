@@ -208,7 +208,7 @@ namespace parser
                   // address of a function
                   impl::reportUndeclaredType( e.getLocation(), _context, "undeclared variable" );
                } else {
-                  e.setFunctionAddress( true );
+                  e.setIsFunctionAddress( true );
                }
             }
          } else {

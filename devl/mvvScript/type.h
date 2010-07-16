@@ -248,7 +248,7 @@ namespace parser
          const TypeFunctionPointer* fp = dynamic_cast<const TypeFunctionPointer*>( &t );
          if ( !fp )
             return false;
-         if ( fp->_args.size() != _args.size() || ( _classDecl && !fp->_classDecl ) || ( !_classDecl && fp->_classDecl ) )
+         if ( fp->_args.size() != _args.size() /*|| ( _classDecl && !fp->_classDecl ) || ( !_classDecl && fp->_classDecl )*/ )
             return false;
          if ( !_returnType->isEqual( *fp->_returnType ) )
             return false;

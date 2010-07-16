@@ -16,6 +16,8 @@ namespace parser
       AstVarField( const YYLTYPE& location, AstVar* field, mvv::Symbol name ) : AstVar( location ), _field( field ), _name( name ), _pointee( 0 )
       {
          ensure( field, "can't be null" );
+         _memberClass = 0;
+         _memberFun = 0;
       }
 
       ~AstVarField()
@@ -61,10 +63,30 @@ namespace parser
          return _pointee;
       }
 
+      void setMemberFunction( AstDeclClass* memberClass, AstDeclFun* memberFun )
+      {
+          _memberClass = memberClass;
+          _memberFun = memberFun;
+      }
+
+      AstDeclClass*  getMemberClass()
+      {
+         return _memberClass;
+      }
+
+      AstDeclFun*    getMemberFun()
+      {
+         return _memberFun;
+      }
+
    private:
       AstVar*       _field;
       AstDecl*      _pointee;    // don't deallocate!
       mvv::Symbol   _name;
+
+      // member function pointer
+      AstDeclClass*  _memberClass;
+      AstDeclFun*    _memberFun;
    };
 }
 }

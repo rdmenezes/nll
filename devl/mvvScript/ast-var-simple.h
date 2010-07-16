@@ -22,7 +22,8 @@ namespace parser
          return _name;
       }
 
-      void setFunctionAddress( bool val )
+
+      void setIsFunctionAddress( bool val )
       {
          _isFunctionAddress = val;
       }

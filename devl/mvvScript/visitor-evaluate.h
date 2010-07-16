@@ -316,6 +316,8 @@ namespace parser
       {
          if ( e.getIsFunctionAddress() )
          {
+            RuntimeValue save = _env.resultRegister;
+
             _env.resultRegister = RuntimeValue( RuntimeValue::FUN_PTR );
             _env.resultRegister.functionPointer =  e.getFunctionAddress();
          } else {
@@ -450,6 +452,20 @@ namespace parser
                // if this is not a variable, it must be a cuntion call
                assert( dynamic_cast<AstDeclFun*>( fields[ n ]->getPointee() ) );
             }
+         }
+
+         // if returns a member funtion pointer
+         if ( e.getMemberFun() )
+         {
+            _env.resultRegister.functionPointer =  e.getMemberFun();
+            /*
+            RuntimeValue save = _env.resultRegister;
+            _env.resultRegister = RuntimeValue( RuntimeValue::TYPE );
+            _env.resultRegister.functionPointer =  e.getMemberFun();
+            _env.resultRegister.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) );
+            (*_env.resultRegister.vals)[ 0 ] = save;
+
+            _debug( _env.resultRegister );*/
          }
       }
 
@@ -689,8 +705,6 @@ namespace parser
                // create the root of the array
                _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                createArray( *_env.stack.rbegin(), vals, 0, e.getConstructorCall() );
-
-               //_debug( *_env.stack.rbegin() );
                return;
             }
          } else {

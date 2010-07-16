@@ -37,6 +37,7 @@ namespace parser
          // TODO: we actually want it when the visitor is run... not created
          _isInFunctionDeclaration = false;
          _currentFp = 0;
+         _isFunctionBeingCalled = false;
       }
 
       /**
@@ -214,17 +215,18 @@ namespace parser
       /**
        @brief Find a declaration inside a class
        */
-      static AstDecl* getDeclFromClass( AstDeclClass& declClass, const mvv::Symbol& name )
+      static std::vector<AstDecl*> getDeclFromClass( AstDeclClass& declClass, const mvv::Symbol& name )
       {
+         std::vector<AstDecl*> v;
          for ( AstDecls::Decls::iterator it = declClass.getDeclarations().getDecls().begin();
                it != declClass.getDeclarations().getDecls().end();
                ++it )
          {
             if ( (*it)->getName() == name )
-               return *it;
+               v.push_back( *it );
          }
 
-         return 0;
+         return v;
       }
 
       virtual void operator()( AstInt& e )
@@ -469,11 +471,11 @@ namespace parser
       {
          if ( fp.getArgs().size() != args.getArgs().size() )
             return false;
-
-         //
-         // TODO!!!
-         //
-
+         for ( ui32 n = 0; n < fp.getArgs().size(); ++n )
+         {
+            if ( !args.getArgs()[ n ]->getNodeType()->isCompatibleWith( *fp.getArgs()[ n ] ) )
+               return false;
+         }
          return true;
       }
 
@@ -484,10 +486,30 @@ namespace parser
       virtual void operator()( AstExpCall& e )
       {
          operator()( e.getArgs() );
+
+         _isFunctionBeingCalled = true;
          operator()( e.getName() );
+         _isFunctionBeingCalled = false;
 
          std::vector<AstDeclFun*> funcs;
-         bool isValid = false;
+
+         // it has to be a function pointer: unfortunately it is dynamic, so we don't know the address of the function yet!
+         TypeFunctionPointer* fp = dynamic_cast<TypeFunctionPointer*>( e.getName().getNodeType() );
+         if ( fp )
+         {
+            if ( match( *fp, e.getArgs() ) )
+            {
+               e.setNodeType( fp->getReturnType().clone() );
+               e.setFunctionPointerCall( true );
+               return;
+            } else {
+               impl::reportTypeError( e.getLocation(), _context, "the actual arguments don't mach the function pointer" );
+               e.setNodeType( new TypeError() );
+               return;
+            }
+         }
+
+
          if ( e.getSimpleName() )
          {
             // we are in the case where we are calling a global function/class constructor
@@ -507,22 +529,7 @@ namespace parser
                      // else, it is a class intanciated, check if the constructor is appropriate
                      funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), /**e.getSimpleName()*/ e.getConstructed()->getName() ), e.getArgs() );
                   } else {
-                     // it has to be a function pointer: unfortunately it is dynamic, so we don't know the address of the function yet!
-                     TypeFunctionPointer* fp = dynamic_cast<TypeFunctionPointer*>( e.getName().getNodeType() );
-                     //AstVarSimple* var = dynamic_cast<AstVarSimple*>( &e.getName() );
-                     ensure( fp /*&& var*/, "compiler error: case not handled!" );
-
-                     if ( match( *fp, e.getArgs() ) )
-                     {
-                        e.setNodeType( fp->getReturnType().clone() );
-                        e.setFunctionPointerCall( true );
-                        return;
-                     } else {
-                        isValid = false;
-                        impl::reportTypeError( e.getLocation(), _context, "the actual arguments don't mach the function pointer" );
-                        e.setNodeType( new TypeError() );
-                        return;
-                     }
+                     ensure( 0, "compiler error: should not happen..." );
                   }
                }
             }
@@ -544,7 +551,7 @@ namespace parser
          //
 
 
-         if ( funcs.size() == 0 && !isValid )
+         if ( funcs.size() == 0 )
          {
             impl::reportTypeError( e.getName().getLocation(), _context, "no function matching the arguments found" );
             e.setNodeType( new TypeVoid() );
@@ -594,15 +601,37 @@ namespace parser
          }
 
          e.setReference( type->getDecl() );
-         AstDecl* member = getDeclFromClass( *type->getDecl(), e.getName() );
-         if ( !member )
+         std::vector<AstDecl*> members = getDeclFromClass( *type->getDecl(), e.getName() );
+         if ( members.size() == 0 )
          {
             impl::reportTypeError( e.getLocation(), _context, "error can't find member in class definition" );
             e.setNodeType( new TypeError() );
             return;
          }
-         e.setNodeType( member->getNodeType()->clone() );
-         e.setPointee( member );
+         e.setPointee( members[ 0 ] );
+
+         // handle function member pointer
+         TypeNamed* vs = dynamic_cast<TypeNamed*>( e.getField().getNodeType() );
+         AstDeclFun* fs = dynamic_cast<AstDeclFun*>( members[ 0 ] );
+         if ( vs && fs && !_isFunctionBeingCalled )
+         {
+            if ( members.size() > 1 )
+               impl::reportTypeError( e.getLocation(), _context, "member function pointer is ambiguous, see: " + members[ 0 ]->getLocation().toString() + " and " + members[ 1 ]->getLocation().toString() );
+
+            // we have a function pointer!
+            delete e.getField().getNodeType();
+            e.getField().setNodeType( createTypeFromFunction( &fs[ 0 ], type ) );
+            e.setNodeType( e.getField().getNodeType()->clone() );
+
+            e.setMemberFunction( type->getDecl(), fs );
+            /*
+            vs->getDecl()->setClassMember( type->getDecl() );
+            vs->getDecl()->setFunctionAddress( fs );
+            vs->getDecl()->setIsFunctionAddress( true );
+            */
+         } else {
+            e.setNodeType( members[ 0 ]->getNodeType()->clone() );
+         }
 
          // Note: handle "this" in the interpreter
       }
@@ -894,7 +923,7 @@ namespace parser
             TypeArray* arrayType = dynamic_cast<TypeArray*>( e.getType().getNodeType() );
             ensure( arrayType, "compiler error: this is an array, so it must have array type!" );
             const TypeNamed* ty = dynamic_cast<const TypeNamed*>( &arrayType->getRoot() );
-            if ( ty )
+            if ( ty && !e.getDeclarationList() )
             {
                AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
                if ( fn )
@@ -1201,6 +1230,7 @@ namespace parser
       SymbolTableFuncs&   _funcs;
       SymbolTableClasses& _classes;
       bool                _isInFunctionDeclaration;
+      bool                _isFunctionBeingCalled;
 
       std::stack<ui32>    _fp;   // we locally need to compute the frame pointer & update reference variable for all declared variables in class & function (this is local)
       ui32                _currentFp;
