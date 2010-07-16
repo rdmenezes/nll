@@ -1999,6 +1999,7 @@ struct TestEval
          TESTER_ASSERT( rt1.stringval == "123" );
       }*/
 
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef string() fp_test; string test1(){return \"123\";} fp_test fp = test1; string n = fp();" );
@@ -2025,6 +2026,16 @@ struct TestEval
          {
             // good!
          }
+      }*/
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ typedef string() fp_test; } string test1(){return \"123\";} string test2(){return \"124\";} Test::fp_test fp = test1; fp = test2; string n = fp();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt1.stringval == "124" );
       }
 
 

@@ -378,6 +378,14 @@ var_decs_class: /* empty */				                                                 
       |IMPORT TILDE ID LPAREN RPAREN SEMI var_decs_class                                     { $$ = $7; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $3->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$) ) ); }
       |TILDE ID LPAREN RPAREN LBRACE statements RBRACE var_decs_class                        { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, 0, mvv::platform::Symbol::create( ("~" + std::string( $2->getName() )).c_str() ), new mvv::parser::AstDeclVars(@$), $6 ) ); }
       |TYPEDEF type ID SEMI var_decs_class                                                   { $$ = $5; $$->insert( new mvv::parser::AstTypedef( @$, $2, *$3 ) );}
+      |TYPEDEF type LPAREN fn_var_dec RPAREN ID SEMI var_decs_class                          { mvv::parser::AstFunctionType* tt = new mvv::parser::AstFunctionType( @$, $2, $4 );
+                                                                                               mvv::parser::AstTypedef* t = new mvv::parser::AstTypedef( @$, tt, *$6 );
+                                                                                               if ( hasDefaultValue( tt->getArgs() ) )
+                                                                                               {
+                                                                                                  yyerror( &@$, tp, "funtion pointer cannot have default values" );
+                                                                                               }
+                                                                                               $$ = $8; $$->insert( t );
+                                                                                             }
   
  type_simple: VAR                     { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::VAR ); }
              |INT_T                   { $$ = new mvv::parser::AstType( @$, mvv::parser::AstType::CMP_INT ); }
