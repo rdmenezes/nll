@@ -57,6 +57,25 @@ namespace parser
          return new TypeArray( array->getDimentionality() - 1, array->getRoot(), array->isReference() );
       }
 
+      // reutrn true if array<Type&>
+      bool hasArrayInnerReference( Type& t )
+      {
+         ui32 depth = 0;
+         const TypeArray* array = dynamic_cast<const TypeArray*>( &t );
+         const TypeArray* previous = array;
+         while ( array )
+         {
+            if ( array->isReference() && depth > 0 )
+               return true;
+            previous = array;
+            array = dynamic_cast<const TypeArray*>( &array->getRoot() );
+            ++depth;
+         }
+         if ( previous )
+            return previous->getRoot().isReference();
+         return false;
+      }
+
       /**
        @check a class is constructible with 0 arguments
        */
@@ -462,7 +481,7 @@ namespace parser
                e.setNodeType( new TypeError() );
                return;
             } else {
-               e.setNodeType( deref->clone() );
+               e.setNodeType( deref );
             }
          }
       }
@@ -740,8 +759,10 @@ namespace parser
          _fp.push( _currentFp );
          _currentFp = 0;
 
+         _defaultClassPath.push_back( e.getName() );
          e.setNodeType( new TypeNamed( &e, false ) );
          operator()( e.getDeclarations() );
+         _defaultClassPath.pop_back();
 
          _currentFp = _fp.top();
          _fp.pop();
@@ -919,6 +940,13 @@ namespace parser
 
          if ( e.getType().isArray() )
          {
+            // check the type held is not a reference...
+            if ( !_isInFunctionDeclaration && hasArrayInnerReference( *e.getType().getNodeType() ) && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
+            {
+               impl::reportTypeError( e.getLocation(), _context, "type with reference must be initialized" );
+               return;
+            }
+
             // check there is a default contructor
             TypeArray* arrayType = dynamic_cast<TypeArray*>( e.getType().getNodeType() );
             ensure( arrayType, "compiler error: this is an array, so it must have array type!" );
@@ -972,6 +1000,13 @@ namespace parser
                e.isClassMember()->addInstanciatedType( ty->getDecl() );
             }
          } else {
+            // if a reference, then it must be initialized
+            if ( !_isInFunctionDeclaration && e.getType().getNodeType()->isReference() && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
+            {
+               impl::reportTypeError( e.getLocation(), _context, "type with reference must be initialized" );
+               return;
+            }
+
             if ( e.isClassMember() && ty )
             {
                // prepare cyclic dependency check
@@ -1067,7 +1102,7 @@ namespace parser
             }
          }
 
-         if ( e.getInit() && e.getInit()->getNodeType() && e.getType().isAReference() ) // in case function declaration, there is no init, but this error is already catched in binding, so it is correct to not check
+         if ( e.getInit() && e.getInit()->getNodeType() && e.getType().getNodeType()->isReference() ) // in case function declaration, there is no init, but this error is already catched in binding, so it is correct to not check
          {
             if ( !checkValidReferenceInitialization( *e.getInit() ) )
             {
@@ -1231,6 +1266,7 @@ namespace parser
       SymbolTableClasses& _classes;
       bool                _isInFunctionDeclaration;
       bool                _isFunctionBeingCalled;
+      std::vector<mvv::Symbol>   _defaultClassPath;
 
       std::stack<ui32>    _fp;   // we locally need to compute the frame pointer & update reference variable for all declared variables in class & function (this is local)
       ui32                _currentFp;

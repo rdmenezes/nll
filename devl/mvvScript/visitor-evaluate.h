@@ -662,12 +662,20 @@ namespace parser
          }
       }
 
+      static bool isUnrefIsARef( const Type& t )
+      {
+         const TypeArray* ty = dynamic_cast<const TypeArray*>( &t );
+         if ( ty )
+            return ty->getRoot().isReference();
+         return false;
+      }
+
       virtual void operator()( AstDeclVar& e )
       {
          if ( e.getInit() )
          {
             operator()( *e.getInit() );
-            if ( e.getType().isAReference() )
+            if ( e.getType().getNodeType()->isReference() )
             {
                _env.stack.push_back( _env.resultRegister );
             } else {
@@ -680,10 +688,14 @@ namespace parser
             AstArgs::Args& args = e.getDeclarationList()->getArgs();
             _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
             _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( args.size() ) );
+            bool mustCreateRef = isUnrefIsARef( *e.getNodeType() );  // if the type held is a reference, keep a reference and not the value!
             for ( ui32 n = 0; n < args.size(); ++n )
             {
                operator()( *args[ n ] );
-               (*_env.stack.rbegin()->vals)[ n ] = unref( _env.resultRegister ); // copy the value, not a ref!
+               if ( mustCreateRef )
+                  (*_env.stack.rbegin()->vals)[ n ] = _env.resultRegister; // copy the value, not a ref!
+               else
+                  (*_env.stack.rbegin()->vals)[ n ] = unref( _env.resultRegister ); // copy the value, not a ref!
             }
             return;
          }

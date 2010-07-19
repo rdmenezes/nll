@@ -2129,22 +2129,6 @@ struct TestBasic
          ParserContext context; SymbolTableTypedef typedefs; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
          Ast* exp = 0;
          
-         exp = context.parseString( "int& ref;");
-         TESTER_ASSERT( exp );
-         VisitorRegisterDeclarations visitor( context, vars, funcs, classes, typedefs, fp );
-         visitor( *exp );
-         TESTER_ASSERT( !context.getError().getStatus() );
-
-         VisitorBind visitorBind( context, visitor.getVars(), visitor.getFuncs(), visitor.getClasses(), typedefs );
-         visitorBind( *exp );
-         TESTER_ASSERT( context.getError().getStatus() );
-         delete exp;
-      }
-
-      {
-         ParserContext context; SymbolTableTypedef typedefs; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
-         Ast* exp = 0;
-         
          exp = context.parseString( "import int operator+( int n, int n2 ); int n; int n2; int& ref = n + n2;");
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context, vars, funcs, classes, typedefs, fp );

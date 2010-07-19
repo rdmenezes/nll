@@ -1685,6 +1685,7 @@ struct TestEval
 
    void eval3()
    {
+      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ class Test2{} typedef int Test2;}" );
@@ -1796,7 +1797,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{Test(){} int n = 15;} Test t1; Test t2; Test& vars[3];" );
-         TESTER_ASSERT( result == Error::BIND );
+         TESTER_ASSERT( result == Error::TYPE );
       }
 
 
@@ -1967,7 +1968,7 @@ struct TestEval
 
    void eval4()
    {
-     
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef string(int a) pfunc; pfunc f = NULL;" );
@@ -2108,7 +2109,25 @@ struct TestEval
          TESTER_ASSERT( rt2.intval == 43 );
       }
 
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int& REF; REF n;" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
+*/
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int& REF; int array[] = {1, 2, 3}; REF array_ref[] = {array[0], array[1], array[2]}; int n1 = array_ref[ 0 ]; array_ref[ 0 ] = 42; int n2 = array[ 0 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
 
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 1 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt2.intval == 42 );
+      }
       
       //Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; " );
    }
