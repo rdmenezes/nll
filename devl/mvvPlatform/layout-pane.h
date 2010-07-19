@@ -3,6 +3,7 @@
 
 # include "mvvPlatform.h"
 # include "event-mouse-receiver.h"
+# include "event-keyboard-receiver.h"
 # include "refcounted.h"
 # include "types.h"
 
@@ -16,7 +17,7 @@ namespace platform
 
     A pane can contains nested sub panes and other panes that will be overlayed on this pane.
     */
-   class MVVPLATFORM_API Pane : public EventMouseReceiver
+   class MVVPLATFORM_API Pane : public EventMouseReceiver, public EventKeyboardReceiver
    {
    public:
       typedef RefcountedTyped<Pane>    PaneRef;
@@ -104,7 +105,33 @@ namespace platform
          return false;
       }
 
+      /**
+       @brief If return true, the last inserted Widget of a pane only will receive the event
+       */
+      virtual bool dispatchMouseEventToWidgetOnly( const EventKeyboard& ) const
+      {
+         return false;
+      }
+
       virtual void receive( const EventMouse& event )
+      {
+         for ( Panes::reverse_iterator it = _widgets.rbegin(); it != _widgets.rend(); ++it )
+         {
+            if ( (**it).dispatchMouseEventToWidgetOnly( event ) )
+            {
+               // we dispatch it to the child only, it is prioritary
+               (**it).receive( event );
+               return;
+            }
+         }
+
+         // dispatch it to all widgets and sub panes
+         for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
+            (**it)._receive( event );
+         _receive( event );
+      }
+
+       virtual void receive( const EventKeyboard& event )
       {
          for ( Panes::reverse_iterator it = _widgets.rbegin(); it != _widgets.rend(); ++it )
          {
@@ -127,6 +154,11 @@ namespace platform
        @brief reimplement this method to handle mouse events
        */
       virtual void _receive( const EventMouse& )
+      {
+         // just do nothing yet...
+      }
+
+      virtual void _receive( const EventKeyboard& )
       {
          // just do nothing yet...
       }
@@ -204,6 +236,17 @@ namespace platform
                   (**it).receive( e );
                }
             } else if ( (**it).isInside( e.mousePosition ) )
+            {
+               (**it).receive( e );
+            }
+         }
+      }
+
+      virtual void _receive( const EventKeyboard& e )
+      {
+         for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
+         {
+            if ( (**it).isInside( e.mousePosition ) )
             {
                (**it).receive( e );
             }

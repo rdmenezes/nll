@@ -52,6 +52,11 @@ namespace platform
        */
       virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image ) = 0;
 
+      /**
+       @brief Writes the string to an image, only the text within (min, max) will actually be written
+       */
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& min, const nll::core::vector2ui& max ) = 0;
+
    protected:
       nll::core::vector3uc    _color;
       ui32                    _size;
@@ -138,10 +143,14 @@ namespace platform
 
       /**
        @brief Write a string using the current size & color
+
+       @param maxpos Add a position constraint: letters 
        */
-      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image )
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& minpos, const nll::core::vector2ui& maxpos )
       {
          ensure( image.getNbComponents() == 3, "error: it must be a RGB image!" );
+         ensure( maxpos[ 0 ] <= image.sizex() && maxpos[ 1 ] <= image.sizey(), "min/max problem" );
+         ensure( maxpos[ 0 ] >= minpos[ 0 ] && maxpos[ 1 ] >= minpos[ 1 ], "min/max problem" );
 
          // find the font
          Key key( _size, _color );
@@ -165,15 +174,26 @@ namespace platform
                throw std::exception( "character not found in charset" );
             }
 
-            if ( p[ 0 ] + sizex > image.sizex() ||
-                 p[ 1 ] + sizey > image.sizey() )
+            if ( p[ 0 ] >= minpos[ 0 ] && p[ 1 ] >= minpos[ 1 ] )
             {
-               // we are out of bound, just don't write the next letters...
-               break;
+               if ( p[ 0 ] + sizex > maxpos[ 0 ] ||
+                    p[ 1 ] + sizey > maxpos[ 1 ] )
+               {
+                  // we are out of bound, just don't write the next letters...
+                  break;
+               }
+               _writeLetter( it->second, p, image );
             }
-            _writeLetter( it->second, p, image );
             p[ 0 ] += sizex;
          }
+      }
+
+      /**
+       @brief Write a string using the current size & color
+       */
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image )
+      {
+         write( str, position, image, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( image.sizex(), image.sizey() ) );
       }
 
    protected:

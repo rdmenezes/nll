@@ -474,6 +474,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\event-keyboard-receiver.h"
+				>
+			</File>
+			<File
+				RelativePath=".\event-keyboard.h"
+				>
+			</File>
+			<File
 				RelativePath=".\event-mouse-receiver.h"
 				>
 			</File>
@@ -483,6 +491,10 @@
 			</File>
 			<File
 				RelativePath=".\font.h"
+				>
+			</File>
+			<File
+				RelativePath=".\layout-pane-textbox.h"
 				>
 			</File>
 			<File
