@@ -6,7 +6,7 @@
 #define REGION_DETECTION_BARYCENTRE_LUT_MAX  320
 
 #define REGION_DETECTION_SOURCE_IMG_X  66
-#define REGION_DETECTION_SOURCE_IMG_Y  ( static_cast<ui32>( REGION_DETECTION_SOURCE_IMG_X / 1 ) )
+#define REGION_DETECTION_SOURCE_IMG_Y  ( static_cast<ui32>( REGION_DETECTION_SOURCE_IMG_X / 1.5 ) )
 
 #define DATABASE_MIN_INTERVAL_ROI   15
 #define DATABASE_MIN_INTERVAL       8
@@ -33,9 +33,9 @@
 
 #define REGISTRATION_INPUT       REGISTRATION_DATA_PATH "results-register-choice.txt"
 
-#define HAAR_FEATURE_SIZE        4096
+#define HAAR_FEATURE_SIZE        2048
 
-#define FEATURE_SELECTION_SIZE   std::min( 1024, HAAR_FEATURE_SIZE ) //20*20
+#define FEATURE_SELECTION_SIZE   std::min( 64, HAAR_FEATURE_SIZE ) //20*20
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
 #define DATABASE_MEASURES        DATA_PATH "measures.txt"

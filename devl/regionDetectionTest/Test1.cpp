@@ -69,7 +69,7 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       srand( 0 );
       RegionResult::generateFeatureDatabase();
 
@@ -77,8 +77,9 @@ struct TestRegion
       std::cout << "haar selection..." << std::endl;
       Database haarDatabaseNormalized;
       haarDatabaseNormalized.read( NORMALIZED_HAAR );
-      FeatureSelectionFilterPearson<Point> pearson( FEATURE_SELECTION_SIZE );
-      pearson.compute( haarDatabaseNormalized );
+      //FeatureTransformationPca<Point> pearson( FEATURE_SELECTION_SIZE );
+      FeatureTransformationPca<Point> pearson;
+      pearson.compute( haarDatabaseNormalized, FEATURE_SELECTION_SIZE );
       Database features = pearson.transform( haarDatabaseNormalized );
 
       pearson.write( HAAR_SELECTION );
@@ -326,7 +327,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.2, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.3, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -1249,21 +1250,21 @@ struct TestRegion
 TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
-TESTER_TEST(createDatasets);
+//TESTER_TEST(createDatasets);
 
 // input: cases, mf2 volumes, output: XZ slice in preview directory
 //TESTER_TEST(createPreview);
 
 // input: cases, mf2 volumes, output: a database for all volumes of all slices
-TESTER_TEST(createVolumeDatabase);
+//TESTER_TEST(createVolumeDatabase);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
-TESTER_TEST(learnSvm);
+//TESTER_TEST(learnSvm);
 //TESTER_TEST(learnKnn);
 //TESTER_TEST(learnMlp);
 
 // input: SVM model, validation-cases, validation volumes mf2
-//TESTER_TEST(testValidationDataSvm);
+TESTER_TEST(testValidationDataSvm);
 
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(learnMlp);

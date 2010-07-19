@@ -9,7 +9,7 @@ namespace detect
 {
    class TestVolume
    {
-      typedef algorithm::FeatureSelectionFilterPearson< core::Buffer1D<double> > FeatureSelection;
+      typedef algorithm::FeatureTransformationPca< core::Buffer1D<double> > FeatureSelection;
 
    public:
       struct Result
@@ -40,7 +40,7 @@ namespace detect
       typedef algorithm::Classifier<Point>                           Classifier;
       typedef algorithm::FeatureTransformationNormalization<Point>   Normalization;
 
-      TestVolume( Classifier* classifier, const std::string& haarFeatures, const std::string& haarNormalization, const std::string& featureSelection ) : _selection( 0 )
+      TestVolume( Classifier* classifier, const std::string& haarFeatures, const std::string& haarNormalization, const std::string& featureSelection ) //: _selection( 0 )
       {
          _classifier = classifier;
          algorithm::Haar2dFeatures::read( _haar, haarFeatures );
