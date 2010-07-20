@@ -327,7 +327,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.3, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.4, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -439,6 +439,8 @@ struct TestRegion
       typedef Classifier::Database  Database;
 
       std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
+      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
+      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_COMAPRE );
       std::vector<RegionResult::Measure> measures;
 
       Classifier classifier( 1, true );
@@ -472,7 +474,7 @@ struct TestRegion
          Buffer1D<float> labelsmm = make_buffer1D<float>( 0, final.neckStart * volume.getSpacing()[ 2 ], final.heartStart * volume.getSpacing()[ 2 ], final.lungStart * volume.getSpacing()[ 2 ], final.skullStart * volume.getSpacing()[ 2 ], final.hipsStart * volume.getSpacing()[ 2 ] );
          corrector.correct( labelsmm );
 
-         /*
+         
          // uncomment to display label probabilities
          for ( ui32 y = 0; y < mprz.sizey(); ++y )
          {
@@ -501,7 +503,7 @@ struct TestRegion
                   p[ 2 ] = colors[ label ][ 2 ];
                }
             }
-         }*/
+         }
 
          for ( ui32 i = 1; i < NB_CLASS; ++i )
             labelsmm[ i ] /= volume.getSpacing()[ 2 ];

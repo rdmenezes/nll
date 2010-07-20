@@ -60,7 +60,62 @@ namespace detect
          _errorCorrection = core::make_buffer1D<float>( 0, 0.2f, 0.5f, 1.0f, 1.0f, 0.2f );
       }
 
-      void correct( Vector& distances, ui32 maxIter = 10 )
+      // assume distances[ roi ] = -1, else wrong computations!
+      // compute gaussian centered on the template with stddev the ratios
+      // compute the mean pb of the ratio
+      float getRoiProba( const Vector& distances, ui32 roi, int templateid )
+      {
+         Vector ratios = _getFullRatios( _getFullDistances( distances ) );
+         float pb = 0;
+         ui32 nbpb = 0;
+
+         // TODO: use only ratio that are involved with this ROI...
+         for ( ui32 n = 0; n < ratios.size(); ++n )
+         {
+            if (ratios[ n ] >= 0 )
+            {
+               const float st2 = core::sqr( _stddev[ n ] );
+               const float pdf = 1 / sqrt( 2 * core::PI * st2 ) * exp( - core::sqr( ratios[ n ] - _templates[ templateid ].distances[ n ] ) / ( 2 * st2 ) );
+               pb += pdf;
+               ++nbpb;
+            }
+         }
+
+         if ( !nbpb )
+            return 0;
+         return pb / nbpb;
+      }
+
+      // from the distance, find a matching template: successively remove one ROI, and estimate its position
+      void annotateProbability( Vector& distances, core::Image<ui8>& img, float orig )
+      {
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            Vector d;
+            d.clone( distances );
+            d[ roi ] = -1;
+
+            try 
+            {
+               // find a matching template
+               Vector testRatios = _getFullRatios( _getFullDistances( distances ) );
+               int templateid;
+               const Template& ref = getMatchingTemplate( distances, &templateid );
+
+               // now write out the proba
+
+            }
+            catch (...)
+            {
+               // do nothing...
+            }
+         }
+      }
+
+
+
+
+      void correct( Vector& distances, ui32 maxIter = 10, int* templateid = 0 )
       {
          try
          {
@@ -68,7 +123,7 @@ namespace detect
             origLabels.clone( distances );
 
             Vector testRatios = _getFullRatios( _getFullDistances( distances ) );
-            const Template& ref = getMatchingTemplate( distances );
+            const Template& ref = getMatchingTemplate( distances, templateid );
 
             core::Buffer1D<int>  error( NB_CLASS );
             core::Buffer1D<int>  good( NB_CLASS );
@@ -213,7 +268,7 @@ namespace detect
          }
       }
 
-      const Template& getMatchingTemplate( const Vector& distances )
+      const Template& getMatchingTemplate( const Vector& distances, int* templateid )
       {
          Matrix ref = _getFullDistances( distances );
          Vector refRatios = _getFullRatios( ref );
@@ -233,8 +288,14 @@ namespace detect
          }
 
          if ( index < 0 )
+         {
+            if ( templateid )
+               *templateid = -1;
             throw std::exception("can't find template");
+         }
          std::cout << "template chosen=" << index << std::endl;
+         if ( templateid )
+            *templateid = index;
          return _templates[ index ];
       }
 

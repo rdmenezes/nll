@@ -35,7 +35,7 @@
 
 #define HAAR_FEATURE_SIZE        2048
 
-#define FEATURE_SELECTION_SIZE   std::min( 64, HAAR_FEATURE_SIZE ) //20*20
+#define FEATURE_SELECTION_SIZE   std::min( 96, HAAR_FEATURE_SIZE ) //20*20
 #define HAAR_SELECTION           DATA_PATH "haar-normalized-selected.bin"
 #define HAAR_SELECTION_DATABASE  DATA_PATH "haar-normalized-selected.database"
 #define DATABASE_MEASURES        DATA_PATH "measures.txt"
