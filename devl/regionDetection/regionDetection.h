@@ -1,6 +1,9 @@
 #ifndef REGIONDETECTION_H
 #define REGIONDETECTION_H
 
+# include "globals.h"
+# include <nll/nll.h>
+
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the REGIONDETECTION_EXPORTS
@@ -19,3 +22,8 @@
 #endif
 
 #endif
+
+
+extern REGIONDETECTION_API nll::ui8 colors[ NB_CLASS ][ 3 ];
+
+extern const REGIONDETECTION_API nll::ui8 colors_src[ NB_CLASS ][ 3 ];

@@ -3,6 +3,7 @@
 
 # include "globals.h"
 # include "read-result.h"
+# include "regionDetection.h"
 # include <map>
 
 # ifndef UNDEFINED_NB
@@ -20,6 +21,7 @@ namespace detect
       typedef std::vector<RegionResult::Measure>   Measures;
       typedef core::Matrix<float>                  Matrix;
       typedef core::Buffer1D<float>                Vector;
+      typedef std::vector< std::vector<bool> >     VectorsB;
 
       struct Template
       {
@@ -60,7 +62,6 @@ namespace detect
          _errorCorrection = core::make_buffer1D<float>( 0, 0.2f, 0.5f, 1.0f, 1.0f, 0.2f );
       }
 
-      // assume distances[ roi ] = -1, else wrong computations!
       // compute gaussian centered on the template with stddev the ratios
       // compute the mean pb of the ratio
       float getRoiProba( const Vector& distances, ui32 roi, int templateid )
@@ -69,13 +70,12 @@ namespace detect
          float pb = 0;
          ui32 nbpb = 0;
 
-         // TODO: use only ratio that are involved with this ROI...
          for ( ui32 n = 0; n < ratios.size(); ++n )
          {
-            if (ratios[ n ] >= 0 )
+            if (ratios[ n ] < UNDEFINED_NB && _templates[ templateid ].ratios[ n ] < UNDEFINED_NB && _belongs[ roi ][ n ] )  // ROI must exist and involved in the ratio computation
             {
                const float st2 = core::sqr( _stddev[ n ] );
-               const float pdf = 1 / sqrt( 2 * core::PI * st2 ) * exp( - core::sqr( ratios[ n ] - _templates[ templateid ].distances[ n ] ) / ( 2 * st2 ) );
+               const float pdf = 1 / sqrt( 2 * core::PI * st2 ) * exp( - core::sqr( ratios[ n ] - _templates[ templateid ].ratios[ n ] ) / ( 2 * st2 ) );
                pb += pdf;
                ++nbpb;
             }
@@ -87,8 +87,11 @@ namespace detect
       }
 
       // from the distance, find a matching template: successively remove one ROI, and estimate its position
-      void annotateProbability( Vector& distances, core::Image<ui8>& img, float orig )
+      void annotateProbability( Vector& distances, core::Image<ui8>& img, float spacing )
       {
+         const ui32 dx = ( img.sizex() / 2 ) / ( NB_CLASS + 1 );
+         distances.print( std::cout );
+         ensure( img.getNbComponents() == 3, "must be a RGB image" );
          for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
          {
             Vector d;
@@ -97,13 +100,55 @@ namespace detect
 
             try 
             {
+               // vars..
+               int best = -1;
+               float valbest = -1;
+               float posbest = -1;
+
                // find a matching template
                Vector testRatios = _getFullRatios( _getFullDistances( distances ) );
                int templateid;
                const Template& ref = getMatchingTemplate( distances, &templateid );
 
                // now write out the proba
+               for ( ui32 n = 0; n < img.sizey(); ++n )
+               {
+                  d[ roi ] = n * spacing;
+                  const float pdf = getRoiProba( d, roi, templateid );
+                  if ( pdf > 0.01 )
+                  {
+                     std::cout << "ROI=" << roi << " pos=" << d[roi] << " proba=" << pdf << std::endl;
+                     ui8 col[] = 
+                     {
+                        colors_src[ roi ][ 0 ] * std::min<float>( pdf, 1 ),
+                        colors_src[ roi ][ 1 ] * std::min<float>( pdf, 1 ),
+                        colors_src[ roi ][ 2 ] * std::min<float>( pdf, 1 )
+                     };
+                     const ui32 startx = img.sizex() / 2 + dx * roi;
+                     const ui32 endx = startx + dx;
+                     const ui32 line = n;
 
+                     for ( ui32 x = startx; x < endx; ++x )
+                        for ( ui32 c = 0; c < 3; ++c )
+                        {
+                           ui32 cc = img( x, line, c ) + col[ c ];
+                           img( x, line, c ) = (ui8)NLL_BOUND( cc, 0, 255 );
+                        }
+
+                     if ( pdf > valbest )
+                     {
+                        valbest = pdf;
+                        best = line;
+                        posbest = d[ roi ];
+                     }
+                  }
+               }
+
+               if ( best != -1 )
+               {
+                  if ( roi != 4 || ( roi == 4 && posbest > distances[ roi ] ) )  // we don't allow finding a head position below the original -> it is probably due to template chosen
+                     distances[ roi ] = posbest;
+               }
             }
             catch (...)
             {
@@ -362,8 +407,14 @@ namespace detect
          if ( _links.size() == 0 )
          {
             _links = std::vector< std::vector<ui32 > >( ref.size() );
+            _belongs = std::vector< std::vector<bool> >( NB_CLASS );
             computeLinks = true;
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+            {
+               _belongs[ n ] = std::vector<bool>( ref.size() );
+            }
          }
+
 
          ui32 nn = 0;
          for ( ui32 n = 2; n < NB_CLASS; ++n )  // start a 1, we don't care about the 0 label
@@ -392,6 +443,10 @@ namespace detect
                      if ( computeLinks )
                      {
                         _links[ nn ] = core::make_vector<ui32>( n, m, o, p );
+                        _belongs[ n ][ nn ] = true;
+                        _belongs[ m ][ nn ] = true;
+                        _belongs[ o ][ nn ] = true;
+                        _belongs[ p ][ nn ] = true;
                      }
                      ++nn;
                   }
@@ -450,7 +505,8 @@ namespace detect
       Vector       _means;
       Vector       _stddev;
       Vector       _errorCorrection;
-      std::vector< std::vector<ui32> >   _links;   // ratio interdistance link: store the labels involved for computation
+      std::vector< std::vector<ui32> >   _links;        // ratio interdistance link: store the labels involved for computation
+      std::vector< std::vector<bool> >   _belongs;      // tells if a ratio computation is involved for this ROI:  <ROI<ratio>>
    };
 }
 }

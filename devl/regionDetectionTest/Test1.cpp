@@ -5,31 +5,13 @@
 #include <regionDetection/test.h>
 #include <regionDetection/correction.h>
 #include <regionDetection/correction2.h>
+#include <regionDetection/regionDetection.h>
 
 using namespace nll;
 using namespace nll::core;
 using namespace nll::algorithm;
 using namespace nll::detect;
 
-ui8 colors[ NB_CLASS ][ 3 ] = 
-{
-   { 255, 255, 255},
-   { 0, 0, 255 },
-   { 255, 0, 0 },
-   { 0, 255, 0 },
-   { 0, 255, 255 },
-   { 255, 255, 0 }
-};
-
-ui8 colors_src[ NB_CLASS ][ 3 ] = 
-{
-   { 255, 255, 255},
-   { 0, 0, 255 },
-   { 255, 0, 0 },
-   { 0, 255, 0 },
-   { 0, 255, 255 },
-   { 255, 255, 0 }
-};
 
 void setColorIntensity( ui32 index, double val )
 {
@@ -69,7 +51,7 @@ struct TestRegion
       typedef ClassifierMlp<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      //RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
+      RegionResult::generateSourceDatabase( CASES_DESC, DATABASE_SOURCE );
       srand( 0 );
       RegionResult::generateFeatureDatabase();
 
@@ -438,8 +420,8 @@ struct TestRegion
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
 
-      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
-      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
+      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
       //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_COMAPRE );
       std::vector<RegionResult::Measure> measures;
 
@@ -471,8 +453,14 @@ struct TestRegion
 
          // results
          previewLabel( mprz, 40, mprz.sizex() / 2, make_buffer1D<ui32>( 0, final.neckStart, final.heartStart, final.lungStart, final.skullStart, final.hipsStart ) );
-         Buffer1D<float> labelsmm = make_buffer1D<float>( 0, final.neckStart * volume.getSpacing()[ 2 ], final.heartStart * volume.getSpacing()[ 2 ], final.lungStart * volume.getSpacing()[ 2 ], final.skullStart * volume.getSpacing()[ 2 ], final.hipsStart * volume.getSpacing()[ 2 ] );
+         Buffer1D<float> labelsmm = make_buffer1D<float>( 0, final.neckStart * volume.getSpacing()[ 2 ],
+                                                             final.heartStart * volume.getSpacing()[ 2 ],
+                                                             final.lungStart * volume.getSpacing()[ 2 ],
+                                                             final.skullStart * volume.getSpacing()[ 2 ],
+                                                             final.hipsStart * volume.getSpacing()[ 2 ] );
          corrector.correct( labelsmm );
+
+         corrector.annotateProbability( labelsmm, mprz, volume.getSpacing()[ 2 ] );
 
          
          // uncomment to display label probabilities
