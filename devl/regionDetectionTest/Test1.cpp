@@ -1235,6 +1235,171 @@ struct TestRegion
       extend( i, 3 );
       writeBmp( i, "C:/tmp/s3/TEST.bmp" );
    }
+
+   void createCorrectorDatabase( std::vector<RegionResult::Measure>& measuresTraining, std::vector<RegionResult::Measure>& measuresTest, float testingRatio = 0.15f )
+   {
+      measuresTraining.clear();
+      measuresTest.clear();
+
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      // split the database
+      const ui32 nbTesting = static_cast<ui32>( testingRatio * measures.size() );
+      for ( ui32 n = 0; n < measures.size(); ++n )
+      {
+         if ( n >= nbTesting )
+         {
+            ui32 nb = 0;
+            Buffer1D<float> f = measures[ n ].toArray();
+            for ( ui32 nn = 0; nn < f.size(); ++nn )
+               nb += f[ nn ] > 0;
+            if ( nb == 5 )
+               measuresTraining.push_back( measures[ n ] );
+            else
+               measuresTest.push_back( measures[ n ] );
+         }
+         else
+         {
+            //measuresTraining.push_back( measures[ n ] );
+            measuresTest.push_back( measures[ n ] );
+         }
+      }
+
+      RegionResult::writeMeasures( measuresTraining, DATABASE_MEASURES_CORRECTION );
+   }
+
+   // test the position estimation
+   void testPositionEstimation()
+   {
+      std::vector<ErrorReporting> reportingCorrected;
+
+      // prepare the database
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      std::vector<RegionResult::Measure> training;
+      std::vector<RegionResult::Measure> test;
+      createCorrectorDatabase( training, test );
+
+      CorrectPosition2 corrector( training );
+
+      // for all test case, we estimate one ROI position knowing all other ROI and compare to the gound truth
+      for ( ui32 n = 0; n < test.size(); ++n )
+      {
+         core::Buffer1D<float> roiPos = test[ n ].toArray();
+         core::Buffer1D<float> roiPosOrig = test[ n ].toArray();
+
+         Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( test[ n ].id ) + ".bmp" );
+         ensure( preview.sizey() == test[ n ].numberOfSlices, "the size must match..." );
+         const float spacing = test[ n ].height / test[ n ].numberOfSlices;
+
+         // compute the error
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            if ( roiPosOrig[ roi ] >= 0 )
+            {
+               corrector.estimate( roiPos, spacing, roi, test[ n ].numberOfSlices );
+               if ( roiPos[ roi ] >= 0 )
+               {
+                  float error = fabs( roiPosOrig[ roi ] - roiPos[ roi ] ) / spacing;
+                  reportingCorrected.push_back( ErrorReporting( test[ n ].id, error, roi ) );
+               }
+            }
+         }
+
+         // annotate the image
+         corrector.annotateProbability( roiPosOrig, preview, spacing );
+
+         // convert to slice for display...
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+            roiPosOrig[ roi ] /= spacing;
+         previewLabel( preview, 0, preview.sizex(), roiPosOrig  );
+         writeBmp( preview, std::string( PREVIEW_CASE_CORRECTION )+ "-estmator-" + val2str( test[ n ].id )+ ".bmp" );
+      }
+
+      analyseResults( reportingCorrected, measures, results );
+      RegionResult::writeMeasures( training, DATABASE_MEASURES_CORRECTION );
+   }
+
+
+   // test the position estimation
+   void testPositionEstimationRobustness()
+   {
+      const double meanBigDeviation     = 0;
+      const double varBigDeviation      = 150;
+      std::vector<ErrorReporting> reportingCorrected;
+
+      // prepare the database
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      std::vector<RegionResult::Measure> training;
+      std::vector<RegionResult::Measure> test;
+      createCorrectorDatabase( training, test );
+
+      CorrectPosition2 corrector( training );
+
+      // for all test case, we estimate one ROI position knowing all other ROI and compare to the gound truth
+      for ( ui32 n = 0; n < test.size(); ++n )
+      {
+         // generate one ROI with error
+         ui32 roiErrorId = rand() % ( NB_CLASS - 1 ) + 1;
+         float roiError = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
+
+         core::Buffer1D<float> roiPos = test[ n ].toArray();
+         core::Buffer1D<float> roiPosOrig = test[ n ].toArray();
+
+         // update the ROI position according the error generated
+         roiPos[ roiErrorId ] += roiError;
+         roiPosOrig[ roiErrorId ] = roiPos[ roiErrorId ];
+
+         Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( test[ n ].id ) + ".bmp" );
+         ensure( preview.sizey() == test[ n ].numberOfSlices, "the size must match..." );
+         const float spacing = test[ n ].height / test[ n ].numberOfSlices;
+
+         // compute the error
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            if ( roi != roiErrorId )
+            {
+               if ( roiPosOrig[ roi ] >= 0 ) // we don't want to estimate the ROI with error!
+               {
+                  corrector.estimate( roiPos, spacing, roi, test[ n ].numberOfSlices );
+                  if ( roiPos[ roi ] >= 0 )
+                  {
+                     float error = fabs( roiPosOrig[ roi ] - roiPos[ roi ] ) / spacing;
+                     reportingCorrected.push_back( ErrorReporting( test[ n ].id, error, roi ) );
+                  }
+               }
+            }
+         }
+
+         // annotate the image
+         corrector.annotateProbability( roiPosOrig, preview, spacing );
+
+         // convert to slice for display...
+         core::Buffer1D<float> roiPosOrigOrig = test[ n ].toArray();
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            roiPosOrig[ roi ] /= spacing;
+            roiPos[ roi ] /= spacing;
+            roiPosOrigOrig[ roi ] /= spacing;
+         }
+         previewLabel( preview, 0, 10, roiPosOrigOrig );
+         previewLabel( preview, 10, preview.sizex() / 2, roiPosOrig  );
+         ++roiPosOrig[ roiErrorId ];
+         previewLabel( preview, 10, preview.sizex() / 2, roiPosOrig  );
+         ++roiPosOrig[ roiErrorId ];
+         previewLabel( preview, 10, preview.sizex() / 2, roiPosOrig  );
+
+         previewLabel( preview, preview.sizex() / 2, preview.sizex(), roiPos  );
+
+         writeBmp( preview, std::string( PREVIEW_CASE_CORRECTION )+ "-estmator-" + val2str( test[ n ].id )+ ".bmp" );
+      }
+
+      analyseResults( reportingCorrected, measures, results );
+   }
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
@@ -1254,14 +1419,19 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(learnMlp);
 
 // input: SVM model, validation-cases, validation volumes mf2
-TESTER_TEST(testValidationDataSvm);
+//TESTER_TEST(testValidationDataSvm);
 
-//TESTER_TEST(extractXZFullResolution);
-//TESTER_TEST(learnMlp);
+// display registration findings
 //TESTER_TEST(registrationExport);
 
+// test the ROI position estimation
+//TESTER_TEST(testPositionEstimation); // input: measures, results, output: the template database
+TESTER_TEST(testPositionEstimationRobustness)   // input: measures, results,
 
+//
+// deprecated:
+//
+//TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(testCenter);
-
 //TESTER_TEST(testSelectedTemplate);
 TESTER_TEST_SUITE_END();

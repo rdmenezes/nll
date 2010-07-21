@@ -86,8 +86,55 @@ namespace detect
          return pb / nbpb;
       }
 
-      // from the distance, find a matching template: successively remove one ROI, and estimate its position
-      void annotateProbability( Vector& distances, core::Image<ui8>& img, float spacing )
+      // reestimate the ROI position
+      void estimate( Vector& distances, float spacing, ui32 roi, ui32 nbSlices )
+      {
+         Vector d;
+         d.clone( distances );
+         d[ roi ] = -1;
+
+         try 
+         {
+            // vars..
+            int best = -1;
+            float valbest = -1;
+            float posbest = -1;
+
+            // find a matching template
+            Vector testRatios = _getFullRatios( _getFullDistances( distances ) );
+            int templateid;
+            const Template& ref = getMatchingTemplate( distances, &templateid );
+
+            // now write out the proba
+            for ( ui32 n = 0; n < nbSlices; ++n )
+            {
+               d[ roi ] = n * spacing;
+               const float pdf = getRoiProba( d, roi, templateid );
+               if ( pdf > 0.1 )
+               {
+                  if ( pdf > valbest )
+                  {
+                     valbest = pdf;
+                     best = n;
+                     posbest = d[ roi ];
+                  }
+               }
+            }
+
+            if ( best != -1 )
+            {
+               if ( roi != 4 || ( roi == 4 && posbest > distances[ roi ] ) )  // we don't allow finding a head position below the original -> it is probably due to template chosen
+                  distances[ roi ] = posbest;
+            }
+         }
+         catch (...)
+         {
+            // do nothing...
+         }
+      }
+
+      // display the estimation probabilities
+      void annotateProbability( const Vector& distances, core::Image<ui8>& img, float spacing )
       {
          const ui32 dx = ( img.sizex() / 2 ) / ( NB_CLASS + 1 );
          distances.print( std::cout );
@@ -146,8 +193,18 @@ namespace detect
 
                if ( best != -1 )
                {
-                  if ( roi != 4 || ( roi == 4 && posbest > distances[ roi ] ) )  // we don't allow finding a head position below the original -> it is probably due to template chosen
-                     distances[ roi ] = posbest;
+                  //if ( roi != 4 || ( roi == 4 && posbest > distances[ roi ] ) )  // we don't allow finding a head position below the original -> it is probably due to template chosen
+                  //   distances[ roi ] = posbest;
+                  const ui32 startx = img.sizex() / 2 + dx * roi;
+                  const ui32 endx = startx + dx;
+                  for ( ui32 nn = startx; nn < endx; ++nn )
+                     for ( ui32 c = 0; c < 3; ++c )
+                     {
+                        img( nn, best, c ) = 255;
+                        img( nn, best - 1, c ) = 255;
+                        if ( best + 1 < img.sizey() )
+                           img( nn, best + 1, c ) = 255;
+                     }
                }
             }
             catch (...)
@@ -156,8 +213,6 @@ namespace detect
             }
          }
       }
-
-
 
 
       void correct( Vector& distances, ui32 maxIter = 10, int* templateid = 0 )
