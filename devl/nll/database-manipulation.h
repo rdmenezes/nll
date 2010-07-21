@@ -45,6 +45,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Returns the number of classes in the database. The database type <b>must</b> be a classification database
            (ie using <code>ClassificationSample</code>).
     */
@@ -55,6 +56,27 @@ namespace core
    }
 
    /**
+    @ingroup core
+    @brief Computes the class distribution of the database for TESTING|LEARNING|VALIDATION
+    */
+   template <class Database>
+   Buffer1D<ui32> getClassificationDatabaseClassNumber( const Database& d )
+   {
+      enum {VAL = impl::_IsClassificationSampleTraits<typename Database::Sample::Input, typename Database::Sample::Output, typename Database::Sample>::value };
+      STATIC_ASSERT( VAL );
+
+      ui32 nbClass = getNumberOfClass( d );
+      ensure( nbClass, "empty database?" );
+      Buffer1D<ui32> nbs( nbClass );
+      for ( ui32 n = 0; n < d.size(); ++n )
+      {
+         ++nbs[ d[ n ].output ];
+      }
+      return nbs;
+   }
+
+   /**
+    @ingroup core
     @brief Filters a database according to the type of the samples. The database type <b>must</b> be a classification database
            (ie using <code>ClassificationSample</code>).
     @param dat a <b>classification</b> database
@@ -89,6 +111,7 @@ namespace core
 
 
    /**
+    @ingroup core
     @brief Select features in a database. Assumes that all sample's input have the same size.
     @param dat the database to filter
     @param select an array bool specifying if this feature is kept or 
