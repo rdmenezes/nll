@@ -33,7 +33,7 @@ void renderObjects()
    // generate the texture we are going to draw
    (*applicationVariables->layout).draw( applicationVariables->screen );
 
-   //nll::core::writeBmp( applicationVariables.screen, "c:/screen.bmp" );
+   //nll::core::writeBmp( applicationVariables->screen, "c:/screen.bmp" );
    glBindTexture( GL_TEXTURE_2D, applicationVariables->screenTextureId );
    glTexImage2D(GL_TEXTURE_2D, 0, 3, applicationVariables->screen.sizex(), applicationVariables->screen.sizey(),
                 0, GL_RGB, GL_UNSIGNED_BYTE, applicationVariables->screen.getBuf() );
@@ -208,16 +208,42 @@ void mouseMotion(int x, int y)
    (*applicationVariables->layout).receive( applicationVariables->mouseEvent );
 }
 
-void keyboard(unsigned char key, int, int)
+void keyboard( unsigned char key, int x, int y )
 {
-   if ( key == 'q' )
+   if ( key == 27 || key == 'q' )
    {
       applicationVariables->layout.unref();
       applicationVariables->orderManager.kill();
       applicationVariables->context.clear();
       exit( 0 );
    }
+
+   EventKeyboard e;
+   e.mousePosition = nll::core::vector2ui( x, y );
+   e.key = key;
+   int mod = glutGetModifiers();
+   if ( mod & GLUT_ACTIVE_ALT )
+      e.isAlt = true;
+   else
+      e.isAlt = false;
+   if ( mod & GLUT_ACTIVE_CTRL )
+      e.isCtrl = true;
+   else
+      e.isAlt = false;
+   if ( mod & GLUT_ACTIVE_SHIFT )
+      e.isShift = true;
+   else
+      e.isShift = false;
+
+   (*applicationVariables->layout).receive( e );
 }
+
+void keyboardSpecial( int key, int x, int y )
+{
+   EventKeyboard e;
+
+}
+
 
 int main(int argc, char** argv)
 {
@@ -238,6 +264,7 @@ int main(int argc, char** argv)
   glutDisplayFunc( display );
   glutReshapeFunc( reshape );
   glutKeyboardFunc( keyboard );
+  glutSpecialFunc( keyboardSpecial );
   glutMouseFunc( mouseButton );
   glutMotionFunc( mouseMotion );
   glutPassiveMotionFunc( mouseMotion );

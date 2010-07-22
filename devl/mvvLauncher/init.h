@@ -10,6 +10,7 @@
 # include <mvvPlatform/context-tools.h>
 # include <mvvPlatform/context-global.h>
 # include <mvvPlatform/engine-handler-impl.h>
+# include <mvvPlatform/layout-pane-textbox.h>
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/segment-tool-pointer.h>
@@ -63,6 +64,7 @@ namespace mvv
       }
 
    private:
+      /*
       void initScript()
       {
          // set the extension, so we can access the context
@@ -80,6 +82,24 @@ namespace mvv
          const RuntimeValue& layoutRef = compiler.getVariable( mvv::Symbol::create( "layout" ) );
          FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
          layout = pointee->pane;
+
+         (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
+         (*layout).updateLayout();
+      }*/
+
+      void initScript()
+      {
+         //FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
+         //layout = pointee->pane;
+
+         PaneTextbox* textBox = new PaneTextbox( nll::core::vector2ui(0, 0),
+                                                 nll::core::vector2ui(0, 0),
+                                                 font, 20,
+                                                 nll::core::vector3uc( 255, 255, 255 ),
+                                                 nll::core::vector3uc( 0, 0, 0 ) );
+         RefcountedTyped<PaneTextboxDecorator> cursor( new LayoutPaneDecoratorCursor( *textBox ) );
+         textBox->add( cursor );
+         layout = RefcountedTyped<Pane>( textBox );
 
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          (*layout).updateLayout();

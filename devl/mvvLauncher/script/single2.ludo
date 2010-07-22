@@ -1,14 +1,15 @@
 import "core"
 
-VolumeID ct = loadVolumeAsynchronous("D:/Devel/sandbox/regionDetectionTest/data/case69.mf2");
-//VolumeID ct2 = loadVolumeAsynchronous("c:/tmp/cc67.mf2");
+VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
+VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
 
 Lut ctLut( -240.0, 320.0 );
+Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
 
 
 VolumeContainer volumes;
 volumes.add( ct, ctLut, 0.3 );
-//volumes.add( ct2, ctLut, 0.3 );
+//volumes.add( pet, petLut, 0.3 );
 
 SegmentToolCentering    toolCentering;
 SegmentToolPointer      toolPointer;

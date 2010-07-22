@@ -66,10 +66,10 @@ segment3.setTool( toolCentering );
 
 
 Segment segment4( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment4.setTool( toolPointer2 );
-segment4.setTool( toolAnnotations2 );
-segment4.setTool( toolCamera2 );
-segment4.setTool( toolCentering2 );
+segment4.setTool( toolPointer );
+segment4.setTool( toolAnnotations );
+segment4.setTool( toolCamera );
+segment4.setTool( toolCentering );
 
 
 Layout::Vertical vertical;
@@ -77,13 +77,18 @@ Layout::Horizontal horizontal;
 Layout l1( segment1 );
 Layout l2( segment2 );
 Layout l3( segment3 );
-//Layout l4( segment4 );
+Layout l6( segment4 );
 Layout l4( mip1 );
 Layout l5( mip2 );
 
 //Layout l3( segment3 );
 //Layout l4( segment4 );
-Layout layout( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, Layout(horizontal, l4, l5, 0.51), 0.51), 0.51 );
+
+Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, Layout(horizontal, l4, l5, 0.51), 0.51), 0.51 );
+//Layout layoutEditing( mip1 );
+Layout layout = Layout(horizontal, layoutDisplay, l6, 0.51);
+//Layout layout( segment1 );
+//Layout layout = layoutDisplay;
 
 //Layout layout( segment1 );
 
