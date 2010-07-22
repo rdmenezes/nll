@@ -14,6 +14,24 @@ namespace platform
     */
    struct MVVPLATFORM_API     EventKeyboard
    {
+      enum
+      {
+         KEY_ESC = 27,
+         KEY_ENTER = 13,
+         KEY_BACKSPACE = 8,
+         KEY_LEFT = 0x0064,
+         KEY_UP,
+         KEY_RIGHT,
+         KEY_DOWN
+      };
+
+      EventKeyboard()
+      {
+         isShift = false;
+         isCtrl = false;
+         isAlt = false;
+      }
+
       /// the current mouse position
       nll::core::vector2ui    mousePosition;
 

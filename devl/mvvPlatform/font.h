@@ -19,6 +19,7 @@ namespace platform
       Font()
       {
          _color = nll::core::vector3uc( 255, 255, 255 );
+         _colorBackground = nll::core::vector3uc( 0, 0, 0 );
          _size = 12;
       }
 
@@ -29,6 +30,11 @@ namespace platform
       }
 
       void setColor( nll::core::vector3uc color )
+      {
+         _color = color;
+      }
+
+      void setBackground( nll::core::vector3uc color )
       {
          _color = color;
       }
@@ -50,15 +56,16 @@ namespace platform
        @brief Writes a string to an image. If the string doesn't fit in the image, then it should be properly cropped
               to the visible area
        */
-      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image ) = 0;
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, bool displayBackground = false ) = 0;
 
       /**
        @brief Writes the string to an image, only the text within (min, max) will actually be written
        */
-      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& min, const nll::core::vector2ui& max ) = 0;
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& min, const nll::core::vector2ui& max, bool displayBackground = false ) = 0;
 
    protected:
       nll::core::vector3uc    _color;
+      nll::core::vector3uc    _colorBackground;
       ui32                    _size;
    };
 
@@ -146,7 +153,7 @@ namespace platform
 
        @param maxpos Add a position constraint: letters 
        */
-      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& minpos, const nll::core::vector2ui& maxpos )
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& minpos, const nll::core::vector2ui& maxpos, bool displayBackground = false )
       {
          ensure( image.getNbComponents() == 3, "error: it must be a RGB image!" );
          ensure( maxpos[ 0 ] <= image.sizex() && maxpos[ 1 ] <= image.sizey(), "min/max problem" );
@@ -182,7 +189,7 @@ namespace platform
                   // we are out of bound, just don't write the next letters...
                   break;
                }
-               _writeLetter( it->second, p, image );
+               _writeLetter( it->second, p, image, displayBackground );
             }
             p[ 0 ] += sizex;
          }
@@ -191,13 +198,13 @@ namespace platform
       /**
        @brief Write a string using the current size & color
        */
-      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image )
+      virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, bool displayBackground = false )
       {
-         write( str, position, image, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( image.sizex(), image.sizey() ) );
+         write( str, position, image, nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( image.sizex(), image.sizey() ), displayBackground );
       }
 
    protected:
-      void _writeLetter( const ImageSet& font, const nll::core::vector2ui& position, Image& image )
+      void _writeLetter( const ImageSet& font, const nll::core::vector2ui& position, Image& image, bool displayBackground )
       {
          // we now it is a row-based storage so we can optimize a bit...
          Image::const_iterator itFont = font.image.begin();
@@ -206,24 +213,51 @@ namespace platform
 
          const ui32 sizex = font.image.sizex();
          const ui32 sizey = font.image.sizey();
-         for ( ui32 y = 0; y < sizey; ++y )
-         {
-            Image::DirectionalIterator line = itImage;
-            for ( ui32 x = 0; x < sizex; ++x )
-            {
-               if ( *itMask > 32  )
-               {
-                  line.pickcol( 0 ) = *itFont++;
-                  line.pickcol( 1 ) = *itFont++;
-                  line.pickcol( 2 ) = *itFont++;
-               } else {
-                  itFont += 3;
-               }
 
-               line.addx();
-               ++itMask;
+         if ( displayBackground )
+         {
+            for ( ui32 y = 0; y < sizey; ++y )
+            {
+               Image::DirectionalIterator line = itImage;
+               for ( ui32 x = 0; x < sizex; ++x )
+               {
+                  if ( *itMask > 32  )
+                  {
+                     line.pickcol( 0 ) = *itFont++;
+                     line.pickcol( 1 ) = *itFont++;
+                     line.pickcol( 2 ) = *itFont++;
+                  } else {
+                     line.pickcol( 0 ) = _colorBackground[ 0 ];
+                     line.pickcol( 1 ) = _colorBackground[ 1 ];
+                     line.pickcol( 2 ) = _colorBackground[ 2 ];
+                     itFont += 3;
+                  }
+
+                  line.addx();
+                  ++itMask;
+               }
+               itImage.addy();
             }
-            itImage.addy();
+         } else {
+            for ( ui32 y = 0; y < sizey; ++y )
+            {
+               Image::DirectionalIterator line = itImage;
+               for ( ui32 x = 0; x < sizex; ++x )
+               {
+                  if ( *itMask > 32  )
+                  {
+                     line.pickcol( 0 ) = *itFont++;
+                     line.pickcol( 1 ) = *itFont++;
+                     line.pickcol( 2 ) = *itFont++;
+                  } else {
+                     itFont += 3;
+                  }
+
+                  line.addx();
+                  ++itMask;
+               }
+               itImage.addy();
+            }
          }
       }
 

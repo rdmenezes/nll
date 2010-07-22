@@ -494,6 +494,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\layout-pane-textbox.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\layout-pane-textbox.h"
 				>
 			</File>
