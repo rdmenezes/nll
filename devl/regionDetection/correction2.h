@@ -59,7 +59,83 @@ namespace detect
          }
          ensure( _templates.size(), "can't have 0 templates" );
          _constructStatistics();
-         _errorCorrection = core::make_buffer1D<float>( 0, 0.2f, 0.5f, 1.0f, 1.0f, 0.2f );
+         _errorCorrection = core::make_buffer1D<float>( 0, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f );
+         _errorCorrection2 = core::make_buffer1D<float>( 0, 20.0f, 20.0f, 20.0f, 20.0f, 60.0f );
+      }
+
+      std::set<ui32> detectOutliers( const Vector& distances, float spacing, ui32 nbSlices )
+      {
+         std::set<ui32> wrong;
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            if ( distances[ roi ] > 0 )
+            {
+               Vector corrected;
+               corrected.clone( distances );
+
+               estimate( corrected, spacing, roi, nbSlices );
+
+               if ( fabs( distances[ roi ] - corrected[ roi ] ) > _errorCorrection2[ roi ] )
+               {
+                  wrong.insert( roi );
+                  std::cout << "outlier:" << roi << " d=" << fabs( distances[ roi ] - corrected[ roi ] ) << std::endl;
+               }
+            }
+         }
+         return wrong;
+      }
+
+      std::set<ui32> detectOutliers2( const Vector& distances )
+      {
+         std::set<ui32> wrong;
+
+         Vector origLabels;
+         try
+         {
+            origLabels.clone( distances );
+            int templateid;
+            Vector testRatios = _getFullRatios( _getFullDistances( distances ) );
+            const Template& ref = getMatchingTemplate( distances, &templateid );
+
+            core::Buffer1D<int>  error( NB_CLASS );
+            core::Buffer1D<int>  good( NB_CLASS );
+            for ( ui32 n = 0; n < ref.ratios.size(); ++n )
+            {
+               //std::cout << "testr=" << testRatios[ n ] << " mean=" << _means[ n ] << " std=" << _stddev[ n ] << std::endl;
+               if ( testRatios[ n ] < UNDEFINED_NB )
+               {
+                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ]*/ ) >  2 * _stddev[ n ] )
+                  {
+                     for ( ui32 nn = 0; nn < 4; ++nn )
+                        if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
+                           ++error[ _links[ n ][ nn ] ];
+                     //std::cout << "err" << std::endl;
+                  } else {
+                     for ( ui32 nn = 0; nn < 4; ++nn )
+                        if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
+                           ++good[ _links[ n ][ nn ] ];
+                  }
+               }
+            }
+
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+               std::cout << "  vote label=" << n << " +:" << good[ n ] << " -:" << error[ n ] << std::endl;
+
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+            {
+               if ( distances[ n ] > 0 && error[ n ] * _errorCorrection[ n ] > good[ n ] )
+               {
+                  std::cout << "recompute label=" << n << std::endl;
+                  wrong.insert( n );
+               }
+            }
+         }
+         catch(...)
+         {
+            std::cout << "error: no can't match template" << std::endl;
+            // just do nothing...
+         }
+         return wrong;
       }
 
       // compute gaussian centered on the template with stddev the ratios
@@ -560,6 +636,7 @@ namespace detect
       Vector       _means;
       Vector       _stddev;
       Vector       _errorCorrection;
+      Vector       _errorCorrection2;
       std::vector< std::vector<ui32> >   _links;        // ratio interdistance link: store the labels involved for computation
       std::vector< std::vector<bool> >   _belongs;      // tells if a ratio computation is involved for this ROI:  <ROI<ratio>>
    };

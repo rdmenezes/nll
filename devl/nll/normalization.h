@@ -58,8 +58,12 @@ namespace algorithm
          for ( ui32 nn = 0; nn < nbFeatures; ++nn )
          {
             if ( fabs( _var[ nn ] ) < 1e-10 )
+            {
                nllWarning( "null variance, this attribut should be discarded instead" );
-            _var[ nn ] /= nbSamples;
+               _var[ nn ] = 1;
+            } else {
+               _var[ nn ] /= nbSamples;
+            }
          }
          return true;
       }

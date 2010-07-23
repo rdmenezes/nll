@@ -391,6 +391,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\correction3.h"
+				>
+			</File>
+			<File
+				RelativePath=".\correction4.h"
+				>
+			</File>
+			<File
 				RelativePath=".\features.h"
 				>
 			</File>

@@ -5,6 +5,8 @@
 #include <regionDetection/test.h>
 #include <regionDetection/correction.h>
 #include <regionDetection/correction2.h>
+#include <regionDetection/correction3.h>
+#include <regionDetection/correction4.h>
 #include <regionDetection/regionDetection.h>
 
 using namespace nll;
@@ -1323,7 +1325,7 @@ struct TestRegion
    }
 
 
-   // test the position estimation
+   // test the position estimation with one ROI having error
    void testPositionEstimationRobustness()
    {
       const double meanBigDeviation     = 0;
@@ -1400,6 +1402,242 @@ struct TestRegion
 
       analyseResults( reportingCorrected, measures, results );
    }
+
+   // in this test, we generate cases with the error distribution than the classifier
+   // ideally no ROI should be updated
+   void testOutlierDetection0Wrong()
+   {
+      std::vector<ErrorReporting> reportingCorrected;
+
+      // prepare the database
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      std::vector<RegionResult::Measure> training;
+      std::vector<RegionResult::Measure> test;
+      createCorrectorDatabase( training, test );
+
+      CorrectPosition2 corrector( training );
+
+      const double meanBigDeviation     = 0;       // mean of the generated error in mm
+      const double varBigDeviation      = 200;     // variance of the generated error in mm
+      const double smallThreshold       = 30;      // threshold indicating we don't want any outlier detection within this range
+      const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
+      const ui32 nbSamplePerTest        = 10;
+
+      Buffer1D<ui32> nbFalsePositives( NB_CLASS );
+      Buffer1D<ui32> nbFalseNegatives( NB_CLASS );
+      Buffer1D<ui32> nbTruePositives( NB_CLASS );
+      Buffer1D<ui32> nbExpectedTP( NB_CLASS );
+      ui32 nbCasesWithError = 0;
+      ui32 nbCasesFailingCorrecly = 0;
+
+      const double means[ NB_CLASS ] =
+      {
+         0, 6.89f, 7.29f, 2.65f, 8.95f, 4.74f
+      };
+
+      const double vars[ NB_CLASS ] =
+      {
+         0, 9.56f, 6.00f, 4.22f, 9.89f, 5.68f
+      };
+
+      for ( ui32 testid = 0; testid < test.size(); ++testid )
+      {
+         for ( ui32 sample = 0; sample < nbSamplePerTest; ++sample )
+         {
+            ui32 roi;
+            Buffer1D<float> distances = test[ testid ].toArray();
+            Buffer1D<float> distancesOrig = test[ testid ].toArray();
+
+            while ( 1 )
+            {
+               // select randomly a ROI
+               roi = ( rand() % (NB_CLASS - 1) ) + 1;
+               if ( distances[ roi ] > 0 )
+                  break;
+            }
+
+            // generate a default error to test robustness
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+               if ( n != roi && distances[ n ] > 0 )
+               {
+                  const float err = (float)generateGaussianDistribution( means[ n ] * core::generateSign(), vars[ n ] );
+                  std::cout << " add err=" << err << std::endl;
+                  distances[ n ] += err;
+               }
+
+            // generate an error, and detect the outlier
+            float error = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
+            distances[ roi ] += error;
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+            {
+               if ( distancesOrig[ n ] > 0 )
+               {
+                  if ( fabs( distancesOrig[ n ] - distances[ n ] ) > outlierThreshold  )
+                  {
+                     ++nbCasesWithError;
+                  }
+               }
+            }
+
+            std::cout << "sample:" << sample << " ROI=" << roi << " error=" << error << std::endl;
+            const float spacing = test[ testid ].height / test[ testid ].numberOfSlices;
+            std::set<ui32> outliers = corrector.detectOutliers( distances, spacing, test[ testid ].numberOfSlices );
+
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+            {
+               if ( distancesOrig[ n ] > 0 )
+               {
+                  if ( fabs( distancesOrig[ n ] - distances[ n ] ) > outlierThreshold  )
+                  {
+                     ++nbExpectedTP[ n ];
+                  }
+                  if ( fabs( distancesOrig[ n ] - distances[ n ] ) > outlierThreshold && outliers.find( n ) == outliers.end() )
+                     ++nbFalseNegatives[ n ];
+               }
+            }
+
+            bool failed = false;
+            for ( std::set<ui32>::iterator it = outliers.begin(); it != outliers.end(); ++it )
+            {
+               if ( distancesOrig[ * it ] > 0 )
+               {
+                  if ( fabs( distancesOrig[ *it ] - distances[ *it ] ) < smallThreshold  )
+                  {
+                     ++nbFalsePositives[ *it ];
+                  }
+
+                  if ( fabs( distancesOrig[ *it ] - distances[ *it ] ) >= outlierThreshold  )
+                  {
+                     ++nbTruePositives[ *it ];
+                     failed = true;
+                  }
+               } else exit(-1);  // problem!
+            }
+
+            if ( failed )
+               ++nbCasesFailingCorrecly;
+         }
+      }
+
+      std::cout << "result:" << std::endl;
+      for ( ui32 n = 1; n < NB_CLASS; ++n )
+      {
+         std::cout << "label:" << n << std::endl
+                   << " TP=" << nbTruePositives[ n ] << " expected:" << nbExpectedTP[ n ] << std::endl
+                   << " FP=" << nbFalsePositives[ n ] << std::endl
+                   << " FN=" << nbFalseNegatives[ n ] << std::endl;
+      }
+
+      std::cout << "nbCases=" << test.size() * nbSamplePerTest << std::endl
+                << "nbCaseWithOutliers=" << nbCasesWithError << std::endl
+                << "case failing as expected=" << nbCasesFailingCorrecly << std::endl;
+                
+
+   }
+
+   void trainOutlierDetection()
+   {
+      // prepare the database
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> test = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      
+      CorrectPosition3 corrector;
+      corrector.learn( test );
+   }
+
+   void testOutlierDetection0Wrong_3()
+   {
+      std::vector<ErrorReporting> reportingCorrected;
+
+      // prepare the database
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      CorrectPosition4 corrector;
+      corrector.learn( measures );
+
+      std::vector<RegionResult::Measure> training;
+      std::vector<RegionResult::Measure> test;
+      createCorrectorDatabase( training, test );
+
+
+      const double meanBigDeviation     = 0;       // mean of the generated error in mm
+      const double varBigDeviation      = 200;     // variance of the generated error in mm
+      const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
+      const ui32 nbSamplePerTest        = 100;
+
+      ui32 nbCasesWithError = 0;
+      ui32 nbCasesFailingCorrecly = 0;
+
+      const double means[ NB_CLASS ] =
+      {
+         0, 6.89f, 7.29f, 2.65f, 8.95f, 4.74f
+      };
+
+      const double vars[ NB_CLASS ] =
+      {
+         0, 9.56f, 6.00f, 4.22f, 9.89f, 5.68f
+      };
+
+      ui32 fp = 0;
+      for ( ui32 testid = 0; testid < test.size(); ++testid )
+      {
+         for ( ui32 sample = 0; sample < nbSamplePerTest; ++sample )
+         {
+            ui32 roi;
+            Buffer1D<float> distances = test[ testid ].toArray();
+            Buffer1D<float> distancesOrig = test[ testid ].toArray();
+
+            while ( 1 )
+            {
+               // select randomly a ROI
+               roi = ( rand() % (NB_CLASS - 1) ) + 1;
+               if ( distances[ roi ] > 0 )
+                  break;
+            }
+
+            // generate a default error to test robustness
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+               if ( n != roi && distances[ n ] > 0 )
+               {
+                  const float err = (float)generateGaussianDistribution( means[ n ] * core::generateSign(), vars[ n ] );
+                  std::cout << " add err=" << err << std::endl;
+                  distances[ n ] += err;
+               }
+
+            // generate an error, and detect the outlier
+            float error = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
+            distances[ roi ] += error;
+            
+
+            std::cout << "sample:" << sample << " ROI=" << roi << " error=" << error << std::endl;
+            const float spacing = test[ testid ].height / test[ testid ].numberOfSlices;
+            bool outliers = corrector.detectOutliers( distances );
+
+            float maxError = 0;
+            for ( ui32 n = 1; n < NB_CLASS; ++n )
+            {
+               maxError = std::max( maxError, fabs( distancesOrig[ n ] - distances[ n ] ) );
+            }
+
+            if ( maxError > outlierThreshold )
+            {
+               ++nbCasesWithError;
+               if ( outliers )
+                  ++nbCasesFailingCorrecly;
+            } else {
+               if ( outliers )
+                  ++fp;
+            }
+         }
+      }
+
+      std::cout << "expected failures:" << nbCasesWithError << " failure correct=" << nbCasesFailingCorrecly << std::endl;
+      std::cout << "fp=" << fp << std::endl;
+   }
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
@@ -1407,7 +1645,7 @@ TESTER_TEST_SUITE(TestRegion);
 // input: cases, mf2 volumes, output: haar features, normalization paramaeters, learning database
 //TESTER_TEST(createDatasets);
 
-// input: cases, mf2 volumes, output: XZ slice in preview directory
+// input: cases, mf2 volumes, output: XZ slice in preview directory // this is needed for all volume-database related visualization
 //TESTER_TEST(createPreview);
 
 // input: cases, mf2 volumes, output: a database for all volumes of all slices
@@ -1421,12 +1659,13 @@ TESTER_TEST_SUITE(TestRegion);
 // input: SVM model, validation-cases, validation volumes mf2
 //TESTER_TEST(testValidationDataSvm);
 
-// display registration findings
-//TESTER_TEST(registrationExport);
-
 // test the ROI position estimation
 //TESTER_TEST(testPositionEstimation); // input: measures, results, output: the template database
-TESTER_TEST(testPositionEstimationRobustness)   // input: measures, results,
+//TESTER_TEST(testPositionEstimationRobustness)   // input: measures, results,
+
+// test the ROI outlier detection // input:template database
+//TESTER_TEST(trainOutlierDetection);
+//TESTER_TEST(testOutlierDetection0Wrong_3);   // only 0 outlier
 
 //
 // deprecated:
@@ -1434,4 +1673,8 @@ TESTER_TEST(testPositionEstimationRobustness)   // input: measures, results,
 //TESTER_TEST(extractXZFullResolution);
 //TESTER_TEST(testCenter);
 //TESTER_TEST(testSelectedTemplate);
+TESTER_TEST(testOutlierDetection0Wrong);   // only 0 outlier
+
+// for registration based method: display registration findings
+//TESTER_TEST(registrationExport);
 TESTER_TEST_SUITE_END();

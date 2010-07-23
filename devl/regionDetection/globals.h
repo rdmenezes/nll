@@ -51,5 +51,6 @@
 #define LEARNING_NB_BINS                     10       // the number of bins for crossvalidation
 
 #define CORRECTION2_NB_MIN_DIST              5
+#define CORRECTION3_NORMALIZE_RATIO          DATA_PATH "correction3-normalize.bin"
 
 #endif
