@@ -241,7 +241,27 @@ void keyboard( unsigned char key, int x, int y )
 void keyboardSpecial( int key, int x, int y )
 {
    EventKeyboard e;
+   e.mousePosition = nll::core::vector2ui( x, y );
 
+   switch ( key )
+   {
+   case GLUT_KEY_LEFT:
+      e.key = EventKeyboard::KEY_LEFT; break;
+   case GLUT_KEY_UP:
+      e.key = EventKeyboard::KEY_UP; break;
+   case GLUT_KEY_RIGHT:
+      e.key = EventKeyboard::KEY_RIGHT; break;
+   case GLUT_KEY_DOWN:
+      e.key = EventKeyboard::KEY_DOWN; break;
+   case GLUT_KEY_HOME:
+      e.key = EventKeyboard::KEY_HOME; break;
+   case GLUT_KEY_END:
+      e.key = EventKeyboard::KEY_END; break;
+   default:
+      return;
+   }
+
+   (*applicationVariables->layout).receive( e );
 }
 
 

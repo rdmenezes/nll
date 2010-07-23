@@ -19,10 +19,12 @@ namespace platform
          KEY_ESC = 27,
          KEY_ENTER = 13,
          KEY_BACKSPACE = 8,
-         KEY_LEFT = 0x0064,
+         KEY_LEFT = 256,
          KEY_UP,
          KEY_RIGHT,
-         KEY_DOWN
+         KEY_DOWN,
+         KEY_HOME,
+         KEY_END
       };
 
       EventKeyboard()

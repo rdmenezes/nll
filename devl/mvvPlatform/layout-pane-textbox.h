@@ -31,9 +31,8 @@ namespace platform
          _needToBeRefreshed = true;
          ensure( textSize > 0, "error: text size is <= 0" );
 
-         _text.push_back( "123465789" );
-         _text.push_back( "abcdefg" );
-         _text.push_back( "123486abcdefg" );
+         _text.push_back( "" );
+         _text.push_back( "ab" );
       }
 
       virtual ~PaneTextbox()
@@ -141,7 +140,7 @@ namespace platform
       typedef PaneTextboxDecorator   Base;
 
    public:
-      LayoutPaneDecoratorCursor( PaneTextbox& src ) : Base( src )
+      LayoutPaneDecoratorCursor( PaneTextbox& src, bool enableCursorMouvement = true ) : Base( src ), _enableCursorMouvement( enableCursorMouvement )
       {
          _currentLine = 0;
          _currentChar = 0;
@@ -158,6 +157,96 @@ namespace platform
 
       virtual bool receive( const EventKeyboard& e )
       {
+         if ( _enableCursorMouvement )
+         {
+            if ( e.key == EventKeyboard::KEY_SUPR )
+            {
+               //
+               // TODO
+               //
+               _src.notify();
+               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+               return false;
+            }
+
+            if ( e.key == EventKeyboard::KEY_END )
+            {
+               _currentChar = _src._text[ _currentLine ].size();
+               _src.notify();
+               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+               return false;
+            }
+
+            if ( e.key == EventKeyboard::KEY_DOWN && _currentLine + 1 < _src._text.size() )
+            {
+               ++_currentLine;
+               if ( _src._text[ _currentLine ].size() < _currentChar )
+                  _currentChar = _src._text[ _currentLine ].size();
+               _src.notify();
+               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+               return false;
+            }
+
+            if ( e.key == EventKeyboard::KEY_UP && _currentLine )
+            {
+               --_currentLine;
+               if ( _src._text[ _currentLine ].size() < _currentChar )
+                  _currentChar = _src._text[ _currentLine ].size();
+               _src.notify();
+               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+               return false;
+            }
+
+            if ( e.key == EventKeyboard::KEY_HOME )
+            {
+               _currentChar = 0;
+               _src.notify();
+               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+               return false;
+            }
+
+            if ( e.key == EventKeyboard::KEY_LEFT )
+            {
+               if ( _currentChar )
+               {
+                  --_currentChar;
+                  _src.notify();
+                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+                  return false;
+               } else {
+                  if ( _currentLine )
+                  {
+                     --_currentLine;
+                     _currentChar = _src._text[ _currentLine ].size();
+                     std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+                     _src.notify();
+                     return false;
+                  } else return false;
+               }
+            }
+
+            if ( e.key == EventKeyboard::KEY_RIGHT )
+            {
+               if ( _currentChar + 1 >= _src._text[ _currentLine ].size() )
+               {
+                  if ( _currentLine + 1 < _src._text.size() )
+                  {
+                     _currentChar = 0;
+                     ++_currentLine;
+                     _src.notify();
+                     std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+                  } else {
+                     _currentChar = _src._text[ _currentLine ].size();
+                  }
+                  return false;
+               } else {
+                  ++_currentChar;
+                  _src.notify();
+                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+                  return false;
+               }
+            }
+         }
          // erase character
          if ( e.key == EventKeyboard::KEY_BACKSPACE )
          {
@@ -166,6 +255,7 @@ namespace platform
                --_currentChar;
                for ( ui32 n = _currentChar; n < _src._text[ _currentLine ].size(); ++n )
                   _src._text[ _currentLine ][ n ] = _src._text[ _currentLine ][ n + 1 ];
+               _src._text[ _currentLine ].resize( _src._text[ _currentLine ].size() - 1 );
             } else {
                if ( _currentLine )
                {
@@ -221,6 +311,7 @@ namespace platform
 
       ui32 _currentLine;
       ui32 _currentChar;
+      bool _enableCursorMouvement;
    };
 }
 }
