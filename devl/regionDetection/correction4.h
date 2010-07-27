@@ -51,7 +51,7 @@ namespace detect
 
          const double vars[ NB_CLASS ] =
          {
-            0, 9.56f, 6.00f, 4.22f, 9.89f, 5.68f
+            0, sqrt( 9.56f ), sqrt( 6.00f ), sqrt( 4.22f ), sqrt( 9.89f ), sqrt( 5.68f )
          };
 
          CorrectPosition3::Database dat;

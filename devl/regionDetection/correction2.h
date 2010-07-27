@@ -86,7 +86,7 @@ namespace detect
          return wrong;
       }*/
 
-      bool isIncorrectConfiguration( const Vector& distances )
+      ui32 isIncorrectConfiguration( const Vector& distances )
       {
          std::set<ui32> wrong;
 
@@ -100,17 +100,20 @@ namespace detect
 
             core::Buffer1D<int>  error( NB_CLASS );
             core::Buffer1D<int>  good( NB_CLASS );
+
+            ui32 nbErr = 0;
             for ( ui32 n = 0; n < ref.ratios.size(); ++n )
             {
-               //std::cout << "testr=" << testRatios[ n ] << " mean=" << _means[ n ] << " std=" << _stddev[ n ] << std::endl;
                if ( testRatios[ n ] < UNDEFINED_NB )
                {
-                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ] */ ) >  1.5 * _stddev[ n ] )
+                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ] */ ) >  1.0 * _stddev[ n ] )
                   {
                      for ( ui32 nn = 0; nn < 4; ++nn )
                         if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
+                        {
                            ++error[ _links[ n ][ nn ] ];
-                     //std::cout << "err" << std::endl;
+                           ++nbErr;
+                        }
                   } else {
                      for ( ui32 nn = 0; nn < 4; ++nn )
                         if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
@@ -125,7 +128,7 @@ namespace detect
 
             for ( ui32 n = 1; n < NB_CLASS; ++n )
             {
-               if ( distances[ n ] > 0 && error[ n ] * _errorCorrection[ n ] > good[ n ] )
+               if ( distances[ n ] > 0 && error[ n ] > good[ n ] * _errorCorrection[ n ] )
                {
                   std::cout << "recompute label=" << n << std::endl;
                   wrong.insert( n );
