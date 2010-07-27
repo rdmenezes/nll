@@ -63,6 +63,7 @@ namespace detect
          _errorCorrection2 = core::make_buffer1D<float>( 0, 30.0f, 30.0f, 30.0f, 30.0f, 60.0f );
       }
 
+      /*
       std::set<ui32> detectOutliers2( const Vector& distances, float spacing, ui32 nbSlices )
       {
          std::set<ui32> wrong;
@@ -83,9 +84,9 @@ namespace detect
             }
          }
          return wrong;
-      }
+      }*/
 
-      std::set<ui32> detectOutliers( const Vector& distances )
+      bool isIncorrectConfiguration( const Vector& distances )
       {
          std::set<ui32> wrong;
 
@@ -104,7 +105,7 @@ namespace detect
                //std::cout << "testr=" << testRatios[ n ] << " mean=" << _means[ n ] << " std=" << _stddev[ n ] << std::endl;
                if ( testRatios[ n ] < UNDEFINED_NB )
                {
-                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ]*/ ) >  3 * _stddev[ n ] )
+                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ] */ ) >  1.5 * _stddev[ n ] )
                   {
                      for ( ui32 nn = 0; nn < 4; ++nn )
                         if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
@@ -117,6 +118,7 @@ namespace detect
                   }
                }
             }
+
 
             for ( ui32 n = 1; n < NB_CLASS; ++n )
                std::cout << "  vote label=" << n << " +:" << good[ n ] << " -:" << error[ n ] << std::endl;
@@ -132,10 +134,47 @@ namespace detect
          }
          catch(...)
          {
-            std::cout << "error: no can't match template" << std::endl;
+            //std::cout << "error: no can't match template" << std::endl;
             // just do nothing...
          }
-         return wrong;
+         return wrong.size() > 0;
+      }
+
+      std::set<ui32> detectOutliers( const Vector& distances )
+      {
+         typedef std::multimap<ui32, Vector> Configs;
+         // incrementally construct subset: first find a 3 subset with no error, then 4, 5 ...
+         Configs goodConfig;
+         ui32 nbChoices = core::round( pow( 2.0, NB_CLASS - 1.0 ) );
+         for ( ui32 n = 1; n < nbChoices; ++n )
+         {
+            Vector d( NB_CLASS );
+            ui32 nbRoi = 0;
+            for ( ui32 roi = 0; roi < ( NB_CLASS - 1 ); ++roi )
+            {
+               if ( n & ( 1 << roi ) )
+               {
+                  ++nbRoi;
+                  d[ roi + 1 ] = distances[ roi + 1 ];
+               }
+            }
+
+            std::cout << "config=";
+            d.print( std::cout );
+            if ( nbRoi >= 3 && !isIncorrectConfiguration( d ) )
+               goodConfig.insert( std::make_pair( nbRoi, d ) );
+         }
+
+         // return the outliers...
+         std::set<ui32> outliers;
+         if ( !goodConfig.size() )
+            return std::set<ui32>();
+
+         Vector& result = goodConfig.rbegin()->second;
+         for ( ui32 n = 1; n < NB_CLASS; ++n )
+            if ( result[ n ] <= 0 && distances[ n ] > 0 )
+               outliers.insert( n );
+         return outliers;
       }
 
       // compute gaussian centered on the template with stddev the ratios
@@ -469,7 +508,7 @@ namespace detect
                *templateid = -1;
             throw std::exception("can't find template");
          }
-         std::cout << "template chosen=" << index << std::endl;
+         //std::cout << "template chosen=" << index << std::endl;
          if ( templateid )
             *templateid = index;
          return _templates[ index ];

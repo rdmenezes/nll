@@ -49,6 +49,28 @@ namespace core
       ui32 n = rand() % 2;
       return n ? -1 : 1;
    }
+
+   /**
+    @ingroup core
+    @brief encode a binary number to gray code
+    */
+   inline unsigned short binaryToGray( unsigned short num )
+   {
+      return ( num >> 1 ) ^ num;
+   }
+   
+   /**
+    @ingroup core
+    @brief decode a gray code to binary number
+    */
+   inline unsigned short grayToBinary( unsigned short num )
+   {
+      unsigned short temp = num ^ ( num >> 8 );
+      temp ^= ( temp >> 4 );
+      temp ^= ( temp >> 2 );
+      temp ^= ( temp >> 1 );
+      return temp;
+   }
 }
 }
 
