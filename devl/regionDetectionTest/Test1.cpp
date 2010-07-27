@@ -1421,8 +1421,8 @@ struct TestRegion
 
       const double meanBigDeviation     = 0;       // mean of the generated error in mm
       const double varBigDeviation      = 200;     // variance of the generated error in mm
-      const double smallThreshold       = 30;      // threshold indicating we don't want any outlier detection within this range
-      const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
+      const double smallThreshold       = 50;      // threshold indicating we don't want any outlier detection within this range
+      const double outlierThreshold     = 50;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
       const ui32 nbSamplePerTest        = 10;
 
       Buffer1D<ui32> nbFalsePositives( NB_CLASS );
@@ -1431,6 +1431,7 @@ struct TestRegion
       Buffer1D<ui32> nbExpectedTP( NB_CLASS );
       ui32 nbCasesWithError = 0;
       ui32 nbCasesFailingCorrecly = 0;
+      ui32 nbCasesFailingIncorrecly = 0;
 
       const double means[ NB_CLASS ] =
       {
@@ -1483,8 +1484,10 @@ struct TestRegion
 
             std::cout << "sample:" << sample << " ROI=" << roi << " error=" << error << std::endl;
             const float spacing = test[ testid ].height / test[ testid ].numberOfSlices;
-            std::set<ui32> outliers = corrector.detectOutliers( distances, spacing, test[ testid ].numberOfSlices );
+            //std::set<ui32> outliers = corrector.detectOutliers( distances, spacing, test[ testid ].numberOfSlices );
+            std::set<ui32> outliers = corrector.detectOutliers( distances );
 
+            bool hasError = false;
             for ( ui32 n = 1; n < NB_CLASS; ++n )
             {
                if ( distancesOrig[ n ] > 0 )
@@ -1492,11 +1495,14 @@ struct TestRegion
                   if ( fabs( distancesOrig[ n ] - distances[ n ] ) > outlierThreshold  )
                   {
                      ++nbExpectedTP[ n ];
+                     hasError = true;
                   }
                   if ( fabs( distancesOrig[ n ] - distances[ n ] ) > outlierThreshold && outliers.find( n ) == outliers.end() )
                      ++nbFalseNegatives[ n ];
                }
             }
+            if ( !hasError && outliers.size() )
+               ++nbCasesFailingIncorrecly;
 
             bool failed = false;
             for ( std::set<ui32>::iterator it = outliers.begin(); it != outliers.end(); ++it )
@@ -1532,7 +1538,8 @@ struct TestRegion
 
       std::cout << "nbCases=" << test.size() * nbSamplePerTest << std::endl
                 << "nbCaseWithOutliers=" << nbCasesWithError << std::endl
-                << "case failing as expected=" << nbCasesFailingCorrecly << std::endl;
+                << "case failing as expected=" << nbCasesFailingCorrecly << std::endl
+                << "FP case=" << nbCasesFailingIncorrecly << std::endl;
                 
 
    }

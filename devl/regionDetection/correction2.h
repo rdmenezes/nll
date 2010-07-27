@@ -60,10 +60,10 @@ namespace detect
          ensure( _templates.size(), "can't have 0 templates" );
          _constructStatistics();
          _errorCorrection = core::make_buffer1D<float>( 0, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f );
-         _errorCorrection2 = core::make_buffer1D<float>( 0, 20.0f, 20.0f, 20.0f, 20.0f, 60.0f );
+         _errorCorrection2 = core::make_buffer1D<float>( 0, 30.0f, 30.0f, 30.0f, 30.0f, 60.0f );
       }
 
-      std::set<ui32> detectOutliers( const Vector& distances, float spacing, ui32 nbSlices )
+      std::set<ui32> detectOutliers2( const Vector& distances, float spacing, ui32 nbSlices )
       {
          std::set<ui32> wrong;
          for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
@@ -85,7 +85,7 @@ namespace detect
          return wrong;
       }
 
-      std::set<ui32> detectOutliers2( const Vector& distances )
+      std::set<ui32> detectOutliers( const Vector& distances )
       {
          std::set<ui32> wrong;
 
@@ -104,7 +104,7 @@ namespace detect
                //std::cout << "testr=" << testRatios[ n ] << " mean=" << _means[ n ] << " std=" << _stddev[ n ] << std::endl;
                if ( testRatios[ n ] < UNDEFINED_NB )
                {
-                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ]*/ ) >  2 * _stddev[ n ] )
+                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ]*/ ) >  3 * _stddev[ n ] )
                   {
                      for ( ui32 nn = 0; nn < 4; ++nn )
                         if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
