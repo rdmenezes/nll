@@ -25,6 +25,7 @@
 #define VALIDATION_CASES_DESC    DATA_PATH "validation-cases.txt"
 #define VALIDATION_OVERWEIGHT    DATA_PATH "validation-cases2.txt"
 #define VALIDATION_COMAPRE       DATA_PATH "validation-cases3.txt"
+#define VALIDATION_ALL           DATA_PATH "validation-all.txt"
 #define HAAR_FEATURES            DATA_PATH "haar-features.bin"
 #define DATABASE_HAAR            DATA_PATH "haar.database"
 #define PREPROCESSING_HAAR       DATA_PATH "haar-preprocessing.bin"

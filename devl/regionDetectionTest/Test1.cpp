@@ -422,8 +422,9 @@ struct TestRegion
       typedef ClassifierSvm<Point>  Classifier;
       typedef Classifier::Database  Database;
 
+      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_ALL );
       //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
-      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
+      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
       //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_COMAPRE );
       std::vector<RegionResult::Measure> measures;
 
@@ -460,7 +461,7 @@ struct TestRegion
                                                              final.lungStart * volume.getSpacing()[ 2 ],
                                                              final.skullStart * volume.getSpacing()[ 2 ],
                                                              final.hipsStart * volume.getSpacing()[ 2 ] );
-         corrector.correct( labelsmm );
+         corrector.correct( labelsmm, volume.getSpacing()[ 2 ], volume.size()[ 2 ] );
 
          corrector.annotateProbability( labelsmm, mprz, volume.getSpacing()[ 2 ] );
 
@@ -1051,6 +1052,7 @@ struct TestRegion
    }
 
    // check that the selected template to correst ROI position is good
+   /*
    void testSelectedTemplate()
    {
       std::vector<ErrorReporting> reportingCorrected;
@@ -1084,18 +1086,6 @@ struct TestRegion
 
       CorrectPosition2 corrector( measuresTraining );
       
-      // set the sampling statistics
-      /*
-      const double means[ NB_CLASS ] =
-      {
-         0, 6.23f, 6.87f, 3.38f, 10.4f, 7.0f
-      };
-
-      const double vars[ NB_CLASS ] =
-      {
-         0, 8.16f, 6.55f, 3.74f, 15.88f, 10.0f
-      };
-      */
       const double means[ NB_CLASS ] =
       {
          0, 0, 0, 0, 0, 0
@@ -1212,7 +1202,7 @@ struct TestRegion
       RegionResult::writeMeasures( measuresTraining, DATABASE_MEASURES_CORRECTION );
       analyseResults( reportingCorrected, measures, results );
    }
-
+*/
    void displaySpacingStatistics()
    {
       std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
@@ -1324,12 +1314,94 @@ struct TestRegion
       RegionResult::writeMeasures( training, DATABASE_MEASURES_CORRECTION );
    }
 
+   // estimate the current landmark with a fixed number of ROI
+   void testPositionEstimationRobustnessNbRoi()
+   {
+      std::vector<ErrorReporting> reportingCorrected;
+
+      // prepare the database
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+      const ui32 nbRoiForEstimation = 4;  // vary the number from 3->5 ( <3 can't find the template, we can have 5=> it means we select 5 out of 5 ROI, but use only 4 for estimation)
+
+      std::vector<RegionResult::Measure> training;
+      std::vector<RegionResult::Measure> test;
+      createCorrectorDatabase( training, test );
+
+      CorrectPosition2 corrector( training );
+
+      // for all test case, we estimate one ROI position knowing all other ROI and compare to the gound truth
+      for ( ui32 n = 0; n < test.size(); ++n )
+      {
+         for ( ui32 roiId = 1; roiId < NB_CLASS; ++roiId )
+         {
+            core::Buffer1D<float> roiPos = test[ n ].toArray();
+            core::Buffer1D<float> roiPosOrig = test[ n ].toArray();
+
+            ui32 nbRoiCurrent;
+            while ( 1 )
+            {
+               nbRoiCurrent = 0;
+               for ( ui32 n = 1; n < NB_CLASS; ++n )
+               {
+                  if ( roiPos[ n ] > 0 )
+                     ++nbRoiCurrent;
+               }
+               if ( nbRoiCurrent <= nbRoiForEstimation )
+                  break;
+
+               while ( 1 )
+               {
+                  // select randomly a ROI
+                  ui32 roiErrorId = ( rand() % (NB_CLASS - 1) ) + 1;
+                  if ( roiPos[ roiErrorId ] > 0 )
+                  {
+                     roiPos[ roiErrorId ] = -1;
+                     break;
+                  }
+               }
+            }
+
+
+            Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( test[ n ].id ) + ".bmp" );
+            ensure( preview.sizey() == test[ n ].numberOfSlices, "the size must match..." );
+            const float spacing = test[ n ].height / test[ n ].numberOfSlices;
+
+            // compute the error
+            for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+            {
+               if ( roiPosOrig[ roi ] >= 0 )
+               {
+                  corrector.estimate( roiPos, spacing, roi, test[ n ].numberOfSlices );
+                  if ( roiPos[ roi ] >= 0 )
+                  {
+                     float error = fabs( roiPosOrig[ roi ] - roiPos[ roi ] ) / spacing;
+                     reportingCorrected.push_back( ErrorReporting( test[ n ].id, error, roi ) );
+                  }
+               }
+            }
+
+            // annotate the image
+            corrector.annotateProbability( roiPosOrig, preview, spacing );
+
+            // convert to slice for display...
+            for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+               roiPosOrig[ roi ] /= spacing;
+            previewLabel( preview, 0, preview.sizex() / 2, roiPosOrig  );
+            previewLabel( preview, preview.sizex() / 2, preview.sizex(), roiPos  );
+            writeBmp( preview, std::string( PREVIEW_CASE_CORRECTION )+ "-estmator-" + val2str( test[ n ].id )+ "-roi-" + val2str(roiId)+".bmp" );
+         }
+      }
+
+      analyseResults( reportingCorrected, measures, results );
+   }
+
 
    // test the position estimation with one ROI having error
    void testPositionEstimationRobustness()
    {
       const double meanBigDeviation     = 0;
-      const double varBigDeviation      = 150;
+      const double varBigDeviation      = 100.0;
       std::vector<ErrorReporting> reportingCorrected;
 
       // prepare the database
@@ -1346,11 +1418,19 @@ struct TestRegion
       for ( ui32 n = 0; n < test.size(); ++n )
       {
          // generate one ROI with error
-         ui32 roiErrorId = rand() % ( NB_CLASS - 1 ) + 1;
-         float roiError = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
-
          core::Buffer1D<float> roiPos = test[ n ].toArray();
          core::Buffer1D<float> roiPosOrig = test[ n ].toArray();
+
+         ui32 roiErrorId;
+         while ( 1 )
+         {
+            // select randomly a ROI
+            roiErrorId = ( rand() % (NB_CLASS - 1) ) + 1;
+            if ( roiPosOrig[ roiErrorId ] > 0 )
+               break;
+         }
+         float roiError = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
+         core::LoggerNll::getLogger().write( "error generated=" + core::val2str( roiError ) );
 
          // update the ROI position according the error generated
          roiPos[ roiErrorId ] += roiError;
@@ -1421,11 +1501,12 @@ struct TestRegion
       const double meanBigDeviation     = 0;       // mean of the generated error in mm
       const double varBigDeviation      = 250;     // variance of the generated error in mm
       const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
-      const ui32 nbSamplePerTest        = 10;
+      const ui32 nbSamplePerTest        = 50;
 
       Buffer1D<ui32> nbFalsePositives( NB_CLASS );
       Buffer1D<ui32> nbFalseNegatives( NB_CLASS );
       Buffer1D<ui32> nbTruePositives( NB_CLASS );
+      Buffer1D<ui32> nb( NB_CLASS );
       Buffer1D<ui32> nbExpectedTP( NB_CLASS );
       ui32 nbCasesWithError = 0;
       ui32 nbCasesFailingCorrecly = 0;
@@ -1470,11 +1551,15 @@ struct TestRegion
 
             // generate a default error to test robustness
             for ( ui32 n = 1; n < NB_CLASS; ++n )
+            {
+               if ( distances[ n ] > 0 )
+                  ++nb[ n ];
                if ( n != roi && distances[ n ] > 0 )
                {
                   const float err = (float)generateGaussianDistribution( means[ n ] * core::generateSign(), vars[ n ] );
                   distances[ n ] += err;
                }
+            }
 
             // generate an error, and detect the outlier
             float error = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
@@ -1545,7 +1630,8 @@ struct TestRegion
          std::cout << "label:" << n << std::endl
                    << " TP=" << nbTruePositives[ n ] << " expected:" << nbExpectedTP[ n ] << std::endl
                    << " FP=" << nbFalsePositives[ n ] << std::endl
-                   << " FN=" << nbFalseNegatives[ n ] << std::endl;
+                   << " FN=" << nbFalseNegatives[ n ] << std::endl
+                   << " nb roi=" << nb[ n ] << std::endl;
       }
 
       std::cout << "nbCases=" << test.size() * nbSamplePerTest << std::endl
@@ -1795,10 +1881,11 @@ TESTER_TEST_SUITE(TestRegion);
 // test the ROI position estimation
 //TESTER_TEST(testPositionEstimation); // input: measures, results, output: the template database
 //TESTER_TEST(testPositionEstimationRobustness)   // input: measures, results,
+//TESTER_TEST(testPositionEstimationRobustnessNbRoi)   // input: measures, results,
 
 // test the ROI outlier detection // input:template database
 //TESTER_TEST(testOutlierDetection0Wrong); // measure the incorrect configuration detection rate
-//TESTER_TEST(testOutlierDetection); 
+TESTER_TEST(testOutlierDetection); 
 
 
 //

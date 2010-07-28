@@ -333,156 +333,25 @@ namespace detect
       }
 
 
-      void correct( Vector& distances, ui32 maxIter = 10, int* templateid = 0 )
+      void correct( Vector& distances, float spacing, ui32 nbSlices )
       {
-         try
+         Vector distancesOrig;
+         distancesOrig.clone( distances );
+
+         typedef std::set<ui32> Outliers;
+         Outliers outliers = detectOutliers( distances );
+         for ( Outliers::iterator it = outliers.begin(); it != outliers.end(); ++it )
          {
-            Vector origLabels;
-            origLabels.clone( distances );
-
-            Vector testRatios = _getFullRatios( _getFullDistances( distances ) );
-            const Template& ref = getMatchingTemplate( distances, templateid );
-
-            core::Buffer1D<int>  error( NB_CLASS );
-            core::Buffer1D<int>  good( NB_CLASS );
-            for ( ui32 n = 0; n < ref.ratios.size(); ++n )
-            {
-               if ( ( testRatios[ n ] < ( _means[ n ] - 2 * _stddev[ n ] ) ) ||
-                    ( testRatios[ n ] > ( _means[ n ] + 2 * _stddev[ n ] ) ) )
-               {
-                  for ( ui32 nn = 0; nn < 4; ++nn )
-                     if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
-                        ++error[ _links[ n ][ nn ] ];
-               } else {
-                  for ( ui32 nn = 0; nn < 4; ++nn )
-                     if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
-                        ++good[ _links[ n ][ nn ] ];
-               }
-            }
-
-            std::map<ui32, ui32> labelToRecompute;
-            error.print( std::cout );
-            good.print( std::cout );
-            std::multimap<ui32, ui32> pivots;     // <nb good, label>
-            for ( ui32 n = 1; n < NB_CLASS; ++n )
-            {
-               if ( distances[ n ] > 0 && error[ n ] * _errorCorrection[ n ] > good[ n ] )
-               {
-                  std::cout << "recompute label=" << n << std::endl;
-                  labelToRecompute.insert( std::make_pair( error[ n ], n ) );
-               }
-               if ( distances[ n ] > 0 && ref.distances[ n ] > 0 )
-               {
-                  if ( n != 4 )
-                  {
-                     //std::cout << "refd=" << ref.distances[ n ] << std::endl;
-                     pivots.insert( std::make_pair( good[ n ], n ) );
-                  }
-               }
-            }
-
-            // select 2 pivots
-            if ( pivots.size() < 3 )
-            {
-               std::cout << "-------- cancel: not enough pivots ----------" << std::endl;
-               return;  // we need at least 3 points for safety!
-            }
-
-            ui32 pivota = pivots.rbegin()->second;
-            ui32 pivotb = (++pivots.rbegin())->second;
-            if ( pivota == 4 )
-               std::swap( pivota, pivotb );
-
-            std::cout << "pivot=" << pivota << " " << pivotb << std::endl;
-
-
-            // update the ROI
-            for ( std::map<ui32, ui32>::reverse_iterator it = labelToRecompute.rbegin(); it != labelToRecompute.rend(); ++it )
-            {
-               const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
-               const float a = ( ref.distances[ it->second ] - ref.distances[ pivota ] );
-               const float b = ( ref.distances[ pivotb ] - ref.distances[ pivota ] );
-               const float tRatio = a / b;
-               const float newPosition = origLabels[ pivota ] + tRatio * dtest;
-
-               // for the skull, because the template is not annotated correctly (not always at the top of the skull)
-               // so it needs to be corrected! In case we find a position lower than the actual, this is very likely
-               // to be wrong->we choose a template at the base of the skull
-               if ( it->second == 4 && newPosition < origLabels[ it->second ] )
-               {
-                  // erf do nothing...
-                  distances[ it->second ] = origLabels[ it->second ];
-               } else {
-                  std::cout << "label updated=" << it->second << std::endl;
-                  distances[ it->second ] = newPosition;
-
-                  if ( maxIter > 0 )
-                  {
-                     // recursively recorrect
-                     correct( distances, maxIter - 1 );
-                     return;
-                  }
-               }
-            }
-
-            // add missing label
-            /*
-            for ( ui32 n = 1; n < distances.size(); ++n )
-            {
-               float pos = 0;
-               ui32 nb = 0;
-               for ( ui32 pivota = 1; pivota < distances.size(); ++pivota )
-               {
-                  for ( ui32 pivotb = 1; pivotb < pivota; ++pivotb )
-                  {
-                     if ( pivota != 4 && pivotb != 4 && distances[ pivota ] > 0 && distances[ pivotb ] > 0 )
-                     {
-                        if ( distances[ n ] < 0 && ref.distances[ n ] > 0 )
-                        {
-                           const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
-                           const float a = ( ref.distances[ n ] - ref.distances[ pivota ] );
-                           const float b = ( ref.distances[ pivotb ] - ref.distances[ pivota ] );
-                           const float tRatio = a / b;
-                           const float newPosition = origLabels[ pivota ] + tRatio * dtest;
-
-                           std::cout << "adds:" << pivota << " " << pivotb << "=" << newPosition << std::endl;
-                           pos += newPosition;
-                           ++nb;
-                        }
-                     }
-                  }
-               }
-
-               if ( nb )
-               {
-                  distances[ n ] = pos / nb;
-               }
-            }*/
-            
-            for ( ui32 n = 1; n < distances.size(); ++n )
-            {
-               if ( distances[ n ] < 0 && ref.distances[ n ] > 0 )
-               {
-                  const float dtest = origLabels[ pivotb ] - origLabels[ pivota ];
-                  const float a = ( ref.distances[ n ] - ref.distances[ pivota ] );
-                  const float b = ( ref.distances[ pivotb ] - ref.distances[ pivota ] );
-                  const float tRatio = a / b;
-                  const float newPosition = origLabels[ pivota ] + tRatio * dtest;
-
-                  if ( n == 4 && newPosition < origLabels[ n ] )
-                  {
-                     // erf do nothing...
-                  } else {
-                     distances[ n ] = newPosition;
-                  }
-               }
-            }
-            
+            distances[ *it ] = -1;
          }
-         catch (...)
+         for ( Outliers::iterator it = outliers.begin(); it != outliers.end(); ++it )
          {
-            std::cout << "-*--- abort: cant find template" << std::endl;
-            return;
+            estimate( distances, spacing, *it, nbSlices );
+         }
+         for ( Outliers::iterator it = outliers.begin(); it != outliers.end(); ++it )
+         {
+            if ( distances[ *it ] < 0 && distancesOrig[ *it ] > 0 )
+               distances[ *it ] = distancesOrig[ *it ];
          }
       }
 
