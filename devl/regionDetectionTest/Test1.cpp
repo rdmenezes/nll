@@ -1501,7 +1501,7 @@ struct TestRegion
       const double meanBigDeviation     = 0;       // mean of the generated error in mm
       const double varBigDeviation      = 250;     // variance of the generated error in mm
       const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
-      const ui32 nbSamplePerTest        = 50;
+      const ui32 nbSamplePerTest        = 20;
 
       Buffer1D<ui32> nbFalsePositives( NB_CLASS );
       Buffer1D<ui32> nbFalseNegatives( NB_CLASS );
@@ -1564,6 +1564,8 @@ struct TestRegion
             // generate an error, and detect the outlier
             float error = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
             distances[ roi ] += error;
+            if ( distances[ roi ] <= 0 )  // we force it to be >0, else it means the ROI doesn't exist
+               distances[ roi ] = 1;
             for ( ui32 n = 1; n < NB_CLASS; ++n )
             {
                if ( distancesOrig[ n ] > 0 )
@@ -1645,6 +1647,7 @@ struct TestRegion
    // measure the detection rate of an incorrect configuration with at least 3 ROI
    void testOutlierDetection0Wrong()
    {
+      srand(2);
       std::vector<ErrorReporting> reportingCorrected;
 
       // prepare the database
@@ -1659,13 +1662,17 @@ struct TestRegion
 
       const double meanBigDeviation     = 0;       // mean of the generated error in mm
       const double varBigDeviation      = 250;     // variance of the generated error in mm
-      const double smallThreshold       = 30;      // threshold indicating we don't want any outlier detection within this range
       const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
       const ui32 nbSamplePerTest        = 50;
 
       ui32 nbCasesWithError = 0;
       ui32 nbCasesFailingCorrecly = 0;
       ui32 nbCasesFailingIncorrecly = 0;
+      ui32 nbCasesMissed = 0;
+
+      Buffer1D<ui32> nbErrors( NB_CLASS );
+      Buffer1D<ui32> nbErrorsFound( NB_CLASS );
+
 
       const double means[ NB_CLASS ] =
       {
@@ -1707,13 +1714,17 @@ struct TestRegion
                if ( n != roi && distances[ n ] > 0 )
                {
                   const float err = (float)generateGaussianDistribution( means[ n ] * core::generateSign(), vars[ n ] );
-                  std::cout << " add err=" << err << std::endl;
+                  std::cout << " add err[" << n << "]=" << err << std::endl;
                   distances[ n ] += err;
                }
 
             // generate an error, and detect the outlier
             float error = (float)generateGaussianDistribution( meanBigDeviation * core::generateSign(), varBigDeviation );
+            std::cout << " add err[" << roi << "]=" << error << std::endl;
+
             distances[ roi ] += error;
+            if ( distances[ roi ] < 0 )
+               distances[ roi ] = 1;      // we can't be < 0!!! else big problem... (we check d[roi]<0 means doesn't exist...)
             for ( ui32 n = 1; n < NB_CLASS; ++n )
             {
                if ( distancesOrig[ n ] > 0 )
@@ -1721,6 +1732,7 @@ struct TestRegion
                   if ( fabs( distancesOrig[ n ] - distances[ n ] ) > outlierThreshold  )
                   {
                      ++nbCasesWithError;
+                     ++nbErrors[ n ];
                   }
                }
             }
@@ -1744,8 +1756,14 @@ struct TestRegion
             if ( !hasError && hasOutliers )
                ++nbCasesFailingIncorrecly;
 
+            if ( hasError && !hasOutliers )
+               ++nbCasesMissed;
+
             if ( hasError && hasOutliers )
+            {
                ++nbCasesFailingCorrecly;
+               ++nbErrorsFound[ roi ];
+            }
          }
       }
 
@@ -1753,7 +1771,13 @@ struct TestRegion
       std::cout << "nbCases=" << test.size() * nbSamplePerTest << std::endl
                 << "nbCaseWithOutliers=" << nbCasesWithError << std::endl
                 << "case failing as expected=" << nbCasesFailingCorrecly << std::endl
+                << "case missed=" << nbCasesMissed << std::endl
                 << "FP case=" << nbCasesFailingIncorrecly << std::endl;
+
+      for ( ui32 n = 1; n < NB_CLASS; ++n )
+      {
+         std::cout << "error by class[" << n << "]=" << nbErrorsFound[ n ] << "/" << nbErrors[ n ] << std::endl;
+      }
    }
 
    void trainOutlierDetection()

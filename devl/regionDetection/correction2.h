@@ -86,8 +86,10 @@ namespace detect
          return wrong;
       }*/
 
-      ui32 isIncorrectConfiguration( const Vector& distances )
+      ui32 isIncorrectConfiguration( const Vector& distances, ui32* nbIncorrectRatio = 0 )
       {
+         if ( nbIncorrectRatio )
+            *nbIncorrectRatio = 0;
          std::set<ui32> wrong;
 
          Vector origLabels;
@@ -106,7 +108,7 @@ namespace detect
             {
                if ( testRatios[ n ] < UNDEFINED_NB )
                {
-                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ] */ ) >  1.0 * _stddev[ n ] )
+                  if ( fabs( testRatios[ n ] - ref.ratios[ n ] /* _means[ n ] */ ) >  3.0 * _stddev[ n ] )
                   {
                      for ( ui32 nn = 0; nn < 4; ++nn )
                         if ( distances[ _links[ n ][ nn ] ] > 0 && ref.distances[ _links[ n ][ nn ] ] > 0 )
@@ -134,6 +136,8 @@ namespace detect
                   wrong.insert( n );
                }
             }
+            if ( nbIncorrectRatio )
+               *nbIncorrectRatio = nbErr;
          }
          catch(...)
          {
@@ -145,7 +149,27 @@ namespace detect
 
       std::set<ui32> detectOutliers( const Vector& distances )
       {
-         typedef std::multimap<ui32, Vector> Configs;
+         struct Pair
+         {
+            Pair( ui32 f, Vector s ) : first( f ), second( s )
+            {}
+
+            bool operator<( const Pair& p ) const
+            {
+               return first < p.first;
+            }
+
+            void print()
+            {
+               std::cout << "error=" << first << std::endl;
+               second.print( std::cout );
+            }
+
+            ui32     first;
+            Vector   second;
+         };
+         typedef std::multimap<ui32, Pair > Configs;
+
          // incrementally construct subset: first find a 3 subset with no error, then 4, 5 ...
          Configs goodConfig;
          ui32 nbChoices = core::round( pow( 2.0, NB_CLASS - 1.0 ) );
@@ -164,8 +188,13 @@ namespace detect
 
             std::cout << "config=";
             d.print( std::cout );
-            if ( nbRoi >= 3 && !isIncorrectConfiguration( d ) )
-               goodConfig.insert( std::make_pair( nbRoi, d ) );
+            if ( nbRoi >= 3 )
+            {
+               ui32 nbErrors;
+               bool isCorrect = !isIncorrectConfiguration( d, &nbErrors );
+               if ( isCorrect )
+                  goodConfig.insert( std::make_pair( nbRoi, Pair( nbErrors, d ) ) );
+            }
          }
 
          // return the outliers...
@@ -173,7 +202,24 @@ namespace detect
          if ( !goodConfig.size() )
             return std::set<ui32>();
 
-         Vector& result = goodConfig.rbegin()->second;
+         // sort the result by the number of mistakes
+         std::set<Pair> pairs;
+         ui32 nbMaxRois = goodConfig.rbegin()->first;
+         for ( Configs::reverse_iterator it = goodConfig.rbegin(); it != goodConfig.rend(); ++it )
+         {
+            if ( it->first != nbMaxRois )
+               break;
+            else
+            {
+               it->second.print();
+               pairs.insert( it->second );
+            }
+         }
+
+         Vector& result = pairs.begin()->second;
+         std::cout << "selected:" << std::endl;
+         pairs.begin()->print();
+         ui32 nbError = pairs.begin()->first;
          for ( ui32 n = 1; n < NB_CLASS; ++n )
             if ( result[ n ] <= 0 && distances[ n ] > 0 )
                outliers.insert( n );
