@@ -86,6 +86,46 @@ namespace detect
          return wrong;
       }*/
 
+      // this remove the landmarks that have one ROI order at least twice wrong ( i.e. -> Hips <- Neck  )
+      void checkCoherency( Vector& distances )
+      {
+         const ui32 orderRoi[ NB_CLASS ] =
+         {
+            0, 1, 3, 2, 0, 4     // order of the ROI by ROI
+         };
+
+         std::set< std::pair<ui32, ui32> > errors;
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            ui32 nbErrors = 0;
+            for ( ui32 roicmp = 1; roicmp < NB_CLASS; ++roicmp )
+            {
+               if ( roicmp != roi && distances[ roi ] > 0 && distances[ roicmp ] > 0 )
+               {
+                  if ( ( distances[ roi ] > distances[ roicmp ] && orderRoi[ roi ] > orderRoi[ roicmp ] ) ||
+                       ( distances[ roi ] < distances[ roicmp ] && orderRoi[ roi ] < orderRoi[ roicmp ] ) )
+                  {
+                     ++nbErrors;
+                  }
+               }
+            }
+
+            errors.insert( std::make_pair( nbErrors, roi ) );
+         }
+
+         if ( errors.size() )
+         {
+            std::pair<ui32, ui32>& maxError = *errors.rbegin();
+            if ( maxError.first >= 2 )
+            {
+               distances[ maxError.second ] = -1;
+
+               // recursively call the procedure...
+               checkCoherency( distances );
+            }
+         }
+      }
+
       ui32 isIncorrectConfiguration( const Vector& distances, ui32* nbIncorrectRatio = 0 )
       {
          if ( nbIncorrectRatio )

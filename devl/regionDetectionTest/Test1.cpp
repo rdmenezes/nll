@@ -61,7 +61,6 @@ struct TestRegion
       std::cout << "haar selection..." << std::endl;
       Database haarDatabaseNormalized;
       haarDatabaseNormalized.read( NORMALIZED_HAAR );
-      //FeatureTransformationPca<Point> pearson( FEATURE_SELECTION_SIZE );
       FeatureTransformationPca<Point> pearson;
       pearson.compute( haarDatabaseNormalized, FEATURE_SELECTION_SIZE );
       Database features = pearson.transform( haarDatabaseNormalized );
@@ -461,7 +460,15 @@ struct TestRegion
                                                              final.lungStart * volume.getSpacing()[ 2 ],
                                                              final.skullStart * volume.getSpacing()[ 2 ],
                                                              final.hipsStart * volume.getSpacing()[ 2 ] );
+         corrector.checkCoherency( labelsmm );
          corrector.correct( labelsmm, volume.getSpacing()[ 2 ], volume.size()[ 2 ] );
+
+         // add missing labels...
+         for ( ui32 roi = 1; roi < NB_CLASS; ++roi )
+         {
+            if ( labelsmm[ roi ] <= 0 && results[ nn ].hasRoi( roi) )
+               corrector.estimate( labelsmm, volume.getSpacing()[ 2 ], roi, volume.getSize()[ 2 ] );
+         }
 
          corrector.annotateProbability( labelsmm, mprz, volume.getSpacing()[ 2 ] );
 
@@ -1434,6 +1441,8 @@ struct TestRegion
 
          // update the ROI position according the error generated
          roiPos[ roiErrorId ] += roiError;
+         if ( roiPos[ roiErrorId ] <= 0 )
+            roiPos[ roiErrorId ] = 1;
          roiPosOrig[ roiErrorId ] = roiPos[ roiErrorId ];
 
          Image<ui8> preview( std::string( PREVIEW_CASE ) + val2str( test[ n ].id ) + ".bmp" );
@@ -1501,7 +1510,7 @@ struct TestRegion
       const double meanBigDeviation     = 0;       // mean of the generated error in mm
       const double varBigDeviation      = 250;     // variance of the generated error in mm
       const double outlierThreshold     = 30;      // threshold indicating it should be detected as outlier, between smallThreshold-outlierThreshold is considered ok to detect it as outlier or miss it...
-      const ui32 nbSamplePerTest        = 20;
+      const ui32 nbSamplePerTest        = 100;
 
       Buffer1D<ui32> nbFalsePositives( NB_CLASS );
       Buffer1D<ui32> nbFalseNegatives( NB_CLASS );
@@ -1900,7 +1909,7 @@ TESTER_TEST_SUITE(TestRegion);
 //TESTER_TEST(learnMlp);
 
 // input: SVM model, validation-cases, validation volumes mf2
-//TESTER_TEST(testValidationDataSvm);
+TESTER_TEST(testValidationDataSvm);
 
 // test the ROI position estimation
 //TESTER_TEST(testPositionEstimation); // input: measures, results, output: the template database
@@ -1909,7 +1918,7 @@ TESTER_TEST_SUITE(TestRegion);
 
 // test the ROI outlier detection // input:template database
 //TESTER_TEST(testOutlierDetection0Wrong); // measure the incorrect configuration detection rate
-TESTER_TEST(testOutlierDetection); 
+//TESTER_TEST(testOutlierDetection); 
 
 
 //

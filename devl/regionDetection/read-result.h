@@ -69,6 +69,21 @@ namespace detect
          float  lungEnd;
          float  skullStart;
          float  hipsStart;
+
+         bool hasRoi( ui32 n )
+         {
+            if ( n == 1 )
+               return neckStart > 0;
+            if ( n == 2 )
+               return heartStart > 0;
+            if ( n == 3 )
+               return lungStart > 0;
+            if ( n == 4 )
+               return skullStart > 0;
+            if ( n == 5 )
+               return hipsStart > 0;
+            ensure( 0, "error" );
+         }
       };
 
    public:
