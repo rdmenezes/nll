@@ -170,7 +170,6 @@ namespace platform
          {
             FontSet::const_iterator it = font.find( str[ n ] );
             ui32 sizex = it->second.image.sizex();
-            ui32 sizey = it->second.image.sizey();
             if ( it == font.end() )
             {
                // the character is not in the charset...

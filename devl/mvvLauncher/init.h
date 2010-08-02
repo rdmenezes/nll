@@ -92,14 +92,33 @@ namespace mvv
          //FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
          //layout = pointee->pane;
 
+         PaneTextbox* textBox2 = new PaneTextbox( nll::core::vector2ui(0, 0),
+                                                  nll::core::vector2ui(0, 0),
+                                                  font, 20,
+                                                  nll::core::vector3uc( 255, 255, 255 ),
+                                                  nll::core::vector3uc( 0, 0, 255 ) );
+
          PaneTextbox* textBox = new PaneTextbox( nll::core::vector2ui(0, 0),
                                                  nll::core::vector2ui(0, 0),
                                                  font, 20,
                                                  nll::core::vector3uc( 255, 255, 255 ),
                                                  nll::core::vector3uc( 0, 0, 0 ) );
          RefcountedTyped<PaneTextboxDecorator> cursor( new LayoutPaneDecoratorCursor( *textBox ) );
+         RefcountedTyped<PaneTextboxDecorator> cursorPos( new LayoutPaneDecoratorCursorPosition( *textBox ) );
+         RefcountedTyped<PaneTextboxDecorator> cursorBasic( new LayoutPaneDecoratorCursorBasic( *textBox ) );
+         RefcountedTyped<PaneTextboxDecorator> cursorYDirection( new LayoutPaneDecoratorCursorYDirection( *textBox ) );
+         RefcountedTyped<PaneTextboxDecorator> cursorEnter( new LayoutPaneDecoratorCursorEnterConsole( *textBox, *textBox2 ) );
+         textBox->add( cursorPos );
+         textBox->add( cursorBasic );
+         textBox->add( cursorYDirection );
+         textBox->add( cursorEnter );
          textBox->add( cursor );
-         layout = RefcountedTyped<Pane>( textBox );
+
+         PaneListVertical* list = new PaneListVertical( nll::core::vector2ui(0, 0),
+                                                        nll::core::vector2ui(0, 0) );
+         list->addChild( RefcountedTyped<Pane>( textBox ), 0.49 );
+         list->addChild( RefcountedTyped<Pane>( textBox2 ), 0.51 );
+         layout = RefcountedTyped<Pane>( list );
 
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          (*layout).updateLayout();

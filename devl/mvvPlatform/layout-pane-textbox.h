@@ -8,6 +8,16 @@ namespace mvv
 {
 namespace platform
 {
+   /**
+    @ingroup platform
+    @brief Writable interface, allowing to write on an interface
+    */
+   class MVVPLATFORM_API Writable
+   {
+   public:
+      virtual void write( const std::string& s ) = 0;
+   };
+
    class PaneTextboxDecorator;
 
    /**
@@ -16,9 +26,14 @@ namespace platform
 
     A pane can contains nested sub panes and other panes that will be overlayed on this pane.
     */
-   class MVVPLATFORM_API PaneTextbox : public Pane
+   class MVVPLATFORM_API PaneTextbox : public Pane, public Writable
    {
       friend class LayoutPaneDecoratorCursor;
+      friend class LayoutPaneDecoratorCursorPosition;
+      friend class LayoutPaneDecoratorCursorBasic;
+      friend class LayoutPaneDecoratorCursorYDirection;
+      friend class LayoutPaneDecoratorCursorEnterFile;
+      friend class LayoutPaneDecoratorCursorEnterConsole;
 
    public:
       PaneTextbox( const nll::core::vector2ui& origin,
@@ -32,7 +47,19 @@ namespace platform
          ensure( textSize > 0, "error: text size is <= 0" );
 
          _text.push_back( "" );
-         _text.push_back( "ab" );
+      }
+
+      // return a type of decorator
+      template <class Decorator>
+      Decorator* get()
+      {
+         for ( ui32 n = 0; n < _decorators.size(); ++n )
+         {
+            Decorator* d = dynamic_cast<Decorator*>( &( *_decorators[ n ] ) );
+            if ( d )
+               return d;
+         }
+         return 0;
       }
 
       virtual ~PaneTextbox()
@@ -46,6 +73,12 @@ namespace platform
       void add( RefcountedTyped<PaneTextboxDecorator>& decorator )
       {
          _decorators.push_back( decorator );
+      }
+
+      virtual void write( const std::string& s )
+      {
+         _text.push_back( s );
+         notify();
       }
 
    protected:
@@ -73,7 +106,7 @@ namespace platform
                  _text[ y + line ].size() > character )
             {
                const char* text = _text[ y + line ].c_str() + character;
-               (*_font).write( text, nll::core::vector2ui( dx, _size[ 1 ] - 1 - ( charysize + dy + charysize * y ) ), image, nll::core::vector2ui( 0, 0 ), maxPos );
+               (*_font).write( text, nll::core::vector2ui( dx /*+ _origin[ 0 ]*/, _size[ 1 ] + _origin[ 1 ] - 1 - ( charysize + dy + charysize * y ) ), image, nll::core::vector2ui( 0, 0 ), maxPos );
             }
          }
       }
@@ -83,7 +116,7 @@ namespace platform
          const ui32 charysize = _textSize;
          const ui32 line = _windowPosition[ 1 ] / charysize;
          const ui32 dy = _windowPosition[ 1 ] % charysize;
-         return charysize * lineNumberInText + line + dy + _origin[ 1 ];
+         return charysize * lineNumberInText + line + dy;
       }
 
       ui32 getCharacterPositionX( ui32 colNumberInText, ui32 lineNumberInText )
@@ -92,10 +125,12 @@ namespace platform
          const ui32 col = _windowPosition[ 0 ] / charxsize;
          const ui32 dx = _windowPosition[ 0 ] % charxsize;
 
-         assert( lineNumberInText < _text.size() );
+         if ( _text.size() == 0 )
+            return 0; // there is nothing to display!
+         assert( lineNumberInText <= _text.size() );
          assert( colNumberInText <= _text[ lineNumberInText ].size() );
          const ui32 posx = (*_font).getSize( _text[ lineNumberInText ], nll::core::vector2ui( 0, 0 ), colNumberInText );
-         return  posx + col + dx + _origin[ 0 ];
+         return  posx + col + dx;
       }
 
       virtual void _receive( const EventMouse& e );
@@ -150,26 +185,33 @@ namespace platform
       PaneTextbox&  _src;
    };
 
-   class MVVPLATFORM_API LayoutPaneDecoratorCursor : public PaneTextboxDecorator
+   // stores the attributs shared by the cursor decroators
+   class MVVPLATFORM_API LayoutPaneDecoratorCursorPosition : public PaneTextboxDecorator
    {
       typedef PaneTextboxDecorator   Base;
 
    public:
-      LayoutPaneDecoratorCursor( PaneTextbox& src, bool enableCursorMouvement = true ) : Base( src ), _enableCursorMouvement( enableCursorMouvement )
+      LayoutPaneDecoratorCursorPosition( PaneTextbox& src ) : Base( src )
       {
-         _currentLine = 0;
-         _currentChar = 0;
+         currentLine = 0;
+         currentChar = 0;
       }
 
       virtual void draw( Image& i )
       {
-         ui32 ypos = _src.getCharacterPositionY( _currentLine + 1 );
-         ui32 xpos = _src.getCharacterPositionX( _currentChar, _currentLine );
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
+
+         ui32 ypos = _src.getCharacterPositionY( _currentLine + 1 ) + _src._origin[ 0 ];
+         ui32 xpos = _src.getCharacterPositionX( _currentChar, _currentLine )  + _src._origin[ 1 ];
          if ( ypos >= _src._origin[ 1 ] && ypos < _src._origin[ 1 ] + _src._size[ 1 ] &&
               xpos >= _src._origin[ 0 ] && xpos < _src._origin[ 0 ] + _src._size[ 0 ] )
          {
             Image::DirectionalIterator line = i.getIterator( xpos, i.sizey() - ypos - 1, 0 );
-            for ( ui32 n = 0; n < _src._textSize; ++n )
+            for ( ui32 n = 0; n < _src._textSize / 2; ++n )
             {
                line.pickcol( 0 ) = _src._textColor[ 0 ];
                line.pickcol( 1 ) = _src._textColor[ 1 ];
@@ -184,132 +226,84 @@ namespace platform
          return false;
       }
 
+      virtual bool receive( const EventKeyboard& )
+      {
+         return false;
+      }
+
+      ui32 currentLine;
+      ui32 currentChar;
+   };
+
+   // handle home, end, supr, backspace, left, right
+   class MVVPLATFORM_API LayoutPaneDecoratorCursorBasic : public PaneTextboxDecorator
+   {
+      typedef PaneTextboxDecorator   Base;
+
+   public:
+      LayoutPaneDecoratorCursorBasic( PaneTextbox& src ) : Base( src )
+      {
+      }
+
+      virtual void draw( Image& )
+      {
+      }
+
+      virtual bool receive( const EventMouse& )
+      {
+         return false;
+      }
+
       virtual bool receive( const EventKeyboard& e )
       {
-         if ( _enableCursorMouvement )
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
+
+         if ( e.key == EventKeyboard::KEY_SUPR )
          {
-            if ( e.key == EventKeyboard::KEY_SUPR )
+            ui32 lineSize = (ui32)_src._text[ _currentLine ].size();
+            if ( _currentChar < lineSize )
             {
-               ui32 lineSize = _src._text[ _currentLine ].size();
-               if ( _currentChar < lineSize )
+               for ( ui32 n = _currentChar; n < _src._text[ _currentLine ].size(); ++n )
+               _src._text[ _currentLine ][ n ] = _src._text[ _currentLine ][ n + 1 ];
+               _src._text[ _currentLine ].resize( lineSize - 1 );
+            } else {
+               if ( _src._text.size() > _currentLine + 1 )
                {
-                  for ( ui32 n = _currentChar; n < _src._text[ _currentLine ].size(); ++n )
-                  _src._text[ _currentLine ][ n ] = _src._text[ _currentLine ][ n + 1 ];
-                  _src._text[ _currentLine ].resize( lineSize - 1 );
-               } else {
-                  if ( _src._text.size() > _currentLine + 1 )
+                  ui32 nextLineSize = (ui32)_src._text[ _currentLine + 1 ].size();
+                  _src._text[ _currentLine ].resize( lineSize + nextLineSize );
+                  for ( ui32 n = 0; n < nextLineSize; ++n )
                   {
-                     ui32 nextLineSize = _src._text[ _currentLine + 1 ].size();
-                     _src._text[ _currentLine ].resize( lineSize + nextLineSize );
-                     for ( ui32 n = 0; n < nextLineSize; ++n )
-                     {
-                        char c = _src._text[ _currentLine + 1 ][ n ];
-                        _src._text[ _currentLine ][ _currentChar + n ] = c;
-                     }
-
-                     std::vector<std::string>::iterator it = _src._text.begin() + _currentLine + 1;
-                     _src._text.erase( it );
+                     char c = _src._text[ _currentLine + 1 ][ n ];
+                     _src._text[ _currentLine ][ _currentChar + n ] = c;
                   }
-               }
 
-               _src.notify();
-               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-               return false;
-            }
-
-            if ( e.key == EventKeyboard::KEY_END )
-            {
-               _currentChar = _src._text[ _currentLine ].size();
-               _src.notify();
-               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-               return false;
-            }
-
-            if ( e.key == EventKeyboard::KEY_DOWN )
-            {
-               if ( _currentLine + 1 < _src._text.size() )
-               {
-                  ++_currentLine;
-                  if ( _src._text[ _currentLine ].size() < _currentChar )
-                     _currentChar = _src._text[ _currentLine ].size();
-                  _src.notify();
-                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-                  return false;
-               } else {
-                  _currentChar = _src._text[ _currentLine ].size();
-                  _src.notify();
-                  return false;
+                  std::vector<std::string>::iterator it = _src._text.begin() + _currentLine + 1;
+                  _src._text.erase( it );
                }
             }
 
-            if ( e.key == EventKeyboard::KEY_UP )
-            {
-               if ( _currentLine )
-               {
-                  --_currentLine;
-                  if ( _src._text[ _currentLine ].size() < _currentChar )
-                     _currentChar = _src._text[ _currentLine ].size();
-                  _src.notify();
-                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-                  return false;
-               } else {
-                  _currentChar = 0;
-                  _src.notify();
-                  return false;
-               }
-            }
-
-            if ( e.key == EventKeyboard::KEY_HOME )
-            {
-               _currentChar = 0;
-               _src.notify();
-               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-               return false;
-            }
-
-            if ( e.key == EventKeyboard::KEY_LEFT )
-            {
-               if ( _currentChar )
-               {
-                  --_currentChar;
-                  _src.notify();
-                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-                  return false;
-               } else {
-                  if ( _currentLine )
-                  {
-                     --_currentLine;
-                     _currentChar = _src._text[ _currentLine ].size();
-                     std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-                     _src.notify();
-                     return false;
-                  } else return false;
-               }
-            }
-
-            if ( e.key == EventKeyboard::KEY_RIGHT )
-            {
-               if ( _currentChar + 1 >= _src._text[ _currentLine ].size() )
-               {
-                  if ( _currentLine + 1 < _src._text.size() )
-                  {
-                     _currentChar = 0;
-                     ++_currentLine;
-                     _src.notify();
-                     std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-                  } else {
-                     _currentChar = _src._text[ _currentLine ].size();
-                  }
-                  return false;
-               } else {
-                  ++_currentChar;
-                  _src.notify();
-                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-                  return false;
-               }
-            }
+            _src.notify();
+            return true;
          }
-         // erase character
+
+         if ( e.key == EventKeyboard::KEY_END )
+         {
+            _currentChar = (ui32)_src._text[ _currentLine ].size();
+            _src.notify();
+            return true;
+         }
+
+         if ( e.key == EventKeyboard::KEY_HOME )
+         {
+            _currentChar = 0;
+            _src.notify();
+            return true;
+         }
+
          if ( e.key == EventKeyboard::KEY_BACKSPACE )
          {
             if ( _currentChar )
@@ -332,10 +326,138 @@ namespace platform
                }
             }
             _src.notify();
-            return false;
+            return true;
          }
 
-         // end of line
+         if ( e.key == EventKeyboard::KEY_LEFT )
+         {
+            if ( _currentChar )
+            {
+               --_currentChar;
+               _src.notify();
+               return true;
+            } else {
+               if ( _currentLine )
+               {
+                  --_currentLine;
+                  _currentChar = (ui32)_src._text[ _currentLine ].size();
+                  _src.notify();
+                  return true;
+               } else return true;
+            }
+         }
+
+         if ( e.key == EventKeyboard::KEY_RIGHT )
+         {
+            if ( _currentChar >= _src._text[ _currentLine ].size() )
+            {
+               if ( _currentLine + 1 < _src._text.size() )
+               {
+                  _currentChar = 0;
+                  ++_currentLine;
+                  _src.notify();
+               } else {
+                  _currentChar = (ui32)_src._text[ _currentLine ].size();
+               }
+               return true;
+            } else {
+               ++_currentChar;
+               _src.notify();
+               return true;
+            }
+         }
+         return false;
+      }
+   };
+
+   // handle cursor direction: left, right
+   class MVVPLATFORM_API LayoutPaneDecoratorCursorYDirection : public PaneTextboxDecorator
+   {
+      typedef PaneTextboxDecorator   Base;
+
+   public:
+      LayoutPaneDecoratorCursorYDirection( PaneTextbox& src ) : Base( src )
+      {
+      }
+
+      virtual void draw( Image& )
+      {
+      }
+
+      virtual bool receive( const EventMouse& )
+      {
+         return false;
+      }
+
+      virtual bool receive( const EventKeyboard& e )
+      {
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
+
+         if ( e.key == EventKeyboard::KEY_DOWN )
+         {
+            if ( _currentLine + 1 < _src._text.size() )
+            {
+               ++_currentLine;
+               if ( _src._text[ _currentLine ].size() < _currentChar )
+                  _currentChar = (ui32)_src._text[ _currentLine ].size();
+               _src.notify();
+               return true;
+            } else {
+               _currentChar = (ui32)_src._text[ _currentLine ].size();
+               _src.notify();
+               return true;
+            }
+         }
+
+         if ( e.key == EventKeyboard::KEY_UP )
+         {
+            if ( _currentLine )
+            {
+               --_currentLine;
+               if ( _src._text[ _currentLine ].size() < _currentChar )
+                  _currentChar = (ui32)_src._text[ _currentLine ].size();
+               _src.notify();
+               return true;
+            } else {
+               _currentChar = 0;
+               _src.notify();
+               return true;
+            }
+         }
+         return false;
+      }
+   };
+
+   class MVVPLATFORM_API LayoutPaneDecoratorCursorEnterFile : public PaneTextboxDecorator
+   {
+      typedef PaneTextboxDecorator   Base;
+
+   public:
+      LayoutPaneDecoratorCursorEnterFile( PaneTextbox& src ) : Base( src )
+      {
+      }
+
+      virtual void draw( Image& )
+      {
+      }
+
+      virtual bool receive( const EventMouse& )
+      {
+         return false;
+      }
+
+      virtual bool receive( const EventKeyboard& e )
+      {
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
+
          if ( e.key == EventKeyboard::KEY_ENTER )
          {
             // copy from the cursor->EOL the new line
@@ -359,8 +481,89 @@ namespace platform
             _src.notify();
             ++_currentLine;
             _currentChar = 0;
-            return false;
+            return true;
          }
+         return false;
+      }
+   };
+
+   class MVVPLATFORM_API LayoutPaneDecoratorCursorEnterConsole : public PaneTextboxDecorator
+   {
+      typedef PaneTextboxDecorator   Base;
+
+   public:
+      LayoutPaneDecoratorCursorEnterConsole( PaneTextbox& src, Writable& writable ) : Base( src ), _writable( writable )
+      {
+      }
+
+      virtual void draw( Image& )
+      {
+      }
+
+      virtual bool receive( const EventMouse& )
+      {
+         return false;
+      }
+
+      virtual bool receive( const EventKeyboard& e )
+      {
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( e.key == EventKeyboard::KEY_ENTER )
+         {
+            std::stringstream ss;
+            for ( ui32 n = 0; n < _src._text.size(); ++n )
+            {
+               ss << _src._text[ n ];
+               if ( n + 1 != _src._text.size() )
+                  ss << std::endl;
+            }
+
+            _writable.write( ss.str() );
+
+            if ( position )
+            {
+               position->currentChar = 0;
+               position->currentLine = 0;
+            }
+            _src._text = nll::core::make_vector<std::string>( "" );
+
+            _src.notify();
+            return true;
+         }
+         return false;
+      }
+
+   private:
+      Writable&   _writable;
+   };
+
+   // all special characters should be handled by the other decorators
+   // this decorator only handle printable character
+   class MVVPLATFORM_API LayoutPaneDecoratorCursor : public PaneTextboxDecorator
+   {
+      typedef PaneTextboxDecorator   Base;
+
+   public:
+      LayoutPaneDecoratorCursor( PaneTextbox& src ) : Base( src )
+      {
+      }
+
+      virtual void draw( Image& )
+      {
+      }
+
+      virtual bool receive( const EventMouse& )
+      {
+         return false;
+      }
+
+      virtual bool receive( const EventKeyboard& e )
+      {
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
 
          // normal character
          ensure( _currentChar < 256 && _currentChar >= 0, "at this point it must be an ASCII character..." );
@@ -370,10 +573,6 @@ namespace platform
          _src.notify();
          return false;
       }
-
-      ui32 _currentLine;
-      ui32 _currentChar;
-      bool _enableCursorMouvement;
    };
 }
 }
