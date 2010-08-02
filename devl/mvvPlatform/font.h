@@ -63,6 +63,11 @@ namespace platform
        */
       virtual void write( const std::string& str, const nll::core::vector2ui& position, Image& image, const nll::core::vector2ui& min, const nll::core::vector2ui& max, bool displayBackground = false ) = 0;
 
+      /**
+       @brief Returns the x position of the 'character' displaying 'str' at this position
+       */
+      virtual ui32 getSize( const std::string& str, const nll::core::vector2ui& position, ui32 character ) = 0;
+
    protected:
       nll::core::vector3uc    _color;
       nll::core::vector3uc    _colorBackground;
@@ -146,6 +151,44 @@ namespace platform
                         nll::core::vector2ui space = nll::core::vector2ui( 0, 0) ) : _reference( 0 ), _sizeXRef( characterSize[ 0 ] )
       {
          _populateFont( fontResourcePath, characterSize, layout, charactersMapping, cropAlignX, transparentColor, margin, space );
+      }
+
+      virtual ui32 getSize( const std::string& str, const nll::core::vector2ui& position, ui32 character )
+      {
+         // find the font
+         Key key( _size, _color );
+         FontSets::const_iterator it = _fontsets.find( key );
+         if ( it == _fontsets.end() )
+         {
+            // we need to generate the font with the appropriate properties
+            _generate( key );
+         }
+
+         FontSet& font = _fontsets[ key ];
+         nll::core::vector2ui p = position;
+         for ( ui32 n = 0; n < character; ++n )
+         {
+            FontSet::const_iterator it = font.find( str[ n ] );
+            ui32 sizex = it->second.image.sizex();
+            ui32 sizey = it->second.image.sizey();
+            if ( it == font.end() )
+            {
+               // the character is not in the charset...
+               throw std::exception( "character not found in charset" );
+            }
+            /*
+            if ( p[ 0 ] >= minpos[ 0 ] && p[ 1 ] >= minpos[ 1 ] )
+            {
+               if ( p[ 0 ] + sizex > maxpos[ 0 ] ||
+                    p[ 1 ] + sizey > maxpos[ 1 ] )
+               {
+                  // we are out of bound, just don't write the next letters...
+                  break;
+               }
+            }*/
+            p[ 0 ] += sizex;
+         }
+         return p[ 0 ];
       }
 
       /**

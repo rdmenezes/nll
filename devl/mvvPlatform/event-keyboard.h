@@ -16,6 +16,7 @@ namespace platform
    {
       enum
       {
+         KEY_SUPR = 127,
          KEY_ESC = 27,
          KEY_ENTER = 13,
          KEY_BACKSPACE = 8,

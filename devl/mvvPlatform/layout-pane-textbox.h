@@ -78,9 +78,24 @@ namespace platform
          }
       }
 
-      ui32 getCharacterPositionY( ui32 line )
+      ui32 getCharacterPositionY( ui32 lineNumberInText )
       {
-         return _textSize * line;
+         const ui32 charysize = _textSize;
+         const ui32 line = _windowPosition[ 1 ] / charysize;
+         const ui32 dy = _windowPosition[ 1 ] % charysize;
+         return charysize * lineNumberInText + line + dy + _origin[ 1 ];
+      }
+
+      ui32 getCharacterPositionX( ui32 colNumberInText, ui32 lineNumberInText )
+      {
+         const ui32 charxsize = _textSize;
+         const ui32 col = _windowPosition[ 0 ] / charxsize;
+         const ui32 dx = _windowPosition[ 0 ] % charxsize;
+
+         assert( lineNumberInText < _text.size() );
+         assert( colNumberInText <= _text[ lineNumberInText ].size() );
+         const ui32 posx = (*_font).getSize( _text[ lineNumberInText ], nll::core::vector2ui( 0, 0 ), colNumberInText );
+         return  posx + col + dx + _origin[ 0 ];
       }
 
       virtual void _receive( const EventMouse& e );
@@ -146,8 +161,22 @@ namespace platform
          _currentChar = 0;
       }
 
-      virtual void draw( Image& )
+      virtual void draw( Image& i )
       {
+         ui32 ypos = _src.getCharacterPositionY( _currentLine + 1 );
+         ui32 xpos = _src.getCharacterPositionX( _currentChar, _currentLine );
+         if ( ypos >= _src._origin[ 1 ] && ypos < _src._origin[ 1 ] + _src._size[ 1 ] &&
+              xpos >= _src._origin[ 0 ] && xpos < _src._origin[ 0 ] + _src._size[ 0 ] )
+         {
+            Image::DirectionalIterator line = i.getIterator( xpos, i.sizey() - ypos - 1, 0 );
+            for ( ui32 n = 0; n < _src._textSize; ++n )
+            {
+               line.pickcol( 0 ) = _src._textColor[ 0 ];
+               line.pickcol( 1 ) = _src._textColor[ 1 ];
+               line.pickcol( 2 ) = _src._textColor[ 2 ];
+               line.addx();
+            }
+         }
       }
 
       virtual bool receive( const EventMouse& )
@@ -161,9 +190,28 @@ namespace platform
          {
             if ( e.key == EventKeyboard::KEY_SUPR )
             {
-               //
-               // TODO
-               //
+               ui32 lineSize = _src._text[ _currentLine ].size();
+               if ( _currentChar < lineSize )
+               {
+                  for ( ui32 n = _currentChar; n < _src._text[ _currentLine ].size(); ++n )
+                  _src._text[ _currentLine ][ n ] = _src._text[ _currentLine ][ n + 1 ];
+                  _src._text[ _currentLine ].resize( lineSize - 1 );
+               } else {
+                  if ( _src._text.size() > _currentLine + 1 )
+                  {
+                     ui32 nextLineSize = _src._text[ _currentLine + 1 ].size();
+                     _src._text[ _currentLine ].resize( lineSize + nextLineSize );
+                     for ( ui32 n = 0; n < nextLineSize; ++n )
+                     {
+                        char c = _src._text[ _currentLine + 1 ][ n ];
+                        _src._text[ _currentLine ][ _currentChar + n ] = c;
+                     }
+
+                     std::vector<std::string>::iterator it = _src._text.begin() + _currentLine + 1;
+                     _src._text.erase( it );
+                  }
+               }
+
                _src.notify();
                std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
                return false;
@@ -177,24 +225,38 @@ namespace platform
                return false;
             }
 
-            if ( e.key == EventKeyboard::KEY_DOWN && _currentLine + 1 < _src._text.size() )
+            if ( e.key == EventKeyboard::KEY_DOWN )
             {
-               ++_currentLine;
-               if ( _src._text[ _currentLine ].size() < _currentChar )
+               if ( _currentLine + 1 < _src._text.size() )
+               {
+                  ++_currentLine;
+                  if ( _src._text[ _currentLine ].size() < _currentChar )
+                     _currentChar = _src._text[ _currentLine ].size();
+                  _src.notify();
+                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+                  return false;
+               } else {
                   _currentChar = _src._text[ _currentLine ].size();
-               _src.notify();
-               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-               return false;
+                  _src.notify();
+                  return false;
+               }
             }
 
-            if ( e.key == EventKeyboard::KEY_UP && _currentLine )
+            if ( e.key == EventKeyboard::KEY_UP )
             {
-               --_currentLine;
-               if ( _src._text[ _currentLine ].size() < _currentChar )
-                  _currentChar = _src._text[ _currentLine ].size();
-               _src.notify();
-               std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
-               return false;
+               if ( _currentLine )
+               {
+                  --_currentLine;
+                  if ( _src._text[ _currentLine ].size() < _currentChar )
+                     _currentChar = _src._text[ _currentLine ].size();
+                  _src.notify();
+                  std::cout << "pos line=" << _currentLine << ":" << _currentChar << std::endl;
+                  return false;
+               } else {
+                  _currentChar = 0;
+                  _src.notify();
+                  return false;
+               }
             }
 
             if ( e.key == EventKeyboard::KEY_HOME )

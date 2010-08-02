@@ -8,6 +8,7 @@ namespace platform
    {
       if ( _needToBeRefreshed )
       {
+         nll::core::Timer timer;
          // clear the textbox, we need to reprint everything
          Image::DirectionalIterator oy = image.getIterator( _origin[ 0 ], _origin[ 1 ], 0 );
 
@@ -34,6 +35,7 @@ namespace platform
             (*_decorators[ n ]).draw( image );
          }
          _needToBeRefreshed = false;
+         std::cout << "time to refresh textbox=" << timer.getCurrentTime() << std::endl;
       }
    }
 
