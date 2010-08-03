@@ -49,7 +49,7 @@ namespace mvv
 
       CompilerFrontEnd                    compiler;
 
-      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 8 )
+      ApplicationVariables() : screen( 1280 * 2, 1024, 3 ), orderManager( 8 )
       {  
          initFont();
          initContext();
@@ -65,13 +65,13 @@ namespace mvv
       }
 
    private:
-      /*
+      
       void initScript()
       {
          // set the extension, so we can access the context
          compiler.setContextExtension( RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType state = compiler.run( "include \"../../mvvLauncher/script/single2\"" );
+         Error::ErrorType state = compiler.run( "include \"../../mvvLauncher/script/single\"" );
          if ( state != Error::SUCCESS )
          {
             std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
@@ -86,8 +86,8 @@ namespace mvv
 
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          (*layout).updateLayout();
-      }*/
-
+      }
+/*
       void initScript()
       {
          layout = RefcountedTyped<Pane>( new LayoutCommandLine( nll::core::vector2ui(0, 0),
@@ -96,7 +96,7 @@ namespace mvv
                                                                 compiler) );
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          (*layout).updateLayout();
-      }
+      }*/
 
       void initFont()
       {

@@ -470,6 +470,11 @@ namespace parser
                }
 
                // it means funcs.size() == 1
+               if ( !funcs[ 0 ]->getNodeType() )
+               {
+                  // if type has not been visited yet... do it (function inclusion order...)
+                  operator()( *funcs[ 0 ] );
+               }
                e.setNodeType( funcs[ 0 ]->getNodeType()->clone() );
                e.setFunction( funcs[ 0 ] );
             }

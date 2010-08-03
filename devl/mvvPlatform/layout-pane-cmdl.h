@@ -50,7 +50,7 @@ namespace platform
             {
                std::vector<const char*> strings = nll::core::split( sout, '\n' );
                for ( ui32 n = 0; n < strings.size(); ++n )
-                  if ( strings[ n ] != "" && strings[ n ] != "\n" )
+                  if ( strings[ n ] != std::string( "" ) && strings[ n ] != std::string( "\n" ) )
                      _sink.write( strings[ n ], color / 2 );
             }
 

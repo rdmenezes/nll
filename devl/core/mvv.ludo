@@ -290,6 +290,14 @@ class Mip
 }
 
 /**
+ @brief Displays a console to enable user/script interaction
+ */
+class Console
+{
+   Console(){}
+}
+
+/**
  @brief Define a layout displaying the UI elements, segments & MIPs
  */
 class Layout
@@ -316,4 +324,5 @@ class Layout
    import Layout( Horizontal tag, Layout left, Layout right, float ratio );
    import Layout( Segment segment );   // a reference on the segment is saved in the layout
    import Layout( Mip mip );
+   import Layout( Console console );
 }

@@ -4,10 +4,12 @@
 # include "core.h"
 # include "mvv-segment.h"
 # include "mvv-mip-tools.h"
+# include <mvvScript/compiler.h>
 
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
 # include <mvvPlatform/layout-pane.h>
+# include <mvvPlatform/layout-pane-cmdl.h>
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/layout-mip.h>
 
@@ -283,5 +285,135 @@ public:
       return v1;  // return the original object!
    }
 };
+
+/*
+class FunctionLayoutConstructorConsole: public FunctionRunnable
+{
+public:
+   typedef LayoutCommandLine Pointee;
+
+public:
+   FunctionLayoutConstructorConsole( const AstDeclFun* fun, mvv::platform::Context& context, mvv::parser::CompilerFrontEnd& compiler ) : FunctionRunnable( fun ), _context( context ), _compiler( compiler )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw RuntimeException( "mvv global context has not been initialized" );
+      }
+
+      // fill the storage
+      Pointee* pointee = new Pointee( nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 0, 0 ), mvv::platform::RefcountedTyped<mvv::platform::Font>( &global->commonFont, false ), _compiler );
+      
+      // update the object
+      RuntimeValue field( RuntimeValue::PTR );
+      field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
+      (*v1.vals).resize( 1 );    // resize the original field
+      (*v1.vals)[ 0 ] = field;
+
+      return v1;  // return the original object!
+   }
+
+private:
+   mvv::platform::Context&          _context;
+   mvv::parser::CompilerFrontEnd&   _compiler;
+};
+
+class FunctionLayoutConsoleDestructor: public FunctionRunnable
+{
+public:
+   typedef LayoutCommandLine Pointee;
+
+public:
+   FunctionLayoutConsoleDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // deallocate data
+      delete pointee;
+      (*v1.vals)[ 0 ].ref = 0;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+*/
+
+class FunctionLayoutConstructorLayout: public FunctionRunnable
+{
+public:
+   typedef ::impl::LayoutStorage Pointee;
+
+public:
+   FunctionLayoutConstructorLayout( const AstDeclFun* fun, mvv::platform::Context& context, mvv::parser::CompilerFrontEnd& compiler ) : FunctionRunnable( fun ), _context( context ), _compiler( compiler )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v2.type != RuntimeValue::TYPE )
+      {
+         throw RuntimeException( "wrong arguments: expecting Console" );
+      }
+
+      // it is safe not to have a real refcount here, as we are saving the layout (which is refcounted!)
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw RuntimeException( "mvv global context has not been initialized" );
+      }
+
+      // fill the storage
+      Pane* pane = new LayoutCommandLine( nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 0, 0 ), mvv::platform::RefcountedTyped<mvv::platform::Font>( &global->commonFont, false ), _compiler );
+
+      // fill the storage
+      Pointee* pointee = new Pointee( pane );
+
+      // update the object
+      RuntimeValue field( RuntimeValue::PTR );
+      field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
+      (*v1.vals).resize( 1 );    // resize the original field
+      (*v1.vals)[ 0 ] = field;
+
+      return v1;  // return the original object!
+   }
+
+private:
+   mvv::platform::Context&          _context;
+   mvv::parser::CompilerFrontEnd&   _compiler;
+};
+
+
 
 #endif

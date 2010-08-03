@@ -64,20 +64,21 @@ segment3.setTool( toolCamera );
 segment3.setTool( toolCentering );
 
 
-
+/*
 Segment segment4( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment4.setTool( toolPointer );
 segment4.setTool( toolAnnotations );
 segment4.setTool( toolCamera );
 segment4.setTool( toolCentering );
-
+*/
 
 Layout::Vertical vertical;
 Layout::Horizontal horizontal;
 Layout l1( segment1 );
 Layout l2( segment2 );
 Layout l3( segment3 );
-Layout l6( segment4 );
+Layout l6( Console() );
+//Layout l6( segment4 );
 Layout l4( mip1 );
 Layout l5( mip2 );
 
