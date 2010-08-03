@@ -210,14 +210,6 @@ void mouseMotion(int x, int y)
 
 void keyboard( unsigned char key, int x, int y )
 {
-   if ( key == 27 || key == 'q' )
-   {
-      applicationVariables->layout.unref();
-      applicationVariables->orderManager.kill();
-      applicationVariables->context.clear();
-      exit( 0 );
-   }
-
    EventKeyboard e;
    e.mousePosition = nll::core::vector2ui( x, y );
    e.key = key;
@@ -236,6 +228,15 @@ void keyboard( unsigned char key, int x, int y )
       e.isShift = false;
 
    (*applicationVariables->layout).receive( e );
+
+   // handle 'esc' at the end so we have the opportunity to grab this key (i.e. save the sate) before quitting
+   if ( key == 27 /*|| key == 'q'*/ )
+   {
+      applicationVariables->layout.unref();
+      applicationVariables->orderManager.kill();
+      applicationVariables->context.clear();
+      exit( 0 );
+   }
 }
 
 void keyboardSpecial( int key, int x, int y )

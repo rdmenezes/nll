@@ -48,7 +48,10 @@ namespace platform
             std::string sout = ss.str();
             if ( sout.size() )
             {
-               _sink.write( sout, color / 2 );
+               std::vector<const char*> strings = nll::core::split( sout, '\n' );
+               for ( ui32 n = 0; n < strings.size(); ++n )
+                  if ( strings[ n ] != "" && strings[ n ] != "\n" )
+                     _sink.write( strings[ n ], color / 2 );
             }
 
             _engine.setStdOut( &os );   // restore the previous state
@@ -76,7 +79,7 @@ namespace platform
                                                         nll::core::vector2ui(0, 0),
                                                         font, fontSize,
                                                         nll::core::vector3uc( 255, 255, 255 ),
-                                                        nll::core::vector3uc( 30, 30, 30 ),
+                                                        nll::core::vector3uc( 60, 60, 60 ),
                                                         true );
          _textBoxDisplayP = textBoxDisplay;
          PaneTextbox* textBoxCmd = new PaneTextbox( nll::core::vector2ui(0, 0),
@@ -94,8 +97,8 @@ namespace platform
          RefcountedTyped<PaneTextboxDecorator> cursorEnter( enter );
          textBoxCmd->add( cursorPos );
          textBoxCmd->add( cursorBasic );
-         textBoxCmd->add( cursorYDirection );
          textBoxCmd->add( cursorEnter );
+         textBoxCmd->add( cursorYDirection );
          textBoxCmd->add( cursor );
 
          _vpane = new PaneListVertical( nll::core::vector2ui(0, 0),

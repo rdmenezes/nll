@@ -553,6 +553,35 @@ namespace platform
       virtual bool receive( const EventKeyboard& e )
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
+
+         if ( e.key == EventKeyboard::KEY_UP )
+         {
+            if ( _written.size() && _current > 0 )
+            {
+               --_current;
+               _src._text[ _currentLine ].text = _written[ _current ];
+               _currentChar = (ui32)_src._text[ _currentLine ].text.size();
+               _src.notify();
+            }
+            return true;
+         }
+
+         if ( e.key == EventKeyboard::KEY_DOWN )
+         {
+            if ( _current < _written.size() )
+            {
+               ++_current;
+               _src._text[ _currentLine ].text = _written[ std::min<ui32>( _current, (ui32)_written.size() - 1 ) ];
+               _currentChar = (ui32)_src._text[ _currentLine ].text.size();
+               _src.notify();
+            }
+            return true;
+         }
+
          if ( e.key == EventKeyboard::KEY_ENTER )
          {
             if ( _src._text.size() > 0 && _src._text[ 0 ].text.size() > 0 )
@@ -565,7 +594,14 @@ namespace platform
                      ss << std::endl;
                }
 
-               _writable.write( ss.str() );
+               // handle history
+               std::string str = ss.str();
+               _writable.write( str );
+               if ( ( !_written.size() ) || ( _written.size() && str != _written[ _written.size() - 1 ] ) )
+               {
+                  _written.push_back( str );
+               }
+               _current = (ui32)_written.size();
 
                if ( position )
                {
@@ -583,6 +619,10 @@ namespace platform
 
    private:
       Writable&   _writable;
+
+      // history
+      std::vector<std::string>   _written;
+      ui32                       _current;
    };
 
    // all special characters should be handled by the other decorators
