@@ -515,7 +515,7 @@ public:
 class FunctionRunnablePrintlnS : public FunctionRunnable
 {
 public:
-   FunctionRunnablePrintlnS( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnablePrintlnS( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
    {
    }
 
@@ -533,17 +533,20 @@ public:
          throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
       }
 
-      std::cout << v1.stringval << std::endl;
+      _e.getStdOut() << v1.stringval << std::endl;
 
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+
+private:
+   CompilerFrontEnd& _e;
 };
 
 class FunctionRunnablePrintS : public FunctionRunnable
 {
 public:
-   FunctionRunnablePrintS( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnablePrintS( const AstDeclFun* fun, CompilerFrontEnd& e  ) : FunctionRunnable( fun ), _e( e )
    {
    }
 
@@ -561,11 +564,14 @@ public:
          throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
       }
 
-      std::cout << v1.stringval;
+      _e.getStdOut() << v1.stringval;
 
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+
+private:
+   CompilerFrontEnd& _e;
 };
 
 
@@ -1617,13 +1623,13 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "println" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintlnS( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintlnS( fn, e ) ) );
    }
 
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "print" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintS( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintS( fn, e ) ) );
    }
 
    {

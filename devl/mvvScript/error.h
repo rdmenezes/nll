@@ -68,7 +68,7 @@ namespace parser
       void clear()
       {
          _status = SUCCESS;
-         _stream.clear();
+         _stream.str( "" );
       }
 
 

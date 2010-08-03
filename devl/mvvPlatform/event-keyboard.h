@@ -25,7 +25,8 @@ namespace platform
          KEY_RIGHT,
          KEY_DOWN,
          KEY_HOME,
-         KEY_END
+         KEY_END,
+         KEY_TAB = '\t'
       };
 
       EventKeyboard()

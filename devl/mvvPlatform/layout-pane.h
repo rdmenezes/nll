@@ -344,6 +344,11 @@ namespace platform
          _ratios.push_back( ratio );
       }
 
+      void setRatio( ui32 pane, double ratio )
+      {
+         _ratios[ pane ] = ratio;
+      }
+
       /**
        @brief Reorganize vertically the panes
        */

@@ -144,7 +144,7 @@ namespace mvv
             } else chars.push_back( static_cast<char>( 0 ) );
          }
          ensure( chars.size() == 256, "we are expecting 256 chars, currently=" + nll::core::val2str( chars.size() ) );
-         font = RefcountedTyped<Font>( new FontBitmapMatrix( "../../nllTest/data/font/bitmapfont1_24.bmp", nll::core::vector2ui( 16, 16 ), nll::core::vector2ui( 16, 16 ), chars ) );
+         font = RefcountedTyped<Font>( new FontBitmapMatrix( "../../nllTest/data/font/bitmapfont1_24.bmp", nll::core::vector2ui( 16, 16 ), nll::core::vector2ui( 16, 16 ), chars, true, nll::core::vector3uc( 0, 0, 0 ), nll::core::vector2ui( 0, 0), nll::core::vector2ui( 0, 0), false ) );
       }
 
       void initContext()

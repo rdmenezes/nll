@@ -67,6 +67,8 @@ namespace parser
        */
       CompilerFrontEnd( bool parseTrace = false, bool scanTrace = false, ui32 stackSize = 10000 ) : _context( parseTrace, scanTrace )
       {
+         setStdOut( &std::cout );
+
          // if we are bigger than that, expect very wrong result due to vector resizing which invalidate references...
          _env.stack.reserve( stackSize );
 
@@ -95,6 +97,7 @@ namespace parser
        */
       void clear()
       {
+         setStdOut( &std::cout );
          _env.clear();
          _context.clear();
          _vars.clear();
@@ -161,6 +164,18 @@ namespace parser
          if ( !file.good() )
             return;
          exportCode( file );
+      }
+
+      // anything that must be written on screen, must be done using this stream
+      void setStdOut( std::ostream* out )
+      {
+         _stdout = out;
+      }
+
+      std::ostream& getStdOut() const
+      {
+         assert( _stdout );
+         return *_stdout;
       }
 
 
@@ -272,6 +287,11 @@ namespace parser
       const std::string& getLastErrorMesage() const
       {
          return _lastErrors;
+      }
+
+      void clearError()
+      {
+         _context.getError().clear();
       }
 
       /**
@@ -504,6 +524,8 @@ namespace parser
       RuntimeEnvironment  _env;              // the current environment
       platform::RefcountedTyped<VisitorEvaluate>   _eval;   // the evaluate visitor. We must keep him alive as we are expecting delayed evaluation due to the destructor of some objects
       platform::RefcountedTyped<platform::Context> _contextExt;// context necessary for external lib...
+
+      std::ostream*        _stdout;          // stores the output stream
    };
 }
 }

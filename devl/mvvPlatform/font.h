@@ -148,7 +148,8 @@ namespace platform
                         bool cropAlignX = true,
                         nll::core::vector3uc transparentColor = nll::core::vector3uc( 0, 0, 0 ),
                         nll::core::vector2ui margin = nll::core::vector2ui( 0, 0),
-                        nll::core::vector2ui space = nll::core::vector2ui( 0, 0) ) : _reference( 0 ), _sizeXRef( characterSize[ 0 ] )
+                        nll::core::vector2ui space = nll::core::vector2ui( 0, 0),
+                        bool throwOnMissingChar = true ) : _reference( 0 ), _sizeXRef( characterSize[ 0 ] ), _throwOnMissingChar( throwOnMissingChar )
       {
          _populateFont( fontResourcePath, characterSize, layout, charactersMapping, cropAlignX, transparentColor, margin, space );
       }
@@ -169,22 +170,16 @@ namespace platform
          for ( ui32 n = 0; n < character; ++n )
          {
             FontSet::const_iterator it = font.find( str[ n ] );
-            ui32 sizex = it->second.image.sizex();
             if ( it == font.end() )
             {
-               // the character is not in the charset...
-               throw std::exception( "character not found in charset" );
+               if ( _throwOnMissingChar )
+                  throw std::exception( "character not found in charset" );
+               else
+                  it = font.find( ' ' );
+               if ( it == font.end() )
+                  throw std::exception( "character not found in charset" );
             }
-            /*
-            if ( p[ 0 ] >= minpos[ 0 ] && p[ 1 ] >= minpos[ 1 ] )
-            {
-               if ( p[ 0 ] + sizex > maxpos[ 0 ] ||
-                    p[ 1 ] + sizey > maxpos[ 1 ] )
-               {
-                  // we are out of bound, just don't write the next letters...
-                  break;
-               }
-            }*/
+            ui32 sizex = it->second.image.sizex();
             p[ 0 ] += sizex;
          }
          return p[ 0 ];
@@ -215,13 +210,18 @@ namespace platform
          for ( ui32 n = 0; n < str.size(); ++n )
          {
             FontSet::const_iterator it = font.find( str[ n ] );
-            ui32 sizex = it->second.image.sizex();
-            ui32 sizey = it->second.image.sizey();
             if ( it == font.end() )
             {
-               // the character is not in the charset...
-               throw std::exception( "character not found in charset" );
+               if ( _throwOnMissingChar )
+                  throw std::exception( "character not found in charset" );
+               else
+                  it = font.find( ' ' );
+               if ( it == font.end() )
+                  throw std::exception( "character not found in charset" );
             }
+            
+            ui32 sizex = it->second.image.sizex();
+            ui32 sizey = it->second.image.sizey();
 
             if ( p[ 0 ] >= minpos[ 0 ] && p[ 1 ] >= minpos[ 1 ] )
             {
@@ -325,8 +325,14 @@ namespace platform
          {
             ImageSet imageSet( it->second );
             ui32 sizex = static_cast<ui32>( it->second.image.sizex() * ratio );
-            nll::core::rescaleBilinear( imageSet.image, sizex, sizey );
-            nll::core::rescaleBilinear( imageSet.mask, sizex, sizey );
+            if ( it->first == ' ' )
+            {
+               nll::core::rescaleBilinear( imageSet.image, sizex / 2, sizey );
+               nll::core::rescaleBilinear( imageSet.mask, sizex / 2, sizey );
+            } else {
+               nll::core::rescaleBilinear( imageSet.image, sizex, sizey );
+               nll::core::rescaleBilinear( imageSet.mask, sizex, sizey );
+            }
             for ( ui32 y = 0; y < imageSet.image.sizey(); ++y )
             {
                for ( ui32 x = 0; x < imageSet.image.sizex(); ++x )
@@ -434,6 +440,7 @@ namespace platform
       FontSet*             _reference; /// this is the inital font as loaded (so we know what font to use for optimal resampling)
       FontSets             _fontsets;
       ui32                 _sizeXRef; /// the initial size X which is used to compute resampling coefficients
+      bool                 _throwOnMissingChar;
    };
 }
 }

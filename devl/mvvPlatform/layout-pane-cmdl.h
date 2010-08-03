@@ -10,12 +10,67 @@ namespace platform
 {
    class MVVPLATFORM_API LayoutCommandLine : public Pane 
    {
+      class WritableCommand : public Writable
+      {
+      public:
+         WritableCommand( parser::CompilerFrontEnd& engine, Writable& sink ) : _engine( engine ), _sink( sink )
+         {
+         }
+
+         virtual void write( const std::string& s, const nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 255 ) )
+         {
+            std::stringstream ss;
+            std::ostream& os = _engine.getStdOut();
+
+            try
+            {
+               _engine.setStdOut( &ss );
+
+               parser::Error::ErrorType result = _engine.run( s );
+               if ( result != parser::Error::SUCCESS )
+               {
+                  std::string msg = _engine.getLastErrorMesage();
+                  size_t pos = msg.find_first_of( 10 );
+                  if ( pos != std::string::npos )
+                  {
+                     msg = std::string( msg.begin(), msg.begin() + pos );
+                  }
+                  _engine.clearError();
+                  _sink.write( msg, nll::core::vector3uc( 255, 0, 0 ) );
+               }
+            } catch ( parser::RuntimeException e )
+            {
+               std::stringstream ss;
+               ss << "runtime error:" << e.what();
+               _sink.write( ss.str(), nll::core::vector3uc( 255, 0, 0 ) );
+            }
+
+            std::string sout = ss.str();
+            if ( sout.size() )
+            {
+               _sink.write( sout, color / 2 );
+            }
+
+            _engine.setStdOut( &os );   // restore the previous state
+            _sink.write( s, color );
+         }
+
+      private:
+         // disabled
+         WritableCommand& operator=( const WritableCommand& );
+         WritableCommand( WritableCommand& );
+
+      private:
+         parser::CompilerFrontEnd&  _engine;
+         Writable&                  _sink;
+      };
+
    public:
       LayoutCommandLine( const nll::core::vector2ui& origin,
                          const nll::core::vector2ui& size,
                          RefcountedTyped<Font>& font,
                          parser::CompilerFrontEnd& engine,
-                         const ui32 fontSize = 17 ) : Pane( origin, size ), _engine( engine )
+                         const ui32 fontSize = 18 ) : Pane( origin, size ), _engine( engine )
       {
          PaneTextbox* textBoxDisplay = new PaneTextbox( nll::core::vector2ui(0, 0),
                                                         nll::core::vector2ui(0, 0),
@@ -23,6 +78,7 @@ namespace platform
                                                         nll::core::vector3uc( 255, 255, 255 ),
                                                         nll::core::vector3uc( 30, 30, 30 ),
                                                         true );
+         _textBoxDisplayP = textBoxDisplay;
          PaneTextbox* textBoxCmd = new PaneTextbox( nll::core::vector2ui(0, 0),
                                                     nll::core::vector2ui(0, 0),
                                                     font, fontSize,
@@ -32,18 +88,21 @@ namespace platform
          RefcountedTyped<PaneTextboxDecorator> cursorPos( new LayoutPaneDecoratorCursorPosition( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorBasic( new LayoutPaneDecoratorCursorBasic( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorYDirection( new LayoutPaneDecoratorCursorYDirection( *textBoxCmd ) );
-         RefcountedTyped<PaneTextboxDecorator> cursorEnter( new LayoutPaneDecoratorCursorEnterConsole( *textBoxCmd, *textBoxDisplay ) );
+
+         _writableCommand = RefcountedTyped<WritableCommand>( new WritableCommand( engine, *textBoxDisplay ) );
+         LayoutPaneDecoratorCursorEnterConsole* enter = new LayoutPaneDecoratorCursorEnterConsole( *textBoxCmd, *_writableCommand );
+         RefcountedTyped<PaneTextboxDecorator> cursorEnter( enter );
          textBoxCmd->add( cursorPos );
          textBoxCmd->add( cursorBasic );
          textBoxCmd->add( cursorYDirection );
          textBoxCmd->add( cursorEnter );
          textBoxCmd->add( cursor );
 
-         PaneListVertical* list = new PaneListVertical( nll::core::vector2ui(0, 0),
-                                                        nll::core::vector2ui(0, 0) );
-         list->addChild( RefcountedTyped<Pane>( textBoxDisplay ), 0.97 );
-         list->addChild( RefcountedTyped<Pane>( textBoxCmd ), 0.03 );
-         _subLayout = RefcountedTyped<Pane>( list );
+         _vpane = new PaneListVertical( nll::core::vector2ui(0, 0),
+                                                          nll::core::vector2ui(0, 0) );
+         _vpane->addChild( RefcountedTyped<Pane>( textBoxDisplay ), 0.97 );
+         _vpane->addChild( RefcountedTyped<Pane>( textBoxCmd ), 0.03 );
+         _subLayout = RefcountedTyped<Pane>( _vpane );
       }
 
       virtual void _receive( const EventMouse& e )
@@ -63,17 +122,37 @@ namespace platform
 
       virtual void updateLayout()
       {
-         Pane* pane = &(*_subLayout);
-         pane->setOrigin( _origin );
-         pane->setSize( _size );
-         pane->updateLayout();
+         // we want exaclty the size for 1 line of text!
+         const ui32 csize = _textBoxDisplayP->getTextSize();
+         if ( _size[ 1 ] > csize )  // if smaller, useless to compute...
+         {
+            const double ratio = ( csize + 1.0 ) / _size[ 1 ];
+            _vpane->setRatio( 0, 1.0 - ratio );
+            _vpane->setRatio( 1, ratio );
+         }
+
+         // we need to update the layout properties...
+         Pane& pane = *_subLayout;
+         pane.setOrigin( _origin );
+         pane.setSize( _size );
+         pane.updateLayout();
       }
+
+   private:
+      LayoutCommandLine& operator=( LayoutCommandLine& );
+      LayoutCommandLine( const LayoutCommandLine& );
 
    protected:
       RefcountedTyped<Pane>      _textBoxCmd;
       RefcountedTyped<Pane>      _textBoxDisplay;
       RefcountedTyped<Pane>      _subLayout;
-      parser::CompilerFrontEnd&          _engine;
+      parser::CompilerFrontEnd&  _engine;
+
+      RefcountedTyped<WritableCommand> _writableCommand;
+
+      // shortcuts...
+      PaneListVertical*          _vpane;
+      PaneTextbox*               _textBoxDisplayP;
    };
 }
 }
