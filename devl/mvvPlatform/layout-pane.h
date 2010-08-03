@@ -97,6 +97,12 @@ namespace platform
        */
       void setSize( const nll::core::vector2ui& size );
 
+      void setBackground( const nll::core::vector3uc& col )
+      {
+         _background = col;
+      }
+
+
       /**
        @brief If return true, the last inserted Widget of a pane only will receive the event
        */
@@ -131,7 +137,7 @@ namespace platform
          _receive( event );
       }
 
-       virtual void receive( const EventKeyboard& event )
+      virtual void receive( const EventKeyboard& event )
       {
          for ( Panes::reverse_iterator it = _widgets.rbegin(); it != _widgets.rend(); ++it )
          {
@@ -246,7 +252,7 @@ namespace platform
       {
          for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
          {
-            if ( (**it).isInside( e.mousePosition ) )
+            //if ( (**it).isInside( e.mousePosition ) )
             {
                (**it).receive( e );
             }

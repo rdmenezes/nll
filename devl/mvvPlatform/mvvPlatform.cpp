@@ -34,6 +34,7 @@
 #include "font.h"
 #include "context-global.h"
 #include "layout-pane-textbox.h"
+#include "layout-pane-cmdl.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

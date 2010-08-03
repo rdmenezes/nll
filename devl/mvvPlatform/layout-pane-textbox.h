@@ -41,11 +41,13 @@ namespace platform
                    RefcountedTyped<Font>& font,
                    ui32 textSize = 12,
                    const nll::core::vector3uc textColor = nll::core::vector3uc( 255, 255, 255 ),
-                   const nll::core::vector3uc background = nll::core::vector3uc( 0, 0, 0 ) ) : Pane( origin, size, background ), _font( font ), _textSize( textSize ), _textColor( textColor )
+                   const nll::core::vector3uc background = nll::core::vector3uc( 0, 0, 0 ),
+                   bool displayEndToFront = false ) : Pane( origin, size, background ), _font( font ), _textSize( textSize ), _textColor( textColor )
       {
-         _needToBeRefreshed = true;
          ensure( textSize > 0, "error: text size is <= 0" );
 
+         _needToBeRefreshed = true;
+         _displayEndToFront = displayEndToFront;
          _text.push_back( "" );
       }
 
@@ -68,6 +70,7 @@ namespace platform
 
       virtual void updateLayout()
       {
+         notify();
       }
 
       void add( RefcountedTyped<PaneTextboxDecorator>& decorator )
@@ -77,6 +80,9 @@ namespace platform
 
       virtual void write( const std::string& s )
       {
+         if ( _text.size() == 1 && _text[ 0 ] == "" )
+            _text.clear();
+
          _text.push_back( s );
          notify();
       }
@@ -87,26 +93,36 @@ namespace platform
       // draw all the text stored and visible in the current window
       virtual void _drawText( Image& image )
       {
+         const nll::core::vector2ui maxPos( _size[ 0 ] + _origin[ 0 ], _size[ 1 ] + _origin[ 1 ] );
          const ui32 charxsize = _textSize;
          const ui32 charysize = _textSize;
-
          const ui32 nbLine = _size[ 1 ] / charysize;
-         const ui32 character = _windowPosition[ 0 ] / charxsize;
-         const ui32 line = _windowPosition[ 1 ] / charysize;
-         const ui32 dx = _windowPosition[ 0 ] % charxsize;
-         const ui32 dy = _windowPosition[ 1 ] % charysize;
 
-         const nll::core::vector2ui maxPos( _size[ 0 ] + _origin[ 0 ], _size[ 1 ] + _origin[ 1 ] );
+         const ui32 line = _windowPosition[ 1 ] / charysize;   // the first line to be displayed
+         const ui32 character = _windowPosition[ 0 ] / charxsize;
 
          (*_font).setColor( _textColor );
          (*_font).setSize( _textSize );
          for ( ui32 y = 0; y < nbLine; ++y )
          {
-            if ( _text.size() > ( y + line ) &&
-                 _text[ y + line ].size() > character )
+            if ( !_displayEndToFront )
             {
-               const char* text = _text[ y + line ].c_str() + character;
-               (*_font).write( text, nll::core::vector2ui( dx /*+ _origin[ 0 ]*/, _size[ 1 ] + _origin[ 1 ] - 1 - ( charysize + dy + charysize * y ) ), image, nll::core::vector2ui( 0, 0 ), maxPos );
+               if ( _text.size() > ( y + line ) && _text[ y + line ].size() > character )
+               {
+                  const ui32 posx = getCharacterPositionX( 0, y );
+                  const ui32 posy = getCharacterPositionY( y );
+                  const char* text = _text[ y + line ].c_str() + character;
+                  (*_font).write( text, nll::core::vector2ui( posx, posy ), image, nll::core::vector2ui( 0, 0 ), maxPos );
+               }
+            } else {
+               const int ytext = (int)_text.size() - 1 - y - line;
+               if ( ytext >= 0 && ytext < (int)_text.size() && _text[ ytext ].size() > character )
+               {
+                  const ui32 posx = getCharacterPositionX( 0, y );
+                  const ui32 posy = getCharacterPositionY( y );
+                  const char* text = _text[ ytext ].c_str() + character;
+                  (*_font).write( text, nll::core::vector2ui( posx, posy ), image, nll::core::vector2ui( 0, 0 ), maxPos );
+               }
             }
          }
       }
@@ -116,7 +132,7 @@ namespace platform
          const ui32 charysize = _textSize;
          const ui32 line = _windowPosition[ 1 ] / charysize;
          const ui32 dy = _windowPosition[ 1 ] % charysize;
-         return charysize * lineNumberInText + line + dy;
+         return _origin[ 1 ] + _size[ 1 ] - charysize - ( charysize * lineNumberInText + line + dy );
       }
 
       ui32 getCharacterPositionX( ui32 colNumberInText, ui32 lineNumberInText )
@@ -130,7 +146,7 @@ namespace platform
          assert( lineNumberInText <= _text.size() );
          assert( colNumberInText <= _text[ lineNumberInText ].size() );
          const ui32 posx = (*_font).getSize( _text[ lineNumberInText ], nll::core::vector2ui( 0, 0 ), colNumberInText );
-         return  posx + col + dx;
+         return _origin[ 0 ] + posx + col + dx;
       }
 
       virtual void _receive( const EventMouse& e );
@@ -158,6 +174,7 @@ namespace platform
       ui32                                         _textSize;
       nll::core::vector3uc                         _textColor;
       std::vector<std::string>                     _text;
+      bool                                         _displayEndToFront;
 
    };
 
@@ -205,12 +222,12 @@ namespace platform
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 
-         ui32 ypos = _src.getCharacterPositionY( _currentLine + 1 ) + _src._origin[ 0 ];
-         ui32 xpos = _src.getCharacterPositionX( _currentChar, _currentLine )  + _src._origin[ 1 ];
+         ui32 ypos = _src.getCharacterPositionY( _currentLine );
+         ui32 xpos = _src.getCharacterPositionX( _currentChar, _currentLine );
          if ( ypos >= _src._origin[ 1 ] && ypos < _src._origin[ 1 ] + _src._size[ 1 ] &&
               xpos >= _src._origin[ 0 ] && xpos < _src._origin[ 0 ] + _src._size[ 0 ] )
          {
-            Image::DirectionalIterator line = i.getIterator( xpos, i.sizey() - ypos - 1, 0 );
+            Image::DirectionalIterator line = i.getIterator( xpos, ypos, 0 );
             for ( ui32 n = 0; n < _src._textSize / 2; ++n )
             {
                line.pickcol( 0 ) = _src._textColor[ 0 ];
@@ -510,22 +527,25 @@ namespace platform
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( e.key == EventKeyboard::KEY_ENTER )
          {
-            std::stringstream ss;
-            for ( ui32 n = 0; n < _src._text.size(); ++n )
+            if ( _src._text.size() > 0 && _src._text[ 0 ].size() > 0 )
             {
-               ss << _src._text[ n ];
-               if ( n + 1 != _src._text.size() )
-                  ss << std::endl;
-            }
+               std::stringstream ss;
+               for ( ui32 n = 0; n < _src._text.size(); ++n )
+               {
+                  ss << _src._text[ n ];
+                  if ( n + 1 != _src._text.size() )
+                     ss << std::endl;
+               }
 
-            _writable.write( ss.str() );
+               _writable.write( ss.str() );
 
-            if ( position )
-            {
-               position->currentChar = 0;
-               position->currentLine = 0;
+               if ( position )
+               {
+                  position->currentChar = 0;
+                  position->currentLine = 0;
+               }
+               _src._text = nll::core::make_vector<std::string>( "" );
             }
-            _src._text = nll::core::make_vector<std::string>( "" );
 
             _src.notify();
             return true;
