@@ -38,7 +38,7 @@ namespace platform
                   _engine.clearError();
                   _sink.write( msg, nll::core::vector3uc( 255, 0, 0 ) );
                }
-            } catch ( parser::RuntimeException e )
+            } catch ( std::exception e )
             {
                std::stringstream ss;
                ss << "runtime error:" << e.what();
@@ -71,7 +71,7 @@ namespace platform
    public:
       LayoutCommandLine( const nll::core::vector2ui& origin,
                          const nll::core::vector2ui& size,
-                         RefcountedTyped<Font>& font,
+                         RefcountedTyped<Font> font,
                          parser::CompilerFrontEnd& engine,
                          const ui32 fontSize = 18 ) : Pane( origin, size ), _engine( engine )
       {

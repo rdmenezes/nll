@@ -428,7 +428,7 @@ namespace parser
             cur = dynamic_cast<AstVarField*>( &cur->getField() );
          }
 
-         assert( dynamic_cast<AstVarSimple*>( last ) || dynamic_cast<AstThis*>( last ) || dynamic_cast<AstVarArray*>( last ) ); // expect only simple variable decl for now // TODO array?
+         assert( dynamic_cast<AstExpCall*>( last ) || dynamic_cast<AstVarSimple*>( last ) || dynamic_cast<AstThis*>( last ) || dynamic_cast<AstVarArray*>( last ) ); // expect only simple variable decl for now // TODO array?
          operator()( *last );
 
          // evaluate the field

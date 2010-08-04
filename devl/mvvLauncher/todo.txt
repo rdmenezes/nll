@@ -1,0 +1,22 @@
+BUG:
+- fix: getVolume(ct) while CT volume is loading: threads are locked :/
+- fix: LUT: is not automatically updated if the LUT object is updated => in engine-mpr, the slice fusion is activated, but not slice to fuse...
+- fix: remove volume from a MPR will displayed->the volume must be referenced in the order so that it is not reelased while threaded computations are not done yet
+- fix: if volume is added on command line, segment is always refreshed
+
+FEATURES TO BE ADDED:
+- add registration matrix for volumes...
+- add basic operations:
+    - volume resampling
+    - volume import/export
+    - matrix & vector operations
+    - get the list of annotations
+    - controls: ctrl+l/r
+    - cursor selection (mouse & keyboard)
+    - history file
+    - key binding in script
+    - auto-completion / context auto-completion
+    - copy/paste
+    - scrollable windows
+    - text editor
+    

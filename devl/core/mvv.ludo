@@ -151,6 +151,17 @@ import VolumeID loadVolumeAsynchronous( string name );
 // get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
 import Volume getVolume( VolumeID id );
 
+void print( Volume v )
+{
+   print( v.getPst() );
+   println( "size:" + toString( v.getSize()[ 0 ] ) + " " + toString( v.getSize()[ 1 ] ) + " " + toString( v.getSize()[ 2 ] ) );
+}
+
+void print( VolumeID v )
+{
+   print( getVolume( v ) );
+}
+
 /**
  @brief Center segments when new bigger volumes are loaded
  */
@@ -227,6 +238,9 @@ class SegmentToolCamera
  */
 class Segment
 {
+   class InterpolationNN{InterpolationNN(){}}
+   class InterpolationLinear{InterpolationLinear(){}}
+   
    //  //PRIVATE DATA for segment//                   //
    //  //PRIVATE DATA for VolumeContainer//           //
    //  //PRIVATE DATA for SegmentToolPointer//        //
@@ -252,6 +266,8 @@ class Segment
     @brief Refresh the entire segment
     */
    import void refresh();
+   import void setInterpolation( InterpolationNN i );
+   import void setInterpolation( InterpolationLinear i );
    
    /**
     @brief attach a pointer: segments will be synchronized & crosshair displayed

@@ -2024,6 +2024,22 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Segment" ), mvv::Symbol::create( "InterpolationNN" ) ) ) );
+      assert( ty );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Segment"), platform::Symbol::create( "setInterpolation" ) ), nll::core::make_vector<const Type*>( ty ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentSetInterpolationNN( fn ) ) );
+   }
+
+   {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Segment" ), mvv::Symbol::create( "InterpolationLinear" ) ) ) );
+      assert( ty );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Segment"), platform::Symbol::create( "setInterpolation" ) ), nll::core::make_vector<const Type*>( ty ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentSetInterpolationL( fn ) ) );
+   }
+
+   {
       Type* tool = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "SegmentToolPointer" ) ) ) );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Segment"), platform::Symbol::create( "setTool" ) ), nll::core::make_vector<const Type*>( tool ) );
       assert( fn );

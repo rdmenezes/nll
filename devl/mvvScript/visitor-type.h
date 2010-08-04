@@ -633,6 +633,10 @@ namespace parser
             return;
          }
          e.setPointee( members[ 0 ] );
+         if ( !members[ 0 ]->getNodeType() )
+         {
+            operator()( *members[ 0 ] );
+         }
 
          // handle function member pointer
          TypeNamed* vs = dynamic_cast<TypeNamed*>( e.getField().getNodeType() );
