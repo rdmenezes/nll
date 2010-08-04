@@ -1968,7 +1968,6 @@ struct TestEval
 
    void eval4()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef string(int a) pfunc; pfunc f = NULL;" );
@@ -2114,7 +2113,7 @@ struct TestEval
          Error::ErrorType result = fe.run( "typedef int& REF; REF n;" );
          TESTER_ASSERT( result == Error::TYPE );
       }
-*/
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "typedef int& REF; int array[] = {1, 2, 3}; REF array_ref[] = {array[0], array[1], array[2]}; int n1 = array_ref[ 0 ]; array_ref[ 0 ] = 42; int n2 = array[ 0 ];" );
@@ -2131,13 +2130,25 @@ struct TestEval
       
       //Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; " );
    }
+
+   void eval5()
+   {
+      CompilerFrontEnd fe;
+      Error::ErrorType result = fe.run( "int n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42; n = m(0, 0);" );
+      TESTER_ASSERT( result == Error::SUCCESS );
+
+      const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+      TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+      TESTER_ASSERT( rt1.intval == 42 );
+   }
 };
 
 TESTER_TEST_SUITE(TestEval);
 
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
-TESTER_TEST(eval3);*/
+TESTER_TEST(eval3);
 TESTER_TEST(eval4);
+TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

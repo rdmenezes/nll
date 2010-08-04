@@ -164,7 +164,7 @@ public:
    }
 };
 
-
+/*
 class FunctionSegmentToolPointerSetPosition: public FunctionRunnable
 {
 public:
@@ -198,6 +198,71 @@ public:
       pointee->setPosition( nll::core::vector3f( v2.floatval, v3.floatval, v4.floatval ) );
       
       RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionSegmentToolPointerSetPositionV: public FunctionRunnable
+{
+public:
+   typedef platform::SegmentToolPointer Pointee;
+
+public:
+   FunctionSegmentToolPointerSetPositionV( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      nll::core::vector3f pos;
+      mvv::parser::getVector3fValues( v2, pos );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      pointee->setPosition( pos );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+*/
+
+class FunctionSegmentToolPointerGetPosition: public FunctionRunnable
+{
+public:
+   typedef platform::SegmentToolPointer Pointee;
+
+public:
+   FunctionSegmentToolPointerGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      nll::core::vector3f pos = pointee->getPosition();
+      mvv::parser::createVector3f( rt, pos[ 0 ], pos[ 1 ], pos[ 2 ] );
       return rt;
    }
 };
@@ -393,6 +458,125 @@ public:
    }
 };
 
+class FunctionToolAnnotationsSetPosition: public FunctionRunnable
+{
+public:
+   typedef ::impl::ToolAnnotationsStorage Pointee;
+
+public:
+   FunctionToolAnnotationsSetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::CMP_INT )
+      {
+         throw RuntimeException( "wrong argument type: expecting AnnotationID" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( (*v2.vals)[ 0 ].intval );
+      if ( it == pointee->dictionary.end() )
+      {
+         throw RuntimeException( "the AnnotationID doesn't belong to this tool" );
+      }
+      nll::core::vector3f pos;
+      mvv::parser::getVector3fValues( v3, pos );
+      (*it->second).setPosition( pos );
+      pointee->annotations.notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionToolAnnotationsGetPosition: public FunctionRunnable
+{
+public:
+   typedef ::impl::ToolAnnotationsStorage Pointee;
+
+public:
+   FunctionToolAnnotationsGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::CMP_INT )
+      {
+         throw RuntimeException( "wrong argument type: expecting AnnotationID" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( (*v2.vals)[ 0 ].intval );
+      if ( it == pointee->dictionary.end() )
+      {
+         throw RuntimeException( "the AnnotationID doesn't belong to this tool" );
+      }
+
+      nll::core::vector3f pos = (*it->second).getPosition();
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      mvv::parser::createVector3f( rt, pos[ 0 ], pos[ 1 ], pos[ 2 ] );      
+      return rt;
+   }
+};
+
+
+class FunctionSegmentToolCameraSetPositionV: public FunctionRunnable
+{
+public:
+   typedef platform::SegmentToolCamera Pointee;
+
+public:
+   FunctionSegmentToolCameraSetPositionV( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      nll::core::vector3f pos;
+      mvv::parser::getVector3fValues( v2, pos );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      pointee->setPosition( pos );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
 
 
 class FunctionSegmentToolCameraConstructor: public FunctionRunnable

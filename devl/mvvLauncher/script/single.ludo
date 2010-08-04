@@ -1,14 +1,7 @@
 import "core"
 
-
 //VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
 //VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
-
-
-
-//VolumeID pet = loadVolumeAsynchronous("c:/tmp/hrezpet.mf2");
-//VolumeID ct = loadVolumeAsynchronous("c:/tmp/hrezct.mf2");
-
 
 VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/pet.mf2");
 VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/ct.mf2");
@@ -17,7 +10,6 @@ VolumeID pet2 = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
 
 Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
 Lut ctLut( -250.0, 250.0 );
-
 
 VolumeContainer volumes;
 volumes.add( ct, ctLut, 0.3 );
@@ -29,7 +21,7 @@ ToolAnnotations         toolAnnotations;
 SegmentToolCamera       toolCamera;
 MipToolPointer          toolPointerMip(17);
 
-toolAnnotations.add(Vector3f(29.8695, -216.523, -667.7), "test1", Vector3i(0, 255, 255));
+ToolAnnotations::AnnotationID a1 = toolAnnotations.add(Vector3f(29.8695, -216.523, -667.7), "test1", Vector3i(0, 255, 255));
 
 SegmentToolCentering    toolCentering2;
 SegmentToolPointer      toolPointer2;

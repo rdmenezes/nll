@@ -28,6 +28,13 @@ namespace parser
          return _decl;
       }
 
+      // i.e int a; int b; =>b<= = 3, for b, it will return the index on the stack frame of b
+      virtual ui32 getRuntimeIndex()
+      {
+         return 0;
+      }
+
+
    private:
       AstDecl*    _decl;
    };

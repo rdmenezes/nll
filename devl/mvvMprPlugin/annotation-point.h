@@ -22,6 +22,16 @@ namespace platform
                        nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 0 ) ) : _position( position ), _caption( caption ), _font( font ), _fontSize( fontSize ),_color( color )
       {}
 
+      virtual void setPosition( const nll::core::vector3f& pos )
+      {
+         _position = pos;
+      }
+
+      virtual const nll::core::vector3f& getPosition()
+      {
+         return _position;
+      }
+
       virtual void updateSegment( ResourceSliceuc s )
       {
          Sliceuc& slice = s.getValue();

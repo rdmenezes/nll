@@ -132,6 +132,7 @@ public:
       // update the value
       const f32 color[] = { v3.intval, v4.intval, v5.intval };
       lut->setIndex( v2.intval, color );
+      lut->notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;

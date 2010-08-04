@@ -16,6 +16,8 @@ namespace platform
    {
    public:
       virtual void updateSegment( ResourceSliceuc segment ) = 0;
+      virtual void setPosition( const nll::core::vector3f& pos ) = 0;
+      virtual const nll::core::vector3f& getPosition() = 0;
 
       virtual ~Annotation()
       {}

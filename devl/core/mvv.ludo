@@ -174,12 +174,13 @@ class SegmentToolPointer
    /**
     @brief Set the position of the camera
     */
-   import void setPosition( float x, float y, float z );
+   //import void setPosition( float x, float y, float z );
+   //import void setPosition( Vector3f position );
 
    /**
     @brief Returns the position of the camera
     */
-   //import Vector3f getPosition(); // TODO: implement
+   import Vector3f getPosition();
 }
 
 /**
@@ -204,6 +205,9 @@ class ToolAnnotations
     @brief erase the annotation represented by this ID
     */
    import void erase( AnnotationID id );
+   
+   import void setPosition( AnnotationID id, Vector3f position );
+   import Vector3f getPosition( AnnotationID id );
 }
 
 /**
@@ -214,6 +218,7 @@ class SegmentToolCamera
 {
    import SegmentToolCamera();
    import ~SegmentToolCamera();
+   import void setPosition( Vector3f position );
 }
 
 /**

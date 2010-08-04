@@ -109,12 +109,20 @@ namespace platform
 
       /**
        @brief update the segment's location
+       @brief synchronize the camera position & pointer
        */
       void setPosition( const nll::core::vector3f& pos )
       {
          for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
          {
             (**it).position.setValue( pos );
+
+            std::set<SegmentToolPointer*> tools = (**it).getTools<SegmentToolPointer>();
+            assert( tools.size() <= 1 );
+            if ( tools.size() )
+            {
+               (*tools.begin())->setPosition( pos );
+            }
          }
       }
 

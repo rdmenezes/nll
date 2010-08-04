@@ -1908,10 +1908,26 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerDestructor( fn ) ) );
    }
 
+   /*
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolPointer"), platform::Symbol::create( "setPosition" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ), new TypeFloat( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerSetPosition( fn ) ) );
+   }
+
+   {
+      Type* vector = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vector );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolPointer"), platform::Symbol::create( "setPosition" ) ), nll::core::make_vector<const Type*>( vector ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerSetPositionV( fn ) ) );
+   }
+   */
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolPointer"), platform::Symbol::create( "getPosition" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerGetPosition( fn ) ) );
    }
 
    //
@@ -1948,6 +1964,25 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolAnnotationsErase( fn ) ) );
    }
 
+   {
+      Type* annotationId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ToolAnnotations" ), mvv::Symbol::create( "AnnotationID" ) ) ) );
+      Type* vector = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( annotationId && vector );
+
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolAnnotations"), platform::Symbol::create( "setPosition" ) ), nll::core::make_vector<const Type*>( annotationId, vector ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolAnnotationsSetPosition( fn ) ) );
+   }
+
+   {
+      Type* annotationId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ToolAnnotations" ), mvv::Symbol::create( "AnnotationID" ) ) ) );
+      assert( annotationId );
+
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolAnnotations"), platform::Symbol::create( "getPosition" ) ), nll::core::make_vector<const Type*>( annotationId ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolAnnotationsGetPosition( fn ) ) );
+   }
+
    //
    // SegmentToolCamera
    //
@@ -1961,6 +1996,14 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolCamera"), platform::Symbol::create( "~SegmentToolCamera" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolCameraDestructor( fn ) ) );
+   }
+
+   {
+      Type* vector = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vector );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolCamera"), platform::Symbol::create( "setPosition" ) ), nll::core::make_vector<const Type*>( vector ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolCameraSetPositionV( fn ) ) );
    }
 
    //

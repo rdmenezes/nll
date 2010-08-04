@@ -2,6 +2,7 @@
 # define MVV_PARSER_AST_VAR_SIMPLE_H_
 
 # include "ast-var.h"
+# include "ast-decl-var.h"
 
 namespace mvv
 {
@@ -53,6 +54,13 @@ namespace parser
       AstDeclFun* getFunctionAddress() const
       {
          return _functionAddress;
+      }
+
+      virtual ui32 getRuntimeIndex()
+      {
+         AstDeclVar* decl = dynamic_cast<AstDeclVar*>( getReference() );
+         ensure( decl, "it must be used in the context of varaible declaration!" );
+         return decl->getRuntimeIndex();
       }
 
    private:

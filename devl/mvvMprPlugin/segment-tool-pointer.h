@@ -3,7 +3,6 @@
 
 # include "mvvMprPlugin.h"
 # include "segment-tool.h"
-# include "segment-tool-pointer.h"
 # include <mvvPlatform/font.h>
 
 namespace mvv
@@ -325,12 +324,29 @@ namespace platform
       }
 
       /**
-       @brief set the position of the pointer and update the connected segments
+       @brief set the position of the pointer and update the connected segments: beware: it doesn't update the camera position!
        */
       void setPosition( const nll::core::vector3f& p )
       {
+         //throw std::exception( "TODO: operation not handled yet" );
+
          _position = p;
+         /*
+         for ( MapSegments::iterator it = _active.begin(); it != _active.end(); ++it )
+         {
+            std::set<SegmentToolCamera*> tools = it->first->getTools<SegmentToolCamera>();
+            assert( tools.size() <= 1 );
+            if ( tools.size() )
+            {
+               (*tools.begin())->setPosition( p );
+            }
+         }*/
          refreshConnectedSegments();
+      }
+
+      const nll::core::vector3f& getPosition()
+      {
+         return _position;
       }
 
    private:

@@ -399,6 +399,7 @@ namespace parser
             {
                throw RuntimeException( "uninitialized array" );
             }
+            //_debug( array );
             assert( array.type == RuntimeValue::TYPE );
 
             if ( index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
@@ -594,7 +595,8 @@ namespace parser
             if ( e.getInstanciation() )
             {
                // we are calling operator() of a class, just fetch the object
-               vals[ 0 ] = _env.stack[ _env.framePointer ];
+               // get the position of the variable on the stack
+               vals[ 0 ] = _env.stack[ _env.framePointer + e.getName().getRuntimeIndex() ];
             } else if ( e.getConstructed() )
             {
                // because it is constructed, we need to allocate a temporary, start constructor, move the object
