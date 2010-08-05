@@ -453,6 +453,7 @@ public:
       pointee->annotations.erase( it->second );
       pointee->dictionary.erase( it );
 
+
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }

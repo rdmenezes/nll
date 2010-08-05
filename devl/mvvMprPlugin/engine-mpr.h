@@ -270,6 +270,7 @@ namespace platform
             {
                ++_nbOrdersSend;
             }
+            std::cout << "--slicer order created--" << std::endl;
 
             _ordersSend = orders;
             _ordersCheck = orders;
@@ -445,11 +446,12 @@ namespace platform
       protected:
          virtual bool _run()
          {
+            /*
             if ( !ordersToBlend.size() )
             {
                // we have nothing to wait for...
                return _nbOrdersHandled == _nbOrdersSend;
-            }
+            }*/
 
 
             if ( _orderSend.isEmpty() )
@@ -479,7 +481,9 @@ namespace platform
                _ready = true;
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, mapLuts, intensities ) );
                _orderProvider.pushOrder( &*_orderSend );
-               return _nbOrdersHandled == _nbOrdersSend;
+               std::cout << "--blender order created--" << std::endl;
+               return true;
+               //return _nbOrdersHandled == _nbOrdersSend;
             }
 
             // we need to wait for blending is finished to start next round...

@@ -21,11 +21,12 @@ namespace platform
 
       virtual f32 priority() const
       {
-         return 50;
+         return 150;
       }
 
       virtual bool _run()
       {
+         std::cout << "annotations have been notified" << std::endl;
          // if a point is modified, then we need to force the connected MPR to be refreshed
          refreshConnectedSegments();
          return true;

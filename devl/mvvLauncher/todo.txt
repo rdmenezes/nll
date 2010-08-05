@@ -19,4 +19,7 @@ FEATURES TO BE ADDED:
     - copy/paste
     - scrollable windows
     - text editor
+    - lut controls + script
+    - [DONE] if add annotations->segment & mip should be notified
+    - if add/erase volume->update segments!
     
