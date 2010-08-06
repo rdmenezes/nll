@@ -26,6 +26,7 @@ class VolumeID
    
 /**
  @brief Look up table - assign a color to a voxel value, given a window level
+ @note: we can't use operator[] as we need to return a reference, however in memory we don't store a list of Vector3uc
  */
 class Lut
 {   

@@ -48,8 +48,9 @@ namespace mvv
       RefcountedTyped<Pane>               layout;
 
       CompilerFrontEnd                    compiler;
+      RuntimeValues*                      oldLayout;  // in case a script if modifying the root of the layout, we must be able to detect it by comparing the pointers...
 
-      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 8 )
+      ApplicationVariables() : screen( 1280 * 2, 1024, 3 ), orderManager( 8 )
       {  
          initFont();
          initContext();
@@ -83,6 +84,7 @@ namespace mvv
          const RuntimeValue& layoutRef = compiler.getVariable( mvv::Symbol::create( "layout" ) );
          FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
          layout = pointee->pane;
+         oldLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
 
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          (*layout).updateLayout();

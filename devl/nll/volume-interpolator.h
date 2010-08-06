@@ -116,6 +116,7 @@ namespace imaging
 
       /**
        @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
+       @note always align the pointer using NLL_ALIGN_16 in case SSE2 optim are used...
        */
       value_type operator()( const float* pos ) const
       {

@@ -446,7 +446,7 @@ public:
       RuntimeValue& v3 = unref( *args[ 2 ] );
       RuntimeValue& v4 = unref( *args[ 3 ] );
 
-      float pos[] = { v2.floatval, v3.floatval, v4.floatval, 0 };
+      NLL_ALIGN_16 float pos[] = { v2.floatval, v3.floatval, v4.floatval, 0 };   // we need to correctly align the memory!
       if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v4.type != RuntimeValue::CMP_FLOAT )
       {
          throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );

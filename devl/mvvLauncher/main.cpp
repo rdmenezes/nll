@@ -14,6 +14,19 @@ void handleOrders( int )
 {
    glutTimerFunc( 0, handleOrders, 0 );
 
+   // check the layout has not been changed...
+   const RuntimeValue& layoutRef = applicationVariables->compiler.getVariable( mvv::Symbol::create( "layout" ) );
+   RuntimeValues* currentLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
+   if ( currentLayout != applicationVariables->oldLayout )
+   {
+      // we must update the current layout
+      FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
+      applicationVariables->layout = pointee->pane;
+      applicationVariables->oldLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
+      (*applicationVariables->layout).setSize( nll::core::vector2ui( applicationVariables->screen.sizex(), applicationVariables->screen.sizey() ) );
+      (*applicationVariables->layout).updateLayout();
+   }
+
    // run orders & engines
    applicationVariables->engineHandler.run();
    applicationVariables->orderManager.run();
