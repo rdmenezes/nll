@@ -270,7 +270,6 @@ namespace platform
             {
                ++_nbOrdersSend;
             }
-            std::cout << "--slicer order created--" << std::endl;
 
             _ordersSend = orders;
             _ordersCheck = orders;
@@ -481,7 +480,6 @@ namespace platform
                _ready = true;
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, mapLuts, intensities ) );
                _orderProvider.pushOrder( &*_orderSend );
-               std::cout << "--blender order created--" << std::endl;
                return true;
                //return _nbOrdersHandled == _nbOrdersSend;
             }
