@@ -132,6 +132,7 @@ namespace platform
 
                _data = r._data;
               _data->ref += internals->ref;
+              ResourceSharedData& newR = getData();
 
               // update engines & 
               while ( old.links.size() )
@@ -142,13 +143,13 @@ namespace platform
                  e->connect( &getData() );
 
                  // merge links to engine
-                 getData().links.insert( e );
+                 newR.links.insert( e );
               }
 
               // merge the links
               for ( ResourceSharedData::ResourceStorage::iterator it = old.resources.begin(); it != old.resources.end(); ++it )
               {
-                 getData().resources.insert( *it );
+                 newR.resources.insert( *it );
               }
 
               // merge the links
@@ -156,10 +157,10 @@ namespace platform
               {
                  // update the link of the linked resource
                  (*it)->_eraseSimpleLink( &old );
-                 (*it)->_addSimpleLinkConnection( &getData() );
+                 (*it)->_addSimpleLinkConnection( &newR );
 
                  // merge the linked resource
-                 getData().resourcesLinks.insert( *it );
+                 newR.resourcesLinks.insert( *it );
               }
 
               // update the resource holders and merge them
@@ -167,7 +168,7 @@ namespace platform
               {
                  (*it)->_data = _data;
                  //std::cout << "resource holder change:" << *it << " to=" << _data << std::endl;
-                 getData().resourceHolder.insert( *it );
+                 newR.resourceHolder.insert( *it );
               }
 
               notify();

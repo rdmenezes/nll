@@ -131,11 +131,13 @@ namespace platform
       void insert( SymbolVolume val )
       {
          getValue()._volumes.insert( val );
+         notify();
       }
 
       void erase( SymbolVolume val )
       {
          getValue()._volumes.erase( val );
+         notify();
       }
    };
 }

@@ -31,7 +31,7 @@ namespace platform
    typedef ResourceValue< nll::core::Image< nll::ui8> >  ResourceImageuc;
 
    /// defines a map of transfer function. Given a volume name, retrieve its associated transfer function
-   typedef ResourceMap<SymbolVolume, ResourceLut >       ResourceMapTransferFunction;
+   typedef ResourceMapResource<SymbolVolume, ResourceLut >ResourceMapTransferFunction;
 
    /// defines a list of 3D vectors
    typedef ResourceVector<nll::core::vector3f>           ResourceVector3fs;

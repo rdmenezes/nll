@@ -2,6 +2,7 @@
 #include <mvvPlatform/engine.h>
 #include <mvvPlatform/engine-order.h>
 #include <mvvPlatform/resource.h>
+#include <mvvPlatform/resource-volumes.h>
 
 using namespace mvv::platform;
 
@@ -92,6 +93,42 @@ protected:
       return new OrderResult();
    }
 };
+
+class DummyEngineOrder2 : public EngineOrder
+{
+public:
+   DummyEngineOrder2( EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, ResourceVolumes& r1 ) : EngineOrder( handler, provider, dispatcher )
+   {
+      r1.connect( this );
+      dispatcher.connect( this );
+
+      activated = false;
+   }
+
+   ~DummyEngineOrder2()
+   {
+      _dispatcher.disconnect( this );
+   }
+
+   virtual bool _run()
+   {
+      activated = true;
+      return true;
+   }
+
+   void consume( Order* )
+   {
+   }
+
+   const std::set<OrderClassId>& interestedOrder() const
+   {
+      static std::set<OrderClassId> res;
+      return res;
+   }
+
+   bool activated;
+};
+
 
 class DummyEngineOrder : public EngineOrder
 {
@@ -288,11 +325,40 @@ struct TestEngine
       TESTER_ASSERT( engine.consumed );
       //TESTER_ASSERT( orderProvider.orders[ 0 ].getNumberOfReference() == 2 ); // in order & orderprovider
    }
+
+   void test2()
+   {
+      DummyEngineHandler handler;
+      DummyOrderProvider orderProvider;
+      DummyOrderDispatcher dispatcher;
+
+      ResourceStorageVolumes  storage;
+      ResourceVolumes   volumes( storage );
+      ResourceVolumes   volumes2( storage );
+
+      DummyEngineOrder2 engine( handler, orderProvider, dispatcher, volumes );
+
+      handler.run();
+      TESTER_ASSERT( engine.activated );
+      engine.activated = false;
+
+      volumes = volumes2;
+      handler.run();
+      TESTER_ASSERT( engine.activated );
+      engine.activated = false;
+
+      volumes.notify();
+      handler.run();
+      TESTER_ASSERT( engine.activated );
+   }
 };
 
 TESTER_TEST_SUITE(TestEngine);
+/*
 TESTER_TEST(test1);
 TESTER_TEST(testEngineDestroyedBeforeResource);
 TESTER_TEST(testInactive);
 TESTER_TEST(testOrderWorkflow)
+*/
+TESTER_TEST(test2);
 TESTER_TEST_SUITE_END();
