@@ -27,6 +27,9 @@ void handleOrders( int )
       (*applicationVariables->layout).updateLayout();
    }
 
+   // check the callbacks
+   applicationVariables->callbacks.run();
+
    // run orders & engines
    applicationVariables->engineHandler.run();
    applicationVariables->orderManager.run();
@@ -223,6 +226,8 @@ void mouseMotion(int x, int y)
 
 void keyboard( unsigned char key, int x, int y )
 {
+   applicationVariables->callbacks.handleKey( key );
+
    EventKeyboard e;
    e.mousePosition = nll::core::vector2ui( x, y );
    e.key = key;
@@ -254,6 +259,8 @@ void keyboard( unsigned char key, int x, int y )
 
 void keyboardSpecial( int key, int x, int y )
 {
+   applicationVariables->callbacks.handleKey( key );
+
    EventKeyboard e;
    e.mousePosition = nll::core::vector2ui( x, y );
 

@@ -26,7 +26,16 @@ namespace platform
          KEY_DOWN,
          KEY_HOME,
          KEY_END,
-         KEY_TAB = '\t'
+         KEY_TAB = '\t',
+         KEY_F1 = 0x0001,
+         KEY_F2 = 0x0002,
+         KEY_F3 = 0x0003,
+         KEY_F4 = 0x0004,
+         KEY_F5 = 0x0005,
+         KEY_F6 = 0x0006,
+         KEY_F7 = 0x0007,
+         KEY_F8 = 0x0008,
+         KEY_F9 = 0x0009
       };
 
       EventKeyboard()

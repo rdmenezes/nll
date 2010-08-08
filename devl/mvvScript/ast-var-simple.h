@@ -46,6 +46,7 @@ namespace parser
          v( *this );
       }
 
+      // we do this if we use the var simple to get the pointer of the function: void f(){} => FUNCTION_TYPEDEF pf = f;
       void setFunctionAddress( AstDeclFun* f )
       {
          _functionAddress = f;

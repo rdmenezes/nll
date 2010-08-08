@@ -23,7 +23,7 @@
 # include <mvvMprPlugin/mip-tool-pointer.h>
 # include <mvvScript/compiler.h>
 # include <core/mvv-layout.h>
-
+# include "callbacks.h"
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -49,8 +49,9 @@ namespace mvv
 
       CompilerFrontEnd                    compiler;
       RuntimeValues*                      oldLayout;  // in case a script if modifying the root of the layout, we must be able to detect it by comparing the pointers...
+      Callbacks                           callbacks;
 
-      ApplicationVariables() : screen( 1280 * 2, 1024, 3 ), orderManager( 8 )
+      ApplicationVariables() : screen( 1280 * 2, 1024, 3 ), orderManager( 8 ), callbacks( compiler )
       {  
          initFont();
          initContext();

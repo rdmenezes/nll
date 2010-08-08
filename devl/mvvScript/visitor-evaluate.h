@@ -145,6 +145,12 @@ namespace parser
             return;
          }
 
+         if ( val.type == RuntimeValue::FUN_PTR )
+         {
+            std::cout << "FUN_PTR:" << val.functionPointer << std::endl;
+            return;
+         }
+
          std::cout << "UNDEFINED TYPE" << std::endl;
       }
 
@@ -579,7 +585,8 @@ namespace parser
          AstDeclFun* functionToCall = e.getFunctionCall();
          if ( e.getFunctionPointerCall() )
          {
-            functionToCall = _env.resultRegister.functionPointer;
+            operator()( e.getName() ); // we need to run the node to compute the function address...
+            functionToCall = unref(_env.resultRegister).functionPointer;   // unref as we always return a ref
          }
 
          if ( !functionToCall )

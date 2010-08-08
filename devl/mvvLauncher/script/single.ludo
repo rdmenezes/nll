@@ -1,5 +1,32 @@
 import "core"
 
+
+
+void callback_print()
+{
+   println("a key has been pressed");
+}
+
+class KeyboardCallback
+{
+   typedef void() KeyCallback;
+
+   KeyCallback[]  callbacks;        // hold a call back
+   string[]       callbacksKey;     // hold the key for the corresponding callback
+
+   KeyboardCallback()
+   {
+      KeyCallback c[] = { callback_print };
+      string ck[]     = { "F1" };
+
+      callbacks = c;
+      callbacksKey = ck;
+   }
+}
+
+KeyboardCallback callbacks;
+
+
 //VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
 //VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
 
