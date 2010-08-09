@@ -545,6 +545,17 @@ namespace platform
       {
       }
 
+      const std::vector<std::string>& getHistory()
+      {
+         return _written;
+      }
+
+      void setHistory( const std::vector<std::string>& history )
+      {
+         _written = history;
+         _current = (ui32)_written.size();
+      }
+
       virtual bool receive( const EventMouse& )
       {
          return false;

@@ -4,6 +4,7 @@ BUG:
 - [NOT NECESSARY]fix: remove volume from a MPR will displayed->the volume must be referenced in the order so that it is not reelased while threaded computations are not done yet
 - [DONE] fix: if volume is added on command line, segment is always refreshed
 - [NOT NECESSARY]fix: in console, layout = l2; => freeze... but if a new layout is created layout = Layout(segment2); then ok...
+- investigate: ct.getVolume().getOrigin() generates a runtime exception
 
 FEATURES TO BE ADDED:
 - add registration matrix for volumes...

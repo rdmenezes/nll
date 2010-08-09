@@ -336,7 +336,7 @@ public:
 class FunctionRunnableVolumeSetRotation : public FunctionRunnable
 {
 public:
-   FunctionRunnableVolumeSetRotation( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnableVolumeSetRotation( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -378,9 +378,20 @@ public:
 
       volume->setRotation( rot );
 
+      // now we need to force a refresh of the MPR... [TODO: just notify the volume container having this volume instead of all volumes]
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+      volumes->volumes.notify();
+
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+
+private:
+   mvv::platform::Context& _context;
 };
 
 class FunctionRunnableVolumeSetValue : public FunctionRunnable
@@ -470,7 +481,7 @@ public:
 class FunctionRunnableVolumeSetPst : public FunctionRunnable
 {
 public:
-   FunctionRunnableVolumeSetPst( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnableVolumeSetPst( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -521,15 +532,26 @@ public:
       
       volume->setPst( rot );
 
+      // now we need to force a refresh of the MPR... [TODO: just notify the volume container having this volume instead of all volumes]
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+      volumes->volumes.notify();
+
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+
+private:
+   mvv::platform::Context& _context;
 };
 
 class FunctionRunnableVolumeSetOrigin : public FunctionRunnable
 {
 public:
-   FunctionRunnableVolumeSetOrigin( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnableVolumeSetOrigin( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -563,16 +585,27 @@ public:
                                   ( *vector3f.vals )[ 2 ].floatval );
       volume->setOrigin( origin );
 
+      // now we need to force a refresh of the MPR... [TODO: just notify the volume container having this volume instead of all volumes]
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+      volumes->volumes.notify();
+
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+
+private:
+   mvv::platform::Context& _context;
 };
 
 
 class FunctionRunnableVolumeSetSpacing : public FunctionRunnable
 {
 public:
-   FunctionRunnableVolumeSetSpacing( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionRunnableVolumeSetSpacing( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -606,9 +639,20 @@ public:
                                   ( *vector3f.vals )[ 2 ].floatval );
       volume->setSpacing( value );
 
+      // now we need to force a refresh of the MPR... [TODO: just notify the volume container having this volume instead of all volumes]
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+      volumes->volumes.notify();
+
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+   
+private:
+   mvv::platform::Context& _context;
 };
 
 class FunctionVolumeIDDestructor : public FunctionRunnable

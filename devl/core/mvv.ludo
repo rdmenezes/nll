@@ -22,6 +22,14 @@ class VolumeID
     @brief remove the reference of this volume from the mvv context leading eventually to its deallocation
     */
    import ~VolumeID();
+
+   /**
+    @brief returns the associated volume
+    */   
+   Volume getVolume()
+   {
+      return getVolume( this );
+   }
 }
    
 /**
@@ -36,6 +44,16 @@ class Lut
     @param colorR, colorG, colorB a RGB value
     */
    import void setColorIndex( int index, int colorR, int colorG, int colorB );
+   
+   void setColor( int index, Vector3i color )
+   {
+      this.setColorIndex( index, color[ 0 ], color[ 1 ], color[ 2 ] );
+   }
+   
+   void setColor( int index,  int colorR, int colorG, int colorB )
+   {
+      this.setColorIndex( index, colorR, colorG, colorB  );
+   }
 
    /**
     @brief Returns the color mapped to this index
@@ -143,9 +161,17 @@ class Volume
    
    // the intensity of a voxel
    import void setValue( int x, int y, int z, float value );
+   void setValue( Vector3i v, float value )
+   {
+      this.setValue( v[ 0 ], v[ 1 ], v[ 2 ], value );
+   }
    
    // get a voxel value using bilinear interpolation
    import float getValue( float x, float y, float z );
+   float getValue( Vector3f v )
+   {
+      return this.getValue( v[ 0 ], v[ 1 ], v[ 2 ] );
+   }
 }
 
 // synchronously load the volume
@@ -301,7 +327,7 @@ class Segment
  */
 class MipToolPointer
 {
-   import MipToolPointer( int frameRate = 7 );
+   import MipToolPointer( int frameRate = 9 );
    import ~MipToolPointer();
 }
 

@@ -106,6 +106,8 @@ namespace platform
          _vpane->addChild( RefcountedTyped<Pane>( textBoxDisplay ), 0.97 );
          _vpane->addChild( RefcountedTyped<Pane>( textBoxCmd ), 0.03 );
          _subLayout = RefcountedTyped<Pane>( _vpane );
+
+         _importPreviousHistory( *enter );
       }
 
       virtual void _receive( const EventMouse& e )
@@ -144,6 +146,53 @@ namespace platform
    private:
       LayoutCommandLine& operator=( LayoutCommandLine& );
       LayoutCommandLine( const LayoutCommandLine& );
+
+   private:
+      void _importPreviousHistory( LayoutPaneDecoratorCursorEnterConsole& inputConsole )
+      {
+         int numberOfItems = 500;
+         std::string path = "c:/Temp/command_history.txt";
+
+         _readConfig( numberOfItems, path );
+
+         std::vector<std::string> history;
+         std::ifstream file( path.c_str() );
+         if ( !file.good() )
+            return;
+         while ( !file.eof() )
+         {
+            std::string line;
+            getline( file, line );
+            history.push_back( line );
+         }
+         inputConsole.setHistory( history );
+      }
+
+      void _readConfig( int& numberOfItems, std::string& path )
+      {
+         try
+         {
+            parser::RuntimeValue size = _engine.getVariable( mvv::Symbol::create( "sizeHistoryExport" ) );
+            if ( size.type == parser::RuntimeValue::CMP_INT )
+               numberOfItems = size.intval;
+         }
+         catch (...)
+         {
+            // do nothing
+         }
+
+         try
+         {
+            parser::RuntimeValue p = _engine.getVariable( mvv::Symbol::create( "historyExportLocation" ) );
+            if ( p.type == parser::RuntimeValue::STRING )
+               path = p.stringval;
+         }
+         catch (...)
+         {
+            // do nothing
+         }
+      }
+
 
    protected:
       RefcountedTyped<Pane>      _textBoxCmd;

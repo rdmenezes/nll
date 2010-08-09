@@ -1758,7 +1758,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( ty );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "setOrigin" ) ), nll::core::make_vector<const Type*>( ty ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetOrigin( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetOrigin( fn, context ) ) );
    }
 
    {
@@ -1766,7 +1766,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( ty );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "setSpacing" ) ), nll::core::make_vector<const Type*>( ty ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetSpacing( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetSpacing( fn, context ) ) );
    }
 
    {
@@ -1774,7 +1774,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( ty );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "setRotation" ) ), nll::core::make_vector<const Type*>( ty ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetRotation( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetRotation( fn, context ) ) );
    }
 
    {
@@ -1782,7 +1782,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( ty );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "setPst" ) ), nll::core::make_vector<const Type*>( ty ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetPst( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetPst( fn, context ) ) );
    }
 
    //

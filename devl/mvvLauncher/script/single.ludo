@@ -1,12 +1,31 @@
+import "core"
+
 /**
  @note the following variables must have been defined:
        - "layout" of type "Layout" defines the layout and event dispatcher to be used.
        - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
+
+ @note the following variables may be defined (if not default values apply)
+       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
+       - "historyExportLocation" of type "string", defines where the command history is imported/exported
  */
 
-import "core"
+//
+// configuration constants
+// -----------------------------------------------------------------------------------------------------------------
+//
 
-void callback_print()
+/// saves the last XXX commands typed by the user, these will be imported next sessions
+int      sizeHistoryExport            = 500;
+
+/// defines the export/import location
+string   historyExportLocation        = "c:/Temp/command_history.txt";
+
+//
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+void dummy_test_callback_print()
 {
    println("a key has been pressed");
 }
@@ -14,6 +33,7 @@ void callback_print()
 /**
  @brief Structure defining key callbacks
  @note only special characters F1-F10, ESC, as well as all ASCII character/+modifier can have a callback associated
+ @note if "callbacks" is modified, the variable must be reaffected, and not only the arrays...
  */
 class KeyboardCallback
 {
@@ -25,7 +45,7 @@ class KeyboardCallback
 
    KeyboardCallback()
    {
-      KeyCallback c[]   = { callback_print, callback_print };
+      KeyCallback c[]   = { dummy_test_callback_print, dummy_test_callback_print };
       string      ck[]  = { "F1",   "s" };
       int         ckm[] = { 0,      1 };
 
