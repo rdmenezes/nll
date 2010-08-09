@@ -1,3 +1,4 @@
+include "mvv"
 
 /**
  @brief Defines the basic operators + - * / == != <= < >= > on int and float types
@@ -292,5 +293,12 @@ void print( float n )
    print( toString( n ) );
 }
 
+void println( int n )
+{
+   println( toString( n ) );
+}
 
-include "mvv"
+void println( float n )
+{
+   println( toString( n ) );
+}

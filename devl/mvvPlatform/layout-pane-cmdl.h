@@ -86,7 +86,7 @@ namespace platform
                                                     nll::core::vector2ui(0, 0),
                                                     font, fontSize,
                                                     nll::core::vector3uc( 255, 255, 255 ),
-                                                    nll::core::vector3uc( 60, 60, 60 ) );
+                                                    nll::core::vector3uc( 0, 0, 60 ) );
          RefcountedTyped<PaneTextboxDecorator> cursor( new LayoutPaneDecoratorCursor( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorPos( new LayoutPaneDecoratorCursorPosition( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorBasic( new LayoutPaneDecoratorCursorBasic( *textBoxCmd ) );

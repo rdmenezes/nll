@@ -22,7 +22,9 @@ public:
 
       bool operator<( const Key& c ) const
       {
-         return key < c.key && c.modifier == modifier;
+         const ui32 indexs = key + modifier * 1024;
+         const ui32 indexr = c.key + c.modifier * 1024;
+         return indexs < indexr;
       }
    };
 
