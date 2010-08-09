@@ -10,6 +10,20 @@
 
 static mvv::ApplicationVariables* applicationVariables;
 
+int toLower( int c )
+{
+   if ( c >= 'A' && c <= 'Z' )
+   {
+      return 'a' + c - 'A';
+   }
+   return c;
+}
+
+int noCtrl( int c )
+{
+   return 'a' + c - 1;
+}
+
 void handleOrders( int )
 {
    glutTimerFunc( 0, handleOrders, 0 );
@@ -226,8 +240,6 @@ void mouseMotion(int x, int y)
 
 void keyboard( unsigned char key, int x, int y )
 {
-   applicationVariables->callbacks.handleKey( key );
-
    EventKeyboard e;
    e.mousePosition = nll::core::vector2ui( x, y );
    e.key = key;
@@ -245,10 +257,23 @@ void keyboard( unsigned char key, int x, int y )
    else
       e.isShift = false;
 
+   // handle callbacks
+   Callbacks::Key::Modifier modifier = Callbacks::Key::NORMAL;
+   if ( e.isShift )
+      modifier = Callbacks::Key::SHIFT;
+   if ( e.isAlt )
+      modifier = Callbacks::Key::ALT;
+   if ( e.isCtrl )
+   {
+      key = noCtrl( key );
+      modifier = Callbacks::Key::CTRL;
+   }
+   applicationVariables->callbacks.handleKey( toLower( key ), modifier );  // we lower the case as it should be handled by the modifier instead
+
    (*applicationVariables->layout).receive( e );
 
    // handle 'esc' at the end so we have the opportunity to grab this key (i.e. save the sate) before quitting
-   if ( key == 27 /*|| key == 'q'*/ )
+   if ( key == 27 )
    {
       applicationVariables->layout.unref();
       applicationVariables->orderManager.kill();
@@ -259,7 +284,7 @@ void keyboard( unsigned char key, int x, int y )
 
 void keyboardSpecial( int key, int x, int y )
 {
-   applicationVariables->callbacks.handleKey( key );
+   applicationVariables->callbacks.handleKey( key, Callbacks::Key::Modifier::NORMAL );
 
    EventKeyboard e;
    e.mousePosition = nll::core::vector2ui( x, y );

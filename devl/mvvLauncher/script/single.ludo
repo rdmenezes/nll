@@ -1,81 +1,80 @@
+/**
+ @note the following variables must have been defined:
+       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
+       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
+ */
+
 import "core"
-
-
 
 void callback_print()
 {
    println("a key has been pressed");
 }
 
+/**
+ @brief Structure defining key callbacks
+ @note only special characters F1-F10, ESC, as well as all ASCII character/+modifier can have a callback associated
+ */
 class KeyboardCallback
 {
    typedef void() KeyCallback;
 
-   KeyCallback[]  callbacks;        // hold a call back
-   string[]       callbacksKey;     // hold the key for the corresponding callback
+   KeyCallback[]  callbacks;                 // hold a call back
+   string[]       callbacksKey;              // hold the key for the corresponding callback
+   int[]          callbacksKeyModifier;      // corresponding modifier for the key: (0 => normal), (1 => CTRL), (2 => SHIFT), (3 => ALT)
 
    KeyboardCallback()
    {
-      KeyCallback c[] = { callback_print };
-      string ck[]     = { "F1" };
+      KeyCallback c[]   = { callback_print, callback_print };
+      string      ck[]  = { "F1",   "s" };
+      int         ckm[] = { 0,      1 };
 
-      callbacks = c;
-      callbacksKey = ck;
+      callbacks            = c;
+      callbacksKey         = ck;
+      callbacksKeyModifier = ckm;
    }
 }
 
 KeyboardCallback callbacks;
 
-
-//VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
-//VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
-
 VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/pet.mf2");
 VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/ct.mf2");
 
-//VolumeID pet2 = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
-
-Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
+Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
 
 VolumeContainer volumes;
-volumes.add( ct, ctLut, 0.3 );
+volumes.add( ct, ctLut, 0.5 );
 volumes.add( pet, petLut, 0.5 );
 
 SegmentToolCentering    toolCentering;
-SegmentToolPointer      toolPointer;
-ToolAnnotations         toolAnnotations;
-SegmentToolCamera       toolCamera;
 MipToolPointer          toolPointerMip(17);
+SegmentToolPointer      pointer;
+ToolAnnotations         annotations;
+SegmentToolCamera       camera;
 
-ToolAnnotations::AnnotationID a1 = toolAnnotations.add(Vector3f(29.8695, -216.523, -667.7), "test1", Vector3i(0, 255, 255));
-
-SegmentToolCentering    toolCentering2;
-SegmentToolPointer      toolPointer2;
-ToolAnnotations         toolAnnotations2;
-SegmentToolCamera       toolCamera2;
+ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
 
 Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
-mip1.setTool( toolAnnotations );
+mip1.setTool( annotations );
 
-Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 1.0, 0.0 ) );
+Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment1.setTool( pointer );
+segment1.setTool( annotations );
+segment1.setTool( camera );
 segment1.setTool( toolCentering );
-segment1.setTool( toolPointer );
-segment1.setTool( toolAnnotations );
-segment1.setTool( toolCamera );
-
 
 Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment2.setTool( toolPointer );
-segment2.setTool( toolAnnotations );
-segment2.setTool( toolCamera );
+segment2.setTool( pointer );
+segment2.setTool( annotations );
+segment2.setTool( camera );
 segment2.setTool( toolCentering );
 
 Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment3.setTool( toolPointer );
-segment3.setTool( toolAnnotations );
-segment3.setTool( toolCamera );
+segment3.setTool( pointer );
+segment3.setTool( annotations );
+segment3.setTool( camera );
 segment3.setTool( toolCentering );
 
 Layout::Vertical vertical;
@@ -87,4 +86,4 @@ Layout l6( Console() );
 Layout l4( mip1 );
 
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
-Layout layout = Layout(horizontal, layoutDisplay, l6, 0.51);
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);

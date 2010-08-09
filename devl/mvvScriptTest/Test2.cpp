@@ -1655,7 +1655,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.setPosition(0.0, 0.0, 0.0); ToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; ToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container ); segment1.setTool(toolPointer); segment1.setTool(toolPointer);" );
+         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.getPosition(); ToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; ToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container ); segment1.setTool(toolPointer); segment1.setTool(toolPointer);" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
 
@@ -2133,7 +2133,6 @@ struct TestEval
 
    void eval5()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42; n = m(0, 0);" );
@@ -2142,7 +2141,7 @@ struct TestEval
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 42 );
-      }*/
+      }
 
       {
          CompilerFrontEnd fe;
@@ -2153,12 +2152,9 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-
-/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
-*/
 TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

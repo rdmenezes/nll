@@ -26,7 +26,6 @@ namespace platform
             oy.addy();
          }
 
-         std::cout << "textbox refreshed" << std::endl;
          _drawText( image );
 
          // finally decorate the text...
@@ -35,7 +34,6 @@ namespace platform
             (*_decorators[ n ]).draw( image );
          }
          _needToBeRefreshed = false;
-         std::cout << "time to refresh textbox=" << timer.getCurrentTime() << std::endl;
       }
    }
 

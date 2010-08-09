@@ -662,12 +662,16 @@ namespace platform
          }
 
          // normal character
-         ensure( _currentChar < 256 && _currentChar >= 0, "at this point it must be an ASCII character..." );
-         _src._text[ _currentLine ].text.insert( _currentChar, 1, (char)e.key );
-         ++_currentChar;
-         std::cout << "receive key=" << e.key << " shift=" << e.isShift << std::endl;
-         _src.notify();
-         return true;
+         if ( !e.isCtrl )
+         {
+            ensure( _currentChar < 256 && _currentChar >= 0, "at this point it must be an ASCII character..." );
+            _src._text[ _currentLine ].text.insert( _currentChar, 1, (char)e.key );
+            ++_currentChar;
+            //std::cout << "receive key=" << e.key << " shift=" << e.isShift << std::endl;
+            _src.notify();
+            return true;
+         }
+         return false;
       }
    };
 }

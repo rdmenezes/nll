@@ -51,7 +51,7 @@ namespace mvv
       RuntimeValues*                      oldLayout;  // in case a script if modifying the root of the layout, we must be able to detect it by comparing the pointers...
       Callbacks                           callbacks;
 
-      ApplicationVariables() : screen( 1280 * 2, 1024, 3 ), orderManager( 8 ), callbacks( compiler )
+      ApplicationVariables() : screen( 1280, 1024, 3 ), orderManager( 8 ), callbacks( compiler )
       {  
          initFont();
          initContext();

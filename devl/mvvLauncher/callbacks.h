@@ -4,6 +4,28 @@
 class Callbacks
 {
 public:
+   struct Key
+   {
+      enum Modifier
+      {
+         NORMAL,
+         CTRL,
+         SHIFT,
+         ALT
+      };
+
+      Key( int c, Modifier m ) : key( c ), modifier( m )
+      {}
+
+      int      key;
+      Modifier modifier;
+
+      bool operator<( const Key& c ) const
+      {
+         return key < c.key && c.modifier == modifier;
+      }
+   };
+
    Callbacks( CompilerFrontEnd& compiler ) : _compiler( compiler ), _oldCallbacks( 0 )
    {}
 
@@ -33,15 +55,16 @@ public:
 
          if ( callbacks.type != RuntimeValue::TYPE )
             throw std::exception( "error: 'callbacks' must be a type" );
-         if ( (*callbacks.vals).size() != 2 )
-            throw std::exception( "error: 'callbacks' must be defined as 2 arrays of function callbacks and strings" );
+         if ( (*callbacks.vals).size() != 3 )
+            throw std::exception( "error: 'callbacks' must be defined as 3 arrays: function callbacks, key strings and associated key modifier" );
          if ( (*callbacks.vals)[ 0 ].type != RuntimeValue::TYPE )
-            throw std::exception( "error: 'callbacks' must contains 2 types only" );
+            throw std::exception( "error: function 'callbacks' must be a type" );
 
          ui32 size = (ui32)(*(*callbacks.vals)[ 0 ].vals).size();
          if ( (*(*callbacks.vals)[ 1 ].vals).size() != size )
             throw std::exception( "error: 'callbacks' must contain the same number of key & function/member pointers" );
-         RuntimeValues& keys = const_cast<RuntimeValues&>( ( *(*callbacks.vals)[ 1 ].vals ) );
+         RuntimeValues& keys      = const_cast<RuntimeValues&>( ( *(*callbacks.vals)[ 1 ].vals ) );
+         RuntimeValues& modifiers = const_cast<RuntimeValues&>( ( *(*callbacks.vals)[ 2 ].vals ) );
 
          // build the list of keys, call back to execute
          for ( ui32 n = 0; n < size; ++n )
@@ -52,61 +75,66 @@ public:
             {
                // simple key
                int key = keys[ n ].stringval[ 0 ];
-               _callbacks[ key ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( key, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               continue;
+            }
+            if ( keys[ n ].stringval == "ESC" )
+            {
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_ESC, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F1" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F1 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F1, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F2" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F2 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F2, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F3" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F3 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F3, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F4" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F4 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F4, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F5" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F5 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F5, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F6" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F6 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F6, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F7" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F7 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F7, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F8" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F8 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F8, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
             if ( keys[ n ].stringval == "F9" )
             {
-               _callbacks[ mvv::platform::EventKeyboard::KEY_F9 ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F9, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
          }
       }
    }
 
-   bool handleKey( int key )
+   bool handleKey( int key, Key::Modifier modifier )
    {
-      std::map<int, std::string>::iterator it = _callbacks.find( key );
+      std::map<Key, std::string>::iterator it = _callbacks.find( Key( key, modifier ) );
       if ( it != _callbacks.end() )
       {
          try
@@ -124,7 +152,7 @@ public:
 private:
    CompilerFrontEnd&             _compiler;
    RuntimeValues*                _oldCallbacks;
-   std::map<int, std::string>    _callbacks;
+   std::map<Key, std::string>    _callbacks;
 };
 
 #endif

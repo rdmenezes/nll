@@ -120,6 +120,7 @@ namespace parser
       struct Scope
       {
          typedef std::map<mvv::Symbol, Scope>::iterator  Iter;
+         typedef std::vector<AstTypedef*> Typedefs;
 
          Scope() : pred( 0 )
          {
@@ -129,7 +130,7 @@ namespace parser
          {
          }
 
-         std::vector<AstTypedef*>         typedefs;
+         Typedefs                         typedefs;
          std::map<mvv::Symbol, Scope>     scopes;
          Scope*                           pred;
       };
@@ -178,6 +179,7 @@ namespace parser
       {
          _scopes = cpy._scopes;
          _current = &_scopes;
+         _updatePredecessors( _scopes, 0 );
          return *this;
       }
 
@@ -195,6 +197,18 @@ namespace parser
       {
          _scopes = Scope();
          resetScope();
+      }
+
+   private:
+      // because we need to copy the data structures, we need to recursively run through all the scopes
+      // and update the predecessor with the copied data pointers (and not the source!)
+      void _updatePredecessors( Scope& current, Scope* pred )
+      {
+         current.pred = pred;
+         for ( Scope::Iter it = current.scopes.begin(); it != current.scopes.end(); ++it )
+         {
+            _updatePredecessors( it->second, &current );
+         }
       }
 
    private:

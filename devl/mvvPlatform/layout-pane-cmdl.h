@@ -73,20 +73,20 @@ namespace platform
                          const nll::core::vector2ui& size,
                          RefcountedTyped<Font> font,
                          parser::CompilerFrontEnd& engine,
-                         const ui32 fontSize = 18 ) : Pane( origin, size ), _engine( engine )
+                         const ui32 fontSize = 15 ) : Pane( origin, size ), _engine( engine )
       {
          PaneTextbox* textBoxDisplay = new PaneTextbox( nll::core::vector2ui(0, 0),
                                                         nll::core::vector2ui(0, 0),
                                                         font, fontSize,
                                                         nll::core::vector3uc( 255, 255, 255 ),
-                                                        nll::core::vector3uc( 60, 60, 60 ),
+                                                        nll::core::vector3uc( 30, 30, 30 ),
                                                         true );
          _textBoxDisplayP = textBoxDisplay;
          PaneTextbox* textBoxCmd = new PaneTextbox( nll::core::vector2ui(0, 0),
                                                     nll::core::vector2ui(0, 0),
                                                     font, fontSize,
                                                     nll::core::vector3uc( 255, 255, 255 ),
-                                                    nll::core::vector3uc( 0, 0, 0 ) );
+                                                    nll::core::vector3uc( 60, 60, 60 ) );
          RefcountedTyped<PaneTextboxDecorator> cursor( new LayoutPaneDecoratorCursor( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorPos( new LayoutPaneDecoratorCursorPosition( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorBasic( new LayoutPaneDecoratorCursorBasic( *textBoxCmd ) );

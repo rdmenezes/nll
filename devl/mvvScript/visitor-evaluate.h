@@ -337,7 +337,7 @@ namespace parser
             {
                ui32 index = _env.framePointer;
                assert( index < _env.stack.size() ); // compiler error if the stack size is wrong
-               assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE );
+               //assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE ); // in case member function pointer, we need to hold a function pointer & type ref so it can be both
 
                // if class member, the result must be in the class itself
                RuntimeValue& src = (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ];
@@ -464,7 +464,11 @@ namespace parser
          // if returns a member funtion pointer
          if ( e.getMemberFun() )
          {
+            RuntimeValue& type = unref( _env.resultRegister ); // because it is a member pointer, we need to keep track of the class structure, we need to unref it as it may be a reference
+            assert( type.type == RuntimeValue::TYPE );
+            _env.resultRegister.type = RuntimeValue::FUN_PTR;
             _env.resultRegister.functionPointer =  e.getMemberFun();
+            _env.resultRegister.vals = type.vals;
             /*
             RuntimeValue save = _env.resultRegister;
             _env.resultRegister = RuntimeValue( RuntimeValue::TYPE );

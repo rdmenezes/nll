@@ -244,8 +244,8 @@ class SegmentToolCamera
  */
 class Segment
 {
-   class InterpolationNN{InterpolationNN(){}}
-   class InterpolationLinear{InterpolationLinear(){}}
+   class Nearest{Nearest(){}}
+   class Linear{Linear(){}}
    
    //  //PRIVATE DATA for segment//                   //
    //  //PRIVATE DATA for VolumeContainer//           //
@@ -272,8 +272,8 @@ class Segment
     @brief Refresh the entire segment
     */
    import void refresh();
-   import void setInterpolation( InterpolationNN i );
-   import void setInterpolation( InterpolationLinear i );
+   import void setInterpolator( Nearest i );
+   import void setInterpolator( Linear i );
    
    /**
     @brief attach a pointer: segments will be synchronized & crosshair displayed
