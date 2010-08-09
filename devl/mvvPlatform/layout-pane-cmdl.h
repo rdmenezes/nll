@@ -93,8 +93,8 @@ namespace platform
          RefcountedTyped<PaneTextboxDecorator> cursorYDirection( new LayoutPaneDecoratorCursorYDirection( *textBoxCmd ) );
 
          _writableCommand = RefcountedTyped<WritableCommand>( new WritableCommand( engine, *textBoxDisplay ) );
-         LayoutPaneDecoratorCursorEnterConsole* enter = new LayoutPaneDecoratorCursorEnterConsole( *textBoxCmd, *_writableCommand );
-         RefcountedTyped<PaneTextboxDecorator> cursorEnter( enter );
+         _enter = new LayoutPaneDecoratorCursorEnterConsole( *textBoxCmd, *_writableCommand );
+         RefcountedTyped<PaneTextboxDecorator> cursorEnter( _enter );
          textBoxCmd->add( cursorPos );
          textBoxCmd->add( cursorBasic );
          textBoxCmd->add( cursorEnter );
@@ -107,7 +107,7 @@ namespace platform
          _vpane->addChild( RefcountedTyped<Pane>( textBoxCmd ), 0.03 );
          _subLayout = RefcountedTyped<Pane>( _vpane );
 
-         _importPreviousHistory( *enter );
+         _importPreviousHistory( *_enter );
       }
 
       virtual void _receive( const EventMouse& e )
@@ -143,6 +143,21 @@ namespace platform
          pane.updateLayout();
       }
 
+      ~LayoutCommandLine()
+      {
+         // export the written commands
+         int numberOfItems = _numberOfItems;
+         std::string path = _exportHisoryPath;
+         _readConfig( numberOfItems, path );
+
+         std::ofstream file( path.c_str() );
+         if ( !file.good() )
+            return;
+         const std::vector<std::string>& history = _enter->getHistory();
+         for ( ui32 n = 0; n < history.size(); ++n )
+            file << history[ n ] << std::endl;
+      }
+
    private:
       LayoutCommandLine& operator=( LayoutCommandLine& );
       LayoutCommandLine( const LayoutCommandLine& );
@@ -166,6 +181,9 @@ namespace platform
             history.push_back( line );
          }
          inputConsole.setHistory( history );
+
+         _numberOfItems = numberOfItems;
+         _exportHisoryPath = path;
       }
 
       void _readConfig( int& numberOfItems, std::string& path )
@@ -203,8 +221,13 @@ namespace platform
       RefcountedTyped<WritableCommand> _writableCommand;
 
       // shortcuts...
-      PaneListVertical*          _vpane;
-      PaneTextbox*               _textBoxDisplayP;
+      PaneListVertical*                      _vpane;
+      PaneTextbox*                           _textBoxDisplayP;
+      LayoutPaneDecoratorCursorEnterConsole* _enter;
+
+      // last history config
+      ui32        _numberOfItems;
+      std::string _exportHisoryPath;
    };
 }
 }
