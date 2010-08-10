@@ -284,7 +284,7 @@ void keyboard( unsigned char key, int x, int y )
 
 void keyboardSpecial( int key, int x, int y )
 {
-   applicationVariables->callbacks.handleKey( key, Callbacks::Key::Modifier::NORMAL );
+   applicationVariables->callbacks.handleKey( key, Callbacks::Key::NORMAL );
 
    EventKeyboard e;
    e.mousePosition = nll::core::vector2ui( x, y );

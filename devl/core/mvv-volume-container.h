@@ -7,6 +7,7 @@
 # include <mvvPlatform/resource-typedef.h>
 # include <mvvPlatform/resource-volumes.h>
 # include <mvvPlatform/resource-storage-volumes.h>
+# include "mvv-affine-registration.h"
 # include "mvv-lut.h"
 
 using namespace mvv::platform;
@@ -26,6 +27,7 @@ namespace impl
       ResourceMapTransferFunction luts;
       ResourceFloats              intensities;
       ResourceVolumes             volumes;
+      ResourceMapRegistrations    registrations;
    };
 }
 
@@ -113,7 +115,7 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 4 )
+      if ( args.size() != 5 )
       {
          throw RuntimeException( "unexpected number of arguments" );
       }
@@ -122,6 +124,7 @@ public:
       RuntimeValue& v2 = unref( *args[ 1 ] );
       RuntimeValue& v3 = unref( *args[ 2 ] );
       RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
 
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
@@ -138,6 +141,10 @@ public:
 
       mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
       pointee->luts.insert( volume, *reinterpret_cast<FunctionLutConstructor::Pointee*>( (*v3.vals)[ 0 ].ref ) );
+      ResourceRegistration& reg = *reinterpret_cast<FunctionAffineRegistrationConstructor::Pointee*>( (*v5.vals)[ 0 ].ref );
+      std::cout << "insert registration=" << std::endl;
+      reg.getValue().print( std::cout );
+      pointee->registrations.insert( volume, reg );
       pointee->volumes.insert( volume );
 
       std::cout << "volume in light store=" << pointee->volumes.size() << std::endl;

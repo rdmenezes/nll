@@ -437,6 +437,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-affine-registration.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-layout.h"
 				>
 			</File>

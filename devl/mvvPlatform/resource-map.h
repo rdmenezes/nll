@@ -273,7 +273,12 @@ namespace platform
          typename BaseValue::iterator it = getValue().find( k );
          if ( it != getValue().end() )
          {
-            out = (*it).second;
+            ResourceState s = (*it).second.getState();
+            (*it).second.setState( STATE_DISABLED );
+            out = (*it).second;  // else if resource, it will force notification => we don't want that!
+            (*it).second.forceNeedNotification( false );
+            (*it).second.setState( s );
+
             return true;
          }
          return false;

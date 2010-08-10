@@ -128,6 +128,7 @@ namespace platform
       ResourceFloats                intensities;
       ResourceBool                  isInteracting;
       ResourceInterpolationMode     interpolation;
+      ResourceMapRegistrations      registrations;
 
    public:
       // output slots
@@ -140,7 +141,7 @@ namespace platform
       static const nll::core::vector3f UNINITIALIZED_POSITION;
 
    public:
-      Segment( ResourceStorageVolumes& storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, handler, provider, dispatcher, false ), _handler( handler )
+      Segment( ResourceStorageVolumes& storage, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : volumes( storage ), _slicer( volumes, position, directionx, directiony, panning, zoom, size, luts, intensities, isInteracting, interpolation, registrations, handler, provider, dispatcher, false ), _handler( handler )
       {
          // we are in an undefined position, we need to wait for the volumes to be loaded/initialized
          position.setValue( UNINITIALIZED_POSITION );

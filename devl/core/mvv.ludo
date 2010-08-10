@@ -31,6 +31,33 @@ class VolumeID
       return getVolume( this );
    }
 }
+
+/**
+ @brief Affine registration that defines a transformation from source->target space
+ @note all volumes are in target space, and all mm positions (i.e. annotations...) are defined in source space
+ */
+class AffineRegistration
+{
+   /**
+    @brief Create an affine registration
+    */
+   import AffineRegistration( Matrix4f m = Matrix4f() );
+   
+   /**
+    @brief Release the resources used by this object
+    */
+   import ~AffineRegistration();
+   
+   /**
+    @brief Update the registration matrix
+    */
+   import void setMatrix( Matrix4f newMatrix );
+   
+   /**
+    @brief Return the current registration matrix
+    */
+   import Matrix4f getMatrix();
+}
    
 /**
  @brief Look up table - assign a color to a voxel value, given a window level
@@ -107,7 +134,7 @@ class VolumeContainer
            the actual intensity will be  0.5 / (0.5 + 1 + 0.5) for the first volume
     @note VolumeID may not be actually be loaded
     */
-   import void add( VolumeID volume, Lut lut, float intensity );  // TODO add registration matrix
+   import void add( VolumeID volume, Lut lut, float intensity = 0.5, AffineRegistration ar = AffineRegistration(Matrix4f()) );
    
    /**
     @brief remove a volume from the container
@@ -131,6 +158,7 @@ class VolumeContainer
 /**
  @brief Hold a volume, this is only valid until its associated VolumeID is alive
  @note internally, the volume contains only one PTR field, holding a reference on the volume. This reference is only valid until it's associated VolumeID is alive.
+ @note All volumes are in target space, they can all have a registration matrix which defines their position relative to the source space
  */
 class Volume
 {

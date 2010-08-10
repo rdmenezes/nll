@@ -62,10 +62,12 @@ VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/ct.mf2");
 
 Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
+AffineRegistration petReg;
+AffineRegistration ctReg;
 
 VolumeContainer volumes;
-volumes.add( ct, ctLut, 0.5 );
-volumes.add( pet, petLut, 0.5 );
+volumes.add( ct, ctLut, 0.5, ctReg );
+volumes.add( pet, petLut, 0.5, petReg );
 
 SegmentToolCentering    toolCentering;
 MipToolPointer          toolPointerMip(17);

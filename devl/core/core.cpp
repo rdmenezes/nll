@@ -10,6 +10,7 @@
 #include "mvv-segment.h"
 #include "mvv-layout.h"
 #include "mvv-mip-tools.h"
+#include "mvv-affine-registration.h"
 #include <mvvScript/function-runnable.h>
 
 using namespace mvv::parser;
@@ -1838,6 +1839,37 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    //
+   // AffineRegistration
+   //
+   {
+      Type* matrix = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Matrix4f" ) ) ) );
+      assert( matrix );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "AffineRegistration" ) ), nll::core::make_vector<const Type*>( matrix ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationConstructor( fn ) ) );
+   }
+
+   {
+      Type* matrix = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Matrix4f" ) ) ) );
+      assert( matrix );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "setMatrix" ) ), nll::core::make_vector<const Type*>( matrix ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationSetMatrix( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "getMatrix" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationGetMatrix( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "~AffineRegistration" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationDestructor( fn ) ) );
+   }
+
+   //
    // VolumeContainer
    //
    {
@@ -1853,10 +1885,11 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      Type* ar = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "AffineRegistration" ) ) ) );
       Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
       Type* lut = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Lut" ) ) ) );
-      assert( lut && volumeId );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "VolumeContainer"), platform::Symbol::create( "add" ) ), nll::core::make_vector<const Type*>( volumeId, lut, new TypeFloat( false ) ) );
+      assert( lut && volumeId && ar );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "VolumeContainer"), platform::Symbol::create( "add" ) ), nll::core::make_vector<const Type*>( volumeId, lut, new TypeFloat( false ), ar ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionVolumeContainerAdd( fn ) ) );
    }

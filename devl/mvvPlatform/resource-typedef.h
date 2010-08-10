@@ -35,6 +35,13 @@ namespace platform
 
    /// defines a list of 3D vectors
    typedef ResourceVector<nll::core::vector3f>           ResourceVector3fs;
+
+   /// hold an affine registration matrix, must be a 4*4 matrix
+   /// the transformation is defined from source->target space
+   typedef ResourceValue<nll::core::Matrixf>             ResourceRegistration;
+
+   /// defines a map of registration. Given a volume name, retrieve its associated registration
+   typedef ResourceMapResource<SymbolVolume, ResourceRegistration >ResourceMapRegistrations;
 }
 }
 

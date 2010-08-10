@@ -104,6 +104,10 @@ namespace platform
          }
 
          void notify();
+         void forceNeedNotification( bool val )
+         {
+            needNotification = val;
+         }
       };
 
       /**
@@ -176,6 +180,11 @@ namespace platform
          ResourceState getState() const;
 
          virtual ~Resource();
+
+         void forceNeedNotification( bool val )
+         {
+            getData().forceNeedNotification( val );
+         }
 
          Resource& operator=( const Resource& r );
       };

@@ -26,14 +26,14 @@ namespace impl
 {
    struct SegmentStorage
    {
-      SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction& luts, ResourceFloats& intensities,  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
+      SegmentStorage( ResourceVolumes& volumes, ResourceMapTransferFunction& luts, ResourceFloats& intensities, ResourceMapRegistrations& regs, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) :
          segment( volumes.getStorage(), handler, provider, dispatcher )
       {
          
          segment.volumes = volumes;
          segment.intensities = intensities;
          segment.luts = luts;
-         
+         segment.registrations = regs;   
       }
 
       platform::Segment segment;
@@ -92,7 +92,7 @@ public:
 
 
       // construct the type
-      Pointee* pointee = new Pointee( storage->volumes, storage->luts, storage->intensities, global->engineHandler, global->orderManager, global->orderManager );
+      Pointee* pointee = new Pointee( storage->volumes, storage->luts, storage->intensities, storage->registrations, global->engineHandler, global->orderManager, global->orderManager );
       pointee->volumeContainer = v2;
 
       // read the other parameters

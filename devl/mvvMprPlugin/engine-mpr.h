@@ -63,9 +63,10 @@ namespace platform
                             const nll::core::vector3f& panning,
                             const nll::core::vector2f& zoom,
                             const nll::core::vector2ui& size,
+                            const nll::core::Matrixf& reg,
                             InterpolationMode interpolation,
                             Volume& volume,
-                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _time( time ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName )
+                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _time( time ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName ), _reg( reg )
          {
          }
 
@@ -83,18 +84,20 @@ namespace platform
                          _position + _panning,
                          nll::core::vector2f( 1.0f / _zoom[ 0 ], 1.0f / _zoom[ 1 ] ) );
 
+            nll::imaging::TransformationAffine tfm( _reg );
+
             switch ( _interpolation )
             {
             case LINEAR:
                {
                   MprTrilinear mpr( _volume );
-                  mpr.getSlice( slice );
+                  mpr.getSlice( slice, _reg );
                   break;
                }
             case NEAREST:
                {
                   MprNN mpr( _volume );
-                  mpr.getSlice( slice );
+                  mpr.getSlice( slice, _reg );
                   break;
                }
             default:
@@ -127,6 +130,7 @@ namespace platform
          nll::core::vector3f     _panning;
          nll::core::vector2f     _zoom;
          nll::core::vector2ui    _size;
+         nll::core::Matrixf      _reg;
          InterpolationMode       _interpolation;
          Volume&				      _volume;
          SymbolVolume            _volumeName;
@@ -146,6 +150,7 @@ namespace platform
          ResourceVector3f     panning;       /// panning position in mm
          ResourceVector2f     zoom;          /// zoom
          ResourceVector2ui    size;          /// size in pixel of the slice to render
+         ResourceMapRegistrations registrations; /// the affine registration matrix defining source->target transformation
 
          ResourceBool               isInteracting; /// set to true if MPR is being modified, so we can use less accurate algorithms to speed up the process
          ResourceInterpolationMode  interpolation; /// Interpolation used to produce the slices
@@ -171,8 +176,9 @@ namespace platform
                          ResourceVector2ui& vsize,
                          ResourceBool& visInteracting,
                          ResourceInterpolationMode& vinterpolation,
+                         ResourceMapRegistrations& vregistrations,
                          EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting ) : 
-            volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), isInteracting( visInteracting ), interpolation( vinterpolation ),
+            volumes( vvolumes ), position( vposition ), directionx( vdirectionx ), directiony( vdirectiony ), panning( vpanning ), zoom( vzoom ), size( vsize ), isInteracting( visInteracting ), interpolation( vinterpolation ), registrations( vregistrations ),
             EngineOrder( handler, provider, dispatcher ), _fasterDisplayWhenInteracting( fasterDisplayWhenInteracting ),
             _ready( ready ),
             _nbOrdersSend( nbOrdersSend )
@@ -188,6 +194,7 @@ namespace platform
             size.connect( this );
             volumes.connect( this );
             interpolation.connect( this );
+            registrations.connect( this );
 
             if ( fasterDisplayWhenInteracting )
             {
@@ -250,6 +257,9 @@ namespace platform
             bool hasVolumes = false;
             for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
             {
+               ResourceRegistration reg;
+               bool res = registrations.find( it.getName(), reg );
+
                hasVolumes = true;
                _ready = false;
                OrderSliceCreator* slicer = new OrderSliceCreator( clock(),
@@ -259,6 +269,7 @@ namespace platform
                                                                   panning.getValue(),
                                                                   zoom.getValue(),
                                                                   size.getValue(),
+                                                                  ( res ? reg.getValue() : nll::core::identityMatrix<nll::core::Matrixf>( 4 ) ),
                                                                   currentInterpolation,
                                                                   **it,
                                                                   it.getName() );
@@ -574,6 +585,7 @@ namespace platform
                  ResourceFloats& vintensities,
                  ResourceBool& visInteracting,
                  ResourceInterpolationMode& vinterpolation,
+                 ResourceMapRegistrations& vregistrations,
                  EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher, bool fasterDisplayWhenInteracting = false ) : 
          EngineOrder( handler, provider, dispatcher ),
          _mprSlicer( _nbOrdersSend,
@@ -587,6 +599,7 @@ namespace platform
                      vsize,
                      visInteracting,
                      vinterpolation,
+                     vregistrations,
                      handler, provider, dispatcher, fasterDisplayWhenInteracting ),
          _sliceBlender( _nbOrdersSend, _ready, _mprSlicer.outOrdersComputed, vlut, vintensities, fps, handler,  provider, dispatcher )
       {
