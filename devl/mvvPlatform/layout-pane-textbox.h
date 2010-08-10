@@ -71,6 +71,10 @@ namespace platform
          return _textSize;
       }
 
+      virtual void destroy()
+      {
+      }
+
       // return a type of decorator
       template <class Decorator>
       Decorator* get()
@@ -588,6 +592,10 @@ namespace platform
                ++_current;
                _src._text[ _currentLine ].text = _written[ std::min<ui32>( _current, (ui32)_written.size() - 1 ) ];
                _currentChar = (ui32)_src._text[ _currentLine ].text.size();
+               _src.notify();
+            } else {
+               _src._text[ _currentLine ].text.resize( 0 );
+               _currentChar = 0;
                _src.notify();
             }
             return true;

@@ -29,7 +29,14 @@ namespace platform
             const nll::core::vector3uc background = nll::core::vector3uc( 255, 255, 255 ) );
 
       virtual ~Pane()
-      {}
+      {
+         std::cout << "pane=" << this << " destroyed" << std::endl;
+      }
+
+      // signal the layout that they are going to be killed...
+      // we need this as if we interface with compiler, the user will have several references on the layouts
+      // wich makes it impossible to destroy...
+      virtual void destroy() = 0;
 
       void insert( PaneRef widget )
       {
@@ -213,6 +220,12 @@ namespace platform
             ( **it ).draw( image );
       }
 
+      virtual void destroy()
+      {
+         for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
+            (**it).destroy();
+      }
+
    protected:
       /**
        @brief add a child to display. It must be an allocated pointer. It will be automatically deallocated by this
@@ -391,6 +404,10 @@ namespace platform
                  const nll::core::vector2ui& size,
                  const nll::core::vector3uc background ) : Pane( origin, size, background )
       {}
+
+      virtual void destroy()
+      {
+      }
 
       virtual void updateLayout()
       {}

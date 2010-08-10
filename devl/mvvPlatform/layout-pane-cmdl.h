@@ -143,7 +143,7 @@ namespace platform
          pane.updateLayout();
       }
 
-      ~LayoutCommandLine()
+      virtual void destroy()
       {
          // export the written commands
          int numberOfItems = _numberOfItems;
@@ -155,7 +155,15 @@ namespace platform
             return;
          const std::vector<std::string>& history = _enter->getHistory();
          for ( ui32 n = 0; n < history.size(); ++n )
-            file << history[ n ] << std::endl;
+         {
+            file << history[ n ];
+            if ( n + 1 < history.size() )
+               file << std::endl;
+         }
+      }
+
+      ~LayoutCommandLine()
+      {
       }
 
    private:

@@ -17,6 +17,10 @@ namespace platform
       {
       }
 
+      virtual void destroy()
+      {
+      }
+
       virtual void _draw( Image& image )
       {
          // source image

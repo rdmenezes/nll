@@ -275,7 +275,7 @@ void keyboard( unsigned char key, int x, int y )
    // handle 'esc' at the end so we have the opportunity to grab this key (i.e. save the sate) before quitting
    if ( key == 27 )
    {
-      applicationVariables->layout = RefcountedTyped<Pane>();
+      (*applicationVariables->layout).destroy();
       applicationVariables->orderManager.kill();
       applicationVariables->context.clear();
       exit( 0 );
