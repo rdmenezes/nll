@@ -1377,6 +1377,56 @@ public:
    }
 };
 
+class FunctionRunnableCos : public FunctionRunnable
+{
+public:
+   FunctionRunnableCos( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = cos( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableSin : public FunctionRunnable
+{
+public:
+   FunctionRunnableSin( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = sin( v1.floatval );
+      return rt;
+   }
+};
+
 
 
 void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
@@ -1385,6 +1435,18 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator+" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePlusFF( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "cos" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableCos( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "sin" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableSin( fn ) ) );
    }
 
    {
@@ -1765,6 +1827,22 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
       assert( ty );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "indexToPosition" ) ), nll::core::make_vector<const Type*>( ty ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeIndexToPosition( fn ) ) );
+   }
+
+   {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( ty );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "positionToIndex" ) ), nll::core::make_vector<const Type*>( ty ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumePositionToIndex( fn ) ) );
+   }
+
+   {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( ty );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "setSpacing" ) ), nll::core::make_vector<const Type*>( ty ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetSpacing( fn, context ) ) );
@@ -1984,6 +2062,12 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolAnnotations"), platform::Symbol::create( "~ToolAnnotations" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolAnnotationsDestructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolAnnotations"), platform::Symbol::create( "clear" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolAnnotationsClear( fn ) ) );
    }
 
    {

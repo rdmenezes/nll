@@ -96,6 +96,28 @@ namespace core
 
    /**
     @ingroup core
+    @brief helper function for making a std::vector out of a set of values
+   */
+   template <class T>
+   inline std::vector<T> make_vector( typename BestConstArgType<T>::type val1,
+                                      typename BestConstArgType<T>::type val2,
+                                      typename BestConstArgType<T>::type val3,
+                                      typename BestConstArgType<T>::type val4,
+                                      typename BestConstArgType<T>::type val5,
+                                      typename BestConstArgType<T>::type val6 )
+   {
+      std::vector<T> vec( 6 );
+      vec[ 0 ] = val1;
+      vec[ 1 ] = val2;
+      vec[ 2 ] = val3;
+      vec[ 3 ] = val4;
+      vec[ 4 ] = val5;
+      vec[ 5 ] = val6;
+      return vec;
+   }
+
+   /**
+    @ingroup core
     @brief helper function for making a Buffer1D out of a set of values
    */
    template <class T> Buffer1D<T> make_buffer1D( typename BestConstArgType<T>::type val1 )

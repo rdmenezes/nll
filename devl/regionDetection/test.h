@@ -2,6 +2,8 @@
 # define DETECT_TEST_H
 
 # include "compute-barycentre.h"
+# include "globals.h"
+# include "features.h"
 
 namespace nll
 {

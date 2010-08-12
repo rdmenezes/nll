@@ -168,12 +168,20 @@ class Volume
    // note that it is not possible to modify the value directly
    import Vector3f getSpacing();
    import void setSpacing( Vector3f spacing );
+   void setSpacing( float x, float y, float z )
+   {
+      this.setSpacing(Vector3f(x, y, z ) );
+   }
    
    // note that it is not possible to modify the value directly
    import Vector3f getOrigin();
    
    // set a new origin
    import void setOrigin( Vector3f origin );
+   void setOrigin( float x, float y, float z )
+   {
+      this.setOrigin(Vector3f(x, y, z ) );
+   }
    
    // note that it is not possible to modify the value directly
    import Matrix3f getRotation();
@@ -200,6 +208,9 @@ class Volume
    {
       return this.getValue( v[ 0 ], v[ 1 ], v[ 2 ] );
    }
+   
+   import Vector3f indexToPosition( Vector3f index );
+   import Vector3f positionToIndex( Vector3f position );
 }
 
 // synchronously load the volume
@@ -277,6 +288,11 @@ class ToolAnnotations
     */
    import void erase( AnnotationID id );
    
+   /**
+    @brief erase all annotations
+    */
+   import void clear();
+   
    import void setPosition( AnnotationID id, Vector3f position );
    import Vector3f getPosition( AnnotationID id );
 }
@@ -290,6 +306,10 @@ class SegmentToolCamera
    import SegmentToolCamera();
    import ~SegmentToolCamera();
    import void setPosition( Vector3f position );
+   void setPosition( float x, float y, float z )
+   {
+      this.setPosition( Vector3f( x, y, z ) );
+   }
 }
 
 /**

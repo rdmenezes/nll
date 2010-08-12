@@ -6,6 +6,7 @@ BUG:
 - [NOT NECESSARY]fix: in console, layout = l2; => freeze... but if a new layout is created layout = Layout(segment2); then ok...
 - investigate: ct.getVolume().getOrigin() generates a runtime exception
 - invertigate: if different Layout are created on the same segment->problems (reseample)
+- import file with error => can't reimport it later on
 
 FEATURES TO BE ADDED:
 - add registration matrix for volumes...
@@ -25,4 +26,7 @@ FEATURES TO BE ADDED:
     - lut controls + script
     - [DONE] if add annotations->segment & mip should be notified
     - [DONE] if add/erase volume->update segments!
+    
+    
+    
     

@@ -697,6 +697,87 @@ private:
    mvv::platform::Context&  _context;
 };
 
+class FunctionRunnableVolumeIndexToPosition : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeIndexToPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 vector3f" );
+      }
+
+      nll::core::vector3f pos;
+      getVector3fValues( v2, pos );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+      pos = volume->indexToPosition( pos );
+
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      createVector3f( rt, pos[ 0 ], pos[ 1 ], pos[ 2 ] );
+      return rt;
+   }
+   
+private:
+};
+
+class FunctionRunnableVolumePositionToIndex : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumePositionToIndex( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 vector3f" );
+      }
+
+      nll::core::vector3f pos;
+      getVector3fValues( v2, pos );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+      pos = volume->positionToIndex( pos );
+
+
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, pos[ 0 ], pos[ 1 ], pos[ 2 ] );
+      return rt;
+   }
+   
+private:
+};
+
+
 
 
 #endif

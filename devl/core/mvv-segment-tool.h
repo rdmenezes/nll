@@ -459,6 +459,37 @@ public:
    }
 };
 
+class FunctionToolAnnotationsClear: public FunctionRunnable
+{
+public:
+   typedef ::impl::ToolAnnotationsStorage Pointee;
+
+public:
+   FunctionToolAnnotationsClear( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      
+      pointee->annotations.clear();
+      pointee->dictionary.clear();
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionToolAnnotationsSetPosition: public FunctionRunnable
 {
 public:

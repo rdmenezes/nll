@@ -25,6 +25,34 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
 // -----------------------------------------------------------------------------------------------------------------
 //
 
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+SegmentToolPointer      pointer;
+ToolAnnotations         annotations;
+SegmentToolCamera       camera;
+
+class AnnotationCreator
+{
+   ToolAnnotations      annotations;
+   SegmentToolPointer   pointer;
+   int                  id;
+
+   AnnotationCreator( ToolAnnotations a, SegmentToolPointer p )
+   {
+      annotations = a;
+      pointer = p;
+      id = 1;
+   }
+
+   void run()
+   {
+      annotations.add( pointer.getPosition(), toString( id ) );
+      id = id + 1;
+   }
+}
+
+AnnotationCreator annotationCreator( annotations, pointer );
+
 void dummy_test_callback_print()
 {
    println("a key has been pressed");
@@ -43,9 +71,9 @@ class KeyboardCallback
    string[]       callbacksKey;              // hold the key for the corresponding callback
    int[]          callbacksKeyModifier;      // corresponding modifier for the key: (0 => normal), (1 => CTRL), (2 => SHIFT), (3 => ALT)
 
-   KeyboardCallback()
+   KeyboardCallback( AnnotationCreator creator )
    {
-      KeyCallback c[]   = { dummy_test_callback_print, dummy_test_callback_print };
+      KeyCallback c[]   = { creator.run, dummy_test_callback_print };
       string      ck[]  = { "F1",   "s" };
       int         ckm[] = { 0,      1 };
 
@@ -55,7 +83,7 @@ class KeyboardCallback
    }
 }
 
-KeyboardCallback callbacks;
+KeyboardCallback callbacks(annotationCreator);
 
 VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/pet.mf2");
 VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/ct.mf2");
@@ -68,12 +96,6 @@ AffineRegistration ctReg;
 VolumeContainer volumes;
 volumes.add( ct, ctLut, 0.5, ctReg );
 volumes.add( pet, petLut, 0.5, petReg );
-
-SegmentToolCentering    toolCentering;
-MipToolPointer          toolPointerMip(17);
-SegmentToolPointer      pointer;
-ToolAnnotations         annotations;
-SegmentToolCamera       camera;
 
 ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
 
