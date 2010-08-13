@@ -55,7 +55,7 @@ namespace platform
          nll::core::vector2f p2c = slice.worldToSliceCoordinate( p2 );
          nll::core::vector2f orientation = p2c - p1c;
          const float norm = orientation.norm2();
-         const ui32 nbSteps = norm; //norm > 0 ? ( norm / _size ) : 1;
+         const ui32 nbSteps = norm;
 
          nll::core::vector2i pi( static_cast<int>( p1c[ 0 ] ),
                                     static_cast<int>( p1c[ 1 ] ) );

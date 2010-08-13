@@ -60,6 +60,7 @@
     - automatic construction in class members. Problem of cyclic dependencies: the member must be initialized by NULL
     - arrays are dynamic: int a[ 5 ]; int b[ 400 ]; a = b; is correct!    
     - when importing custom type: if a destructor has to be called, we MUST modify in the constructor the original object and NOT returning a new one! (and so might need to resize the vector)
+    - int n = Test().array[ 1 ]; => WILL crash. An object is created and stored in the temporary register, however, we need to use this register to index the array and lost the ref on the object which has been deallocated
     
     - TODO typedef printing to fix
     - possibly TODO: if we authorize to pass array reference, we need to update the _forceUnref in AstExpAssign (like for typedef int[] IntArray; void fn( IntArray& a ){ int aa[5]; aa[ 0 ] = 18; a = aa;}  IntArray nn; fn( nn ); int n = nn[0]; --but with -- "void fn( int[]& a )" )
@@ -367,7 +368,7 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
 var_decs_class: /* empty */				                                                      { $$ = new mvv::parser::AstDecls( @$ ); }
       |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
       /*|var_dec_no_default SEMI var_decs_class                                              { $$ = $3; $$->insert( $1 ); }*/
-     /* |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                 { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); } */
+      |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                 { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); }
       |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |IMPORT type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                           { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }

@@ -1138,14 +1138,15 @@ namespace parser
       {
          operator()( e.getField() );
          AstDeclClass* c = dynamic_cast<AstDeclClass*>( e.getReference() );
+         Type* type = 0;
          if ( c )
          {
-            e.setNodeType( new TypeNamed( c, false ) );
+            type = new TypeNamed( c, false );
          } else {
             AstTypedef* t = dynamic_cast<AstTypedef*>( e.getReference() );
             if ( t )
             {
-               e.setNodeType( t->getType().getNodeType()->clone() );
+               type = t->getType().getNodeType()->clone();
             } else {
                ensure( 0, "unreachable!!" );
             }
@@ -1154,6 +1155,14 @@ namespace parser
             AstDeclClass* c2 = dynamic_cast<AstDeclClass*>( t->getType().getReference() );
             ensure( c2, "TODO: handle typedef on a typedef..." );
             e.setNodeType( new TypeNamed( c2, false ) );*/
+         }
+
+         assert( type );
+         if ( e.isArray() )
+         {
+            e.setNodeType( new TypeArray( 1, *type, e.isAReference() ) );
+         } else {
+            e.setNodeType( type );
          }
       }
 

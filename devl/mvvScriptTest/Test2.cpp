@@ -2133,6 +2133,7 @@ struct TestEval
 
    void eval5()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42; n = m(0, 0);" );
@@ -2148,13 +2149,64 @@ struct TestEval
          Error::ErrorType result = fe.run( "import \"core\" void callback_print(){println(\"sd\");} typedef void() KeyCallback; KeyCallback c = callback_print; callback_print(); c(); " );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){} class Nested{ int n = 42; Nested(){} }} Test::Nested array[ 5 ]; int n = array[ 1 ].n;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){} class Nested{ int n = 42; Nested(){} }} Test::Nested array[ 5 ]; Test::Nested& ref = array[ 1 ]; array[ 1 ].n = 43; int n = array[ 1 ].n;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 43 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){} class Nested{ int n = 42; Nested(){} }} Test::Nested array[ 5 ]; typedef Test::Nested[] TY; TY& t = array; t = NULL;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "array" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::NIL );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int nn; string af; class Test{int n = 42; int getVal(){ return n;} Test(){}} class Volume{Test t; Volume(){} Test getTest(){ return t;} } int n = Volume().getTest().n;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" class Test{ int array[] = {0, 1, 2}; Test(){} ~Test(){print(\"DESTROYED\");}} Test t; int n = t.array[ 1 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 1 );
+      }
+      */
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
-TESTER_TEST(eval4);
+TESTER_TEST(eval4);*/
 TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

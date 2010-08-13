@@ -49,7 +49,8 @@ namespace parser
    bool TypeNil::isCompatibleWith( const Type& t ) const
    {
       return dynamic_cast<const TypeNamed*>( &t ) != 0 ||
-             dynamic_cast<const TypeFunctionPointer*>( &t ) != 0;
+             dynamic_cast<const TypeFunctionPointer*>( &t ) != 0 ||
+             dynamic_cast<const TypeArray*>( &t ) != 0;
    }
 }
 }

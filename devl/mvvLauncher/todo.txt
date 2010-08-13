@@ -5,7 +5,7 @@ BUG:
 - [DONE] fix: if volume is added on command line, segment is always refreshed
 - [NOT NECESSARY]fix: in console, layout = l2; => freeze... but if a new layout is created layout = Layout(segment2); then ok...
 - investigate: ct.getVolume().getOrigin() generates a runtime exception
-- inverstigate: ToolAnnotations::AnnotationID   annotationsID[ 5 ] => should have type array...
+- [DONE]inverstigate: ToolAnnotations::AnnotationID   annotationsID[ 5 ] => should have type array...
 - investigate: if different Layout are created on the same segment->problems (reseample)
 - investigate: annotations.clear() doesn't clear the MIP
 - import file with error => can't reimport it later on
@@ -28,6 +28,7 @@ FEATURES TO BE ADDED:
     - lut controls + script
     - [DONE] if add annotations->segment & mip should be notified
     - [DONE] if add/erase volume->update segments!
+    - [DONE] extend also to class def... class { int a[]={dsfds}}
     
     
     
