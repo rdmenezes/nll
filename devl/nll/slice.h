@@ -226,10 +226,10 @@ namespace imaging
             core::vector2f slicePos = worldToSliceCoordinate( pos );
             const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
             const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
-            if ( slicePos[ 0 ] < -sx ||
-                 slicePos[ 0 ] > sx ||
-                 slicePos[ 1 ] < -sy ||
-                 slicePos[ 1 ] > sy )
+            if ( slicePos[ 0 ] - 1 <= -sx ||
+                 slicePos[ 0 ] + 1 >= sx ||
+                 slicePos[ 1 ] - 1 <= -sy ||
+                 slicePos[ 1 ] + 1 >= sy )
               return false;
             return true;
          } catch (...)
@@ -244,10 +244,10 @@ namespace imaging
       {
          const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
          const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
-         if ( pos[ 0 ] < -sx ||
-              pos[ 0 ] > sx ||
-              pos[ 1 ] < -sy ||
-              pos[ 1 ] > sy )
+         if ( pos[ 0 ] - 1 <= -sx ||
+              pos[ 0 ] + 1 >= sx ||
+              pos[ 1 ] - 1 <= -sy ||
+              pos[ 1 ] + 1 >= sy )
            return false;
          return true; 
       }
