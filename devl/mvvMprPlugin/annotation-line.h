@@ -17,11 +17,14 @@ namespace platform
    public:
       AnnotationLine( const nll::core::vector3f& position,
                       const nll::core::vector3f& orientation,
+                      float sizeMM,                              // the lenght of the line in millimeter
                       const std::string& caption,
                       Font& font,
                       ui32 fontSize = 16,
-                      nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 0 ) ) : _position( position ), _orientation( orientation ), _caption( caption ), _font( font ), _fontSize( fontSize ),_color( color )
-      {}
+                      nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 0 ) ) : _position( position ), _orientation( orientation ), _size( sizeMM ), _caption( caption ), _font( font ), _fontSize( fontSize ),_color( color )
+      {
+         _orientation /= _orientation.norm2();
+      }
 
       virtual void setPosition( const nll::core::vector3f& pos )
       {
@@ -48,10 +51,11 @@ namespace platform
          // project the vector on a plane to finally compute the line orientation
          nll::core::vector3f p1 = slice.getOrthogonalProjection( _position );
          nll::core::vector2f p1c = slice.worldToSliceCoordinate( p1 );
-         nll::core::vector3f p2 = slice.getOrthogonalProjection( _position + _orientation );
+         nll::core::vector3f p2 = slice.getOrthogonalProjection( _position + _orientation * _size / 2 );
          nll::core::vector2f p2c = slice.worldToSliceCoordinate( p2 );
          nll::core::vector2f orientation = p2c - p1c;
          const float norm = orientation.norm2();
+         const ui32 nbSteps = norm; //norm > 0 ? ( norm / _size ) : 1;
 
          nll::core::vector2i pi( static_cast<int>( p1c[ 0 ] ),
                                     static_cast<int>( p1c[ 1 ] ) );
@@ -63,7 +67,8 @@ namespace platform
             orientation /= norm;
 
             nll::core::vector2f start( pi[ 0 ], pi[ 1 ] );
-            while ( slice.contains( start ) )
+            ui32 step = 0;
+            while ( slice.contains( start ) && step <= nbSteps )
             {
                ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( start[ 0 ] + size[ 0 ] / 2, start[ 1 ] + size[ 1 ] / 2 );
                it.pickcol( 0 ) = _color[ 0 ];
@@ -71,10 +76,12 @@ namespace platform
                it.pickcol( 2 ) = _color[ 2 ];
 
                start = start + orientation;
+               ++step;
             }
 
             start = nll::core::vector2f( pi[ 0 ], pi[ 1 ] ) - orientation;
-            while ( slice.contains( start ) )
+            step = 0;
+            while ( slice.contains( start ) && step <= nbSteps )
             {
                ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( start[ 0 ] + size[ 0 ] / 2, start[ 1 ] + size[ 1 ] / 2 );
                it.pickcol( 0 ) = _color[ 0 ];
@@ -82,6 +89,7 @@ namespace platform
                it.pickcol( 2 ) = _color[ 2 ];
 
                start = start - orientation;
+               ++step;
             }
          } else {
             if ( slice.contains( p1c ) )
@@ -128,6 +136,7 @@ namespace platform
    private:
       nll::core::vector3f  _position;
       nll::core::vector3f  _orientation;
+      float                _size;
       std::string          _caption;
       Font&                _font;
       ui32                 _fontSize;

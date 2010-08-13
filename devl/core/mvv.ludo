@@ -284,9 +284,9 @@ class ToolAnnotations
    import AnnotationID add( Vector3f position, string text, Vector3i color = Vector3i( 255, 255, 255 ) );
    
    /**
-    @brief create 
+    @brief create a line annotation, following the direction given
     */
-   import AnnotationID add( Vector3f position, Vector3f direction, string text, Vector3i color = Vector3i( 255, 255, 255 ) );
+   import AnnotationID add( Vector3f position, Vector3f direction, string text, Vector3i color = Vector3i( 255, 255, 255 ), float size = 300.0 );
 
    /**
     @brief erase the annotation represented by this ID
@@ -304,7 +304,7 @@ class ToolAnnotations
 
 /**
  @brief Tool allowing a segment to be manipulated (zmoved/zoomed/panned)
- @note all the segments must be orthogonal
+ @note all the linked segments must be orthogonal
  */
 class SegmentToolCamera
 {
@@ -325,13 +325,6 @@ class Segment
 {
    class Nearest{Nearest(){}}
    class Linear{Linear(){}}
-   
-   //  //PRIVATE DATA for segment//                   //
-   //  //PRIVATE DATA for VolumeContainer//           //
-   //  //PRIVATE DATA for SegmentToolPointer//        //
-   //  //PRIVATE DATA for SegmentToolCamera//         //
-   //  //PRIVATE DATA for SegmentToolAnnotations//    //
-   //  //PRIVATE DATA for SegmentToolCentering//      //
 
    import ~Segment();
    
@@ -419,10 +412,6 @@ class Layout
    {
       Horizontal(){}
    }
-   //  //PRIVATE DATA for Layout//                   //
-   //  //PRIVATE DATA for segment/MIP//              //
-   //  //PRIVATE DATA for left//                     //
-   //  //PRIVATE DATA for right//                    //
 
    import ~Layout();
 
