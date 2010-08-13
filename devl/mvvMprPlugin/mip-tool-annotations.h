@@ -29,6 +29,7 @@ namespace platform
       virtual bool _run()
       {
          // if a point is modified, then we need to force the connected MPR to be refreshed
+         std::cout << "refresh mip!" << std::endl;
          refreshConnectedMip();
          return true;
       }

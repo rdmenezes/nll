@@ -278,10 +278,15 @@ class ToolAnnotations
    import ~ToolAnnotations();
 
    /**
-    @brief create an annotation
+    @brief create a point annotation
     @returns a unique annotation ID
     */
    import AnnotationID add( Vector3f position, string text, Vector3i color = Vector3i( 255, 255, 255 ) );
+   
+   /**
+    @brief create 
+    */
+   import AnnotationID add( Vector3f position, Vector3f direction, string text, Vector3i color = Vector3i( 255, 255, 255 ) );
 
    /**
     @brief erase the annotation represented by this ID

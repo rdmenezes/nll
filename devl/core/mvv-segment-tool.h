@@ -14,6 +14,7 @@
 # include <mvvMprPlugin/segment-tool-annotations.h>
 # include <mvvMprPlugin/segment-tool-autocenter.h>
 # include <mvvMprPlugin/annotation-point.h>
+# include <mvvMprPlugin/annotation-line.h>
 # include <mvvMprPlugin/mip-tool-annotations.h>
 
 using namespace mvv::parser;
@@ -352,6 +353,8 @@ public:
    }
 };
 
+static ui32 annotationId = 0;
+
 class FunctionToolAnnotationsAdd: public FunctionRunnable
 {
 public:
@@ -389,7 +392,6 @@ public:
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
 
-      static ui32 annotationId = 0;
       ++annotationId;
 
       // create the annotation
@@ -400,6 +402,76 @@ public:
                                   static_cast<ui8>( (*(*v4.vals)[ 0 ].vals)[ 1 ].intval ),
                                   static_cast<ui8>( (*(*v4.vals)[ 0 ].vals)[ 2 ].intval ) );
       RefcountedTyped<Annotation> annotation( new AnnotationPoint( position, v3.stringval, global->commonFont, 12, color ) );
+
+      // register it
+      pointee->annotations.insert( annotation );
+      pointee->dictionary[ annotationId ] = annotation;
+
+      // return the annotation ID      
+      RuntimeValue rt( RuntimeValue::TYPE );
+      rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) ); // no associated destructor
+      (*rt.vals)[ 0 ].setType( RuntimeValue::CMP_INT );
+      (*rt.vals)[ 0 ].intval = annotationId;
+      return rt;
+   }
+
+private:
+   Context&    _context;
+};
+
+class FunctionToolAnnotationsAddLine: public FunctionRunnable
+{
+public:
+   typedef ::impl::ToolAnnotationsStorage Pointee;
+
+public:
+   FunctionToolAnnotationsAddLine( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 5 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
+      if ( v4.type != RuntimeValue::STRING || (*v2.vals).size() != 1 || (*(*v2.vals)[ 0 ].vals).size() != 3
+                                           || (*v3.vals).size() != 1 || (*(*v3.vals)[ 0 ].vals).size() != 3
+                                           || (*v5.vals).size() != 1 || (*(*v5.vals)[ 0 ].vals).size() != 3 )
+      {
+         throw RuntimeException( "wrong argument type: expecting Vector3f, Vector3f, string and Vector3f" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw RuntimeException( "mvv global context has not been initialized" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      ++annotationId;
+
+      // create the annotation
+      nll::core::vector3f  position( (*(*v2.vals)[ 0 ].vals)[ 0 ].floatval,
+                                     (*(*v2.vals)[ 0 ].vals)[ 1 ].floatval,
+                                     (*(*v2.vals)[ 0 ].vals)[ 2 ].floatval );
+      nll::core::vector3f  orientation( (*(*v3.vals)[ 0 ].vals)[ 0 ].floatval,
+                                        (*(*v3.vals)[ 0 ].vals)[ 1 ].floatval,
+                                        (*(*v3.vals)[ 0 ].vals)[ 2 ].floatval );
+      nll::core::vector3uc color( static_cast<ui8>( (*(*v5.vals)[ 0 ].vals)[ 0 ].intval ),
+                                  static_cast<ui8>( (*(*v5.vals)[ 0 ].vals)[ 1 ].intval ),
+                                  static_cast<ui8>( (*(*v5.vals)[ 0 ].vals)[ 2 ].intval ) );
+      RefcountedTyped<Annotation> annotation( new AnnotationLine( position, orientation, v4.stringval, global->commonFont, 12, color ) );
 
       // register it
       pointee->annotations.insert( annotation );

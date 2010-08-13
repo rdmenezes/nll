@@ -395,24 +395,10 @@
 			<File
 				RelativePath=".\mip-tool.cpp"
 				>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mvvMprPlugin.cpp"
 				>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mvvMprPlugin.h"
@@ -437,6 +423,10 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\annotation-line.h"
+				>
+			</File>
+			<File
 				RelativePath=".\annotation-point.h"
 				>
 			</File>
@@ -459,13 +449,6 @@
 			<File
 				RelativePath=".\mip-tool-annotations.cpp"
 				>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mip-tool-annotations.h"
@@ -486,13 +469,6 @@
 			<File
 				RelativePath=".\mip.cpp"
 				>
-				<FileConfiguration
-					Name="Release|x64"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\mip.h"

@@ -17,6 +17,7 @@
 #include "mip-tool.h"
 #include "mip-tool-pointer.h"
 #include "layout-mip.h"
+#include "annotation-line.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW
