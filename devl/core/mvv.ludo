@@ -289,6 +289,11 @@ class ToolAnnotations
    import AnnotationID add( Vector3f position, Vector3f direction, string text, Vector3i color = Vector3i( 255, 255, 255 ), float size = 300.0 );
 
    /**
+    @brief create rectangle with different colors along the sizeMM
+    */
+   import AnnotationID add( Vector3f position, Vector3f sizeMM, int widhPixel, Vector3i[] colors );
+
+   /**
     @brief erase the annotation represented by this ID
     */
    import void erase( AnnotationID id );

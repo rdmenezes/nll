@@ -15,6 +15,7 @@
 # include <mvvMprPlugin/segment-tool-autocenter.h>
 # include <mvvMprPlugin/annotation-point.h>
 # include <mvvMprPlugin/annotation-line.h>
+# include <mvvMprPlugin/annotation-colors.h>
 # include <mvvMprPlugin/mip-tool-annotations.h>
 
 using namespace mvv::parser;
@@ -473,6 +474,91 @@ public:
                                   static_cast<ui8>( (*(*v5.vals)[ 0 ].vals)[ 1 ].intval ),
                                   static_cast<ui8>( (*(*v5.vals)[ 0 ].vals)[ 2 ].intval ) );
       RefcountedTyped<Annotation> annotation( new AnnotationLine( position, orientation, v6.floatval, v4.stringval, global->commonFont, 12, color ) );
+
+      // register it
+      pointee->annotations.insert( annotation );
+      pointee->dictionary[ annotationId ] = annotation;
+
+      // return the annotation ID      
+      RuntimeValue rt( RuntimeValue::TYPE );
+      rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( 1 ) ); // no associated destructor
+      (*rt.vals)[ 0 ].setType( RuntimeValue::CMP_INT );
+      (*rt.vals)[ 0 ].intval = annotationId;
+      return rt;
+   }
+
+private:
+   Context&    _context;
+};
+
+class FunctionToolAnnotationsAddColors: public FunctionRunnable
+{
+public:
+   typedef ::impl::ToolAnnotationsStorage Pointee;
+
+public:
+   FunctionToolAnnotationsAddColors( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 5 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
+
+      
+      if ( v4.type != RuntimeValue::CMP_INT || (*v2.vals).size() != 1 || (*(*v2.vals)[ 0 ].vals).size() != 3
+                                            || (*v3.vals).size() != 1 || (*(*v3.vals)[ 0 ].vals).size() != 3
+                                             )
+      {
+         throw RuntimeException( "wrong argument type: expecting Vector3f, Vector3f, int, Vector3i[]" );
+      }
+
+      /*
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw RuntimeException( "mvv global context has not been initialized" );
+      }*/
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      ++annotationId;
+
+      // create the annotation
+      nll::core::vector3f  position( (*(*v2.vals)[ 0 ].vals)[ 0 ].floatval,
+                                     (*(*v2.vals)[ 0 ].vals)[ 1 ].floatval,
+                                     (*(*v2.vals)[ 0 ].vals)[ 2 ].floatval );
+      nll::core::vector3f  orientation( (*(*v3.vals)[ 0 ].vals)[ 0 ].floatval,
+                                        (*(*v3.vals)[ 0 ].vals)[ 1 ].floatval,
+                                        (*(*v3.vals)[ 0 ].vals)[ 2 ].floatval );
+      int size = v4.intval;
+      if ( size <= 0 )
+         throw RuntimeException( "Annotation::add expects a width > 0" );
+
+      std::vector<nll::core::vector3uc> colors( (*v5.vals).size() );
+      for ( ui32 n = 0; n < colors.size(); ++n )
+      {
+         RuntimeValue& v = (*v5.vals)[ n ];
+         if ( (*v.vals).size() != 1 || (*(*v.vals)[ 0 ].vals).size() != 3 )
+            throw RuntimeException( "Annotation::add colors should be an array of Vector3i" );
+
+         nll::core::vector3uc& c = colors[ n ];
+         c[ 0 ] = (*(*v.vals)[ 0 ].vals)[ 0 ].intval;
+         c[ 1 ] = (*(*v.vals)[ 0 ].vals)[ 1 ].intval;
+         c[ 2 ] = (*(*v.vals)[ 0 ].vals)[ 2 ].intval;
+      }
+      RefcountedTyped<Annotation> annotation( new AnnotationColors( position, orientation, size, colors ) );
 
       // register it
       pointee->annotations.insert( annotation );

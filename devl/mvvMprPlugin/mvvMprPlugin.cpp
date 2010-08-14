@@ -5,6 +5,7 @@
 
 #include "annotation.h"
 #include "annotation-point.h"
+#include "annotation-colors.h"
 #include "engine-mpr.h"
 #include "segment.h"
 #include "layout-segment.h"

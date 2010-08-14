@@ -135,3 +135,17 @@ Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
 
 import "siemens"
 DisplayRegionDetection detection( annotations );
+
+Vector3i colors[] =
+{
+   Vector3i( 255, 0, 0 ),
+   Vector3i( 235, 0, 0 ),
+   Vector3i( 215, 0, 0 ),
+   Vector3i( 205, 0, 0 ),
+   Vector3i( 155, 155, 0 ),
+   Vector3i( 0, 205, 0 ),
+   Vector3i( 0, 255, 0 )
+};
+
+annotations.add( Vector3f(4.0, -158.0, 1230.0), Vector3f( 0.0, 0.0, 200.0), 5, colors );
+
