@@ -50,9 +50,9 @@ namespace detect
          _selection.read( featureSelection );
       }
 
-      ResultFinal test( const Volume& v )
+      ResultFinal test( const Volume& v, ui32* id = 0, float* pb = 0 )
       {
-         return test( rawTest( v ) );
+         return test( rawTest( v ), id, pb );
       }
 
       ResultFinal test( const Volume& v, Result& results )
@@ -64,7 +64,7 @@ namespace detect
       /**
        @brief from a set of slice results, guess the real locations
        */
-      ResultFinal test( const Result& results )
+      ResultFinal test( const Result& results, ui32* id = 0, float* pb = 0 )
       {
          ResultFinal r;
 
@@ -80,6 +80,14 @@ namespace detect
             {
                max[ results.sliceIds[ n ] ] = results.probabilities[ n ];
                maxPos[ results.sliceIds[ n ] ] = n;
+            }
+            if ( id )
+            {
+               id[ n ] = results.sliceIds[ n ];
+            }
+            if ( pb )
+            {
+               pb[ n ] = results.probabilities[ n ];
             }
          }
 

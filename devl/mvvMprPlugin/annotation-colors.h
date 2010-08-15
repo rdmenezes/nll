@@ -55,13 +55,23 @@ namespace platform
             return;
          }
 
-         nll::core::vector3f p1 = slice.getOrthogonalProjection( _position );
-         nll::core::vector2f p2 = slice.worldToSliceCoordinate( p1 );
-         nll::core::vector3f p3 = slice.getOrthogonalProjection( _position + _heightMM );
-         nll::core::vector2f p4 = slice.worldToSliceCoordinate( p3 );
-         int nbPixels = fabs( p2[ 1 ] - p4[ 1 ] );
-         if ( !nbPixels )
+         nll::core::vector3f p1, p3;
+         nll::core::vector2f p2, p4;
+         int nbPixels = 0;
+         try
+         {
+            p1 = slice.getOrthogonalProjection( _position );
+            p2 = slice.worldToSliceCoordinate( p1 );
+            p3 = slice.getOrthogonalProjection( _position + _heightMM );
+            p4 = slice.worldToSliceCoordinate( p3 );
+            nbPixels = fabs( p2[ 1 ] - p4[ 1 ] );
+            if ( nbPixels <= 0 )
+               return;
+         } catch(...)
+         {
+            std::cout << "plane exception" << std::endl;
             return;
+         }
 
          nll::core::Image<ui8> im;
          im.clone( _colors );
@@ -73,7 +83,8 @@ namespace platform
          nll::core::vector2i size( static_cast<int>( slice.size()[ 0 ] ),
                                    static_cast<int>( slice.size()[ 1 ] ) );
 
-         if ( slice.contains( p2 ) || slice.contains( p4 ) )
+         
+         if ( slice.contains( p2 ) || slice.contains( p4 ) || slice.contains( (p2 + p4)/2 ))
          {
             for ( int n = 0; n < nbPixels; ++n )
             {

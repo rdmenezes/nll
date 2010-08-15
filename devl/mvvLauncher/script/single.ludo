@@ -147,5 +147,3 @@ Vector3i colors[] =
    Vector3i( 0, 255, 0 )
 };
 
-annotations.add( Vector3f(4.0, -158.0, 1230.0), Vector3f( 0.0, 0.0, 200.0), 5, colors );
-
