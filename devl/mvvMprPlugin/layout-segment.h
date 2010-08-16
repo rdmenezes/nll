@@ -78,6 +78,11 @@ namespace platform
          (*_segment).size.setValue( _size );
       }
 
+      virtual bool sendMessage( const std::string&, const nll::core::vector3uc& )
+      {
+         return false;
+      }
+
    protected:
       virtual void _receive( const EventMouse& e )
       {

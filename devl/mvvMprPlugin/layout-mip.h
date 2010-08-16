@@ -61,6 +61,11 @@ namespace platform
          }
       }
 
+      virtual bool sendMessage( const std::string&, const nll::core::vector3uc& )
+      {
+         return false;
+      }
+
       virtual void updateLayout()
       {
          // update the display size

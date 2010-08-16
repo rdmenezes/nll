@@ -6,6 +6,7 @@
 # include "engine-handler-impl.h"
 # include "order-manager-thread-pool.h"
 # include "font.h"
+# include "layout-pane.h"
 
 namespace mvv
 {
@@ -24,6 +25,7 @@ namespace platform
       EngineHandlerImpl&                   engineHandler;
       OrderManagerThreadPool&              orderManager;
       Font&                                commonFont;
+      RefcountedTyped<Pane>                layout;
 
    private:
       // disabled copy

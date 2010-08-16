@@ -12,6 +12,7 @@
 #include "mvv-mip-tools.h"
 #include "mvv-affine-registration.h"
 #include <mvvScript/function-runnable.h>
+#include "system.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -1427,10 +1428,89 @@ public:
    }
 };
 
+static void redirect_stdout()
+{
+   static const char* tmp = "stdout.txt";
+   FILE *stream ;
+   stream = freopen( tmp, "w", stdout );
+}
+
+
+static std::vector<std::string> restore_stdout()
+{
+   std::vector<std::string> strs;
+
+   static const char* tmp = "stdout.txt";
+   std::ifstream f( tmp );
+   std::string s;
+   while ( !f.eof() )
+   {
+      getline( f, s );
+      strs.push_back( s );
+   }
+
+#ifdef WIN32
+   freopen("CON", "w", stdout);
+#else
+   freopen("/dev/tty", "w", stdout);
+#endif
+
+   return strs;
+}
+
+class FunctionRunnableSystem : public FunctionRunnable
+{
+public:
+   FunctionRunnableSystem( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+      }
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw RuntimeException( "mvv global context has not been initialized" );
+      }
+      
+      redirect_stdout();
+      mvv::systemCall( v1.stringval );
+      std::vector<std::string> strs = restore_stdout();
+
+      for ( std::vector<std::string>::reverse_iterator it = strs.rbegin(); it != strs.rend(); ++it )
+      {
+         if ( *it != "" )
+            (*global->layout).sendMessage( *it, nll::core::vector3uc( 180, 180, 180 ) );
+      }
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&    _context;
+};
+
 
 
 void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 {
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "system" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableSystem( fn, context ) ) );
+   }
+
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator+" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ) ) );
       assert( fn );

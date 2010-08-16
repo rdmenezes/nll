@@ -115,6 +115,12 @@ namespace platform
          (*_subLayout).receive( e );
       }
 
+      virtual bool sendMessage( const std::string& msg, const nll::core::vector3uc& color )
+      {
+         _textBoxDisplayP->write( msg, color );
+         return true;
+      }
+
       virtual void _receive( const EventKeyboard& e )
       {
          (*_subLayout).receive( e );

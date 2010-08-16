@@ -95,6 +95,13 @@ namespace platform
       virtual void updateLayout() = 0;
 
       /**
+       @brief Interface to send a message. This will locate one layout able to display this message.
+              If the layout can display the message, then is should return true, else false. Only one layout
+              should be able to display this message
+       */
+      virtual bool sendMessage( const std::string& msg, const nll::core::vector3uc& color ) = 0;
+
+      /**
        @brief set the origin of the plane. (0, 0) is the bottom left
        */
       void setOrigin( const nll::core::vector2ui& origin );
@@ -224,6 +231,17 @@ namespace platform
       {
          for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
             (**it).destroy();
+      }
+
+      virtual bool sendMessage( const std::string& msg, const nll::core::vector3uc& color )
+      {
+         for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
+         {
+            bool sent = (**it).sendMessage( msg, color );
+            if ( sent )
+               return true;
+         }
+         return false;
       }
 
    protected:
@@ -407,6 +425,11 @@ namespace platform
 
       virtual void destroy()
       {
+      }
+
+      virtual bool sendMessage( const std::string&, const nll::core::vector3uc& )
+      {
+         return false;
       }
 
       virtual void updateLayout()

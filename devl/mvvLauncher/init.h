@@ -87,6 +87,12 @@ namespace mvv
          layout = pointee->pane;
          oldLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
 
+         // update the layout
+         platform::ContextGlobal* global = context.get<platform::ContextGlobal>();
+         if ( !global )
+            throw std::exception( "global context uncorrectly initialized" );
+         global->layout = layout;
+
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
          (*layout).updateLayout();
       }
