@@ -1430,32 +1430,51 @@ public:
 
 static void redirect_stdout()
 {
-   static const char* tmp = "stdout.txt";
+   static const char* tmpout = "stdout.txt";
+   static const char* tmperr = "stderr.txt";
    FILE *stream ;
-   stream = freopen( tmp, "w", stdout );
+   stream = freopen( tmpout, "w", stdout );
+   stream = freopen( tmperr, "w", stderr );
 }
 
 
-static std::vector<std::string> restore_stdout()
+static std::pair<std::vector<std::string>,
+                 std::vector<std::string> > restore_stdout()
 {
-   std::vector<std::string> strs;
+   std::vector<std::string> strsout;
+   std::vector<std::string> strserr;
 
-   static const char* tmp = "stdout.txt";
-   std::ifstream f( tmp );
-   std::string s;
-   while ( !f.eof() )
    {
-      getline( f, s );
-      strs.push_back( s );
+      static const char* tmpout = "stdout.txt";
+      std::ifstream f( tmpout );
+      std::string s;
+      while ( !f.eof() )
+      {
+         getline( f, s );
+         strsout.push_back( s );
+      }
+   }
+
+   {
+      static const char* tmperr = "stderr.txt";
+      std::ifstream f( tmperr );
+      std::string s;
+      while ( !f.eof() )
+      {
+         getline( f, s );
+         strserr.push_back( s );
+      }
    }
 
 #ifdef WIN32
    freopen("CON", "w", stdout);
+   freopen("CON", "w", stderr);
 #else
    freopen("/dev/tty", "w", stdout);
+   freopen("/dev/tty", "w", stderr);
 #endif
 
-   return strs;
+   return std::make_pair( strsout, strserr );
 }
 
 class FunctionRunnableSystem : public FunctionRunnable
@@ -1485,12 +1504,22 @@ public:
       
       redirect_stdout();
       mvv::systemCall( v1.stringval );
-      std::vector<std::string> strs = restore_stdout();
 
-      for ( std::vector<std::string>::reverse_iterator it = strs.rbegin(); it != strs.rend(); ++it )
+      std::pair<std::vector<std::string>,
+                 std::vector<std::string> > result = restore_stdout();
+      std::vector<std::string>& strsout = result.first;
+      std::vector<std::string>& strserr = result.second;
+
+      for ( std::vector<std::string>::reverse_iterator it = strsout.rbegin(); it != strsout.rend(); ++it )
       {
          if ( *it != "" )
             (*global->layout).sendMessage( *it, nll::core::vector3uc( 180, 180, 180 ) );
+      }
+
+      for ( std::vector<std::string>::reverse_iterator it = strserr.rbegin(); it != strserr.rend(); ++it )
+      {
+         if ( *it != "" )
+            (*global->layout).sendMessage( *it, nll::core::vector3uc( 255, 0, 0 ) );
       }
 
       RuntimeValue rt( RuntimeValue::EMPTY );

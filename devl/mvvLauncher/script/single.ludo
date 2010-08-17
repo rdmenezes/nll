@@ -147,3 +147,6 @@ Vector3i colors[] =
    Vector3i( 0, 255, 0 )
 };
 
+
+string volpath = "../../nllTest/data/medical/ct-long.mf2";
+string volpath2 = "../../nllTest/data/medical/MR-1.mf2";
