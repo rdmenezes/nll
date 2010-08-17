@@ -81,6 +81,10 @@ namespace platform
       Records::iterator it = _records.find( result->name );
       assert( it != _records.end() );  // it HAS to be here!
       _records.erase( it );
+
+      // remove the result as there is currently a memleak with the orders
+      delete (*order).getResult();
+      (*order).setResult( 0 );
    }
 
    EngineOrderVolumeLoader::~EngineOrderVolumeLoader()

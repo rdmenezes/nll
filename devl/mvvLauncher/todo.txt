@@ -9,7 +9,8 @@ BUG:
 - investigate: if different Layout are created on the same segment->problems (reseample)
 - investigate: annotations.clear() doesn't clear the MIP
 - import file with error => can't reimport it later on
-- fix: remove all volumes 'volumes', add new ones->MPR is not centred
+- [DONE]fix: remove all volumes 'volumes', add new ones->MPR is not centred
+- fix memleak in the orders
 
 FEATURES TO BE ADDED:
 - add registration matrix for volumes...

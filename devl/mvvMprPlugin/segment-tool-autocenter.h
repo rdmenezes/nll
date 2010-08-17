@@ -35,6 +35,8 @@ namespace platform
          o->_addSimpleLink( this );
          _storages.insert( o->volumes.getStorage() );
          o->volumes.getStorage().connect( this );
+
+         o->volumes.connect( this );
       }
 
       // we need to override, as we need to unregister the volume storage
@@ -50,6 +52,7 @@ namespace platform
        */
       virtual bool _run()
       {
+         std::cout << "AUTOCENTER" << std::endl;
          // check if a volume has more voxel than previously
          ui32 maxVoxel = 0;
          bool updatePosition = false;
@@ -61,7 +64,7 @@ namespace platform
                // check if the volume moved
                nll::core::vector3ui size = (**volit).size();
                const ui32 nbVoxels = (**volit).size()[ 0 ] * (**volit).size()[ 1 ] * (**volit).size()[ 2 ];
-               if ( nbVoxels > _nbMaxVoxels )
+               if ( nbVoxels > maxVoxel )
                {
                   maxVoxel = nbVoxels;
                   updatePosition = true;
@@ -72,9 +75,9 @@ namespace platform
             }
          }
 
-         if ( !maxVoxel )
+         if ( !maxVoxel || maxVoxel == _nbMaxVoxels )
          {
-            // empty so don't do anything
+            // empty or the same so don't do anything
             return true;
          }
 

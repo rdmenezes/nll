@@ -35,6 +35,8 @@ namespace platform
             }
          }
 
+         //delete order; // TODO :memleak!
+
          // the order has been dispatched, if another thread is waiting for the result we need to unlock the mutex
          //order->getMutex().unlock();
       }
