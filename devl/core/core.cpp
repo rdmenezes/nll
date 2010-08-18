@@ -12,6 +12,7 @@
 #include "mvv-mip-tools.h"
 #include "mvv-affine-registration.h"
 #include "mvv-special.h"
+#include "mvv-file.h"
 #include <mvvScript/function-runnable.h>
 #include "system.h"
 
@@ -1271,7 +1272,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = static_cast<int>( std::floor( v1.floatval + 0.5 ) );
@@ -1296,7 +1297,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = static_cast<int>( std::floor( v1.floatval ) );
@@ -1321,7 +1322,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = static_cast<float>( v1.intval );
@@ -1346,7 +1347,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::STRING );
       rt.stringval = nll::core::val2str( v1.intval );
@@ -2420,5 +2421,89 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "barycentre") ), nll::core::make_vector<const Type*>( volume, lut ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableBarycentre( fn, context ) ) );
+   }
+
+   //
+   // OFStream
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "OFStream"), platform::Symbol::create( "OFStream" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionOFStreamConstructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "OFStream"), platform::Symbol::create( "~OFStream" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionOFStreamDestructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "OFStream"), platform::Symbol::create( "close" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionOFStreamClose( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "OFStream"), platform::Symbol::create( "write" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionOFStreamWriteString( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "OFStream"), platform::Symbol::create( "write" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionOFStreamWriteInt( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "OFStream"), platform::Symbol::create( "write" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionOFStreamWriteFloat( fn ) ) );
+   }
+
+   //
+   // IFStream
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "IFStream" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamConstructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "~IFStream" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamDestructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "close" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamClose( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "read" ) ), nll::core::make_vector<const Type*>( new TypeInt( true ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamReadInt( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "read" ) ), nll::core::make_vector<const Type*>( new TypeFloat( true ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamReadFloat( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "eof" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamEof( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "getline" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamGetline( fn ) ) );
    }
 }

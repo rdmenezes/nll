@@ -1,0 +1,66 @@
+class OFStream
+{
+   /**
+    @brief Create an output file stream
+    @param name the file to open
+    @param mode text file = 0, or binary file = 1
+    */
+   import OFStream( string name, int mode = 0 );
+
+   /**
+    @brief Destroy the object & close the stream
+    */
+   import ~OFStream();
+
+   /**
+    @brief close the associated stream
+    */
+   import void close();
+
+   /**
+    @brief write a string to the stream
+    */
+   import void write( string s );
+   import void write( int s );
+   import void write( float s );
+}
+
+class IFStream
+{
+   /**
+    @brief Create an output file stream
+    @param name the file to open
+    @param mode text file = 0, or binary file = 1
+    */
+   import IFStream( string name, int mode = 0 );
+
+   /**
+    @brief Destroy the object & close the stream
+    */
+   import ~IFStream();
+
+   /**
+    @brief close the associated stream
+    */
+   import void close();
+
+   /**
+    @brief read an int
+    */
+   import void read( int& s );
+
+   /**
+    @brief read a float
+    */
+   import void read( float& s );
+
+   /**
+    @brief returns a line, only available for text mode
+    */
+   import string getline();
+
+   /**
+    @brief returns true if the file has reached the end
+    */
+   import int eof();
+}

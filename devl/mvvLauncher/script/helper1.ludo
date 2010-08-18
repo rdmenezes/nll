@@ -1,8 +1,9 @@
 class VolumeSwitch
 {
-   int index                        = -1;
+   int index                        = 0;
    Lut lut                          = NULL;
-   VolumeID currentVolume           = NULL;
+   VolumeID displayed               = NULL;
+   VolumeID preloaded               = NULL;
    DisplayRegionDetection detection = NULL;
    VolumeContainer volumes          = NULL;
    string[] list;
@@ -13,20 +14,23 @@ class VolumeSwitch
       volumes = vs;
       list = volumeList;
       detection = rd;
+
+      preloaded = loadVolumeAsynchronous( list[ index ] );
    }
 
    void next()
    {
-      index = index + 1;
-      print("load volume:" + list[ index ] );
-      volumes.erase( currentVolume );
-      currentVolume = loadVolumeAsynchronous( list[ index ] );
-      //currentVolume = loadVolumeMF2( list[ index ] );
-      volumes.add( currentVolume, lut );
+      volumes.erase( displayed );
+      displayed = preloaded;
+      volumes.add( displayed, lut );
       detection.annotations.clear();
-      Vector3f b = barycentre( currentVolume, lut );
-      detection.compute( currentVolume );
+      Vector3f b = barycentre( displayed, lut );
+      detection.compute( displayed );
       detection.annotations.add( b, "barycentre" );
+
+      index = index + 1;
+      preloaded = loadVolumeAsynchronous( list[ index ] );
+      print("pre-load volume:" + list[ index ] );
    }
 }
 

@@ -395,7 +395,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\io.ludo"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-affine-registration.h"
+				>
+			</File>
+			<File
+				RelativePath=".\mvv-file.h"
 				>
 			</File>
 			<File

@@ -851,7 +851,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 != 3;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3.000 != 3 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -862,7 +862,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3 != 3.000;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3 != 3.000 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -873,7 +873,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 != 3.000;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3.000 != 3.000 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -884,7 +884,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3 <= 3;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3 <= 3 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -895,7 +895,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 <= 3;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3.000 <= 3 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -906,7 +906,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3 <= 3.000;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3 <= 3.000 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -917,7 +917,7 @@ struct TestEval
       {
          CompilerFrontEnd fe;
          
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 <= 3.000;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3.000 <= 3.000 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -938,7 +938,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 >= 3;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f =  3.000 >= 3 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -948,7 +948,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3 >= 3.000;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3 >= 3.000 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -958,7 +958,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" int f = 3.000 >= 3.000;" );
+         Error::ErrorType result = fe.run( "import \"core\" int f = ( 3.000 >= 3.000 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -1439,14 +1439,16 @@ struct TestEval
          //
 
          // handler setup
+         OrderManagerThreadPool pool( 4 );
          EngineHandlerImpl handler;
+         /*
          OrderProviderImpl provider;
          OrderDispatcherImpl dispatcher;
-
+         */
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
@@ -1470,7 +1472,7 @@ struct TestEval
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool, pool ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
 
          // create a front end and run it in another thread
@@ -1512,14 +1514,13 @@ struct TestEval
          //
 
          // handler setup
+         OrderManagerThreadPool pool( 4 );
          EngineHandlerImpl handler;
-         OrderProviderImpl provider;
-         OrderDispatcherImpl dispatcher;
 
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
@@ -1551,14 +1552,13 @@ struct TestEval
          //
 
          // handler setup
+         OrderManagerThreadPool pool( 4 );
          EngineHandlerImpl handler;
-         OrderProviderImpl provider;
-         OrderDispatcherImpl dispatcher;
 
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
@@ -1613,14 +1613,13 @@ struct TestEval
          //
 
          // handler setup
+         OrderManagerThreadPool pool( 4 );
          EngineHandlerImpl handler;
-         OrderProviderImpl provider;
-         OrderDispatcherImpl dispatcher;
 
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
@@ -1641,8 +1640,6 @@ struct TestEval
 
          // handler setup
          EngineHandlerImpl handler;
-         OrderProviderImpl provider;
-         OrderDispatcherImpl dispatcher;
          OrderManagerThreadPool pool( 4 );
          RefcountedTyped<Font> font = initFont();
 
@@ -1650,7 +1647,7 @@ struct TestEval
          platform::Context context;
          context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr() ) );
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
@@ -1673,7 +1670,7 @@ struct TestEval
          platform::Context context;
          context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr() ) );
          context.add( new platform::ContextVolumes() );
-         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, provider, dispatcher ) );
+         context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
@@ -2127,13 +2124,10 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 42 );
       }
-      
-      //Error::ErrorType result = fe.run( "int fn(){return 0;}  void test(){ string fn; " );
    }
 
    void eval5()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42; n = m(0, 0);" );
@@ -2198,15 +2192,13 @@ struct TestEval
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 1 );
       }
-      */
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
-TESTER_TEST(eval4);*/
+TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

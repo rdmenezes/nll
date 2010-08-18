@@ -711,7 +711,7 @@ namespace parser
                   (*_env.stack.rbegin()->vals)[ n ] = unref( _env.resultRegister ); // copy the value, not a ref!
             }
             return;
-         }
+         } 
 
          if ( e.getType().isArray() )
          {
@@ -767,7 +767,21 @@ namespace parser
          }
 
          // uninitialized variable
-         _env.stack.push_back( RuntimeValue( RuntimeValue::EMPTY ) );
+         // check if we need default initialization?
+         RuntimeValue rt( RuntimeValue::EMPTY );
+         if ( e.getNodeType()->isCompatibleWith( TypeFloat( false ) ) )
+         {
+            rt.type = RuntimeValue::CMP_FLOAT;
+            rt.floatval = 0;
+         } else if ( e.getNodeType()->isCompatibleWith( TypeInt( false ) ) )
+         {
+            rt.type = RuntimeValue::CMP_INT;
+            rt.intval = 0;
+         } else if ( e.getNodeType()->isCompatibleWith( TypeString( false ) ) )
+         {
+            rt.type = RuntimeValue::STRING;
+         }
+         _env.stack.push_back( rt );
       }
 
       /**
