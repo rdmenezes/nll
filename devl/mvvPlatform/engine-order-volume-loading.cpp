@@ -85,6 +85,7 @@ namespace platform
       _records.erase( it );
 
       // remove the result as there is currently a memleak with the orders
+      std::cout << "CONSUME" << std::endl;
       delete (*order).getResult();
       (*order).setResult( 0 );
    }
@@ -99,20 +100,15 @@ namespace platform
       }
    }
 
+   // 
    RefcountedTyped<Volume> EngineOrderVolumeLoader::getVolume( SymbolVolume name )
    {
       RefcountedTyped<Volume> vol;
-      //Records::iterator it = _records.find( name );
-      //if ( it == _records.end() )
+      // in this case the volume is already loaded, or it doesn't exist!
+      bool found = _resourceVolumes.find( name, vol );
+      if ( found )
       {
-         // in this case the volume is already loaded, or it doesn't exist!
-         bool found = _resourceVolumes.find( name, vol );
-         if ( found )
-         {
-            return vol;
-            // doesn't exist
-            //throw std::exception( ( std::string( "volume ID can't be found:" ) + name.getName() ).c_str() );
-         } //else return vol;
+         return vol;
       }
 
       Records::iterator it = _records.find( name );
@@ -125,19 +121,26 @@ namespace platform
       _pool.run();
 
       std::cout << "----GET volume =" << name.getName() << std::endl;
-      std::cout << "wating..." << std::endl;
       // lock the thread while the volume is being loaded
       ensure( it->second->order, "can't be null" );
-      std::cout << "wating2..." << std::endl;
       Future* future = &(*it->second->order->getFuture());
       ensure( future, "can't be null" );
-      //while ( !future )
-      //   future = &(*it->second->order->getFuture());
 
       std::cout << "access...=" << &future << std::endl;
       future->wait();
       std::cout << "stop waiting" << std::endl;
       impl::OrderVolumeLoaderResult* result = dynamic_cast<impl::OrderVolumeLoaderResult*>( it->second->order->getResult() );
+      std::cout << "resul=" << result << std::endl;
+      // if we don't have a result it might be because we had an order dispatched that cleared the result and populated the volume container, so do a final
+      // check to be sure
+      if ( !result )
+      {
+         bool found = _resourceVolumes.find( name, vol );
+         if ( found )
+         {
+            return vol;
+         } else throw std::exception("error: can't find the volume or a reference on the volume's order");
+      }
       return result->volume;
    }
 

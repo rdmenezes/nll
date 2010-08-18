@@ -24,8 +24,8 @@ class VolumeSwitch
       //currentVolume = loadVolumeMF2( list[ index ] );
       volumes.add( currentVolume, lut );
       detection.annotations.clear();
-      //detection.compute( currentVolume );
       Vector3f b = barycentre( currentVolume, lut );
+      detection.compute( currentVolume );
       detection.annotations.add( b, "barycentre" );
    }
 }
