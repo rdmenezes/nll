@@ -133,7 +133,7 @@ namespace detect
                          v.getPst()( 2, 2 ) );
       assert( v.getSpacing()[ 0 ] == v.getSpacing()[ 1 ] ); // we are expecting same spacing
 
-      core::vector3f barycentre = computeBarycentre( v, lut );
+      core::vector3f barycentre = nll::detect::computeBarycentre( v, lut );
       core::vector3f position = v.indexToPosition( core::vector3f( static_cast<f32>( v.size()[ 0 ] ) / 2,
                                                                    static_cast<f32>( v.size()[ 1 ] ) / 2,
                                                                    static_cast<f32>( v.size()[ 2 ] ) / 2 ) );

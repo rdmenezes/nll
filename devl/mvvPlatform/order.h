@@ -86,8 +86,6 @@ namespace platform
       {
          static ui32 orderId = 0;
          _orderId = ++orderId;
-
-         _future = RefcountedTyped<Future>( new Future() );
       }
 
       ui32 getId() const
@@ -155,7 +153,15 @@ namespace platform
        */
       RefcountedTyped<Future>& getFuture()
       {
+         while ( !_future.getDataPtr() )
+            ;
          return _future;
+      }
+
+      // should not be used by user
+      void _setFuture( RefcountedTyped<Future>& f )
+      {
+         _future = f;
       }
 
    protected:

@@ -174,6 +174,9 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
+      if ( v2.type == RuntimeValue::NIL )
+         return RuntimeValue( RuntimeValue::EMPTY );
+
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );

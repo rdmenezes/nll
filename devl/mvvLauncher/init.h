@@ -130,7 +130,7 @@ namespace mvv
          ContextVolumes* ctxVolumes = new ContextVolumes();
          context.add( ctxVolumes );
 
-         ContextTools* ctxTools = new ContextTools( ctxVolumes->volumes, engineHandler, orderManager, orderManager );
+         ContextTools* ctxTools = new ContextTools( ctxVolumes->volumes, engineHandler, orderManager );
          context.add( ctxTools );
 
          ContextSegments* ctxSegments = new ContextSegments();

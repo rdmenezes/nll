@@ -93,6 +93,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\mvvLauncher\script\helper1.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -171,6 +172,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\mvvLauncher\script\helper1.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -262,6 +264,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\mvvLauncher\script\helper1.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -350,6 +353,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\mvvLauncher\script\helper1.ludo $(OutDir)"
 			/>
 		</Configuration>
 	</Configurations>
@@ -363,6 +367,10 @@
 			>
 			<File
 				RelativePath=".\callbacks.h"
+				>
+			</File>
+			<File
+				RelativePath=".\script\helper1.ludo"
 				>
 			</File>
 			<File

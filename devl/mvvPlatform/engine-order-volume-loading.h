@@ -28,15 +28,10 @@ namespace platform
       typedef std::map<SymbolVolume, impl::RecordOrder*> Records;
 
    public:
-      EngineOrderVolumeLoader( ResourceStorageVolumes& resourceVolumes, EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ), _resourceVolumes( resourceVolumes )
+      EngineOrderVolumeLoader( ResourceStorageVolumes& resourceVolumes, EngineHandler& handler, OrderManagerThreadPool& manager ) : EngineOrder( handler, manager, manager ), _resourceVolumes( resourceVolumes ), _pool( manager )
       {
          construct();
-         dispatcher.connect( this );
-      }
-
-      EngineOrderVolumeLoader( ResourceStorageVolumes& resourceVolumes, EngineHandler& handler, OrderManagerThreadPool& manager ) : EngineOrder( handler, manager, manager ), _resourceVolumes( resourceVolumes )
-      {
-         construct();
+         manager.connect( this );
       }
 
       ~EngineOrderVolumeLoader();
@@ -72,6 +67,7 @@ namespace platform
       ResourceStorageVolumes  _resourceVolumes;
       std::set<OrderClassId>  _interested;
       Records _records;     // the record stores the volumes currently being loaded. A mutex is aquired, so that we a blocking function can be implemented, waiting for the volume to be fully loaded
+      OrderManagerThreadPool& _pool;
    };
 }
 }

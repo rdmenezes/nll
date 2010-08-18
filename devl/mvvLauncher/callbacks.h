@@ -142,9 +142,10 @@ public:
          try
          {
             _compiler.run( it->second );
-         } catch (...)
+         } catch ( std::exception e )
          {
-            _compiler.getStdOut() << "error: unable to launch the callback";
+            _compiler.getStdOut() << "error: unable to launch the callback:" << _compiler.getLastErrorMesage() << std::endl;
+            _compiler.getStdOut() << "exception=" << e.what() << std::endl;
          }
          return true;
       }

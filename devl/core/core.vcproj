@@ -419,6 +419,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-special.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-volume-container.h"
 				>
 			</File>

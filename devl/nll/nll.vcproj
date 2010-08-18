@@ -1010,6 +1010,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\volume-barycentre.h"
+				>
+			</File>
+			<File
 				RelativePath=".\volume-interpolator.h"
 				>
 			</File>

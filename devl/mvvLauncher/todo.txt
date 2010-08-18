@@ -1,5 +1,4 @@
 BUG:
-- fix: getVolume(ct) while CT volume is loading: threads are locked :/
 - [DONE] fix: LUT: is not automatically updated if the LUT object is updated => in engine-mpr, the slice fusion is activated, but not slice to fuse...
 - [NOT NECESSARY]fix: remove volume from a MPR will displayed->the volume must be referenced in the order so that it is not reelased while threaded computations are not done yet
 - [DONE] fix: if volume is added on command line, segment is always refreshed
@@ -11,6 +10,11 @@ BUG:
 - import file with error => can't reimport it later on
 - [DONE]fix: remove all volumes 'volumes', add new ones->MPR is not centred
 - fix memleak in the orders
+
+TODO
+- if variable declared in the wrong order -> we have the declaration and where it should be stored on the stack... but it will not be initialized, so access will fail!
+- fix: getVolume(ct) while CT volume is loading: threads are locked :/
+- wrong location/file in script error
 
 FEATURES TO BE ADDED:
 - add registration matrix for volumes...

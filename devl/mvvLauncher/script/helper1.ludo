@@ -1,0 +1,51 @@
+class VolumeSwitch
+{
+   int index                        = -1;
+   Lut lut                          = NULL;
+   VolumeID currentVolume           = NULL;
+   DisplayRegionDetection detection = NULL;
+   VolumeContainer volumes          = NULL;
+   string[] list;
+
+   VolumeSwitch( Lut l, VolumeContainer vs, string[] volumeList, DisplayRegionDetection rd )
+   {
+      lut = l;
+      volumes = vs;
+      list = volumeList;
+      detection = rd;
+   }
+
+   void next()
+   {
+      index = index + 1;
+      print("load volume:" + list[ index ] );
+      volumes.erase( currentVolume );
+      currentVolume = loadVolumeAsynchronous( list[ index ] );
+      //currentVolume = loadVolumeMF2( list[ index ] );
+      volumes.add( currentVolume, lut );
+      detection.annotations.clear();
+      //detection.compute( currentVolume );
+      Vector3f b = barycentre( currentVolume, lut );
+      detection.annotations.add( b, "barycentre" );
+   }
+}
+
+class AnnotationCreator
+{
+   ToolAnnotations      annotations;
+   SegmentToolPointer   pointer;
+   int                  id;
+
+   AnnotationCreator( ToolAnnotations a, SegmentToolPointer p )
+   {
+      annotations = a;
+      pointer = p;
+      id = 1;
+   }
+
+   void run()
+   {
+      annotations.add( pointer.getPosition(), toString( id ) );
+      id = id + 1;
+   }
+}

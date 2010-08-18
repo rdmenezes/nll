@@ -11,6 +11,7 @@
 #include "mvv-layout.h"
 #include "mvv-mip-tools.h"
 #include "mvv-affine-registration.h"
+#include "mvv-special.h"
 #include <mvvScript/function-runnable.h>
 #include "system.h"
 
@@ -2410,5 +2411,14 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Mip"), platform::Symbol::create( "setTool" ) ), nll::core::make_vector<const Type*>( tool ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionMipSetToolAnnotations( fn ) ) );
+   }
+
+   {
+      Type* volume = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      Type* lut = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Lut" ) ) ) );
+      assert( volume && lut );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "barycentre") ), nll::core::make_vector<const Type*>( volume, lut ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableBarycentre( fn, context ) ) );
    }
 }

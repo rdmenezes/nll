@@ -359,6 +359,8 @@ namespace detect
          }*/
       }
 
+
+
    private:
       Templates    _templates;
       Matrix       _thresholdInterDistance;

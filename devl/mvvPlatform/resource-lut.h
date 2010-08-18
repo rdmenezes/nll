@@ -70,6 +70,11 @@ namespace platform
       {
          return this;
       }
+
+      ui32 getSize() const
+      {
+         return getValue().lut.getSize();
+      }
    };
 }
 }

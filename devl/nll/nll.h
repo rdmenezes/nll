@@ -174,6 +174,7 @@
 # include "volume-io-bin.h"
 # include "volume-io-txt.h"
 # include "maximum-intensity-projection.h"
+# include "volume-barycentre.h"
 
 /**
  @defgroup algorithm

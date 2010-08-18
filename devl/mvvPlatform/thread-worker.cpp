@@ -24,6 +24,7 @@ namespace platform
    void ThreadWorker::operator()()
    {
       boost::mutex::scoped_lock lock( _mutex );
+
       try
       {
          while ( 1 )
@@ -42,6 +43,7 @@ namespace platform
                nll::core::Timer todoDebug;
                try
                {
+                  (*_currentOrder)._setFuture( RefcountedTyped<Future>( new Future() ) );
                   (*_currentOrder).compute();
                }
                catch ( std::exception e )
@@ -51,6 +53,7 @@ namespace platform
                }
                ensure( (*_currentOrder).getResult(), "result requires not to be null" );
                _hasFinished = true;
+               (*(*_currentOrder).getFuture())._unlock();
                _pool->workerFinished( _currentOrder, _workerId );
                //std::cout << clock() / (double)CLOCKS_PER_SEC << " worker=" << _workerId << " end, time=" << todoDebug.getCurrentTime() << " classId=" << (*_currentOrder).getClassId().getName() << std::endl;
                //_currentOrder.unref();
