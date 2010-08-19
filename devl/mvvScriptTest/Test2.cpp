@@ -2242,6 +2242,13 @@ struct TestEval
          Error::ErrorType result = fe.run( "class Test{Test(){} int operator==( Test t1 ){ return 42; }} Test t; int n1 = t == t; int operator==( Test t1, Test t2 ){ return 42; }" );
          TESTER_ASSERT( result == Error::TYPE );
       }
+
+      {
+         // ambiguous function call
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){}} Test t; t >> t;" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
    }
 };
 

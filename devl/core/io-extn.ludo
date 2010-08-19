@@ -1,0 +1,93 @@
+OFStream operator<<( OFStream s, Vector3i v )
+{
+   s << v[ 0 ] << " " << v[ 1 ] << " " << v[ 2 ] << "\n";
+   return s;
+}
+
+IFStream operator>>( IFStream s, Vector3i& v )
+{
+   s >> v[ 0 ] >> v[ 1 ] >> v[ 2 ];
+   return s;
+}
+
+OFStream operator<<( OFStream s, Vector3f v )
+{
+   s << v[ 0 ] << " " << v[ 1 ] << " " << v[ 2 ] << "\n";
+   return s;
+}
+
+IFStream operator>>( IFStream s, Vector3f& v )
+{
+   s >> v[ 0 ] >> v[ 1 ] >> v[ 2 ];
+   return s;
+}
+
+OFStream operator<<( OFStream s, Vector2f v )
+{
+   s << v[ 0 ] << " " << v[ 1 ] << "\n";
+   return s;
+}
+
+IFStream operator>>( IFStream s, Vector2f& v )
+{
+   s >> v[ 0 ] >> v[ 1 ];
+   return s;
+}
+
+OFStream operator<<( OFStream s, Vector2i v )
+{
+   s << v[ 0 ] << " " << v[ 1 ] << "\n";
+   return s;
+}
+
+IFStream operator>>( IFStream s, Vector2i& v )
+{
+   s >> v[ 0 ] >> v[ 1 ];
+   return s;
+}
+
+OFStream operator<<( OFStream s, Matrix3f v )
+{
+   int n = 0;
+   while ( n < 9 )
+   {
+      s << v.vals[ n ] << " ";
+      n = n + 1;
+   }
+   s << "\n";
+   return s;
+}
+
+IFStream operator>>( IFStream s, Matrix3f& v )
+{
+   int n = 0;
+   while ( n < 9 )
+   {
+      s >> v.vals[ n ];
+      n = n + 1;
+   }
+   return s;
+}
+
+OFStream operator<<( OFStream s, Matrix4f v )
+{
+   int n = 0;
+   while ( n < 16 )
+   {
+      s << v.vals[ n ] << " ";
+      n = n + 1;
+   }
+   s << "\n";
+   return s;
+}
+
+IFStream operator>>( IFStream s, Matrix4f& v )
+{
+   int n = 0;
+   while ( n < 16 )
+   {
+      s >> v.vals[ n ];
+      n = n + 1;
+   }
+   return s;
+}

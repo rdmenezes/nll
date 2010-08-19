@@ -243,7 +243,7 @@
 %left IFX
 %left ELSE
 
-%nonassoc STREAMO STREAMI
+%left STREAMO STREAMI
 %left ASSIGN
 
 %left OR

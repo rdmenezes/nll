@@ -213,6 +213,7 @@ namespace parser
             }
          }
 
+         ensure( e.getFunctionCall(), "compiler error: no function to call in binary operator" );
          _callFunction( *e.getFunctionCall(), vals );
       }
 

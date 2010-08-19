@@ -315,7 +315,7 @@ public:
 
       int n = 0;
       ( *file ) >> n;
-      v2.floatval = n;
+      v2.intval = n;
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;

@@ -340,9 +340,13 @@ namespace parser
                   return;
                }
 
-               // this is a type with no operator, so use the default
-               e.setNodeType( new TypeInt( false ) );
-               return;
+               if ( e.getOp() == AstOpBin::EQ ||
+                    e.getOp() == AstOpBin::NE )
+               {
+                  // this is a type with no operator, so use the default
+                  e.setNodeType( new TypeInt( false ) );
+                  return;
+               }
             }
          }
 

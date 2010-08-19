@@ -23,6 +23,24 @@ class OFStream
    import void write( string s );
    import void write( int s );
    import void write( float s );
+
+   OFStream operator<<( string s )
+   {
+      this.write( s );
+      return this;
+   }
+
+   OFStream operator<<( int s )
+   {
+      this.write( s );
+      return this;
+   }
+
+   OFStream operator<<( float s )
+   {
+      this.write( s );
+      return this;
+   }
 }
 
 class IFStream
@@ -63,4 +81,22 @@ class IFStream
     @brief returns true if the file has reached the end
     */
    import int eof();
+
+   IFStream operator>>( string& s )
+   {
+      s = this.getline();
+      return this;
+   }
+
+   IFStream operator>>( int& s )
+   {
+      this.read( s );
+      return this;
+   }
+
+   IFStream operator>>( float& s )
+   {
+      this.read( s );
+      return this;
+   }
 }
