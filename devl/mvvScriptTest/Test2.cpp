@@ -21,7 +21,16 @@ struct TestEval
 {
    void eval1()
    {
-      
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int operator!=( int a, float b ){return 42;} int n = 1 != 0.1;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt.intval == 42 );
+      }
+
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -938,7 +947,7 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" int f =  3.000 >= 3 );" );
+         Error::ErrorType result = fe.run( "import \"core\" int f =  3.000 >= 3;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "f" ) );
@@ -1187,7 +1196,7 @@ struct TestEval
          // check code export
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ int a[] = {1, 2}; } " );
-         TESTER_ASSERT( result == Error::PARSE );
+         TESTER_ASSERT( result == Error::SUCCESS );
       }
 
 
@@ -1350,26 +1359,26 @@ struct TestEval
       {
          // multiple destructor
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Vector3f{ float vals[ 3 ]; Vector3f(){} float& operator[]( int index ){ return vals[ index ]; } } Vector3f v; v[ 1 ] = 16; v[ 0 ] = 15; v[ 2 ] = 17; int n0 = v[ 0 ]; int n1 = v[ 1 ]; int n2 = v[ 2 ];" );
+         Error::ErrorType result = fe.run( "class Vector3f{ float vals[ 3 ]; Vector3f(){} float& operator[]( int index ){ return vals[ index ]; } } Vector3f v; v[ 1 ] = 16.0; v[ 0 ] = 15.0; v[ 2 ] = 17.0; float n0 = v[ 0 ]; float n1 = v[ 1 ]; float n2 = v[ 2 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n0" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt1.intval == 15 );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_FLOAT );
+         TESTER_ASSERT( rt1.floatval == 15 );
 
          const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n1" ) );
-         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt2.intval == 16 );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_FLOAT );
+         TESTER_ASSERT( rt2.floatval == 16 );
 
          const RuntimeValue& rt3 = fe.getVariable( mvv::Symbol::create( "n2" ) );
-         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt3.intval == 17 );
+         TESTER_ASSERT( rt3.type == RuntimeValue::CMP_FLOAT );
+         TESTER_ASSERT( rt3.floatval == 17 );
       }
 
       {
          // multiple destructor
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "class Vector3fT{ float vals[ 3 ]; Vector3fT(){}  float& operator()( int index ){ return vals[ index ]; } } Vector3fT v; v( 1 ) = 16.0;  v( 0 ) = 15.0; v( 2 ) = 17.0; int n0 = v( 0 ); int n1 = v( 1 ); int n2 = v( 2 );" );
+         Error::ErrorType result = fe.run( "class Vector3fT{ float vals[ 3 ]; Vector3fT(){}  float& operator()( int index ){ return vals[ index ]; } } Vector3fT v; v( 1 ) = 16.0;  v( 0 ) = 15.0; v( 2 ) = 17.0; float n0 = v( 0 ); float n1 = v( 1 ); float n2 = v( 2 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n0" ) );
@@ -1525,7 +1534,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setOrigin( Vector3f( 1.0, 2.0, 3.0 ) ); int x = vol1.getOrigin()[ 0 ]; vol1.setSpacing( Vector3f( 1.0, 2.0, 3.0 ) ); float spy = vol1.getSpacing()[ 1 ]; Matrix3f rot = vol1.getRotation(); float rot00 = rot.vals[ 0 ]; float rot11 = rot.vals[ 4 ];" );
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setOrigin( Vector3f( 1.0, 2.0, 3.0 ) ); float x = vol1.getOrigin()[ 0 ]; vol1.setSpacing( Vector3f( 1.0, 2.0, 3.0 ) ); float spy = vol1.getSpacing()[ 1 ]; Matrix3f rot = vol1.getRotation(); float rot00 = rot.vals[ 0 ]; float rot11 = rot.vals[ 4 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
@@ -2130,12 +2139,12 @@ struct TestEval
    {
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "int n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42; n = m(0, 0);" );
+         Error::ErrorType result = fe.run( "float n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42.0; n = m(0, 0);" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt1.intval == 42 );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_FLOAT );
+         TESTER_ASSERT( rt1.floatval == 42 );
       }
 
       {
@@ -2197,8 +2206,9 @@ struct TestEval
 
 TESTER_TEST_SUITE(TestEval);
 TESTER_TEST(eval1);
-TESTER_TEST(eval2);
+
+/*TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
-TESTER_TEST(eval5);
+TESTER_TEST(eval5);*/
 TESTER_TEST_SUITE_END();

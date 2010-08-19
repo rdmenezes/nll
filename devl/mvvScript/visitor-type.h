@@ -289,7 +289,9 @@ namespace parser
          }
 
          // if type && operator== operator!=, special case: check the adress and return an int
+         
          TypeNamed* t = dynamic_cast<TypeNamed*>( e.getLeft().getNodeType() );
+         /*
          if ( t &&
               e.getOp() == AstOpBin::EQ ||
               e.getOp() == AstOpBin::NE )
@@ -303,6 +305,10 @@ namespace parser
                e.setNodeType( new TypeInt( e.getLeft().getNodeType()->isReference() ) );
             }
          }
+
+         if ( !t && AstOpBin::EQ )
+         {
+         }*/
 
          mvv::Symbol ops = impl::toSymbol( e.getOp() );
          // if it is a type, check the class has a specific member for this operator
