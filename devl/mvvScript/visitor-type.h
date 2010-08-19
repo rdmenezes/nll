@@ -316,7 +316,15 @@ namespace parser
          {
             AstArgs args( e.getRight().getLocation(), false );
             args.insert_back( &e.getRight() );
-            std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *t->getDecl(), ops ), args );
+
+            AstArgs args2( e.getRight().getLocation(), false );
+            args2.insert_back( &e.getLeft() );
+            args2.insert_back( &e.getRight() );
+
+            std::vector<AstDeclFun*> funs  = getMatchingFunctionsFromArgs( getFunctionsFromClass( *t->getDecl(), ops ), args );
+            std::vector<AstDeclFun*> funs2 = getMatchingFunctionsFromArgs( getFunctionsFromGlobal( _funcs, ops ), args2 );
+            for ( ui32 n = 0; n < funs2.size(); ++n )
+               funs.push_back( funs2[ n ] );
             if ( funs.size() == 1 )
             {
                e.setNodeType( funs[ 0 ]->getNodeType()->clone() );
@@ -331,6 +339,10 @@ namespace parser
                   e.setNodeType( new TypeError() );
                   return;
                }
+
+               // this is a type with no operator, so use the default
+               e.setNodeType( new TypeInt( false ) );
+               return;
             }
          }
 

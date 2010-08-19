@@ -2201,14 +2201,54 @@ struct TestEval
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 1 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){}} Test t; int n1 = t == t; int n2 = t != t;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 1 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "n2" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt2.intval == 0 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){}} int operator==( Test t1, Test t2 ){ return 42; } Test t; int n1 = t == t;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){} int operator==( Test t1 ){ return 42; }} Test t; int n1 = t == t;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n1" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 42 );
+      }
+
+      {
+         // ambiguous function call
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){} int operator==( Test t1 ){ return 42; }} Test t; int n1 = t == t; int operator==( Test t1, Test t2 ){ return 42; }" );
+         TESTER_ASSERT( result == Error::TYPE );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-TESTER_TEST(eval1);
-
-/*TESTER_TEST(eval2);
+/*TESTER_TEST(eval1);
+TESTER_TEST(eval2);
 TESTER_TEST(eval3);
-TESTER_TEST(eval4);
-TESTER_TEST(eval5);*/
+TESTER_TEST(eval4);*/
+TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

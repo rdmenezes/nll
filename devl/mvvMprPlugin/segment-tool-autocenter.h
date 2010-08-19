@@ -88,6 +88,7 @@ namespace platform
             {
                // update segment position
                (**it).position.setValue( newPosition );
+               (**it).panning.setValue( nll::core::vector3f( 0.0f, 0.0f, 0.0f ) );
 
                // update the position of the pointer: all connected segments must point at the same position
                typedef std::set<SegmentToolPointer*> Pointers;

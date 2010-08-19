@@ -198,7 +198,7 @@ namespace parser
          // check we have a specific operator== or !=
          RuntimeValue& ur0 = unref( vals[ 0 ] );
          RuntimeValue& ur1 = unref( vals[ 1 ] );
-         if ( ur0.type == RuntimeValue::TYPE  )
+         if ( ur0.type == RuntimeValue::TYPE && !e.getFunctionCall() )
          {
             if ( e.getOp() == AstOpBin::EQ )
             {
