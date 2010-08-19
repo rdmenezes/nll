@@ -37,6 +37,10 @@ namespace parser
             return mvv::Symbol::create( "operator&&" );
          case AstOpBin::OR:
             return mvv::Symbol::create( "operator||" );
+         case AstOpBin::STREAMO:
+            return mvv::Symbol::create( "operator<<" );
+         case AstOpBin::STREAMI:
+            return mvv::Symbol::create( "operator>>" );
          };
          ensure( 0, "unreachable, or missing a case..." );
       }

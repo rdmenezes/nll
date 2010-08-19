@@ -24,7 +24,9 @@ namespace parser
          GT,
          LT,
          AND,
-         OR
+         OR,
+         STREAMO,
+         STREAMI
       };
 
    public:

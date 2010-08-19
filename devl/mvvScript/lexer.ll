@@ -177,6 +177,8 @@ STRCHR	[A-Za-z_]
 "operator!="   return OPERATOR_NE;
 "operator&&"   return OPERATOR_AND;
 "operator||"   return OPERATOR_OR;
+"operator<<"   return OPERATOR_STREAMO;
+"operator>>"   return OPERATOR_STREAMI;
 
 "this"         return THIS;
 "for"          return FOR;
@@ -211,6 +213,8 @@ STRCHR	[A-Za-z_]
 "{"     return LBRACE;
 "}"     return RBRACE;
 
+"<<"    return STREAMO;
+">>"    return STREAMI;
 ">="    return GE;
 "<="    return LE;
 "!="    return NE;

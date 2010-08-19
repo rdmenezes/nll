@@ -198,6 +198,8 @@
 %token TIMES        "*"
 %token THIS         "this"
 %token REF          "&"
+%token STREAMO      "<<"
+%token STREAMI      ">>"
 
 %token OPERATORPARENT   "operator()"
 %token OPERATORBRACKET  "operator[]"
@@ -214,6 +216,8 @@
 %token <symbol> OPERATOR_NE      "operator!="
 %token <symbol> OPERATOR_AND     "operator&&"
 %token <symbol> OPERATOR_OR      "operator||"
+%token <symbol> OPERATOR_STREAMO "operator<<"
+%token <symbol> OPERATOR_STREAMI "operator>>"
 
 %token FOR              "for"
 %token IN               "in"
@@ -238,6 +242,8 @@
 
 %left IFX
 %left ELSE
+
+%nonassoc STREAMO STREAMI
 %left ASSIGN
 
 %left OR
@@ -247,7 +253,6 @@
 %left TIMES DIVIDE
 %nonassoc UMINUS
 %nonassoc TYPENAME
-
 
 %start program
 
@@ -306,6 +311,7 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           /* operator overloading*/
           |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ); }
           |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ); }
+          |rvalue SEMI { $$ = $1; } /* SHIFT/REDUCE conflict, by default SHIFT, which is the behaviour we want*/
           
 
 			
@@ -327,12 +333,16 @@ operator_def: OPERATOR_PLUS                                          { $$ = new 
              |OPERATOR_OR                                            { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator||" ) ); }
              |OPERATORBRACKET                                        { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator[]" ) ); }
              |OPERATORPARENT                                         { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator()" ) ); }
+             |OPERATOR_STREAMO                                       { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator<<" ) ); }
+             |OPERATOR_STREAMI                                       { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator>>" ) ); }
            
 
      
 rvalue : CMP_INT                  { $$ = new mvv::parser::AstInt( @$, $1 ); }
         |CMP_FLOAT                { $$ = new mvv::parser::AstFloat( @$, $1 ); }
         |NIL                  { $$ = new mvv::parser::AstNil( @$ ); }
+        |rvalue STREAMO rvalue   { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::STREAMO ); }
+        |rvalue STREAMI rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::STREAMI ); }
         |rvalue PLUS rvalue   { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::PLUS ); }
         |rvalue MINUS rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::MINUS ); }
         |rvalue TIMES rvalue  { $$ = new mvv::parser::AstOpBin( @$, $1, $3, mvv::parser::AstOpBin::TIMES ); }
