@@ -672,7 +672,7 @@ char *yytext;
 #line 15 "lexer.ll"
    #define YYDEBUG 1
    
-   #define YY_USER_ACTION  yylloc->last_column += yyleng;
+   #define YY_USER_ACTION  yylloc->first_column = yylloc->last_column; yylloc->last_column += yyleng;
    
 	#include <iostream>
 	#include <stdexcept>

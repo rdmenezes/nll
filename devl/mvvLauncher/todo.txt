@@ -12,6 +12,7 @@ BUG:
 - [DONE] extend also to class def... class { int a[]={dsfds}}
 - [DONE] import file with error => can't reimport it later on
 - [DONE] check operator int n = 3.0 != 3; => operator associativity
+- [DONE] add special characters for script
 - investigate: ct.getVolume().getOrigin() generates a runtime exception
 - investigate: annotations.clear() doesn't clear the MIP
 - fix memleak in the orders
@@ -21,7 +22,6 @@ TODO
 - wrong location/file in script error
 
 FEATURES TO BE ADDED:
-- add special characters for script
 - add registration matrix for volumes...
 - add basic operations:
     - volume resampling
