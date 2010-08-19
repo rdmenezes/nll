@@ -391,18 +391,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\core.ludo"
-				>
-			</File>
-			<File
-				RelativePath=".\io-extn.ludo"
-				>
-			</File>
-			<File
-				RelativePath=".\io.ludo"
-				>
-			</File>
-			<File
 				RelativePath=".\mvv-affine-registration.h"
 				>
 			</File>
@@ -441,17 +429,6 @@
 			<File
 				RelativePath=".\mvv.h"
 				>
-			</File>
-			<File
-				RelativePath=".\mvv.ludo"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCustomBuildTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\stdafx.cpp"
@@ -510,6 +487,37 @@
 			<File
 				RelativePath=".\core.rc"
 				>
+			</File>
+		</Filter>
+		<Filter
+			Name="scipt"
+			>
+			<File
+				RelativePath=".\core.ludo"
+				>
+			</File>
+			<File
+				RelativePath=".\io-extn.ludo"
+				>
+			</File>
+			<File
+				RelativePath=".\io-print.ludo"
+				>
+			</File>
+			<File
+				RelativePath=".\io.ludo"
+				>
+			</File>
+			<File
+				RelativePath=".\mvv.ludo"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCustomBuildTool"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<File
