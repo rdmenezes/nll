@@ -196,6 +196,7 @@ namespace parser
          SymbolTableFuncs    funcs = _funcs;
          SymbolTableClasses  classes = _classes;
          SymbolTableTypedef  typedefs = _typedefs;
+         Files parsedFiles = _parsedFiles;
 
          std::list<Ast*> exps;
          Ast* exp = _context.parseString( s );
@@ -271,6 +272,12 @@ namespace parser
                      }
                   }
                }
+            }
+
+            if ( _context.getError().getStatus() )
+            {
+               // reset the parsed file
+               _parsedFiles = parsedFiles;
             }
          }
 

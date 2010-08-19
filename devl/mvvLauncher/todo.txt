@@ -10,11 +10,11 @@ BUG:
 - [DONE] if add annotations->segment & mip should be notified
 - [DONE] if add/erase volume->update segments!
 - [DONE] extend also to class def... class { int a[]={dsfds}}
+- [DONE] import file with error => can't reimport it later on
+- [DONE] check operator int n = 3.0 != 3; => operator associativity
 - investigate: ct.getVolume().getOrigin() generates a runtime exception
 - investigate: annotations.clear() doesn't clear the MIP
-- import file with error => can't reimport it later on
 - fix memleak in the orders
-- check operator int n = 3.0 != 3; => operator associativity
 
 TODO
 - if variable declared in the wrong order -> we have the declaration and where it should be stored on the stack... but it will not be initialized, so access will fail!
