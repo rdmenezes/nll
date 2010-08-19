@@ -9,7 +9,7 @@
 /**
  Declare the different states
  */
-%x SC_COMMENT SC_STRING SC_COMMENT_LINE
+%x SC_COMMENT SC_STRING SC_COMMENT_LINE BACKQ
 
 %{
    #define YYDEBUG 1
@@ -100,6 +100,10 @@ STRCHR	[A-Za-z_]
     yylloc->first_column = yylloc->last_column;
     yylloc->first_line = yylloc->last_line;
   }
+  
+  "\\" {
+    yy_push_state (BACKQ);
+  }
 
   . {
     yylval->str->append(yytext);
@@ -115,6 +119,26 @@ STRCHR	[A-Za-z_]
     yyterminate();
   }
 }
+
+<BACKQ>{
+  "n" { yylval->str->append ("\n"); yy_pop_state (); }
+  "t" { yylval->str->append ("\t"); yy_pop_state (); }
+  "\\" { yylval->str->append ("\\"); yy_pop_state (); }
+  
+  "\"" { yylval->str->append ("\""); yy_pop_state (); }
+  
+   . {
+    /* reset the state: else if other calls are made, we are in a wrong state */
+    BEGIN(0);
+    
+    std::stringstream msg;
+    msg << *yylloc << "unterminated escape variable." << std::endl;
+    tp._error << mvv::parser::Error::SCAN << msg.str();
+    yyterminate();
+  }
+}
+
+
 
 "//" {
   /* one line comment */
