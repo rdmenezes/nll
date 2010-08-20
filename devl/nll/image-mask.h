@@ -75,7 +75,7 @@ namespace core
    Image<T, Mapper, Allocator> extract( const Image<T, Mapper, Allocator>& img, const ImageMask& mask, ui32 id, const T* background = Image<T, Mapper>::black(), Allocator alloc = Allocator() )
    {
       assert( mask.getNbComponents() == 1 && img.sizex() == mask.sizex() && img.sizey() == mask.sizey() );
-      Image<T, Mapper, Allocator> img2( img.sizex(), img.sizey(), img.getNbComponents(), alloc );
+      Image<T, Mapper, Allocator> img2( img.sizex(), img.sizey(), img.getNbComponents(), true, alloc );
       for ( ui32 ny = 0; ny < img.sizey(); ++ny )
          for ( ui32 nx = 0; nx < img.sizex(); ++nx )
          {

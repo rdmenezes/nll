@@ -4,6 +4,7 @@
 # include "types.h"
 # include "globals.h"
 # include "compute-barycentre.h"
+# include <nll/nll.h>
 
 namespace nll
 {
@@ -104,12 +105,38 @@ namespace detect
       // we first rescale, so that we remove the same amount of voxel... // we need to resample at least twice the size, else artefacts will appear
       core::rescaleBilinear( sliceTfm, REGION_DETECTION_SOURCE_IMG_X * 2, REGION_DETECTION_SOURCE_IMG_Y * 2 );
       */
+      typedef nll::algorithm::Labelize<nll::ui8,
+                                       nll::core::IndexMapperRowMajorFlat2DColorRGBn,
+                                       nll::algorithm::RegionPixelSpecific<nll::ui8> >  Labelize;
+
+      ui8 black[] = { 0 };
+      Labelize::DifferentPixel different( 1, black, 10 );
+
+      Labelize l( different );
+      Labelize::ComponentsInfo info = l.run( sliceTfm, true );
+      
+      int max = 0;
+      int maxIndex = -1;
+      for ( ui32 n = 0; n < info.components.size(); ++n )
+      {
+         if ( info.components[ n ].size > max &&
+              sliceTfm( info.components[ n ].posx, info.components[ n ].posy, 0 ) > 0 )
+         {
+            maxIndex = n;
+            max = info.components[ n ].size;
+         }
+      }
+
+      if ( maxIndex >= 0 )
+      {
+         sliceTfm = extract( sliceTfm, info.labels, info.components[ maxIndex ].id );
+      }
 
       // center the image
       cropVertical( sliceTfm, 0.06f, 2 );
-      cropHorizontal( sliceTfm, 0.13f, 2 );
+      cropHorizontal( sliceTfm, 0.03f, 2 );
 
-      centerImage( sliceTfm );
+      //centerImage( sliceTfm );
 
       // normalize the size
       //core::rescaleFast( sliceTfm, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y );

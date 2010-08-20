@@ -50,6 +50,29 @@ namespace algorithm
       f64      _dist;
    };
 
+   /**
+    @ingroup algorithm
+    @brief Specify if it is different from the color given 
+    */
+   template <class T>
+   class RegionPixelSpecific
+   {
+   public:
+      RegionPixelSpecific( ui32 nbColors, const T* c, ui32 dist ) : _nbColors( nbColors ), _color( c ), _dist( dist )
+      {}
+
+      bool operator()( const T* c1, const T* c2 ) const
+      {
+         bool isNonZero1 = core::generic_norm2<T*, f64>( (T*)c1, (T*)_color, _nbColors ) < _dist;
+         bool isNonZero2 = core::generic_norm2<T*, f64>( (T*)c2, (T*)_color, _nbColors ) < _dist;
+         return isNonZero2 == isNonZero1;
+      }
+   private:
+      ui32     _nbColors;
+      const T* _color;
+      ui32     _dist;
+   };
+
 
    /**
     @ingroup algorithm

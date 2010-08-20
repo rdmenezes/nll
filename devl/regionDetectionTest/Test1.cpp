@@ -8,6 +8,7 @@
 #include <regionDetection/correction3.h>
 #include <regionDetection/correction4.h>
 #include <regionDetection/regionDetection.h>
+#include <nll/labelize.h>
 
 using namespace nll;
 using namespace nll::core;
@@ -310,7 +311,7 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 0.4, 100 );
+      Buffer1D<double> params = make_buffer1D<double>( 0.3, 100 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -460,6 +461,8 @@ struct TestRegion
                                                              final.lungStart * volume.getSpacing()[ 2 ],
                                                              final.skullStart * volume.getSpacing()[ 2 ],
                                                              final.hipsStart * volume.getSpacing()[ 2 ] );
+         /*
+         // TODO: uncomment to activate error correction
          corrector.checkCoherency( labelsmm );
          corrector.correct( labelsmm, volume.getSpacing()[ 2 ], volume.size()[ 2 ] );
 
@@ -471,7 +474,7 @@ struct TestRegion
          }
 
          corrector.annotateProbability( labelsmm, mprz, volume.getSpacing()[ 2 ] );
-
+         */
          
          // uncomment to display label probabilities
          for ( ui32 y = 0; y < mprz.sizey(); ++y )
@@ -1890,6 +1893,72 @@ struct TestRegion
       std::cout << "expected failures:" << nbCasesWithError << " failure correct=" << nbCasesFailingCorrecly << std::endl;
       std::cout << "fp=" << fp << std::endl;
    }
+
+   template <class T>
+   class RegionPixelSpecific
+   {
+   public:
+      RegionPixelSpecific( ui32 nbColors, const T* c, ui32 dist ) : _nbColors( nbColors ), _color( c ), _dist( dist )
+      {}
+
+      bool operator()( const T* c1, const T* c2 ) const
+      {
+         bool isNonZero1 = core::generic_norm2<T*, f64>( (T*)c1, (T*)_color, _nbColors ) < _dist;
+         bool isNonZero2 = core::generic_norm2<T*, f64>( (T*)c2, (T*)_color, _nbColors ) < _dist;
+         return isNonZero2 == isNonZero1;
+      }
+   private:
+      ui32     _nbColors;
+      const T* _color;
+      ui32     _dist;
+   };
+
+   void centering()
+   {
+      Image<ui8> i;
+      std::string str = "3c";
+      core::readBmp( i, "c:/tmp2/" + str +".bmp" );
+
+      typedef nll::algorithm::Labelize<nll::ui8,
+                                       nll::core::IndexMapperRowMajorFlat2DColorRGBn,
+                                       RegionPixelSpecific<nll::ui8> > Labelize;
+      ui8 black[] = { 0, 0, 0};
+      Labelize::DifferentPixel different( 3, black, 10 );
+      Labelize labelize( different );
+
+      nll::core::Timer t;
+      Labelize l( different );
+      Labelize::ComponentsInfo info = l.run( i, true );
+      std::cout << "t=" << t.getCurrentTime() << std::endl;
+
+      ui32 max = 0;
+      ui32 maxIndex = 0;
+      for ( ui32 n = 0; n < info.components.size(); ++n )
+      {
+         if ( info.components[ n ].size > max &&
+              i( info.components[ n ].posx, info.components[ n ].posy, 0 ) > 0 )
+         {
+            maxIndex = n;
+            max = info.components[ n ].size;
+         }
+      }
+
+      for ( ui32 y = 0; y < i.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i.sizex(); ++x )
+         {
+            ui32 label = info.labels( x, y, 0 );
+            if ( info.components[ maxIndex ].id == label )
+            {
+               i( x, y, 0 ) = 255;
+               i( x, y, 1 ) = 0;
+               i( x, y, 2 ) = 0;
+            }
+         }
+      }
+
+      core::writeBmp( i, "c:/tmp2/" + str +"-res.bmp" );
+   }
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
@@ -1920,6 +1989,8 @@ TESTER_TEST(testValidationDataSvm);
 //TESTER_TEST(testOutlierDetection0Wrong); // measure the incorrect configuration detection rate
 //TESTER_TEST(testOutlierDetection); 
 
+// extract the error from matlab registration result
+//TESTER_TEST(registrationExport);
 
 //
 // deprecated:
@@ -1933,5 +2004,5 @@ TESTER_TEST(testValidationDataSvm);
 //TESTER_TEST(testOutlierDetection0Wrong_3);   // only 0 outlier
 
 // for registration based method: display registration findings
-//TESTER_TEST(registrationExport);
+//TESTER_TEST(centering);
 TESTER_TEST_SUITE_END();
