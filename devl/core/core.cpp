@@ -1405,6 +1405,232 @@ public:
    }
 };
 
+class FunctionRunnableACos : public FunctionRunnable
+{
+public:
+   FunctionRunnableACos( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = acos( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableASin : public FunctionRunnable
+{
+public:
+   FunctionRunnableASin( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = asin( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableSqrt : public FunctionRunnable
+{
+public:
+   FunctionRunnableSqrt( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = sqrt( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableFAbs : public FunctionRunnable
+{
+public:
+   FunctionRunnableFAbs( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = fabs( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableAbs : public FunctionRunnable
+{
+public:
+   FunctionRunnableAbs( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_INT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_INT );
+      rt.intval = abs( v1.intval );
+      return rt;
+   }
+};
+
+class FunctionRunnableAssert : public FunctionRunnable
+{
+public:
+   FunctionRunnableAssert( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_INT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+      }
+      if ( v1.intval == 0 )
+         throw RuntimeException( "assert failed!" );
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionRunnableExp : public FunctionRunnable
+{
+public:
+   FunctionRunnableExp( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = exp( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableTan : public FunctionRunnable
+{
+public:
+   FunctionRunnableTan( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = tan( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableATan : public FunctionRunnable
+{
+public:
+   FunctionRunnableATan( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = atan( v1.floatval );
+      return rt;
+   }
+};
+
 class FunctionRunnableSin : public FunctionRunnable
 {
 public:
@@ -1426,6 +1652,31 @@ public:
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = sin( v1.floatval );
+      return rt;
+   }
+};
+
+class FunctionRunnableSqr : public FunctionRunnable
+{
+public:
+   FunctionRunnableSqr( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::CMP_FLOAT   )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = ( v1.floatval * v1.floatval );
       return rt;
    }
 };
@@ -1555,9 +1806,69 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "acos" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableACos( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "tan" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableTan( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "atan" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableATan( fn ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "sin" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableSin( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "asin" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableASin( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "sqrt" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableSqrt( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "abs" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableAbs( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "abs" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableFAbs( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "assert" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableAssert( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "sqr" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableSqr( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "exp" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableExp( fn ) ) );
    }
 
    {

@@ -1,0 +1,180 @@
+class Matrix3f
+{
+	float vals[ 9 ];
+
+	Matrix3f( float a00 = 1.0, float a01 = 0.0, float a02 = 0.0,
+             float a10 = 0.0, float a11 = 1.0, float a12 = 0.0,
+             float a20 = 0.0, float a21 = 0.0, float a22 = 1.0 )
+	{
+		vals[ 0 ] = a00;
+		vals[ 1 ] = a01;
+		vals[ 2 ] = a02;
+		vals[ 3 ] = a10;
+		vals[ 4 ] = a11;
+		vals[ 5 ] = a12;
+		vals[ 6 ] = a20;
+		vals[ 7 ] = a21;
+		vals[ 8 ] = a22;
+	}
+
+   float& operator()( int y, int x )
+   {
+      return vals[ x + y * 3 ];
+   }
+
+   int sizex()
+   {
+      return 3;
+   }
+
+   int sizey()
+   {
+      return 3;
+   }
+}
+
+/**
+ Represent a 4*4 matrix with affine operations defined
+ */
+class Matrix4f
+{
+	float vals[ 16 ];
+
+	Matrix4f( float a00 = 1.0, float a01 = 0.0, float a02 = 0.0, float a03 = 0.0,
+             float a10 = 0.0, float a11 = 1.0, float a12 = 0.0, float a13 = 0.0,
+             float a20 = 0.0, float a21 = 0.0, float a22 = 1.0, float a23 = 0.0,
+             float a30 = 0.0, float a31 = 0.0, float a32 = 0.0, float a33 = 1.0 )
+	{
+		vals[ 0 ] = a00;
+		vals[ 1 ] = a01;
+		vals[ 2 ] = a02;
+      vals[ 3 ] = a03;
+      
+		vals[ 4 ] = a10;
+		vals[ 5 ] = a11;
+		vals[ 6 ] = a12;
+      vals[ 7 ] = a13;
+      
+		vals[ 8 ]  = a20;
+		vals[ 9 ]  = a21;
+		vals[ 10 ] = a22;
+      vals[ 11 ] = a23;
+      
+      vals[ 12 ] = a30;
+		vals[ 13 ] = a31;
+		vals[ 14 ] = a32;
+      vals[ 15 ] = a33;
+	}
+
+   Vector3f getSpacing()
+   {
+      Vector3f sp( sqrt( sqr( vals[ 0 ] ) + sqr( vals[ 4 ] ) + sqr( vals[ 8 ] ) ),
+                   sqrt( sqr( vals[ 1 ] ) + sqr( vals[ 5 ] ) + sqr( vals[ 9 ] ) ),
+                   sqrt( sqr( vals[ 2 ] ) + sqr( vals[ 6 ] ) + sqr( vals[ 10 ] ) ) );
+      return sp;
+   }
+
+   void setSpacing( Vector3f sp )
+   {
+      int n = 0;
+      Vector3f spold = this.getSpacing();
+      
+      vals[ 0 ]  = vals[ 0 ]  / spold[ 0 ] * sp[ 0 ];
+      vals[ 4 ]  = vals[ 4 ]  / spold[ 0 ] * sp[ 0 ];
+      vals[ 11 ] = vals[ 11 ] / spold[ 0 ] * sp[ 0 ];
+
+      vals[ 1 ]  = vals[ 1 ]  / spold[ 1 ] * sp[ 1 ];
+      vals[ 5 ]  = vals[ 5 ]  / spold[ 1 ] * sp[ 1 ];
+      vals[ 12 ] = vals[ 12 ] / spold[ 1 ] * sp[ 1 ];
+
+      vals[ 2 ]  = vals[ 2 ]  / spold[ 2 ] * sp[ 2 ];
+      vals[ 6 ]  = vals[ 6 ]  / spold[ 2 ] * sp[ 2 ];
+      vals[ 13 ] = vals[ 13 ] / spold[ 2 ] * sp[ 2 ];
+   }
+
+   Matrix3f getRotation()
+   {
+      Vector3f sp = this.getSpacing();
+      Matrix3f r( vals[ 0 ] / sp[ 0 ], vals[ 1 ] / sp[ 1 ], vals[ 2 ] / sp[ 2 ],
+                  vals[ 3 ] / sp[ 0 ], vals[ 4 ] / sp[ 1 ], vals[ 5 ] / sp[ 2 ],
+                  vals[ 6 ] / sp[ 0 ], vals[ 7 ] / sp[ 1 ], vals[ 8 ] / sp[ 2 ] );
+      return r;
+   }
+
+   void setRotation( Matrix3f r )
+   {
+      Vector3f sp = this.getSpacing();
+
+      vals[ 0 ]   = r( 0, 0 ) * sp[ 0 ];
+      vals[ 4 ]   = r( 1, 0 ) * sp[ 0 ];
+      vals[ 11 ]  = r( 2, 0 ) * sp[ 0 ];
+
+      vals[ 1 ]   = r( 0, 1 ) * sp[ 1 ];
+      vals[ 5 ]   = r( 1, 1 ) * sp[ 1 ];
+      vals[ 12 ]  = r( 2, 1 ) * sp[ 1 ];
+
+      vals[ 2 ]   = r( 0, 2 ) * sp[ 2 ];
+      vals[ 6 ]   = r( 1, 2 ) * sp[ 2 ];
+      vals[ 13 ]  = r( 2, 2 ) * sp[ 2 ];
+   }
+
+   Vector3f getTranslation()
+   {
+      return Vector3f( vals[ 3 ], vals[ 7 ], vals[ 11 ] ); 
+   }
+
+   void setTranslation( Vector3f t)
+   {
+      vals[ 3 ]  = t[ 0 ];
+      vals[ 7 ]  = t[ 1 ];
+      vals[ 11 ] = t[ 2 ];
+   }
+
+
+   float& operator()( int y, int x )
+   {
+      return vals[ x + y * 4 ];
+   }
+
+   int sizex()
+   {
+      return 4;
+   }
+
+   int sizey()
+   {
+      return 4;
+   }
+}
+
+Matrix4f createRotationX( float angle)
+{
+   return Matrix4f( 1.0, 0.0         , 0.0         , 0.0,
+                    0.0, cos( angle ), sin( angle ), 0.0,
+                    0.0, -sin( angle), cos( angle ), 0.0,
+                    0.0, 0.0         , 0.0         , 1.0 );
+}
+
+Matrix4f createRotationY( float angle)
+{
+   return Matrix4f( cos( angle ), 0.0, sin( angle ), 0.0,
+                    0.0         , 1.0, 0.0         , 0.0,
+                    -sin( angle), 0.0, cos( angle ), 0.0,
+                    0.0         , 0.0, 0.0         , 1.0 );
+}
+
+Matrix4f createRotationZ( float angle)
+{
+   return Matrix4f( cos( angle ), sin( angle ), 0.0, 0.0,
+                    -sin( angle), cos( angle ), 0.0, 0.0,
+                    0.0         , 0.0         , 1.0, 0.0,
+                    0.0         , 0.0         , 0.0, 1.0 );
+}
+
+Matrix4f createTranslation( Vector3f t )
+{
+   return Matrix4f( 1.0, 0.0, 0.0, t[ 0 ],
+                    0.0, 1.0, 0.0, t[ 1 ],
+                    0.0, 0.0, 1.0, t[ 2 ],
+                    0.0, 0.0, 0.0, 1.0 );
+}

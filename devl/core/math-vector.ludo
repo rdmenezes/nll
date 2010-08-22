@@ -1,0 +1,85 @@
+class Vector3i
+{
+	int vals[ 3 ];
+
+	Vector3i( int x = 0, int y = 0, int z = 0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+		vals[ 2 ] = z;
+	}
+
+	int& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+
+   float norm()
+   {
+      return sqrt( sqr( toFloat( vals[ 0 ] ) ) + sqr( toFloat( vals[ 1 ] ) ) + sqr( toFloat( vals[ 2 ] ) ) );
+   }
+}
+
+class Vector3f
+{
+	float vals[ 3 ];
+
+	Vector3f( float x = 0.0, float y = 0.0, float z = 0.0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+		vals[ 2 ] = z;
+	}
+
+	float& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+
+   float norm()
+   {
+      return sqrt( sqr( vals[ 0 ] ) + sqr( vals[ 1 ] ) + sqr( vals[ 2 ] ) );
+   }
+}
+
+class Vector2f
+{
+	float vals[ 2 ];
+
+	Vector2f( float x = 0.0, float y = 0.0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+	}
+
+	float& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+
+   float norm()
+   {
+      return sqrt( sqr( vals[ 0 ] ) + sqr( vals[ 1 ] ) );
+   }
+}
+
+class Vector2i
+{
+	int vals[ 2 ];
+
+	Vector2i( int x = 0, int y = 0 )
+	{
+		vals[ 0 ] = x;
+		vals[ 1 ] = y;
+	}
+
+	int& operator[]( int index )
+	{
+		return vals[ index ];
+	}
+
+   float norm()
+   {
+      return sqrt( sqr( toFloat( vals[ 0 ] ) ) + sqr( toFloat( vals[ 1 ] ) ) );
+   }
+}

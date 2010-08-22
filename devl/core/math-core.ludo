@@ -1,0 +1,16 @@
+import float cos(  float angleRadian );
+import float acos( float angleRadian );
+import float sin(  float angleRadian );
+import float asin( float angleRadian );
+import float tan(  float angleRadian );
+import float atan( float angleRadian );
+
+import float exp(  float val );
+import float sqrt( float val );
+import float sqr(  float val );
+
+import int round( float val );
+import int floor( float val );
+
+import int   abs( int   val );
+import float abs( float val );
