@@ -73,9 +73,9 @@ class Matrix3f
 {
 	float vals[ 9 ];
 
-	Matrix3f( float a00 = 1, float a01 = 0, float a02 = 0,
-		    float a10 = 0, float a11 = 1, float a12 = 0,
-		    float a20 = 0, float a21 = 0, float a22 = 1 )
+	Matrix3f( float a00 = 1.0, float a01 = 0.0, float a02 = 0.0,
+		    float a10 = 0.0, float a11 = 1.0, float a12 = 0.0,
+		    float a20 = 0.0, float a21 = 0.0, float a22 = 1.0 )
 	{
 		vals[ 0 ] = a00;
 		vals[ 1 ] = a01;

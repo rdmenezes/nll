@@ -1153,7 +1153,7 @@ struct TestBasic
          ParserContext context; SymbolTableTypedef typedefs; SymbolTableVars vars; SymbolTableFuncs funcs;SymbolTableClasses classes; ui32 fp;
          Ast* exp = 0;
          
-         exp = context.parseString( "import float operator+( int n, float nn); int n = 3; float f = 2.5; int nn = f + n;" );
+         exp = context.parseString( "import int operator+( float n, int nn); int n = 3; float f = 2.5; int nn = f + n;" );
          TESTER_ASSERT( exp );
          VisitorRegisterDeclarations visitor( context, vars, funcs, classes, typedefs, fp );
          visitor( *exp );
@@ -2512,15 +2512,16 @@ struct TestBasic
 
 
 TESTER_TEST_SUITE(TestBasic);
+
 /*
 TESTER_TEST(testBinding1);
 TESTER_TEST(testBinding2);
 TESTER_TEST(testDummy2);
 TESTER_TEST(testFull1);
-//TESTER_TEST(testSymbolTableDisctionary);
 TESTER_TEST(testFull2);
-TESTER_TEST(testType1);
 */
+TESTER_TEST(testType1);
+
 TESTER_TEST_SUITE_END();
 
 

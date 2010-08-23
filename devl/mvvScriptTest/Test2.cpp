@@ -2253,9 +2253,10 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*TESTER_TEST(eval1);
+/*
+TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
-TESTER_TEST(eval4);*/
-TESTER_TEST(eval5);
+TESTER_TEST(eval4);
+TESTER_TEST(eval5);*/
 TESTER_TEST_SUITE_END();
