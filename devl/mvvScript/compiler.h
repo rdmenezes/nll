@@ -12,6 +12,7 @@
 # include "visitor-evaluate.h"
 # include "function-runnable.h"
 # include "import.h"
+# include "compiler-dummy-interface.h"
 # include <mvvPlatform/context.h>
 
 namespace mvv
@@ -25,7 +26,7 @@ namespace parser
           deallocate correctly the constructor as the tree and runtime environment has
           been destroyed
     */
-   class MVVSCRIPT_API CompilerFrontEnd
+   class MVVSCRIPT_API CompilerFrontEnd : public InterpreterRuntimeInterface
    {
       /**
        @brief Stores info on the tree built
@@ -57,6 +58,35 @@ namespace parser
       typedef std::map<const AstDeclFun*, platform::RefcountedTyped<FunctionRunnable> >   ImportedFunctions;
       typedef std::set<mvv::Symbol> Files;
       typedef std::vector<mvv::Symbol> FilesOrder;
+
+   public:
+      // dummy interface
+      virtual bool interpret( const std::string& cmd )
+      {
+         return run( cmd ) == Error::SUCCESS;
+      }
+
+      virtual std::string getVariableText( const mvv::Symbol& s ) const
+      {
+         try
+         {
+            const RuntimeValue& v = getVariable( s );
+            switch ( v.type )
+            {
+            case RuntimeValue::STRING:
+               return v.stringval;
+            case RuntimeValue::CMP_FLOAT:
+               return nll::core::val2str( v.floatval );
+            case RuntimeValue::CMP_INT:
+               return nll::core::val2str( v.intval );
+            default:
+               throw std::exception( "should not throw!" );
+            }
+         } catch (...)
+         {
+            return "";
+         }
+      }
 
    public:
       /**
@@ -307,7 +337,7 @@ namespace parser
        @return it's runtime value & type
        @note if a RuntimeValue& is used still, while the front end is destroyed, this will crash (destructor)
        */
-      const RuntimeValue& getVariable( const mvv::Symbol& name )
+      const RuntimeValue& getVariable( const mvv::Symbol& name ) const
       {
          const AstDeclVar* val = _vars.find( name );
          if ( !val )
@@ -319,12 +349,12 @@ namespace parser
             throw std::exception("incorrect frame pointer" );
          }
 
-         RuntimeValue& res = _env.stack[ val->getRuntimeIndex() ];
-         while ( res.type == RuntimeValue::REF )
+         const RuntimeValue* res = &_env.stack[ val->getRuntimeIndex() ];
+         while ( res->type == RuntimeValue::REF )
          {
-            res = *res.ref;
+            res = res->ref;
          }
-         return res;
+         return *res;
       }
 
       /**

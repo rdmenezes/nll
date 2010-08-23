@@ -118,7 +118,7 @@ namespace parser
     All data are stored in this structure (int, float..) however only one is valid, dependending on the
     type.
     */
-   class MVVSCRIPT_API RuntimeValue
+   class RuntimeValue
    {
    public:
       typedef impl::RefcountedTypedDestructor   RefcountedValues;

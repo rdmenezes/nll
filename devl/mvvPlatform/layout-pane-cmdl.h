@@ -2,7 +2,7 @@
 # define MVV_PLATFORM_LAYOUT_PANE_CMDL_H_
 
 # include "layout-pane-textbox.h"
-# include <mvvScript/compiler.h>
+# include <mvvScript/compiler-dummy-interface.h>
 
 namespace mvv
 {
@@ -13,7 +13,7 @@ namespace platform
       class WritableCommand : public Writable
       {
       public:
-         WritableCommand( parser::CompilerFrontEnd& engine, Writable& sink ) : _engine( engine ), _sink( sink )
+         WritableCommand( parser::InterpreterRuntimeInterface& engine, Writable& sink ) : _engine( engine ), _sink( sink )
          {
          }
 
@@ -26,8 +26,8 @@ namespace platform
             {
                _engine.setStdOut( &ss );
 
-               parser::Error::ErrorType result = _engine.run( s );
-               if ( result != parser::Error::SUCCESS )
+               bool result = _engine.interpret( s );
+               if ( !result )
                {
                   std::string msg = _engine.getLastErrorMesage();
                   size_t pos = msg.find_first_of( 10 );
@@ -64,7 +64,7 @@ namespace platform
          WritableCommand( WritableCommand& );
 
       private:
-         parser::CompilerFrontEnd&  _engine;
+         parser::InterpreterRuntimeInterface&  _engine;
          Writable&                  _sink;
       };
 
@@ -72,7 +72,7 @@ namespace platform
       LayoutCommandLine( const nll::core::vector2ui& origin,
                          const nll::core::vector2ui& size,
                          RefcountedTyped<Font> font,
-                         parser::CompilerFrontEnd& engine,
+                         parser::InterpreterRuntimeInterface& engine,
                          const ui32 fontSize = 15 ) : Pane( origin, size ), _engine( engine )
       {
          PaneTextbox* textBoxDisplay = new PaneTextbox( nll::core::vector2ui(0, 0),
@@ -202,27 +202,8 @@ namespace platform
 
       void _readConfig( int& numberOfItems, std::string& path )
       {
-         try
-         {
-            parser::RuntimeValue size = _engine.getVariable( mvv::Symbol::create( "sizeHistoryExport" ) );
-            if ( size.type == parser::RuntimeValue::CMP_INT )
-               numberOfItems = size.intval;
-         }
-         catch (...)
-         {
-            // do nothing
-         }
-
-         try
-         {
-            parser::RuntimeValue p = _engine.getVariable( mvv::Symbol::create( "historyExportLocation" ) );
-            if ( p.type == parser::RuntimeValue::STRING )
-               path = p.stringval;
-         }
-         catch (...)
-         {
-            // do nothing
-         }
+         numberOfItems = nll::core::str2val<int>( _engine.getVariableText( mvv::Symbol::create( "sizeHistoryExport" ) ) );
+         path = _engine.getVariableText( mvv::Symbol::create( "historyExportLocation" ) );
       }
 
 
@@ -230,7 +211,7 @@ namespace platform
       RefcountedTyped<Pane>      _textBoxCmd;
       RefcountedTyped<Pane>      _textBoxDisplay;
       RefcountedTyped<Pane>      _subLayout;
-      parser::CompilerFrontEnd&  _engine;
+      parser::InterpreterRuntimeInterface&  _engine;
 
       RefcountedTyped<WritableCommand> _writableCommand;
 

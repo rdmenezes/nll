@@ -21,7 +21,8 @@ namespace platform
       AnnotationColors( const nll::core::vector3f& position,
                         const nll::core::vector3f& heightMM,
                         ui32 widthPixel,
-                        const std::vector<nll::core::vector3uc>& colors ) : _position( position ), _heightMM( heightMM ), _width( widthPixel )
+                        const std::vector<nll::core::vector3uc>& colors,
+                        nll::core::vector3uc transparentColor = nll::core::vector3uc( 0, 0, 0 ) ) : _position( position ), _heightMM( heightMM ), _width( widthPixel ), _transparentColor( transparentColor )
       {
          _colors = nll::core::Image<ui8>( 1, (ui32)colors.size(), 3 );
          for ( ui32 n = 0; n < colors.size(); ++n )
@@ -94,6 +95,8 @@ namespace platform
                   int xx = (int)p[ 0 ]  + (int)slice.size()[ 0 ] / 2;
                   int yy = (int)p[ 1 ]  + (int)slice.size()[ 1 ] / 2;
                   ui8* col = im.point( 0, n );
+                  if ( _transparentColor[ 0 ] == col[ 0 ] && _transparentColor[ 1 ] == col[ 1 ] && _transparentColor[ 2 ] == col[ 2 ] )
+                     continue;   // skip, we have a transparent color
                   ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( xx, yy );
                   int max = std::min<int>( p[ 0 ] + (int)_width, slice.size()[ 0 ] / 2 );
                   for ( int x = p[ 0 ]; x < max; ++x )
@@ -118,6 +121,7 @@ namespace platform
       nll::core::vector3f     _heightMM;
       nll::core::Image<ui8>   _colors;
       ui32                    _width;
+      nll::core::vector3uc    _transparentColor;
    };
 }
 }

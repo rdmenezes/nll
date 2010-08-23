@@ -645,6 +645,10 @@
 			Name="api"
 			>
 			<File
+				RelativePath=".\compiler-dummy-interface.h"
+				>
+			</File>
+			<File
 				RelativePath=".\compiler-helper.h"
 				>
 			</File>
