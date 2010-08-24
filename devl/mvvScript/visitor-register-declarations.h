@@ -216,22 +216,6 @@ namespace parser
          // if global scope, add it to the symbol table
          if ( _scopeDepth == 1 )
          {
-            /*
-            // TODO: check! it is fine to declare a variable that has the same name than a type!
-            const AstDeclClass* decl = _classes.find_in_scope( e.getName() );
-            if ( decl )
-            {
-               impl::reportAlreadyDeclaredType( decl->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
-               return;
-            }
-
-            const AstDeclClass* decl2 = _classes.find( nll::core::make_vector<mvv::Symbol>( e.getName() ) );
-            if ( decl2 )
-            {
-               impl::reportAlreadyDeclaredType( decl2->getLocation(), e.getLocation(), _context, "a class has already been declared with this name" );
-               return;
-            }*/
-
             SymbolTableFuncs::iterator it = _funcs.find( e.getName() );
             if ( it != _funcs.end() )
             {
@@ -247,6 +231,8 @@ namespace parser
                _vars.insert( e.getName(), &e );
                e.setRuntimeIndex( _currentFramePointer++ ); // save the current FP so we can have debug values...
             }
+
+            e.setGlobalVariable( true );
          }
       }
 

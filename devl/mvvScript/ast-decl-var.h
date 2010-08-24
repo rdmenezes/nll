@@ -19,6 +19,7 @@ namespace parser
   //       _index = -1;
          _indexRuntime = static_cast<ui32>( -1 );
          _isFunctionVar = false;
+         _isGlobalVar = false;
       }
 
       ~AstDeclVar()
@@ -129,7 +130,15 @@ namespace parser
          return _indexRuntime;
       }
 
+      void setGlobalVariable( bool val )
+      {
+         _isGlobalVar = val;
+      }
 
+      bool getIsGlobalVariable() const
+      {
+         return _isGlobalVar;
+      }
 
    private:
       AstTypeT*            _type;
@@ -140,6 +149,7 @@ namespace parser
       AstDeclFun*          _constructor;
       ui32                 _indexRuntime;    // the index of the declaration in the runtime stack relative to the current frame pointer
       bool                 _isFunctionVar;   // true if the variable is part of a function prototype
+      bool                 _isGlobalVar;     // true if the declaration is a global variable
    };
 }
 }

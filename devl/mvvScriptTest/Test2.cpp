@@ -21,16 +21,7 @@ struct TestEval
 {
    void eval1()
    {
-      {
-         CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "int operator!=( int a, float b ){return 42;} int n = 1 != 0.1;" );
-         TESTER_ASSERT( result == Error::SUCCESS );
-
-         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt.intval == 42 );
-      }
-
+     
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -39,6 +30,16 @@ struct TestEval
          const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( rt.floatval == 5.5 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int operator!=( int a, float b ){return 42;} int n = 1 != 0.1;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt.intval == 42 );
       }
 
       {
@@ -2137,6 +2138,7 @@ struct TestEval
 
    void eval5()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42.0; n = m(0, 0);" );
@@ -2249,14 +2251,26 @@ struct TestEval
          Error::ErrorType result = fe.run( "class Test{Test(){}} Test t; t >> t;" );
          TESTER_ASSERT( result == Error::TYPE );
       }
+      */
+
+      {
+         // ambiguous function call
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "include \"../../mvvScriptTest/test/test2\" int n = 0; n = test;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 6 );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
-TESTER_TEST(eval5);*/
+TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

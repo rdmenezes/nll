@@ -684,6 +684,21 @@ namespace parser
          return false;
       }
 
+      RuntimeValue& addVariable( const RuntimeValue& val, AstDeclVar& e )
+      {
+         if ( e.getIsGlobalVariable() )
+         {
+            // in case it is a global variable, the memory should have been allocated by the compiler
+            // so that when an "include" is done, we can recursively access the value of the variables
+            RuntimeValue& store = _env.stack[ e.getRuntimeIndex() ];
+            store = val;
+            return store;
+         } else {
+            _env.stack.push_back( val );
+            return *_env.stack.rbegin();
+         }
+      }
+
       virtual void operator()( AstDeclVar& e )
       {
          if ( e.getInit() )
@@ -691,25 +706,25 @@ namespace parser
             operator()( *e.getInit() );
             if ( e.getType().getNodeType()->isReference() )
             {
-               _env.stack.push_back( _env.resultRegister );
+               addVariable( _env.resultRegister, e );
             } else {
                // when you do int& fn(); int a = fn(); => we want to copy the value only!
-               _env.stack.push_back( unref( _env.resultRegister ) );
+               addVariable( unref( _env.resultRegister ), e );
             }
             return;
          } else if ( e.getDeclarationList() )
          {
             AstArgs::Args& args = e.getDeclarationList()->getArgs();
-            _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
-            _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( args.size() ) );
+            RuntimeValue& value = addVariable( RuntimeValue( RuntimeValue::TYPE ), e );
+            value.vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( args.size() ) );
             bool mustCreateRef = isUnrefIsARef( *e.getNodeType() );  // if the type held is a reference, keep a reference and not the value!
             for ( ui32 n = 0; n < args.size(); ++n )
             {
                operator()( *args[ n ] );
                if ( mustCreateRef )
-                  (*_env.stack.rbegin()->vals)[ n ] = _env.resultRegister; // copy the value, not a ref!
+                  (*value.vals)[ n ] = _env.resultRegister;
                else
-                  (*_env.stack.rbegin()->vals)[ n ] = unref( _env.resultRegister ); // copy the value, not a ref!
+                  (*value.vals)[ n ] = unref( _env.resultRegister ); // copy the value, not a ref!
             }
             return;
          } 
@@ -729,28 +744,39 @@ namespace parser
                }
 
                // create the root of the array
-               _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
-               createArray( *_env.stack.rbegin(), vals, 0, e.getConstructorCall() );
+               RuntimeValue& value = addVariable( RuntimeValue( RuntimeValue::TYPE ), e );
+               createArray( value, vals, 0, e.getConstructorCall() );
                return;
             }
          } else {
             // if not an array & constructor call
             if ( e.getConstructorCall() )
             {
-               // construct an object
-               _env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
+               RuntimeValue& value = addVariable( RuntimeValue( RuntimeValue::TYPE ), e );
+               //_env.stack.push_back( RuntimeValue( RuntimeValue::TYPE ) );
                assert( e.getConstructorCall()->getMemberOfClass() ); // if constructor, it must have a ref on the class def!
-               _env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+               //_env.stack.rbegin()->vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
+               value.vals = RuntimeValue::RefcountedValues( _destructorEvaluator, e.getNodeType(), new RuntimeValues( e.getConstructorCall()->getMemberOfClass()->getMemberVariableSize() ) );
 
                // init the var that need to!
-               _initObject( *e.getConstructorCall()->getMemberOfClass(), *_env.stack.rbegin() ); // populate the object if necessary
+               //
+               //
+               //
+               if ( e.getIsGlobalVariable() )
+               {
+                  _env.stack.push_back( value );
+                  _initObject( *e.getConstructorCall()->getMemberOfClass(), value ); // populate the object if necessary
+                  _env.stack.pop_back();
+               } else {
+                  _initObject( *e.getConstructorCall()->getMemberOfClass(), value ); // populate the object if necessary
+               }
 
                if ( e.getObjectInitialization() )
                {
                   AstArgs::Args& args = e.getObjectInitialization()->getArgs();
                   RuntimeValues vals( args.size() + 1 );
 
-                  vals[ 0 ] = *_env.stack.rbegin();
+                  vals[ 0 ] = value;
                   for ( size_t n = 0; n < args.size(); ++n )
                   {
                      operator()( *args[ n ] );
@@ -760,7 +786,7 @@ namespace parser
                   _callFunction( *e.getConstructorCall(), vals );
                } else {
                   RuntimeValues vals( 1 );
-                  vals[ 0 ] = *_env.stack.rbegin();
+                  vals[ 0 ] = value;
                   _callFunction( *e.getConstructorCall(), vals );
                }
                return;
@@ -782,7 +808,7 @@ namespace parser
          {
             rt.type = RuntimeValue::STRING;
          }
-         _env.stack.push_back( rt );
+         addVariable( rt, e );
       }
 
       /**

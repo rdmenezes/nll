@@ -235,6 +235,8 @@ namespace parser
 
          if ( exp )
          {
+            ui32 startingFramePointer = _env.framePointer;  // we need this to allocate all together the memory for global/static variables
+
             // explore all files: current + includes + import
             exps.push_back( exp );
             _explore( _context, vars, funcs, classes, typedefs, exps, exp, importedLib );
@@ -280,6 +282,9 @@ namespace parser
                      }
 
                      // evaluate ALL the files
+                     ui32 globalMemoryToAllocate = _env.framePointer - startingFramePointer;
+                     _env.stack.resize( _env.stack.size() + globalMemoryToAllocate );  // global variable in the eval visitor should not allocate memory!
+
                      VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env, _eval.getDataPtr() ); // only one visitor so the FP is correct
                      if ( exps.size() > 1 )
                      {
