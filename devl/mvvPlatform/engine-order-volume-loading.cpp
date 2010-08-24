@@ -111,14 +111,14 @@ namespace platform
          return vol;
       }
 
+      // be sure the orders of the pool have been flushed... [problem if create asynchronous & wait in the same cyle...]
+      _pool.run();
+
       Records::iterator it = _records.find( name );
       if ( it == _records.end() )
       {
          throw std::exception( ( std::string( "volume ID can't be found and no Future can be found:" ) + name.getName() ).c_str() );
       }
-
-      // be sure the orders of the pool have been flushed... [problem if create asynchronous & wait in the same cyle...]
-      _pool.run();
 
       std::cout << "----GET volume =" << name.getName() << std::endl;
       // lock the thread while the volume is being loaded
