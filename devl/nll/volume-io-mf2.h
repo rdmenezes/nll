@@ -146,6 +146,75 @@ namespace imaging
 
       return false;
    }
+
+   /**
+    @ingroup imaging
+    Write a .mf2 medical volume. Not a standard file format, just a helper.
+    */
+   template <class T, class Buf>
+   bool saveSimpleFlatFile( const std::string& filename, VolumeSpatial<T, Buf>& vol )
+   {
+      typedef VolumeSpatial<T, Buf> Volume;
+
+      // open the file
+      std::ofstream file( filename.c_str(), std::ios::binary | std::ios::out );
+      if ( !file.good() )
+      {
+         return false;
+      }
+
+      // 0 : new format
+      unsigned int firstWord = 0;
+      file.write( (char*)&firstWord, sizeof( unsigned int ) );
+      
+      // If new format
+      unsigned int width  = vol.getSize()[ 0 ];
+      unsigned int height = vol.getSize()[ 1 ];
+      unsigned int depth  = vol.getSize()[ 2 ];
+      unsigned int dataType = 0; // we don't want RSI info
+
+      // Get the version number
+      unsigned int formatVersionNumber = 3;
+      file.write( (char*)&formatVersionNumber, sizeof( unsigned int ) );
+      file.write( (char*)&dataType, sizeof( unsigned int ) );
+
+      // Dimensions
+      file.write( (char*)&width, sizeof( unsigned int ) );
+      file.write( (char*)&height, sizeof( unsigned int ) );
+      file.write( (char*)&depth, sizeof( unsigned int ) );
+      
+
+      // Spacing
+      double colSp = vol.getSpacing()[ 0 ];
+      double rowSp = vol.getSpacing()[ 1 ];
+      double sliceSp = vol.getSpacing()[ 2 ];
+      file.write( (char*)&colSp, sizeof( double ) );
+      file.write( (char*)&rowSp, sizeof( double ) );
+      file.write( (char*)&sliceSp, sizeof( double ) );
+
+      // Origin
+      double originX = - vol.getOrigin()[ 0 ];   // in MF2 origin = (1 voxel)->(0,0,0), volume is opposite!
+      double originY = - vol.getOrigin()[ 1 ];
+      double originZ = - vol.getOrigin()[ 2 ];
+      file.write( (char*)&originX, sizeof( double ) );
+      file.write( (char*)&originY, sizeof( double ) );
+      file.write( (char*)&originZ, sizeof( double ) );
+
+      // Data
+      for ( unsigned int k = 0; k < depth; ++k )
+      {
+         for ( unsigned int j = 0; j < height; ++j )
+         {
+            for ( unsigned int i = 0; i < width; ++i )
+            {
+               float value = vol( i, j, k );
+               file.write( (char*)&value, sizeof( float ) );
+            }
+         }
+      }
+
+      return true;
+   }
 }
 }
 

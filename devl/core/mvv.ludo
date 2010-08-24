@@ -214,7 +214,7 @@ class Volume
 }
 
 /**
- @brief computes the barycentre of the volume
+ @brief computes the barycentre of the LUT transformed volume
  */
 import Vector3f barycentre( VolumeID v, Lut l );
 
@@ -228,10 +228,12 @@ import VolumeID readVolumeMF2Asynchronous( string name );
 import void writeVolumeMF2( VolumeID id, string name );
 
 // import/export text volumes
+// this is a full text volume (header + data)
 import void writeVolumeTxt( VolumeID id, string name );
 import VolumeID readVolumeTxt( string name );
 
 // import/export bin volumes
+// the data is saved as a buffer of float, but the header is in clear
 import void writeVolumeBin( VolumeID id, string name );
 import VolumeID readVolumeBin( string name );
 

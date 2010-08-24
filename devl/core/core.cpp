@@ -2297,6 +2297,14 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      assert( ty );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "writeVolumeMF2" ) ), nll::core::make_vector<const Type*>( ty, new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionWriteMF2Volume( fn, context ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "readVolumeBin" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLoadVolumeBin( fn, context, e ) ) );

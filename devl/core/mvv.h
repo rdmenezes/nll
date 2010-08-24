@@ -255,7 +255,7 @@ private:
    mvv::platform::Context&    _context;
 };
 
-/*
+
 class FunctionWriteMF2Volume : public FunctionRunnable
 {
 public:
@@ -287,7 +287,7 @@ public:
       // it is guaranteed we have a volume
       mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
       
-      bool success = nll::imaging::writeVolumeBinary( *vol, v2.stringval );
+      bool success = nll::imaging::saveSimpleFlatFile( v2.stringval, *vol );
       if ( !success )
          throw RuntimeException( "cannot save the volume" );
       
@@ -298,7 +298,7 @@ public:
 private:
    mvv::platform::Context&    _context;
 };
-*/
+
 
 
 class FunctionLoadVolumeTxt : public FunctionRunnable
