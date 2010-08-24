@@ -13,13 +13,14 @@ BUG:
 - [DONE] import file with error => can't reimport it later on
 - [DONE] check operator int n = 3.0 != 3; => operator associativity
 - [DONE] add special characters for script
+- [DONE] if variable declared in the wrong order -> we have the declaration and where it should be stored on the stack... but it will not be initialized, so access will fail!
+- [DONE] wrong location/file in script error
 - investigate: ct.getVolume().getOrigin() generates a runtime exception
 - investigate: annotations.clear() doesn't clear the MIP
 - fix memleak in the orders
+- check: variable that are initialized before use in case of mutual inclusion may be initialized twice
 
 TODO
-- if variable declared in the wrong order -> we have the declaration and where it should be stored on the stack... but it will not be initialized, so access will fail!
-- wrong location/file in script error
 
 FEATURES TO BE ADDED:
 - add registration matrix for volumes...

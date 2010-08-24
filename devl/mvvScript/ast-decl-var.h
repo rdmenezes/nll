@@ -20,6 +20,7 @@ namespace parser
          _indexRuntime = static_cast<ui32>( -1 );
          _isFunctionVar = false;
          _isGlobalVar = false;
+         _isPreinit = false;
       }
 
       ~AstDeclVar()
@@ -140,6 +141,17 @@ namespace parser
          return _isGlobalVar;
       }
 
+      void setIsPreinit( bool val )
+      {
+         _isPreinit = val;
+      }
+
+      bool getIsPreinit() const
+      {
+         return _isPreinit;
+      }
+
+
    private:
       AstTypeT*            _type;
       AstExp*              _init;
@@ -150,6 +162,7 @@ namespace parser
       ui32                 _indexRuntime;    // the index of the declaration in the runtime stack relative to the current frame pointer
       bool                 _isFunctionVar;   // true if the variable is part of a function prototype
       bool                 _isGlobalVar;     // true if the declaration is a global variable
+      bool                 _isPreinit;       // just tells this variable delcaration has already been initialized
    };
 }
 }

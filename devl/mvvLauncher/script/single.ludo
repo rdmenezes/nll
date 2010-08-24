@@ -1,26 +1,8 @@
 import "core"
+import "siemens"
+
 include "helper1"
 
-string volumeList[] =
-{
-   "D:/Devel/sandbox/regionDetectionTest/data/case46.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case47.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case48.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case49.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case50.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case51.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case52.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case53.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case54.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case55.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case56.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case57.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case58.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case59.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case60.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case61.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case62.mf2"
-};
 
 /**
  @note the following variables must have been defined:
@@ -61,18 +43,11 @@ VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/ct.mf2");
 Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
 
-
-import "siemens"
 DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, pointer );
 VolumeSwitch switch( ctLut, volumes, volumeList, detection );
 
-
-/**
- @brief Structure defining key callbacks
- @note only special characters F1-F10, ESC, as well as all ASCII character/+modifier can have a callback associated
- @note if "callbacks" is modified, the variable must be reaffected, and not only the arrays...
- */
+/** @brief Structure defining key callbacks @note only special characters F1-F10, ESC, as well as all ASCII character/+modifier can have a callback associated @note if "callbacks" is modified, the variable must be reaffected, and not only the arrays... */
 class KeyboardCallback
 {
    typedef void() KeyCallback;
@@ -136,3 +111,4 @@ Layout l4( mip1 );
 
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
+

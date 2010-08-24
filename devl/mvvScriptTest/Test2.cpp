@@ -2138,7 +2138,6 @@ struct TestEval
 
    void eval5()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n; class Test{Test(){} float vals[ 9 ];float& operator()( int y, int x ){return vals[0];}} Test m; m( 0, 0 ) = 42.0; n = m(0, 0);" );
@@ -2251,17 +2250,43 @@ struct TestEval
          Error::ErrorType result = fe.run( "class Test{Test(){}} Test t; t >> t;" );
          TESTER_ASSERT( result == Error::TYPE );
       }
-      */
+      
 
       {
-         // ambiguous function call
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "include \"../../mvvScriptTest/test/test2\" int n = 0; n = test;" );
+         Error::ErrorType result = fe.run( "include \"../../mvvScriptTest/test/test2\" int n = 0; n = test; string s = vals[ 1 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
          TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt1.intval == 6 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "s" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt2.stringval == "t2" );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int n = 0; n = test; string s = vals[ 1 ]; include \"../../mvvScriptTest/test/test2\"" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 6 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "s" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::STRING );
+         TESTER_ASSERT( rt2.stringval == "t2" );
+      }
+   }
+
+   void eval6()
+   {
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{int n = 42; Test(){} } Test(); Test();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
       }
    }
 };
@@ -2273,4 +2298,6 @@ TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
+
+TESTER_TEST(eval6);
 TESTER_TEST_SUITE_END();

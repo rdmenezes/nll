@@ -273,7 +273,6 @@ namespace parser
       virtual void operator()( AstExpAssign& e )
       {
          operator()( e.getValue() );
-         // TODO REF TEST
          RuntimeValue val = unref( _env.resultRegister );   // when a 'value' is copyied, this is always by value, so we need to remove ref... except if the type of lvalue is a reference
          RuntimeValue valRef = _env.resultRegister;   // in case it is a ref we need to save it...
 
@@ -308,7 +307,6 @@ namespace parser
          } else {
             if ( isRef && unref( _env.resultRegister ).type == RuntimeValue::EMPTY && !forceCopyValue )   // if we have a ref and this ref doesn't have value, then copy the ref, else we copy by value
             {
-               // TODO is this ok?
                assert( _env.resultRegister.type == RuntimeValue::REF );
                *_env.resultRegister.ref = valRef;
             } else {
@@ -321,6 +319,17 @@ namespace parser
 
       virtual void operator()( AstVarSimple& e )
       {
+         AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
+         
+         if ( v && v->getIsGlobalVariable() && !v->getIsPreinit() )
+         {
+            // we are using a global variable that has not been initialized, so init it!
+            // it can happens in case of "include" that are recursively need the init of a GV
+            RuntimeValue save = _env.resultRegister;
+            operator()( *v );
+            _env.resultRegister = save;
+         }
+
          if ( e.getIsFunctionAddress() )
          {
             RuntimeValue save = _env.resultRegister;
@@ -328,7 +337,6 @@ namespace parser
             _env.resultRegister = RuntimeValue( RuntimeValue::FUN_PTR );
             _env.resultRegister.functionPointer =  e.getFunctionAddress();
          } else {
-            AstDeclVar* v = dynamic_cast<AstDeclVar*>( e.getReference() );
             assert( v ); // compiler error if this is not a decl
             if ( v->getIsInFunctionPrototype() )
                _forceUnref = true;  // in case a variable is in function prototype, if this var is a reference, we must force to copy the value in the assignment
@@ -618,7 +626,6 @@ namespace parser
 
                // init some of the values
                _initObject( *functionToCall->getMemberOfClass(), vals[ 0 ] );
-
             } else  {
                vals[ 0 ] = _env.resultRegister;
             }
@@ -701,6 +708,14 @@ namespace parser
 
       virtual void operator()( AstDeclVar& e )
       {
+         /*
+         // TODO: variable may be initialized several times...
+         if ( e.getIsPreinit() ) // already initialized...
+            return;
+          */
+         
+         e.setIsPreinit( true );
+
          if ( e.getInit() )
          {
             operator()( *e.getInit() );

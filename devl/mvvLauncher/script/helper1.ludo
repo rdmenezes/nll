@@ -1,3 +1,24 @@
+string volumeList[] =
+{
+   "D:/Devel/sandbox/regionDetectionTest/data/case46.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case47.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case48.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case49.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case50.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case51.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case52.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case53.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case54.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case55.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case56.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case57.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case58.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case59.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case60.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case61.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case62.mf2"
+};
+
 class VolumeSwitch
 {
    int index                        = 0;
