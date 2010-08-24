@@ -169,6 +169,248 @@ private:
    CompilerFrontEnd&        _e;
 };
 
+class FunctionWriteTxtVolume : public FunctionRunnable
+{
+public:
+   FunctionWriteTxtVolume( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING ) ||
+         v2.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "invalid argument: expected: VolumeID, string" );
+      }
+
+      ContextTools* tools = _context.get<ContextTools>();
+      if ( !tools )
+      {
+         throw RuntimeException( "ContextTools context has not been loaded" );
+      }
+
+      // it is guaranteed we have a volume
+      mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
+      
+      bool success = nll::imaging::writeVolumeText( *vol, v2.stringval );
+      if ( !success )
+         throw RuntimeException( "cannot save the volume" );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+   
+private:
+   mvv::platform::Context&    _context;
+};
+
+class FunctionWriteBinVolume : public FunctionRunnable
+{
+public:
+   FunctionWriteBinVolume( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING ) ||
+         v2.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "invalid argument: expected: VolumeID, string" );
+      }
+
+      ContextTools* tools = _context.get<ContextTools>();
+      if ( !tools )
+      {
+         throw RuntimeException( "ContextTools context has not been loaded" );
+      }
+
+      // it is guaranteed we have a volume
+      mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
+      
+      bool success = nll::imaging::writeVolumeBinary( *vol, v2.stringval );
+      if ( !success )
+         throw RuntimeException( "cannot save the volume" );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+   
+private:
+   mvv::platform::Context&    _context;
+};
+
+/*
+class FunctionWriteMF2Volume : public FunctionRunnable
+{
+public:
+   FunctionWriteMF2Volume( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING ) ||
+         v2.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "invalid argument: expected: VolumeID, string" );
+      }
+
+      ContextTools* tools = _context.get<ContextTools>();
+      if ( !tools )
+      {
+         throw RuntimeException( "ContextTools context has not been loaded" );
+      }
+
+      // it is guaranteed we have a volume
+      mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
+      
+      bool success = nll::imaging::writeVolumeBinary( *vol, v2.stringval );
+      if ( !success )
+         throw RuntimeException( "cannot save the volume" );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+   
+private:
+   mvv::platform::Context&    _context;
+};
+*/
+
+
+class FunctionLoadVolumeTxt : public FunctionRunnable
+{
+public:
+   FunctionLoadVolumeTxt( const AstDeclFun* fun, mvv::platform::Context& context, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _context( context ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+      }
+
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+
+      ++volumeId;
+
+      // load and store the type
+      RefcountedTyped<Volume> volume( new Volume() );
+      bool loaded = nll::imaging::readVolumeText( *volume, v1.stringval );
+      if ( !loaded )
+      {
+         throw RuntimeException( "can't find the volume" );
+      }
+      volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
+      
+      // create the volume ID
+      RuntimeValue rt( RuntimeValue::TYPE );
+      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
+      assert( ty );
+
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
+      (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
+      (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
+
+      std::cout << "created volume:" << volumeId << std::endl;
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&  _context;
+   CompilerFrontEnd&        _e;
+};
+
+class FunctionLoadVolumeBin : public FunctionRunnable
+{
+public:
+   FunctionLoadVolumeBin( const AstDeclFun* fun, mvv::platform::Context& context, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _context( context ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+      }
+
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw RuntimeException( "ContextVolumes context has not been loaded" );
+      }
+
+      ++volumeId;
+
+      // load and store the type
+      RefcountedTyped<Volume> volume( new Volume() );
+      bool loaded = nll::imaging::readVolumeBinary( *volume, v1.stringval );
+      if ( !loaded )
+      {
+         throw RuntimeException( "can't find the volume" );
+      }
+      volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
+      
+      // create the volume ID
+      RuntimeValue rt( RuntimeValue::TYPE );
+      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
+      assert( ty );
+
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
+      (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
+      (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
+
+      std::cout << "created volume:" << volumeId << std::endl;
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&  _context;
+   CompilerFrontEnd&        _e;
+};
+
 class FunctionRunnableVolumeGetSize : public FunctionRunnable
 {
 public:

@@ -1,7 +1,47 @@
 string volumeList[] =
 {
-   "D:/Devel/sandbox/regionDetectionTest/data/case46.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case47.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case300.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case301.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case302.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case303.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case304.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case305.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case306.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case307.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case308.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case309.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case310.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case311.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case312.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case313.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case314.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case315.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case316.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case317.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case318.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case400.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case401.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case402.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case403.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case404.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case405.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case406.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case407.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case408.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case409.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case410.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case411.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case412.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case413.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case414.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case500.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case501.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case502.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case503.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case504.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case505.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case506.mf2",
+   "D:/Devel/sandbox/regionDetectionTest/data/case507.mf2",
    "D:/Devel/sandbox/regionDetectionTest/data/case48.mf2",
    "D:/Devel/sandbox/regionDetectionTest/data/case49.mf2",
    "D:/Devel/sandbox/regionDetectionTest/data/case50.mf2",
@@ -36,7 +76,7 @@ class VolumeSwitch
       list = volumeList;
       detection = rd;
 
-      preloaded = loadVolumeAsynchronous( list[ index ] );
+      preloaded = readVolumeMF2Asynchronous( list[ index ] );
    }
 
    void next()
@@ -50,7 +90,7 @@ class VolumeSwitch
       detection.annotations.add( b, "barycentre" );
 
       index = index + 1;
-      preloaded = loadVolumeAsynchronous( list[ index ] );
+      preloaded = readVolumeMF2Asynchronous( list[ index ] );
       print("pre-load volume:" + list[ index ] );
    }
 }

@@ -218,11 +218,22 @@ class Volume
  */
 import Vector3f barycentre( VolumeID v, Lut l );
 
-// synchronously load the volume
-import VolumeID loadVolumeMF2( string name );
+// synchronously load a MF2 volume
+import VolumeID readVolumeMF2( string name );
 
-// asynchronously load a volume
-import VolumeID loadVolumeAsynchronous( string name );
+// asynchronously load a MF2 volume
+import VolumeID readVolumeMF2Asynchronous( string name );
+
+// write a MF2 volume
+import void writeVolumeMF2( VolumeID id, string name );
+
+// import/export text volumes
+import void writeVolumeTxt( VolumeID id, string name );
+import VolumeID readVolumeTxt( string name );
+
+// import/export bin volumes
+import void writeVolumeBin( VolumeID id, string name );
+import VolumeID readVolumeBin( string name );
 
 // get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
 import Volume getVolume( VolumeID id );
