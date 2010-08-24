@@ -103,6 +103,9 @@ namespace platform
    // 
    RefcountedTyped<Volume> EngineOrderVolumeLoader::getVolume( SymbolVolume name )
    {
+      // be sure the orders of the pool have been flushed... [problem if create asynchronous & wait in the same cyle...]
+      _pool.run();
+
       RefcountedTyped<Volume> vol;
       // in this case the volume is already loaded, or it doesn't exist!
       bool found = _resourceVolumes.find( name, vol );
@@ -110,9 +113,6 @@ namespace platform
       {
          return vol;
       }
-
-      // be sure the orders of the pool have been flushed... [problem if create asynchronous & wait in the same cyle...]
-      _pool.run();
 
       Records::iterator it = _records.find( name );
       if ( it == _records.end() )
