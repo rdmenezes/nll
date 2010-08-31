@@ -311,32 +311,63 @@ void keyboardSpecial( int key, int x, int y )
 }
 
 
+//
+// arguments:
+// sizex sizey nbThreads initialscript importpath:path1;path2;path3 font
+//
 int main(int argc, char** argv)
 {
-  applicationVariables = new mvv::ApplicationVariables();
+   // default
+   int sizex = 1280;
+   int sizey = 1024;
+   int nbThreads = 8;
+   std::string mainScript = "include \"../../mvvLauncher/script/single\"";
+   std::string font = "../../nllTest/data/font/bitmapfont1_24";
 
-  // GLUT Window Initialization:
-  glutInit( &argc, argv );
-  glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
-  glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
-  glutCreateWindow( "Medical Volume Viewer" );
-  //glutGameModeString( "1280x1024:32" );
-  //glutEnterGameMode();
+   // read the commands...
+   if ( argc >= 2 )
+      sizex = atoi( argv[ 1 ] );
+   if ( argc >= 3 )
+      sizey = atoi( argv[ 2 ] );
+   if ( argc >= 4 )
+      nbThreads = atoi( argv[ 3 ] );
+   if ( argc >= 5 )
+      mainScript = "include \"" + std::string( argv[ 4 ] ) + "\"";
+   std::vector<const char*> importPath;
+   std::string importPathStr;
+   if ( argc >= 6 )
+   {
+      importPathStr = argv[ 5 ];
+      importPath = nll::core::split( importPathStr, ';' );
+   }
+   if ( argc >= 7 )
+      font = argv[ 6 ];
 
-  // Initialize OpenGL graphics state
-  initGraphics();
+   // init
+   applicationVariables = new mvv::ApplicationVariables( sizex, sizey, nbThreads, mainScript, importPath, font );
 
-  // Register callbacks:
-  glutDisplayFunc( display );
-  glutReshapeFunc( reshape );
-  glutKeyboardFunc( keyboard );
-  glutSpecialFunc( keyboardSpecial );
-  glutMouseFunc( mouseButton );
-  glutMotionFunc( mouseMotion );
-  glutPassiveMotionFunc( mouseMotion );
-  glutTimerFunc( 0, handleOrders, 0 );
+   // GLUT Window Initialization:
+   glutInit( &argc, argv );
+   glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
+   glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+   glutCreateWindow( "Medical Volume Viewer" );
+   //glutGameModeString( "1280x1024:32" );
+   //glutEnterGameMode();
 
-  // Turn the flow of control over to GLUT
-  glutMainLoop ();
-  return 0;
+   // Initialize OpenGL graphics state
+   initGraphics();
+
+   // Register callbacks:
+   glutDisplayFunc( display );
+   glutReshapeFunc( reshape );
+   glutKeyboardFunc( keyboard );
+   glutSpecialFunc( keyboardSpecial );
+   glutMouseFunc( mouseButton );
+   glutMotionFunc( mouseMotion );
+   glutPassiveMotionFunc( mouseMotion );
+   glutTimerFunc( 0, handleOrders, 0 );
+
+   // Turn the flow of control over to GLUT
+   glutMainLoop ();
+   return 0;
 }

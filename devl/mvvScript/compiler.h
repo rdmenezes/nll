@@ -106,6 +106,10 @@ namespace parser
 
          // empty context
          _contextExt = platform::RefcountedTyped<platform::Context>( new platform::Context() );
+
+         // default path
+         _importDirectories.push_back( mvv::Symbol::create( "" ) );
+         _runtimePath.push_back( mvv::Symbol::create( "" ) );
       }
 
       ~CompilerFrontEnd()
@@ -152,6 +156,11 @@ namespace parser
       const FilesOrder& getImportDirectories() const
       {
          return _importDirectories;
+      }
+
+      void addImportDirectory( const std::string& d )
+      {
+         _importDirectories.push_back( mvv::Symbol::create( d ) );
       }
 
       VisitorEvaluate& getEvaluator()
@@ -451,6 +460,19 @@ namespace parser
       void importDll( const std::string& name );
 
    private:
+      std::string _findFileInPath( const std::string& file, const FilesOrder& directories )
+      {
+         for ( ui32 n = 0; n < directories.size(); ++n )
+         {
+            std::string f = directories[ n ].getName() + file;
+            std::ifstream i( f.c_str() );
+            if ( i.good() )
+               return f;
+         }
+
+         return "";
+      }
+
       /**
        @brief explore (parse, visit declaration) the the import & include files recursively & original file
        */
@@ -477,7 +499,8 @@ namespace parser
                // check it has never been pared before
                if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
                {
-                  Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  std::string fileInPath = _findFileInPath( it->getName() + std::string( ".ludo" ), _importDirectories );
+                  Ast* exp = _context.parseFile( fileInPath );
                   _parsedFiles.insert( *it );
                   if ( exp )
                   {
@@ -495,7 +518,8 @@ namespace parser
                // check it has never been pared before
                if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
                {
-                  Ast* exp = _context.parseFile( it->getName() + std::string( ".ludo" ) );
+                  std::string fileInPath = _findFileInPath( it->getName() + std::string( ".ludo" ), _importDirectories );
+                  Ast* exp = _context.parseFile( fileInPath );
                   _parsedFiles.insert( *it );
                   if ( exp )
                   {

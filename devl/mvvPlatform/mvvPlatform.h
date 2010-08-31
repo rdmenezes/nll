@@ -39,3 +39,6 @@
 
 # pragma warning( disable:4251 ) // we are assuming client & library are using exactly the same version of the stdlib
                                  // and same compilation options
+
+
+//#define MVV_RELEASE

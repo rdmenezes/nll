@@ -11,7 +11,8 @@ namespace parser
 
    void CompilerFrontEnd::importDll( const std::string& name )
    {
-      void* hMod = LoadLibraryWrapper( name );
+      std::string libpath = _findFileInPath( name + ".dll", _runtimePath );
+      void* hMod = LoadLibraryWrapper( libpath );
       if ( !hMod )
       {
          throw RuntimeException( ( std::string( "LoadLibrary failed to load the library \"" ) + name + ".dll\"" ).c_str() );
