@@ -96,3 +96,4 @@ import void system( string cmd );
  @brief Throw RuntimeException if the assert fails
  */
 import void assert( int val );
+import void assert( int val, string msg );

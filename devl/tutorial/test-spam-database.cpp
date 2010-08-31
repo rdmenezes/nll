@@ -9,7 +9,7 @@ namespace tutorial
 {
    /**
     @ingroup tutorial
-    @brief Test the accuracy on the spam database from UCI. Achieved 0.2% error rate with SVM after feature normalization
+    @brief Test the accuracy on the spam database from UCI. Achieved 8% error rate with SVM after feature normalization
     */
    struct TestSpamDatabase
    { 
@@ -31,8 +31,9 @@ namespace tutorial
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( dat );
          Classifier::Database preprocessedDat = preprocessor.transform( dat );
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 100, 100 ), preprocessedDat );
-         TESTER_ASSERT( fabs( error ) <= 0.002 );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.001, 100 ), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.08 );
       }
    };
 

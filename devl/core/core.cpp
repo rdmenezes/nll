@@ -1633,6 +1633,33 @@ public:
    }
 };
 
+class FunctionRunnableAssert2 : public FunctionRunnable
+{
+public:
+   FunctionRunnableAssert2( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw RuntimeException( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::STRING )
+      {
+         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+      }
+      if ( v1.intval == 0 )
+         throw RuntimeException( ( "assert failed: " + v2.stringval ).c_str() );
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionRunnableExp : public FunctionRunnable
 {
 public:
@@ -1952,6 +1979,12 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "assert" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableAssert( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "assert" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableAssert2( fn ) ) );
    }
 
    {

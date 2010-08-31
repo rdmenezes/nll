@@ -31,9 +31,10 @@ public:
 
       TESTER_ASSERT( t1.contains( nll::core::vector3f( 0, 0, 5 ) ) );
       TESTER_ASSERT( t1.contains( nll::core::vector3f( (float)sizex / 2, 0, 5 ) ) );
-      TESTER_ASSERT( t1.contains( nll::core::vector3f( (float)sizex / 2, (float)sizey / 2, 5 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( -2 + (float)sizex / 2, -2 + (float)sizey / 2, 5 ) ) );
       TESTER_ASSERT( t1.contains( nll::core::vector3f( -128, 0, 5 ) ) );
-      TESTER_ASSERT( t1.contains( nll::core::vector3f( (float)sizex / 2, -(float)sizey / 2, 5 ) ) );
+      TESTER_ASSERT( t1.contains( nll::core::vector3f( -2 + (float)sizex / 2, 2 + -(float)sizey / 2, 5 ) ) );
+      TESTER_ASSERT( !t1.contains( nll::core::vector3f( -2 + (float)sizex / 2, -2 + -(float)sizey / 2, 5 ) ) );
 
       TESTER_ASSERT( !t1.contains( nll::core::vector3f( (float)sizex / 2, (float)sizey / 2, 4 ) ) );
       TESTER_ASSERT( !t1.contains( nll::core::vector3f( (float)sizex / 2, (float)sizey / 2, 6 ) ) );

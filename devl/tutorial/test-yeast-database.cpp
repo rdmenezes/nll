@@ -9,7 +9,7 @@ namespace tutorial
 {
    /**
     @ingroup tutorial
-    @brief Test the accuracy on the yeast database from UCI. Achieved 5.8% error rate
+    @brief Test the accuracy on the yeast database from UCI. Achieved 48% error rate
     */
    struct TestYeastDatabase
    { 
@@ -25,10 +25,15 @@ namespace tutorial
 
          // define the classifier to be used
          typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
-         ClassifierImpl c;
+         ClassifierImpl c( false, true );
+         c.setCrossValidationBinSize( 40 );
 
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 160, 100 ), dat );
-         TESTER_ASSERT( fabs( error ) < 0.06 );
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.0001, 100 ), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.49 );
       }
    };
 
