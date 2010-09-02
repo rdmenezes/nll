@@ -500,6 +500,10 @@ namespace parser
                if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
                {
                   std::string fileInPath = _findFileInPath( it->getName() + std::string( ".ludo" ), _importDirectories );
+                  if ( fileInPath == "" )
+                  {
+                     throw RuntimeException( ( std::string( "cannot open file \"" ) + it->getName() + std::string( ".ludo\"") ).c_str() );
+                  }
                   Ast* exp = _context.parseFile( fileInPath );
                   _parsedFiles.insert( *it );
                   if ( exp )
@@ -519,6 +523,10 @@ namespace parser
                if ( _parsedFiles.find( *it ) == _parsedFiles.end() )
                {
                   std::string fileInPath = _findFileInPath( it->getName() + std::string( ".ludo" ), _importDirectories );
+                  if ( fileInPath == "" )
+                  {
+                     throw RuntimeException( ( std::string( "cannot open file \"" ) + it->getName() + std::string( ".ludo\"") ).c_str() );
+                  }
                   Ast* exp = _context.parseFile( fileInPath );
                   _parsedFiles.insert( *it );
                   if ( exp )
