@@ -37,11 +37,17 @@ SegmentToolCamera       camera;
 
 VolumeContainer         volumes;
 
+/*
 VolumeID pet = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
 VolumeID ct = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
+*/
 
-Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
+VolumeID pet = readVolumeMF2Asynchronous("../../nllTest/data/medical/test1.mf2");
+VolumeID ct = readVolumeMF2Asynchronous("../../nllTest/data/medical/test2.mf2");
+
+//Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
+Lut petLut( -250.0, 250.0, Vector3i( 0, 255, 0 ) );
 
 DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, pointer );
@@ -112,3 +118,9 @@ Layout l4( mip1 );
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
 
+
+
+
+segment1.setInterpolator( typename Segment::Nearest() );
+segment2.setInterpolator( typename Segment::Nearest() );
+segment3.setInterpolator( typename Segment::Nearest() );
