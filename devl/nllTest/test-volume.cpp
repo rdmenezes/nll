@@ -603,10 +603,54 @@ public:
       TESTER_ASSERT( m == 42 );
       TESTER_ASSERT( t2t < t1t );
    }
+
+   void testMprTfm()
+   {
+      const std::string volname = NLL_TEST_PATH "data/medical/test1.mf2";
+      typedef nll::imaging::VolumeSpatial<float>           Volume;
+      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
+
+      Volume volume;
+
+      std::cout << "loadind..." << std::endl;
+      nll::imaging::loadSimpleFlatFile( volname, volume );
+      volume.setOrigin( nll::core::vector3f( 0, 0, 0 ) );
+
+      std::cout << "loaded" << std::endl;
+      Mpr mpr( volume );
+
+      Mpr::Slice slice( nll::core::vector3ui( 1024, 1024, 1 ),
+                        nll::core::vector3f( 1, 0, 0 ),
+                        nll::core::vector3f( 0, 1, 0 ),
+                        nll::core::vector3f( 0, -100, 0 ),
+                        nll::core::vector2f( 1.0f, 1.0f ) );
+
+      nll::core::Matrix<float> tfm( 4, 4 );
+      nll::core::matrix4x4RotationZ( tfm, nll::core::PI * 1 / 2  );
+      tfm( 0, 3 ) = 0;
+
+      nll::core::Timer mprTime;
+      mpr.getSlice( slice, tfm );
+      mprTime.end();
+
+      nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
+      for ( unsigned y = 0; y < bmp.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
+      bmp( bmp.sizex() / 2, bmp.sizey() / 2, 0 ) = 255;
+      bmp( bmp.sizex() / 2 - 1, bmp.sizey() / 2, 0 ) = 255;
+      bmp( bmp.sizex() / 2 + 1, bmp.sizey() / 2, 0 ) = 255;
+      bmp( bmp.sizex() / 2, bmp.sizey() / 2 - 1, 0 ) = 255;
+      bmp( bmp.sizex() / 2, bmp.sizey() / 2 + 1, 0 ) = 255;
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mprtfm.bmp" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
+/*
  TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
@@ -620,5 +664,7 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testMpr5);
  TESTER_TEST(testResampling2d);
  TESTER_TEST(testMpr4);
+ */
+ TESTER_TEST(testMprTfm);
 TESTER_TEST_SUITE_END();
 #endif
