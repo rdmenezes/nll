@@ -70,10 +70,16 @@ namespace imaging
       void getSlice( Slice& slice, const TransformationAffine& tfm ) const
       {
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
+         Transformation::Matrix tfmRotInv = tfm.getAffineMatrix();
+         tfmRotInv.print( std::cout );
+         core::inverse( tfmRotInv );
+         tfmRotInv.print( std::cout );
+
          core::VolumeGeometry geometry( _volume.getPst(), tfm.getAffineMatrix() );
+         core::VolumeGeometry geometry2( _volume.getPst(), tfmRotInv );
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         Transformation::Matrix transformation = geometry.getPst();
+         Transformation::Matrix transformation = geometry2.getPst();
 
          core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
