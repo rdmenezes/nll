@@ -87,8 +87,8 @@ namespace imaging
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
-         core::vector3f index = geometry2.positionToIndex( slice.getOrigin() );
-         std::cout << "orig=" << slice.getOrigin() << " index=" << index << std::endl;
+         core::vector3f index = geometry.positionToIndex( slice.getOrigin() );
+         //std::cout << "orig=" << slice.getOrigin() << " index=" << index << std::endl;
          /*
          core::vector3f tr( tfm.getAffineMatrix()( 0, 3 ) ,
                             tfm.getAffineMatrix()( 1, 3 ),
