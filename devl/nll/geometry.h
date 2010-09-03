@@ -625,6 +625,15 @@ namespace core
          _constructGeometry( pst );
       }
 
+      /**
+       @param pst
+       @param RegTgtToSrcMM a 4x4 transformation, transforming target->source space
+       */
+      VolumeGeometry( const Matrix& pst, const Matrix& RegTgtToSrcMM )
+      {
+         _constructGeometry( RegTgtToSrcMM * pst );
+      }
+
       core::vector3f indexToPosition( const core::vector3f& index ) const
       {
          core::vector3f result( 0, 0, 0 );
@@ -654,6 +663,16 @@ namespace core
             result[ 2 ] += ( position[ n ] - _pst( n, 3 ) ) * _invertedPst( 2, n );
          }
          return result;
+      }
+
+      const Matrix& getPst() const
+      {
+         return _pst;
+      }
+
+      const Matrix& getInvertedPst() const
+      {
+         return _invertedPst;
       }
 
    private:

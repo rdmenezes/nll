@@ -164,8 +164,8 @@ namespace core
          m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
       m( 0, 0 ) = 1;
       m( 1, 1 ) = cos( angleRadian );
-      m( 2, 1 ) = -sin( angleRadian );
-      m( 1, 2 ) = sin( angleRadian );
+      m( 1, 2 ) = -sin( angleRadian );
+      m( 2, 1 ) = sin( angleRadian );
       m( 2, 2 ) = cos( angleRadian );
       m( 3, 3 ) = 1;
    }
@@ -181,10 +181,28 @@ namespace core
       if ( m.sizex() != 4 || m.sizey() != 4 )
          m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
       m( 0, 0 ) = cos( angleRadian );
-      m( 1, 0 ) = -sin( angleRadian );
-      m( 0, 1 ) = sin( angleRadian );
+      m( 0, 1 ) = -sin( angleRadian );
+      m( 1, 0 ) = sin( angleRadian );
       m( 1, 1 ) = cos( angleRadian );
       m( 2, 2 ) = 1;
+      m( 3, 3 ) = 1;
+   }
+
+   /**
+    @ingroup core
+    @brief Create a rotation matrix on the y-axis
+    @note the matrix is directly modified!
+    */
+   template <class T, class Mapper, class Allocator>
+   void matrix4x4RotationY( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
+   {
+      if ( m.sizex() != 4 || m.sizey() != 4 )
+         m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
+      m( 0, 0 ) = cos( angleRadian );
+      m( 0, 2 ) = sin( angleRadian );
+      m( 2, 0 ) = -sin( angleRadian );
+      m( 2, 2 ) = cos( angleRadian );
+      m( 1, 1 ) = 1;
       m( 3, 3 ) = 1;
    }
 }

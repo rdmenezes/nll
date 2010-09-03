@@ -70,9 +70,10 @@ namespace imaging
       void getSlice( Slice& slice, const TransformationAffine& tfm ) const
       {
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
+         core::VolumeGeometry geometry( _volume.getPst(), tfm.getAffineMatrix() );
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         Transformation::Matrix transformation = tfm.getAffineMatrix() * _volume.getInvertedPst();
+         Transformation::Matrix transformation = geometry.getPst();
 
          core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
@@ -86,6 +87,9 @@ namespace imaging
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
+         core::vector3f index = geometry2.positionToIndex( slice.getOrigin() );
+         std::cout << "orig=" << slice.getOrigin() << " index=" << index << std::endl;
+         /*
          core::vector3f tr( tfm.getAffineMatrix()( 0, 3 ) ,
                             tfm.getAffineMatrix()( 1, 3 ),
                             tfm.getAffineMatrix()( 2, 3 ) );
@@ -95,9 +99,11 @@ namespace imaging
          tfmRot( 0, 3 ) = 0;
          tfmRot( 1, 3 ) = 0;
          tfmRot( 2, 3 ) = 0;
+         
 
          core::vector3f index = transf4( tfmRot * _volume.getInvertedPst(), slice.getOrigin() ) + 
                                 transf4( tfmRot, core::vector3f( _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
+                                */
 
          float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
