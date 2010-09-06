@@ -59,22 +59,25 @@ namespace imaging
        @param tfm an affine that transform source->target, assuming we have a target volume. We can see the transformation as
               transforming the source geometry and then do as if there was no transformation
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
-             source->target. Assume we want to add a translation in target space, like in Ex 1,
-             we actually need to inverse this transformation!
-
-             Ex 1: slice origin(0, 0, 0) with a translation(1,-1,0)
-             |00010     |00000
-             |00200 =>  |00001
-             |00000     |00020
+             source->target.
        */
-      void getSlice( Slice& slice, const TransformationAffine& tfm ) const
+      void getSlice( Slice& slice, const TransformationAffine& tfm2 ) const
       {
+         // transform source->target to a target->source matrix
+         Transformation::Matrix tfmI;
+         tfmI.clone( tfm2.getAffineMatrix() );
+         core::inverse( tfmI );
+         tfmI( 0, 3 ) = - tfm2.getAffineMatrix()( 0, 3 );
+         tfmI( 1, 3 ) = - tfm2.getAffineMatrix()( 1, 3 );
+         tfmI( 2, 3 ) = - tfm2.getAffineMatrix()( 2, 3 );
+
+         // invert the rotational part of the transformation
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
          Transformation::Matrix tfmRotInv;
-         tfmRotInv.clone( tfm.getAffineMatrix() );
+         tfmRotInv.clone( tfmI );
          core::inverse( tfmRotInv );
 
-         core::VolumeGeometry geometry( _volume.getPst(), tfm.getAffineMatrix() );
+         core::VolumeGeometry geometry( _volume.getPst(), tfmI );
          core::VolumeGeometry geometry2( _volume.getPst(), tfmRotInv );
 
          // compute the slopes. First rotate the vectors so we are in the same coordinate system
