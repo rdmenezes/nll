@@ -423,8 +423,8 @@ struct TestRegion
       typedef Classifier::Database  Database;
 
       //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_ALL );
-      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
-      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
+      //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_CASES_DESC );
+      std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_OVERWEIGHT );
       //std::vector<RegionResult::Result> results = RegionResult::readResults( VALIDATION_COMAPRE );
       std::vector<RegionResult::Measure> measures;
 

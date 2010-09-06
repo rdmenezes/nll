@@ -70,10 +70,9 @@ namespace imaging
       void getSlice( Slice& slice, const TransformationAffine& tfm ) const
       {
          assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
-         Transformation::Matrix tfmRotInv = tfm.getAffineMatrix();
-         tfmRotInv.print( std::cout );
+         Transformation::Matrix tfmRotInv;
+         tfmRotInv.clone( tfm.getAffineMatrix() );
          core::inverse( tfmRotInv );
-         tfmRotInv.print( std::cout );
 
          core::VolumeGeometry geometry( _volume.getPst(), tfm.getAffineMatrix() );
          core::VolumeGeometry geometry2( _volume.getPst(), tfmRotInv );
@@ -96,9 +95,9 @@ namespace imaging
          core::vector3f index = geometry.positionToIndex( slice.getOrigin() );
          //std::cout << "orig=" << slice.getOrigin() << " index=" << index << std::endl;
          /*
-         core::vector3f tr( tfm.getAffineMatrix()( 0, 3 ) ,
+         core::vector3f t r( tfm.getAffineMatrix()( 0, 3 ) ,
                             tfm.getAffineMatrix()( 1, 3 ),
-                            tfm.getAffineMatrix()( 2, 3 ) );
+                            tfm.getAffineMatrix()( 2, 3 ) );.
 
          Transformation::Matrix tfmRot;
          tfmRot.clone( tfm.getAffineMatrix() );
