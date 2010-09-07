@@ -521,21 +521,77 @@ public:
       TESTER_ASSERT( source( 5, 0, 0 ) == 100 );
       TESTER_ASSERT( source( 5, 10, 0 ) == 10 );
    }
+
+
+   void testResamplingOutput()
+   {
+      const std::string volname = NLL_TEST_PATH "data/medical/test1.mf2";
+      typedef nll::imaging::VolumeSpatial<float>           Volume;
+      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
+      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
+
+      nll::core::Matrix<float> tfm( 4, 4 );
+      nll::core::matrix4x4RotationZ( tfm, nll::core::PI * 0.5);
+      tfm( 1, 3 ) = -100;
+      nll::imaging::TransformationAffine atfm( tfm );
+
+
+      std::cout << "loadind..." << std::endl;
+      Volume volume;
+      nll::imaging::loadSimpleFlatFile( volname, volume );
+      volume.setOrigin( nll::core::vector3f( 0, 0, 0 ) );
+
+      Volume volumeResampled( nll::core::vector3ui( 8, 8, 8 ), volume.getPst() );
+      volumeResampled.setOrigin( nll::core::vector3f( 0, 0, 0 ) );
+      nll::imaging::resampleVolumeNearestNeighbour( volume, volumeResampled, atfm );
+
+      std::cout << "loaded" << std::endl;
+      Mpr mpr( volumeResampled );
+
+      Mpr::Slice slice( nll::core::vector3ui( 1024, 1024, 1 ),
+                        nll::core::vector3f( 1, 0, 0 ),
+                        nll::core::vector3f( 0, 1, 0 ),
+                        nll::core::vector3f( 0, 0, 0 ),
+                        nll::core::vector2f( 1.0f, 1.0f ) );
+
+
+      nll::core::Timer mprTime;
+      mpr.getSlice( slice );
+      mprTime.end();
+
+      nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
+      for ( unsigned y = 0; y < bmp.sizey(); ++y )
+         for ( unsigned x = 0; x < bmp.sizex(); ++x )
+            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
+      bmp( bmp.sizex() / 2, bmp.sizey() / 2, 0 ) = 255;
+      bmp( bmp.sizex() / 2 - 1, bmp.sizey() / 2, 0 ) = 255;
+      bmp( bmp.sizex() / 2 + 1, bmp.sizey() / 2, 0 ) = 255;
+      bmp( bmp.sizex() / 2, bmp.sizey() / 2 - 1, 0 ) = 255;
+      bmp( bmp.sizex() / 2, bmp.sizey() / 2 + 1, 0 ) = 255;
+      nll::core::extend( bmp, 3 );
+      nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mprtfm.bmp" );
+
+      nll::imaging::writeVolumeText( volumeResampled, "D:/Devel/sandbox/nllTest/data/test" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolumeResampling);
- TESTER_TEST(testResamplingSpeed);
+ TESTER_TEST(testResamplingOutput);
+ 
  TESTER_TEST(testResamplingTranslation);
  TESTER_TEST(testResamplingCropping);
  TESTER_TEST(testResamplingTranslation1);
  TESTER_TEST(testResamplingTranslation2);
+ TESTER_TEST(testResamplingSpacing);
+ TESTER_TEST(testResamplingSpacing2);
+ /*
  TESTER_TEST(testResamplingTranslationRotation);
  TESTER_TEST(testResamplingTranslationRotation2);
  TESTER_TEST(testResamplingTranslationRotation3);
  TESTER_TEST(testResamplingTranslationRotation4);
- TESTER_TEST(testResamplingSpacing);
- TESTER_TEST(testResamplingSpacing2);
  TESTER_TEST(testResamplingTranslationRotation5);
+ TESTER_TEST(testResamplingSpeed);
+ */
 TESTER_TEST_SUITE_END();
 #endif

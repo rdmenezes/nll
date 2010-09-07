@@ -30,7 +30,7 @@ namespace imaging
       // Compute the transformation source index->source position->transformation in source position to target->to target index
       // we don't really care about the order of composition as rotation and scalling are associative
       //
-      Matrix transformation = tfm.getAffineMatrix() * target.getInvertedPst() * source.getPst();
+      Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst();
       const core::vector3f dx( transformation( 0, 0 ),
                                transformation( 1, 0 ),
                                transformation( 2, 0 ) );
@@ -41,21 +41,14 @@ namespace imaging
                                transformation( 1, 2 ),
                                transformation( 2, 2 ) );
 
-      core::vector3f tr( tfm.getAffineMatrix()( 0, 3 ),
-                         tfm.getAffineMatrix()( 1, 3 ),
-                         tfm.getAffineMatrix()( 2, 3 ) );
-      Matrix tfmRot;
-      tfmRot.clone( tfm.getAffineMatrix() );
-      tfmRot( 0, 3 ) = 0;
-      tfmRot( 1, 3 ) = 0;
-      tfmRot( 2, 3 ) = 0;
+      Transformation::Matrix tfmI;
+      tfmI.clone( tfm.getAffineMatrix() );
+      core::inverse( tfmI );
+      tfmI( 0, 3 ) = tfmI( 0, 3 );
+      tfmI( 1, 3 ) = tfmI( 1, 3 );
+      tfmI( 2, 3 ) = tfmI( 2, 3 );
 
-      //
-      // Now convert the source origin to index in target space and add the translation of the affine transformation 
-      //
-
-      core::vector3f originInTarget = transf4( tfmRot * target.getInvertedPst(), source.getOrigin() ) + 
-                                      transf4( tfmRot, core::vector3f( target.positionToIndex( tr ) - target.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
+      core::vector3f originInTarget = transf4( target.getInvertedPst() * tfmI, source.getOrigin() );
 
       Interpolator interpolator( target );
       typename VolumeType::DirectionalIterator  sliceIt = source.getIterator( 0, 0, 0 );

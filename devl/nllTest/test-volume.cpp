@@ -623,12 +623,12 @@ public:
       Mpr::Slice slice( nll::core::vector3ui( 1024, 1024, 1 ),
                         nll::core::vector3f( 1, 0, 0 ),
                         nll::core::vector3f( 0, 1, 0 ),
-                        nll::core::vector3f( 100, 0, 0 ),
+                        nll::core::vector3f( 0, 0, 0 ),
                         nll::core::vector2f( 1.0f, 1.0f ) );
 
       nll::core::Matrix<float> tfm( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm, nll::core::PI * 0.25);
-      tfm( 0, 3 ) = 0;
+      nll::core::matrix4x4RotationZ( tfm, nll::core::PI * 0.5);
+      tfm( 0, 3 ) = -100;
 
       nll::core::Timer mprTime;
       mpr.getSlice( slice, tfm );
