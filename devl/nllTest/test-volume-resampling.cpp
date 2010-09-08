@@ -578,14 +578,14 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolumeResampling);
  TESTER_TEST(testResamplingOutput);
- 
+ /*
  TESTER_TEST(testResamplingTranslation);
  TESTER_TEST(testResamplingCropping);
  TESTER_TEST(testResamplingTranslation1);
  TESTER_TEST(testResamplingTranslation2);
  TESTER_TEST(testResamplingSpacing);
  TESTER_TEST(testResamplingSpacing2);
- /*
+ 
  TESTER_TEST(testResamplingTranslationRotation);
  TESTER_TEST(testResamplingTranslationRotation2);
  TESTER_TEST(testResamplingTranslationRotation3);

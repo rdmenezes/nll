@@ -623,12 +623,12 @@ public:
       Mpr::Slice slice( nll::core::vector3ui( 1024, 1024, 1 ),
                         nll::core::vector3f( 1, 0, 0 ),
                         nll::core::vector3f( 0, 1, 0 ),
-                        nll::core::vector3f( 0, 0, 0 ),
+                        nll::core::vector3f( 100, 0, 0 ),
                         nll::core::vector2f( 1.0f, 1.0f ) );
 
       nll::core::Matrix<float> tfm( 4, 4 );
       nll::core::matrix4x4RotationZ( tfm, nll::core::PI * 0.5);
-      tfm( 0, 3 ) = -100;
+      tfm( 0, 3 ) = 0;
 
       nll::core::Timer mprTime;
       mpr.getSlice( slice, tfm );
@@ -650,7 +650,7 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
-/*
+
  TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
@@ -664,7 +664,7 @@ TESTER_TEST_SUITE(TestVolume);
  TESTER_TEST(testMpr5);
  TESTER_TEST(testResampling2d);
  TESTER_TEST(testMpr4);
- */
+ 
  TESTER_TEST(testMprTfm);
 TESTER_TEST_SUITE_END();
 #endif

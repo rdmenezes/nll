@@ -44,9 +44,6 @@ namespace imaging
       Transformation::Matrix tfmI;
       tfmI.clone( tfm.getAffineMatrix() );
       core::inverse( tfmI );
-      tfmI( 0, 3 ) = tfmI( 0, 3 );
-      tfmI( 1, 3 ) = tfmI( 1, 3 );
-      tfmI( 2, 3 ) = tfmI( 2, 3 );
 
       core::vector3f originInTarget = transf4( target.getInvertedPst() * tfmI, source.getOrigin() );
 

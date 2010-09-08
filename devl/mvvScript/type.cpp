@@ -6,7 +6,7 @@ namespace parser
 {
    bool TypeFloat::isCompatibleWith( const Type& t ) const
    {
-      return dynamic_cast<const TypeFloat*>( & t );
+      return dynamic_cast<const TypeFloat*>( & t ) != 0;
    }
 
    Type* TypeFloat::clone() const
@@ -16,7 +16,7 @@ namespace parser
 
    bool TypeInt::isCompatibleWith( const Type& t ) const
    {
-      return dynamic_cast<const TypeInt*>( & t );
+      return dynamic_cast<const TypeInt*>( & t ) != 0;
    }
 
    Type* TypeInt::clone() const

@@ -1962,6 +1962,15 @@ struct TestRegion
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
+//
+// How to generate the databases?
+// - first create the preview, this is used to display the results quickly (createPreview)
+// - create the learning/testing database => this will be the database used to learn the SVM (createDatasets)
+// - create the volume database (i.e. each slice of the all testing volumes are preprocessed, feature extracted...) (createVolumeDatabase)
+//
+// Then call learnSvm() to run the 10 fold cross validation and export the SVM
+// testValidationDataSvm() will run the previously exported SVM on the validation cases (you might want to disable the error correction to get rid of the other dependencies (error correction database...))
+//
 
 // input: cases, mf2 volumes, output: haar features, normalization parameters, learning database
 //TESTER_TEST(createDatasets);
