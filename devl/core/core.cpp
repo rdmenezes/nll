@@ -15,6 +15,7 @@
 #include "mvv-file.h"
 #include <mvvScript/function-runnable.h>
 #include "system.h"
+#include "mvv-resample.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -2980,5 +2981,21 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "getline" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamGetline( fn ) ) );
+   }
+
+   //
+   // Resampling: Nearest neighbour
+   //
+   {
+      
+      Type* reg = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "AffineRegistration" ) ) ) );
+      Type* volid = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      Type* vector3i = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
+      Type* matrix4 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Matrix4f" ) ) ) );
+      assert( volid && vector3i && matrix4 /*&& reg*/ );
+
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "resampleNearest" ) ), nll::core::make_vector<const Type*>( volid, reg, vector3i, matrix4 ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionResampleNearest( fn, context, e ) ) );
    }
 }
