@@ -320,7 +320,6 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="true"
 				AdditionalIncludeDirectories="$(SolutionDir)"
 				PreprocessorDefinitions="WIN32;NLL_EXPORTS"
 				StringPooling="false"
@@ -332,7 +331,7 @@
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
-				OpenMP="true"
+				OpenMP="false"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
 				WarnAsError="false"
@@ -358,7 +357,6 @@
 				LargeAddressAware="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
 				TargetMachine="17"
 			/>
 			<Tool

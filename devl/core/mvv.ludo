@@ -8,8 +8,6 @@
  - segments && MIP can have tools tailoring their behaviour
  */
 
-include "core"
-
 /**
  @ingroup mvv
  @brief Represent a volume, can't be instanciated directly! When a VolumeID is destroyed, it's associated volume is unloaded from mvv context and volume's data are not accessible anymore
@@ -80,6 +78,29 @@ VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst )
 }
 
 /**
+ @ingroup extract a sub volume centered on a specific point
+ @brief Resample a target volume given a new size/orientation
+ @todo bug if rotation in PST target
+ */
+VolumeID extract( VolumeID target, Vector3f center, Vector3f sizeMM )
+{
+   // use the same PST matrix except the PST must take into account the BB size
+   Volume v = target.getVolume();
+   Matrix4f pst = v.getPst();
+
+   Vector3f centerDev( center[ 0 ] - sizeMM[ 0 ] / 2,
+                       center[ 1 ] - sizeMM[ 1 ] / 2,
+                       center[ 2 ] - sizeMM[ 2 ] / 2 );
+
+   pst.setTranslation( centerDev );
+
+   Vector3i size( round( sizeMM[ 0 ] / v.getSpacing()[ 0 ] ),
+                  round( sizeMM[ 1 ] / v.getSpacing()[ 1 ] ),
+                  round( sizeMM[ 2 ] / v.getSpacing()[ 2 ] ) );
+   return resampleNearest( target, size, pst );
+}
+
+/**
  @ingroup mvv
  @brief Look up table - assign a color to a voxel value, given a window level
  @note: we can't use operator[] as we need to return a reference, however in memory we don't store a list of Vector3uc
@@ -141,7 +162,7 @@ class VolumeContainer
    import VolumeContainer();
 
    /**
-    @brief destroy native resources
+    @brief Free the native resources
     */
    import ~VolumeContainer();
    
@@ -182,54 +203,109 @@ class VolumeContainer
  */
 class Volume
 {
-   // return the number of voxels for each dimension
+   /**
+    @brief return the number of voxels for each dimension
+    */
    import Vector3i getSize();
    
-   // note that it is not possible to modify the value directly
+   /**
+    @brief return the spacing of the volume
+    @note that it is not possible to modify the value directly
+    */
    import Vector3f getSpacing();
+
+   /**
+    @brief set the spacing of the volume
+    */
    import void setSpacing( Vector3f spacing );
+
+   /**
+    @brief set the spacing of the volume
+    @note that it is not possible to modify the value directly
+    */
    void setSpacing( float x, float y, float z )
    {
       this.setSpacing(Vector3f(x, y, z ) );
    }
    
-   // note that it is not possible to modify the value directly
+   /**
+    @brief get the origin of the volume
+    */
    import Vector3f getOrigin();
    
-   // set a new origin
+   /**
+    @brief set the origin of the volume
+    @note that it is not possible to modify the value directly
+    */
    import void setOrigin( Vector3f origin );
+
+   /**
+    @brief set the origin of the volume
+    @note that it is not possible to modify the value directly
+    */
    void setOrigin( float x, float y, float z )
    {
       this.setOrigin(Vector3f(x, y, z ) );
    }
    
-   // note that it is not possible to modify the value directly
+   /**
+    @brief get the origin of the volume
+    @note that it is not possible to modify the value directly
+    */
    import Matrix3f getRotation();
    
-   // set a new rotation (it will be automatically rescaled using the spacing)
+   /**
+    @brief  set a new rotation (it will be automatically rescaled using the spacing)
+    */
    import void setRotation( Matrix3f rotation );
    
-   // set a new Patient Space Transform
+   /**
+    @brief  set a new Patient Space Transform
+    */
    import void setPst( Matrix4f pst );
    
-   // note that it is not possible to modify the value directly
+   /**
+    @brief return the Patient Scale Transform
+    @note that it is not possible to modify the value directly
+    */
    import Matrix4f getPst();
    
-   // the intensity of a voxel
+   /**
+    @brief set the intensity of a voxel
+    */
    import void setValue( int x, int y, int z, float value );
+
+   /**
+    @brief set the intensity of a voxel
+    */
    void setValue( Vector3i v, float value )
    {
       this.setValue( v[ 0 ], v[ 1 ], v[ 2 ], value );
    }
    
-   // get a voxel value using bilinear interpolation
+   /**
+    @brief get the intensity of a voxel using trilinear interpolation
+    */
    import float getValue( float x, float y, float z );
+
+   /**
+    @brief get the intensity of a voxel using trilinear interpolation
+    */
    float getValue( Vector3f v )
    {
       return this.getValue( v[ 0 ], v[ 1 ], v[ 2 ] );
    }
    
+   /**
+    @brief Transform an index position to a target space position
+    @note the registration is not taken into account
+    */
    import Vector3f indexToPosition( Vector3f index );
+
+   /**
+    @brief Transform an target space position to a volume index
+    @note the registration is not taken into account
+    */
    import Vector3f positionToIndex( Vector3f position );
 }
 
@@ -314,7 +390,14 @@ void print( VolumeID v )
  */
 class SegmentToolCentering
 {
+   /**
+    @brief Allocate the native resource
+    */
    import SegmentToolCentering();
+
+   /**
+    @brief Free the native resources
+    */
    import ~SegmentToolCentering();
 }
 
@@ -328,13 +411,11 @@ class SegmentToolPointer
     @param fontSize the size to be used to display position information
     */
    import SegmentToolPointer( int fontSize = 12 );
-   import ~SegmentToolPointer();
 
    /**
-    @brief Set the position of the camera
+    @brief Free the native resources
     */
-   //import void setPosition( float x, float y, float z );
-   //import void setPosition( Vector3f position );
+   import ~SegmentToolPointer();
 
    /**
     @brief Returns the position of the camera
@@ -348,11 +429,20 @@ class SegmentToolPointer
  */
 class ToolAnnotations
 {
-   // not constructible ID. hold an intval
+   /**
+    @note not constructible ID. hold an intval
+    */
    class AnnotationID
    {}
 
+   /**
+    @brief Allocate the native resources
+    */
    import ToolAnnotations();
+
+   /**
+    @brief Free the native resources
+    */
    import ~ToolAnnotations();
 
    /**
@@ -381,7 +471,14 @@ class ToolAnnotations
     */
    import void clear();
    
+   /**
+    @brief Update the position of an annotation and update all connected segments/mips
+    */
    import void setPosition( AnnotationID id, Vector3f position );
+
+   /**
+    @brief Returns the position of an annotation
+    */
    import Vector3f getPosition( AnnotationID id );
 }
 
@@ -392,9 +489,24 @@ class ToolAnnotations
  */
 class SegmentToolCamera
 {
+   /**
+    @brief Allocate the native resources
+    */
    import SegmentToolCamera();
+
+   /**
+    @brief Free the native resources
+    */
    import ~SegmentToolCamera();
+
+   /**
+    @brief Set the position of the camera and update all linked segments
+    */
    import void setPosition( Vector3f position );
+
+   /**
+    @brief Set the position of the camera and update all linked segments
+    */
    void setPosition( float x, float y, float z )
    {
       this.setPosition( Vector3f( x, y, z ) );
@@ -408,9 +520,19 @@ class SegmentToolCamera
  */
 class Segment
 {
+   /**
+    @brief Tag for Nearest Neighbour interpolator
+    */
    class Nearest{Nearest(){}}
+
+   /**
+    @brief Tag for Tri-linear interpolator
+    */
    class Linear{Linear(){}}
 
+   /**
+    @brief Free the native resources
+    */
    import ~Segment();
    
    /**
@@ -429,7 +551,15 @@ class Segment
     @brief Refresh the entire segment
     */
    import void refresh();
+
+   /**
+    @brief set a Nearest Neighbour interpolator for this segment
+    */
    import void setInterpolator( Nearest i );
+
+   /**
+    @brief set a Tri-linear interpolator for this segment
+    */
    import void setInterpolator( Linear i );
    
    /**
@@ -459,7 +589,14 @@ class Segment
  */
 class MipToolPointer
 {
+   /**
+    @param frameRate the framerate used to rotate the MIP
+    */
    import MipToolPointer( int frameRate = 9 );
+
+   /**
+    @brief Free the native resources
+    */
    import ~MipToolPointer();
 }
 
@@ -469,9 +606,26 @@ class MipToolPointer
  */
 class Mip
 {
+   /**
+    @brief volume the volume to display in the MIP
+    @param lut the lut used to display the volume
+    @param nbFrame the number of frames to be computed by the MIP (the more frame the the fluidest is the movement)
+    */
    import Mip( VolumeID volume, Lut lut, int nbFrame = 48 );
+
+   /**
+    @brief Free the native resources
+    */
    import ~Mip();
+
+   /**
+    @brief Attach a pointer to the MIP
+    */
    import void setTool( MipToolPointer pointer );
+
+   /**
+    @brief Attach annotations to the MIP
+    */
    import void setTool( ToolAnnotations annotations );
 }
 
@@ -490,23 +644,53 @@ class Console
  */
 class Layout
 {
-   // TAG
+   /**
+    @brief Vectival tag
+    */
    class Vertical
    {
       Vertical(){}
    }
 
-   // TAG
+   /**
+    @brief Horizontal tag
+    */
    class Horizontal
    {
       Horizontal(){}
    }
 
+   /**
+    @brief Free the native resources
+    */
    import ~Layout();
 
+   /**
+    @brief Create a horizontal split line composed of two other layouts
+    */
    import Layout( Vertical   tag, Layout left, Layout right, float ratio );
+
+   /**
+    @brief Create a vertical split line composed of two other layouts
+    */
    import Layout( Horizontal tag, Layout left, Layout right, float ratio );
-   import Layout( Segment segment );   // a reference on the segment is saved in the layout
+
+   /**
+    @brief Create a layout fully filled with a segment
+    @note a reference on the segment is saved in the layout
+    */
+   import Layout( Segment segment );
+
+   /**
+    @brief Create a layout fully filled with a mip
+    @note a reference on the mip is saved in the layout
+    */
    import Layout( Mip mip );
+
+
+   /**
+    @brief Create a layout fully filled with a console
+    @note a reference on the console is saved in the layout
+    */
    import Layout( Console console );
 }

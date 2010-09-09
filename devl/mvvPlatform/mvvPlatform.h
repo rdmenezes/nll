@@ -10,7 +10,7 @@
  */
 
 /// define the version of nll
-#define MVV_VERSION  "mvv-0.01"
+#define MVV_VERSION  "1.0.1"
 
 /**
  @defgroup platform
