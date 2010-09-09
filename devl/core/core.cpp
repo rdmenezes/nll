@@ -2239,13 +2239,13 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintlnS( fn, e ) ) );
    }
-
+*/
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "print" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnablePrintS( fn, e ) ) );
    }
-
+/*
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator+" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
       assert( fn );
@@ -2492,7 +2492,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Lut"), platform::Symbol::create( "getColorIndex" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Lut"), platform::Symbol::create( "getColor" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLutGetColorIndex( fn ) ) );
    }
@@ -2613,22 +2613,6 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerDestructor( fn ) ) );
    }
-
-   /*
-   {
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolPointer"), platform::Symbol::create( "setPosition" ) ), nll::core::make_vector<const Type*>( new TypeFloat( false ), new TypeFloat( false ), new TypeFloat( false ) ) );
-      assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerSetPosition( fn ) ) );
-   }
-
-   {
-      Type* vector = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
-      assert( vector );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolPointer"), platform::Symbol::create( "setPosition" ) ), nll::core::make_vector<const Type*>( vector ) );
-      assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentToolPointerSetPositionV( fn ) ) );
-   }
-   */
 
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolPointer"), platform::Symbol::create( "getPosition" ) ), std::vector<const Type*>() );
@@ -2992,7 +2976,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       Type* volid = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
       Type* vector3i = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
       Type* matrix4 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Matrix4f" ) ) ) );
-      assert( volid && vector3i && matrix4 /*&& reg*/ );
+      assert( volid && vector3i && matrix4  );
 
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "resampleNearest" ) ), nll::core::make_vector<const Type*>( volid, reg, vector3i, matrix4 ) );
       assert( fn );

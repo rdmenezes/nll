@@ -2283,21 +2283,37 @@ struct TestEval
 
    void eval6()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{int n = 42; Test(){} } Test(); Test();" );
          TESTER_ASSERT( result == Error::SUCCESS );
+      }*/
+
+      {
+         // check the destructor: Test destructor must be called, but not Test2 => we are checing the result register is correctly saved while runing the Test destructor
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int d1 = 0; int d2 = 0; class Test{ int& d; Test( int& d1 ){ d = d1;} ~Test(){d = 1;}} class Test2{int& d; Test2( int& d2){ d = d2;} ~Test2(){d = 1;}} Test2 test( int& d1, int& d2 ){Test t( d1 ); return Test2( d2 );} Test2 pet2 = test( d1, d2 ); " );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "d1" ) );
+         TESTER_ASSERT( rt1.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt1.intval == 1 );
+
+         const RuntimeValue& rt2 = fe.getVariable( mvv::Symbol::create( "d2" ) );
+         TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt2.intval == 0 );
       }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
-
+*/
 TESTER_TEST(eval6);
 TESTER_TEST_SUITE_END();

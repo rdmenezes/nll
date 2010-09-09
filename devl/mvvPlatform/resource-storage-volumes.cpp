@@ -67,6 +67,8 @@ namespace platform
       boost::mutex::scoped_lock( *getValue().mutex );
 
       Storage::iterator it = getValue().volumes.find( name );
+      if ( it == getValue().volumes.end() )
+         return;
       std::cout << "erase volume nb ref=" << it->second.getNumberOfReference() << std::endl;
       if ( it != getValue().volumes.end() )
       {

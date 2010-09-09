@@ -65,7 +65,7 @@ public:
 
 class FunctionAffineRegistrationDestructor : public FunctionRunnable
 {
-   typedef platform::ResourceRegistration Pointee;
+   typedef FunctionAffineRegistrationConstructor::Pointee Pointee;
 
 public:
    FunctionAffineRegistrationDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
@@ -88,7 +88,7 @@ public:
       // deallocate data
       delete ar;
       (*v1.vals)[ 0 ].ref = 0;
-      
+
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }

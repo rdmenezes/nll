@@ -62,16 +62,8 @@ class AffineRegistration
 /**
  @brief Resample a target volume given a new size/orientation and an affine transformation to apply
  */
-
 import VolumeID resampleNearest( VolumeID target, AffineRegistration registration, Vector3i size, Matrix4f pst );
-//import VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst, AffineRegistration registration );
-/*
-VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst )
-{
-   AffineRegistration reg( Matrix4f() );
-   return resampleNearest( target, size, pst, reg ); 
-}*/
-   
+VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst ){   AffineRegistration reg( Matrix4f() );   return resampleNearest( target, size, pst, reg ); }   
 /**
  @brief Look up table - assign a color to a voxel value, given a window level
  @note: we can't use operator[] as we need to return a reference, however in memory we don't store a list of Vector3uc
@@ -98,7 +90,7 @@ class Lut
    /**
     @brief Returns the color mapped to this index
     */
-   import Vector3i getColorIndex( int index );
+   import Vector3i getColor( int index );
 
    /**
     @brief transform a real value to a RGB color

@@ -33,6 +33,12 @@ namespace impl
                AstDeclFun* fun = named->getDecl()->getDestructor();
                if ( fun )
                {
+                  // save the result register
+                  // i.e. in case a destructor is called but a function returned
+                  // a value: the result register will be erased, losing the function return value
+                  // that's why we need to save and restore the result register
+                  RuntimeValue resultCopy = ext->evaluator->_env.resultRegister;
+
                   assert( ext->evaluator ); // we need an evaluator to run the destructor
                   if ( ext->evaluator->_env.resultRegister.vals._data == i )
                   {
@@ -46,6 +52,9 @@ namespace impl
                   vals[ 0 ].setType( RuntimeValue::TYPE );
                   vals[ 0 ].vals = RefcountedTypedDestructor( ext->evaluator, 0, (RuntimeValues*)i->data, false );
                   ext->evaluator->_callFunction( *fun, vals );
+
+                  // restore the result register
+                  ext->evaluator->_env.resultRegister = resultCopy;
                }
             } else {
                //ensure( 0, "only objects & array of objects can be destructed..." ); // ARRAY
