@@ -111,9 +111,3 @@ Layout l4( mip1 );
 
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
-
-
-Volume v = pet.getVolume();
-//VolumeID pet2 = readVolumeMF2("../../nllTest/data/medical/test1.mf2");
-//VolumeID pet2 = test( pet, Vector3i( 128, 128, 132 ), v.getPst(), petReg );
-//print(pet2);
