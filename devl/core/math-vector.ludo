@@ -1,3 +1,7 @@
+/**
+ @ingroup core
+ @brief Stores a 3-int vector
+ */
 class Vector3i
 {
 	int vals[ 3 ];
@@ -20,6 +24,10 @@ class Vector3i
    }
 }
 
+/**
+ @ingroup core
+ @brief Stores a 3-float vector
+ */
 class Vector3f
 {
 	float vals[ 3 ];
@@ -42,6 +50,10 @@ class Vector3f
    }
 }
 
+/**
+ @ingroup core
+ @brief Stores a 2-float vector
+ */
 class Vector2f
 {
 	float vals[ 2 ];
@@ -63,6 +75,10 @@ class Vector2f
    }
 }
 
+/**
+ @ingroup core
+ @brief Stores a 2-int vector
+ */
 class Vector2i
 {
 	int vals[ 2 ];

@@ -1,3 +1,7 @@
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( Vector3f v )
 {
    println("  " + toString( v[ 2 ] ) );
@@ -6,6 +10,10 @@ void print( Vector3f v )
    println( "Vector3f:" );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( Vector2f v )
 {
    println("  " + toString( v[ 1 ] ) );
@@ -13,6 +21,10 @@ void print( Vector2f v )
    println( "Vector2f:" );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( Vector2i v )
 {
    println("  " + toString( v[ 1 ] ) );
@@ -20,6 +32,10 @@ void print( Vector2i v )
    println( "Vector2i:" );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( Vector3i v )
 {
    println("  " + toString( v[ 2 ] ) );
@@ -28,6 +44,10 @@ void print( Vector3i v )
    println( "Vector3i:" );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( Matrix3f m )
 {
 
@@ -37,6 +57,10 @@ void print( Matrix3f m )
    println( "Matrix3f:" );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( Matrix4f m )
 {
    println("  " + toString( m( 3, 0 ) ) + " " + toString( m( 3, 1 ) ) + " " + toString( m( 3, 2 ) ) + " " + toString( m( 3, 3 ) ) );
@@ -46,21 +70,37 @@ void print( Matrix4f m )
    println( "Matrix4f:" );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( int n )
 {
    print( toString( n ) );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void print( float n )
 {
    print( toString( n ) );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void println( int n )
 {
    println( toString( n ) );
 }
 
+/**
+ @ingroup core
+ @brief displays a specific type on the std::cout
+ */
 void println( float n )
 {
    println( toString( n ) );

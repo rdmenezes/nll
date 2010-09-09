@@ -1,3 +1,7 @@
+/**
+ @defgroup core
+ Gather all core functions such as IO, utilities, math, vectors, matrices...
+ */
 include "mvv"
 include "io"
 include "io-extn"
@@ -7,93 +11,307 @@ include "math-vector"
 include "math-matrix"
 
 /**
+ @ingroup core
  @brief Defines the basic operators + - * / == != <= < >= > on int and float types
  */
 import int operator+( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator-( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator*( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator/( int a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator+( float a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator-( float a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator/( float a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator*( float a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator+( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator-( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator/( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator*( int a, float b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator+( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator-( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator/( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import float operator*( float a, float b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator==( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator==( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator==( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator==( float a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator!=( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator!=( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator!=( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator!=( float a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<=( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<=( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<=( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<=( float a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>=( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>=( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>=( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>=( float a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator>( float a, int b );
 
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<( float a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<( int a, float b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator<( float a, int b );
 
 /**
+ @ingroup core
  @brief print a string and finish by '\n' to the console
  */
 import void println( string s );
 
 /**
+ @ingroup core
  @brief print a string to the console
  */
 import void print( string s );
 
 /**
+ @ingroup core
  @brief concatene 2 strings
  */
 import string operator+( string s1, string s2 );
 
 /**
- @brief Defines the basic operators || &&
+ @ingroup core
+ @brief Defines the basic operators ||
  */
 import int operator||( int a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators &&
+ */
 import int operator&&( int a, int b );
 
 /**
- @brief Basic types conversion
+ @ingroup core
+ @brief transform value to a float
  */
 import float toFloat( int a );
+
+/**
+ @ingroup core
+ @brief transform value to a string
+ */
 import string toString( int a );
+
+/**
+ @ingroup core
+ @brief transform value to a string
+ */
 import string toString( float a );
 
 /**
+ @ingroup core
  @brief Run command in the console. It is using the PATH variable to access it
  */
 import void system( string cmd );
 
 /**
+ @ingroup core
  @brief Throw RuntimeException if the assert fails
  */
 import void assert( int val );
+
+/**
+ @ingroup core
+ @brief Throw RuntimeException if the assert fails
+ */
 import void assert( int val, string msg );

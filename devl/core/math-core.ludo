@@ -1,19 +1,101 @@
+/**
+ @ingroup core
+ @brief computes the cosinus
+ @param angleRadian an angle in radian
+ */
 import float cos(  float angleRadian );
+
+/**
+ @ingroup core
+ @brief computes the arc-cosinus
+ @param angleRadian an angle in radian
+ */
 import float acos( float angleRadian );
+
+/**
+ @ingroup core
+ @brief computes the sinus
+ @param angleRadian an angle in radian
+ */
 import float sin(  float angleRadian );
+
+/**
+ @ingroup core
+ @brief computes the arc-sinus
+ @param angleRadian an angle in radian
+ */
 import float asin( float angleRadian );
+
+/**
+ @ingroup core
+ @brief computes the tangent
+ @param angleRadian an angle in radian
+ */
 import float tan(  float angleRadian );
+
+/**
+ @ingroup core
+ @brief computes the arc-tangent
+ @param angleRadian an angle in radian
+ */
 import float atan( float angleRadian );
 
+/**
+ @ingroup core
+ @brief computes the exponent of a value
+ */
 import float exp(  float val );
+
+/**
+ @ingroup core
+ @brief computes the square root of a value
+ */
 import float sqrt( float val );
+
+/**
+ @ingroup core
+ @brief computes the square of a value
+ */
 import float sqr(  float val );
 
+/**
+ @ingroup core
+ @brief find the nearest integer of a floating value
+ */
 import int round( float val );
+
+/**
+ @ingroup core
+ @brief find the lowest integer of a floating value
+ */
 import int floor( float val );
 
+/**
+ @ingroup core
+ @brief compute the absolute value
+ */
 import int   abs( int   val );
+
+/**
+ @ingroup core
+ @brief compute the absolute value
+ */
 import float abs( float val );
+
+/**
+ @ingroup core
+ @brief compute the power of a number
+ */
 import float pow( float val, float e );
+
+/**
+ @ingroup core
+ @brief compute the logarithm in base 2
+ */
 import float log( float val );
+
+/**
+ @ingroup core
+ @brief computes the modulo
+ */
 import int   mod( int   val, int m );

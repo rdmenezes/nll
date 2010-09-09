@@ -1,51 +1,87 @@
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 OFStream operator<<( OFStream s, Vector3i v )
 {
    s << v[ 0 ] << " " << v[ 1 ] << " " << v[ 2 ] << "\n";
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 IFStream operator>>( IFStream s, Vector3i& v )
 {
    s >> v[ 0 ] >> v[ 1 ] >> v[ 2 ];
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 OFStream operator<<( OFStream s, Vector3f v )
 {
    s << v[ 0 ] << " " << v[ 1 ] << " " << v[ 2 ] << "\n";
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 IFStream operator>>( IFStream s, Vector3f& v )
 {
    s >> v[ 0 ] >> v[ 1 ] >> v[ 2 ];
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 OFStream operator<<( OFStream s, Vector2f v )
 {
    s << v[ 0 ] << " " << v[ 1 ] << "\n";
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 IFStream operator>>( IFStream s, Vector2f& v )
 {
    s >> v[ 0 ] >> v[ 1 ];
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 OFStream operator<<( OFStream s, Vector2i v )
 {
    s << v[ 0 ] << " " << v[ 1 ] << "\n";
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 IFStream operator>>( IFStream s, Vector2i& v )
 {
    s >> v[ 0 ] >> v[ 1 ];
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 OFStream operator<<( OFStream s, Matrix3f v )
 {
    int n = 0;
@@ -58,6 +94,10 @@ OFStream operator<<( OFStream s, Matrix3f v )
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 IFStream operator>>( IFStream s, Matrix3f& v )
 {
    int n = 0;
@@ -69,6 +109,10 @@ IFStream operator>>( IFStream s, Matrix3f& v )
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 OFStream operator<<( OFStream s, Matrix4f v )
 {
    int n = 0;
@@ -81,6 +125,10 @@ OFStream operator<<( OFStream s, Matrix4f v )
    return s;
 }
 
+/**
+ @ingroup core
+ @brief IO operator on specific types
+ */
 IFStream operator>>( IFStream s, Matrix4f& v )
 {
    int n = 0;

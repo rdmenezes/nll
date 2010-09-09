@@ -1,6 +1,6 @@
-include "core"
-
 /**
+ @defgroup mvv
+
  Principles:
  - volumes are loaded to a central store
  - volume ID hold reference on the actual volumes, if VolumeID is destroyed, then its associated volume too
@@ -8,7 +8,10 @@ include "core"
  - segments && MIP can have tools tailoring their behaviour
  */
 
+include "core"
+
 /**
+ @ingroup mvv
  @brief Represent a volume, can't be instanciated directly! When a VolumeID is destroyed, it's associated volume is unloaded from mvv context and volume's data are not accessible anymore
  */
 class VolumeID
@@ -33,6 +36,7 @@ class VolumeID
 }
 
 /**
+ @ingroup mvv
  @brief Affine registration that defines a transformation from source->target space
  @note all volumes are in target space, and all mm positions (i.e. annotations...) are defined in source space
  */
@@ -60,11 +64,23 @@ class AffineRegistration
 }
 
 /**
+ @ingroup mvv
  @brief Resample a target volume given a new size/orientation and an affine transformation to apply
  */
 import VolumeID resampleNearest( VolumeID target, AffineRegistration registration, Vector3i size, Matrix4f pst );
-VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst ){   AffineRegistration reg( Matrix4f() );   return resampleNearest( target, size, pst, reg ); }   
+
 /**
+ @ingroup mvv
+ @brief Resample a target volume given a new size/orientation
+ */
+VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst )
+{
+   AffineRegistration reg( Matrix4f() );
+   return resampleNearest( target, reg, size, pst );
+}
+
+/**
+ @ingroup mvv
  @brief Look up table - assign a color to a voxel value, given a window level
  @note: we can't use operator[] as we need to return a reference, however in memory we don't store a list of Vector3uc
  */
@@ -115,15 +131,13 @@ class Lut
 }
 
 /**
+ @ingroup mvv
  @brief Contains a set of volume with associated display info
  @note it is not storing a VolumeID reference (just a reference on the volume), so if the
        original VolumeID is destroyed, the VolumeContainer will stop displaying the volume
  */
 class VolumeContainer
 {
-   //  //PRIVATE DATA for VolumeID//                 //
-   //  //PRIVATE DATA for Lut//                      //
-
    import VolumeContainer();
 
    /**
@@ -161,6 +175,7 @@ class VolumeContainer
 }
 
 /**
+ @ingroup mvv
  @brief Hold a volume, this is only valid until its associated VolumeID is alive
  @note internally, the volume contains only one PTR field, holding a reference on the volume. This reference is only valid until it's associated VolumeID is alive.
  @note All volumes are in target space, they can all have a registration matrix which defines their position relative to the source space
@@ -219,44 +234,82 @@ class Volume
 }
 
 /**
+ @ingroup mvv
  @brief computes the barycentre of the LUT transformed volume
  */
 import Vector3f barycentre( VolumeID v, Lut l );
 
-// synchronously load a MF2 volume
+/**
+ @ingroup mvv
+ @brief synchronously load a MF2 volume
+ */
 import VolumeID readVolumeMF2( string name );
 
-// asynchronously load a MF2 volume
+/**
+ @ingroup mvv
+ @brief asynchronously load a MF2 volume
+ */
 import VolumeID readVolumeMF2Asynchronous( string name );
 
-// write a MF2 volume
+/**
+ @ingroup mvv
+ @brief write a MF2 volume
+ */
 import void writeVolumeMF2( VolumeID id, string name );
 
-// import/export text volumes
-// this is a full text volume (header + data)
+/**
+ @ingroup mvv
+ @brief write a txt volume
+ */
 import void writeVolumeTxt( VolumeID id, string name );
+
+/**
+ @ingroup mvv
+ @brief read a txt volume
+ */
 import VolumeID readVolumeTxt( string name );
 
-// import/export bin volumes
-// the data is saved as a buffer of float, but the header is in clear
+/**
+ @ingroup mvv
+ @brief write a binary volume
+ The header is stored as a text, but the data is exported as a raw binary volume, storing XY slice contiguously
+ */
 import void writeVolumeBin( VolumeID id, string name );
+
+/**
+ @ingroup mvv
+ @brief read a binary volume
+ The header is stored as a text, but the data is exported as a raw binary volume, storing XY slice contiguously
+ */
 import VolumeID readVolumeBin( string name );
 
-// get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
+/**
+ @ingroup mvv
+ @brief get a volume, if the volume is being loaded, the call is blocked until the volume is fully loaded
+ */
 import Volume getVolume( VolumeID id );
 
+/**
+ @ingroup mvv
+ @brief print a volume
+ */
 void print( Volume v )
 {
    print( v.getPst() );
    println( "size:" + toString( v.getSize()[ 0 ] ) + " " + toString( v.getSize()[ 1 ] ) + " " + toString( v.getSize()[ 2 ] ) );
 }
 
+/**
+ @ingroup mvv
+ @brief print a volume
+ */
 void print( VolumeID v )
 {
    print( getVolume( v ) );
 }
 
 /**
+ @ingroup mvv
  @brief Center segments when new bigger volumes are loaded
  */
 class SegmentToolCentering
@@ -266,6 +319,7 @@ class SegmentToolCentering
 }
 
 /**
+ @ingroup mvv
  @brief Synchronize all the linked segments on a unique position
  */
 class SegmentToolPointer
@@ -289,6 +343,7 @@ class SegmentToolPointer
 }
 
 /**
+ @ingroup mvv
  @brief Tool displaying annotations on segments
  */
 class ToolAnnotations
@@ -331,6 +386,7 @@ class ToolAnnotations
 }
 
 /**
+ @ingroup mvv
  @brief Tool allowing a segment to be manipulated (zmoved/zoomed/panned)
  @note all the linked segments must be orthogonal
  */
@@ -346,6 +402,7 @@ class SegmentToolCamera
 }
 
 /**
+ @ingroup mvv
  @brief Represents a MPR segment
  @note reference on tools are saved in the segment
  */
@@ -397,6 +454,7 @@ class Segment
 }
 
 /**
+ @ingroup mvv
  @brief Allows a mip to be manipulated
  */
 class MipToolPointer
@@ -406,6 +464,7 @@ class MipToolPointer
 }
 
 /**
+ @ingroup mvv
  @brief Display a maximum intensity projection volume
  */
 class Mip
@@ -417,6 +476,7 @@ class Mip
 }
 
 /**
+ @ingroup mvv
  @brief Displays a console to enable user/script interaction
  */
 class Console
@@ -425,6 +485,7 @@ class Console
 }
 
 /**
+ @ingroup mvv
  @brief Define a layout displaying the UI elements, segments & MIPs
  */
 class Layout

@@ -1,4 +1,5 @@
 /**
+ @ingroup core
  @brief Output file stream
  */
 class OFStream
@@ -24,21 +25,38 @@ class OFStream
     @brief write a string to the stream
     */
    import void write( string s );
+
+   /**
+    @brief write an int to the stream
+    */
    import void write( int s );
+
+   /**
+    @brief write a float to the stream
+    */
    import void write( float s );
 
+   /**
+    @brief write a string to the stream
+    */
    OFStream operator<<( string s )
    {
       this.write( s );
       return this;
    }
 
+   /**
+    @brief write an int to the stream
+    */
    OFStream operator<<( int s )
    {
       this.write( s );
       return this;
    }
 
+   /**
+    @brief write a float to the stream
+    */
    OFStream operator<<( float s )
    {
       this.write( s );
@@ -47,6 +65,7 @@ class OFStream
 }
 
 /**
+ @ingroup core
  @brief Input file stream
  */
 class IFStream
@@ -88,18 +107,27 @@ class IFStream
     */
    import int eof();
 
+   /**
+    @brief read an string from a stream
+    */
    IFStream operator>>( string& s )
    {
       s = this.getline();
       return this;
    }
 
+   /**
+    @brief read an int from a stream
+    */
    IFStream operator>>( int& s )
    {
       this.read( s );
       return this;
    }
 
+   /**
+    @brief read a float from a stream
+    */
    IFStream operator>>( float& s )
    {
       this.read( s );

@@ -1,3 +1,7 @@
+/**
+ @ingroup core
+ @brief Represent a 3*3 matrix with affine operations defined
+ */
 class Matrix3f
 {
 	float vals[ 9 ];
@@ -34,7 +38,8 @@ class Matrix3f
 }
 
 /**
- Represent a 4*4 matrix with affine operations defined
+ @ingroup core
+ @brief Represent a 4*4 matrix with affine operations defined
  */
 class Matrix4f
 {
@@ -147,6 +152,11 @@ class Matrix4f
    }
 }
 
+/**
+ @ingroup core
+ @brief Create a rotation matrix around the X axis
+ @param angle angle in radian
+ */
 Matrix4f createRotationX( float angle)
 {
    return Matrix4f( 1.0, 0.0         , 0.0         , 0.0,
@@ -155,6 +165,11 @@ Matrix4f createRotationX( float angle)
                     0.0, 0.0         , 0.0         , 1.0 );
 }
 
+/**
+ @ingroup core
+ @brief Create a rotation matrix around the Y axis
+ @param angle angle in radian
+ */
 Matrix4f createRotationY( float angle)
 {
    return Matrix4f( cos( angle ), 0.0, sin( angle ), 0.0,
@@ -163,6 +178,11 @@ Matrix4f createRotationY( float angle)
                     0.0         , 0.0, 0.0         , 1.0 );
 }
 
+/**
+ @ingroup core
+ @brief Create a rotation matrix around the Z axis
+ @param angle angle in radian
+ */
 Matrix4f createRotationZ( float angle)
 {
    return Matrix4f( cos( angle ), sin( angle ), 0.0, 0.0,
@@ -171,6 +191,11 @@ Matrix4f createRotationZ( float angle)
                     0.0         , 0.0         , 0.0, 1.0 );
 }
 
+/**
+ @ingroup core
+ @brief Create a translation matrix around the X axis
+ @param angle angle in radian
+ */
 Matrix4f createTranslation( Vector3f t )
 {
    return Matrix4f( 1.0, 0.0, 0.0, t[ 0 ],
