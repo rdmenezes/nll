@@ -55,20 +55,45 @@ class KeyboardCallback
    KeyCallback[]  callbacks;                 // hold a call back
    string[]       callbacksKey;              // hold the key for the corresponding callback
    int[]          callbacksKeyModifier;      // corresponding modifier for the key: (0 => normal), (1 => CTRL), (2 => SHIFT), (3 => ALT)
+   int            nbCallBacks = 0;           // the number of callbacks stored
 
-   KeyboardCallback( AnnotationCreator creator, VolumeSwitch switch )
+   void addShortcut( KeyCallback callback, string key, int modifier = 0 )
    {
-      KeyCallback c[]   = { creator.run, switch.next };
-      string      ck[]  = { "F1",   "F3" };
-      int         ckm[] = { 0,      0 };
+      KeyCallback c  [ nbCallBacks + 1 ];
+      string      ck [ nbCallBacks + 1 ];
+      int         ckm[ nbCallBacks + 1 ];
 
-      callbacks            = c;
-      callbacksKey         = ck;
-      callbacksKeyModifier = ckm;
+      // copy over the data in a new array
+      int n = 0;
+      while ( n < nbCallBacks )
+      {
+         c  [ n ] = callbacks[ n ];
+         ck [ n ] = callbacksKey[ n ];
+         ckm[ n ] = callbacksKeyModifier[ n ];
+         n = n + 1;
+      }
+
+      // add the new shortcut
+      c  [ nbCallBacks ] = callback;
+      ck [ nbCallBacks ] = key;
+      ckm[ nbCallBacks ] = modifier;
+
+      KeyboardCallback o;
+      o.callbacks = c;
+      o.callbacksKey = ck;
+      o.callbacksKeyModifier = ckm;
+
+      // replace the object
+      this = o;
    }
+
+   KeyboardCallback()
+   {}
 }
 
-KeyboardCallback callbacks( annotationCreator, switch );
+KeyboardCallback callbacks;
+callbacks.addShortcut( annotationCreator.run, "F1" );
+//callbacks.addShortcut( switch.next, "F3" );
 
 
 AffineRegistration petReg;

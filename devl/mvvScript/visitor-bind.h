@@ -436,8 +436,8 @@ namespace parser
       virtual void operator()( AstExpCall& e )
       {
          // nothing to do: i.e. a[ 0 ]( 5 ) => a will be checked part of "e.getName()"
-         ++_functionCallsNeeded;
          operator()( e.getArgs() );
+         ++_functionCallsNeeded;
          operator()( e.getName() );
          --_functionCallsNeeded;
 

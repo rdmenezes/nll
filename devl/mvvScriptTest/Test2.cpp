@@ -180,9 +180,10 @@ struct TestEval
          try
          {
             TESTER_ASSERT( fe.run( "import \"HAHAH\"" ) != Error::SUCCESS );
+            TESTER_ASSERT(0);
          } catch( RuntimeException e )
          {
-            TESTER_ASSERT(0);
+            // good!
          }
       }
       
@@ -1463,7 +1464,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = readVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
       }
@@ -1488,7 +1489,7 @@ struct TestEval
          // create a front end and run it in another thread
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
-         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = loadVolumeAsynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i size = vol1.getSize(); int x = size[ 0 ]; Vector3f spacing = vol1.getSpacing(); float spx = spacing[ 0 ]; Vector3f pos = vol1.getOrigin(); float posx = pos[ 0 ];" );
+         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = readVolumeMF2Asynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i size = vol1.getSize(); int x = size[ 0 ]; Vector3f spacing = vol1.getSpacing(); float spx = spacing[ 0 ]; Vector3f pos = vol1.getOrigin(); float posx = pos[ 0 ];" );
          boost::thread dispatchThread( boost::ref( launcher ) );
 
          // in the meantime, for this thread, wait a bit to receive the orders
@@ -1535,7 +1536,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setOrigin( Vector3f( 1.0, 2.0, 3.0 ) ); float x = vol1.getOrigin()[ 0 ]; vol1.setSpacing( Vector3f( 1.0, 2.0, 3.0 ) ); float spy = vol1.getSpacing()[ 1 ]; Matrix3f rot = vol1.getRotation(); float rot00 = rot.vals[ 0 ]; float rot11 = rot.vals[ 4 ];" );
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = readVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setOrigin( Vector3f( 1.0, 2.0, 3.0 ) ); float x = vol1.getOrigin()[ 0 ]; vol1.setSpacing( Vector3f( 1.0, 2.0, 3.0 ) ); float spy = vol1.getSpacing()[ 1 ]; Matrix3f rot = vol1.getRotation(); float rot00 = rot.vals[ 0 ]; float rot11 = rot.vals[ 4 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
@@ -1573,7 +1574,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setPst( Matrix4f() ); Matrix4f pst = vol1.getPst(); float a00 = pst.vals[ 0 ]; vol1.setRotation( Matrix3f() ); Matrix3f rot = vol1.getRotation(); float r00 = rot.vals[ 0 ];" );
+         Error::ErrorType result = fe.run( "import \"core\"  VolumeID vid1 = readVolumeMF2( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); vol1.setPst( Matrix4f() ); Matrix4f pst = vol1.getPst(); float a00 = pst.vals[ 0 ]; vol1.setRotation( Matrix3f() ); Matrix3f rot = vol1.getRotation(); float r00 = rot.vals[ 0 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
 
@@ -1589,7 +1590,7 @@ struct TestEval
       {
          // multiple destructor
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" Lut lut( 0.0, 255.0 ); lut.setColorIndex(10, 16, 17, 18); Vector3i res = lut.getColorIndex(10); int r = res[ 0 ]; int g = res[ 1 ]; int b = res[ 2 ]; Vector3i res2 = lut.transform( 10.5 ); int r2 = res2[ 0 ]; int g2 = res2[ 1 ]; int b2 = res2[ 2 ];" );
+         Error::ErrorType result = fe.run( "import \"core\" Lut lut( 0.0, 255.0 ); lut.setColorIndex(10, 16, 17, 18); Vector3i res = lut.getColor(10); int r = res[ 0 ]; int g = res[ 1 ]; int b = res[ 2 ]; Vector3i res2 = lut.transform( 10.5 ); int r2 = res2[ 0 ]; int g2 = res2[ 1 ]; int b2 = res2[ 2 ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          const RuntimeValue& rt1 = fe.getVariable( mvv::Symbol::create( "r" ) );
@@ -1634,7 +1635,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  Lut lut(0.0, 255.0); VolumeID vol1 = loadVolumeMF2( \"../../nllTest/data/medical/pet.mf2\" ); VolumeContainer container; container.add( vol1, lut, 0.5 ); container.setLut( vol1, lut ); container.setIntensity( vol1, 0.5 );" );
+         Error::ErrorType result = fe.run( "import \"core\"  Lut lut(0.0, 255.0); VolumeID vol1 = readVolumeMF2( \"../../nllTest/data/medical/pet.mf2\" ); VolumeContainer container; container.add( vol1, lut, 0.5 ); container.setLut( vol1, lut ); container.setIntensity( vol1, 0.5 );" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          TESTER_ASSERT( context.get<platform::ContextVolumes>()->volumes.size() == 1 );   // check we have correctly loaded the volume
@@ -2283,12 +2284,12 @@ struct TestEval
 
    void eval6()
    {
-      /*
+      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{int n = 42; Test(){} } Test(); Test();" );
          TESTER_ASSERT( result == Error::SUCCESS );
-      }*/
+      }
 
       {
          // check the destructor: Test destructor must be called, but not Test2 => we are checing the result register is correctly saved while runing the Test destructor
@@ -2304,16 +2305,21 @@ struct TestEval
          TESTER_ASSERT( rt2.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt2.intval == 0 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef void() pfn; void run(){} void test( pfn p ){} test( run );" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
-*/
 TESTER_TEST(eval6);
 TESTER_TEST_SUITE_END();

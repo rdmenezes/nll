@@ -57,10 +57,12 @@ public:
 
          if ( callbacks.type != RuntimeValue::TYPE )
             throw std::exception( "error: 'callbacks' must be a type" );
-         if ( (*callbacks.vals).size() != 3 )
-            throw std::exception( "error: 'callbacks' must be defined as 3 arrays: function callbacks, key strings and associated key modifier" );
-         if ( (*callbacks.vals)[ 0 ].type != RuntimeValue::TYPE )
-            throw std::exception( "error: function 'callbacks' must be a type" );
+         if ( (*callbacks.vals).size() != 4 )
+            throw std::exception( "error: 'callbacks' must be defined as 3 arrays and one int: function callbacks, key strings and associated key modifier" );
+         if ( (*callbacks.vals)[ 0 ].vals.getDataPtr() == 0 )
+            return;  // no callbacks!
+         //if ( (*callbacks.vals)[ 0 ].type != RuntimeValue::TYPE || (*callbacks.vals)[ 0 ].type != RuntimeValue::EMPTY )
+         //   throw std::exception( "error: function 'callbacks' must be a type" );
 
          ui32 size = (ui32)(*(*callbacks.vals)[ 0 ].vals).size();
          if ( (*(*callbacks.vals)[ 1 ].vals).size() != size )
