@@ -381,8 +381,6 @@ namespace parser
             std::cout << std::endl;
          }
 
-        // if ( !e.getBody() )
-        //    _o << ";";
          if ( e.getType() )
          {
             operator()( *e.getType() );
@@ -637,7 +635,7 @@ namespace parser
       virtual void operator()( const Ast& e )
       {
          e.accept( *this );
-      }
+       }
 
    private:
       // disabled
