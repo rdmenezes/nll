@@ -6,6 +6,13 @@ class Vector3i
 {
 	int vals[ 3 ];
 
+   Vector3i( Vector3f v )
+   {
+      vals[ 0 ] = round( v[ 0 ] );
+		vals[ 1 ] = round( v[ 1 ] );
+		vals[ 2 ] = round( v[ 2 ] );
+   }
+
 	Vector3i( int x = 0, int y = 0, int z = 0 )
 	{
 		vals[ 0 ] = x;
@@ -21,6 +28,35 @@ class Vector3i
    float norm()
    {
       return sqrt( sqr( toFloat( vals[ 0 ] ) ) + sqr( toFloat( vals[ 1 ] ) ) + sqr( toFloat( vals[ 2 ] ) ) );
+   }
+
+   Vector3i operator+( Vector3i rhs )
+   {
+      return Vector3i( vals[ 0 ] + rhs[ 0 ],
+                       vals[ 1 ] + rhs[ 1 ],
+                       vals[ 2 ] + rhs[ 2 ] );
+   }
+
+   Vector3i operator-( Vector3i rhs )
+   {
+      return Vector3i( vals[ 0 ] - rhs[ 0 ],
+                       vals[ 1 ] - rhs[ 1 ],
+                       vals[ 2 ] - rhs[ 2 ] );
+   }
+
+   Vector3i operator*( int n )
+   {
+      return Vector3i( vals[ 0 ] * n,
+                       vals[ 1 ] * n,
+                       vals[ 2 ] * n );
+   }
+
+   Vector3i operator/( int n )
+   {
+      assert( n != 0, "division by zero!" );
+      return Vector3i( vals[ 0 ] / n,
+                       vals[ 1 ] / n,
+                       vals[ 2 ] / n );
    }
 }
 
@@ -39,6 +75,13 @@ class Vector3f
 		vals[ 2 ] = z;
 	}
 
+   Vector3f( Vector3i v )
+   {
+      vals[ 0 ] = toFloat( v[ 0 ] );
+		vals[ 1 ] = toFloat( v[ 1 ] );
+		vals[ 2 ] = toFloat( v[ 2 ] );
+   }
+
 	float& operator[]( int index )
 	{
 		return vals[ index ];
@@ -47,6 +90,47 @@ class Vector3f
    float norm()
    {
       return sqrt( sqr( vals[ 0 ] ) + sqr( vals[ 1 ] ) + sqr( vals[ 2 ] ) );
+   }
+
+   Vector3f operator+( Vector3f rhs )
+   {
+      return Vector3f( vals[ 0 ] + rhs[ 0 ],
+                       vals[ 1 ] + rhs[ 1 ],
+                       vals[ 2 ] + rhs[ 2 ] );
+   }
+
+   Vector3f operator-( Vector3f rhs )
+   {
+      return Vector3f( vals[ 0 ] - rhs[ 0 ],
+                       vals[ 1 ] - rhs[ 1 ],
+                       vals[ 2 ] - rhs[ 2 ] );
+   }
+
+   Vector3f operator*( float n )
+   {
+      return Vector3f( vals[ 0 ] * n,
+                       vals[ 1 ] * n,
+                       vals[ 2 ] * n );
+   }
+
+   Vector3f operator/( float n )
+   {
+      assert( n != 0.0, "division by zero!" );
+      return Vector3f( vals[ 0 ] / n,
+                       vals[ 1 ] / n,
+                       vals[ 2 ] / n );
+   }
+
+   Vector3f cross( Vector3f b )
+   {
+      return Vector3f( vals[ 1 ] * b[ 2 ] - vals[ 2 ] * b[ 1 ],
+                       vals[ 2 ] * b[ 0 ] - vals[ 0 ] * b[ 2 ],
+                       vals[ 0 ] * b[ 1 ] - vals[ 1 ] * b[ 0 ] );
+   }
+
+   float dot( Vector3f b )
+   {
+      return vals[ 0 ] * b[ 0 ] + vals[ 1 ] * b[ 1 ] + vals[ 2 ] * b[ 2 ];
    }
 }
 
@@ -64,6 +148,12 @@ class Vector2f
 		vals[ 1 ] = y;
 	}
 
+   Vector2f( Vector2i v )
+   {
+      vals[ 0 ] = toFloat( v[ 0 ] );
+		vals[ 1 ] = toFloat( v[ 1 ] );
+   }
+
 	float& operator[]( int index )
 	{
 		return vals[ index ];
@@ -72,6 +162,31 @@ class Vector2f
    float norm()
    {
       return sqrt( sqr( vals[ 0 ] ) + sqr( vals[ 1 ] ) );
+   }
+
+   Vector2f operator+( Vector2f rhs )
+   {
+      return Vector2f( vals[ 0 ] + rhs[ 0 ],
+                       vals[ 1 ] + rhs[ 1 ] );
+   }
+
+   Vector2f operator-( Vector2f rhs )
+   {
+      return Vector2f( vals[ 0 ] - rhs[ 0 ],
+                       vals[ 1 ] - rhs[ 1 ] );
+   }
+
+   Vector2f operator*( float n )
+   {
+      return Vector2f( vals[ 0 ] * n,
+                       vals[ 1 ] * n );
+   }
+
+   Vector2f operator/( float n )
+   {
+      assert( n != 0.0, "division by zero!" );
+      return Vector2f( vals[ 0 ] / n,
+                       vals[ 1 ] / n );
    }
 }
 
@@ -89,6 +204,12 @@ class Vector2i
 		vals[ 1 ] = y;
 	}
 
+   Vector2i( Vector2f v )
+   {
+      vals[ 0 ] = round( v[ 0 ] );
+		vals[ 1 ] = round( v[ 1 ] );
+   }
+
 	int& operator[]( int index )
 	{
 		return vals[ index ];
@@ -97,5 +218,30 @@ class Vector2i
    float norm()
    {
       return sqrt( sqr( toFloat( vals[ 0 ] ) ) + sqr( toFloat( vals[ 1 ] ) ) );
+   }
+
+   Vector2i operator+( Vector2i rhs )
+   {
+      return Vector2i( vals[ 0 ] + rhs[ 0 ],
+                       vals[ 1 ] + rhs[ 1 ] );
+   }
+
+   Vector2i operator-( Vector2i rhs )
+   {
+      return Vector2i( vals[ 0 ] - rhs[ 0 ],
+                       vals[ 1 ] - rhs[ 1 ] );
+   }
+
+   Vector2i operator*( int n )
+   {
+      return Vector2i( vals[ 0 ] * n,
+                       vals[ 1 ] * n );
+   }
+
+   Vector2i operator/( int n )
+   {
+      assert( n != 0, "division by zero!" );
+      return Vector2i( vals[ 0 ] / n,
+                       vals[ 1 ] / n );
    }
 }

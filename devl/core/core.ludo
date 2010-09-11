@@ -253,12 +253,14 @@ import int operator<( float a, int b );
 /**
  @ingroup core
  @brief print a string and finish by '\n' to the console
+ @note if no console is detected in the current layout, this will be displayed in the std::cout
  */
 import void println( string s );
 
 /**
  @ingroup core
  @brief print a string to the console
+ @note if no console is detected in the current layout, this will be displayed in the std::cout
  */
 import void print( string s );
 
