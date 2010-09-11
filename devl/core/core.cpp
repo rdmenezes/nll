@@ -16,6 +16,7 @@
 #include <mvvScript/function-runnable.h>
 #include "system.h"
 #include "mvv-resample.h"
+#include "mvv-matrix.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -2981,5 +2982,20 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "resampleNearest" ) ), nll::core::make_vector<const Type*>( volid, reg, vector3i, matrix4 ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionResampleNearest( fn, context, e ) ) );
+   }
+
+   //
+   // matrix
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Matrixf"), platform::Symbol::create( "Matrixf" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableMatrixfConstructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Matrixf"), platform::Symbol::create( "~Matrixf" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableMatrixfDestructor( fn ) ) );
    }
 }
