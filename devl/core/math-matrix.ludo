@@ -47,6 +47,45 @@ class Matrix3f
    {
       return 3;
    }
+
+   Matrix3f operator+( Matrix3f b )
+   {
+      return Matrix3f( vals[ 0 ] + b.vals[ 0 ], vals[ 1 ] + b.vals[ 1 ], vals[ 2 ] + b.vals[ 2 ],
+                       vals[ 3 ] + b.vals[ 3 ], vals[ 4 ] + b.vals[ 4 ], vals[ 5 ] + b.vals[ 5 ],
+                       vals[ 6 ] + b.vals[ 6 ], vals[ 7 ] + b.vals[ 7 ], vals[ 8 ] + b.vals[ 8 ] );
+   }
+
+   Matrix3f operator-( Matrix3f b )
+   {
+      return Matrix3f( vals[ 0 ] - b.vals[ 0 ], vals[ 1 ] - b.vals[ 1 ], vals[ 2 ] - b.vals[ 2 ],
+                       vals[ 3 ] - b.vals[ 3 ], vals[ 4 ] - b.vals[ 4 ], vals[ 5 ] - b.vals[ 5 ],
+                       vals[ 6 ] - b.vals[ 6 ], vals[ 7 ] - b.vals[ 7 ], vals[ 8 ] - b.vals[ 8 ] );
+   }
+
+   Matrix3f operator*( float b )
+   {
+      return Matrix3f( vals[ 0 ] * b, vals[ 1 ] * b, vals[ 2 ] * b,
+                       vals[ 3 ] * b, vals[ 4 ] * b, vals[ 5 ] * b,
+                       vals[ 6 ] * b, vals[ 7 ] * b, vals[ 8 ] * b );
+   }
+
+   Matrix3f operator/( float b )
+   {
+      assert( b != 0.0, "division by zero!" );
+      return Matrix3f( vals[ 0 ] / b, vals[ 1 ] / b, vals[ 2 ] / b,
+                       vals[ 3 ] / b, vals[ 4 ] / b, vals[ 5 ] / b,
+                       vals[ 6 ] / b, vals[ 7 ] / b, vals[ 8 ] / b );
+   }
+
+   float det()
+   {
+      return vals[ 0 ] * vals[ 4 ] * vals[ 8 ] +
+             vals[ 1 ] * vals[ 5 ] * vals[ 6 ] +
+             vals[ 2 ] * vals[ 3 ] * vals[ 7 ] -
+             vals[ 0 ] * vals[ 5 ] * vals[ 7 ] -
+             vals[ 1 ] * vals[ 3 ] * vals[ 8 ] -
+             vals[ 2 ] * vals[ 4 ] * vals[ 6 ];
+   }
 }
 
 /**
@@ -175,6 +214,39 @@ class Matrix4f
    float& operator()( int y, int x )
    {
       return vals[ x + y * 4 ];
+   }
+
+   Matrix4f operator+( Matrix4f b )
+   {
+      return Matrix4f( vals[ 0 ]  + b.vals[ 0 ],  vals[ 1 ]  + b.vals[ 1 ],  vals[ 2 ]  + b.vals[ 2 ],  vals[ 3 ]  + b.vals[ 3 ],
+                       vals[ 4 ]  + b.vals[ 4 ],  vals[ 5 ]  + b.vals[ 5 ],  vals[ 6 ]  + b.vals[ 6 ],  vals[ 7 ]  + b.vals[ 7 ],
+                       vals[ 8 ]  + b.vals[ 8 ],  vals[ 9 ]  + b.vals[ 9 ],  vals[ 10 ] + b.vals[ 10 ], vals[ 11 ] + b.vals[ 11 ],
+                       vals[ 12 ] + b.vals[ 12 ], vals[ 13 ] + b.vals[ 13 ], vals[ 14 ] + b.vals[ 14 ], vals[ 15 ] + b.vals[ 15 ]);
+   }
+
+   Matrix4f operator-( Matrix4f b )
+   {
+      return Matrix4f( vals[ 0 ]  - b.vals[ 0 ],  vals[ 1 ]  - b.vals[ 1 ],  vals[ 2 ]  - b.vals[ 2 ],  vals[ 3 ]  - b.vals[ 3 ],
+                       vals[ 4 ]  - b.vals[ 4 ],  vals[ 5 ]  - b.vals[ 5 ],  vals[ 6 ]  - b.vals[ 6 ],  vals[ 7 ]  - b.vals[ 7 ],
+                       vals[ 8 ]  - b.vals[ 8 ],  vals[ 9 ]  - b.vals[ 9 ],  vals[ 10 ] - b.vals[ 10 ], vals[ 11 ] - b.vals[ 11 ],
+                       vals[ 12 ] - b.vals[ 12 ], vals[ 13 ] - b.vals[ 13 ], vals[ 14 ] - b.vals[ 14 ], vals[ 15 ] - b.vals[ 15 ]);
+   }
+
+   Matrix4f operator*( float b )
+   {
+      return Matrix4f( vals[ 0 ]  * b, vals[ 1 ]  * b, vals[ 2 ]  * b, vals[ 3 ]  * b,
+                       vals[ 4 ]  * b, vals[ 5 ]  * b, vals[ 6 ]  * b, vals[ 7 ]  * b,
+                       vals[ 8 ]  * b, vals[ 9 ]  * b, vals[ 10 ] * b, vals[ 11 ] * b,
+                       vals[ 12 ] * b, vals[ 13 ] * b, vals[ 14 ] * b, vals[ 15 ] * b );
+   }
+
+   Matrix4f operator/( float b )
+   {
+      assert( b != 0.0, "division by zero!" );
+      return Matrix4f( vals[ 0 ]  / b, vals[ 1 ]  / b, vals[ 2 ]  / b, vals[ 3 ]  / b,
+                       vals[ 4 ]  / b, vals[ 5 ]  / b, vals[ 6 ]  / b, vals[ 7 ]  / b,
+                       vals[ 8 ]  / b, vals[ 9 ]  / b, vals[ 10 ] / b, vals[ 11 ] / b,
+                       vals[ 12 ] / b, vals[ 13 ] / b, vals[ 14 ] / b, vals[ 15 ] / b );
    }
 
    /**
