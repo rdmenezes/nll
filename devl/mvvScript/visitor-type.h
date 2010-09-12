@@ -1065,7 +1065,7 @@ namespace parser
                      e.setNodeType( new TypeError() );
                      return;
                   } else {
-                     impl::reportTypeError( e.getLocation(), _context, "no constructor found in class definition that matches this prototype" );
+                     impl::reportTypeError( e.getLocation(), _context, "no constructor found in class definition that matches this prototype - " + std::string( ty->getDecl()->getName().getName() ) );
                      e.setNodeType( new TypeError() );
                      return;
                   }

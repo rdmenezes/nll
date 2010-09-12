@@ -259,7 +259,8 @@
 %%
 program: statements									{ tp._root = $1; }        
 
-statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); }		
+/* TODO Find a nice way to initialize the file!!*/
+statements: /* empty */								{ @$.filename = mvv::Symbol::create( tp._filename == "" ? "(input)" : tp._filename ); $$ = new mvv::parser::AstStatements( @$ ); }		
 			|statement statements					{ $$ = $2; $2->insert( $1 ); }
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX                     { $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }
