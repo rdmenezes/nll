@@ -188,12 +188,10 @@ public:
          throw RuntimeException( "inverse: matrix is singular!" );
       
 
-      RuntimeValue matrix( RuntimeValue::TYPE );
-      RuntimeValue field( RuntimeValue::PTR );
-      field.ref = reinterpret_cast<RuntimeValue*>( p2 ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
-      (*matrix.vals).resize( 1 );    // resize the original field
-      (*matrix.vals)[ 0 ] = field;
-      return matrix;
+      RuntimeValue p( RuntimeValue::TYPE );
+      createFields( p, 1, RuntimeValue::PTR );
+      (*p.vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( p2 ); 
+      return p;
    }
 };
 
@@ -266,7 +264,7 @@ public:
 
 
       RuntimeValue p( RuntimeValue::TYPE );
-      createFields( p, 1 );
+      createFields( p, 1, RuntimeValue::PTR );
       (*p.vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( new Pointee( *pointeeA * *pointeeB ) ); 
       return p;
    }
@@ -300,7 +298,7 @@ public:
       nll::core::transpose( *pointeeB );
 
       RuntimeValue p( RuntimeValue::TYPE );
-      createFields( p, 1 );
+      createFields( p, 1, RuntimeValue::PTR );
       (*p.vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( pointeeB ); 
       return p;
    }
@@ -356,9 +354,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
 
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
-      
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
-      
 
       RuntimeValue det( RuntimeValue::CMP_INT );
       det.intval = pointee->sizey();

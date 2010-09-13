@@ -17,6 +17,17 @@ namespace parser
       val.vals = RuntimeValue::RefcountedValues( e, t, new RuntimeValues( nbFields ) );
    }
 
+   inline void createFields( RuntimeValue& val, ui32 nbFields, RuntimeValue::TypeEnum t )
+   {
+      assert( val.type == RuntimeValue::TYPE ); // it must be a TYPE value
+      RuntimeValues* values = new RuntimeValues( nbFields );
+      for ( ui32 n = 0; n < nbFields; ++n )
+      {
+         (*values)[ n ].type = t;
+      }
+      val.vals = RuntimeValue::RefcountedValues( 0, 0, values );
+   }
+
    inline void createVector3i( RuntimeValue& val, int x, int y, int z )
    {
       val.type = RuntimeValue::TYPE;

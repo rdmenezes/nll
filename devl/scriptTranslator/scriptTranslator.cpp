@@ -7,7 +7,7 @@ int main( int argc, const char** argv)
 {
    if ( argc != 2 )
    {
-      std::cerr << "excepted: ./scriptTranslator fileToTranslate" << std::endl;
+      std::cerr << "expected: ./scriptTranslator fileToTranslate" << std::endl;
       std::cerr << " info: display the .ludo language in a closer form of C++ to be parsed by doxygen" << std::endl;
       return 1;
    }
@@ -20,7 +20,7 @@ int main( int argc, const char** argv)
    exp = context.parseFile( argv[ 1 ] );
    if ( !exp )
    {
-      std::cerr << "error! cannot parse this file. Rzeason:" << context.getError().getMessage().str() << std::endl;
+      std::cerr << "error! cannot parse this file. Reason:" << context.getError().getMessage().str() << std::endl;
       return 1;
    }
 
