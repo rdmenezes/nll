@@ -35,7 +35,6 @@ namespace parser
                    SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
          // TODO: we actually want it when the visitor is run... not created
-         _isInFunctionDeclaration = false;
          _currentFp = 0;
          _isFunctionBeingCalled = false;
       }
@@ -147,6 +146,17 @@ namespace parser
                ++it )
          {
             ensure( (*it)->getNodeType(), "can't type an expression" );
+         }
+
+         for ( size_t n = 0; n < funcs.size(); ++n )
+         {
+            for ( AstDeclVars::Decls::iterator decls = funcs[ n ]->getVars().getVars().begin(); decls != funcs[ n ]->getVars().getVars().end(); ++decls )
+            {
+               if ( (*decls)->getNodeType() == 0 )
+               {
+                  operator()( **decls );
+               }
+            }
          }
 
          for ( size_t n = 0; n < funcs.size(); ++n )
@@ -870,9 +880,7 @@ namespace parser
 
          if ( e.getVars().getVars().size() )
          {
-            _isInFunctionDeclaration = true;
             operator()( e.getVars() );
-            _isInFunctionDeclaration = false;
          }
          
          if ( e.getBody() )
@@ -972,7 +980,7 @@ namespace parser
          if ( e.getType().isArray() )
          {
             // check the type held is not a reference...
-            if ( !_isInFunctionDeclaration && hasArrayInnerReference( *e.getType().getNodeType() ) && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
+            if ( !e.getIsInFunctionPrototype() && hasArrayInnerReference( *e.getType().getNodeType() ) && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
             {
                impl::reportTypeError( e.getLocation(), _context, "type with reference must be initialized" );
                return;
@@ -1032,7 +1040,7 @@ namespace parser
             }
          } else {
             // if a reference, then it must be initialized
-            if ( !_isInFunctionDeclaration && e.getType().getNodeType()->isReference() && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
+            if ( !e.getIsInFunctionPrototype() && e.getType().getNodeType()->isReference() && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
             {
                impl::reportTypeError( e.getLocation(), _context, "type with reference must be initialized" );
                return;
@@ -1071,7 +1079,7 @@ namespace parser
                   }
                }
             } else {
-               if ( !_isInFunctionDeclaration )
+               if ( !e.getIsInFunctionPrototype() )
                {
                   // if we are in the declaration of a function, we are not constructing an object... so we shouldn't test this
                   AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
@@ -1304,8 +1312,7 @@ namespace parser
       SymbolTableVars&    _vars;
       SymbolTableFuncs&   _funcs;
       SymbolTableClasses& _classes;
-      bool                _isInFunctionDeclaration;
-      bool                _isFunctionBeingCalled;
+      bool                _isFunctionBeingCalled;     // TODO: problem: because any node can request to be evaluated => we can't allow variable member to be used. Result must be stored directly in the node!
       std::vector<mvv::Symbol>   _defaultClassPath;
 
       std::stack<ui32>    _fp;   // we locally need to compute the frame pointer & update reference variable for all declared variables in class & function (this is local)

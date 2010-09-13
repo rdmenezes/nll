@@ -9,6 +9,7 @@ include "io-print"
 include "math-core"
 include "math-vector"
 include "math-matrix"
+include "math-matrix-op"
 
 /**
  @ingroup core
