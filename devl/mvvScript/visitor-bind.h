@@ -69,6 +69,7 @@ namespace parser
          _isInFunctionDeclaration = false;
 
          _typedefs.resetScope();
+         _currentFp = 0;
       }
 
       // TODO: handle typedef within field
@@ -155,6 +156,9 @@ namespace parser
 
       virtual void operator()( AstStatements& e )
       {
+         // save the current FP: in case: "int a; { int b; } int c;"
+         _fp.push( _currentFp );
+
          ++_scopeDepth;
          if ( _scopeDepth > 1 )
          {
@@ -174,6 +178,10 @@ namespace parser
             _vars.endScope();
          }
          --_scopeDepth;
+
+         // restaure the FP
+         _currentFp = _fp.top();
+         _fp.pop();
       }
 
       virtual void operator()( AstExpAssign& e )
@@ -285,6 +293,9 @@ namespace parser
       {
          _typedefs.begin_scope( e.getName() );
 
+         _fp.push( _currentFp );
+         _currentFp = 0;
+
          if ( _defaultClassPath.size() == 0 && _scopeDepth > 1 )
          {
             impl::reportUndeclaredType( e.getLocation(), _context, "a class can only be declared in the global scope/or nested in another class" );
@@ -303,6 +314,9 @@ namespace parser
          _defaultClassPath.pop_back();
          _vars.endScope();
          --_scopeDepth;
+
+         _currentFp = _fp.top();
+         _fp.pop();
 
          _typedefs.end_scope();
       }
@@ -335,6 +349,10 @@ namespace parser
       virtual void operator()( AstDeclFun& e ) 
       {
          ++_isInFunction;
+
+         // beacuse we are modifying the FP at runtime when we enter a function, we need to 
+         _fp.push( _currentFp );
+         _currentFp = ( e.getMemberOfClass() != 0 );  // if we are in a class, we need to shift decl var as FP[0]=object
 
          if ( _defaultClassPath.size() == 0 )
          {
@@ -405,6 +423,9 @@ namespace parser
          {
             impl::reportUndeclaredType( e.getLocation(), _context, "a constructor can't have a return type" );
          }
+
+         _currentFp = _fp.top();
+         _fp.pop();
       }
 
       virtual void operator()( AstThis& e )
@@ -492,6 +513,12 @@ namespace parser
 
       virtual void operator()( AstDeclVar& e )
       {
+         if ( e.getRuntimeIndex() == -1 )
+         {
+            e.setRuntimeIndex( _currentFp );
+         }
+         ++_currentFp;  // we don't reassign index, but we still need to take into account the space of this global
+
          if ( _isInFunctionDeclaration )
          {
             e.setIsInFunctionPrototype();
@@ -694,6 +721,9 @@ namespace parser
       SymbolTableFuncs&   _funcs;
       SymbolTableClasses& _classes;
       SymbolTableTypedef& _typedefs;
+
+      std::stack<ui32>    _fp;   // we locally need to compute the frame pointer & update reference variable for all declared variables in class & function (this is local)
+      ui32                _currentFp;
    };
 }
 }

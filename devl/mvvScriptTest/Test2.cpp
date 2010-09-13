@@ -2270,7 +2270,6 @@ struct TestEval
 
    void eval6()
    {
-    /*  
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{int n = 42; Test(){} } Test(); Test();" );
@@ -2304,17 +2303,16 @@ struct TestEval
          Error::ErrorType result = fe.run( "class Test{} void test( Test a ){} Test t = NULL; test( t );" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
-*/
+
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\"  class Test{int n; Test(){n = 4;}} int operator+( Test t1, Test t2 ){ return t1.n; } Test t1; Test t2; int nn = t1 + t2;" );
+         Error::ErrorType result = fe.run( "import \"core\"  class Test{int n; Test(){n = 4;}} int operator+( Test ta, Test tb ){ return ta.n; } Test t1; Test t2; int nn = t1 + t2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
 
 
       }
-
-      /*
+      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\" class Test{int n; Test(){n = 4;}} int operator+( Test t1, Test t2 ){ return t1.n + t2.n; } Test t1; Test t2; int nn = t1 + t2;" );
@@ -2325,16 +2323,15 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 8 );
       }
-      */  
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
-TESTER_TEST(eval5);*/
+TESTER_TEST(eval5);
 TESTER_TEST(eval6);
 TESTER_TEST_SUITE_END();

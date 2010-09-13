@@ -35,7 +35,6 @@ namespace parser
                    SymbolTableClasses& classes ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes )
       {
          // TODO: we actually want it when the visitor is run... not created
-         _currentFp = 0;
          _isFunctionBeingCalled = false;
       }
 
@@ -404,19 +403,12 @@ namespace parser
 
       virtual void operator()( AstStatements& e )
       {
-         // save the current FP: in case: "int a; { int b; } int c;"
-         _fp.push( _currentFp );
-
          for ( AstStatements::Statements::const_iterator it = e.getStatements().begin();
                it != e.getStatements().end();
                ++it )
          {
             operator()( **it );
          }
-
-         // restaure the FP
-         _currentFp = _fp.top();
-         _fp.pop();
       }
 
       // we can't overload operator=, because all structures are refcounted and so is incompatible
@@ -797,16 +789,11 @@ namespace parser
             return;
          }
 
-         _fp.push( _currentFp );
-         _currentFp = 0;
 
          _defaultClassPath.push_back( e.getName() );
          e.setNodeType( new TypeNamed( &e, false ) );
          operator()( e.getDeclarations() );
          _defaultClassPath.pop_back();
-
-         _currentFp = _fp.top();
-         _fp.pop();
 
          // check if a class has cyclic dependencies
          std::set<AstDeclClass*> visited;
@@ -819,10 +806,6 @@ namespace parser
 
       virtual void operator()( AstDeclFun& e ) 
       {
-         // beacuse we are modifying the FP at runtime when we enter a function, we need to 
-         _fp.push( _currentFp );
-         _currentFp = ( e.getMemberOfClass() != 0 );  // if we are in a class, we need to shift decl var as FP[0]=object
-
          if ( e.getNodeType() )
          {
             // this node has been manually typed (i.e. manual inclusion)
@@ -899,9 +882,6 @@ namespace parser
 
             // return should have checked incorrect types... so don't check it again
          }
-
-         _currentFp = _fp.top();
-         _fp.pop();
       }
 
       virtual void operator()( AstArgs& e )
@@ -962,12 +942,6 @@ namespace parser
 
       virtual void operator()( AstDeclVar& e )
       {
-         if ( e.getRuntimeIndex() == -1 )
-         {
-            e.setRuntimeIndex( _currentFp );
-         }
-         ++_currentFp;  // we don't reassign index, but we still need to take into account the space of this global
-
          // we first must visite the type!
          operator()( e.getType() );
 
@@ -1314,9 +1288,6 @@ namespace parser
       SymbolTableClasses& _classes;
       bool                _isFunctionBeingCalled;     // TODO: problem: because any node can request to be evaluated => we can't allow variable member to be used. Result must be stored directly in the node!
       std::vector<mvv::Symbol>   _defaultClassPath;
-
-      std::stack<ui32>    _fp;   // we locally need to compute the frame pointer & update reference variable for all declared variables in class & function (this is local)
-      ui32                _currentFp;
    };
 }
 }

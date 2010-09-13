@@ -708,7 +708,6 @@ namespace parser
 
       virtual void operator()( AstDeclVar& e )
       {
-         
          // TODO: variable may be initialized several times...
          if ( e.getIsGlobalVariable() && e.getIsPreinit() ) // already initialized...
             return;
