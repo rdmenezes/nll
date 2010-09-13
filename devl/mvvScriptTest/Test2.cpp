@@ -2308,9 +2308,6 @@ struct TestEval
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\"  class Test{int n; Test(){n = 4;}} int operator+( Test ta, Test tb ){ return ta.n; } Test t1; Test t2; int nn = t1 + t2;" );
          TESTER_ASSERT( result == Error::SUCCESS );
-
-
-
       }
       
       {
@@ -2327,11 +2324,11 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
-TESTER_TEST(eval6);
+TESTER_TEST(eval6);*/
 TESTER_TEST_SUITE_END();

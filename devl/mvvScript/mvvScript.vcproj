@@ -661,6 +661,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\completion.h"
+				>
+			</File>
+			<File
 				RelativePath=".\function-runnable.h"
 				>
 			</File>

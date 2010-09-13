@@ -390,6 +390,10 @@
 				RelativePath=".\Test2.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\TestCompletion.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
