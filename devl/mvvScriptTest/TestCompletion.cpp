@@ -72,14 +72,32 @@ namespace parser
             std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
          } else if ( type == DOT )
          {
-            //
-            // TODO: use sandbox mode => else we are creating and evaluting a ty mich might be time consuming/crash...
-            //
-            Error::ErrorType result = _cmp.run( prefix );
+            bool sandbox = _cmp.getSandbox();
+            _cmp.setSandbox( true );
+
+            Error::ErrorType result = _cmp.run( prefix + ";" );
             if ( result == Error::SUCCESS )
             {
-               std::cout << "dsf" << std::endl;
+               // here we try to go back in the tree to find a typed expression. Once we have it, it must be a named type
+               // we then just compare the members...
+               const Ast* exp = _cmp.getLastParsedExpression();
+               const AstStatements* stmts = dynamic_cast<const AstStatements*>( exp );
+               if ( stmts && stmts->getStatements().size() == 1 )
+               {
+                  const AstExp* e = dynamic_cast<const AstExp*>( *stmts->getStatements().rbegin() );
+                  if ( e )
+                  {
+                     const TypeNamed* t = dynamic_cast<const TypeNamed*>( e->getNodeType() );
+                     if ( t )
+                     {
+                        std::set<mvv::Symbol> variables = t->getDecl()->matchMember( needToMatch );
+                        std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+                     }
+                  }
+               }
             }
+
+            _cmp.setSandbox( sandbox );
          } else if ( type == DDCOLON )
          {
             const AstDeclClass* c = _cmp.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( prefix ) ) );
@@ -97,8 +115,10 @@ namespace parser
        @brief Find the position of the last unmatched bracket or parenthesis
        @brief return the first character to be considered
        */
-      static unsigned int skipMatched( const std::string& s )
+      static unsigned int skipMatched( const std::string& s, std::string& hidedMatch )
       {
+         hidedMatch = s;
+
          struct Match
          {
             Match( int p ) : pos( p )
@@ -121,11 +141,23 @@ namespace parser
             else  if ( s[ n ] == '{' )
                braces.push_back( Match( n ) );
             else if ( s[ n ] == ')' )
+            {
+               for ( ui32 nn = parenthesis.rbegin()->pos + 1; nn < n; ++nn )
+                  hidedMatch[ nn ] = 'X';
                parenthesis.pop_back();
+            }
             else if ( s[ n ] == ']' )
+            {
+               for ( ui32 nn = brackets.rbegin()->pos + 1; nn < n; ++nn )
+                  hidedMatch[ nn ] = 'X';
                brackets.pop_back();
+            }
             else if ( s[ n ] == '}' )
+            {
+               for ( ui32 nn = braces.rbegin()->pos + 1; nn < n; ++nn )
+                  hidedMatch[ nn ] = 'X';
                braces.pop_back();
+            }
          }
 
          int skip = 0;
@@ -189,14 +221,17 @@ namespace parser
 
       static void analyse( const std::string& s, ExpressionType& type, std::string& prefix, std::string& needToMatch )
       {
-         int skip = skipMatched( s );
+         std::string hided;
+         int skip = skipMatched( s, hided );
          std::string sub1;
+         std::string subHided;
          if ( skip < s.size() )
          {
             sub1 = std::string( &s[ skip ] );
+            subHided = std::string( &hided[ skip ] );
          } else { type = NORMAL; prefix = ""; needToMatch = ""; return; }
 
-         int interruptible = findInterruptible( sub1 );
+         int interruptible = findInterruptible( subHided );
          std::string sub2;
          if ( interruptible < sub1.size() )
          {
@@ -278,12 +313,13 @@ struct TestCompletion
 {
    void eval1()
    {
-      TESTER_ASSERT( Completion::skipMatched( "a[b" ) == 2 );
-      TESTER_ASSERT( Completion::skipMatched( "a(b" ) == 2 );
-      TESTER_ASSERT( Completion::skipMatched( "a[SDF]b" ) == 0 );
-      TESTER_ASSERT( Completion::skipMatched( "a(SDF)b" ) == 0 );
-      TESTER_ASSERT( Completion::skipMatched( "a[b[x]." ) == 2 );
-      TESTER_ASSERT( Completion::skipMatched( "a(b(x)." ) == 2 );
+      std::string hided;
+      TESTER_ASSERT( Completion::skipMatched( "a[b", hided ) == 2 );
+      TESTER_ASSERT( Completion::skipMatched( "a(b", hided ) == 2 );
+      TESTER_ASSERT( Completion::skipMatched( "a[SDF]b", hided ) == 0 );
+      TESTER_ASSERT( Completion::skipMatched( "a(SDF)b", hided ) == 0 );
+      TESTER_ASSERT( Completion::skipMatched( "a[b[x].", hided ) == 2 );
+      TESTER_ASSERT( Completion::skipMatched( "a(b(x).", hided ) == 2 );
    }
 
    void eval2()
@@ -303,6 +339,7 @@ struct TestCompletion
 
    void eval4()
    {
+
       {
          Completion::ExpressionType type;
          std::string prefix;
@@ -346,6 +383,17 @@ struct TestCompletion
          TESTER_ASSERT( match  == " abc" );
          TESTER_ASSERT( type  == Completion::NORMAL );
       }
+
+      {
+         Completion::ExpressionType type;
+         std::string prefix;
+         std::string match;
+
+         Completion::analyse( "t[ 2 * 3].n13", type, prefix, match );
+         TESTER_ASSERT( prefix == "t[ 2 * 3]" );
+         TESTER_ASSERT( match  == "n13" );
+         TESTER_ASSERT( type  == Completion::DOT );
+      }
    }
 
    void eval5()
@@ -364,9 +412,9 @@ struct TestCompletion
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n12345" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n123456" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n1234567" ) ) != match.end() );
-      }*/
+      }
 
-      /*
+      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ class Test2{} typedef int Test3; typedef int TT1; class TT2{} }" );
@@ -377,15 +425,15 @@ struct TestCompletion
          TESTER_ASSERT( match.size() == 2 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "Test2" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "Test3" ) ) != match.end() );
-      }*/
-
+      }
+*/
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ Test(){} int bb; void aa(){} int n132; int n1342; void n132run(){} class n132Test{} typedef int n123Typedef;} Test t[ 5 ]; int n = 0;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 * 3].n13" );
+         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 ].n13" );
          TESTER_ASSERT( match.size() == 3 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n132" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n1342" ) ) != match.end() );
@@ -396,9 +444,10 @@ struct TestCompletion
 
 
 TESTER_TEST_SUITE(TestCompletion);
-//TESTER_TEST(eval1);
-//TESTER_TEST(eval2);
-//TESTER_TEST(eval3);
-//TESTER_TEST(eval4);
+/*
+TESTER_TEST(eval1);
+TESTER_TEST(eval2);
+TESTER_TEST(eval3);
+TESTER_TEST(eval4);*/
 TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();

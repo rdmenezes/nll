@@ -110,11 +110,25 @@ namespace parser
          // default path
          _importDirectories.push_back( mvv::Symbol::create( "" ) );
          _runtimePath.push_back( mvv::Symbol::create( "" ) );
+
+         _lastEvalutatedTree = 0;
+         _sandbox = false;
       }
 
       ~CompilerFrontEnd()
       {
          clear();
+      }
+
+      // if true, the compiler::run will not run the code or add any declaration/typedef/varaible/files...
+      void setSandbox( bool s )
+      {
+         _sandbox = s;
+      }
+
+      bool getSandbox() const
+      {
+         return _sandbox;
       }
 
       /**
@@ -239,6 +253,7 @@ namespace parser
 
          std::list<Ast*> exps;
          Ast* exp = _context.parseString( s );
+         _lastEvalutatedTree = exp;
 
          Files importedLib;      // lib to be imported (just before runtime, we need to link function body...)
 
@@ -271,10 +286,13 @@ namespace parser
                   if ( _context.getError().getStatus() == Error::SUCCESS )
                   {
                      // propagate if no error...
-                     _vars = vars;
-                     _funcs = funcs;
-                     _classes = classes;
-                     _typedefs = typedefs;
+                     if ( !_sandbox )
+                     {
+                        _vars = vars;
+                        _funcs = funcs;
+                        _classes = classes;
+                        _typedefs = typedefs;
+                     }
 
                      // save the tree for further execution
                      for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
@@ -283,30 +301,32 @@ namespace parser
                      }
                      _executionTrees.rbegin()->isUserCode = true; // the last exp parse is always user code
                      
-
-                     // before runtime, load the new DLL
-                     for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
+                     if ( !_sandbox )
                      {
-                        importDll( it->getName() );
-                     }
-
-                     // evaluate ALL the files
-                     ui32 globalMemoryToAllocate = _env.framePointer - startingFramePointer;
-                     _env.stack.resize( _env.stack.size() + globalMemoryToAllocate );  // global variable in the eval visitor should not allocate memory!
-
-                     VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env, _eval.getDataPtr() ); // only one visitor so the FP is correct
-                     if ( exps.size() > 1 )
-                     {
-                        // we must evaluate in the same order than explore, so that the static link match the reality!
-
-                        for ( std::list<Ast*>::reverse_iterator it = ++exps.rbegin(); it != exps.rend(); ++it )
+                        // before runtime, load the new DLL
+                        for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
                         {
-                           visitorEvaluate( **it );
+                           importDll( it->getName() );
                         }
-                     }
 
-                     // finally update our source file
-                     visitorEvaluate( *exp );
+                        // evaluate ALL the files
+                        ui32 globalMemoryToAllocate = _env.framePointer - startingFramePointer;
+                        _env.stack.resize( _env.stack.size() + globalMemoryToAllocate );  // global variable in the eval visitor should not allocate memory!
+
+                        VisitorEvaluate visitorEvaluate( _context, vars, funcs, classes, _env, _eval.getDataPtr() ); // only one visitor so the FP is correct
+                        if ( exps.size() > 1 )
+                        {
+                           // we must evaluate in the same order than explore, so that the static link match the reality!
+
+                           for ( std::list<Ast*>::reverse_iterator it = ++exps.rbegin(); it != exps.rend(); ++it )
+                           {
+                              visitorEvaluate( **it );
+                           }
+                        }
+
+                        // finally update our source file
+                        visitorEvaluate( *exp );
+                     }
                   } else {
 
                      // free the memory, we don;t want to save the results
@@ -318,7 +338,7 @@ namespace parser
                }
             }
 
-            if ( _context.getError().getStatus() )
+            if ( _context.getError().getStatus() || _sandbox )
             {
                // reset the parsed file
                _parsedFiles = parsedFiles;
@@ -479,6 +499,11 @@ namespace parser
          return _typedefs;
       }
 
+      const Ast* getLastParsedExpression() const
+      {
+         return _lastEvalutatedTree;
+      }
+
    private:
       std::string _findFileInPath( const std::string& file, const FilesOrder& directories )
       {
@@ -620,6 +645,8 @@ namespace parser
       platform::RefcountedTyped<platform::Context> _contextExt;// context necessary for external lib...
 
       std::ostream*        _stdout;          // stores the output stream
+      Ast*                 _lastEvalutatedTree;// stores the latest tree evaluated (necessary for automatic completion)
+      bool                 _sandbox;         // if true => the run() will not add any new declaration or evaluate the code
    };
 }
 }
