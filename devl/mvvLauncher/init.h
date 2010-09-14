@@ -81,11 +81,18 @@ namespace mvv
          // "include \"../../mvvLauncher/script/single\""
          std::cout << "importing script:" << mainScript << std::endl;
          nll::core::Timer time;
-         Error::ErrorType state = compiler.run( mainScript );
-         std::cout << "initial script runtime=" << time.getCurrentTime() << std::endl;
-         if ( state != Error::SUCCESS )
+         try
          {
-            std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
+            Error::ErrorType state = compiler.run( mainScript );
+            std::cout << "initial script runtime=" << time.getCurrentTime() << std::endl;
+            if ( state != Error::SUCCESS )
+            {
+               std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
+               exit(1);
+            }
+         } catch ( std::exception e )
+         {
+            std::cerr << "script failure, exception:" << e.what() << std::endl;
             exit(1);
          }
          std::cout << "script parsed!" << std::endl;
