@@ -459,6 +459,26 @@ namespace parser
        */
       void importDll( const std::string& name );
 
+      const SymbolTableVars& getVariables() const
+      {
+         return _vars;
+      }
+
+      const SymbolTableFuncs& getFunctions() const
+      {
+         return _funcs;
+      }
+
+      const SymbolTableClasses& getClasses() const
+      {
+         return _classes;
+      }
+
+      const SymbolTableTypedef& getTypedefs() const
+      {
+         return _typedefs;
+      }
+
    private:
       std::string _findFileInPath( const std::string& file, const FilesOrder& directories )
       {

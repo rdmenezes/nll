@@ -5,6 +5,8 @@
 # include "ast-exp.h"
 # include "ast-decl.h"
 # include "ast-type.h"
+# include "ast-typedef.h"
+# include "utils2.h"
 
 namespace mvv
 {
@@ -108,6 +110,56 @@ namespace parser
       const std::vector<mvv::Symbol>& getAccessPath() const
       {
          return _pathToAccess;
+      }
+
+      // find all class/typedef matching the string (used for automatic completion)
+      std::set<mvv::Symbol> matchType( const std::string& s ) const
+      {
+         std::set<mvv::Symbol> match;
+         for ( AstDecls::Decls::const_iterator it = _decls->getDecls().begin(); it != _decls->getDecls().end(); ++it )
+         {
+            AstDecl* d = (*it);
+
+            // check class declaration
+            AstDeclClass* dc = dynamic_cast<AstDeclClass*>( d );
+            if ( dc && isMatch( dc->getName(), s ) )
+            {
+               match.insert( dc->getName() );
+               continue;
+            }
+
+            // check typedef declaration
+            if ( !dc )
+            {
+               AstTypedef* dt = dynamic_cast<AstTypedef*>( d );
+               if ( dt && isMatch( dt->getName(), s ) )
+               {
+                  match.insert( dt->getName() );
+                  continue;
+               }
+            }
+         }
+         return match;
+      }
+
+      // find all members matching the string (used for automatic completion)
+      std::set<mvv::Symbol> matchMember( const std::string& s ) const
+      {
+         std::set<mvv::Symbol> match;
+         for ( AstDecls::Decls::const_iterator it = _decls->getDecls().begin(); it != _decls->getDecls().end(); ++it )
+         {
+            AstDecl* d = (*it);
+
+            // check class declaration
+            AstDeclClass* dc = dynamic_cast<AstDeclClass*>( d );
+            AstTypedef* dt = dynamic_cast<AstTypedef*>( d );
+            if ( !dc && !dt && isMatch( d->getName(), s ) )
+            {
+               match.insert( d->getName() );
+               continue;
+            }
+         }
+         return match;
       }
 
 

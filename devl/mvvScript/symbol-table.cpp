@@ -89,6 +89,18 @@ namespace parser
       return 0;
    }
 
+   std::set<mvv::Symbol> SymbolTableTypedef::findMatch( const std::string& s ) const
+   {
+      std::set<mvv::Symbol> match;
+      for ( ui32 n = 0; n < _scopes.typedefs.size(); ++n )
+      {
+         if ( parser::isMatch( _scopes.typedefs[ n ]->getName(), s ) )
+            match.insert( _scopes.typedefs[ n ]->getName() );
+      }
+
+      return match;
+   }
+
    const AstDeclClass* SymbolTableClasses::_findClassFromTypedef( const AstTypedef* match )
    {
       // we found a typedef: get the actual class

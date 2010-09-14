@@ -2,6 +2,7 @@
 # define MVV_PARSER_SYMBOL_TABLE_H_
 
 # include "ast-files.h"
+# include "utils2.h"
 
 namespace mvv
 {
@@ -109,6 +110,20 @@ namespace parser
          return 0;
       }
 
+      std::set<mvv::Symbol> findMatch( const std::string& s ) const
+      {
+         std::set<mvv::Symbol> match;
+         if ( _scopes.size() == 0 )
+            return match;
+         for ( Symbols::const_iterator it = _scopes[ 0 ].begin(); it != _scopes[ 0 ].end(); ++it )
+         {
+            if ( parser::isMatch( it->first, s ) )
+               match.insert( it->first );
+         }
+
+         return match;
+      }
+
    private:
       Scopes               _scopes;
       std::vector<bool>    _barrier;
@@ -199,6 +214,8 @@ namespace parser
          resetScope();
       }
 
+      std::set<mvv::Symbol> findMatch( const std::string& s ) const;
+
    private:
       // because we need to copy the data structures, we need to recursively run through all the scopes
       // and update the predecessor with the copied data pointers (and not the source!)
@@ -215,278 +232,6 @@ namespace parser
       Scope    _scopes;
       Scope*   _current;
    };
-
-
-   /*
-   template <class T>
-   class SymbolTableDictionary
-   {
-      struct Node
-      {
-         Node( const mvv::Symbol& n, T* d ) : name( n ), previous( 0 ), decl( d )
-         {}
-
-         // goto the classpath specified and find s in this scope only
-         T* find_in_class( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
-         {
-            Node* res = _find( classPath, -1 );
-            if ( !res )
-               return 0;
-            if ( res->name == s )
-               return res->decl;
-            for ( ui32 n = 0; n < res->next.size(); ++n )
-            {
-               if ( res->next[ n ]->name == s )
-               {
-                  return res->next[ n ]->decl;
-               }
-            }
-            return 0;
-         }
-
-         T* find_within_scope( const std::vector<mvv::Symbol>& classPath, const mvv::Symbol& s )
-         {
-            Node* res = _find( classPath, -1 );
-            if ( !res )
-            {
-               // path not found
-               return 0;
-            }
-            if ( !res->previous )
-            {
-               // we are already looking in global scope
-               return 0;
-            }
-
-            res = res->previous;
-            while ( res->previous )
-            {
-               for ( ui32 n = 0; n < res->next.size(); ++n )
-               {
-                  if ( res->next[ n ]->name == s )
-                  {
-                     return res->next[ n ]->decl;
-                  }
-               }
-               res = res->previous;
-            }
-            return 0;
-         }
-
-         //
-         // Use the current position, find predecessors until global scope
-         //
-         T* find_in_scope( const mvv::Symbol& s )
-         {
-            if ( s == name )
-               return decl;
-            if ( previous )
-               return previous->find_in_scope( s );
-            else
-               return 0;
-         }
-
-         // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
-         T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath, const SymbolTableTypedef& typedefs )
-         {
-            Node* res = _find( path, -1 );
-            if ( !res )
-            {
-               // path not found
-               return 0;
-            }
-            if ( !res->previous )
-            {
-               // we are already looking in global scope
-               return 0;
-            }
-
-            res = res->previous;
-            while ( res->previous )
-            {
-               Node* final = res->_find( fieldpath, 0 );
-               if ( final )
-                  return final->decl;
-               res = res->previous;
-            }
-            return 0;
-         }
-
-         T* find( const std::vector<mvv::Symbol>& classPath, int begining )
-         {
-            Node* res = _find( classPath, begining );
-            if ( res )
-            {
-               return res->decl;
-            }
-            return 0;
-         }
-
-         Node* _find( const std::vector<mvv::Symbol>& classPath, int begining )
-         {
-            SymbolTableTypedef f;
-            if ( name == mvv::Symbol::create( "" ) || classPath[ begining ] == name )
-            {
-               if ( static_cast<int>( classPath.size() ) == begining + 1 )
-                  return this;
-               for ( ui32 n = 0; n < next.size(); ++n )
-               {
-                  Node* res = next[ n ]->_find( classPath, begining + 1 );
-                  if ( res )
-                  {
-                     return res;
-                  }
-               }
-            }
-            return 0;
-         }
-
-         void destroy()
-         {
-            for ( ui32 n = 0; n < next.size(); ++n )
-            {
-               next[ n ]->destroy();
-               delete next[ n ];
-            }
-         }
-
-         Node* clone() const
-         {
-            Node* r = new Node( name, decl );
-            for ( ui32 n = 0; n < next.size(); ++n )
-            {
-               Node* cp = next[ n ]->clone();
-               cp->previous = r;
-               r->next.push_back( cp );
-            }
-            return r;
-         }
-
-         mvv::Symbol          name;
-         std::vector<Node*>   next;
-         Node*                previous;
-         T*        decl;
-      };
-
-   public:
-      SymbolTableDictionary() : _root( 0 ), _current( 0 )
-      {
-         // create the global scope
-         begin_scope( mvv::Symbol::create( "" ), 0 );
-      }
-
-      ~SymbolTableDictionary()
-      {
-         clear();
-      }
-
-      void clear()
-      {
-         if ( _root )
-         {
-            _root->destroy();
-            delete _root;
-            _root = 0;
-            _current = 0;
-         }
-      }
-
-      void begin_scope( mvv::Symbol s, T* decl )
-      {
-         ensure( decl || _current == 0, "can't insert a null decl except the first one" );
-
-         Node* node = new Node( s, decl );
-         if ( _current )
-         {
-            _current->next.push_back( node );
-            node->previous = _current;
-            _current = node;
-         } else {
-            _current = node;
-            _root = node;
-         }
-      }
-
-      void end_scope()
-      {
-         ensure( _current, "can't be null: poped too much..." );
-         _current = _current->previous;
-      }
-
-      const T* find( const std::vector<mvv::Symbol>& s ) const
-      {
-         if ( !_root )
-            return 0;
-         return _root->find( s, -1 );
-      }
-
-      T* find_in_class( const std::vector<mvv::Symbol>& path, const mvv::Symbol& s )
-      {
-         if ( !_root )
-            return 0;
-         return _root->find_in_class( path, s );
-      }
-
-
-      T* find( const std::vector<mvv::Symbol>& s )
-      {
-         if ( !_root )
-            return 0;
-         return _root->find( s, -1 );
-      }
-
-      // find the class with full path, then go up to global scope to find the declaration
-      T* find_within_scope( const std::vector<mvv::Symbol>& path, const mvv::Symbol& s )
-      {
-         if ( !_root )
-            return 0;
-         return _root->find_within_scope( path, s );
-      }
-
-      // find the class with full path, then go up, find full fieldpath, else go up and again until global scope to find the declaration
-      // the typedefs arg is used to look up field, in case one of the field is actually a typedef...
-      T* find_within_scope( const std::vector<mvv::Symbol>& path, const std::vector<mvv::Symbol>& fieldpath, const SymbolTableTypedef& typedefs )
-      {
-         if ( !_root )
-            return 0;
-         return _root->find_within_scope( path, fieldpath, typedefs );
-      }
-
-      const T* find_in_scope( const mvv::Symbol& s ) const
-      {
-         if ( !_root )
-            return 0;
-         return _current->find_in_scope( s );
-      }
-
-      SymbolTableDictionary& operator=( const SymbolTableDictionary& t )
-      {
-         ensure( _current == _root, "you can't clone a table with a build in progress" );
-         if ( _root )
-         {
-            _root->destroy();
-         }
-
-         if ( t._root )
-         {
-            _root = t._root->clone();
-            _current = _root;
-         } else {
-            _root = 0;
-            _current = 0;
-         }
-         return *this;
-      }
-
-      SymbolTableDictionary( const SymbolTableDictionary& t ) : _root( 0 ), _current( 0 )
-      {
-         operator=( t );
-      }
-
-   private:
-      Node* _root;
-      Node* _current;
-   };*/
 
    // we handle separately the typedef and class definition
    // the typedef and class tables are created independently
@@ -650,6 +395,18 @@ namespace parser
          operator=( cpy );
       }
 
+      std::set<mvv::Symbol> findMatch( const std::string& s ) const
+      {
+         std::set<mvv::Symbol> match;
+         for ( ui32 n = 0; n < _scopes.scopes.size(); ++n )
+         {
+            if ( parser::isMatch( _scopes.scopes[ n ].name, s ) )
+               match.insert( _scopes.scopes[ n ].name );
+         }
+
+         return match;
+      }
+
    private:
       Scope    _scopes;
       Scope*   _current;
@@ -668,6 +425,18 @@ namespace parser
 
    typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table
    typedef std::map<mvv::Symbol, FunctionTable>               SymbolTableFuncs;    /// We only need to store functions in global scope
+
+   inline static std::set<mvv::Symbol> findMatch( const SymbolTableFuncs& funs, const std::string& s )
+   {
+      std::set<mvv::Symbol> match;
+      for ( std::map<mvv::Symbol, FunctionTable>::const_iterator it = funs.begin(); it != funs.end(); ++it )
+      {
+         if ( parser::isMatch( it->first, s ) )
+            match.insert( it->first );
+      }
+
+      return match;
+   }
 }
 }
 

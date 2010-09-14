@@ -44,10 +44,53 @@ namespace parser
          - typedef
          - class name
        */
-      std::string preprocess( const std::string& s )
+      std::set<mvv::Symbol> findMatch( const std::string& s )
       {
-         int start = skipMatched( s );
+         std::set<mvv::Symbol> match;
 
+         ExpressionType type;
+         std::string prefix;
+         std::string needToMatch;
+         analyse( s, type, prefix, needToMatch );
+
+         if ( type == NORMAL )
+         {
+            // check the variables
+            std::set<mvv::Symbol> variables = _cmp.getVariables().findMatch( needToMatch );
+            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+
+            // check the functions
+            variables = parser::findMatch( _cmp.getFunctions(), needToMatch );
+            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+
+            // check classes
+            variables = _cmp.getClasses().findMatch( needToMatch );
+            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+
+            // check typedefs
+            variables = _cmp.getTypedefs().findMatch( needToMatch );
+            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+         } else if ( type == DOT )
+         {
+            //
+            // TODO: use sandbox mode => else we are creating and evaluting a ty mich might be time consuming/crash...
+            //
+            Error::ErrorType result = _cmp.run( prefix );
+            if ( result == Error::SUCCESS )
+            {
+               std::cout << "dsf" << std::endl;
+            }
+         } else if ( type == DDCOLON )
+         {
+            const AstDeclClass* c = _cmp.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( prefix ) ) );
+            if ( c )
+            {
+               std::set<mvv::Symbol> variables = c->matchType( needToMatch );
+               std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+            }
+         }
+
+         return match;
       }
 
       /**
@@ -304,6 +347,51 @@ struct TestCompletion
          TESTER_ASSERT( type  == Completion::NORMAL );
       }
    }
+
+   void eval5()
+   {
+      /*
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int n123; int ba; int n1234; int bab(){return 0;} int n12345(){return 0;} class Test{} class n123456{} typedef int n1234567; typedef int HAHA;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         Completion completion( fe );
+         std::set<mvv::Symbol> match = completion.findMatch( "n12" );
+         TESTER_ASSERT( match.size() == 5 );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n123" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n1234" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n12345" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n123456" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n1234567" ) ) != match.end() );
+      }*/
+
+      /*
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ class Test2{} typedef int Test3; typedef int TT1; class TT2{} }" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         Completion completion( fe );
+         std::set<mvv::Symbol> match = completion.findMatch( "Test::Te" );
+         TESTER_ASSERT( match.size() == 2 );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "Test2" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "Test3" ) ) != match.end() );
+      }*/
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ Test(){} int bb; void aa(){} int n132; int n1342; void n132run(){} class n132Test{} typedef int n123Typedef;} Test t[ 5 ]; int n = 0;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         Completion completion( fe );
+         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 * 3].n13" );
+         TESTER_ASSERT( match.size() == 3 );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n132" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n1342" ) ) != match.end() );
+         TESTER_ASSERT( match.find( mvv::Symbol::create( "n132run" ) ) != match.end() );
+      }
+   }
 };
 
 
@@ -311,5 +399,6 @@ TESTER_TEST_SUITE(TestCompletion);
 //TESTER_TEST(eval1);
 //TESTER_TEST(eval2);
 //TESTER_TEST(eval3);
-TESTER_TEST(eval4);
+//TESTER_TEST(eval4);
+TESTER_TEST(eval5);
 TESTER_TEST_SUITE_END();
