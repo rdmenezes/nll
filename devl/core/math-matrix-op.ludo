@@ -1,0 +1,51 @@
+float det( Matrix3f m )
+{
+   return m.vals[ 0 ] * m.vals[ 4 ] * m.vals[ 8 ] +
+          m.vals[ 1 ] * m.vals[ 5 ] * m.vals[ 6 ] +
+          m.vals[ 2 ] * m.vals[ 3 ] * m.vals[ 7 ] -
+          m.vals[ 0 ] * m.vals[ 5 ] * m.vals[ 7 ] -
+          m.vals[ 1 ] * m.vals[ 3 ] * m.vals[ 8 ] -
+          m.vals[ 2 ] * m.vals[ 4 ] * m.vals[ 6 ];
+}
+
+float det( Matrix4f mm )
+{
+   Matrixf m = toMatrixf( mm );
+   return m.det();
+}
+
+float det( Matrixf mm )
+{
+   return mm.det();
+}
+
+Matrix3f inv( Matrix3f mm )
+{
+   Matrixf m = toMatrixf( mm );
+   return toMatrix3f( m.inverse() );
+}
+
+Matrix4f inv( Matrix4f mm )
+{
+   Matrixf m = toMatrixf( mm );
+   return toMatrix4f( m.inverse() );
+}
+
+Matrixf inv( Matrixf mm )
+{
+   return mm.inverse();
+}
+
+Matrix4f operator*( Matrix4f a, Matrix4f b )
+{
+   Matrixf am = toMatrixf( a );
+   Matrixf bm = toMatrixf( b );
+   return toMatrix4f( am * bm );
+}
+
+Matrix3f operator*( Matrix3f a, Matrix3f b )
+{
+   Matrixf am = toMatrixf( a );
+   Matrixf bm = toMatrixf( b );
+   return toMatrix3f( am * bm );
+}
