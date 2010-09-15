@@ -665,6 +665,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\completion-interface.h"
+				>
+			</File>
+			<File
 				RelativePath=".\completion.h"
 				>
 			</File>

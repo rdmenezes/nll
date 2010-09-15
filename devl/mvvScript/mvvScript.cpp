@@ -16,6 +16,8 @@
 #include "visitor-evaluate.h"
 #include "compiler.h"
 #include "compiler-helper.h"
+#include "completion-interface.h"
+#include "completion.h"
 
 
 int MVVSCRIPT_API dummy = 0;
