@@ -32,14 +32,14 @@ namespace platform
          ui32 row = 0;
          for ( ui32 n = 0; n < _choices.size(); ++n )
          {
-            if ( _origin[ 1 ] + sizey * row < maxy )
+            if ( _origin[ 1 ] + sizey * ( row + 1 ) < maxy )
             {
-               ++row;
                _displayBox( i, nll::core::vector2ui( _origin[ 0 ] + _sizex * col, _origin[ 1 ] + sizey * row ), nll::core::vector2ui( _sizex, sizey ), background, _choices[ n ], _currentChoice == n );
+               ++row;
             } else {
                row = 0;
                ++col;
-               if ( _origin[ 0 ] + _sizex * col < maxx )
+               if ( _origin[ 0 ] + _sizex * ( col + 1 ) >= maxx )
                {
                   // we are out of the window...
                   break;
