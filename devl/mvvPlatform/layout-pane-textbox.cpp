@@ -1,4 +1,5 @@
-# include "layout-pane-textbox.h"
+#include "layout-pane-textbox.h"
+#include "layout-pane-cmdl.h"
 
 namespace mvv
 {
@@ -6,6 +7,11 @@ namespace platform
 {
    void PaneTextbox::_draw( Image& image )
    {
+      for ( ui32 n = 0; n < _decorators.size(); ++n )
+      {
+         ( *_decorators[ n ] ).process();
+      }
+
       if ( _needToBeRefreshed )
       {
          nll::core::Timer timer;
@@ -54,6 +60,33 @@ namespace platform
          bool res = (*_decorators[ n ]).receive( e );
          if ( res )
             break;
+      }
+   }
+
+   void LayoutPaneDecoratorCompletion::process()
+   {
+      if ( _current != -1 )
+      {
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+         ui32& _currentChar = position->currentChar;
+
+         if ( _cutPoint < _src._text[ _currentLine ].text.size() )
+         {
+            _src._text[ _currentLine ].text[ _cutPoint ] = 0;
+         }
+         std::cout << "choice=" << _current << std::endl;
+         _src._text[ _currentLine ].text = std::string( _src._text[ _currentLine ].text.c_str() ) + _choices[ _current ].getName();
+         _currentChar = _src._text[ _currentLine ].text.size();
+         std::cout << "LINE=" << _src._text[ _currentLine ].text << std::endl;
+
+         _selectionParent.erase( _selection );
+         LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
+         if ( cmd )
+            cmd->notify();
+         _current = -1;
       }
    }
 }

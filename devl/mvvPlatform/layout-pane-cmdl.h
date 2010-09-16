@@ -73,6 +73,7 @@ namespace platform
                          const nll::core::vector2ui& size,
                          RefcountedTyped<Font> font,
                          parser::InterpreterRuntimeInterface& engine,
+                         parser::CompletionInterface& completionInterface,
                          const ui32 fontSize = 15 ) : Pane( origin, size ), _engine( engine )
       {
          PaneTextbox* textBoxDisplay = new PaneTextbox( nll::core::vector2ui(0, 0),
@@ -87,6 +88,7 @@ namespace platform
                                                     font, fontSize,
                                                     nll::core::vector3uc( 255, 255, 255 ),
                                                     nll::core::vector3uc( 0, 0, 60 ) );
+         _textBoxCmdP = textBoxCmd;
          RefcountedTyped<PaneTextboxDecorator> cursor( new LayoutPaneDecoratorCursor( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorPos( new LayoutPaneDecoratorCursorPosition( *textBoxCmd ) );
          RefcountedTyped<PaneTextboxDecorator> cursorBasic( new LayoutPaneDecoratorCursorBasic( *textBoxCmd ) );
@@ -95,11 +97,16 @@ namespace platform
          _writableCommand = RefcountedTyped<WritableCommand>( new WritableCommand( engine, *textBoxDisplay ) );
          _enter = new LayoutPaneDecoratorCursorEnterConsole( *textBoxCmd, *_writableCommand );
          RefcountedTyped<PaneTextboxDecorator> cursorEnter( _enter );
+
+         RefcountedTyped<PaneTextboxDecorator> completion( new LayoutPaneDecoratorCompletion( *textBoxCmd, *this, completionInterface ) );
+         textBoxCmd->add( completion );
          textBoxCmd->add( cursorPos );
          textBoxCmd->add( cursorBasic );
          textBoxCmd->add( cursorEnter );
          textBoxCmd->add( cursorYDirection );
          textBoxCmd->add( cursor );
+
+
 
          _vpane = new PaneListVertical( nll::core::vector2ui(0, 0),
                                                           nll::core::vector2ui(0, 0) );
@@ -137,7 +144,8 @@ namespace platform
          const ui32 csize = _textBoxDisplayP->getTextSize();
          if ( _size[ 1 ] > csize )  // if smaller, useless to compute...
          {
-            const double ratio = ( csize + 1.0 ) / _size[ 1 ];
+            const double ratio = 4 * ( csize + 1.0 ) / _size[ 1 ];
+            //const double ratio = ( csize + 1.0 ) / _size[ 1 ];
             _vpane->setRatio( 0, 1.0 - ratio );
             _vpane->setRatio( 1, ratio );
          }
@@ -170,6 +178,12 @@ namespace platform
 
       ~LayoutCommandLine()
       {
+      }
+
+      virtual void notify()
+      {
+         _textBoxDisplayP->notify();
+         _textBoxCmdP->notify();
       }
 
    private:
@@ -218,6 +232,7 @@ namespace platform
       // shortcuts...
       PaneListVertical*                      _vpane;
       PaneTextbox*                           _textBoxDisplayP;
+      PaneTextbox*                           _textBoxCmdP;
       LayoutPaneDecoratorCursorEnterConsole* _enter;
 
       // last history config

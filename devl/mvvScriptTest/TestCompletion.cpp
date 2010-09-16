@@ -50,71 +50,96 @@ struct TestCompletion
    {
 
       {
+         ui32 cut;
          Completion::ExpressionType type;
          std::string prefix;
          std::string match;
 
-         Completion::analyse( "a[ a[3].test", type, prefix, match );
+         Completion::analyse( "a[ a[3].test", type, prefix, match, cut );
          TESTER_ASSERT( prefix == " a[3]" );
          TESTER_ASSERT( match  == "test" );
          TESTER_ASSERT( type  == Completion::DOT );
+         TESTER_ASSERT( cut  == 8 );
       }
 
       {
+         ui32 cut;
          Completion::ExpressionType type;
          std::string prefix;
          std::string match;
 
-         Completion::analyse( "a[ a[3].", type, prefix, match );
+         Completion::analyse( "a[ a[3].", type, prefix, match, cut );
          TESTER_ASSERT( prefix == " a[3]" );
          TESTER_ASSERT( match  == "" );
          TESTER_ASSERT( type  == Completion::DOT );
+         TESTER_ASSERT( cut  == 8 );
       }
 
       {
+         ui32 cut;
          Completion::ExpressionType type;
          std::string prefix;
          std::string match;
 
-         Completion::analyse( "a[ a(3)::b", type, prefix, match );
+         Completion::analyse( "a[ a(3)::b", type, prefix, match, cut );
          TESTER_ASSERT( prefix == " a(3)" );
          TESTER_ASSERT( match  == "b" );
          TESTER_ASSERT( type  == Completion::DDCOLON );
+         TESTER_ASSERT( cut  == 9 );
       }
 
       {
+         ui32 cut;
          Completion::ExpressionType type;
          std::string prefix;
          std::string match;
 
-         Completion::analyse( "{ a::b + abc", type, prefix, match );
+         Completion::analyse( "{ a::b + abc", type, prefix, match, cut );
          TESTER_ASSERT( prefix == "" );
          TESTER_ASSERT( match  == "abc" );
          TESTER_ASSERT( type  == Completion::NORMAL );
+         TESTER_ASSERT( cut  == 8 );
       }
 
       {
+         ui32 cut;
          Completion::ExpressionType type;
          std::string prefix;
          std::string match;
 
-         Completion::analyse( "t[ 2 * 3].n13", type, prefix, match );
+         Completion::analyse( "t[ 2 * 3].n13", type, prefix, match, cut );
          TESTER_ASSERT( prefix == "t[ 2 * 3]" );
          TESTER_ASSERT( match  == "n13" );
          TESTER_ASSERT( type  == Completion::DOT );
+         TESTER_ASSERT( cut  == 10 );
+      }
+
+      {
+         ui32 cut;
+         Completion::ExpressionType type;
+         std::string prefix;
+         std::string match;
+
+         Completion::analyse( "[ t[ 2 * 3].n13", type, prefix, match, cut );
+         TESTER_ASSERT( prefix == " t[ 2 * 3]" );
+         TESTER_ASSERT( match  == "n13" );
+         TESTER_ASSERT( type  == Completion::DOT );
+         TESTER_ASSERT( cut  == 12 );
       }
    }
 
    void eval5()
    {
       {
+         ui32 cut;
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int n123; int ba; int n1234; int bab(){return 0;} int n12345(){return 0;} class Test{} class n123456{} typedef int n1234567; typedef int HAHA;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "n12" );
+         std::set<mvv::Symbol> match = completion.findMatch( "n12", cut );
          TESTER_ASSERT( match.size() == 5 );
+         TESTER_ASSERT( cut  == 0 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n123" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n1234" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n12345" ) ) != match.end() );
@@ -124,25 +149,29 @@ struct TestCompletion
 
       
       {
+         ui32 cut;
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ class Test2{} typedef int Test3; typedef int TT1; class TT2{} }" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "Test::Te" );
+         std::set<mvv::Symbol> match = completion.findMatch( "Test::Te", cut );
          TESTER_ASSERT( match.size() == 2 );
+         TESTER_ASSERT( cut  == 6 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "Test2" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "Test3" ) ) != match.end() );
       }
 
       {
+         ui32 cut;
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ Test(){} int bb; void aa(){} int n132; int n1342; void n132run(){} class n132Test{} typedef int n123Typedef;} Test t[ 5 ]; int n = 0;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 ].n13" );
+         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 ].n13", cut );
          TESTER_ASSERT( match.size() == 3 );
+         TESTER_ASSERT( cut  == 7 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n132" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n1342" ) ) != match.end() );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n132run" ) ) != match.end() );

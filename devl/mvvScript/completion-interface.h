@@ -7,10 +7,10 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API CompletionInterface
+   class CompletionInterface
    {
    public:
-      virtual std::set<mvv::Symbol> findMatch( const std::string& s ) = 0;
+      virtual std::set<mvv::Symbol> findMatch( const std::string& s, ui32& cutpoint ) = 0;
    };
 }
 }

@@ -498,10 +498,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\layout-pane-textbox-completion.h"
-				>
-			</File>
-			<File
 				RelativePath=".\layout-pane-textbox.cpp"
 				>
 			</File>
@@ -511,6 +507,10 @@
 			</File>
 			<File
 				RelativePath=".\layout-pane.h"
+				>
+			</File>
+			<File
+				RelativePath=".\layout-widget-selectbox.h"
 				>
 			</File>
 			<File

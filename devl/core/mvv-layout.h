@@ -395,7 +395,7 @@ public:
       }
 
       // fill the storage
-      Pane* pane = new LayoutCommandLine( nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 0, 0 ), mvv::platform::RefcountedTyped<mvv::platform::Font>( &global->commonFont, false ), _compiler );
+      Pane* pane = new LayoutCommandLine( nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 0, 0 ), mvv::platform::RefcountedTyped<mvv::platform::Font>( &global->commonFont, false ), _compiler, *global->completion );
 
       // fill the storage
       Pointee* pointee = new Pointee( pane );

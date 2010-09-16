@@ -48,7 +48,7 @@ namespace platform
          Panes::iterator it = std::find( _widgets.begin(), _widgets.end(), widget );
          if ( it != _widgets.end() )
          {
-            _widgets.push_back( widget );
+            _widgets.erase( it );
          }
       }
 

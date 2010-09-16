@@ -9,7 +9,7 @@ namespace mvv
 {
 namespace parser
 {
-   class MVVSCRIPT_API Completion : public CompletionInterface
+   class Completion : public CompletionInterface
    {
    public:
       enum ExpressionType
@@ -40,14 +40,14 @@ namespace parser
          - typedef
          - class name
        */
-      std::set<mvv::Symbol> findMatch( const std::string& s )
+      std::set<mvv::Symbol> findMatch( const std::string& s, ui32& cutpoint )
       {
          std::set<mvv::Symbol> match;
 
          ExpressionType type;
          std::string prefix;
          std::string needToMatch;
-         analyse( s, type, prefix, needToMatch );
+         analyse( s, type, prefix, needToMatch, cutpoint );
 
          if ( type == NORMAL )
          {
@@ -215,7 +215,7 @@ namespace parser
          }
       }
 
-      static void analyse( const std::string& s, ExpressionType& type, std::string& prefix, std::string& needToMatch )
+      static void analyse( const std::string& s, ExpressionType& type, std::string& prefix, std::string& needToMatch, ui32& cut )
       {
          std::string hided;
          int skip = skipMatched( s, hided );
@@ -241,16 +241,22 @@ namespace parser
             ensure( dotpos != std::string::npos, "error!" );
             prefix = sub2.substr( 0, dotpos - 1 );
             needToMatch = sub2.substr( dotpos, sub2.size() );
+
+            cut = dotpos + skip + interruptible;
          } else if ( type == DDCOLON )
          {
             size_t dotpos = _findLastOf( sub2, "::" );
             ensure( dotpos != std::string::npos, "error!" );
             prefix = sub2.substr( 0, dotpos - 2 );
             needToMatch = sub2.substr( dotpos, sub2.size() );
+
+            cut = dotpos + skip + interruptible;
          } else if ( type == NORMAL )
          {
             prefix = "";
             needToMatch = sub2;
+
+            cut = skip + interruptible;
          } else {ensure( 0, "not handled case!" ); }
 
          // strip the prefix from charachers such as " "

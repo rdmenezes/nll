@@ -3,6 +3,8 @@
 
 # include "layout-pane.h"
 # include "font.h"
+# include "layout-widget-selectbox.h"
+# include <mvvScript/completion-interface.h>
 
 namespace mvv
 {
@@ -34,6 +36,7 @@ namespace platform
       friend class LayoutPaneDecoratorCursorYDirection;
       friend class LayoutPaneDecoratorCursorEnterFile;
       friend class LayoutPaneDecoratorCursorEnterConsole;
+      friend class LayoutPaneDecoratorCompletion;
 
    public:
       struct Format
@@ -190,6 +193,7 @@ namespace platform
 
       virtual void _receive( const EventKeyboard& e );
 
+   public:
       // force the layout to be redraw next time
       void notify()
       {
@@ -230,6 +234,11 @@ namespace platform
 
       // receive the event, return true if the event is intercepted (and not propagated to other decorators...)
       virtual bool receive( const EventKeyboard& ) = 0;
+
+      // process something in the decorator. This is called each time a draw() is run on the pane
+      virtual void process()
+      {
+      }
 
    private:
       PaneTextboxDecorator& operator=( const PaneTextboxDecorator& );
@@ -697,6 +706,64 @@ namespace platform
          }
          return false;
       }
+   };
+
+   class MVVPLATFORM_API LayoutPaneDecoratorCompletion : public PaneTextboxDecorator
+   {
+      typedef PaneTextboxDecorator   Base;
+
+   public:
+      LayoutPaneDecoratorCompletion( PaneTextbox& src, Pane& selectionParent, parser::CompletionInterface& completion  ) : Base( src ), _selectionParent( selectionParent ), _completion( completion )
+      {
+         _current = -1;
+      }
+
+      virtual void process();
+
+      virtual void draw( Image& )
+      {
+      }
+
+      virtual bool receive( const EventMouse& )
+      {
+         return false;
+      }
+
+      virtual bool receive( const EventKeyboard& e )
+      {
+         if ( e.key == ' ' && e.isCtrl )
+         {
+            LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+            if ( !position )
+               throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            ui32& _currentLine = position->currentLine;
+            //ui32& _currentChar = position->currentChar;
+
+            std::cout << "create menu" << std::endl;
+            std::set<mvv::Symbol> choices = _completion.findMatch( _src._text[ _currentLine ].text, _cutPoint );
+            _choices.clear();
+            for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
+               _choices.push_back( *it );
+
+
+            //std::vector<mvv::Symbol> choices = nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "test1" ), mvv::Symbol::create( "test2" ), mvv::Symbol::create( "test3" ) );
+            Pane::PaneRef ref( &_selectionParent, false );
+            RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 80, _choices, _current, _src._font ) );
+            _selectionParent.insert( widget );
+            _selection = widget;
+            return true;
+         }
+
+         return false;
+      }
+
+   private:
+      Pane::PaneRef  _selection;
+      Pane&          _selectionParent;
+      int            _current;
+      ui32           _cutPoint;
+      parser::CompletionInterface&  _completion;
+      std::vector<mvv::Symbol>      _choices;
    };
 }
 }

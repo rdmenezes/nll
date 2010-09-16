@@ -12,6 +12,7 @@
 # include <mvvPlatform/engine-handler-impl.h>
 # include <mvvPlatform/layout-pane-textbox.h>
 # include <mvvPlatform/layout-pane-cmdl.h>
+# include <mvvPlatform/layout-widget-selectbox.h>
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/segment-tool-pointer.h>
@@ -21,6 +22,7 @@
 # include <mvvMprPlugin/layout-mip.h>
 # include <mvvMprPlugin/annotation-point.h>
 # include <mvvMprPlugin/mip-tool-pointer.h>
+# include <mvvScript/completion.h>
 # include <mvvScript/compiler.h>
 # include <core/mvv-layout.h>
 # include "callbacks.h"
@@ -108,6 +110,21 @@ namespace mvv
          platform::ContextGlobal* global = context.get<platform::ContextGlobal>();
          if ( !global )
             throw std::exception( "global context uncorrectly initialized" );
+
+         /*
+         //
+         // replace
+         //
+         layout = RefcountedTyped<Pane>( new PaneEmpty( nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( 0, 0 ), nll::core::vector3uc( 0, 0, 0 ) ) );
+         std::vector<mvv::Symbol> choices = nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "test1" ), mvv::Symbol::create( "test2" ), mvv::Symbol::create( "test3" ) );
+         int index;
+         RefcountedTyped<Pane> widget( new WidgetSelectBox( layout, nll::core::vector2ui( 0, 0 ), 80, choices, index, font ) );
+         (*layout).insert( widget );
+         //
+         //
+         //
+         */
+
          global->layout = layout;
 
          (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
@@ -153,6 +170,8 @@ namespace mvv
          context.add( ctxSegments );
 
          ContextGlobal* ctxGlobal = new ContextGlobal( engineHandler, orderManager, *font );
+         ctxGlobal->completion = RefcountedTyped<parser::CompletionInterface>( new parser::Completion( compiler ) );
+
          context.add( ctxGlobal );
       }
    };

@@ -33,6 +33,7 @@
 #include "engine-handler-impl.h"
 #include "font.h"
 #include "context-global.h"
+#include "layout-widget-selectbox.h"
 #include "layout-pane-textbox.h"
 #include "layout-pane-cmdl.h"
 

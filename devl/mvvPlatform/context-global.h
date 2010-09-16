@@ -7,6 +7,7 @@
 # include "order-manager-thread-pool.h"
 # include "font.h"
 # include "layout-pane.h"
+# include <mvvScript/completion-interface.h>
 
 namespace mvv
 {
@@ -26,6 +27,7 @@ namespace platform
       OrderManagerThreadPool&              orderManager;
       Font&                                commonFont;
       RefcountedTyped<Pane>                layout;
+      RefcountedTyped<parser::CompletionInterface> completion;
 
    private:
       // disabled copy
