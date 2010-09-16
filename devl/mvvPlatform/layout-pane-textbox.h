@@ -741,16 +741,19 @@ namespace platform
 
             std::cout << "create menu" << std::endl;
             std::set<mvv::Symbol> choices = _completion.findMatch( _src._text[ _currentLine ].text, _cutPoint );
-            _choices.clear();
-            for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
-               _choices.push_back( *it );
+            if ( choices.size() )
+            {
+               _choices.clear();
+               for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
+                  _choices.push_back( *it );
 
 
-            //std::vector<mvv::Symbol> choices = nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "test1" ), mvv::Symbol::create( "test2" ), mvv::Symbol::create( "test3" ) );
-            Pane::PaneRef ref( &_selectionParent, false );
-            RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 80, _choices, _current, _src._font ) );
-            _selectionParent.insert( widget );
-            _selection = widget;
+               //std::vector<mvv::Symbol> choices = nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "test1" ), mvv::Symbol::create( "test2" ), mvv::Symbol::create( "test3" ) );
+               Pane::PaneRef ref( &_selectionParent, false );
+               RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 120, _choices, _current, _src._font ) );
+               _selectionParent.insert( widget );
+               _selection = widget;
+            }
             return true;
          }
 

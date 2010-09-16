@@ -144,8 +144,7 @@ namespace platform
          const ui32 csize = _textBoxDisplayP->getTextSize();
          if ( _size[ 1 ] > csize )  // if smaller, useless to compute...
          {
-            const double ratio = 4 * ( csize + 1.0 ) / _size[ 1 ];
-            //const double ratio = ( csize + 1.0 ) / _size[ 1 ];
+            const double ratio = ( csize + 1.0 ) / _size[ 1 ];
             _vpane->setRatio( 0, 1.0 - ratio );
             _vpane->setRatio( 1, ratio );
          }

@@ -13,7 +13,7 @@ namespace platform
    class MVVPLATFORM_API WidgetSelectBox : public Pane
    {
    public:
-      WidgetSelectBox( PaneRef& father, const nll::core::vector2ui& origin, ui32 sizex, const std::vector<mvv::Symbol>& choices, int& choice, RefcountedTyped<Font>& font, ui32 fontSize = 12 ) : Pane( origin, nll::core::vector2ui( 1, 1 ) ), _father( father ), _sizex( sizex ), _choices( choices ), _choice( choice ), _font( font ), _fontSize( fontSize )
+      WidgetSelectBox( PaneRef& father, const nll::core::vector2ui& origin, ui32 sizex, const std::vector<mvv::Symbol>& choices, int& choice, RefcountedTyped<Font>& font, ui32 fontSize = 14 ) : Pane( origin, nll::core::vector2ui( 1, 1 ) ), _father( father ), _sizex( sizex ), _choices( choices ), _choice( choice ), _font( font ), _fontSize( fontSize )
       {
          // init the choice to nothing
          _choice = -1;
