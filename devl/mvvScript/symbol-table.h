@@ -115,10 +115,13 @@ namespace parser
          std::set<mvv::Symbol> match;
          if ( _scopes.size() == 0 )
             return match;
-         for ( Symbols::const_iterator it = _scopes[ 0 ].begin(); it != _scopes[ 0 ].end(); ++it )
+         for ( ui32 n = 0; n < (ui32)_scopes.size(); ++n )
          {
-            if ( parser::isMatch( it->first, s ) )
-               match.insert( it->first );
+            for ( Symbols::const_iterator it = _scopes[ n ].begin(); it != _scopes[ n ].end(); ++it )
+            {
+               if ( parser::isMatch( it->first, s ) )
+                  match.insert( it->first );
+            }
          }
 
          return match;

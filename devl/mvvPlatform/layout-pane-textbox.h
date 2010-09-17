@@ -729,36 +729,15 @@ namespace platform
          return false;
       }
 
-      virtual bool receive( const EventKeyboard& e )
+      static bool isChar( int n )
       {
-         if ( e.key == ' ' && e.isCtrl )
-         {
-            LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
-            if ( !position )
-               throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
-            ui32& _currentLine = position->currentLine;
-            //ui32& _currentChar = position->currentChar;
-
-            std::cout << "create menu" << std::endl;
-            std::set<mvv::Symbol> choices = _completion.findMatch( _src._text[ _currentLine ].text, _cutPoint );
-            if ( choices.size() )
-            {
-               _choices.clear();
-               for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
-                  _choices.push_back( *it );
-
-
-               //std::vector<mvv::Symbol> choices = nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "test1" ), mvv::Symbol::create( "test2" ), mvv::Symbol::create( "test3" ) );
-               Pane::PaneRef ref( &_selectionParent, false );
-               RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 120, _choices, _current, _src._font ) );
-               _selectionParent.insert( widget );
-               _selection = widget;
-            }
-            return true;
-         }
-
-         return false;
+         return ( n >= 'a' && n <= 'z' ) ||
+                ( n >= 'A' && n <= 'Z' ) ||
+                ( n == '.' )  ||
+                ( n == '::');
       }
+
+      virtual bool receive( const EventKeyboard& e );
 
    private:
       Pane::PaneRef  _selection;

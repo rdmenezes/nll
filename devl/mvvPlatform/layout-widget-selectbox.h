@@ -52,8 +52,8 @@ namespace platform
 
       void _displayBox( Image& i, const nll::core::vector2ui& position, const nll::core::vector2ui& size, const nll::core::vector3uc& background, const mvv::Symbol& text, bool selected )
       {
-         const nll::core::vector3uc dark = background / 3;
-         const nll::core::vector3uc back = selected ? background / 2 : background;
+         const nll::core::vector3uc dark = background / 2;
+         const nll::core::vector3uc back = selected ? background : dark;
 
          Image::DirectionalIterator line = i.getIterator( position[ 0 ], position[ 1 ], 0 );
          for ( ui32 y = 0; y < size[ 1 ] - 1; ++y )
@@ -70,16 +70,26 @@ namespace platform
             line.addy();
          }
 
+         for ( ui32 x = 0; x < size[ 0 ]; ++x )
+         {
+            line.pickcol( 0 ) = background[ 0 ];
+            line.pickcol( 1 ) = background[ 1 ];
+            line.pickcol( 2 ) = background[ 2 ];
+            line.addx();
+         }
+
+         Image::DirectionalIterator linev = i.getIterator( position[ 0 ] + size[ 0 ] - 1, position[ 1 ], 0 );
+         for ( ui32 y = 0; y < size[ 1 ]; ++y )
+         {
+            linev.pickcol( 0 ) = background[ 0 ];
+            linev.pickcol( 1 ) = background[ 1 ];
+            linev.pickcol( 2 ) = background[ 2 ];
+            linev.addy();
+         }
+
          (*_font).setColor( nll::core::vector3uc( 255, 255, 255 ) );
          (*_font).setSize( _fontSize );
          (*_font).write( text.getName(), position, i, position, nll::core::vector2ui( position[ 0 ] + size[ 0 ], position[ 1 ] + size[ 1 ] ) );
-
-         for ( ui32 x = 0; x < size[ 0 ]; ++x )
-         {
-            line.pickcol( 0 ) = dark[ 0 ];
-            line.pickcol( 1 ) = dark[ 1 ];
-            line.pickcol( 2 ) = dark[ 2 ];
-         }
       }
 
       virtual void updateLayout()

@@ -83,11 +83,62 @@ namespace platform
          std::cout << "LINE=" << _src._text[ _currentLine ].text << std::endl;
 
          _selectionParent.erase( _selection );
+         _selection = RefcountedTyped<Pane>();
          LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
          if ( cmd )
             cmd->notify();
          _current = -1;
       }
+   }
+
+   bool LayoutPaneDecoratorCompletion::receive( const EventKeyboard& e )
+   {
+      bool needsToRefresh = ( _selection.getDataPtr() && isChar( e.key ) );
+      if ( needsToRefresh )
+      {
+         // we need to insert the letter typed firs!
+         LayoutPaneDecoratorCursor* decorator = _src.get<LayoutPaneDecoratorCursor>();
+         if ( decorator )
+         {
+            decorator->receive( e );
+         }
+
+         // refresh the screen
+         LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
+         if ( cmd )
+            cmd->notify();
+      }
+
+      if ( e.key == ' ' && e.isCtrl || needsToRefresh )
+      {
+         LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
+         if ( !position )
+            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+         ui32& _currentLine = position->currentLine;
+
+         std::cout << "create menu" << std::endl;
+         std::set<mvv::Symbol> choices = _completion.findMatch( _src._text[ _currentLine ].text, _cutPoint );
+         if ( choices.size() )
+         {
+            _choices.clear();
+            for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
+               _choices.push_back( *it );
+
+            if ( _selection.getDataPtr() )
+            {
+               _selectionParent.erase( _selection );
+            }
+
+            Pane::PaneRef ref( &_selectionParent, false );
+            RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 120, _choices, _current, _src._font ) );
+            _selectionParent.insert( widget );
+            _selection = widget;
+         }
+
+         return true;
+      }
+
+      return false;
    }
 }
 }
