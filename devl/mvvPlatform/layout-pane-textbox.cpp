@@ -77,10 +77,9 @@ namespace platform
          {
             _src._text[ _currentLine ].text[ _cutPoint ] = 0;
          }
-         std::cout << "choice=" << _current << std::endl;
+
          _src._text[ _currentLine ].text = std::string( _src._text[ _currentLine ].text.c_str() ) + _choices[ _current ].getName();
          _currentChar = _src._text[ _currentLine ].text.size();
-         std::cout << "LINE=" << _src._text[ _currentLine ].text << std::endl;
 
          _selectionParent.erase( _selection );
          _selection = RefcountedTyped<Pane>();
@@ -93,6 +92,8 @@ namespace platform
 
    bool LayoutPaneDecoratorCompletion::receive( const EventKeyboard& e )
    {
+      LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
+
       bool needsToRefresh = ( _selection.getDataPtr() && isChar( e.key ) );
       if ( needsToRefresh )
       {
@@ -104,9 +105,19 @@ namespace platform
          }
 
          // refresh the screen
-         LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
          if ( cmd )
             cmd->notify();
+      }
+
+      if ( _selection.getDataPtr() && !isChar( e.key ) && !( e.key == ' ' && e.isCtrl ) )
+      {
+         _selectionParent.erase( _selection );
+
+         // refresh the screen
+         if ( cmd )
+            cmd->notify();
+
+         return false;
       }
 
       if ( e.key == ' ' && e.isCtrl || needsToRefresh )
@@ -116,18 +127,20 @@ namespace platform
             throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
 
-         std::cout << "create menu" << std::endl;
          std::set<mvv::Symbol> choices = _completion.findMatch( _src._text[ _currentLine ].text, _cutPoint );
+
+         if ( _selection.getDataPtr() )
+         {
+            _selectionParent.erase( _selection );
+            if ( cmd )
+               cmd->notify();
+         }
+
          if ( choices.size() )
          {
             _choices.clear();
             for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
                _choices.push_back( *it );
-
-            if ( _selection.getDataPtr() )
-            {
-               _selectionParent.erase( _selection );
-            }
 
             Pane::PaneRef ref( &_selectionParent, false );
             RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 120, _choices, _current, _src._font ) );
