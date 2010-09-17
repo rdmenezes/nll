@@ -45,6 +45,7 @@ namespace platform
                   break;
                } else {
                   _displayBox( i, nll::core::vector2ui( _origin[ 0 ] + _sizex * col, _origin[ 1 ] + sizey * row ), nll::core::vector2ui( _sizex, sizey ), background, _choices[ n ], _currentChoice == n );
+                  ++row;
                }
             }
          }
