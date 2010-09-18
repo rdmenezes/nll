@@ -107,14 +107,20 @@ namespace platform
          if ( e.key == EventKeyboard::KEY_UP )
          {
             if ( _currentChoice + 1 < _choices.size() )
+            {
+               notify();
                ++_currentChoice;
+            }
             return;
          }
 
          if ( e.key == EventKeyboard::KEY_DOWN )
          {
             if ( _currentChoice > 0 )
+            {
+               notify();
                --_currentChoice;
+            }
             return;
          }
 

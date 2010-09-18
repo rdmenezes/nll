@@ -136,6 +136,11 @@ namespace platform
       virtual void draw( Image& image )
       {
          (*_subLayout).draw( image );
+
+         for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
+         {
+            (**it).draw( image );
+         }
       }
 
       virtual void _draw( Image& image )

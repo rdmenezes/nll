@@ -70,7 +70,7 @@ namespace platform
       if ( !_visible )
          return;
 
-     // if ( _needToBeRefreshed )
+      if ( _needToBeRefreshed )
       {
          _draw( image );
          _needToBeRefreshed = false;
