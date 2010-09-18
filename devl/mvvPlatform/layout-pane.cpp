@@ -7,7 +7,9 @@ namespace platform
    Pane::Pane( const nll::core::vector2ui& origin,
                const nll::core::vector2ui& size,
                const nll::core::vector3uc background ) : _origin( origin ), _size( size ), _visible( true ), _disabled( false ), _background( background )
-   {}
+   {
+      _needToBeRefreshed = true;
+   }
 
    const nll::core::vector2ui& Pane::getOrigin() const
    {
@@ -67,7 +69,12 @@ namespace platform
    {
       if ( !_visible )
          return;
-      _draw( image );
+
+     // if ( _needToBeRefreshed )
+      {
+         _draw( image );
+         _needToBeRefreshed = false;
+      }
 
       for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
       {

@@ -21,6 +21,20 @@ namespace platform
       {
       }
 
+      void draw( Image& image )
+      {
+         if ( !_visible )
+            return;
+
+         // always display the segment
+         _draw( image );
+
+         for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
+         {
+            (**it).draw( image );
+         }
+      }
+
       virtual void _draw( Image& image )
       {
          // source image

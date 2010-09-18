@@ -119,6 +119,8 @@ namespace platform
          notify();
       }
 
+      virtual void draw( Image& image ); // we redefine it to include the process() method
+
    protected:
       virtual void _draw( Image& image );
 
@@ -193,15 +195,7 @@ namespace platform
 
       virtual void _receive( const EventKeyboard& e );
 
-   public:
-      // force the layout to be redraw next time
-      void notify()
-      {
-         _needToBeRefreshed = true;
-      }
-
    protected:
-      bool                                                  _needToBeRefreshed;
       std::vector< RefcountedTyped<PaneTextboxDecorator> >  _decorators;
 
       // window properties

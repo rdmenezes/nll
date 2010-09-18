@@ -133,9 +133,14 @@ namespace platform
          (*_subLayout).receive( e );
       }
 
+      virtual void draw( Image& image )
+      {
+         (*_subLayout).draw( image );
+      }
+
       virtual void _draw( Image& image )
       {
-         (*_subLayout)._draw( image );
+         // nothing to do
       }
 
       virtual void updateLayout()
@@ -183,6 +188,7 @@ namespace platform
       {
          _textBoxDisplayP->notify();
          _textBoxCmdP->notify();
+         _needToBeRefreshed = true;
       }
 
    private:

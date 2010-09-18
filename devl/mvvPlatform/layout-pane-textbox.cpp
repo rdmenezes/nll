@@ -5,8 +5,11 @@ namespace mvv
 {
 namespace platform
 {
-   void PaneTextbox::_draw( Image& image )
+   void PaneTextbox::draw( Image& image )
    {
+      if ( !_visible )
+         return;
+
       for ( ui32 n = 0; n < _decorators.size(); ++n )
       {
          ( *_decorators[ n ] ).process();
@@ -14,32 +17,41 @@ namespace platform
 
       if ( _needToBeRefreshed )
       {
-         nll::core::Timer timer;
-         // clear the textbox, we need to reprint everything
-         Image::DirectionalIterator oy = image.getIterator( _origin[ 0 ], _origin[ 1 ], 0 );
-
-         for ( ui32 yy = 0; yy < _size[ 1 ]; ++yy )
-         {
-            Image::DirectionalIterator lo = oy;
-            for ( ui32 xx = 0; xx < _size[ 0 ]; ++xx )
-            {
-               lo.pickcol( 0 ) = _background[ 0 ];
-               lo.pickcol( 1 ) = _background[ 1 ];
-               lo.pickcol( 2 ) = _background[ 2 ];
-
-               lo.addx();
-            }
-            oy.addy();
-         }
-
-         _drawText( image );
-
-         // finally decorate the text...
-         for ( unsigned n = 0; n < _decorators.size(); ++n )
-         {
-            (*_decorators[ n ]).draw( image );
-         }
+         _draw( image );
          _needToBeRefreshed = false;
+      }
+
+      for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
+      {
+         (**it).draw( image );
+      }
+   }
+
+   void PaneTextbox::_draw( Image& image )
+   {
+      // clear the textbox, we need to reprint everything
+      Image::DirectionalIterator oy = image.getIterator( _origin[ 0 ], _origin[ 1 ], 0 );
+
+      for ( ui32 yy = 0; yy < _size[ 1 ]; ++yy )
+      {
+         Image::DirectionalIterator lo = oy;
+         for ( ui32 xx = 0; xx < _size[ 0 ]; ++xx )
+         {
+            lo.pickcol( 0 ) = _background[ 0 ];
+            lo.pickcol( 1 ) = _background[ 1 ];
+            lo.pickcol( 2 ) = _background[ 2 ];
+
+            lo.addx();
+         }
+         oy.addy();
+      }
+
+      _drawText( image );
+
+      // finally decorate the text...
+      for ( unsigned n = 0; n < _decorators.size(); ++n )
+      {
+         (*_decorators[ n ]).draw( image );
       }
    }
 
@@ -83,17 +95,13 @@ namespace platform
 
          _selectionParent.erase( _selection );
          _selection = RefcountedTyped<Pane>();
-         LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
-         if ( cmd )
-            cmd->notify();
+         _selectionParent.notify();
          _current = -1;
       }
    }
 
    bool LayoutPaneDecoratorCompletion::receive( const EventKeyboard& e )
    {
-      LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( &_selectionParent );
-
       bool needsToRefresh = ( _selection.getDataPtr() && isChar( e.key ) );
       if ( needsToRefresh )
       {
@@ -105,8 +113,7 @@ namespace platform
          }
 
          // refresh the screen
-         if ( cmd )
-            cmd->notify();
+         _selectionParent.notify();
       }
 
       if ( _selection.getDataPtr() && !isChar( e.key ) && !( e.key == ' ' && e.isCtrl ) )
@@ -114,8 +121,7 @@ namespace platform
          _selectionParent.erase( _selection );
 
          // refresh the screen
-         if ( cmd )
-            cmd->notify();
+         _selectionParent.notify();
 
          return false;
       }
@@ -132,8 +138,7 @@ namespace platform
          if ( _selection.getDataPtr() )
          {
             _selectionParent.erase( _selection );
-            if ( cmd )
-               cmd->notify();
+            _selectionParent.notify();
          }
 
          if ( choices.size() )

@@ -116,6 +116,11 @@ namespace platform
          _background = col;
       }
 
+      virtual void notify()
+      {
+         _needToBeRefreshed = true;
+      }
+
 
       /**
        @brief If return true, the last inserted Widget of a pane only will receive the event
@@ -191,6 +196,7 @@ namespace platform
 
       Panes                   _widgets;
       nll::core::vector3uc    _background;
+      bool                    _needToBeRefreshed;
    };
 
    /**
@@ -219,12 +225,31 @@ namespace platform
          }
       }
 
-      void _draw( Image& image )
+      void draw( Image& image )
       {
          if ( !_visible )
             return;
+
          for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
-            ( **it ).draw( image );
+         {
+            (**it).draw( image );
+         }
+
+         for ( Panes::iterator it = _widgets.begin(); it != _widgets.end(); ++it )
+         {
+            (**it).draw( image );
+         }
+      }
+
+      void _draw( Image& image )
+      {
+         // Nothing to display
+      }
+
+      virtual void notify()
+      {
+         for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
+            ( **it ).notify();
       }
 
       virtual void destroy()
