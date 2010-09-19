@@ -98,7 +98,7 @@ namespace platform
          _enter = new LayoutPaneDecoratorCursorEnterConsole( *textBoxCmd, *_writableCommand );
          RefcountedTyped<PaneTextboxDecorator> cursorEnter( _enter );
 
-         RefcountedTyped<PaneTextboxDecorator> completion( new LayoutPaneDecoratorCompletion( *textBoxCmd, *this, completionInterface ) );
+         RefcountedTyped<PaneTextboxDecorator> completion( new LayoutPaneDecoratorCompletion( *textBoxCmd, completionInterface ) );
          textBoxCmd->add( completion );
          textBoxCmd->add( cursorPos );
          textBoxCmd->add( cursorBasic );
@@ -113,6 +113,7 @@ namespace platform
          _vpane->addChild( RefcountedTyped<Pane>( textBoxDisplay ), 0.97 );
          _vpane->addChild( RefcountedTyped<Pane>( textBoxCmd ), 0.03 );
          _subLayout = RefcountedTyped<Pane>( _vpane );
+         (*_subLayout).setFather( this );
 
          _importPreviousHistory( *_enter );
       }
@@ -143,7 +144,7 @@ namespace platform
          }
       }
 
-      virtual void _draw( Image& image )
+      virtual void _draw( Image& )
       {
          // nothing to do
       }

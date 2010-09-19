@@ -9,6 +9,7 @@ namespace platform
                const nll::core::vector3uc background ) : _origin( origin ), _size( size ), _visible( true ), _disabled( false ), _background( background )
    {
       _needToBeRefreshed = true;
+      _father = 0;
    }
 
    const nll::core::vector2ui& Pane::getOrigin() const

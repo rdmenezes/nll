@@ -79,6 +79,8 @@ namespace platform
    {
       if ( _current != -1 )
       {
+         Pane* root = _src.getRoot();
+
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
             throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
@@ -91,17 +93,19 @@ namespace platform
          }
 
          _src._text[ _currentLine ].text = std::string( _src._text[ _currentLine ].text.c_str() ) + _choices[ _current ].getName();
-         _currentChar = _src._text[ _currentLine ].text.size();
+         _currentChar = (ui32)_src._text[ _currentLine ].text.size();
 
-         _selectionParent.erase( _selection );
+         root->erase( _selection );
          _selection = RefcountedTyped<Pane>();
-         _selectionParent.notify();
+         root->notify();
          _current = -1;
       }
    }
 
    bool LayoutPaneDecoratorCompletion::receive( const EventKeyboard& e )
    {
+      Pane* root = _src.getRoot();
+
       bool needsToRefresh = ( _selection.getDataPtr() && isChar( e.key ) );
       if ( needsToRefresh )
       {
@@ -113,15 +117,15 @@ namespace platform
          }
 
          // refresh the screen
-         _selectionParent.notify();
+         root->notify();
       }
 
       if ( _selection.getDataPtr() && !isChar( e.key ) && !( e.key == ' ' && e.isCtrl ) )
       {
-         _selectionParent.erase( _selection );
+         root->erase( _selection );
 
          // refresh the screen
-         _selectionParent.notify();
+         root->notify();
 
          return false;
       }
@@ -137,8 +141,8 @@ namespace platform
 
          if ( _selection.getDataPtr() )
          {
-            _selectionParent.erase( _selection );
-            _selectionParent.notify();
+            root->erase( _selection );
+            root->notify();
          }
 
          if ( choices.size() )
@@ -147,9 +151,9 @@ namespace platform
             for ( std::set<mvv::Symbol>::iterator it = choices.begin(); it != choices.end(); ++it )
                _choices.push_back( *it );
 
-            Pane::PaneRef ref( &_selectionParent, false );
-            RefcountedTyped<Pane> widget( new WidgetSelectBox( ref, nll::core::vector2ui( 0, 0 ), 120, _choices, _current, _src._font ) );
-            _selectionParent.insert( widget );
+            nll::core::vector2ui origin( _src._origin[ 0 ], _src._origin[ 1 ] + _src._size[ 1 ] );
+            RefcountedTyped<Pane> widget( new WidgetSelectBox( true, origin, 120, _choices, _current, _src._font ) );
+            root->insert( widget );
             _selection = widget;
          }
 

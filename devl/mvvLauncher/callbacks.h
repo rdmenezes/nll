@@ -155,6 +155,12 @@ public:
    }
 
 private:
+   // disabled
+   Callbacks( const Callbacks& );
+   Callbacks& operator=( const Callbacks& );
+
+
+private:
    CompilerFrontEnd&             _compiler;
    RuntimeValues*                _oldCallbacks;
    std::map<Key, std::string>    _callbacks;

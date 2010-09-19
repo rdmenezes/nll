@@ -221,7 +221,7 @@ namespace parser
          int skip = skipMatched( s, hided );
          std::string sub1;
          std::string subHided;
-         if ( skip < s.size() )
+         if ( skip < (int)s.size() )
          {
             sub1 = std::string( &s[ skip ] );
             subHided = std::string( &hided[ skip ] );
@@ -229,7 +229,7 @@ namespace parser
 
          int interruptible = findInterruptible( subHided );
          std::string sub2;
-         if ( interruptible < sub1.size() )
+         if ( interruptible < (int)sub1.size() )
          {
             sub2 = std::string( &sub1[ interruptible ] );
          } else { type = NORMAL; prefix = ""; needToMatch = ""; return; }
@@ -242,7 +242,7 @@ namespace parser
             prefix = sub2.substr( 0, dotpos - 1 );
             needToMatch = sub2.substr( dotpos, sub2.size() );
 
-            cut = dotpos + skip + interruptible;
+            cut = (ui32)dotpos + (ui32)skip + (ui32)interruptible;
          } else if ( type == DDCOLON )
          {
             size_t dotpos = _findLastOf( sub2, "::" );
@@ -250,18 +250,18 @@ namespace parser
             prefix = sub2.substr( 0, dotpos - 2 );
             needToMatch = sub2.substr( dotpos, sub2.size() );
 
-            cut = dotpos + skip + interruptible;
+            cut = (ui32)dotpos + (ui32)skip + (ui32)interruptible;
          } else if ( type == NORMAL )
          {
             prefix = "";
             needToMatch = sub2;
 
-            cut = skip + interruptible;
+            cut = (ui32)skip + (ui32)interruptible;
          } else {ensure( 0, "not handled case!" ); }
 
          // strip the prefix from charachers such as " "
          int n = 0;
-         while ( n < needToMatch.size() )
+         while ( n < (int)needToMatch.size() )
          {
             if ( needToMatch[ n ] == ' ' || needToMatch[ n ] == '\t' || needToMatch[ n ] == '\n' )
                ++n;
@@ -291,7 +291,7 @@ namespace parser
                } else break;
             }
 
-            interruptiblesPos[ n ] = lastFound;
+            interruptiblesPos[ n ] = (ui32)lastFound;
          }
 
          return interruptiblesPos;

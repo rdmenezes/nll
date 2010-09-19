@@ -707,7 +707,7 @@ namespace platform
       typedef PaneTextboxDecorator   Base;
 
    public:
-      LayoutPaneDecoratorCompletion( PaneTextbox& src, Pane& selectionParent, parser::CompletionInterface& completion  ) : Base( src ), _selectionParent( selectionParent ), _completion( completion )
+      LayoutPaneDecoratorCompletion( PaneTextbox& src, parser::CompletionInterface& completion  ) : Base( src ), _completion( completion )
       {
          _current = -1;
       }
@@ -735,7 +735,7 @@ namespace platform
 
    private:
       Pane::PaneRef  _selection;
-      Pane&          _selectionParent;
+      //Pane&          _selectionParent;
       int            _current;
       ui32           _cutPoint;
       parser::CompletionInterface&  _completion;

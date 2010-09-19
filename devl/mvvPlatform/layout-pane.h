@@ -40,6 +40,7 @@ namespace platform
 
       void insert( PaneRef widget )
       {
+         (*widget).setFather( this );
          _widgets.push_back( widget );
       }
 
@@ -48,6 +49,7 @@ namespace platform
          Panes::iterator it = std::find( _widgets.begin(), _widgets.end(), widget );
          if ( it != _widgets.end() )
          {
+            (**it).setFather( 0 );
             _widgets.erase( it );
          }
       }
@@ -174,6 +176,24 @@ namespace platform
          _receive( event );
       }
 
+      void setFather( Pane* p )
+      {
+         _father = p;
+      }
+
+      Pane* getFather() const
+      {
+         return _father;
+      }
+
+      Pane* getRoot()
+      {
+         Pane* p = this;
+         while ( p->_father )
+            p = p->_father;
+         return p;
+      }
+
    protected:
       /**
        @brief reimplement this method to handle mouse events
@@ -197,6 +217,7 @@ namespace platform
       Panes                   _widgets;
       nll::core::vector3uc    _background;
       bool                    _needToBeRefreshed;
+      Pane*                   _father;
    };
 
    /**
@@ -241,7 +262,7 @@ namespace platform
          }
       }
 
-      void _draw( Image& image )
+      void _draw( Image& )
       {
          // Nothing to display
       }
@@ -276,6 +297,7 @@ namespace platform
        */
       void addChild( PaneRef pane )
       {
+         (*pane).setFather( this );
          _panes.push_back( pane );
       }
 
