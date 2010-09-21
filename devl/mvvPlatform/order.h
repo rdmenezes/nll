@@ -159,7 +159,7 @@ namespace platform
       }
 
       // should not be used by user
-      void _setFuture( RefcountedTyped<Future>& f )
+      void _setFuture( RefcountedTyped<Future> f )
       {
          _future = f;
       }

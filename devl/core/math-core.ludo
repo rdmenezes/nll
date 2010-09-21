@@ -99,3 +99,51 @@ import float log( float val );
  @brief computes the modulo
  */
 import int   mod( int   val, int m );
+
+int max( int a, int b )
+{
+   if ( a > b )
+   {
+      return a;
+   }
+   else
+   {
+      return b;
+   }
+}
+
+int min( int a, int b )
+{
+   if ( a < b )
+   {
+      return a;
+   }
+   else
+   {
+      return b;
+   }
+}
+
+float max( float a, float b )
+{
+   if ( a > b )
+   {
+      return a;
+   }
+   else
+   {
+      return b;
+   }
+}
+
+float min( float a, float b )
+{
+   if ( a < b )
+   {
+      return a;
+   }
+   else
+   {
+      return b;
+   }
+}

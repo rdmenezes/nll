@@ -59,6 +59,9 @@ string volumeList[] =
    "D:/Devel/sandbox/regionDetectionTest/data/case62.mf2"
 };
 
+/**
+ @brief Pre-load volumes to speed up loading time
+ */
 class VolumeSwitch
 {
    int index                        = 0;
@@ -95,6 +98,9 @@ class VolumeSwitch
    }
 }
 
+/**
+ @brief Create an annotation where the pointer is located
+ */
 class AnnotationCreator
 {
    ToolAnnotations      annotations;
@@ -112,5 +118,80 @@ class AnnotationCreator
    {
       annotations.add( pointer.getPosition(), toString( id ) );
       id = id + 1;
+   }
+}
+
+/**
+ @brief find the maximum intensity voxel within a radius
+ */
+class FindPeakVoxel
+{
+   VolumeID volume = NULL;
+   int range;
+   SegmentToolPointer pointer = NULL;
+   SegmentToolCamera camera = NULL;
+   
+   FindPeakVoxel( VolumeID v, int rangeInVoxel, SegmentToolPointer p, SegmentToolCamera c )
+   {
+      volume = v;
+      range = rangeInVoxel;
+      pointer = p;
+      camera = c;
+   }
+   
+   void run()
+   {
+      Volume v = getVolume( volume );
+      Vector3f posInVoxel = v.positionToIndex( pointer.getPosition() );
+      posInVoxel = Vector3f( toFloat( round( posInVoxel[ 0 ] ) ),
+                             toFloat( round( posInVoxel[ 1 ] ) ),
+                             toFloat( round( posInVoxel[ 2 ] ) ) );
+      if ( posInVoxel[ 0 ] < 0.0 ||
+           posInVoxel[ 1 ] < 0.0 ||
+           posInVoxel[ 2 ] < 0.0 ||
+           posInVoxel[ 0 ] >= v.getSize()[ 0 ] ||
+           posInVoxel[ 1 ] >= v.getSize()[ 1 ] ||
+           posInVoxel[ 2 ] >= v.getSize()[ 2 ] )
+      {
+        return;
+      }
+      
+      float minx = max( 0.0, posInVoxel[ 0 ] - range );
+      float miny = max( 0.0, posInVoxel[ 1 ] - range );
+      float minz = max( 0.0, posInVoxel[ 2 ] - range );
+      
+      float maxx = min( posInVoxel[ 0 ] + range, toFloat( v.getSize()[ 0 ] ) );
+      float maxy = min( posInVoxel[ 1 ] + range, toFloat( v.getSize()[ 1 ] ) );
+      float maxz = min( posInVoxel[ 2 ] + range, toFloat( v.getSize()[ 2 ] ) );
+      
+      float max = -99999.0;
+      Vector3f pos;
+      
+      float z = minz;
+      while ( z <  maxz )
+      {
+        float y = miny;
+        while ( y <  maxy )
+        {
+          float x = minx;
+          while ( x <  maxx )
+          {
+            Vector3f posCur( x, y, z );
+            float value = v.getValue( posCur );
+            if ( value > max )
+            {
+              max = value;
+              pos = posCur;
+            }
+            x = x + 1;
+          }
+          y = y + 1;
+        }
+        z = z + 1;
+      }
+      
+      print("new position in voxel=");
+      print(pos);
+      camera.setPosition( v.indexToPosition( pos ) );
    }
 }

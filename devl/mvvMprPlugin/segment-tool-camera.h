@@ -116,6 +116,7 @@ namespace platform
          for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
          {
             (**it).position.setValue( pos );
+            (**it).panning.setValue( nll::core::vector3f() );
 
             std::set<SegmentToolPointer*> tools = (**it).getTools<SegmentToolPointer>();
             assert( tools.size() <= 1 );

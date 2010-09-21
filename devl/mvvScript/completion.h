@@ -291,7 +291,7 @@ namespace parser
                } else break;
             }
 
-            interruptiblesPos[ n ] = (ui32)lastFound;
+            interruptiblesPos[ n ] = lastFound;
          }
 
          return interruptiblesPos;
