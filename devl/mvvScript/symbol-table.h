@@ -110,9 +110,9 @@ namespace parser
          return 0;
       }
 
-      std::set<mvv::Symbol> findMatch( const std::string& s ) const
+      std::set<T*> findMatch( const std::string& s ) const
       {
-         std::set<mvv::Symbol> match;
+         std::set<T*> match;
          if ( _scopes.size() == 0 )
             return match;
          for ( ui32 n = 0; n < (ui32)_scopes.size(); ++n )
@@ -120,7 +120,7 @@ namespace parser
             for ( Symbols::const_iterator it = _scopes[ n ].begin(); it != _scopes[ n ].end(); ++it )
             {
                if ( parser::isMatch( it->first, s ) )
-                  match.insert( it->first );
+                  match.insert( it->second );
             }
          }
 
@@ -217,7 +217,7 @@ namespace parser
          resetScope();
       }
 
-      std::set<mvv::Symbol> findMatch( const std::string& s ) const;
+      std::set<AstTypedef*> findMatch( const std::string& s ) const;
 
    private:
       // because we need to copy the data structures, we need to recursively run through all the scopes
@@ -398,13 +398,13 @@ namespace parser
          operator=( cpy );
       }
 
-      std::set<mvv::Symbol> findMatch( const std::string& s ) const
+      std::set<AstDeclClass*> findMatch( const std::string& s ) const
       {
-         std::set<mvv::Symbol> match;
+         std::set<AstDeclClass*> match;
          for ( ui32 n = 0; n < _scopes.scopes.size(); ++n )
          {
             if ( parser::isMatch( _scopes.scopes[ n ].name, s ) )
-               match.insert( _scopes.scopes[ n ].name );
+               match.insert( _scopes.scopes[ n ].decl );
          }
 
          return match;
@@ -429,13 +429,18 @@ namespace parser
    typedef SymbolTable<AstDeclVar>                            SymbolTableVars;     /// Scoped symbol table
    typedef std::map<mvv::Symbol, FunctionTable>               SymbolTableFuncs;    /// We only need to store functions in global scope
 
-   inline static std::set<mvv::Symbol> findMatch( const SymbolTableFuncs& funs, const std::string& s )
+   inline static std::set<AstDeclFun*> findMatch( const SymbolTableFuncs& funs, const std::string& s )
    {
-      std::set<mvv::Symbol> match;
+      std::set<AstDeclFun*> match;
       for ( std::map<mvv::Symbol, FunctionTable>::const_iterator it = funs.begin(); it != funs.end(); ++it )
       {
          if ( parser::isMatch( it->first, s ) )
-            match.insert( it->first );
+         {
+            for ( ui32 n = 0; n < it->second.list.size(); ++n )
+            {
+               match.insert( it->second.list[ n ] );
+            }
+         }
       }
 
       return match;

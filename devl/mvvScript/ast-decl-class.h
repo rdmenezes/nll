@@ -113,9 +113,9 @@ namespace parser
       }
 
       // find all class/typedef matching the string (used for automatic completion)
-      std::set<mvv::Symbol> matchType( const std::string& s ) const
+      std::set<AstDecl*> matchType( const std::string& s ) const
       {
-         std::set<mvv::Symbol> match;
+         std::set<AstDecl*> match;
          for ( AstDecls::Decls::const_iterator it = _decls->getDecls().begin(); it != _decls->getDecls().end(); ++it )
          {
             AstDecl* d = (*it);
@@ -124,7 +124,7 @@ namespace parser
             AstDeclClass* dc = dynamic_cast<AstDeclClass*>( d );
             if ( dc && isMatch( dc->getName(), s ) )
             {
-               match.insert( dc->getName() );
+               match.insert( d );
                continue;
             }
 
@@ -134,7 +134,7 @@ namespace parser
                AstTypedef* dt = dynamic_cast<AstTypedef*>( d );
                if ( dt && isMatch( dt->getName(), s ) )
                {
-                  match.insert( dt->getName() );
+                  match.insert( d );
                   continue;
                }
             }
@@ -143,9 +143,9 @@ namespace parser
       }
 
       // find all members matching the string (used for automatic completion)
-      std::set<mvv::Symbol> matchMember( const std::string& s ) const
+      std::set<AstDecl*> matchMember( const std::string& s ) const
       {
-         std::set<mvv::Symbol> match;
+         std::set<AstDecl*> match;
          for ( AstDecls::Decls::const_iterator it = _decls->getDecls().begin(); it != _decls->getDecls().end(); ++it )
          {
             AstDecl* d = (*it);
@@ -155,7 +155,7 @@ namespace parser
             AstTypedef* dt = dynamic_cast<AstTypedef*>( d );
             if ( !dc && !dt && isMatch( d->getName(), s ) )
             {
-               match.insert( d->getName() );
+               match.insert( d );
                continue;
             }
          }

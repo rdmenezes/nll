@@ -4,6 +4,7 @@
 # include "mvvScript.h"
 # include "compiler.h"
 # include "completion-interface.h"
+# include "visitor-print-simple.h"
 
 namespace mvv
 {
@@ -25,24 +26,37 @@ namespace parser
       }
 
       /**
-       @brief Preprocess the string:
-        process:
-         - find the first unmatched [ or (, before, everything is skipped
-         - find the last interrupt symbol: = + - * / > < >= <= | || & && [ ] ( ) " ; ex: a + b.test... => only consider "b.test..."
-         - now determine the type of completion:
-             - if there is a "::"  => we want to find class/typedef => cut until "::", find the type, find the type matching the string after "::"
-             - if "." => we want to find a member variable => find the type of the expression bewfore ".", match the declaration with the part after "."
-             - else we want to find class/Typedef/val/func => match the declaration of the expression
-
-        Completion on:
-         - var name
-         - function name
-         - typedef
-         - class name
+       @brief Analyse the current string: determine the type of the last expression
        */
-      std::set<mvv::Symbol> findMatch( const std::string& s, ui32& cutpoint )
+      virtual void getType( const std::string& s, ui32& cutpoint, std::vector<std::string>& oneMatchPrototype )
       {
-         std::set<mvv::Symbol> match;
+         std::set<AstDecl*> match = _process( s, cutpoint );
+         mvv::Symbol actualString = mvv::Symbol::create( &s[ cutpoint ] );
+
+         std::stringstream ss;
+         for ( std::set<AstDecl*>::iterator it = match.begin(); it != match.end(); ++it )
+         {
+            if ( (*it)->getName() == actualString )
+            {
+               VisitorPrintSimple visitor( ss );
+               visitor( **it );
+            }
+         }
+
+         std::string str;
+         while ( 1 )
+         {
+            std::getline( ss, str );
+            if ( ss.eof() )
+               break;
+            if ( str != "" )
+               oneMatchPrototype.push_back( str );
+         }
+      }
+
+      virtual std::set<AstDecl*> _process( const std::string& s, ui32& cutpoint )
+      {
+         std::set<AstDecl*> match;
 
          ExpressionType type;
          std::string prefix;
@@ -52,20 +66,20 @@ namespace parser
          if ( type == NORMAL )
          {
             // check the variables
-            std::set<mvv::Symbol> variables = _cmp.getVariables().findMatch( needToMatch );
-            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+            std::set<AstDeclVar*> variables1 = _cmp.getVariables().findMatch( needToMatch );
+            std::copy( variables1.begin(), variables1.end(), std::inserter( match, match.begin() ) );
 
             // check the functions
-            variables = parser::findMatch( _cmp.getFunctions(), needToMatch );
-            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+            std::set<AstDeclFun*> variables2 = parser::findMatch( _cmp.getFunctions(), needToMatch );
+            std::copy( variables2.begin(), variables2.end(), std::inserter( match, match.begin() ) );
 
             // check classes
-            variables = _cmp.getClasses().findMatch( needToMatch );
-            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+            std::set<AstDeclClass*> variables3 = _cmp.getClasses().findMatch( needToMatch );
+            std::copy( variables3.begin(), variables3.end(), std::inserter( match, match.begin() ) );
 
             // check typedefs
-            variables = _cmp.getTypedefs().findMatch( needToMatch );
-            std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
+            std::set<AstTypedef*> variables4 = _cmp.getTypedefs().findMatch( needToMatch );
+            std::copy( variables4.begin(), variables4.end(), std::inserter( match, match.begin() ) );
          } else if ( type == DOT )
          {
             bool sandbox = _cmp.getSandbox();
@@ -86,7 +100,7 @@ namespace parser
                      const TypeNamed* t = dynamic_cast<const TypeNamed*>( e->getNodeType() );
                      if ( t )
                      {
-                        std::set<mvv::Symbol> variables = t->getDecl()->matchMember( needToMatch );
+                        std::set<AstDecl*> variables = t->getDecl()->matchMember( needToMatch );
                         std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
                      }
                   }
@@ -99,12 +113,61 @@ namespace parser
             const AstDeclClass* c = _cmp.getClass( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( prefix ) ) );
             if ( c )
             {
-               std::set<mvv::Symbol> variables = c->matchType( needToMatch );
+               std::set<AstDecl*> variables = c->matchType( needToMatch );
                std::copy( variables.begin(), variables.end(), std::inserter( match, match.begin() ) );
             }
          }
 
          return match;
+      }
+
+      /**
+       @brief Preprocess the string:
+        process:
+         - find the first unmatched [ or (, before, everything is skipped
+         - find the last interrupt symbol: = + - * / > < >= <= | || & && [ ] ( ) " ; ex: a + b.test... => only consider "b.test..."
+         - now determine the type of completion:
+             - if there is a "::"  => we want to find class/typedef => cut until "::", find the type, find the type matching the string after "::"
+             - if "." => we want to find a member variable => find the type of the expression bewfore ".", match the declaration with the part after "."
+             - else we want to find class/Typedef/val/func => match the declaration of the expression
+
+        Completion on:
+         - var name
+         - function name
+         - typedef
+         - class name
+       */
+      virtual std::set<mvv::Symbol> findMatch( const std::string& s, ui32& cutpoint, std::vector<std::string>& oneMatchPrototype )
+      {
+         std::set<AstDecl*> match = _process( s, cutpoint );
+
+         std::set<mvv::Symbol> choices;
+         for ( std::set<AstDecl*>::iterator it = match.begin(); it != match.end(); ++it )
+         {
+            choices.insert( (*it)->getName() );
+         }
+
+         // we have only one choice => get the corresponding declarations
+         if ( choices.size() == 1 )
+         {
+            std::stringstream ss;
+            for ( std::set<AstDecl*>::iterator it = match.begin(); it != match.end(); ++it )
+            {
+               VisitorPrintSimple visitor( ss );
+               visitor( **it );
+            }
+
+            std::string s;
+            while ( 1 )
+            {
+               std::getline( ss, s );
+               if ( ss.eof() )
+                  break;
+               if ( s != "" )
+                  oneMatchPrototype.push_back( s );
+            }
+         }
+         return choices;
       }
 
       /**

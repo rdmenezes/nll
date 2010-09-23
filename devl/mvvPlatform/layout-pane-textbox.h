@@ -707,7 +707,7 @@ namespace platform
       typedef PaneTextboxDecorator   Base;
 
    public:
-      LayoutPaneDecoratorCompletion( PaneTextbox& src, parser::CompletionInterface& completion  ) : Base( src ), _completion( completion )
+      LayoutPaneDecoratorCompletion( PaneTextbox& src, parser::CompletionInterface& completion, ui32 fontSize = 14 ) : Base( src ), _completion( completion ), _fontSize( fontSize )
       {
          _current = -1;
       }
@@ -735,11 +735,12 @@ namespace platform
 
    private:
       Pane::PaneRef  _selection;
-      //Pane&          _selectionParent;
       int            _current;
       ui32           _cutPoint;
       parser::CompletionInterface&  _completion;
-      std::vector<mvv::Symbol>      _choices;
+      std::vector<std::string>      _choices;
+      bool           _isGuiDisplayingPrototype;
+      ui32           _fontSize;
    };
 }
 }

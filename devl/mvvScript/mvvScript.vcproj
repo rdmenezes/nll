@@ -629,6 +629,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\visitor-print-simple.h"
+				>
+			</File>
+			<File
 				RelativePath=".\visitor-print.h"
 				>
 			</File>

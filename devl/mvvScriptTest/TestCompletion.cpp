@@ -130,6 +130,8 @@ struct TestCompletion
 
    void eval5()
    {
+      std::vector<std::string> v;
+
       {
          ui32 cut;
          CompilerFrontEnd fe;
@@ -137,7 +139,7 @@ struct TestCompletion
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "n12", cut );
+         std::set<mvv::Symbol> match = completion.findMatch( "n12", cut, v );
          TESTER_ASSERT( match.size() == 5 );
          TESTER_ASSERT( cut  == 0 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n123" ) ) != match.end() );
@@ -155,7 +157,7 @@ struct TestCompletion
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "Test::Te", cut );
+         std::set<mvv::Symbol> match = completion.findMatch( "Test::Te", cut, v );
          TESTER_ASSERT( match.size() == 2 );
          TESTER_ASSERT( cut  == 6 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "Test2" ) ) != match.end() );
@@ -169,7 +171,7 @@ struct TestCompletion
          TESTER_ASSERT( result == Error::SUCCESS );
 
          Completion completion( fe );
-         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 ].n13", cut );
+         std::set<mvv::Symbol> match = completion.findMatch( "t[ 2 ].n13", cut, v );
          TESTER_ASSERT( match.size() == 3 );
          TESTER_ASSERT( cut  == 7 );
          TESTER_ASSERT( match.find( mvv::Symbol::create( "n132" ) ) != match.end() );

@@ -89,13 +89,13 @@ namespace parser
       return 0;
    }
 
-   std::set<mvv::Symbol> SymbolTableTypedef::findMatch( const std::string& s ) const
+   std::set<AstTypedef*> SymbolTableTypedef::findMatch( const std::string& s ) const
    {
-      std::set<mvv::Symbol> match;
+      std::set<AstTypedef*> match;
       for ( ui32 n = 0; n < _scopes.typedefs.size(); ++n )
       {
          if ( parser::isMatch( _scopes.typedefs[ n ]->getName(), s ) )
-            match.insert( _scopes.typedefs[ n ]->getName() );
+            match.insert( _scopes.typedefs[ n ] );
       }
 
       return match;

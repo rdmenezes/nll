@@ -18,6 +18,7 @@
 #include "compiler-helper.h"
 #include "completion-interface.h"
 #include "completion.h"
+#include "visitor-print-simple.h"
 
 
 int MVVSCRIPT_API dummy = 0;

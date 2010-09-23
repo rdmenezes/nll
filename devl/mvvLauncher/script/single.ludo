@@ -38,15 +38,15 @@ SegmentToolCamera       camera;
 VolumeContainer         volumes;
 
 VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
-//VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
-VolumeID nema = readVolumeMF2Asynchronous("c:/tmp3/nema.mf2");
+VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
+//VolumeID nema = readVolumeMF2Asynchronous("c:/tmp3/nema.mf2");
 
 Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
 
 
-petLut.set( 0.0, 60000.0 );
-FindPeakVoxel peak( nema, 15, pointer, camera );
+//petLut.set( 0.0, 60000.0 );
+FindPeakVoxel peak( pet, 15, pointer, camera );
 DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, pointer );
 VolumeSwitch switch( ctLut, volumes, volumeList, detection );
@@ -107,11 +107,11 @@ AffineRegistration petReg;
 AffineRegistration ctReg;
 
 
-//volumes.add( ct, ctLut, 0.5, ctReg );
-//volumes.add( pet, petLut, 0.5, petReg );
-volumes.add( nema, petLut, 0.5, petReg );
+volumes.add( ct, ctLut, 0.5, ctReg );
+volumes.add( pet, petLut, 0.5, petReg );
+//volumes.add( nema, petLut, 0.5, petReg );
 
-ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
+//ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
 
 Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
@@ -146,7 +146,8 @@ Layout l4( mip1 );
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
 
-
+/*
 segment1.setInterpolator(typename Segment::Nearest());
 segment2.setInterpolator(typename Segment::Nearest());
 segment3.setInterpolator(typename Segment::Nearest());
+*/

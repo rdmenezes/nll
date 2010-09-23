@@ -10,7 +10,14 @@ namespace parser
    class CompletionInterface
    {
    public:
-      virtual std::set<mvv::Symbol> findMatch( const std::string& s, ui32& cutpoint ) = 0;
+      /**
+       @brief compute all the declarations that match with <code>s</code>
+       @param s the string to match
+       @param cutpoint the point from where the string must be replaced by the matching strings
+       @param oneMatchPrototype if the findMatch finds only one symbol, then this returns all the declarations for this symbol
+       */
+      virtual std::set<mvv::Symbol> findMatch( const std::string& s, ui32& cutpoint, std::vector<std::string>& oneMatchPrototype ) = 0;
+      virtual void getType( const std::string& s, ui32& cutpoint, std::vector<std::string>& oneMatchPrototype ) = 0;
    };
 }
 }
