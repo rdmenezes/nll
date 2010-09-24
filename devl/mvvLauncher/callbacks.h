@@ -143,12 +143,6 @@ public:
       {
          try
          {
-            //std::ostream* saveout = &_compiler.getStdOut();
-            std::stringstream ss;
-            _compiler.setStdOut( &ss );
-            _compiler.run( it->second );
-            _compiler.setStdOut( &std::cout );
-
             // get the context
             platform::ContextGlobal* global = (*_compiler.getContextExtension()).get<platform::ContextGlobal>();
             if ( !global )
@@ -162,6 +156,23 @@ public:
             {
                throw std::runtime_error( "invalid class for mvv::platform::LayoutCommandLine ID");
             }
+
+            //std::ostream* saveout = &_compiler.getStdOut();
+            std::stringstream ss;
+            _compiler.setStdOut( &ss );
+            try
+            {
+               _compiler.run( it->second );
+            }
+            catch ( std::runtime_error e )
+            {
+               _compiler.setStdOut( &std::cout );
+               cmd->sendMessage( "exception thrown:" + std::string( e.what() ), nll::core::vector3uc( 255, 0, 0 ) );
+               return true;
+            }
+
+            _compiler.setStdOut( &std::cout );
+
 
             while ( !ss.eof() )
             {
