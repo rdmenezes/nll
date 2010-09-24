@@ -92,9 +92,9 @@ namespace platform
          (*_segment).size.setValue( _size );
       }
 
-      virtual bool sendMessage( const std::string&, const nll::core::vector3uc& )
+      virtual Pane* find( const mvv::Symbol& )
       {
-         return false;
+         return 0;
       }
 
    protected:

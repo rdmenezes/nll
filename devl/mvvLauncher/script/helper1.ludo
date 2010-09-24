@@ -190,7 +190,6 @@ class FindPeakVoxel
         z = z + 1;
       }
       
-      print("new position in voxel=");
       print(pos);
       camera.setPosition( v.indexToPosition( pos ) );
    }

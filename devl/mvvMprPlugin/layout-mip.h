@@ -74,9 +74,9 @@ namespace platform
          }
       }
 
-      virtual bool sendMessage( const std::string&, const nll::core::vector3uc& )
+      virtual Pane* find( const mvv::Symbol& )
       {
-         return false;
+         return 0;
       }
 
       virtual void updateLayout()

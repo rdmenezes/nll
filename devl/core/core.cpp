@@ -1869,16 +1869,38 @@ public:
       std::vector<std::string>& strsout = result.first;
       std::vector<std::string>& strserr = result.second;
 
-      for ( std::vector<std::string>::reverse_iterator it = strsout.rbegin(); it != strsout.rend(); ++it )
+      Pane* p = (*global->layout).find( mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) );
+      LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( p );
+      if ( !cmd )
       {
-         if ( *it != "" )
-            (*global->layout).sendMessage( *it, nll::core::vector3uc( 180, 180, 180 ) );
+         throw RuntimeException( "invalid class for mvv::platform::LayoutCommandLine ID");
       }
 
-      for ( std::vector<std::string>::reverse_iterator it = strserr.rbegin(); it != strserr.rend(); ++it )
+      if ( !p )
       {
-         if ( *it != "" )
-            (*global->layout).sendMessage( *it, nll::core::vector3uc( 255, 0, 0 ) );
+         for ( std::vector<std::string>::reverse_iterator it = strsout.rbegin(); it != strsout.rend(); ++it )
+         {
+            if ( *it != "" )
+               std::cout<< *it;
+         }
+
+         for ( std::vector<std::string>::reverse_iterator it = strserr.rbegin(); it != strserr.rend(); ++it )
+         {
+            if ( *it != "" )
+               std::cout<< *it;
+         }
+      } else {
+         for ( std::vector<std::string>::reverse_iterator it = strsout.rbegin(); it != strsout.rend(); ++it )
+         {
+            if ( *it != "" )
+               cmd->sendMessage( *it, nll::core::vector3uc( 180, 180, 180 ) );
+         }
+
+         for ( std::vector<std::string>::reverse_iterator it = strserr.rbegin(); it != strserr.rend(); ++it )
+         {
+            if ( *it != "" )
+               cmd->sendMessage( *it, nll::core::vector3uc( 255, 0, 0 ) );
+         }
       }
 
       RuntimeValue rt( RuntimeValue::EMPTY );

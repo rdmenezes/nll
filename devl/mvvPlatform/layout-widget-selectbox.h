@@ -140,11 +140,9 @@ namespace platform
          }
       }
 
-
-      virtual bool sendMessage( const std::string& , const nll::core::vector3uc& )
+      virtual Pane* find( const mvv::Symbol& )
       {
-         // nothing: it can't display anything than textbox
-         return false;
+         return 0;
       }
 
       virtual void destroy()

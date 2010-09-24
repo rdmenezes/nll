@@ -69,7 +69,7 @@ namespace platform
 
       ui32 getNumberOfOrdersToRun() const
       {
-         return static_cast<ui32>( _ordersToRun.size() );
+         return static_cast<ui32>( _ordersToRun.size() + _ordersFinished.size() + _workerThreads.size() - _workersAvailable.size() );
       }
 
       /**

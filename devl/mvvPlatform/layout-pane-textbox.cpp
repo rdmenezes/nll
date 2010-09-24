@@ -152,7 +152,7 @@ namespace platform
             }
 
             nll::core::vector2ui origin( _src._origin[ 0 ], _src._origin[ 1 ] + _src._size[ 1 ] );
-            RefcountedTyped<Pane> widget( new WidgetSelectBox( true, origin, std::min<ui32>( 500, nbChar * _fontSize * 0.5 ), _choices, _current, _src._font, _fontSize, nll::core::vector3uc( 0, 127, 0 ) ) );
+            RefcountedTyped<Pane> widget( new WidgetSelectBox( true, origin, std::min<ui32>( 500, (ui32)( nbChar * _fontSize * 0.5 ) ), _choices, _current, _src._font, _fontSize, nll::core::vector3uc( 0, 127, 0 ) ) );
             root->insert( widget );
             _selection = widget;
          }
@@ -230,7 +230,7 @@ namespace platform
             }
 
             nll::core::vector2ui origin( _src._origin[ 0 ], _src._origin[ 1 ] + _src._size[ 1 ] );
-            RefcountedTyped<Pane> widget( new WidgetSelectBox( true, origin, std::min<ui32>( 500, nbChar * _fontSize * 0.5 ), _choices, _current, _src._font, _fontSize, nll::core::vector3uc( 0, 127, 0 ) ) );
+            RefcountedTyped<Pane> widget( new WidgetSelectBox( true, origin, std::min<ui32>( 500, (ui32) ( nbChar * _fontSize * 0.5 ) ), _choices, _current, _src._font, _fontSize, nll::core::vector3uc( 0, 127, 0 ) ) );
             root->insert( widget );
             _selection = widget;
          }

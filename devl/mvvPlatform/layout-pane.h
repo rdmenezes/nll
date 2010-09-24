@@ -97,11 +97,9 @@ namespace platform
       virtual void updateLayout() = 0;
 
       /**
-       @brief Interface to send a message. This will locate one layout able to display this message.
-              If the layout can display the message, then is should return true, else false. Only one layout
-              should be able to display this message
+       @brief Find a pane according to an identifier. Returns 0 if not found
        */
-      virtual bool sendMessage( const std::string& msg, const nll::core::vector3uc& color ) = 0;
+      virtual Pane* find( const mvv::Symbol& attribut ) = 0;
 
       /**
        @brief set the origin of the plane. (0, 0) is the bottom left
@@ -279,15 +277,15 @@ namespace platform
             (**it).destroy();
       }
 
-      virtual bool sendMessage( const std::string& msg, const nll::core::vector3uc& color )
+      virtual Pane* find( const mvv::Symbol& attribut )
       {
          for ( Panes::iterator it = _panes.begin(); it != _panes.end(); ++it )
          {
-            bool sent = (**it).sendMessage( msg, color );
+            Pane* sent = (**it).find( attribut );
             if ( sent )
-               return true;
+               return sent;
          }
-         return false;
+         return 0;
       }
 
    protected:
@@ -474,9 +472,9 @@ namespace platform
       {
       }
 
-      virtual bool sendMessage( const std::string&, const nll::core::vector3uc& )
+      virtual Pane* find( const mvv::Symbol& )
       {
-         return false;
+         return 0;
       }
 
       virtual void updateLayout()

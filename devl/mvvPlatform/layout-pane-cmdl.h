@@ -129,6 +129,13 @@ namespace platform
          return true;
       }
 
+      virtual Pane* find( const mvv::Symbol& s )
+      {
+         if ( s == mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) )
+            return this;
+         return 0;
+      }
+
       virtual void _receive( const EventKeyboard& e )
       {
          (*_subLayout).receive( e );

@@ -140,6 +140,11 @@ namespace parser
          _contextExt = c;
       }
 
+      platform::RefcountedTyped<platform::Context> getContextExtension()
+      {
+         return _contextExt;
+      }
+
       /**
        @brief Clear the front end as if it just has been created
        */

@@ -143,7 +143,33 @@ public:
       {
          try
          {
+            //std::ostream* saveout = &_compiler.getStdOut();
+            std::stringstream ss;
+            _compiler.setStdOut( &ss );
             _compiler.run( it->second );
+            _compiler.setStdOut( &std::cout );
+
+            // get the context
+            platform::ContextGlobal* global = (*_compiler.getContextExtension()).get<platform::ContextGlobal>();
+            if ( !global )
+            {
+               throw RuntimeException( "mvv global context has not been initialized" );
+            }
+
+            Pane* p = (*global->layout).find( mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) );
+            LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( p );
+            if ( !cmd )
+            {
+               throw RuntimeException( "invalid class for mvv::platform::LayoutCommandLine ID");
+            }
+
+            while ( !ss.eof() )
+            {
+               std::string s;
+               std::getline( ss, s );
+               if ( s != "" )
+                  cmd->sendMessage( s, nll::core::vector3uc( 255, 255, 255 ) );
+            }
          } catch ( std::exception e )
          {
             _compiler.getStdOut() << "error: unable to launch the callback:" << _compiler.getLastErrorMesage() << std::endl;

@@ -313,7 +313,7 @@ void keyboardSpecial( int key, int x, int y )
 
 //
 // arguments:
-// sizex sizey nbThreads initialscript importpath:path1;path2;path3 font
+// sizex sizey nbThreads initialscript importpath:path1;path2;path3 font -nowindow
 //
 int main(int argc, char** argv)
 {
@@ -323,6 +323,7 @@ int main(int argc, char** argv)
    int nbThreads = 8;
    std::string mainScript = "include \"../../mvvLauncher/script/single\"";
    std::string font = "../../nllTest/data/font/bitmapfont1_24";
+   bool nowindow = false;
 
    // read the commands...
    if ( argc >= 2 )
@@ -342,32 +343,50 @@ int main(int argc, char** argv)
    }
    if ( argc >= 7 )
       font = argv[ 6 ];
+   if ( argc >= 8 )
+      nowindow = strcmp( argv[ 7 ], "-nowindow" ) == 0;
 
    // init
    applicationVariables = new mvv::ApplicationVariables( sizex, sizey, nbThreads, mainScript, importPath, font );
 
-   // GLUT Window Initialization:
-   glutInit( &argc, argv );
-   glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
-   glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
-   glutCreateWindow( "Medical Volume Viewer" );
-   //glutGameModeString( "1280x1024:32" );
-   //glutEnterGameMode();
+   if ( !nowindow )
+   {
+      // GLUT Window Initialization:
+      glutInit( &argc, argv );
+      glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
+      glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH );
+      glutCreateWindow( "Medical Volume Viewer" );
+      //glutGameModeString( "1280x1024:32" );
+      //glutEnterGameMode();
 
-   // Initialize OpenGL graphics state
-   initGraphics();
+      // Initialize OpenGL graphics state
+      initGraphics();
 
-   // Register callbacks:
-   glutDisplayFunc( display );
-   glutReshapeFunc( reshape );
-   glutKeyboardFunc( keyboard );
-   glutSpecialFunc( keyboardSpecial );
-   glutMouseFunc( mouseButton );
-   glutMotionFunc( mouseMotion );
-   glutPassiveMotionFunc( mouseMotion );
-   glutTimerFunc( 0, handleOrders, 0 );
+      // Register callbacks:
+      glutDisplayFunc( display );
+      glutReshapeFunc( reshape );
+      glutKeyboardFunc( keyboard );
+      glutSpecialFunc( keyboardSpecial );
+      glutMouseFunc( mouseButton );
+      glutMotionFunc( mouseMotion );
+      glutPassiveMotionFunc( mouseMotion );
+      glutTimerFunc( 0, handleOrders, 0 );
 
-   // Turn the flow of control over to GLUT
-   glutMainLoop ();
+      // Turn the flow of control over to GLUT
+      glutMainLoop ();
+   } else {
+      // as long as orders have not been runned and results dispatched we need to keep the interpreter alive
+      applicationVariables->engineHandler.run();
+      applicationVariables->orderManager.run();
+
+      ui32 nbOrders = applicationVariables->orderManager.getNumberOfOrdersToRun();
+      while ( nbOrders )
+      {
+         // run orders & engines
+         applicationVariables->engineHandler.run();
+         applicationVariables->orderManager.run();
+         nbOrders = applicationVariables->orderManager.getNumberOfOrdersToRun();
+      }
+   }
    return 0;
 }
