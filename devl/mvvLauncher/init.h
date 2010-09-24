@@ -92,9 +92,19 @@ namespace mvv
                std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
                exit(1);
             }
+         }
+
+         catch ( std::runtime_error e )
+         {
+            std::cerr << "script failure, exception:" << e.what() << std::endl;
+            exit(1);
          } catch ( std::exception e )
          {
             std::cerr << "script failure, exception:" << e.what() << std::endl;
+            exit(1);
+         } catch ( ... )
+         {
+            std::cerr << "script failure, exception thrown" << std::endl;
             exit(1);
          }
          std::cout << "script parsed!" << std::endl;

@@ -2,6 +2,7 @@
 # define NLL_ENSURE_H_
 
 //#define NLL_NO_ENSURE
+#define NLL_ENSURE_THROW
 
 # ifndef nllWarning
 #  define nllWarning(str)   std::cerr << "warning: " << str << std::endl;
@@ -19,8 +20,11 @@
 #  ifdef NLL_NO_ENSURE
 #   define ensure( _Expression, _String )                 (_Expression)                  
 #  else
-#   ifdef _MSC_VER
-#    define ensure( _Expression, _String )							      \
+#   ifdef NLL_ENSURE_THROW
+#    define ensure( _e, _s ) if ( ( _e ) == 0 ) { throw std::runtime_error( _s ); }
+#   else
+#    ifdef _MSC_VER
+#     define ensure( _Expression, _String )							      \
       if ( !( _Expression ) )										         \
       {															               \
          nll::core::LoggerNll::write( nll::core::LoggerNll::ERROR, _String );			\
@@ -31,8 +35,8 @@
          _CrtDbgBreak();                                          \
          exit( 1 );                                               \
       }
-#   else
-#    define ensure( _Expression, _String )							      \
+#    else
+#     define ensure( _Expression, _String )							      \
       if ( !( _Expression ) )										         \
       {															               \
          nll::core::LoggerNll::write( nll::core::LoggerNll::ERROR, _String );			\
@@ -42,6 +46,7 @@
 	      std::cout << "  Line     : " << __LINE__ << std::endl;	\
          exit( 1 );                                               \
       }
+#    endif
 #   endif
 #  endif
 # endif
