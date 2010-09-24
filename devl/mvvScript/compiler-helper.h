@@ -131,7 +131,7 @@ namespace parser
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 3 )
       {
-         throw RuntimeException( "expected Vector" );
+         throw std::runtime_error( "expected Vector" );
       }
 
       std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
@@ -145,7 +145,7 @@ namespace parser
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 3 )
       {
-         throw RuntimeException( "expected Vector" );
+         throw std::runtime_error( "expected Vector" );
       }
 
       std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
@@ -159,7 +159,7 @@ namespace parser
       if ( val.type != RuntimeValue::TYPE || (*val.vals).size() != 1 ||
            (*val.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*val.vals)[ 0 ].vals).size() != 16 )
       {
-         throw RuntimeException( "expected Matrix4f" );
+         throw std::runtime_error( "expected Matrix4f" );
       }
 
       m = nll::core::Matrix<float>( 4, 4 );

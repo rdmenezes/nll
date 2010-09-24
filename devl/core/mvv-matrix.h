@@ -23,7 +23,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -31,7 +31,7 @@ public:
       RuntimeValue& v3 = unref( *args[ 2 ] );
       if ( v2.type != RuntimeValue::CMP_INT || v3.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "expecting (int, int)" );
+         throw std::runtime_error( "expecting (int, int)" );
       }
 
       Pointee* pointee = new Pointee( v2.intval, v3.intval );
@@ -58,7 +58,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -90,7 +90,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -100,7 +100,7 @@ public:
 
       if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_INT || v4.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments" );
+         throw std::runtime_error( "wrong arguments" );
       }
 
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
@@ -108,7 +108,7 @@ public:
       if ( v3.intval < 0 || v3.intval >= (int)pointee->sizey() ||
            v4.intval < 0 || v4.intval >= (int)pointee->sizex() )
       {
-         throw RuntimeException( "out of bound matrix access" );
+         throw std::runtime_error( "out of bound matrix access" );
       }
       (*pointee)( v3.intval, v4.intval ) = v2.floatval;
 
@@ -132,7 +132,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -141,7 +141,7 @@ public:
 
       if ( v2.type != RuntimeValue::CMP_INT || v3.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments" );
+         throw std::runtime_error( "wrong arguments" );
       }
 
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
@@ -149,7 +149,7 @@ public:
       if ( v2.intval < 0 || v2.intval >= (int)pointee->sizey() ||
            v3.intval < 0 || v3.intval >= (int)pointee->sizex() )
       {
-         throw RuntimeException( "out of bound matrix access" );
+         throw std::runtime_error( "out of bound matrix access" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -172,7 +172,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -185,7 +185,7 @@ public:
 
       bool inverted = nll::core::inverse( *p2 );
       if ( !inverted )
-         throw RuntimeException( "inverse: matrix is singular!" );
+         throw std::runtime_error( "inverse: matrix is singular!" );
       
 
       RuntimeValue p( RuntimeValue::TYPE );
@@ -209,7 +209,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -223,7 +223,7 @@ public:
       float d = 0;
       bool inverted = nll::core::inverse( *p2, &d );
       if ( !inverted )
-         throw RuntimeException( "inverse: matrix is singular!" );
+         throw std::runtime_error( "inverse: matrix is singular!" );
       
 
       RuntimeValue det( RuntimeValue::CMP_FLOAT );
@@ -246,7 +246,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -260,7 +260,7 @@ public:
       Pointee* pointeeB = reinterpret_cast<Pointee*>( (*v2.vals)[ 0 ].ref );
 
       if ( pointeeA->sizex() != pointeeB->sizey() )
-         throw RuntimeException( "matrix size error for multiplication: a.sizex == b.sizey");
+         throw std::runtime_error( "matrix size error for multiplication: a.sizex == b.sizey");
 
 
       RuntimeValue p( RuntimeValue::TYPE );
@@ -284,7 +284,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -318,7 +318,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -348,7 +348,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );

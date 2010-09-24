@@ -99,7 +99,7 @@ namespace algorithm
       }
 
 	   /**
-       @throw std::exception if there is no suitable database to compare to
+       @throw std::runtime_error if there is no suitable database to compare to
 	   */
       virtual typename Base::Class test( const Point& p ) const
       {

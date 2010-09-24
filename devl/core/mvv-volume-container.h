@@ -45,7 +45,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       std::cout << "volume container created" << std::endl;
@@ -55,7 +55,7 @@ public:
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
 
       // construct the type
@@ -86,7 +86,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -117,7 +117,7 @@ public:
    {
       if ( args.size() != 5 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -168,7 +168,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -203,7 +203,7 @@ public:
 
       if ( !erased )
       {
-         throw RuntimeException( "The volume doesn't belong to this volume container" );
+         throw std::runtime_error( "The volume doesn't belong to this volume container" );
       }
 
       // remove from the volumes
@@ -243,7 +243,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -278,7 +278,7 @@ public:
       }
 
       if ( !found )
-         throw RuntimeException( "VolumeID not contained in this volume container" );
+         throw std::runtime_error( "VolumeID not contained in this volume container" );
 
       // cache the lut
       pointee->lutList.push_back( v3 ); // keep a reference on the lut
@@ -302,7 +302,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -323,7 +323,7 @@ public:
       bool found = pointee->intensities.find( volume, val );
       if ( !found )
       {
-         throw RuntimeException( "VolumeID is not contained in this VolumeContainer" );
+         throw std::runtime_error( "VolumeID is not contained in this VolumeContainer" );
       }
       pointee->intensities.insert( volume, v3.floatval );
       

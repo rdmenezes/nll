@@ -46,7 +46,7 @@ namespace platform
                   (*_currentOrder)._setFuture( RefcountedTyped<Future>( new Future() ) );
                   (*_currentOrder).compute();
                }
-               catch ( std::exception e )
+               catch ( std::runtime_error e )
                {
                   std::cout << "ex=" << e.what() << std::endl;
                   std::cout << "--------------------------exception thrown------------------------" << std::endl;

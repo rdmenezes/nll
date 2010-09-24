@@ -38,7 +38,7 @@ namespace platform
                   _engine.clearError();
                   _sink.write( msg, nll::core::vector3uc( 255, 0, 0 ) );
                }
-            } catch ( std::exception e )
+            } catch ( std::runtime_error e )
             {
                std::stringstream ss;
                ss << "runtime error:" << e.what();

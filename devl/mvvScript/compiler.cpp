@@ -15,13 +15,13 @@ namespace parser
       void* hMod = LoadLibraryWrapper( libpath );
       if ( !hMod )
       {
-         throw RuntimeException( ( std::string( "LoadLibrary failed to load the library \"" ) + name + ".dll\"" ).c_str() );
+         throw std::runtime_error( ( std::string( "LoadLibrary failed to load the library \"" ) + name + ".dll\"" ).c_str() );
       }
 
       functionImportDecl pfn = (functionImportDecl)GetProcAdressWrapper( hMod, "importFunctions" );
       if ( !pfn )
       {
-         throw RuntimeException( "GetProcAdress failed to find the starting point in the dll" );
+         throw std::runtime_error( "GetProcAdress failed to find the starting point in the dll" );
       }
 
       pfn( *this, *_contextExt );

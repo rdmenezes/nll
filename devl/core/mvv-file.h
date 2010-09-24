@@ -22,7 +22,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -30,18 +30,18 @@ public:
       RuntimeValue& v3 = unref( *args[ 2 ] );
       if ( v2.type != RuntimeValue::STRING || v3.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string, 1 int" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string, 1 int" );
       }
 
       if ( v3.intval < 0 || v3.intval > 1 )
       {
-         throw RuntimeException( "OFStream() : mode is expected to be 0 (text) or 1 (binary)" );
+         throw std::runtime_error( "OFStream() : mode is expected to be 0 (text) or 1 (binary)" );
       }
 
       Pointee* file;
       file = new Pointee( v2.stringval.c_str(), ( v3.intval == 0 ) ? std::ios::out : std::ios::binary | std::ios::out );
       if ( !file->good() )
-         throw RuntimeException( "OFStream() : cannot open the requested file" );
+         throw std::runtime_error( "OFStream() : cannot open the requested file" );
 
 
       RuntimeValue field( RuntimeValue::PTR );
@@ -66,7 +66,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -97,13 +97,13 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::STRING )
-         throw RuntimeException( "OFStream::write() expected 1 string" );
+         throw std::runtime_error( "OFStream::write() expected 1 string" );
 
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
@@ -129,13 +129,13 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_INT )
-         throw RuntimeException( "OFStream::write() expected 1 int" );
+         throw std::runtime_error( "OFStream::write() expected 1 int" );
 
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
@@ -161,13 +161,13 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_FLOAT )
-         throw RuntimeException( "OFStream::write() expected 1 int" );
+         throw std::runtime_error( "OFStream::write() expected 1 int" );
 
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
@@ -193,7 +193,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -224,7 +224,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -232,18 +232,18 @@ public:
       RuntimeValue& v3 = unref( *args[ 2 ] );
       if ( v2.type != RuntimeValue::STRING || v3.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string, 1 int" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string, 1 int" );
       }
 
       if ( v3.intval < 0 || v3.intval > 1 )
       {
-         throw RuntimeException( "IFStream() : mode is expected to be 0 (text) or 1 (binary)" );
+         throw std::runtime_error( "IFStream() : mode is expected to be 0 (text) or 1 (binary)" );
       }
 
       Pointee* file;
       file = new Pointee( v2.stringval.c_str(), ( v3.intval == 0 ) ? std::ios::out : std::ios::binary | std::ios::out );
       if ( !file->good() )
-         throw RuntimeException( "IFStream() : cannot open the requested file" );
+         throw std::runtime_error( "IFStream() : cannot open the requested file" );
 
 
       RuntimeValue field( RuntimeValue::PTR );
@@ -268,7 +268,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -299,14 +299,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int" );
       }
 
       // check we have the data
@@ -335,14 +335,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_FLOAT )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float" );
       }
 
       // check we have the data
@@ -373,7 +373,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -401,7 +401,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -429,7 +429,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );

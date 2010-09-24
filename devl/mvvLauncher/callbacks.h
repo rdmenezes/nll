@@ -56,17 +56,17 @@ public:
          _callbacks.clear();
 
          if ( callbacks.type != RuntimeValue::TYPE )
-            throw std::exception( "error: 'callbacks' must be a type" );
+            throw std::runtime_error( "error: 'callbacks' must be a type" );
          if ( (*callbacks.vals).size() != 4 )
-            throw std::exception( "error: 'callbacks' must be defined as 3 arrays and one int: function callbacks, key strings and associated key modifier" );
+            throw std::runtime_error( "error: 'callbacks' must be defined as 3 arrays and one int: function callbacks, key strings and associated key modifier" );
          if ( (*callbacks.vals)[ 0 ].vals.getDataPtr() == 0 )
             return;  // no callbacks!
          //if ( (*callbacks.vals)[ 0 ].type != RuntimeValue::TYPE || (*callbacks.vals)[ 0 ].type != RuntimeValue::EMPTY )
-         //   throw std::exception( "error: function 'callbacks' must be a type" );
+         //   throw std::runtime_error( "error: function 'callbacks' must be a type" );
 
          ui32 size = (ui32)(*(*callbacks.vals)[ 0 ].vals).size();
          if ( (*(*callbacks.vals)[ 1 ].vals).size() != size )
-            throw std::exception( "error: 'callbacks' must contain the same number of key & function/member pointers" );
+            throw std::runtime_error( "error: 'callbacks' must contain the same number of key & function/member pointers" );
          RuntimeValues& keys      = const_cast<RuntimeValues&>( ( *(*callbacks.vals)[ 1 ].vals ) );
          RuntimeValues& modifiers = const_cast<RuntimeValues&>( ( *(*callbacks.vals)[ 2 ].vals ) );
 
@@ -74,7 +74,7 @@ public:
          for ( ui32 n = 0; n < size; ++n )
          {
             if ( keys[ n ].type != RuntimeValue::STRING )
-               throw std::exception( "error: 'callbacks' keys must only be of string type" );
+               throw std::runtime_error( "error: 'callbacks' keys must only be of string type" );
             if ( keys[ n ].stringval.size() == 1 )
             {
                // simple key
@@ -153,14 +153,14 @@ public:
             platform::ContextGlobal* global = (*_compiler.getContextExtension()).get<platform::ContextGlobal>();
             if ( !global )
             {
-               throw RuntimeException( "mvv global context has not been initialized" );
+               throw std::runtime_error( "mvv global context has not been initialized" );
             }
 
             Pane* p = (*global->layout).find( mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) );
             LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( p );
             if ( !cmd )
             {
-               throw RuntimeException( "invalid class for mvv::platform::LayoutCommandLine ID");
+               throw std::runtime_error( "invalid class for mvv::platform::LayoutCommandLine ID");
             }
 
             while ( !ss.eof() )
@@ -170,7 +170,7 @@ public:
                if ( s != "" )
                   cmd->sendMessage( s, nll::core::vector3uc( 255, 255, 255 ) );
             }
-         } catch ( std::exception e )
+         } catch ( std::runtime_error e )
          {
             _compiler.getStdOut() << "error: unable to launch the callback:" << _compiler.getLastErrorMesage() << std::endl;
             _compiler.getStdOut() << "exception=" << e.what() << std::endl;

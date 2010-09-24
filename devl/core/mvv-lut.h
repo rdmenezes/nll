@@ -23,7 +23,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -32,7 +32,7 @@ public:
       RuntimeValue& v4 = unref( *args[ 3 ] );
       if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v4.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 floats, 1 vector3i as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 floats, 1 vector3i as arguments" );
       }
 
       nll::core::vector3i vals;
@@ -74,7 +74,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -83,7 +83,7 @@ public:
       RuntimeValue& v4 = unref( *args[ 3 ] );
       if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v4.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 floats, 1 vector3i as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 floats, 1 vector3i as arguments" );
       }
 
       nll::core::vector3i vals;
@@ -120,7 +120,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -151,7 +151,7 @@ public:
    {
       if ( args.size() != 5 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -161,7 +161,7 @@ public:
       RuntimeValue& v5 = unref( *args[ 4 ] );
       if ( v2.type != RuntimeValue::CMP_INT || v3.type != RuntimeValue::CMP_INT || v4.type != RuntimeValue::CMP_INT || v5.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 ints as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 ints as arguments" );
       }
 
       if ( v3.intval > 255 || v3.intval < 0 ||
@@ -169,7 +169,7 @@ public:
            v5.intval > 255 || v5.intval < 0 ||
            v2.intval > 255 || v2.intval < 0 )
       {
-         throw RuntimeException( "out of bound argument: must be in the range [0..255]" );
+         throw std::runtime_error( "out of bound argument: must be in the range [0..255]" );
       }
 
       // check we have the data
@@ -199,19 +199,19 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
 
       if ( v2.intval > 255 || v2.intval < 0 )
       {
-         throw RuntimeException( "out of bound argument: must be in the range [0..255]" );
+         throw std::runtime_error( "out of bound argument: must be in the range [0..255]" );
       }
 
       // check we have the data
@@ -241,19 +241,19 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
 
       if ( v2.intval > 255 || v2.intval < 0 )
       {
-         throw RuntimeException( "out of bound argument: must be in the range [0..255]" );
+         throw std::runtime_error( "out of bound argument: must be in the range [0..255]" );
       }
 
       // check we have the data

@@ -33,7 +33,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -41,7 +41,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -61,7 +61,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -69,7 +69,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -89,7 +89,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -97,7 +97,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -117,7 +117,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -125,12 +125,12 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       if ( v2.floatval == 0 )
       {
-         throw RuntimeException( "division by zero" );
+         throw std::runtime_error( "division by zero" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -150,7 +150,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -158,7 +158,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -178,7 +178,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -186,7 +186,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -206,7 +206,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -214,7 +214,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -234,7 +234,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -242,12 +242,12 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       if ( v2.floatval == 0 )
       {
-         throw RuntimeException( "division by zero" );
+         throw std::runtime_error( "division by zero" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -267,7 +267,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -275,7 +275,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -295,7 +295,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -303,7 +303,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -323,7 +323,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -331,7 +331,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -351,7 +351,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -359,12 +359,12 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       if ( v2.intval == 0 )
       {
-         throw RuntimeException( "division by zero" );
+         throw std::runtime_error( "division by zero" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
@@ -384,7 +384,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -392,7 +392,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_INT );
@@ -412,7 +412,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -420,7 +420,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_INT );
@@ -440,7 +440,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -448,7 +448,7 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_INT );
@@ -468,7 +468,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -476,12 +476,12 @@ public:
 
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
 
       if ( v2.intval == 0 )
       {
-         throw RuntimeException( "division by zero" );
+         throw std::runtime_error( "division by zero" );
       }
 
       RuntimeValue rt( RuntimeValue::CMP_INT );
@@ -501,7 +501,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -509,7 +509,7 @@ public:
 
       if ( v1.type != RuntimeValue::STRING || v2.type != RuntimeValue::STRING  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 strings as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 strings as arguments" );
       }
 
       RuntimeValue rt( RuntimeValue::STRING );
@@ -529,14 +529,14 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
 
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
 
       _e.getStdOut() << v1.stringval << std::endl;
@@ -560,14 +560,14 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
 
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
 
       _e.getStdOut() << v1.stringval;
@@ -592,14 +592,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval == v2.intval;
@@ -618,14 +618,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - static_cast<float>( v2.intval ) ) < 1e-6;
@@ -644,14 +644,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v2.floatval - static_cast<float>( v1.intval ) ) < 1e-6;
@@ -670,14 +670,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - v2.floatval ) < 1e-6;
@@ -696,14 +696,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval != v2.intval;
@@ -722,14 +722,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - static_cast<float>( v2.intval ) ) > 1e-6;
@@ -748,14 +748,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v2.floatval - static_cast<float>( v1.intval ) ) > 1e-6;
@@ -774,14 +774,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - v2.floatval ) > 1e-6;
@@ -800,14 +800,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval <= v2.intval;
@@ -826,14 +826,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval <= static_cast<float>( v2.intval );
@@ -852,14 +852,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval <= static_cast<float>( v1.intval );
@@ -878,14 +878,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval <= v2.floatval;
@@ -904,14 +904,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval >= v2.intval;
@@ -930,14 +930,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval >= static_cast<float>( v2.intval );
@@ -956,14 +956,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval >= static_cast<float>( v1.intval );
@@ -982,14 +982,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval >= v2.floatval;
@@ -1008,14 +1008,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval < v2.intval;
@@ -1034,14 +1034,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval < static_cast<float>( v2.intval );
@@ -1060,14 +1060,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval < static_cast<float>( v1.intval );
@@ -1086,14 +1086,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval < v2.floatval;
@@ -1112,14 +1112,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval > v2.intval;
@@ -1138,14 +1138,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval > static_cast<float>( v2.intval );
@@ -1164,14 +1164,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v2.floatval > static_cast<float>( v1.intval );
@@ -1190,14 +1190,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.floatval > v2.floatval;
@@ -1216,14 +1216,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval && v2.intval;
@@ -1242,14 +1242,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::CMP_INT  )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval || v2.intval;
@@ -1268,13 +1268,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = static_cast<int>( std::floor( v1.floatval + 0.5 ) );
@@ -1293,13 +1293,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = static_cast<int>( std::floor( v1.floatval ) );
@@ -1318,13 +1318,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = static_cast<float>( v1.intval );
@@ -1343,13 +1343,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::STRING );
       rt.stringval = nll::core::val2str( v1.intval );
@@ -1368,13 +1368,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::STRING );
       rt.stringval = nll::core::val2str( v1.floatval );
@@ -1393,13 +1393,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = cos( v1.floatval );
@@ -1418,13 +1418,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = acos( v1.floatval );
@@ -1443,13 +1443,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = asin( v1.floatval );
@@ -1468,13 +1468,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = sqrt( v1.floatval );
@@ -1493,14 +1493,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = pow( v1.floatval, v2.floatval );
@@ -1519,13 +1519,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = fabs( v1.floatval );
@@ -1544,13 +1544,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = log( v1.floatval );
@@ -1569,13 +1569,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = abs( v1.intval );
@@ -1594,14 +1594,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v1.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong arguments: expecting 2 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 2 int as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = v1.intval % v2.intval;
@@ -1620,16 +1620,16 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_INT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
       if ( v1.intval == 0 )
-         throw RuntimeException( "assert failed!" );
+         throw std::runtime_error( "assert failed!" );
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
@@ -1646,17 +1646,17 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_INT || v2.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
       if ( v1.intval == 0 )
-         throw RuntimeException( ( "assert failed: " + v2.stringval ).c_str() );
+         throw std::runtime_error( ( "assert failed: " + v2.stringval ).c_str() );
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
@@ -1673,13 +1673,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = exp( v1.floatval );
@@ -1698,13 +1698,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = tan( v1.floatval );
@@ -1723,13 +1723,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = atan( v1.floatval );
@@ -1748,13 +1748,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = sin( v1.floatval );
@@ -1773,13 +1773,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 float as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 float as arguments" );
       }
       RuntimeValue rt( RuntimeValue::CMP_FLOAT );
       rt.floatval = ( v1.floatval * v1.floatval );
@@ -1847,18 +1847,18 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
       
       redirect_stdout();
@@ -1873,7 +1873,7 @@ public:
       LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( p );
       if ( !cmd )
       {
-         throw RuntimeException( "invalid class for mvv::platform::LayoutCommandLine ID");
+         throw std::runtime_error( "invalid class for mvv::platform::LayoutCommandLine ID");
       }
 
       if ( !p )

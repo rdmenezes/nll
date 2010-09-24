@@ -29,20 +29,20 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "expected int as argument" );
+         throw std::runtime_error( "expected int as argument" );
       }
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // construct the type
@@ -72,7 +72,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -123,7 +123,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments: VolumeID, Lut, int" );
+         throw std::runtime_error( "unexpected number of arguments: VolumeID, Lut, int" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -132,18 +132,18 @@ public:
       RuntimeValue& v4 = unref( *args[ 3 ] );
       if ( v4.type != RuntimeValue::CMP_INT || v4.intval <= 0 )
       {
-         throw RuntimeException( "expected int > 0" );
+         throw std::runtime_error( "expected int > 0" );
       }
       if ( v2.type != RuntimeValue::TYPE && (*v2.vals).size() == 1 && (*v2.vals)[ 0 ].type == RuntimeValue::STRING )
       {
-         throw RuntimeException( "invalid argument" );
+         throw std::runtime_error( "invalid argument" );
       }
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       platform::ContextVolumes* volumes = _context.get<platform::ContextVolumes>();
       if ( !volumes || !volumes )
       {
-         throw RuntimeException( "mvv global || volumes context have not been initialized" );
+         throw std::runtime_error( "mvv global || volumes context have not been initialized" );
       }
 
 
@@ -179,7 +179,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -211,7 +211,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -219,7 +219,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments" );
+         throw std::runtime_error( "wrong arguments" );
       }
 
       // check we have the data
@@ -259,7 +259,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -267,7 +267,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments" );
+         throw std::runtime_error( "wrong arguments" );
       }
 
       // check we have the data

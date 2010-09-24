@@ -35,14 +35,14 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // construct the type
@@ -73,7 +73,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -105,20 +105,20 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "expected int as argument" );
+         throw std::runtime_error( "expected int as argument" );
       }
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // construct the type
@@ -148,7 +148,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -181,7 +181,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -190,7 +190,7 @@ public:
       RuntimeValue& v4 = unref( *args[ 3 ] );
       if ( v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT )
       {
-         throw RuntimeException( "wrong argument type: expecting 3 floats" );
+         throw std::runtime_error( "wrong argument type: expecting 3 floats" );
       }
 
       // check we have the data
@@ -218,7 +218,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -253,7 +253,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -298,14 +298,14 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // construct the type
@@ -336,7 +336,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -370,7 +370,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -380,13 +380,13 @@ public:
       if ( v3.type != RuntimeValue::STRING || (*v2.vals).size() != 1 || (*(*v2.vals)[ 0 ].vals).size() != 3
                                            || (*v4.vals).size() != 1 || (*(*v4.vals)[ 0 ].vals).size() != 3 )
       {
-         throw RuntimeException( "wrong argument type: expecting Vector3f, string and Vector3f" );
+         throw std::runtime_error( "wrong argument type: expecting Vector3f, string and Vector3f" );
       }
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // check we have the data
@@ -434,7 +434,7 @@ public:
    {
       if ( args.size() != 6 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -448,13 +448,13 @@ public:
                                            || (*v3.vals).size() != 1 || (*(*v3.vals)[ 0 ].vals).size() != 3
                                            || (*v5.vals).size() != 1 || (*(*v5.vals)[ 0 ].vals).size() != 3 )
       {
-         throw RuntimeException( "wrong argument type: expecting Vector3f, Vector3f, string, Vector3f, float" );
+         throw std::runtime_error( "wrong argument type: expecting Vector3f, Vector3f, string, Vector3f, float" );
       }
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // check we have the data
@@ -505,7 +505,7 @@ public:
    {
       if ( args.size() != 5 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -519,14 +519,14 @@ public:
                                             || (*v3.vals).size() != 1 || (*(*v3.vals)[ 0 ].vals).size() != 3
                                              )
       {
-         throw RuntimeException( "wrong argument type: expecting Vector3f, Vector3f, int, Vector3i[]" );
+         throw std::runtime_error( "wrong argument type: expecting Vector3f, Vector3f, int, Vector3i[]" );
       }
 
       /*
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }*/
 
       // check we have the data
@@ -544,14 +544,14 @@ public:
                                         (*(*v3.vals)[ 0 ].vals)[ 2 ].floatval );
       int size = v4.intval;
       if ( size <= 0 )
-         throw RuntimeException( "Annotation::add expects a width > 0" );
+         throw std::runtime_error( "Annotation::add expects a width > 0" );
 
       std::vector<nll::core::vector3uc> colors( (*v5.vals).size() );
       for ( ui32 n = 0; n < colors.size(); ++n )
       {
          RuntimeValue& v = (*v5.vals)[ n ];
          if ( (*v.vals).size() != 1 || (*(*v.vals)[ 0 ].vals).size() != 3 )
-            throw RuntimeException( "Annotation::add colors should be an array of Vector3i" );
+            throw std::runtime_error( "Annotation::add colors should be an array of Vector3i" );
 
          nll::core::vector3uc& c = colors[ n ];
          c[ 0 ] = (*(*v.vals)[ 0 ].vals)[ 0 ].intval;
@@ -590,14 +590,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong argument type: expecting AnnotationID" );
+         throw std::runtime_error( "wrong argument type: expecting AnnotationID" );
       }
 
       // check we have the data
@@ -607,7 +607,7 @@ public:
       Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( (*v2.vals)[ 0 ].intval );
       if ( it == pointee->dictionary.end() )
       {
-         throw RuntimeException( "the AnnotationID doesn't belong to this tool" );
+         throw std::runtime_error( "the AnnotationID doesn't belong to this tool" );
       }
       pointee->annotations.erase( it->second );
       pointee->dictionary.erase( it );
@@ -632,7 +632,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -663,7 +663,7 @@ public:
    {
       if ( args.size() != 3 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -671,7 +671,7 @@ public:
       RuntimeValue& v3 = unref( *args[ 2 ] );
       if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong argument type: expecting AnnotationID" );
+         throw std::runtime_error( "wrong argument type: expecting AnnotationID" );
       }
 
       // check we have the data
@@ -681,7 +681,7 @@ public:
       Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( (*v2.vals)[ 0 ].intval );
       if ( it == pointee->dictionary.end() )
       {
-         throw RuntimeException( "the AnnotationID doesn't belong to this tool" );
+         throw std::runtime_error( "the AnnotationID doesn't belong to this tool" );
       }
       nll::core::vector3f pos;
       mvv::parser::getVector3fValues( v3, pos );
@@ -707,14 +707,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( (*v2.vals).size() != 1 && (*v2.vals)[ 0 ].type != RuntimeValue::CMP_INT )
       {
-         throw RuntimeException( "wrong argument type: expecting AnnotationID" );
+         throw std::runtime_error( "wrong argument type: expecting AnnotationID" );
       }
 
       // check we have the data
@@ -724,7 +724,7 @@ public:
       Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( (*v2.vals)[ 0 ].intval );
       if ( it == pointee->dictionary.end() )
       {
-         throw RuntimeException( "the AnnotationID doesn't belong to this tool" );
+         throw std::runtime_error( "the AnnotationID doesn't belong to this tool" );
       }
 
       nll::core::vector3f pos = (*it->second).getPosition();
@@ -749,7 +749,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -784,7 +784,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -814,7 +814,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!

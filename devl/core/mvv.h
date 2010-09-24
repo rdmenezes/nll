@@ -28,20 +28,20 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       ++volumeId;
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
 
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
       tools->loadVolume( v1.stringval, mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ) );
 
@@ -78,19 +78,19 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING )
       {
-         throw RuntimeException( "invalid argument" );
+         throw std::runtime_error( "invalid argument" );
       }
 
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
 
       // it is guaranteed we have a volume
@@ -125,19 +125,19 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
 
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
 
       ++volumeId;
@@ -147,7 +147,7 @@ public:
       bool loaded = nll::imaging::loadSimpleFlatFile( v1.stringval, *volume );
       if ( !loaded )
       {
-         throw RuntimeException( "can't find the volume" );
+         throw std::runtime_error( "can't find the volume" );
       }
       volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
       
@@ -180,7 +180,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -188,13 +188,13 @@ public:
       if ( ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING ) ||
          v2.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "invalid argument: expected: VolumeID, string" );
+         throw std::runtime_error( "invalid argument: expected: VolumeID, string" );
       }
 
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
 
       // it is guaranteed we have a volume
@@ -202,7 +202,7 @@ public:
       
       bool success = nll::imaging::writeVolumeText( *vol, v2.stringval );
       if ( !success )
-         throw RuntimeException( "cannot save the volume" );
+         throw std::runtime_error( "cannot save the volume" );
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -223,7 +223,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -231,13 +231,13 @@ public:
       if ( ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING ) ||
          v2.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "invalid argument: expected: VolumeID, string" );
+         throw std::runtime_error( "invalid argument: expected: VolumeID, string" );
       }
 
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
 
       // it is guaranteed we have a volume
@@ -245,7 +245,7 @@ public:
       
       bool success = nll::imaging::writeVolumeBinary( *vol, v2.stringval );
       if ( !success )
-         throw RuntimeException( "cannot save the volume" );
+         throw std::runtime_error( "cannot save the volume" );
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -267,7 +267,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -275,13 +275,13 @@ public:
       if ( ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING ) ||
          v2.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "invalid argument: expected: VolumeID, string" );
+         throw std::runtime_error( "invalid argument: expected: VolumeID, string" );
       }
 
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
 
       // it is guaranteed we have a volume
@@ -289,7 +289,7 @@ public:
       
       bool success = nll::imaging::saveSimpleFlatFile( v2.stringval, *vol );
       if ( !success )
-         throw RuntimeException( "cannot save the volume" );
+         throw std::runtime_error( "cannot save the volume" );
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -312,19 +312,19 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
 
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
 
       ++volumeId;
@@ -334,7 +334,7 @@ public:
       bool loaded = nll::imaging::readVolumeText( *volume, v1.stringval );
       if ( !loaded )
       {
-         throw RuntimeException( "can't find the volume" );
+         throw std::runtime_error( "can't find the volume" );
       }
       volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
       
@@ -367,19 +367,19 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::STRING )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 string as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
       }
 
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
 
       ++volumeId;
@@ -389,7 +389,7 @@ public:
       bool loaded = nll::imaging::readVolumeBinary( *volume, v1.stringval );
       if ( !loaded )
       {
-         throw RuntimeException( "can't find the volume" );
+         throw std::runtime_error( "can't find the volume" );
       }
       volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
       
@@ -422,13 +422,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -454,13 +454,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -486,13 +486,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -518,13 +518,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -552,13 +552,13 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -586,7 +586,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -594,7 +594,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -624,7 +624,7 @@ public:
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
       volumes->volumes.notify();
 
@@ -647,7 +647,7 @@ public:
    {
       if ( args.size() != 5 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -663,7 +663,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::CMP_INT || v3.type != RuntimeValue::CMP_INT || v4.type != RuntimeValue::CMP_INT || v5.type != RuntimeValue::CMP_FLOAT )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume and 3 int as arguments" );
       }
 
       // check we have the data
@@ -671,7 +671,7 @@ public:
       Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
       if ( !volume->inside( x, y, z ) )
       {
-         throw RuntimeException( "voxel index out of bound" );
+         throw std::runtime_error( "voxel index out of bound" );
       }
 
       (*volume)( x, y, z ) = val;
@@ -691,7 +691,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -702,7 +702,7 @@ public:
       NLL_ALIGN_16 float pos[] = { v2.floatval, v3.floatval, v4.floatval, 0 };   // we need to correctly align the memory!
       if ( v1.type != RuntimeValue::TYPE  || v2.type != RuntimeValue::CMP_FLOAT || v3.type != RuntimeValue::CMP_FLOAT || v4.type != RuntimeValue::CMP_FLOAT )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume and 3 int as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume and 3 int as arguments" );
       }
 
       // check we have the data
@@ -731,7 +731,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -739,7 +739,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -778,7 +778,7 @@ public:
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
       volumes->volumes.notify();
 
@@ -801,7 +801,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -811,7 +811,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -831,7 +831,7 @@ public:
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
       volumes->volumes.notify();
 
@@ -855,7 +855,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -865,7 +865,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 volume as arguments" );
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
       }
 
       // check we have the data
@@ -885,7 +885,7 @@ public:
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
       volumes->volumes.notify();
 
@@ -908,14 +908,14 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
 
       //std::string vol = (*args[ 0 ]->vals)[ 0 ].stringval;
@@ -950,7 +950,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -958,7 +958,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 vector3f" );
+         throw std::runtime_error( "wrong arguments: expecting 1 vector3f" );
       }
 
       nll::core::vector3f pos;
@@ -990,7 +990,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -998,7 +998,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE   )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 vector3f" );
+         throw std::runtime_error( "wrong arguments: expecting 1 vector3f" );
       }
 
       nll::core::vector3f pos;

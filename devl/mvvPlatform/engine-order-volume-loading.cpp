@@ -117,7 +117,7 @@ namespace platform
       Records::iterator it = _records.find( name );
       if ( it == _records.end() )
       {
-         throw std::exception( ( std::string( "volume ID can't be found and no Future can be found:" ) + name.getName() ).c_str() );
+         throw std::runtime_error( ( std::string( "volume ID can't be found and no Future can be found:" ) + name.getName() ).c_str() );
       }
 
       std::cout << "----GET volume =" << name.getName() << std::endl;
@@ -139,7 +139,7 @@ namespace platform
          if ( found )
          {
             return vol;
-         } else throw std::exception("error: can't find the volume or a reference on the volume's order");
+         } else throw std::runtime_error("error: can't find the volume or a reference on the volume's order");
       }
       return result->volume;
    }

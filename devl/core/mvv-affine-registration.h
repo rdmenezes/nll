@@ -34,14 +34,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 Matrix4f" );
+         throw std::runtime_error( "wrong arguments: expecting 1 Matrix4f" );
       }
 
       nll::core::Matrixf matrix;
@@ -76,7 +76,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -107,14 +107,14 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting 1 Matrix4f" );
+         throw std::runtime_error( "wrong arguments: expecting 1 Matrix4f" );
       }
 
       nll::core::Matrixf matrix;
@@ -145,7 +145,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );

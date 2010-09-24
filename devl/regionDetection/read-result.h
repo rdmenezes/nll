@@ -95,7 +95,7 @@ namespace detect
       {
          std::ofstream f( input_cfg.c_str() );
          if ( !f.good() )
-            throw std::exception( "can't find output results" );
+            throw std::runtime_error( "can't find output results" );
 
          for ( ui32 n = 0; n < (ui32)m.size(); ++n )
          {
@@ -119,7 +119,7 @@ namespace detect
       {
          std::ifstream f( input_cfg.c_str() );
          if ( !f.good() )
-            throw std::exception( "can't find input results" );
+            throw std::runtime_error( "can't find input results" );
 
          // read the cases
          std::vector<Measure> results;
@@ -175,7 +175,7 @@ namespace detect
       {
          std::ifstream f( input_cfg.c_str() );
          if ( !f.good() )
-            throw std::exception( "can't find input results" );
+            throw std::runtime_error( "can't find input results" );
 
          // read the cases
          std::vector<Result> results;

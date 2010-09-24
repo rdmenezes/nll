@@ -26,7 +26,7 @@ namespace parser
       FunctionRunnable( const AstDeclFun* fun ) : _fun( fun )
       {
       //   if ( !fun )
-      //      throw RuntimeException( "can't run null function" );
+      //      throw std::runtime_error( "can't run null function" );
       }
 
       virtual ~FunctionRunnable()

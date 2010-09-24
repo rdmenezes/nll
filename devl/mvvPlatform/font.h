@@ -173,11 +173,11 @@ namespace platform
             if ( it == font.end() )
             {
                if ( _throwOnMissingChar )
-                  throw std::exception( "character not found in charset" );
+                  throw std::runtime_error( "character not found in charset" );
                else
                   it = font.find( ' ' );
                if ( it == font.end() )
-                  throw std::exception( "character not found in charset" );
+                  throw std::runtime_error( "character not found in charset" );
             }
             ui32 sizex = it->second.image.sizex();
             p[ 0 ] += sizex;
@@ -213,11 +213,11 @@ namespace platform
             if ( it == font.end() )
             {
                if ( _throwOnMissingChar )
-                  throw std::exception( "character not found in charset" );
+                  throw std::runtime_error( "character not found in charset" );
                else
                   it = font.find( ' ' );
                if ( it == font.end() )
-                  throw std::exception( "character not found in charset" );
+                  throw std::runtime_error( "character not found in charset" );
             }
             
             ui32 sizex = it->second.image.sizex();
@@ -368,11 +368,11 @@ namespace platform
          bool loaded = nll::core::readBmp( full, fontResourcePath );
          if ( !loaded )
          {
-            throw std::exception( "Font could not be loaded." );
+            throw std::runtime_error( "Font could not be loaded." );
          }
          if ( !full.sizex() || !full.sizey() || full.getNbComponents() != 3 )
          {
-            throw std::exception( "Font is not valid" );
+            throw std::runtime_error( "Font is not valid" );
          }
 
          ui32 minSizeX = margin[ 0 ] + ( layout[ 0 ] - 1 ) * space[ 0 ] + layout[ 0 ] * characterSize[ 0 ];
@@ -381,7 +381,7 @@ namespace platform
               minSizeY > full.sizey() ||
               charactersMapping.size() != layout[ 0 ] * layout[ 1 ] )
          {
-            throw std::exception( "font size is incorrect: computed minium size is bigger than the bitmap, or all characters of the font are not mapped." );
+            throw std::runtime_error( "font size is incorrect: computed minium size is bigger than the bitmap, or all characters of the font are not mapped." );
          }
 
          FontSet reference;

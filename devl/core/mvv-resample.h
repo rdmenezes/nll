@@ -20,7 +20,7 @@ public:
    {
       if ( args.size() != 4 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
@@ -30,7 +30,7 @@ public:
 
       if ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING )
       {
-         throw RuntimeException( "first argument has not a VolumeID object layout" );
+         throw std::runtime_error( "first argument has not a VolumeID object layout" );
       }
       nll::core::vector3i size;
       getVector3iValues( v2, size );
@@ -46,13 +46,13 @@ public:
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
 
       ContextVolumes* volumes = _context.get<ContextVolumes>();
       if ( !volumes )
       {
-         throw RuntimeException( "ContextVolumes context has not been loaded" );
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
       }
 
       // it is guaranteed we have a volume

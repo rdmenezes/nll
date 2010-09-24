@@ -27,20 +27,20 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING )
       {
-         throw RuntimeException( "invalid argument" );
+         throw std::runtime_error( "invalid argument" );
       }
 
       ContextTools* tools = _context.get<ContextTools>();
       if ( !tools )
       {
-         throw RuntimeException( "ContextTools context has not been loaded" );
+         throw std::runtime_error( "ContextTools context has not been loaded" );
       }
 
       // it is guaranteed we have a volume

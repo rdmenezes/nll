@@ -310,12 +310,12 @@ import void system( string cmd );
 
 /**
  @ingroup core
- @brief Throw RuntimeException if the assert fails
+ @brief Throw std::runtime_error if the assert fails
  */
 import void assert( int val );
 
 /**
  @ingroup core
- @brief Throw RuntimeException if the assert fails
+ @brief Throw std::runtime_error if the assert fails
  */
 import void assert( int val, string msg );

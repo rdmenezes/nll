@@ -48,7 +48,7 @@ public:
    {
       if ( args.size() != 5 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -62,7 +62,7 @@ public:
            v4.type != RuntimeValue::TYPE ||
            v5.type != RuntimeValue::CMP_FLOAT )
       {
-         throw RuntimeException( "wrong arguments: expecting Vertical, Layout, Layout, float" );
+         throw std::runtime_error( "wrong arguments: expecting Vertical, Layout, Layout, float" );
       }
 
       // read the storage value
@@ -75,7 +75,7 @@ public:
       const float ratio = v5.floatval;
       if ( ratio < 0 || ratio > 1 )
       {
-         throw RuntimeException( "ratio must be in range [0..1]" );
+         throw std::runtime_error( "ratio must be in range [0..1]" );
       }
       PaneListVertical* pane = new PaneListVertical( nll::core::vector2ui(), nll::core::vector2ui() );   // undefined size
       pane->addChild( left->pane, ratio );
@@ -110,7 +110,7 @@ public:
    {
       if ( args.size() != 5 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -124,7 +124,7 @@ public:
            v4.type != RuntimeValue::TYPE ||
            v5.type != RuntimeValue::CMP_FLOAT )
       {
-         throw RuntimeException( "wrong arguments: expecting Vertical, Layout, Layout, float" );
+         throw std::runtime_error( "wrong arguments: expecting Vertical, Layout, Layout, float" );
       }
 
       // read the storage value
@@ -137,7 +137,7 @@ public:
       const float ratio = v5.floatval;
       if ( ratio < 0 || ratio > 1 )
       {
-         throw RuntimeException( "ratio must be in range [0..1]" );
+         throw std::runtime_error( "ratio must be in range [0..1]" );
       }
       PaneListHorizontal* pane = new PaneListHorizontal( nll::core::vector2ui(), nll::core::vector2ui() );   // undefined size
       pane->addChild( left->pane, ratio );
@@ -172,7 +172,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -204,7 +204,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -212,7 +212,7 @@ public:
 
       if ( v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting Segment" );
+         throw std::runtime_error( "wrong arguments: expecting Segment" );
       }
 
       // read the storage value
@@ -252,7 +252,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -260,7 +260,7 @@ public:
 
       if ( v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting Segment" );
+         throw std::runtime_error( "wrong arguments: expecting Segment" );
       }
 
       // read the storage value
@@ -301,7 +301,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -309,7 +309,7 @@ public:
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // fill the storage
@@ -343,7 +343,7 @@ public:
    {
       if ( args.size() != 1 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -376,7 +376,7 @@ public:
    {
       if ( args.size() != 2 )
       {
-         throw RuntimeException( "unexpected number of arguments" );
+         throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
@@ -384,14 +384,14 @@ public:
 
       if ( v2.type != RuntimeValue::TYPE )
       {
-         throw RuntimeException( "wrong arguments: expecting Console" );
+         throw std::runtime_error( "wrong arguments: expecting Console" );
       }
 
       // it is safe not to have a real refcount here, as we are saving the layout (which is refcounted!)
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
       {
-         throw RuntimeException( "mvv global context has not been initialized" );
+         throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
       // fill the storage

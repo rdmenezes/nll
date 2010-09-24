@@ -181,7 +181,7 @@ struct TestEval
          {
             TESTER_ASSERT( fe.run( "import \"HAHAH\"" ) != Error::SUCCESS );
             TESTER_ASSERT(0);
-         } catch( RuntimeException e )
+         } catch( std::runtime_error e )
          {
             // good!
          }
@@ -284,7 +284,7 @@ struct TestEval
      //       CompilerFrontEnd fe;
      //       fe.run( "class Test2{ Test2 tt; Test2(){}} class Test{int n; Test2 tt = NULL; Test ttt = NULL; Test(){}} Test t; Test2 ttt; t.tt.tt = ttt; t.n = 5; " );
      //       TESTER_ASSERT( 0 );
-      ///   } catch ( RuntimeException e )
+      ///   } catch ( std::runtime_error e )
        //  {
        //     // good!
        //  }
@@ -658,7 +658,7 @@ struct TestEval
             
             Error::ErrorType result = fe.run( "import \"core\" class Test{ int a[]; Test(){ a[ 1 ] = 0; } }" );
             TESTER_ASSERT( result == Error::SUCCESS );
-         } catch ( RuntimeException e ){
+         } catch ( std::runtime_error e ){
             TESTER_ASSERT( 0 );
          }
       }
@@ -670,7 +670,7 @@ struct TestEval
             
             fe.run( "import \"core\" class Test{ int a[]; Test(){ a[ 1 ] = 0; } } Test t;" );
             TESTER_ASSERT( 0 );
-         } catch ( RuntimeException e ){
+         } catch ( std::runtime_error e ){
             // good
          }
       }
@@ -707,7 +707,7 @@ struct TestEval
          {
             fe.run( "int n[] = { 4, 5, 6, 7, 8}; int nn = n[ 13 ];" );
             TESTER_ASSERT( 0 );
-         } catch( RuntimeException e )
+         } catch( std::runtime_error e )
          {
          }
       }
@@ -1167,7 +1167,7 @@ struct TestEval
          {
             fe.run( "import \"core\" class Test{Test(){} ~Test(){print(\"Destroyed\");}} Test t; int a[ 4 ]; a[ 5 ] = 0; int n = 3;" );
             TESTER_ASSERT( 0 );
-         } catch ( RuntimeException e )
+         } catch ( std::runtime_error e )
          {
             // true
          }
@@ -2015,7 +2015,7 @@ struct TestEval
          {
             Error::ErrorType result = fe.run( "typedef string() fp_test; fp_test fp = NULL; fp();" );
             TESTER_ASSERT( 0 );  // expected exception
-         } catch ( RuntimeException )
+         } catch ( std::runtime_error )
          {
             // good!
          }

@@ -98,10 +98,6 @@ namespace mvv
          {
             std::cerr << "script failure, exception:" << e.what() << std::endl;
             exit(1);
-         } catch ( std::exception e )
-         {
-            std::cerr << "script failure, exception:" << e.what() << std::endl;
-            exit(1);
          } catch ( ... )
          {
             std::cerr << "script failure, exception thrown" << std::endl;
@@ -119,7 +115,7 @@ namespace mvv
          // update the layout
          platform::ContextGlobal* global = context.get<platform::ContextGlobal>();
          if ( !global )
-            throw std::exception( "global context uncorrectly initialized" );
+            throw std::runtime_error( "global context uncorrectly initialized" );
 
          /*
          //

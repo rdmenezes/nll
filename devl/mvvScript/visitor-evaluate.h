@@ -9,13 +9,6 @@ namespace mvv
 {
 namespace parser
 {
-   class RuntimeException : public std::exception
-   {
-   public:
-      RuntimeException( const char* c ) : std::exception( c )
-      {}
-   };
-
    inline void unstack( RuntimeValues& stack, ui32 nb )
    {
       while ( nb-- )
@@ -32,7 +25,7 @@ namespace parser
          ss << loc << msg << std::endl;
          context.getError() << ss.str() << mvv::parser::Error::RUNTIME;
 
-         throw RuntimeException( ss.str().c_str() );
+         throw std::runtime_error( ss.str().c_str() );
       }
    }
 
@@ -412,14 +405,14 @@ namespace parser
             // regular array
             if ( array.type == RuntimeValue::EMPTY || array.type == RuntimeValue::NIL )
             {
-               throw RuntimeException( "uninitialized array" );
+               throw std::runtime_error( "uninitialized array" );
             }
             //_debug( array );
             assert( array.type == RuntimeValue::TYPE );
 
             if ( index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
             {
-               throw RuntimeException( "out of bound exception" );
+               throw std::runtime_error( "out of bound exception" );
             }
 
             // a L-value must return a ref
@@ -458,7 +451,7 @@ namespace parser
                {
                   if ( val.type == RuntimeValue::EMPTY || val.type == RuntimeValue::NIL )
                   {
-                     throw RuntimeException( "null reference" );
+                     throw std::runtime_error( "null reference" );
                   }
                   assert( 0 );   // we are expecting a null ref in case user made a mistake, else compiler error
                }
@@ -575,7 +568,7 @@ namespace parser
             }
             _env.resultRegister = fun.getImportedFunction()->run( valsPtr );
          } else {
-            throw RuntimeException( "unable to find function implementation" );
+            throw std::runtime_error( "unable to find function implementation" );
          }
 
          // restaure FP, frame pointer & stack
@@ -603,7 +596,7 @@ namespace parser
          }
 
          if ( !functionToCall )
-            throw RuntimeException("Function to call has null pointer");
+            throw std::runtime_error("Function to call has null pointer");
 
 
          AstArgs::Args& args = e.getArgs().getArgs();

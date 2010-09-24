@@ -316,7 +316,7 @@ namespace platform
             return false;
          }
          if ( volumes.size() > 1 )
-            throw std::exception( "Unexpected number of volumes (only zero or one)" );
+            throw std::runtime_error( "Unexpected number of volumes (only zero or one)" );
          if ( volumes.size() == 1 && ( *volumes.begin() ).getDataPtr() != _cacheOldVolume )
          {
             // if the volume changed, then just clear the order

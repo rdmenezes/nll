@@ -464,7 +464,7 @@ namespace detect
          {
             if ( templateid )
                *templateid = -1;
-            throw std::exception("can't find template");
+            throw std::runtime_error("can't find template");
          }
          //std::cout << "template chosen=" << index << std::endl;
          if ( templateid )

@@ -328,7 +328,7 @@ namespace platform
        */
       void setPosition( const nll::core::vector3f& p )
       {
-         //throw std::exception( "TODO: operation not handled yet" );
+         //throw std::runtime_error( "TODO: operation not handled yet" );
 
          _position = p;
          /*

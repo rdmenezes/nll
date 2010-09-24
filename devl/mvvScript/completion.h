@@ -274,7 +274,7 @@ namespace parser
          case 2:
             return NORMAL;
          default:
-            throw RuntimeException( "Unhandled case!" );
+            throw std::runtime_error( "Unhandled case!" );
          }
       }
 

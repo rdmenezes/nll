@@ -80,7 +80,7 @@ namespace parser
             case RuntimeValue::CMP_INT:
                return nll::core::val2str( v.intval );
             default:
-               throw std::exception( "should not throw!" );
+               throw std::runtime_error( "should not throw!" );
             }
          } catch (...)
          {
@@ -240,7 +240,7 @@ namespace parser
 
       /**
        @brief run the string.
-       @throw RuntimeException when the compiler fails execute incorrectly (i.e. out of bounds, dangling reference...)
+       @throw std::runtime_error when the compiler fails execute incorrectly (i.e. out of bounds, dangling reference...)
        @note variables, functions & classes declared in this string are saved in the current context and available
              for later usage.
        */
@@ -372,7 +372,7 @@ namespace parser
 
       /**
        @brief find a global variable in the execution context
-       @throw std::exception if the variable can't be found
+       @throw std::runtime_error if the variable can't be found
        @return it's runtime value & type
        @note if a RuntimeValue& is used still, while the front end is destroyed, this will crash (destructor)
        */
@@ -381,11 +381,11 @@ namespace parser
          const AstDeclVar* val = _vars.find( name );
          if ( !val )
          {
-            throw std::exception("can't find this variable in the current execution context" );
+            throw std::runtime_error("can't find this variable in the current execution context" );
          }
          if ( val->getRuntimeIndex() >= _env.stack.size() )
          {
-            throw std::exception("incorrect frame pointer" );
+            throw std::runtime_error("incorrect frame pointer" );
          }
 
          const RuntimeValue* res = &_env.stack[ val->getRuntimeIndex() ];
@@ -552,7 +552,7 @@ namespace parser
                   std::string fileInPath = _findFileInPath( it->getName() + std::string( ".ludo" ), _importDirectories );
                   if ( fileInPath == "" )
                   {
-                     throw RuntimeException( ( std::string( "cannot open file \"" ) + it->getName() + std::string( ".ludo\"") ).c_str() );
+                     throw std::runtime_error( ( std::string( "cannot open file \"" ) + it->getName() + std::string( ".ludo\"") ).c_str() );
                   }
                   Ast* exp = _context.parseFile( fileInPath );
                   _parsedFiles.insert( *it );
@@ -575,7 +575,7 @@ namespace parser
                   std::string fileInPath = _findFileInPath( it->getName() + std::string( ".ludo" ), _importDirectories );
                   if ( fileInPath == "" )
                   {
-                     throw RuntimeException( ( std::string( "cannot open file \"" ) + it->getName() + std::string( ".ludo\"") ).c_str() );
+                     throw std::runtime_error( ( std::string( "cannot open file \"" ) + it->getName() + std::string( ".ludo\"") ).c_str() );
                   }
                   Ast* exp = _context.parseFile( fileInPath );
                   _parsedFiles.insert( *it );

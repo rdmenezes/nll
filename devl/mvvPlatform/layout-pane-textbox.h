@@ -260,7 +260,7 @@ namespace platform
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
-            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            throw std::runtime_error( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 
@@ -317,7 +317,7 @@ namespace platform
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
-            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            throw std::runtime_error( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 
@@ -452,7 +452,7 @@ namespace platform
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
-            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            throw std::runtime_error( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 
@@ -513,7 +513,7 @@ namespace platform
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
-            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            throw std::runtime_error( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 
@@ -579,7 +579,7 @@ namespace platform
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
-            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            throw std::runtime_error( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 
@@ -678,7 +678,7 @@ namespace platform
       {
          LayoutPaneDecoratorCursorPosition* position = _src.get<LayoutPaneDecoratorCursorPosition>();
          if ( !position )
-            throw std::exception( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
+            throw std::runtime_error( "LayoutPaneDecoratorCursor needs a LayoutPaneDecoratorCursorPosition  for a textbox decorator" );
          ui32& _currentLine = position->currentLine;
          ui32& _currentChar = position->currentChar;
 

@@ -101,7 +101,7 @@ namespace platform
                   break;
                }
             default:
-               throw std::exception( "interpolation mode not handled" );
+               throw std::runtime_error( "interpolation mode not handled" );
             }
             return new OrderSliceCreatorResult( slice );
          }
@@ -358,7 +358,7 @@ namespace platform
                impl::OrderSliceCreatorResult* result = dynamic_cast<impl::OrderSliceCreatorResult*>( (**it).getResult() );
                ensure( result, "must nnot be null" );
                if ( !orderCreator )
-                  throw std::exception( "unexpected type of order" );
+                  throw std::runtime_error( "unexpected type of order" );
                SymbolVolume volume = orderCreator->getVolume();
 
                float intensity = 0;
@@ -507,7 +507,7 @@ namespace platform
             {
                OrderSliceBlenderResult* result = dynamic_cast<OrderSliceBlenderResult*>( (*order).getResult() );
                if ( !result )
-                  throw std::exception( "unexpected order received!" );
+                  throw std::runtime_error( "unexpected order received!" );
 
                OrderSliceBlender* orderBlender = dynamic_cast<OrderSliceBlender*> ( order );
                ensure( orderBlender, "error can't be null..." );
