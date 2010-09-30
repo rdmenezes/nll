@@ -11,6 +11,7 @@ include "math-core"
 include "math-vector"
 include "math-matrix"
 include "math-matrix-op"
+include "image"
 
 /**
  @ingroup core

@@ -1,0 +1,19 @@
+class Image
+{
+   import Image( int sizex, int sizey, int nbComponents );
+   import ~Image();
+
+   import int get( int x, int y, int col );
+   import void set( int value, int x, int y, int col );
+
+   import int sizex();
+   import int sizey();
+   import int sizec();
+}
+
+import void writeBmp( Image i, string path );
+import Image readBmp( string path );
+import void decolor( Image i );
+import void extend( Image i, int nbComponents );
+import void crop( Image i, Vector2i min, Vector2i max );
+import void copy( Image srd, Image dst, Vector2i position );

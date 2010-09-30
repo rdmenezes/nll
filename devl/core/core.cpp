@@ -17,6 +17,7 @@
 #include "system.h"
 #include "mvv-resample.h"
 #include "mvv-matrix.h"
+#include "mvv-image.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -3071,5 +3072,50 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Matrixf"), platform::Symbol::create( "sizey" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionMatrixfSizey( fn ) ) );
+   }
+
+   //
+   // Image
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "Image" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageConstructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "~Image" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageDestructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "set" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ), new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageSet( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "get" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageGet( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "sizec" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageGetSizec( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "sizey" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageGetSizey( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Image"), platform::Symbol::create( "sizex" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageGetSizex( fn ) ) );
    }
 }
