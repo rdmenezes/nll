@@ -18,6 +18,8 @@
 # include <mvvMprPlugin/segment-tool-autocenter.h>
 # include <mvvMprPlugin/annotation-point.h>
 
+# include "mvv-image.h"
+
 using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
@@ -439,6 +441,106 @@ public:
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+};
+
+class FunctionSegmentGetRawImage: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+   typedef FunctionImageConstructor::Pointee PointeeImage;
+
+public:
+   FunctionSegmentGetRawImage( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      // discard the second arg: just a flag!
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      PointeeImage* p = new PointeeImage();
+
+      p->getValue().clone( pointee->segment.getRawMpr().getValue().getStorage() );
+
+      
+
+      // create a runtime value with a destructor
+      RuntimeValue rt( RuntimeValue::TYPE );
+      Type* t = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Image" ) ) ) );
+      if ( !t )
+      {
+         throw std::runtime_error( "internal error: cannot instanciate Image type" );
+      }
+
+      RuntimeValues* vals = new RuntimeValues( 1 );
+      (*vals)[ 0 ] = RuntimeValue( RuntimeValue::PTR );
+      (*vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( p );
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), t, vals );
+      return rt;
+   }
+
+private:
+   CompilerFrontEnd& _e;
+};
+
+class FunctionSegmentGetImage: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+   typedef FunctionImageConstructor::Pointee PointeeImage;
+
+public:
+   FunctionSegmentGetImage( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      // discard the second arg: just a flag!
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      PointeeImage* p = new PointeeImage();
+
+      p->getValue().clone( pointee->segment.segment.getValue().getStorage() );
+
+      
+
+      // create a runtime value with a destructor
+      RuntimeValue rt( RuntimeValue::TYPE );
+      Type* t = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Image" ) ) ) );
+      if ( !t )
+      {
+         throw std::runtime_error( "internal error: cannot instanciate Image type" );
+      }
+
+      RuntimeValues* vals = new RuntimeValues( 1 );
+      (*vals)[ 0 ] = RuntimeValue( RuntimeValue::PTR );
+      (*vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( p );
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), t, vals );
+      return rt;
+   }
+
+private:
+   CompilerFrontEnd& _e;
 };
 
 #endif

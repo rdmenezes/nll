@@ -5,15 +5,41 @@ class Image
 
    import int get( int x, int y, int col );
    import void set( int value, int x, int y, int col );
+   import void set( Image m );
 
    import int sizex();
    import int sizey();
    import int sizec();
+   import Image clone();
+}
+
+class ImageHolder
+{
+   import ImageHolder();
+   import ~ImageHolder();
+
+   import void set( Image i );
+
+   /**
+    @brief returns a reference on the image (e.g., if the returned image is the same than the one held)
+    */
+   import Image get();
 }
 
 import void writeBmp( Image i, string path );
 import Image readBmp( string path );
-import void decolor( Image i );
-import void extend( Image i, int nbComponents );
+
+/**
+ @brief This will reduce the image to only one channel (the channels are mean). The image is directly updated
+ */
+//import void decolor( Image i );
+
+/**
+ @brief the 1-channel image will have it replicated nbComponents time. The image is directly updated
+ */
+//import void extend( Image i, int nbComponents );
+
+/*
 import void crop( Image i, Vector2i min, Vector2i max );
 import void copy( Image srd, Image dst, Vector2i position );
+*/

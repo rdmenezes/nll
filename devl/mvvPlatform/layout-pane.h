@@ -387,7 +387,7 @@ namespace platform
                PaneRef p = *it;
                double ratio = _ratios[ n ] / ratioToDraw;
                (*p).setOrigin( nll::core::vector2ui( getOrigin()[ 0 ] + ratioShift, getOrigin()[ 1 ] ) );
-               (*p).setSize( nll::core::vector2ui( (ui32)nll::core::round( ratio * getSize()[ 0 ] ), getSize()[ 1 ] ) );
+               (*p).setSize( nll::core::vector2ui( (ui32)( ratio * getSize()[ 0 ] ), getSize()[ 1 ] ) );
                ratioShift += (*p).getSize()[ 0 ];
                (*p).updateLayout();
             }
@@ -450,7 +450,7 @@ namespace platform
                PaneRef p = *it;
                double ratio = _ratios[ n ] / ratioToDraw;
                (*p).setOrigin( nll::core::vector2ui( getOrigin()[ 0 ], getOrigin()[ 1 ] + ratioShift ) );
-               (*p).setSize( nll::core::vector2ui( getSize()[ 0 ], (ui32)nll::core::round( ratio * getSize()[ 1 ] ) ) );
+               (*p).setSize( nll::core::vector2ui( getSize()[ 0 ], (ui32)( ratio * getSize()[ 1 ] ) ) );
                ratioShift += (*p).getSize()[ 1 ];
                (*p).updateLayout();
             }

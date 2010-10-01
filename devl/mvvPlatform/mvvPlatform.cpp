@@ -36,6 +36,7 @@
 #include "layout-widget-selectbox.h"
 #include "layout-pane-textbox.h"
 #include "layout-pane-cmdl.h"
+#include "layout-pane-image.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

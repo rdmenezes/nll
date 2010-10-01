@@ -146,8 +146,12 @@ Layout l4( mip1 );
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
 
+Layout layout_cpy = layout;
+
 /*
-segment1.setInterpolator(typename Segment::Nearest());
-segment2.setInterpolator(typename Segment::Nearest());
-segment3.setInterpolator(typename Segment::Nearest());
+Image m = readBmp("c:/test2.bmp");
+ImageHolder holder;
+holder.set(m);
+
+layout = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 */

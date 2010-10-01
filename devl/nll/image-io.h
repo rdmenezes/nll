@@ -140,7 +140,7 @@ namespace core
       std::ifstream f(file.c_str(), std::ios_base::binary);
       if (!f.is_open())
       {
-         assert(0); // can't open file
+         ensure( 0, "can't read image:" + file ); // can't open file
          return false;
       }
       return readBmp(out_i, f, alloc);

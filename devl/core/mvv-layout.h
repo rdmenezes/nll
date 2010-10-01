@@ -1,6 +1,7 @@
 #ifndef CORE_MVV_LAYOUT_H_
 # define CORE_MVV_LAYOUT_H_
 
+# include "mvv-image.h"
 # include "core.h"
 # include "mvv-segment.h"
 # include "mvv-mip-tools.h"
@@ -9,6 +10,7 @@
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
 # include <mvvPlatform/layout-pane.h>
+# include <mvvPlatform/layout-pane-image.h>
 # include <mvvPlatform/layout-pane-cmdl.h>
 # include <mvvMprPlugin/layout-segment.h>
 # include <mvvMprPlugin/layout-mip.h>
@@ -30,6 +32,7 @@ namespace impl
       RuntimeValue          mip;
       RuntimeValue          leftLayout;
       RuntimeValue          rightLayout;
+      RuntimeValue          imageHolder;
    };
 }
 
@@ -412,6 +415,61 @@ public:
 private:
    mvv::platform::Context&          _context;
    mvv::parser::CompilerFrontEnd&   _compiler;
+};
+
+class FunctionLayoutConstructorImage: public FunctionRunnable
+{
+public:
+   typedef ::impl::LayoutStorage Pointee;
+
+public:
+   FunctionLayoutConstructorImage( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      FunctionImageHolderConstructor::Pointee* image = reinterpret_cast<FunctionImageHolderConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // find global context
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      // it is safe not to have a real refcount here, as we are saving the layout (which is refcounted!)
+      PaneImage* pane = new PaneImage( nll::core::vector2ui( 0, 0 ),
+                                       nll::core::vector2ui( 0, 0 ),
+                                       nll::core::vector3uc(),
+                                       global->engineHandler );
+
+      // connect the image
+      pane->image = *image;
+
+
+      // fill the storage
+      Pointee* pointee = new Pointee( pane );
+      pointee->imageHolder = v2;
+
+      // update the object
+      RuntimeValue field( RuntimeValue::PTR );
+      field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
+      (*v1.vals).resize( 1 );    // resize the original field
+      (*v1.vals)[ 0 ] = field;
+
+      return v1;  // return the original object!
+   }
+
+private:
+   mvv::platform::Context&          _context;
 };
 
 

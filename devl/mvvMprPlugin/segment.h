@@ -164,6 +164,11 @@ namespace platform
 
       virtual ~Segment();
 
+      const ResourceSliceuc& getRawMpr() const
+      {
+         return _segment;
+      }
+
       virtual void connect( SegmentTool* tool );     
 
       virtual void disconnect( SegmentTool* tool );

@@ -581,6 +581,16 @@ class Segment
     @brief attach centering tool
     */
    import void setTool( SegmentToolCentering centering );
+
+   /**
+    @brief return the image currently displayed by the MPR without any annotations
+    */
+   import Image getRawImage();
+
+   /**
+    @brief return the image currently displayed by the MPR with annotations and tools
+    */
+   import Image getImage();
 }
 
 /**
@@ -693,4 +703,10 @@ class Layout
     @note a reference on the console is saved in the layout
     */
    import Layout( Console console );
+
+   /**
+    @brief Create a layout fully filled by an image
+    @note a reference on the ImageHolder is saved in the layout
+    */
+   import Layout( ImageHolder imageHolder );
 }
