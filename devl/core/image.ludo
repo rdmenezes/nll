@@ -1,3 +1,6 @@
+/**
+ @brief Hold a multi-channel [0..255] image
+ */
 class Image
 {
    import Image( int sizex, int sizey, int nbComponents );

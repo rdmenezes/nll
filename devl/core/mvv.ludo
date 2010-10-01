@@ -193,6 +193,11 @@ class VolumeContainer
     @note volume must be stored in this VolumeContainer
     */
    import void setIntensity( VolumeID volume, float newIntensity );
+
+   /**
+    @brief Remove all the volumes from the container
+    */
+   import void clear();
 }
 
 /**

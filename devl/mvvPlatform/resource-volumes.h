@@ -108,6 +108,12 @@ namespace platform
          return getValue()._volumeStorage;
       }
 
+      void clear()
+      {
+         getValue()._volumes.clear();
+         notify();
+      }
+
       bool find( SymbolVolume name, RefcountedTyped<Volume>& volume )
       {
          return getValue()._volumeStorage.find( name, volume );

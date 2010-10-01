@@ -111,6 +111,12 @@ namespace platform
          }
       }
 
+      void clear()
+      {
+         getValue().clear();
+         notify();
+      }
+
       Iterator begin()
       {
          return Iterator( getValue().begin() );
@@ -246,6 +252,12 @@ namespace platform
             getValue().erase( k );
             notify();
          }
+      }
+
+      void clear()
+      {
+         getValue().clear();
+         notify();
       }
 
       Iterator begin()

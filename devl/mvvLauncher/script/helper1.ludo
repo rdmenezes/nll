@@ -84,7 +84,7 @@ class VolumeSwitch
 
    void next()
    {
-      volumes.erase( displayed );
+      volumes.clear();
       displayed = preloaded;
       volumes.add( displayed, lut );
       detection.annotations.clear();
@@ -122,7 +122,7 @@ class AnnotationCreator
 }
 
 /**
- @brief find the maximum intensity voxel within a radius
+ @brief find the maximum intensity voxel within a radius from the pointer
  */
 class FindPeakVoxel
 {
