@@ -424,6 +424,7 @@ namespace platform
       public:
          // output slots
          ResourceSliceuc               blendedSlice;
+         ResourceMapImage              imagefs;
 
       public:
          EngineSliceBlender( ui32& nbOrdersSend, bool& ready, ResourceOrders& vordersToBlend, ResourceMapTransferFunction& vlut, ResourceFloats& vintensities, ResourceUi32& vfps,
@@ -466,6 +467,25 @@ namespace platform
 
             if ( _orderSend.isEmpty() )
             {
+               // export the floating slices
+               imagefs.clear();
+               for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
+               {
+                  OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
+                  OrderSliceCreatorResult* result = dynamic_cast<OrderSliceCreatorResult*>( orderCreator->getResult() );
+                  assert( orderCreator && result );
+
+                  ResourceImagef im;
+                  if ( result->getSlice().getStorage().size() == 0 )
+                     continue;   // empty MPR...
+                  im.setValue( nll::core::Image< nll::f32 >( result->getSlice().getStorage(),
+                                                             result->getSlice().size()[ 0 ], 
+                                                             result->getSlice().size()[ 1 ],
+                                                             1 ) );
+                  imagefs.insert( orderCreator->getVolume(), im );
+               }
+
+
                ++_nbOrdersHandled;
 
                // we have been notified
@@ -623,6 +643,11 @@ namespace platform
       {
          // no insteresting orders
          return _interested;
+      }
+
+      ResourceMapImage getRawSlices()
+      {
+         return _sliceBlender.imagefs;
       }
 
    private:

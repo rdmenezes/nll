@@ -35,6 +35,7 @@ public:
       }
 
       Pointee* lut = new Pointee();
+      lut->getValue() = Pointee::value_type( v2.intval, v3.intval, v4.intval );
 
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( lut ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
@@ -519,6 +520,114 @@ public:
       Pointee* p2 = reinterpret_cast<Pointee*>( (*v2.vals)[ 0 ].ref );
 
       p->getValue().clone( p2->getValue() );
+      p->notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionImageDecolor : public FunctionRunnable
+{
+public:
+   typedef FunctionImageConstructor::Pointee Pointee;
+
+public:
+   FunctionImageDecolor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      nll::core::decolor( p->getValue() );
+      p->notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionImageExtend : public FunctionRunnable
+{
+public:
+   typedef FunctionImageConstructor::Pointee Pointee;
+
+public:
+   FunctionImageExtend( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      nll::core::extend( p->getValue(), v2.intval );
+      p->notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionImageCrop : public FunctionRunnable
+{
+public:
+   typedef FunctionImageConstructor::Pointee Pointee;
+
+public:
+   FunctionImageCrop( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+
+      nll::core::vector2i p1;
+      nll::core::vector2i p2;
+
+      parser::getVector2iValues( v2, p1 );
+      parser::getVector2iValues( v3, p2 );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      Pointee::value_type& image = p->getValue();
+      if ( p1[ 0 ] < 0 || p1[ 1 ] < 0 ||
+           p2[ 0 ] >= (int)image.sizex() || p2[ 1 ] >= (int)image.sizey() )
+      {
+         throw std::runtime_error( "out of bound image cropping" );
+      }
+
+      if ( p1[ 0 ] > p2 [ 0 ] || p1[ 1 ] > p2[ 1 ] )
+      {
+         throw std::runtime_error( "min must be bottom-left max cropping point" );
+      }
+
+      nll::core::extract( image, p1[ 0 ], p1[ 1 ], p2[ 0 ], p2[ 1 ] );
+      p->setValue( image );
       p->notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );

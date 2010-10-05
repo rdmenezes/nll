@@ -6,43 +6,84 @@ class Image
    import Image( int sizex, int sizey, int nbComponents );
    import ~Image();
 
+   /**
+    @brief get the value of a voxel
+    */
    import int get( int x, int y, int col );
+   
+   /**
+    @brief set the value of a voxel
+    */
    import void set( int value, int x, int y, int col );
+   
+   /**
+    @brief copy the voxels of the image (it is cloned)
+    */
    import void set( Image m );
 
+   /**
+    @brief Returns the size of the image in the x axis
+    */
    import int sizex();
+   
+   /**
+    @brief Returns the size of the image in the y axis
+    */
    import int sizey();
+   
+   /**
+    @brief Returns the number of channels
+    */
    import int sizec();
+   
+   /**
+    @brief Clone the current image
+    */
    import Image clone();
 }
 
+/**
+ @brief Holds an image. This is used in a layout for display purposes
+ */
 class ImageHolder
 {
    import ImageHolder();
    import ~ImageHolder();
 
+   /**
+    @brief Set the image to be held. Only a reference is copied.
+    */
    import void set( Image i );
 
    /**
-    @brief returns a reference on the image (e.g., if the returned image is the same than the one held)
+    @brief returns a reference on the image (e.g., a modification on the returned image will also update the ImageHolder)
     */
    import Image get();
 }
 
+/**
+ @brief Write a Bmp to the disk
+ */
 import void writeBmp( Image i, string path );
+
+/**
+ @brief Read a bmp image. An exception is thrown if it cannot be read
+ */
 import Image readBmp( string path );
 
 /**
  @brief This will reduce the image to only one channel (the channels are mean). The image is directly updated
  */
-//import void decolor( Image i );
+import void decolor( Image i );
 
 /**
  @brief the 1-channel image will have it replicated nbComponents time. The image is directly updated
  */
-//import void extend( Image i, int nbComponents );
+import void extend( Image i, int nbComponents );
 
-/*
+/**
+ @brief Crop the image
+ */
 import void crop( Image i, Vector2i min, Vector2i max );
-import void copy( Image srd, Image dst, Vector2i position );
-*/
+
+//import void copy( Image srd, Image dst, Vector2i position );

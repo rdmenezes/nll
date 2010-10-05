@@ -403,6 +403,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-imagef.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-layout.h"
 				>
 			</File>
@@ -510,6 +514,10 @@
 			</File>
 			<File
 				RelativePath=".\image.ludo"
+				>
+			</File>
+			<File
+				RelativePath=".\imagef.ludo"
 				>
 			</File>
 			<File

@@ -28,7 +28,7 @@ namespace platform
    typedef ResourceValue<ui32>                           ResourceUi32;
 
    /// hold a RGB image
-   typedef ResourceValue< nll::core::Image< nll::ui8> >  ResourceImageuc;
+   typedef ResourceValue< nll::core::Image< nll::ui8 > > ResourceImageuc;
 
    /// defines a map of transfer function. Given a volume name, retrieve its associated transfer function
    typedef ResourceMapResource<SymbolVolume, ResourceLut >ResourceMapTransferFunction;
@@ -42,6 +42,67 @@ namespace platform
 
    /// defines a map of registration. Given a volume name, retrieve its associated registration
    typedef ResourceMapResource<SymbolVolume, ResourceRegistration >ResourceMapRegistrations;
+
+   template <>
+   class ResourceValue<nll::core::Image< nll::f32 > > : public Resource<nll::core::Image< nll::f32 > >
+   {
+   public:
+      typedef nll::core::Image< nll::f32 > Imagef;
+
+      ResourceValue( bool simple = false ) : Resource( new Imagef(), true, simple )
+      {
+      }
+
+      void setValue( Imagef val )
+      {
+         // we don't check for equality as potentially, it can be very long, so instead we prefere to notify
+         Resource<Imagef>::getValue() = val;
+         notify();
+      }
+
+      Imagef& getValue()
+      {
+         return Resource<Imagef>::getValue();
+      }
+
+      const Imagef& getValue() const
+      {
+         return Resource<Imagef>::getValue();
+      }
+   };
+
+   template <>
+   class ResourceValue<nll::core::Image< nll::ui8 > > : public Resource<nll::core::Image< nll::ui8 > >
+   {
+   public:
+      typedef nll::core::Image< nll::ui8 > Imagef;
+
+      ResourceValue( bool simple = false ) : Resource( new Imagef(), true, simple )
+      {
+      }
+
+      void setValue( Imagef val )
+      {
+         // we don't check for equality as potentially, it can be very long, so instead we prefere to notify
+         Resource<Imagef>::getValue() = val;
+         notify();
+      }
+
+      Imagef& getValue()
+      {
+         return Resource<Imagef>::getValue();
+      }
+
+      const Imagef& getValue() const
+      {
+         return Resource<Imagef>::getValue();
+      }
+   };
+
+   /// hold a 32b flaoting image
+   typedef ResourceValue< nll::core::Image< nll::f32 > >       ResourceImagef;
+
+   typedef ResourceMapResource<SymbolVolume, ResourceImagef >  ResourceMapImage;
 }
 }
 

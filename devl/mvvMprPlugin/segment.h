@@ -202,6 +202,11 @@ namespace platform
          _segment.notify();
       }
 
+      ResourceMapImage getRawSlices()
+      {
+         return _slicer.getRawSlices();
+      }
+
    protected:
       void updateToolsList();
 

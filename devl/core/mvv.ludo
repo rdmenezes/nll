@@ -596,6 +596,11 @@ class Segment
     @brief return the image currently displayed by the MPR with annotations and tools
     */
    import Image getImage();
+   
+   /**
+    @brief return the raw data of a MPR of a volume. The segment must be in a layout to return an up to date image.
+    */
+   import Imagef getRawImage( VolumeID v );
 }
 
 /**

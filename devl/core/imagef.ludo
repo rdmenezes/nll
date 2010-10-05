@@ -1,0 +1,48 @@
+/**
+ @brief Hold a multi-channel image with 32bit floating values
+ */
+class Imagef
+{
+   import Imagef( int sizex, int sizey, int nbComponents = 1 );
+   import ~Imagef();
+
+   /**
+    @brief get the value of a voxel
+    */
+   import float get( int x, int y, int col = 0 );
+   
+   /**
+    @brief set the value of a voxel
+    */
+   import void set( float value, int x, int y, int col = 0 );
+   
+   /**
+    @brief copy the voxels of the image (it is cloned)
+    */
+   import void set( Imagef m );
+
+   /**
+    @brief Returns the size of the image in the x axis
+    */
+   import int sizex();
+   
+   /**
+    @brief Returns the size of the image in the y axis
+    */
+   import int sizey();
+   
+   /**
+    @brief Returns the number of channels
+    */
+   import int sizec();
+   
+   /**
+    @brief Clone the current image
+    */
+   import Imagef clone();
+}
+
+/**
+ @brief Apply a lut on the image
+ */
+import Image transform( Imagef image, Lut lut );

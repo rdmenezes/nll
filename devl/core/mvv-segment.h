@@ -19,6 +19,7 @@
 # include <mvvMprPlugin/annotation-point.h>
 
 # include "mvv-image.h"
+# include "mvv-imagef.h"
 
 using namespace mvv::platform;
 using namespace mvv::parser;
@@ -523,6 +524,69 @@ public:
       p->getValue().clone( pointee->segment.segment.getValue().getStorage() );
 
       
+
+      // create a runtime value with a destructor
+      RuntimeValue rt( RuntimeValue::TYPE );
+      Type* t = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Image" ) ) ) );
+      if ( !t )
+      {
+         throw std::runtime_error( "internal error: cannot instanciate Image type" );
+      }
+
+      RuntimeValues* vals = new RuntimeValues( 1 );
+      (*vals)[ 0 ] = RuntimeValue( RuntimeValue::PTR );
+      (*vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( p );
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), t, vals );
+      return rt;
+   }
+
+private:
+   CompilerFrontEnd& _e;
+};
+
+class FunctionSegmentGetRawImagef: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+   typedef FunctionImagefConstructor::Pointee PointeeImage;
+
+public:
+   FunctionSegmentGetRawImagef( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v2.type != RuntimeValue::TYPE && (*v2.vals).size() == 1 && (*v2.vals)[ 0 ].type == RuntimeValue::STRING )
+      {
+         throw std::runtime_error( "invalid argument" );
+      }
+
+      mvv::SymbolVolume v = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+
+      PointeeImage* p = new PointeeImage();
+      ResourceMapImage map = pointee->segment.getRawSlices();
+      ResourceImagef rawSlice;
+      bool result = map.find( v, rawSlice );
+      if ( result )
+      {
+         p->getValue().clone( rawSlice.getValue() );
+      } else {
+         throw std::runtime_error( "cannot find volume ID:" + std::string( v.getName() ) );
+      }
 
       // create a runtime value with a destructor
       RuntimeValue rt( RuntimeValue::TYPE );
