@@ -66,8 +66,9 @@ namespace platform
                             const nll::core::Matrixf& reg,
                             InterpolationMode interpolation,
                             Volume& volume,
-                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _time( time ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName ), _reg( reg )
+                            SymbolVolume volumeName ) : Order( MVV_PLATFORM_ORDER_CREATE_SLICE, Order::Predecessors(), true ), _time( time ), _volume( volume ), _position( position ), _dirx( dirx ), _diry( diry ), _panning( panning ), _zoom( zoom ), _size( size ), _interpolation( interpolation ), _volumeName( volumeName )
          {
+            _reg.clone( reg );   // we need to clone the matrix so that the Buffer are totally independent (else problem with the reference count of the Buffer accessed concurently...)
          }
 
       protected:
@@ -467,25 +468,6 @@ namespace platform
 
             if ( _orderSend.isEmpty() )
             {
-               // export the floating slices
-               imagefs.clear();
-               for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
-               {
-                  OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
-                  OrderSliceCreatorResult* result = dynamic_cast<OrderSliceCreatorResult*>( orderCreator->getResult() );
-                  assert( orderCreator && result );
-
-                  ResourceImagef im;
-                  if ( result->getSlice().getStorage().size() == 0 )
-                     continue;   // empty MPR...
-                  im.setValue( nll::core::Image< nll::f32 >( result->getSlice().getStorage(),
-                                                             result->getSlice().size()[ 0 ], 
-                                                             result->getSlice().size()[ 1 ],
-                                                             1 ) );
-                  imagefs.insert( orderCreator->getVolume(), im );
-               }
-
-
                ++_nbOrdersHandled;
 
                // we have been notified
@@ -511,8 +493,33 @@ namespace platform
                _ready = true;
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, mapLuts, intensities ) );
                _orderProvider.pushOrder( &*_orderSend );
+
+               // TODO: FIX MEMLEAK HERE
+               /*
+               // export the floating slices
+               imagefs.clear();
+               for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
+               {
+                  OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
+                  OrderSliceCreatorResult* result = dynamic_cast<OrderSliceCreatorResult*>( orderCreator->getResult() );
+                  assert( orderCreator && result );
+
+                  ResourceImagef im;
+                  if ( result->getSlice().getStorage().size() == 0 )
+                     continue;   // empty MPR...
+ 
+                  ResourceImagef::value_type& base = im.getValue();
+                  base = nll::core::Image< nll::f32 >( result->getSlice().size()[ 0 ], 
+                                                       result->getSlice().size()[ 1 ],
+                                                       1 );
+
+
+           //       imagefs.insert( orderCreator->getVolume(), im );
+               }
+               */
+
+
                return true;
-               //return _nbOrdersHandled == _nbOrdersSend;
             }
 
             // we need to wait for blending is finished to start next round...

@@ -82,7 +82,7 @@ import void decolor( Image i );
 import void extend( Image i, int nbComponents );
 
 /**
- @brief Crop the image
+ @brief Crop the image. The image is directly updated.
  */
 import void crop( Image i, Vector2i min, Vector2i max );
 

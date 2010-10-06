@@ -209,6 +209,9 @@ namespace platform
          assert( resourceData );
       };
 
+      virtual ~Resource()
+      {}
+
       virtual void destroy()
       {
          if ( getData().own )

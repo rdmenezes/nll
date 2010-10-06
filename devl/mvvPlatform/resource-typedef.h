@@ -53,6 +53,10 @@ namespace platform
       {
       }
 
+      virtual ~ResourceValue()
+      {
+      }
+
       void setValue( Imagef val )
       {
          // we don't check for equality as potentially, it can be very long, so instead we prefere to notify
@@ -78,6 +82,10 @@ namespace platform
       typedef nll::core::Image< nll::ui8 > Imagef;
 
       ResourceValue( bool simple = false ) : Resource( new Imagef(), true, simple )
+      {
+      }
+
+      virtual ~ResourceValue()
       {
       }
 

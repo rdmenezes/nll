@@ -256,6 +256,17 @@ namespace platform
 
       void clear()
       {
+         //
+         // TODO test
+         //
+         BaseValue& base = getValue();
+         while ( base.size() )
+         {
+            typename BaseValue::iterator it = base.begin();
+            base.erase( it );
+         }
+
+
          getValue().clear();
          notify();
       }

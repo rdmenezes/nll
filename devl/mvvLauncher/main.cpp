@@ -318,8 +318,13 @@ void keyboardSpecial( int key, int x, int y )
 int main(int argc, char** argv)
 {
    // default
+   
    int sizex = 1280;
    int sizey = 1024;
+   /*
+   int sizex = 128;
+   int sizey = 128;
+   */
    int nbThreads = 8;
    std::string mainScript = "include \"../../mvvLauncher/script/single\"";
    std::string font = "../../nllTest/data/font/bitmapfont1_24";

@@ -73,7 +73,7 @@ public:
    /**
     @brief decrease the reference count. If zero, the internal buffer is destroyed.
     */
-   ~Buffer1D(){ unref(); } // TODO: virtual
+   virtual ~Buffer1D(){ unref(); } // TODO: virtual
 
    /**
     @return the index in the buffer of its i th element.
