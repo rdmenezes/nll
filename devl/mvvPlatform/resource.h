@@ -212,6 +212,8 @@ namespace platform
       virtual ~Resource()
       {}
 
+      // call destoy() manually on leaking resources => design problem: destroy() is called from within the destructor of the base class, actually
+      // never calling this destroy, but the one from the base class
       virtual void destroy()
       {
          if ( getData().own )

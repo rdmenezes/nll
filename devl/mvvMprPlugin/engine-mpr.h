@@ -494,10 +494,14 @@ namespace platform
                _orderSend = RefcountedTyped<Order>( new OrderSliceBlender( maxClock, orders, mapLuts, intensities ) );
                _orderProvider.pushOrder( &*_orderSend );
 
-               // TODO: FIX MEMLEAK HERE
-               /*
-               // export the floating slices
+               // we need to manually destroy the resource (destroy called from the destructor of the base class!)
+               for ( ResourceMapImage::Iterator it = imagefs.begin(); it != imagefs.end(); ++it )
+               {
+                  (*it).second.destroy();
+               }
                imagefs.clear();
+
+               // export the floating slices
                for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
                {
                   OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
@@ -509,14 +513,16 @@ namespace platform
                      continue;   // empty MPR...
  
                   ResourceImagef::value_type& base = im.getValue();
-                  base = nll::core::Image< nll::f32 >( result->getSlice().size()[ 0 ], 
+                  base = nll::core::Image< nll::f32 >( result->getSlice().getStorage(),
+                                                       result->getSlice().size()[ 0 ], 
                                                        result->getSlice().size()[ 1 ],
                                                        1 );
 
 
-           //       imagefs.insert( orderCreator->getVolume(), im );
+
+                  imagefs.insert( orderCreator->getVolume(), im );
                }
-               */
+               
 
 
                return true;
