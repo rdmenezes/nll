@@ -79,21 +79,38 @@ namespace platform
          Image::DirectionalIterator oy = screen.getIterator( _origin[ 0 ], _origin[ 1 ], 0 );
          Image::DirectionalIterator iy = toDisplay->getIterator( 0, 0, 0 );
 
-         for ( ui32 yy = 0; yy < _size[ 1 ]; ++yy )
+         if ( toDisplay->size() == 0 )
          {
-            Image::DirectionalIterator lo = oy;
-            Image::DirectionalIterator li = iy;
-            for ( ui32 xx = 0; xx < _size[ 0 ]; ++xx )
+            for ( ui32 yy = 0; yy < _size[ 1 ]; ++yy )
             {
-               lo.pickcol( 0 ) = li.pickcol( 0 );
-               lo.pickcol( 1 ) = li.pickcol( 1 );
-               lo.pickcol( 2 ) = li.pickcol( 2 );
+               Image::DirectionalIterator lo = oy;
+               for ( ui32 xx = 0; xx < _size[ 0 ]; ++xx )
+               {
+                  lo.pickcol( 0 ) = 0;
+                  lo.pickcol( 1 ) = 0;
+                  lo.pickcol( 2 ) = 0;
 
-               lo.addx();
-               li.addx();
+                  lo.addx();
+               }
+               oy.addy();
             }
-            oy.addy();
-            iy.addy();
+         } else {
+            for ( ui32 yy = 0; yy < _size[ 1 ]; ++yy )
+            {
+               Image::DirectionalIterator lo = oy;
+               Image::DirectionalIterator li = iy;
+               for ( ui32 xx = 0; xx < _size[ 0 ]; ++xx )
+               {
+                  lo.pickcol( 0 ) = li.pickcol( 0 );
+                  lo.pickcol( 1 ) = li.pickcol( 1 );
+                  lo.pickcol( 2 ) = li.pickcol( 2 );
+
+                  lo.addx();
+                  li.addx();
+               }
+               oy.addy();
+               iy.addy();
+            }
          }
       }
 

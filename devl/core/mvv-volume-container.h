@@ -2,6 +2,7 @@
 # define CORE_MVV_VOLUME_CONTAINER_H_
 
 # include "core.h"
+# include <mvvPlatform/context-global.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
 # include <mvvPlatform/resource-typedef.h>

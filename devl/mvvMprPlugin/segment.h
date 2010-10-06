@@ -207,6 +207,11 @@ namespace platform
          return _slicer.getRawSlices();
       }
 
+      ui32 getRemainingOrderToComplete()
+      {
+         return _slicer.getRemainingOrderToComplete();
+      }
+
    protected:
       void updateToolsList();
 

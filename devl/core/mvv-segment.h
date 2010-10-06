@@ -444,6 +444,9 @@ public:
    }
 };
 
+void waitUntilSegmentIsReadyToDisplayAllVolumes( platform::Segment& segment, platform::ContextGlobal* global, CompilerFrontEnd& e );
+
+
 class FunctionSegmentGetRawImage: public FunctionRunnable
 {
 public:
@@ -455,40 +458,7 @@ public:
    {
    }
 
-   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
-   {
-      if ( args.size() != 1 )
-      {
-         throw std::runtime_error( "unexpected number of arguments" );
-      }
-
-      // discard the second arg: just a flag!
-
-      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
-
-      // check we have the data
-      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
-      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
-      PointeeImage* p = new PointeeImage();
-
-      p->getValue().clone( pointee->segment.getRawMpr().getValue().getStorage() );
-
-      
-
-      // create a runtime value with a destructor
-      RuntimeValue rt( RuntimeValue::TYPE );
-      Type* t = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Image" ) ) ) );
-      if ( !t )
-      {
-         throw std::runtime_error( "internal error: cannot instanciate Image type" );
-      }
-
-      RuntimeValues* vals = new RuntimeValues( 1 );
-      (*vals)[ 0 ] = RuntimeValue( RuntimeValue::PTR );
-      (*vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( p );
-      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), t, vals );
-      return rt;
-   }
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args );
 
 private:
    CompilerFrontEnd& _e;
@@ -520,6 +490,15 @@ public:
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
       PointeeImage* p = new PointeeImage();
+
+      // wait for all orders to complete...
+      platform::ContextGlobal* global = (*_e.getContextExtension()).get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      waitUntilSegmentIsReadyToDisplayAllVolumes( pointee->segment, global, _e );
 
       p->getValue().clone( pointee->segment.segment.getValue().getStorage() );
 
@@ -575,6 +554,15 @@ public:
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // wait for all orders to complete...
+      platform::ContextGlobal* global = (*_e.getContextExtension()).get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      waitUntilSegmentIsReadyToDisplayAllVolumes( pointee->segment, global, _e );
 
 
       PointeeImage* p = new PointeeImage();

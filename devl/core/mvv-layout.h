@@ -1,10 +1,10 @@
 #ifndef CORE_MVV_LAYOUT_H_
 # define CORE_MVV_LAYOUT_H_
 
-# include "mvv-image.h"
 # include "core.h"
 # include "mvv-segment.h"
 # include "mvv-mip-tools.h"
+# include "mvv-image.h"
 # include <mvvScript/compiler.h>
 
 # include <mvvScript/function-runnable.h>

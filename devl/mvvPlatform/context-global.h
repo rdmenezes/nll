@@ -19,7 +19,7 @@ namespace platform
    class MVVPLATFORM_API ContextGlobal : public ContextInstance
    {
    public:
-      ContextGlobal( EngineHandlerImpl& e, OrderManagerThreadPool& o, Font& font ) : engineHandler( e ), orderManager( o ), commonFont( font )
+      ContextGlobal( EngineHandlerImpl& e, OrderManagerThreadPool& o, Font& font, nll::core::Image<ui8>& sscreen ) : engineHandler( e ), orderManager( o ), commonFont( font ), screen( sscreen )
       {}
 
       // we need copy: we can't actually store these in the context: they need to be alive while all resources are being deallocated
@@ -28,6 +28,7 @@ namespace platform
       Font&                                commonFont;
       RefcountedTyped<Pane>                layout;
       RefcountedTyped<parser::CompletionInterface> completion;
+      nll::core::Image<ui8>&               screen;
 
    private:
       // disabled copy

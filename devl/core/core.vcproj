@@ -431,6 +431,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-segment.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-segment.h"
 				>
 			</File>

@@ -1642,7 +1642,8 @@ struct TestEval
 
          // context setup
          platform::Context context;
-         context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr() ) );
+         nll::core::Image<nll::ui8> i;
+         context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr(), i ) );
          context.add( new platform::ContextVolumes() );
          context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 
@@ -1665,7 +1666,8 @@ struct TestEval
 
          // context setup
          platform::Context context;
-         context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr() ) );
+         nll::core::Image<nll::ui8> i;
+         context.add( new platform::ContextGlobal( handler, pool, *font.getDataPtr(), i ) );
          context.add( new platform::ContextVolumes() );
          context.add( new platform::ContextTools( context.get<platform::ContextVolumes>()->volumes, handler, pool ) );
 

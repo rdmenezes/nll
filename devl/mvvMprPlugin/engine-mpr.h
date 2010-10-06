@@ -205,6 +205,16 @@ namespace platform
             _nbOrdersSend = 0;
          }
 
+         ui32 getRemainingOrderToComplete()
+         {
+            int nbVolumes = 0;
+            // if we have volumes being loaded... we need to count them
+            for ( ResourceVolumes::Iterator it = volumes.begin(); it != volumes.end(); ++it )
+               ++nbVolumes;
+
+            return static_cast<ui32>( _ordersCheck.size() + abs( nbVolumes - (int)volumes.size()  ) );
+         }
+
          virtual void consume( Order* )
          {
             if ( _ordersCheck.size() == 0 )
@@ -455,6 +465,11 @@ namespace platform
             _dispatcher.disconnect( this );
          }
 
+         ui32 getRemainingOrderToComplete()
+         {
+            return _orderSend.isEmpty() != 1;
+         }
+
       protected:
          virtual bool _run()
          {
@@ -661,6 +676,12 @@ namespace platform
       ResourceMapImage getRawSlices()
       {
          return _sliceBlender.imagefs;
+      }
+
+      ui32 getRemainingOrderToComplete()
+      {
+         return _mprSlicer.getRemainingOrderToComplete() +
+                _sliceBlender.getRemainingOrderToComplete();
       }
 
    private:

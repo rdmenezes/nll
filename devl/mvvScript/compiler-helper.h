@@ -126,7 +126,7 @@ namespace parser
          vals[ n ].type = RuntimeValue::CMP_FLOAT;
    }
 
-   void getVector3iValues( RuntimeValue& vector, nll::core::vector3i& out )
+   inline void getVector3iValues( RuntimeValue& vector, nll::core::vector3i& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 3 )
@@ -140,7 +140,7 @@ namespace parser
       out[ 2 ] = vec[ 2 ].intval;
    }
 
-   void getVector2iValues( RuntimeValue& vector, nll::core::vector2i& out )
+   inline void getVector2iValues( RuntimeValue& vector, nll::core::vector2i& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 2 )
@@ -153,7 +153,7 @@ namespace parser
       out[ 1 ] = vec[ 1 ].intval;
    }
 
-   void getVector3fValues( RuntimeValue& vector, nll::core::vector3f& out )
+   inline void getVector3fValues( RuntimeValue& vector, nll::core::vector3f& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 3 )

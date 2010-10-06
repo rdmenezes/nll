@@ -589,16 +589,19 @@ class Segment
 
    /**
     @brief return the image currently displayed by the MPR without any annotations
+    @note blocking call: the thread will wait until the MPR can be fully displayed (e.g., volume is loading/going to be rendered...)
     */
    import Image getRawImage();
 
    /**
     @brief return the image currently displayed by the MPR with annotations and tools
+    @note blocking call: the thread will wait until the MPR can be fully displayed (e.g., volume is loading/going to be rendered...)
     */
    import Image getImage();
    
    /**
     @brief return the raw data of a MPR of a volume. The segment must be in a layout to return an up to date image.
+    @note blocking call: the thread will wait until the MPR can be fully displayed (e.g., volume is loading/going to be rendered...)
     */
    import Imagef getRawImage( VolumeID v );
 }

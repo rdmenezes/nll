@@ -175,7 +175,7 @@ namespace mvv
          ContextSegments* ctxSegments = new ContextSegments();
          context.add( ctxSegments );
 
-         ContextGlobal* ctxGlobal = new ContextGlobal( engineHandler, orderManager, *font );
+         ContextGlobal* ctxGlobal = new ContextGlobal( engineHandler, orderManager, *font, screen );
          ctxGlobal->completion = RefcountedTyped<parser::CompletionInterface>( new parser::Completion( compiler ) );
 
          context.add( ctxGlobal );
