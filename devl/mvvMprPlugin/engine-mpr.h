@@ -203,6 +203,7 @@ namespace platform
             }
             interpolation.connect( this );
             _nbOrdersSend = 0;
+            _dummy.setPst( nll::core::identityMatrix<nll::core::Matrixf>( 4 ) );
          }
 
          ui32 getRemainingOrderToComplete()
@@ -291,6 +292,23 @@ namespace platform
             if ( hasVolumes )
             {
                ++_nbOrdersSend;
+            } else {
+               // display a fake volume to empty the MPR
+               _ready = false;
+               OrderSliceCreator* slicer = new OrderSliceCreator( clock(),
+                                                                  position.getValue(),
+                                                                  directionx.getValue(),
+                                                                  directiony.getValue(),
+                                                                  panning.getValue(),
+                                                                  zoom.getValue(),
+                                                                  size.getValue(),
+                                                                  nll::core::identityMatrix<nll::core::Matrixf>( 4 ),
+                                                                  currentInterpolation,
+                                                                  _dummy,
+                                                                  SymbolVolume::create("DUMMY_VOLUME_SLICER") );
+               RefcountedTyped<Order> order( slicer );
+               orders.push_back( order );
+               _orderProvider.pushOrder( &*order );
             }
 
             _ordersSend = orders;
@@ -310,6 +328,9 @@ namespace platform
          std::vector< RefcountedTyped<Order> >  _ordersCheck;
          bool& _ready;              /// if ready, it means the blender has launched the blending order, we can now pipeline new set of slicer orders...
          ui32& _nbOrdersSend;       /// count the number of slicer orders set that the blender must handle. As we are pipelining the slicing order while the blender is blending another set, we need to know if the blender needs to update as a new set of order may have been computed...
+
+      private:
+         Volume _dummy;             // gold an empty dummy volume, used when there is no volume to render
       };
 
 
@@ -363,6 +384,7 @@ namespace platform
             }
 
             // prepare blending
+            ResourceLut::lut_type dummy(0, 0.1, 1);
 			   for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
             {
                OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( *it );
@@ -382,6 +404,10 @@ namespace platform
                if ( res )
                {
                   sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity / sumIntensities, *itLut->second ) );
+               } else {
+                  // if we don't have a matching lut, use a dmmy LUT that will display nothing (used to empty the MPR if there is nothing to display)
+                  sliceInfos.push_back( nll::imaging::BlendSliceInfof<ResourceLut::lut_type>( result->getSlice(), intensity / sumIntensities, dummy ) );
+                  std::cout << "warning: display MPR with no LUT found..." << std::endl;
                }
             }
             

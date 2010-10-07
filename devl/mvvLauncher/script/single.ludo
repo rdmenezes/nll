@@ -145,13 +145,11 @@ Layout l4( mip1 );
 
 Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
-print("----LAYOUT CREATED----");
-Layout layout1 = layout;
 
 
-Image m = segment1.getRawImage();
-writeBmp( m, "c:/tx.bmp" );
+//Image m = segment1.getRawImage();
+//writeBmp( m, "c:/tx.bmp" );
 ImageHolder holder;
-holder.set(m);
 
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
+Layout layout1 = layout;

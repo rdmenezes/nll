@@ -294,7 +294,6 @@ namespace platform
       bool find( const Key k, Value& out )
       {
          typename BaseValue::iterator it = getValue().find( k );
-         BaseValue& base = getValue();
          if ( it != getValue().end() )
          {
             ResourceState s = (*it).second.getState();
