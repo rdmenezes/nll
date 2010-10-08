@@ -143,8 +143,8 @@ Layout l3( segment3 );
 Layout l6( Console() );
 Layout l4( mip1 );
 
-Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
-Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
+Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.50), Layout(horizontal, l3, l4, 0.50), 0.50 );
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.10);
 
 
 //Image m = segment1.getRawImage();

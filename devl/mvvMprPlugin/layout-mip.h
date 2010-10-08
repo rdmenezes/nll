@@ -72,6 +72,27 @@ namespace platform
             oy.addy();
             iy.addy();
          }
+
+         // draw canvas
+         Image::DirectionalIterator oy2 = image.getIterator( _origin[ 0 ], _origin[ 1 ] + _size[ 1 ] - 1, 0 );
+         for ( ui32 n = 0; n < _size[ 0 ]; ++n )
+         {
+            oy2.pickcol( 0 ) = 180;
+            oy2.pickcol( 1 ) = 180;
+            oy2.pickcol( 2 ) = 180;
+
+            oy2.addx();
+         }
+
+         oy2 = image.getIterator( _origin[ 0 ] + _size[ 0 ] - 1, _origin[ 1 ], 0 );
+         for ( ui32 n = 0; n < _size[ 1 ]; ++n )
+         {
+            oy2.pickcol( 0 ) = 255;
+            oy2.pickcol( 1 ) = 255;
+            oy2.pickcol( 2 ) = 255;
+
+            oy2.addy();
+         }
       }
 
       virtual Pane* find( const mvv::Symbol& )

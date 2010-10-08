@@ -387,7 +387,14 @@ namespace platform
                PaneRef p = *it;
                double ratio = _ratios[ n ] / ratioToDraw;
                (*p).setOrigin( nll::core::vector2ui( getOrigin()[ 0 ] + ratioShift, getOrigin()[ 1 ] ) );
-               (*p).setSize( nll::core::vector2ui( (ui32)( ratio * getSize()[ 0 ] ), getSize()[ 1 ] ) );
+
+               if ( n == _panes.size() )
+               {
+                  // we need to fill the full pane (there will be one or two pixel off due to rounding errors)
+                  (*p).setSize( nll::core::vector2ui( getSize()[ 0 ] - (*p).getOrigin()[ 0 ], getSize()[ 1 ] ) );
+               } else {
+                  (*p).setSize( nll::core::vector2ui( (ui32)( ratio * getSize()[ 0 ] ), getSize()[ 1 ] ) );
+               }
                ratioShift += (*p).getSize()[ 0 ];
                (*p).updateLayout();
             }
@@ -450,7 +457,14 @@ namespace platform
                PaneRef p = *it;
                double ratio = _ratios[ n ] / ratioToDraw;
                (*p).setOrigin( nll::core::vector2ui( getOrigin()[ 0 ], getOrigin()[ 1 ] + ratioShift ) );
-               (*p).setSize( nll::core::vector2ui( getSize()[ 0 ], (ui32)( ratio * getSize()[ 1 ] ) ) );
+
+               if ( n == _panes.size() )
+               {
+                  // we need to fill the full pane (there will be one or two pixel off due to rounding errors)
+                  (*p).setSize( nll::core::vector2ui( getSize()[ 0 ], getSize()[ 1 ] - (*p).getOrigin()[ 1 ] ) );
+               } else {
+                  (*p).setSize( nll::core::vector2ui( getSize()[ 0 ], (ui32)( ratio * getSize()[ 1 ] ) ) );
+               }
                ratioShift += (*p).getSize()[ 1 ];
                (*p).updateLayout();
             }

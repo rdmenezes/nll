@@ -438,7 +438,7 @@ namespace platform
       void _displayProgression( float progress )
       {
          ResourceSliceuc::value_type& slice = outImage.getValue();
-         if ( !slice.size()[ 0 ] || !slice.size()[ 1 ] )
+         if ( slice.size()[ 0 ] < 2 || !slice.size()[ 1 ] )
          {
             // in case the display is not ready
             return;
@@ -446,13 +446,17 @@ namespace platform
 
          typedef ResourceSliceuc::value_type Slice;
          typedef Slice::value_type           Image;
-         Image::DirectionalIterator it = slice.getStorage().getIterator( 0, 0, 0 );
+         Image::DirectionalIterator it1 = slice.getStorage().getIterator( 0, 0, 0 );
+         Image::DirectionalIterator it2 = slice.getStorage().getIterator( 1, 0, 0 );
 
          ui32 nb = static_cast<ui32>( slice.size()[ 1 ] * progress );
          for ( ui32 n = 0; n < nb; ++n )
          {
-            *it = 255;
-            it.addy();
+            *it1 = 255;
+            it1.addy();
+
+            *it2 = 255;
+            it2.addy();
          }
       }
 
