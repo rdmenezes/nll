@@ -2323,15 +2323,87 @@ struct TestEval
          TESTER_ASSERT( rt.intval == 8 );
       }
    }
+
+   void eval7()
+   {
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Image{Image(int n){}} typedef void(Image i) Callback;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int(int i) Callback; int call( int i ){return i;} Callback callback = call; int i = 42;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& rt = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "callback" ) ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FUN_PTR );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "i" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+
+         RuntimeValue returnResult = fe.evaluateCallback( rt, nll::core::make_vector<RuntimeValue>( i ) );
+         TESTER_ASSERT( returnResult.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( returnResult.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Image{int nn; Image(int n){ nn = n;} int get(){ return nn;}} typedef int(Image i) Callback; int call( Image i ){return i.get();} Callback callback = call; Image i(42);" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& rt = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "callback" ) ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FUN_PTR );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "i" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::TYPE );
+
+         RuntimeValue returnResult = fe.evaluateCallback( rt, nll::core::make_vector<RuntimeValue>( i ) );
+         TESTER_ASSERT( returnResult.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( returnResult.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int(int n) Callback; class Test{int test; Test( int t ){ test = t;} int call(int n){return test;}} int dummy = 42; Test t(43); Callback callback = t.call;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& rt = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "callback" ) ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FUN_PTR );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "dummy" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+
+         RuntimeValue returnResult = fe.evaluateCallback( rt, nll::core::make_vector<RuntimeValue>( i ) );
+         TESTER_ASSERT( returnResult.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( returnResult.intval == 43 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int(int n) Callback; class Test{int test; Test( int t ){ test = t;} int call(int n){return n;}} int dummy = 42; Test t(43); Callback callback = t.call;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& rt = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "callback" ) ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::FUN_PTR );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "dummy" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+
+         RuntimeValue returnResult = fe.evaluateCallback( rt, nll::core::make_vector<RuntimeValue>( i ) );
+         TESTER_ASSERT( returnResult.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( returnResult.intval == 42 );
+      }
+   }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
-*/
+TESTER_TEST(eval7);
 TESTER_TEST_SUITE_END();

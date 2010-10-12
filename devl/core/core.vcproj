@@ -427,6 +427,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-segment-tool-postprocessing.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-segment-tool.h"
 				>
 			</File>

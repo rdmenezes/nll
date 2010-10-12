@@ -519,6 +519,19 @@ class SegmentToolCamera
 }
 
 /**
+ @brief Defines a callback to postprocess a MPR/MIP
+ */
+typedef void(Image image, Vector2f spacing, Vector3f origin)   SegmentPostprocessingCallback;
+
+class SegmentToolPostprocessing
+{
+   import SegmentToolPostprocessing();
+   import ~SegmentToolPostprocessing();
+
+   void setCallback( SegmentPostprocessingCallback callback );
+}
+
+/**
  @ingroup mvv
  @brief Represents a MPR segment
  @note reference on tools are saved in the segment
@@ -586,6 +599,12 @@ class Segment
     @brief attach centering tool
     */
    import void setTool( SegmentToolCentering centering );
+
+   /**
+    @brief callback that will be called after all MPR rendering processing have been done to add an easy (but inefficient)
+           postprocessing effect
+    */
+   import void setTool( SegmentPostprocessingCallback callback );
 
    /**
     @brief return the image currently displayed by the MPR without any annotations

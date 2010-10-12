@@ -169,6 +169,7 @@ namespace platform
          return _segment;
       }
 
+      // only a pointer is stored, the object must be kept alive!
       virtual void connect( SegmentTool* tool );     
 
       virtual void disconnect( SegmentTool* tool );

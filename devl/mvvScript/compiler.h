@@ -115,6 +115,33 @@ namespace parser
          _sandbox = false;
       }
 
+      RuntimeValue evaluateCallback( RuntimeValue callback, std::vector<RuntimeValue>& arguments )
+      {
+         if ( callback.type != RuntimeValue::FUN_PTR )
+            throw std::runtime_error( "callback must be a function/member pointer!" );
+         AstDeclFun* functionToCall = callback.functionPointer;
+         AstDeclVars::Decls& args = functionToCall->getVars().getVars();
+         if ( args.size() != arguments.size() )
+            throw std::runtime_error( "the number of arguments and callback arguments doesn't match" );
+
+         bool tab = ( functionToCall->getMemberOfClass() != 0 );   // we need to put the object adress...
+         if ( !tab )
+         {
+            // simple function pointer, just call the function
+            (*_eval)._callFunction( *functionToCall, arguments );
+         } else {
+            // member pointer, we need to fetch object in at the first position
+            std::vector<RuntimeValue> vals( args.size() + 1 );
+            vals[ 0 ] = callback;   // the call back holds the value of the obect
+            vals[ 0 ].type = RuntimeValue::TYPE;   // it is a type and not a function pointer anymore (.vals has the values)
+            for ( ui32 n = 0; n < arguments.size(); ++n )
+               vals[ 1 + n ] = arguments[ n ];
+            (*_eval)._callFunction( *functionToCall, vals );
+         }
+
+         return _env.resultRegister;
+      }
+
       ~CompilerFrontEnd()
       {
          clear();

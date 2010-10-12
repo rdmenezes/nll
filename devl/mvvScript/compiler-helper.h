@@ -62,6 +62,21 @@ namespace parser
       (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::CMP_FLOAT;
    }
 
+   inline void createVector2f( RuntimeValue& val, float x, float y )
+   {
+      val.type = RuntimeValue::TYPE;
+
+      createFields( val, 1 );
+      (*val.vals)[ 0 ].type = RuntimeValue::TYPE;
+      createFields( (*val.vals)[ 0 ], 2 );
+
+      (*(*val.vals)[ 0 ].vals)[ 0 ].floatval = x;
+      (*(*val.vals)[ 0 ].vals)[ 1 ].floatval = y;
+
+      (*(*val.vals)[ 0 ].vals)[ 0 ].type = RuntimeValue::CMP_FLOAT;
+      (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::CMP_FLOAT;
+   }
+
    inline void createMatrix3f( RuntimeValue& val, const nll::core::Matrix<float>& m )
    {
       assert( m.sizex() == 3 && m.sizey() == 3 );

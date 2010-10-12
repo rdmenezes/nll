@@ -19,6 +19,7 @@
 #include "mvv-matrix.h"
 #include "mvv-image.h"
 #include "mvv-imagef.h"
+#include "mvv-segment-tool-postprocessing.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -2616,7 +2617,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    //
-   // SegmentToolCentering
+   // Segment   Centering
    //
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "SegmentToolCentering"), platform::Symbol::create( "SegmentToolCentering" ) ), std::vector<const Type*>() );
@@ -2791,6 +2792,13 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Segment"), platform::Symbol::create( "setTool" ) ), nll::core::make_vector<const Type*>( tool ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentSetToolPointer( fn ) ) );
+   }
+
+   {
+      Type* tool = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "SegmentPostprocessingCallback" ) ) ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Segment"), platform::Symbol::create( "setTool" ) ), nll::core::make_vector<const Type*>( tool ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentSetPostprocessing( fn, e ) ) );
    }
 
    {

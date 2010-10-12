@@ -3,6 +3,7 @@
 
 # include "typable.h"
 # include "ast-exp.h"
+# include "ast-decl-vars.h"
 
 namespace mvv
 {
@@ -144,6 +145,10 @@ namespace parser
       AstFunctionType( const YYLTYPE& location, AstTypeT* returnType, AstDeclVars* args ) : AstTypeT( location, 0 ), _returnType( returnType ), _args( args )
       {
          ensure( returnType && args, "can't be null" );
+         for ( AstDeclVars::Decls::iterator it = args->getVars().begin(); it != args->getVars().end(); ++it )
+         {
+            (*it)->setIsInFunctionPrototype();
+         }
       }
 
       ~AstFunctionType();

@@ -153,3 +153,13 @@ ImageHolder holder;
 
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 Layout layout1 = layout;
+
+
+void postProcessing(Image image, Vector2f spacing, Vector3f origin)
+{
+   print( "HAHAHA" );
+}
+
+//segment1.setTool( postProcessing );
+//segment2.setTool( postProcessing );
+segment3.setTool( postProcessing );

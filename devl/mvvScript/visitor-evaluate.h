@@ -506,8 +506,6 @@ namespace parser
          }
       }
 
-      
-
       /**
        @brief evaluate a function/memberfunction
        @note if memberfunction, just put the object in vals[0]
