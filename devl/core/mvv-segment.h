@@ -47,6 +47,7 @@ namespace impl
       RuntimeValue      toolCamera;
       RuntimeValue      toolAnnotations;
       RuntimeValue      toolAutocenter;
+      RuntimeValue      toolPostprocessing;
    };
 }
 

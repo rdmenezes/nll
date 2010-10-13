@@ -183,6 +183,7 @@ public:
 
       // connect the current tool
       pointee->segment.connect( tool );
+      pointee->toolPostprocessing = v2;
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }

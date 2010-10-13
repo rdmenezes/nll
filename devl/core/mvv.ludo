@@ -537,6 +537,7 @@ class ToolPostprocessing
  @ingroup mvv
  @brief Represents a MPR segment
  @note reference on tools are saved in the segment
+ @note tools attached to a segment can have only one instance (else they will be detached automatically)
  */
 class Segment
 {
@@ -610,18 +611,21 @@ class Segment
 
    /**
     @brief return the image currently displayed by the MPR without any annotations
+    @note this will create a new image, and not a reference on the MPR output
     @note blocking call: the thread will wait until the MPR can be fully displayed (e.g., volume is loading/going to be rendered...)
     */
    import Image getRawImage();
 
    /**
     @brief return the image currently displayed by the MPR with annotations and tools
+    @note this will create a new image, and not a reference on the MPR output
     @note blocking call: the thread will wait until the MPR can be fully displayed (e.g., volume is loading/going to be rendered...)
     */
    import Image getImage();
    
    /**
     @brief return the raw data of a MPR of a volume. The segment must be in a layout to return an up to date image.
+    @note this will create a new image, and not a reference on the MPR output
     @note blocking call: the thread will wait until the MPR can be fully displayed (e.g., volume is loading/going to be rendered...)
     */
    import Imagef getRawImage( VolumeID v );
