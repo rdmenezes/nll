@@ -20,6 +20,7 @@
 #include "layout-mip.h"
 #include "annotation-line.h"
 #include "segment-tool-postprocessing.h"
+#include "mip-tool-postprocessing.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

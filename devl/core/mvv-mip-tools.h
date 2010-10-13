@@ -11,6 +11,8 @@
 # include <mvvMprPlugin/context-segments.h>
 # include <mvvMprPlugin/mip-tool-pointer.h>
 # include <mvvMprPlugin/mip.h>
+# include <mvvMprPlugin/mip-tool-postprocessing.h>
+#include "mvv-segment-tool-postprocessing.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -106,6 +108,7 @@ namespace impl
       // hold a reference on other objects
       RuntimeValue      toolPointer;
       RuntimeValue      toolAnnotations;
+      RuntimeValue      toolPostprocessing;
    };
 }
 
@@ -291,5 +294,58 @@ public:
       return rt;
    }
 };
+
+
+class FunctionMipSetPostprocessing: public FunctionRunnable
+{
+public:
+   typedef ::impl::MipStorage Pointee;
+   typedef FunctionToolPostprocessingConstructor::Pointee PointeeTool;
+
+public:
+   FunctionMipSetPostprocessing( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw std::runtime_error( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      PointeeTool* tool = reinterpret_cast<PointeeTool*>( (*v2.vals)[ 0 ].ref );
+
+      // disconnect previous tools
+      std::set<MipToolPostProcessing*> tools = pointee->mip.getTools<MipToolPostProcessing>();
+      for ( std::set<MipToolPostProcessing*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->mip.disconnect( *it );
+      }
+
+      // connect the current tool
+      pointee->mip.connect( &(*tool->postprocessingMip) );
+      pointee->toolPostprocessing = v2;
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   CompilerFrontEnd&             _e;
+};
+
 
 #endif

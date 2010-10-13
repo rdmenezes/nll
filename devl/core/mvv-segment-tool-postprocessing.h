@@ -58,7 +58,13 @@ namespace impl
          values[ 1 ] = spacing;
          values[ 2 ] = origin;
 
-         _e.evaluateCallback( _fptr, values );
+         try
+         {
+            _e.evaluateCallback( _fptr, values );
+         } catch ( std::runtime_error e )
+         {
+            std::cout << "error in postprocessing callback=" << e.what() << std::endl;
+         }
       }
 
    private:
@@ -72,7 +78,66 @@ namespace impl
    };
 }
 
+namespace impl
+{
+   struct PostprocessingStorage
+   {
+      typedef SegmentToolPostProcessing   PointeeSegment;
+      typedef MipToolPostProcessing       PointeeMip;
 
+      RefcountedTyped<PointeeSegment>     postprocessingSegment;
+      RefcountedTyped<PointeeMip>         postprocessingMip;
+
+      PostprocessingStorage( RefcountedTyped<PointeeSegment> s, RefcountedTyped<PointeeMip> m ) : postprocessingSegment( s ), postprocessingMip( m )
+      {}
+   };
+}
+
+class FunctionToolPostprocessingConstructor: public FunctionRunnable
+{
+public:
+   typedef ::impl::PostprocessingStorage Pointee;
+   typedef Pointee::PointeeSegment   PointeeSegment;
+   typedef Pointee::PointeeMip       PointeeMip;
+
+public:
+   FunctionToolPostprocessingConstructor( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+
+      // construct the type
+      ::impl::PostProcessing* postProcessing = new ::impl::PostProcessing( v2, _e );
+      RefcountedTyped<ToolPostProcessingInterface> ref( postProcessing );
+      PointeeSegment* tool1 = new PointeeSegment( ref );
+      PointeeMip* tool2 = new PointeeMip( ref );
+
+      // create the storage
+      Pointee* tool = new Pointee( RefcountedTyped<PointeeSegment>( tool1 ), RefcountedTyped<PointeeMip>( tool2 ) );
+
+      RuntimeValue field( RuntimeValue::PTR );
+      field.ref = reinterpret_cast<RuntimeValue*>( tool ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
+      (*v1.vals).resize( 1 );    // resize the original field
+      (*v1.vals)[ 0 ] = field;
+
+      return v1;  // return the original object!
+   }
+
+private:
+    CompilerFrontEnd&   _e;
+};
+
+/*
 class FunctionToolPostprocessingConstructor: public FunctionRunnable
 {
 public:
@@ -107,7 +172,7 @@ public:
 
 private:
     CompilerFrontEnd&   _e;
-};
+};*/
 
 class FunctionToolPostprocessingDestructor: public FunctionRunnable
 {
@@ -182,7 +247,7 @@ public:
       }
 
       // connect the current tool
-      pointee->segment.connect( tool );
+      pointee->segment.connect( &(*tool->postprocessingSegment) );
       pointee->toolPostprocessing = v2;
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -191,6 +256,5 @@ public:
 private:
    CompilerFrontEnd&             _e;
 };
-
 
 #endif

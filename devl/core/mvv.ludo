@@ -675,6 +675,12 @@ class Mip
     @brief Attach annotations to the MIP
     */
    import void setTool( ToolAnnotations annotations );
+
+   /**
+    @brief callback that will be called after all MPR rendering processing have been done to add an easy (but inefficient)
+           postprocessing effect
+    */
+   import void setTool( ToolPostprocessing callback );
 }
 
 /**

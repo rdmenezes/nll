@@ -596,4 +596,5 @@ private:
    CompilerFrontEnd& _e;
 };
 
+
 #endif

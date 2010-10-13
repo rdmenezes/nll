@@ -688,10 +688,10 @@ public:
       nll::core::vector3uc colorc( static_cast<ui8>( color[ 0 ] ),
                                    static_cast<ui8>( color[ 1 ] ),
                                    static_cast<ui8>( color[ 2 ] ) );
-      for ( ui32 y = p1[ 1 ]; y <= p2[ 1 ]; ++y )
+      for ( int y = p1[ 1 ]; y <= p2[ 1 ]; ++y )
       {
          Pointee::value_type::DirectionalIterator it = image.getIterator( p1[ 0 ], y, 0 );
-         for ( ui32 x = p1[ 0 ]; x <= p2[ 1 ]; ++x )
+         for ( int x = p1[ 0 ]; x <= p2[ 1 ]; ++x )
          {
             *it = colorc[ 0 ]; it.addcol();
             *it = colorc[ 1 ]; it.addcol();

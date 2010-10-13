@@ -463,6 +463,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mip-tool-postprocessing.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mip-tool-sorter.h"
 				>
 			</File>

@@ -30,7 +30,7 @@ namespace platform
       {
       }
 
-      virtual void receive( Segment& s, const EventMouse& e, const nll::core::vector2ui& )
+      virtual void receive( Segment&, const EventMouse&, const nll::core::vector2ui& )
       {
          // do nothing
       }
