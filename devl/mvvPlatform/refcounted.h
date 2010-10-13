@@ -226,21 +226,24 @@ namespace platform
          return *reinterpret_cast<T*>( _data->data );
       }
 
+      
       T& operator*()
       {
          ensure( getNumberOfReference(), "invalid operation" );
          return *reinterpret_cast<T*>( _data->data );
       }
-
-      T* operator&()
-      {
-         return reinterpret_cast<T*>( _data->data );
-      }
-
+      
       const T& operator*() const
       {
          ensure( getNumberOfReference(), "invalid operation" );
          return *reinterpret_cast<T*>( _data->data );
+      }
+
+      /*
+      // we really don't want to remove the operator& else we can't have a pointer on a resource!
+      T* operator&()
+      {
+         return reinterpret_cast<T*>( _data->data );
       }
 
       const T* operator&() const
@@ -248,7 +251,7 @@ namespace platform
          return reinterpret_cast<T*>( _data->data );
       }
 
-      /*
+      
       const T& operator->() const
       {
          return *reinterpret_cast<T*>( _data->data );

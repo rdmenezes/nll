@@ -7,7 +7,7 @@ namespace mvv
 {
 namespace platform
 {
-   class MVVMPRPLUGIN_API SegmentToolPostProcessingInterface
+   class MVVMPRPLUGIN_API ToolPostProcessingInterface
    {
    public:
       /**
@@ -16,7 +16,7 @@ namespace platform
        */
       virtual void run( Sliceuc& s ) = 0;
 
-      virtual ~SegmentToolPostProcessingInterface(){}
+      virtual ~ToolPostProcessingInterface(){}
    };
 
    /**
@@ -26,7 +26,7 @@ namespace platform
    class MVVMPRPLUGIN_API SegmentToolPostProcessing : public SegmentTool
    {
    public:
-      SegmentToolPostProcessing( RefcountedTyped<SegmentToolPostProcessingInterface> processor ) : SegmentTool( true ), _processor( processor )
+      SegmentToolPostProcessing( RefcountedTyped<ToolPostProcessingInterface> processor ) : SegmentTool( true ), _processor( processor )
       {
       }
 
@@ -42,7 +42,7 @@ namespace platform
 
       virtual bool isSavingMprImage() const
       {
-         return true;
+         return false;
       }
 
       virtual void updateSegment( ResourceSliceuc slice, Segment& )
@@ -51,7 +51,7 @@ namespace platform
       }
 
    protected:
-      RefcountedTyped<SegmentToolPostProcessingInterface> _processor;
+      RefcountedTyped<ToolPostProcessingInterface> _processor;
    };
 }
 }

@@ -2755,6 +2755,23 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    //
+   // ToolPostprocessing
+   //
+   {
+      Type* callback = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "PostprocessingCallback" ) ) ) );
+      assert( callback );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolPostprocessing"), platform::Symbol::create( "ToolPostprocessing" ) ), nll::core::make_vector<const Type*>( callback ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolPostprocessingConstructor( fn, e ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolPostprocessing"), platform::Symbol::create( "~ToolPostprocessing" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolPostprocessingDestructor( fn ) ) );
+   }
+
+   //
    // Segment
    //
    {
@@ -2795,7 +2812,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
-      Type* tool = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "SegmentPostprocessingCallback" ) ) ) );
+      Type* tool = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ToolPostprocessing" ) ) ) );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Segment"), platform::Symbol::create( "setTool" ) ), nll::core::make_vector<const Type*>( tool ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentSetPostprocessing( fn, e ) ) );
@@ -3312,5 +3329,15 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "crop") ), nll::core::make_vector<const Type*>( im, vec, vec ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageCrop( fn ) ) );
+   }
+
+   {
+      Type* im = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Image" ) ) ) );
+      Type* vec = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector2i" ) ) ) );
+      Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
+      assert( im && vec && vec3 );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "drawRectangle") ), nll::core::make_vector<const Type*>( im, vec, vec, vec3 ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageDrawRectangle( fn ) ) );
    }
 }

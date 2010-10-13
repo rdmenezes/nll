@@ -87,3 +87,8 @@ import void extend( Image i, int nbComponents );
 import void crop( Image i, Vector2i min, Vector2i max );
 
 //import void copy( Image srd, Image dst, Vector2i position );
+
+/**
+ @brief draw a plain rectangle
+ */
+import void drawRectangle( Image i, Vector2i min, Vector2i max, Vector3i color );

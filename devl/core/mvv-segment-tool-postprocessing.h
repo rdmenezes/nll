@@ -24,7 +24,7 @@ using namespace mvv;
 
 namespace impl
 {
-   class PostProcessing : public SegmentToolPostProcessingInterface
+   class PostProcessing : public ToolPostProcessingInterface
    {
    public:
       PostProcessing( RuntimeValue fptr, CompilerFrontEnd& e ) : _fptr( fptr ), _e( e )
@@ -38,9 +38,13 @@ namespace impl
          // create the arguments
          mvv::platform::ResourceImageuc im;
          im.setValue( s.getStorage() );
+
          RuntimeValue image( RuntimeValue::TYPE );
-         createFields( image, 1, RuntimeValue::PTR );
-         (*image.vals)[ 0 ].ref = reinterpret_cast<RuntimeValue*>( &im );
+         RuntimeValues* vals = new RuntimeValues( 1 );
+         (*vals)[ 0 ] = RuntimeValue( RuntimeValue::PTR );
+         RuntimeValue* ptr = reinterpret_cast<RuntimeValue*>( &im );
+         (*vals)[ 0 ].ref = ptr;
+         image.vals = RuntimeValue::RefcountedValues( 0, 0, vals );
 
          RuntimeValue spacing;
          createVector2f( spacing, s.getSpacing()[ 0 ], s.getSpacing()[ 1 ] );
@@ -68,10 +72,80 @@ namespace impl
    };
 }
 
+
+class FunctionToolPostprocessingConstructor: public FunctionRunnable
+{
+public:
+   typedef SegmentToolPostProcessing Pointee;
+
+public:
+   FunctionToolPostprocessingConstructor( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+
+      // construct the type
+      ::impl::PostProcessing* postProcessing = new ::impl::PostProcessing( v2, _e );
+      Pointee* tool = new Pointee( RefcountedTyped<ToolPostProcessingInterface>( postProcessing ) );
+      RuntimeValue field( RuntimeValue::PTR );
+      field.ref = reinterpret_cast<RuntimeValue*>( tool ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
+      (*v1.vals).resize( 1 );    // resize the original field
+      (*v1.vals)[ 0 ] = field;
+
+      return v1;  // return the original object!
+   }
+
+private:
+    CompilerFrontEnd&   _e;
+};
+
+class FunctionToolPostprocessingDestructor: public FunctionRunnable
+{
+public:
+   typedef FunctionToolPostprocessingConstructor::Pointee Pointee;
+
+public:
+   FunctionToolPostprocessingDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // deallocate data
+      delete pointee;
+      (*v1.vals)[ 0 ].ref = 0;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionSegmentSetPostprocessing: public FunctionRunnable
 {
 public:
    typedef ::impl::SegmentStorage Pointee;
+   typedef FunctionToolPostprocessingConstructor::Pointee PointeeTool;
 
 public:
    FunctionSegmentSetPostprocessing( const AstDeclFun* fun, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _e( e )
@@ -88,7 +162,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
 
-      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::FUN_PTR )
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
       {
          throw std::runtime_error( "wrong arguments" );
       }
@@ -96,6 +170,9 @@ public:
       // check we have the data
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      PointeeTool* tool = reinterpret_cast<PointeeTool*>( (*v2.vals)[ 0 ].ref );
 
       // disconnect previous tools
       std::set<SegmentToolPostProcessing*> tools = pointee->segment.getTools<SegmentToolPostProcessing>();
@@ -105,17 +182,14 @@ public:
       }
 
       // connect the current tool
-      RefcountedTyped<SegmentToolPostProcessingInterface> postProcessing( new ::impl::PostProcessing( v2, _e ) );
-      _tool = RefcountedTyped<SegmentTool>( new SegmentToolPostProcessing( postProcessing ) );
-      pointee->segment.connect( &(*_tool) );
-      
+      pointee->segment.connect( tool );
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 
 private:
-   RefcountedTyped<SegmentTool>  _tool;
    CompilerFrontEnd&             _e;
 };
+
 
 #endif

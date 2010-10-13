@@ -242,13 +242,13 @@ namespace platform
                                                        inputMip.getValue().getOrigin(),
                                                        inputMip.getValue().getSpacing() );
                   }
+
+                  // notify the changes
+                  outputMip.notify();
                }
 
                //do the changes on the output
                _tool->updateMip( outputMip, _mip );
-
-               // notify the changes
-               outputMip.notify();
             }
             return true;
          }

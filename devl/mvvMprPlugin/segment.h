@@ -99,13 +99,13 @@ namespace platform
                                                            inputSegment.getValue().getOrigin(),
                                                            inputSegment.getValue().getSpacing() );
                   }
+
+                  // notify the changes
+                  outputSegment.notify();
                }
 
                //do the changes on the output
                _tool->updateSegment( outputSegment, _segment );
-
-               // notify the changes
-               outputSegment.notify();
             }
             return true;
          }
