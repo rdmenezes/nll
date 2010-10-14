@@ -92,3 +92,13 @@ import void crop( Image i, Vector2i min, Vector2i max );
  @brief draw a plain rectangle
  */
 import void drawRectangle( Image i, Vector2i min, Vector2i max, Vector3i color );
+
+/**
+ @brief draw a plain line of width = 1
+ */
+import void drawLine( Image i, Vector2i p0, Vector2i p1, Vector3i color = Vector3i( 255, 255, 255 ) );
+
+/**
+ @brief draw a text in an image
+ */
+import void drawText( Image i, string text, Vector2i pos, int fontSize = 12, Vector3i color = Vector3i( 255, 255, 255 ) );

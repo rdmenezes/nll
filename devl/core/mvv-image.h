@@ -699,13 +699,193 @@ public:
          }
       }
 
-      
-      p->setValue( image );
       p->notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 };
+
+class FunctionImageDrawText : public FunctionRunnable
+{
+public:
+   typedef FunctionImageConstructor::Pointee Pointee;
+
+public:
+   FunctionImageDrawText( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 5 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
+
+      nll::core::vector2i pos;
+      nll::core::vector3i color;
+
+      parser::getVector2iValues( v3, pos );
+      parser::getVector3iValues( v5, color );
+      if ( color[ 0 ] < 0 || color[ 0 ] > 255 ||
+           color[ 1 ] < 0 || color[ 1 ] > 255 ||
+           color[ 2 ] < 0 || color[ 2 ] > 255 )
+      {
+         throw std::runtime_error( "a color must be in [0..255]^3" );
+      }
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      Pointee::value_type& image = p->getValue();
+
+      nll::core::vector3uc colorc( static_cast<ui8>( color[ 0 ] ),
+                                   static_cast<ui8>( color[ 1 ] ),
+                                   static_cast<ui8>( color[ 2 ] ) );
+      
+
+      global->commonFont.setColor( colorc );
+      global->commonFont.setSize( v4.intval );
+      global->commonFont.write( v2.stringval,
+                                nll::core::vector2ui( pos[ 0 ], pos[ 1 ] ),
+                                image,
+                                nll::core::vector2ui( 0, 0 ),
+                                nll::core::vector2ui( image.sizex(), image.sizey() ),
+                                false );
+      p->notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   Context& _context;
+};
+
+
+/*
+template <class Image, class Color>
+void bresham( Image& i, const nll::core::vector2i a1, const nll::core::vector2i a2, Color color )
+{
+   nll::core::vector2i p1 = a1;
+   nll::core::vector2i p2 = a2;
+   const bool steep = abs( p2[ 1 ] - p1[ 1 ] ) > abs( p2[ 0 ] - p1[ 0 ] );
+   if ( steep )
+   {
+      std::swap( p1[ 0 ], p1[ 1 ] );
+      std::swap( p2[ 0 ], p2[ 1 ] );
+   }
+   if ( p1[ 0 ] > p2[ 0 ] )
+   {
+      std::swap( p1[ 0 ], p2[ 0 ] );
+      std::swap( p1[ 1 ], p2[ 1 ] );
+   }
+   int deltax = p2[ 0 ] - p1[ 0 ];
+   int deltay = abs( p2[ 1 ] - p1[ 1 ] );
+   int error = deltax / 2;
+   int ystep = ( p1[ 1 ] < p2[ 1 ] ) ? 1 : -1;
+   int y = p1[ 1 ];
+
+   if ( steep )
+   {
+      typename Image::DirectionalIterator it = i.getIterator( y, p1[ 0 ], 0 );
+      for ( int x = p1[ 0 ]; x <= p2[ 0 ]; ++x )
+      {
+         for ( ui32 col = 0; col < i.getNbComponents(); ++col )
+            i( y, x, col ) = color[ col ];
+         error -= deltay;
+         if ( error < 0 )
+         {
+            y = y + ystep;
+            error = error + deltax;
+         }
+      }
+   } else {
+      for ( int x = p1[ 0 ]; x <= p2[ 0 ]; ++x )
+      {
+         for ( ui32 col = 0; col < i.getNbComponents(); ++col )
+            i( x, y, col ) = color[ col ];
+         error -= deltay;
+         if ( error < 0 )
+         {
+            y = y + ystep;
+            error = error + deltax;
+         }
+      }
+   }
+}
+*/
+
+class FunctionImageDrawLine : public FunctionRunnable
+{
+public:
+   typedef FunctionImageConstructor::Pointee Pointee;
+
+public:
+   FunctionImageDrawLine( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 4 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+
+      nll::core::vector2i p1;
+      nll::core::vector2i p2;
+      nll::core::vector3i color;
+
+      parser::getVector2iValues( v2, p1 );
+      parser::getVector2iValues( v3, p2 );
+      parser::getVector3iValues( v4, color );
+      if ( color[ 0 ] < 0 || color[ 0 ] > 255 ||
+           color[ 1 ] < 0 || color[ 1 ] > 255 ||
+           color[ 2 ] < 0 || color[ 2 ] > 255 )
+      {
+         throw std::runtime_error( "a color must be in [0..255]^3" );
+      }
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      Pointee::value_type& image = p->getValue();
+      if ( p1[ 0 ] < 0 || p1[ 1 ] < 0 ||
+           p2[ 0 ] < 0 || p2[ 1 ] < 0 ||
+           p1[ 0 ] >= (int)image.sizex() || p1[ 1 ] >= (int)image.sizey() ||
+           p2[ 0 ] >= (int)image.sizex() || p2[ 1 ] >= (int)image.sizey() )
+      {
+         throw std::runtime_error( "out of bound image cropping" );
+      }
+
+      nll::core::vector3uc colorc( static_cast<ui8>( color[ 0 ] ),
+                                   static_cast<ui8>( color[ 1 ] ),
+                                   static_cast<ui8>( color[ 2 ] ) );
+      
+      bresham( image, p1, p2, colorc );
+
+      p->notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+
 
 #endif
