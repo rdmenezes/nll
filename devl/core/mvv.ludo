@@ -519,11 +519,13 @@ class SegmentToolCamera
 }
 
 /**
+ @ingroup mvv
  @brief Defines a callback to postprocess a MPR/MIP
  */
 typedef void(Image image, Vector2f spacing, Vector3f origin)   PostprocessingCallback;
 
 /**
+ @ingroup mvv
  @brief Tool holding a callback to postprocess a slice
  @note object is necessary to hold the internal 'ToolPostProcessingInterface'
  */
@@ -531,6 +533,26 @@ class ToolPostprocessing
 {
    import ToolPostprocessing( PostprocessingCallback callback );
    import ~ToolPostprocessing();
+}
+
+/**
+ @ingroup mvv
+ @brief Tool holding manipulators (i.e., objects that can be manipulated interactively by the user
+ */
+class ToolManipulators
+{
+   import ToolManipulators();
+   import ~ToolManipulators();
+
+   /**
+    @brief add a single spot that can be positioned in 3D
+    */
+   import void addPoint( Vector3f position );
+
+   /**
+    @brief remove all the manipulators and refresh all linked segments
+    */
+   import void clear();
 }
 
 /**
@@ -608,6 +630,11 @@ class Segment
            postprocessing effect
     */
    import void setTool( ToolPostprocessing callback );
+
+   /**
+    @brief set manipulators (i.e., objects that can be interactively manipulated by the user)
+    */
+   import void setTool( ToolManipulators manipulators );
 
    /**
     @brief return the image currently displayed by the MPR without any annotations
