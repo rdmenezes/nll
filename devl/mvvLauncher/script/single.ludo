@@ -154,6 +154,7 @@ ImageHolder holder;
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 Layout layout1 = layout;
 
+/*
 void callback(Image image, Vector2f spacing, Vector3f origin)
 {
    drawLine( image, Vector2i(0, 0), Vector2i(100, 100), Vector3i(0,0,255));
@@ -164,3 +165,4 @@ segment1.setTool(ToolPostprocessing(callback));
 segment2.setTool(ToolPostprocessing(callback));
 segment3.setTool(ToolPostprocessing(callback));
 mip1.setTool(ToolPostprocessing(callback));
+*/

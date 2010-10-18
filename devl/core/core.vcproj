@@ -415,6 +415,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-manipulators.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-matrix.h"
 				>
 			</File>

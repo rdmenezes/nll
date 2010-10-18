@@ -537,22 +537,45 @@ class ToolPostprocessing
 
 /**
  @ingroup mvv
- @brief Tool holding manipulators (i.e., objects that can be manipulated interactively by the user
+ @brief Single point that can be manipulated in 3D
+ */
+class ManipulatorPoint
+{
+   import ManipulatorPoint( Vector3f positionMM );
+   import ~ManipulatorPoint();
+}
+
+/**
+ @ingroup mvv
+ @brief Tool holding manipulators (i.e., objects that can be manipulated interactively by the user)
  */
 class ToolManipulators
 {
+   /**
+    @brief creates the native resources
+    */
    import ToolManipulators();
+
+   /**
+    @brief deallocates the native resources
+    */
    import ~ToolManipulators();
 
    /**
     @brief add a single spot that can be positioned in 3D
+    @return the ID of the manipulator
     */
-   import void addPoint( Vector3f position );
+   import void add( ManipulatorPoint manipulator );
+
+   /**
+    @brief Removes the maipulator from the list
+    */
+   //import void erase( ManipulatorPoint manipulator );
 
    /**
     @brief remove all the manipulators and refresh all linked segments
     */
-   import void clear();
+   //import void clear();
 }
 
 /**

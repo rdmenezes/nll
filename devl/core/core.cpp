@@ -20,6 +20,7 @@
 #include "mvv-image.h"
 #include "mvv-imagef.h"
 #include "mvv-segment-tool-postprocessing.h"
+#include "mvv-manipulators.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -3367,4 +3368,26 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionImageDrawText( fn, context ) ) );
    }
+
+   //
+   // ManipulatorPoint
+   //
+   {
+      Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vec3 );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorPoint"), platform::Symbol::create( "ManipulatorPoint") ), nll::core::make_vector<const Type*>( vec3 ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorPointConstructor( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorPoint"), platform::Symbol::create( "~ManipulatorPoint") ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorPointDestructor( fn ) ) );
+   }
+
+   //
+   // XXX
+   //
+
 }

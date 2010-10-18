@@ -5,6 +5,7 @@
 # include "engine-mpr.h"
 # include "segment-tool.h"
 # include "segment-tool-sorter.h"
+# include "segment-tool-manipulators.h"
 # include <mvvPlatform/event-mouse-receiver.h>
 # include <mvvPlatform/linkable.h>
 
