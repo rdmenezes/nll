@@ -774,59 +774,6 @@ private:
 };
 
 
-/*
-template <class Image, class Color>
-void bresham( Image& i, const nll::core::vector2i a1, const nll::core::vector2i a2, Color color )
-{
-   nll::core::vector2i p1 = a1;
-   nll::core::vector2i p2 = a2;
-   const bool steep = abs( p2[ 1 ] - p1[ 1 ] ) > abs( p2[ 0 ] - p1[ 0 ] );
-   if ( steep )
-   {
-      std::swap( p1[ 0 ], p1[ 1 ] );
-      std::swap( p2[ 0 ], p2[ 1 ] );
-   }
-   if ( p1[ 0 ] > p2[ 0 ] )
-   {
-      std::swap( p1[ 0 ], p2[ 0 ] );
-      std::swap( p1[ 1 ], p2[ 1 ] );
-   }
-   int deltax = p2[ 0 ] - p1[ 0 ];
-   int deltay = abs( p2[ 1 ] - p1[ 1 ] );
-   int error = deltax / 2;
-   int ystep = ( p1[ 1 ] < p2[ 1 ] ) ? 1 : -1;
-   int y = p1[ 1 ];
-
-   if ( steep )
-   {
-      typename Image::DirectionalIterator it = i.getIterator( y, p1[ 0 ], 0 );
-      for ( int x = p1[ 0 ]; x <= p2[ 0 ]; ++x )
-      {
-         for ( ui32 col = 0; col < i.getNbComponents(); ++col )
-            i( y, x, col ) = color[ col ];
-         error -= deltay;
-         if ( error < 0 )
-         {
-            y = y + ystep;
-            error = error + deltax;
-         }
-      }
-   } else {
-      for ( int x = p1[ 0 ]; x <= p2[ 0 ]; ++x )
-      {
-         for ( ui32 col = 0; col < i.getNbComponents(); ++col )
-            i( x, y, col ) = color[ col ];
-         error -= deltay;
-         if ( error < 0 )
-         {
-            y = y + ystep;
-            error = error + deltax;
-         }
-      }
-   }
-}
-*/
-
 class FunctionImageDrawLine : public FunctionRunnable
 {
 public:
