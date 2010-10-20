@@ -4,6 +4,7 @@
 # include "core.h"
 # include "mvv-volume-container.h"
 # include "mvv-segment-tool.h"
+# include "mvv-manipulators.h"
 
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
@@ -372,6 +373,53 @@ public:
 
       // finally add the tool
       pointee->segment.connect( &tool->tool );
+      pointee->toolAnnotations = v2;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionSegmentSetToolManipulators: public FunctionRunnable
+{
+public:
+   typedef ::impl::SegmentStorage Pointee;
+
+public:
+   FunctionSegmentSetToolManipulators( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw std::runtime_error( "wrong arguments" );
+      }
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      assert( (*v2.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      FunctionToolManipulatorsConstructor::Pointee* tool = reinterpret_cast<FunctionToolManipulatorsConstructor::Pointee*>( (*v2.vals)[ 0 ].ref );
+
+      // we first need to remove all the tools of this category to ensure there is no inconsistencies...
+      std::set<SegmentToolAnnotations*> tools = pointee->segment.getTools<SegmentToolAnnotations>();
+      for ( std::set<SegmentToolAnnotations*>::iterator it = tools.begin(); it != tools.end(); ++it )
+      {
+         pointee->segment.disconnect( *it );
+      }
+
+      // finally add the tool
+      pointee->segment.connect( &tool->segmentManipulators );
       pointee->toolAnnotations = v2;
       
       RuntimeValue rt( RuntimeValue::EMPTY );

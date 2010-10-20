@@ -5,6 +5,7 @@
 # include <mvvPlatform/event-mouse-receiver.h>
 # include <mvvPlatform/linkable.h>
 # include <mvvPlatform/engine-order.h>
+# include <mvvPlatform/resource-typedef.h>
 # include "mvvMprPlugin.h"
 # include "types.h"
 
@@ -19,8 +20,9 @@ namespace platform
     @ingroup platform
     @brief Tools that can be plugged on a segment
     @note don't forget to call notify() on outputSegment if the slice is modified in updateSegment
+    @note if ResourceBool::notify() is used it will force the connected segments to be redrawn
     */
-   class MVVMPRPLUGIN_API SegmentTool : public LinkableDouble< Segment*, SegmentTool* >
+   class MVVMPRPLUGIN_API SegmentTool : public LinkableDouble< Segment*, SegmentTool* >, public ResourceBool
    {
    public:
       SegmentTool( bool canModifyImage ) : _canModify( canModifyImage )

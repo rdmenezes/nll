@@ -34,6 +34,7 @@ MipToolPointer          toolPointerMip(17);
 SegmentToolPointer      pointer;
 ToolAnnotations         annotations;
 SegmentToolCamera       camera;
+ToolManipulators        manipultors;
 
 VolumeContainer         volumes;
 
@@ -117,23 +118,30 @@ Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
+
+ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
+manipultors.add( manipulator1 );
+
 Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
 segment1.setTool( pointer );
 segment1.setTool( annotations );
 segment1.setTool( camera );
 segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
 
 Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment2.setTool( pointer );
 segment2.setTool( annotations );
 segment2.setTool( camera );
 segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
 
 Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment3.setTool( pointer );
 segment3.setTool( annotations );
 segment3.setTool( camera );
 segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
 
 Layout::Vertical vertical;
 Layout::Horizontal horizontal;
