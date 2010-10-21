@@ -45,21 +45,25 @@ void handleOrders( int )
    applicationVariables->callbacks.run();
 
    // run orders & engines
+   // note that we need to flush all the engines for rendering: if there are some actions in the pipeline,
+   // the rendering may flicker or even performance drop (it is rendering intermediate state whereas it should
+   // have been done in one pass)...
+   applicationVariables->engineHandler.run();
+   applicationVariables->orderManager.run();
+   applicationVariables->engineHandler.run();
+   applicationVariables->orderManager.run();
+   applicationVariables->engineHandler.run();
+   applicationVariables->orderManager.run();
+   applicationVariables->engineHandler.run();
+   applicationVariables->orderManager.run();
+   applicationVariables->engineHandler.run();
+   applicationVariables->orderManager.run();
    applicationVariables->engineHandler.run();
    applicationVariables->orderManager.run();
 }
 
 void renderObjects()
 {
-   // we need to flush all the engines for rendering: if there are some actions in the pipeline,
-   // the rendering may flicker...
-   applicationVariables->engineHandler.run();
-   applicationVariables->engineHandler.run();
-   applicationVariables->engineHandler.run();
-   applicationVariables->engineHandler.run();
-   applicationVariables->engineHandler.run();
-   applicationVariables->engineHandler.run();
-
    // generate the texture we are going to draw
    (*applicationVariables->layout).draw( applicationVariables->screen );
 

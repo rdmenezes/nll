@@ -87,8 +87,6 @@ namespace platform
             it.pickcol( 2 ) = color[ 2 ];
          }
       }
-      //std::cout << "MANIPULATOR DRAW=" << slice.getAxisX()[ 0 ] << slice.getAxisX()[ 1 ] << slice.getAxisX()[ 2 ] << " "
-      //                                 << slice.getAxisY()[ 0 ] << slice.getAxisY()[ 1 ] << slice.getAxisY()[ 2 ] << std::endl;
    }
 
    void SegmentToolManipulators::receive( Segment& s, const EventMouse& e, const nll::core::vector2ui& origin )
@@ -131,7 +129,7 @@ namespace platform
       }
    }
 
-   void SegmentToolManipulators::updateSegment( ResourceSliceuc slice, Segment& s )
+   void SegmentToolManipulators::updateSegment( ResourceSliceuc& slice, Segment& s )
    {
       for ( ui32 n = 0; n < _manipulators.size(); ++n )
       {
@@ -173,7 +171,9 @@ namespace platform
                               static_cast<int>( p2[ 1 ] + size[ 1 ] / 2 ) );
       nll::core::vector2f diff( (float)positionEndStroke[ 0 ] - (float)positionStartStroke[ 0 ],
                                 (float)positionEndStroke[ 1 ] - (float)positionStartStroke[ 1 ] );
-      if ( abs( (int)positionStartStroke[ 0 ] - pi[ 0 ] ) < 5 || abs( (int)positionStartStroke[ 1 ] - pi[ 1 ] ) < 5 )
+
+      bool canBeActivated = abs( (int)positionStartStroke[ 0 ] - pi[ 0 ] ) < 5 || abs( (int)positionStartStroke[ 1 ] - pi[ 1 ] ) < 5;
+      if ( ( canBeActivated && !e.isMouseRightButtonPressed && !_wasPanning ) )
       {
          if ( e.isMouseLeftButtonPressed )
          {
@@ -187,42 +187,41 @@ namespace platform
                _segmentIssuingDispatch = &s;
             }
             _position += vv;
-            //std::cout << "new pos=" << _position[ 0 ] << " " << _position[ 1 ] << " " << _position[ 2 ] << std::endl;
          }
          return true;
-      } else {
-         // we are not on the pointer, but left click, so pan it!
-         if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
-         {
-            nll::core::vector3f vv( s.panning.getValue()[ 0 ] - diff[ 0 ] * slice.getAxisX()[ 0 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 0 ] * slice.getSpacing()[ 1 ],
-                                    s.panning.getValue()[ 1 ] - diff[ 0 ] * slice.getAxisX()[ 1 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 1 ] * slice.getSpacing()[ 1 ],
-                                    s.panning.getValue()[ 2 ] - diff[ 0 ] * slice.getAxisX()[ 2 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 2 ] * slice.getSpacing()[ 1 ] );
-            s.panning.setValue( vv );
-            /*
-            std::cout << "segment=" << &s << "axis x=" << slice.getAxisX() << std::endl;
-            std::cout << "segment=" << &s << "axis y=" << slice.getAxisY() << std::endl;
-            std::cout << "segment=" << &s << "diff=" << diff << std::endl;
-            std::cout << "segment=" << &s << "pos=" << vv << std::endl;;
-            */
-         }
-         if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
-         {
-            float sign = ( diff[ 1 ] > 0 ) ? 1.0f : -1.0f;
-            float d = fabs( (float)diff[ 1 ] ) * sign / 10.0;
-            nll::core::vector3f pos( s.position.getValue()[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
-                                     s.position.getValue()[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
-                                     s.position.getValue()[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
-            nll::core::vector3f posPointer( _position[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
-                                            _position[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
-                                            _position[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
-            s.position.setValue( pos );
-            _position = posPointer;
+      }
 
-            _needToSynchronizePosition = true;
-            _segmentIssuingDispatch = &s;
-            return true;
-         }
+      // we are not on the pointer, but left click, so pan it!
+      if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
+      {
+         nll::core::vector3f vv( s.panning.getValue()[ 0 ] - diff[ 0 ] * slice.getAxisX()[ 0 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 0 ] * slice.getSpacing()[ 1 ],
+                                 s.panning.getValue()[ 1 ] - diff[ 0 ] * slice.getAxisX()[ 1 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 1 ] * slice.getSpacing()[ 1 ],
+                                 s.panning.getValue()[ 2 ] - diff[ 0 ] * slice.getAxisX()[ 2 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 2 ] * slice.getSpacing()[ 1 ] );
+         s.panning.setValue( vv );
+         _wasPanning = true;
          return false;
+      }
+      _wasPanning = false;
+
+      if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
+      {
+         float sign = ( diff[ 1 ] > 0 ) ? 1.0f : -1.0f;
+         float d = fabs( (float)diff[ 1 ] ) * sign / 10.0;
+         nll::core::vector3f pos( s.position.getValue()[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
+                                  s.position.getValue()[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
+                                  s.position.getValue()[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
+         nll::core::vector3f posPointer( _position[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
+                                         _position[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
+                                         _position[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
+         s.position.setValue( pos );
+         _position = posPointer;
+         return true;  // we have updated the segment, so the pointer will be at the correct location (no need to issue a notify())
+      }
+      if ( e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
+      {
+         _zoomUpdate = (float)diff[ 1 ];
+         _needToSynchronizeZoom = true;
+         return true;
       }
       return false;
    }
@@ -291,6 +290,24 @@ namespace platform
          }
 
          _needToSynchronizePosition = false;
+      }
+
+      if ( _needToSynchronizeZoom )
+      {
+         for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
+         {
+            nll::core::vector2f zoom;
+            if ( _zoomUpdate > 0 )
+            {
+               zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] * (float)( 1 + fabs( _zoomUpdate ) / 100 );
+               zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] * (float)( 1 + fabs( _zoomUpdate ) / 100 );
+            } else {
+               zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] / (float)( 1 + fabs( _zoomUpdate ) / 100 );
+               zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] / (float)( 1 + fabs( _zoomUpdate ) / 100 );
+            }
+            (**it).zoom.setValue( zoom );
+         }
+         _needToSynchronizeZoom = false;
       }
    }
 }

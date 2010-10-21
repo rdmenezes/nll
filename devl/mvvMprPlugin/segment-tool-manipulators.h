@@ -69,7 +69,7 @@ namespace platform
    class MVVMPRPLUGIN_API ToolManipulatorsPointer : public ToolManipulatorsInterface
    {
    public:
-      ToolManipulatorsPointer( nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ) ) : _position( nll::core::vector3f( 0, 0, 0 ) ), _color( color ), _segmentIssuingDispatch( 0 ), _needToSynchronizePosition( false )
+      ToolManipulatorsPointer( nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ) ) : _position( nll::core::vector3f( 0, 0, 0 ) ), _color( color ), _segmentIssuingDispatch( 0 ), _needToSynchronizePosition( false ), _needToSynchronizeZoom( false ), _wasPanning( false )
       {
          _colorInactif = nll::core::vector3uc( 0.7 * color[ 0 ],
                                                0.7 * color[ 1 ],
@@ -88,6 +88,9 @@ namespace platform
       nll::core::vector3uc _colorInactif;
       Segment*             _segmentIssuingDispatch;
       bool                 _needToSynchronizePosition;
+      bool                 _needToSynchronizeZoom;
+      float                _zoomUpdate;
+      bool                 _wasPanning;
    };
 
    /**
@@ -119,7 +122,7 @@ namespace platform
          return true;
       }
 
-      virtual void updateSegment( ResourceSliceuc slice, Segment& s );
+      virtual void updateSegment( ResourceSliceuc& slice, Segment& s );
 
       virtual bool interceptEvent() const
       {

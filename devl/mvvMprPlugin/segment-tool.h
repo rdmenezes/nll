@@ -63,7 +63,7 @@ namespace platform
       /**
        @brief action need to be run when the input slice changed.
        */
-      virtual void updateSegment( ResourceSliceuc segment, Segment& holder ) = 0;
+      virtual void updateSegment( ResourceSliceuc& segment, Segment& holder ) = 0;
 
       /**
        @param sender the segment where the signal originate's from

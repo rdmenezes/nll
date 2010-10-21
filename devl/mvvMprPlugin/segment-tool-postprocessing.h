@@ -45,7 +45,7 @@ namespace platform
          return false;
       }
 
-      virtual void updateSegment( ResourceSliceuc slice, Segment& )
+      virtual void updateSegment( ResourceSliceuc& slice, Segment& )
       {
          (*_processor).run( slice.getValue() );
       }

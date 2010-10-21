@@ -23,7 +23,7 @@ namespace platform
          // do nothing
       }
 
-      virtual void updateSegment( ResourceSliceuc, Segment& )
+      virtual void updateSegment( ResourceSliceuc&, Segment& )
       {
          // do nothing
       }

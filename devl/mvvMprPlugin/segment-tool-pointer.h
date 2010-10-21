@@ -99,7 +99,7 @@ namespace platform
          return 100;
       }
 
-      virtual void updateSegment( ResourceSliceuc segment, Segment& s )
+      virtual void updateSegment( ResourceSliceuc& segment, Segment& s )
       {
          ResourceSliceuc::value_type& slice = segment.getValue();
          if ( !slice.size()[ 0 ] || !slice.size()[ 1 ] || !slice.size()[ 2 ] )
