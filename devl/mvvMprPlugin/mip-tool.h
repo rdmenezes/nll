@@ -4,6 +4,7 @@
 # include <mvvPlatform/event-mouse-receiver.h>
 # include <mvvPlatform/linkable.h>
 # include <mvvPlatform/engine-order.h>
+# include <mvvPlatform/resource-typedef.h>
 # include "mvvMprPlugin.h"
 # include "types.h"
 
@@ -17,8 +18,9 @@ namespace platform
    /**
     @ingroup platform
     @brief Tools that can be plugged on a Mip
+    @note notify() will force the tool to redraw the output from the input
     */
-   class MVVMPRPLUGIN_API MipTool : public LinkableDouble< Mip*, MipTool* >
+   class MVVMPRPLUGIN_API MipTool : public LinkableDouble< Mip*, MipTool* >, public ResourceBool
    {
    public:
       MipTool( bool canModifyImage ) : _canModify( canModifyImage )

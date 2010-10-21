@@ -20,7 +20,7 @@ namespace platform
     @ingroup platform
     @brief Tools that can be plugged on a segment
     @note don't forget to call notify() on outputSegment if the slice is modified in updateSegment
-    @note if ResourceBool::notify() is used it will force the connected segments to be redrawn
+    @note if ResourceBool::notify() is used it will force the connected segments to be redrawn from the input
     */
    class MVVMPRPLUGIN_API SegmentTool : public LinkableDouble< Segment*, SegmentTool* >, public ResourceBool
    {

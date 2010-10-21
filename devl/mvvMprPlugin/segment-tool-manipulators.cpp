@@ -129,7 +129,7 @@ namespace platform
       }
    }
 
-   void SegmentToolManipulators::updateSegment( ResourceSliceuc& slice, Segment& s )
+   void SegmentToolManipulators::updateSegment( ResourceSliceuc& slice, Segment& )
    {
       for ( ui32 n = 0; n < _manipulators.size(); ++n )
       {
@@ -172,7 +172,7 @@ namespace platform
       nll::core::vector2f diff( (float)positionEndStroke[ 0 ] - (float)positionStartStroke[ 0 ],
                                 (float)positionEndStroke[ 1 ] - (float)positionStartStroke[ 1 ] );
 
-      bool canBeActivated = abs( (int)positionStartStroke[ 0 ] - pi[ 0 ] ) < 5 || abs( (int)positionStartStroke[ 1 ] - pi[ 1 ] ) < 5;
+      bool canBeActivated = abs( (int)positionStartStroke[ 0 ] - pi[ 0 ] ) < _nbPixelForSelection || abs( (int)positionStartStroke[ 1 ] - pi[ 1 ] ) < _nbPixelForSelection;
       if ( ( canBeActivated && !e.isMouseRightButtonPressed && !_wasPanning ) )
       {
          if ( e.isMouseLeftButtonPressed )
@@ -206,7 +206,7 @@ namespace platform
       if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
       {
          float sign = ( diff[ 1 ] > 0 ) ? 1.0f : -1.0f;
-         float d = fabs( (float)diff[ 1 ] ) * sign / 10.0;
+         float d = fabs( (float)diff[ 1 ] ) * sign / _panningFactor;
          nll::core::vector3f pos( s.position.getValue()[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
                                   s.position.getValue()[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
                                   s.position.getValue()[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
@@ -285,7 +285,6 @@ namespace platform
                                           (**it).position.getValue()[ 1 ] - diff[ 1 ],
                                           (**it).position.getValue()[ 2 ] - diff[ 2 ] );
                (**it).position.setValue( final );
-               Sliceuc& slice = (*it)->segment.getValue();
             }
          }
 
@@ -299,11 +298,11 @@ namespace platform
             nll::core::vector2f zoom;
             if ( _zoomUpdate > 0 )
             {
-               zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] * (float)( 1 + fabs( _zoomUpdate ) / 100 );
-               zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] * (float)( 1 + fabs( _zoomUpdate ) / 100 );
+               zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] * (float)( 1 + fabs( _zoomUpdate ) / _zoomingFactor );
+               zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] * (float)( 1 + fabs( _zoomUpdate ) / _zoomingFactor );
             } else {
-               zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] / (float)( 1 + fabs( _zoomUpdate ) / 100 );
-               zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] / (float)( 1 + fabs( _zoomUpdate ) / 100 );
+               zoom[ 0 ] = (**it).zoom.getValue()[ 0 ] / (float)( 1 + fabs( _zoomUpdate ) / _zoomingFactor );
+               zoom[ 1 ] = (**it).zoom.getValue()[ 1 ] / (float)( 1 + fabs( _zoomUpdate ) / _zoomingFactor );
             }
             (**it).zoom.setValue( zoom );
          }

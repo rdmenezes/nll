@@ -186,6 +186,8 @@ namespace platform
             ensure( tool, "must not be zero" );
 
             inputMip.connect( this );
+            ResourceBool* rtool = tool; rtool->connect( this );
+
             handler.connect( *this );
 
             if ( !tool->isSavingMprImage() )

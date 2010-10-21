@@ -1,6 +1,8 @@
 #ifndef MVV_PLATFORM_SEGMENT_TOOL_AUTOCENTER_H_
 # define MVV_PLATFORM_SEGMENT_TOOL_AUTOCENTER_H_
 
+# include "segment-tool-manipulators.h"
+
 namespace mvv
 {
 namespace platform
@@ -91,13 +93,34 @@ namespace platform
                (**it).panning.setValue( nll::core::vector3f( 0.0f, 0.0f, 0.0f ) );
 
                // update the position of the pointer: all connected segments must point at the same position
+               typedef std::set<SegmentToolManipulators*> Pointers;
+               Pointers pointers = (**it).getTools<SegmentToolManipulators>();
+               for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
+               {
+
+                  ToolManipulatorsPointer* m = (**it).get<ToolManipulatorsPointer>();
+                  if ( m )
+                  {
+                     m->setPosition( newPosition );
+                  } else {
+                     // if there is no pointer, at least set the segment's position right!
+                     std::set<Segment*> segments = (**it).getConnectedSegments();
+                     for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
+                     {
+                        (**it).position.setValue( newPosition );
+                     }
+                  }
+                  (**it).notify();
+               }
+
+               /*
                typedef std::set<SegmentToolPointer*> Pointers;
                Pointers pointers = (**it).getTools<SegmentToolPointer>();
                for ( Pointers::iterator it = pointers.begin(); it != pointers.end(); ++it )
                {
                   (*it)->setPosition( newPosition );
                   //(*it)->refreshConnectedSegments();
-               }
+               }*/
             }
          }
 

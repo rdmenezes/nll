@@ -237,6 +237,8 @@ public:
    }
 };
 
+
+
 class FunctionToolManipulatorsAddPointer : public FunctionRunnable
 {
 public:
@@ -264,6 +266,83 @@ public:
       p->segmentManipulators.add( *point );
       
       RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionManipulatorSetPosition : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+
+public:
+   FunctionManipulatorSetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      nll::core::vector3f pos;
+      getVector3fValues( v2, pos );
+
+      ToolManipulatorsPointer* pp = p->segmentManipulators.get<ToolManipulatorsPointer>();
+      if (!pp )
+      {
+         // there is no manipulator attached, so just set the segment position
+         std::set<Segment*> segments = p->segmentManipulators.getConnectedSegments();
+         for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
+         {
+            (**it).position.setValue( pos );
+         }
+      } else {
+         //if ( !pp )
+         //   throw std::runtime_error( "ToolManipulatorsPointer manipulator found in the container" );
+         pp->setPosition( pos );
+         p->segmentManipulators.notify();
+      }
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionManipulatorGetPosition : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+
+public:
+   FunctionManipulatorGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      
+
+      ToolManipulatorsPointer* pp = p->segmentManipulators.get<ToolManipulatorsPointer>();
+      if ( !pp )
+         throw std::runtime_error( "ToolManipulatorsPointer manipulator found in the container" );
+
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, pp->getPosition()[ 0 ], pp->getPosition()[ 1 ], pp->getPosition()[ 2 ] );
       return rt;
    }
 };

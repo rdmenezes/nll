@@ -466,7 +466,7 @@ namespace platform
       public:
          EngineSliceBlender( ui32& nbOrdersSend, bool& ready, ResourceOrders& vordersToBlend, ResourceMapTransferFunction& vlut, ResourceFloats& vintensities, ResourceUi32& vfps,
                              EngineHandler& handler, OrderProvider& provider, OrderDispatcher& dispatcher ) : EngineOrder( handler, provider, dispatcher ),
-            ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities ),
+            ordersToBlend( vordersToBlend ), lut( vlut ), intensities( vintensities ), fps( vfps ), 
             _ready( ready ),
             _nbOrdersSend( nbOrdersSend ),
             blendedSlice( true )

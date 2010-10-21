@@ -40,7 +40,7 @@ namespace platform
       /**
        @brief This method is called on after before segments are drawn
        */
-      virtual void dispatch( std::set<Segment*>& segments )
+      virtual void dispatch( std::set<Segment*>& )
       {
          // do nothing
       }
@@ -69,7 +69,7 @@ namespace platform
    class MVVMPRPLUGIN_API ToolManipulatorsPointer : public ToolManipulatorsInterface
    {
    public:
-      ToolManipulatorsPointer( nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ) ) : _position( nll::core::vector3f( 0, 0, 0 ) ), _color( color ), _segmentIssuingDispatch( 0 ), _needToSynchronizePosition( false ), _needToSynchronizeZoom( false ), _wasPanning( false )
+      ToolManipulatorsPointer( ui32 nbPixelForSelection = 5, float panningFactor = 10.0, float zoomingFactor = 100.0, nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ) ) : _position( nll::core::vector3f( 0, 0, 0 ) ), _color( color ), _segmentIssuingDispatch( 0 ), _needToSynchronizePosition( false ), _needToSynchronizeZoom( false ), _wasPanning( false ), _panningFactor( panningFactor ), _zoomingFactor( zoomingFactor ), _nbPixelForSelection( nbPixelForSelection )
       {
          _colorInactif = nll::core::vector3uc( 0.7 * color[ 0 ],
                                                0.7 * color[ 1 ],
@@ -82,6 +82,16 @@ namespace platform
 
       virtual void dispatch( std::set<Segment*>& segments );
 
+      void setPosition( const nll::core::vector3f& p )
+      {
+         _position = p;
+      }
+
+      const nll::core::vector3f& getPosition() const
+      {
+         return _position;
+      }
+
    private:
       nll::core::vector3f  _position;
       nll::core::vector3uc _color;
@@ -91,6 +101,10 @@ namespace platform
       bool                 _needToSynchronizeZoom;
       float                _zoomUpdate;
       bool                 _wasPanning;
+
+      float                _panningFactor;
+      float                _zoomingFactor;
+      float                _nbPixelForSelection;
    };
 
    /**
@@ -127,6 +141,25 @@ namespace platform
       virtual bool interceptEvent() const
       {
          return _wasActivated;
+      }
+
+      std::set<Segment*> getConnectedSegments()
+      {
+         return _links;
+      }
+
+      /**
+       @brief Returns the first inserted manipulator of this type
+       */
+      template <class Manipulator> Manipulator* get()
+      {
+         for ( ui32 n = 0; n < _manipulators.size(); ++n )
+         {
+            Manipulator* m = dynamic_cast<Manipulator*>( &( *_manipulators[ n ] ) );
+            if ( m )
+               return m;
+         }
+         return 0;
       }
 
    protected:

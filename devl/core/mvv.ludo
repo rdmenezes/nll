@@ -545,6 +545,10 @@ class ManipulatorPoint
    import ~ManipulatorPoint();
 }
 
+/**
+ @ingroup mvv
+ @brief Add a pointer to manipulate and synchronize segments
+ */
 class ManipulatorPointer
 {
    import ManipulatorPointer();
@@ -587,6 +591,19 @@ class ToolManipulators
     @brief remove all the manipulators and refresh all linked segments
     */
    //import void clear();
+
+   /**
+    @brief get the segment's pointer position
+    @note unfortunately, we cannot move this function to ManipulatorPointer: we need to force a refresh
+          of the segments, but this can only be done at the tool level and not manipulator...
+    @note this requires a ManipulatorPointer to be attached to the segment
+    */
+   import Vector3f getPointerPosition();
+
+   /**
+    @brief set the segment's pointer position
+    */
+   import void setPointerPosition( Vector3f pos );
 }
 
 /**
