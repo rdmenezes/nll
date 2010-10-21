@@ -1,3 +1,4 @@
+/*
 #ifndef MVV_PLATFORM_SEGMENT_TOOL_CAMERA_H_
 # define MVV_PLATFORM_SEGMENT_TOOL_CAMERA_H_
 
@@ -8,17 +9,9 @@ namespace mvv
 {
 namespace platform
 {
-   /**
-    @ingroup platform
-    @brief This tool will center the attached segment when a bigger volume has just been loaded,
-           it will also handle navigation (slice by slice, padding, zooming)
-    */
    class MVVMPRPLUGIN_API SegmentToolCamera : public SegmentTool
    {
    public:
-      /**
-       @param storage has a new volume added, and this added volume is bigger than all others, the camera is centering this volume
-       */
       SegmentToolCamera() : SegmentTool( false )
       {
       }
@@ -107,10 +100,6 @@ namespace platform
          // do nothing
       }
 
-      /**
-       @brief update the segment's location
-       @brief synchronize the camera position & pointer
-       */
       void setPosition( const nll::core::vector3f& pos )
       {
          for ( SegmentTool::LinkStorage::iterator it = SegmentTool::_links.begin(); it != SegmentTool::_links.end(); ++it )
@@ -135,3 +124,4 @@ namespace platform
 }
 
 #endif
+*/

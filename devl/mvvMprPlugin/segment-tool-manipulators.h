@@ -3,6 +3,7 @@
 
 # include "segment-tool.h"
 # include "types.h"
+# include <mvvPlatform/font.h>
 
 namespace mvv
 {
@@ -46,6 +47,9 @@ namespace platform
       }
    };
 
+   /**
+    @brief manipulates a single 3D point
+    */
    class MVVMPRPLUGIN_API ToolManipulatorsPoint : public ToolManipulatorsInterface
    {
    public:
@@ -60,16 +64,33 @@ namespace platform
 
       virtual void draw( ResourceSliceuc& s, bool isActivated );
 
+      const nll::core::vector3f& getPosition() const
+      {
+         return _position;
+      }
+
+      void setPosition( const nll::core::vector3f& p )
+      {
+         _position = p;
+      }
+
    private:
       nll::core::vector3f  _position;
       nll::core::vector3uc _color;
       nll::core::vector3uc _colorInactif;
    };
 
+   /**
+    @brief a pointer to synchronize segment & manipulate them (pan, zoom, scrolling)
+    */
    class MVVMPRPLUGIN_API ToolManipulatorsPointer : public ToolManipulatorsInterface
    {
+      // disabled
+      ToolManipulatorsPointer& operator=( const ToolManipulatorsPointer& );
+      ToolManipulatorsPointer( const ToolManipulatorsPointer& );
+
    public:
-      ToolManipulatorsPointer( ui32 nbPixelForSelection = 5, float panningFactor = 10.0, float zoomingFactor = 100.0, nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ) ) : _position( nll::core::vector3f( 0, 0, 0 ) ), _color( color ), _segmentIssuingDispatch( 0 ), _needToSynchronizePosition( false ), _needToSynchronizeZoom( false ), _wasPanning( false ), _panningFactor( panningFactor ), _zoomingFactor( zoomingFactor ), _nbPixelForSelection( nbPixelForSelection )
+      ToolManipulatorsPointer( Font& font, ui32 nbPixelForSelection = 5, float panningFactor = 10.0, float zoomingFactor = 100.0, nll::core::vector3uc color = nll::core::vector3uc( 255, 0, 0 ), ui32 fontSize = 12, nll::core::vector3uc fontColor = nll::core::vector3uc( 255, 255, 255 ) ) : _position( nll::core::vector3f( 0, 0, 0 ) ), _color( color ), _segmentIssuingDispatch( 0 ), _needToSynchronizePosition( false ), _needToSynchronizeZoom( false ), _needToSynchronizeZPos( false ), _wasPanning( false ), _panningFactor( panningFactor ), _zoomingFactor( zoomingFactor ), _nbPixelForSelection( nbPixelForSelection ), _fontSize( fontSize ), _fontColor( fontColor ), _font( font )
       {
          _colorInactif = nll::core::vector3uc( 0.7 * color[ 0 ],
                                                0.7 * color[ 1 ],
@@ -99,12 +120,44 @@ namespace platform
       Segment*             _segmentIssuingDispatch;
       bool                 _needToSynchronizePosition;
       bool                 _needToSynchronizeZoom;
+      bool                 _needToSynchronizeZPos;
       float                _zoomUpdate;
       bool                 _wasPanning;
 
       float                _panningFactor;
       float                _zoomingFactor;
       float                _nbPixelForSelection;
+      nll::core::vector3f  _zmovementNormal;
+      nll::core::vector3f  _zmovementPointer;
+
+      ui32                 _fontSize;
+      nll::core::vector3uc _fontColor;
+      Font&                _font;
+   };
+
+   /**
+    @brief manipulate a cuboid
+    */
+   class MVVMPRPLUGIN_API ToolManipulatorsCuboid : public ToolManipulatorsInterface
+   {
+   public:
+      ToolManipulatorsCuboid( const nll::core::vector3f& min, const nll::core::vector3f& max, nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 255 ) ) : _min( min ), _max( max ), _color( color )
+      {
+         _colorInactif = nll::core::vector3uc( 0.7 * color[ 0 ],
+                                               0.7 * color[ 1 ],
+                                               0.7 * color[ 2 ] );
+      }
+
+      virtual bool checkEvent( Segment& s, const nll::core::vector2i& positionStartStroke, const nll::core::vector2i& positionEndStroke, const EventMouse& e );
+
+      virtual void draw( ResourceSliceuc& s, bool isActivated );
+
+   private:
+      nll::core::vector3f  _position;
+      nll::core::vector3f  _min;
+      nll::core::vector3f  _max;
+      nll::core::vector3uc _color;
+      nll::core::vector3uc _colorInactif;
    };
 
    /**
@@ -122,6 +175,13 @@ namespace platform
       void add( RefcountedTyped<ToolManipulatorsInterface> manip )
       {
          _manipulators.push_back( manip );
+      }
+
+      void erase( RefcountedTyped<ToolManipulatorsInterface> manip )
+      {
+         Manipulators::iterator it = std::find( _manipulators.begin(), _manipulators.end(), manip );
+         if ( it != _manipulators.end() )
+         _manipulators.erase( it );
       }
 
       virtual void receive( Segment& s, const EventMouse& e, const nll::core::vector2ui& origin );

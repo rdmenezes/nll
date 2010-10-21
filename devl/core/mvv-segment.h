@@ -192,6 +192,7 @@ public:
    }
 };
 
+/*
 class FunctionSegmentSetToolPointer: public FunctionRunnable
 {
 public:
@@ -238,6 +239,7 @@ public:
       return rt;
    }
 };
+*/
 
 class FunctionSegmentSetToolAutocenter: public FunctionRunnable
 {
@@ -286,6 +288,7 @@ public:
    }
 };
 
+/*
 class FunctionSegmentSetToolCamera: public FunctionRunnable
 {
 public:
@@ -331,7 +334,7 @@ public:
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
-};
+};*/
 
 class FunctionSegmentSetToolAnnotations: public FunctionRunnable
 {

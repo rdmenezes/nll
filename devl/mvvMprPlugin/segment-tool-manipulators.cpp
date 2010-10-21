@@ -199,22 +199,19 @@ namespace platform
                                  s.panning.getValue()[ 2 ] - diff[ 0 ] * slice.getAxisX()[ 2 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 2 ] * slice.getSpacing()[ 1 ] );
          s.panning.setValue( vv );
          _wasPanning = true;
-         return false;
+         return true;   // we need to return true even though we are not activating the pointer => this is to make sure we are not selecting another tool...
       }
       _wasPanning = false;
 
       if ( !e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
       {
          float sign = ( diff[ 1 ] > 0 ) ? 1.0f : -1.0f;
-         float d = fabs( (float)diff[ 1 ] ) * sign / _panningFactor;
-         nll::core::vector3f pos( s.position.getValue()[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
-                                  s.position.getValue()[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
-                                  s.position.getValue()[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
-         nll::core::vector3f posPointer( _position[ 0 ] + d * s.segment.getValue().getNormal()[ 0 ],
-                                         _position[ 1 ] + d * s.segment.getValue().getNormal()[ 1 ],
-                                         _position[ 2 ] + d * s.segment.getValue().getNormal()[ 2 ] );
-         s.position.setValue( pos );
-         _position = posPointer;
+         float val = fabs( (float)diff[ 1 ] ) * sign / _panningFactor;
+         _zmovementPointer = nll::core::vector3f( val * s.segment.getValue().getNormal()[ 0 ],
+                                                  val * s.segment.getValue().getNormal()[ 1 ],
+                                                  val * s.segment.getValue().getNormal()[ 2 ] );
+         _zmovementNormal = s.segment.getValue().getNormal();
+         _needToSynchronizeZPos = true;
          return true;  // we have updated the segment, so the pointer will be at the correct location (no need to issue a notify())
       }
       if ( e.isMouseLeftButtonPressed && e.isMouseRightButtonPressed )
@@ -228,7 +225,7 @@ namespace platform
 
    void ToolManipulatorsPointer::draw( ResourceSliceuc& s, bool isActivated )
    {
-      nll::core::vector3uc color = isActivated ? _color : _colorInactif;
+      nll::core::vector3uc color = isActivated && !_wasPanning ? _color : _colorInactif;
       Sliceuc& slice = s.getValue();
       if ( !slice.size()[ 0 ] ||
            !slice.size()[ 1 ] ||
@@ -265,6 +262,12 @@ namespace platform
             it.pickcol( 2 ) = color[ 2 ];
          }
       }
+
+      std::stringstream ss;
+      ss << "position=(" << _position[ 0 ] << ", " << _position[ 1 ] << ", " << _position[ 2 ] << ") mm";
+      _font.setSize( _fontSize );
+      _font.setColor( _fontColor );
+      _font.write( ss.str(), nll::core::vector2ui( 0, 0 ), slice.getStorage() );
    }
 
    void ToolManipulatorsPointer::dispatch( std::set<Segment*>& segments )
@@ -308,6 +311,37 @@ namespace platform
          }
          _needToSynchronizeZoom = false;
       }
+
+      if ( _needToSynchronizeZPos )
+      {
+         // we need to update all parrallele segments
+         for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
+         {
+            Segment& s = **it;
+            if ( nll::core::isCollinear( (**it).segment.getValue().getNormal(), _zmovementPointer ) )
+            {
+               float val = static_cast<float>( (**it).segment.getValue().getNormal().dot( _zmovementNormal ) );
+               nll::core::vector3f pos( s.position.getValue()[ 0 ] + _zmovementPointer[ 0 ] * val,
+                                        s.position.getValue()[ 1 ] + _zmovementPointer[ 1 ] * val,
+                                        s.position.getValue()[ 2 ] + _zmovementPointer[ 2 ] * val );
+               s.position.setValue( pos );
+            }
+         }
+
+         _position = nll::core::vector3f( _zmovementPointer[ 0 ] + _position[ 0 ],
+                                          _zmovementPointer[ 1 ] + _position[ 1 ],
+                                          _zmovementPointer[ 2 ] + _position[ 2 ] );
+         _needToSynchronizeZPos = false;
+      }
+   }
+
+   bool ToolManipulatorsCuboid::checkEvent( Segment& s, const nll::core::vector2i& positionStartStroke, const nll::core::vector2i& positionEndStroke, const EventMouse& e )
+   {
+      return false;
+   }
+
+   void ToolManipulatorsCuboid::draw( ResourceSliceuc& s, bool isActivated )
+   {
    }
 }
 }

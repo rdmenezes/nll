@@ -1,18 +1,7 @@
 import "core"
 import "siemens"
-
 include "helper1"
 
-
-/**
- @note the following variables must have been defined:
-       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
-       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
-
- @note the following variables may be defined (if not default values apply)
-       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
-       - "historyExportLocation" of type "string", defines where the command history is imported/exported
- */
 
 //
 // configuration constants
@@ -56,7 +45,6 @@ DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, manipultors );
 VolumeSwitch switch( ctLut, volumes, volumeList, detection );
 
-/** @brief Structure defining key callbacks @note only special characters F1-F10, ESC, as well as all ASCII character/+modifier can have a callback associated @note if "callbacks" is modified, the variable must be reaffected, and not only the arrays... */
 class KeyboardCallback
 {
    typedef void() KeyCallback;
@@ -122,12 +110,14 @@ Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
-ManipulatorPointer manipulator2;
-ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
-manipultors.add( manipulator1 );
-manipultors.add( ManipulatorPoint( Vector3f(10.0, 0.0, 0.0) ) );
-manipultors.add( ManipulatorPoint( Vector3f(20.0, 0.0, 0.0) ) );
-manipultors.add( manipulator2 );
+ManipulatorCuboid cuboid( Vector3f(10.0, -160.0, 1230.0), Vector3f(100.0, -160.0, 1330.0) );
+ManipulatorPointer pointer;
+ManipulatorPoint mp( Vector3f(0.0, -160.0, 1230.0) );
+manipultors.add( mp );
+manipultors.add( ManipulatorPoint( Vector3f(10.0, -160.0, 1230.0) ) );
+manipultors.add( ManipulatorPoint( Vector3f(20.0, -160.0, 1230.0) ) );
+manipultors.add( pointer );
+manipultors.add( cuboid );
 
 Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
 segment1.setTool( toolCentering );
@@ -163,15 +153,165 @@ ImageHolder holder;
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 Layout layout1 = layout;
 
+
+
 /*
-void callback(Image image, Vector2f spacing, Vector3f origin)
+import "core"
+import "siemens"
+
+include "helper1"
+
+
+//
+// configuration constants
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+/// saves the last XXX commands typed by the user, these will be imported next sessions
+int      sizeHistoryExport            = 500;
+
+/// defines the export/import location
+string   historyExportLocation        = "c:/Temp/command_history.txt";
+
+//
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+ToolAnnotations         annotations;
+ToolManipulators        manipultors;
+
+VolumeContainer         volumes;
+VolumeContainer         volumes2;
+
+
+VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet1a.mf2");
+VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct1a.mf2");
+
+VolumeID pet2  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet1b.mf2");
+VolumeID ct2   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct1b.mf2");
+
+//VolumeID nema = readVolumeMF2Asynchronous("c:/tmp3/nema.mf2");
+
+Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
+Lut ctLut( -250.0, 250.0 );
+
+
+//petLut.set( 0.0, 60000.0 );
+FindPeakVoxel peak( pet, 15, manipultors );
+//DisplayRegionDetection detection( annotations );
+AnnotationCreator annotationCreator( annotations, manipultors );
+//VolumeSwitch switch( ctLut, volumes, volumeList, detection );
+
+// @brief Structure defining key callbacks @note only special characters F1-F10, ESC, as well as all ASCII character/+modifier can have a callback associated @note if "callbacks" is modified, the variable must be reaffected, and not only the arrays...
+class KeyboardCallback
 {
-   drawLine( image, Vector2i(0, 0), Vector2i(100, 100), Vector3i(0,0,255));
-   drawLine( image, Vector2i(0, 0), Vector2i(100, 200), Vector3i(0,0,255));
+   typedef void() KeyCallback;
+
+   KeyCallback[]  callbacks;                 // hold a call back
+   string[]       callbacksKey;              // hold the key for the corresponding callback
+   int[]          callbacksKeyModifier;      // corresponding modifier for the key: (0 => normal), (1 => CTRL), (2 => SHIFT), (3 => ALT)
+   int            nbCallBacks = 0;           // the number of callbacks stored
+
+   void addShortcut( KeyCallback callback, string key, int modifier = 0 )
+   {
+      print("nbCallbacks=" + toString(nbCallBacks));
+      KeyCallback c  [ nbCallBacks + 1 ];
+      string      ck [ nbCallBacks + 1 ];
+      int         ckm[ nbCallBacks + 1 ];
+
+      // copy over the data in a new array
+      int n = 0;
+      while ( n < nbCallBacks )
+      {
+         c  [ n ] = callbacks[ n ];
+         ck [ n ] = callbacksKey[ n ];
+         ckm[ n ] = callbacksKeyModifier[ n ];
+         n = n + 1;
+      }
+
+      // add the new shortcut
+      c  [ nbCallBacks ] = callback;
+      ck [ nbCallBacks ] = key;
+      ckm[ nbCallBacks ] = modifier;
+
+      KeyboardCallback o;
+      o.callbacks = c;
+      o.callbacksKey = ck;
+      o.callbacksKeyModifier = ckm;
+      o.nbCallBacks = nbCallBacks + 1;
+
+      // replace the object
+      this = o;
+   }
+
+   KeyboardCallback()
+   {}
 }
 
-segment1.setTool(ToolPostprocessing(callback));
-segment2.setTool(ToolPostprocessing(callback));
-segment3.setTool(ToolPostprocessing(callback));
-mip1.setTool(ToolPostprocessing(callback));
+KeyboardCallback callbacks;
+//callbacks.addShortcut( switch.next, "F3" );
+callbacks.addShortcut( peak.run, "F2" );
+callbacks.addShortcut( annotationCreator.run, "F1" );
+
+
+AffineRegistration petReg;
+AffineRegistration ctReg;
+
+
+volumes.add( ct, ctLut, 0.5, ctReg );
+volumes.add( pet, petLut, 0.5, petReg );
+
+volumes2.add( ct2, ctLut, 0.5, ctReg );
+volumes2.add( pet2, petLut, 0.5, petReg );
+
+//ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
+
+ManipulatorPointer manipulator2;
+manipultors.add( manipulator2 );
+
+Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
+segment1.setTool( annotations );
+
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
+segment2.setTool( annotations );
+
+Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
+segment3.setTool( annotations );
+
+Segment segment4( volumes2, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment4.setTool( toolCentering );
+segment4.setTool( manipultors );
+segment4.setTool( annotations );
+
+Segment segment5( volumes2, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment5.setTool( toolCentering );
+segment5.setTool( manipultors );
+segment5.setTool( annotations );
+
+Segment segment6( volumes2, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment6.setTool( toolCentering );
+segment6.setTool( manipultors );
+segment6.setTool( annotations );
+
+
+Layout::Vertical vertical;
+Layout::Horizontal horizontal;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout l3( segment3 );
+Layout l6( Console() );
+
+Layout top    = Layout( horizontal, Layout( segment1 ), Layout( horizontal, Layout( segment2 ), Layout( segment3 ), 0.5 ), 0.33 );
+Layout bottom = Layout( horizontal, Layout( segment4 ), Layout( horizontal, Layout( segment5 ), Layout( segment6 ), 0.5 ), 0.33 );
+Layout layoutDisplay( vertical, top, bottom, 0.50 );
+
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.10);
 */

@@ -408,28 +408,6 @@ class SegmentToolCentering
 
 /**
  @ingroup mvv
- @brief Synchronize all the linked segments on a unique position
- */
-class SegmentToolPointer
-{
-   /**
-    @param fontSize the size to be used to display position information
-    */
-   import SegmentToolPointer( int fontSize = 12 );
-
-   /**
-    @brief Free the native resources
-    */
-   import ~SegmentToolPointer();
-
-   /**
-    @brief Returns the position of the camera
-    */
-   import Vector3f getPosition();
-}
-
-/**
- @ingroup mvv
  @brief Tool displaying annotations on segments
  */
 class ToolAnnotations
@@ -489,37 +467,6 @@ class ToolAnnotations
 
 /**
  @ingroup mvv
- @brief Tool allowing a segment to be manipulated (zmoved/zoomed/panned)
- @note all the linked segments must be orthogonal
- */
-class SegmentToolCamera
-{
-   /**
-    @brief Allocate the native resources
-    */
-   import SegmentToolCamera();
-
-   /**
-    @brief Free the native resources
-    */
-   import ~SegmentToolCamera();
-
-   /**
-    @brief Set the position of the camera and update all linked segments
-    */
-   import void setPosition( Vector3f position );
-
-   /**
-    @brief Set the position of the camera and update all linked segments
-    */
-   void setPosition( float x, float y, float z )
-   {
-      this.setPosition( Vector3f( x, y, z ) );
-   }
-}
-
-/**
- @ingroup mvv
  @brief Defines a callback to postprocess a MPR/MIP
  */
 typedef void(Image image, Vector2f spacing, Vector3f origin)   PostprocessingCallback;
@@ -543,6 +490,27 @@ class ManipulatorPoint
 {
    import ManipulatorPoint( Vector3f positionMM );
    import ~ManipulatorPoint();
+
+   /**
+    @brief return the position of the point
+    */
+   import Vector3f getPosition();
+
+   /**
+    @brief set the position of a point
+    @note m is needed to notify() the container holding p (else, it will not be notified on the screen...)
+    */
+   import void setPosition( Vector3f p, ToolManipulators m );
+}
+
+/**
+ @ingroup mvv
+ @brief Represents a cuboid that can be manipulated
+ */
+class ManipulatorCuboid
+{
+   import ManipulatorCuboid( Vector3f min, Vector3f max, Vector3i color = Vector3i( 0, 0, 255 ) );
+   import ~ManipulatorCuboid();
 }
 
 /**
@@ -582,10 +550,12 @@ class ToolManipulators
     */
    import void add( ManipulatorPointer manipulator );
 
+   import void add( ManipulatorCuboid manipulator );
+
    /**
     @brief Removes the maipulator from the list
     */
-   //import void erase( ManipulatorPoint manipulator );
+   import void erase( ManipulatorPoint manipulator );
 
    /**
     @brief remove all the manipulators and refresh all linked segments
@@ -655,16 +625,6 @@ class Segment
     @brief set a Tri-linear interpolator for this segment
     */
    import void setInterpolator( Linear i );
-   
-   /**
-    @brief attach a pointer: segments will be synchronized & crosshair displayed
-    */
-   import void setTool( SegmentToolPointer pointer );
-   
-   /**
-    @brief attach a camera: segments can be manipulated
-    */
-   import void setTool( SegmentToolCamera camera );
    
    /**
     @brief attach annotations

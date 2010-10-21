@@ -90,7 +90,7 @@ public:
       return rt;
    }
 };
-
+/*
 class FunctionSegmentToolPointerConstructor: public FunctionRunnable
 {
 public:
@@ -165,7 +165,7 @@ public:
       return rt;
    }
 };
-
+*/
 /*
 class FunctionSegmentToolPointerSetPosition: public FunctionRunnable
 {
@@ -238,7 +238,7 @@ public:
    }
 };
 */
-
+/*
 class FunctionSegmentToolPointerGetPosition: public FunctionRunnable
 {
 public:
@@ -268,7 +268,7 @@ public:
       return rt;
    }
 };
-
+*/
 namespace impl
 {
    struct ToolAnnotationsStorage
@@ -734,7 +734,7 @@ public:
    }
 };
 
-
+/*
 class FunctionSegmentToolCameraSetPositionV: public FunctionRunnable
 {
 public:
@@ -831,4 +831,5 @@ public:
       return rt;
    }
 };
+*/
 #endif
