@@ -545,6 +545,12 @@ class ManipulatorPoint
    import ~ManipulatorPoint();
 }
 
+class ManipulatorPointer
+{
+   import ManipulatorPointer();
+   import ~ManipulatorPointer();
+}
+
 /**
  @ingroup mvv
  @brief Tool holding manipulators (i.e., objects that can be manipulated interactively by the user)
@@ -566,6 +572,11 @@ class ToolManipulators
     @return the ID of the manipulator
     */
    import void add( ManipulatorPoint manipulator );
+
+   /**
+    @brief manipulate the connected MPR using a pointer
+    */
+   import void add( ManipulatorPointer manipulator );
 
    /**
     @brief Removes the maipulator from the list

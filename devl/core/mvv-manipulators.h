@@ -13,8 +13,6 @@
 using namespace mvv::parser;
 using namespace mvv;
 
-typedef int ToolManipulatorPoint;
-
 class FunctionManipulatorPointConstructor: public FunctionRunnable
 {
 public:
@@ -177,6 +175,99 @@ public:
       return rt;
    }
 };
+
+class FunctionManipulatorPointerConstructor: public FunctionRunnable
+{
+public:
+   typedef RefcountedTyped<ToolManipulatorsInterface> Pointee;
+
+public:
+   FunctionManipulatorPointerConstructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      
+      // construct the type
+      Pointee* pointee = new Pointee( new ToolManipulatorsPointer() );
+      RuntimeValue field( RuntimeValue::PTR );
+      field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
+      (*v1.vals).resize( 1 );    // resize the original field
+      (*v1.vals)[ 0 ] = field;
+      return v1;  // return the original object!
+   }
+};
+
+class FunctionManipulatorPointerDestructor: public FunctionRunnable
+{
+public:
+   typedef FunctionManipulatorPointerConstructor Pointee;
+
+public:
+   FunctionManipulatorPointerDestructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // deallocate data
+      delete pointee;
+      (*v1.vals)[ 0 ].ref = 0;
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionToolManipulatorsAddPointer : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+   typedef FunctionManipulatorPointerConstructor::Pointee PointeePoint;
+
+public:
+   FunctionToolManipulatorsAddPointer( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
+
+      p->segmentManipulators.add( *point );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 
 
 #endif

@@ -38,8 +38,12 @@ ToolManipulators        manipultors;
 
 VolumeContainer         volumes;
 
-VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
-VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
+
+
+VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/1_-NAC.mf2");
+VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/1_-CT.mf2");
+//VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
+//VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
 //VolumeID nema = readVolumeMF2Asynchronous("c:/tmp3/nema.mf2");
 
 Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
@@ -118,29 +122,30 @@ Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
-
+ManipulatorPointer manipulator2;
 ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
-manipultors.add( manipulator1 );
+manipultors.add( manipulator2 );
+//manipultors.add( manipulator1 );
 
 Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
-segment1.setTool( pointer );
-segment1.setTool( annotations );
-segment1.setTool( camera );
-segment1.setTool( toolCentering );
+//segment1.setTool( pointer );
+//segment1.setTool( annotations );
+//segment1.setTool( camera );
+//segment1.setTool( toolCentering );
 segment1.setTool( manipultors );
 
 Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment2.setTool( pointer );
-segment2.setTool( annotations );
-segment2.setTool( camera );
-segment2.setTool( toolCentering );
+//segment2.setTool( pointer );
+//segment2.setTool( annotations );
+//segment2.setTool( camera );
+//segment2.setTool( toolCentering );
 segment2.setTool( manipultors );
 
 Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment3.setTool( pointer );
-segment3.setTool( annotations );
-segment3.setTool( camera );
-segment3.setTool( toolCentering );
+//segment3.setTool( pointer );
+//segment3.setTool( annotations );
+//segment3.setTool( camera );
+//segment3.setTool( toolCentering );
 segment3.setTool( manipultors );
 
 Layout::Vertical vertical;
