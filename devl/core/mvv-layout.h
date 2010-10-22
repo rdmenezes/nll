@@ -199,7 +199,7 @@ public:
    typedef ::impl::LayoutStorage Pointee;
 
 public:
-   FunctionLayoutConstructorSegment( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionLayoutConstructorSegment( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -225,7 +225,8 @@ public:
       // it is safe not to have a real refcount here, as we are saving the layout (which is refcounted!)
       Pane* pane = new PaneSegment( nll::core::vector2ui( 0, 0 ),
                                     nll::core::vector2ui( 0, 0 ),
-                                    RefcountedTyped<Segment>( &segment->segment, false ) );
+                                    RefcountedTyped<Segment>( &segment->segment, false ),
+                                    _context );
 
       // fill the storage
       Pointee* pointee = new Pointee( pane );
@@ -239,6 +240,9 @@ public:
 
       return v1;  // return the original object!
    }
+
+private:
+   Context&    _context;
 };
 
 class FunctionLayoutConstructorMip: public FunctionRunnable

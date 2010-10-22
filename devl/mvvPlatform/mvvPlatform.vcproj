@@ -526,6 +526,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mouse-pointer.h"
+				>
+			</File>
+			<File
 				RelativePath=".\notifiable.h"
 				>
 			</File>

@@ -13,6 +13,7 @@ include "math-matrix"
 include "math-matrix-op"
 include "image"
 include "imagef"
+include "mouse"
 
 /**
  @ingroup core

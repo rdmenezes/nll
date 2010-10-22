@@ -26,6 +26,7 @@
 # include <mvvScript/compiler.h>
 # include <core/mvv-layout.h>
 # include "callbacks.h"
+#include <GL/freeglut.h>
 
 using namespace mvv;
 using namespace mvv::platform;
@@ -36,6 +37,29 @@ using namespace mvv::parser;
  */
 namespace mvv
 {
+   class MousePointerImpl : public platform::MousePointer
+   {
+   public:
+      MousePointerImpl()
+      {
+         _mousePointer = MousePointer::MOUSE_NORMAL;
+      }
+
+      virtual void setMousePointer( MouseGraphic graphic )
+      {
+         int g = (int)graphic;
+         glutSetCursor( g );
+      }
+
+      virtual ui32 getMousePointer() const
+      {
+         return _mousePointer;
+      }
+
+   private:
+      ui32     _mousePointer;
+   };
+
    struct ApplicationVariables
    {
       unsigned int                        screenTextureId;
@@ -177,6 +201,7 @@ namespace mvv
 
          ContextGlobal* ctxGlobal = new ContextGlobal( engineHandler, orderManager, *font, screen );
          ctxGlobal->completion = RefcountedTyped<parser::CompletionInterface>( new parser::Completion( compiler ) );
+         ctxGlobal->mousePointer = RefcountedTyped<platform::MousePointer>( new MousePointerImpl() );
 
          context.add( ctxGlobal );
       }

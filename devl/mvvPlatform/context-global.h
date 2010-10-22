@@ -7,6 +7,7 @@
 # include "order-manager-thread-pool.h"
 # include "font.h"
 # include "layout-pane.h"
+# include "mouse-pointer.h"
 # include <mvvScript/completion-interface.h>
 
 namespace mvv
@@ -28,7 +29,11 @@ namespace platform
       Font&                                commonFont;
       RefcountedTyped<Pane>                layout;
       RefcountedTyped<parser::CompletionInterface> completion;
+      RefcountedTyped<MousePointer>        mousePointer;
       nll::core::Image<ui8>&               screen;
+
+      RefcountedTyped<MouseSegmentCallback> onSegmentLeftMouseClick;    // callback to run in a segment on left click
+      RefcountedTyped<MouseSegmentCallback> onSegmentRightMouseClick;   // callback to run in a segment on right click
 
    private:
       // disabled copy

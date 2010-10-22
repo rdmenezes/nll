@@ -45,6 +45,21 @@ namespace parser
       (*(*val.vals)[ 0 ].vals)[ 2 ].type = RuntimeValue::CMP_INT;
    }
 
+   inline void createVector2i( RuntimeValue& val, int x, int y )
+   {
+      val.type = RuntimeValue::TYPE;
+
+      createFields( val, 1 );
+      (*val.vals)[ 0 ].type = RuntimeValue::TYPE;
+      createFields( (*val.vals)[ 0 ], 2 );
+
+      (*(*val.vals)[ 0 ].vals)[ 0 ].intval = x;
+      (*(*val.vals)[ 0 ].vals)[ 1 ].intval = y;
+
+      (*(*val.vals)[ 0 ].vals)[ 0 ].type = RuntimeValue::CMP_INT;
+      (*(*val.vals)[ 0 ].vals)[ 1 ].type = RuntimeValue::CMP_INT;
+   }
+
    inline void createVector3f( RuntimeValue& val, float x, float y, float z )
    {
       val.type = RuntimeValue::TYPE;

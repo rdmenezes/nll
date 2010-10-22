@@ -154,6 +154,20 @@ Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 Layout layout1 = layout;
 
 
+void mouseSegmentCallback(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+{
+   print( "CLICK SEGMENT" );
+   setMousePointer( 5 );
+}
+
+void mouseSegmentCallbackR(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+{
+   print( "CLICK SEGMENT R" );
+   setMousePointer( 1 );
+}
+
+setOnSegmentLeftMouseClick( mouseSegmentCallback );
+setOnSegmentRightMouseClick( mouseSegmentCallbackR );
 
 /*
 import "core"

@@ -21,6 +21,7 @@
 #include "mvv-imagef.h"
 #include "mvv-segment-tool-postprocessing.h"
 #include "mvv-manipulators.h"
+#include "mvv-mouse.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -1500,6 +1501,8 @@ public:
          throw std::runtime_error( "unexpected number of arguments" );
       }
 
+      // unref the values so that the actual RuntimeValues
+      // are accessed and not a simple reference
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
       if ( v1.type != RuntimeValue::CMP_FLOAT || v2.type != RuntimeValue::CMP_FLOAT   )
@@ -1839,6 +1842,7 @@ static std::pair<std::vector<std::string>,
 
    return std::make_pair( strsout, strserr );
 }
+
 
 class FunctionRunnableSystem : public FunctionRunnable
 {
@@ -2843,7 +2847,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( segment );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Layout"), platform::Symbol::create( "Layout" ) ), nll::core::make_vector<const Type*>( segment ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLayoutConstructorSegment( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLayoutConstructorSegment( fn, context ) ) );
    }
 
    {
@@ -3443,5 +3447,36 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorCuboid"), platform::Symbol::create( "~ManipulatorCuboid") ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorCuboidDestructor( fn ) ) );
+   }
+
+   //
+   // Mouse
+   //
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setMousePointer") ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSetMousePointer( fn, context ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "getMousePointer") ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionGetMousePointer( fn, context ) ) );
+   }
+
+   {
+      Type* mouse = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MouseCallback" ) ) ) );
+      assert( mouse );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setOnSegmentLeftMouseClick") ), nll::core::make_vector<const Type*>( mouse ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnLeftClick( fn, e, context ) ) );
+   }
+
+   {
+      Type* mouse = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MouseCallback" ) ) ) );
+      assert( mouse );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setOnSegmentRightMouseClick") ), nll::core::make_vector<const Type*>( mouse ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnRightClick( fn, e, context ) ) );
    }
 }

@@ -2,6 +2,7 @@
 # define MVV_PLATFORM_LAYOUT_SEGMENT_H_
 
 # include <mvvPlatform/layout-pane.h>
+# include <mvvPlatform/context-global.h>
 # include "segment.h"
 
 namespace mvv
@@ -13,7 +14,8 @@ namespace platform
    public:
       PaneSegment( const nll::core::vector2ui& origin,
                    const nll::core::vector2ui& size,
-                   RefcountedTyped<Segment> segment ) : Pane( origin, size, nll::core::vector3uc( 0, 0, 0 ) ), _segment( segment )
+                   RefcountedTyped<Segment> segment,
+                   Context& context ) : Pane( origin, size, nll::core::vector3uc( 0, 0, 0 ) ), _segment( segment ), _context( context )
       {
       }
 
@@ -121,11 +123,30 @@ namespace platform
    protected:
       virtual void _receive( const EventMouse& e )
       {
+         ContextGlobal* global = _context.get<platform::ContextGlobal>();
+         if ( global )
+         {
+            // run specifc mouse event callbacks
+            if ( e.isMouseLeftButtonJustPressed && !e.isMouseRightButtonPressed && !global->onSegmentLeftMouseClick.isEmpty() && global->onSegmentLeftMouseClick.getDataPtr() )
+            {
+               (*global->onSegmentLeftMouseClick).run( (*_segment).segment.getValue(), e, _origin );
+               global->onSegmentLeftMouseClick.unref();
+               return;
+            }
+
+            if ( e.isMouseRightButtonJustPressed && !e.isMouseLeftButtonPressed && !global->onSegmentRightMouseClick.isEmpty() && global->onSegmentRightMouseClick.getDataPtr() )
+            {
+               (*global->onSegmentRightMouseClick).run( (*_segment).segment.getValue(), e, _origin );
+               global->onSegmentRightMouseClick.unref();
+               return;
+            }
+         }
          (*_segment).receive( e, _origin );
       }
 
    protected:
       RefcountedTyped<Segment>   _segment;
+      Context&                   _context;
    };
 }
 }

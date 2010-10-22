@@ -37,6 +37,7 @@
 #include "layout-pane-textbox.h"
 #include "layout-pane-cmdl.h"
 #include "layout-pane-image.h"
+#include "mouse-pointer.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

@@ -384,7 +384,7 @@ namespace platform
             }
 
             // prepare blending
-            ResourceLut::lut_type dummy(0, 0.1, 1);
+            ResourceLut::lut_type dummy(0, 0.1f, 1);
 			   for ( std::set<Order*>::iterator it = _orders.begin(); it != _orders.end(); ++it, ++n )
             {
                OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( *it );

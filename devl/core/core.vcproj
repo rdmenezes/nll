@@ -427,6 +427,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\mvv-mouse.h"
+				>
+			</File>
+			<File
 				RelativePath=".\mvv-resample.h"
 				>
 			</File>
@@ -558,6 +562,10 @@
 			</File>
 			<File
 				RelativePath=".\math-vector.ludo"
+				>
+			</File>
+			<File
+				RelativePath=".\mouse.ludo"
 				>
 			</File>
 			<File

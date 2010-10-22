@@ -1,0 +1,42 @@
+/**
+ @brief mouse pointer styles
+ */
+int MOUSE_POINTER_NORMAL    = 1;
+int MOUSE_POINTER_DESTROY   = 3;
+int MOUSE_POINTER_CYCLE     = 5;
+int MOUSE_POINTER_WAIT      = 7;
+int MOUSE_POINTER_CROSSHAIR = 9;
+
+/**
+ @ingroup mvv
+ @brief set the style of the mouse pointer
+ */
+import void setMousePointer( int style );
+
+/**
+ @ingroup mvv
+ @brief get the style of the mouse pointer
+ */
+import int getMousePointer();
+
+/**
+ @ingroup mvv
+ @brief Callback to run code on a segment's mouse click
+ */
+typedef void (Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize) MouseCallback;
+
+/**
+ @ingroup mvv
+ @brief If the user left-click on a segment, instead of doing the normal processing, the engine will call this callback
+        one time.
+ @note if the user right click (or any other mouse actions), the callback is cancelled
+ */
+import void setOnSegmentLeftMouseClick( MouseCallback c );
+
+/**
+ @ingroup mvv
+ @brief If the user left-click on a segment, instead of doing the normal processing, the engine will call this callback
+        one time.
+ @note if the user right click (or any other mouse actions), the callback is cancelled
+ */
+import void setOnSegmentRightMouseClick( MouseCallback c );
