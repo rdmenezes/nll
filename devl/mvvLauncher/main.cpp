@@ -211,7 +211,7 @@ void mouseMotion(int x, int y)
    // left
    if ( applicationVariables->mouseEvent.isMouseLeftButtonJustPressed )
    {
-      applicationVariables->mouseEvent.isMouseLeftButtonJustReleased = true;
+      //applicationVariables->mouseEvent.isMouseLeftButtonJustReleased = true;
       applicationVariables->mouseEvent.isMouseLeftButtonJustPressed = false;
    } else {
       applicationVariables->mouseEvent.isMouseLeftButtonJustReleased = false;
@@ -220,7 +220,7 @@ void mouseMotion(int x, int y)
    // right
    if ( applicationVariables->mouseEvent.isMouseRightButtonJustPressed )
    {
-      applicationVariables->mouseEvent.isMouseRightButtonJustReleased = true;
+      //applicationVariables->mouseEvent.isMouseRightButtonJustReleased = true;
       applicationVariables->mouseEvent.isMouseRightButtonJustPressed = false;
    } else {
       applicationVariables->mouseEvent.isMouseRightButtonJustReleased = false;

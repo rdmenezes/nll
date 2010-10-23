@@ -186,4 +186,126 @@ private:
 };
 
 
+class FunctionSegmentMouseOnRightRelease: public FunctionRunnable
+{
+public:
+   FunctionSegmentMouseOnRightRelease( const AstDeclFun* fun, CompilerFrontEnd& e, Context& context ) : FunctionRunnable( fun ), _e( e ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      global->onSegmentRightMouseRelease = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( unref( *args[ 0 ] ), _e ) );
+      
+      RuntimeValue res( RuntimeValue::EMPTY );
+      return res;
+   }
+
+private:
+   CompilerFrontEnd&    _e;
+   Context&             _context;
+};
+
+class FunctionSegmentMouseOnLeftRelease: public FunctionRunnable
+{
+public:
+   FunctionSegmentMouseOnLeftRelease( const AstDeclFun* fun, CompilerFrontEnd& e, Context& context ) : FunctionRunnable( fun ), _e( e ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      global->onSegmentLeftMouseRelease = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( unref( *args[ 0 ] ), _e ) );
+      
+      RuntimeValue res( RuntimeValue::EMPTY );
+      return res;
+   }
+
+private:
+   CompilerFrontEnd&    _e;
+   Context&             _context;
+};
+
+class FunctionSetInterceptMouseLeft: public FunctionRunnable
+{
+public:
+   FunctionSetInterceptMouseLeft( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      global->interceptSegmentWhileLeftMousePressed = unref( *args[ 0 ] ).intval;
+      
+      RuntimeValue res( RuntimeValue::EMPTY );
+      return res;
+   }
+
+private:
+   Context&             _context;
+};
+
+class FunctionSetInterceptMouseRight: public FunctionRunnable
+{
+public:
+   FunctionSetInterceptMouseRight( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
+
+      global->interceptSegmentWhileRightMousePressed = unref( *args[ 0 ] ).intval;
+      
+      RuntimeValue res( RuntimeValue::EMPTY );
+      return res;
+   }
+
+private:
+   Context&             _context;
+};
+
 #endif

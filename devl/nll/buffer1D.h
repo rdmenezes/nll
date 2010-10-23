@@ -96,6 +96,7 @@ public:
     */
    inline T* stealBuf()
    {
+      ref(); // make sure it will not be destroyed by any containers...
       _ownsBuffer = false;
       return _buffer;
    }

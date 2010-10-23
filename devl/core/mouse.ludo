@@ -1,5 +1,5 @@
 /**
- @brief mouse pointer styles
+ @brief mouse pointer styles (see GLUT mouse code for more...)
  */
 int MOUSE_POINTER_NORMAL    = 1;
 int MOUSE_POINTER_DESTROY   = 3;
@@ -29,7 +29,6 @@ typedef void (Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSp
  @ingroup mvv
  @brief If the user left-click on a segment, instead of doing the normal processing, the engine will call this callback
         one time.
- @note if the user right click (or any other mouse actions), the callback is cancelled
  */
 import void setOnSegmentLeftMouseClick( MouseCallback c );
 
@@ -37,6 +36,31 @@ import void setOnSegmentLeftMouseClick( MouseCallback c );
  @ingroup mvv
  @brief If the user left-click on a segment, instead of doing the normal processing, the engine will call this callback
         one time.
- @note if the user right click (or any other mouse actions), the callback is cancelled
  */
 import void setOnSegmentRightMouseClick( MouseCallback c );
+
+/**
+ @ingroup mvv
+ @brief If the user left-release on a segment, instead of doing the normal processing, the engine will call this callback
+        one time.
+ */
+import void setOnSegmentLeftMouseRelease( MouseCallback c );
+
+/**
+ @ingroup mvv
+ @brief If the user right-release on a segment, instead of doing the normal processing, the engine will call this callback
+        one time.
+ */
+import void setOnSegmentRightMouseRelease( MouseCallback c );
+
+/**
+ @ingroup mvv
+ @brief if set to true, all mouse events while left-mouse button is pressed will be destroyed
+ */
+import void setSegmentInterceptWhileLeftMouseClick( int value );
+
+/**
+ @ingroup mvv
+ @brief if set to true, all mouse events while right-mouse button is pressed will be destroyed
+ */
+import void setSegmentInterceptWhileRightMouseClick( int value );

@@ -3479,4 +3479,32 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnRightClick( fn, e, context ) ) );
    }
+
+   {
+      Type* mouse = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MouseCallback" ) ) ) );
+      assert( mouse );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setOnSegmentRightMouseRelease") ), nll::core::make_vector<const Type*>( mouse ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnRightRelease( fn, e, context ) ) );
+   }
+
+   {
+      Type* mouse = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MouseCallback" ) ) ) );
+      assert( mouse );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setOnSegmentLeftMouseRelease") ), nll::core::make_vector<const Type*>( mouse ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnLeftRelease( fn, e, context ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setSegmentInterceptWhileRightMouseClick") ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSetInterceptMouseRight( fn, context ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setSegmentInterceptWhileLeftMouseClick") ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSetInterceptMouseLeft( fn, context ) ) );
+   }
 }

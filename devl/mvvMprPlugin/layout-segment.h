@@ -134,12 +134,31 @@ namespace platform
                return;
             }
 
+            if ( e.isMouseLeftButtonJustReleased && !global->onSegmentLeftMouseRelease.isEmpty() && global->onSegmentLeftMouseRelease.getDataPtr() )
+            {
+               (*global->onSegmentLeftMouseRelease).run( (*_segment).segment.getValue(), e, _origin );
+               global->onSegmentLeftMouseRelease.unref();
+               return;
+            }
+
             if ( e.isMouseRightButtonJustPressed && !e.isMouseLeftButtonPressed && !global->onSegmentRightMouseClick.isEmpty() && global->onSegmentRightMouseClick.getDataPtr() )
             {
                (*global->onSegmentRightMouseClick).run( (*_segment).segment.getValue(), e, _origin );
                global->onSegmentRightMouseClick.unref();
                return;
             }
+
+            if ( e.isMouseRightButtonJustReleased && !global->onSegmentRightMouseRelease.isEmpty() && global->onSegmentRightMouseRelease.getDataPtr() )
+            {
+               (*global->onSegmentRightMouseRelease).run( (*_segment).segment.getValue(), e, _origin );
+               global->onSegmentRightMouseRelease.unref();
+               return;
+            }
+
+            if ( e.isMouseLeftButtonPressed && global->interceptSegmentWhileLeftMousePressed )
+               return;
+            if ( e.isMouseRightButtonPressed && global->interceptSegmentWhileRightMousePressed )
+               return;
          }
          (*_segment).receive( e, _origin );
       }
