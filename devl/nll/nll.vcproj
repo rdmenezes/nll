@@ -321,7 +321,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="$(SolutionDir)"
-				PreprocessorDefinitions="WIN32;NLL_EXPORTS"
+				PreprocessorDefinitions="WIN32;NLL_EXPORTS;NDEBUG"
 				StringPooling="false"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"

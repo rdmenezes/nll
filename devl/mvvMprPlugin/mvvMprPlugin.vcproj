@@ -318,7 +318,7 @@
 				OmitFramePointers="true"
 				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="$(SolutionDir)"
-				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS"
+				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS;NDEBUG"
 				StringPooling="false"
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"

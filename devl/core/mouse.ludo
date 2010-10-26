@@ -28,39 +28,41 @@ typedef void (Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSp
 /**
  @ingroup mvv
  @brief If the user left-click on a segment, instead of doing the normal processing, the engine will call this callback
-        one time.
+        as long as the callback is not set to NULL.
  */
 import void setOnSegmentLeftMouseClick( MouseCallback c );
 
 /**
  @ingroup mvv
- @brief If the user left-click on a segment, instead of doing the normal processing, the engine will call this callback
-        one time.
+ @brief If the user right-click on a segment, instead of doing the normal processing, the engine will call this callback
+        as long as the callback is not set to NULL.
  */
 import void setOnSegmentRightMouseClick( MouseCallback c );
 
 /**
  @ingroup mvv
  @brief If the user left-release on a segment, instead of doing the normal processing, the engine will call this callback
-        one time.
+        as long as the callback is not set to NULL.
  */
 import void setOnSegmentLeftMouseRelease( MouseCallback c );
 
 /**
  @ingroup mvv
  @brief If the user right-release on a segment, instead of doing the normal processing, the engine will call this callback
-        one time.
+        as long as the callback is not set to NULL.
  */
 import void setOnSegmentRightMouseRelease( MouseCallback c );
 
 /**
  @ingroup mvv
- @brief if set to true, all mouse events while left-mouse button is pressed will be destroyed
+ @brief If the user right-release on a segment, instead of doing the normal processing, the engine will call this callback
+        as long as the callback is not set to NULL.
  */
-import void setSegmentInterceptWhileLeftMouseClick( int value );
+import void setOnSegmentLeftMousePressed( MouseCallback c );
 
 /**
  @ingroup mvv
- @brief if set to true, all mouse events while right-mouse button is pressed will be destroyed
+ @brief If the user right-release on a segment, instead of doing the normal processing, the engine will call this callback
+        as long as the callback is not set to NULL.
  */
-import void setSegmentInterceptWhileRightMouseClick( int value );
+import void setOnSegmentRightMousePressed( MouseCallback c );

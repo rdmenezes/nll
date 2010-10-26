@@ -22,8 +22,6 @@ namespace platform
    public:
       ContextGlobal( EngineHandlerImpl& e, OrderManagerThreadPool& o, Font& font, nll::core::Image<ui8>& sscreen ) : engineHandler( e ), orderManager( o ), commonFont( font ), screen( sscreen )
       {
-         interceptSegmentWhileLeftMousePressed  = false;
-         interceptSegmentWhileRightMousePressed = false;
       }
 
       // we need copy: we can't actually store these in the context: they need to be alive while all resources are being deallocated
@@ -35,12 +33,12 @@ namespace platform
       RefcountedTyped<MousePointer>        mousePointer;
       nll::core::Image<ui8>&               screen;
 
-      RefcountedTyped<MouseSegmentCallback> onSegmentLeftMouseClick;    // callback to run in a segment on left click
-      RefcountedTyped<MouseSegmentCallback> onSegmentRightMouseClick;   // callback to run in a segment on right click
+      RefcountedTyped<MouseSegmentCallback> onSegmentLeftMouseClick;    // callback to run in a segment on a left click
+      RefcountedTyped<MouseSegmentCallback> onSegmentRightMouseClick;   // callback to run in a segment on a right click
       RefcountedTyped<MouseSegmentCallback> onSegmentLeftMouseRelease;
       RefcountedTyped<MouseSegmentCallback> onSegmentRightMouseRelease;
-      bool                                  interceptSegmentWhileLeftMousePressed;
-      bool                                  interceptSegmentWhileRightMousePressed;
+      RefcountedTyped<MouseSegmentCallback> onSegmentLeftMousePressed;  // run while the mouse move + left pressed
+      RefcountedTyped<MouseSegmentCallback> onSegmentRightMousePressed; // run while the mouse move + right pressed
 
    private:
       // disabled copy

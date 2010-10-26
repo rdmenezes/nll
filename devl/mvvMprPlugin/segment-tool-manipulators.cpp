@@ -337,11 +337,200 @@ namespace platform
 
    bool ToolManipulatorsCuboid::checkEvent( Segment& s, const nll::core::vector2i& positionStartStroke, const nll::core::vector2i& positionEndStroke, const EventMouse& e )
    {
+      // project both points on the segment
+      Sliceuc& slice = s.segment.getValue();
+      if ( !slice.size()[ 0 ] ||
+           !slice.size()[ 1 ] ||
+           !slice.size()[ 2 ] ||
+           slice.getAxisX().norm2() < 1e-4 || 
+           slice.getAxisY().norm2() < 1e-4 )
+      {
+         return false;
+      }
+
+      nll::core::vector3f p1 = slice.getOrthogonalProjection( _min );
+      nll::core::vector2f p1a = slice.worldToSliceCoordinate( p1 );
+
+      nll::core::vector3f p2 = slice.getOrthogonalProjection( _max );
+      nll::core::vector2f p2a = slice.worldToSliceCoordinate( p2 );
+
+      nll::core::vector2i size( static_cast<int>( slice.size()[ 0 ] ),
+                                static_cast<int>( slice.size()[ 1 ] ) );
+      nll::core::vector2i pi1( static_cast<int>( p1a[ 0 ] + size[ 0 ] / 2 ),
+                               static_cast<int>( p1a[ 1 ] + size[ 1 ] / 2 ) );
+      nll::core::vector2i pi2( static_cast<int>( p2a[ 0 ] + size[ 0 ] / 2 ),
+                               static_cast<int>( p2a[ 1 ] + size[ 1 ] / 2 ) );
+
+      // order the points
+      nll::core::vector2i a1( std::min( pi1[ 0 ], pi2[ 0 ] ),
+                              std::min( pi1[ 1 ], pi2[ 1 ] ) );
+      nll::core::vector2i a2( std::max( pi1[ 0 ], pi2[ 0 ] ),
+                              std::max( pi1[ 1 ], pi2[ 1 ] ) );
+
+      nll::core::vector2i start( std::max<int>( 0, a1[ 0 ] ),
+                                 std::max<int>( 0, a1[ 1 ] ) );
+      nll::core::vector2i end( std::min<int>( size[ 0 ], a2[ 0 ] ),
+                               std::min<int>( size[ 1 ], a2[ 1 ] ) );
+
+      // localization
+      bool a00 = a1[ 0 ] >= 0 && a1[ 1 ] >= 0 && a1[ 0 ] < size[ 0 ] && a1[ 1 ] < size[ 1 ];
+      bool a10 = a1[ 0 ] >= 0 && a2[ 1 ] >= 0 && a1[ 0 ] < size[ 0 ] && a2[ 1 ] < size[ 1 ];
+      bool a01 = a2[ 0 ] >= 0 && a1[ 1 ] >= 0 && a2[ 0 ] < size[ 0 ] && a1[ 1 ] < size[ 1 ];
+      bool a11 = a2[ 0 ] >= 0 && a2[ 1 ] >= 0 && a2[ 0 ] < size[ 0 ] && a2[ 1 ] < size[ 1 ];
+
+      // draw
+      const int sx = end[ 0 ] - start[ 0 ];
+      const int sy = end[ 1 ] - start[ 1 ];
+      const int asx = a2[ 0 ] - a1[ 0 ];
+      const int asy = a2[ 1 ] - a1[ 1 ];
+
+      nll::core::vector2i center( ( a1[ 0 ] + a2[ 0 ] ) / 2,
+                                  ( a1[ 1 ] + a2[ 1 ] ) / 2 );
+
+      nll::core::vector2f diff(     (float)positionEndStroke[ 0 ] - (float)positionStartStroke[ 0 ],
+                                - ( (float)positionEndStroke[ 1 ] - (float)positionStartStroke[ 1 ] ) );
+
+      nll::core::vector3f vv( diff[ 0 ] * slice.getAxisX()[ 0 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 0 ] * slice.getSpacing()[ 1 ],
+                                    diff[ 0 ] * slice.getAxisX()[ 1 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 1 ] * slice.getSpacing()[ 1 ],
+                                    diff[ 0 ] * slice.getAxisX()[ 2 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 2 ] * slice.getSpacing()[ 1 ] );
+
+      // check if close to a corner
+      int nbPixel = 5;
+      if ( abs( pi1[ 0 ] - positionStartStroke[ 0 ] ) < 5 &&
+           abs( pi1[ 1 ] - positionStartStroke[ 1 ] ) < 5 )
+      {
+         if ( e.isMouseLeftButtonPressed )
+         {
+            _min[ 0 ] += vv[ 0 ];
+            _min[ 1 ] += vv[ 1 ];
+            _min[ 2 ] += vv[ 2 ];
+         }
+         return true;
+      }
+
+      if ( abs( pi2[ 0 ] - positionStartStroke[ 0 ] ) < 5 &&
+           abs( pi2[ 1 ] - positionStartStroke[ 1 ] ) < 5 )
+      {
+         if ( e.isMouseLeftButtonPressed )
+         {
+            _max[ 0 ] += vv[ 0 ];
+            _max[ 1 ] += vv[ 1 ];
+            _max[ 2 ] += vv[ 2 ];
+         }
+         return true;
+      }
+
+      // check if at center
+      if ( abs( positionStartStroke[ 0 ] - center[ 0 ] ) < asx / 8 &&
+           abs( positionStartStroke[ 1 ] - center[ 1 ] ) < asy / 8 )
+      {
+         if ( e.isMouseLeftButtonPressed )
+         {
+            _max[ 0 ] += vv[ 0 ];
+            _max[ 1 ] += vv[ 1 ];
+            _max[ 2 ] += vv[ 2 ];
+
+            _min[ 0 ] += vv[ 0 ];
+            _min[ 1 ] += vv[ 1 ];
+            _min[ 2 ] += vv[ 2 ];
+         }
+         return true;
+      }
       return false;
    }
 
    void ToolManipulatorsCuboid::draw( ResourceSliceuc& s, bool isActivated )
    {
+      // project both points on the segment
+      nll::core::vector3uc color = isActivated ? _color : _colorInactif;
+      Sliceuc& slice = s.getValue();
+      if ( !slice.size()[ 0 ] ||
+           !slice.size()[ 1 ] ||
+           !slice.size()[ 2 ] ||
+           slice.getAxisX().norm2() < 1e-4 || 
+           slice.getAxisY().norm2() < 1e-4 )
+      {
+         return;
+      }
+
+      nll::core::vector3f p1 = slice.getOrthogonalProjection( _min );
+      nll::core::vector2f p1a = slice.worldToSliceCoordinate( p1 );
+
+      nll::core::vector3f p2 = slice.getOrthogonalProjection( _max );
+      nll::core::vector2f p2a = slice.worldToSliceCoordinate( p2 );
+
+      nll::core::vector2i size( static_cast<int>( slice.size()[ 0 ] ),
+                                static_cast<int>( slice.size()[ 1 ] ) );
+      nll::core::vector2i pi1( static_cast<int>( p1a[ 0 ] + size[ 0 ] / 2 ),
+                               static_cast<int>( p1a[ 1 ] + size[ 1 ] / 2 ) );
+      nll::core::vector2i pi2( static_cast<int>( p2a[ 0 ] + size[ 0 ] / 2 ),
+                               static_cast<int>( p2a[ 1 ] + size[ 1 ] / 2 ) );
+
+      // order the points
+      nll::core::vector2i a1( std::min( pi1[ 0 ], pi2[ 0 ] ),
+                              std::min( pi1[ 1 ], pi2[ 1 ] ) );
+      nll::core::vector2i a2( std::max( pi1[ 0 ], pi2[ 0 ] ),
+                              std::max( pi1[ 1 ], pi2[ 1 ] ) );
+
+      nll::core::vector2i start( std::max<int>( 0, a1[ 0 ] ),
+                                 std::max<int>( 0, a1[ 1 ] ) );
+      nll::core::vector2i end( std::min<int>( size[ 0 ], a2[ 0 ] ),
+                               std::min<int>( size[ 1 ], a2[ 1 ] ) );
+
+      // localization
+      bool a00 = a1[ 0 ] >= 0 && a1[ 1 ] >= 0 && a1[ 0 ] < size[ 0 ] && a1[ 1 ] < size[ 1 ];
+      bool a10 = a1[ 0 ] >= 0 && a2[ 1 ] >= 0 && a1[ 0 ] < size[ 0 ] && a2[ 1 ] < size[ 1 ];
+      bool a01 = a2[ 0 ] >= 0 && a1[ 1 ] >= 0 && a2[ 0 ] < size[ 0 ] && a1[ 1 ] < size[ 1 ];
+      bool a11 = a2[ 0 ] >= 0 && a2[ 1 ] >= 0 && a2[ 0 ] < size[ 0 ] && a2[ 1 ] < size[ 1 ];
+
+      // draw
+      const int sx = end[ 0 ] - start[ 0 ];
+      const int sy = end[ 1 ] - start[ 1 ];
+
+      ResourceSliceuc::value_type::Storage::DirectionalIterator  it = slice.getIterator( 0, 0 );
+      if ( a00 || a10 )
+      {
+         it = slice.getIterator( start[ 0 ], start[ 1 ] );
+         for ( int n = 0; n < sy; ++n, it.addy() )
+         {
+            it.pickcol( 0 ) = color[ 0 ];
+            it.pickcol( 1 ) = color[ 1 ];
+            it.pickcol( 2 ) = color[ 2 ];
+         }
+      }
+
+      if ( a00 || a01 )
+      {
+         it = slice.getIterator( start[ 0 ], start[ 1 ] );
+         for ( int n = 0; n < sx; ++n, it.addx() )
+         {
+            it.pickcol( 0 ) = color[ 0 ];
+            it.pickcol( 1 ) = color[ 1 ];
+            it.pickcol( 2 ) = color[ 2 ];
+         }
+      }
+
+      if ( a10 || a11 )
+      {
+         it = slice.getIterator( start[ 0 ], end[ 1 ] );
+         for ( int n = 0; n < sx; ++n, it.addx() )
+         {
+            it.pickcol( 0 ) = color[ 0 ];
+            it.pickcol( 1 ) = color[ 1 ];
+            it.pickcol( 2 ) = color[ 2 ];
+         }
+      }
+
+      if ( a01 || a11 )
+      {
+         it = slice.getIterator( end[ 0 ], start[ 1 ] );
+         for ( int n = 0; n < sy; ++n, it.addy() )
+         {
+            it.pickcol( 0 ) = color[ 0 ];
+            it.pickcol( 1 ) = color[ 1 ];
+            it.pickcol( 2 ) = color[ 2 ];
+         }
+      }
    }
 }
 }

@@ -130,35 +130,38 @@ namespace platform
             if ( e.isMouseLeftButtonJustPressed && !e.isMouseRightButtonPressed && !global->onSegmentLeftMouseClick.isEmpty() && global->onSegmentLeftMouseClick.getDataPtr() )
             {
                (*global->onSegmentLeftMouseClick).run( (*_segment).segment.getValue(), e, _origin );
-               global->onSegmentLeftMouseClick.unref();
                return;
             }
 
-            if ( e.isMouseLeftButtonJustReleased && !global->onSegmentLeftMouseRelease.isEmpty() && global->onSegmentLeftMouseRelease.getDataPtr() )
+            if ( e.isMouseLeftButtonJustReleased && !e.isMouseRightButtonPressed && !global->onSegmentLeftMouseRelease.isEmpty() && global->onSegmentLeftMouseRelease.getDataPtr() )
             {
                (*global->onSegmentLeftMouseRelease).run( (*_segment).segment.getValue(), e, _origin );
-               global->onSegmentLeftMouseRelease.unref();
                return;
             }
 
             if ( e.isMouseRightButtonJustPressed && !e.isMouseLeftButtonPressed && !global->onSegmentRightMouseClick.isEmpty() && global->onSegmentRightMouseClick.getDataPtr() )
             {
                (*global->onSegmentRightMouseClick).run( (*_segment).segment.getValue(), e, _origin );
-               global->onSegmentRightMouseClick.unref();
                return;
             }
 
-            if ( e.isMouseRightButtonJustReleased && !global->onSegmentRightMouseRelease.isEmpty() && global->onSegmentRightMouseRelease.getDataPtr() )
+            if ( e.isMouseRightButtonJustReleased && !e.isMouseLeftButtonPressed && !global->onSegmentRightMouseRelease.isEmpty() && global->onSegmentRightMouseRelease.getDataPtr() )
             {
                (*global->onSegmentRightMouseRelease).run( (*_segment).segment.getValue(), e, _origin );
-               global->onSegmentRightMouseRelease.unref();
                return;
             }
 
-            if ( e.isMouseLeftButtonPressed && global->interceptSegmentWhileLeftMousePressed )
+            if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed && !global->onSegmentLeftMousePressed.isEmpty() && global->onSegmentLeftMousePressed.getDataPtr() )
+            {
+               (*global->onSegmentLeftMousePressed).run( (*_segment).segment.getValue(), e, _origin );
                return;
-            if ( e.isMouseRightButtonPressed && global->interceptSegmentWhileRightMousePressed )
+            }
+
+            if ( e.isMouseRightButtonPressed && !e.isMouseLeftButtonPressed && !global->onSegmentRightMousePressed.isEmpty() && global->onSegmentRightMousePressed.getDataPtr() )
+            {
+               (*global->onSegmentRightMousePressed).run( (*_segment).segment.getValue(), e, _origin );
                return;
+            }
          }
          (*_segment).receive( e, _origin );
       }

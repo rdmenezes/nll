@@ -143,7 +143,13 @@ public:
          throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
-      global->onSegmentLeftMouseClick = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( unref( *args[ 0 ] ), _e ) );
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL )
+      {
+         global->onSegmentLeftMouseClick.unref();
+      } else {
+         global->onSegmentLeftMouseClick = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( v1, _e ) );
+      }
       
       RuntimeValue res( RuntimeValue::EMPTY );
       return res;
@@ -174,7 +180,13 @@ public:
          throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
-      global->onSegmentRightMouseClick = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( unref( *args[ 0 ] ), _e ) );
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL )
+      {
+         global->onSegmentRightMouseClick.unref();
+      } else {
+         global->onSegmentRightMouseClick = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( v1, _e ) );
+      }
       
       RuntimeValue res( RuntimeValue::EMPTY );
       return res;
@@ -206,7 +218,13 @@ public:
          throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
-      global->onSegmentRightMouseRelease = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( unref( *args[ 0 ] ), _e ) );
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL )
+      {
+         global->onSegmentRightMouseRelease.unref();
+      } else {
+         global->onSegmentRightMouseRelease = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( v1, _e ) );
+      }
       
       RuntimeValue res( RuntimeValue::EMPTY );
       return res;
@@ -237,7 +255,13 @@ public:
          throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
-      global->onSegmentLeftMouseRelease = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( unref( *args[ 0 ] ), _e ) );
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL )
+      {
+         global->onSegmentLeftMouseRelease.unref();
+      } else {
+         global->onSegmentLeftMouseRelease = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( v1, _e ) );
+      }
       
       RuntimeValue res( RuntimeValue::EMPTY );
       return res;
@@ -248,10 +272,10 @@ private:
    Context&             _context;
 };
 
-class FunctionSetInterceptMouseLeft: public FunctionRunnable
+class FunctionSegmentMouseOnLeftPressed: public FunctionRunnable
 {
 public:
-   FunctionSetInterceptMouseLeft( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionSegmentMouseOnLeftPressed( const AstDeclFun* fun, CompilerFrontEnd& e, Context& context ) : FunctionRunnable( fun ), _e( e ), _context( context )
    {
    }
 
@@ -268,20 +292,27 @@ public:
          throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
-      global->interceptSegmentWhileLeftMousePressed = unref( *args[ 0 ] ).intval;
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL )
+      {
+         global->onSegmentLeftMousePressed.unref();
+      } else {
+         global->onSegmentLeftMousePressed = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( v1, _e ) );
+      }
       
       RuntimeValue res( RuntimeValue::EMPTY );
       return res;
    }
 
 private:
+   CompilerFrontEnd&    _e;
    Context&             _context;
 };
 
-class FunctionSetInterceptMouseRight: public FunctionRunnable
+class FunctionSegmentMouseOnRightPressed: public FunctionRunnable
 {
 public:
-   FunctionSetInterceptMouseRight( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionSegmentMouseOnRightPressed( const AstDeclFun* fun, CompilerFrontEnd& e, Context& context ) : FunctionRunnable( fun ), _e( e ), _context( context )
    {
    }
 
@@ -298,14 +329,22 @@ public:
          throw std::runtime_error( "mvv global context has not been initialized" );
       }
 
-      global->interceptSegmentWhileRightMousePressed = unref( *args[ 0 ] ).intval;
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL )
+      {
+         global->onSegmentRightMousePressed.unref();
+      } else {
+         global->onSegmentRightMousePressed = RefcountedTyped<MouseSegmentCallback>( new MouseSegmentCallbackImpl( v1, _e ) );
+      }
       
       RuntimeValue res( RuntimeValue::EMPTY );
       return res;
    }
 
 private:
+   CompilerFrontEnd&    _e;
    Context&             _context;
 };
+
 
 #endif

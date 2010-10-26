@@ -506,6 +506,9 @@ class ManipulatorPoint
 /**
  @ingroup mvv
  @brief Represents a cuboid that can be manipulated
+        
+        The controls are:  - min/max cuboid points to change the dimension of the cuboid
+                           - center to translate the cuboid
  */
 class ManipulatorCuboid
 {

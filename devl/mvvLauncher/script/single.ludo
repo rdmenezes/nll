@@ -110,7 +110,7 @@ Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
-ManipulatorCuboid cuboid( Vector3f(10.0, -160.0, 1230.0), Vector3f(100.0, -160.0, 1330.0) );
+ManipulatorCuboid cuboid( Vector3f(10.0, -160.0, 1230.0), Vector3f(210.0, -260.0, 1430.0) );
 ManipulatorPointer pointer;
 ManipulatorPoint mp( Vector3f(0.0, -160.0, 1230.0) );
 manipultors.add( mp );
@@ -153,19 +153,24 @@ ImageHolder holder;
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 Layout layout1 = layout;
 
+void mouseSegmentCallbackNull(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+{
+}
 
 void mouseSegmentCallback(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
 {
    print( "CLICK SEGMENT" );
    setMousePointer( 5 );
-   setSegmentInterceptWhileLeftMouseClick( 1 );
+   setOnSegmentLeftMousePressed( mouseSegmentCallbackNull );
+   setOnSegmentLeftMouseClick( NULL );
 }
 
 void mouseSegmentCallbackR(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
 {
    print( "CLICK SEGMENT R" );
    setMousePointer( 1 );
-   setSegmentInterceptWhileLeftMouseClick( 0 );
+   setOnSegmentLeftMousePressed( NULL );
+   setOnSegmentLeftMouseRelease( NULL );
 }
 
 setOnSegmentLeftMouseClick( mouseSegmentCallback );

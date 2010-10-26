@@ -3497,14 +3497,18 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setSegmentInterceptWhileRightMouseClick") ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      Type* mouse = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MouseCallback" ) ) ) );
+      assert( mouse );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setOnSegmentLeftMousePressed") ), nll::core::make_vector<const Type*>( mouse ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSetInterceptMouseRight( fn, context ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnLeftPressed( fn, e, context ) ) );
    }
 
    {
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setSegmentInterceptWhileLeftMouseClick") ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
+      Type* mouse = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MouseCallback" ) ) ) );
+      assert( mouse );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setOnSegmentRightMousePressed") ), nll::core::make_vector<const Type*>( mouse ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSetInterceptMouseLeft( fn, context ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSegmentMouseOnRightPressed( fn, e, context ) ) );
    }
 }

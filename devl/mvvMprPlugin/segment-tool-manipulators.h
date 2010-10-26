@@ -153,7 +153,6 @@ namespace platform
       virtual void draw( ResourceSliceuc& s, bool isActivated );
 
    private:
-      nll::core::vector3f  _position;
       nll::core::vector3f  _min;
       nll::core::vector3f  _max;
       nll::core::vector3uc _color;

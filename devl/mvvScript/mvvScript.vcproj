@@ -310,7 +310,7 @@
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="$(SolutionDir);$(ProjectDir)"
-				PreprocessorDefinitions="WIN32;MVVSCRIPT_EXPORTS"
+				PreprocessorDefinitions="WIN32;MVVSCRIPT_EXPORTS;NDEBUG"
 				StringPooling="true"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
