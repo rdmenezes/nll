@@ -157,24 +157,51 @@ void mouseSegmentCallbackNull(Vector2i mousePosition, Vector3f segmentOrigin, Ve
 {
 }
 
-void mouseSegmentCallback(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+class CuboidCreator
 {
-   print( "CLICK SEGMENT" );
-   setMousePointer( 5 );
-   setOnSegmentLeftMousePressed( mouseSegmentCallbackNull );
-   setOnSegmentLeftMouseClick( NULL );
+   Vector3f p1;
+   Vector3f p2;
+   ManipulatorCuboid cuboid = NULL;
+   ToolManipulators  manipulators = NULL;
+
+   CuboidCreator( ToolManipulators  m )
+   {
+      p1 = Vector3f();
+      p2 = Vector3f();
+      manipulators = m;
+   }
+
+   void start()
+   {
+      setOnSegmentLeftMousePressed( this.cuboidCreate );
+   }
+
+   void cuboidCreate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+   {
+      cuboid = ManipulatorCuboid( p1, p2 );
+      manipulators.add( cuboid );
+
+      setMousePointer( 5 );
+      setOnSegmentLeftMousePressed( this.cuboidUpdate );
+      setOnSegmentLeftMouseRelease( this.cuboidEnd );
+   }
+
+   void cuboidUpdate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+   {
+
+   }
+
+   void cuboidEnd(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+   {
+      // restore the settings
+      setMousePointer( 1 );
+      setOnSegmentLeftMousePressed( NULL );
+      setOnSegmentLeftMouseRelease( NULL );
+   }
 }
 
-void mouseSegmentCallbackR(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
-{
-   print( "CLICK SEGMENT R" );
-   setMousePointer( 1 );
-   setOnSegmentLeftMousePressed( NULL );
-   setOnSegmentLeftMouseRelease( NULL );
-}
-
-setOnSegmentLeftMouseClick( mouseSegmentCallback );
-setOnSegmentLeftMouseRelease( mouseSegmentCallbackR );
+CuboidCreator creator( manipultors );
+creator.start();
 
 /*
 import "core"

@@ -372,15 +372,7 @@ namespace platform
       nll::core::vector2i end( std::min<int>( size[ 0 ], a2[ 0 ] ),
                                std::min<int>( size[ 1 ], a2[ 1 ] ) );
 
-      // localization
-      bool a00 = a1[ 0 ] >= 0 && a1[ 1 ] >= 0 && a1[ 0 ] < size[ 0 ] && a1[ 1 ] < size[ 1 ];
-      bool a10 = a1[ 0 ] >= 0 && a2[ 1 ] >= 0 && a1[ 0 ] < size[ 0 ] && a2[ 1 ] < size[ 1 ];
-      bool a01 = a2[ 0 ] >= 0 && a1[ 1 ] >= 0 && a2[ 0 ] < size[ 0 ] && a1[ 1 ] < size[ 1 ];
-      bool a11 = a2[ 0 ] >= 0 && a2[ 1 ] >= 0 && a2[ 0 ] < size[ 0 ] && a2[ 1 ] < size[ 1 ];
-
-      // draw
-      const int sx = end[ 0 ] - start[ 0 ];
-      const int sy = end[ 1 ] - start[ 1 ];
+      // check user interaction
       const int asx = a2[ 0 ] - a1[ 0 ];
       const int asy = a2[ 1 ] - a1[ 1 ];
 
@@ -395,11 +387,11 @@ namespace platform
                                     diff[ 0 ] * slice.getAxisX()[ 2 ] * slice.getSpacing()[ 0 ] - diff[ 1 ] * slice.getAxisY()[ 2 ] * slice.getSpacing()[ 1 ] );
 
       // check if close to a corner
-      int nbPixel = 5;
-      if ( abs( pi1[ 0 ] - positionStartStroke[ 0 ] ) < 5 &&
-           abs( pi1[ 1 ] - positionStartStroke[ 1 ] ) < 5 )
+      const int nbPixel = 5;
+      if ( abs( pi1[ 0 ] - positionStartStroke[ 0 ] ) < nbPixel &&
+           abs( pi1[ 1 ] - positionStartStroke[ 1 ] ) < nbPixel )
       {
-         if ( e.isMouseLeftButtonPressed )
+         if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
          {
             _min[ 0 ] += vv[ 0 ];
             _min[ 1 ] += vv[ 1 ];
@@ -408,10 +400,10 @@ namespace platform
          return true;
       }
 
-      if ( abs( pi2[ 0 ] - positionStartStroke[ 0 ] ) < 5 &&
-           abs( pi2[ 1 ] - positionStartStroke[ 1 ] ) < 5 )
+      if ( abs( pi2[ 0 ] - positionStartStroke[ 0 ] ) < nbPixel &&
+           abs( pi2[ 1 ] - positionStartStroke[ 1 ] ) < nbPixel )
       {
-         if ( e.isMouseLeftButtonPressed )
+         if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
          {
             _max[ 0 ] += vv[ 0 ];
             _max[ 1 ] += vv[ 1 ];
@@ -424,7 +416,7 @@ namespace platform
       if ( abs( positionStartStroke[ 0 ] - center[ 0 ] ) < asx / 8 &&
            abs( positionStartStroke[ 1 ] - center[ 1 ] ) < asy / 8 )
       {
-         if ( e.isMouseLeftButtonPressed )
+         if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
          {
             _max[ 0 ] += vv[ 0 ];
             _max[ 1 ] += vv[ 1 ];

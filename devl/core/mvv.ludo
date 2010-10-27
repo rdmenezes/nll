@@ -463,6 +463,9 @@ class ToolAnnotations
     @brief Returns the position of an annotation
     */
    import Vector3f getPosition( AnnotationID id );
+
+   // TODO
+   // import string[] toString();
 }
 
 /**
@@ -514,11 +517,19 @@ class ManipulatorCuboid
 {
    import ManipulatorCuboid( Vector3f min, Vector3f max, Vector3i color = Vector3i( 0, 0, 255 ) );
    import ~ManipulatorCuboid();
+/*
+   // TODO
+   import Vector3f getP1();
+   import Vector3f getP2();
+   import void setP1( Vector3f point );
+   import void setP2( Vector3f point );
+   */
 }
 
 /**
  @ingroup mvv
  @brief Add a pointer to manipulate and synchronize segments
+ @note set and get position are available from the ToolManipulators only: setPos need to refresh the segment!
  */
 class ManipulatorPointer
 {
@@ -544,26 +555,26 @@ class ToolManipulators
 
    /**
     @brief add a single spot that can be positioned in 3D
-    @return the ID of the manipulator
     */
    import void add( ManipulatorPoint manipulator );
-
-   /**
-    @brief manipulate the connected MPR using a pointer
-    */
    import void add( ManipulatorPointer manipulator );
-
    import void add( ManipulatorCuboid manipulator );
 
    /**
     @brief Removes the maipulator from the list
     */
    import void erase( ManipulatorPoint manipulator );
+   // TODO
+   //import void erase( ManipulatorPointer manipulator );
+   //import void erase( ManipulatorCuboid manipulator );
 
    /**
     @brief remove all the manipulators and refresh all linked segments
     */
    //import void clear();
+
+   //
+   //import string[] toString();
 
    /**
     @brief get the segment's pointer position
