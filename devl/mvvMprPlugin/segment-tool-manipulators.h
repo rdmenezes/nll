@@ -152,6 +152,26 @@ namespace platform
 
       virtual void draw( ResourceSliceuc& s, bool isActivated );
 
+      void setPoint1( const nll::core::vector3f& p )
+      {
+         _min = p;
+      }
+
+      void setPoint2( const nll::core::vector3f& p )
+      {
+         _max = p;
+      }
+
+      const nll::core::vector3f& getPoint1() const
+      {
+         return _min;
+      }
+
+      const nll::core::vector3f& getPoint2() const
+      {
+         return _max;
+      }
+
    private:
       nll::core::vector3f  _min;
       nll::core::vector3f  _max;

@@ -91,18 +91,25 @@ public:
       RuntimeValue segmentOrigin;
       RuntimeValue segmentSpacing;
       RuntimeValue segmentSize;
+      RuntimeValue axisx;
+      RuntimeValue axisy;
 
       createVector2i( mousePosition, (int)event.mousePosition[ 0 ] - (int)windowOrigin[ 0 ], (int)event.mousePosition[ 1 ] - (int)windowOrigin[ 1 ] );
       createVector3f( segmentOrigin, s.getOrigin()[ 0 ], s.getOrigin()[ 1 ], s.getOrigin()[ 2 ] );
       createVector2f( segmentSpacing, s.getSpacing()[ 0 ], s.getSpacing()[ 1 ] );
       createVector2i( segmentSize, s.size()[ 0 ], s.size()[ 1 ] );
+      createVector3f( axisx, s.getAxisX()[ 0 ], s.getAxisX()[ 1 ], s.getAxisX()[ 2 ] );
+      createVector3f( axisy, s.getAxisY()[ 0 ], s.getAxisY()[ 1 ], s.getAxisY()[ 2 ] );
+
 
       // run the callback
-      std::vector<RuntimeValue> values( 4 );
+      std::vector<RuntimeValue> values( 6 );
       values[ 0 ] = mousePosition;
       values[ 1 ] = segmentOrigin;
       values[ 2 ] = segmentSpacing;
       values[ 3 ] = segmentSize;
+      values[ 4 ] = axisx;
+      values[ 5 ] = axisy;
 
       try
       {

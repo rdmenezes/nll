@@ -23,7 +23,7 @@ import int getMousePointer();
  @ingroup mvv
  @brief Callback to run code on a segment's mouse click
  */
-typedef void (Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize) MouseCallback;
+typedef void ( Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy ) MouseCallback;
 
 /**
  @ingroup mvv

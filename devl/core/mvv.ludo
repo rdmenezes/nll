@@ -517,13 +517,11 @@ class ManipulatorCuboid
 {
    import ManipulatorCuboid( Vector3f min, Vector3f max, Vector3i color = Vector3i( 0, 0, 255 ) );
    import ~ManipulatorCuboid();
-/*
-   // TODO
+
    import Vector3f getP1();
    import Vector3f getP2();
    import void setP1( Vector3f point );
    import void setP2( Vector3f point );
-   */
 }
 
 /**
@@ -588,6 +586,12 @@ class ToolManipulators
     @brief set the segment's pointer position
     */
    import void setPointerPosition( Vector3f pos );
+
+   /**
+    @brief Force a refresh of the manipulator (e.g., you modify the position of ManipulatorPoint, you need to notify() the manipulators
+           to display the update...)
+    */
+   import void notify();
 }
 
 /**

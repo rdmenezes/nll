@@ -3431,6 +3431,12 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorGetPosition( fn ) ) );
    }
 
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolManipulators"), platform::Symbol::create( "notify") ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolManipulatorsNotify( fn ) ) );
+   }
+
    //
    // ManipulatorCuboid
    //
@@ -3448,6 +3454,35 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorCuboidDestructor( fn ) ) );
    }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorCuboid"), platform::Symbol::create( "getP1") ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorCuboidGetPoint1( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorCuboid"), platform::Symbol::create( "getP2") ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorCuboidGetPoint2( fn ) ) );
+   }
+
+   {
+      Type* vec = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vec );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorCuboid"), platform::Symbol::create( "setP1") ), nll::core::make_vector<const Type*>( vec ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorCuboidSetPoint1( fn ) ) );
+   }
+
+   {
+      Type* vec = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vec );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorCuboid"), platform::Symbol::create( "setP2") ), nll::core::make_vector<const Type*>( vec ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorCuboidSetPoint2( fn ) ) );
+   }
+
 
    //
    // Mouse

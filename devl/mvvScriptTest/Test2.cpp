@@ -2395,6 +2395,17 @@ struct TestEval
          TESTER_ASSERT( returnResult.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( returnResult.intval == 42 );
       }
+
+      {
+		// TODO test if this works...
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){}} Test a = NULL; int n = 0; if ( a == NULL ) {n = 1;}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 1 );
+      }
    }
 };
 

@@ -91,6 +91,134 @@ public:
    }
 };
 
+class FunctionManipulatorCuboidGetPoint1 : public FunctionRunnable
+{
+public:
+   typedef FunctionManipulatorCuboidConstructor::Pointee Pointee;
+
+public:
+   FunctionManipulatorCuboidGetPoint1( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
+      if ( !pp )
+         throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
+      
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, pp->getPoint1()[ 0 ], pp->getPoint1()[ 1 ], pp->getPoint1()[ 2 ] );
+      return rt;
+   }
+};
+
+class FunctionManipulatorCuboidGetPoint2 : public FunctionRunnable
+{
+public:
+   typedef FunctionManipulatorCuboidConstructor::Pointee Pointee;
+
+public:
+   FunctionManipulatorCuboidGetPoint2( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
+      if ( !pp )
+         throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
+      
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, pp->getPoint2()[ 0 ], pp->getPoint2()[ 1 ], pp->getPoint2()[ 2 ] );
+      return rt;
+   }
+};
+
+class FunctionManipulatorCuboidSetPoint1 : public FunctionRunnable
+{
+public:
+   typedef FunctionManipulatorCuboidConstructor::Pointee Pointee;
+
+public:
+   FunctionManipulatorCuboidSetPoint1( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      nll::core::vector3f value;
+      getVector3fValues( v2, value );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
+      if ( !pp )
+         throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
+
+      pp->setPoint1( value );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionManipulatorCuboidSetPoint2 : public FunctionRunnable
+{
+public:
+   typedef FunctionManipulatorCuboidConstructor::Pointee Pointee;
+
+public:
+   FunctionManipulatorCuboidSetPoint2( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      nll::core::vector3f value;
+      getVector3fValues( v2, value );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
+      if ( !pp )
+         throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
+
+      pp->setPoint2( value );
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionManipulatorPointConstructor: public FunctionRunnable
 {
 public:
@@ -278,6 +406,33 @@ public:
       PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
 
       p->segmentManipulators.add( *point );
+      p->segmentManipulators.notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionToolManipulatorsNotify : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+
+public:
+   FunctionToolManipulatorsNotify( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
       p->segmentManipulators.notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );

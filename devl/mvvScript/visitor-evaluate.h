@@ -206,6 +206,22 @@ namespace parser
             }
          }
 
+         // in case the dynamic type is NIL
+         if ( ur0.type == RuntimeValue::NIL && !e.getFunctionCall() )
+         {
+            if ( e.getOp() == AstOpBin::EQ )
+            {
+               _env.resultRegister.type = RuntimeValue::CMP_INT;
+               _env.resultRegister.intval = 0 == ur1.vals.getDataPtr();
+               return;
+            } else if ( e.getOp() == AstOpBin::NE )
+            {
+               _env.resultRegister.type = RuntimeValue::CMP_INT;
+               _env.resultRegister.intval = 0 != ur1.vals.getDataPtr();
+               return;
+            }
+         }
+
          ensure( e.getFunctionCall(), "compiler error: no function to call in binary operator" );
          _callFunction( *e.getFunctionCall(), vals );
       }

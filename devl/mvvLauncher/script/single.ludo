@@ -153,21 +153,15 @@ ImageHolder holder;
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 Layout layout1 = layout;
 
-void mouseSegmentCallbackNull(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
-{
-}
-
 class CuboidCreator
 {
-   Vector3f p1;
-   Vector3f p2;
+   Vector2i mouseLastPos;
    ManipulatorCuboid cuboid = NULL;
    ToolManipulators  manipulators = NULL;
 
    CuboidCreator( ToolManipulators  m )
    {
-      p1 = Vector3f();
-      p2 = Vector3f();
+      assert( m != NULL, "ToolManipulators cannot be null!" );
       manipulators = m;
    }
 
@@ -176,22 +170,41 @@ class CuboidCreator
       setOnSegmentLeftMousePressed( this.cuboidCreate );
    }
 
-   void cuboidCreate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+   void cuboidCreate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
    {
-      cuboid = ManipulatorCuboid( p1, p2 );
+      Vector2i dm = mousePosition - segmentSize / 2;
+      Vector3f d( toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
+
+      if ( cuboid != NULL )
+      {
+         cuboid.setP1( segmentOrigin + d );
+         cuboid.setP2( segmentOrigin + d );
+      } else {
+         cuboid = ManipulatorCuboid( segmentOrigin + d, segmentOrigin + d );
+      }
       manipulators.add( cuboid );
 
       setMousePointer( 5 );
       setOnSegmentLeftMousePressed( this.cuboidUpdate );
       setOnSegmentLeftMouseRelease( this.cuboidEnd );
+      mouseLastPos = mousePosition;
    }
 
-   void cuboidUpdate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+   void cuboidUpdate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
    {
+      Vector2i dm = mousePosition - mouseLastPos;
+      mouseLastPos = mousePosition;
 
+      Vector3f d( toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
+      cuboid.setP2( cuboid.getP2() + d );
+      manipulators.notify();
    }
 
-   void cuboidEnd(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize)
+   void cuboidEnd(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
    {
       // restore the settings
       setMousePointer( 1 );

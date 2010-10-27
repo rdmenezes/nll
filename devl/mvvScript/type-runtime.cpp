@@ -29,32 +29,38 @@ namespace impl
             TypeNamed* named = dynamic_cast<TypeNamed*>( type );
             if ( named )
             {
+
                // if we have a named type && this type has a destructor, run it!
                AstDeclFun* fun = named->getDecl()->getDestructor();
                if ( fun )
                {
-                  // save the result register
-                  // i.e. in case a destructor is called but a function returned
-                  // a value: the result register will be erased, losing the function return value
-                  // that's why we need to save and restore the result register
-                  RuntimeValue resultCopy = ext->evaluator->_env.resultRegister;
-
-                  assert( ext->evaluator ); // we need an evaluator to run the destructor
-                  if ( ext->evaluator->_env.resultRegister.vals._data == i )
+                  if ( ext->evaluator )
                   {
-                     // if the result is stored in the result register, we need to unref
-                     // else, as we still have a ref in the result, this will be ref & unref (even though it is not a type)
-                     ext->evaluator->_env.resultRegister.vals._data = 0;
+                     // save the result register
+                     // i.e. in case a destructor is called but a function returned
+                     // a value: the result register will be erased, losing the function return value
+                     // that's why we need to save and restore the result register
+                     RuntimeValue resultCopy = ext->evaluator->_env.resultRegister;
+
+                     assert( ext->evaluator ); // we need an evaluator to run the destructor
+                     if ( ext->evaluator->_env.resultRegister.vals._data == i )
+                     {
+                        // if the result is stored in the result register, we need to unref
+                        // else, as we still have a ref in the result, this will be ref & unref (even though it is not a type)
+                        ext->evaluator->_env.resultRegister.vals._data = 0;
+                     }
+
+                     // call the destructor
+                     RuntimeValues vals( 1 );
+                     vals[ 0 ].setType( RuntimeValue::TYPE );
+                     vals[ 0 ].vals = RefcountedTypedDestructor( ext->evaluator, 0, (RuntimeValues*)i->data, false );
+                     ext->evaluator->_callFunction( *fun, vals );
+
+                     // restore the result register
+                     ext->evaluator->_env.resultRegister = resultCopy;
+                  } else {
+                     std::cout << "non critical error: destructor cannot be called as no evaluator was attached!" << std::endl;
                   }
-
-                  // call the destructor
-                  RuntimeValues vals( 1 );
-                  vals[ 0 ].setType( RuntimeValue::TYPE );
-                  vals[ 0 ].vals = RefcountedTypedDestructor( ext->evaluator, 0, (RuntimeValues*)i->data, false );
-                  ext->evaluator->_callFunction( *fun, vals );
-
-                  // restore the result register
-                  ext->evaluator->_env.resultRegister = resultCopy;
                }
             } else {
                //ensure( 0, "only objects & array of objects can be destructed..." ); // ARRAY
