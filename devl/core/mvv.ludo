@@ -78,8 +78,8 @@ VolumeID resampleNearest( VolumeID target, Vector3i size, Matrix4f pst )
 }
 
 /**
- @ingroup extract a sub volume centered on a specific point
- @brief Resample a target volume given a new size/orientation
+ @ingroup mvv
+ @brief extract a sub volume centered on a specific point
  @todo bug if rotation in PST target
  */
 VolumeID extract( VolumeID target, Vector3f center, Vector3f sizeMM )
@@ -721,6 +721,11 @@ class Mip
     @brief Free the native resources
     */
    import ~Mip();
+
+   /**
+    @brief set a new volume
+    */
+   import void setVolume( VolumeID v );
 
    /**
     @brief Attach a pointer to the MIP

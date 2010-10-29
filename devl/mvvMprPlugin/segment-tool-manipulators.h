@@ -105,6 +105,7 @@ namespace platform
 
       void setPosition( const nll::core::vector3f& p )
       {
+         _needToSynchronizePositionFull = true;
          _position = p;
       }
 
@@ -119,6 +120,7 @@ namespace platform
       nll::core::vector3uc _colorInactif;
       Segment*             _segmentIssuingDispatch;
       bool                 _needToSynchronizePosition;
+      bool                 _needToSynchronizePositionFull;
       bool                 _needToSynchronizeZoom;
       bool                 _needToSynchronizeZPos;
       float                _zoomUpdate;

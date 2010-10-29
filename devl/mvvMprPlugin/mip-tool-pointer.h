@@ -17,7 +17,9 @@ namespace platform
    {
    public:
       MipToolPointer( ui32 mipFps = 17 ) : MipTool( false ), _mipFps( mipFps )
-      {}
+      {
+         _lastLeftClick = clock();
+      }
 
       virtual void updateMip( ResourceSliceuc&, Mip& )
       {
@@ -30,7 +32,7 @@ namespace platform
 
       virtual void receive( Mip& sender, const EventMouse& e, const nll::core::vector2ui& )
       {
-         if ( e.isMouseLeftButtonJustPressed )
+         if ( e.isMouseLeftButtonJustPressed && !e.isMouseRightButtonPressed )
          {
             _initialOrientation = e.mousePosition;
             float time = static_cast<float>( clock() - _lastLeftClick ) / CLOCKS_PER_SEC;

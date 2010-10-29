@@ -9,8 +9,8 @@
  @date 18th December 2009
  */
 
-/// define the version of nll
-#define MVV_VERSION  "1.0.1"
+/// define the version of mvv
+#define MVV_VERSION  "1.0.2"
 
 /**
  @defgroup platform

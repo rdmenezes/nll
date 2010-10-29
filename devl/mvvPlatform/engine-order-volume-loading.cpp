@@ -77,8 +77,15 @@ namespace platform
    void EngineOrderVolumeLoader::consume( Order* order )
    {
       impl::OrderVolumeLoaderResult* result = dynamic_cast<impl::OrderVolumeLoaderResult*>( (*order).getResult() );
-      _resourceVolumes.insert( result->name, result->volume );
-      _resourceVolumes.notify();
+
+      // check the volume was correctly loaded
+      if ( result->volume.getData().size()[ 0 ] &&
+           result->volume.getData().size()[ 1 ] &&
+           result->volume.getData().size()[ 2 ] )
+      {
+         _resourceVolumes.insert( result->name, result->volume );
+         _resourceVolumes.notify();
+      }
 
       Records::iterator it = _records.find( result->name );
       assert( it != _records.end() );  // it HAS to be here!

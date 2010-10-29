@@ -144,7 +144,7 @@ public:
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       platform::ContextVolumes* volumes = _context.get<platform::ContextVolumes>();
-      if ( !volumes || !volumes )
+      if ( !volumes || !global )
       {
          throw std::runtime_error( "mvv global || volumes context have not been initialized" );
       }
@@ -246,6 +246,56 @@ public:
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
+};
+
+class FunctionMipSetVolume: public FunctionRunnable
+{
+public:
+   typedef ::impl::MipStorage Pointee;
+
+public:
+   FunctionMipSetVolume( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::TYPE )
+      {
+         throw std::runtime_error( "wrong arguments" );
+      }
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      platform::ContextVolumes* volumes = _context.get<platform::ContextVolumes>();
+      if ( !volumes || !global )
+      {
+         throw std::runtime_error( "mvv global || volumes context have not been initialized" );
+      }
+      mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
+
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      // replace the volume
+      pointee->mip.volumes.clear();
+      pointee->mip.volumes.insert( volume );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+   
+private:
+   Context& _context;
 };
 
 class FunctionMipSetToolAnnotations: public FunctionRunnable

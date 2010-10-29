@@ -35,8 +35,9 @@ VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
 VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
 //VolumeID nema = readVolumeMF2Asynchronous("c:/tmp3/nema.mf2");
 
-Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
+Lut petLut( 3000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
+Lut ctLutMip( -1000.0, 1000.0 );
 
 
 //petLut.set( 0.0, 60000.0 );
@@ -106,7 +107,8 @@ volumes.add( pet, petLut, 0.5, petReg );
 
 ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
 
-Mip mip1( pet, petLut );
+Mip mip1( ct, ctLutMip );
+//Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
@@ -167,6 +169,7 @@ class CuboidCreator
 
    void start()
    {
+      //setMousePointer( 5 );
       setOnSegmentLeftMousePressed( this.cuboidCreate );
    }
 

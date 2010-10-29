@@ -2897,6 +2897,14 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      assert( volumeId );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Mip"), platform::Symbol::create( "setVolume" ) ), nll::core::make_vector<const Type*>( volumeId ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionMipSetVolume( fn, context ) ) );
+   }
+
+   {
       Type* tool = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "MipToolPointer" ) ) ) );
       assert( tool );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Mip"), platform::Symbol::create( "setTool" ) ), nll::core::make_vector<const Type*>( tool ) );

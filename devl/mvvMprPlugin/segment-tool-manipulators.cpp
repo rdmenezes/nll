@@ -333,6 +333,18 @@ namespace platform
                                           _zmovementPointer[ 2 ] + _position[ 2 ] );
          _needToSynchronizeZPos = false;
       }
+
+      // full synchronization of the MPR
+      if ( _needToSynchronizePositionFull )
+      {
+         // project the position on attached segments
+         for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
+         {
+            (**it).position.setValue( _position );
+         }
+
+         _needToSynchronizePositionFull = false;
+      }
    }
 
    bool ToolManipulatorsCuboid::checkEvent( Segment& s, const nll::core::vector2i& positionStartStroke, const nll::core::vector2i& positionEndStroke, const EventMouse& e )
