@@ -16,8 +16,11 @@ namespace platform
      - checkEvent will be called everytime there is a mouse event on this MPR, this function
        must use notify() to trigger a visual modification of the manipulator (return true)
      - draw will be called each time the manipulator needs to be displayed
+
+    if the manipulator needs to be redrawn, use notify(), but only when it is not handled (e.g. checkEvent return true, do not use notify as it will redaw anyway!)
+    Typically if the user modify one of its property(e.g. position) then use notify()
     */
-   class MVVMPRPLUGIN_API ToolManipulatorsInterface
+   class MVVMPRPLUGIN_API ToolManipulatorsInterface : public ResourceBool
    {
    public:
       virtual ~ToolManipulatorsInterface(){}
@@ -39,7 +42,7 @@ namespace platform
       virtual void draw( ResourceSliceuc& slice, bool isActivated ) = 0;
 
       /**
-       @brief This method is called on after before segments are drawn
+       @brief This method is called on before segments are drawn
        */
       virtual void dispatch( std::set<Segment*>& )
       {
@@ -72,6 +75,7 @@ namespace platform
       void setPosition( const nll::core::vector3f& p )
       {
          _position = p;
+         notify();
       }
 
    private:
@@ -107,6 +111,7 @@ namespace platform
       {
          _needToSynchronizePositionFull = true;
          _position = p;
+         notify();
       }
 
       const nll::core::vector3f& getPosition() const
@@ -156,11 +161,13 @@ namespace platform
 
       void setPoint1( const nll::core::vector3f& p )
       {
+         notify();
          _min = p;
       }
 
       void setPoint2( const nll::core::vector3f& p )
       {
+         notify();
          _max = p;
       }
 
@@ -184,17 +191,21 @@ namespace platform
    /**
     @ingroup platform
     @brief This will handle a postprocessing effect that needs to be done after all other tools
+
+    The pattern is: the manipulator is a resource, SegmentToolManipulators is an engine listening to all
+    ToolManipulatorsInterface. In the _run() we just want to notify the SegmentToolManipulators resource to trigger a redraw
     */
-   class MVVMPRPLUGIN_API SegmentToolManipulators : public SegmentTool
+   class MVVMPRPLUGIN_API SegmentToolManipulators : public SegmentTool, public Engine
    {
       typedef std::vector< RefcountedTyped<ToolManipulatorsInterface> > Manipulators;
    public:
-      SegmentToolManipulators() : SegmentTool( true ), _wasActivated( false ), _currentSegmentInteraction( 0 )
+      SegmentToolManipulators( EngineHandler& handler ) : SegmentTool( true ), Engine( handler ), _wasActivated( false ), _currentSegmentInteraction( 0 )
       {
       }
 
       void add( RefcountedTyped<ToolManipulatorsInterface> manip )
       {
+         (*manip).connect( this );  // we want to be notified each time the resource is triggered
          _manipulators.push_back( manip );
       }
 
@@ -202,7 +213,10 @@ namespace platform
       {
          Manipulators::iterator it = std::find( _manipulators.begin(), _manipulators.end(), manip );
          if ( it != _manipulators.end() )
-         _manipulators.erase( it );
+         {
+            (**it).disconnect( this );
+            _manipulators.erase( it );
+         }
       }
 
       virtual void receive( Segment& s, const EventMouse& e, const nll::core::vector2ui& origin );
@@ -226,7 +240,7 @@ namespace platform
 
       std::set<Segment*> getConnectedSegments()
       {
-         return _links;
+         return SegmentTool::_links;
       }
 
       /**
@@ -241,6 +255,14 @@ namespace platform
                return m;
          }
          return 0;
+      }
+
+   protected:
+      virtual bool _run()
+      {
+         std::cout << "NOTIFICATION" << std::endl;
+         SegmentTool::notify();
+         return true;
       }
 
    protected:

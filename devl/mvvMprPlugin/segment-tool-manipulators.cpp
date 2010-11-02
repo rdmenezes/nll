@@ -103,7 +103,7 @@ namespace platform
       if ( ptr && (*_lastActivated).checkEvent( s, strokeStart, strokeEnd, e ) )
       {
          _wasActivated = true;
-         notify();   // we must redaw all connected segment
+         SegmentTool::notify();   // we must redaw all connected segment
          return;
       }
 
@@ -114,7 +114,7 @@ namespace platform
          {
             _lastActivated = _manipulators[ n ];
             _wasActivated = true;
-            notify();   // we must redaw all connected segment
+            SegmentTool::notify();   // we must redaw all connected segment
             return;
          }
       }
@@ -124,7 +124,7 @@ namespace platform
       if ( _wasActivated )
       {
          // means last refresh, it was activated, but it is not anymore so we need to display the inactivated state...
-         notify();
+         SegmentTool::notify();
          _wasActivated = false;
       }
    }
@@ -133,7 +133,7 @@ namespace platform
    {
       for ( ui32 n = 0; n < _manipulators.size(); ++n )
       {
-         (*_manipulators[ n ]).dispatch( _links );
+         (*_manipulators[ n ]).dispatch( SegmentTool::_links );
       }
 
       for ( ui32 n = 0; n < _manipulators.size(); ++n )
@@ -341,6 +341,7 @@ namespace platform
          for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
          {
             (**it).position.setValue( _position );
+            (**it).panning.setValue( nll::core::vector3f( 0, 0, 0 ) );
          }
 
          _needToSynchronizePositionFull = false;

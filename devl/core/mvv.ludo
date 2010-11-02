@@ -472,7 +472,7 @@ class ToolAnnotations
  @ingroup mvv
  @brief Defines a callback to postprocess a MPR/MIP
  */
-typedef void(Image image, Vector2f spacing, Vector3f origin)   PostprocessingCallback;
+typedef void(Image image, Vector2f spacing, Vector3f origin, Vector3f axisx, Vector3f axisy)   PostprocessingCallback;
 
 /**
  @ingroup mvv
@@ -503,7 +503,7 @@ class ManipulatorPoint
     @brief set the position of a point
     @note m is needed to notify() the container holding p (else, it will not be notified on the screen...)
     */
-   import void setPosition( Vector3f p, ToolManipulators m );
+   import void setPosition( Vector3f p );
 }
 
 /**
@@ -533,6 +533,16 @@ class ManipulatorPointer
 {
    import ManipulatorPointer();
    import ~ManipulatorPointer();
+
+   /**
+    @brief return the position of the point
+    */
+   import Vector3f getPosition();
+
+   /**
+    @brief set the position of a point
+    */
+   import void setPosition( Vector3f p );
 }
 
 /**
@@ -573,25 +583,6 @@ class ToolManipulators
 
    //
    //import string[] toString();
-
-   /**
-    @brief get the segment's pointer position
-    @note unfortunately, we cannot move this function to ManipulatorPointer: we need to force a refresh
-          of the segments, but this can only be done at the tool level and not manipulator...
-    @note this requires a ManipulatorPointer to be attached to the segment
-    */
-   import Vector3f getPointerPosition();
-
-   /**
-    @brief set the segment's pointer position
-    */
-   import void setPointerPosition( Vector3f pos );
-
-   /**
-    @brief Force a refresh of the manipulator (e.g., you modify the position of ManipulatorPoint, you need to notify() the manipulators
-           to display the update...)
-    */
-   import void notify();
 }
 
 /**

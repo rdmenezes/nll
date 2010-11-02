@@ -24,6 +24,7 @@ MipToolPointer          toolPointerMip(17);
 ToolAnnotations         annotations;
 //SegmentToolCamera       camera;
 ToolManipulators        manipultors;
+ManipulatorPointer      pointer;
 
 VolumeContainer         volumes;
 
@@ -41,9 +42,9 @@ Lut ctLutMip( -1000.0, 1000.0 );
 
 
 //petLut.set( 0.0, 60000.0 );
-FindPeakVoxel peak( pet, 15, manipultors );
+FindPeakVoxel peak( pet, 15, pointer );
 DisplayRegionDetection detection( annotations );
-AnnotationCreator annotationCreator( annotations, manipultors );
+AnnotationCreator annotationCreator( annotations, pointer );
 VolumeSwitch switch( ctLut, volumes, volumeList, detection );
 
 class KeyboardCallback
@@ -107,13 +108,12 @@ volumes.add( pet, petLut, 0.5, petReg );
 
 ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
 
-Mip mip1( ct, ctLutMip );
-//Mip mip1( pet, petLut );
+//Mip mip1( ct, ctLutMip );
+Mip mip1( pet, petLut );
 mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
 ManipulatorCuboid cuboid( Vector3f(10.0, -160.0, 1230.0), Vector3f(210.0, -260.0, 1430.0) );
-ManipulatorPointer pointer;
 ManipulatorPoint mp( Vector3f(0.0, -160.0, 1230.0) );
 manipultors.add( mp );
 manipultors.add( ManipulatorPoint( Vector3f(10.0, -160.0, 1230.0) ) );
@@ -204,7 +204,7 @@ class CuboidCreator
                   toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
                   toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
       cuboid.setP2( cuboid.getP2() + d );
-      manipulators.notify();
+     // manipulators.notify();
    }
 
    void cuboidEnd(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )

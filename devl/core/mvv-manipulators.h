@@ -317,6 +317,9 @@ public:
 
 struct ToolManipulatorStorage
 {
+   ToolManipulatorStorage( EngineHandler& handler ) : segmentManipulators( handler )
+   {}
+
    SegmentToolManipulators    segmentManipulators;
 };
 
@@ -326,7 +329,7 @@ public:
    typedef ToolManipulatorStorage Pointee;
 
 public:
-   FunctionToolManipulatorsConstructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionToolManipulatorsConstructor( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -338,15 +341,24 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
       
       // construct the type
-      Pointee* pointee = new Pointee();
+      Pointee* pointee = new Pointee( global->engineHandler );
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
       (*v1.vals).resize( 1 );    // resize the original field
       (*v1.vals)[ 0 ] = field;
       return v1;  // return the original object!
    }
+
+private:
+   Context&    _context;
 };
 
 class FunctionToolManipulatorsDestructor: public FunctionRunnable
@@ -406,7 +418,7 @@ public:
       PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
 
       p->segmentManipulators.add( *point );
-      p->segmentManipulators.notify();
+      p->segmentManipulators.SegmentTool::notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -433,7 +445,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
-      p->segmentManipulators.notify();
+      p->segmentManipulators.SegmentTool::notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -537,7 +549,7 @@ public:
       PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
 
       p->segmentManipulators.add( *point );
-      p->segmentManipulators.notify();
+      p->segmentManipulators.SegmentTool::notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -569,7 +581,7 @@ public:
       PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
 
       p->segmentManipulators.add( *point );
-      p->segmentManipulators.notify();
+      p->segmentManipulators.SegmentTool::notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
@@ -601,20 +613,20 @@ public:
       PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
 
       p->segmentManipulators.erase( *point );
-      p->segmentManipulators.notify();
+      p->segmentManipulators.SegmentTool::notify();
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 };
 
-class FunctionManipulatorSetPosition : public FunctionRunnable
+class FunctionManipulatorPointerSetPosition : public FunctionRunnable
 {
 public:
-   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+   typedef FunctionManipulatorPointerConstructor::Pointee Pointee;
 
 public:
-   FunctionManipulatorSetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionManipulatorPointerSetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
    {
    }
 
@@ -629,37 +641,26 @@ public:
       RuntimeValue& v2 = unref( *args[ 1 ] );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ToolManipulatorsPointer* pp = dynamic_cast<ToolManipulatorsPointer*>( &( **p ) );
+      if ( !pp )
+         throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
+
       nll::core::vector3f pos;
       getVector3fValues( v2, pos );
-
-      ToolManipulatorsPointer* pp = p->segmentManipulators.get<ToolManipulatorsPointer>();
-      if (!pp )
-      {
-         // there is no manipulator attached, so just set the segment position
-         std::set<Segment*> segments = p->segmentManipulators.getConnectedSegments();
-         for ( std::set<Segment*>::iterator it = segments.begin(); it != segments.end(); ++it )
-         {
-            (**it).position.setValue( pos );
-         }
-      } else {
-         //if ( !pp )
-         //   throw std::runtime_error( "ToolManipulatorsPointer manipulator found in the container" );
-         pp->setPosition( pos );
-         p->segmentManipulators.notify();
-      }
+      pp->setPosition( pos );
       
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 };
 
-class FunctionManipulatorGetPosition : public FunctionRunnable
+class FunctionManipulatorPointerGetPosition : public FunctionRunnable
 {
 public:
-   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+   typedef FunctionManipulatorPointerConstructor::Pointee Pointee;
 
 public:
-   FunctionManipulatorGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionManipulatorPointerGetPosition( const AstDeclFun* fun ) : FunctionRunnable( fun )
    {
    }
 
@@ -673,11 +674,9 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
-      
-
-      ToolManipulatorsPointer* pp = p->segmentManipulators.get<ToolManipulatorsPointer>();
+      ToolManipulatorsPointer* pp = dynamic_cast<ToolManipulatorsPointer*>( &( **p ) );
       if ( !pp )
-         throw std::runtime_error( "ToolManipulatorsPointer manipulator found in the container" );
+         throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
 
       RuntimeValue rt( RuntimeValue::TYPE );
       createVector3f( rt, pp->getPosition()[ 0 ], pp->getPosition()[ 1 ], pp->getPosition()[ 2 ] );
@@ -698,29 +697,25 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 3 )
+      if ( args.size() != 2 )
       {
          throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      RuntimeValue& v3 = unref( *args[ 2 ] );
             
       nll::core::vector3f pos;
       getVector3fValues( v2, pos );
 
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
-      PointeeManip* manip = reinterpret_cast<PointeeManip*>( (*v3.vals)[ 0 ].ref );
 
       ToolManipulatorsPoint* pp = dynamic_cast<ToolManipulatorsPoint*>( &( **p ) );
       if ( !pp )
          throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
       pp->setPosition( pos );
-      manip->segmentManipulators.notify();   // force the display
       
-      RuntimeValue rt( RuntimeValue::TYPE );
-      createVector3f( rt, pp->getPosition()[ 0 ], pp->getPosition()[ 1 ], pp->getPosition()[ 2 ] );
+      RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 };

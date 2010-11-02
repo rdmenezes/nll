@@ -104,10 +104,10 @@ class VolumeSwitch
 class AnnotationCreator
 {
    ToolAnnotations      annotations;
-   ToolManipulators     pointer;
+   ManipulatorPointer   pointer;
    int                  id;
 
-   AnnotationCreator( ToolAnnotations a, ToolManipulators p )
+   AnnotationCreator( ToolAnnotations a, ManipulatorPointer p )
    {
       annotations = a;
       pointer = p;
@@ -116,7 +116,7 @@ class AnnotationCreator
 
    void run()
    {
-      annotations.add( pointer.getPointerPosition(), toString( id ) );
+      annotations.add( pointer.getPosition(), toString( id ) );
       id = id + 1;
    }
 }
@@ -128,9 +128,9 @@ class FindPeakVoxel
 {
    VolumeID volume = NULL;
    int range;
-   ToolManipulators pointer = NULL;
+   ManipulatorPointer pointer = NULL;
    
-   FindPeakVoxel( VolumeID v, int rangeInVoxel, ToolManipulators p )
+   FindPeakVoxel( VolumeID v, int rangeInVoxel, ManipulatorPointer p )
    {
       volume = v;
       range = rangeInVoxel;
@@ -140,7 +140,7 @@ class FindPeakVoxel
    void run()
    {
       Volume v = getVolume( volume );
-      Vector3f posInVoxel = v.positionToIndex( pointer.getPointerPosition() );
+      Vector3f posInVoxel = v.positionToIndex( pointer.getPosition() );
       posInVoxel = Vector3f( toFloat( round( posInVoxel[ 0 ] ) ),
                              toFloat( round( posInVoxel[ 1 ] ) ),
                              toFloat( round( posInVoxel[ 2 ] ) ) );
@@ -189,6 +189,6 @@ class FindPeakVoxel
       }
       
       print(pos);
-      pointer.setPointerPosition( v.indexToPosition( pos ) );
+      pointer.setPosition( v.indexToPosition( pos ) );
    }
 }

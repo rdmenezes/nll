@@ -110,7 +110,7 @@ namespace platform
                         (**it).position.setValue( newPosition );
                      }
                   }
-                  (**it).notify();
+                  (**it).SegmentTool::notify();
                }
 
                /*

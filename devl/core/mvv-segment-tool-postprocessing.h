@@ -52,11 +52,19 @@ namespace impl
          RuntimeValue origin;
          createVector3f( origin, s.getOrigin()[ 0 ], s.getOrigin()[ 1 ], s.getOrigin()[ 2 ] );
 
+         RuntimeValue axisx;
+         createVector3f( axisx, s.getAxisX()[ 0 ], s.getAxisX()[ 1 ], s.getAxisX()[ 2 ] );
+
+         RuntimeValue axisy;
+         createVector3f( origin, s.getAxisY()[ 0 ], s.getAxisY()[ 1 ], s.getAxisY()[ 2 ] );
+
          // call the callback
-         std::vector<RuntimeValue> values( 3 );
+         std::vector<RuntimeValue> values( 5 );
          values[ 0 ] = image;
          values[ 1 ] = spacing;
          values[ 2 ] = origin;
+         values[ 3 ] = axisx;
+         values[ 4 ] = axisy;
 
          try
          {
