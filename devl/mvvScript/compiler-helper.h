@@ -183,6 +183,19 @@ namespace parser
       out[ 1 ] = vec[ 1 ].intval;
    }
 
+   inline void getVector2fValues( RuntimeValue& vector, nll::core::vector2f& out )
+   {
+      if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
+           (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 2 )
+      {
+         throw std::runtime_error( "expected Vector" );
+      }
+
+      std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
+      out[ 0 ] = vec[ 0 ].floatval;
+      out[ 1 ] = vec[ 1 ].floatval;
+   }
+
    inline void getVector3fValues( RuntimeValue& vector, nll::core::vector3f& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||

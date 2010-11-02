@@ -46,17 +46,20 @@ namespace impl
          (*vals)[ 0 ].ref = ptr;
          image.vals = RuntimeValue::RefcountedValues( 0, 0, vals );
 
-         RuntimeValue spacing;
+         RuntimeValue spacing( RuntimeValue::TYPE );
          createVector2f( spacing, s.getSpacing()[ 0 ], s.getSpacing()[ 1 ] );
 
-         RuntimeValue origin;
-         createVector3f( origin, s.getOrigin()[ 0 ], s.getOrigin()[ 1 ], s.getOrigin()[ 2 ] );
+         RuntimeValue origin( RuntimeValue::TYPE );
+         nll::core::vector3f originSlice( s.getOrigin()[ 0 ] - 0.5 * s.size()[ 0 ] * s.getSpacing()[ 0 ] * s.getAxisX()[ 0 ] - 0.5 * s.size()[ 1 ] * s.getSpacing()[ 1 ] * s.getAxisY()[ 0 ],
+                                          s.getOrigin()[ 1 ] - 0.5 * s.size()[ 0 ] * s.getSpacing()[ 0 ] * s.getAxisX()[ 1 ] - 0.5 * s.size()[ 1 ] * s.getSpacing()[ 1 ] * s.getAxisY()[ 1 ],
+                                          s.getOrigin()[ 2 ] - 0.5 * s.size()[ 0 ] * s.getSpacing()[ 0 ] * s.getAxisX()[ 2 ] - 0.5 * s.size()[ 1 ] * s.getSpacing()[ 1 ] * s.getAxisY()[ 2 ] );
+         createVector3f( origin, originSlice[ 0 ], originSlice[ 1 ], originSlice[ 2 ] );
 
-         RuntimeValue axisx;
+         RuntimeValue axisx( RuntimeValue::TYPE );
          createVector3f( axisx, s.getAxisX()[ 0 ], s.getAxisX()[ 1 ], s.getAxisX()[ 2 ] );
 
-         RuntimeValue axisy;
-         createVector3f( origin, s.getAxisY()[ 0 ], s.getAxisY()[ 1 ], s.getAxisY()[ 2 ] );
+         RuntimeValue axisy( RuntimeValue::TYPE );
+         createVector3f( axisy, s.getAxisY()[ 0 ], s.getAxisY()[ 1 ], s.getAxisY()[ 2 ] );
 
          // call the callback
          std::vector<RuntimeValue> values( 5 );

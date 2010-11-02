@@ -107,6 +107,21 @@ public:
       TESTER_ASSERT( fabs( p6tt[ 0 ] - p6[ 0 ] ) < 1e3 );
       TESTER_ASSERT( fabs( p6tt[ 1 ] - p6[ 1 ] ) < 1e3 );
 
+      {
+         nll::core::GeometryPlane planeSpaci( nll::core::vector3f( 10, 10, 10 ),
+                                              nll::core::vector3f( 0.5, 0, 0 ),
+                                              nll::core::vector3f( 0, 2, 0 ) );
+
+         nll::core::vector3f p3( 15, 15, 10 );
+         nll::core::vector2f p3t = planeSpaci.worldToPlaneCoordinate( p3 );
+         TESTER_ASSERT( p3t == nll::core::vector2f( 10, 2.5 ) );
+         TESTER_ASSERT( planeSpaci.planeToWorldCoordinate( p3t ) == p3 );
+
+         nll::core::vector3f p4( 15, 10, 26 );
+         nll::core::vector2f p4t = planeSpaci.worldToPlaneCoordinate( p4 );
+         TESTER_ASSERT( p4t == nll::core::vector2f( 1, 3 ) );
+         TESTER_ASSERT( planeSpaci.planeToWorldCoordinate( p4t ) == p4 );
+      }
    }
 
    void testNormalConstructor()
@@ -245,14 +260,17 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGeometry);
+/*
 TESTER_TEST(testColinearity);
-TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST(testPlaneContains);
 TESTER_TEST(testPlaneIntersection);
 TESTER_TEST(testNormalConstructor);
 TESTER_TEST(testBoxIntersectionSimple);
 TESTER_TEST(testBoxContainsSimple);
 TESTER_TEST(testGeometryReg1);
+*/
+
+TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST_SUITE_END();
 #endif
 

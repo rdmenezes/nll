@@ -1,0 +1,45 @@
+/**
+ @ingroup mvv
+ @brief Defines simple operation operating on planes
+ */
+class Plane
+{
+   /**
+    @brief Defines a plane which defines a geometric spaces centered
+           on position with 2 axis whose norm is defining the spacing of the geometric space
+    @note axis must be orthogonals
+    */
+   import Plane( Vector3f origin, Vector3f axisx, Vector3f axisy );
+   import ~Plane();
+
+   /**
+    @brief orthogonally project the point expressed in 3D on the plane. Returns its 3D projection (guaranteed to be on the plane)
+    */
+   import Vector3f orthogonalProjection( Vector3f p );
+
+   /**
+    @brief Transform a 3D coordinate that MUST be located on the plane (else it will throw an exception)
+    */
+   import Vector2f worldToPlaneCoordinate( Vector3f p );
+
+   /**
+    @brief Return the coordinate in 3D of a point defined on the plane in 2D
+    */
+   import Vector3f planeToWorldCoordinate( Vector2f p );
+
+   /**
+    @brief Get the intersection of a line and the plane
+    @note if there is no intersection, an exception will be thrown
+    */
+   import Vector3f getIntersection( Vector3f origin, Vector3f direction );
+
+   /**
+    @brief Returns 1 if the point is contained in the plane
+    */
+   import int contains( Vector3f p );
+
+   import Vector3f getOrigin();
+   import Vector3f getAxisX();
+   import Vector3f getAxisY();
+   import Vector3f getNormal();
+}

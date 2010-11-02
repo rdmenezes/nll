@@ -471,6 +471,9 @@ class ToolAnnotations
 /**
  @ingroup mvv
  @brief Defines a callback to postprocess a MPR/MIP
+ @param origin coordinate of the bottom left of the segment
+ @param axisx the normalized x axis of the segment
+ @param axisy the normalized y axis of the segment
  */
 typedef void(Image image, Vector2f spacing, Vector3f origin, Vector3f axisx, Vector3f axisy)   PostprocessingCallback;
 
@@ -548,6 +551,7 @@ class ManipulatorPointer
 /**
  @ingroup mvv
  @brief Tool holding manipulators (i.e., objects that can be manipulated interactively by the user)
+ @note internally if a manipulator is attached, a reference on it is saved
  */
 class ToolManipulators
 {
