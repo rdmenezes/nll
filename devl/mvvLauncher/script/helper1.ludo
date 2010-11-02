@@ -1,3 +1,4 @@
+// list of local volumes to analyse...
 string volumeList[] =
 {
    "D:/Devel/sandbox/regionDetectionTest/data/case300.mf2",
@@ -191,4 +192,118 @@ class FindPeakVoxel
       print(pos);
       pointer.setPosition( v.indexToPosition( pos ) );
    }
+}
+
+/**
+ @brief Helper object creating interactively a cuboid object that can be retrieved...
+ */
+class CuboidCreator
+{
+   Vector2i mouseLastPos;
+   ManipulatorCuboid cuboid = NULL;
+   ToolManipulators  manipulators = NULL;
+
+   CuboidCreator( ToolManipulators  m )
+   {
+      assert( m != NULL, "ToolManipulators cannot be null!" );
+      manipulators = m;
+   }
+
+   void start()
+   {
+      setOnSegmentLeftMousePressed( this.cuboidCreate );
+   }
+
+   void cuboidCreate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
+   {
+      Vector2i dm = mousePosition - segmentSize / 2;
+      Vector3f d( toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
+
+      if ( cuboid != NULL )
+      {
+         cuboid.setP1( segmentOrigin + d );
+         cuboid.setP2( segmentOrigin + d );
+      } else {
+         cuboid = ManipulatorCuboid( segmentOrigin + d, segmentOrigin + d );
+      }
+      manipulators.add( cuboid );
+
+      setMousePointer( 5 );
+      setOnSegmentLeftMousePressed( this.cuboidUpdate );
+      setOnSegmentLeftMouseRelease( this.cuboidEnd );
+      mouseLastPos = mousePosition;
+   }
+
+   void cuboidUpdate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
+   {
+      Vector2i dm = mousePosition - mouseLastPos;
+      mouseLastPos = mousePosition;
+
+      Vector3f d( toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
+                  toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
+      cuboid.setP2( cuboid.getP2() + d );
+     // manipulators.notify();
+   }
+
+   void cuboidEnd(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
+   {
+      // restore the settings
+      setMousePointer( 1 );
+      setOnSegmentLeftMousePressed( NULL );
+      setOnSegmentLeftMouseRelease( NULL );
+   }
+}
+
+/**
+ @brief simple Callbacks object. It basically associates a keyboard's key to a call back to be executed
+        everytime this key is pressed
+ @note to add a shortcut, you need to update the full KeyboardCallback object and not only the arrays
+       as the application is watching for the object's addresse change and not its content
+ */
+class KeyboardCallback
+{
+   typedef void() KeyCallback;
+
+   KeyCallback[]  callbacks;                 // hold a call back
+   string[]       callbacksKey;              // hold the key for the corresponding callback
+   int[]          callbacksKeyModifier;      // corresponding modifier for the key: (0 => normal), (1 => CTRL), (2 => SHIFT), (3 => ALT)
+   int            nbCallBacks = 0;           // the number of callbacks stored
+
+   void addShortcut( KeyCallback callback, string key, int modifier = 0 )
+   {
+      print("nbCallbacks=" + toString(nbCallBacks));
+      KeyCallback c  [ nbCallBacks + 1 ];
+      string      ck [ nbCallBacks + 1 ];
+      int         ckm[ nbCallBacks + 1 ];
+
+      // copy over the data in a new array
+      int n = 0;
+      while ( n < nbCallBacks )
+      {
+         c  [ n ] = callbacks[ n ];
+         ck [ n ] = callbacksKey[ n ];
+         ckm[ n ] = callbacksKeyModifier[ n ];
+         n = n + 1;
+      }
+
+      // add the new shortcut
+      c  [ nbCallBacks ] = callback;
+      ck [ nbCallBacks ] = key;
+      ckm[ nbCallBacks ] = modifier;
+
+      KeyboardCallback o;
+      o.callbacks = c;
+      o.callbacksKey = ck;
+      o.callbacksKeyModifier = ckm;
+      o.nbCallBacks = nbCallBacks + 1;
+
+      // replace the object
+      this = o;
+   }
+
+   KeyboardCallback()
+   {}
 }
