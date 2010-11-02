@@ -143,6 +143,7 @@ PostProcessing postProcessing( pointer );
 segment1.setTool( ToolPostprocessing( postProcessing.run ) );
 segment2.setTool( ToolPostprocessing( postProcessing.run ) );
 segment3.setTool( ToolPostprocessing( postProcessing.run ) );
+mip1.setTool( ToolPostprocessing( postProcessing.run ) );
 
 /*
 import "core"

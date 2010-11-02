@@ -38,7 +38,14 @@ public:
       getVector3fValues( v4, axis2 );
 
       // construct the type
-      Pointee* p = new Pointee( position, axis1, axis2 );
+      Pointee* p = 0;
+      if ( axis1.norm2() <= 0 || axis2.norm2() <= 0 )
+      {
+         throw std::runtime_error( "invalid axis: lengh == 0");
+         //std::cout << "warning: plane construction with an empty axis, set axis to (1 0 0; 0 1 0) instead" << std::endl;
+         //p = new Pointee( position, nll::core::vector3f( 1, 0, 0 ), nll::core::vector3f( 0, 1, 0 ) );
+      }
+      p = new Pointee( position, axis1, axis2 );
 
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( p ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
