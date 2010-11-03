@@ -34,7 +34,6 @@ namespace impl
       virtual void run( Sliceuc& s )
       {
          // we need to construct the arguments and call the function pointer
-
          // create the arguments
          mvv::platform::ResourceImageuc im;
          im.setValue( s.getStorage() );
@@ -76,6 +75,7 @@ namespace impl
          {
             std::cout << "error in postprocessing callback=" << e.what() << std::endl;
          }
+         im.destroy();
       }
 
    private:
