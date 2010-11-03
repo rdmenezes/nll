@@ -68,6 +68,10 @@ namespace parser
          // TODO: set to zero FP only when run, not constructed (i.e. run multiple times...)
          
          init();
+
+         // if no source evaluator, then assign itself
+         if ( destructorEvaluator == 0 )
+            _destructorEvaluator = this;
       }
 
       /**

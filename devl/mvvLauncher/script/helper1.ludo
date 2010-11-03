@@ -216,7 +216,7 @@ class CuboidCreator
 
    void cuboidCreate(Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
    {
-      Vector2i dm = mousePosition - segmentSize / 2;
+      Vector2i dm = mousePosition;
       Vector3f d( toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
                   toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
                   toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );

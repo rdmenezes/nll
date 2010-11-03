@@ -27,6 +27,7 @@ namespace parser
        */
       class MVVSCRIPT_API RefcountedTypedDestructor : public platform::Refcounted
       {
+      public:
          /**
           @brief we need to be able to call the constructor through the current evaluation context!
           */
@@ -108,6 +109,11 @@ namespace parser
          const RuntimeValues* operator&() const
          {
             return reinterpret_cast<RuntimeValues*>( _data->data );
+         }
+
+         const Extension* getExtension() const
+         {
+            return reinterpret_cast<Extension*>( _data->extension );
          }
       };
    }

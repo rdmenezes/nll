@@ -11,6 +11,15 @@
 using namespace mvv::parser;
 using namespace mvv;
 
+inline static nll::core::vector3f computeSliceOrigin( const Sliceuc& s )
+{
+   nll::core::vector3f originSlice( s.getOrigin()[ 0 ] - 0.5 * s.size()[ 0 ] * s.getSpacing()[ 0 ] * s.getAxisX()[ 0 ] - 0.5 * s.size()[ 1 ] * s.getSpacing()[ 1 ] * s.getAxisY()[ 0 ],
+                                    s.getOrigin()[ 1 ] - 0.5 * s.size()[ 0 ] * s.getSpacing()[ 0 ] * s.getAxisX()[ 1 ] - 0.5 * s.size()[ 1 ] * s.getSpacing()[ 1 ] * s.getAxisY()[ 1 ],
+                                    s.getOrigin()[ 2 ] - 0.5 * s.size()[ 0 ] * s.getSpacing()[ 0 ] * s.getAxisX()[ 2 ] - 0.5 * s.size()[ 1 ] * s.getSpacing()[ 1 ] * s.getAxisY()[ 2 ] );
+
+   return originSlice;
+}
+
 class FunctionSetMousePointer: public FunctionRunnable
 {
 public:
@@ -94,8 +103,10 @@ public:
       RuntimeValue axisx;
       RuntimeValue axisy;
 
+      nll::core::vector3f blOrig = computeSliceOrigin( s );
+
       createVector2i( mousePosition, (int)event.mousePosition[ 0 ] - (int)windowOrigin[ 0 ], (int)event.mousePosition[ 1 ] - (int)windowOrigin[ 1 ] );
-      createVector3f( segmentOrigin, s.getOrigin()[ 0 ], s.getOrigin()[ 1 ], s.getOrigin()[ 2 ] );
+      createVector3f( segmentOrigin, blOrig[ 0 ], blOrig[ 1 ], blOrig[ 2 ] );
       createVector2f( segmentSpacing, s.getSpacing()[ 0 ], s.getSpacing()[ 1 ] );
       createVector2i( segmentSize, s.size()[ 0 ], s.size()[ 1 ] );
       createVector3f( axisx, s.getAxisX()[ 0 ], s.getAxisX()[ 1 ], s.getAxisX()[ 2 ] );
