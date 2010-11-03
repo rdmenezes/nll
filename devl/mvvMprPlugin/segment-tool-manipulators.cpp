@@ -426,8 +426,8 @@ namespace platform
       }
 
       // check if at center
-      if ( abs( positionStartStroke[ 0 ] - center[ 0 ] ) < asx / 8 &&
-           abs( positionStartStroke[ 1 ] - center[ 1 ] ) < asy / 8 )
+      if ( abs( positionStartStroke[ 0 ] - center[ 0 ] ) <= asx / 8 &&
+           abs( positionStartStroke[ 1 ] - center[ 1 ] ) <= asy / 8 )
       {
          if ( e.isMouseLeftButtonPressed && !e.isMouseRightButtonPressed )
          {
