@@ -61,7 +61,8 @@ namespace parser
                    SymbolTableVars& vars,
                    SymbolTableFuncs& funcs,
                    SymbolTableClasses& classes,
-                   SymbolTableTypedef& typedefs ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _typedefs( typedefs )
+                   SymbolTableTypedef& typedefs,
+                   ui32 currentFp = 0 ) : _context( context ), _vars( vars ), _funcs( funcs ), _classes( classes ), _typedefs( typedefs )
       {
          _scopeDepth = 0;
          _functionCallsNeeded = 0;
@@ -69,7 +70,7 @@ namespace parser
          _isInFunctionDeclaration = false;
 
          _typedefs.resetScope();
-         _currentFp = 0;
+         _currentFp = currentFp;
       }
 
       // TODO: handle typedef within field
@@ -516,8 +517,10 @@ namespace parser
          if ( e.getRuntimeIndex() == -1 )
          {
             e.setRuntimeIndex( _currentFp );
+
+            // if != -1, it means it has already been allocated...
+            ++_currentFp;  // we don't reassign index, but we still need to take into account the space of this global
          }
-         ++_currentFp;  // we don't reassign index, but we still need to take into account the space of this global
 
          if ( _isInFunctionDeclaration )
          {

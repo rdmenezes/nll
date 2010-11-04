@@ -301,7 +301,7 @@ namespace parser
                // run the binding visitor on all the trees
                for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
                {
-                  VisitorBind visitorBind( _context, vars, funcs, classes, typedefs );
+                  VisitorBind visitorBind( _context, vars, funcs, classes, typedefs, _env.framePointer );
                   visitorBind( **it );
                }
 

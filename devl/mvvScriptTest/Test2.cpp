@@ -21,7 +21,6 @@ struct TestEval
 {
    void eval1()
    {
-     
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "float n = 5.5;" );
@@ -1304,6 +1303,19 @@ struct TestEval
          TESTER_ASSERT( result == Error::TYPE );
       }
 
+
+      {
+         // multiple destructor
+         CompilerFrontEnd fe;
+         Error::ErrorType result2 = fe.run( "int nnn = 42;" );
+         Error::ErrorType result1 = fe.run( "class Test{ int& ncc; Test(){} ~Test(){ ncc = 1; } } int n = 0; {Test t42; t42.ncc = n;}" );
+         TESTER_ASSERT( result1 == Error::SUCCESS && result2 == Error::SUCCESS );
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "n" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt.intval == 1 );
+      }
+
       {
          // multiple destructor
          CompilerFrontEnd fe;
@@ -1321,7 +1333,7 @@ struct TestEval
          Error::ErrorType result = fe.run( "class Test{ int n; Test(){} ~Test(){ n = 1; } } {Test t[ 1 ]; t[ 0 ].n = 0;}" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
-      
+    
       {
          // multiple destructor
          CompilerFrontEnd fe;
@@ -1438,10 +1450,7 @@ struct TestEval
          // handler setup
          OrderManagerThreadPool pool( 4 );
          EngineHandlerImpl handler;
-         /*
-         OrderProviderImpl provider;
-         OrderDispatcherImpl dispatcher;
-         */
+
          // context setup
          platform::Context context;
          context.add( new platform::ContextVolumes() );
@@ -1650,7 +1659,7 @@ struct TestEval
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
 
-         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; SegmentToolPointer toolPointer; toolPointer.getPosition(); ToolAnnotations toolAnnotations; SegmentToolCamera toolCamera; ToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container ); segment1.setTool(toolPointer); segment1.setTool(toolPointer);" );
+         Error::ErrorType result = fe.run( "import \"core\"  SegmentToolCentering toolCentering; ToolAnnotations toolAnnotations; ToolAnnotations::AnnotationID id1 = toolAnnotations.add( Vector3f( 0.1, 0.2, 0.3 ), \"test1\" ); toolAnnotations.erase(id1); VolumeContainer container; Segment segment1( container );" );
          TESTER_ASSERT( result == Error::SUCCESS );
       }
 
@@ -2410,11 +2419,14 @@ struct TestEval
 };
 
 TESTER_TEST_SUITE(TestEval);
-TESTER_TEST(eval1);
+//TESTER_TEST(eval1);
+
 TESTER_TEST(eval2);
+/*
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
 TESTER_TEST(eval7);
+*/
 TESTER_TEST_SUITE_END();
