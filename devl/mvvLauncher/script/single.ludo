@@ -40,9 +40,8 @@ VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
 Lut petLut( 3000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut( -250.0, 250.0 );
 Lut ctLutMip( -1000.0, 1000.0 );
-
-
 //petLut.set( 0.0, 60000.0 );
+
 FindPeakVoxel peak( pet, 15, pointer );
 DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, pointer );

@@ -425,6 +425,36 @@ public:
    }
 };
 
+class FunctionToolManipulatorsClear : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+   typedef FunctionManipulatorPointConstructor::Pointee PointeePoint;
+
+public:
+   FunctionToolManipulatorsClear( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      p->segmentManipulators.clear();
+      p->segmentManipulators.SegmentTool::notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionToolManipulatorsNotify : public FunctionRunnable
 {
 public:
@@ -720,5 +750,68 @@ public:
    }
 };
 
+class FunctionToolManipulatorsErasePoint : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+   typedef FunctionManipulatorPointConstructor::Pointee PointeePoint;
+
+public:
+   FunctionToolManipulatorsErasePoint( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
+
+      p->segmentManipulators.erase( *point );
+      p->segmentManipulators.SegmentTool::notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
+class FunctionToolManipulatorsEraseCuboid : public FunctionRunnable
+{
+public:
+   typedef FunctionToolManipulatorsConstructor::Pointee Pointee;
+   typedef FunctionManipulatorCuboidConstructor::Pointee PointeePoint;
+
+public:
+   FunctionToolManipulatorsEraseCuboid( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+            
+      Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      PointeePoint* point = reinterpret_cast<PointeePoint*>( (*v2.vals)[ 0 ].ref );
+
+      p->segmentManipulators.erase( *point );
+      p->segmentManipulators.SegmentTool::notify();
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
 
 #endif

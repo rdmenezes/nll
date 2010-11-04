@@ -248,6 +248,35 @@ public:
    }
 };
 
+class FunctionMipNotify: public FunctionRunnable
+{
+public:
+   typedef ::impl::MipStorage Pointee;
+
+public:
+   FunctionMipNotify( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      pointee->mip.notify( 0 );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionMipSetVolume: public FunctionRunnable
 {
 public:

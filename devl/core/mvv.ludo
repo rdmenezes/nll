@@ -576,14 +576,13 @@ class ToolManipulators
     @brief Removes the maipulator from the list
     */
    import void erase( ManipulatorPoint manipulator );
-   // TODO
-   //import void erase( ManipulatorPointer manipulator );
-   //import void erase( ManipulatorCuboid manipulator );
+   import void erase( ManipulatorPointer manipulator );
+   import void erase( ManipulatorCuboid manipulator );
 
    /**
     @brief remove all the manipulators and refresh all linked segments
     */
-   //import void clear();
+   import void clear();
 
    //
    //import string[] toString();
@@ -737,6 +736,11 @@ class Mip
            postprocessing effect
     */
    import void setTool( ToolPostprocessing callback );
+
+   /**
+    @brief force a redisplay of the MIP
+    */
+   import void notify();
 }
 
 /**

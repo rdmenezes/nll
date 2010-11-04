@@ -2883,6 +2883,12 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Mip"), platform::Symbol::create( "notify" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionMipNotify( fn ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "MipToolPointer"), platform::Symbol::create( "~MipToolPointer" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionMipToolPointerDestructor( fn ) ) );
@@ -3436,6 +3442,28 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolManipulators"), platform::Symbol::create( "erase") ), nll::core::make_vector<const Type*>( vec3 ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolManipulatorsErasePointer( fn ) ) );
+   }
+
+   {
+      Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ManipulatorPoint" ) ) ) );
+      assert( vec3 );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolManipulators"), platform::Symbol::create( "erase") ), nll::core::make_vector<const Type*>( vec3 ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolManipulatorsErasePoint( fn ) ) );
+   }
+
+   {
+      Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ManipulatorCuboid" ) ) ) );
+      assert( vec3 );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolManipulators"), platform::Symbol::create( "erase") ), nll::core::make_vector<const Type*>( vec3 ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolManipulatorsEraseCuboid( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolManipulators"), platform::Symbol::create( "clear") ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionToolManipulatorsClear( fn ) ) );
    }
 
    /*

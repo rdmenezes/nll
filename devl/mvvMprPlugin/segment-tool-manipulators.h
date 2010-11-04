@@ -243,6 +243,15 @@ namespace platform
          return SegmentTool::_links;
       }
 
+      void clear()
+      {
+         for ( size_t n = 0; n < _manipulators.size(); ++n )
+         {
+            erase( _manipulators[ n ] );
+         }
+         _manipulators.clear();
+      }
+
       /**
        @brief Returns the first inserted manipulator of this type
        */
