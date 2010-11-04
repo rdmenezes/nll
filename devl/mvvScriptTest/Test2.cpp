@@ -2415,18 +2415,27 @@ struct TestEval
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( i.intval == 1 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Id{string id; Id( string i ){id = i;} Id(){id = \"3\";}} class Test{ Id id; Test(){} } Test t; Id id( \"4\" ); t.id = id; string ts = t.id.id;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "ts" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::STRING );
+         TESTER_ASSERT( i.stringval == "4" );
+       }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-//TESTER_TEST(eval1);
 
+TESTER_TEST(eval1);
 TESTER_TEST(eval2);
-/*
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
 TESTER_TEST(eval7);
-*/
+
 TESTER_TEST_SUITE_END();

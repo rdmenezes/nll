@@ -104,6 +104,12 @@ namespace parser
             return;
          }
 
+         if ( val.type == RuntimeValue::STRING )
+         {
+            std::cout << "STRING:" << val.stringval << std::endl;
+            return;
+         }
+
          if ( val.type == RuntimeValue::REF )
          {
             std::cout << "REF:" << val.ref << std::endl;
@@ -316,6 +322,12 @@ namespace parser
 
          if ( _env.resultRegister.type == RuntimeValue::TYPE )
          {
+            std::cout << "LHS=" << std::endl;
+            _debug( _env.resultRegister );
+
+            std::cout << "RHS=" << std::endl;
+            _debug( val );
+
             _env.resultRegister = val;
          } else {
             if ( isRef && unref( _env.resultRegister ).type == RuntimeValue::EMPTY && !forceCopyValue )   // if we have a ref and this ref doesn't have value, then copy the ref, else we copy by value
@@ -395,8 +407,13 @@ namespace parser
             dst.type = RuntimeValue::REF;
             if ( forceRef || src.type == RuntimeValue::REF )
             {
-               // avoid the ref
-               dst.ref = src.ref;
+               if ( src.type == RuntimeValue::REF )
+               {
+                  // avoid the ref
+                  dst.ref = src.ref;
+               } else {
+                  dst.ref = &src;
+               }
             } else {
                dst.ref = &src;
             }
@@ -476,7 +493,7 @@ namespace parser
                   assert( 0 );   // we are expecting a null ref in case user made a mistake, else compiler error
                }
 
-               _createRef( _env.resultRegister, (*val.vals)[ var->getRuntimeIndex() ], false );
+               _createRef( _env.resultRegister, (*val.vals)[ var->getRuntimeIndex() ], true );
             } else {
                // if this is not a variable, it must be a cuntion call
                assert( dynamic_cast<AstDeclFun*>( fields[ n ]->getPointee() ) );
