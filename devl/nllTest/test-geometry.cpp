@@ -260,7 +260,6 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGeometry);
-/*
 TESTER_TEST(testColinearity);
 TESTER_TEST(testPlaneContains);
 TESTER_TEST(testPlaneIntersection);
@@ -268,8 +267,6 @@ TESTER_TEST(testNormalConstructor);
 TESTER_TEST(testBoxIntersectionSimple);
 TESTER_TEST(testBoxContainsSimple);
 TESTER_TEST(testGeometryReg1);
-*/
-
 TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST_SUITE_END();
 #endif
