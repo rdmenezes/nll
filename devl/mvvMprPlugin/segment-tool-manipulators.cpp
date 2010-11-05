@@ -86,6 +86,13 @@ namespace platform
             it.pickcol( 1 ) = color[ 1 ];
             it.pickcol( 2 ) = color[ 2 ];
          }
+
+         if ( _txt != "" )
+         {
+            _font.setColor( color );
+            _font.setSize( _txtSize );
+            _font.write( _txt, nll::core::vector2ui( xmin + slice.size()[ 0 ] / 2, ymax + 2 * pointSize + slice.size()[ 1 ] / 2 ), slice.getStorage(), nll::core::vector2ui( 0, 0 ), nll::core::vector2ui( slice.size()[ 0 ], slice.size()[ 1 ] ) );
+         }
       }
    }
 

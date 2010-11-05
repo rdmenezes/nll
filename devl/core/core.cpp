@@ -3343,9 +3343,9 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    {
       Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
       assert( vec3 );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorPoint"), platform::Symbol::create( "ManipulatorPoint") ), nll::core::make_vector<const Type*>( vec3 ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ManipulatorPoint"), platform::Symbol::create( "ManipulatorPoint") ), nll::core::make_vector<const Type*>( vec3, new TypeString( false ), new TypeInt( false ) ) );
       assert( fn );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorPointConstructor( fn ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionManipulatorPointConstructor( fn, context ) ) );
    }
 
    {

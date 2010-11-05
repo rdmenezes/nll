@@ -56,7 +56,7 @@ namespace platform
    class MVVMPRPLUGIN_API ToolManipulatorsPoint : public ToolManipulatorsInterface
    {
    public:
-      ToolManipulatorsPoint( const nll::core::vector3f& position, nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 255 ) ) : _position( position ), _color( color )
+      ToolManipulatorsPoint( const nll::core::vector3f& position, const std::string& txt, Font& font, ui32 txtSize = 12, nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 255 ) ) : _position( position ), _color( color ), _txt( txt ), _font( font ), _txtSize( txtSize )
       {
          _colorInactif = nll::core::vector3uc( 0.7 * color[ 0 ],
                                                0.7 * color[ 1 ],
@@ -78,10 +78,29 @@ namespace platform
          notify();
       }
 
+      const std::string& getTxt() const 
+      {
+         return _txt;
+      }
+
+      void setTxt( const std::string& txt )
+      {
+         _txt = txt;
+         notify();
+      }
+
+   private:
+      // disabled
+      ToolManipulatorsPoint& operator=( const ToolManipulatorsPoint& );
+      ToolManipulatorsPoint( const ToolManipulatorsPoint& );
+
    private:
       nll::core::vector3f  _position;
       nll::core::vector3uc _color;
       nll::core::vector3uc _colorInactif;
+      std::string          _txt;
+      ui32                 _txtSize;
+      Font&                _font;
    };
 
    /**

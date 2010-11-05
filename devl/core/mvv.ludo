@@ -409,6 +409,9 @@ class SegmentToolCentering
 /**
  @ingroup mvv
  @brief Tool displaying annotations on segments
+ @TODO refactoring of the annotations: internally, each annotation should be a tool and a resource
+       so that they can be queried and modified interactively (no global container as of now...)
+       in mvv, new classes for each annotations should be created with the proper getter/setter
  */
 class ToolAnnotations
 {
@@ -472,8 +475,8 @@ class ToolAnnotations
  @ingroup mvv
  @brief Defines a callback to postprocess a MPR/MIP
  @param origin coordinate of the bottom left of the segment
- @param axisx the normalized x axis of the segment
- @param axisy the normalized y axis of the segment
+ @param axisx the normalized x axis of the segment, norm = 1
+ @param axisy the normalized y axis of the segment, norm = 1
  */
 typedef void(Image image, Vector2f spacing, Vector3f origin, Vector3f axisx, Vector3f axisy)   PostprocessingCallback;
 
@@ -494,7 +497,7 @@ class ToolPostprocessing
  */
 class ManipulatorPoint
 {
-   import ManipulatorPoint( Vector3f positionMM );
+   import ManipulatorPoint( Vector3f positionMM, string txt = "", int txtSize = 12 );
    import ~ManipulatorPoint();
 
    /**

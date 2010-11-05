@@ -2406,7 +2406,6 @@ struct TestEval
       }
 
       {
-		// TODO test if this works...
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{Test(){}} Test a = NULL; int n = 0; if ( a == NULL ) {n = 1;}" );
          TESTER_ASSERT( result == Error::SUCCESS );
@@ -2424,18 +2423,41 @@ struct TestEval
          RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "ts" ) ) );
          TESTER_ASSERT( i.type == RuntimeValue::STRING );
          TESTER_ASSERT( i.stringval == "4" );
-       }
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result1 = fe.run( "class Test{int tt; string text = \"132\"; Test(){} string getString(){return text;} } Test getTest( Test t ){return t;} Test tt; " );
+         Error::ErrorType result2 = fe.run( "string n = getTest(tt).text;" );
+         TESTER_ASSERT( result1 == Error::SUCCESS && result2 == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::STRING );
+         TESTER_ASSERT( i.stringval == "132" );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result1 = fe.run( "class Test{int tt; string text = \"132\"; Test(){} string getString(){return text;} } Test getTest( Test t ){return t;} Test tt; " );
+         Error::ErrorType result2 = fe.run( "int dummy; {int dummy;}string n = getTest(tt).getString();" );
+         TESTER_ASSERT( result1 == Error::SUCCESS && result2 == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::STRING );
+         TESTER_ASSERT( i.stringval == "132" );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
+*/
 TESTER_TEST(eval7);
 
 TESTER_TEST_SUITE_END();

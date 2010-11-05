@@ -69,7 +69,7 @@ mip1.setTool( toolPointerMip );
 mip1.setTool( annotations );
 
 ManipulatorCuboid cuboid( Vector3f(10.0, -160.0, 1230.0), Vector3f(210.0, -260.0, 1430.0) );
-ManipulatorPoint mp( Vector3f(0.0, -160.0, 1230.0) );
+ManipulatorPoint mp( Vector3f(0.0, -160.0, 1230.0), "Test1", 24 );
 manipultors.add( mp );
 manipultors.add( ManipulatorPoint( Vector3f(10.0, -160.0, 1230.0) ) );
 manipultors.add( ManipulatorPoint( Vector3f(20.0, -160.0, 1230.0) ) );

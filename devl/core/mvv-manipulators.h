@@ -225,31 +225,42 @@ public:
    typedef RefcountedTyped<ToolManipulatorsInterface> Pointee;
 
 public:
-   FunctionManipulatorPointConstructor( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   FunctionManipulatorPointConstructor( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 2 )
+      if ( args.size() != 4 )
       {
          throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] ); // we need to use this and not creating a new type as the destructor reference is already in place!
       RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
 
       nll::core::vector3f position;
       getVector3fValues( v2, position );
+
+      platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
+      if ( !global )
+      {
+         throw std::runtime_error( "mvv global context has not been initialized" );
+      }
       
       // construct the type
-      Pointee* pointee = new Pointee( new ToolManipulatorsPoint( position, nll::core::vector3uc( 255, 255, 255 ) ) );
+      Pointee* pointee = new Pointee( new ToolManipulatorsPoint( position, v3.stringval, global->commonFont, v4.intval, nll::core::vector3uc( 255, 255, 255 ) ) );
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
       (*v1.vals).resize( 1 );    // resize the original field
       (*v1.vals)[ 0 ] = field;
       return v1;  // return the original object!
    }
+
+private:
+   Context&    _context;
 };
 
 class FunctionManipulatorPointDestructor: public FunctionRunnable
