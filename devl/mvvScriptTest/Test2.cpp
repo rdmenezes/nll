@@ -2446,18 +2446,28 @@ struct TestEval
          TESTER_ASSERT( i.type == RuntimeValue::STRING );
          TESTER_ASSERT( i.stringval == "132" );
       }
+
+      {
+         CompilerFrontEnd fe;
+         fe.run( "int nn; string ss; int nf(){return 0;}" );
+         Error::ErrorType result = fe.run( "class Test{string vv; int t[3]; Test(){ t[ 0 ] = 1; t[ 1 ] = 42;}} int n = Test().t[ 1 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 42 );
+      }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
-*/
 TESTER_TEST(eval7);
 
 TESTER_TEST_SUITE_END();
