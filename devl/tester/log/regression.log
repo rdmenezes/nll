@@ -129,6 +129,7 @@ nll.TestEval.eval3=0
 nll.TestEval.eval4=0
 nll.TestEval.eval5=0.015
 nll.TestEval.eval6=0
+nll.TestEval.eval7=0
 nll.TestFont.test1=0.093
 nll.TestGA.testGA=4.391
 nll.TestGeometry.testBoxContainsSimple=0

@@ -40,7 +40,7 @@ namespace core
       class DirectionalIterator
       {
       public:
-         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
@@ -126,7 +126,7 @@ namespace core
          /**
           @brief test if the iterators are pointing at the same position.
           */
-         bool operator==( const DirectionalIterator& i )
+         bool operator==( const DirectionalIterator& i ) const
          {
             assert( _buf == i._buf );
             return _index == i._index;
@@ -135,7 +135,7 @@ namespace core
          /**
           @brief test if the iterators are pointing at the same position.
           */
-         bool operator!=( const DirectionalIterator& i )
+         bool operator!=( const DirectionalIterator& i ) const
          {
             assert( _buf == i._buf );
             return _index != i._index;
@@ -171,7 +171,7 @@ namespace core
          ui32     _sx;
          ui32     _sy;
          ui32     _sz;
-         Mapper&  _mapper;
+         Mapper   _mapper;
       };
 
       /**
@@ -182,7 +182,7 @@ namespace core
       class ConstDirectionalIterator : public DirectionalIterator
       {
       public:
-         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
+         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
          {}
 
          ConstDirectionalIterator( const DirectionalIterator& it ) : DirectionalIterator( it )
@@ -240,7 +240,7 @@ namespace core
          /**
           @brief pick a value on the same y, col but different x
           */
-         T& pickx( i32 n = 1 ) const
+         T pickx( i32 n = 1 ) const
          {
             return this->_buf[ this->_mapper.addx( this->_index, n ) ];
          }
@@ -248,7 +248,7 @@ namespace core
          /**
           @brief pick a value on the same x, col but different y
           */
-         T& picky( i32 n = 1 ) const
+         T picky( i32 n = 1 ) const
          {
             return this->_buf[ this->_mapper.addy( this->_index, n ) ];
          }
@@ -256,7 +256,7 @@ namespace core
          /**
           @brief pick a value on the same x, y but different color
           */
-         T& pickcol( i32 n = 1 ) const
+         T pickcol( i32 n = 1 ) const
          {
             return this->_buf[ this->_mapper.addz( this->_index, n ) ];
          }
@@ -480,7 +480,7 @@ namespace core
       {
          // we have to remove the const, to provide operator=, however it will be guaranteed that
          // no modifications will be done
-         return ConstDirectionalIterator( 0, this->_buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
+         return ConstDirectionalIterator( 0, this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
@@ -488,7 +488,7 @@ namespace core
        */
       ConstDirectionalIterator endDirectional() const
       {
-         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, this->_buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
+         return ConstDirectionalIterator( _sizex * _sizey * _nbcomp, this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**
@@ -514,7 +514,7 @@ namespace core
       {
          // we have to remove the const, to provide operator=, however it will be guaranteed that
          // no modifications will be done
-         return ConstDirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _sizex, _sizey, _nbcomp, *( (Mapper*)&_mapper ) );
+         return ConstDirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
 
       /**

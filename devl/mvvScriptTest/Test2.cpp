@@ -2449,8 +2449,8 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         fe.run( "int nn; string ss; int nf(){return 0;}" );
-         Error::ErrorType result = fe.run( "class Test{string vv; int t[3]; Test(){ t[ 0 ] = 1; t[ 1 ] = 42;}} int n = Test().t[ 1 ];" );
+         fe.run( "int nn = 1; string ss; int nf(){return 0;}" );
+         Error::ErrorType result = fe.run( "class Test{string vv; int t[3]; Test(){ t[ 0 ] = 1; t[ 1 ] = 42;}} int n = Test().t[ nn ];" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
