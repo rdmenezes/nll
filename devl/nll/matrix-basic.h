@@ -51,6 +51,26 @@ namespace core
 		return true;
 	}
 
+
+   template <class type, class mapper, class allocator>
+	double det( const Matrix<type, mapper, allocator>& a )
+	{
+		assert(a.sizex() == a.sizey()); //  "non square matrix"
+		Buffer1D<ui32> perm(a.sizex());
+		
+		double d;
+      Matrix<type, mapper, allocator> cp;
+      cp.clone( a );
+
+		bool ok = luDecomposition(cp, perm, d);
+      if ( !ok )
+         return 0;
+
+		for (ui32 n = 0; n < cp.sizex(); ++n)
+			d *= (double)cp(n, n);
+		return d;
+	}
+
    /**
     @ingroup core
     @brief Generate an identity matrix of a fixed size.

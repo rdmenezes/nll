@@ -82,6 +82,76 @@ namespace core
 			*exportedMean = mean;
 		return cov;
 	}
+
+   /**
+    @ingroup core
+    @brief Compute the of a list of points.
+    @note Points must define:
+     size()
+     Point operator[]( index ) const
+
+     Point must define:
+     size()
+     Point operator[]( index ) const
+
+    @return a vector
+    */
+   template <class Points, class Output>
+	inline Output meanData( const Points& points )
+	{
+      if ( points.size() == 0 )
+         return Output();
+      const ui32 nbFeatures = points[ 0 ].size();
+      Output mean( nbFeatures );
+
+		for (ui32 ny = 0; ny < points.size(); ++ny)
+      {
+			for (ui32 nx = 0; nx < nbFeatures; ++nx)
+         {
+				mean[ nx ] += points[ ny ][ nx ];
+         }
+      }
+      for (ui32 nx = 0; nx < nbFeatures; ++nx)
+      {
+         mean[ nx ] /= points.size();
+      }
+		return mean;
+	}
+
+   /**
+    @brief Compute the covariance of points arranged in rows
+    */
+   template <class PointsRow, class OutputMean>
+	inline Matrix<double> covariance(const PointsRow& points, OutputMean* exportedMean = 0)
+	{
+      assert( points.size() );
+      if ( points.size() == 0 )
+         return Matrix<double>();
+      const ui32 nbFeatures = points[ 0 ].size();
+
+		Matrix<double> cov( nbFeatures, nbFeatures );
+		OutputMean mean = meanData<PointsRow, OutputMean>( points );
+		for (ui32 i = 0; i < nbFeatures; ++i)
+      {
+         // compute upper triangular
+			for (ui32 j = i; j < nbFeatures; ++j)
+			{
+				double sum = 0;
+				for (ui32 k = 0; k < points.size(); ++k)
+					sum += ( points[ k ][ i ] - mean[ i ] ) * ( points[ k ][ j ] - mean[ j ] );
+				cov( i, j ) = sum / points.size();
+			}
+
+         // copy lower triangular
+         for ( ui32 j = 0; j < i; ++j )
+         {
+            cov( i, j ) = cov( j, i );
+         }
+      }
+		if ( exportedMean )
+			*exportedMean = mean;
+		return cov;
+	}
 }
 }
 

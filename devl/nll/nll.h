@@ -189,6 +189,7 @@
 # include "powell.h"
 # include "mlp.h"
 # include "pca.h"
+# include "quadratic-discriminant.h"
 # include "stopping-condition.h"
 # include "metric.h"
 # include "genetic-algorithm.h"

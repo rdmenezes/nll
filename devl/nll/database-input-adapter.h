@@ -167,6 +167,82 @@ namespace core
       Database&         _database;
       std::vector<ui32> _index;
    };
+
+
+   /**
+    @ingroup core
+    @brief Create a wrapper on a Database to match the interface of an
+           array(considering Input of the database only) (define methods size() and operator[]). The samples
+           are filtered on their class
+
+           It is used as a vector adapter on the database's inputs. A typical use is for 
+           example to partionnate the database's inputs using a kd-tree as in ClassifierNearestNeighbor.
+
+           While the adapter is used, the original database must be kept alive and must <b>not</b> change
+           since an internal index is built and won't be up to date.
+    @sa Database
+    */
+   template <class Database>
+   class DatabaseInputAdapterClass
+   {
+   public:
+      typedef typename Database::Sample::Input Point;
+      typedef Point                            value_type;
+
+   public:
+      /**
+       @param database the database to be mapped
+       @param types the types to be mapped (i.e. <code>Database::Type</code>). The others are discarded.
+       */
+      DatabaseInputAdapterClass( Database& database, ui32 classToMap ) : _database( database )
+      {
+         // construct the internal index
+         _buildIndex( classToMap );
+      }
+      const Point& operator[]( ui32 n ) const
+      {    
+         assert( n < size() );
+         return _database[ _index[ n ] ].input;
+      }
+      Point& operator[]( ui32 n )
+      {
+         assert( n < size() );
+         return _database[ _index[ n ] ].input;
+      }
+      ui32 size() const
+      {
+         return static_cast<ui32>( _index.size() );
+      }
+
+   private:
+      DatabaseInputAdapterClass& operator=( const DatabaseInputAdapterClass& );
+
+   private:
+      /**
+       @brief build an index to address only the specified types.
+       */
+      void _buildIndex( ui32 classToMap )
+      {
+         ui32 size = 0;
+
+         // compute the size of the index
+         for ( ui32 n = 0; n < _database.size(); ++n )
+            if ( _database[ n ].output == classToMap )
+               ++size;
+         if ( !size )
+            return;
+
+         // fill the index
+         _index.reserve( size );
+         for ( ui32 n = 0; n < _database.size(); ++n )
+            if ( _database[ n ].output == classToMap )
+               _index.push_back( n );
+      }
+
+   private:
+      Database&         _database;
+      std::vector<ui32> _index;
+   };
 }
 }
 

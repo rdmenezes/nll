@@ -892,6 +892,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\quadratic-discriminant.h"
+				>
+			</File>
+			<File
 				RelativePath=".\relief.h"
 				>
 			</File>
