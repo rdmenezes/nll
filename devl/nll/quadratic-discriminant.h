@@ -1,10 +1,16 @@
-#ifndef NLL_QUADRATIC_DISCRIMINANT_ANALYSIS_H_
-# define NLL_QUADRATIC_DISCRIMINANT_ANALYSIS_H_
+#ifndef NLL_ALGORITHM_QUADRATIC_DISCRIMINANT_ANALYSIS_H_
+# define NLL_ALGORITHM_QUADRATIC_DISCRIMINANT_ANALYSIS_H_
 
 namespace nll
 {
 namespace algorithm
 {
+   /**
+    @ingroup algorithm
+    @brief QuadraticDiscriminant analysis implementation
+
+    See http://www.stat.psu.edu/~jiali/course/stat597e/notes2/lda.pdf
+    */
    class QuadraticDiscriminantAnalysis
    {
       typedef core::Buffer1D<f64>    Point;
@@ -149,10 +155,20 @@ namespace algorithm
        @brief Detect to what class it belongs
        */
       template <class InputPoint>
-      ui32 test( const InputPoint& p ) const
+      ui32 test( const InputPoint& p, core::Buffer1D<double>* probability = 0 ) const
       {
+         if ( _classes.size() == 0 )
+            return -1;
+
          double max = (double)INT_MIN;
+         double sum = 0;
          ui32 index = (ui32)_classes.size();
+
+
+         if ( probability )
+         {
+            *probability = core::Buffer1D<double>( (ui32)_classes.size() );
+         }
 
          for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
          {
@@ -162,6 +178,18 @@ namespace algorithm
                max = v;
                index = n;
             }
+
+            if ( probability )
+            {
+               sum += v;
+               ( *probability )[ n ] = v;
+            }
+         }
+
+         if ( probability  )
+         {
+            for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
+               ( *probability )[ n ] /= sum;
          }
 
          assert( index < _classes.size() );
