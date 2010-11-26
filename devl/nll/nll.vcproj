@@ -712,6 +712,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\feature-combiner.h"
+				>
+			</File>
+			<File
 				RelativePath=".\feature-selection-best-first.h"
 				>
 			</File>

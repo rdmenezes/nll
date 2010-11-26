@@ -54,6 +54,58 @@ public:
 
       TESTER_ASSERT( result.testingError < 0.097 );
    }
+
+   void testNllQdaClassifierSpect()
+   {
+      typedef nll::algorithm::ClassifierSvm<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+      nll::algorithm::FeatureTransformationDiscriminant<Point> qda;
+      qda.compute( dat );
+      Database datProcessed = qda.transform( dat );
+
+      Classifier classifier;
+      classifier.learn( datProcessed, nll::core::make_buffer1D<double>( 10, 100 ) );
+      Classifier::Result result = classifier.test( datProcessed );
+
+      std::cout << "QDA Test error=" << result.testingError << std::endl;
+      std::cout << "QDA learning error=" << result.learningError << std::endl;
+      TESTER_ASSERT( result.testingError < 0.102 );
+   }
+
+   void testNllPCAQdaClassifierSpect()
+   {
+      typedef nll::algorithm::ClassifierSvm<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+
+      // QDA
+      nll::algorithm::FeatureTransformationDiscriminant<Point> qda;
+      qda.compute( dat );
+      Database datProcessed1 = qda.transform( dat );
+
+      // PCA
+      nll::algorithm::FeatureTransformationPca<Point> pca;
+      pca.compute( dat, 15 );
+      Database datProcessed2 = pca.transform( dat );
+
+      // Combine
+      Database datProcessed3 = nll::algorithm::FeatureCombiner::transform( datProcessed1, datProcessed2 );
+
+      // normalize
+      nll::algorithm::FeatureTransformationNormalization<Point> normalization;
+      normalization.compute( datProcessed3 );
+      Database datProcessed = normalization.transform( datProcessed3 );
+
+      // classification
+      Classifier classifier;
+      classifier.learn( datProcessed, nll::core::make_buffer1D<double>( 10, 100 ) );
+      Classifier::Result result = classifier.test( datProcessed );
+
+      std::cout << "QDA+PCA Test error=" << result.testingError << std::endl;
+      std::cout << "QDA+PCA learning error=" << result.learningError << std::endl;
+      TESTER_ASSERT( result.testingError < 0.102 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -64,6 +116,8 @@ TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
 TESTER_TEST(testNllPcaClassifierSpect);
+TESTER_TEST(testNllQdaClassifierSpect);
+TESTER_TEST(testNllPCAQdaClassifierSpect);
 TESTER_TEST_SUITE_END();
 #endif
 
