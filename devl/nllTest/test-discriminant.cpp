@@ -97,6 +97,12 @@ public:
       TESTER_ASSERT( nbErrors == 0 );
 
       discriminant2.project( testing[ 0 ].input );
+
+
+
+      algorithm::FeatureTransformationDiscriminant< core::Buffer1D<double> >  dd1;
+      dd1.compute( database );
+      dd1.process( database[ 0 ].input );
    }
 };
 

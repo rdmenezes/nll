@@ -11,7 +11,7 @@ namespace algorithm
 
     See "http://en.wikipedia.org/wiki/Naive_Bayes_classifier"
     */
-   class NayiveBayes
+   class NaiveBayes
    {
       typedef core::Buffer1D<double>   Vector;
 
@@ -191,3 +191,5 @@ namespace algorithm
    };
 }
 }
+
+#endif

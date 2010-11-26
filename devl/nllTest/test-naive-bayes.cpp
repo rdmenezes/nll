@@ -3,7 +3,7 @@
 #include "bounds.h"
 
 using namespace nll;
-
+/*
 namespace nll
 {
 namespace algorithm
@@ -188,8 +188,8 @@ namespace algorithm
    };
 }
 }
-
-class TestNayiveBayes
+*/
+class TestNaiveBayes
 {
    typedef core::Matrix<double>  Matrix;
 
@@ -240,7 +240,7 @@ public:
       }
 
       // train the classifier
-      algorithm::NayiveBayes bayes;
+      algorithm::NaiveBayes bayes;
       bayes.compute( database );
 
       for ( ui32 n = 0; n < 2; ++n )
@@ -270,7 +270,7 @@ public:
 
       TESTER_ASSERT( nbErrors == 0 );
 
-      algorithm::NayiveBayes    bayes2;
+      algorithm::NaiveBayes    bayes2;
       bayes.read( ss );
       for ( ui32 n = 0; n < testing.size(); ++n )
       {
@@ -284,7 +284,7 @@ public:
 };
 
 #ifndef DONT_RUN_TEST
-TESTER_TEST_SUITE(TestNayiveBayes);
+TESTER_TEST_SUITE(TestNaiveBayes);
 TESTER_TEST(test1);
 TESTER_TEST_SUITE_END();
 #endif

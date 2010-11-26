@@ -13,9 +13,11 @@ namespace algorithm
     */
    class QuadraticDiscriminantAnalysis
    {
+   public:
       typedef core::Buffer1D<f64>    Point;
       typedef core::Matrix<f64>      Matrix;
 
+   private:
       struct      Class
       {
          f64      prior;
@@ -90,6 +92,8 @@ namespace algorithm
 
          // first filter the training samples
          Database training = core::filterDatabase( database, core::make_vector<ui32>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
+         if ( training.size() == 0 )
+            return;
 
          ui32 nbSamples = 0;
          for ( ui32 classid = 0; classid < nbClasses; ++classid )
@@ -157,8 +161,7 @@ namespace algorithm
       template <class InputPoint>
       ui32 test( const InputPoint& p, core::Buffer1D<double>* probability = 0 ) const
       {
-         if ( _classes.size() == 0 )
-            return -1;
+         ensure( _classes.size() != 0, "there is no parameter learn for this model!" );
 
          double max = (double)INT_MIN;
          double sum = 0;
@@ -200,9 +203,9 @@ namespace algorithm
        @brief Project the point on each discriminant and return this vector
        */
       template <class InputPoint>
-      Point project( const InputPoint& p ) const
+      InputPoint project( const InputPoint& p ) const
       {
-         Point pp( (ui32)_classes.size() );
+         InputPoint pp( (ui32)_classes.size() );
          for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
          {
             pp[ n ] = _classes[ n ].evaluateDiscriminant( p );
