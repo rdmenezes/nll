@@ -122,7 +122,9 @@ namespace detect
          Result results;
          std::vector<ui32> ids( volume.size()[ 2 ] );
          std::vector<f64> pbs( volume.size()[ 2 ] );
-         for ( ui32 n = 0; n < volume.size()[ 2 ]; ++n )
+
+         #pragma omp parallel for
+         for ( int n = 0; n < (int)volume.size()[ 2 ]; ++n )
          {
             core::Buffer1D<double> pb;
             Point features = getFeatures( volume, n );

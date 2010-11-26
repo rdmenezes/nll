@@ -320,6 +320,7 @@
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
+				OpenMP="true"
 				UsePrecompiledHeader="2"
 				WarningLevel="4"
 				WarnAsError="false"
