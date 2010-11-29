@@ -467,7 +467,7 @@ public:
       nll::core::Matrixd var = nll::core::covariance( vals, 0, size - 1 );
 
       TESTER_ASSERT( nll::core::equal(me(0), mean, 0.2) );
-      TESTER_ASSERT( nll::core::equal(sqrt(var(0, 0)), variance, 0.2) );
+      TESTER_ASSERT( nll::core::equal(var(0, 0), variance, 0.2) );
    }
 
    void testImage()

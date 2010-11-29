@@ -117,9 +117,9 @@ public:
          TESTER_ASSERT( p3t == nll::core::vector2f( 10, 2.5 ) );
          TESTER_ASSERT( planeSpaci.planeToWorldCoordinate( p3t ) == p3 );
 
-         nll::core::vector3f p4( 15, 10, 26 );
+         nll::core::vector3f p4( 15, 26, 10 );
          nll::core::vector2f p4t = planeSpaci.worldToPlaneCoordinate( p4 );
-         TESTER_ASSERT( p4t == nll::core::vector2f( 1, 3 ) );
+         TESTER_ASSERT( p4t == nll::core::vector2f( 10, 8 ) );
          TESTER_ASSERT( planeSpaci.planeToWorldCoordinate( p4t ) == p4 );
       }
    }

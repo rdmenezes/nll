@@ -554,6 +554,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\math-kurtosis.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math-quaternion.h"
 				>
 			</File>

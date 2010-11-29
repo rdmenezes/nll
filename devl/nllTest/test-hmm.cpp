@@ -11,7 +11,7 @@ public:
    void testHmm1()
    {
       //1245617666
-      unsigned seed = 1245794065;//time(0);
+      unsigned seed = 2;//time(0);
       //std::cout << "seed=" << seed << std::endl;
       srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 
@@ -45,10 +45,10 @@ public:
 
       const Gaussian gaussians[] =
       {
-         {0,   0,   0.25},
-         {0.5, 2,   0.25},
-         {2,   0.5, 0.25},
-         {1, 0.25,   0.25}
+         {0,   0,   nll::core::sqr( 0.25 )},
+         {0.5, 2,   nll::core::sqr( 0.25 )},
+         {2,   0.5, nll::core::sqr( 0.25 )},
+         {1, 0.25,  nll::core::sqr( 0.25 )}
       };
 
       // generate observations by state
@@ -60,7 +60,7 @@ public:
             for ( unsigned nn = 0; nn < 35; ++nn )
             {
                double posx = nll::core::generateGaussianDistribution( gaussians[ n ].meanx, gaussians[ n ].variance );
-               double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance );
+               double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance);
                Observation p = nll::core::make_vector<double>( posx, posy );
 
                observations[ n ].push_back( p );

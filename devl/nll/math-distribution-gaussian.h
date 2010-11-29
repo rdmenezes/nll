@@ -23,7 +23,7 @@ namespace core
       assert( -2 * log( u1 ) >= 0 );
       double t1 = sqrt( -2 * log( u1 ) ) * cos( 2 * core::PI * u2 );
 
-      return mean + variance * t1;
+      return mean + sqrt( variance ) * t1;
    }
 }
 }

@@ -115,6 +115,7 @@
 # include "math-distribution-uniform.h"
 # include "math-correlation.h"
 # include "math-sampling.h"
+# include "math-kurtosis.h"
 # include "math-quaternion.h"
 # include "matrix-basic-operations.h"
 # include "matrix-decomposition.h"
