@@ -9,6 +9,14 @@ namespace algorithm
     @ingroup algorithm
     @brief Define a feature transformation algorithm usin PCA. It is suitable for very high
            dimentional dataset.
+
+    The PCA is decorrelating the features, it is assumed the variance of the feature
+    is the important information. Internally, it is selecting the highest (egigen vector, eigen value)
+    which "rotates" the data so that they are not correlated anymore.
+
+    If the features have not a normal distribution or the infomation is not in the variance,
+    this preprocessing should not be used.
+
     @see Pca
     */
    template <class Point>
