@@ -708,6 +708,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\classifier-rbf.h"
+				>
+			</File>
+			<File
 				RelativePath=".\classifier-svm.h"
 				>
 			</File>
@@ -917,6 +921,10 @@
 			</File>
 			<File
 				RelativePath=".\quadratic-discriminant.h"
+				>
+			</File>
+			<File
+				RelativePath=".\rbf-network.h"
 				>
 			</File>
 			<File

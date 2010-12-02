@@ -1344,6 +1344,13 @@
 			<File
 				RelativePath=".\test-rbf-network.cpp"
 				>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\test-region-growing.cpp"

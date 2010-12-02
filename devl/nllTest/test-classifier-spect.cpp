@@ -22,12 +22,7 @@ public:
       srand((nll::ui32)time(0));
       Mlp::BaseClassifier* mlp = new Mlp();
 
-      //nll::algorithm::OptimizerGeneticAlgorithm gaOptimizer( 10, 10, 3 );
-      //std::vector<double> optimizedParametersStl = gaOptimizer.optimize( mlp->createOptimizer(dat), Mlp::buildParameters() );
-      //nll::core::Buffer1D<double> optimizedParameters;
-      //nll::core::convert( optimizedParametersStl, optimizedParameters, (nll::ui32)optimizedParametersStl.size() );
-
-      nll::core::Buffer1D<nll::f64> optimizedParameters = nll::core::make_buffer1D<nll::f64>(5, 0.001, 2);
+       nll::core::Buffer1D<nll::f64> optimizedParameters = nll::core::make_buffer1D<nll::f64>(5, 0.001, 2);
 
       nll::algorithm::FeatureSelectionWrapper<Point>* fs = new nll::algorithm::FeatureSelectionBestFirst<Point>();
       nll::core::Buffer1D<bool> result = fs->compute( mlp, optimizedParameters, dat );
@@ -37,6 +32,35 @@ public:
       const Mlp::Result resultTest = mlp->test(newdat);
       std::cout << "BestClassifierTestingErrorRate=" << resultTest.testingError << std::endl;
       TESTER_ASSERT( resultTest.testingError < 0.185 );
+   }
+
+   void testNllClassifierRbf()
+   {
+      typedef nll::algorithm::ClassifierRbf<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+      /*
+      nll::algorithm::FeatureTransformationPca<Point> pca;
+      pca.compute( dat, 10 );
+      Database datProcessed = pca.transform( dat );*/
+
+      Classifier classifier;
+      classifier.learn( dat, nll::core::make_buffer1D<double>( 40, 0.5, 15 ) );
+      Classifier::Result result = classifier.test( dat );
+
+      TESTER_ASSERT( result.testingError < 0.23 && result.learningError < 0.10 );
+   }
+
+   void testNllClassifierMlp()
+   {
+      typedef nll::algorithm::ClassifierRbf<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+      Mlp classifier;
+      classifier.learn( dat, nll::core::make_buffer1D<double>( 20, 0.5, 10 ) );
+      Mlp::Result result = classifier.test( dat );
+
+      TESTER_ASSERT( result.testingError < 0.30 && result.learningError < 0.10 );
    }
 
    void testNllPcaClassifierSpect()
@@ -115,9 +139,12 @@ TESTER_TEST_SUITE(TestNllClassifierSpect);
 TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
+TESTER_TEST(testNllClassifierRbf);
+TESTER_TEST(testNllClassifierMlp);
 TESTER_TEST(testNllPcaClassifierSpect);
 TESTER_TEST(testNllQdaClassifierSpect);
 TESTER_TEST(testNllPCAQdaClassifierSpect);
+
 TESTER_TEST_SUITE_END();
 #endif
 
