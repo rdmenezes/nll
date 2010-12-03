@@ -39,10 +39,6 @@ public:
       typedef nll::algorithm::ClassifierRbf<Point> Classifier;
 
       Database dat = loadDatabaseSpect<Point>();
-      /*
-      nll::algorithm::FeatureTransformationPca<Point> pca;
-      pca.compute( dat, 10 );
-      Database datProcessed = pca.transform( dat );*/
 
       Classifier classifier;
       classifier.learn( dat, nll::core::make_buffer1D<double>( 40, 0.5, 15 ) );
@@ -53,14 +49,24 @@ public:
 
    void testNllClassifierMlp()
    {
-      typedef nll::algorithm::ClassifierRbf<Point> Classifier;
-
       Database dat = loadDatabaseSpect<Point>();
       Mlp classifier;
       classifier.learn( dat, nll::core::make_buffer1D<double>( 20, 0.5, 10 ) );
       Mlp::Result result = classifier.test( dat );
 
       TESTER_ASSERT( result.testingError < 0.30 && result.learningError < 0.10 );
+   }
+
+   void testNllClassifierNaiveb()
+   {
+      typedef nll::algorithm::ClassifierNaiveBayes<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+      Classifier classifier;
+      classifier.learn( dat, nll::core::Buffer1D<double>() );
+      Classifier::Result result = classifier.test( dat );
+
+      TESTER_ASSERT( result.testingError < 0.13 && result.learningError < 0.27 );
    }
 
    void testNllPcaClassifierSpect()
@@ -139,12 +145,12 @@ TESTER_TEST_SUITE(TestNllClassifierSpect);
 TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
+TESTER_TEST(testNllClassifierNaiveb);
 TESTER_TEST(testNllClassifierRbf);
 TESTER_TEST(testNllClassifierMlp);
 TESTER_TEST(testNllPcaClassifierSpect);
 TESTER_TEST(testNllQdaClassifierSpect);
 TESTER_TEST(testNllPCAQdaClassifierSpect);
-
 TESTER_TEST_SUITE_END();
 #endif
 

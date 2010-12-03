@@ -109,6 +109,7 @@
 # include "static-vector.h"
 # include "buffer1D.h"
 # include "buffer1D-converter.h"
+# include "Buffer1D-basic-op.h"
 # include "math.h"
 # include "matrix.h"
 # include "math-distribution-gaussian.h"

@@ -83,9 +83,11 @@ namespace algorithm
          Vector         mean;
          ComputingType  weight;  // sum(weight) must be equal to 1!!
 
-         Gaussian( const Matrix& m, const Vector& c, const ComputingType w ) :
+         Gaussian( const Vector& m, const Matrix& c, const ComputingType w ) :
             mean( m ), covariance( c ), weight( w ) {}
+
          Gaussian() : weight( 0 ){}
+
          void write( std::ostream& o ) const
          {
             core::write<Matrix>( covariance, o );
@@ -143,6 +145,7 @@ namespace algorithm
          }
          core::Buffer1D<ui32> sampled = core::sampling( pbs, nbPoints );
          
+         out = std::vector< core::Buffer1D<double> >( nbPoints );
          for ( ui32 n = 0; n < nbPoints; ++n )
          {
             out[ n ] = normals[ sampled[ n ] ].generate();
@@ -345,8 +348,11 @@ namespace algorithm
                ComputingType accum = 0;   
                for ( ui32 k = 0; k < _gaussians.size(); ++k )
                   accum += _gaussians[ k ].weight * expectation( i, k );
-               assert( accum );
-               norm_density( i, g ) = _gaussians[ g ].weight * expectation( i, g ) / accum;
+               //assert( accum );
+               if ( accum <= 1e-8 )
+                  norm_density( i, g ) = 0;
+               else
+                  norm_density( i, g ) = _gaussians[ g ].weight * expectation( i, g ) / accum;
             }
 
          out_density = expectation;

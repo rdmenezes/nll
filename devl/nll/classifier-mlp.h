@@ -10,6 +10,7 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief multi-layered neural network with backpropagation for learning.
+    @note the features must have a [0..1] normalization
 
     @note classifier:database:input: needs size() and operator[], constructor(size) implemented
           <code>Mlp</code> for more information on neural networks

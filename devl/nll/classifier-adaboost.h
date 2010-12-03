@@ -133,9 +133,9 @@ namespace algorithm
          for ( ui32 n = 0; n < _weakClassifiers.size(); ++n )
          {
             Class t = _weakClassifiers[ n ].classifier->test( p );
+            ensure( t < 2, "TODO: handle k-class" );
             prob[ t ] += _weakClassifiers[ n ].alpha;
          }
-
          return prob[ 0 ] < prob[ 1 ];
       }
 

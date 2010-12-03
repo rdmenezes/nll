@@ -1,6 +1,7 @@
 #include <nll/nll.h>
 #include <tester/register.h>
 #include "database-builder.h"
+#include "problem-builder-gmm.h"
 
 using namespace nll;
 
@@ -69,11 +70,39 @@ public:
       const double param = 0.4;
       TESTER_ASSERT( rbf.learn( datRbf, 15, param, param, param, 0.1, 15 ) <= 0.1 );
    }
+
+   void testGmmProblem()
+   {
+      srand( 1 );
+      ProblemBuilderGmm pbm;
+      pbm.generate( 3, 10, 2, 15 );
+      core::Image<ui8> i = pbm.generateMap();
+
+      ProblemBuilderGmm::Database dat = pbm.generateSamples( 650 );
+      pbm.printMap( i, dat );
+      core::writeBmp( i, "c:/out.bmp" );
+
+      typedef nll::algorithm::ClassifierRbf< ProblemBuilderGmm::Database::Sample::Input > Rbf;
+      Rbf rbf;
+
+      rbf.learn( dat, core::make_buffer1D<double>( 60, 0.5, 30 ) );
+      core::Image<ui8> ii = pbm.printClassifier( rbf );
+      pbm.printMap( ii, dat );
+      core::writeBmp( ii, "c:/outc.bmp" );
+
+      Rbf::Result r = rbf.test( dat );
+
+      std::cout << "rbf testing error=" << r.testingError << std::endl;
+      std::cout << "rbf learning error=" << r.learningError << std::endl;
+
+      TESTER_ASSERT( r.testingError < 0.09 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRBFNetwork);
 TESTER_TEST(testSimple);
 TESTER_TEST(testApproximation);
+TESTER_TEST(testGmmProblem);
 TESTER_TEST_SUITE_END();
 #endif
