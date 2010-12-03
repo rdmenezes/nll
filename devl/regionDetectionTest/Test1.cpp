@@ -389,7 +389,45 @@ struct TestRegion
 
       ui32 nbBins = 0;
       std::vector<ui32> bins = createBins( nbBins );
-      Buffer1D<double> params = make_buffer1D<double>( 30, 0.5, 80 );
+      Buffer1D<double> params = make_buffer1D<double>( 10, 0.5, 30 );
+
+      std::vector<ErrorReporting> reporting;
+      for ( ui32 n = 0; n < nbBins; ++n )
+      {
+         Database selectedHaarDatabaseNormalized = createLearningDatabase( bins, n );
+
+         Classifier classifier;
+         classifier.learn( selectedHaarDatabaseNormalized, params );
+         classifier.test( selectedHaarDatabaseNormalized );
+
+         //testResult( &classifier );
+         testResultVolumeDatabase( &classifier, bins, n, reporting );
+      }
+
+      // do the results' analysis
+      std::vector<RegionResult::Result> results = RegionResult::readResults( CASES_DESC );
+      ensure( results.size() == measures.size(), "must be the same" );
+      analyseResults( reporting, measures, results );
+
+      // learn the full classifier
+      Classifier classifier;
+      classifier.learnAllDatabase( createLearningDatabase( bins, 0 ), params );
+      classifier.write( FINAL_SVM_CLASSIFIER );
+   }
+
+   void learnRbf()
+   {
+      srand( 1 );
+
+      typedef Buffer1D<double>      Point;
+      typedef ClassifierRbf<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      std::vector<RegionResult::Measure> measures = RegionResult::readMeasures( DATABASE_MEASURES );
+
+      ui32 nbBins = 0;
+      std::vector<ui32> bins = createBins( nbBins );
+      Buffer1D<double> params = make_buffer1D<double>( 20, 0.81, 80 );
 
       std::vector<ErrorReporting> reporting;
       for ( ui32 n = 0; n < nbBins; ++n )
@@ -1959,6 +1997,24 @@ struct TestRegion
 
       core::writeBmp( i, "c:/tmp2/" + str +"-res.bmp" );
    }
+
+   void normalityTest()
+   {
+      typedef std::vector<double>   Point;
+      typedef ClassifierSvm<Point>  Classifier;
+      typedef Classifier::Database  Database;
+
+      Database dat;
+      dat.read( HAAR_SELECTION_DATABASE );
+
+      for ( ui32 n = 0; n < dat[ 0 ].input.size(); ++n )
+      {
+         std::vector<double> vals( dat.size() );
+         for ( ui32 nn = 0; nn < dat.size(); ++nn )
+            vals[ nn ] = dat[ nn ].input[ n ];
+         std::cout << "varid=" << n << " kurtosis=" << nll::core::kurtosis( vals ) << std::endl;
+      }
+   }
 }; 
 
 TESTER_TEST_SUITE(TestRegion);
@@ -1983,11 +2039,12 @@ TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
 //TESTER_TEST(learnSvm);
-//TESTER_TEST(learnKnn);
+TESTER_TEST(learnKnn);
 //TESTER_TEST(learnMlp);
+//TESTER_TEST(learnRbf);
 
 // input: SVM model, validation-cases, validation volumes mf2
-TESTER_TEST(testValidationDataSvm);
+//TESTER_TEST(testValidationDataSvm);
 
 // test the ROI position estimation
 //TESTER_TEST(testPositionEstimation); // input: measures, results, output: the template database
@@ -2000,6 +2057,9 @@ TESTER_TEST(testValidationDataSvm);
 
 // extract the error from matlab registration result
 //TESTER_TEST(registrationExport);
+
+// test if the features are more or less normal...
+//TESTER_TEST(normalityTest);
 
 //
 // deprecated:

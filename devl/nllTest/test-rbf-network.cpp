@@ -80,7 +80,7 @@ public:
 
       ProblemBuilderGmm::Database dat = pbm.generateSamples( 650 );
       pbm.printMap( i, dat );
-      core::writeBmp( i, "c:/out.bmp" );
+      core::writeBmp( i, NLL_TEST_PATH "data/out.bmp" );
 
       typedef nll::algorithm::ClassifierRbf< ProblemBuilderGmm::Database::Sample::Input > Rbf;
       Rbf rbf;
@@ -88,7 +88,7 @@ public:
       rbf.learn( dat, core::make_buffer1D<double>( 60, 0.5, 30 ) );
       core::Image<ui8> ii = pbm.printClassifier( rbf );
       pbm.printMap( ii, dat );
-      core::writeBmp( ii, "c:/outc.bmp" );
+      core::writeBmp( ii, NLL_TEST_PATH "data/outc.bmp" );
 
       Rbf::Result r = rbf.test( dat );
 

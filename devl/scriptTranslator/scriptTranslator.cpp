@@ -17,7 +17,12 @@ int main( int argc, const char** argv)
    Ast* exp = 0;
 
    // parse and convert file
-   exp = context.parseFile( argv[ 1 ] );
+   std::string input;
+   if ( strlen( argv[ 1 ] ) > 10 && strncmp( argv[ 1 ], "/cygdrive/d/", 12 ) == 0 )
+      input = "d:/" + std::string( argv[ 1 ] + 12 );
+   else
+      input = argv[ 1 ];
+   exp = context.parseFile( input );
    if ( !exp )
    {
       std::cerr << "error! cannot parse this file. Reason:" << context.getError().getMessage().str() << std::endl;

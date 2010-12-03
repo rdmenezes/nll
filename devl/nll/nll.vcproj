@@ -542,6 +542,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\math-distribution-logistic.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math-distribution-multinormal.h"
 				>
 			</File>
