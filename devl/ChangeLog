@@ -1,3 +1,13 @@
+v0.13
+-added gram-schmidt orthogonalization
+-added kutosis
+-added logistic distribution
+-added Radial Basis neural network classifier
+-added naives bayes classifier
+-added quadratic discriminant classifier/feature transformation
+-added database concatenation
+-added basic vector operations on Buffer1D
+
 v0.12
 -optimization of the nll::imaging package to be suitable for realtime sofware rendering
 -added slices & associated operations (MPR reconstruction, blending, resampling)
@@ -11,7 +21,6 @@ v0.12
 -reduced dependencies between classifiers & feature processing
 -various interface improvements & bugfixes
 -Haar features & integral images
-
 
 v0.11
 -improved logging

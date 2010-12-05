@@ -36,12 +36,15 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.12
- @date 11th June 2010
+ @version 0.13
+ @date 5th December 2010
  */
 
-/// define the version of nll
-#define NLL_VERSION  "nll-0.12"
+/// define the version of nll as a string
+#define NLL_VERSION     "nll-0.13"
+
+/// define the version of nll as a plain number
+#define NLL_VERSION_ID  0x013
 
 
 #ifdef _MSC_VER
@@ -119,6 +122,7 @@
 # include "math-sampling.h"
 # include "math-kurtosis.h"
 # include "math-quaternion.h"
+# include "math-gram-schmidt-ortho.h"
 # include "matrix-basic-operations.h"
 # include "matrix-decomposition.h"
 # include "matrix-basic.h"
