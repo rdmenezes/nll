@@ -22,6 +22,22 @@ namespace algorithm
       virtual ~Normalize()
       {}
 
+      Normalize()
+      {}
+
+      Normalize( const Vector& mean, const Vector& var )
+      {
+         _mean.clone( mean );
+         _var.clone( var );
+      }
+
+      template <class PPoint>
+      Normalize( const Normalize<PPoint>& normalize )
+      {
+         _mean.clone( normalize.getMean() );
+         _var.clone( normalize.getVariance() );
+      }
+
       /**
        Compute the mean and variance of every features.
 
@@ -36,7 +52,7 @@ namespace algorithm
          const ui32 nbFeatures = (ui32)points[ 0 ].size();
          _mean = Vector( nbFeatures );
          _var = Vector( nbFeatures );
-         ui32 nbSamples = points.size();
+         ui32 nbSamples = static_cast<ui32>( points.size() );
          for ( ui32 n = 0; n < points.size(); ++n )
          {
             for ( ui32 nn = 0; nn < nbFeatures; ++nn )

@@ -40,6 +40,17 @@ namespace algorithm
          assert( nbVectors );
       }
 
+      template <class PPoints>
+      PrincipalComponentAnalysis( const PrincipalComponentAnalysis<PPoints>& pca )
+      {
+         _nbVectors = pca.getNbVectors();
+         _mean.clone( pca.getMean() );
+         _eigenVectors.clone( pca.getEigenVectors() );
+         _eigenValues.clone( pca.getEigenValues() );
+         _projection.clone( pca.getProjection() );
+         _pairs = pca.getPairs();
+      }
+
       /**
        @brief This should only be called after a successful <code>compute()</code> This method change the transformation
               Vector without recalculating a SVD.
@@ -88,6 +99,11 @@ namespace algorithm
       const core::Matrix<double>& getProjection() const
       {
          return _projection;
+      }
+
+      const Pairs& getPairs() const
+      {
+         return _pairs;
       }
 
       /**

@@ -38,6 +38,36 @@ namespace core
    }
 
    template <class T, class Mapper, class Allocator>
+   double dot( const Buffer1D<T, Mapper, Allocator>& src1, const Buffer1D<T, Mapper, Allocator>& src2 )
+   {
+      assert( src1.size() == src2.size() );
+      const T* bufSrc1 = src1.getBuf();
+      const T* bufSrc2 = src2.getBuf();
+
+      double accum = 0;
+      for ( ui32 n = 0; n < src1.size(); ++n )
+      {
+         accum += bufSrc1[ n ] * bufSrc2[ n ];
+      }
+
+      return accum;
+   }
+
+   template <class T>
+   double dot( const std::vector<T>& src1, const std::vector<T>& src2 )
+   {
+      assert( src1.size() == src2.size() );
+
+      double accum = 0;
+      for ( ui32 n = 0; n < src1.size(); ++n )
+      {
+         accum += src1[ n ] * src2[ n ];
+      }
+
+      return accum;
+   }
+
+   template <class T, class Mapper, class Allocator>
    double norm2( const Buffer1D<T, Mapper, Allocator>& src1, const Buffer1D<T, Mapper, Allocator>& src2 )
    {
       assert( src1.size() == src2.size() );
