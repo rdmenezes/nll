@@ -48,6 +48,7 @@ namespace algorithm
       {
          if ( !points.size() )
             return false;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "start compute normalization..." );
 
          const ui32 nbFeatures = (ui32)points[ 0 ].size();
          _mean = Vector( nbFeatures );
@@ -81,6 +82,20 @@ namespace algorithm
                _var[ nn ] /= nbSamples;
             }
          }
+
+         std::stringstream ss1;
+         ss1 << " mean vector=";
+         std::stringstream ss2;
+         ss2 << " variance vector=";
+
+         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+         {
+            ss1 << _mean[ nn ] << " ";
+            ss2 << _var[ nn ] << " ";
+         }
+
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss1.str() );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss2.str() );
          return true;
       }
 

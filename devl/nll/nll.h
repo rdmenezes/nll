@@ -239,6 +239,7 @@
 # include "relief.h"
 # include "feature-transformation.h"
 # include "feature-transformation-pca.h"
+# include "feature-transformation-ica.h"
 # include "feature-transformation-kernel-pca.h"
 # include "feature-transformation-normalization.h"
 # include "feature-transformation-discriminant.h"

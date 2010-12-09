@@ -30,7 +30,29 @@ namespace tutorial
          nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
          preprocessor.compute( dat );
          Classifier::Database preprocessedDat = preprocessor.transform( dat );
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.0001, 10000 ), preprocessedDat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.001, 100 ), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.057 );
+      }
+
+      void testSvmICA()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
+         ClassifierImpl c( false, true );
+
+         nll::algorithm::FeatureTransformationIca<Input> preprocessor;
+         preprocessor.compute( dat, 13 );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.001, 100 ), preprocessedDat );
          std::cout << "error=" << error << std::endl;
          TESTER_ASSERT( fabs( error ) <= 0.057 );
       }
@@ -84,7 +106,7 @@ namespace tutorial
 
       void testGmm()
       {
-         srand( 0 );
+         srand( 1 );
          typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
 
          // find the correct benchmark
@@ -108,7 +130,7 @@ namespace tutorial
 
          ClassifierImpl c;
          double error = c.evaluate( nll::core::make_buffer1D<double>( 3, 1 ), rDat );
-         TESTER_ASSERT( fabs( error ) <= 0.034 );
+         TESTER_ASSERT( fabs( error ) <= 0.012 );
       }
 
       void testSvmKPca()
@@ -145,12 +167,15 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
+    TESTER_TEST( testSvmICA );
+   /*
     TESTER_TEST( testSvm );
-    /*
+    TESTER_TEST( testSvm );
     TESTER_TEST( testMlp );
     TESTER_TEST( testKnn );
-    TESTER_TEST( testGmm );*/
-    //TESTER_TEST( testSvmKPca );
+    TESTER_TEST( testGmm );
+    */
+    //TESTER_TEST( testSvmKPca ); // NOT WORKING
 
    TESTER_TEST_SUITE_END();
 }

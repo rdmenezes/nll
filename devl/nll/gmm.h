@@ -218,7 +218,7 @@ namespace algorithm
             _maximization( p, norm_density );
             likelihood_old = likelihood;
 			   likelihood = _likelihood( p, density );
-            assert( likelihood_old - likelihood <= 0.01 );
+            //assert( likelihood_old - likelihood <= 0.01 );
             if ( core::absolute( likelihood_old - likelihood ) < minDiffStop )
                break;   // stop if the diff between old and new likelihood is les than the threshold
 # ifdef NLL_GMM_DEBUG

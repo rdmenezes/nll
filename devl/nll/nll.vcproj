@@ -760,6 +760,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\feature-transformation-ica.h"
+				>
+			</File>
+			<File
 				RelativePath=".\feature-transformation-kernel-pca.h"
 				>
 			</File>

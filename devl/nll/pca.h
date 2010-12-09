@@ -139,7 +139,7 @@ namespace algorithm
       /**
        @brief Write to a file the status of the algorithm
        */
-      void write( std::ostream& o )
+      void write( std::ostream& o ) const
       {
          core::write<ui32>( _nbVectors, o );
          _mean.write( o );
@@ -155,7 +155,7 @@ namespace algorithm
          }
       }
 
-      void write( const std::string& path )
+      void write( const std::string& path ) const
       {
          std::ofstream f( path.c_str(), std::ios::binary );
          ensure( f.good(), "can't write PCA binaries" );
@@ -171,6 +171,10 @@ namespace algorithm
          if ( !points.size() )
             return false;
          ui32 size = static_cast<ui32>( points[ 0 ].size() );
+
+         std::stringstream ss;
+         ss << "PCA, nb of components=" << _nbVectors;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
 
          core::Matrix<double> p( static_cast<ui32>( points.size() ), size );
          for ( ui32 n = 0; n < points.size(); ++n )
@@ -200,6 +204,14 @@ namespace algorithm
 
          // set the transformation
          _projection = _makeProjection();
+
+         std::stringstream sss;
+         sss << " PCA projection=";
+         _projection.print( sss );
+         sss << " PCA mean=";
+         _mean.print( sss );
+
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
          return true;
       }
 

@@ -125,7 +125,11 @@ namespace algorithm
          ensure( nbSource <= nbDim, "you can't have more source than signals" );
          _unmixingSignal.clear();
 
-         Points normalizedPoints;
+         std::stringstream ss;
+         ss << "independent component analysis, nb selected independent sources=" << nbSource;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+
+         std::vector<typename Points::value_type> normalizedPoints;
          _whitening( points, normalizedPoints );
 
          std::vector<ui32> selector( normalizedPoints.size() );
@@ -194,11 +198,27 @@ namespace algorithm
                }
 
                const double diff = core::norm2( oldMixing, unmixing[ source ] );
+
+               std::stringstream sss;
+               sss << " source=" << source << " cycle=" << cycle << " diffError=" << diff;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
+
                if ( fabs( diff ) < epsilon )
                   break;
             }
 
             _reorthogonalize( unmixing );
+         }
+
+         for ( ui32 source = 0; source < nbSource; ++source )
+         {
+            std::stringstream sss;
+            sss << " umixing source tfm=" << source << " cycle=";
+            for ( ui32 dim = 0; dim < nbDim; ++dim )
+            {
+               sss << unmixing[ source ][ dim ] << " ";
+            }
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
          }
 
          _unmixingSignal = unmixing;
@@ -208,7 +228,7 @@ namespace algorithm
        @brief Transform a point to point with feature as independent as possible
        */
       template <class Point>
-      Point transform( const Point& p )
+      Point transform( const Point& p ) const
       {
          assert( _unmixingSignal.size() && _unmixingSignal[ 0 ].size() == p.size() );
 
@@ -238,14 +258,32 @@ namespace algorithm
          return _unmixingSignal;
       }
 
+      /**
+       @brief Read the transformation from an input stream
+       */
+      virtual void read( std::istream& i )
+      {
+         core::read<Vectors>( _unmixingSignal, i );
+         _pca.read( i );
+         _normalize.read( i );
+      }
+
+      /**
+       @brief Write the transformation to an output stream
+       */
+      virtual void write( std::ostream& o ) const
+      {
+         core::write<Vectors>( _unmixingSignal, o );
+         _pca.write( o );
+         _normalize.write( o );
+      }
+
    private:
       // whiten the data: 0 mean, 1 variance, 0 correlation
-      template <class Points>
-      void _whitening( const Points& points, Points& out )
+      template <class Points, class Points2>
+      void _whitening( const Points& points, Points2& out )
       {
-         Normalize<Points::value_type> normalize;
-         normalize.compute( points );
-         out = Points( points.size() );
+         out = Points2( points.size() );
 
          // rotate data
          PrincipalComponentAnalysis<Points> pca( static_cast<ui32>( points[ 0 ].size() ) );
@@ -255,6 +293,8 @@ namespace algorithm
             out[ n ] = pca.process( points[ n ] );
          }
 
+         Normalize<Points2::value_type> normalize;
+         normalize.compute( out );
          for ( ui32 n = 0; n < points.size(); ++n )
          {
             out[ n ] = normalize.process( out[ n ] );
