@@ -9,7 +9,7 @@ namespace tutorial
 {
    /**
     @ingroup tutorial
-    @brief Test the accuracy on the wine database from UCI. Achieved 0% error rate with SVM after feature normalization
+    @brief Test the accuracy on the wine database from UCI.
     */
    struct TestWineDatabase
    { 
@@ -35,7 +35,7 @@ namespace tutorial
          TESTER_ASSERT( fabs( error ) <= 0.057 );
       }
 
-      void testSvmICA()
+      void testRbf()
       {
          typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
          typedef nll::algorithm::Classifier<Input>                            Classifier;
@@ -46,15 +46,15 @@ namespace tutorial
          Classifier::Database dat = benchmark->database;
 
          // define the classifier to be used
-         typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
-         ClassifierImpl c( false, true );
+         typedef nll::algorithm::ClassifierRbf<Input> ClassifierImpl;
+         ClassifierImpl c;
 
-         nll::algorithm::FeatureTransformationIca<Input> preprocessor;
-         preprocessor.compute( dat, 13 );
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
          Classifier::Database preprocessedDat = preprocessor.transform( dat );
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.001, 100 ), preprocessedDat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 5, 1, 5 ), preprocessedDat );
          std::cout << "error=" << error << std::endl;
-         TESTER_ASSERT( fabs( error ) <= 0.057 );
+         TESTER_ASSERT( fabs( error ) <= 0.1 );
       }
 
       void testMlp()
@@ -167,14 +167,13 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
-    TESTER_TEST( testSvmICA );
-   /*
+    TESTER_TEST( testRbf );
     TESTER_TEST( testSvm );
     TESTER_TEST( testSvm );
     TESTER_TEST( testMlp );
     TESTER_TEST( testKnn );
     TESTER_TEST( testGmm );
-    */
+
     //TESTER_TEST( testSvmKPca ); // NOT WORKING
 
    TESTER_TEST_SUITE_END();
