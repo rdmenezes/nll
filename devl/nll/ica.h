@@ -176,8 +176,8 @@ namespace algorithm
                   for ( ui32 nn = 0; nn < nbDim; ++nn )
                   {
                      meanA[ nn ] += normalizedPoints[ idx ][ nn ] * gwx;
-                     meanB += gderivwx;
                   }
+                  meanB += gderivwx;
                }
 
                // update the mixing matrix
@@ -325,7 +325,7 @@ namespace algorithm
          double accumRandom = 0;
          for ( ui32 nn = 0; nn < nbDim; ++nn )
          {
-            const double val = core::generateUniformDistribution( -0.001, 0.001 );
+            const double val = core::generateUniformDistribution( -0.1, 0.1 );
             accumRandom += val * val;
             randomVector[ nn ] = val;
          }

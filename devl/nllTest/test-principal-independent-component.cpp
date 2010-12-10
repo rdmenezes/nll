@@ -13,11 +13,21 @@ public:
       return sin( val + 1.5 );
    }
 
+   static double sourceLogistic( double )
+   {
+      return core::generateLogisticDistribution( 0, 1 );
+   }
+
+   static double sourceGaussian( double )
+   {
+      return core::generateGaussianDistribution( 0, 1 );
+   }
+
    static double sourceJagged( double val )
    {
-      val = val + 10;
+      val = val;
       int vali = int( val );
-      return ( 2 * val - (double)vali ) - 0.5;
+      return ( val - (double)vali ) - 0.5;
    }
 
    static double sourceJagged3( double val )
@@ -38,21 +48,26 @@ public:
 
    void testBasic()
    {
+      srand( time( 0 ) );
+      for ( double n = 0.3; n < 0.49; n+= 0.02 )
+      {
+         _testBasic( sourceSinus, sourceJagged, n );
+         //_testBasic( sourceSinus, sourceGaussian, n + 0.0 );
+      }
+
+      /*
       _testBasic( sourceSinus, sourceJagged3, 0.3 );
       _testBasic( sourceSinus, sourceJagged, 0.3 );
-      _testBasic( sourceJagged2, sourceJagged, 0.3 );
 
       _testBasic( sourceSinus, sourceJagged3, 0.4 );
       _testBasic( sourceSinus, sourceJagged, 0.4 );
-      _testBasic( sourceJagged2, sourceJagged, 0.4 );
 
       _testBasic( sourceSinus, sourceJagged3, 0.6 );
       _testBasic( sourceSinus, sourceJagged, 0.6 );
-      _testBasic( sourceJagged2, sourceJagged, 0.6 );
 
       _testBasic( sourceSinus, sourceJagged3, 0.7 );
       _testBasic( sourceSinus, sourceJagged, 0.7 );
-      _testBasic( sourceJagged2, sourceJagged, 0.7 );
+      */
    }
 
    // create 2 source one is a sinus function, the other one is a jagged function X
@@ -60,9 +75,8 @@ public:
    // ICA find W^-1, with component order or sign not relevant
    void _testBasic( pfunc f1, pfunc f2, double val )
    {
-      for ( ui32 nn = 0; nn < 10; ++nn )
+      for ( ui32 nn = 0; nn < 1; ++nn )
       {
-         srand( time( 0 ) );
          algorithm::IndependentComponentAnalysis<> pci;
 
          typedef std::vector<double>   Point;
@@ -75,16 +89,32 @@ public:
          mixingSource( 1, 0 ) = 1 - val;
          mixingSource( 1, 1 ) = val;
 
-         const ui32 nbPoints = 1000;
+         const ui32 nbPoints = 10000;
          Points origSignals( nbPoints );
          Points mixedSignals( nbPoints );
+         Matrix cmp1( nbPoints, 1 );
+         Matrix cmp2( nbPoints, 1 );
+         Matrix cmp3( nbPoints, 1 );
+         Matrix cmp4( nbPoints, 1 );
          for ( ui32 n = 0; n < nbPoints; ++n )
          {
             const double val = n / 20.0;
             origSignals[ n ] = core::make_vector<double>( f1( val ), f2( val ) );
             mixedSignals[ n ] = core::make_vector<double>( mixingSource( 0, 0 ) * origSignals[ n ][ 0 ] + mixingSource( 0, 1 ) * origSignals[ n ][ 1 ],
                                                            mixingSource( 1, 0 ) * origSignals[ n ][ 0 ] + mixingSource( 1, 1 ) * origSignals[ n ][ 1 ] );
+
+            cmp1[ n ] = origSignals[ n ][ 0 ];
+            cmp2[ n ] = origSignals[ n ][ 1 ];
+            cmp3[ n ] = mixedSignals[ n ][ 0 ];
+            cmp4[ n ] = mixedSignals[ n ][ 1 ];
          }
+
+         std::cout << "correlation orig=" << core::correlation( cmp1, cmp2 ) << std::endl;
+         std::cout << "correlation mixed=" << core::correlation( cmp3, cmp4 ) << std::endl;
+         std::cout << "correlation orig kurtosis1=" << core::kurtosis( cmp1 ) << std::endl;
+         std::cout << "correlation orig kurtosis2=" << core::kurtosis( cmp2 ) << std::endl;
+         std::cout << "correlation mixed kurtosis1=" << core::kurtosis( cmp3 ) << std::endl;
+         std::cout << "correlation mixed kurtosis2=" << core::kurtosis( cmp4 ) << std::endl;
 
          algorithm::IndependentComponentAnalysis<> pic;
          pci.compute( mixedSignals, 2 );
@@ -106,7 +136,7 @@ public:
          Matrix mixingSourceR = pci.getPcaTransform().getProjection() * mixingSource;
          core::transpose( mixingSourceR );
 
-         //mixingSource.print( std::cout );
+         mixingSource.print( std::cout );
          //std::cout << "---" << std::endl;
          mixingSourceR.print( std::cout );
          
