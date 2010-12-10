@@ -16,7 +16,7 @@ namespace algorithm
       /**
        @param a1 it must be 1 <= a1 <= 2
        */
-      TraitConstrastFunctionG1( double a1 = 2.0 ) : _a1( a1 )
+      TraitConstrastFunctionG1( double a1 = 1.0 ) : _a1( a1 )
       {}
 
       inline double evaluate( double val ) const
@@ -77,7 +77,7 @@ namespace algorithm
       inline double evaluate( double val ) const
       {
          const double v = val * val;
-         return v * v;
+         return v * v / 4;
       }
 
       inline double evaluateDerivative( double val ) const
@@ -98,6 +98,11 @@ namespace algorithm
     It is assumed that the emitters are not following a gaussian distribution (at maximum one can)
 
     it is implementing this paper: http://www.cs.helsinki.fi/u/ahyvarin/papers/TNN99new.pdf
+
+    The learning process is:
+    - PCA transform of the input data
+    - normalization (0 mean, 1 variance)
+    - run FastICA algorthm
     */
    template <class TraitConstrastFunction = TraitConstrastFunctionG1>
    class IndependentComponentAnalysis
@@ -117,7 +122,7 @@ namespace algorithm
        @note if dataRatioToUsePerCycle != 1 the algorithm doesn't converge...
        */
       template <class Points>
-      void compute( const Points& points, ui32 nbSource, ui32 runReorthogonalizationEveryXCycle = 10, double epsilon = 1e-6, double dataRatioToUsePerCycle = 1.0, ui32 maxNumOfCycles = 1000 )
+      void compute( const Points& points, ui32 nbSource, ui32 runReorthogonalizationEveryXCycle = 1, double epsilon = 1e-6, double dataRatioToUsePerCycle = 1.0, ui32 maxNumOfCycles = 1000 )
       {
          if ( points.size() == 0 )
             return;
@@ -258,6 +263,16 @@ namespace algorithm
          return _unmixingSignal;
       }
 
+      const PrincipalComponentAnalysis<Vectors>& getPcaTransform() const
+      {
+         return _pca;
+      }
+
+      const Normalize<Vector>& getNormalizeTransform() const
+      {
+         return _normalize;
+      }
+
       /**
        @brief Read the transformation from an input stream
        */
@@ -292,7 +307,7 @@ namespace algorithm
          {
             out[ n ] = pca.process( points[ n ] );
          }
-
+         
          Normalize<Points2::value_type> normalize;
          normalize.compute( out );
          for ( ui32 n = 0; n < points.size(); ++n )
