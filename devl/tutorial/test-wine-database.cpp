@@ -57,6 +57,50 @@ namespace tutorial
          TESTER_ASSERT( fabs( error ) <= 0.1 );
       }
 
+      void testQda()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierDiscriminant<Input> ClassifierImpl;
+         ClassifierImpl c;
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
+         double error = c.evaluate( nll::core::Buffer1D<double>(), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.017 );
+      }
+
+      void testBayes()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierNaiveBayes<Input> ClassifierImpl;
+         ClassifierImpl c;
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
+         double error = c.evaluate( nll::core::Buffer1D<double>(), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.16 );
+      }
+
       void testMlp()
       {
          srand( 0 );
@@ -167,6 +211,8 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
+    TESTER_TEST( testQda );
+    TESTER_TEST( testBayes );
     TESTER_TEST( testRbf );
     TESTER_TEST( testSvm );
     TESTER_TEST( testSvm );

@@ -136,6 +136,24 @@ public:
       std::cout << "QDA+PCA learning error=" << result.learningError << std::endl;
       TESTER_ASSERT( result.testingError < 0.102 );
    }
+
+   void testNllClassifierSvmIca()
+   {
+      srand(time(0));
+      typedef nll::algorithm::ClassifierSvm<Point> Classifier;
+
+      Database dat = loadDatabaseSpect<Point>();
+      nll::algorithm::FeatureTransformationIca<Point> pca;
+      pca.compute( dat,21 );
+      Database datProcessed = pca.transform( dat );
+
+      Classifier classifier;
+      classifier.learn( datProcessed, nll::core::make_buffer1D<double>( 10, 100 ) );
+      Classifier::Result result = classifier.test( datProcessed );
+
+      std::cout << "res=" << result.testingError << std::endl;
+      TESTER_ASSERT( result.testingError < 0.1017 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -145,12 +163,14 @@ TESTER_TEST_SUITE(TestNllClassifierSpect);
 TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
+TESTER_TEST(testNllClassifierSpect);
 TESTER_TEST(testNllClassifierNaiveb);
 TESTER_TEST(testNllClassifierRbf);
 TESTER_TEST(testNllClassifierMlp);
 TESTER_TEST(testNllPcaClassifierSpect);
 TESTER_TEST(testNllQdaClassifierSpect);
 TESTER_TEST(testNllPCAQdaClassifierSpect);
+TESTER_TEST(testNllClassifierSvmIca);
 TESTER_TEST_SUITE_END();
 #endif
 

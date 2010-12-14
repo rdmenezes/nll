@@ -122,7 +122,7 @@ namespace algorithm
        @note if dataRatioToUsePerCycle != 1 the algorithm doesn't converge...
        */
       template <class Points>
-      void compute( const Points& points, ui32 nbSource, ui32 runReorthogonalizationEveryXCycle = 1, double epsilon = 1e-6, double dataRatioToUsePerCycle = 1.0, ui32 maxNumOfCycles = 1000 )
+      void compute( const Points& points, ui32 nbSource, double step = 0.1, ui32 runReorthogonalizationEveryXCycle = 1, double epsilon = 1e-6, ui32 maxNumOfCycles = 1000 )
       {
          if ( points.size() == 0 )
             return;
@@ -137,11 +137,7 @@ namespace algorithm
          std::vector<typename Points::value_type> normalizedPoints;
          _whitening( points, normalizedPoints );
 
-         std::vector<ui32> selector( normalizedPoints.size() );
-         for ( ui32 n = 0; n < normalizedPoints.size(); ++n )
-            selector[ n ] = n;
-
-         const ui32 nbSamples = static_cast<ui32>( dataRatioToUsePerCycle * normalizedPoints.size() );
+         const ui32 nbSamples = static_cast<ui32>( normalizedPoints.size() );
          if ( nbSamples == 0 )
             throw std::runtime_error( "no sample selected!" );
 
@@ -158,33 +154,40 @@ namespace algorithm
                Vector oldMixing;
                oldMixing.clone( unmixing[ source ] );
 
-               // randomize the selection vector
-               core::randomize( selector, 0.8f );
-
-               // select the dataRatioToUsePerCycle% of example from the selector vector
                std::vector<double> meanA( nbDim );
                double meanB = 0;
+               double beta = 0;
                for ( ui32 sample = 0; sample < nbSamples; ++sample )
                {
-                  const ui32 idx = selector[ sample ];
+                  // accum = w^t * x
                   double accum = 0;
                   for ( ui32 nn = 0; nn < nbDim; ++nn )
-                     accum += unmixing[ source ][ nn ] * normalizedPoints[ idx ][ nn ];
+                     accum += unmixing[ source ][ nn ] * normalizedPoints[ sample ][ nn ];
 
                   const double gwx = _contrast.evaluate( accum );
                   const double gderivwx = _contrast.evaluateDerivative( accum );
                   for ( ui32 nn = 0; nn < nbDim; ++nn )
                   {
-                     meanA[ nn ] += normalizedPoints[ idx ][ nn ] * gwx;
+                     meanA[ nn ] += normalizedPoints[ sample ][ nn ] * gwx;
                   }
                   meanB += gderivwx;
+                  beta += accum * gwx;
                }
+
+               // compute the mean value
+               beta /= nbSamples;
+               for ( ui32 nn = 0; nn < nbDim; ++nn )
+               {
+                  meanA[ nn ] /= nbSamples;
+               }
+               meanB /= nbSamples;
 
                // update the mixing matrix
                double norm = 0;
                for ( ui32 nn = 0; nn < nbDim; ++nn )
                {
-                  const double val = ( meanA[ nn ] - meanB * unmixing[ source ][ nn ] ) / nbSamples;
+                  const double val = unmixing[ source ][ nn ] - step * ( meanA[ nn ] - beta * unmixing[ source ][ nn ] ) / ( meanB - beta );
+                     //meanB * unmixing[ source ][ nn ];
                   norm += val * val;
                   unmixing[ source ][ nn ] = val;
                }
@@ -201,6 +204,12 @@ namespace algorithm
                {
                   _reorthogonalize( unmixing );
                }
+
+               /*
+               for ( ui32 i = 0; i < unmixing[ source ].size(); ++i )
+                  std::cout << unmixing[ source ][ i ] << " ";
+               std::cout << std::endl;
+               */
 
                const double diff = core::norm2( oldMixing, unmixing[ source ] );
 
@@ -235,12 +244,12 @@ namespace algorithm
       template <class Point>
       Point transform( const Point& p ) const
       {
-         assert( _unmixingSignal.size() && _unmixingSignal[ 0 ].size() == p.size() );
+         assert( _unmixingSignal.size() /*&& _unmixingSignal[ 0 ].size() == p.size()*/ );
 
          const ui32 nbSources = static_cast<ui32>( _unmixingSignal.size() );
          const ui32 nbCmp = static_cast<ui32>( _unmixingSignal[ 0 ].size() );
-         Vector input( nbSources );
-         for ( ui32 src = 0; src < nbSources; ++src )
+         Vector input( p.size() );
+         for ( ui32 src = 0; src < p.size(); ++src )
          {
             input[ src ] = p[ src ];
          }
@@ -256,6 +265,11 @@ namespace algorithm
             }
          }
          return out;
+      }
+
+      const TraitConstrastFunction& getConstrastFunction() const
+      {
+         return _contrast;
       }
 
       const Vectors& getUnmixingMatrix() const

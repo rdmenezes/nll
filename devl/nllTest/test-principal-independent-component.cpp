@@ -1,5 +1,6 @@
 #include <nll/nll.h>
 #include <tester/register.h>
+#include "config.h"
 
 using namespace nll;
 
@@ -52,10 +53,10 @@ public:
       for ( double n = 0.3; n < 0.49; n+= 0.02 )
       {
          _testBasic( sourceSinus, sourceJagged, n );
-         //_testBasic( sourceSinus, sourceGaussian, n + 0.0 );
+         //_testBasic( sourceSinus, sourceGaussian, n + 0.25 );
       }
 
-      /*
+      
       _testBasic( sourceSinus, sourceJagged3, 0.3 );
       _testBasic( sourceSinus, sourceJagged, 0.3 );
 
@@ -67,7 +68,27 @@ public:
 
       _testBasic( sourceSinus, sourceJagged3, 0.7 );
       _testBasic( sourceSinus, sourceJagged, 0.7 );
-      */
+      
+   }
+
+   /**
+    @brief Assume point is a set of random variable at t=0...size,
+           computes E(f(x))E(f(y)) - E(f(x)(f(y)) (1)
+    @note if 2 random variable are independent, they must satisfy (1) == 0 for any function f
+    */
+   template <class Points, class Function>
+   double checkIndependence( const Points& points, ui32 v1, ui32 v2, const Function& f )
+   {
+      double xa = 0;
+      double xb = 0;
+      double xc = 0;
+      for ( ui32 n = 0; n < points.size(); ++n )
+      {
+         xa += points[ n ][ v1 ];
+         xb += points[ n ][ v2 ];
+         xc += points[ n ][ v1 ] * points[ n ][ v2 ];
+      }
+      return xa / points.size() * xb / points.size() - xc / points.size();
    }
 
    // create 2 source one is a sinus function, the other one is a jagged function X
@@ -150,12 +171,72 @@ public:
 
          TESTER_ASSERT( fabs( min0 ) < 0.1 || fabs( min1 ) < 0.1 );
          Point p = pci.transform( mixedSignals[ 0 ] );
+
+
+         Points transformed;
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            transformed.push_back( pci.transform( mixedSignals[ n ] ) );
+         }
+
+         std::cout << "indenpendece before=" << checkIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() ) << std::endl;
+         std::cout << "indenpendece after=" << checkIndependence( transformed, 0, 1, pci.getConstrastFunction() ) << std::endl;
       }
+   }
+/*
+   void testImage()
+   {
+      
+      typedef std::vector<double>   Point;
+      typedef std::vector<Point>    Points;
+      typedef core::Matrix<double>  Matrix;
+
+      const std::string pim1 = NLL_TEST_PATH "data/ica/i1.bmp";
+      const std::string pim2 = NLL_TEST_PATH "data/ica/i2.bmp";
+      const std::string pim3 = NLL_TEST_PATH "data/ica/i3.bmp";
+
+      core::Image<ui8> i1;
+      core::readBmp( i1, pim1 );
+
+      core::Image<ui8> i2;
+      core::readBmp( i2, pim2 );
+
+      core::Image<ui8> i3;
+      core::readBmp( i3, pim3 );
+
+      Points points;
+      assert( i1.size() == i2.size() && i1.size() == i3.size() );
+      for ( ui32 n = 0; n < i1.size(); n+= 3 )
+      {
+         points.push_back( core::make_vector<double>( i1[ n ], i2[ n ], i3[ n ] ) );
+      }
+
+      algorithm::IndependentComponentAnalysis<> pci;
+
+   }*/
+
+   void testImage()
+   {
+      srand(time(0));
+      typedef std::vector<double>   Point;
+      typedef std::vector<Point>    Points;
+      typedef core::Matrix<double>  Matrix;
+
+      Points points;
+      points.push_back( core::make_vector<double>( 1, 2 ) );
+      points.push_back( core::make_vector<double>( 3, 8 ) );
+      points.push_back( core::make_vector<double>( -1, 1 ) );
+      points.push_back( core::make_vector<double>( 4, 6 ) );
+
+      algorithm::IndependentComponentAnalysis<> pci;
+      pci.compute( points, 2 );
+
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIndependentComponentAnalysis);
 TESTER_TEST(testBasic);
+//TESTER_TEST(testImage);
 TESTER_TEST_SUITE_END();
 #endif
