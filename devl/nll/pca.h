@@ -35,9 +35,8 @@ namespace algorithm
       typedef std::vector<Pair>              Pairs;
 
    public:
-      PrincipalComponentAnalysis( ui32 nbVectors ) : _nbVectors( nbVectors )
+      PrincipalComponentAnalysis() : _nbVectors( 0 )
       {
-         assert( nbVectors );
       }
 
       template <class PPoints>
@@ -166,11 +165,12 @@ namespace algorithm
       /**
        @brief Compute the PCA on the given set of points.
        */
-      bool compute( const Points& points )
+      bool compute( const Points& points, ui32 nbVectors )
       {
          if ( !points.size() )
             return false;
          ui32 size = static_cast<ui32>( points[ 0 ].size() );
+         _nbVectors = nbVectors;
 
          std::stringstream ss;
          ss << "PCA, nb of components=" << _nbVectors;

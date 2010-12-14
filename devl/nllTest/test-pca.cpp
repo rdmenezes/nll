@@ -39,8 +39,8 @@ public:
       Points points( 10 );
       for ( unsigned n = 0; n < points.size(); ++n )
          points[ n ] = nll::core::Buffer1D<double>( pointsRaw[ n ], 2, false );
-      Pca pca( 2 );
-      bool res = pca.compute( points );
+      Pca pca;
+      bool res = pca.compute( points, 2 );
       TESTER_ASSERT( res );
 
       nll::core::Matrix<double> transf = pca.getProjection();

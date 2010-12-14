@@ -113,7 +113,7 @@ namespace algorithm
       typedef std::vector<Vector>      Vectors;
 
    public:
-      IndependentComponentAnalysis( TraitConstrastFunction contrast = TraitConstrastFunction() ) : _contrast( contrast ), _pca( 1 )
+      IndependentComponentAnalysis( TraitConstrastFunction contrast = TraitConstrastFunction() ) : _contrast( contrast )
       {}
 
       /**
@@ -315,8 +315,8 @@ namespace algorithm
          out = Points2( points.size() );
 
          // rotate data
-         PrincipalComponentAnalysis<Points> pca( static_cast<ui32>( points[ 0 ].size() ) );
-         pca.compute( points );
+         PrincipalComponentAnalysis<Points> pca;
+         pca.compute( points, static_cast<ui32>( points[ 0 ].size() ) );
          for ( ui32 n = 0; n < points.size(); ++n )
          {
             out[ n ] = pca.process( points[ n ] );

@@ -349,8 +349,8 @@ namespace algorithm
                for ( ui32 k = 0; k < _gaussians.size(); ++k )
                   accum += _gaussians[ k ].weight * expectation( i, k );
                //assert( accum );
-               if ( accum <= 1e-8 )
-                  norm_density( i, g ) = 0;
+               if ( fabs( accum ) <= 1e-8 )
+                  norm_density( i, g ) = 1e-8;
                else
                   norm_density( i, g ) = _gaussians[ g ].weight * expectation( i, g ) / accum;
             }

@@ -154,7 +154,7 @@ namespace imaging
          // usuall it is a very small fraction of time for blending a frame and it costs
          // more to create the threads and synchronize them, it is only worth it when
          // the number of indexes to convert is huge
-         //#pragma omp parallel
+         #pragma omp parallel
 #  endif
          {
 #  ifndef NLL_NOT_MULTITHREADED

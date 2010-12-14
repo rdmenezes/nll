@@ -56,13 +56,13 @@ namespace algorithm
       {
          if ( _pca )
             delete _pca;
-         _pca = new Pca( nbComponents );
+         _pca = new Pca();
          Database learningDat = core::filterDatabase( _dat,
                                                       core::make_vector<nll::ui32>( Database::Sample::LEARNING,
                                                                                     Database::Sample::VALIDATION ),
                                                       Database::Sample::LEARNING );
          core::DatabaseInputAdapterRead<Database> databaseAdapter( learningDat );
-         return _pca->compute( databaseAdapter );
+         return _pca->compute( databaseAdapter, nbComponents );
       }
 
       /**
@@ -89,7 +89,7 @@ namespace algorithm
       virtual void read( std::istream& i )
       {
          if ( !_pca )
-            _pca = new Pca( 1 );
+            _pca = new Pca();
          _pca->read( i );
       }
 
@@ -101,6 +101,11 @@ namespace algorithm
          ensure( _pca, "no PCA computed" );
          _pca->write( o );
       }
+
+   private:
+      // copy disabled
+      FeatureTransformationPca& operator=( const FeatureTransformationPca& );
+      FeatureTransformationPca( const FeatureTransformationPca& );
 
    protected:
       Pca*     _pca;

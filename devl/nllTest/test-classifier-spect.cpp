@@ -49,6 +49,7 @@ public:
 
    void testNllClassifierMlp()
    {
+      srand( 0 );
       Database dat = loadDatabaseSpect<Point>();
       Mlp classifier;
       classifier.learn( dat, nll::core::make_buffer1D<double>( 20, 0.5, 10 ) );
@@ -163,10 +164,9 @@ TESTER_TEST_SUITE(TestNllClassifierSpect);
 TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
-TESTER_TEST(testNllClassifierSpect);
+TESTER_TEST(testNllClassifierMlp);
 TESTER_TEST(testNllClassifierNaiveb);
 TESTER_TEST(testNllClassifierRbf);
-TESTER_TEST(testNllClassifierMlp);
 TESTER_TEST(testNllPcaClassifierSpect);
 TESTER_TEST(testNllQdaClassifierSpect);
 TESTER_TEST(testNllPCAQdaClassifierSpect);

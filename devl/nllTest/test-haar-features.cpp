@@ -78,7 +78,7 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestHaarFeature);
-//TESTER_TEST(testBasic);
+TESTER_TEST(testBasic);
 TESTER_TEST(testHaar);
 TESTER_TEST_SUITE_END();
 #endif
