@@ -78,6 +78,8 @@ namespace core
     @ingroup core
     @brief SVD decomposition.
 
+    BEWARE U is returned in a directly!
+
     in the case of eigen value, eigen vector decomposition:
     svdcmp( covarianceMatrix, eigen_values, eigen_vectors )
     eigen vectors are column vectors

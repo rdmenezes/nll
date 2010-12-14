@@ -31,6 +31,13 @@ public:
       return ( val - (double)vali ) - 0.5;
    }
 
+   static double sourceJagged4( double val )
+   {
+      val = val;
+      int vali = int( val );
+      return ( ( val - (double)vali ) - 0.5 ) * 2;
+   }
+
    static double sourceJagged3( double val )
    {
       val = val + 10;
@@ -49,9 +56,12 @@ public:
 
    void testBasic()
    {
+      _testBasic( sourceSinus, sourceJagged, 0.55 );
+
       srand( time( 0 ) );
       for ( double n = 0.3; n < 0.49; n+= 0.02 )
       {
+         //_testBasic( sourceSinus, sourceJagged4, n );
          _testBasic( sourceSinus, sourceJagged, n );
          //_testBasic( sourceSinus, sourceGaussian, n + 0.25 );
       }
@@ -113,6 +123,7 @@ public:
          const ui32 nbPoints = 10000;
          Points origSignals( nbPoints );
          Points mixedSignals( nbPoints );
+
          Matrix cmp1( nbPoints, 1 );
          Matrix cmp2( nbPoints, 1 );
          Matrix cmp3( nbPoints, 1 );
@@ -150,8 +161,16 @@ public:
          }
 
          core::inverse( mixingSource );   // find the unmixing matrix
+
+         Matrix unmixingSource;
+         unmixingSource.clone( mixingSource );
+         //unmixingSource( 1, 0 ) = -unmixingSource( 1, 0 );
+         unmixingSource.print( std::cout );
+
+         /*
          mixingSource /= sqrt( core::sqr( mixingSource( 0, 0 ) ) +
                                core::sqr( mixingSource( 0, 1 ) ) );
+
 
          // we have rotated the data with PCA, so we also must rotate the weight matrix
          Matrix mixingSourceR = pci.getPcaTransform().getProjection() * mixingSource;
@@ -160,7 +179,42 @@ public:
          mixingSource.print( std::cout );
          //std::cout << "---" << std::endl;
          mixingSourceR.print( std::cout );
-         
+         */
+
+         Points unmixedSignals( nbPoints );
+         Points transformed;
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            transformed.push_back( pci.transform( mixedSignals[ n ] ) );
+            unmixedSignals[ n ] = core::make_vector<double>( unmixingSource( 0, 0 ) * mixedSignals[ n ][ 0 ] + unmixingSource( 0, 1 ) * mixedSignals[ n ][ 1 ],
+                                                             unmixingSource( 1, 0 ) * mixedSignals[ n ][ 0 ] + unmixingSource( 1, 1 ) * mixedSignals[ n ][ 1 ] );
+         }
+
+         std::cout << "indenpendece before=" << checkIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() ) << std::endl;
+         std::cout << "indenpendece after=" << checkIndependence( transformed, 0, 1, pci.getConstrastFunction() ) << std::endl;
+
+         core::Image<ui8> im1 = displaySignal( origSignals, 0, 300, 3 );
+         core::writeBmp( im1, "c:/temp2/original0.bmp" );
+         core::Image<ui8> im2 = displaySignal( origSignals, 1, 300, 3 );
+         core::writeBmp( im2, "c:/temp2/original1.bmp" );
+
+         core::Image<ui8> im1m = displaySignal( mixedSignals, 0, 300, 3 );
+         core::writeBmp( im1m, "c:/temp2/mixedSignals0.bmp" );
+         core::Image<ui8> im2m = displaySignal( mixedSignals, 1, 300, 3 );
+         core::writeBmp( im2m, "c:/temp2/mixedSignals1.bmp" );
+
+         core::Image<ui8> im1t = displaySignal( transformed, 0, 300, 3 );
+         core::writeBmp( im1t, "c:/temp2/transformed0.bmp" );
+         core::Image<ui8> im2t = displaySignal( transformed, 1, 300, 3 );
+         core::writeBmp( im2t, "c:/temp2/transformed1.bmp" );
+
+         core::Image<ui8> im1tt = displaySignal( unmixedSignals, 0, 300, 3 );
+         core::writeBmp( im1tt, "c:/temp2/test0.bmp" );
+         core::Image<ui8> im2tt = displaySignal( unmixedSignals, 1, 300, 3 );
+         core::writeBmp( im2tt, "c:/temp2/test1.bmp" );
+
+
+         /*
          // compare the result: we must not take into account the sign or position. We test only the first component
          // as the second one is orthogonal (no degree of freedom so it is entirely determined by the first component
          // and this is why we need to use a symetric mixing matrix)
@@ -168,20 +222,30 @@ public:
                              fabs( fabs( mixingSourceR( 0, 1 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 1 ] ) );
          const double min1 = fabs( fabs( mixingSourceR( 0, 0 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 1 ] ) ) +
                              fabs( fabs( mixingSourceR( 0, 1 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 0 ] ) );
+         
 
-         TESTER_ASSERT( fabs( min0 ) < 0.1 || fabs( min1 ) < 0.1 );
+         TESTER_ASSERT( fabs( min0 ) < 0.1 || fabs( min1 ) < 0.1 );*/
          Point p = pci.transform( mixedSignals[ 0 ] );
-
-
-         Points transformed;
-         for ( ui32 n = 0; n < nbPoints; ++n )
-         {
-            transformed.push_back( pci.transform( mixedSignals[ n ] ) );
-         }
-
-         std::cout << "indenpendece before=" << checkIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() ) << std::endl;
-         std::cout << "indenpendece after=" << checkIndependence( transformed, 0, 1, pci.getConstrastFunction() ) << std::endl;
       }
+   }
+
+   template <class Points>
+   core::Image<ui8> displaySignal( const Points& points, const ui32 component, const ui32 nbPoints, const double maxy )
+   {
+      core::Image<ui8> i1( nbPoints, 50, 3 );
+      const double dy = maxy / i1.sizey();
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         const double y = points[ n ][ component ] / dy + i1.sizey() / 2;
+         if ( y >= 0 && y < i1.sizey() )
+         {
+            i1( n, y, 0 ) = 255;
+            i1( n, y, 1 ) = 255;
+            i1( n, y, 2 ) = 255;
+         }
+      }
+
+      return i1;
    }
 /*
    void testImage()

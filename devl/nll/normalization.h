@@ -133,6 +133,18 @@ namespace algorithm
       }
 
       /**
+       @brief take a processed point and reconstruct it (unnormalize it!)
+       */
+      Point reconstruct( const Point& p ) const
+      {
+         assert( p.size() == _mean.size() );
+         Point r( _mean.size() );
+         for ( ui32 nn = 0; nn < p.size(); ++nn )
+            r[ nn ] = p[ nn ] * _var[ nn ] + _mean[ nn ];
+         return r;
+      }
+
+      /**
        @return the mean for each feature
        */
       const Vector& getMean() const

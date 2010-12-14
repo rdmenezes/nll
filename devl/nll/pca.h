@@ -231,6 +231,33 @@ namespace algorithm
          return result;
       }
 
+      /**
+       @brief reconstruct a point projected on the PCA back to the original space
+       */
+      Point reconstruct( const Point& point ) const
+      {
+         assert( point.size() == _nbVectors );
+         assert( _eigenVectors.size() );
+
+         const ui32 finalSize = _mean.size();
+
+         Point reconstructed( finalSize );
+         for ( ui32 n = 0; n < _nbVectors; ++n )
+         {
+            for ( ui32 nn = 0; nn < finalSize; ++nn )
+            {
+               reconstructed[ nn ] += point[ n ] * _eigenVectors( nn, _pairs[ n ].second );  // eigen Vectors are in column
+            }
+         }
+
+         for ( ui32 nn = 0; nn < finalSize; ++nn )
+         {
+            reconstructed[ nn ] += _mean[ nn ];
+         }
+
+         return reconstructed;
+      }
+
    private:
       core::Matrix<double> _makeProjection() const
       {

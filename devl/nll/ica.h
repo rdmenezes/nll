@@ -44,21 +44,18 @@ namespace algorithm
       /**
        @param a2 must be close to 1
        */
-      TraitConstrastFunctionG2( double a2 = 1 ) : _a2( a2 )
+      TraitConstrastFunctionG2()
       {}
 
       inline double evaluate( double val ) const
       {
-         return - 1 / _a2 * exp( -_a2 * val * val / 2 );
+         return - exp( - val * val / 2 );
       }
 
       inline double evaluateDerivative( double val ) const
       {
-         return val * exp( -_a2 * val * val / 2 );
+         return val * exp( - val * val / 2 );
       }
-
-   private:
-      double _a2;
    };
 
    /**
@@ -104,7 +101,7 @@ namespace algorithm
     - normalization (0 mean, 1 variance)
     - run FastICA algorthm
     */
-   template <class TraitConstrastFunction = TraitConstrastFunctionG1>
+   template <class TraitConstrastFunction = TraitConstrastFunctionG2>
    class IndependentComponentAnalysis
    {
    public:
@@ -266,6 +263,20 @@ namespace algorithm
          }
          return out;
       }
+
+      /**
+       @brief reconstruct a point projected on the PCA back to the original space
+       */
+      /*
+      Point reconstruct( const Point& point ) const
+      {
+         // this is only working if all components have been computed!
+         ensure( _unmixingSignal.size() == _unmixingSignal[ 0 ].size(), "the unmixing matrix must be full rank" );
+
+         // the unmixing matrix is orthogonal, i.e., A^t = A^-1
+         // we had s = unmixing * x => x = unmixing^t * s
+         Point r( 
+      }*/
 
       const TraitConstrastFunction& getConstrastFunction() const
       {
