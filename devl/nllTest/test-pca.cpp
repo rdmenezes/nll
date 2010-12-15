@@ -96,11 +96,11 @@ public:
       pca_t2->read( "pca.bin" );
 
       nll::core::Matrix<double> mat = pca2.getProjection();
-      TESTER_ASSERT( nll::core::equal( mat( 0, 0 ), -1.0 ) );
-      TESTER_ASSERT( nll::core::equal( mat( 0, 1 ), 0.0 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 0, 0 ), -0.857493, 1e-6 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 0, 1 ), 0.514496, 1e-6 ) );
 
-      TESTER_ASSERT( nll::core::equal( mat( 1, 0 ), 0.0 ) );
-      TESTER_ASSERT( nll::core::equal( mat( 1, 1 ), -1.0 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 1, 0 ), -0.514496, 1e-6 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 1, 1 ), -0.857493, 1e-6 ) );
    }
 
    void testPca2()

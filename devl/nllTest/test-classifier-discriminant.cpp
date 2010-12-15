@@ -47,7 +47,7 @@ public:
       Classifier::Result r = classifier.test( datProcessed );
       std::cout << "ClassifierDiscriminant learning error=" << r.learningError << " test error=" << r.testingError <<std::endl;
       TESTER_ASSERT( r.learningError < 0.17 );
-      TESTER_ASSERT( r.testingError < 0.18 );
+      TESTER_ASSERT( r.testingError < 0.19 );
    }
 };
 

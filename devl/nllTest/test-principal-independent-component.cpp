@@ -346,6 +346,6 @@ public:
 TESTER_TEST_SUITE(TestIndependentComponentAnalysis);
 TESTER_TEST(testBasic);
 //TESTER_TEST(testImage);
-//TESTER_TEST(testRandomSVD);
+TESTER_TEST(testRandomSVD);
 TESTER_TEST_SUITE_END();
 #endif
