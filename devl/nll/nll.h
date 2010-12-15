@@ -102,6 +102,7 @@
 # include "configuration.h"
 # include "types.h"
 # include "utility-pure.h"
+# include "utility-matlab.h"
 # include "math-floor.h"
 # include "static-assert.h"
 # include "ensure.h"

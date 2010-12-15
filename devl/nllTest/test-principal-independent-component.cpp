@@ -57,7 +57,7 @@ public:
    void testBasic()
    {
       _testBasic( sourceSinus, sourceJagged, 0.55 );
-
+/*
       srand( time( 0 ) );
       for ( double n = 0.3; n < 0.49; n+= 0.02 )
       {
@@ -78,7 +78,7 @@ public:
 
       _testBasic( sourceSinus, sourceJagged3, 0.7 );
       _testBasic( sourceSinus, sourceJagged, 0.7 );
-      
+      */
    }
 
    /**
@@ -120,7 +120,7 @@ public:
          mixingSource( 1, 0 ) = 1 - val;
          mixingSource( 1, 1 ) = val;
 
-         const ui32 nbPoints = 10000;
+         const ui32 nbPoints = 301;
          Points origSignals( nbPoints );
          Points mixedSignals( nbPoints );
 
@@ -213,6 +213,16 @@ public:
          core::Image<ui8> im2tt = displaySignal( unmixedSignals, 1, 300, 3 );
          core::writeBmp( im2tt, "c:/temp2/test1.bmp" );
 
+         core::exportVectorToMatlabAsRow( mixedSignals, "c:/temp2/mixedSignals0.txt" );
+         core::exportVectorToMatlabAsRow( origSignals, "c:/temp2/origSignals0.txt" );
+
+         Points matlabRecon = core::readVectorFromMatlabAsColumn<Points>( "c:/temp2/res.txt" );
+
+         core::Image<ui8> im1tm = displaySignal( matlabRecon, 0, 300, 3 );
+         core::writeBmp( im1tm, "c:/temp2/matlabRecon0.bmp" );
+         core::Image<ui8> im2tm = displaySignal( matlabRecon, 1, 300, 3 );
+         core::writeBmp( im2tm, "c:/temp2/matlabRecon1.bmp" );
+
 
          /*
          // compare the result: we must not take into account the sign or position. We test only the first component
@@ -247,6 +257,7 @@ public:
 
       return i1;
    }
+
 /*
    void testImage()
    {
@@ -296,11 +307,45 @@ public:
       pci.compute( points, 2 );
 
    }
+
+   // generate random square matrices, check A = u * w * v^t
+   void testRandomSVD()
+   {
+      srand( 0 );
+      typedef core::Matrix<double>     Matrix;
+      typedef core::Buffer1D<double>   Vector;
+      std::cout << "test SVD:";
+
+      for ( int size = 2; size < 300; ++size )
+      {
+         if ( size % 10 == 0 )
+            std::cout << "#";
+         Matrix a( size, size, false );
+         for ( ui32 n = 0; n < a.size(); ++n )
+            a[ n ] = ( (double)( rand() % 100000 ) ) / 100 - 500;
+
+         Matrix v;
+         Vector w;
+         Matrix aa;
+         aa.clone( a );
+         core::svdcmp( aa, w, v );
+
+         Matrix eiv( size, size );
+         for ( ui32 n = 0; n < size; ++n )
+            eiv( n, n ) = w[ n ];
+
+         core::transpose( v );
+         Matrix aorig = (aa * eiv * v);
+         for ( ui32 n = 0; n < aorig.size(); ++n )
+            TESTER_ASSERT( fabs( aorig[ n ] - a[ n ] ) < 1e-8 );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIndependentComponentAnalysis);
 TESTER_TEST(testBasic);
 //TESTER_TEST(testImage);
+//TESTER_TEST(testRandomSVD);
 TESTER_TEST_SUITE_END();
 #endif

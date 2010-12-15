@@ -188,8 +188,9 @@ namespace algorithm
          _mean = core::Matrix<double>( core::meanRow( p, 0, p.sizey() - 1 ) );
 
          core::Matrix<double> cov = core::covariance( p, 0, p.sizey() - 1 );
+
          core::Buffer1D<double> eigenValues;
-         bool res = core::svdcmp( p, eigenValues, _eigenVectors );
+         bool res = core::svdcmp( cov, eigenValues, _eigenVectors );
 
          // SVD failed
          if ( !res )

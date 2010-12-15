@@ -1327,15 +1327,7 @@
 				RelativePath=".\test-principal-independent-component.cpp"
 				>
 				<FileConfiguration
-					Name="Debug|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Release|x64"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1551,6 +1543,7 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
+					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1634,6 +1627,7 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|x64"
+					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

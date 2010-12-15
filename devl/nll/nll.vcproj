@@ -670,6 +670,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\utility-matlab.h"
+				>
+			</File>
+			<File
 				RelativePath=".\utility-pure.h"
 				>
 			</File>
