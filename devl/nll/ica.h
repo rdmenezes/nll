@@ -83,6 +83,27 @@ namespace algorithm
       }
    };
 
+   class TraitConstrastFunctionG4
+   {
+   public:
+      /**
+       @param a2 must be close to 1
+       */
+      TraitConstrastFunctionG4()
+      {}
+
+      inline double evaluate( double val ) const
+      {
+         const double v = val * val * val;
+         return v / 3;
+      }
+
+      inline double evaluateDerivative( double val ) const
+      {
+         return val * val;
+      }
+   };
+
 
    /**
     @brief Independent Component Analysis, implementaing the FastICA algorithm
@@ -101,7 +122,7 @@ namespace algorithm
     - normalization (0 mean, 1 variance)
     - run FastICA algorthm
     */
-   template <class TraitConstrastFunction = TraitConstrastFunctionG2>
+   template <class TraitConstrastFunction = TraitConstrastFunctionG4>
    class IndependentComponentAnalysis
    {
    public:
@@ -221,18 +242,28 @@ namespace algorithm
             _reorthogonalize( unmixing );
          }
 
+         // rotate the unmixing matrix
+         Vectors unmixingR;
+         unmixingR.reserve( nbSource );
+         for ( ui32 source = 0; source < nbSource; ++source )
+         {
+            Vector w = unmixing[ source ];
+            w = Matrix( w, 1, w.size() ) * _pca.getProjection();
+            unmixingR.push_back( w );
+         }
+
          for ( ui32 source = 0; source < nbSource; ++source )
          {
             std::stringstream sss;
             sss << " umixing source tfm=" << source << " cycle=";
             for ( ui32 dim = 0; dim < nbDim; ++dim )
             {
-               sss << unmixing[ source ][ dim ] << " ";
+               sss << unmixingR[ source ][ dim ] << " ";
             }
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
          }
 
-         _unmixingSignal = unmixing;
+         _unmixingSignal = unmixingR;
       }
 
       /**
@@ -246,37 +277,21 @@ namespace algorithm
          const ui32 nbSources = static_cast<ui32>( _unmixingSignal.size() );
          const ui32 nbCmp = static_cast<ui32>( _unmixingSignal[ 0 ].size() );
          Vector input( p.size() );
-         for ( ui32 src = 0; src < p.size(); ++src )
+         for ( ui32 n = 0; n < p.size(); ++n )
          {
-            input[ src ] = p[ src ];
+            input[ n ] = p[ n ] - _pca.getMean()[ n ];
          }
-         input = _pca.process( input );
-         input = _normalize.process( input );
 
          Point out( nbSources );
          for ( ui32 src = 0; src < nbSources; ++src )
          {
-            for ( ui32 cmp = 0; cmp < nbCmp; ++cmp )
-            {
-               out[ src ] += p[ cmp ] * _unmixingSignal[ src ][ cmp ];
-            }
+            Matrix proj( _unmixingSignal[ src ], 1, _unmixingSignal[ src ].size() );
+            Vector inputProj = proj * Matrix( input, input.size(), 1 ) + proj * Matrix( _pca.getMean(), p.size(), 1 );
+            assert( inputProj.size() == 1 );
+            out[ src ] = inputProj[ 0 ];
          }
          return out;
       }
-
-      /**
-       @brief reconstruct a point projected on the PCA back to the original space
-       */
-      /*
-      Point reconstruct( const Point& point ) const
-      {
-         // this is only working if all components have been computed!
-         ensure( _unmixingSignal.size() == _unmixingSignal[ 0 ].size(), "the unmixing matrix must be full rank" );
-
-         // the unmixing matrix is orthogonal, i.e., A^t = A^-1
-         // we had s = unmixing * x => x = unmixing^t * s
-         Point r( 
-      }*/
 
       const TraitConstrastFunction& getConstrastFunction() const
       {
@@ -293,11 +308,6 @@ namespace algorithm
          return _pca;
       }
 
-      const Normalize<Vector>& getNormalizeTransform() const
-      {
-         return _normalize;
-      }
-
       /**
        @brief Read the transformation from an input stream
        */
@@ -305,7 +315,6 @@ namespace algorithm
       {
          core::read<Vectors>( _unmixingSignal, i );
          _pca.read( i );
-         _normalize.read( i );
       }
 
       /**
@@ -315,7 +324,6 @@ namespace algorithm
       {
          core::write<Vectors>( _unmixingSignal, o );
          _pca.write( o );
-         _normalize.write( o );
       }
 
    private:
@@ -328,20 +336,29 @@ namespace algorithm
          // rotate data
          PrincipalComponentAnalysis<Points> pca;
          pca.compute( points, static_cast<ui32>( points[ 0 ].size() ) );
-         for ( ui32 n = 0; n < points.size(); ++n )
+
+         Matrix mean = pca.getMean();
+         Matrix transform( pca.getEigenValues().size(), mean.size() );
+         for ( ui32 y = 0; y < transform.sizex(); ++y )
          {
-            out[ n ] = pca.process( points[ n ] );
+            ensure( fabs( pca.getEigenValues()[ y ] ) > 1e-12, "an eigen value is null! reduce the dimension" ); // TODO reduce the dimension automatically instead
+            const double scaling = 1 / sqrt( pca.getEigenValues()[ y ] );
+            for ( ui32 x = 0; x < transform.sizex(); ++x )
+            {
+               // we redimension the projection
+               // each row in <transform> is a projection, from the higest EIV to the lowest
+               transform( y, x ) = scaling * pca.getEigenVectors()( x, pca.getPairs()[ y ].second );
+            }
          }
          
-         Normalize<Points2::value_type> normalize;
-         normalize.compute( out );
+         _pca = PrincipalComponentAnalysis<Vectors>( mean, transform );
+         PrincipalComponentAnalysis<Points> pcaTemp( mean, transform );
          for ( ui32 n = 0; n < points.size(); ++n )
          {
-            out[ n ] = normalize.process( out[ n ] );
+            out[ n ] = pcaTemp.process( points[ n ] );
          }
 
-         _normalize = Normalize<Vector>( normalize );
-         _pca = PrincipalComponentAnalysis<Vectors>( pca );
+         _pca.getProjection().print( std::cout );
       }
 
       Vector _generateRandomVector( ui32 nbDim) const
@@ -370,7 +387,6 @@ namespace algorithm
       Vectors                 _unmixingSignal;
 
       PrincipalComponentAnalysis<Vectors> _pca;
-      Normalize<Vector>                   _normalize;
    };
 }
 }

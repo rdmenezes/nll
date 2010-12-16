@@ -184,8 +184,8 @@ namespace core
       /**
        @brief Import a matrix that uses a different mapper/form...
        */
-      template <class TT, class Mapper>
-      void import( const Matrix<TT, Mapper>& m )
+      template <class TT, class Mapper, class Allocator>
+      void import( const Matrix<TT, Mapper, Allocator>& m )
       {
          *this = Matrix( m.sizey(), m.sizex() );
          for ( ui32 ny = 0; ny < m.sizey(); ++ny )

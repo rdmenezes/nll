@@ -56,7 +56,9 @@ public:
 
    void testBasic()
    {
-      _testBasic( sourceSinus, sourceJagged, 0.55 );
+      srand( time( 0 ) );
+
+      _testBasic( sourceSinus, sourceJagged, 0.49 );
 /*
       srand( time( 0 ) );
       for ( double n = 0.3; n < 0.49; n+= 0.02 )
@@ -120,7 +122,7 @@ public:
          mixingSource( 1, 0 ) = 1 - val;
          mixingSource( 1, 1 ) = val;
 
-         const ui32 nbPoints = 301;
+         const ui32 nbPoints = 10000;
          Points origSignals( nbPoints );
          Points mixedSignals( nbPoints );
 
@@ -160,12 +162,12 @@ public:
             std::cout << std::endl;
          }
 
-         core::inverse( mixingSource );   // find the unmixing matrix
+         //core::inverse( mixingSource );   // find the unmixing matrix
 
          Matrix unmixingSource;
          unmixingSource.clone( mixingSource );
          //unmixingSource( 1, 0 ) = -unmixingSource( 1, 0 );
-         unmixingSource.print( std::cout );
+         //unmixingSource.print( std::cout );
 
          /*
          mixingSource /= sqrt( core::sqr( mixingSource( 0, 0 ) ) +

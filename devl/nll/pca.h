@@ -51,6 +51,30 @@ namespace algorithm
       }
 
       /**
+       @param build the PCA directly from a mean & projection matrix
+       @param the projection is defined in row, each row a projection, with projection.sizex() == mean.size()
+
+       It is assumed the most important projection is ordered from begining to end
+       */
+      template <class Vector, class Matrix>
+      PrincipalComponentAnalysis( const Vector& mean, const Matrix& projection )
+      {
+         _nbVectors = projection.sizey();
+         _mean.clone( mean );
+         _eigenVectors.import( projection );
+         core::transpose( _eigenVectors );   // they are stored in column due to the SVD computation!
+         _projection.clone( projection );
+
+         // create fake values for eigen values and pairs...
+         _eigenValues = core::Matrix<double>( projection.sizey(), 1 );
+         for ( ui32 n = 0; n < projection.sizey(); ++n )
+         {
+            _eigenValues( n, 0 ) = projection.sizey() - n;
+            _pairs.push_back( Pair( _eigenValues( n, 0 ), n ) );
+         }
+      }
+
+      /**
        @brief This should only be called after a successful <code>compute()</code> This method change the transformation
               Vector without recalculating a SVD.
        */
@@ -191,6 +215,7 @@ namespace algorithm
 
          core::Buffer1D<double> eigenValues;
          bool res = core::svdcmp( cov, eigenValues, _eigenVectors );
+         _eigenValues = core::Matrix<double>( eigenValues, eigenValues.size(), 1 );
 
          // SVD failed
          if ( !res )
