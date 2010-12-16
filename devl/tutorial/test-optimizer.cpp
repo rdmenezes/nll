@@ -122,26 +122,28 @@ struct TestOptimizer
 
    void testPowell()
    {
-      srand( 0 );
       const double tol = 1e-2;
       std::vector<OptimizerClientResult*> functions = getFunctions();
 
       for ( unsigned n = 0; n < static_cast<unsigned>( functions.size() ); ++n )
       {
+         srand( 1 );
          typedef nll::core::Buffer1D<double> Point;
 
          nll::algorithm::ParameterOptimizers parameters;
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 0, 20, 0.25 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 0, 20, 0.25 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 0, 20, 0.25 ) );
          
-         nll::algorithm::OptimizerPowell optimizer( 200, 1e-3 );
+         nll::algorithm::OptimizerPowell optimizer( 400, 1e-2 );
          std::vector<double> res = optimizer.optimize( *functions[ n ], parameters );
 
          nll::core::Buffer1D<double> buffer( (unsigned)res.size() );
          for ( unsigned nn = 0; nn < res.size(); ++nn )
             buffer[ nn ] = res[ nn ];
          double val = (*functions[ n ]).evaluate( buffer );
+
+         std::cout << "found=" << val << " min=" << functions[ n ]->getMin() << std::endl;
          TESTER_ASSERT( val < functions[ n ]->getMin() + tol );
 
          std::cout << "#";
@@ -188,17 +190,19 @@ struct TestOptimizer
          typedef nll::core::Buffer1D<double> Point;
 
          nll::algorithm::ParameterOptimizers parameters;
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
-         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 5, 10, 0.5 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 0, 20, 0.25 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 0, 20, 0.25 ) );
+         parameters.push_back( new nll::algorithm::ParameterOptimizerGaussianLinear( -50, 50, 0, 20, 0.25 ) );
          
-         nll::algorithm::OptimizerHarmonySearch optimizer( 5, 0.8, 0.5, 0.1, new nll::algorithm::StopConditionIteration( 18000 ) );
+         nll::algorithm::OptimizerHarmonySearch optimizer( 5, 0.8, 0.5, 0.1, new nll::algorithm::StopConditionIteration( 30000 ) );
          std::vector<double> res = optimizer.optimize( *functions[ n ], parameters );
 
          nll::core::Buffer1D<double> buffer( (unsigned)res.size() );
          for ( unsigned nn = 0; nn < res.size(); ++nn )
             buffer[ nn ] = res[ nn ];
          double val = (*functions[ n ]).evaluate( buffer );
+
+         std::cout << "found=" << val << " min=" << functions[ n ]->getMin() << std::endl;
          TESTER_ASSERT( val < functions[ n ]->getMin() + tol );
 
          std::cout << "#";

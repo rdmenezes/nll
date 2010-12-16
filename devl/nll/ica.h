@@ -122,7 +122,7 @@ namespace algorithm
     - normalization (0 mean, 1 variance)
     - run FastICA algorthm
     */
-   template <class TraitConstrastFunction = TraitConstrastFunctionG4>
+   template <class TraitConstrastFunction = TraitConstrastFunctionG1>
    class IndependentComponentAnalysis
    {
    public:

@@ -46,7 +46,7 @@ public:
       Classifier::Result result = classifier.test( dat );
 
       std::cout << "Rbf T=" << result.testingError << " L=" << result.learningError << std::endl;
-      TESTER_ASSERT( result.testingError < 0.24 && result.learningError < 0.10 );
+      TESTER_ASSERT( result.testingError < 0.26 && result.learningError < 0.10 );
    }
 
    void testNllClassifierMlp()

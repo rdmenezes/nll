@@ -51,9 +51,14 @@ namespace tutorial
          nll::algorithm::FeatureTransformationIca<Input> preprocesser;
          preprocesser.compute( dat, 4 );
          Classifier::Database preprocessedDat = preprocesser.transform( dat );
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 10 ), preprocessedDat );
-         std::cout << "error=" << error << std::endl;
-         TESTER_ASSERT( fabs( error ) <= 0.021 );
+
+         nll::algorithm::FeatureTransformationNormalization<Input> normalizer;
+         normalizer.compute( preprocessedDat );
+         Classifier::Database preprocessedDatNorm = normalizer.transform( preprocessedDat );
+
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 10 ), preprocessedDatNorm );
+         std::cout << "ICA error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.027 );
       }
 
       void testSvmPca()
@@ -136,12 +141,12 @@ namespace tutorial
          typedef nll::algorithm::ClassifierNaiveBayes<Input> ClassifierImpl;
          ClassifierImpl c;
 
-         nll::algorithm::FeatureTransformationPca<Input> preprocesser;
-         preprocesser.compute( dat, 4 );
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocesser;
+         preprocesser.compute( dat );
          Classifier::Database preprocessedDat = preprocesser.transform( dat );
          double error = c.evaluate( nll::core::Buffer1D<double>(), preprocessedDat );
          std::cout << "error=" << error << std::endl;
-         TESTER_ASSERT( fabs( error ) <= 0.07 );
+         TESTER_ASSERT( fabs( error ) <= 0.061 );
       }
    };
 
