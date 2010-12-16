@@ -14,6 +14,11 @@ public:
       return sin( val + 1.5 );
    }
 
+   static double sourceSinus2( double val )
+   {
+      return sin( val + 1.5 ) + 1;
+   }
+
    static double sourceLogistic( double )
    {
       return core::generateLogisticDistribution( 0, 1 );
@@ -56,37 +61,22 @@ public:
 
    void testBasic()
    {
-      srand( time( 0 ) );
-
-      _testBasic( sourceSinus, sourceJagged, 0.49 );
-/*
-      srand( time( 0 ) );
-      for ( double n = 0.3; n < 0.49; n+= 0.02 )
+      srand( 0 );
+      for ( double n = 0.11; n < 0.9; n+= 0.02 )
       {
-         //_testBasic( sourceSinus, sourceJagged4, n );
          _testBasic( sourceSinus, sourceJagged, n );
-         //_testBasic( sourceSinus, sourceGaussian, n + 0.25 );
+         _testBasic( sourceSinus, sourceGaussian, n );
+         _testBasic( sourceSinus, sourceJagged4, n );
+         _testBasic( sourceSinus2, sourceJagged, n );
+         _testBasic( sourceLogistic, sourceSinus, n );
       }
-
-      
-      _testBasic( sourceSinus, sourceJagged3, 0.3 );
-      _testBasic( sourceSinus, sourceJagged, 0.3 );
-
-      _testBasic( sourceSinus, sourceJagged3, 0.4 );
-      _testBasic( sourceSinus, sourceJagged, 0.4 );
-
-      _testBasic( sourceSinus, sourceJagged3, 0.6 );
-      _testBasic( sourceSinus, sourceJagged, 0.6 );
-
-      _testBasic( sourceSinus, sourceJagged3, 0.7 );
-      _testBasic( sourceSinus, sourceJagged, 0.7 );
-      */
    }
 
    /**
     @brief Assume point is a set of random variable at t=0...size,
            computes E(f(x))E(f(y)) - E(f(x)(f(y)) (1)
     @note if 2 random variable are independent, they must satisfy (1) == 0 for any function f
+    @return 0 if the 2 variables are totally inde
     */
    template <class Points, class Function>
    double checkIndependence( const Points& points, ui32 v1, ui32 v2, const Function& f )
@@ -122,7 +112,7 @@ public:
          mixingSource( 1, 0 ) = 1 - val;
          mixingSource( 1, 1 ) = val;
 
-         const ui32 nbPoints = 10000;
+         const ui32 nbPoints = 301;
          Points origSignals( nbPoints );
          Points mixedSignals( nbPoints );
 
@@ -162,26 +152,8 @@ public:
             std::cout << std::endl;
          }
 
-         //core::inverse( mixingSource );   // find the unmixing matrix
-
          Matrix unmixingSource;
          unmixingSource.clone( mixingSource );
-         //unmixingSource( 1, 0 ) = -unmixingSource( 1, 0 );
-         //unmixingSource.print( std::cout );
-
-         /*
-         mixingSource /= sqrt( core::sqr( mixingSource( 0, 0 ) ) +
-                               core::sqr( mixingSource( 0, 1 ) ) );
-
-
-         // we have rotated the data with PCA, so we also must rotate the weight matrix
-         Matrix mixingSourceR = pci.getPcaTransform().getProjection() * mixingSource;
-         core::transpose( mixingSourceR );
-
-         mixingSource.print( std::cout );
-         //std::cout << "---" << std::endl;
-         mixingSourceR.print( std::cout );
-         */
 
          Points unmixedSignals( nbPoints );
          Points transformed;
@@ -196,48 +168,41 @@ public:
          std::cout << "indenpendece after=" << checkIndependence( transformed, 0, 1, pci.getConstrastFunction() ) << std::endl;
 
          core::Image<ui8> im1 = displaySignal( origSignals, 0, 300, 3 );
-         core::writeBmp( im1, "c:/temp2/original0.bmp" );
+         core::writeBmp( im1, NLL_TEST_PATH "data/original0.bmp" );
          core::Image<ui8> im2 = displaySignal( origSignals, 1, 300, 3 );
-         core::writeBmp( im2, "c:/temp2/original1.bmp" );
+         core::writeBmp( im2, NLL_TEST_PATH "data/original1.bmp" );
 
          core::Image<ui8> im1m = displaySignal( mixedSignals, 0, 300, 3 );
-         core::writeBmp( im1m, "c:/temp2/mixedSignals0.bmp" );
+         core::writeBmp( im1m, NLL_TEST_PATH "data/mixedSignals0.bmp" );
          core::Image<ui8> im2m = displaySignal( mixedSignals, 1, 300, 3 );
-         core::writeBmp( im2m, "c:/temp2/mixedSignals1.bmp" );
+         core::writeBmp( im2m, NLL_TEST_PATH "data/mixedSignals1.bmp" );
 
          core::Image<ui8> im1t = displaySignal( transformed, 0, 300, 3 );
-         core::writeBmp( im1t, "c:/temp2/transformed0.bmp" );
+         core::writeBmp( im1t, NLL_TEST_PATH "data/transformed0.bmp" );
          core::Image<ui8> im2t = displaySignal( transformed, 1, 300, 3 );
-         core::writeBmp( im2t, "c:/temp2/transformed1.bmp" );
+         core::writeBmp( im2t, NLL_TEST_PATH "data/transformed1.bmp" );
 
          core::Image<ui8> im1tt = displaySignal( unmixedSignals, 0, 300, 3 );
-         core::writeBmp( im1tt, "c:/temp2/test0.bmp" );
+         core::writeBmp( im1tt, NLL_TEST_PATH "data/test0.bmp" );
          core::Image<ui8> im2tt = displaySignal( unmixedSignals, 1, 300, 3 );
-         core::writeBmp( im2tt, "c:/temp2/test1.bmp" );
+         core::writeBmp( im2tt, NLL_TEST_PATH "data/test1.bmp" );
 
-         core::exportVectorToMatlabAsRow( mixedSignals, "c:/temp2/mixedSignals0.txt" );
-         core::exportVectorToMatlabAsRow( origSignals, "c:/temp2/origSignals0.txt" );
+         core::exportVectorToMatlabAsRow( mixedSignals, NLL_TEST_PATH "data/mixedSignals0.txt" );
+         core::exportVectorToMatlabAsRow( origSignals,  NLL_TEST_PATH "data/origSignals0.txt" );
 
-         Points matlabRecon = core::readVectorFromMatlabAsColumn<Points>( "c:/temp2/res.txt" );
-
+         /*
+         Points matlabRecon = core::readVectorFromMatlabAsColumn<Points>( NLL_TEST_PATH "data/res.txt" );
          core::Image<ui8> im1tm = displaySignal( matlabRecon, 0, 300, 3 );
          core::writeBmp( im1tm, "c:/temp2/matlabRecon0.bmp" );
          core::Image<ui8> im2tm = displaySignal( matlabRecon, 1, 300, 3 );
          core::writeBmp( im2tm, "c:/temp2/matlabRecon1.bmp" );
+         */
 
-
-         /*
-         // compare the result: we must not take into account the sign or position. We test only the first component
-         // as the second one is orthogonal (no degree of freedom so it is entirely determined by the first component
-         // and this is why we need to use a symetric mixing matrix)
-         const double min0 = fabs( fabs( mixingSourceR( 0, 0 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 0 ] ) ) +
-                             fabs( fabs( mixingSourceR( 0, 1 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 1 ] ) );
-         const double min1 = fabs( fabs( mixingSourceR( 0, 0 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 1 ] ) ) +
-                             fabs( fabs( mixingSourceR( 0, 1 ) ) - fabs( pci.getUnmixingMatrix()[ 0 ][ 0 ] ) );
-         
-
-         TESTER_ASSERT( fabs( min0 ) < 0.1 || fabs( min1 ) < 0.1 );*/
-         Point p = pci.transform( mixedSignals[ 0 ] );
+         // ensure the signals are indenpendent!
+         const double indendenceBefore = checkIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() );
+         const double indendenceAfter = checkIndependence( transformed, 0, 1, pci.getConstrastFunction() );
+         TESTER_ASSERT( fabs( indendenceBefore ) >= fabs( indendenceAfter ) );
+         TESTER_ASSERT( fabs( indendenceAfter ) < 1e-5 );
       }
    }
 
@@ -258,56 +223,6 @@ public:
       }
 
       return i1;
-   }
-
-/*
-   void testImage()
-   {
-      
-      typedef std::vector<double>   Point;
-      typedef std::vector<Point>    Points;
-      typedef core::Matrix<double>  Matrix;
-
-      const std::string pim1 = NLL_TEST_PATH "data/ica/i1.bmp";
-      const std::string pim2 = NLL_TEST_PATH "data/ica/i2.bmp";
-      const std::string pim3 = NLL_TEST_PATH "data/ica/i3.bmp";
-
-      core::Image<ui8> i1;
-      core::readBmp( i1, pim1 );
-
-      core::Image<ui8> i2;
-      core::readBmp( i2, pim2 );
-
-      core::Image<ui8> i3;
-      core::readBmp( i3, pim3 );
-
-      Points points;
-      assert( i1.size() == i2.size() && i1.size() == i3.size() );
-      for ( ui32 n = 0; n < i1.size(); n+= 3 )
-      {
-         points.push_back( core::make_vector<double>( i1[ n ], i2[ n ], i3[ n ] ) );
-      }
-
-      algorithm::IndependentComponentAnalysis<> pci;
-
-   }*/
-
-   void testImage()
-   {
-      srand(time(0));
-      typedef std::vector<double>   Point;
-      typedef std::vector<Point>    Points;
-      typedef core::Matrix<double>  Matrix;
-
-      Points points;
-      points.push_back( core::make_vector<double>( 1, 2 ) );
-      points.push_back( core::make_vector<double>( 3, 8 ) );
-      points.push_back( core::make_vector<double>( -1, 1 ) );
-      points.push_back( core::make_vector<double>( 4, 6 ) );
-
-      algorithm::IndependentComponentAnalysis<> pci;
-      pci.compute( points, 2 );
-
    }
 
    // generate random square matrices, check A = u * w * v^t
@@ -347,7 +262,6 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIndependentComponentAnalysis);
 TESTER_TEST(testBasic);
-//TESTER_TEST(testImage);
 TESTER_TEST(testRandomSVD);
 TESTER_TEST_SUITE_END();
 #endif

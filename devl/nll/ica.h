@@ -95,12 +95,12 @@ namespace algorithm
       inline double evaluate( double val ) const
       {
          const double v = val * val * val;
-         return v / 3;
+         return v;
       }
 
       inline double evaluateDerivative( double val ) const
       {
-         return val * val;
+         return 3 * val * val;
       }
    };
 
@@ -205,7 +205,8 @@ namespace algorithm
                for ( ui32 nn = 0; nn < nbDim; ++nn )
                {
                   const double val = unmixing[ source ][ nn ] - step * ( meanA[ nn ] - beta * unmixing[ source ][ nn ] ) / ( meanB - beta );
-                     //meanB * unmixing[ source ][ nn ];
+                  //const double val = meanA[ nn ] - meanB * unmixing[ source ][ nn ];
+
                   norm += val * val;
                   unmixing[ source ][ nn ] = val;
                }
@@ -222,12 +223,6 @@ namespace algorithm
                {
                   _reorthogonalize( unmixing );
                }
-
-               /*
-               for ( ui32 i = 0; i < unmixing[ source ].size(); ++i )
-                  std::cout << unmixing[ source ][ i ] << " ";
-               std::cout << std::endl;
-               */
 
                const double diff = core::norm2( oldMixing, unmixing[ source ] );
 
@@ -249,6 +244,7 @@ namespace algorithm
          {
             Vector w = unmixing[ source ];
             w = Matrix( w, 1, w.size() ) * _pca.getProjection();
+
             unmixingR.push_back( w );
          }
 
@@ -256,6 +252,17 @@ namespace algorithm
          {
             std::stringstream sss;
             sss << " umixing source tfm=" << source << " cycle=";
+            for ( ui32 dim = 0; dim < nbDim; ++dim )
+            {
+               sss << unmixing[ source ][ dim ] << " ";
+            }
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
+         }
+
+         for ( ui32 source = 0; source < nbSource; ++source )
+         {
+            std::stringstream sss;
+            sss << " umixing source tfm rot=" << source << " cycle=";
             for ( ui32 dim = 0; dim < nbDim; ++dim )
             {
                sss << unmixingR[ source ][ dim ] << " ";
@@ -341,8 +348,8 @@ namespace algorithm
          Matrix transform( pca.getEigenValues().size(), mean.size() );
          for ( ui32 y = 0; y < transform.sizex(); ++y )
          {
-            ensure( fabs( pca.getEigenValues()[ y ] ) > 1e-12, "an eigen value is null! reduce the dimension" ); // TODO reduce the dimension automatically instead
-            const double scaling = 1 / sqrt( pca.getEigenValues()[ y ] );
+            ensure( fabs( pca.getEigenValues()[ pca.getPairs()[ y ].second ] ) >= 1e-12, "an eigen value is null! reduce the dimension" ); // TODO reduce the dimension automatically instead
+            const double scaling = 1 / sqrt( pca.getEigenValues()[ pca.getPairs()[ y ].second ] );
             for ( ui32 x = 0; x < transform.sizex(); ++x )
             {
                // we redimension the projection
@@ -358,7 +365,10 @@ namespace algorithm
             out[ n ] = pcaTemp.process( points[ n ] );
          }
 
-         _pca.getProjection().print( std::cout );
+         std::stringstream ss;
+         ss << "whitening matrix=" << std::endl;
+         _pca.getProjection().print( ss );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }
 
       Vector _generateRandomVector( ui32 nbDim) const
