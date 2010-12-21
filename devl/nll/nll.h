@@ -119,6 +119,7 @@
 # include "math-distribution-gaussian.h"
 # include "math-distribution-uniform.h"
 # include "math-distribution-logistic.h"
+# include "math-statistical-independence.h"
 # include "math-correlation.h"
 # include "math-sampling.h"
 # include "math-kurtosis.h"

@@ -72,27 +72,6 @@ public:
       }
    }
 
-   /**
-    @brief Assume point is a set of random variable at t=0...size,
-           computes E(f(x))E(f(y)) - E(f(x)(f(y)) (1)
-    @note if 2 random variable are independent, they must satisfy (1) == 0 for any function f
-    @return 0 if the 2 variables are totally inde
-    */
-   template <class Points, class Function>
-   double checkIndependence( const Points& points, ui32 v1, ui32 v2, const Function& f )
-   {
-      double xa = 0;
-      double xb = 0;
-      double xc = 0;
-      for ( ui32 n = 0; n < points.size(); ++n )
-      {
-         xa += points[ n ][ v1 ];
-         xb += points[ n ][ v2 ];
-         xc += points[ n ][ v1 ] * points[ n ][ v2 ];
-      }
-      return xa / points.size() * xb / points.size() - xc / points.size();
-   }
-
    // create 2 source one is a sinus function, the other one is a jagged function X
    // mix the signal with W
    // ICA find W^-1, with component order or sign not relevant
@@ -163,9 +142,12 @@ public:
             unmixedSignals[ n ] = core::make_vector<double>( unmixingSource( 0, 0 ) * mixedSignals[ n ][ 0 ] + unmixingSource( 0, 1 ) * mixedSignals[ n ][ 1 ],
                                                              unmixingSource( 1, 0 ) * mixedSignals[ n ][ 0 ] + unmixingSource( 1, 1 ) * mixedSignals[ n ][ 1 ] );
          }
-
-         std::cout << "indenpendece before=" << checkIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() ) << std::endl;
-         std::cout << "indenpendece after=" << checkIndependence( transformed, 0, 1, pci.getConstrastFunction() ) << std::endl;
+/*
+         std::cout << "indenpendece before=" << core::checkStatisticalIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() ) << std::endl;
+         std::cout << "indenpendece after=" << core::checkStatisticalIndependence( transformed, 0, 1, pci.getConstrastFunction() ) << std::endl;
+*/
+         std::cout << "indenpendece before=" << core::checkStatisticalIndependence( mixedSignals, 0, 1 ) << std::endl;
+         std::cout << "indenpendece after=" << core::checkStatisticalIndependence( transformed, 0, 1 ) << std::endl;
 
          core::Image<ui8> im1 = displaySignal( origSignals, 0, 300, 3 );
          core::writeBmp( im1, NLL_TEST_PATH "data/original0.bmp" );
@@ -199,8 +181,8 @@ public:
          */
 
          // ensure the signals are indenpendent!
-         const double indendenceBefore = checkIndependence( mixedSignals, 0, 1, pci.getConstrastFunction() );
-         const double indendenceAfter = checkIndependence( transformed, 0, 1, pci.getConstrastFunction() );
+         const double indendenceBefore = core::checkStatisticalIndependence( mixedSignals, 0, 1 );
+         const double indendenceAfter = core::checkStatisticalIndependence( transformed, 0, 1 );
          TESTER_ASSERT( fabs( indendenceBefore ) >= fabs( indendenceAfter ) );
          TESTER_ASSERT( fabs( indendenceAfter ) < 1e-5 );
       }
@@ -248,7 +230,7 @@ public:
          core::svdcmp( aa, w, v );
 
          Matrix eiv( size, size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( ui32 n = 0; n < (ui32)size; ++n )
             eiv( n, n ) = w[ n ];
 
          core::transpose( v );
@@ -257,11 +239,88 @@ public:
             TESTER_ASSERT( fabs( aorig[ n ] - a[ n ] ) < 1e-8 );
       }
    }
+
+   void testImage()
+   {
+      srand( 0 );
+      const std::string path = NLL_TEST_PATH "data/ica/";
+
+      typedef core::Image<ui8>Image;
+      std::vector<Image> images;
+
+      // read the images
+      for ( ui32 n = 1; n <= 9; ++n )
+      {
+         images.push_back( path + "i" + core::val2str( n ) + ".bmp" );
+      }
+
+      algorithm::IndependentComponentAnalysis<> pci;
+
+      typedef std::vector<double>   Point;
+      typedef std::vector<Point>    Points;
+      typedef core::Matrix<double>  Matrix;
+
+      // create the source data
+      const ui32 nbPoints = images[ 0 ].size();
+      Points points( nbPoints );
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         Point point( 9 );
+         for ( ui32 nn = 0; nn < 9; ++nn )
+            point[ nn ] = images[ nn ][ n ];
+         points[ n ] = point;
+      }
+
+      // create mixing matrix
+      Matrix mixing( 9, 9 );
+      for ( ui32 n = 0; n < 9; ++n )
+      {
+         for ( ui32 nn = 0; nn < 9; ++nn )
+            mixing( n, nn ) = 1.0/9.0;
+         for ( ui32 nn = 0; nn < 200; ++nn )
+         {
+            ui32 i1 = rand() % 9;
+            ui32 i2 = i1;
+            while ( i1 == i2 )
+               i2 = rand() % 9;
+            double diff = core::generateUniformDistribution( 0.02, 0.08 );
+            if ( mixing( n, i1 ) > diff + 0.05 )
+            {
+               mixing( n, i1 ) -= diff;
+               mixing( n, i2 ) += diff;
+            }
+         }
+      }
+
+      std::cout << "mixing matrix=";
+      mixing.print( std::cout );
+
+      // mix the data
+      Points pointsMixed( nbPoints );
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         Point p( 9 );
+         for ( ui32 nn = 0; nn < 9; ++nn )
+         {
+            double sum = 0;
+            for ( ui32 nnn = 0; nnn < 9; ++nnn )
+            {
+               sum += mixing( nn, nnn ) * images[ nnn ][ n ];
+            }
+            p[ nn ] = sum;
+         }
+         pointsMixed[ n ] = p;
+      }
+
+      // run ICA
+      pci.compute( pointsMixed, 9 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIndependentComponentAnalysis);
-TESTER_TEST(testBasic);
-TESTER_TEST(testRandomSVD);
+//TESTER_TEST(testBasic);
+//TESTER_TEST(testRandomSVD);
+TESTER_TEST(testImage);
 TESTER_TEST_SUITE_END();
 #endif

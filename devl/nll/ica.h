@@ -282,8 +282,7 @@ namespace algorithm
          assert( _unmixingSignal.size() /*&& _unmixingSignal[ 0 ].size() == p.size()*/ );
 
          const ui32 nbSources = static_cast<ui32>( _unmixingSignal.size() );
-         const ui32 nbCmp = static_cast<ui32>( _unmixingSignal[ 0 ].size() );
-         Vector input( p.size() );
+         Vector input( static_cast<ui32>( p.size() ) );
          for ( ui32 n = 0; n < p.size(); ++n )
          {
             input[ n ] = p[ n ] - _pca.getMean()[ n ];

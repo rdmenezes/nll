@@ -52,6 +52,18 @@ namespace tutorial
          preprocesser.compute( dat, 4 );
          Classifier::Database preprocessedDat = preprocesser.transform( dat );
 
+         typedef nll::core::DatabaseInputAdapterRead<Classifier::Database> InputAdapter;
+         InputAdapter adapter( preprocessedDat );
+
+         for ( ui32 f1 = 0; f1 < 4; ++f1 )
+         {
+            for ( ui32 f2 = f1 + 1; f2 < 4; ++f2 )
+            {
+               const double independence = nll::core::checkStatisticalIndependence( adapter, 0, 3, nll::algorithm::TraitConstrastFunctionG3() );
+               TESTER_ASSERT( fabs( independence ) < 1e-10 ); // variable must be statistically independent
+            }
+         }
+
          nll::algorithm::FeatureTransformationNormalization<Input> normalizer;
          normalizer.compute( preprocessedDat );
          Classifier::Database preprocessedDatNorm = normalizer.transform( preprocessedDat );
@@ -151,12 +163,14 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestIrisDatabase );
-   TESTER_TEST( testSvm );
    TESTER_TEST( testSvmIca );
+   /*
+   TESTER_TEST( testSvm );
    TESTER_TEST( testSvmPca );
    TESTER_TEST( testRbf );
    TESTER_TEST( testQda );
    TESTER_TEST( testBayes );
+   */
    TESTER_TEST_SUITE_END();
 }
 }

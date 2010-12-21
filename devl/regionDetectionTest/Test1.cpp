@@ -2039,12 +2039,12 @@ TESTER_TEST_SUITE(TestRegion);
 
 // input: cases, haar features, normalization parameters, learning database, output: svm
 //TESTER_TEST(learnSvm);
-TESTER_TEST(learnKnn);
+//TESTER_TEST(learnKnn);
 //TESTER_TEST(learnMlp);
 //TESTER_TEST(learnRbf);
 
 // input: SVM model, validation-cases, validation volumes mf2
-//TESTER_TEST(testValidationDataSvm);
+TESTER_TEST(testValidationDataSvm);
 
 // test the ROI position estimation
 //TESTER_TEST(testPositionEstimation); // input: measures, results, output: the template database

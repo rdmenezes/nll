@@ -578,6 +578,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\math-statistical-independence.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math.cpp"
 				>
 			</File>

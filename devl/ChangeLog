@@ -8,6 +8,7 @@ v0.13
 -added quadratic discriminant classifier/feature transformation
 -added database concatenation
 -added basic vector operations on Buffer1D
+-minor algorithm refactoring/bugfix
 
 v0.12
 -optimization of the nll::imaging package to be suitable for realtime sofware rendering

@@ -10,6 +10,9 @@ namespace algorithm
            solutions in narrow valley problems
 
     Point must define operator[], size(), Point(n)
+    @param p the starting point
+    @param xi the set of directions that can be used
+    @param tol the tolerance
     */
    template <class Point, class Functor>
    double powell( Point& p, std::vector< core::Buffer1D<double> >& xi, double tol, const Functor& f, ui32 itMax = 200, bool* error = 0 )
