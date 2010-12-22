@@ -27,7 +27,7 @@ namespace core
    }
 
    /**
-    @brief Utility to import a matlab Matrix file (exported with dlwrite) as a vector of vectors
+    @brief Utility to import a matlab Matrix file (exported with dlmwrite) as a vector of vectors
     */
    template <class Vectors>
    Vectors readVectorFromMatlabAsColumn( const std::string& file )

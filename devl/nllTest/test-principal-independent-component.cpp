@@ -240,21 +240,31 @@ public:
       }
    }
 
+   // we are mixing 9 images into 9 new images, we want to find the original images
+   // To test, run it and compare the images exported nllTest\data\ica-unmixed-*bmp and ica\*.bmp
+   // are correctly recovered. The position of the image will be different and colors might
+   // be inversed... but this is expected
    void testImage()
    {
-      srand( 0 );
+      const ui32 nbImages = 9;
+      srand( 10 );
       const std::string path = NLL_TEST_PATH "data/ica/";
 
       typedef core::Image<ui8>Image;
       std::vector<Image> images;
 
       // read the images
-      for ( ui32 n = 1; n <= 9; ++n )
+      const ui32 index[ 9 ] =
       {
-         images.push_back( path + "i" + core::val2str( n ) + ".bmp" );
+         1, 2, 3, 4, 5, 6, 7, 8, 9
+      };
+
+      for ( ui32 n = 0; n < nbImages; ++n )
+      {
+         images.push_back( path + "i" + core::val2str( index[ n ] ) + ".bmp" );
       }
 
-      algorithm::IndependentComponentAnalysis<> pci;
+      algorithm::IndependentComponentAnalysis<algorithm::TraitConstrastFunctionG4> pci;
 
       typedef std::vector<double>   Point;
       typedef std::vector<Point>    Points;
@@ -265,26 +275,26 @@ public:
       Points points( nbPoints );
       for ( ui32 n = 0; n < nbPoints; ++n )
       {
-         Point point( 9 );
-         for ( ui32 nn = 0; nn < 9; ++nn )
+         Point point( nbImages );
+         for ( ui32 nn = 0; nn < nbImages; ++nn )
             point[ nn ] = images[ nn ][ n ];
          points[ n ] = point;
       }
 
       // create mixing matrix
-      Matrix mixing( 9, 9 );
-      for ( ui32 n = 0; n < 9; ++n )
+      Matrix mixing( nbImages, nbImages );
+      for ( ui32 n = 0; n < nbImages; ++n )
       {
-         for ( ui32 nn = 0; nn < 9; ++nn )
-            mixing( n, nn ) = 1.0/9.0;
+         for ( ui32 nn = 0; nn < nbImages; ++nn )
+            mixing( n, nn ) = 1.0/nbImages;
          for ( ui32 nn = 0; nn < 200; ++nn )
          {
-            ui32 i1 = rand() % 9;
+            ui32 i1 = rand() % nbImages;
             ui32 i2 = i1;
             while ( i1 == i2 )
-               i2 = rand() % 9;
+               i2 = rand() % nbImages;
             double diff = core::generateUniformDistribution( 0.02, 0.08 );
-            if ( mixing( n, i1 ) > diff + 0.05 )
+            if ( mixing( n, i1 ) > diff + 0.08 )
             {
                mixing( n, i1 ) -= diff;
                mixing( n, i2 ) += diff;
@@ -299,11 +309,11 @@ public:
       Points pointsMixed( nbPoints );
       for ( ui32 n = 0; n < nbPoints; ++n )
       {
-         Point p( 9 );
-         for ( ui32 nn = 0; nn < 9; ++nn )
+         Point p( nbImages );
+         for ( ui32 nn = 0; nn < nbImages; ++nn )
          {
             double sum = 0;
-            for ( ui32 nnn = 0; nnn < 9; ++nnn )
+            for ( ui32 nnn = 0; nnn < nbImages; ++nnn )
             {
                sum += mixing( nn, nnn ) * images[ nnn ][ n ];
             }
@@ -313,14 +323,53 @@ public:
       }
 
       // run ICA
-      pci.compute( pointsMixed, 9 );
+      pci.compute( pointsMixed, nbImages );
+
+      // rebuild images
+      //Points pointsMixed( nbPoints );
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         Point p = pci.transform( pointsMixed[ n ] );
+         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         {
+           // if ( n % 100  == 0 )
+           // {
+           //    std::cout << "p[ nn ]=" << p[ nn ] << std::endl;
+           // }
+            images[ nn ][ n ] = (ui8)NLL_BOUND( ( p[ nn ] * 10 ) + 128, 0, 255 );
+         }
+      }
+
+      for ( ui32 nn = 0; nn < nbImages; ++nn )
+      {
+         core::writeBmp( images[ nn ], NLL_TEST_PATH "data/ica-unmixed-" + core::val2str( nn ) + ".bmp" );
+      }
+
+      /*
+      // MATLAB check
+      core::exportVectorToMatlabAsRow( pointsMixed, "c:/tmp/mixed.txt" );
+      Points pp = core::readVectorFromMatlabAsColumn<Points>( "c:/tmp/w.txt" );
+
+      std::cout << "pp size=" << pp.size() << std::endl;
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         {
+            images[ nn ][ n ] = (ui8)NLL_BOUND( ( pp[n][ nn ] * 10 ) + 128, 0, 255 );
+         }
+      }
+
+      for ( ui32 nn = 0; nn < nbImages; ++nn )
+      {
+         core::writeBmp( images[ nn ], "c:/tmp/matlab-img" + core::val2str( nn ) + ".bmp" );
+      }*/
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIndependentComponentAnalysis);
-//TESTER_TEST(testBasic);
-//TESTER_TEST(testRandomSVD);
+TESTER_TEST(testBasic);
+TESTER_TEST(testRandomSVD);
 TESTER_TEST(testImage);
 TESTER_TEST_SUITE_END();
 #endif
