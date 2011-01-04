@@ -58,7 +58,53 @@ namespace algorithm
       }
    };
 
+   class TraitConstrastFunctionG5
+   {
+   public:
+      /**
+       @param a1 it must be 1 <= a1 <= 2
+       */
+      TraitConstrastFunctionG5( double a1 = 1.0 ) : _a1( a1 )
+      {}
+
+      inline double evaluate( double val ) const
+      {
+         return tanh( _a1 * val );
+      }
+
+      inline double evaluateDerivative( double val ) const
+      {
+         const double v = tanh( _a1 * val );
+         return _a1 * ( 1 - v * v );
+      }
+
+   private:
+      double _a1;
+   };
+
+   class TraitConstrastFunctionG6
+   {
+   public:
+      /**
+       @param a2 must be close to 1
+       */
+      TraitConstrastFunctionG6()
+      {}
+
+      inline double evaluate( double val ) const
+      {
+         return val * exp( - val * val / 2 );
+      }
+
+      inline double evaluateDerivative( double val ) const
+      {
+         const double v = val * val;
+         return ( 1 - v ) * exp( - v / 2 );
+      }
+   };
+
    /**
+    @ingroup algorithm
     @brief kurtosis, is justified on statistical grounds only for estimating sub-Gaussian independent
            components when there are no outliers
     */
@@ -83,6 +129,9 @@ namespace algorithm
       }
    };
 
+   /**
+    @ingroup algorithm
+    */
    class TraitConstrastFunctionG4
    {
    public:
@@ -106,23 +155,32 @@ namespace algorithm
 
 
    /**
+    @ingroup algorithm
     @brief Independent Component Analysis, implementaing the FastICA algorithm
 
-    Independent component analysis (ICA) is a statisticalmethod for transforming an observed multidimensional
+    Independent component analysis (ICA) is a statistical method for transforming an observed multidimensional
     random vector into components that are statistically as independent from each other as possible. For example,
-    there are several emitters and recepters, the recepters receive a mixed signal of recepters
+    there are several emitters and recepters, the recepters receive a mixed signal of sources
     and ICA is trying to unmix this mixed signal.
     
-    It is assumed that the emitters are not following a gaussian distribution (at maximum one can)
+    It is assumed that the emitters are not following a gaussian distribution (or at maximum one can)
 
     it is implementing this paper: http://www.cs.helsinki.fi/u/ahyvarin/papers/TNN99new.pdf
+	Implementing the stabilized version of the FastICA algorithm, optimizing the nongaussianity criterion.
+	
+	Nongaussianity is here measured by the approximation of negentropy
+	
+	Each unmixing component is computed one by one by reorthogonalizing the bases with the previously computed
+	unmixing components with gram schmidt
 
     The learning process is:
     - PCA transform of the input data
     - normalization (0 mean, 1 variance)
     - run FastICA algorthm
+
+    @note G4-G6 seem to work better
     */
-   template <class TraitConstrastFunction = TraitConstrastFunctionG4>
+   template <class TraitConstrastFunction = TraitConstrastFunctionG5>
    class IndependentComponentAnalysis
    {
    public:

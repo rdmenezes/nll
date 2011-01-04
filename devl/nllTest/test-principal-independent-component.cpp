@@ -264,7 +264,7 @@ public:
          images.push_back( path + "i" + core::val2str( index[ n ] ) + ".bmp" );
       }
 
-      algorithm::IndependentComponentAnalysis<algorithm::TraitConstrastFunctionG4> pci;
+      algorithm::IndependentComponentAnalysis<algorithm::TraitConstrastFunctionG6> pci;
 
       typedef std::vector<double>   Point;
       typedef std::vector<Point>    Points;
@@ -323,7 +323,7 @@ public:
       }
 
       // run ICA
-      pci.compute( pointsMixed, nbImages );
+      pci.compute( pointsMixed, nbImages, 0.05 );
 
       // rebuild images
       //Points pointsMixed( nbPoints );
