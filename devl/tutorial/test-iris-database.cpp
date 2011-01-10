@@ -59,7 +59,7 @@ namespace tutorial
          {
             for ( ui32 f2 = f1 + 1; f2 < 4; ++f2 )
             {
-               const double independence = nll::core::checkStatisticalIndependence( adapter, 0, 3, nll::algorithm::TraitConstrastFunctionG3() );
+               const double independence = nll::core::checkStatisticalIndependence( adapter, 0, 3 );
                TESTER_ASSERT( fabs( independence ) < 1e-10 ); // variable must be statistically independent
             }
          }

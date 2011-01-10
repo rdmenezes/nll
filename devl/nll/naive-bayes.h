@@ -80,7 +80,7 @@ namespace algorithm
             // compute the mean
             for ( ui32 n = 0; n < adapter.size(); ++n )
             {
-               Adapter::Point& s = adapter[ n ];
+               typename Adapter::Point& s = adapter[ n ];
                for ( ui32 f = 0; f < nbFeatures; ++f )
                {
                   mean[ f ] += s[ f ];
@@ -95,7 +95,7 @@ namespace algorithm
             // compute the variance
             for ( ui32 n = 0; n < adapter.size(); ++n )
             {
-               Adapter::Point& s = adapter[ n ];
+               typename Adapter::Point& s = adapter[ n ];
                for ( ui32 f = 0; f < nbFeatures; ++f )
                {
                   double val = s[ f ] - mean[ f ];

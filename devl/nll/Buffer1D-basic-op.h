@@ -17,13 +17,13 @@ namespace core
    Buffer1D<T, Mapper, Allocator> operator+( const Buffer1D<T, Mapper, Allocator>& src1, const Buffer1D<T, Mapper, Allocator>& src2 )
    {
       assert( src1.size() == src2.size() );
-      Buffer1D<T, Mapper, Allocator> res( src.size(), false, src1.getAllocator() );
+      Buffer1D<T, Mapper, Allocator> res( src1.size(), false, src1.getAllocator() );
 
       T* bufDst = res.getBuf();
       const T* bufSrc1 = src1.getBuf();
       const T* bufSrc2 = src2.getBuf();
 
-      for ( ui32 n = 0; n < src.size(); ++n )
+      for ( ui32 n = 0; n < src1.size(); ++n )
       {
          bufDst[ n ] = bufSrc1[ n ] + bufSrc2[ n ];
       }
@@ -78,13 +78,13 @@ namespace core
    Buffer1D<T, Mapper, Allocator> operator-( const Buffer1D<T, Mapper, Allocator>& src1, const Buffer1D<T, Mapper, Allocator>& src2 )
    {
       assert( src1.size() == src2.size() );
-      Buffer1D<T, Mapper, Allocator> res( src.size(), false, src1.getAllocator() );
+      Buffer1D<T, Mapper, Allocator> res( src1.size(), false, src1.getAllocator() );
 
       T* bufDst = res.getBuf();
       const T* bufSrc1 = src1.getBuf();
       const T* bufSrc2 = src2.getBuf();
 
-      for ( ui32 n = 0; n < src.size(); ++n )
+      for ( ui32 n = 0; n < src1.size(); ++n )
       {
          bufDst[ n ] = bufSrc1[ n ] - bufSrc2[ n ];
       }

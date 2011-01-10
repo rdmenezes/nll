@@ -9,11 +9,14 @@ OBJ=nllTest.o\
 test-allocator.o\
 test-bracketing.o\
 test-classifier-adaboost.o\
+test-classifier-discriminant.o\
 test-classifier-gmm.o\
 test-classifier-mlp.o\
+test-classifier-naive-bayes.o\
 test-classifier-nearest-neighbor.o\
 test-classifier-spect.o\
 test-classifier-svm.o\
+test-discriminant.o\
 test-feature-selection.o\
 test-genetic-algorithm.o\
 test-geometry.o\
@@ -21,6 +24,7 @@ test-haar-features.o\
 test-hmm.o\
 test-kdTree.o\
 test-kernel-pca.o\
+test-kurtosis.o\
 test-lut.o\
 test-markov-chain.o\
 test-math-floor.o\
@@ -28,10 +32,13 @@ test-matrix-cholesky.o\
 test-maximum-intensity-projection.o\
 test-mlp.o\
 test-morphology.o\
+test-naive-bayes.o\
 test-optimizer-parameters.o\
 test-optimizer.o\
 test-pca.o\
+test-principal-independent-component.o\
 test-quaternion.o\
+test-rbf-network.o\
 test-region-growing.o\
 test-regression.o\
 test-relieff.o\

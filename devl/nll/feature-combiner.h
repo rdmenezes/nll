@@ -26,7 +26,7 @@ namespace algorithm
          for ( ui32 n = 0; n < input1.size(); ++n )
          {
             assert( input1[ n ].output == input2[ n ].output ); // "samples must match!!"
-            Database::Sample s = input1[ n ];
+            typename Database::Sample s = input1[ n ];
             s.input = process( input1[ n ].input, input2[ n ].input );
 
             out.add( s );

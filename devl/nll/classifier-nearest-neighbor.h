@@ -107,7 +107,7 @@ namespace algorithm
          return test( p, probability );
       }
 
-      virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
+      virtual typename Base::Class test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          assert( _dat.size() );
          if ( !_dat.size() )

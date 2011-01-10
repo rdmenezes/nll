@@ -11,6 +11,7 @@ namespace core
            computes E(f(x))E(f(y)) - E(f(x)(f(y)) (1)
     @note if 2 random variable are independent, they must satisfy (1) == 0 for any function f
     @return if the 2 features are statistically independent returns 0 for any function f
+    @TODO this is not good at all! it is just testing with func id, but should be with much more funcs...
     */
    template <class Points>
    double checkStatisticalIndependence( const Points& points, ui32 v1, ui32 v2 )
