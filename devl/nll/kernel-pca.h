@@ -25,13 +25,8 @@ namespace algorithm
       typedef core::Buffer1D<double>   Vector;
 
    public:
-      KernelPca() : _kernel( 0 )
+      KernelPca()
       {
-      }
-
-      ~KernelPca()
-      {
-         delete _kernel;
       }
 
       /**
@@ -56,15 +51,18 @@ namespace algorithm
       template <class Points>
       bool compute( const Points& points, ui32 nbFeatures, const Kernel& kernel )
       {
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel PCA, learning started" );
          ensure( points.size(), "no point to compute" );
          ensure( nbFeatures <= points.size() && nbFeatures > 0, "error in the number of features to be selected" );
 
-         _kernel = kernel.clone();
+         _kernel = std::auto_ptr<Kernel>( kernel.clone() );
          Matrix centeredKernel = _computeKernelMatrix( points, kernel );
          bool diagonalization = _diagonalize( centeredKernel, _eig, _x, nbFeatures, points );
          if ( !diagonalization )
+         {
+            core::LoggerNll::write( core::LoggerNll::ERROR, " kernel PCA failed: cannot diagonalize the covariance matrix" );
             return false;
-
+         }
          return true;
       }
 
@@ -77,16 +75,18 @@ namespace algorithm
          const ui32 nbEigenVectors = _eig.sizex();
          ensure( nbEigenVectors && _eig.sizey(), "compute first the model parameters" );
          ensure( p.size() == _x.sizey(), "point size error" );
-         ensure( _kernel, "something wrong happened..." );
+         ensure( _kernel.get(), "something wrong happened..." );
 
-
+         // convert to a point
+         Point t( p.size() );
+         for ( ui32 nn = 0; nn < p.size(); ++nn )
+            t[ nn ] = p[ nn ];
+      
          Vector kernel( nbEigenVectors );
          Vector centeredKernel( nbEigenVectors );
          Vector projected( nbEigenVectors );
          Point x( p.size() );
-         Point t( p.size() );
-         for ( ui32 nn = 0; nn < p.size(); ++nn )
-            t[ nn ] = p[ nn ];
+         
 
          // precompute the projection
          double sumA = 0;
@@ -117,6 +117,7 @@ namespace algorithm
             }
             projected[ k ] = sum;
          }
+
          return projected;
       }
 
@@ -132,15 +133,16 @@ namespace algorithm
 
       bool read( std::istream& i )
       {
-         if ( _kernel )
-            delete _kernel;
          _eig.read( i );
          _x.read( i);
-         _kernel = new Kernel( i );
+         _kernel = std::auto_ptr<Kernel>( new Kernel( i ) );
          core::read<Vector>( _sumA, i );
          core::read<double>( _sumC, i );
          return true;
       }
+   private:
+      KernelPca& operator=( const KernelPca& );
+      KernelPca( const KernelPca& );
 
    private:
       /**
@@ -158,6 +160,11 @@ namespace algorithm
                kernelBase( i, j ) = kernel( points[ i ], points[ j ] );
                kernelBase( j, i ) = kernelBase( i, j );
             }
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel=" );
+         std::stringstream ss;
+         kernelBase.print( ss );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+
 
          // precompute the sums
          _sumA = Vector( static_cast<ui32>( points.size() ) );
@@ -179,10 +186,16 @@ namespace algorithm
          for ( ui32 i = 0; i < points.size(); ++i )
             for ( ui32 j = i; j < points.size(); ++j )
             {               
-               mkernel( i, j ) = kernelBase( i, j ) - m1 * _sumA[ j ] - m1 * sumB[ i ] + m1 * m1 * _sumC;
+               mkernel( i, j ) = ( kernelBase( i, j ) - m1 * _sumA[ j ] - m1 * sumB[ i ] + m1 * m1 * _sumC ) / points.size();
                mkernel( j, i ) = mkernel( i, j );
             }
          kernelBase.unref();
+
+         std::stringstream ss2;
+         mkernel.print( ss2 );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "centred kernel=" );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss2.str() );
+
          return mkernel;
       }
 
@@ -207,6 +220,13 @@ namespace algorithm
          Vector eigenValues;
          bool res = core::svdcmp( centeredKernel, eigenValues, eigenVectors );
 
+         {
+            std::stringstream ss;
+            eigenValues.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel eigen values=" );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          // check if error
          if ( !res )
             return false;
@@ -221,10 +241,12 @@ namespace algorithm
 
          // compute the number of eigen values according to the number of features & feature space dim
          for ( ui32 n = 0; n < nbFeatures; ++n )
-            if ( pairs[ n ].first <= 1e-3 )
+            //if ( pairs[ n ].first <= 1e-5 )
+            if ( pairs[ n ].first >= 1e-3 )
             {
-               nbFeatures = n;
-               break;
+               // do nothing, the feature is selected
+            } else {
+               --nbFeatures;
             }
          if ( nbFeatures == 0 )
             return false;
@@ -246,13 +268,20 @@ namespace algorithm
             reorderedSumA[ n ] = _sumA[ index ];
          }
          _sumA = reorderedSumA;
+
+         {
+            std::stringstream ss;
+            outEigenVectors.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "selected kernel eigen vectors=" + core::val2str( nbFeatures )  );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
          return true;
       }
 
    private:
-      Matrix   _eig;             /// eigen vectors, stored column (1 col = 1 eigen vector)
-      Matrix   _x;               /// the vectors associated with the principal component, 1 col = 1 vector
-      Kernel*  _kernel;          /// the kernel function  used by the algorithm
+      Matrix   _eig;                   /// eigen vectors, stored column (1 col = 1 eigen vector)
+      Matrix   _x;                     /// the vectors associated with the principal component, 1 col = 1 vector
+      std::auto_ptr<Kernel>  _kernel;  /// the kernel function  used by the algorithm
 
       // variables needed to precompute the feature extraction
       Vector   _sumA;
