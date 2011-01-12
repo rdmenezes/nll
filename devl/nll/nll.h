@@ -36,15 +36,15 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.13
- @date 5th December 2010
+ @version 0.14
+ @date 12th January 2011
  */
 
 /// define the version of nll as a string
-#define NLL_VERSION     "nll-0.13"
+#define NLL_VERSION     "nll-0.14"
 
 /// define the version of nll as a plain number
-#define NLL_VERSION_ID  0x013
+#define NLL_VERSION_ID  0x014
 
 
 #ifdef _MSC_VER

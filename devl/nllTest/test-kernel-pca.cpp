@@ -1,6 +1,22 @@
 #include <nll/nll.h>
 #include <tester/register.h>
 
+using namespace nll;
+using namespace nll::core;
+using namespace nll::algorithm;
+
+namespace
+{
+   double test_data[][ 2 ] =
+   {
+      { 0.0699,    0.0389 },
+      {-0.0007,   -0.0108 },
+      {-0.2154,    0.0546 },
+      { 0.2194,    0.0261 },
+      {-0.1648,    0.0233 },
+      { 0.1852,   -0.0516 }
+   };
+}
 
 class TestKernelPca
 {
@@ -15,20 +31,20 @@ public:
       typedef nll::algorithm::KernelRbf<Point>   Kernel;
       typedef nll::algorithm::KernelPca<Point, Kernel>  KernelPca;
 
+      const unsigned size = nll::core::getStaticBufferSize( test_data );
       Points points;
-      points.push_back( nll::core::make_vector<double>( 2, 1.1 ) );
-      points.push_back( nll::core::make_vector<double>( 1, 1 ) );
-      points.push_back( nll::core::make_vector<double>( -1, 0.9 ) );
-      points.push_back( nll::core::make_vector<double>( 1.5, 1.2 ) );
+      for ( unsigned n = 0; n < size; ++n )
+      {
+         points.push_back( nll::core::make_vector<double>( test_data[ n ][ 0 ], test_data[ n ][ 1 ] ) );
+      }
 
       KernelPca kpca;
-      Kernel rbfKernel( 0.1 );
-      kpca.compute( points, 3, rbfKernel );
+      Kernel rbfKernel( 0.02 );
+      //Kernel rbfKernel( 1 );
+      kpca.compute( points, 6, rbfKernel );
 
-      nll::core::Buffer1D<float> point = nll::core::make_buffer1D<float>( 1.5f, 0.9f );
-      KernelPca::Vector v = kpca.transform( point );
-      
-      // TODO VALIDATE AGAINST MATLAB PROTOTYPE
+      KernelPca::Vector v = kpca.transform( points[ 0 ] );
+      v.print( std::cout );
    }
 };
 

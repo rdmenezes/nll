@@ -49,7 +49,7 @@ namespace algorithm
        @return false if any error occured
        */
       template <class Points>
-      bool compute( const Points& points, ui32 nbFeatures, const Kernel& kernel )
+      bool compute( const Points& points, ui32 nbFeatures, const Kernel& kernel, double minEigenValueToSelect = 1e-4 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel PCA, learning started" );
          ensure( points.size(), "no point to compute" );
@@ -57,7 +57,7 @@ namespace algorithm
 
          _kernel = std::auto_ptr<Kernel>( kernel.clone() );
          Matrix centeredKernel = _computeKernelMatrix( points, kernel );
-         bool diagonalization = _diagonalize( centeredKernel, _eig, _x, nbFeatures, points );
+         bool diagonalization = _diagonalize( centeredKernel, _eig, _x, nbFeatures, points, minEigenValueToSelect );
          if ( !diagonalization )
          {
             core::LoggerNll::write( core::LoggerNll::ERROR, " kernel PCA failed: cannot diagonalize the covariance matrix" );
@@ -210,7 +210,7 @@ namespace algorithm
        modify it
        */
       template <class Points>
-      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, Matrix& outVectors, ui32 nbFeatures, const Points& points  )
+      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, Matrix& outVectors, ui32 nbFeatures, const Points& points, double minEigenValueToSelect )
       {
          const ui32 size = centeredKernel.sizex();
          const ui32 inputPointSize = static_cast<ui32>( points[ 0 ].size() );
@@ -240,9 +240,9 @@ namespace algorithm
          std::sort( pairs.rbegin(), pairs.rend() );
 
          // compute the number of eigen values according to the number of features & feature space dim
-         for ( ui32 n = 0; n < nbFeatures; ++n )
-            //if ( pairs[ n ].first <= 1e-5 )
-            if ( pairs[ n ].first >= 1e-3 )
+         const ui32 initialNbFeatures = nbFeatures;
+         for ( ui32 n = 0; n < initialNbFeatures; ++n )
+            if ( pairs[ n ].first >= minEigenValueToSelect )
             {
                // do nothing, the feature is selected
             } else {
