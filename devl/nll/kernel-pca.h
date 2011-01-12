@@ -63,6 +63,12 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::ERROR, " kernel PCA failed: cannot diagonalize the covariance matrix" );
             return false;
          }
+
+         _points = std::vector<Point>( points.size() );
+         for ( size_t n = 0; n < points.size(); ++n )
+         {
+            _points[ n ] = points[ n ];
+         }
          return true;
       }
 
@@ -76,42 +82,36 @@ namespace algorithm
          ensure( nbEigenVectors && _eig.sizey(), "compute first the model parameters" );
          ensure( p.size() == _x.sizey(), "point size error" );
          ensure( _kernel.get(), "something wrong happened..." );
+         ensure( _points.size(), "no support vectors!" );
 
          // convert to a point
          Point t( p.size() );
          for ( ui32 nn = 0; nn < p.size(); ++nn )
             t[ nn ] = p[ nn ];
       
-         Vector kernel( nbEigenVectors );
-         Vector centeredKernel( nbEigenVectors );
-         Vector projected( nbEigenVectors );
-         Point x( p.size() );
-         
-
-         // precompute the projection
          double sumA = 0;
-         for ( ui32 k = 0; k < nbEigenVectors; ++k )
+         Vector kernel( _points.size() );
+         for ( ui32 n = 0; n < kernel.size(); ++n )
          {
-             for ( ui32 nn = 0; nn < p.size(); ++nn )
-               x[ nn ] = _x( nn, k );
-            kernel[ k ] = (*_kernel)( x, t );
-            sumA += kernel[ k ];
+            kernel[ n ] = (*_kernel)( t, _points[ n ] );
+            sumA += kernel[ n ];
          }
 
          // center the test kernel matrix
-         const double constVal = 1.0 / nbEigenVectors;
-         for ( ui32 j = 0; j < nbEigenVectors; ++j )
+         Vector centeredKernel( kernel.size() );
+         const double constVal = 1.0 / kernel.size();
+         for ( ui32 j = 0; j < kernel.size(); ++j )
          {
             centeredKernel[ j ] = kernel[ j ] - constVal * sumA
-                                              - constVal * _sumA[ j ]
-                                              + constVal * constVal * _sumC;
+                                              - _sumA[ j ]
+                                              + _sumC;
          }
 
-         // project the input on the features
+         Vector projected( nbEigenVectors );
          for ( ui32 k = 0; k < nbEigenVectors; ++k )
          {
             double sum = 0;
-            for ( ui32 i = 0; i < nbEigenVectors; ++i )
+            for ( ui32 i = 0; i < kernel.size(); ++i )
             {
                sum += _eig( i, k ) * centeredKernel[ i ];
             }
@@ -184,12 +184,20 @@ namespace algorithm
          // center the kernel
          Matrix mkernel( kernelBase.sizey(), kernelBase.sizex() );
          for ( ui32 i = 0; i < points.size(); ++i )
+         {
             for ( ui32 j = i; j < points.size(); ++j )
             {               
                mkernel( i, j ) = ( kernelBase( i, j ) - m1 * _sumA[ j ] - m1 * sumB[ i ] + m1 * m1 * _sumC ) / points.size();
                mkernel( j, i ) = mkernel( i, j );
             }
+         }
          kernelBase.unref();
+
+         for ( ui32 i = 0; i < points.size(); ++i )
+         {
+            _sumA[ i ] *= m1;
+         }
+         _sumC *= m1 * m1;
 
          std::stringstream ss2;
          mkernel.print( ss2 );
@@ -255,7 +263,7 @@ namespace algorithm
          outEigenVectors = Matrix( size, nbFeatures );
          outVectors = Matrix( inputPointSize, nbFeatures );
 
-         Vector reorderedSumA = Vector( nbFeatures );
+         //Vector reorderedSumA = Vector( nbFeatures );
          for ( ui32 n = 0; n < nbFeatures; ++n )
          {
             const ui32 index = pairs[ n ].second;
@@ -265,9 +273,9 @@ namespace algorithm
 
             for ( ui32 nn = 0; nn < inputPointSize; ++nn )
                outVectors( nn, n ) = points[ index ][ nn ];
-            reorderedSumA[ n ] = _sumA[ index ];
+            //reorderedSumA[ n ] = _sumA[ index ];
          }
-         _sumA = reorderedSumA;
+         //_sumA = reorderedSumA;
 
          {
             std::stringstream ss;
@@ -282,6 +290,7 @@ namespace algorithm
       Matrix   _eig;                   /// eigen vectors, stored column (1 col = 1 eigen vector)
       Matrix   _x;                     /// the vectors associated with the principal component, 1 col = 1 vector
       std::auto_ptr<Kernel>  _kernel;  /// the kernel function  used by the algorithm
+      std::vector<Point>     _points;  /// support vectors
 
       // variables needed to precompute the feature extraction
       Vector   _sumA;

@@ -41,7 +41,7 @@ public:
       KernelPca kpca;
       Kernel rbfKernel( 0.02 );
       //Kernel rbfKernel( 1 );
-      kpca.compute( points, 6, rbfKernel );
+      kpca.compute( points, 3, rbfKernel );
 
       KernelPca::Vector v = kpca.transform( points[ 0 ] );
       v.print( std::cout );
