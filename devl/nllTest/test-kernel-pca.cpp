@@ -18,6 +18,7 @@ namespace
    };
 }
 
+// example validated against matlab prototype
 class TestKernelPca
 {
 public:
@@ -27,7 +28,6 @@ public:
    {
       typedef std::vector<double>               Point;
       typedef std::vector<Point>                Points;
-      //typedef nll::algorithm::KernelPolynomial<Point>   Kernel;
       typedef nll::algorithm::KernelRbf<Point>   Kernel;
       typedef nll::algorithm::KernelPca<Point, Kernel>  KernelPca;
 
@@ -40,10 +40,16 @@ public:
 
       KernelPca kpca;
       Kernel rbfKernel( 0.02 );
-      //Kernel rbfKernel( 1 );
-      kpca.compute( points, 3, rbfKernel );
+      kpca.compute( points, 5, rbfKernel );
 
       KernelPca::Vector v = kpca.transform( points[ 0 ] );
+
+      TESTER_ASSERT( v.size() == 5 );
+      TESTER_ASSERT( fabs( v[ 0 ] - -0.893936 ) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 1 ] - 1.268     ) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 2 ] - -0.650698 ) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 3 ] - 0.661651  ) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 4 ] - 0.210299  ) < 1e-4 );
       v.print( std::cout );
    }
 };

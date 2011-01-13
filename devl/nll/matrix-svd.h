@@ -227,7 +227,7 @@ namespace core
 				   }
 				   break;
 			   }
-			   if (its == 29)
+			   if (its == 60)
 				   return false;	// no convergence in 30 svdcmp iterations
 			   x=w[l];
 			   nm=k-1;

@@ -57,15 +57,16 @@ namespace algorithm
 
          _kernel = std::auto_ptr<Kernel>( kernel.clone() );
          Matrix centeredKernel = _computeKernelMatrix( points, kernel );
-         bool diagonalization = _diagonalize( centeredKernel, _eig, _x, nbFeatures, points, minEigenValueToSelect );
+         bool diagonalization = _diagonalize( centeredKernel, _eig, nbFeatures, points, minEigenValueToSelect );
          if ( !diagonalization )
          {
             core::LoggerNll::write( core::LoggerNll::ERROR, " kernel PCA failed: cannot diagonalize the covariance matrix" );
             return false;
          }
 
-         _points = std::vector<Point>( points.size() );
-         for ( size_t n = 0; n < points.size(); ++n )
+         const ui32 size = static_cast<ui32>( points.size() );
+         _points = std::vector<Point>( size );
+         for ( ui32 n = 0; n < size; ++n )
          {
             _points[ n ] = points[ n ];
          }
@@ -80,9 +81,9 @@ namespace algorithm
       {
          const ui32 nbEigenVectors = _eig.sizex();
          ensure( nbEigenVectors && _eig.sizey(), "compute first the model parameters" );
-         ensure( p.size() == _x.sizey(), "point size error" );
-         ensure( _kernel.get(), "something wrong happened..." );
          ensure( _points.size(), "no support vectors!" );
+         ensure( p.size() == _points[ 0 ].size(), "point size error" );
+         ensure( _kernel.get(), "something wrong happened..." );
 
          // convert to a point
          Point t( p.size() );
@@ -90,7 +91,7 @@ namespace algorithm
             t[ nn ] = p[ nn ];
       
          double sumA = 0;
-         Vector kernel( _points.size() );
+         Vector kernel( static_cast<ui32>( _points.size() ) );
          for ( ui32 n = 0; n < kernel.size(); ++n )
          {
             kernel[ n ] = (*_kernel)( t, _points[ n ] );
@@ -124,7 +125,7 @@ namespace algorithm
       bool write( std::ostream& o ) const
       {
          _eig.write( o );
-         _x.write( o );
+         ensure( 0, "write points" );
          _kernel->write( o );
          core::write<Vector>( _sumA, o );
          core::write<double>( _sumC, o );
@@ -134,7 +135,7 @@ namespace algorithm
       bool read( std::istream& i )
       {
          _eig.read( i );
-         _x.read( i);
+         ensure( 0, "read points" );
          _kernel = std::auto_ptr<Kernel>( new Kernel( i ) );
          core::read<Vector>( _sumA, i );
          core::read<double>( _sumC, i );
@@ -218,10 +219,9 @@ namespace algorithm
        modify it
        */
       template <class Points>
-      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, Matrix& outVectors, ui32 nbFeatures, const Points& points, double minEigenValueToSelect )
+      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, ui32 nbFeatures, const Points& points, double minEigenValueToSelect )
       {
          const ui32 size = centeredKernel.sizex();
-         const ui32 inputPointSize = static_cast<ui32>( points[ 0 ].size() );
 
          // compute eigen values, eigen vectors
          Matrix eigenVectors;
@@ -259,23 +259,15 @@ namespace algorithm
          if ( nbFeatures == 0 )
             return false;
 
-         // export the eigen vectors/values we are interested in
+         // export the eigen vectors we are interested in
          outEigenVectors = Matrix( size, nbFeatures );
-         outVectors = Matrix( inputPointSize, nbFeatures );
-
-         //Vector reorderedSumA = Vector( nbFeatures );
          for ( ui32 n = 0; n < nbFeatures; ++n )
          {
             const ui32 index = pairs[ n ].second;
             const double norm = sqrt( eigenValues[ index ] );
             for ( ui32 nn = 0; nn < size; ++nn )
                outEigenVectors( nn, n ) = eigenVectors( nn, index ) / norm;
-
-            for ( ui32 nn = 0; nn < inputPointSize; ++nn )
-               outVectors( nn, n ) = points[ index ][ nn ];
-            //reorderedSumA[ n ] = _sumA[ index ];
          }
-         //_sumA = reorderedSumA;
 
          {
             std::stringstream ss;
@@ -288,7 +280,6 @@ namespace algorithm
 
    private:
       Matrix   _eig;                   /// eigen vectors, stored column (1 col = 1 eigen vector)
-      Matrix   _x;                     /// the vectors associated with the principal component, 1 col = 1 vector
       std::auto_ptr<Kernel>  _kernel;  /// the kernel function  used by the algorithm
       std::vector<Point>     _points;  /// support vectors
 
