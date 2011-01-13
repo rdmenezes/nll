@@ -112,7 +112,6 @@
 # include "id-maker.h"
 # include "static-vector.h"
 # include "buffer1D.h"
-# include "buffer1D-converter.h"
 # include "Buffer1D-basic-op.h"
 # include "math.h"
 # include "matrix.h"
@@ -161,6 +160,7 @@
 # include "sequence-converter.h"
 # include "allocator-aligned.h"
 # include "geometry.h"
+# include "converter.h"
 
 /**
  @defgroup imaging

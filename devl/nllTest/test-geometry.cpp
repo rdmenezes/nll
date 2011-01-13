@@ -215,7 +215,7 @@ public:
       {
          // PST T R
          nll::core::Matrix<float> pst;
-         nll::core::matrix4x4RotationZ( pst, nll::core::PI / 2 );
+         nll::core::matrix4x4RotationZ( pst, (float)nll::core::PI / 2 );
          pst( 0, 3 ) = 1;
 
          VolumeGeometry geom( pst );
@@ -228,7 +228,7 @@ public:
       {
          // PST T R
          nll::core::Matrix<float> pst;
-         nll::core::matrix4x4RotationZ( pst, nll::core::PI / 2 );
+         nll::core::matrix4x4RotationZ( pst, (float)nll::core::PI / 2 );
          pst( 0, 3 ) = 1;
 
          nll::core::Matrix<float> tfm = nll::core::identityMatrix<nll::core::Matrix<float> >( 4 );
@@ -246,7 +246,7 @@ public:
          nll::core::Matrix<float> pst = nll::core::identityMatrix<nll::core::Matrix<float> >( 4 );
 
          nll::core::Matrix<float> tfm;
-         nll::core::matrix4x4RotationZ( tfm, nll::core::PI / 2 );
+         nll::core::matrix4x4RotationZ( tfm, (float)nll::core::PI / 2 );
          tfm( 0, 3 ) = 10;
 
          VolumeGeometry geom( pst, tfm );

@@ -57,7 +57,8 @@ namespace algorithm
 
          _kernel = std::auto_ptr<Kernel>( kernel.clone() );
          Matrix centeredKernel = _computeKernelMatrix( points, kernel );
-         bool diagonalization = _diagonalize( centeredKernel, _eig, nbFeatures, points, minEigenValueToSelect );
+
+         bool diagonalization = _diagonalize( centeredKernel, _eig, nbFeatures, minEigenValueToSelect );
          if ( !diagonalization )
          {
             core::LoggerNll::write( core::LoggerNll::ERROR, " kernel PCA failed: cannot diagonalize the covariance matrix" );
@@ -86,9 +87,8 @@ namespace algorithm
          ensure( _kernel.get(), "something wrong happened..." );
 
          // convert to a point
-         Point t( p.size() );
-         for ( ui32 nn = 0; nn < p.size(); ++nn )
-            t[ nn ] = p[ nn ];
+         Point t;
+         core::convert( p, t );
       
          double sumA = 0;
          Vector kernel( static_cast<ui32>( _points.size() ) );
@@ -125,7 +125,15 @@ namespace algorithm
       bool write( std::ostream& o ) const
       {
          _eig.write( o );
-         ensure( 0, "write points" );
+
+         core::write<ui32>( static_cast<ui32>( _points.size() ), o );
+         for ( ui32 n = 0; n < _points.size(); ++n )
+         {
+            Vector p;
+            core::convert( _points[ n ], p );
+            core::write<Vector>( p, o );
+         }
+
          _kernel->write( o );
          core::write<Vector>( _sumA, o );
          core::write<double>( _sumC, o );
@@ -135,7 +143,17 @@ namespace algorithm
       bool read( std::istream& i )
       {
          _eig.read( i );
-         ensure( 0, "read points" );
+
+         ui32 nbPoints;
+         core::read<ui32>( nbPoints, i );
+         _points = std::vector<Point>( nbPoints );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            Vector p;
+            core::read<Vector>( p, i );
+            core::convert( p, _points[ n ] );
+         }
+
          _kernel = std::auto_ptr<Kernel>( new Kernel( i ) );
          core::read<Vector>( _sumA, i );
          core::read<double>( _sumC, i );
@@ -218,8 +236,7 @@ namespace algorithm
        @note The centeredKernel matrix is not valid after the call of this function as the <code>svdcmp</code> will
        modify it
        */
-      template <class Points>
-      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, ui32 nbFeatures, const Points& points, double minEigenValueToSelect )
+      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, ui32 nbFeatures, double minEigenValueToSelect )
       {
          const ui32 size = centeredKernel.sizex();
 

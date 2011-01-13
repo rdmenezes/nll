@@ -51,7 +51,9 @@ core::Image<ui8> findBounds( const Classifier& classifier, const core::vector2d&
            dat[ n ].input[ 1 ] >= min[ 1 ] && dat[ n ].input[ 1 ] < max[ 1 ] )
       {
          ui32 c = dat[ n ].output;
-         ui8* p = i.point( ( dat[ n ].input[ 0 ] - min[ 0 ] ) / stepx, ( dat[ n ].input[ 1 ] - min[ 1 ] ) / stepy );
+         unsigned x = static_cast<ui32>( ( dat[ n ].input[ 0 ] - min[ 0 ] ) / stepx );
+         unsigned y = static_cast<ui32>( ( dat[ n ].input[ 1 ] - min[ 1 ] ) / stepy );
+         ui8* p = i.point( x, y );
          p[ 0 ] = colors[ c ][ 0 ];
          p[ 1 ] = colors[ c ][ 1 ];
          p[ 2 ] = colors[ c ][ 2 ];

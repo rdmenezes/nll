@@ -127,8 +127,7 @@ public:
       TESTER_ASSERT( norm <= 0.00001 );
 
       m3[2] = 88;
-      nll::core::Buffer1D<int> b1 = nll::core::convert<float, nll::core::IndexMapperFlat1D, int, nll::core::IndexMapperFlat1D>(m3);
-      TESTER_ASSERT( b1( 2 ) == 88 );
+      
 
       nll::core::Matrix<double, nll::core::IndexMapperRowMajorFlat2D> m6 = nll::core::convertMatrix<float, nll::core::IndexMapperRowMajorFlat2D, double, nll::core::IndexMapperRowMajorFlat2D>(m3);
       TESTER_ASSERT( m6.sizex() == m3.sizex() );

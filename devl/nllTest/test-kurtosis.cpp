@@ -8,7 +8,7 @@ class TestKurtosis
 public:
    void testGaussian()
    {
-      srand( time( 0 ) );
+      srand( (unsigned)time( 0 ) );
       for ( ui32 t = 0; t < 500; ++t )
       {
          const double mean = core::generateUniformDistribution( -100, 100 );

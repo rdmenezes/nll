@@ -117,7 +117,7 @@ namespace algorithm
             bins[ n ] = n / dat.size() + ( n < reminder );
 
          // randomize the list
-         core::randomize( bins, 0.8 );
+         core::randomize( bins, 0.8f );
          return bins;
       }
    };

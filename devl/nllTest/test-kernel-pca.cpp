@@ -51,6 +51,20 @@ public:
       TESTER_ASSERT( fabs( v[ 3 ] - 0.661651  ) < 1e-4 );
       TESTER_ASSERT( fabs( v[ 4 ] - 0.210299  ) < 1e-4 );
       v.print( std::cout );
+
+      std::stringstream ss;
+      kpca.write( ss );
+
+      KernelPca kpca2;
+      kpca2.read( ss );
+
+      KernelPca::Vector v2 = kpca2.transform( points[ 0 ] );
+      TESTER_ASSERT( v2.size() == 5 );
+      TESTER_ASSERT( fabs( v2[ 0 ] - -0.893936 ) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 1 ] - 1.268     ) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 2 ] - -0.650698 ) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 3 ] - 0.661651  ) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 4 ] - 0.210299  ) < 1e-4 );
    }
 };
 

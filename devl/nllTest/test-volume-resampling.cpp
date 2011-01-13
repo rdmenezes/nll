@@ -531,7 +531,7 @@ public:
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
       nll::core::Matrix<float> tfm( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm, nll::core::PI * 0.5);
+      nll::core::matrix4x4RotationZ( tfm, (float)nll::core::PI * 0.5f);
       tfm( 1, 3 ) = -100;
       nll::imaging::TransformationAffine atfm( tfm );
 

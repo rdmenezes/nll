@@ -142,7 +142,7 @@ public:
 
    void testNllClassifierSvmIca()
    {
-      srand(time(0));
+      srand((unsigned)time(0));
       typedef nll::algorithm::ClassifierSvm<Point> Classifier;
 
       Database dat = loadDatabaseSpect<Point>();

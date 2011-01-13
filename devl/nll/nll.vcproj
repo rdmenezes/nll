@@ -430,6 +430,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\converter.h"
+				>
+			</File>
+			<File
 				RelativePath=".\database-input-adapter.h"
 				>
 			</File>

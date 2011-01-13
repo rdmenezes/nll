@@ -350,7 +350,7 @@ namespace algorithm
          for ( ui32 src = 0; src < nbSources; ++src )
          {
             Matrix proj( _unmixingSignal[ src ], 1, _unmixingSignal[ src ].size() );
-            Vector inputProj = proj * Matrix( input, input.size(), 1 ) + proj * Matrix( _pca.getMean(), p.size(), 1 );
+            Vector inputProj = proj * Matrix( input, (ui32)input.size(), 1 ) + proj * Matrix( _pca.getMean(), (ui32)p.size(), 1 );
             assert( inputProj.size() == 1 );
             out[ src ] = inputProj[ 0 ];
          }
