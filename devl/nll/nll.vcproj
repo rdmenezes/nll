@@ -414,10 +414,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\buffer1D-converter.h"
-				>
-			</File>
-			<File
 				RelativePath=".\buffer1D.h"
 				>
 			</File>

@@ -13,10 +13,11 @@ namespace algorithm
    class KernelFunction
    {
    public:
-      virtual bool operator()( const Point& p1, const Point& p2 ) const;
-      virtual KernelFunction* clone() const;
-      virtual bool read( std::istream& i );
-      virtual bool write( std::ostream& o ) const;
+      
+      virtual double operator()( const Point& p1, const Point& p2 ) const = 0;
+      virtual KernelFunction* clone() const = 0;
+      virtual bool read( std::istream& i ) = 0;
+      virtual bool write( std::ostream& o ) const = 0;
    };
 
    /**
@@ -26,7 +27,7 @@ namespace algorithm
     Point must define double operator[](unsigned) const and size()
     */
    template <class Point>
-   class KernelPolynomial
+   class KernelPolynomial : public KernelFunction<Point>
    {
    public:
       KernelPolynomial( double degree ) : _degree( degree )
@@ -39,7 +40,7 @@ namespace algorithm
          read( i );
       }
 
-      double operator()( const Point& p1, const Point& p2 ) const
+      virtual double operator()( const Point& p1, const Point& p2 ) const
       {
          assert( p1.size() == p2.size() );
          double sum = 0;
@@ -48,18 +49,18 @@ namespace algorithm
          return pow( sum, _degree );
       }
 
-      KernelPolynomial* clone() const
+      virtual KernelPolynomial* clone() const
       {
          return new KernelPolynomial( _degree );
       }
 
-      bool read( std::istream& i )
+      virtual bool read( std::istream& i )
       {
          core::read<double>( _degree, i );
          return true;
       }
 
-      bool write( std::ostream& o ) const
+      virtual bool write( std::ostream& o ) const
       {
          core::write<double>( _degree, o );
          return true;
@@ -74,7 +75,7 @@ namespace algorithm
     @brief Defines a RBF kernel exp(-norm( x1, x2 )/var)
     */
    template <class Point>
-   class KernelRbf
+   class KernelRbf  : public KernelFunction<Point>
    {
    public:
       KernelRbf( double var ) : _var( var )
@@ -86,7 +87,7 @@ namespace algorithm
          read( i );
       }
 
-      double operator()( const Point& p1, const Point& p2 ) const
+      virtual double operator()( const Point& p1, const Point& p2 ) const
       {
          assert( p1.size() == p2.size() );
          double sum = 0;
@@ -98,18 +99,18 @@ namespace algorithm
          return exp( - sum / ( _var ) );
       }
 
-      KernelRbf* clone() const
+      virtual KernelRbf* clone() const
       {
          return new KernelRbf( _var );
       }
 
-      bool read( std::istream& i )
+      virtual bool read( std::istream& i )
       {
          core::read<double>( _var, i );
          return true;
       }
 
-      bool write( std::ostream& o ) const
+      virtual bool write( std::ostream& o ) const
       {
          core::write<double>( _var, o );
          return true;
