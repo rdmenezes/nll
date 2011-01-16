@@ -34,6 +34,13 @@ http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq5.gif
 
 with _p_ one of the pattern, _d_ the expected pattern and _y_ the output of the network.
 
+We define the backpropagation error as:
+
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq6.gif
+
+The weights are updated as below:
+
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq7.gif
 
 === Code ===
 It is assumed the training pattern are centered on zero and have one variance for each attribut.
