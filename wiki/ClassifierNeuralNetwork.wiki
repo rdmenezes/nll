@@ -30,9 +30,10 @@ We define mean squared error as
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq4.gif
 
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq5.gif
+
 with _p_ one of the pattern, _d_ the expected pattern and _y_ the output of the network.
 
-With http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq5.gif
 
 === Code ===
 It is assumed the training pattern are centered on zero and have one variance for each attribut.
