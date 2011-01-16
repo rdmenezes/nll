@@ -23,6 +23,8 @@ http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq1.gif
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq2.gif
 
+With http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq3.gif
+
 === Training via Back-propagation ===
 === Code ===
 {{{
