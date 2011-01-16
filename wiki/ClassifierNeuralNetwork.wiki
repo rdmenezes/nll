@@ -32,7 +32,7 @@ http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq4.gif
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq5.gif
 
-with _p_ one of the pattern, _d_ the expected pattern and _y_ the output of the network.
+with _p_ one of the pattern, _d_ the expected output pattern and _y_ the output of the network.
 
 We define the backpropagation error as:
 
