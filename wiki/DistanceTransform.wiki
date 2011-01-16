@@ -12,7 +12,7 @@ where _d(p, q)_ is some measure of the distance between _p_ and _q_
 == Example ==
 http://nll.googlecode.com/svn/devl/wiki/DistanceTransform/input.png
 
-Example of a 2D distance transform with left the original image, righ the transformed image.
+Example of a 2D distance transform with left the original image, right the transformed image using the euclidian distance.
 
 == Code ==
 In this tutorial, the very basic operations on images will be covered:
