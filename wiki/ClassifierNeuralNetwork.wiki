@@ -1,6 +1,17 @@
 #summary Example of a Neural network classifier
 
 = Neural network classifier =
+== What is a neural network ==
+Artificial neural networks are computers whose architecture is modeled after the brain. They typically consist of many hundreds of simple processing units which are wired together in a complex communication network. Each unit or node is a simplified model of a real neuron which fires (sends off a new signal) if it receives a sufficiently strong input signal from the other nodes to which it is connected. The strength of these connections may be varied in order for the network to perform different tasks corresponding to different patterns of node firing activity. This structure is very different from traditional computers.
+
+== Multi-layered Perceptron architecture ==
+MLP is a Feed-forward neural networks, where the data is propagated from input to output units in a strictly feedforward manner. The data processing can extend over multiple layers of units, but no feedback connections are present.
+
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/net.png
+
+The bias nodes are nodes that are always activated.
+=== propagation ===
+=== Training via Back-propagation ===
 
 {{{
 void test()
