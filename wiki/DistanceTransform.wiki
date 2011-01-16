@@ -62,3 +62,5 @@ A distance transform, also known as distance map or distance field, is a represe
       }
    };
 }}}
+
+The code can easily be extended to other metrics and datatypes.
