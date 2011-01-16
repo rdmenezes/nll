@@ -10,9 +10,15 @@ MLP is a Feed-forward neural networks, where the data is propagated from input t
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/net.png
 
 The bias nodes are nodes that are always activated.
-=== propagation ===
-=== Training via Back-propagation ===
 
+=== Boundary decision ===
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
+
+Example of boundary decisions for a two class two attributs problem. The red decision boundary on the right has clearly overfitted.
+
+=== Propagation ===
+=== Training via Back-propagation ===
+=== Code ===
 {{{
 void test()
 {
