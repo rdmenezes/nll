@@ -17,6 +17,12 @@ http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
 Example of boundary decisions for a two class two attributs problem. The red decision boundary on the right has clearly overfitted.
 
 === Propagation ===
+For each output unit and each layer, we define:
+
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq1.gif
+
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq2.gif
+
 === Training via Back-propagation ===
 === Code ===
 {{{
