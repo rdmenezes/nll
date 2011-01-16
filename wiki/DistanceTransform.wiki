@@ -1,7 +1,6 @@
 #summary Basic manipulations and distance transform
 
 = Tutorial 1: Image and Distance transform=
-
 Distance transforms are an important tool in computer vision, image processing and pattern recognition. A distance transform of a binary image speciﬁes the distance from each pixel to the nearest non-zero pixel. Distance transforms play a central role in the comparison of binary images, particularly for images resulting from local feature detection techniques such as edge or corner detection.
 
 <img src="http://code.google.com/p/nll/source/browse/devl/wiki/DistanceTransform/input.png" alt="2D Distance transform applied" />
