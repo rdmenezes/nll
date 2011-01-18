@@ -71,6 +71,26 @@ public:
       TESTER_ASSERT( rbf.learn( datRbf, 15, param, param, param, 0.1, 15 ) <= 0.1 );
    }
 
+   typedef nll::algorithm::ClassifierRbf< ProblemBuilderGmm::Database::Sample::Input > Rbf;
+   typedef nll::core::Matrix<double> Matrix;
+   class RbfMonitoring : public Rbf::Rbf::RadialBasisNetworkMonitoring
+   {
+   public:
+      virtual ~RbfMonitoring()
+      {}
+
+      RbfMonitoring( const std::string& path, const ProblemBuilderGmm& pbm, const Rbf& rbf ) : _path( path ), _pbm( pbm ), _rbf( rbf )
+      {
+      }
+
+      virtual void monitor( const std::vector<Rbf>& rbfs, const Matrix& weights ) const = 0;
+
+   private:
+      std::string                _path;
+      const ProblemBuilderGmm&   _pbm;
+      const Rbf&                 _rbf;
+   };
+
    void testGmmProblem()
    {
       srand( 1 );
@@ -82,7 +102,6 @@ public:
       pbm.printMap( i, dat );
       core::writeBmp( i, NLL_TEST_PATH "data/out.bmp" );
 
-      typedef nll::algorithm::ClassifierRbf< ProblemBuilderGmm::Database::Sample::Input > Rbf;
       Rbf rbf;
 
       rbf.learn( dat, core::make_buffer1D<double>( 60, 0.5, 30 ) );

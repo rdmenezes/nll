@@ -16,6 +16,8 @@ namespace algorithm
       typedef core::Database< core::ClassificationSample< Point, std::vector<double> > > RbfDatabase;
 
    public:
+      typedef RadialBasisNetwork<FunctionSimpleDifferenciableSigmoid> Rbf;
+
       // don't override these
       using Base::read;
       using Base::write;
@@ -75,6 +77,15 @@ namespace algorithm
          return test( p, pb );
       }
 
+      /**
+       @brief set a monitoring structure. <monitor> will be called everytime the log every <reportTimeIntervalInSec>
+       @note a reference is taken on the monitoring structure, so it must be alive when <learn> is called
+       */
+      void setMonitoring( const Rbf::RadialBasisNetworkMonitoring& monitoring )
+      {
+         _rbf.setMonitoring( &monitoring );
+      }
+
       virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          Point result = _rbf.evaluate( p );
@@ -118,6 +129,11 @@ namespace algorithm
          _rbf.learn( pmcDat, (ui32)parameters[ 0 ], parameters[ 1 ], parameters[ 1 ], parameters[ 1 ], 0, parameters[ 2 ] );
       }
 
+      const Rbf& getRbfImpl() const
+      {
+         return _rbf
+      }
+
    private:
       // we recreate a new database as the neural network only understand for its output an arrayof doubles
       inline RbfDatabase _computePmcDatabase( const Database& dat )
@@ -136,7 +152,7 @@ namespace algorithm
          return pmcDatabase;
       }
    private:
-      RadialBasisNetwork<FunctionSimpleDifferenciableSigmoid>   _rbf;
+      Rbf   _rbf;
    };
 }
 }

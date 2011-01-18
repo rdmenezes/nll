@@ -67,15 +67,15 @@ namespace algorithm
          virtual ~RadialBasisNetworkMonitoring()
          {}
 
-         virtual void monitor( const std::vector<Rbf>& rbfs, const Matrix& weights ) = 0;
+         virtual void monitor( const std::vector<Rbf>& rbfs, const Matrix& weights ) const = 0;
       };
 
-      RadialBasisNetwork( RadialBasisNetworkMonitoring* monitoring = 0 )
+      RadialBasisNetwork( const RadialBasisNetworkMonitoring* monitoring = 0 )
       {
          _monitoring = monitoring;
       }
 
-      void setMonitoring( RadialBasisNetworkMonitoring* monitoring )
+      void setMonitoring( const RadialBasisNetworkMonitoring* monitoring )
       {
          _monitoring = monitoring;
       }
@@ -431,7 +431,7 @@ namespace algorithm
       std::vector<Rbf>  _rbf;
       Matrix            _w;      // w( k, j ), k = the output unit, j = the RBF unit
       DFunction         _func;
-      RadialBasisNetworkMonitoring* _monitoring;
+      const RadialBasisNetworkMonitoring* _monitoring;
    };
 }
 }
