@@ -463,6 +463,14 @@
 				RelativePath=".\test-allocator.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -482,6 +490,14 @@
 			<File
 				RelativePath=".\test-bracketing.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -503,6 +519,14 @@
 				RelativePath=".\test-classifier-adaboost.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -522,6 +546,14 @@
 			<File
 				RelativePath=".\test-classifier-discriminant.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -543,6 +575,14 @@
 				RelativePath=".\test-classifier-gmm.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -562,6 +602,14 @@
 			<File
 				RelativePath=".\test-classifier-mlp.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -583,6 +631,14 @@
 				RelativePath=".\test-classifier-naive-bayes.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -602,6 +658,14 @@
 			<File
 				RelativePath=".\test-classifier-nearest-neighbor.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -623,6 +687,14 @@
 				RelativePath=".\test-classifier-spect.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -642,6 +714,14 @@
 			<File
 				RelativePath=".\test-classifier-svm.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -663,6 +743,14 @@
 				RelativePath=".\test-converter.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -674,6 +762,14 @@
 			<File
 				RelativePath=".\test-discriminant.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -695,6 +791,14 @@
 				RelativePath=".\test-feature-selection.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -714,6 +818,14 @@
 			<File
 				RelativePath=".\test-genetic-algorithm.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -735,6 +847,14 @@
 				RelativePath=".\test-geometry.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -747,6 +867,14 @@
 				RelativePath=".\test-gram–schmidt-orthgonalization.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -758,6 +886,14 @@
 			<File
 				RelativePath=".\test-haar-features.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -779,6 +915,14 @@
 				RelativePath=".\test-hmm.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -790,6 +934,14 @@
 			<File
 				RelativePath=".\test-kdTree.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -811,6 +963,14 @@
 				RelativePath=".\test-kernel-pca.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -831,6 +991,14 @@
 				RelativePath=".\test-kurtosis.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -842,6 +1010,14 @@
 			<File
 				RelativePath=".\test-labelize.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -863,6 +1039,14 @@
 				RelativePath=".\test-lut.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -882,6 +1066,14 @@
 			<File
 				RelativePath=".\test-markov-chain.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -903,6 +1095,14 @@
 				RelativePath=".\test-math-floor.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -922,6 +1122,14 @@
 			<File
 				RelativePath=".\test-matrix-cholesky.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -943,6 +1151,14 @@
 				RelativePath=".\test-maximum-intensity-projection.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -962,6 +1178,14 @@
 			<File
 				RelativePath=".\test-mlp.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -983,6 +1207,14 @@
 				RelativePath=".\test-morphology.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1002,6 +1234,14 @@
 			<File
 				RelativePath=".\test-naive-bayes.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1023,6 +1263,14 @@
 				RelativePath=".\test-optimizer-parameters.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1042,6 +1290,14 @@
 			<File
 				RelativePath=".\test-optimizer.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1063,6 +1319,14 @@
 				RelativePath=".\test-pca.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1083,6 +1347,14 @@
 				RelativePath=".\test-principal-independent-component.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|x64"
 					ExcludedFromBuild="true"
 					>
@@ -1094,6 +1366,14 @@
 			<File
 				RelativePath=".\test-quaternion.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1114,10 +1394,34 @@
 			<File
 				RelativePath=".\test-rbf-network.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\test-region-growing.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1139,6 +1443,14 @@
 				RelativePath=".\test-regression.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1159,6 +1471,14 @@
 				RelativePath=".\test-relieff.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1176,8 +1496,20 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-sammon-projection.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-slice.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1199,6 +1531,14 @@
 				RelativePath=".\test-transformation-normalization.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1218,6 +1558,14 @@
 			<File
 				RelativePath=".\test-transformation.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1239,6 +1587,14 @@
 				RelativePath=".\test-volume-io.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1258,6 +1614,14 @@
 			<File
 				RelativePath=".\test-volume-resampling.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
@@ -1279,6 +1643,14 @@
 				RelativePath=".\test-volume.cpp"
 				>
 				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1298,6 +1670,14 @@
 			<File
 				RelativePath=".\test.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
 					ExcludedFromBuild="true"

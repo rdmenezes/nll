@@ -1,3 +1,8 @@
+v0.14
+-fixed kernel PCA implementation
+-added converters
+-added Sammon's projection
+
 v0.13
 -added independent component analysis
 -added gram-schmidt orthogonalization

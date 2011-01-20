@@ -160,17 +160,77 @@ namespace tutorial
          std::cout << "error=" << error << std::endl;
          TESTER_ASSERT( fabs( error ) <= 0.061 );
       }
+
+      void testKernelKpca()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "iris.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+         
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
+         typedef nll::algorithm::KernelRbf<Input> Kernel;
+         typedef nll::algorithm::FeatureTransformationKernelPca<Input, Kernel > KPca;
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocesser;
+         preprocesser.compute( dat );
+         Classifier::Database preprocessedDat = preprocesser.transform( dat );
+
+         KPca pca( Kernel( 30 ) );
+         bool computed = pca.compute( preprocessedDat, 16 );
+         TESTER_ASSERT( computed );
+
+         Classifier::Database data = pca.transform( preprocessedDat );
+
+
+         ClassifierImpl c;
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.00008, 100 ), data );
+
+
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.034 );
+      }
+
+      void testKernelKpca2()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "iris.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+         
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
+         typedef nll::algorithm::KernelPolynomial<Input> Kernel;
+         typedef nll::algorithm::FeatureTransformationKernelPca<Input, Kernel > KPca;
+
+         KPca pca( Kernel( 1 ) );
+         pca.compute( dat, 4 );
+         Classifier::Database data = pca.transform( dat );
+
+         ClassifierImpl c;
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.000008, 100 ), data );
+
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.021 );
+      }
    };
 
    TESTER_TEST_SUITE( TestIrisDatabase );
    TESTER_TEST( testSvmIca );
-   /*
    TESTER_TEST( testSvm );
    TESTER_TEST( testSvmPca );
    TESTER_TEST( testRbf );
    TESTER_TEST( testQda );
    TESTER_TEST( testBayes );
-   */
+   TESTER_TEST( testKernelKpca );
+   TESTER_TEST( testKernelKpca2 );
    TESTER_TEST_SUITE_END();
 }
 }
