@@ -960,6 +960,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\sammon-projection.h"
+				>
+			</File>
+			<File
 				RelativePath=".\svm.cpp"
 				>
 			</File>

@@ -193,6 +193,7 @@
  - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
+# include "sammon-projection.h"
 # include "bracketing.h"
 # include "brent.h"
 # include "powell.h"
