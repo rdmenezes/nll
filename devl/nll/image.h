@@ -354,12 +354,12 @@ namespace core
       /**
        @brief return the buffer of the pixel (x, y)
        */
-      inline T* point( const ui32 x, const ui32 y ){ return this->_buffer + index( x, y, 0 ); }
+      inline T* point( const ui32 x, const ui32 y ){ assert( x < _sizex && y < _sizey ); return this->_buffer + index( x, y, 0 ); }
 
       /**
        @brief return the buffer of the pixel (x, y)
        */
-      inline const T* point( const ui32 x, const ui32 y ) const { return this->_buffer + index( x, y, 0 ); }
+      inline const T* point( const ui32 x, const ui32 y ) const { assert( x < _sizex && y < _sizey ); return this->_buffer + index( x, y, 0 ); }
 
       /**
        @brief return the number of components

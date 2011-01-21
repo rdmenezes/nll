@@ -17,20 +17,19 @@ namespace algorithm
     @note multithreaded implementation
     @todo use a symmetric matrix implementation to save half memory
     */
-   template <class Points>
    class SammonProjection
    {
-   public:
-      typedef typename Points::value_type Point;
-
    public:
       /**
        @brief Project a high dimentional point on a typical 2D/3D space
        @note the outStress must be < 0.1 to be able to represent the data correctly (note that the algorithm is only approximating as it is not
        possible to find a transformation on a smaller space that keeps the same distance).
        */
-      std::vector<Point> project( const Points& points, double learningRate = 0.3, ui32 maxIter = 1000, double epsilon = 1e-4, ui32 nbDimension = 2, double* outStress = 0 ) const
+      template <class Points>
+      std::vector<typename Points::value_type> project( const Points& points, double learningRate = 0.3, ui32 maxIter = 1000, double epsilon = 1e-4, ui32 nbDimension = 2, double* outStress = 0 ) const
       {
+         typedef typename Points::value_type Point;
+
          {
             std::stringstream ss;
             ss << "started Sammon's projection:" << std::endl
@@ -49,8 +48,8 @@ namespace algorithm
          std::vector<Point> projections;
          projections.reserve( points.size() );
 
-         const int nbPoints = static_cast<ui32>( points.size() );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         const int nbPoints = static_cast<int>( points.size() );
+         for ( int n = 0; n < nbPoints; ++n )
          {
             projections.push_back( pca.process( points[ n ] ) );
          }
@@ -120,7 +119,7 @@ namespace algorithm
                }
 
                // update the projection
-               for ( int k = 0; k < nbDimension; ++k )
+               for ( int k = 0; k < (int)nbDimension; ++k )
                {
                   projections[ n ][ k ] -= dx[ k ] * learningRate;
                }
@@ -153,9 +152,9 @@ namespace algorithm
       public:
          typedef double type;
          typedef core::Matrix<type> Matrix;
-         typedef typename Points::value_type Point;
 
       public:
+         template <class Points>
          type compute( const Points& ps )
          {
             std::cout << "compute d" << std::endl;
@@ -180,6 +179,7 @@ namespace algorithm
             return sum;
          }
 
+         template <class Point>
          static type norm2( const Point& p1, const Point& p2 )
          {
             type val = 0;
@@ -191,7 +191,7 @@ namespace algorithm
 
          type operator()( ui32 i, ui32 j ) const
          {
-            assert( i < d.sizey() && j < d.sizex() );
+            assert( i < _d.sizey() && j < _d.sizex() );
 
             if ( i > j )
                std::swap( i, j );

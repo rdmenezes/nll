@@ -2,6 +2,7 @@
 #include <tester/register.h>
 #include <nll/nll.h>
 #include "database-benchmark.h"
+#include "utils.h"
 
 namespace nll
 {
@@ -220,9 +221,47 @@ namespace tutorial
          std::cout << "error=" << error << std::endl;
          TESTER_ASSERT( fabs( error ) <= 0.021 );
       }
+
+      void testSammon()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "iris.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierDiscriminant<Input> ClassifierImpl;
+         ClassifierImpl c;
+
+         nll::algorithm::FeatureTransformationPca<Input> preprocesser;
+         preprocesser.compute( dat, 4 );
+         Classifier::Database preprocessedDat = preprocesser.transform( dat );
+         double error = c.evaluate( nll::core::Buffer1D<double>(), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.021 );
+
+         c.learn( preprocessedDat, nll::core::Buffer1D<double>() );
+
+
+         {
+            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, preprocessedDat );
+            nll::core::writeBmp( i, "c:/out.bmp" );
+         }
+
+
+         {
+            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, preprocessedDat, c );
+            nll::core::writeBmp( i, "c:/outc.bmp" );
+         }
+      }
    };
 
    TESTER_TEST_SUITE( TestIrisDatabase );
+   TESTER_TEST( testSammon );
+   /*
    TESTER_TEST( testSvmIca );
    TESTER_TEST( testSvm );
    TESTER_TEST( testSvmPca );
@@ -231,6 +270,7 @@ namespace tutorial
    TESTER_TEST( testBayes );
    TESTER_TEST( testKernelKpca );
    TESTER_TEST( testKernelKpca2 );
+   */
    TESTER_TEST_SUITE_END();
 }
 }

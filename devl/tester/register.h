@@ -16,7 +16,7 @@
 //#define NLL_TESTER_NO_REGRESSION
 
 // define this if you don't want to run unit tests on several threads
-//#define NO_MULTITHREADED_UNIT_TESTS
+#define NO_MULTITHREADED_UNIT_TESTS
 
 # define NLL_TESTER_LOG_PATH   "../../tester/log/"
 # define TESTER_STREAM std::cout

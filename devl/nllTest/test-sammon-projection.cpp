@@ -16,7 +16,7 @@ struct TestSammonProjection
                                                            nll::core::generateUniformDistribution( -50, 50 ),
                                                            nll::core::generateUniformDistribution( -50, 50 ) ) );
 
-      nll::algorithm::SammonProjection<Points> projection;
+      nll::algorithm::SammonProjection projection;
 
       double stress = 10;
       std::vector<Point> p = projection.project( points, 0.8, 1000, 1e-5, 2, &stress );
