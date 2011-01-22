@@ -55,7 +55,10 @@ The weights are updated as below:
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq7.gif
 
-Now, lets work on computing this weight update:
+Now, lets work out this weight update:
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq9.gif
+
+The equation (1) is used to compute the weight update of the last layer, whereas equation (2) is used for the other layers. We can see that the computation is recursive, the update of a previous layer is built on the update of the current layer.
 
 === Boundary decision ===
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
