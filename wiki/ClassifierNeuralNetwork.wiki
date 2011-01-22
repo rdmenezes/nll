@@ -67,10 +67,11 @@ Other commonly used techniques are weight decays, where the cost function includ
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq11.gif
 
-Having more weigh means the network is becoming more complex and often a sign of overfitting. The update of the equation is let as an exercise for the reader :) Another technique is the momentum, which re-use partly the gradient computed at the previous iteration:
+Having more weigh means the network is becoming more complex and often a sign of overfitting. The update of the equation is let as an exercise for the reader :) Another technique is the momentum, which re-use partly the gradient computed at the previous iteration which help not being stuck at a local minima:
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq10.gif
 
+With eta a constant close to 1, with 1 is equivalent than momentum, a value closer to 0 will take more into consideration the previous updates.
 
 === Boundary decision ===
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
