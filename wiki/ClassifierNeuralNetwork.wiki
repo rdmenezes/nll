@@ -21,12 +21,12 @@ http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq1.gif
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq2.gif
 
+With http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq3.gif
+
 It is then propagated to the successive layers until the output layer. The function f is called the activation function and this is what makes the network nonlinear. For backpropagation learning, the activation function must be differentiable, and it helps if the function is
 bounded. Commonly used activation functions are:
 
-With http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq3.gif
-
-y0 represents the bias of the network and is commonly modeled by adding and extra node which is always activated from the first layer to the n-1 layer.
+Note that y0 represents the bias of the network and is commonly modeled by adding and extra node which is always activated from the first layer to the n-1 layer.
 
 === Training via Back-propagation ===
 The feedforward, back-propagation architecture was developed in the early 1970's by several independent sources (Werbor; Parker; Rumelhart, Hinton and Williams). This independent co-development was the result of a proliferation of articles and talks at various conferences which stimulated the entire industry. Currently, this synergistically developed back-propagation architecture is the most popular, effective, and easy-to-learn model for complex, multi-layered networks.  Its greatest strength is in non-linear solutions to ill-defined problems. The typical back-propagation network has an input layer, an output layer, and at least one hidden layer. There is no theoretical limit on the number of hidden layers but typically there are just one or two.
