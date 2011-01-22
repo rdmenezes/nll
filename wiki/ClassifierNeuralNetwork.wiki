@@ -55,6 +55,8 @@ The weights are updated as below:
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq7.gif
 
+Now, lets work on computing this weight update:
+
 === Boundary decision ===
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
 
