@@ -34,7 +34,7 @@ And its graph:
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/fig1.png
 
-It can be seens that the function is saturating quickly outside the interval [-1..1], and as a consequence the input patterns must be normalized so that the mean of each feature is 0 and its variance is 1.
+It can be seens that the function is saturating quickly outside the interval [ -1..1 ], and as a consequence the input patterns must be normalized so that the mean of each feature is 0 and its variance is 1.
 
 === Training via Back-propagation ===
 The feedforward, back-propagation architecture was developed in the early 1970's by several independent sources (Werbor; Parker; Rumelhart, Hinton and Williams). This independent co-development was the result of a proliferation of articles and talks at various conferences which stimulated the entire industry. Currently, this synergistically developed back-propagation architecture is the most popular, effective, and easy-to-learn model for complex, multi-layered networks.  Its greatest strength is in non-linear solutions to ill-defined problems. The typical back-propagation network has an input layer, an output layer, and at least one hidden layer. There is no theoretical limit on the number of hidden layers but typically there are just one or two.
