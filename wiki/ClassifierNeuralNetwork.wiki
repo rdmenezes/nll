@@ -23,6 +23,8 @@ http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq2.gif
 
 With http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq3.gif
 
+Note that y0 represents the bias of the network and is commonly modeled by adding and extra node which is always activated from the first layer to the n-1 layer.
+
 It is then propagated to the successive layers until the output layer. The function f is called the activation function and this is what makes the network nonlinear. For backpropagation learning, the activation function must be differentiable, and it helps if the function is
 bounded. a common used activation functions is the sigmoid defined as:
 
@@ -33,8 +35,6 @@ And its graph:
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/fig1.png
 
 It can be seens that the function is saturating quickly outside the interval [-1..1], and as a consequence the input patterns must be normalized so that the mean of each feature is 0 and its variance is 1.
-
-Note that y0 represents the bias of the network and is commonly modeled by adding and extra node which is always activated from the first layer to the n-1 layer.
 
 === Training via Back-propagation ===
 The feedforward, back-propagation architecture was developed in the early 1970's by several independent sources (Werbor; Parker; Rumelhart, Hinton and Williams). This independent co-development was the result of a proliferation of articles and talks at various conferences which stimulated the entire industry. Currently, this synergistically developed back-propagation architecture is the most popular, effective, and easy-to-learn model for complex, multi-layered networks.  Its greatest strength is in non-linear solutions to ill-defined problems. The typical back-propagation network has an input layer, an output layer, and at least one hidden layer. There is no theoretical limit on the number of hidden layers but typically there are just one or two.
