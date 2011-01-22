@@ -15,13 +15,17 @@ The number of layers and the number of processing elements per layer are importa
 A one-hidden layer MLP is an universal approximator, i.e., it can approximate any function to any desired accuracy. However the number of hidden nodes to achieve is accuracy is growing exponentially.
 
 === Propagation ===
-For each output unit of each layer, we define:
+For a particular layer and for each node of this layer, we define:
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq1.gif
+
+It is then propagated to the successive layers until the output layer.
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq2.gif
 
 With http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq3.gif
+
+y0 represents the bias of the network and is commonly modeled by adding and extra node which is always activated from the first layer to the n-1 layer.
 
 === Training via Back-propagation ===
 The feedforward, back-propagation architecture was developed in the early 1970's by several independent sources (Werbor; Parker; Rumelhart, Hinton and Williams). This independent co-development was the result of a proliferation of articles and talks at various conferences which stimulated the entire industry. Currently, this synergistically developed back-propagation architecture is the most popular, effective, and easy-to-learn model for complex, multi-layered networks.  Its greatest strength is in non-linear solutions to ill-defined problems. The typical back-propagation network has an input layer, an output layer, and at least one hidden layer. There is no theoretical limit on the number of hidden layers but typically there are just one or two.
