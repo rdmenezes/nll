@@ -63,6 +63,8 @@ The equation (1) is used to compute the weight update of the last layer, whereas
 
 The weights are updated every time a test pattern is presented, this is called the stochastic gradient descent. Other updates exist such as batch where the weight are updated only after all samples have been presented. Stochastic gradient descent usually converges much faster than the batch as the weights are updated more often.
 
+Other commonly used techniques are weight decays, where the cost function includes a penalty on networks having more weights:
+
 === Boundary decision ===
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
 
