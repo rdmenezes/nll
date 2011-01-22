@@ -65,6 +65,13 @@ The weights are updated every time a test pattern is presented, this is called t
 
 Other commonly used techniques are weight decays, where the cost function includes a penalty on networks having more weights:
 
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq11.gif
+
+Having more weigh means the network is becoming more complex and often a sign of overfitting. The update of the equation is let as an exercise for the reader :) Another technique is the momentum, which re-use partly the gradient computed at the previous iteration:
+
+http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq10.gif
+
+
 === Boundary decision ===
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
 
