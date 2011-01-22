@@ -12,6 +12,7 @@ MLP is a Feed-forward neural networks, where the data is propagated from input t
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/net.png
 
 The number of layers and the number of processing elements per layer are important decisions. There is no quantifiable, best answer to the layout of the network for any particular application. There are only general rules picked up over time and followed by most researchers and engineers applying this architecture to their problems.
+A one-hidden layer MLP is an universal approximator, i.e., it can approximate any function to any desired accuracy. However the number of hidden nodes to achieve is accuracy is growing exponentially.
 
 === Propagation ===
 For each output unit of each layer, we define:
