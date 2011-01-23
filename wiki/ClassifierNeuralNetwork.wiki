@@ -71,7 +71,7 @@ Having more weigh means the network is becoming more complex and often a sign of
 
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/eq10.gif
 
-With eta a constant close to 1, with 1 is equivalent than momentum, a value closer to 0 will take more into consideration the previous updates.
+With eta a constant close to 1, with 1 is equivalent no momentum, a value closer to 0 will take more into consideration the previous updates.
 
 === Boundary decision ===
 http://nll.googlecode.com/svn/devl/wiki/NeuralNetworks/bondary.png
