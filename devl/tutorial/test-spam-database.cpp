@@ -2,6 +2,7 @@
 #include <tester/register.h>
 #include <nll/nll.h>
 #include "database-benchmark.h"
+#include "utils.h"
 
 namespace nll
 {
@@ -35,10 +36,27 @@ namespace tutorial
          std::cout << "error=" << error << std::endl;
          TESTER_ASSERT( fabs( error ) <= 0.08 );
       }
+
+      void testDisplay()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "spambase.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         {
+            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, dat );
+            nll::core::writeBmp( i, NLL_DATABASE_PATH "sammon.bmp" );
+         }
+      }
    };
 
    TESTER_TEST_SUITE( TestSpamDatabase );
-   TESTER_TEST( testSvm );
+   //TESTER_TEST( testSvm );
+   TESTER_TEST( testDisplay );
    TESTER_TEST_SUITE_END();
 }
 }

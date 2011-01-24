@@ -157,7 +157,6 @@ namespace algorithm
          template <class Points>
          type compute( const Points& ps )
          {
-            std::cout << "compute d" << std::endl;
             type sum = 0;
             const ui32 size = static_cast<ui32>( ps.size() );
             if ( _d.sizex() != size || _d.sizey() != size )
@@ -174,8 +173,6 @@ namespace algorithm
                   sum += d;
                }
             }
-
-            std::cout << "end compute d" << std::endl;
             return sum;
          }
 

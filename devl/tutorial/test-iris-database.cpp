@@ -248,20 +248,19 @@ namespace tutorial
 
          {
             nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, preprocessedDat );
-            nll::core::writeBmp( i, "c:/out.bmp" );
+            nll::core::writeBmp( i, NLL_DATABASE_PATH "sammon_iris.bmp" );
          }
 
 
          {
             nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, preprocessedDat, c );
-            nll::core::writeBmp( i, "c:/outc.bmp" );
+            nll::core::writeBmp( i, NLL_DATABASE_PATH "sammon_irisc.bmp" );
          }
       }
    };
 
    TESTER_TEST_SUITE( TestIrisDatabase );
    TESTER_TEST( testSammon );
-   /*
    TESTER_TEST( testSvmIca );
    TESTER_TEST( testSvm );
    TESTER_TEST( testSvmPca );
@@ -270,7 +269,6 @@ namespace tutorial
    TESTER_TEST( testBayes );
    TESTER_TEST( testKernelKpca );
    TESTER_TEST( testKernelKpca2 );
-   */
    TESTER_TEST_SUITE_END();
 }
 }

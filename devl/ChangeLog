@@ -8,7 +8,7 @@ v0.13
 -added gram-schmidt orthogonalization
 -added kutosis
 -added logistic distribution
--added Radial Basis neural network classifier
+-added Radial Basis Function neural network classifier
 -added naives bayes classifier
 -added quadratic discriminant classifier/feature transformation
 -added database concatenation
