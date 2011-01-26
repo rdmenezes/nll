@@ -162,6 +162,7 @@ namespace tutorial
          TESTER_ASSERT( fabs( error ) <= 0.061 );
       }
 
+
       void testKernelKpca()
       {
          typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
@@ -181,7 +182,7 @@ namespace tutorial
          preprocesser.compute( dat );
          Classifier::Database preprocessedDat = preprocesser.transform( dat );
 
-         KPca pca( Kernel( 30 ) );
+         KPca pca( Kernel( 510 ) );
          bool computed = pca.compute( preprocessedDat, 16 );
          TESTER_ASSERT( computed );
 
@@ -189,7 +190,7 @@ namespace tutorial
 
 
          ClassifierImpl c;
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.00008, 100 ), data );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 1.3, 100 ), data );
 
 
          std::cout << "error=" << error << std::endl;
@@ -216,10 +217,10 @@ namespace tutorial
          Classifier::Database data = pca.transform( dat );
 
          ClassifierImpl c;
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.000008, 100 ), data );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.1, 100 ), data );
 
          std::cout << "error=" << error << std::endl;
-         TESTER_ASSERT( fabs( error ) <= 0.021 );
+         TESTER_ASSERT( fabs( error ) <= 0.027 );
       }
 
       void testSammon()
