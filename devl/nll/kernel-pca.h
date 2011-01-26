@@ -98,25 +98,21 @@ namespace algorithm
             sumA += kernel[ n ];
          }
 
-         // center the test kernel matrix
-         Vector centeredKernel( kernel.size() );
-         const double constVal = 1.0 / kernel.size();
-         for ( ui32 j = 0; j < kernel.size(); ++j )
-         {
-            centeredKernel[ j ] = kernel[ j ] - constVal * sumA
-                                              - _sumA[ j ]
-                                              + _sumC;
-         }
-
          Vector projected( nbEigenVectors );
          for ( ui32 k = 0; k < nbEigenVectors; ++k )
          {
             double sum = 0;
             for ( ui32 i = 0; i < kernel.size(); ++i )
             {
-               sum += _eig( i, k ) * centeredKernel[ i ];
+               sum += _eig( i, k ) * kernel[ i ];
             }
             projected[ k ] = sum;
+         }
+
+         const double cte = sumA / kernel.size() - _sumC;
+         for ( ui32 k = 0; k < nbEigenVectors; ++k )
+         {
+            projected[ k ] -= _sumB[ k ] * cte + _sumA[ k ];
          }
 
          return projected;
@@ -136,6 +132,7 @@ namespace algorithm
 
          _kernel->write( o );
          core::write<Vector>( _sumA, o );
+         core::write<Vector>( _sumB, o );
          core::write<double>( _sumC, o );
          return true;
       }
@@ -156,6 +153,7 @@ namespace algorithm
 
          _kernel = std::auto_ptr<Kernel>( new Kernel( i ) );
          core::read<Vector>( _sumA, i );
+         core::read<Vector>( _sumB, i );
          core::read<double>( _sumC, i );
          return true;
       }
@@ -187,7 +185,6 @@ namespace algorithm
 
          // precompute the sums
          _sumA = Vector( static_cast<ui32>( points.size() ) );
-         Vector sumB( static_cast<ui32>( points.size() ) );
          _sumC = 0;
          for ( ui32 m = 0; m < points.size() * points.size(); ++m )
             _sumC += kernelBase[ m ];
@@ -195,10 +192,14 @@ namespace algorithm
          {
             for ( ui32 m = 0; m < points.size(); ++m )
                   _sumA[ i ] += kernelBase( m, i );
-            for ( ui32 m = 0; m < points.size(); ++m )
-                  sumB[ i ] += kernelBase( i, m );
          }
          const double m1 = 1 / static_cast<double>( points.size() );
+
+         for ( ui32 i = 0; i < points.size(); ++i )
+         {
+            _sumA[ i ] *= m1;
+         }
+         _sumC *= m1 * m1;
 
          // center the kernel
          Matrix mkernel( kernelBase.sizey(), kernelBase.sizex() );
@@ -206,17 +207,11 @@ namespace algorithm
          {
             for ( ui32 j = i; j < points.size(); ++j )
             {               
-               mkernel( i, j ) = ( kernelBase( i, j ) - m1 * _sumA[ j ] - m1 * sumB[ i ] + m1 * m1 * _sumC ) / points.size();
+               mkernel( i, j ) = kernelBase( i, j ) - _sumA[ j ] - _sumA[ i ] + _sumC;
                mkernel( j, i ) = mkernel( i, j );
             }
          }
          kernelBase.unref();
-
-         for ( ui32 i = 0; i < points.size(); ++i )
-         {
-            _sumA[ i ] *= m1;
-         }
-         _sumC *= m1 * m1;
 
          std::stringstream ss2;
          mkernel.print( ss2 );
@@ -292,6 +287,24 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "selected kernel eigen vectors=" + core::val2str( nbFeatures )  );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
+
+         Vector sumA( static_cast<ui32>( _eig.sizey() ) );
+         Vector sumB( static_cast<ui32>( _eig.sizey() ) );
+         for ( ui32 k = 0; k < _eig.sizex(); ++k )
+         {
+            double sum = 0;
+            double sumalpha = 0;
+            for ( ui32 i = 0; i < _eig.sizey(); ++i )
+            {
+               sumalpha += _eig( i, k );
+               sum += _eig( i, k ) * _sumA[ i ];
+            }
+            sumA[ k ] = sum;
+            sumB[ k ] = sumalpha;
+         }
+         _sumA = sumA;
+         _sumB = sumB;
+
          return true;
       }
 
@@ -302,6 +315,7 @@ namespace algorithm
 
       // variables needed to precompute the feature extraction
       Vector   _sumA;
+      Vector   _sumB;
       double   _sumC;
    };
 }

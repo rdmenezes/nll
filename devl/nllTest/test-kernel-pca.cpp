@@ -19,6 +19,9 @@ namespace
 }
 
 // example validated against matlab prototype
+// http://www.heikohoffmann.de/documents/hoffmann_kpca_preprint.pdf
+// http://www.heikohoffmann.de/publications.html#hoffmann06b
+// http://www.heikohoffmann.de/kpca/kpca.zip
 class TestKernelPca
 {
 public:
@@ -45,11 +48,11 @@ public:
       KernelPca::Vector v = kpca.transform( points[ 0 ] );
 
       TESTER_ASSERT( v.size() == 5 );
-      TESTER_ASSERT( fabs( v[ 0 ] - -0.893936 ) < 1e-4 );
-      TESTER_ASSERT( fabs( v[ 1 ] - 1.268     ) < 1e-4 );
-      TESTER_ASSERT( fabs( v[ 2 ] - -0.650698 ) < 1e-4 );
-      TESTER_ASSERT( fabs( v[ 3 ] - 0.661651  ) < 1e-4 );
-      TESTER_ASSERT( fabs( v[ 4 ] - 0.210299  ) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 0 ] - -0.36494782009061227 ) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 1 ] - 0.51765993789384512) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 2 ] - -0.26564637758736048) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 3 ] - 0.27011779549760634) < 1e-4 );
+      TESTER_ASSERT( fabs( v[ 4 ] - 0.085854182000892176) < 1e-4 );
       v.print( std::cout );
 
       std::stringstream ss;
@@ -60,11 +63,11 @@ public:
 
       KernelPca::Vector v2 = kpca2.transform( points[ 0 ] );
       TESTER_ASSERT( v2.size() == 5 );
-      TESTER_ASSERT( fabs( v2[ 0 ] - -0.893936 ) < 1e-4 );
-      TESTER_ASSERT( fabs( v2[ 1 ] - 1.268     ) < 1e-4 );
-      TESTER_ASSERT( fabs( v2[ 2 ] - -0.650698 ) < 1e-4 );
-      TESTER_ASSERT( fabs( v2[ 3 ] - 0.661651  ) < 1e-4 );
-      TESTER_ASSERT( fabs( v2[ 4 ] - 0.210299  ) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 0 ] - -0.36494782009061227 ) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 1 ] - 0.51765993789384512) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 2 ] - -0.26564637758736048) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 3 ] - 0.27011779549760634) < 1e-4 );
+      TESTER_ASSERT( fabs( v2[ 4 ] - 0.085854182000892176) < 1e-4 );
    }
 };
 
