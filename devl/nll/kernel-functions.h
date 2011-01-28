@@ -87,6 +87,11 @@ namespace algorithm
          read( i );
       }
 
+      double getVar() const
+      {
+         return _var;
+      }
+
       virtual double operator()( const Point& p1, const Point& p2 ) const
       {
          assert( p1.size() == p2.size() );

@@ -157,6 +157,22 @@ namespace algorithm
          core::read<double>( _sumC, i );
          return true;
       }
+
+      const Kernel& getKernel() const
+      {
+         return *_kernel;
+      }
+
+      const std::vector<Point>& getSupports() const
+      {
+         return _points;
+      }
+
+      const Matrix& getEigenVectors() const
+      {
+         return _eig;
+      }
+
    private:
       KernelPca& operator=( const KernelPca& );
       KernelPca( const KernelPca& );
