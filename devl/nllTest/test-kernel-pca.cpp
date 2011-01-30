@@ -116,16 +116,22 @@ namespace algortihm
          bool result = core::svdcmp( centered, eiv, r );
          ensure( result, "cannot compute SVD" );
 
-         // get the rank
+         // compute the second distance estimate
+         Matrix z = _getProjection( eiv, r );
+         Vector d02( z.size() );
+         for ( ui32 n = 0; n < z.sizex(); ++n )
+         {
+            double sum = 0;
+            for ( ui32 y = 0; y < z.sizey(); ++y )
+            {
+               sum += core::sqr( z( y, n ) );
+            }
+            d02[ n ] = sum;
+         }
 
-         r.print( std::cout );
-         eiv.print( std::cout );
-         
+         //
 
-
-         df.print( std::cout );
-
-         centered.print( std::cout );
+         d02.print( std::cout );
 
          /*
          [U,L,V] = svd(X*H);
@@ -139,7 +145,40 @@ namespace algortihm
          x = U*z + sum(X,2)/nn;
          */
 
+         //Matrix z = _getProjection( eiv, r );
+         z.print( std::cout);
+
          return Point();
+      }
+
+   private:
+      // compute Z
+      // [U,L,V] = svd(X*H);
+      // r = rank(L);
+      // Z = L*V';
+      static Matrix _getProjection( const Vector& eiv, const Matrix& eig )
+      {
+         ui32 nbEig = 0;
+         std::vector<double> eivp;
+         for ( ui32 n = 0; n < eiv.size(); ++n )
+         {
+            if ( eiv[ n ] > 1e-15 )
+            {
+               ++nbEig;
+               eivp.push_back( eiv[ n ] );
+            }
+         }
+
+         ui32 cy = 0;
+         Matrix proj( nbEig, eig.sizey() );
+         for ( ui32 y = 0; y < proj.sizey(); ++y )
+         {
+            for ( ui32 x = 0; x < proj.sizex(); ++x )
+            {
+               proj( y, x ) = eivp[ y ] * eig( x, y );
+            }
+         }
+         return proj;
       }
    };
 }

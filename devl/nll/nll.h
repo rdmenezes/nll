@@ -133,6 +133,7 @@
 # include "matrix-svd.h"
 # include "matrix-custom.h"
 # include "matrix-cholesky.h"
+# include "matrix-pseudo-inverse.h"
 # include "math-distribution-multinormal.h"
 # include "type-traits.h"
 # include "type-traits-inherited.h"
