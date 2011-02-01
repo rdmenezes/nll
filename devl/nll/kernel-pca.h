@@ -126,6 +126,7 @@ namespace algorithm
 
          _kernel->write( o );
          core::write<Vector>( _sumA, o );
+         //core::write<Vector>( _sumB, o );
          core::write<double>( _sumC, o );
          return true;
       }
