@@ -42,16 +42,20 @@ namespace algortihm
 
     @brief for computation see http://opus.kobv.de/tuberlin/volltexte/2006/1256/pdf/bakir_goekhan.pdf
                            and http://www.hpl.hp.com/conferences/icml2003/papers/345.pdf
+                               http://cmp.felk.cvut.cz/cmp/software/stprtool/manual/kernels/preimage/list/rbfpreimg3.html
     */
    template <class Point, class Kernel>
    class KernelPreImageMDS
    {
    public:
-      KernelPreImageMDS()
+      KernelPreImageMDS( const KernelPca<Point, Kernel>& )
       {
          STATIC_ASSERT( 0 ); // this operation is not yet implemented for this kernel. Note that
          // only for a restricted subset of kernels, a pre-image can be computed
       }
+
+      template <class Point2>
+      Point preimage( const Point2& feature, ui32 nbNeighbours = 7 ) const;
    };
 
    /**
@@ -74,7 +78,7 @@ namespace algortihm
          const Kernel& kernel = kernelPca.getKernel();
 
          _bias = _computeBias( kernelPca );
-         _kernel = Matrix( supports.size(), supports.size() );
+         _kernel = Matrix( (ui32)supports.size(), (ui32)supports.size() );
          for ( ui32 nx = 0; nx < supports.size(); ++nx )
          {
             for ( ui32 ny = 0; ny < supports.size(); ++ny )
@@ -96,7 +100,6 @@ namespace algortihm
       Point preimage( const Point2& feature, ui32 nbNeighbours = 7 ) const
       {
          const Kernel& kernel = _kernelPca.getKernel();
-         const ui32 nbSupports = static_cast<ui32>( _kernelPca.getSupports().size() );
          const std::vector<Point>& supports = _kernelPca.getSupports();
          ensure( _kernelPca.getSupports().size() > 0, "kernel PCA not trained!" );
 
@@ -113,7 +116,7 @@ namespace algortihm
 
          // compute the neighbours
          std::sort( d.begin(), d.end() );
-         nbNeighbours = std::min<ui32>( nbNeighbours, d.size() ); // if there is less than <nbNeighbours> then use only these ones
+         nbNeighbours = std::min<ui32>( nbNeighbours, (ui32)d.size() ); // if there is less than <nbNeighbours> then use only these ones
 
          // center the neighbours
          const ui32 pointDim = static_cast<ui32>( supports[ 0 ].size() );
@@ -218,7 +221,6 @@ namespace algortihm
             }
          }
 
-         ui32 cy = 0;
          Matrix proj( nbEig, eig.sizey() );
          for ( ui32 y = 0; y < proj.sizey(); ++y )
          {
@@ -235,7 +237,6 @@ namespace algortihm
       Vector _computeDistance( const KernelPca<Point, Kernel>& kernelPca, const Point2& feature ) const
       {  
          const std::vector<Point>& supports = kernelPca.getSupports();
-         const Kernel& kernel = kernelPca.getKernel();
 
          // first project the <feature> on the alphas
          Vector kx( feature.size() );
@@ -252,7 +253,7 @@ namespace algortihm
          Matrix const2 = projection * kalpha;
 
          // compute the distance in feature space between projection and all supports
-         Vector dist( supports.size() );
+         Vector dist( (ui32)supports.size() );
          for ( ui32 n = 0; n < dist.size(); ++n )
          {
             dist[ n ] = 1 + const2[ 0 ] - 2 * kalpha[ n ];
