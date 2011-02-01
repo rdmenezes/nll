@@ -16,6 +16,18 @@ namespace
       {-0.1648,    0.0233 },
       { 0.1852,   -0.0516 }
    };
+
+   double test_data2[][ 2 ] =
+   {
+      { 0.0699,    1.0389 },
+      {-1.0007,   -2.0108 },
+      {-1.2154,   -1.0546 },
+      { 3.2194,    3.0261 },
+      {-2.1648,    -1.0233 },
+      { 1.6852,   -0.0516 },
+      {-2.9648,    -1.2233 },
+      { -0.6852,   0.0516 }
+   };
 }
 
 namespace nll
@@ -72,55 +84,6 @@ namespace algortihm
          }
       }
 
-      // compute the distance in feature space between the test point <feature> and the support
-      template <class Point2>
-      Vector _compute( const KernelPca<Point, Kernel>& kernelPca, const Point2& feature ) const
-      {  
-         const std::vector<Point>& supports = kernelPca.getSupports();
-         const Kernel& kernel = kernelPca.getKernel();
-
-         // first project the <feature> on the alphas
-         Vector kx( feature.size() );
-         for ( ui32 n = 0; n < kx.size(); ++n )
-         {
-           kx[ n ] = feature[ n ] - _bias[ n ];
-         }
-         Matrix projection = kernelPca.getEigenVectors() * Matrix( kx, kx.size(), 1 );
-         projection.print( std::cout );
-
-         // here we want to compute the distance by using the kernel matrix
-         // different from the denoising only case...
-         Matrix kalpha = _kernel * projection;
-         core::transpose( projection );
-         Matrix const2 = projection * kalpha;
-
-         // compute the distance in feature space between projection and all supports
-         Vector dist( supports.size() );
-         for ( ui32 n = 0; n < dist.size(); ++n )
-         {
-            dist[ n ] = 1 + const2[ 0 ] - 2 * kalpha[ n ];
-         }
-
-         return dist;
-      }
-
-      // compute (-_sumA+mean(_sumA)' * eiv
-      static Vector _computeBias( const KernelPca<Point, Kernel>& kernelPca )
-      {
-         Vector bias;
-         bias.clone( kernelPca.getBias() );
-
-         double sum = 0;
-         for ( ui32 n = 0; n < bias.size(); ++n )
-            sum += bias[ n ];
-         sum /= bias.size();
-
-         for ( ui32 n = 0; n < bias.size(); ++n )
-            bias[ n ] = sum - bias[ n ];
-         Matrix b = Matrix( bias, 1, bias.size() ) * kernelPca.getEigenVectors();
-         return b;
-      }
-
       /**
        @brief compute the preimage
        @param kernelPca the kernel PCA model
@@ -139,7 +102,7 @@ namespace algortihm
 
 
          // compute the distance in input space by method 1
-         Vector df = _compute( _kernelPca, feature );  // ||feature, support||_2^2 distance in feature space
+         Vector df = _computeDistance( _kernelPca, feature );  // ||feature, support||_2^2 distance in feature space
          std::vector< std::pair<double, ui32> > d;
          for ( ui32 n = 0; n < df.size(); ++n )
          {
@@ -241,7 +204,7 @@ namespace algortihm
       // compute Z
       // [U,L,V] = svd(X*H);
       // r = rank(L);
-      // Z = L*V';
+      // return Z = L*V';
       static Matrix _getProjection( const Vector& eiv, const Matrix& eig )
       {
          ui32 nbEig = 0;
@@ -265,6 +228,54 @@ namespace algortihm
             }
          }
          return proj;
+      }
+
+      // compute the distance in feature space between the test point <feature> and the support
+      template <class Point2>
+      Vector _computeDistance( const KernelPca<Point, Kernel>& kernelPca, const Point2& feature ) const
+      {  
+         const std::vector<Point>& supports = kernelPca.getSupports();
+         const Kernel& kernel = kernelPca.getKernel();
+
+         // first project the <feature> on the alphas
+         Vector kx( feature.size() );
+         for ( ui32 n = 0; n < kx.size(); ++n )
+         {
+           kx[ n ] = feature[ n ] - _bias[ n ];
+         }
+         Matrix projection = kernelPca.getEigenVectors() * Matrix( kx, kx.size(), 1 );
+
+         // here we want to compute the distance by using the kernel matrix
+         // different from the denoising only case...
+         Matrix kalpha = _kernel * projection;
+         core::transpose( projection );
+         Matrix const2 = projection * kalpha;
+
+         // compute the distance in feature space between projection and all supports
+         Vector dist( supports.size() );
+         for ( ui32 n = 0; n < dist.size(); ++n )
+         {
+            dist[ n ] = 1 + const2[ 0 ] - 2 * kalpha[ n ];
+         }
+
+         return dist;
+      }
+
+      // compute (-_sumA+mean(_sumA)' * eiv
+      static Vector _computeBias( const KernelPca<Point, Kernel>& kernelPca )
+      {
+         Vector bias;
+         bias.clone( kernelPca.getBias() );
+
+         double sum = 0;
+         for ( ui32 n = 0; n < bias.size(); ++n )
+            sum += bias[ n ];
+         sum /= bias.size();
+
+         for ( ui32 n = 0; n < bias.size(); ++n )
+            bias[ n ] = sum - bias[ n ];
+         Matrix b = Matrix( bias, 1, bias.size() ) * kernelPca.getEigenVectors();
+         return b;
       }
 
    private:
@@ -334,22 +345,22 @@ public:
       typedef nll::algorithm::KernelRbf<Point>   Kernel;
       typedef nll::algorithm::KernelPca<Point, Kernel>  KernelPca;
 
-      const unsigned size = nll::core::getStaticBufferSize( test_data );
+      const unsigned size = nll::core::getStaticBufferSize( test_data2 );
       Points points;
       for ( unsigned n = 0; n < size; ++n )
       {
-         points.push_back( nll::core::make_vector<double>( test_data[ n ][ 0 ], test_data[ n ][ 1 ] ) );
+         points.push_back( nll::core::make_vector<double>( test_data2[ n ][ 0 ], test_data2[ n ][ 1 ] ) );
       }
 
       KernelPca kpca;
-      Kernel rbfKernel( 0.02 );
+      Kernel rbfKernel( 2.0 );
       kpca.compute( points, 5, rbfKernel );
 
 
       nll::algortihm::KernelPreImageMDS<Point, Kernel> preimageGenerator( kpca );
 
       //preimageGenerator.preimage( kpca, points[ 0 ], 3 );
-      nll::core::Buffer1D<double> f = kpca.transform( nll::core::make_vector<double>( -0.1154,    0.0946) );
+      nll::core::Buffer1D<double> f = kpca.transform( nll::core::make_vector<double>( -2.2154,    -0.446) );
 //      nll::core::Buffer1D<double> f = kpca.transform( points[ 0 ] );
       preimageGenerator.preimage( f, 3 );
    }
