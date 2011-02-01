@@ -97,6 +97,7 @@ namespace algorithm
             kernel[ n ] = (*_kernel)( t, _points[ n ] );
             sumA += kernel[ n ];
          }
+         sumA /= kernel.size();
 
          Vector projected( nbEigenVectors );
          for ( ui32 k = 0; k < nbEigenVectors; ++k )
@@ -104,17 +105,10 @@ namespace algorithm
             double sum = 0;
             for ( ui32 i = 0; i < kernel.size(); ++i )
             {
-               sum += _eig( i, k ) * kernel[ i ];
+               sum += _eig( i, k ) * ( kernel[ i ] - sumA - _sumA[ i ] + _sumC );
             }
             projected[ k ] = sum;
          }
-
-         const double cte = sumA / kernel.size() - _sumC;
-         for ( ui32 k = 0; k < nbEigenVectors; ++k )
-         {
-            projected[ k ] -= _sumB[ k ] * cte + _sumA[ k ];
-         }
-
          return projected;
       }
 
@@ -132,7 +126,6 @@ namespace algorithm
 
          _kernel->write( o );
          core::write<Vector>( _sumA, o );
-         core::write<Vector>( _sumB, o );
          core::write<double>( _sumC, o );
          return true;
       }
@@ -153,7 +146,6 @@ namespace algorithm
 
          _kernel = std::auto_ptr<Kernel>( new Kernel( i ) );
          core::read<Vector>( _sumA, i );
-         core::read<Vector>( _sumB, i );
          core::read<double>( _sumC, i );
          return true;
       }
@@ -171,6 +163,11 @@ namespace algorithm
       const Matrix& getEigenVectors() const
       {
          return _eig;
+      }
+
+      const Vector& getBias() const
+      {
+         return _sumA;
       }
 
    private:
@@ -304,23 +301,6 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         Vector sumA( static_cast<ui32>( _eig.sizey() ) );
-         Vector sumB( static_cast<ui32>( _eig.sizey() ) );
-         for ( ui32 k = 0; k < _eig.sizex(); ++k )
-         {
-            double sum = 0;
-            double sumalpha = 0;
-            for ( ui32 i = 0; i < _eig.sizey(); ++i )
-            {
-               sumalpha += _eig( i, k );
-               sum += _eig( i, k ) * _sumA[ i ];
-            }
-            sumA[ k ] = sum;
-            sumB[ k ] = sumalpha;
-         }
-         _sumA = sumA;
-         _sumB = sumB;
-
          return true;
       }
 
@@ -330,8 +310,7 @@ namespace algorithm
       std::vector<Point>     _points;  /// support vectors
 
       // variables needed to precompute the feature extraction
-      Vector   _sumA;
-      Vector   _sumB;
+      Vector   _sumA;      // used as implicit centering
       double   _sumC;
    };
 }
