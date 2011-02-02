@@ -446,10 +446,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\exception.h"
-				>
-			</File>
-			<File
 				RelativePath=".\generic-operations.h"
 				>
 			</File>
@@ -997,58 +993,6 @@
 			>
 			<File
 				RelativePath=".\mask-exporter.h"
-				>
-			</File>
-		</Filter>
-		<Filter
-			Name="preprocessing"
-			>
-			<File
-				RelativePath=".\preprocessing-bridge-image-vector.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-classifier.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-image-center.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-image-gabor.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-image-place.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-image-resample.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-raw-normalize.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-raw-select.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-typelist-concatenate.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-typelist-operation.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-typelist.h"
-				>
-			</File>
-			<File
-				RelativePath=".\preprocessing-unit.h"
 				>
 			</File>
 		</Filter>

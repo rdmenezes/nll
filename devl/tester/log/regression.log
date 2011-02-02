@@ -4,6 +4,10 @@
 nll.machine=AMD64_3.4G
 nll.version=nll-0.14
 
+[nll.metadata.debug.I64_12_core_2.66]
+nll.machine=I64_12_core_2.66
+nll.version=nll-0.14
+
 [nll.metadata.release.AMD64_3.4G]
 nll.machine=AMD64_3.4G
 nll.version=nll-0.14
@@ -109,6 +113,10 @@ nll.TestVolumeResampling.testResamplingTranslationRotation2=0.031
 nll.TestVolumeResampling.testResamplingTranslationRotation3=0.031
 nll.TestVolumeResampling.testResamplingTranslationRotation4=0.016
 nll.TestVolumeResampling.testResamplingTranslationRotation5=0.031
+
+[nll.testdata.debug.I64_12_core_2.66]
+nll.TestKernelPca.simplePreimageTest=0
+nll.TestKernelPca.simpleTest=0
 
 [nll.testdata.release.AMD64_3.4G]
 nll.TestAllocator.testAllocatorAligned16Byte=0
