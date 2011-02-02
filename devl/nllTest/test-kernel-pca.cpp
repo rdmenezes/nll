@@ -28,263 +28,24 @@ namespace
       {-2.9648,    -1.2233 },
       { -0.6852,   0.0516 }
    };
-}
 
-namespace nll
-{
-namespace algortihm
-{
-   /**
-    @brief Generic pre-image implementing the Multi-Dimensional Scaling (MDS) by James T. Kwok and Ivor W. Tsang
-           in "The Pre-Image Problem in Kernel Methods", 2003
-    @note this is typically used for denoising problems: we project the noisy example on the feature space and try 
-          to reconstruct a denoised example using a trained KernelPca
-
-    @brief for computation see http://opus.kobv.de/tuberlin/volltexte/2006/1256/pdf/bakir_goekhan.pdf
-                           and http://www.hpl.hp.com/conferences/icml2003/papers/345.pdf
-                               http://cmp.felk.cvut.cz/cmp/software/stprtool/manual/kernels/preimage/list/rbfpreimg3.html
-    */
-   template <class Point, class Kernel>
-   class KernelPreImageMDS
+   double test_points[][ 2 ] =
    {
-   public:
-      KernelPreImageMDS( const KernelPca<Point, Kernel>& )
-      {
-         STATIC_ASSERT( 0 ); // this operation is not yet implemented for this kernel. Note that
-         // only for a restricted subset of kernels, a pre-image can be computed
-      }
-
-      template <class Point2>
-      Point preimage( const Point2& feature, ui32 nbNeighbours = 7 ) const;
+      { -2.2154,    -0.446 },
+      { -1.2154,    -1.446 },
+      { -0.2154,    -2.446 },
+      { 0.56,       0.56   },
+      { 1.56,       0.86   }
    };
 
-   /**
-    @brief Given a point in feature space z, we are looking for the closest preimage x so that x = arg min_x ||theta(x) - z ||
-           
-    @note that this is only valid for a gaussian kernel!
-    */
-   template <class Point>
-   class KernelPreImageMDS< Point, KernelRbf<Point> >
+   double test_points_expected[][ 2 ] =
    {
-   public:
-      typedef KernelRbf<Point>         Kernel;
-      typedef core::Buffer1D<double>   Vector;
-      typedef core::Matrix<double>     Matrix;
-
-   public:
-      KernelPreImageMDS( const KernelPca<Point, Kernel>& kernelPca ) : _kernelPca( kernelPca )
-      {
-         const std::vector<Point>& supports = kernelPca.getSupports();
-         const Kernel& kernel = kernelPca.getKernel();
-
-         _bias = _computeBias( kernelPca );
-         _kernel = Matrix( (ui32)supports.size(), (ui32)supports.size() );
-         for ( ui32 nx = 0; nx < supports.size(); ++nx )
-         {
-            for ( ui32 ny = 0; ny < supports.size(); ++ny )
-            {
-               _kernel( ny, nx ) = kernel( supports[ nx ], supports[ ny ] );
-            }
-         }
-      }
-
-      /**
-       @brief compute the preimage
-       @param kernelPca the kernel PCA model
-       @param feature the point in feature space we want to find the pre-image
-       @param nbNeighbours the number of neighbours to be used to compute the preimage
-
-       direct implementation of http://cmp.felk.cvut.cz/cmp/software/stprtool/manual/kernels/preimage/list/rbfpreimg3.html
-       */
-      template <class Point2>
-      Point preimage( const Point2& feature, ui32 nbNeighbours = 7 ) const
-      {
-         const Kernel& kernel = _kernelPca.getKernel();
-         const std::vector<Point>& supports = _kernelPca.getSupports();
-         ensure( _kernelPca.getSupports().size() > 0, "kernel PCA not trained!" );
-
-
-         // compute the distance in input space by method 1
-         Vector df = _computeDistance( _kernelPca, feature );  // ||feature, support||_2^2 distance in feature space
-         std::vector< std::pair<double, ui32> > d;
-         for ( ui32 n = 0; n < df.size(); ++n )
-         {
-            // compute the distance in input space
-            const double di = - kernel.getVar() * log( 1 - 0.5 * df[ n ] );
-            d.push_back( std::make_pair( di, n ) );
-         }
-
-         // compute the neighbours
-         std::sort( d.begin(), d.end() );
-         nbNeighbours = std::min<ui32>( nbNeighbours, (ui32)d.size() ); // if there is less than <nbNeighbours> then use only these ones
-
-         // center the neighbours
-         const ui32 pointDim = static_cast<ui32>( supports[ 0 ].size() );
-         Matrix centered( pointDim, nbNeighbours );
-         Vector mean( pointDim );
-         for ( ui32 dim = 0; dim < pointDim; ++dim )
-         {
-            // center for each axis
-            double sum = 0;
-            for ( ui32 n = 0; n < nbNeighbours; ++n )
-            {
-               const ui32 id = d[ n ].second;
-               sum += supports[ id ][ dim ];
-            }
-            mean[ dim ] = sum / nbNeighbours;
-            for ( ui32 n = 0; n < nbNeighbours; ++n )
-            {
-               const ui32 id = d[ n ].second;
-               for ( ui32 dim = 0; dim < pointDim; ++dim )
-               {
-                  centered( dim, n ) = supports[ id ][ dim ] - mean[ dim ];
-               }
-            }
-         }
-
-         // compute the projection
-         Vector eiv;
-         Matrix r;
-         bool result = core::svdcmp( centered, eiv, r );
-         ensure( result, "cannot compute SVD" );
-
-         // compute the second distance estimate
-         Matrix z = _getProjection( eiv, r );
-         const ui32 rank = z.sizey();
-         Vector d02( nbNeighbours );
-         for ( ui32 n = 0; n < z.sizex(); ++n )
-         {
-            double sum = 0;
-            for ( ui32 y = 0; y < z.sizey(); ++y )
-            {
-               sum += core::sqr( z( y, n ) );
-            }
-            d02[ n ] = sum;
-         }
-
-         // compute
-         // [U,L,V] = svd(X*H);
-         // Z = L*V';
-         // d02 = sum(Z.^2)';
-         // z = -0.5*pinv(Z')*(d2-d02);
-         // x = U*z + sum(X,2)/nn;
-         for ( ui32 n = 0; n < d02.size(); ++n )
-         {
-            d02[ n ] = - 0.5 * ( d[ n ].first - d02[ n ] );
-         }
-
-         core::transpose( z );
-         Matrix pinvz = core::pseudoInverse( z );
-         z = pinvz * Matrix( d02, d02.size(), 1 );
-
-         Matrix U( centered.sizey(), rank );
-         for ( ui32 x = 0; x < U.sizex(); ++x )
-         {
-            for ( ui32 y = 0; y < U.sizey(); ++y )
-            {
-               U( y, x ) = centered( y, x );
-            }
-         }
-
-         Matrix sx = U * z;
-
-         Point p( sx.sizey() );
-         for ( ui32 y = 0; y < sx.sizey(); ++y )
-         {
-            double sum = 0;
-            for ( ui32 x = 0; x < nbNeighbours; ++x )
-            {
-               const ui32 id = d[ x ].second;
-               sum += supports[ id ][ y ];
-            }
-            p[ y ] += sx( y, 0 ) + sum / nbNeighbours;
-         }
-
-         return p;
-      }
-
-   private:
-      // compute Z
-      // [U,L,V] = svd(X*H);
-      // r = rank(L);
-      // return Z = L*V';
-      static Matrix _getProjection( const Vector& eiv, const Matrix& eig )
-      {
-         ui32 nbEig = 0;
-         std::vector<double> eivp;
-         for ( ui32 n = 0; n < eiv.size(); ++n )
-         {
-            if ( eiv[ n ] > 1e-15 )
-            {
-               ++nbEig;
-               eivp.push_back( eiv[ n ] );
-            }
-         }
-
-         Matrix proj( nbEig, eig.sizey() );
-         for ( ui32 y = 0; y < proj.sizey(); ++y )
-         {
-            for ( ui32 x = 0; x < proj.sizex(); ++x )
-            {
-               proj( y, x ) = eivp[ y ] * eig( x, y );
-            }
-         }
-         return proj;
-      }
-
-      // compute the distance in feature space between the test point <feature> and the support
-      template <class Point2>
-      Vector _computeDistance( const KernelPca<Point, Kernel>& kernelPca, const Point2& feature ) const
-      {  
-         const std::vector<Point>& supports = kernelPca.getSupports();
-
-         // first project the <feature> on the alphas
-         Vector kx( feature.size() );
-         for ( ui32 n = 0; n < kx.size(); ++n )
-         {
-           kx[ n ] = feature[ n ] - _bias[ n ];
-         }
-         Matrix projection = kernelPca.getEigenVectors() * Matrix( kx, kx.size(), 1 );
-
-         // here we want to compute the distance by using the kernel matrix
-         // different from the denoising only case...
-         Matrix kalpha = _kernel * projection;
-         core::transpose( projection );
-         Matrix const2 = projection * kalpha;
-
-         // compute the distance in feature space between projection and all supports
-         Vector dist( (ui32)supports.size() );
-         for ( ui32 n = 0; n < dist.size(); ++n )
-         {
-            dist[ n ] = 1 + const2[ 0 ] - 2 * kalpha[ n ];
-         }
-
-         return dist;
-      }
-
-      // compute (-_sumA+mean(_sumA)' * eiv
-      static Vector _computeBias( const KernelPca<Point, Kernel>& kernelPca )
-      {
-         Vector bias;
-         bias.clone( kernelPca.getBias() );
-
-         double sum = 0;
-         for ( ui32 n = 0; n < bias.size(); ++n )
-            sum += bias[ n ];
-         sum /= bias.size();
-
-         for ( ui32 n = 0; n < bias.size(); ++n )
-            bias[ n ] = sum - bias[ n ];
-         Matrix b = Matrix( bias, 1, bias.size() ) * kernelPca.getEigenVectors();
-         return b;
-      }
-
-   private:
-      const KernelPca<Point, Kernel>&  _kernelPca;
-      Vector                           _bias;
-      Matrix                           _kernel;
+      { -2.0830,    -2.6640 },
+      {-1.1868,     -1.5756},
+      {-1.1323,     -2.0077},
+      {0.5007,      0.4046},
+      {0.9746,      0.0897}
    };
-}
 }
 
 // example validated against matlab prototype
@@ -339,6 +100,9 @@ public:
       TESTER_ASSERT( fabs( v2[ 4 ] - 0.085854182000892176) < 1e-4 );
    }
 
+   //
+   // checked against http://cmp.felk.cvut.cz/cmp/software/stprtool/manual/kernels/preimage/list/rbfpreimg3.html
+   //
    void simplePreimageTest()
    {
       typedef std::vector<double>               Point;
@@ -358,18 +122,22 @@ public:
       kpca.compute( points, 5, rbfKernel );
 
 
-      nll::algortihm::KernelPreImageMDS<Point, Kernel> preimageGenerator( kpca );
+      nll::algorithm::KernelPreImageMDS<Point, Kernel> preimageGenerator( kpca );
+      const unsigned sizeTest = nll::core::getStaticBufferSize( test_points_expected );
+      for ( ui32 n = 0; n < sizeTest; ++n )
+      {
+         nll::core::Buffer1D<double> f = kpca.transform( nll::core::make_vector<double>( test_points[ n ][ 0 ], test_points[ n ][ 1 ] ) );
+         Point res = preimageGenerator.preimage( f, 3 );
 
-      //preimageGenerator.preimage( kpca, points[ 0 ], 3 );
-      nll::core::Buffer1D<double> f = kpca.transform( nll::core::make_vector<double>( -2.2154,    -0.446) );
-//      nll::core::Buffer1D<double> f = kpca.transform( points[ 0 ] );
-      preimageGenerator.preimage( f, 3 );
+         TESTER_ASSERT( fabs( res[ 0 ] - test_points_expected[ n ][ 0 ] ) < 1e-2 );
+         TESTER_ASSERT( fabs( res[ 1 ] - test_points_expected[ n ][ 1 ] ) < 1e-2 );
+      }
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestKernelPca);
-//TESTER_TEST(simpleTest);
+TESTER_TEST(simpleTest);
 TESTER_TEST(simplePreimageTest);
 TESTER_TEST_SUITE_END();
 #endif

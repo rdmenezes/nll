@@ -230,6 +230,7 @@
 # include "hmm-continuous.h"
 # include "kernel-functions.h"
 # include "kernel-pca.h"
+# include "kernel-pca-preimage-mds.h"
 # include "classifier-gmm.h"
 # include "classifier-mlp.h"
 # include "classifier-discriminant.h"

@@ -282,6 +282,71 @@ namespace core
 	   return true;
    }
 
+   /**
+    @brief svd matlab like function
+           the eiv are ordered by eiv importance,
+           eiv <= epsilon are discarded (and corresponding rows removed in eiv, eig, out)
+
+    @note it is using significantly more memory due to matrices copy...
+    */
+   template <class type, class mapper, class allocator>
+   bool svd( const Matrix<type, mapper, allocator>& a, Matrix<type, mapper, allocator>& uOut,
+                                                       Buffer1D<type>& wOut,
+                                                       Matrix<type, mapper, allocator>& vOut,
+                                                       double epsilon = 1e-8 )
+   {
+      Matrix<type, mapper, allocator> cpa;
+      cpa.clone( a );
+
+      Buffer1D<type> w;
+      Matrix<type, mapper, allocator> v;
+      
+      bool res = svdcmp( cpa, w, v );
+      if ( !res )
+         return false;
+      
+      std::vector< std::pair< type, ui32 > > sorted;
+      for ( ui32 n = 0; n < w.size(); ++n )
+      {
+         if ( w[ n ] > epsilon )
+         {
+            sorted.push_back( std::make_pair( w[ n ], n ) );
+         }
+      }
+
+      std::sort( sorted.rbegin(), sorted.rend() );
+      Matrix<type, mapper, allocator> us( cpa.sizey(), sorted.size() );
+      for ( ui32 x = 0; x < us.sizex(); ++x )
+      {
+         ui32 index = sorted[ x ].second;
+         for ( ui32 y = 0; y < us.sizey(); ++y )
+         {
+            us( y, x ) = cpa( y, index );
+         }
+      }
+      uOut = us;
+
+      Buffer1D<type> ws( sorted.size() );
+      for ( ui32 n = 0; n < sorted.size(); ++n )
+      {
+         ws[ n ] = sorted[ n ].first;
+      }
+      wOut = ws;
+
+      Matrix<type, mapper, allocator> vs( v.sizey(), sorted.size() );
+      for ( ui32 x = 0; x < us.sizex(); ++x )
+      {
+         ui32 index = sorted[ x ].second;
+         for ( ui32 y = 0; y < v.sizey(); ++y )
+         {
+            vs( y, x ) = v( y, index );
+         }
+      }
+      vOut = vs;
+
+      return true;
+   }
+
 }
 }
 
