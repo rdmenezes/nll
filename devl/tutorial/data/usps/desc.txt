@@ -1,0 +1,17 @@
+USPS Dataset
+source: http://www-i6.informatik.rwth-aachen.de/~keysers/usps.html
+
+Note: This dataset (scaled to [-1:1] instead of [0:2]) also appears in the book "The elements of statistical learning" by Hastie, Tibshirani and Friedman (Springer, 2001). It is available from the corresponding website here with the name "ZIP code".
+The dataset consists of a training set (usps_train.jf, 1.4M) with 7291 images and a test set (usps_test.jf, 390k) with 2007 images. 
+The ".jf" format is an ASCII data file format we use because of easy portability (although the files are somewhat large) it contains: 
+
+line 1:
+[number of classes [integer]] [number of features [integer]]
+line 2...I+1:
+[classnumber of pattern i [integer in [0;number of classes-1]]]
+[features of pattern i [double]]
+line I+2:
+-1 (this is the end marker)
+
+
+The features are floating point in [0,2] for "historical" reasons. 
