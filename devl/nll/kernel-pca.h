@@ -222,10 +222,16 @@ namespace algorithm
                kernelBase( i, j ) = kernel( points[ i ], points[ j ] );
                kernelBase( j, i ) = kernelBase( i, j );
             }
-         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel=" );
-         std::stringstream ss;
-         kernelBase.print( ss );
-         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+
+         if ( points.size() < 500 )
+         {
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel=" );
+            std::stringstream ss;
+            kernelBase.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         } else {
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel computed" );
+         }
 
 
          // precompute the sums
@@ -258,10 +264,15 @@ namespace algorithm
          }
          kernelBase.unref();
 
-         std::stringstream ss2;
-         mkernel.print( ss2 );
-         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "centred kernel=" );
-         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss2.str() );
+         if ( points.size() < 500 )
+         {
+            std::stringstream ss2;
+            mkernel.print( ss2 );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "centred kernel=" );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss2.str() );
+         } else {
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "centred kernel computed" );
+         }
 
          return mkernel;
       }

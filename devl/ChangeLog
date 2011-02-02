@@ -1,5 +1,6 @@
 v0.14
 -fixed kernel PCA implementation
+-added kernel RBF pre-image
 -added converters
 -added Sammon's projection
 

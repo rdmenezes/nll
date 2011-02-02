@@ -12,6 +12,10 @@ nll.version=nll-0.14
 nll.machine=AMD64_3.4G
 nll.version=nll-0.14
 
+[nll.metadata.release.I64_12_core_2.66]
+nll.machine=I64_12_core_2.66
+nll.version=nll-0.14
+
 [nll.testdata.debug.AMD64_3.4G]
 nll.TestBasic.test1=0
 nll.TestBasic.test2=0
@@ -378,4 +382,10 @@ nll.TutorialFeaturePca.featurePca=0.015
 nll.TutorialFeatureSelection.featureSelection=0.093
 nll.TutorialPartitionDatabase.partitionDatabase=0
 nll.TutorialPipeline.runPipeline=0.094
+
+[nll.testdata.release.I64_12_core_2.66]
+nll.TestUspsDatabase.testNN=308.997
+nll.TestUspsDatabase.testNNeighbour=28.09
+nll.TestUspsDatabase.testQda=1.765
+nll.TestUspsDatabase.testSvm=4.828
 
