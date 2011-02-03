@@ -154,7 +154,6 @@ namespace algorithm
          // compute the second distance estimate
          Matrix z = _getProjection( eiv, r );
 
-         const ui32 rank = z.sizey();
          Vector d02( nbNeighbours );
          for ( ui32 n = 0; n < z.sizex(); ++n )
          {

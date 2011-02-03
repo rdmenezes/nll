@@ -346,7 +346,7 @@ namespace core
       }
 
       std::sort( sorted.rbegin(), sorted.rend() );
-      Matrix<type, mapper, allocator> us( cpa.sizey(), sorted.size() );
+      Matrix<type, mapper, allocator> us( cpa.sizey(), (ui32)sorted.size() );
       for ( ui32 x = 0; x < us.sizex(); ++x )
       {
          ui32 index = sorted[ x ].second;
@@ -357,14 +357,14 @@ namespace core
       }
       uOut = us;
 
-      Buffer1D<type> ws( sorted.size() );
+      Buffer1D<type> ws( (ui32)sorted.size() );
       for ( ui32 n = 0; n < sorted.size(); ++n )
       {
          ws[ n ] = sorted[ n ].first;
       }
       wOut = ws;
 
-      Matrix<type, mapper, allocator> vs( v.sizey(), sorted.size() );
+      Matrix<type, mapper, allocator> vs( v.sizey(), (ui32)sorted.size() );
       for ( ui32 x = 0; x < us.sizex(); ++x )
       {
          ui32 index = sorted[ x ].second;

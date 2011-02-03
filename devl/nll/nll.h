@@ -155,6 +155,7 @@
 # include "math-kurtosis.h"
 # include "math-quaternion.h"
 # include "math-gram-schmidt-ortho.h"
+# include "math-noise-awgn.h"
 # include "matrix-basic-operations.h"
 # include "matrix-decomposition.h"
 # include "matrix-basic.h"

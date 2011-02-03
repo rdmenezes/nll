@@ -566,6 +566,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\math-noise-awgn.h"
+				>
+			</File>
+			<File
 				RelativePath=".\math-quaternion.h"
 				>
 			</File>

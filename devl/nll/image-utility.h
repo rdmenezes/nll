@@ -106,7 +106,7 @@ namespace core
 	template <class type, class mapper, class allocator>
 	inline void extend(Image<type, mapper, allocator>& img, ui32 nbc)
 	{
-		assert(img.getNbComponents() == 1); // "error: only 1 comp handled"
+		ensure( img.getNbComponents() == 1, "it can only be done with images having only one component" ); // "error: only 1 comp handled"
 	
 		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), nbc, false, img.getAllocator());
 		for (ui32 y = 0; y < img.sizey(); ++y)

@@ -2,7 +2,9 @@ v0.14
 -fixed kernel PCA implementation
 -added kernel RBF pre-image
 -added converters
--added Sammon's projection
+-added multi-threaded Sammon's projection
+-added additive white gaussian noise generator
+-added tutorials
 
 v0.13
 -added independent component analysis

@@ -39,9 +39,12 @@ namespace
             break;
          for ( ui32 n = 0; n < nbFeatures; ++n )
          {
+            ui32 x = n % 16;
+            ui32 y = n / 16;
+
             double val = 0;
             ss >> val;
-            i[ n ] = val;
+            i[ x + ( 16 - y - 1 ) * 16 ] = val;
          }
 
          dat.add( Database::Sample( i, output, type ) );
