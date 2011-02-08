@@ -96,7 +96,7 @@ namespace tutorial
 
          std::cout << "psnrNoisy=" <<  meanPsnrNoisy << std::endl;
          std::cout << "psnrDenoised=" << meanPsnrDenoised << std::endl;
-         Tester_ASSERT( meanPsnrNoisy < meanPsnrDenoised );
+         TESTER_ASSERT( meanPsnrNoisy < meanPsnrDenoised );
       }
    };
 

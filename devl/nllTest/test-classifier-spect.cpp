@@ -166,13 +166,13 @@ TESTER_TEST_SUITE(TestNllClassifierSpect);
 TESTER_TEST(testNllClassifierSpect);
 #  endif
 # endif
-//TESTER_TEST(testNllClassifierMlp);
-//TESTER_TEST(testNllClassifierNaiveb);
-//TESTER_TEST(testNllClassifierRbf);
+TESTER_TEST(testNllClassifierMlp);
+TESTER_TEST(testNllClassifierNaiveb);
+TESTER_TEST(testNllClassifierRbf);
 TESTER_TEST(testNllPcaClassifierSpect);
-//TESTER_TEST(testNllQdaClassifierSpect);
-//TESTER_TEST(testNllPCAQdaClassifierSpect);
-//TESTER_TEST(testNllClassifierSvmIca);
+TESTER_TEST(testNllQdaClassifierSpect);
+TESTER_TEST(testNllPCAQdaClassifierSpect);
+TESTER_TEST(testNllClassifierSvmIca);
 TESTER_TEST_SUITE_END();
 #endif
 

@@ -33,12 +33,13 @@ doc:
 tarball: clean doc all
 	mkdir tarball
 	cd tarball && mkdir nll && cd nll && mkdir nll nllTest tester doc include tutorial
-	cd tarball/nll/tutorial && mkdir data && cd data && mkdir out && mkdir image && mkdir proben1 && mkdir uci && cd proben1 && mkdir cancer
+	cd tarball/nll/tutorial && mkdir data && cd data && mkdir usps && mkdir out && mkdir image && mkdir proben1 && mkdir uci && cd proben1 && mkdir cancer
 	cd tarball/nll/tutorial/data/uci && mkdir iris spam wine yeast
 	cp tutorial/data/uci/iris/*.data tarball/nll/tutorial/data/uci/iris/
 	cp tutorial/data/uci/spam/*.data tarball/nll/tutorial/data/uci/spam/
 	cp tutorial/data/uci/wine/*.data tarball/nll/tutorial/data/uci/wine/
 	cp tutorial/data/uci/yeast/*.data tarball/nll/tutorial/data/uci/yeast/
+	cp tutorial/data/usps/*.txt tarball/nll/tutorial/data/usps/
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
 	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect medical ica
 	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln Readme.txt tarball/nll
