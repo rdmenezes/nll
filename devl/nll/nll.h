@@ -116,6 +116,7 @@
 # include <fstream>
 # include <stdexcept>
 # include <cstdlib>
+# include <memory>
 
 /**
  @defgroup core
@@ -226,13 +227,13 @@
  - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
-# include "sammon-projection.h"
 # include "bracketing.h"
 # include "brent.h"
 # include "powell.h"
 # include "mlp.h"
 # include "normalization.h"
 # include "pca.h"
+# include "sammon-projection.h"
 # include "ica.h"
 # include "quadratic-discriminant.h"
 # include "stopping-condition.h"

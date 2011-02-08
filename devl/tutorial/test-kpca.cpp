@@ -28,7 +28,7 @@ namespace tutorial
       }
 
 
-
+      // demonstrate denoising capabilities on the USPS dataset
       void test1()
       {
          typedef nll::algorithm::Classifier<Input>                            Classifier;
@@ -40,7 +40,7 @@ namespace tutorial
          std::cout << "size=" << dat.size() << std::endl;
 
          // generate a random index
-         const ui32 nbLearning = 8000;
+         const ui32 nbLearning = 4000;
          std::vector<ui32> index = core::generateUniqueList( 0, nbLearning );
 
          Classifier::Database datSmall;
@@ -56,7 +56,7 @@ namespace tutorial
          typedef nll::algorithm::KernelPca<Input, Kernel> KernelPca;
 
          KernelPca kpca;
-         Kernel kernel( 300.0 );
+         Kernel kernel( 500 );
          kpca.compute( adapter, 100, kernel );
 
          typedef algorithm::KernelRbf<Input> Kernel;
@@ -67,10 +67,10 @@ namespace tutorial
          double meanPsnrNoisy = 0;
          double meanPsnrDenoised = 0;
 
-         const ui32 nbTest = 400;
+         const ui32 nbTest = 700;
          for ( ui32 n = 0; n < nbTest; ++n )
          {
-            const ui32 index = nbLearning;
+            const ui32 index = nbLearning + n;
 
             Input orig;
             orig.clone( dat[ index ].input );
@@ -96,6 +96,7 @@ namespace tutorial
 
          std::cout << "psnrNoisy=" <<  meanPsnrNoisy << std::endl;
          std::cout << "psnrDenoised=" << meanPsnrDenoised << std::endl;
+         Tester_ASSERT( meanPsnrNoisy < meanPsnrDenoised );
       }
    };
 

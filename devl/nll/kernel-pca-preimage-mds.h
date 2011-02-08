@@ -77,7 +77,7 @@ namespace algorithm
    class KernelPreImageMDS
    {
    public:
-      typedef KernelRbf<Point>         Kernel;
+      //typedef KernelRbf<Point>         Kernel;
       typedef core::Buffer1D<double>   Vector;
       typedef core::Matrix<double>     Matrix;
 

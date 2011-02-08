@@ -162,7 +162,7 @@ namespace algorithm
 
       const Rbf& getRbfImpl() const
       {
-         return _rbf
+         return _rbf;
       }
 
    private:
