@@ -116,6 +116,42 @@ namespace core
 
    /**
     @ingroup core
+    @brief Compute the covariance of a list of vectors. Each row is a sample.
+           Cov = sum ( X^tX ) / ( nbSamples - 1 )
+    @note IMPORTANT it is assumed the points are already centred
+    @return the covariance matrix
+    Supposed to have more rows than column else the covariance matrix won't be invertible
+
+    @note the matrix is symetric, so only compute upper triangular and copy the lower one
+    */
+   template <class type, class mapper, class allocator>
+	inline Matrix<type, mapper, allocator> covarianceCentred(const Matrix<type, mapper, allocator>& vec)
+	{
+      assert( vec.sizey() );
+
+		Matrix<type, mapper, allocator> cov( vec.sizex(), vec.sizex() );
+		for ( ui32 i = 0; i < vec.sizex(); ++i )
+      {
+         // compute upper triangular
+			for ( ui32 j = i; j < vec.sizex(); ++j )
+			{
+				type sum = 0;
+				for ( ui32 k = 0; k < vec.sizey(); ++k )
+					sum += vec( k, i ) * vec( k, j );
+				cov( i, j ) = sum / (type)( vec.sizey() );
+			}
+
+         // copy lower triangular
+         for (ui32 j = 0; j < i; ++j)
+         {
+            cov(i, j) = cov(j, i);
+         }
+      }
+		return cov;
+	}
+
+   /**
+    @ingroup core
     @brief Compute the of a list of points.
     @note Points must define:
      size()
@@ -150,6 +186,7 @@ namespace core
 	}
 
    /**
+    @ingroup core
     @brief Compute the covariance of points arranged in rows
     */
    template <class PointsRow, class OutputMean>
@@ -183,6 +220,41 @@ namespace core
 			*exportedMean = mean;
 		return cov;
 	}
+
+   /**
+    @ingroup core
+    @brief Compute the covariance matrix on an indexed list of points only
+    @note IMPORTANT it is assumed the mean of the indexed points is 0
+    */
+   template <class Points>
+   Matrix<double> covariance( const Points& points, const std::vector<ui32>& index )
+   {
+      if ( index.size() == 0 || points.size() == 0 )
+         return Matrix<double>();
+      const ui32 nbFeatures = points[ 0 ].size();
+      Matrix<double> cov( nbFeatures, nbFeatures );
+		for (ui32 i = 0; i < nbFeatures; ++i)
+      {
+         // compute upper triangular
+			for (ui32 j = i; j < nbFeatures; ++j)
+			{
+				double sum = 0;
+				for (ui32 k = 0; k < index.size(); ++k)
+            {
+               const ui32 p = index[ k ];
+					sum += ( points[ p ][ i ] ) * ( points[ p ][ j ] );
+            }
+				cov( i, j ) = sum / index.size();
+			}
+
+         // copy lower triangular
+         for ( ui32 j = 0; j < i; ++j )
+         {
+            cov( i, j ) = cov( j, i );
+         }
+      }
+      return cov;
+   }
 }
 }
 

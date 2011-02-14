@@ -72,10 +72,10 @@
  */
 
 /// define the version of nll as a string
-#define NLL_VERSION     "nll-0.14"
+#define NLL_VERSION     "nll-0.15"
 
 /// define the version of nll as a plain number
-#define NLL_VERSION_ID  0x014
+#define NLL_VERSION_ID  0x015
 
 
 #ifdef _MSC_VER
@@ -233,6 +233,7 @@
 # include "mlp.h"
 # include "normalization.h"
 # include "pca.h"
+# include "locally-linear-embedding.h"
 # include "sammon-projection.h"
 # include "ica.h"
 # include "quadratic-discriminant.h"

@@ -928,6 +928,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\locally-linear-embedding.h"
+				>
+			</File>
+			<File
 				RelativePath=".\lsdbc.h"
 				>
 			</File>

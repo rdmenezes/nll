@@ -116,6 +116,22 @@ namespace core
    }
 
    /**
+    @brief create an identity matrix (if non square, only elements i == j will be set to 1, else 0)
+    */
+   template <class type, class mapper, class allocator>
+   void identity( Matrix<type, mapper, allocator>& m )
+   {
+      ui32 min = std::min( m.sizex(), m.sizey() );
+      for (ui32 nx = 0; nx < m.sizex(); ++nx)
+      {
+			for (ui32 ny = 0; ny < m.sizey(); ++ny)
+         {
+            m( ny, nx ) = nx == ny;
+         }
+      }
+   }
+
+   /**
     @ingroup core
     @brief Generate an identity matrix of a fixed size.
     */
@@ -144,6 +160,20 @@ namespace core
 
    /**
     @ingroup core
+    @brief Compute the trace of the matrix (sum_i (a_ii)).
+    */
+   template <class type, class mapper, class allocator>
+   double trace( const Matrix<type, mapper, allocator>& m )
+   {
+      ensure( m.sizex() == m.sizey(), "operation is only defined for square matrix" );
+      double accum = 0;
+      for (ui32 nn = 0; nn < m.sizex(); ++nn)
+         accum += static_cast<double>( m( nn, nn ) );
+      return accum;
+   }
+
+   /**
+    @ingroup core
     @brief Transpose a matrix.
     */
    template <class type, class mapper, class allocator>
@@ -157,7 +187,7 @@ namespace core
 			return;
 		}
 		if (m.sizex() == m.sizey())
-			for (ui32 nx = 0; nx < m.sizey(); ++nx)
+			for (ui32 nx = 0; nx < m.sizex(); ++nx)
 				for (ui32 ny = 0; ny < nx; ++ny)
 					std::swap(m(ny, nx), m(nx, ny));
 		else
@@ -169,6 +199,22 @@ namespace core
 			m = nn;
 		}
 	}
+
+   /**
+     @brief Computes v * v^t in place
+    */
+   template <class type, class mapper, class allocator, class Vector>
+   void mulidt( const Vector& v, Matrix<type, mapper, allocator>& out )
+	{
+      out = Matrix<type, mapper, allocator>( v.size(), v.size(), false );
+      for ( ui32 y = 0; y < v.size(); ++y )
+      {
+         for ( ui32 x = 0; x < v.size(); ++x )
+         {
+            out( y, x ) = v[ x ] * v[ y ];
+         }
+      }
+   }
 }
 }
 
