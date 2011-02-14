@@ -1,3 +1,6 @@
+v0.15
+-added locally linear embedding for feature selection & data structure display
+
 v0.14
 -fixed kernel PCA implementation
 -added kernel RBF pre-image

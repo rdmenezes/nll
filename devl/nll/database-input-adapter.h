@@ -55,6 +55,7 @@ namespace core
    {
    public:
       typedef typename Database::Sample::Input Point;
+      typedef Point                            value_type;
 
    public:
       DatabaseInputAdapter( Database& database ) : _database( database )

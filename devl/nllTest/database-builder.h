@@ -57,5 +57,30 @@ typename nll::algorithm::Classifier<T>::Database loadDatabaseSpect()
    return dat;
 }
 
+inline nll::algorithm::Classifier< std::vector<double> >::Database createSwissRoll()
+{
+   typedef nll::algorithm::Classifier< std::vector<double> >::Database Database;
+
+   Database dat;
+   std::ifstream f( NLL_TEST_PATH "data/manifolds/SwissRoll.txt" );
+   if ( !f.good() )
+      throw std::runtime_error( "cannot locate the dataset" );
+
+   while ( !f.eof() )
+   {
+      std::string line;
+      std::getline( f, line );
+
+      std::stringstream ss( line );
+      Database::Sample::Input i( 3 );
+
+      ss >> i[ 0 ] >> i[ 1 ] >> i[ 2 ];
+
+      dat.add( Database::Sample( i, 0, Database::Sample::LEARNING ) );
+   }
+
+   return dat;
+}
+
 
 #endif

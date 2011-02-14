@@ -69,9 +69,21 @@ namespace algorithm
          const ui32 dim = points[ 0 ].size();
          const ui32 nbPoints = points.size();
 
+         {
+            std::stringstream ss;
+            ss << "computing locally linear embedding." << std::endl <<
+                  " number of points=" << nbPoints << std::endl <<
+                  " dimentionality=" << dim << std::endl <<
+                  " new dimentionality=" << newDim << std::endl <<
+                  " number of neightbours=" << nbNeighbours << std::endl <<
+                  " epsilon=" << eps;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          ensure( dim > newDim, "the new dimension is too high" );
          ensure( nbNeighbours < points.size(), "problem in neighbours: no enough" );
 
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " computing kd-tree..." );
          MetricEuclidian<Point> metric;
          KdTreeT kdtree( metric );
          kdtree.build( points, dim );
@@ -82,13 +94,14 @@ namespace algorithm
          // gi = zz^t
          // wi = lambda / 2 * (gi + alpha * id)^-1 * 1vec
          //
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " computing reconstruction weights..." );
          std::vector< core::Buffer1D<double> > wis( nbPoints );
-         std::vector< core::Buffer1D<ui32> > neighbours( nbPoints );
+         std::vector< std::vector<ui32> > neighbours( nbPoints );
          for ( ui32 i = 0; i < nbPoints; ++i )
          {
             KdTreeT::NearestNeighborList nn = kdtree.findNearestNeighbor( points[ i ], nbNeighbours + 1 ); // nbNeighbours + 1, as nn[ 0 ] is the point we are starting from
             ui32 n = 0;
-            core::Buffer1D<ui32> index( nbNeighbours );
+            std::vector<ui32> index( nbNeighbours );
             for ( KdTreeT::NearestNeighborList::iterator it = ++nn.begin(); it != nn.end(); ++it, ++n )
                index[ n ] = it->id;
             neighbours[ i ] = index;
@@ -150,6 +163,8 @@ namespace algorithm
          // TODO USE SPARSE MATRIX!!!
          Matrix m( nbPoints, nbPoints, false );
          core::identity( m );
+
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " computing M..." );
          for ( ui32 ii = 0; ii < nbPoints; ++ii )
          {
             for ( ui32 jj = 0; jj < nbNeighbours; ++jj )
@@ -173,6 +188,7 @@ namespace algorithm
          }
 
          // extract the main components
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " computing SVD of M..." );
          core::Buffer1D<double> eig;
          Matrix eiv;
          bool result = core::svdcmp( m, eig, eiv );
@@ -180,6 +196,8 @@ namespace algorithm
          {
             throw std::runtime_error( "singular matrix!" );
          }
+
+         std::cout << "compute projection" << std::endl;
 
          // sort the eigen values, we are interested in the newDim^th eigen vectors, except the first one which is always
          // zero by definition
@@ -190,6 +208,28 @@ namespace algorithm
          }
          std::sort( pairs.begin(), pairs.end() );
 
+         {
+            Matrix eigs( nbPoints, newDim );
+            for ( ui32 n = 0; n < nbPoints; ++n )
+            {
+               for ( ui32 m = 0; m < newDim; ++m )
+               {
+                  eigs( n, m ) = eiv( n, pairs[ m + 1 ].second ); // skip the first eig as it is 0 and uninformative
+               }
+            }
+
+            std::stringstream ss;
+            ss << "main eigen vectors=" << std::endl;
+            eigs.print( ss );
+
+            ss << "eigen values=";
+            for ( ui32 m = 0; m < newDim; ++m )
+            {
+               ss << pairs[ m + 1 ].first << " ";
+            }
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          std::vector<Point> tfmPoints( nbPoints );
          const double scale = std::sqrt( (double)nbPoints );
          for ( ui32 n = 0; n < nbPoints; ++n )
@@ -197,10 +237,18 @@ namespace algorithm
             Point p( newDim );
             for ( ui32 nn = 0; nn < newDim; ++nn )
             {
-               const ui32 index = pairs[ nn + 1 ].first;
+               const ui32 index = pairs[ nn + 1 ].second;
                p[ nn ] = eiv( n, index ) * scale;
             }
             tfmPoints[ n ] = p;
+         }
+
+
+         {
+            // TODO REMOVE
+            std::stringstream ss;
+            m.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
          return tfmPoints;
       }

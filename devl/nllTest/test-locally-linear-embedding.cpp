@@ -2,6 +2,8 @@
 #include <sstream>
 #include <tester/register.h>
 
+#include "database-builder.h"
+
 using namespace nll;
 
 class TestLle
@@ -33,10 +35,32 @@ public:
       std::vector<Point> tfmPoints = lle.transform( pointsT, 1, 3 );
    }
 
+   void testSwissRoll()
+   {
+      typedef std::vector<double> Point;
+      typedef algorithm::Classifier<Point>::Database Database;
+      Database dat = createSwissRoll();
+
+      Database test;
+      for ( ui32 n = 0; n < 15; ++n )
+         test.add( dat[ n ] );
+
+      typedef core::DatabaseInputAdapter< Database >   Adapter;
+
+      Adapter inputs( test );
+      algorithm::LocallyLinearEmbedding lle;
+      std::vector<Point> ps = lle.transform( inputs, 2, 3 );
+
+      for ( ui32 n = 0; n < ps.size(); ++n )
+      {
+         std::cout << "p=" << ps[ n ][ 0 ] << " " << ps[ n ][ 1 ] << std::endl;
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLle);
+TESTER_TEST(testSwissRoll);
 TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif
