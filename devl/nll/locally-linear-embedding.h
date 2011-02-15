@@ -57,7 +57,7 @@ namespace algorithm
        @brief Transform a set of points in high dimention to a lower dimention point
        */
       template <class Points>
-      std::vector<typename Points::value_type> transform( const Points& points, ui32 newDim, ui32 nbNeighbours, double eps = /*TODO remove 0 * */ 1e-3 ) const
+      std::vector<typename Points::value_type> transform( const Points& points, ui32 newDim, ui32 nbNeighbours, double eps = 1e-5 ) const
       {
          typedef typename Points::value_type Point;
          typedef KdTree<Point, MetricEuclidian<Point>, 5, Points> KdTreeT;
@@ -66,8 +66,8 @@ namespace algorithm
          if ( points.size() == 0 )
             return std::vector<Point>();
 
-         const ui32 dim = points[ 0 ].size();
-         const ui32 nbPoints = points.size();
+         const ui32 dim = (ui32)points[ 0 ].size();
+         const ui32 nbPoints = (ui32)points.size();
 
          {
             std::stringstream ss;
@@ -120,7 +120,6 @@ namespace algorithm
             }
 
             Matrix giint = core::covarianceCentred( pp );
-            //pp.print( std::cout );
             for ( ui32 j = 0; j < giint.size(); ++j )
                giint[ j ] *= nbNeighbours;
 
@@ -197,8 +196,6 @@ namespace algorithm
             throw std::runtime_error( "singular matrix!" );
          }
 
-         std::cout << "compute projection" << std::endl;
-
          // sort the eigen values, we are interested in the newDim^th eigen vectors, except the first one which is always
          // zero by definition
          std::vector< std::pair<double, ui32> > pairs;
@@ -231,24 +228,15 @@ namespace algorithm
          }
 
          std::vector<Point> tfmPoints( nbPoints );
-         const double scale = std::sqrt( (double)nbPoints );
          for ( ui32 n = 0; n < nbPoints; ++n )
          {
             Point p( newDim );
             for ( ui32 nn = 0; nn < newDim; ++nn )
             {
                const ui32 index = pairs[ nn + 1 ].second;
-               p[ nn ] = eiv( n, index ) * scale;
+               p[ nn ] = eiv( n, index );
             }
             tfmPoints[ n ] = p;
-         }
-
-
-         {
-            // TODO REMOVE
-            std::stringstream ss;
-            m.print( ss );
-            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
          return tfmPoints;
       }

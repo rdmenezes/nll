@@ -60,6 +60,13 @@ namespace algorithm
       using Base::write;
 
    public:
+      FeatureTransformationNormalization()
+      {}
+
+      FeatureTransformationNormalization( const Vector& mean, const Vector& var ) : _impl( mean, var )
+      {
+      }
+
       /**
        @brief Computes the mean and variance independantly for each feature. Only the
               LEARNING|VALIDATION data are used to compute the parameters.

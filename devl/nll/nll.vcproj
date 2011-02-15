@@ -780,6 +780,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\feature-transformation-lle.h"
+				>
+			</File>
+			<File
 				RelativePath=".\feature-transformation-normalization.h"
 				>
 			</File>

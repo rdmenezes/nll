@@ -282,6 +282,7 @@
 # include "feature-transformation-kernel-pca.h"
 # include "feature-transformation-normalization.h"
 # include "feature-transformation-discriminant.h"
+# include "feature-transformation-lle.h"
 # include "feature-combiner.h"
 # include "feature-selection.h"
 # include "feature-selection-genetic-algorithm.h"

@@ -121,7 +121,6 @@ namespace core
    template <class type, class mapper, class allocator>
    void identity( Matrix<type, mapper, allocator>& m )
    {
-      ui32 min = std::min( m.sizex(), m.sizey() );
       for (ui32 nx = 0; nx < m.sizex(); ++nx)
       {
 			for (ui32 ny = 0; ny < m.sizey(); ++ny)
