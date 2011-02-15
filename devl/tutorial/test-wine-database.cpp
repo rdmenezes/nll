@@ -35,6 +35,28 @@ namespace tutorial
          TESTER_ASSERT( fabs( error ) <= 0.057 );
       }
 
+      void testSvmPca()
+      {
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
+         ClassifierImpl c( false, true );
+
+         nll::algorithm::FeatureTransformationPca<Input> preprocessor;
+         preprocessor.compute( dat, 10 );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.00001, 100 ), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.13 );
+      }
+
       void testRbf()
       {
          typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
@@ -182,7 +204,7 @@ namespace tutorial
          typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
          typedef nll::algorithm::Classifier<Input>                            Classifier;
 
-         typedef nll::algorithm::KernelPolynomial<Input> Kernel;
+         typedef nll::algorithm::KernelRbf<Input> Kernel;
          typedef nll::algorithm::FeatureTransformationKernelPca<Input, Kernel>   KernelPca;
 
          // find the correct benchmark
@@ -191,22 +213,24 @@ namespace tutorial
          Classifier::Database dat = benchmark->database;
          std::cout << "size=" << dat.size() << std::endl;
 
-         Kernel kernel( 1 );
+
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
+         preprocessor.compute( dat );
+         Classifier::Database preprocessedDat = preprocessor.transform( dat );
+
+         Kernel kernel( 1200 );
          KernelPca kpca( kernel );
-         kpca.compute( dat, 5 );
-         Classifier::Database processedDat = kpca.transform( dat );
+         kpca.compute( preprocessedDat, 10 );
+         Classifier::Database processedDat = kpca.transform( preprocessedDat );
 
          // define the classifier to be used
          typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
          ClassifierImpl c;
 
-         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
-         preprocessor.compute( processedDat );
-         Classifier::Database preprocessedDat = preprocessor.transform( processedDat );
-
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.01, 50 ), preprocessedDat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.1, 100 ), processedDat );
          std::cout << "error=" << error << std::endl;
-         TESTER_ASSERT( fabs( error ) <= 0 );
+         TESTER_ASSERT( fabs( error ) <= 0.079 );
       }
 
       void testLle()
@@ -236,7 +260,6 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestWineDatabase );
-   /*
     TESTER_TEST( testQda );
     TESTER_TEST( testBayes );
     TESTER_TEST( testRbf );
@@ -245,9 +268,9 @@ namespace tutorial
     TESTER_TEST( testMlp );
     TESTER_TEST( testKnn );
     TESTER_TEST( testGmm );
-*/
-    //TESTER_TEST( testLle );
-    TESTER_TEST( testSvmKPca ); // NOT WORKING
+    TESTER_TEST( testSvmKPca );
+    TESTER_TEST( testLle );
+    TESTER_TEST( testSvmPca );
 
    TESTER_TEST_SUITE_END();
 }

@@ -117,10 +117,14 @@ namespace algorithm
 
       virtual void read( std::istream& i ) 
       {
+         _normalizer.read( i );
+         _mapper.read( i );
       }
 
       virtual void write( std::ostream& o ) const
       {
+         _normalizer.write( o );
+         _mapper.write( o );
       }
 
    private:
