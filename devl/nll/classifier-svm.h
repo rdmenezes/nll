@@ -315,7 +315,7 @@ namespace algorithm
       void _destroy()
       {
          if (_model)
-			   svm_destroy_model(_model);
+			   svm_free_and_destroy_model(&_model);
          if ( _vector )
             implementation::delete_svm_nodes( _vector, _vectorSize );
          _model = 0;
