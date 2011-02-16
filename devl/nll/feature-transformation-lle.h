@@ -41,6 +41,11 @@ namespace algorithm
     @brief Compute a locally linear embedding of the features (unsupervised learning) and train a neural
            network mapping the input coordinates to LLE based coordinates
 
+           This method is mainly aimed at displaying high dimentional data, but a wrapper for generic dimentional
+           reduction is provided nonetheless.
+
+    @see http://jmlr.csail.mit.edu/papers/volume4/saul03a/saul03a.pdf
+
     @note the training must be quite exhaustive to map appropriately all the coordinate space!
     */
    template <class Point>

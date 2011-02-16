@@ -229,7 +229,7 @@ namespace tutorial
          typedef nll::algorithm::Classifier<Input>                            Classifier;
 
          // find the correct benchmark
-         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "wine.data" ); //wine.data iris.data
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "iris.data" ); //wine.data iris.data
          ensure( benchmark, "can't find benchmark" );
          Classifier::Database dat = benchmark->database;
 
@@ -237,28 +237,25 @@ namespace tutorial
          typedef nll::algorithm::ClassifierDiscriminant<Input> ClassifierImpl;
          ClassifierImpl c;
 
-         nll::algorithm::FeatureTransformationPca<Input> preprocesser;
-         preprocesser.compute( dat, 4 );
-         Classifier::Database preprocessedDat = preprocesser.transform( dat );
-         double error = c.evaluate( nll::core::Buffer1D<double>(), preprocessedDat );
+         double error = c.evaluate( nll::core::Buffer1D<double>(), dat );
          std::cout << "error=" << error << std::endl;
 
-         c.learn( preprocessedDat, nll::core::Buffer1D<double>() );
+         c.learn( dat, nll::core::Buffer1D<double>() );
 
 
          {
-            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, preprocessedDat );
+            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, dat );
             nll::core::writeBmp( i, NLL_DATABASE_PATH "sammon_iris.bmp" );
          }
 
          {
-            nll::core::Image<nll::ui8> i = nll::utility::printProjectionLLE( 512, 512, preprocessedDat );
+            nll::core::Image<nll::ui8> i = nll::utility::printProjectionLLE( 4*512, 4*512, dat );
             nll::core::writeBmp( i, NLL_DATABASE_PATH "lle_iris.bmp" );
          }
 
 
          {
-            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, preprocessedDat, c );
+            nll::core::Image<nll::ui8> i = nll::utility::printProjection( 512, 512, dat, c );
             nll::core::writeBmp( i, NLL_DATABASE_PATH "sammon_irisc.bmp" );
          }
 
@@ -268,7 +265,6 @@ namespace tutorial
 
    TESTER_TEST_SUITE( TestIrisDatabase );
    TESTER_TEST( testSammon );
-   /*
    TESTER_TEST( testSvmIca );
    TESTER_TEST( testSvm );
    TESTER_TEST( testSvmPca );
@@ -276,7 +272,7 @@ namespace tutorial
    TESTER_TEST( testQda );
    TESTER_TEST( testBayes );
    TESTER_TEST( testKernelKpca );
-   TESTER_TEST( testKernelKpca2 );*/
+   TESTER_TEST( testKernelKpca2 );
    TESTER_TEST_SUITE_END();
 }
 }

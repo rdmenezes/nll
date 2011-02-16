@@ -25,15 +25,12 @@ namespace tutorial
 
          // define the classifier to be used
          typedef nll::algorithm::ClassifierSvm<Input> ClassifierImpl;
-         ClassifierImpl c( false, true );
-         c.setCrossValidationBinSize( 40 );
+         ClassifierImpl c( false, false );
+         c.setCrossValidationBinSize( 6 );
 
-         nll::algorithm::FeatureTransformationNormalization<Input> preprocessor;
-         preprocessor.compute( dat );
-         Classifier::Database preprocessedDat = preprocessor.transform( dat );
-         double error = c.evaluate( nll::core::make_buffer1D<double>( 0.0001, 100 ), preprocessedDat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 10.125, 1 ), dat );
          std::cout << "error=" << error << std::endl;
-         TESTER_ASSERT( fabs( error ) <= 0.49 );
+         TESTER_ASSERT( fabs( error ) <= 0.42 );
       }
    };
 

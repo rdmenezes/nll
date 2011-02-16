@@ -42,13 +42,25 @@ namespace algorithm
           impracticable to test previously unseen points. To overcome this point, an incremental algorithm can
           be implemented, or 
 
-          Locally linear embedding (or: local linear embedding, you see both) is a clever scheme for finding
-          low-dimensional global coordinates when the data lie on (or very near to) a manifold embedded in a
-          high-dimensional space The trick is to do a different linear dimensionality reduction at each point
+          locally linear embedding (LLE), an unsupervised learning algorithm
+          that computes low dimensional, neighborhood preserving embeddings of high dimensional data.
+          The data, assumed to be sampled from an underlying manifold, are mapped into a single global
+          coordinate system of lower dimensionality. The mapping is derived from the symmetries of locally
+          linear reconstructions, and the actual computation of the embedding reduces to a sparse eigenvalue
+          problem. Notably, the optimizations in LLE—though capable of generating highly nonlinear
+          embeddings—are simple to implement, and they do not involve local minima
+
+          The trick is to do a different linear dimensionality reduction at each point
           (because locally a manifold looks linear) and then combine these with minimal discrepancy. It
           was introduced by Roweis and Saul (2000).
 
-    @see http://www.stat.cmu.edu/~cshalizi/350/lectures/14/lecture-14.pdf for details
+          This method is mainly aimed at displaying high dimentional data
+
+          Note the implementation could be improved a lot by using sparse matrix and a SVD implementation
+          working on sparse matrix and do not compute all the EIG/EIV but only the ones needed.
+
+    @see http://jmlr.csail.mit.edu/papers/volume4/saul03a/saul03a.pdf (reference)
+         http://www.stat.cmu.edu/~cshalizi/350/lectures/14/lecture-14.pdf for details
     */
    class LocallyLinearEmbedding
    {

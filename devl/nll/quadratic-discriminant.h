@@ -131,6 +131,10 @@ namespace algorithm
          {
             // filter the samples by class
             core::DatabaseInputAdapterClass<Database> adapter( training, classid );
+            if ( adapter.size() == 0 )
+            {
+               throw std::runtime_error( "cannot estimate the covariance: no data!" );
+            }
 
             _classes[ classid ].prior = adapter.size();
             _classes[ classid ].cov   = core::covariance( adapter, &_classes[ classid ].mean );
