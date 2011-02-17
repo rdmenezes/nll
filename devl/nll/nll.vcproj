@@ -736,6 +736,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\classifier-svm-linear.h"
+				>
+			</File>
+			<File
 				RelativePath=".\classifier-svm.h"
 				>
 			</File>

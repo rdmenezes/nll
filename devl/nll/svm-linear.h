@@ -1,7 +1,5 @@
-#ifndef _LIBLINEAR_H
-#define _LIBLINEAR_H
-
-# include "nll.h"
+#ifndef CORE_ALGORITHM_LIBLINEAR_H_
+# define CORE_ALGORITHM_LIBLINEAR_H_
 
 /*
 Copyright (c) 2007-2010 The LIBLINEAR Project.
@@ -41,7 +39,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // http://www.csie.ntu.edu.tw/~cjlin/liblinear/
 //
 
-#define LIBLINEAR_VERSION 17
+# define LIBLINEAR_VERSION 17
 
 namespace nll
 {
@@ -109,5 +107,5 @@ namespace algorithm
 }
 }
 
-#endif /* _LIBLINEAR_H */
+#endif
 

@@ -135,27 +135,9 @@ public:
       for ( ui32 n = 0; n < ps.size(); ++n )
       {
          std::cout << "p=" << ps[ n ][ 0 ] << " " << ps[ n ][ 1 ] << std::endl;
-         TESTER_ASSERT( fabs( ps[ n ][ 0 ] - resultDiff[ n ][ 0 ] ) < 1e-2 );
-         TESTER_ASSERT( fabs( ps[ n ][ 1 ] - resultDiff[ n ][ 1 ] ) < 1e-2 );
-      }
-   }
-
-   void testSwissRoll2()
-   {
-      typedef core::Buffer1D<double> Point;
-      typedef algorithm::Classifier<Point>::Database Database;
-      Database dat = createSwissRoll();
-      typedef core::DatabaseInputAdapter< Database >   Adapter;
-
-      Adapter inputs( dat );
-      algorithm::LocallyLinearEmbedding lle;
-      std::vector<Point> ps = lle.transform( inputs, 2, 4 );
-
-      for ( ui32 n = 0; n < ps.size(); ++n )
-      {
-         std::cout << "p=" << ps[ n ][ 0 ] << " " << ps[ n ][ 1 ] << std::endl;
-         TESTER_ASSERT( fabs( ps[ n ][ 0 ] - resultDiff[ n ][ 0 ] ) < 1e-2 );
-         TESTER_ASSERT( fabs( ps[ n ][ 1 ] - resultDiff[ n ][ 1 ] ) < 1e-2 );
+         std::cout << "expected=" << resultDiff[ n ][ 0 ] << " " << resultDiff[ n ][ 1 ] << std::endl;
+         TESTER_ASSERT( fabs( fabs( ps[ n ][ 0 ] ) - fabs( resultDiff[ n ][ 0 ] ) ) < 1e-2 );
+         TESTER_ASSERT( fabs( fabs( ps[ n ][ 1 ] ) - fabs( resultDiff[ n ][ 1 ] ) ) < 1e-2 );
       }
    }
 };

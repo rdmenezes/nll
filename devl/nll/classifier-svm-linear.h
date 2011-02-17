@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NLL_CLASSIFIER_SVM_H_
-# define NLL_CLASSIFIER_SVM_H_
+#ifndef NLL_CLASSIFIER_SVM_LINEAR_H_
+# define NLL_CLASSIFIER_SVM_LINEAR_H_
 
 namespace nll
 {
@@ -42,9 +42,9 @@ namespace algorithm
       class ClassifierSvm;
 
       template <class T>
-      inline svm_node* build_svm_input_from_vector(const T& vec, ui32 size)
+      inline algorithm::feature_node* build_svmlinear_input_from_vector(const T& vec, ui32 size)
       {
-	      svm_node* node= new svm_node[size + 1];
+	      feature_node* node= new feature_node[size + 1];
 	      for (ui32 n = 0; n < size; ++n)
 	      {
 		      node[n].index = n + 1;
@@ -55,17 +55,17 @@ namespace algorithm
       }
 
       template <class T>
-      inline svm_node** build_svm_inputs_from_vectors(const T& vec, ui32 vector_size, ui32 input_vector_size)
+      inline feature_node** build_svmlinear_inputs_from_vectors(const T& vec, ui32 vector_size, ui32 input_vector_size)
       {
-	      svm_node** node= new svm_node*[vector_size];
+	      feature_node** node= new feature_node*[vector_size];
 	      for (ui32 n = 0; n < vector_size; ++n)
 	      {
-		      node[n] = build_svm_input_from_vector(vec[n], input_vector_size);
+		      node[n] = build_svmlinear_input_from_vector(vec[n], input_vector_size);
 	      }
 	      return node;
       }
 
-      inline static void delete_svm_nodes(svm_node** nodes, ui32 vector_size )
+      inline static void delete_svm_nodes(feature_node** nodes, ui32 vector_size )
       {
 	      for (ui32 n = 0; n < vector_size; ++n)
          {
@@ -81,7 +81,7 @@ namespace algorithm
     @brief Support Vector Machine algorithm
     */
    template <class Point>
-   class ClassifierSvm : public Classifier<Point>
+   class ClassifierSvmLinear : public Classifier<Point>
    {
       typedef Classifier<Point>  Base;
 
@@ -99,14 +99,13 @@ namespace algorithm
       typedef typename Base::Class                    Class;
 
    public:
-      // TODO ONLY RBF kernel is handled
-      enum KernelType { LINEAR, POLY, RBF, SIGMOID, PRECOMPUTED };
+      enum SolverType { L2R_LR, L2R_L2LOSS_SVC_DUAL, L2R_L2LOSS_SVC, L2R_L1LOSS_SVC_DUAL, MCSVM_CS, L1R_L2LOSS_SVC, L1R_LR, L2R_LR_DUAL };
 
+      // only parameter is C
       static ParameterOptimizers buildParameters()
       {
          ParameterOptimizers parameters;
-         parameters.push_back( new ParameterOptimizerGaussianGeometric( 0.00000001, 100, 0.001, 0.0001, 5, 1.0f / 8 ) );
-         parameters.push_back( new ParameterOptimizerGaussianLinear( 1, 200, 60, 30, 15 ) );
+         parameters.push_back( new ParameterOptimizerGaussianLinear( 1, 10000, 60, 30, 15 ) );
          return parameters;
       }
 
@@ -115,9 +114,9 @@ namespace algorithm
        @param createProbabilityModel this enable the probability computation that is used by <code>test(p, probabilities)</code>
               if not set to 1, this will return 0
        */
-      ClassifierSvm( bool createProbabilityModel = false, bool balanceData = false ) : Base( buildParameters() )
+      ClassifierSvmLinear( SolverType solver = L2R_LR, bool createProbabilityModel = false, bool balanceData = false ) : Base( buildParameters() )
       {
-         _kernelType = RBF;
+         _solver = solver;
 		   _model = 0;
          _vector = 0;
          _nbClasses = 0;
@@ -127,10 +126,10 @@ namespace algorithm
 
       virtual void write( const std::string& file ) const
       {
-         svm_save_model( file.c_str(), _model );
+         save_model( file.c_str(), _model );
 
          std::ofstream f( ( file + ".model").c_str(), std::ios::binary );
-         core::write<ui32>( _kernelType, f );
+         core::write<ui32>( _solver, f );
          core::write<ui32>( _inputSize, f );
          core::write<ui32>( _nbClasses, f );
          core::write<ui32>( _createProbabilityModel, f );
@@ -139,10 +138,10 @@ namespace algorithm
 
       virtual void read( const std::string& file )
       {
-         _model = svm_load_model( file.c_str() );
+         _model = load_model( file.c_str() );
 
          std::ifstream f( ( file + ".model").c_str(), std::ios::binary );
-         core::read<ui32>( _kernelType, f );
+         core::read<ui32>( _solver, f );
          core::read<ui32>( _inputSize, f );
          core::read<ui32>( _nbClasses, f );
          core::read<ui32>( _createProbabilityModel, f );
@@ -154,9 +153,9 @@ namespace algorithm
        */
       virtual typename Base::Classifier* deepCopy() const
       {
-         ClassifierSvm<Point>* c = new ClassifierSvm();
+         ClassifierSvmLinear<Point>* c = new ClassifierSvmLinear();
          c->_model = 0;
-         c->_kernelType = _kernelType;
+         c->_solver = _solver;
          c->_inputSize = _inputSize;
          c->_vector = 0;
          c->_crossValidationBin = this->_crossValidationBin;
@@ -165,7 +164,7 @@ namespace algorithm
          return c;
       }
 
-      virtual ~ClassifierSvm()
+      virtual ~ClassifierSvmLinear()
 	   {
 		   _destroy();
 	   }
@@ -196,10 +195,10 @@ namespace algorithm
       {
          assert( _model ); // "no svm model loaded"
          assert( _inputSize == p.size() );
-         std::auto_ptr<svm_node> i = std::auto_ptr<svm_node>( implementation::build_svm_input_from_vector( p, _inputSize ) );
+         std::auto_ptr<feature_node> i = std::auto_ptr<feature_node>( implementation::build_svmlinear_input_from_vector( p, _inputSize ) );
 
          core::Buffer1D<double> pb( _nbClasses );
-		   f64 res = svm_predict_probability( _model, i.get(), pb.getBuf() );
+		   f64 res = predict_probability( _model, i.get(), pb.getBuf() );
 
          // normalize the probability
          f64 sum = 1e-15;
@@ -220,13 +219,13 @@ namespace algorithm
        */
       virtual void learn( const Database& dat, const core::Buffer1D<f64>& parameters )
       {
-         assert( parameters.size() == this->_parametersPrototype.size() );
+         ensure( parameters.size() == this->_parametersPrototype.size(), "expected parameters and parameters don't match" );
 
-         _learnRbfKernel( dat, parameters[ 0 ], parameters[ 1 ] );
+         _learn( dat, parameters[ 0 ] );
       }
 
    private:
-      void _learnRbfKernel(const Database& dat, double gamma, double marginCost)
+      void _learn(const Database& dat, double C)
 	   {
 		   _destroy();
 
@@ -241,38 +240,27 @@ namespace algorithm
 				   learningIndex.push_back(n);
 		   assert( learningIndex.size() ); // "no learning data in database"
 
-		   f64* y = new f64[ learningIndex.size() ];
+		   int* y = new int[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
-			   y[ n ] = dat[ learningIndex[ n ] ].output + 1;
+			   y[ n ] = static_cast<int>( dat[ learningIndex[ n ] ].output ) + 1;
 
 		   Point* inputs = new Point[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
 			   inputs[ n ] = dat[ learningIndex[ n ] ].input;
-         svm_node** x = implementation::build_svm_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), dat[ 0 ].input.size() );
+         feature_node** x = implementation::build_svmlinear_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), dat[ 0 ].input.size() );
 		   delete [] inputs;
 
-		   svm_problem pb;
+		   problem pb;
 		   pb.l = static_cast<ui32>( learningIndex.size() );
+         pb.n = _inputSize;
+
 		   pb.y = y;
 		   pb.x = x;
 
-		   svm_parameter param;
-		   param.svm_type = C_SVC;
-		   param.kernel_type = RBF;
-		   param.degree = 3;
-   		
-		   param.gamma = gamma;
-
-		   param.coef0 = 0;
-		   param.nu = 0.5;
-		   param.cache_size = 100;
-   		
-		   param.C = marginCost;
-
-		   param.eps = 1e-3;
-		   param.p = 0.1;
-		   param.shrinking = 1;
-		   param.probability = _createProbabilityModel;
+		   parameter param;
+		   param.solver_type = _solver;
+         param.eps = 1e-3;
+         param.C = C;
 
          core::Buffer1D<int> labels( _nbClasses );
          core::Buffer1D<double> weights( _nbClasses );
@@ -295,14 +283,14 @@ namespace algorithm
 	         param.weight = weights.getBuf();
          } else {
 		      param.nr_weight = 0;
-		      param.weight_label = NULL;
-		      param.weight = NULL;
+		      param.weight_label = 0;
+		      param.weight = 0;
          }
 
-		   const char* err = svm_check_parameter( &pb, &param );
+		   const char* err = check_parameter( &pb, &param );
 		   ensure( !err, "svm parameter error" ); // error
 
-		   _model = svm_train( &pb, &param );
+		   _model = train( &pb, &param );
 		   assert( _model ); // "error: model not trained"
 
          _vector = x;
@@ -314,22 +302,22 @@ namespace algorithm
       void _destroy()
       {
          if (_model)
-			   svm_free_and_destroy_model(&_model);
+			   free_and_destroy_model(&_model);
          if ( _vector )
             implementation::delete_svm_nodes( _vector, _vectorSize );
          _model = 0;
       }
 
    private:
-	   svm_model*  _model;
-	   ui32        _kernelType;
-      ui32        _inputSize;
+	   model*         _model;
+	   ui32           _solver;
+      ui32           _inputSize;
 
-      svm_node**  _vector;
-      ui32        _vectorSize;
-      ui32        _nbClasses;
-      ui32        _createProbabilityModel;
-      bool        _balanceData;
+      feature_node** _vector;
+      ui32           _vectorSize;
+      ui32           _nbClasses;
+      ui32           _createProbabilityModel;
+      bool           _balanceData;
    };
 }
 }
