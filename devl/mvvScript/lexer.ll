@@ -206,6 +206,7 @@ STRCHR	[A-Za-z_]
 "::"    return DCOLON;
 ";"     return SEMI;
 ","     return COMA;
+"[]"    return LBRACKRBRACK;
 "]"     return RBRACK;
 "["     return LBRACK;
 "("     return LPAREN;

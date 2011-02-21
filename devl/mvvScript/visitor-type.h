@@ -954,7 +954,7 @@ namespace parser
          if ( e.getType().isArray() )
          {
             // check the type held is not a reference...
-            if ( !e.getIsInFunctionPrototype() && hasArrayInnerReference( *e.getType().getNodeType() ) && _defaultClassPath.size() == 0 && !e.getDeclarationList() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
+            if ( !e.getIsInFunctionPrototype() && hasArrayInnerReference( *e.getType().getNodeType() ) && _defaultClassPath.size() == 0 && !e.getDeclarationList() && !e.getInit() ) // we don't check reference init if in function prototype -> must be done in the call // we can init a ref in a class at its first use
             {
                impl::reportTypeError( e.getLocation(), _context, "type with reference must be initialized" );
                return;
@@ -964,7 +964,9 @@ namespace parser
             TypeArray* arrayType = dynamic_cast<TypeArray*>( e.getType().getNodeType() );
             ensure( arrayType, "compiler error: this is an array, so it must have array type!" );
             const TypeNamed* ty = dynamic_cast<const TypeNamed*>( &arrayType->getRoot() );
-            if ( ty && !e.getDeclarationList() )
+
+            // in a function type, don't do bindings...
+            if ( ty && !e.getDeclarationList() && !e.getIsInFunctionPrototype() && !e.getInit() /*&& !arrayType*/ )
             {
                AstDeclFun* fn = checkDefaultConstructible( ty, e.getType().getLocation() );
                if ( fn )

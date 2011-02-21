@@ -76,37 +76,38 @@
      REF = 293,
      STREAMO = 294,
      STREAMI = 295,
-     OPERATORPARENT = 296,
-     OPERATORBRACKET = 297,
-     OPERATOR_PLUS = 298,
-     OPERATOR_MINUS = 299,
-     OPERATOR_TIMES = 300,
-     OPERATOR_DIVIDE = 301,
-     OPERATOR_LT = 302,
-     OPERATOR_GT = 303,
-     OPERATOR_LE = 304,
-     OPERATOR_GE = 305,
-     OPERATOR_EQ = 306,
-     OPERATOR_NE = 307,
-     OPERATOR_AND = 308,
-     OPERATOR_OR = 309,
-     OPERATOR_STREAMO = 310,
-     OPERATOR_STREAMI = 311,
-     FOR = 312,
-     IN = 313,
-     VAR = 314,
-     CLASS = 315,
-     VOID = 316,
-     RETURN = 317,
-     TYPENAME = 318,
-     TYPEDEF = 319,
-     INT_T = 320,
-     FLOAT_T = 321,
-     STRING_T = 322,
-     IMPORT = 323,
-     INCLUDE = 324,
-     IFX = 325,
-     UMINUS = 326
+     LBRACKRBRACK = 296,
+     OPERATORPARENT = 297,
+     OPERATORBRACKET = 298,
+     OPERATOR_PLUS = 299,
+     OPERATOR_MINUS = 300,
+     OPERATOR_TIMES = 301,
+     OPERATOR_DIVIDE = 302,
+     OPERATOR_LT = 303,
+     OPERATOR_GT = 304,
+     OPERATOR_LE = 305,
+     OPERATOR_GE = 306,
+     OPERATOR_EQ = 307,
+     OPERATOR_NE = 308,
+     OPERATOR_AND = 309,
+     OPERATOR_OR = 310,
+     OPERATOR_STREAMO = 311,
+     OPERATOR_STREAMI = 312,
+     FOR = 313,
+     IN = 314,
+     VAR = 315,
+     CLASS = 316,
+     VOID = 317,
+     RETURN = 318,
+     TYPENAME = 319,
+     TYPEDEF = 320,
+     INT_T = 321,
+     FLOAT_T = 322,
+     STRING_T = 323,
+     IMPORT = 324,
+     INCLUDE = 325,
+     IFX = 326,
+     UMINUS = 327
    };
 #endif
 
@@ -139,7 +140,7 @@ typedef union YYSTYPE
 
 
 /* Line 1685 of yacc.c  */
-#line 143 "parser.tab.hh"
+#line 144 "parser.tab.hh"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -201,6 +201,9 @@
 %token STREAMO      "<<"
 %token STREAMI      ">>"
 
+/* we need this special token to differentiate from a type[] to a lvalue[x] */
+%token LBRACKRBRACK "[]"
+
 %token OPERATORPARENT   "operator()"
 %token OPERATORBRACKET  "operator[]"
 
@@ -300,7 +303,7 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
                                                                        } 
                                                                      }
                                                                      
-          |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI       { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); /* we don't handle several dimensions*/ }
+          |type ID LBRACKRBRACK ASSIGN LBRACE args RBRACE SEMI       { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $6 ); $1->setArray( true ); /* we don't handle several dimensions*/ }
           |lvalue ASSIGN rvalue SEMI                                 { $$ = new mvv::parser::AstExpAssign( @$, $1, $3 ); }
           |lvalue LPAREN args RPAREN SEMI                            { $$ = new mvv::parser::AstExpCall( @$, $1, $3 ); }
           |RETURN rvalue SEMI                                        { $$ = new mvv::parser::AstReturn( @$, $2 ); }
@@ -312,13 +315,13 @@ statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX           
           /* operator overloading*/
           |type operator_def LPAREN fn_var_dec RPAREN LBRACE statements RBRACE { $$ = new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ); }
           |IMPORT type operator_def LPAREN fn_var_dec RPAREN SEMI                     { $$ = new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ); }
-          |rvalue SEMI { $$ = $1; } /* SHIFT/REDUCE conflict, by default SHIFT, which is the behaviour we want*/
+          |rvalue SEMI { $$ = $1; }  /* SHIFT/REDUCE conflict, by default SHIFT, which is the behaviour we want*/
           
 
 			
 array_decl: /* empty */                                              { $$ = new std::vector<mvv::parser::AstExp*>(); }
            |LBRACK rvalue RBRACK array_decl                          { $$ = $4; $$->push_back( $2 ); }
-           |LBRACK RBRACK array_decl                                 { $$ = $3; $$->push_back( new mvv::parser::AstInt( @$, 0 ) ); }
+           |LBRACKRBRACK array_decl                                 { $$ = $2; $$->push_back( new mvv::parser::AstInt( @$, 0 ) ); }
            
 operator_def: OPERATOR_PLUS                                          { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator+" ) ); }
              |OPERATOR_MINUS                                         { $$ = new mvv::Symbol( mvv::Symbol::create ( "operator-" ) ); }
@@ -379,7 +382,7 @@ lvalue : ID                               { $$ = new mvv::parser::AstVarSimple( 
 var_decs_class: /* empty */				                                                      { $$ = new mvv::parser::AstDecls( @$ ); }
       |var_dec_simple SEMI var_decs_class                                                    { $$ = $3; $$->insert( $1 ); }
       /*|var_dec_no_default SEMI var_decs_class                                              { $$ = $3; $$->insert( $1 ); }*/
-      |type ID LBRACK RBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                 { $$ = $10; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $7 ); $1->setArray( true ); $$->insert( var ); }
+      |type ID LBRACKRBRACK ASSIGN LBRACE args RBRACE SEMI var_decs_class                 { $$ = $9; mvv::parser::AstDeclVar* var = new mvv::parser::AstDeclVar( @$, $1, *$2, 0, $6 ); $1->setArray( true ); $$->insert( var ); }
       |CLASS ID LBRACE var_decs_class RBRACE var_decs_class                                  { $$ = $6; mvv::parser::AstDeclClass* decl = new mvv::parser::AstDeclClass( @$, *$2, $4 ); $$->insert( decl ); linkFunctionToClass( *decl ); }
       |type ID LPAREN fn_var_dec RPAREN LBRACE statements RBRACE var_decs_class              { $$ = $9; $$->insert( new mvv::parser::AstDeclFun( @$, $1, *$2, $4, $7 ) ); }	
       |IMPORT type ID LPAREN fn_var_dec RPAREN SEMI var_decs_class                           { $$ = $8; $$->insert( new mvv::parser::AstDeclFun( @$, $2, *$3, $5 ) ); }
@@ -412,8 +415,8 @@ type: type_field                      { $$ = $1; }
      |type_simple                     { $$ = $1; }
      |type_simple REF                 { $$ = $1; $1->setIsAReference( true ); }
      |type_field REF                  { $$ = $1; $1->setIsAReference( true ); }
-     |type_field LBRACK RBRACK        { $$ = $1; $1->setArray( true ) }
-     |type_simple LBRACK RBRACK        { $$ = $1; $1->setArray( true ) }
+     |type_field LBRACKRBRACK        { $$ = $1; $1->setArray( true ) }
+     |type_simple LBRACKRBRACK        { $$ = $1; $1->setArray( true ) }
      
 	  
 var_dec_simple: type ID ASSIGN rvalue { $$ = new mvv::parser::AstDeclVar( @$, $1, *$2, $4 ); }

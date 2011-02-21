@@ -150,12 +150,9 @@ public:
                throw std::runtime_error( "mvv global context has not been initialized" );
             }
 
+            // if a command line is found in the current layout, then redirect the outputs on this pane
             Pane* p = (*global->layout).find( mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) );
             LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( p );
-            if ( !cmd )
-            {
-               throw std::runtime_error( "invalid class for mvv::platform::LayoutCommandLine ID");
-            }
 
             //std::ostream* saveout = &_compiler.getStdOut();
             std::stringstream ss;
@@ -167,7 +164,12 @@ public:
             catch ( std::runtime_error e )
             {
                _compiler.setStdOut( &std::cout );
-               cmd->sendMessage( "exception thrown:" + std::string( e.what() ), nll::core::vector3uc( 255, 0, 0 ) );
+               if ( cmd )
+               {
+                  cmd->sendMessage( "exception thrown:" + std::string( e.what() ), nll::core::vector3uc( 255, 0, 0 ) );
+               } else {
+                  std::cerr << "exception thrown:" << e.what() << std::endl;
+               }
                return true;
             }
 
@@ -179,7 +181,14 @@ public:
                std::string s;
                std::getline( ss, s );
                if ( s != "" )
-                  cmd->sendMessage( s, nll::core::vector3uc( 255, 255, 255 ) );
+               {
+                  if ( cmd )
+                  {
+                     cmd->sendMessage( s, nll::core::vector3uc( 255, 255, 255 ) );
+                  } else {
+                     std::cout << s << std::endl;
+                  }
+               }
             }
          } catch ( std::runtime_error e )
          {

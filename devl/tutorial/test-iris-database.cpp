@@ -261,6 +261,30 @@ namespace tutorial
 
          TESTER_ASSERT( fabs( error ) <= 0.062 );
       }
+
+      void testMlp()
+      {
+         srand( 0 );
+
+         typedef nll::benchmark::BenchmarkDatabases::Database::Sample::Input  Input;
+         typedef nll::algorithm::Classifier<Input>                            Classifier;
+
+         // find the correct benchmark
+         const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "iris.data" );
+         ensure( benchmark, "can't find benchmark" );
+         Classifier::Database dat = benchmark->database;
+
+         // define the classifier to be used
+         typedef nll::algorithm::ClassifierMlp<Input> ClassifierImpl;
+         ClassifierImpl c;
+
+         nll::algorithm::FeatureTransformationNormalization<Input> preprocesser;
+         preprocesser.compute( dat );
+         Classifier::Database preprocessedDat = preprocesser.transform( dat );
+         double error = c.evaluate( nll::core::make_buffer1D<double>( 8, 0.5, 1 ), preprocessedDat );
+         std::cout << "error=" << error << std::endl;
+         TESTER_ASSERT( fabs( error ) <= 0.034 );
+      }
    };
 
    TESTER_TEST_SUITE( TestIrisDatabase );
@@ -273,6 +297,7 @@ namespace tutorial
    TESTER_TEST( testBayes );
    TESTER_TEST( testKernelKpca );
    TESTER_TEST( testKernelKpca2 );
+   TESTER_TEST( testMlp );
    TESTER_TEST_SUITE_END();
 }
 }

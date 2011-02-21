@@ -2457,6 +2457,54 @@ struct TestEval
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( i.intval == 42 );
       }
+      
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int& IntRef; void test( IntRef is[] ){}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "typedef int& IntRef; void test( IntRef[] is ){}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{} Test[] test(){ return NULL;}" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{} typedef Test[] TestArray; typedef TestArray& TestArrayRef;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+      
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int v; Test( int nn ){ v = 42; }} typedef Test& TestRef; Test t( 42 ); Test& tarray[] = {t};  void test( TestRef[] ref ){ ref[0].v = 43;} test(tarray); int n = t.v;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 43 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int v; Test( int nn ){ v = nn; }} typedef Test& TestRef; TestRef[] test(){ return NULL;}  TestRef[] array = test();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{ int v; Test( int nn ){ v = nn; }} typedef Test& TestRef; TestRef[] test( TestRef[] t){ return t;} Test tt(42); Test& tta[] = {tt}; TestRef[] array = test(tta);" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+      }
    }
 };
 
