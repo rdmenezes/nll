@@ -1,83 +1,259 @@
 #include <nll/nll.h>
 
+/*
+function [model, errors] = rbmBB(X, numhid, varargin)
+%Learn RBM with Bernoulli hidden and visible units
+%This is not meant to be applied to image data
+%code by Andrej Karpathy
+%based on implementation of Kevin Swersky and Ruslan Salakhutdinov
+
+%INPUTS: 
+%X              ... data. should be binary, or in [0,1] to be interpreted 
+%               ... as probabilities
+%numhid         ... number of hidden layers
+
+%additional inputs (specified as name value pairs or in struct)
+%method         ... CD or SML 
+%eta            ... learning rate
+%momentum       ... momentum for smoothness amd to prevent overfitting
+%               ... NOTE: momentum is not recommended with SML
+%maxepoch       ... # of epochs: each is a full pass through train data
+%avglast        ... how many epochs before maxepoch to start averaging
+%               ... before. Procedure suggested for faster convergence by
+%               ... Kevin Swersky in his MSc thesis
+%penalty        ... weight decay factor
+%batchsize      ... The number of training instances per batch
+%verbose        ... For printing progress
+%anneal         ... Flag. If set true, the penalty is annealed linearly
+%               ... through epochs to 10% of its original value
+
+%OUTPUTS:
+%model.type     ... Type of RBM (i.e. type of its visible and hidden units)
+%model.W        ... The weights of the connections
+%model.b        ... The biases of the hidden layer
+%model.c        ... The biases of the visible layer
+%model.top      ... The activity of the top layer, to be used when training
+%               ... DBN's
+%errors         ... The errors in reconstruction at every epoch
+
+%Process options
+%if args are just passed through in calls they become cells
+if (isstruct(varargin)) 
+    args= prepareArgs(varargin{1});
+else
+    args= prepareArgs(varargin);
+end
+[   method        ...
+    eta           ...
+    momentum      ...
+    maxepoch      ...
+    avglast       ...
+    penalty       ...
+    batchsize     ...
+    verbose       ...
+    anneal        ...
+    ] = process_options(args    , ...
+    'method'        ,  'CD'     , ...
+    'eta'           ,  0.1      , ...
+    'momentum'      ,  0.5      , ...
+    'maxepoch'      ,  50       , ...
+    'avglast'       ,  5        , ...
+    'penalty'       , 2e-4      , ...
+    'batchsize'     , 100       , ...
+    'verbose'       , false     , ...
+    'anneal'        , false);
+avgstart = maxepoch - avglast;
+oldpenalty= penalty;
+[N,d]=size(X);
+
+if (verbose) 
+    fprintf('Preprocessing data...\n');
+end
+
+%Create batches
+numcases=N;
+numdims=d;
+numbatches= ceil(N/batchsize);
+groups= repmat(1:numbatches, 1, batchsize);
+groups= groups(1:N);
+perm=randperm(N);
+groups = groups(perm);
+for i=1:numbatches
+    batchdata{i}= X(groups==i,:);
+end
+
+%train RBM
+W = 0.1*randn(numdims,numhid);
+c = zeros(1,numdims);
+b = zeros(1,numhid);
+ph = zeros(numcases,numhid);
+nh = zeros(numcases,numhid);
+phstates = zeros(numcases,numhid);
+nhstates = zeros(numcases,numhid);
+negdata = zeros(numcases,numdims);
+negdatastates = zeros(numcases,numdims);
+Winc  = zeros(numdims,numhid);
+binc = zeros(1,numhid);
+cinc = zeros(1,numdims);
+Wavg = W;
+bavg = b;
+cavg = c;
+t = 1;
+errors=zeros(1,maxepoch);
+
+for epoch = 1:maxepoch
+    
+	errsum=0;
+    if (anneal)
+        %apply linear weight penalty decay
+        penalty= oldpenalty - 0.9*epoch/maxepoch*oldpenalty;
+    end
+    
+    for batch = 1:numbatches
+		[numcases numdims]=size(batchdata{batch});
+		data = batchdata{batch};
+        
+        %go up
+		ph = logistic(data*W + repmat(b,numcases,1));
+		phstates = ph > rand(numcases,numhid);
+        if (isequal(method,'SML'))
+            if (epoch == 1 && batch == 1)
+                nhstates = phstates;
+            end
+        elseif (isequal(method,'CD'))
+            nhstates = phstates;
+        end
+		
+        %go down
+		negdata = logistic(nhstates*W' + repmat(c,numcases,1));
+		negdatastates = negdata > rand(numcases,numdims);
+        
+        %go up one more time
+		nh = logistic(negdatastates*W + repmat(b,numcases,1));
+		nhstates = nh > rand(numcases,numhid);
+		
+        %update weights and biases
+        dW = (data'*ph - negdatastates'*nh);
+        dc = sum(data) - sum(negdatastates);
+        db = sum(ph) - sum(nh);
+		Winc = momentum*Winc + eta*(dW/numcases - penalty*W);
+		binc = momentum*binc + eta*(db/numcases);
+		cinc = momentum*cinc + eta*(dc/numcases);
+		W = W + Winc;
+		b = b + binc;
+		c = c + cinc;
+        
+        if (epoch > avgstart)
+            %apply averaging
+			Wavg = Wavg - (1/t)*(Wavg - W);
+			cavg = cavg - (1/t)*(cavg - c);
+			bavg = bavg - (1/t)*(bavg - b);
+			t = t+1;
+		else
+			Wavg = W;
+			bavg = b;
+			cavg = c;
+        end
+        
+        %accumulate reconstruction error
+        err= sum(sum( (data-negdata).^2 ));
+		errsum = err + errsum;
+    end
+    
+    errors(epoch)=errsum;
+    if (verbose) 
+        fprintf('Ended epoch %i/%i. Reconstruction error is %f\n', ...
+            epoch, maxepoch, errsum);
+    end
+end
+
+model.type= 'BB';
+model.top= logistic(X*Wavg + repmat(bavg,N,1));
+model.W= Wavg;
+model.b= bavg;
+model.c= cavg;
+
+*/
 namespace nll
 {
 namespace algorithm
 {
-   template <class Value>
-   class Unit
+   /**
+    @ingroup algorithm
+    @brief Restricted Boltzmann machine with binary activation units 
+    @see contrastive divergence proof www.robots.ox.ac.uk/~ojw/files/NotesOnCD.pdf
+         RBM http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.35.8613
+             http://www.cs.toronto.edu/~hinton/ucltutorial.pdf
+    */
+   class RestrictedBoltzmannMachineBinary
    {
    public:
-      virtual void activation( double activation );
-      virtual Value getValue();
-      virtual ~Unit(){}
-   };
-
-   template <class Value>
-   class UnitBinaryLogistic : public Unit<Value>
-   {
-   public:
-      virtual void activation( double activation )
-      {
-         double r = rand() / RAND_MAX;
-         double t = 1 / ( 1 + exp( - activation ) );
-         _value = ( r >= t ) ? 1 : 0;
-      }
-
-      virtual Value getValue()
-      {
-         return _value;
-      }
-
-   protected:
-      Value    _value;
-   };
-
-   template <class Point, class UnitType = UnitBinaryLogistic<Point> >
-   class BoltzmannMachineRestrictedBinaryGeneration
-   {
-      typedef core::Matrix<double>        Weight;  // define a weights matrix. the line N corresponds to a weight of the N nth unit to the next layer.
-      typedef std::vector<UnitType>       Units;   // a set of units
-      typedef std::pair<Units, Weight>    Layer;   // a layer is a set of input units and a weight matrix
-      typedef std::vector<Layer>          Layers;  // last layer has an empty matrix
+      typedef double                   type;
+      typedef core::Matrix<type>       Matrix;
+      typedef core::Buffer1D<double>   Vector;
+      typedef core::Buffer1D<bool>     VectorB;
 
    public:
-      BoltzmannMachineRestrictedBinaryGeneration( const std::vector<ui32>& layers, double alpha, ui32 iter ) :
-         _alpha( alpha ), _iter( iter )
+      /**
+       @brief Train a restricted boltzmann machine using contrastive divergence
+       @param points the points to use
+       @param nbHiddenStates the size of the hidden layer
+       @param learningRate the learning rate used to update the weights
+       @param nbEpoch the number of iterations that should be used to train the RBM
+       @param batchSize the number of samples used to updated the weights
+       @return the energy of the model
+       */
+      template <class Points>
+      double trainContrastiveDivergence( const Points& points, ui32 nbHiddenStates, double learningRate, ui32 nbEpoch,
+                                         ui32 batchSize = 100, )
       {
-         assert( layers.size() >= 2 );
-         for ( ui32 n = 0; n < layers.size() - 1; ++n )
+         const ui32 inputSize = points[ 0 ].size();
+         const ui32 nbBatches = static_cast<double>( points.size() ) / batchSize;
+         const FunctionSimpleDifferenciableSigmoid sigm;
+
+         ensure( nbBatches > 0, "invalid batch size" );
+         ensure( nbHiddenStates > 0 && learningRate > 0 && nbEpoch > 0 && batchSize > 0, "invalid parameters" );
+
+         // create the batches
+         Vector index( points.size() );
+         for ( ui32 n = 0; n < points.size(); ++n )
+            index[ n ] = n / nbBatches;
+         core::randomize( index, 0.8 );
+
+         // initialize
+         // we include the bias = 1, it is located at the end of the hidden and visible layer
+         Vector hstates( nbHiddenStates + 1 );
+         Vector vstates( inputSize + 1 );
+         Vector tmpstates( std::max( inputSize + 1, nbHiddenStates + 1 ) );
+
+         hstates[ nbHiddenStates ] = 1;
+         vstates[ inputSize ] = 1;
+
+         Matrix w( inputSize + 1, nbHiddenStates + 1, false );
+         for ( ui32 n = 0; n < w.size(); ++n )
+            core::generateUniformDistribution( 1e-15, 1e-1 );
+
+         for ( ui32 epoch = 0; epoch < nbEpoch; ++epoch )
          {
-            Matrix m( layers[ n ], layers[ n + 1 ] );
-            for ( ui32 nn = 0; nn < m.size(); ++nn )
-               m[ nn ] = core::generateUniformDistribution( -0.1, 0.1 );
-            _layers.push_back( std::make_pair( Units(), m ) );
+            for ( ui32 batch = 0; batch < nbBatches; ++batch )
+            {
+
+               for ( ui32 n = 0; n < inputSize; ++n )
+               {
+                  //const double p = sigm.evaluate( XX );
+               }
+            }
          }
-         _layers.push_back( std::make_pair( Units(), Matrix( 0, 0 ) ) );
       }
 
-      double forwardActivation( ui32 layer, ui32 unit )
+   private:
+      static void mul( const Matrix& w, const Vector& stateInput, Vector& stateOut )
       {
-         assert( layer > 0 && layer < _layers.size() );
-         double activation = 0;
-         for ( ui32 n = 0; n < _layers[ layer - 1 ]; ++n )
-            activation += _layers[ layer - 1 ].first[ n ] * _layers[ layer - 1 ].second( layer - 1, n );
-         return activation;
+         // TODO
       }
 
-      double backwardActivation( ui32 layer, ui32 unit )
-      {
-         assert( layer > 1 && layer < _layers.size() - 1 );
-         double activation = 0;
-         for ( ui32 n = 0; n < _layers[ layer + 1 ]; ++n )
-            activation += _layers[ layer + 1 ].first[ n ] * _layers[ layer + 1 ].second( layer + 1, n );
-         return activation;
-      }
-
-   protected:
-      Layers      _layers;
-      double      _alpha;
-      ui32        _iter;
+   private:
+      Matrix      _w;
    };
 }
 }
