@@ -115,7 +115,7 @@ namespace detect
 
          if ( errors.size() )
          {
-            std::pair<ui32, ui32>& maxError = *errors.rbegin();
+            std::pair<ui32, ui32> maxError = *errors.rbegin();
             if ( maxError.first >= 2 )
             {
                distances[ maxError.second ] = -1;
@@ -256,9 +256,9 @@ namespace detect
             }
          }
 
-         Vector& result = pairs.begin()->second;
-         std::cout << "selected:" << std::endl;
-         pairs.begin()->print();
+         Vector result = pairs.begin()->second;
+         //std::cout << "selected:" << std::endl;
+         //pairs.begin()->print();
          ui32 nbError = pairs.begin()->first;
          for ( ui32 n = 1; n < NB_CLASS; ++n )
             if ( result[ n ] <= 0 && distances[ n ] > 0 )

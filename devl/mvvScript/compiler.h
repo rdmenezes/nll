@@ -327,11 +327,13 @@ namespace parser
                      }
 
                      // save the tree for further execution
-                     for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); ++it )
+                     for ( std::list<Ast*>::iterator it = exps.begin(); it != exps.end(); )
                      {
-                        _executionTrees.insert( TreeInfo( platform::RefcountedTyped<Ast>( *it ), false ) );
+                        std::list<Ast*>::iterator cur = it++;
+                        _executionTrees.insert( TreeInfo( platform::RefcountedTyped<Ast>( *cur ), it == exps.end() ) );
                      }
-                     _executionTrees.rbegin()->isUserCode = true; // the last exp parse is always user code
+                     //Trees::reverse_iterator& last = _executionTrees.rbegin();
+                     //last->isUserCode = true; // the last exp parse is always user code
                      
                      if ( !_sandbox )
                      {

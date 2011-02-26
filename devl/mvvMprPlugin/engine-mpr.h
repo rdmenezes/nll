@@ -517,10 +517,10 @@ namespace platform
                 clock_t maxClock = 0;
                 for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
                 {
-                    orders.insert( &( **it ) );
+                    orders.insert( const_cast<Order*>( &( **it ) ) );
                     _copy.insert( *it );
 
-                    OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
+                    const OrderSliceCreator* orderCreator = dynamic_cast<const OrderSliceCreator*> ( &( **it ) );
                     maxClock = std::max( maxClock, orderCreator->getTime() );
 
                     //std::cout << "create blend=" << &_ready << " clock=" << orderCreator->getTime() << " sent=" << _nbOrdersSend << " handled=" << _nbOrdersHandled << " id=" << (**it).getId() << std::endl;
@@ -545,7 +545,7 @@ namespace platform
                // export the floating slices
                for ( ResourceOrders::Iterator it = ordersToBlend.begin(); it != ordersToBlend.end(); ++it )
                {
-                  OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( &( **it ) );
+                  OrderSliceCreator* orderCreator = dynamic_cast<OrderSliceCreator*> ( const_cast<Order*>( &( **it ) ) );
                   OrderSliceCreatorResult* result = dynamic_cast<OrderSliceCreatorResult*>( orderCreator->getResult() );
                   assert( orderCreator && result );
 

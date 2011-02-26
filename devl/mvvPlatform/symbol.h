@@ -27,6 +27,13 @@ namespace platform
          return Symbol( it.first->c_str() );
       }
 
+      static Symbol create( const char* s )
+      {
+         // return the address contained in the set, guaranteing its unicity
+         std::pair<Strings::iterator, bool> it = _strings.insert( std::string( s ) );
+         return Symbol( it.first->c_str() );
+      }
+
       bool operator==( const Symbol& rhs ) const
       {
          return _s == rhs._s;

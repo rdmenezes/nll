@@ -5,6 +5,7 @@
 # include "compiler.h"
 # include "completion-interface.h"
 # include "visitor-print-simple.h"
+# include <iterator>
 
 namespace mvv
 {

@@ -37,7 +37,7 @@ namespace platform
       {
          for ( ResourceAnnotations::Iterator it = _annotations.begin(); it != _annotations.end(); ++it )
          {
-            (**it).updateSegment( s );
+            const_cast<Annotation&>((**it)).updateSegment( s );
          }
       }
 
