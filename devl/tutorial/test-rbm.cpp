@@ -9,21 +9,6 @@ namespace nll
 {
 namespace algorithm
 {
-   class FunctionSimpleDifferenciableSigmoidf
-   {
-   public:
-      inline float evaluate( float val ) const
-      {
-         return 1.0f / ( 1.0f + exp( -val ) );
-      }
-
-      inline float evaluateDerivative( float val ) const
-      {
-         const float v = evaluate( val );
-         return v * ( 1.0f - v );
-      }
-   };
-
    /**
     @ingroup algorithm
     @brief Restricted Boltzmann machine with binary activation units 
@@ -48,16 +33,27 @@ namespace algorithm
        @param learningRate the learning rate used to update the weights
        @param nbEpoch the number of iterations that should be used to train the RBM
        @param batchSize the number of samples used to updated the weights
-       @return the energy of the model
+       @return the reconstruction error
        */
       template <class Points>
-      void trainContrastiveDivergence( const Points& points, ui32 nbHiddenStates, type learningRate, ui32 nbEpoch,
+      double trainContrastiveDivergence( const Points& points, ui32 nbHiddenStates, type learningRate, ui32 nbEpoch,
                                          ui32 batchSize = 100 )
       {
-         const ui32 nbPoints = points.size();
-         const ui32 inputSize = points[ 0 ].size();
+         const int inputSize = points[ 0 ].size();
          const ui32 nbBatches = (ui32)std::ceil( static_cast<type>( points.size() ) / batchSize );
          const FunctionSimpleDifferenciableSigmoid sigm;
+         core::Timer timer;
+
+         {
+            std::stringstream ss;
+            ss << "train binary restricted boltzmann machine" << std::endl
+               << "visible units=" << inputSize << std::endl
+               << "hidden units=" << nbHiddenStates << std::endl
+               << "learning rate=" << learningRate << std::endl
+               << "nbEpoch=" << nbEpoch << std::endl
+               << "batchSize=" << batchSize << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
 
          ensure( nbBatches > 0, "invalid batch size" );
          ensure( nbHiddenStates > 0 && learningRate > 0 && nbEpoch > 0 && batchSize > 0, "invalid parameters" );
@@ -78,7 +74,7 @@ namespace algorithm
          Vector hstates( nbHiddenStates + 1 );
          Vector vstates( inputSize + 1 );
          Vector vstatesOrig( inputSize + 1 );
-         Vector tmpstates( std::max( inputSize + 1, nbHiddenStates + 1 ) );
+         Vector tmpstates( std::max<ui32>( inputSize + 1, nbHiddenStates + 1 ) );
 
          hstates[ nbHiddenStates ] = 1;
          vstates[ inputSize ] = 1;
@@ -88,10 +84,10 @@ namespace algorithm
          for ( ui32 n = 0; n < _w.size(); ++n )
             _w[ n ] = (type)core::generateUniformDistribution( 1e-4, 2e-1 );
 
+         type error = 0;
          for ( ui32 epoch = 0; epoch < nbEpoch; ++epoch )
          {
-            type error = 0;
-            std::cout << "epoch:" << epoch << std::endl;
+            error = 0;
             for ( ui32 batch = 0; batch < nbBatches; ++batch )
             {
                Matrix dw( inputSize + 1, nbHiddenStates + 1 );
@@ -100,47 +96,65 @@ namespace algorithm
                Vector hsum0( nbHiddenStates + 1 );
                Vector hsum1( inputSize      + 1 );
                Vector hsum2( nbHiddenStates + 1 );
-               const ui32 size = batchList[ batch ].size();
+               const ui32 size = static_cast<ui32>( batchList[ batch ].size() );
                for ( ui32 point = 0; point < size; ++point )
                {
-                  // fetch the input
                   const ui32 sampleId = batchList[ batch ][ point ];
 
-                  for ( ui32 n = 0; n < inputSize; ++n )
+                  // fetch the input
+                  #pragma omp parallel for
+                  for ( int n = 0; n < inputSize; ++n )
                   {
                      assert( points[ sampleId ][ n ] >= 0 && points[ sampleId ][ n ] <= 1 ); // ensure the data is correctly distributed
-                     vstates[ n ] = points[ sampleId ][ n ];
+                     vstates[ n ] = static_cast<type>( points[ sampleId ][ n ] );
                      vstatesOrig[ n ] = vstates[ n ];
                   }
 
-
                   // go up
                   mulup( _w, vstates, hsum0 );
-                  for ( ui32 n = 0; n < nbHiddenStates; ++n )
+#ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+#endif
+                  for ( int n = 0; n < (int)nbHiddenStates; ++n )
                   {
                      const type p = sigm.evaluate( hsum0[ n ] );
                      hsum0[ n ] = p;
                      hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
                   }
+                  hsum0[ nbHiddenStates ] = sigm.evaluate( hsum0[ nbHiddenStates ] );
 
                   // go down
                   muldown( _w, hstates, hsum1 );
-                  for ( ui32 n = 0; n < inputSize; ++n )
+
+#ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+#endif
+                  for ( int n = 0; n < inputSize; ++n )
                   {
                      const type p = sigm.evaluate( hsum1[ n ] );
                      hsum1[ n ] = p;
                      vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
                   }
+                  hsum1[ inputSize ] = sigm.evaluate( hsum1[ inputSize ] );
 
                   // go up one more time
                   mulup( _w, vstates, hsum2 );
-                  for ( ui32 n = 0; n < nbHiddenStates; ++n )
+
+#ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+#endif
+                  for ( int n = 0; n < (int)nbHiddenStates; ++n )
                   {
                      const type p = sigm.evaluate( hsum2[ n ] );
                      hsum2[ n ] = p;
                   }
-
-                  for ( ui32 j = 0; j < _w.sizex(); ++j )
+                  hsum2[ nbHiddenStates ] = sigm.evaluate( hsum2[ nbHiddenStates ] );
+                  
+                  // compute the weight update
+#ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+#endif
+                  for ( int j = 0; j < (int)_w.sizex(); ++j )
                   {
                      for ( ui32 i = 0; i < _w.sizey(); ++i )
                      {
@@ -148,7 +162,11 @@ namespace algorithm
                      }
                   }
 
-                  for ( ui32 n = 0; n < inputSize; ++n )
+                  // compute error
+#ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for reduction(+:error)
+#endif
+                  for ( int n = 0; n < (int)inputSize; ++n )
                   {
                      const type val = vstatesOrig[ n ] - hsum1[ n ];
                      error += val * val;
@@ -156,21 +174,28 @@ namespace algorithm
                }
 
                // update the weights
-               for ( ui32 n = 0; n < _w.size(); ++n )
+#ifndef NLL_NOT_MULTITHREADED
+               #pragma omp parallel for
+#endif
+               for ( int n = 0; n < (int)_w.size(); ++n )
                {
-                  _w[ n ] += dw[ n ] * learningRate / nbPoints;
-               }
-
-               {
-                  std::stringstream ss;
-                  _w.print( ss );
-
-                  core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "weight batch:" + core::val2str(batch) );
-                  core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+                  _w[ n ] += dw[ n ] * learningRate / batchSize;
                }
             }
-            std::cout << "error=" << error << std::endl;
+
+            {
+               std::stringstream ss;
+               ss << " epoch=" << epoch << " reconstruction error=" << error;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
          }
+
+         {
+            std::stringstream ss;
+            ss << "training time (s)=" << timer.getCurrentTime();
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+         return error;
       }
 
       const Matrix& getWeights() const
@@ -184,12 +209,16 @@ namespace algorithm
          ensure( w.sizey() == stateInput.size(), "error size" );
          ensure( w.sizex() == stateOut.size(), "error size" );
 
-         const ui32 nbHidden = w.sizex();
-         const ui32 nbVisible = w.sizey();
-         for ( ui32 j = 0; j < nbHidden; ++j )
+         const int nbHidden = (int)w.sizex();
+         const int nbVisible = (int)w.sizey();
+
+#ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+#endif
+         for ( int j = 0; j < nbHidden; ++j )
          {
             type accum = 0;
-            for ( ui32 i = 0; i < nbVisible; ++i )
+            for ( int i = 0; i < nbVisible; ++i )
             {
                accum += _w( i, j ) * stateInput[ i ];
             }
@@ -202,12 +231,16 @@ namespace algorithm
          ensure( w.sizey() == stateOut.size(), "error size" );
          ensure( w.sizex() == stateOutput.size(), "error size" );
 
-         const ui32 nbHidden = w.sizex();
-         const ui32 nbVisible = w.sizey();
-         for ( ui32 j = 0; j < nbVisible; ++j )
+         const int nbHidden = (int)w.sizex();
+         const int nbVisible = (int)w.sizey();
+
+#ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+#endif
+         for ( int j = 0; j < nbVisible; ++j )
          {
             type accum = 0;
-            for ( ui32 i = 0; i < nbHidden; ++i )
+            for ( int i = 0; i < nbHidden; ++i )
             {
                accum += _w( j, i ) * stateOutput[ i ];
             }
@@ -266,15 +299,22 @@ class TestRbm
 public:
    void testRbm1()
    {
-      srand(10);
-      Database mnist = readSmallMnist();
+      srand(15);
+      //Database mnist = readSmallMnist();
+
+      const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
+      ensure( benchmark, "can't find benchmark" );
+      Classifier::Database mnist = benchmark->database;
+      for ( ui32 n = 0; n < mnist.size(); ++n )
+         for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
+            mnist[ n ].input[ nn ] /= 2;
 
       typedef core::DatabaseInputAdapter<Database> Adapter;
       Adapter points( mnist );
 
 
       algorithm::RestrictedBoltzmannMachineBinary rbm0;
-      rbm0.trainContrastiveDivergence( points, 100, 0.1, 30 );
+      double e = rbm0.trainContrastiveDivergence( points, 100, 0.2, 50 );
 
       const algorithm::RestrictedBoltzmannMachineBinary::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizex(); ++filter )
@@ -290,8 +330,10 @@ public:
                i( x, y, 2 ) = i( x, y, 0 );
             }
          }
-         core::writeBmp( i, "c:/tmp/filter-" + core::val2str(filter) + ".bmp" );
+         core::writeBmp( i, NLL_DATABASE_PATH "filter-" + core::val2str(filter) + ".bmp" );
       }
+
+      TESTER_ASSERT( e < 65000 );
    }
 
    
