@@ -51,7 +51,7 @@ namespace algorithm
       /**
        @brief Sample from the model a specific class learnt
        */
-      Vector generate( ui32 classId, ui32 nbIter = 1000 )
+      Vector generateFromClass( ui32 classId, ui32 nbIter = 1000 )
       {
          ensure( classId < _nbClass, "no class associated with this RBM" );
 
@@ -67,15 +67,18 @@ namespace algorithm
          // set the bias & label correctly
          hstates[ _w.sizex() - 1 ] = 1;
          vstates[ _w.sizey() - 1 ] = 1;
-         for ( ui32 n = 0; n < _nbClass; ++n )
+         vstates[ nbVisibleStates + classId ] = 1;
+
          {
-            vstates[ nbVisibleStates + n ] = n == classId;
+            std::stringstream ss;
+            _w.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
          // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = core::generateUniformDistribution( 1e-4, 1 );
+            vstates[ n ] = core::generateUniformDistribution( 0.1, 0.8 );
          }
 
          // 
@@ -92,7 +95,7 @@ namespace algorithm
                hsum[ n ] = p;
                hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
             }
-            hsum[ nbHiddenStates ] = sigm.evaluate( hsum[ nbHiddenStates ] );
+            hsum[ hsum.size() - 1 ] = sigm.evaluate( hsum[ hsum.size() - 1 ] );
 
             // go down
             muldown( _w, hstates, vsum );
@@ -100,7 +103,77 @@ namespace algorithm
 #ifndef NLL_NOT_MULTITHREADED
             #pragma omp parallel for
 #endif
-            for ( int n = 0; n < (int)nbVisibleStates; ++n ) // the classes are clamped so we don't want to change them!
+            for ( int n = 0; n < (int)nbVisibleStates; ++n )
+            {
+               const type p = sigm.evaluate( vsum[ n ] );
+               vsum[ n ] = p;
+               vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
+            }
+            vsum[ nbVisibleStates + _nbClass ] = sigm.evaluate( vsum[ _nbClass + nbVisibleStates ] );
+
+            // the classes are clamped so we don't want to change them!
+            /*
+            for ( int n = nbVisibleStates; n < nbVisibleStates + _nbClass; ++n )
+            {
+               const type p = sigm.evaluate( vsum[ n ] );
+               vsum[ n ] = p;
+               vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
+            }*/
+         }
+
+         return Vector( vsum.stealBuf(), nbVisibleStates, true );
+      }
+
+      Vector generate( ui32 nbIter = 1000 )
+      {
+         Vector hstates( _w.sizex() );
+         Vector hsum( hstates.size() );
+         Vector vstates( _w.sizey() );
+         Vector vsum( vstates.size() );
+
+         const ui32 nbVisibleStates = _w.sizey() - 1 - _nbClass;
+         const ui32 nbHiddenStates = _w.sizex() - 1;
+         const FunctionSimpleDifferenciableSigmoid sigm;
+
+         // set the bias & label correctly
+         hstates[ _w.sizex() - 1 ] = 1;
+         vstates[ _w.sizey() - 1 ] = 1;
+
+         {
+            std::stringstream ss;
+            _w.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+         // initialize randomly the states
+         for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
+         {
+            vstates[ n ] = core::generateUniformDistribution( 0.7, 0.8 );
+         }
+
+         // 
+         for ( ui32 n = 0; n < nbIter; ++n )
+         {
+            // go up
+            mulup( _w, vstates, hsum );
+#ifndef NLL_NOT_MULTITHREADED
+            #pragma omp parallel for
+#endif
+            for ( int n = 0; n < (int)nbHiddenStates; ++n )
+            {
+               const type p = sigm.evaluate( hsum[ n ] );
+               hsum[ n ] = p;
+               hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
+            }
+            hsum[ hsum.size() - 1 ] = sigm.evaluate( hsum[ hsum.size() - 1 ] );
+
+            // go down
+            muldown( _w, hstates, vsum );
+
+#ifndef NLL_NOT_MULTITHREADED
+            #pragma omp parallel for
+#endif
+            for ( int n = 0; n < (int)nbVisibleStates; ++n )
             {
                const type p = sigm.evaluate( vsum[ n ] );
                vsum[ n ] = p;
@@ -424,12 +497,12 @@ public:
       typedef core::DatabaseInputAdapter<Database>          Adapter;
       Adapter points( mnist );
 
-      typedef core::DatabaseClassAdapterRead<Database>      AdapterClass;
-      AdapterClass classes( mnist );
+      //typedef core::DatabaseClassAdapterRead<Database>      AdapterClass;
+      //AdapterClass classes( mnist );
+      std::vector<ui32> classes;
 
       algorithm::RestrictedBoltzmannMachineBinary rbm0;
-      //std::vector<ui32> labels;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 100, 0.2, 50 );
+      double e = rbm0.trainContrastiveDivergence( points, classes, 500, 0.20, 50 );
 
       const algorithm::RestrictedBoltzmannMachineBinary::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizex(); ++filter )
@@ -463,8 +536,9 @@ public:
 
       for ( ui32 n = 0; n < 100; ++n )
       {
-         ui32 label = 2;
-         algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(label, 50);
+         ui32 label = 9;
+         //algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(label, 50);
+         algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(100);
 
          core::Image<ui8> i( 16, 16, 3 );
          for ( ui32 y = 0; y < i.sizey(); ++y )
