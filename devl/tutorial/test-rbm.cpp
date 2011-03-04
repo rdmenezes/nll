@@ -48,13 +48,9 @@ namespace algorithm
          core::read<ui32>( _nbClass, in );
       }
 
-      /**
-       @brief Sample from the model a specific class learnt
-       */
-      Vector generateFromClass( ui32 classId, ui32 nbIter = 1000 )
+      // if no index is found, it returns an ID class >> _nbClass
+      ui32 getClass( const Vector& input, ui32 nbCycles = 10 )
       {
-         ensure( classId < _nbClass, "no class associated with this RBM" );
-
          Vector hstates( _w.sizex() );
          Vector hsum( hstates.size() );
          Vector vstates( _w.sizey() );
@@ -62,66 +58,41 @@ namespace algorithm
 
          const ui32 nbVisibleStates = _w.sizey() - 1 - _nbClass;
          const ui32 nbHiddenStates = _w.sizex() - 1;
-         const FunctionSimpleDifferenciableSigmoid sigm;
 
          // set the bias & label correctly
          hstates[ _w.sizex() - 1 ] = 1;
          vstates[ _w.sizey() - 1 ] = 1;
-         vstates[ nbVisibleStates + classId ] = 1;
 
-         {
-            std::stringstream ss;
-            _w.print( ss );
-            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
-         }
-
-         // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = core::generateUniformDistribution( 0.1, 0.8 );
+            vstates[ n ] = input[ n ];
          }
 
-         // 
-         for ( ui32 n = 0; n < nbIter; ++n )
+         Vector nbSamples( _nbClass );
+         for ( ui32 n = 0; n < nbCycles; ++n )
          {
-            // go up
-            mulup( _w, vstates, hsum );
-#ifndef NLL_NOT_MULTITHREADED
-            #pragma omp parallel for
-#endif
-            for ( int n = 0; n < (int)nbHiddenStates; ++n )
+            _updown( vstates, hstates, hsum, vsum, nbHiddenStates, nbVisibleStates );
+            for ( ui32 nn = 0; nn < _nbClass; ++nn )
             {
-               const type p = sigm.evaluate( hsum[ n ] );
-               hsum[ n ] = p;
-               hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
+               if ( vstates[ nn + nbVisibleStates ] >= 1 )
+               {
+                  ++nbSamples[ nn ];
+                  break;
+               }
             }
-            hsum[ hsum.size() - 1 ] = sigm.evaluate( hsum[ hsum.size() - 1 ] );
-
-            // go down
-            muldown( _w, hstates, vsum );
-
-#ifndef NLL_NOT_MULTITHREADED
-            #pragma omp parallel for
-#endif
-            for ( int n = 0; n < (int)nbVisibleStates; ++n )
-            {
-               const type p = sigm.evaluate( vsum[ n ] );
-               vsum[ n ] = p;
-               vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
-            }
-            vsum[ nbVisibleStates + _nbClass ] = sigm.evaluate( vsum[ _nbClass + nbVisibleStates ] );
-
-            // the classes are clamped so we don't want to change them!
-            /*
-            for ( int n = nbVisibleStates; n < nbVisibleStates + _nbClass; ++n )
-            {
-               const type p = sigm.evaluate( vsum[ n ] );
-               vsum[ n ] = p;
-               vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
-            }*/
          }
 
-         return Vector( vsum.stealBuf(), nbVisibleStates, true );
+         int max = 0;
+         int index = 1;
+         for ( ui32 nn = 0; nn < _nbClass; ++nn )
+         {
+            if ( max < nbSamples[ nn ] )
+            {
+               max = nbSamples[ nn ];
+               index = nn;
+            }
+         }
+         return (ui32)index;
       }
 
       Vector generate( ui32 nbIter = 1000 )
@@ -133,7 +104,6 @@ namespace algorithm
 
          const ui32 nbVisibleStates = _w.sizey() - 1 - _nbClass;
          const ui32 nbHiddenStates = _w.sizex() - 1;
-         const FunctionSimpleDifferenciableSigmoid sigm;
 
          // set the bias & label correctly
          hstates[ _w.sizex() - 1 ] = 1;
@@ -148,39 +118,19 @@ namespace algorithm
          // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = core::generateUniformDistribution( 0.7, 0.8 );
+            vstates[ n ] = core::generateUniformDistributionf( 0.7f, 0.8f );
          }
 
          // 
          for ( ui32 n = 0; n < nbIter; ++n )
          {
-            // go up
-            mulup( _w, vstates, hsum );
-#ifndef NLL_NOT_MULTITHREADED
-            #pragma omp parallel for
-#endif
-            for ( int n = 0; n < (int)nbHiddenStates; ++n )
-            {
-               const type p = sigm.evaluate( hsum[ n ] );
-               hsum[ n ] = p;
-               hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
-            }
-            hsum[ hsum.size() - 1 ] = sigm.evaluate( hsum[ hsum.size() - 1 ] );
-
-            // go down
-            muldown( _w, hstates, vsum );
-
-#ifndef NLL_NOT_MULTITHREADED
-            #pragma omp parallel for
-#endif
-            for ( int n = 0; n < (int)nbVisibleStates; ++n )
-            {
-               const type p = sigm.evaluate( vsum[ n ] );
-               vsum[ n ] = p;
-               vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
-            }
-            vsum[ nbVisibleStates + _nbClass ] = sigm.evaluate( vsum[ _nbClass + nbVisibleStates ] );
+            _updown( vstates, hstates, hsum, vsum, nbHiddenStates, nbVisibleStates );
          }
+
+         vsum.print(std::cout );
+         hsum.print(std::cout );
+         vstates.print(std::cout );
+         hstates.print(std::cout );
 
          return Vector( vsum.stealBuf(), nbVisibleStates, true );
       }
@@ -209,7 +159,6 @@ namespace algorithm
 
          const int inputSize = points[ 0 ].size();
          const ui32 nbBatches = (ui32)std::ceil( static_cast<type>( points.size() ) / batchSize );
-         const FunctionSimpleDifferenciableSigmoid sigm;
          core::Timer timer;
 
          int maxLabel = -1;
@@ -261,7 +210,7 @@ namespace algorithm
 
          _w = Matrix( vstates.size(), hstates.size() );
          for ( ui32 n = 0; n < _w.size(); ++n )
-            _w[ n ] = (type)core::generateUniformDistribution( 1e-4, 2e-1 );
+            _w[ n ] = (type)core::generateUniformDistribution( -2e-1, 2e-1 );
 
          type error = 0;
          for ( ui32 epoch = 0; epoch < nbEpoch; ++epoch )
@@ -294,46 +243,8 @@ namespace algorithm
                      vstatesOrig[ inputSize + n ] = vstates[ inputSize + n ];
                   }
 
-                  // go up
-                  mulup( _w, vstates, hsum0 );
-#ifndef NLL_NOT_MULTITHREADED
-                  #pragma omp parallel for
-#endif
-                  for ( int n = 0; n < (int)nbHiddenStates; ++n )
-                  {
-                     const type p = sigm.evaluate( hsum0[ n ] );
-                     hsum0[ n ] = p;
-                     hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
-                  }
-                  hsum0[ nbHiddenStates ] = sigm.evaluate( hsum0[ nbHiddenStates ] );
+                  _update( vstates, hstates, hsum0, hsum1, hsum2, nbHiddenStates, inputSize );
 
-                  // go down
-                  muldown( _w, hstates, hsum1 );
-
-#ifndef NLL_NOT_MULTITHREADED
-                  #pragma omp parallel for
-#endif
-                  for ( int n = 0; n < inputSize + (int)nbClassUnits; ++n )
-                  {
-                     const type p = sigm.evaluate( hsum1[ n ] );
-                     hsum1[ n ] = p;
-                     vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
-                  }
-                  hsum1[ inputSize + nbClassUnits ] = sigm.evaluate( hsum1[ nbClassUnits + inputSize ] );
-
-                  // go up one more time
-                  mulup( _w, vstates, hsum2 );
-
-#ifndef NLL_NOT_MULTITHREADED
-                  #pragma omp parallel for
-#endif
-                  for ( int n = 0; n < (int)nbHiddenStates; ++n )
-                  {
-                     const type p = sigm.evaluate( hsum2[ n ] );
-                     hsum2[ n ] = p;
-                  }
-                  hsum2[ nbHiddenStates ] = sigm.evaluate( hsum2[ nbHiddenStates ] );
-                  
                   // compute the weight update
 #ifndef NLL_NOT_MULTITHREADED
                   #pragma omp parallel for
@@ -388,6 +299,85 @@ namespace algorithm
       }
 
    private:
+      void _updown(Vector vstates, Vector hstates, Vector hsum0, Vector hsum1, int nbHiddenStates, int inputSize )
+      {
+         const FunctionSimpleDifferenciableSigmoid sigm;
+         Vector softmax( _nbClass );
+
+         // go up
+         mulup( _w, vstates, hsum0 );
+#ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+#endif
+         for ( int n = 0; n < nbHiddenStates; ++n )
+         {
+            const type p = sigm.evaluate( hsum0[ n ] );
+            hsum0[ n ] = p;
+            hstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
+         }
+         hsum0[ nbHiddenStates ] = sigm.evaluate( hsum0[ nbHiddenStates ] );
+
+         // go down
+         muldown( _w, hstates, hsum1 );
+
+#ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+#endif
+         for ( int n = 0; n < inputSize; ++n )
+         {
+            const type p = sigm.evaluate( hsum1[ n ] );
+            hsum1[ n ] = p;
+            vstates[ n ] = p > core::generateUniformDistributionf( 0.0f, 1.0f );
+         }
+         hsum1[ inputSize + _nbClass ] = sigm.evaluate( hsum1[ _nbClass + inputSize ] );
+
+         // handle the softmax units
+         type sum = 0;
+         for ( int n = 0; n < (int)_nbClass; ++n )
+         {
+            softmax[ n ] = exp( hsum1[ inputSize + n ] );
+            sum += softmax[ n ];
+         }
+         if ( sum > 0 )
+         {
+            for ( int n = 0; n < (int)_nbClass; ++n )
+            {
+               hsum1[ inputSize + n ] = softmax[ n ] / sum;
+               softmax[ n ] = hsum1[ inputSize + n ];
+            }
+            ui32 unitClass = core::sampling( softmax, 1 )[ 0 ];   // sample from the softmax variable
+            for ( ui32 n = 0; n < (ui32)_nbClass; ++n )
+            {
+               vstates[ inputSize + n ] = ( unitClass == n );
+            }
+         } else {
+            for ( ui32 n = 0; n < (ui32)_nbClass; ++n )
+            {
+               vstates[ inputSize + n ] = 0;
+            }
+         }
+      }
+
+      void _update(Vector vstates, Vector hstates, Vector hsum0, Vector hsum1, Vector hsum2, int nbHiddenStates, int inputSize )
+      {
+         const FunctionSimpleDifferenciableSigmoid sigm;
+         _updown( vstates, hstates, hsum0, hsum1, nbHiddenStates, inputSize );
+
+         // go up one more time
+         mulup( _w, vstates, hsum2 );
+
+#ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+#endif
+         for ( int n = 0; n < nbHiddenStates; ++n )
+         {
+            const type p = sigm.evaluate( hsum2[ n ] );
+            hsum2[ n ] = p;
+         }
+         hsum2[ nbHiddenStates ] = sigm.evaluate( hsum2[ nbHiddenStates ] );
+         // don't recompute the hidden states, we don't need it (so we can save a copy)
+      }
+
       void mulup( const Matrix& w, const Vector& stateInput, Vector& stateOut )
       {
          ensure( w.sizey() == stateInput.size(), "error size" );
@@ -484,25 +474,28 @@ class TestRbm
 public:
    void testRbm1()
    {
-      srand(15);
-      //Database mnist = readSmallMnist();
+      srand(time(0));
+      Database mnist = readSmallMnist();
 
+      /*
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
       for ( ui32 n = 0; n < mnist.size(); ++n )
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
+      mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+      */
 
       typedef core::DatabaseInputAdapter<Database>          Adapter;
       Adapter points( mnist );
 
-      //typedef core::DatabaseClassAdapterRead<Database>      AdapterClass;
-      //AdapterClass classes( mnist );
-      std::vector<ui32> classes;
+      typedef core::DatabaseClassAdapterRead<Database>      AdapterClass;
+      AdapterClass classes( mnist );
+      //std::vector<ui32> classes;
 
       algorithm::RestrictedBoltzmannMachineBinary rbm0;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 500, 0.20, 50 );
+      double e = rbm0.trainContrastiveDivergence( points, classes, 600, 0.10, 10 );
 
       const algorithm::RestrictedBoltzmannMachineBinary::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizex(); ++filter )
@@ -538,7 +531,7 @@ public:
       {
          ui32 label = 9;
          //algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(label, 50);
-         algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(100);
+         algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(500);
 
          core::Image<ui8> i( 16, 16, 3 );
          for ( ui32 y = 0; y < i.sizey(); ++y )
@@ -554,11 +547,53 @@ public:
          core::writeBmp( i, NLL_DATABASE_PATH "generate-" + core::val2str(label) + "-" + core::val2str( n ) + ".bmp" );
       }
    }
+
+   void testRbmRecon1()
+   {
+      algorithm::RestrictedBoltzmannMachineBinary rbm;
+
+      std::ifstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::in | std::ios_base::binary );
+      rbm.read( f );
+
+      /*
+      const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
+      ensure( benchmark, "can't find benchmark" );
+      Classifier::Database mnist = benchmark->database;
+      for ( ui32 n = 0; n < mnist.size(); ++n )
+         for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
+            mnist[ n ].input[ nn ] /= 2;
+
+      mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::TESTING ), (ui32) Database::Sample::TESTING );
+      */
+      Database mnist = readSmallMnist();
+
+
+      ui32 nbGood = 0;
+      ui32 nb = 0;
+      ui32 nbUnknown = 0;
+      for ( ui32 n = 0; n < mnist.size(); ++n )
+      {
+         ui32 id = rbm.getClass( mnist[ n ].input, 5 );
+         std::cout << "label=" << mnist[ n ].output << " found=" << id << std::endl;
+
+         if ( id > 10 )
+            ++nbUnknown;
+         else
+         {
+            if ( id == mnist[ n ].output )
+               ++nbGood;
+         }
+         ++nb;
+      }
+
+      std::cout << "accuracy=" << (double)nbGood / nb << std::endl;
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRbm);
 //TESTER_TEST(testRbm1);
-TESTER_TEST(testRbmGenerate1);
+//TESTER_TEST(testRbmGenerate1);
+TESTER_TEST(testRbmRecon1);
 TESTER_TEST_SUITE_END();
 #endif
