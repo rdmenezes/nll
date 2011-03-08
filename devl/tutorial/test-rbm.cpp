@@ -426,6 +426,245 @@ namespace algorithm
       Matrix      _w;   // _w(i, j) i visible, j hidden
       ui32        _nbClass;
    };
+
+   class RestrictedBoltzmannMachineBinary2
+   {
+   public:
+      typedef double                   type;
+      typedef core::Matrix<type>       Matrix;
+      typedef core::Buffer1D<type>     Vector;
+      typedef core::Buffer1D<ui32>     Index;
+
+   public:
+      template <class Points, class Labels>
+      double trainContrastiveDivergence( const Points& points, const Labels& labels, ui32 nbHiddenStates, type learningRate, ui32 nbEpoch,
+                                         ui32 batchSize = 100 )
+      {
+         const ui32 inputSize = points[ 0 ].size();
+         const ui32 nbBatches = (ui32)std::ceil( static_cast<type>( points.size() ) / batchSize );
+         core::Timer timer;
+
+         int maxLabel = -1;
+         ui32 nbLabels = static_cast<ui32>( labels.size() );
+         for ( ui32 n = 0; n < nbLabels; ++n )
+         {
+            ui32 label = labels[ n ];
+            maxLabel = std::max<int>( label, maxLabel );
+         }
+         ensure( maxLabel == -1 || labels.size() == points.size(), "if labels are present, it must be for all data" );
+         const ui32 nbClassUnits = ( maxLabel != -1 ) ? ( maxLabel + 1 ) : 0;
+
+         {
+            std::stringstream ss;
+            ss << "train binary restricted boltzmann machine" << std::endl
+               << "visible units=" << inputSize << std::endl
+               << "hidden units=" << nbHiddenStates << std::endl
+               << "learning rate=" << learningRate << std::endl
+               << "nbEpoch=" << nbEpoch << std::endl
+               << "batchSize=" << batchSize << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+         ensure( nbBatches > 0, "invalid batch size" );
+         ensure( nbHiddenStates > 0 && learningRate > 0 && nbEpoch > 0 && batchSize > 0, "invalid parameters" );
+
+         // create the batches
+         std::vector< std::vector<ui32> > batchList( nbBatches );
+         for ( ui32 n = 0; n < nbBatches; ++n )
+            batchList[ n ].reserve( batchSize );
+         Index index( points.size() );
+         for ( ui32 n = 0; n < points.size(); ++n )
+            index[ n ] = n / batchSize;
+         core::randomize( index, 2 );
+         for ( ui32 n = 0; n < points.size(); ++n )
+            batchList[ index[ n ] ].push_back( n );
+
+         // train
+         Vector hstates( nbHiddenStates );      // hidden states
+         Vector vstates( inputSize );           // visible states
+         Matrix w( nbHiddenStates, inputSize ); // weights connection
+         Vector c( inputSize );                 // biases on visible layer
+         Vector b( nbHiddenStates );            // biases on hidden layer
+         Matrix wc( nbClassUnits, nbHiddenStates ); // weight classes
+         Vector cc( nbClassUnits );                 // biases on class layer
+
+         // randomly init the weights
+         for ( ui32 n = 0; n < w.size(); ++n )
+            w[ n ] = (type)core::generateUniformDistribution( -2e-1, 2e-1 );
+
+         double error;
+         const FunctionSimpleDifferenciableSigmoid sigm;
+         for ( ui32 epoch = 0; epoch < nbEpoch; ++epoch )
+         {
+            error = 0;
+            for ( ui32 batch = 0; batch < nbBatches; ++batch )
+            {
+               const ui32 nbPoints = batchList[ batch ].size();
+               Matrix dw( nbHiddenStates, inputSize );
+               Vector dc( inputSize );
+               Vector db( nbHiddenStates );
+               for ( ui32 n = 0; n < nbPoints; ++n )
+               {
+                  const ui32 sampleId = batchList[ batch ][ n ];
+
+                  // fetch the data
+                  Vector input;
+                  core::convert( points[ n ], input );
+
+                  // up - down
+                  Matrix ph, negData;
+                  Vector phstates, negDataStates;
+                  _upDown( w, b, c, input, ph, phstates, negData, negDataStates );
+
+                  // go up one more time
+                  Matrix nh = w * Matrix( negDataStates, negDataStates.size(), 1 );
+                  Vector nhstates( nh.size() );
+                  for ( ui32 n = 0; n < nh.size(); ++n )
+                  {
+                     nh[ n ] += b[ n ];
+                     nh[ n ] = sigm.evaluate( nh[ n ] );
+                     nhstates[ n ] = ( nh[ n ] > core::generateUniformDistribution( 0, 1 ) );
+                  }
+
+                  // compute updates
+                  for ( ui32 n = 0; n < inputSize; ++n )
+                  {
+                     dc[ n ] += ( points[ sampleId ][ n ] - negDataStates[ n ] );
+                  }
+
+                  for ( ui32 n = 0; n < nbHiddenStates; ++n )
+                  {
+                     db[ n ] += ( ph[ n ] - nh[ n ] );
+                  }
+
+                  for ( int i = 0; i < (int)w.sizey(); ++i )
+                  {
+                     for ( ui32 j = 0; j < w.sizex(); ++j )
+                     {
+                        dw( i, j ) += input[ j ] * ph[ i ] - negDataStates[ j ] * nh[ i ];
+                     }
+                  }
+
+                  // error
+                  for ( int n = 0; n < (int)inputSize; ++n )
+                  {
+                     const type val = input[ n ] - negData[ n ];
+                     error += val * val;
+                  }
+               }
+
+               // update w
+               for ( int n = 0; n < (int)w.size(); ++n )
+               {
+                  w[ n ] += dw[ n ] * learningRate / batchSize;
+               }
+            }
+
+            std::cout << "epoch=" << epoch << " error=" << error << std::endl;
+         }
+
+         std::cout << "DONE!" << std::endl;
+
+         _w = w;
+         _b = b;
+         _c = c;
+         return error;
+      }
+
+      const Matrix& getWeights() const
+      {
+         return _w;
+      }
+
+      void write( std::ostream& out )
+      {
+         if ( !out.good() )
+            throw std::runtime_error( "stream error" );
+
+         _w.write( out );
+         _b.write( out );
+         _c.write( out );
+      }
+
+      void read( std::istream& in )
+      {
+         if ( !in.good() )
+            throw std::runtime_error( "stream error" );
+
+         _w.read( in );
+         _b.read( in );
+         _c.read( in );
+      }
+
+      Vector generate( ui32 nbIter = 500, type eps = 1e-1 )
+      {
+         Vector vstates( _w.sizex() );
+         Matrix negdata;
+
+         const ui32 nbVisibleStates = vstates.size();
+         const ui32 nbHiddenStates = _w.sizey();
+
+         {
+            std::stringstream ss;
+            _w.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+         // initialize randomly the states
+         for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
+         {
+            vstates[ n ] = core::generateUniformDistribution( -eps, eps );
+         }
+
+         // up - down for reconstruction
+         for ( ui32 n = 0; n < nbIter; ++n )
+         {
+            Vector hstates;
+            Matrix hsum;
+            Vector negdataStates;
+
+            _upDown( _w, _b, _c, vstates, hsum, hstates, negdata, negdataStates );
+            vstates = negdataStates;
+         }
+
+         return Vector( negdata.stealBuf(), negdata.size(), true );
+      }
+
+   private:
+      // given the data input, weights and bias it computes the hidden state, and new visible state
+      void _upDown( const Matrix& w, const Vector& b, const Vector& c, const Vector& input, Matrix& phOut, Vector& phstatesOut, Matrix& negDataOut, Vector& negDataStatesOut )
+      {
+         const FunctionSimpleDifferenciableSigmoid sigm;
+         Matrix ph = w * Matrix( input, input.size(), 1 );
+         Vector phstates( ph.size() );
+         for ( ui32 n = 0; n < ph.size(); ++n )
+         {
+            ph[ n ] += b[ n ];
+            ph[ n ] = sigm.evaluate( ph[ n ] );
+            phstates[ n ] = ( ph[ n ] > core::generateUniformDistribution( 0, 1 ) );
+         }
+
+         // down
+         Matrix negData = Matrix( phstates, 1, phstates.size() ) * w;
+         Vector negDataStates( negData.size() );
+         for ( ui32 n = 0; n < negData.size(); ++n )
+         {
+            negData[ n ] += c[ n ];
+            negData[ n ] = sigm.evaluate( negData[ n ] );
+            negDataStates[ n ] = ( negData[ n ] > core::generateUniformDistribution( 0, 1 ) );
+         }
+
+         phOut = ph;
+         phstatesOut = phstates;
+         negDataOut = negData;
+         negDataStatesOut = negDataStates;
+      }
+
+   private:
+      Matrix   _w;
+      Vector   _b;
+      Vector   _c;
+   };
 }
 }
 
@@ -475,9 +714,8 @@ public:
    void testRbm1()
    {
       srand(time(0));
-      Database mnist = readSmallMnist();
+      //Database mnist = readSmallMnist();
 
-      /*
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
@@ -485,7 +723,6 @@ public:
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
-      */
 
       typedef core::DatabaseInputAdapter<Database>          Adapter;
       Adapter points( mnist );
@@ -494,11 +731,11 @@ public:
       AdapterClass classes( mnist );
       //std::vector<ui32> classes;
 
-      algorithm::RestrictedBoltzmannMachineBinary rbm0;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 600, 0.10, 10 );
+      algorithm::RestrictedBoltzmannMachineBinary2 rbm0;
+      double e = rbm0.trainContrastiveDivergence( points, classes, 100, 0.20, 10 );
 
-      const algorithm::RestrictedBoltzmannMachineBinary::Matrix& w = rbm0.getWeights();
-      for ( ui32 filter = 0; filter < w.sizex(); ++filter )
+      const algorithm::RestrictedBoltzmannMachineBinary2::Matrix& w = rbm0.getWeights();
+      for ( ui32 filter = 0; filter < w.sizey(); ++filter )
       {
          core::Image<ui8> i( 16, 16, 3 );
          for ( ui32 y = 0; y < i.sizey(); ++y )
@@ -506,7 +743,8 @@ public:
             for ( ui32 x = 0; x < i.sizex(); ++x )
             {
                const ui32 index = x + y * i.sizex();
-               i( x, y, 0 ) = NLL_BOUND( w( index, filter ) * 127 + 128, 0, 255);
+               //std::cout << "inde=" << index << std::endl;
+               i( x, y, 0 ) = NLL_BOUND( w( filter, index ) * 127 + 128, 0, 255);
                i( x, y, 1 ) = i( x, y, 0 );
                i( x, y, 2 ) = i( x, y, 0 );
             }
@@ -522,16 +760,16 @@ public:
 
    void testRbmGenerate1()
    {
-      algorithm::RestrictedBoltzmannMachineBinary rbm;
+      algorithm::RestrictedBoltzmannMachineBinary2 rbm;
 
       std::ifstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::in | std::ios_base::binary );
       rbm.read( f );
 
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( ui32 n = 0; n < 500; ++n )
       {
          ui32 label = 9;
          //algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(label, 50);
-         algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(500);
+         algorithm::RestrictedBoltzmannMachineBinary2::Vector sample = rbm.generate(500, 1e-6);
 
          core::Image<ui8> i( 16, 16, 3 );
          for ( ui32 y = 0; y < i.sizey(); ++y )
@@ -555,7 +793,6 @@ public:
       std::ifstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::in | std::ios_base::binary );
       rbm.read( f );
 
-      /*
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
@@ -564,8 +801,7 @@ public:
             mnist[ n ].input[ nn ] /= 2;
 
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::TESTING ), (ui32) Database::Sample::TESTING );
-      */
-      Database mnist = readSmallMnist();
+      //Database mnist = readSmallMnist();
 
 
       ui32 nbGood = 0;
@@ -588,12 +824,14 @@ public:
 
       std::cout << "accuracy=" << (double)nbGood / nb << std::endl;
    }
+
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRbm);
-//TESTER_TEST(testRbm1);
+TESTER_TEST(testRbm1);
 //TESTER_TEST(testRbmGenerate1);
-TESTER_TEST(testRbmRecon1);
+
+//TESTER_TEST(testRbmRecon1);
 TESTER_TEST_SUITE_END();
 #endif
