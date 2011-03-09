@@ -3,7 +3,11 @@
 #include <tester/register.h>
 #include "database-benchmark.h"
 
+
 using namespace nll;
+
+//# include <omp.h>
+//#define NLL_NOT_MULTITHREADED
 
 namespace nll
 {
@@ -230,7 +234,9 @@ namespace algorithm
                   const ui32 sampleId = batchList[ batch ][ point ];
 
                   // fetch the input
+#ifndef NLL_NOT_MULTITHREADED
                   #pragma omp parallel for
+#endif
                   for ( int n = 0; n < inputSize; ++n )
                   {
                      assert( points[ sampleId ][ n ] >= 0 && points[ sampleId ][ n ] <= 1 ); // ensure the data is correctly distributed
@@ -490,7 +496,7 @@ namespace algorithm
 
          // randomly init the weights
          for ( ui32 n = 0; n < w.size(); ++n )
-            w[ n ] = (type)core::generateUniformDistribution( -2e-1, 2e-1 );
+            w[ n ] = 0.1 * (type)core::generateGaussianDistribution( 0, 1 );
 
          double error;
          const FunctionSimpleDifferenciableSigmoid sigm;
@@ -503,13 +509,13 @@ namespace algorithm
                Matrix dw( nbHiddenStates, inputSize );
                Vector dc( inputSize );
                Vector db( nbHiddenStates );
-               for ( ui32 n = 0; n < nbPoints; ++n )
+               for ( ui32 _n = 0; _n < nbPoints; ++_n )
                {
-                  const ui32 sampleId = batchList[ batch ][ n ];
+                  const ui32 sampleId = batchList[ batch ][ _n ];
 
                   // fetch the data
                   Vector input;
-                  core::convert( points[ n ], input );
+                  core::convert( points[ sampleId ], input );
 
                   // up - down
                   Matrix ph, negData;
@@ -519,7 +525,10 @@ namespace algorithm
                   // go up one more time
                   Matrix nh = w * Matrix( negDataStates, negDataStates.size(), 1 );
                   Vector nhstates( nh.size() );
-                  for ( ui32 n = 0; n < nh.size(); ++n )
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int n = 0; n < (int)nh.size(); ++n )
                   {
                      nh[ n ] += b[ n ];
                      nh[ n ] = sigm.evaluate( nh[ n ] );
@@ -527,16 +536,25 @@ namespace algorithm
                   }
 
                   // compute updates
-                  for ( ui32 n = 0; n < inputSize; ++n )
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int n = 0; n < (int)inputSize; ++n )
                   {
                      dc[ n ] += ( points[ sampleId ][ n ] - negDataStates[ n ] );
                   }
 
-                  for ( ui32 n = 0; n < nbHiddenStates; ++n )
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int n = 0; n < (int)nbHiddenStates; ++n )
                   {
                      db[ n ] += ( ph[ n ] - nh[ n ] );
                   }
 
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
                   for ( int i = 0; i < (int)w.sizey(); ++i )
                   {
                      for ( ui32 j = 0; j < w.sizex(); ++j )
@@ -546,6 +564,9 @@ namespace algorithm
                   }
 
                   // error
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for reduction(+:error)
+                  #endif
                   for ( int n = 0; n < (int)inputSize; ++n )
                   {
                      const type val = input[ n ] - negData[ n ];
@@ -554,9 +575,28 @@ namespace algorithm
                }
 
                // update w
+               #ifndef NLL_NOT_MULTITHREADED
+               #pragma omp parallel for
+               #endif
                for ( int n = 0; n < (int)w.size(); ++n )
                {
                   w[ n ] += dw[ n ] * learningRate / batchSize;
+               }
+
+               #ifndef NLL_NOT_MULTITHREADED
+               #pragma omp parallel for
+               #endif
+               for ( int n = 0; n < (int)dc.size(); ++n )
+               {
+                  c[ n ] += dc[ n ] * learningRate / batchSize;
+               }
+
+               #ifndef NLL_NOT_MULTITHREADED
+               #pragma omp parallel for
+               #endif
+               for ( int n = 0; n < (int)db.size(); ++n )
+               {
+                  b[ n ] += db[ n ] * learningRate / batchSize;
                }
             }
 
@@ -564,6 +604,10 @@ namespace algorithm
          }
 
          std::cout << "DONE!" << std::endl;
+
+
+         b.print( std::cout );
+         c.print( std::cout );
 
          _w = w;
          _b = b;
@@ -604,16 +648,10 @@ namespace algorithm
          const ui32 nbVisibleStates = vstates.size();
          const ui32 nbHiddenStates = _w.sizey();
 
-         {
-            std::stringstream ss;
-            _w.print( ss );
-            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
-         }
-
          // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = core::generateUniformDistribution( -eps, eps );
+            vstates[ n ] = core::generateGaussianDistribution( 0, 1 ) > 0.95;
          }
 
          // up - down for reconstruction
@@ -624,10 +662,12 @@ namespace algorithm
             Vector negdataStates;
 
             _upDown( _w, _b, _c, vstates, hsum, hstates, negdata, negdataStates );
-            vstates = negdataStates;
+            vstates.clone( negdataStates );
+
+            //vstates = negdataStates;
          }
 
-         return Vector( negdata.stealBuf(), negdata.size(), true );
+         return Vector( vstates.stealBuf(), vstates.size(), true );
       }
 
    private:
@@ -637,22 +677,35 @@ namespace algorithm
          const FunctionSimpleDifferenciableSigmoid sigm;
          Matrix ph = w * Matrix( input, input.size(), 1 );
          Vector phstates( ph.size() );
-         for ( ui32 n = 0; n < ph.size(); ++n )
+
+         #ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+         #endif
+         for ( int n = 0; n < (int)ph.size(); ++n )
          {
             ph[ n ] += b[ n ];
             ph[ n ] = sigm.evaluate( ph[ n ] );
             phstates[ n ] = ( ph[ n ] > core::generateUniformDistribution( 0, 1 ) );
          }
 
+     //    phstates.print( std::cout );
+
+
          // down
          Matrix negData = Matrix( phstates, 1, phstates.size() ) * w;
          Vector negDataStates( negData.size() );
-         for ( ui32 n = 0; n < negData.size(); ++n )
+
+         #ifndef NLL_NOT_MULTITHREADED
+         #pragma omp parallel for
+         #endif
+         for ( int n = 0; n < (int)negData.size(); ++n )
          {
             negData[ n ] += c[ n ];
             negData[ n ] = sigm.evaluate( negData[ n ] );
             negDataStates[ n ] = ( negData[ n ] > core::generateUniformDistribution( 0, 1 ) );
          }
+
+      //   negDataStates.print( std::cout );
 
          phOut = ph;
          phstatesOut = phstates;
@@ -669,6 +722,7 @@ namespace algorithm
 }
 
 
+ui32 size = 28;
 
 
 /**
@@ -713,9 +767,10 @@ class TestRbm
 public:
    void testRbm1()
    {
-      srand(time(0));
-      //Database mnist = readSmallMnist();
+      srand(1);
+      Database mnist = readSmallMnist();
 
+      /*
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
@@ -723,6 +778,7 @@ public:
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+      */
 
       typedef core::DatabaseInputAdapter<Database>          Adapter;
       Adapter points( mnist );
@@ -732,12 +788,12 @@ public:
       //std::vector<ui32> classes;
 
       algorithm::RestrictedBoltzmannMachineBinary2 rbm0;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 100, 0.20, 10 );
+      double e = rbm0.trainContrastiveDivergence( points, classes, 101, 0.1, 40 );
 
       const algorithm::RestrictedBoltzmannMachineBinary2::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizey(); ++filter )
       {
-         core::Image<ui8> i( 16, 16, 3 );
+         core::Image<ui8> i( size, size, 3 );
          for ( ui32 y = 0; y < i.sizey(); ++y )
          {
             for ( ui32 x = 0; x < i.sizex(); ++x )
@@ -752,10 +808,10 @@ public:
          core::writeBmp( i, NLL_DATABASE_PATH "filter-" + core::val2str(filter) + ".bmp" );
       }
 
-      TESTER_ASSERT( e < 65500 );
-
       std::ofstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::out | std::ios_base::binary );
       rbm0.write( f );
+
+      TESTER_ASSERT( e < 65500 );
    }
 
    void testRbmGenerate1()
@@ -769,23 +825,25 @@ public:
       {
          ui32 label = 9;
          //algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(label, 50);
-         algorithm::RestrictedBoltzmannMachineBinary2::Vector sample = rbm.generate(500, 1e-6);
+         algorithm::RestrictedBoltzmannMachineBinary2::Vector sample = rbm.generate(10000, 1);
 
-         core::Image<ui8> i( 16, 16, 3 );
+         core::Image<ui8> i( size, size, 3 );
          for ( ui32 y = 0; y < i.sizey(); ++y )
          {
             for ( ui32 x = 0; x < i.sizex(); ++x )
             {
                const ui32 index = x + y * i.sizex();
-               i( x, y, 0 ) = NLL_BOUND( sample( index ) * 127 + 128, 0, 255);
+               i( x, y, 0 ) = NLL_BOUND( sample( index ) * 127 / 2 + 128, 0, 255);
                i( x, y, 1 ) = i( x, y, 0 );
                i( x, y, 2 ) = i( x, y, 0 );
             }
          }
          core::writeBmp( i, NLL_DATABASE_PATH "generate-" + core::val2str(label) + "-" + core::val2str( n ) + ".bmp" );
+         std::cout << "generate case=" << n << std::endl;
       }
    }
 
+   /*
    void testRbmRecon1()
    {
       algorithm::RestrictedBoltzmannMachineBinary rbm;
@@ -824,13 +882,13 @@ public:
 
       std::cout << "accuracy=" << (double)nbGood / nb << std::endl;
    }
-
+*/
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRbm);
-TESTER_TEST(testRbm1);
-//TESTER_TEST(testRbmGenerate1);
+//TESTER_TEST(testRbm1);
+TESTER_TEST(testRbmGenerate1);
 
 //TESTER_TEST(testRbmRecon1);
 TESTER_TEST_SUITE_END();
