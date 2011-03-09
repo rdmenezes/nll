@@ -651,7 +651,7 @@ namespace algorithm
          // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = core::generateGaussianDistribution( 0, 1 ) > 0.95;
+            vstates[ n ] = 0; //core::generateUniformDistribution( 0, 0.000001 );
          }
 
          // up - down for reconstruction
@@ -664,10 +664,25 @@ namespace algorithm
             _upDown( _w, _b, _c, vstates, hsum, hstates, negdata, negdataStates );
             vstates.clone( negdataStates );
 
-            //vstates = negdataStates;
+            
+            ui32 size = 28;
+            core::Image<ui8> i( size, size, 3 );
+            for ( ui32 y = 0; y < i.sizey(); ++y )
+            {
+               for ( ui32 x = 0; x < i.sizex(); ++x )
+               {
+                  const ui32 index = x + y * i.sizex();
+                  ui8 val = NLL_BOUND( negdata[ index ] * 127 / 2 + 128, 0, 255);
+                  i( x, size - y - 1, 0 ) = val;
+                  i( x, size - y - 1, 1 ) = val;
+                  i( x, size - y - 1, 2 ) = val;
+               }
+            }
+            core::writeBmp( i, NLL_DATABASE_PATH "generate-test-" + core::val2str( n ) + ".bmp" );
+            std::cout << "generate case=" << n << std::endl;
          }
 
-         return Vector( vstates.stealBuf(), vstates.size(), true );
+         return Vector( negdata.stealBuf(), negdata.size(), true );
       }
 
    private:
@@ -788,7 +803,7 @@ public:
       //std::vector<ui32> classes;
 
       algorithm::RestrictedBoltzmannMachineBinary2 rbm0;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 101, 0.1, 40 );
+      double e = rbm0.trainContrastiveDivergence( points, classes, 101, 0.1, 10 );
 
       const algorithm::RestrictedBoltzmannMachineBinary2::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizey(); ++filter )
@@ -816,12 +831,13 @@ public:
 
    void testRbmGenerate1()
    {
+      srand(time(0));
       algorithm::RestrictedBoltzmannMachineBinary2 rbm;
 
       std::ifstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::in | std::ios_base::binary );
       rbm.read( f );
 
-      for ( ui32 n = 0; n < 500; ++n )
+      for ( ui32 n = 0; n < 1; ++n )
       {
          ui32 label = 9;
          //algorithm::RestrictedBoltzmannMachineBinary::Vector sample = rbm.generate(label, 50);
@@ -833,9 +849,10 @@ public:
             for ( ui32 x = 0; x < i.sizex(); ++x )
             {
                const ui32 index = x + y * i.sizex();
-               i( x, y, 0 ) = NLL_BOUND( sample( index ) * 127 / 2 + 128, 0, 255);
-               i( x, y, 1 ) = i( x, y, 0 );
-               i( x, y, 2 ) = i( x, y, 0 );
+               ui8 val = NLL_BOUND( sample( index ) * 127 / 2 + 128, 0, 255);
+               i( x, size - y - 1, 0 ) = val;
+               i( x, size - y - 1, 1 ) = val;
+               i( x, size - y - 1, 2 ) = val;
             }
          }
          core::writeBmp( i, NLL_DATABASE_PATH "generate-" + core::val2str(label) + "-" + core::val2str( n ) + ".bmp" );
