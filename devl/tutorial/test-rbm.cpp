@@ -443,7 +443,7 @@ namespace algorithm
 
    public:
       template <class Points, class Labels>
-      double trainContrastiveDivergence( const Points& points, const Labels& labels, ui32 nbHiddenStates, type learningRate, ui32 nbEpoch,
+      double trainContrastiveDivergence( const Points& points, const Labels& _labels, ui32 nbHiddenStates, type learningRate, ui32 nbEpoch,
                                          ui32 batchSize = 100 )
       {
          const ui32 inputSize = points[ 0 ].size();
@@ -451,13 +451,13 @@ namespace algorithm
          core::Timer timer;
 
          int maxLabel = -1;
-         ui32 nbLabels = static_cast<ui32>( labels.size() );
+         ui32 nbLabels = static_cast<ui32>( _labels.size() );
          for ( ui32 n = 0; n < nbLabels; ++n )
          {
-            ui32 label = labels[ n ];
+            ui32 label = _labels[ n ];
             maxLabel = std::max<int>( label, maxLabel );
          }
-         ensure( maxLabel == -1 || labels.size() == points.size(), "if labels are present, it must be for all data" );
+         ensure( maxLabel == -1 || _labels.size() == points.size(), "if labels are present, it must be for all data" );
          const ui32 nbClassUnits = ( maxLabel != -1 ) ? ( maxLabel + 1 ) : 0;
 
          {
@@ -498,17 +498,19 @@ namespace algorithm
          for ( ui32 n = 0; n < w.size(); ++n )
             w[ n ] = 0.1 * (type)core::generateGaussianDistribution( 0, 1 );
 
-         double error;
+         double error = 0;
          const FunctionSimpleDifferenciableSigmoid sigm;
          for ( ui32 epoch = 0; epoch < nbEpoch; ++epoch )
          {
             error = 0;
             for ( ui32 batch = 0; batch < nbBatches; ++batch )
             {
-               const ui32 nbPoints = batchList[ batch ].size();
+               const ui32 nbPoints = (ui32)batchList[ batch ].size();
                Matrix dw( nbHiddenStates, inputSize );
                Vector dc( inputSize );
                Vector db( nbHiddenStates );
+               Matrix dwc( nbClassUnits, nbHiddenStates );
+               Vector dcc( nbClassUnits );
                for ( ui32 _n = 0; _n < nbPoints; ++_n )
                {
                   const ui32 sampleId = batchList[ batch ][ _n ];
@@ -517,13 +519,73 @@ namespace algorithm
                   Vector input;
                   core::convert( points[ sampleId ], input );
 
+                  // fetch label
+                  Vector classes( nbClassUnits );
+                  for ( ui32 n = 0; n < nbClassUnits; ++n )
+                  {
+                     classes[ n ] = n == _labels[ sampleId ];
+                  }
+
                   // up - down
-                  Matrix ph, negData;
-                  Vector phstates, negDataStates;
-                  _upDown( w, b, c, input, ph, phstates, negData, negDataStates );
+                  //Matrix ph, negData;
+                  //Vector phstates, negDataStates;
+                  //_upDown( w, b, c, input, ph, phstates, negData, negDataStates );
+
+                  // up
+                  Matrix ph = w * Matrix( input, input.size(), 1 );
+                  Vector phadd = Matrix( classes, 1, classes.size() ) * wc;
+                  core::add( ph, Matrix( phadd, ph.size(), 1 ) );
+                  Vector phstates( ph.size() );
+
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int n = 0; n < (int)ph.size(); ++n )
+                  {
+                     ph[ n ] += b[ n ];
+                     ph[ n ] = sigm.evaluate( ph[ n ] );
+                     phstates[ n ] = ( ph[ n ] > core::generateUniformDistribution( 0, 1 ) );
+                  }
+
+                  // down
+                  Matrix negData = Matrix( phstates, 1, phstates.size() ) * w;
+                  Vector negDataStates( negData.size() );
+
+                  type accumClasses = 0;
+                  Vector negClassesState( nbClassUnits );
+                  Matrix negClasses = wc * Matrix( phstates, phstates.size(), 1 );
+                  core::add( negClasses, Matrix( cc, cc.size(), 1 ) );
+                  for ( ui32 n = 0; n < negClasses.size(); ++n )
+                  {
+                     const type e = exp( negClasses[ n ] );
+                     negClasses[ n ] = e;
+                     accumClasses += e;
+                  }
+                  if ( accumClasses > 0 )
+                  {
+                     for ( ui32 n = 0; n < negClasses.size(); ++n )
+                     {
+                        negClasses[ n ] /= accumClasses;
+                     }
+                     negClassesState[ core::sampling( negClasses, 1 )[ 0 ] ] = 1;
+                  }
+
+
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int n = 0; n < (int)negData.size(); ++n )
+                  {
+                     negData[ n ] += c[ n ];
+                     negData[ n ] = sigm.evaluate( negData[ n ] );
+                     negDataStates[ n ] = ( negData[ n ] > core::generateUniformDistribution( 0, 1 ) );
+                  }
 
                   // go up one more time
                   Matrix nh = w * Matrix( negDataStates, negDataStates.size(), 1 );
+                  Vector nhadd = Matrix( negClassesState, 1, negClassesState.size() ) * wc;
+                  core::add( nh, Matrix( nhadd, nh.size(), 1 ) );
+
                   Vector nhstates( nh.size() );
                   #ifndef NLL_NOT_MULTITHREADED
                   #pragma omp parallel for
@@ -550,6 +612,25 @@ namespace algorithm
                   for ( int n = 0; n < (int)nbHiddenStates; ++n )
                   {
                      db[ n ] += ( ph[ n ] - nh[ n ] );
+                  }
+
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int n = 0; n < (int)nbClassUnits; ++n )
+                  {
+                     dcc[ n ] += ( classes[ n ] - negClassesState[ n ] );
+                  }
+
+                  #ifndef NLL_NOT_MULTITHREADED
+                  #pragma omp parallel for
+                  #endif
+                  for ( int i = 0; i < (int)nbClassUnits; ++i )
+                  {
+                     for ( ui32 j = 0; j < nbHiddenStates; ++j )
+                     {
+                        dwc( i, j ) += classes[ i ] * ph[ j ] - negClassesState[ i ] * nh[ j ];
+                     }
                   }
 
                   #ifndef NLL_NOT_MULTITHREADED
@@ -598,6 +679,22 @@ namespace algorithm
                {
                   b[ n ] += db[ n ] * learningRate / batchSize;
                }
+
+               #ifndef NLL_NOT_MULTITHREADED
+               #pragma omp parallel for
+               #endif
+               for ( int n = 0; n < (int)dcc.size(); ++n )
+               {
+                  cc[ n ] += dcc[ n ] * learningRate / batchSize;
+               }
+
+               #ifndef NLL_NOT_MULTITHREADED
+               #pragma omp parallel for
+               #endif
+               for ( int n = 0; n < (int)dwc.size(); ++n )
+               {
+                  wc[ n ] += dwc[ n ] * learningRate / batchSize;
+               }
             }
 
             std::cout << "epoch=" << epoch << " error=" << error << std::endl;
@@ -606,12 +703,14 @@ namespace algorithm
          std::cout << "DONE!" << std::endl;
 
 
-         b.print( std::cout );
-         c.print( std::cout );
+         //wc.print( std::cout );
+         //cc.print( std::cout );
 
          _w = w;
          _b = b;
          _c = c;
+         _wc = wc;
+         _cc = cc;
          return error;
       }
 
@@ -628,6 +727,8 @@ namespace algorithm
          _w.write( out );
          _b.write( out );
          _c.write( out );
+         _wc.write( out );
+         _cc.write( out );
       }
 
       void read( std::istream& in )
@@ -638,10 +739,59 @@ namespace algorithm
          _w.read( in );
          _b.read( in );
          _c.read( in );
+         _wc.read( in );
+         _cc.read( in );
+      }
+
+      ui32 getClass( const Vector& input, ui32 nbCycles = 10 )
+      {
+         Vector counts( _cc.size() );
+         Vector vstates;
+         for ( ui32 n = 0; n < nbCycles; ++n )
+         {
+            Matrix negClasses;
+            Vector negClassesStates;
+            Vector hstates;
+            Matrix hsum;
+            Vector negdataStates;
+            Matrix negdata;
+
+            Vector classes( _cc.size() );
+            vstates.clone( input );
+
+            _upDown( _w, _b, _c, _wc, _cc, vstates, classes,  hsum, hstates, negdata, negdataStates, negClasses, negClassesStates );
+
+            type max = -1000;
+            ui32 index = 0;
+            for ( ui32 n = 0; n < negClasses.size(); ++n )
+            {
+               if ( negClasses[ n ] > max )
+               {
+                  max = negClasses[ n ];
+                  index = n;
+               }
+            }
+            ++counts[ index ];
+         }
+
+
+         ui32 index = 0;
+         type max = -1000;
+         for ( ui32 n = 0; n < counts.size(); ++n )
+         {
+            if ( counts[ n ] > max )
+            {
+               max = counts[ n ];
+               index = n;
+            }
+         }
+
+         return index;
       }
 
       Vector generate( ui32 nbIter = 500, type eps = 1e-1 )
       {
+         ui32 classToGenerate = 3;
          Vector vstates( _w.sizex() );
          Matrix negdata;
 
@@ -651,17 +801,21 @@ namespace algorithm
          // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = 0; //core::generateUniformDistribution( 0, 0.000001 );
+            vstates[ n ] = 0.0; //core::generateUniformDistribution( 0, 0.000001 );
          }
 
          // up - down for reconstruction
+         Vector classes( _cc.size() );
+         classes[ classToGenerate ] = 1;
          for ( ui32 n = 0; n < nbIter; ++n )
          {
+            Matrix negClasses;
+            Vector negClassesStates;
             Vector hstates;
             Matrix hsum;
             Vector negdataStates;
 
-            _upDown( _w, _b, _c, vstates, hsum, hstates, negdata, negdataStates );
+            _upDown( _w, _b, _c, _wc, _cc, vstates, classes,  hsum, hstates, negdata, negdataStates, negClasses, negClassesStates );
             vstates.clone( negdataStates );
 
             
@@ -672,7 +826,7 @@ namespace algorithm
                for ( ui32 x = 0; x < i.sizex(); ++x )
                {
                   const ui32 index = x + y * i.sizex();
-                  ui8 val = NLL_BOUND( negdata[ index ] * 127 / 2 + 128, 0, 255);
+                  ui8 val = NLL_BOUND( negdata[ index ] * 127 + 128, 0, 255);
                   i( x, size - y - 1, 0 ) = val;
                   i( x, size - y - 1, 1 ) = val;
                   i( x, size - y - 1, 2 ) = val;
@@ -687,10 +841,14 @@ namespace algorithm
 
    private:
       // given the data input, weights and bias it computes the hidden state, and new visible state
-      void _upDown( const Matrix& w, const Vector& b, const Vector& c, const Vector& input, Matrix& phOut, Vector& phstatesOut, Matrix& negDataOut, Vector& negDataStatesOut )
+      void _upDown( const Matrix& w, const Vector& b, const Vector& c, const Matrix& wc, const Vector& cc, const Vector& input, const Vector& classes, Matrix& phOut, Vector& phstatesOut, Matrix& negDataOut, Vector& negDataStatesOut, Matrix& negClassesOut, Vector& negClassesStateOut )
       {
          const FunctionSimpleDifferenciableSigmoid sigm;
+
+         // up
          Matrix ph = w * Matrix( input, input.size(), 1 );
+         Vector phadd = Matrix( classes, 1, classes.size() ) * wc;
+         core::add( ph, Matrix( phadd, ph.size(), 1 ) );
          Vector phstates( ph.size() );
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -703,12 +861,29 @@ namespace algorithm
             phstates[ n ] = ( ph[ n ] > core::generateUniformDistribution( 0, 1 ) );
          }
 
-     //    phstates.print( std::cout );
-
-
          // down
          Matrix negData = Matrix( phstates, 1, phstates.size() ) * w;
          Vector negDataStates( negData.size() );
+
+         type accumClasses = 0;
+         Vector negClassesState( cc.size() );
+         Matrix negClasses = wc * Matrix( phstates, phstates.size(), 1 );
+         core::add( negClasses, Matrix( cc, cc.size(), 1 ) );
+         for ( ui32 n = 0; n < negClasses.size(); ++n )
+         {
+            const type e = exp( negClasses[ n ] );
+            negClasses[ n ] = e;
+            accumClasses += e;
+         }
+         if ( accumClasses > 0 )
+         {
+            for ( ui32 n = 0; n < negClasses.size(); ++n )
+            {
+               negClasses[ n ] /= accumClasses;
+            }
+            negClassesState[ core::sampling( negClasses, 1 )[ 0 ] ] = 1;
+         }
+
 
          #ifndef NLL_NOT_MULTITHREADED
          #pragma omp parallel for
@@ -720,24 +895,26 @@ namespace algorithm
             negDataStates[ n ] = ( negData[ n ] > core::generateUniformDistribution( 0, 1 ) );
          }
 
-      //   negDataStates.print( std::cout );
-
          phOut = ph;
          phstatesOut = phstates;
          negDataOut = negData;
          negDataStatesOut = negDataStates;
+         negClassesOut = negClasses;
+         negClassesStateOut = negClassesState;
       }
 
    private:
       Matrix   _w;
       Vector   _b;
       Vector   _c;
+      Matrix   _wc;
+      Vector   _cc;
    };
 }
 }
 
 
-ui32 size = 28;
+ui32 size = 16;
 
 
 /**
@@ -783,9 +960,11 @@ public:
    void testRbm1()
    {
       srand(1);
-      Database mnist = readSmallMnist();
+      
+      
+      //Database mnist = readSmallMnist();
 
-      /*
+      
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
@@ -793,7 +972,7 @@ public:
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
-      */
+      
 
       typedef core::DatabaseInputAdapter<Database>          Adapter;
       Adapter points( mnist );
@@ -803,7 +982,7 @@ public:
       //std::vector<ui32> classes;
 
       algorithm::RestrictedBoltzmannMachineBinary2 rbm0;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 101, 0.1, 10 );
+      double e = rbm0.trainContrastiveDivergence( points, classes, 30, 0.1, 40 );
 
       const algorithm::RestrictedBoltzmannMachineBinary2::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizey(); ++filter )
@@ -860,23 +1039,24 @@ public:
       }
    }
 
-   /*
    void testRbmRecon1()
    {
-      algorithm::RestrictedBoltzmannMachineBinary rbm;
+      algorithm::RestrictedBoltzmannMachineBinary2 rbm;
 
       std::ifstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::in | std::ios_base::binary );
       rbm.read( f );
 
+      
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
       for ( ui32 n = 0; n < mnist.size(); ++n )
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
+            
+      //Database mnist = readSmallMnist();
 
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::TESTING ), (ui32) Database::Sample::TESTING );
-      //Database mnist = readSmallMnist();
 
 
       ui32 nbGood = 0;
@@ -884,7 +1064,7 @@ public:
       ui32 nbUnknown = 0;
       for ( ui32 n = 0; n < mnist.size(); ++n )
       {
-         ui32 id = rbm.getClass( mnist[ n ].input, 5 );
+         ui32 id = rbm.getClass( mnist[ n ].input, 10 );
          std::cout << "label=" << mnist[ n ].output << " found=" << id << std::endl;
 
          if ( id > 10 )
@@ -899,14 +1079,13 @@ public:
 
       std::cout << "accuracy=" << (double)nbGood / nb << std::endl;
    }
-*/
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRbm);
-//TESTER_TEST(testRbm1);
-TESTER_TEST(testRbmGenerate1);
+TESTER_TEST(testRbm1);
+//TESTER_TEST(testRbmGenerate1);
 
-//TESTER_TEST(testRbmRecon1);
+TESTER_TEST(testRbmRecon1);
 TESTER_TEST_SUITE_END();
 #endif
