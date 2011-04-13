@@ -62,6 +62,16 @@ class ImageHolder
 }
 
 /**
+ @brief Copy the image <src> in <dst> at position <x, y>. It is assumed the <x, y> index is inside
+        <dst>. If <src> in <dst, x, y> is bigger, it will be cropped
+ */
+import void copy( Image dst, Image src, int x, int y );
+void copy( Image src, Image dst, Vector2i position )
+{
+   copy( src, dst, position[ 0 ], position[ 1 ] );
+}
+
+/**
  @brief Write a Bmp to the disk
  */
 import void writeBmp( Image i, string path );
@@ -85,8 +95,6 @@ import void extend( Image i, int nbComponents );
  @brief Crop the image. The image is directly updated.
  */
 import void crop( Image i, Vector2i min, Vector2i max );
-
-//import void copy( Image srd, Image dst, Vector2i position );
 
 /**
  @brief draw a plain rectangle

@@ -275,6 +275,35 @@ namespace core
       Database&         _database;
       std::vector<ui32> _index;
    };
+
+   /**
+    @brief Database class adapter
+
+    This returns the label for each sample in the database without distinction of LEARNING | TESTING | VALIDATION tags
+    */
+   template <class Database>
+   class DatabaseClassAdapterRead
+   {
+   public:
+      typedef typename Database::Sample::Output Point;
+      typedef Point                             value_type;
+
+   public:
+      DatabaseClassAdapterRead( const Database& database ) : _database( database )
+      {}
+      const Point& operator[]( ui32 n ) const
+      {
+         assert( n < size() );
+         return _database[ n ].output;
+      }
+      ui32 size() const
+      {
+         return _database.size();
+      }
+
+   private:
+      const Database&    _database;
+   };
 }
 }
 

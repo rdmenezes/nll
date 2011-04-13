@@ -124,6 +124,7 @@ public:
    /**
     @return the internal buffer. The memory management is now deferred to the user.
             It is the responsability of the user to destroy the object.
+    @note CAUTION as if several buffers pointing to the same object, only one object will be affected!
     */
    inline T* stealBuf()
    {

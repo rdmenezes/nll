@@ -2512,7 +2512,6 @@ struct TestBasic
 
 
 TESTER_TEST_SUITE(TestBasic);
-
 /*
 TESTER_TEST(testBinding1);
 TESTER_TEST(testBinding2);

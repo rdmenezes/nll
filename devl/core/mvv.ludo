@@ -101,6 +101,16 @@ VolumeID extract( VolumeID target, Vector3f center, Vector3f sizeMM )
 }
 
 /**
+ @brief Returns the index of the voxel having the maximum intensity in the entire volume
+ */
+import Vector3f findMaxVoxel( VolumeID v );
+
+/**
+ @brief Returns the index of the voxel having the maximum intensity in the given slice
+ */
+import Vector3f findMaxVoxel( VolumeID v, int slice );
+
+/**
  @ingroup mvv
  @brief Look up table - assign a color to a voxel value, given a window level
  @note: we can't use operator[] as we need to return a reference, however in memory we don't store a list of Vector3uc

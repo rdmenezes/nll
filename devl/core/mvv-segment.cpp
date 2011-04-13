@@ -68,6 +68,10 @@ void waitUntilSegmentIsReadyToDisplayAllVolumes( platform::Segment& segment, pla
 
    global->engineHandler.run();
    global->orderManager.run();
+   global->engineHandler.run();
+   global->orderManager.run();
+   global->engineHandler.run();
+   global->orderManager.run();
    std::cout << "blocking call: synchronize segment display" << std::endl;
    while ( segment.getRemainingOrderToComplete() )
    {

@@ -1019,6 +1019,117 @@ public:
 private:
 };
 
+class FunctionRunnableMaxVoxel: public FunctionRunnable
+{
+public:
+   FunctionRunnableMaxVoxel( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::TYPE )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      ContextTools* tools = _context.get<ContextTools>();
+      if ( !tools )
+      {
+         throw std::runtime_error( "ContextTools context has not been loaded" );
+      }
+      mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
+
+      float max = std::numeric_limits<float>::min();
+      nll::core::vector3f pos;
+      for ( unsigned z = 0; z < (*vol).getSize()[ 2 ]; ++z )
+      {
+         for ( unsigned y = 0; y < (*vol).getSize()[ 1 ]; ++y )
+         {
+            for ( unsigned x = 0; x < (*vol).getSize()[ 1 ]; ++x )
+            {
+               const float val = (*vol)( x, y, z );
+               if ( val > max )
+               {
+                  max = val;
+                  pos = nll::core::vector3f( x, y, z );
+               }
+            }
+         }
+      }
+
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, pos[ 0 ], pos[ 1 ], pos[ 2 ] );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context& _context;
+};
+
+
+class FunctionRunnableMaxVoxelSlice: public FunctionRunnable
+{
+public:
+   FunctionRunnableMaxVoxelSlice( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::TYPE || v2.type != RuntimeValue::CMP_INT )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 Volume, 1 int as arguments" );
+      }
+
+      ContextTools* tools = _context.get<ContextTools>();
+      if ( !tools )
+      {
+         throw std::runtime_error( "ContextTools context has not been loaded" );
+      }
+      mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
+      if ( v2.intval < 0 || v2.intval >= (int)(*vol).getSize()[ 2 ] )
+      {
+         throw std::runtime_error( "slice index is not within the bounds" );
+      }
+
+      float max = std::numeric_limits<float>::min();
+      nll::core::vector3f pos;
+      for ( unsigned y = 0; y < (*vol).getSize()[ 1 ]; ++y )
+      {
+         for ( unsigned x = 0; x < (*vol).getSize()[ 1 ]; ++x )
+         {
+            const float val = (*vol)( x, y, v2.intval );
+            if ( val > max )
+            {
+               max = val;
+               pos = nll::core::vector3f( x, y, v2.intval );
+            }
+         }
+      }
+
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createVector3f( rt, pos[ 0 ], pos[ 1 ], v2.intval );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context& _context;
+};
+
 
 
 

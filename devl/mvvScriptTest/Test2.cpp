@@ -436,17 +436,6 @@ struct TestEval
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "import \"core\" int test( int n ){ { int nn = 4; int nn2 = 1; nn = nn + nn2; return nn + n; } } int nn = test( 5 );" );
-         TESTER_ASSERT( result == Error::SUCCESS );
-
-
-         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
-         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( rt.intval == 10 );
-      }
-
-      {
-         CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "class Test{ int n; Test( int arg ){ n = arg; }} Test t1( 5 ); Test t2 = t1; t1.n = 42; int n1 = t1.n; int n2 = t2.n;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
@@ -2506,16 +2495,61 @@ struct TestEval
          TESTER_ASSERT( result == Error::SUCCESS );
       }
    }
+
+   void eval8()
+   {
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int creator(){ return 42;} int n = creator();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" int test( int n ){ { int nn = 4; int nn2 = 1; nn = nn + nn2; return nn + n; } } int nn = test( 5 );" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+
+         const RuntimeValue& rt = fe.getVariable( mvv::Symbol::create( "nn" ) );
+         TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( rt.intval == 10 );
+      }
+      
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){} int creator(){return 42;} int creator2(){return creator();}} Test t; int n = t.creator2();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 42 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "int n = 42; int calc(){return n + 1;} int nn = calc();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "nn" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 43 );
+      }
+   }
 };
 
 TESTER_TEST_SUITE(TestEval);
-
+/*
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
-TESTER_TEST(eval7);
-
+TESTER_TEST(eval7);*/
+TESTER_TEST(eval8);
 TESTER_TEST_SUITE_END();

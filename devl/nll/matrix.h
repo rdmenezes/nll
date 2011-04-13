@@ -397,6 +397,11 @@ namespace core
          return DirectionalIterator( this->_mapper.index( x, y ), this->_buffer, _sizex, _sizey, _indexMapper );
       }
 
+      const IndexMapper2D& getMapper() const
+      {
+         return _indexMapper;
+      }
+
    private:
       ui32					_sizex;
       ui32					_sizey;

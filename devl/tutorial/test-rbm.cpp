@@ -801,7 +801,7 @@ namespace algorithm
          // initialize randomly the states
          for ( ui32 n = 0; n < (int)nbVisibleStates; ++n )
          {
-            vstates[ n ] = 0.0; //core::generateUniformDistribution( 0, 0.000001 );
+            vstates[ n ] = core::generateUniformDistribution( 0, 0.000001 );
          }
 
          // up - down for reconstruction
@@ -914,7 +914,7 @@ namespace algorithm
 }
 
 
-ui32 size = 16;
+ui32 size = 28;
 
 
 /**
@@ -932,25 +932,51 @@ class TestRbm
    Database readSmallMnist()
    {
       Database dat;
-      std::ifstream fdata( NLL_DATABASE_PATH "mnist/data.bin", std::ios_base::in | std::ios_base::binary );
-      std::ifstream flabel( NLL_DATABASE_PATH "mnist/labels.bin", std::ios_base::in | std::ios_base::binary );
-      if ( !fdata.good() )
-         throw std::runtime_error( "can't find dataset" );
-      for ( ui32 n = 0; n < 5000; ++n )
+
       {
-         if (fdata.eof())
-            throw std::runtime_error("eof");
-         core::Buffer1D<double> data( 28 * 28 );
-         fdata.read( reinterpret_cast<i8*>( data.getBuf() ), 28 * 28 * sizeof( double ) );
+         std::ifstream fdata( NLL_DATABASE_PATH "mnist/data.bin", std::ios_base::in | std::ios_base::binary );
+         std::ifstream flabel( NLL_DATABASE_PATH "mnist/labels.bin", std::ios_base::in | std::ios_base::binary );
+         if ( !fdata.good() )
+            throw std::runtime_error( "can't find dataset" );
+         for ( ui32 n = 0; n < 5000; ++n )
+         {
+            if (fdata.eof())
+               throw std::runtime_error("eof");
+            core::Buffer1D<double> data( 28 * 28 );
+            fdata.read( reinterpret_cast<i8*>( data.getBuf() ), 28 * 28 * sizeof( double ) );
 
-         double label = 0;
-         flabel.read( reinterpret_cast<i8*>( &label ), sizeof( double ) );
+            double label = 0;
+            flabel.read( reinterpret_cast<i8*>( &label ), sizeof( double ) );
 
-         Database::Sample s;
-         s.input = data;
-         s.output = static_cast<ui32>( label - 1 );
-         s.type = Database::Sample::LEARNING;
-         dat.add( s );
+            Database::Sample s;
+            s.input = data;
+            s.output = static_cast<ui32>( label - 1 );
+            s.type = Database::Sample::LEARNING;
+            dat.add( s );
+         }
+      }
+
+      {
+         std::ifstream fdata( NLL_DATABASE_PATH "mnist/datat.bin", std::ios_base::in | std::ios_base::binary );
+         std::ifstream flabel( NLL_DATABASE_PATH "mnist/labelst.bin", std::ios_base::in | std::ios_base::binary );
+         if ( !fdata.good() )
+            throw std::runtime_error( "can't find dataset" );
+         for ( ui32 n = 0; n < 1000; ++n )
+         {
+            if (fdata.eof())
+               throw std::runtime_error("eof");
+            core::Buffer1D<double> data( 28 * 28 );
+            fdata.read( reinterpret_cast<i8*>( data.getBuf() ), 28 * 28 * sizeof( double ) );
+
+            double label = 0;
+            flabel.read( reinterpret_cast<i8*>( &label ), sizeof( double ) );
+
+            Database::Sample s;
+            s.input = data;
+            s.output = static_cast<ui32>( label - 1 );
+            s.type = Database::Sample::TESTING;
+            dat.add( s );
+         }
       }
 
       return dat;
@@ -962,9 +988,10 @@ public:
       srand(1);
       
       
-      //Database mnist = readSmallMnist();
+      Database mnist = readSmallMnist();
+      mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::TESTING );
 
-      
+      /*
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
@@ -972,7 +999,7 @@ public:
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
-      
+      */
 
       typedef core::DatabaseInputAdapter<Database>          Adapter;
       Adapter points( mnist );
@@ -982,7 +1009,7 @@ public:
       //std::vector<ui32> classes;
 
       algorithm::RestrictedBoltzmannMachineBinary2 rbm0;
-      double e = rbm0.trainContrastiveDivergence( points, classes, 30, 0.1, 40 );
+      double e = rbm0.trainContrastiveDivergence( points, classes, 600, 0.1, 30 );
 
       const algorithm::RestrictedBoltzmannMachineBinary2::Matrix& w = rbm0.getWeights();
       for ( ui32 filter = 0; filter < w.sizey(); ++filter )
@@ -1046,15 +1073,15 @@ public:
       std::ifstream f( NLL_DATABASE_PATH "rbm0.bin", std::ios_base::in | std::ios_base::binary );
       rbm.read( f );
 
-      
+      /*
       const nll::benchmark::BenchmarkDatabases::Benchmark* benchmark = nll::benchmark::BenchmarkDatabases::instance().find( "usps" );
       ensure( benchmark, "can't find benchmark" );
       Classifier::Database mnist = benchmark->database;
       for ( ui32 n = 0; n < mnist.size(); ++n )
          for ( ui32 nn = 0; nn < mnist[n].input.size(); ++nn )
             mnist[ n ].input[ nn ] /= 2;
-            
-      //Database mnist = readSmallMnist();
+        */    
+      Database mnist = readSmallMnist();
 
       mnist = core::filterDatabase( mnist, core::make_vector<ui32>( (ui32) Database::Sample::TESTING ), (ui32) Database::Sample::TESTING );
 
@@ -1083,9 +1110,9 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestRbm);
-TESTER_TEST(testRbm1);
-//TESTER_TEST(testRbmGenerate1);
+//TESTER_TEST(testRbm1);
+TESTER_TEST(testRbmGenerate1);
 
-TESTER_TEST(testRbmRecon1);
+//TESTER_TEST(testRbmRecon1);
 TESTER_TEST_SUITE_END();
 #endif

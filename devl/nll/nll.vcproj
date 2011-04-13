@@ -689,6 +689,10 @@
 				RelativePath=".\utility.h"
 				>
 			</File>
+			<Filter
+				Name="performance"
+				>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

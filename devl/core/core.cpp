@@ -1795,6 +1795,45 @@ public:
    }
 };
 
+class FunctionRunnableSplitString : public FunctionRunnable
+{
+public:
+   FunctionRunnableSplitString( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::STRING || v2.type != RuntimeValue::STRING )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 2 string as arguments" );
+      }
+      if ( v2.stringval.size() != 1 )
+      {
+         throw std::runtime_error( "second parameter must be a string of lenght one" );
+      }
+
+      std::string cpy = v1.stringval;
+      std::vector<const char*> splits = nll::core::split( cpy, v2.stringval[ 0 ] );
+
+      RuntimeValue rt( RuntimeValue::TYPE );
+      createFields( rt, (unsigned)splits.size() );
+      for ( int n = 0; n < splits.size(); ++n )
+      {
+         (*rt.vals)[ n ] = RuntimeValue( RuntimeValue::STRING );
+         (*rt.vals)[ n ].stringval = splits[ n ];
+      }
+      return rt;
+   }
+};
+
 static void redirect_stdout()
 {
    static const char* tmpout = "stdout.txt";
@@ -1924,6 +1963,12 @@ private:
 
 void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 {
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "split" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableSplitString( fn ) ) );
+   }
+
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "system" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       assert( fn );
@@ -2481,6 +2526,20 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Volume"), platform::Symbol::create( "setPst" ) ), nll::core::make_vector<const Type*>( ty ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableVolumeSetPst( fn, context ) ) );
+   }
+
+   {
+      Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "findMaxVoxel") ), nll::core::make_vector<const Type*>( volumeId ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableMaxVoxel( fn, context ) ) );
+   }
+
+   {
+      Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "findMaxVoxel") ), nll::core::make_vector<const Type*>( volumeId, new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableMaxVoxelSlice( fn, context ) ) );
    }
 
    //
@@ -3274,6 +3333,14 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "writeBmp") ), nll::core::make_vector<const Type*>( im, new TypeString( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionWriteBmp( fn ) ) );
+   }
+
+   {
+      Type* im = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Image" ) ) ) );
+      assert( im );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "copy") ), nll::core::make_vector<const Type*>( im, im, new TypeInt( false ), new TypeInt( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionCopyImage( fn ) ) );
    }
 
    {

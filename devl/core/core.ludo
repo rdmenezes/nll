@@ -323,3 +323,10 @@ import void assert( int val );
  @brief Throw std::runtime_error if the assert fails
  */
 import void assert( int val, string msg );
+
+/**
+ @ingroup core
+ @brief split a string according to a specific separator. All empty strings are removed.
+ @note Throw std::runtime_error if split is not a one character string
+ */
+import string[] split( string text, string split );

@@ -247,6 +247,75 @@ inline void inverColor( Image& m )
             std::swap( m( x, y, c ), m( x, y, nbc - 1 - c ) );
 }
 
+class FunctionCopyImage : public FunctionRunnable
+{
+public:
+   typedef FunctionImageConstructor::Pointee Pointee;
+
+public:
+   FunctionCopyImage( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 4 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      RuntimeValue& v4 = unref( *args[ 3 ] );
+
+      if ( v1.type != RuntimeValue::TYPE ||
+           v2.type != RuntimeValue::TYPE ||
+           v3.type != RuntimeValue::CMP_INT ||
+           v4.type != RuntimeValue::CMP_INT )
+      {
+         throw std::runtime_error( "wrong type, Expecting Image, Image, int, int" );
+      }
+
+      
+      Pointee* p1 = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      Pointee::value_type& dst = p1->getValue();
+      Pointee* p2 = reinterpret_cast<Pointee*>( (*v2.vals)[ 0 ].ref );
+      Pointee::value_type& src = p2->getValue();
+
+      if ( v3.intval >= (int)dst.sizex() ||
+           v4.intval >= (int)dst.sizey() ||
+           v3.intval < 0 ||
+           v4.intval < 0 )
+      {
+         throw std::runtime_error( "destination index is outside the image" );
+      }
+
+      if ( dst.getNbComponents() != src.getNbComponents() )
+      {
+         throw std::runtime_error( "images must have the same number of components" );
+      }
+
+      nll::core::vector2ui min( v3.intval, v4.intval );
+      nll::core::vector2ui max( std::min<ui32>( v3.intval + src.sizex(), dst.sizex() ),
+                                std::min<ui32>( v4.intval + src.sizey(), dst.sizey() ) );
+      for ( ui32 y = min[ 1 ]; y < max[ 1 ]; ++y )
+      {
+         for ( ui32 x = min[ 0 ]; x < max[ 0 ]; ++x )
+         {
+            for ( ui32 c = 0; c < dst.getNbComponents(); ++c )
+            {
+               dst( x, y, c ) = src( x - min[ 0 ], y - min[ 1 ], c );
+            }
+         }
+      }
+      
+      p1->notify(); // we have update the image...
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionWriteBmp : public FunctionRunnable
 {
 public:

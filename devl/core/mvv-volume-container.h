@@ -183,6 +183,9 @@ public:
       pointee->registrations.clear();
       pointee->volumes.clear();
 
+      pointee->volumeIdList.clear();
+      pointee->lutList.clear();
+
 
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;

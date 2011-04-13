@@ -52,7 +52,6 @@ public:
       (*v1.vals).resize( 1 );    // resize the original field
       (*v1.vals)[ 0 ] = field;
 
-      const parser::impl::RefcountedTypedDestructor::Extension* ext = v1.vals.getExtension();
       return v1;  // return the original object!
    }
 };

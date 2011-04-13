@@ -147,6 +147,10 @@ namespace algorithm
          core::read<ui32>( _nbClasses, f );
          core::read<ui32>( _createProbabilityModel, f );
          core::read<bool>( _balanceData, f );
+         if ( !_model )
+         {
+            throw std::runtime_error( "cannot read classifier from file:" + file );
+         }
       }
 
       /**
