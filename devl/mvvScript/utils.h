@@ -7,6 +7,25 @@ namespace mvv
 {
 namespace parser
 {
+   /**
+    @brief Returns the member function of a class
+    */
+   static std::vector<AstDeclFun*> getFunctionsFromClass( AstDeclClass& c, const mvv::Symbol& s )
+   {
+      std::vector<AstDeclFun*> res;
+      for ( AstDecls::Decls::iterator it = c.getDeclarations().getDecls().begin();
+            it != c.getDeclarations().getDecls().end();
+            ++it )
+      {
+         AstDeclFun* fn = dynamic_cast<AstDeclFun*>( *it );
+         if ( (*it)->getName() == s && fn )
+         {
+            res.push_back( fn );
+         }
+      }
+      return res;
+   }
+
    namespace impl
    {
       inline mvv::Symbol toSymbol( AstOpBin::Op op )

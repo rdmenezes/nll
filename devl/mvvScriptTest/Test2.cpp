@@ -2498,6 +2498,7 @@ struct TestEval
 
    void eval8()
    {
+      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int creator(){ return 42;} int n = creator();" );
@@ -2518,7 +2519,6 @@ struct TestEval
          TESTER_ASSERT( rt.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt.intval == 10 );
       }
-      
 
       {
          CompilerFrontEnd fe;
@@ -2528,28 +2528,42 @@ struct TestEval
          RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( i.intval == 42 );
-      }
+      }*/
+
+      /*
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\" int XX = 42; class Test2{}" );
+         result = fe.run( "class Test{int[] XX2 = NULL; Test(){ int tmp[] = {42}; XX2 = tmp;} int creator(){print( XX2[0] ); return XX2[0];} int creator2(){return creator();}} Test t; int n = t.creator2();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 42 );
+      }*/
 
       {
          CompilerFrontEnd fe;
-         Error::ErrorType result = fe.run( "int n = 42; int calc(){return n + 1;} int nn = calc();" );
+         //Error::ErrorType result = fe.run( "import \"core\" int XX = 42; class Test2{}" );
+         Error::ErrorType result = fe.run( "class Test{int index = 3; Test(){} void inc(){index;} void step(int nn){ inc();  } } Test test; test.step(11); int n = test.index;" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
-         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "nn" ) ) );
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
-         TESTER_ASSERT( i.intval == 43 );
+         TESTER_ASSERT( i.intval == 3 );
       }
    }
 };
 
 TESTER_TEST_SUITE(TestEval);
-/*
+
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
+
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
 TESTER_TEST(eval6);
-TESTER_TEST(eval7);*/
+TESTER_TEST(eval7);
 TESTER_TEST(eval8);
 TESTER_TEST_SUITE_END();

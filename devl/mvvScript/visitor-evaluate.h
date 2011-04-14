@@ -655,7 +655,14 @@ namespace parser
                // init some of the values
                _initObject( *functionToCall->getMemberOfClass(), vals[ 0 ] );
             } else  {
-               vals[ 0 ] = _env.resultRegister;
+               if ( e.getSimpleName() )
+               {
+                  // compute the address of the object from the framePointer and not result register
+                  vals[ 0 ] = _env.stack[ _env.framePointer + e.getName().getRuntimeIndex() ];
+               } else {
+                  // when we do a.b.c a[ 3 ]
+                  vals[ 0 ] = _env.resultRegister;
+               }
             }
          }
          for ( size_t n = 0; n < args.size(); ++n )

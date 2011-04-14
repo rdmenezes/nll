@@ -101,25 +101,6 @@ namespace parser
       /**
        @brief Returns the member function of a class
        */
-      static std::vector<AstDeclFun*> getFunctionsFromClass( AstDeclClass& c, const mvv::Symbol& s )
-      {
-         std::vector<AstDeclFun*> res;
-         for ( AstDecls::Decls::iterator it = c.getDeclarations().getDecls().begin();
-               it != c.getDeclarations().getDecls().end();
-               ++it )
-         {
-            AstDeclFun* fn = dynamic_cast<AstDeclFun*>( *it );
-            if ( (*it)->getName() == s && fn )
-            {
-               res.push_back( fn );
-            }
-         }
-         return res;
-      }
-
-      /**
-       @brief Returns the member function of a class
-       */
       static std::vector<AstDeclFun*> getFunctionsFromGlobal( const SymbolTableFuncs& funcs, const mvv::Symbol& s )
       {
          SymbolTableFuncs::const_iterator it = funcs.find( s );
@@ -577,7 +558,16 @@ namespace parser
                      // else, it is a class intanciated, check if the constructor is appropriate
                      funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *e.getConstructed(), /**e.getSimpleName()*/ e.getConstructed()->getName() ), e.getArgs() );
                   } else {
-                     ensure( 0, "compiler error: should not happen..." );
+
+                     // check it is a call to a member function
+                     //funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *decl, field->getName() ), e.getArgs() );
+                     AstDeclClass* c = dynamic_cast<AstDeclClass*>( e.getName().getReference() );
+                     if ( c )
+                     {
+                        funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *c, *e.getSimpleName() ), e.getArgs() );
+                     } else {
+                        ensure( 0, "compiler error: should not happen..." );
+                     }
                   }
                }
             }

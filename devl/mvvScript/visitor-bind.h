@@ -206,7 +206,23 @@ namespace parser
                AstDecl* decl = findClassDecl( _defaultClassPath, _currentFieldList, e.getName() );
                if ( !decl && it == _funcs.end() )
                {
-                  impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
+                  // check at least we have a function that has this name...
+                  if ( _currentFunc.size() )
+                  {
+                     AstDeclClass* classMember = (*_currentFunc.rbegin())->getMemberOfClass();
+                     if ( classMember )
+                     {
+                        std::vector<AstDeclFun*> decls = getFunctionsFromClass( *classMember, e.getName() );
+                        if ( !decls.size() )
+                        {
+                           impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
+                        } else {
+                           e.setReference( classMember );
+                        }
+                     }
+                  } else {
+                     impl::reportUndeclaredType( e.getLocation(), _context, "undeclared function/class constructor call" );
+                  }
                }
                //e.setReference( decl );
             } else {

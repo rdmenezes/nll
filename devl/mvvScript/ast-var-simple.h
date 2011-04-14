@@ -60,8 +60,9 @@ namespace parser
       virtual ui32 getRuntimeIndex()
       {
          AstDeclVar* decl = dynamic_cast<AstDeclVar*>( getReference() );
-         ensure( decl, "it must be used in the context of varaible declaration!" );
-         return decl->getRuntimeIndex();
+         if ( decl )
+            return decl->getRuntimeIndex();
+         return 0;
       }
 
    private:

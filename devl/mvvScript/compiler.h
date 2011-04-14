@@ -483,7 +483,7 @@ namespace parser
             AstDeclClass* cc = dynamic_cast<AstDeclClass*>( c );
             if ( !cc )
                return 0;
-            possible = VisitorType::getFunctionsFromClass( *cc, path[ path.size() - 1 ] );
+            possible = getFunctionsFromClass( *cc, path[ path.size() - 1 ] );
          }
 
          return getMatchingFunction( possible, prototype );
