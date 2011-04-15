@@ -140,6 +140,82 @@ namespace imaging
       }
 
       /**
+       @brief Automatically detect the range of the LUT so that <ratioSelection> % of the voxels are selected
+       */
+      template <class Volume>
+      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 1000 )
+      {
+         ensure( ratioSelection >= 0 && ratioSelection <= 1 && nbBins > 2, "invalid parameters" );
+
+         // compute the range so we can do binning
+         typename Volume::value_type min = std::numeric_limits<typename Volume::value_type>::max();
+         typename Volume::value_type max = std::numeric_limits<typename Volume::value_type>::min();
+         for ( typename Volume::const_iterator it = v.begin(); it != v.end(); ++it )
+         {
+            if ( *it > max )
+            {
+               max = *it;
+            }
+            if ( *it < min )
+            {
+               min = *it;
+            }
+         }
+
+         // do binning
+         std::vector<size_t> bins( nbBins );
+         const double range = ( static_cast<double>( max ) - static_cast<double>( min ) + 1 ) / nbBins;
+         for ( typename Volume::const_iterator it = v.begin(); it != v.end(); ++it )
+         {
+            const ui32 bin = static_cast<ui32>( ( *it - min ) / range );
+            ++bins[ bin ];
+         }
+
+         // select the range that select the specified ratio of voxel
+         // sort the bins by size and greedily add bins to the selected bins
+         const size_t nbVoxels = v.size()[ 0 ] * v.size()[ 1 ] * v.size()[ 2 ];
+         double selectedVoxels = 0;
+
+         typedef std::vector< std::pair< size_t, ui32 > > SortedContainer;
+         SortedContainer sortedBins( bins.size() );
+         for ( ui32 n = 0; n < nbBins; ++n )
+         {
+            sortedBins[ n ] = std::pair<size_t, ui32>( bins[ n ], n );
+         }
+         std::sort( sortedBins.rbegin(), sortedBins.rend() );
+
+         // compute the last bin that falls within the ratio
+         SortedContainer::const_iterator it = sortedBins.begin();
+         for ( ; it != sortedBins.end() && selectedVoxels / nbVoxels < ratioSelection; ++it )
+         {
+            selectedVoxels += it->first;
+         }
+
+         // compute the min-max index
+         ui32 minIndex = nbBins;
+         ui32 maxIndex = 0;
+         for ( SortedContainer::const_iterator it2 = sortedBins.begin(); it2 != it; ++it2 )
+         {
+            if ( it2->second > maxIndex )
+            {
+               maxIndex = it2->second;
+            }
+
+            if ( it2->second < minIndex )
+            {
+               minIndex = it2->second;
+            }
+         }
+
+         _min = static_cast<float>( min + minIndex * range );
+         _max = static_cast<float>( min + maxIndex * range );
+         _interval = _max - _min + 1;
+         _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
+      }
+
+      
+
+      /**
        @brief Transform a float to multidimentional value
        */
       const T* transform( float value ) const
@@ -380,6 +456,12 @@ namespace imaging
             }
             set( n, vals.getBuf() );
          }
+      }
+
+      template <class Volume>
+      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 1000 )
+      {
+         _lut.detectRange( v, ratioSelection, nbBins );
       }
 
       /**

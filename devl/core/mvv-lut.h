@@ -5,7 +5,9 @@
 # include <mvvPlatform/resource-lut.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
+# include <mvvPlatform/context-tools.h>
 
+using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
 
@@ -268,6 +270,60 @@ public:
                           static_cast<int>( color[ 2 ] ) );
       return rt;
    }
+};
+
+class FunctionLutDetectRange : public FunctionRunnable
+{
+   typedef platform::ResourceLut Pointee;
+
+public:
+   // We need these variables to be able to run the destructor
+   // volumeClass: the class declaration
+   // eval: the evaluator
+   FunctionLutDetectRange( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw std::runtime_error( "unexpected number of arguments, expecting VolumeID, float" );
+      }
+
+      RuntimeValue& v0 = unref( *args[ 0 ] );
+      RuntimeValue& v1 = unref( *args[ 1 ] );
+      RuntimeValue& v2 = unref( *args[ 2 ] );
+      if ( v1.type != RuntimeValue::TYPE && (*v1.vals).size() == 1 && (*v1.vals)[ 0 ].type == RuntimeValue::STRING )
+      {
+         throw std::runtime_error( "invalid argument" );
+      }
+      if ( v2.type != RuntimeValue::CMP_FLOAT || v2.floatval < 0 || v2.floatval > 1 )
+      {
+         throw std::runtime_error( "the ratio must be in [0..1]" );
+      }
+
+      ContextTools* tools = _context.get<ContextTools>();
+      if ( !tools )
+      {
+         throw std::runtime_error( "ContextTools context has not been loaded" );
+      }
+
+      // check we have the data
+      assert( (*v0.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* lut = reinterpret_cast<Pointee*>( (*v0.vals)[ 0 ].ref );
+
+      // it is guaranteed we have a volume
+      mvv::platform::RefcountedTyped<Volume> vol = tools->getVolume( mvv::SymbolVolume::create( (*v1.vals)[ 0 ].stringval ) );
+
+      lut->detectRange( *vol, v2.floatval );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&    _context;
 };
 
 #endif

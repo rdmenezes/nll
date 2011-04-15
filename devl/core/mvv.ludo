@@ -159,6 +159,11 @@ class Lut
     @brief destroy native resources
     */
    import ~Lut();
+
+   /**
+    @brief Adjust the range of the LUT so that <ratioVoxelKept> % voxels are displayed in the dynamic range
+    */
+   import void detectRange( VolumeID v, float ratioVoxelKept = 0.8 );
 }
 
 /**

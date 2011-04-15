@@ -182,10 +182,33 @@ public:
          //TESTER_ASSERT( output[ n ] == output2[ n ] );
       }
    }
+
+   void testLutDetectRange()
+   {
+      typedef nll::imaging::MapperLutColor<unsigned> Mapper;
+
+      const unsigned nbValue = 10;
+      unsigned values[] = 
+      {
+         0, 0, 1, 2, 3, 4, 3, 2, 0, 0
+      };
+
+      nll::imaging::Volume<double> volume( nbValue, 1, 1, 0 );
+      for ( unsigned n = 0; n < nbValue; ++n )
+      {
+         volume( n, 0, 0 ) = values[ n ];
+      }
+
+      Mapper mapper( nbValue, 1 );
+      nll::imaging::LookUpTransform<unsigned, Mapper> lut( mapper, 0, 1 );
+      
+      lut.detectRange( volume, 0.8, 5 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestLut);
+TESTER_TEST(testLutDetectRange);
 TESTER_TEST(testTransformComp);
 TESTER_TEST(simpleTest);
 TESTER_TEST(testBlending);

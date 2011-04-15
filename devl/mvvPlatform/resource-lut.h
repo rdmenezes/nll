@@ -31,6 +31,13 @@ namespace platform
          getValue().lut.createGreyscale();
       }
 
+      template <class Volume>
+      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 1000 )
+      {
+         getValue().lut.detectRange( v, ratioSelection, nbBins );
+         notify();
+      }
+
       ResourceLut( const nll::imaging::LookUpTransformWindowingRGB& lut ) : Resource( new impl::ResourceLutImpl( 0, 1 ), true )
       {
          getValue().lut = lut;
