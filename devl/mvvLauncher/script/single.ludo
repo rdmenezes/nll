@@ -1,93 +1,34 @@
-
 import "core"
 import "siemens"
 include "helper1"
 
-
-//
-// configuration constants
-// -----------------------------------------------------------------------------------------------------------------
-//
-
-/// saves the last XXX commands typed by the user, these will be imported next sessions
-int      sizeHistoryExport            = 500;
-
-/// defines the export/import location
-string   historyExportLocation        = "c:/Temp/command_history.txt";
-
-//
-// -----------------------------------------------------------------------------------------------------------------
-//
-
 SegmentToolCentering    toolCentering;
 MipToolPointer          toolPointerMip(17);
-//SegmentToolPointer      pointer;
 ToolAnnotations         annotations;
-//SegmentToolCamera       camera;
 ToolManipulators        manipultors;
 ManipulatorPointer      pointer;
 
 VolumeContainer         volumes;
+VolumeContainer         volumes2;
 
+manipultors.add( pointer );
 
-
-//VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/1_-NAC.mf2");
-//VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/1_-CT.mf2");
-VolumeID pet  = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
-VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
-//VolumeID nema = readVolumeMF2Asynchronous("c:/tmp3/nema.mf2");
-
-Lut petLut( 3000.0, 20000.0, Vector3i( 0, 255, 0 ) );
+Lut petLut( 5000.0, 15000.0, Vector3i( 255, 0, 0 ) );
 Lut ctLut( -250.0, 250.0 );
-Lut ctLutMip( -1000.0, 1000.0 );
-//petLut.set( 0.0, 60000.0 );
-
-FindPeakVoxel peak( pet, 15, pointer );
-DisplayRegionDetection detection( annotations );
-AnnotationCreator annotationCreator( annotations, pointer );
-VolumeSwitch switch( ctLut, volumes, volumeList, detection );
 
 KeyboardCallback callbacks;
-callbacks.addShortcut( switch.next, "F3" );
-callbacks.addShortcut( peak.run, "F2" );
-callbacks.addShortcut( annotationCreator.run, "F1" );
 
-
-AffineRegistration petReg;
-AffineRegistration ctReg;
-
-
-volumes.add( ct, ctLut, 0.5, ctReg );
-volumes.add( pet, petLut, 0.5, petReg );
-//volumes.add( nema, petLut, 0.5, petReg );
-
-ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, -159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
-
-//Mip mip1( ct, ctLutMip );
-Mip mip1( pet, petLut );
-mip1.setTool( toolPointerMip );
-mip1.setTool( annotations );
-
-ManipulatorCuboid cuboid( Vector3f(10.0, -160.0, 1230.0), Vector3f(210.0, -260.0, 1430.0) );
-ManipulatorPoint mp( Vector3f(0.0, -160.0, 1230.0), "Test1", 24 );
-manipultors.add( mp );
-manipultors.add( ManipulatorPoint( Vector3f(10.0, -160.0, 1230.0) ) );
-manipultors.add( ManipulatorPoint( Vector3f(20.0, -160.0, 1230.0) ) );
-manipultors.add( pointer );
-manipultors.add( cuboid );
-
-Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
-segment1.setTool( toolCentering );
+// first set
+float spacing = 2.0;
+Segment segment1( volumes, Vector3f( spacing, 0.0, 0.0 ), Vector3f( 0.0, -spacing, 0.0 ) );
 segment1.setTool( manipultors );
 segment1.setTool( annotations );
 
-Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment2.setTool( toolCentering );
+Segment segment2( volumes, Vector3f( 0.0, spacing, 0.0 ), Vector3f( 0.0, 0.0, spacing ) );
 segment2.setTool( manipultors );
 segment2.setTool( annotations );
 
-Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment3.setTool( toolCentering );
+Segment segment3( volumes, Vector3f( spacing, 0.0, 0.0 ), Vector3f( 0.0, 0.0, spacing ) );
 segment3.setTool( manipultors );
 segment3.setTool( annotations );
 
@@ -96,21 +37,177 @@ Layout::Horizontal horizontal;
 Layout l1( segment1 );
 Layout l2( segment2 );
 Layout l3( segment3 );
-Layout l6( Console() );
-Layout l4( mip1 );
 
-Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.50), Layout(horizontal, l3, l4, 0.50), 0.50 );
-Layout layout = Layout(vertical, l6, layoutDisplay, 0.10);
+// second set
+Segment segment4( volumes2, Vector3f( spacing, 0.0, 0.0 ), Vector3f( 0.0, -spacing, 0.0 ) );
+segment4.setTool( manipultors );
+segment4.setTool( annotations );
 
+Segment segment5( volumes2, Vector3f( 0.0, spacing, 0.0 ), Vector3f( 0.0, 0.0, spacing ) );
+segment5.setTool( manipultors );
+segment5.setTool( annotations );
 
-//Image m = segment1.getRawImage();
-//writeBmp( m, "c:/tx.bmp" );
-ImageHolder holder;
+Segment segment6( volumes2, Vector3f( spacing, 0.0, 0.0 ), Vector3f( 0.0, 0.0, spacing ) );
+segment6.setTool( manipultors );
+segment6.setTool( annotations );
 
-Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
-Layout layout1 = layout;
+Layout l4( segment4 );
+Layout l5( segment5 );
+Layout l6( segment6 );
 
+Layout layoutDisplay1( vertical, Layout(horizontal, l1, l2, 0.50), l3, 0.50 );
+Layout layoutDisplay2( vertical, Layout(horizontal, l4, l5, 0.50), l6, 0.50 );
+Layout layout = Layout(horizontal, layoutDisplay1, layoutDisplay2, 0.50);
 
+Segment segments[] =
+{
+   segment1, segment2, segment3, segment4, segment5, segment6
+};
 
-CuboidCreator creator( manipultors );
-creator.start();
+class PostprocessingPrint
+{
+   string toPrint;
+
+   PostprocessingPrint( string s )
+   {
+      toPrint = s;
+   }
+
+   void run( Image image, Vector2f spacing, Vector3f origin, Vector3f axisx, Vector3f axisy )
+   {
+      drawText( image,
+                toPrint,
+                Vector2i( 0, image.sizey() - 26 ),
+                25,
+                Vector3i( 255, 255, 255 ) );
+   }
+}
+
+PostprocessingPrint postprocessingAligned( "Default Alignment Only" );
+PostprocessingPrint postprocessingTranslation( "Cardiac Registration results" );
+segment3.setTool( ToolPostprocessing( postprocessingAligned.run ) );
+segment6.setTool( ToolPostprocessing( postprocessingTranslation.run ) );
+
+class Loader
+{
+   VolumeContainer   volumes1 = NULL;
+   VolumeContainer   volumes2 = NULL;
+   Lut petLut = NULL;
+   Lut ctLut  = NULL;
+   int case = 0;
+   ManipulatorPointer pointer = NULL;
+   Segment[] segments = NULL;
+
+   VolumeID pet = NULL;
+   VolumeID ct  = NULL;
+   VolumeID ct2 = NULL;
+
+   Loader(VolumeContainer v1, VolumeContainer v2, ManipulatorPointer p, Segment[] ss )
+   {
+      volumes1 = v1;
+      volumes2 = v2;
+      pointer = p;
+      segments = ss;
+
+      petLut = Lut( 5000.0, 15000.0, Vector3i( 255, 0, 0 ) );
+      ctLut = Lut( -250.0, 250.0 );
+   }
+
+   void save()
+   {
+      
+      int sx = 1280;
+      int sy = 1024;
+      Image i( sx, sy, 3 );
+
+      
+      copy( i, segments[ 3 ].getImage(), sx / 2, 0 );
+      copy( i, segments[ 4 ].getImage(), sx / 2 + sx / 4, 0 );
+      copy( i, segments[ 5 ].getImage(), sx / 2, sy / 2 );
+
+      copy( i, segments[ 0 ].getImage(), 0, 0 );
+      copy( i, segments[ 1 ].getImage(), sx / 4, 0 );
+      copy( i, segments[ 2 ].getImage(), 0, sy / 2 );
+      
+
+      writeBmp( i, "c:/tmp/result_case" + toString(case) + ".bmp" );
+   }
+
+   void next()
+   {
+      string baseIn = "N:/MCL/Mirada Test Data Library (MTDL)/CardiacRegistration/v2/";
+	   string baseOut = "c:/tmp/";
+
+      volumes1.clear();
+      volumes2.clear();
+
+      case = case + 1;
+      // handle the missing cases...
+      if (case==11)
+      {
+         case = 12;
+      }
+
+      if (case==14)
+      {
+         case = 15;
+      }
+
+      if (case==16)
+      {
+         case = 17;
+      }
+      print( "--------case=" + toString(case) + "-----------\n" );
+
+      pet   = readVolumeMF2Asynchronous( baseIn + "NAC" + toString(case) + ".mf2");
+      ct    = readVolumeMF2Asynchronous( baseIn + "CT" + toString(case) + ".mf2");
+      ct2   = readVolumeMF2Asynchronous("c:/tmp/full-resampledCT-t-Case-" + toString(case) + ".mf2");
+
+      Volume ctVolume = ct.getVolume();
+      Volume petVolume = pet.getVolume();
+
+      float diff = -30.0 / petVolume.getSpacing()[ 2 ];
+      if ( case > 10 && case < 21)
+      {
+         petLut = Lut( 0.0, 300.0, Vector3i( 255, 0, 0 ) );
+         float diff = -25.0 / petVolume.getSpacing()[ 2 ];
+      }
+      petLut.detectRange(pet, 0.99);
+
+      volumes1.add( ct, ctLut, 0.3 );
+      volumes1.add( pet, petLut, 0.5 );
+
+      volumes2.add( ct2, ctLut, 0.3 );
+      volumes2.add( pet, petLut, 0.5 );
+
+      // automatic heart positioning
+      RegionDetection detection;
+      int[]   rois;
+      float[] indexes;
+
+      int[] result = detection.compute( ct, rois, indexes );
+
+      // set the correct position
+      assert( result[ 2 ] != -1 );
+
+      Vector3f posSlice( ctVolume.getSize()[ 0 ] / 2.0, ctVolume.getSize()[ 1 ] / 2.0, diff + toFloat( result[ 2 ] ) );
+      Vector3f posMM = ctVolume.indexToPosition( posSlice );
+      Vector3f posSlicePet = petVolume.positionToIndex( posMM );
+      Vector3f sliceMaxIntensity = findMaxVoxel( pet, round( posSlicePet[ 2 ] ) );
+      Vector3f maxIntensityMM = petVolume.indexToPosition( sliceMaxIntensity );
+      pointer.setPosition( maxIntensityMM );
+
+      save();
+   }
+}
+
+Loader loader(volumes, volumes2, pointer, segments);
+
+int nbCases = 17;
+//while ( nbCases > 0 )
+{
+   loader.next();
+   nbCases = nbCases - 1;
+}
+
+callbacks.addShortcut( loader.next, "F3" );

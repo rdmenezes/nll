@@ -426,6 +426,32 @@ namespace parser
       }
 
       /**
+       @brief find a global variable in the execution context
+       @throw std::runtime_error if the variable can't be found
+       @return it's runtime value & type
+       @note if a RuntimeValue& is used still, while the front end is destroyed, this will crash (destructor)
+       */
+      RuntimeValue& getVariable( const mvv::Symbol& name )
+      {
+         AstDeclVar* val = _vars.find( name );
+         if ( !val )
+         {
+            throw std::runtime_error("can't find this variable in the current execution context" );
+         }
+         if ( val->getRuntimeIndex() >= _env.stack.size() )
+         {
+            throw std::runtime_error("incorrect frame pointer" );
+         }
+
+         RuntimeValue* res = &_env.stack[ val->getRuntimeIndex() ];
+         while ( res->type == RuntimeValue::REF )
+         {
+            res = res->ref;
+         }
+         return *res;
+      }
+
+      /**
        @brief find a class definition using it's full path (i.e. Class1::Class2::ClassWeWant => create the vector (Class1, Class2, ClassWeWant))
        @brief return 0 if class not found
        */

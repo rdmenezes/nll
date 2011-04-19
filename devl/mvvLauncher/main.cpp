@@ -315,6 +315,50 @@ void keyboardSpecial( int key, int x, int y )
 }
 
 
+bool checkOptionArgv( int argc, char** argv, const std::string& val, const char delim, std::vector<std::string>& params )
+{
+   for ( int n = 1; n < argc; ++n )
+   {
+      std::string str = argv[ n ];
+      std::vector<const char*> splits = nll::core::split( str, '=' );
+      if ( splits.size() == 2 && strcmp( splits[ 0 ], val.c_str() ) == 0 )
+      {
+         std::vector<std::string> opts;
+         std::string str2 = splits[ 1 ];
+         std::vector<const char*> vals = nll::core::split( str2, delim );
+         for ( size_t m = 0; m < vals.size(); ++m )
+         {
+            opts.push_back( vals[ m ] );
+         }
+         params = opts;
+         return true;
+      }
+   }
+   return false;
+}
+
+bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string& val )
+{
+   for ( int n = 1; n < argc; ++n )
+   {
+      std::string str = argv[ n ];
+      std::vector<const char*> splits = nll::core::split( str, '=' );
+      if ( splits.size() == 2 && strcmp( splits[ 0 ], opt.c_str() ) == 0 )
+      {
+         std::string str2 = splits[ 1 ];
+         std::vector<const char*> vals = nll::core::split( str2, ' ' );
+         if ( vals.size() != 1 )
+         {
+            std::cerr << "error: expected commandline -sizex=XXX" << std::endl;
+            exit( 1 );
+         }
+         val = vals[ 0 ];
+         return true;
+      }
+   }
+   return false;
+}
+
 //
 // arguments:
 // sizex sizey nbThreads initialscript importpath:path1;path2;path3 font -nowindow
@@ -325,38 +369,45 @@ int main(int argc, char** argv)
    
    int sizex = 1280;
    int sizey = 1024;
-   /*
-   int sizex = 128;
-   int sizey = 128;
-   */
+
    int nbThreads = 8;
-   std::string mainScript = "include \"../../mvvLauncher/script/single\"";
+   std::string mainScript = "../../mvvLauncher/script/single";
    std::string font = "../../nllTest/data/font/bitmapfont1_24";
    bool nowindow = false;
+   std::vector<std::string> argvParam;
+   std::vector<std::string> importPaths;
 
-   // read the commands...
-   if ( argc >= 2 )
-      sizex = atoi( argv[ 1 ] );
-   if ( argc >= 3 )
-      sizey = atoi( argv[ 2 ] );
-   if ( argc >= 4 )
-      nbThreads = atoi( argv[ 3 ] );
-   if ( argc >= 5 )
-      mainScript = "include \"" + std::string( argv[ 4 ] ) + "\"";
-   std::vector<const char*> importPath;
-   std::string importPathStr;
-   if ( argc >= 6 )
+   std::string val;
+   if ( checkOptionVal( argc, argv, "-sizex", val ) )
    {
-      importPathStr = argv[ 5 ];
-      importPath = nll::core::split( importPathStr, ';' );
+      sizex = atoi( val.c_str() );
    }
-   if ( argc >= 7 )
-      font = argv[ 6 ];
-   if ( argc >= 8 )
-      nowindow = strcmp( argv[ 7 ], "-nowindow" ) == 0;
+   if ( checkOptionVal( argc, argv, "-sizey", val ) )
+   {
+      sizey = atoi( val.c_str() );
+   }
+   if ( checkOptionVal( argc, argv, "-threads", val ) )
+   {
+      nbThreads = atoi( val.c_str() );
+   }
+   if ( checkOptionVal( argc, argv, "-input", val ) )
+   {
+      mainScript = val;
+   }
+   if ( checkOptionVal( argc, argv, "-font", val ) )
+   {
+      font = val;
+   }
+   checkOptionArgv( argc, argv, "-argv", ' ', argvParam );
+   checkOptionArgv( argc, argv, "-import", ';', importPaths );
+   if ( checkOptionVal( argc, argv, "-nowindow", val ) )
+   {
+      nowindow = true;
+   }
+   mainScript = "include \"" + mainScript + "\""; // we will include the script to import it!
 
    // init
-   applicationVariables = new mvv::ApplicationVariables( sizex, sizey, nbThreads, mainScript, importPath, font );
+   applicationVariables = new mvv::ApplicationVariables( sizex, sizey, nbThreads, mainScript, importPaths, font, argvParam );
 
    if ( !nowindow )
    {

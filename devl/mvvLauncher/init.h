@@ -77,7 +77,7 @@ namespace mvv
       RuntimeValues*                      oldLayout;  // in case a script if modifying the root of the layout, we must be able to detect it by comparing the pointers...
       Callbacks                           callbacks;
 
-      ApplicationVariables( ui32 sx, ui32 sy, ui32 nbThreads, const std::string& mainScript, const std::vector<const char*>& importPath, const std::string& font ) : screen( sx, sy, 3 ), orderManager( nbThreads ), callbacks( compiler )
+      ApplicationVariables( ui32 sx, ui32 sy, ui32 nbThreads, const std::string& mainScript, const std::vector<std::string>& importPath, const std::string& font, const std::vector<std::string>& argv ) : screen( sx, sy, 3 ), orderManager( nbThreads ), callbacks( compiler )
       {  
          for ( ui32 n = 0; n < importPath.size(); ++n )
          {
@@ -86,6 +86,23 @@ namespace mvv
 
          initFont( font );
          initContext();
+
+         // handle argv
+         if ( argv.size() != 0 )
+         {
+            std::stringstream ss;
+            ss << "int argc=" << argv.size() << "; ";
+            ss << "string argv[]={";
+            for ( size_t n = 0; n < argv.size(); ++n )
+            {
+               ss << "\"" << argv[ n ] << "\"";
+               if ( n + 1 != argv.size() )
+                  ss << ", ";
+            }
+            ss << " };";
+            Error::ErrorType result = compiler.run( ss.str() );
+            ensure( result == Error::SUCCESS, "Problem in creating the command line arguments" );
+         }
          initScript( mainScript );
 
          // event
