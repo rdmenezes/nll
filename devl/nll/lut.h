@@ -143,7 +143,7 @@ namespace imaging
        @brief Automatically detect the range of the LUT so that <ratioSelection> % of the voxels are selected
        */
       template <class Volume>
-      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 1000 )
+      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
       {
          ensure( ratioSelection >= 0 && ratioSelection <= 1 && nbBins > 2, "invalid parameters" );
 
@@ -174,6 +174,7 @@ namespace imaging
          // select the range that select the specified ratio of voxel
          // sort the bins by size and greedily add bins to the selected bins
          const size_t nbVoxels = v.size()[ 0 ] * v.size()[ 1 ] * v.size()[ 2 ];
+
          double selectedVoxels = 0;
 
          typedef std::vector< std::pair< size_t, ui32 > > SortedContainer;
@@ -459,7 +460,7 @@ namespace imaging
       }
 
       template <class Volume>
-      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 1000 )
+      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
       {
          _lut.detectRange( v, ratioSelection, nbBins );
       }

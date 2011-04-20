@@ -252,6 +252,7 @@
 # include "classifier.h"
 # include "kmeans.h"
 # include "gmm.h"
+# include "histogram-fitting.h"
 # include "rbf-network.h"
 # include "svm.h"
 # include "svm-linear.h"

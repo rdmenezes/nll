@@ -908,6 +908,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\histogram-fitting.h"
+				>
+			</File>
+			<File
 				RelativePath=".\hmm-continuous.h"
 				>
 			</File>

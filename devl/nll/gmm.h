@@ -231,6 +231,16 @@ namespace algorithm
       template <class Points>
       void em( const Points& points, ui32 pointSize, ui32 nbGaussians, ui32 nbIter, ComputingType minDiffStop = 0.1 )
       {
+         {
+            std::stringstream ss;
+            ss << "Mixture of gaussian fitting using EM," <<
+                  " nbGaussian=" << nbGaussians <<
+                  " nbIter=" << nbIter <<
+                  " minDiffStop=" << minDiffStop <<
+                  " nbPoints=" << points.size();
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          _pointSize = pointSize;
          Matrix p( static_cast<ui32> ( points.size() ), _pointSize );
          for ( ui32 y = 0; y < points.size(); ++y )
@@ -239,11 +249,25 @@ namespace algorithm
          _gaussians = Gaussians( nbGaussians );
          _init( p, nbGaussians );
 
+         {
+            std::stringstream ss;
+            ss << " KMeans initialization=" << std::endl;
+            for ( ui32 n = 0; n < nbGaussians; ++n )
+            {
+               ss << " gaussian weight=" << _gaussians[ n ].weight << std::endl
+                  << " mean:" << std::endl;
+               _gaussians[ n ].mean.print( ss );
+               ss << " cov:" << std::endl;
+               _gaussians[ n ].covariance.print( ss );
+            }
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          Matrix density, norm_density;
          ComputingType likelihood = INT_MIN;
          ComputingType likelihood_old = likelihood;
 
-         do
+         while ( nbIter-- > 0 )
          {
             _expectation( p, density, norm_density );
             _maximization( p, norm_density );
@@ -252,10 +276,17 @@ namespace algorithm
             //assert( likelihood_old - likelihood <= 0.01 );
             if ( core::absolute( likelihood_old - likelihood ) < minDiffStop )
                break;   // stop if the diff between old and new likelihood is les than the threshold
+
+            {
+               std::stringstream ss;
+               ss << "likelihood=" << likelihood;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+
 # ifdef NLL_GMM_DEBUG
             std::cout << "likelihood=" << likelihood <<std::endl;
 # endif
-         } while ( nbIter-- );
+         }
 
          // log the parameter's model
          std::stringstream ss;

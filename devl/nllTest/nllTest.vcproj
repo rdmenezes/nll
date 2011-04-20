@@ -824,6 +824,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-fit-histogram.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-genetic-algorithm.cpp"
 				>
 				<FileConfiguration
@@ -1092,6 +1096,7 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
