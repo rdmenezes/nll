@@ -32,7 +32,7 @@ namespace platform
       }
 
       template <class Volume>
-      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 1000 )
+      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
       {
          getValue().lut.detectRange( v, ratioSelection, nbBins );
          notify();

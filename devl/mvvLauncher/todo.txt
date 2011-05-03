@@ -38,20 +38,19 @@ FEATURES TO BE ADDED:
     - lut controls + script
     
     
-    
-    
-- cannot call function declared inside a class, inside a member function
-    class Test
+   => give access to the command line arguments
+   
+   => return doesn't branch correctly! 
+- int test()
+  {
+    int n = 0;
+    if ( n == 0 )
     {
-      Test()
-      {}
-      
-      void doNothing()
-      {}
-      
-      void doNothing2()
-      {
-        doNothing();
-      }
+      return 42;
     }
+    return 41;
+  }
+  
+  also think about {{return}} -> need to exit all the seqs until the end of function declation
+
     

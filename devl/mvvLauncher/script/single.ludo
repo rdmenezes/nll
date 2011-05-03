@@ -166,18 +166,21 @@ class Loader
       Volume ctVolume = ct.getVolume();
       Volume petVolume = pet.getVolume();
 
+      // SPECT and PET spacing are very different so we need to differentiate to find the middle of the LV
       float diff = -30.0 / petVolume.getSpacing()[ 2 ];
       if ( case > 10 && case < 21)
       {
          petLut = Lut( 0.0, 300.0, Vector3i( 255, 0, 0 ) );
          float diff = -25.0 / petVolume.getSpacing()[ 2 ];
       }
-      petLut.detectRange(pet, 0.99);
 
-      volumes1.add( ct, ctLut, 0.3 );
+      petLut.detectRange( pet );
+      ctLut.detectRange( ct );
+
+      volumes1.add( ct, ctLut, 0.4 );
       volumes1.add( pet, petLut, 0.5 );
 
-      volumes2.add( ct2, ctLut, 0.3 );
+      volumes2.add( ct2, ctLut, 0.4 );
       volumes2.add( pet, petLut, 0.5 );
 
       // automatic heart positioning

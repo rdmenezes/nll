@@ -145,6 +145,12 @@ namespace imaging
       template <class Volume>
       void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
       {
+         {
+            std::stringstream ss;
+            ss << "LUT range detection: ratio= " << ratioSelection << " nbBins=" << nbBins;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          ensure( ratioSelection >= 0 && ratioSelection <= 1 && nbBins > 2, "invalid parameters" );
 
          // compute the range so we can do binning
@@ -162,56 +168,94 @@ namespace imaging
             }
          }
 
+         {
+            std::stringstream ss;
+            ss << " min voxel= " << min << std::endl;
+            ss << " max voxel= " << max << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          // do binning
          std::vector<size_t> bins( nbBins );
          const double range = ( static_cast<double>( max ) - static_cast<double>( min ) + 1 ) / nbBins;
+         size_t nbVoxels = 0;
          for ( typename Volume::const_iterator it = v.begin(); it != v.end(); ++it )
          {
             const ui32 bin = static_cast<ui32>( ( *it - min ) / range );
             ++bins[ bin ];
+            ++nbVoxels;
+         }
+
+         {
+            std::stringstream ss;
+            ss << " histogram:" << std::endl;
+            for ( ui32 n = 0; n < nbBins; ++n )
+            {
+               ss << "  bin[" << n << "]=" << bins[ n ] << std::endl;
+            }
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
          // select the range that select the specified ratio of voxel
          // sort the bins by size and greedily add bins to the selected bins
-         const size_t nbVoxels = v.size()[ 0 ] * v.size()[ 1 ] * v.size()[ 2 ];
+         //const size_t nbVoxels = v.size()[ 0 ] * v.size()[ 1 ] * v.size()[ 2 ];
+
 
          double selectedVoxels = 0;
 
-         typedef std::vector< std::pair< size_t, ui32 > > SortedContainer;
-         SortedContainer sortedBins( bins.size() );
-         for ( ui32 n = 0; n < nbBins; ++n )
-         {
-            sortedBins[ n ] = std::pair<size_t, ui32>( bins[ n ], n );
-         }
-         std::sort( sortedBins.rbegin(), sortedBins.rend() );
+         const ui32 nbGaussians = 2;
+         nll::algorithm::HistogramFitGaussian fitter;
+         fitter.fit( bins, nbGaussians, 0, 1000 );
 
-         // compute the last bin that falls within the ratio
-         SortedContainer::const_iterator it = sortedBins.begin();
-         for ( ; it != sortedBins.end() && selectedVoxels / nbVoxels < ratioSelection; ++it )
          {
-            selectedVoxels += it->first;
-         }
-
-         // compute the min-max index
-         ui32 minIndex = nbBins;
-         ui32 maxIndex = 0;
-         for ( SortedContainer::const_iterator it2 = sortedBins.begin(); it2 != it; ++it2 )
-         {
-            if ( it2->second > maxIndex )
+            std::stringstream ss;
+            ss << " gaussians found:" << std::endl;
+            for ( ui32 n = 0; n < nbGaussians; ++n )
             {
-               maxIndex = it2->second;
+               ss << "  mean" << n << " =" << fitter.getGaussians()[ n ].mean[ 1 ] << std::endl;
+            }
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+         // always take the mean of the highest gaussian
+         ui32 gaussianIndex;
+         if ( fitter.getGaussians()[ 1 ].mean[ 1 ] > fitter.getGaussians()[ 0 ].mean[ 1 ] )
+         {
+            gaussianIndex = 1;
+         } else {
+            gaussianIndex = 0;
+         }
+         int index = (int)fitter.getGaussians()[ gaussianIndex ].mean[ 1 ];
+         index = NLL_BOUND( index, 0, bins.size() - 1 );
+         int inc1 = 0;
+         int inc2 = 0;
+
+         selectedVoxels += bins[ index ];
+         while ( selectedVoxels / nbVoxels < ratioSelection )
+         {
+            if ( ( index - inc1 ) >= 0 )
+            {
+               selectedVoxels += bins[ index - inc1 ];
+               ++inc1;
             }
 
-            if ( it2->second < minIndex )
+            if ( ( index + inc2 ) < bins.size() )
             {
-               minIndex = it2->second;
+               selectedVoxels += bins[ index + inc2 ];
+               ++inc2;
             }
          }
 
-         _min = static_cast<float>( min + minIndex * range );
-         _max = static_cast<float>( min + maxIndex * range );
+         _min = static_cast<float>( min + ( index - inc1 ) * range );
+         _max = static_cast<float>( min + ( index + inc2 ) * range );
          _interval = _max - _min + 1;
          _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
+
+         {
+            std::stringstream ss;
+            ss << " LUT min=" << _min << " max=" << _max << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
       }
 
       
