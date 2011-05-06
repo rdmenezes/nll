@@ -10,7 +10,7 @@
  */
 
 /// define the version of mvv
-#define MVV_VERSION  "1.0.2"
+#define MVV_VERSION  "1.0.3"
 
 /**
  @defgroup platform

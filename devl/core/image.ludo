@@ -66,9 +66,9 @@ class ImageHolder
         <dst>. If <src> in <dst, x, y> is bigger, it will be cropped
  */
 import void copy( Image dst, Image src, int x, int y );
-void copy( Image src, Image dst, Vector2i position )
+void copy( Image dst, Image src, Vector2i position )
 {
-   copy( src, dst, position[ 0 ], position[ 1 ] );
+   copy( dst, src, position[ 0 ], position[ 1 ] );
 }
 
 /**

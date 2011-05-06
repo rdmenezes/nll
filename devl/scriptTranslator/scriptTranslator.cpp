@@ -39,7 +39,7 @@ int main( int argc, const char** argv)
       std::cout << "automate repetitive tasks (doing the same task on a lot of volumes, or working on the same" << std::endl;
       std::cout << "volume but having the viewer set in a particular configuration for example)." << std::endl;
 
-      std::cout << "@note this documentation has been produced with a transductor from the script language to C++. Consequently Comments are not directly available from the doxygen. However, they are in the original file and can be easily looked up." << std::endl;
+      std::cout << "@note this documentation has been produced with a transductor from the script language to C++ using doxygen. Consequently Comments are not directly available from the doxygen. However, they are in the original file and can be easily looked up." << std::endl;
 
       std::cout << "@author Ludovic Sibille" << std::endl;
       std::cout << "@version " << MVV_VERSION << std::endl;

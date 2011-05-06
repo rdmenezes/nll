@@ -205,7 +205,7 @@ namespace imaging
 
          const ui32 nbGaussians = 2;
          nll::algorithm::HistogramFitGaussian fitter;
-         fitter.fit( bins, nbGaussians, 0, 1000 );
+         fitter.fit( bins, nbGaussians, 30, 1000 );
 
          {
             std::stringstream ss;

@@ -130,12 +130,13 @@ class Loader
       copy( i, segments[ 2 ].getImage(), 0, sy / 2 );
       
 
-      writeBmp( i, "c:/tmp/result_case" + toString(case) + ".bmp" );
+      writeBmp( i, "c:/tmp/result_deformable_case" + toString(case) + ".bmp" );
    }
 
    void next()
    {
       string baseIn = "N:/MCL/Mirada Test Data Library (MTDL)/CardiacRegistration/v2/";
+      //string baseIn = "c:/tmp/";
 	   string baseOut = "c:/tmp/";
 
       volumes1.clear();
@@ -155,13 +156,13 @@ class Loader
 
       if (case==16)
       {
-         case = 17;
+         case = 19;
       }
       print( "--------case=" + toString(case) + "-----------\n" );
 
       pet   = readVolumeMF2Asynchronous( baseIn + "NAC" + toString(case) + ".mf2");
       ct    = readVolumeMF2Asynchronous( baseIn + "CT" + toString(case) + ".mf2");
-      ct2   = readVolumeMF2Asynchronous("c:/tmp/full-resampledCT-t-Case-" + toString(case) + ".mf2");
+      ct2   = readVolumeMF2Asynchronous("c:/tmp/full-resampledCT-Case-" + toString(case) + ".mf2");
 
       Volume ctVolume = ct.getVolume();
       Volume petVolume = pet.getVolume();
@@ -174,7 +175,6 @@ class Loader
          float diff = -25.0 / petVolume.getSpacing()[ 2 ];
       }
 
-      petLut.detectRange( pet );
       ctLut.detectRange( ct );
 
       volumes1.add( ct, ctLut, 0.4 );
@@ -206,8 +206,8 @@ class Loader
 
 Loader loader(volumes, volumes2, pointer, segments);
 
-int nbCases = 17;
-//while ( nbCases > 0 )
+int nbCases = 15;
+while ( nbCases > 0 )
 {
    loader.next();
    nbCases = nbCases - 1;
