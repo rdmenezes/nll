@@ -401,8 +401,8 @@ namespace detect
       static void generateFeatureDatabase()
       {
          std::cout << "generate feature database..." << std::endl;
-         algorithm::Haar2dFeatures::Features features = _generateRandomFeatures();
-         algorithm::Haar2dFeatures::write( features, HAAR_FEATURES );
+         algorithm::HaarFeatures2d features = _generateRandomFeatures();
+         features.write( HAAR_FEATURES );
 
          std::cout << " read source database..." << std::endl;
          Database sourceDatabase;
@@ -416,7 +416,7 @@ namespace detect
             core::Image<Point::value_type> image( sourceDatabase[ n ].input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
 
             // process it
-            Point point = algorithm::Haar2dFeatures::process( features, image );
+            Point point = features.process( image );
 
             Database::Sample::Type type = Database::Sample::LEARNING;
             haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type, sourceDatabase[ n ].debug ) );
@@ -435,9 +435,9 @@ namespace detect
       }
 
    private:
-      static algorithm::Haar2dFeatures::Features _generateRandomFeatures()
+      static algorithm::HaarFeatures2d _generateRandomFeatures()
       {
-         algorithm::Haar2dFeatures::Features features;
+         algorithm::HaarFeatures2d features;
 
          for ( ui32 n = 0; n < HAAR_FEATURE_SIZE; ++n )
          {
@@ -457,9 +457,9 @@ namespace detect
                std::swap( v1[ 1 ], v2[ 1 ] );
             ui32 dir = rand() % 2;
 
-            features.push_back( algorithm::Haar2dFeatures::Feature( (algorithm::Haar2dFeatures::Feature::Direction)dir,
-                                                                v1,
-                                                                v2 ) );
+            features.add( algorithm::HaarFeatures2d::Feature( (algorithm::HaarFeatures2d::Feature::Direction)dir,
+                                                              v1,
+                                                              v2 ) );
          }
          return features;
       }

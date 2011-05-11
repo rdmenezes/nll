@@ -45,7 +45,7 @@ namespace detect
       TestVolume( Classifier* classifier, const std::string& haarFeatures, const std::string& haarNormalization, const std::string& featureSelection ) //: _selection( 0 )
       {
          _classifier = classifier;
-         algorithm::Haar2dFeatures::read( _haar, haarFeatures );
+         _haar.read( haarFeatures );
          _normalization.read( haarNormalization );
          _selection.read( featureSelection );
       }
@@ -74,7 +74,7 @@ namespace detect
             maxPos[ n ] = -1;
 
          // select the highest probability
-         for ( ui32 n = 0; n < results.probabilities.size(); ++n )
+         for ( ui32 n = 1; n < results.probabilities.size() - 1; ++n )
          {
             if ( results.probabilities[ n ] > max[ results.sliceIds[ n ] ] )
             {
@@ -97,7 +97,7 @@ namespace detect
          {
             int max = 0;
             cont = false;
-            for ( int n = 1; n <= 20 && ( maxPos[ 4 ] + n ) < results.sliceIds.size(); ++n )
+            for ( int n = 1; n <= 20 && ( maxPos[ 4 ] + n ) < ( results.sliceIds.size() - 1 ); ++n )
                if ( results.sliceIds[ maxPos[ 4 ] + n ] == 4 )
                {
                   max = n;
@@ -124,7 +124,8 @@ namespace detect
          std::vector<f64> pbs( volume.size()[ 2 ] );
 
          #pragma omp parallel for
-         for ( int n = 0; n < (int)volume.size()[ 2 ]; ++n )
+         // remove the first slice
+         for ( int n = 1; n < (int)volume.size()[ 2 ] - 1; ++n )
          {
             core::Buffer1D<double> pb;
             Point features = getFeatures( volume, n );
@@ -249,7 +250,7 @@ namespace detect
 
          // extract 2D Haar features
          core::Image<Point::value_type> mprf( sliceFeature, mpr_xy.sizex(), mpr_xy.sizey(), 1 );
-         Point haarFeature = algorithm::Haar2dFeatures::process( _haar, mprf );
+         Point haarFeature = _haar.process( mprf );
 
          // normalize
          return _selection.process( _normalization.process( haarFeature ) );
@@ -271,7 +272,7 @@ namespace detect
 
    private:
       Normalization                          _normalization;
-      algorithm::Haar2dFeatures::Features    _haar;
+      algorithm::HaarFeatures2d              _haar;
       Classifier*                            _classifier;
       FeatureSelection                       _selection;
    };

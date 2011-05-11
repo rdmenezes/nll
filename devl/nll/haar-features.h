@@ -193,7 +193,7 @@ namespace algorithm
     @ingroup algorithm
     @brief Computes 2D Haar features on an image
     */
-   class Haar2dFeatures
+   class HaarFeatures2d
    {
    public:
       /**
@@ -203,132 +203,119 @@ namespace algorithm
        */
       struct Feature
       {
-         //
-         // TODO: change Features implementation to Buffer1D<Feature> and implement read/write method for serialization
-         //
          enum Direction
          {
             VERTICAL,
             HORIZONTAL,
             VERTICAL_TRIPLE,
-            HORIZONTAL_TRIPLE
+            HORIZONTAL_TRIPLE,
+            NONE
          };
+
+         Feature() : _direction( NONE )
+         {
+         }
 
          /**
           @brief Construct the feature
           */
-         Feature( Direction dir, const core::vector2d& bf, const core::vector2d& tr ) : direction( dir ), bottomLeft( bf ), topRight( tr )
+         Feature( Direction dir, const core::vector2d& bf, const core::vector2d& tr ) : _direction( dir )
          {
             assert( bf[ 0 ] >= 0 && bf[ 0 ] <= 1 &&
                     bf[ 1 ] >= 0 && bf[ 1 ] <= 1 &&
                     tr[ 0 ] >= 0 && tr[ 0 ] <= 1 &&
                     tr[ 1 ] >= 0 && tr[ 1 ] <= 1 ); // must be in [0..1]
             assert( bf[ 0 ] <= tr[ 0 ] && bf[ 1 ] <= tr[ 1 ] ); // check precedence
+
+            double dx = static_cast<double>( tr[ 0 ] - bf[ 0 ] );
+            double dy = static_cast<double>( tr[ 1 ] - bf[ 1 ] );
+
+            _size = core::vector2d( dx, dy );
+            _centre = core::vector2d( ( tr[ 0 ] + bf[ 0 ] ) / ( 2 ),
+                                      ( tr[ 1 ] + bf[ 1 ] ) / ( 2 ) );
          }
 
-         Direction         direction;
-         core::vector2d    bottomLeft;
-         core::vector2d    topRight;
-      };
-      typedef std::vector<Feature>           Features;
-
-   public:
-      typedef double                         internal_type;
-      typedef core::Buffer1D<internal_type>  Buffer;
-
-   public:
-      static void write( const Features& features, const std::string& f )
-      {
-         std::ofstream file( f.c_str(), std::ios::binary );
-         ensure( file.good(), "can't open the file" );
-         write( features, file );
-      }
-
-      static void write( const Features& features, std::ostream& f )
-      {
-         ensure( f.good(), "file not open correctly" );
-         core::write<ui32>( static_cast<ui32>( features.size() ), f );
-         for ( ui32 n = 0; n < static_cast<ui32>( features.size() ); ++n )
+         Feature( Direction dir, const IntegralImage& i, const core::vector2ui& bf, const core::vector2ui& tr ) : _direction( dir )
          {
-            core::write<ui32>( static_cast<ui32>( features[ n ].direction ), f );
-            core::write<f64> ( features[ n ].bottomLeft[ 0 ], f );
-            core::write<f64> ( features[ n ].bottomLeft[ 1 ], f );
-            core::write<f64> ( features[ n ].topRight[ 0 ], f );
-            core::write<f64> ( features[ n ].topRight[ 1 ], f );
+            ensure( bf[ 0 ] < tr[ 0 ] && bf[ 1 ] < tr[ 1 ], "bad corner" );
+            ensure( tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey(), "outside image" );
+
+            double dx = static_cast<double>( tr[ 0 ] - bf[ 0 ] );
+            double dy = static_cast<double>( tr[ 1 ] - bf[ 1 ] );
+
+            _size = core::vector2d( dx, dy );
+            _centre = core::vector2d( ( tr[ 0 ] + bf[ 0 ] ) / ( 2 * i.sizex() ),
+                                      ( tr[ 1 ] + bf[ 1 ] ) / ( 2 * i.sizey() ) );
          }
-      }
 
-      static void read( Features& features, const std::string& f )
-      {
-         std::ifstream file( f.c_str(), std::ios::binary );
-         ensure( file.good(), "can't open the file" );
-         read( features, file );
-      }
-
-      static void read( Features& features, std::istream& f )
-      {
-         ensure( f.good(), "file not open correctly" );
-         features.clear();
-
-         ui32 size = 0;
-         core::read<ui32>( size, f );
-         for ( ui32 n = 0; n < size; ++n )
+         Direction getDirection() const
          {
-            f64 bottomLeft[ 2 ];
-            f64 topRight[ 2 ];
-            ui32 direction;
-
-            core::read<ui32>( direction, f );
-            core::read<f64> ( bottomLeft[ 0 ], f );
-            core::read<f64> ( bottomLeft[ 1 ], f );
-            core::read<f64> ( topRight[ 0 ], f );
-            core::read<f64> ( topRight[ 1 ], f );
-
-            core::vector2d bl( bottomLeft[ 0 ], bottomLeft[ 1 ] );
-            core::vector2d tr( topRight[ 0 ],   topRight[ 1 ] );
-            features.push_back( Feature( (Feature::Direction)direction, bl, tr ) );
+            return _direction;
          }
-      }
 
-      /**
-       @brief computes the Haar features on an integral image
-       @param scale the scale applied to the features
-       */
-      static Buffer process( const Features& features, const IntegralImage& i, double scale = 1.0 )
-      {
-         Buffer buffer( static_cast<ui32>( features.size() ), false );
-         for ( ui32 n = 0; n < buffer.size(); ++n )
+         const core::vector2d& getCentre() const
          {
-            const Feature& f = features[ n ];
-            ui32 x1 = static_cast<ui32>( scale * f.bottomLeft[ 0 ] * i.sizex() );
-            ui32 y1 = static_cast<ui32>( scale * f.bottomLeft[ 1 ] * i.sizey() );
-            ui32 x2 = static_cast<ui32>( scale * f.topRight[ 0 ]   * i.sizex() );
-            ui32 y2 = static_cast<ui32>( scale * f.topRight[ 1 ]   * i.sizey() );
+            return _centre;
+         }
 
-            x1 = std::min( x1, i.sizex() );
-            x2 = std::min( x2, i.sizex() );
+         const core::vector2d& getSize() const
+         {
+            return _size;
+         }
 
-            y1 = std::min( y1, i.sizey() );
-            y2 = std::min( y2, i.sizey() );
+         /**
+          @brief Given an image and a feature (self), returns the actual bottom left & top right coordinates
+          */
+         void getPosition( const IntegralImage& i, double scale, core::vector2ui& bl, core::vector2ui& tr ) const
+         {
+            i32 sx = core::round( i.sizex() * scale * _size[ 0 ] );
+            i32 sy = core::round( i.sizey() * scale * _size[ 1 ] );
+
+            // we must use features that are centred
+            if ( sx % 2 == 0 )
+               ++sx;
+            if ( sy % 2 == 0 )
+               ++sy;
+
+            const i32 halfx = sx / 2;
+            const i32 halfy = sy / 2;
+
+            const i32 cx = static_cast<i32>( i.sizex() * _centre[ 0 ] * scale );
+            const i32 cy = static_cast<i32>( i.sizey() * _centre[ 1 ] * scale );
+
+            bl[ 0 ] = std::max<int>( 0, cx - halfx );
+            bl[ 1 ] = std::max<int>( 0, cy - halfy );
+
+            tr[ 0 ] = std::min<int>( (int)i.sizex() - 1, cx + halfx );
+            tr[ 1 ] = std::min<int>( (int)i.sizey() - 1, cy + halfy );
+         }
+
+         IntegralImage::value_type getValue( const IntegralImage& i, const core::vector2ui& bl, const core::vector2ui& tr ) const
+         {
+            const int x1 = bl[ 0 ];
+            const int x2 = tr[ 0 ];
+
+            const int y1 = bl[ 1 ];
+            const int y2 = tr[ 1 ];
 
             IntegralImage::value_type sump;
             IntegralImage::value_type sumd;
             ui32 mid;
             ui32 mid1, mid2, d;
-            switch ( f.direction )
+            switch ( _direction )
             {
             case Feature::HORIZONTAL:
                mid = ( x1 + x2 ) / 2;
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid, y2 ) );
                sumd = i.getSum( core::vector2ui( mid, y1 ), core::vector2ui( x2, y2 ) );
-               buffer[ n ] = static_cast<internal_type>( sump - sumd );
-               break;
+               return static_cast<IntegralImage::value_type>( sump - sumd );
+
             case Feature::VERTICAL:
                mid = ( y1 + y2 ) / 2;
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid ) );
                sumd = i.getSum( core::vector2ui( x1, mid ), core::vector2ui( x2, y2 ) );
-               buffer[ n ] = static_cast<internal_type>( sump - sumd );
-               break;
+               return static_cast<IntegralImage::value_type>( sump - sumd );
+
             case Feature::VERTICAL_TRIPLE:
                d = ( y2 - y1 ) / 4;
                mid1 = y1 + 1 * d;
@@ -337,8 +324,8 @@ namespace algorithm
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid1 ) ) +
                       i.getSum( core::vector2ui( x1, mid2 ), core::vector2ui( x2, y2 ) );
                sumd = i.getSum( core::vector2ui( x1, mid1 ), core::vector2ui( x2, mid2 ) );
-               buffer[ n ] = static_cast<internal_type>( sump - sumd );
-               break;
+               return static_cast<IntegralImage::value_type>( sump - sumd );
+
             case Feature::HORIZONTAL_TRIPLE:
                d = ( x2 - x1 ) / 4;
                mid1 = x1 + 1 * d;
@@ -347,22 +334,128 @@ namespace algorithm
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid1, y2 ) ) +
                       i.getSum( core::vector2ui( mid2, y1 ), core::vector2ui( x2, y2 ) );
                sumd = i.getSum( core::vector2ui( mid1, y1 ), core::vector2ui( mid2, y2 ) );
-               buffer[ n ] = static_cast<internal_type>( sump - sumd );
-               break;
+               return static_cast<IntegralImage::value_type>( sump - sumd );
+
+            case NONE:
             default:
                ensure( 0, "not handled type" );
             }
+         }
+
+         IntegralImage::value_type getValue( const IntegralImage& i, double scale ) const
+         {
+            core::vector2ui bl;
+            core::vector2ui tr;
+            getPosition( i, scale, bl, tr );
+            return getValue( i, bl, tr );
+         }
+
+         void write( std::ostream& f ) const
+         {
+            ensure( f.good(), "file not open correctly" );
+            core::write<ui32>( static_cast<ui32>( _direction ), f );
+            core::write<f64> ( _centre[ 0 ], f );
+            core::write<f64> ( _centre[ 1 ], f );
+            core::write<f64> ( _size[ 0 ], f );
+            core::write<f64> ( _size[ 1 ], f );
+         }
+
+         void read( std::istream& f )
+         {
+            ui32 direction;
+
+            core::read<ui32>( direction, f );
+            core::read<f64> ( _centre[ 0 ], f );
+            core::read<f64> ( _centre[ 1 ], f );
+            core::read<f64> ( _size[ 0 ], f );
+            core::read<f64> ( _size[ 1 ], f );
+            _direction = static_cast<Direction>( direction );
+         }
+
+      private:
+         // we need to store the centre/size and not bl,tr so that the scale is easily handled
+         Direction         _direction;
+         core::vector2d    _centre;
+         core::vector2d    _size;
+      };
+      typedef std::vector<Feature>           Features;
+
+   public:
+      typedef double                         internal_type;
+      typedef core::Buffer1D<internal_type>  Buffer;
+
+   public:
+      void clear()
+      {
+         _features.clear();
+      }
+
+      void add( const Feature& f )
+      {
+         _features.push_back( f );
+      }
+
+      void write( const std::string& f ) const
+      {
+         std::ofstream file( f.c_str(), std::ios::binary );
+         ensure( file.good(), "can't open the file" );
+         write( file );
+      }
+
+      void write( std::ostream& f ) const
+      {
+         ensure( f.good(), "file not open correctly" );
+         core::write<ui32>( static_cast<ui32>( _features.size() ), f );
+         for ( ui32 n = 0; n < static_cast<ui32>( _features.size() ); ++n )
+         {
+            _features[ n ].write( f );
+         }
+      }
+
+      void read( const std::string& f )
+      {
+         std::ifstream file( f.c_str(), std::ios::binary );
+         ensure( file.good(), "can't open the file" );
+         read( file );
+      }
+
+      void read( std::istream& f )
+      {
+         ensure( f.good(), "file not open correctly" );
+
+         ui32 size = 0;
+         core::read<ui32>( size, f );
+         _features = Features( size );
+         for ( ui32 n = 0; n < size; ++n )
+         {
+            _features[ n ].read( f );
+         }
+      }
+
+      /**
+       @brief computes the Haar features on an integral image
+       @param scale the scale applied to the features
+       */
+      Buffer process( const IntegralImage& i, double scale = 1.0 ) const
+      {
+         Buffer buffer( static_cast<ui32>( _features.size() ), false );
+         for ( ui32 n = 0; n < buffer.size(); ++n )
+         {
+            buffer[ n ] = _features[ n ].getValue( i, scale );   
          }
          return buffer;
       }
 
       template <class T>
-      static Buffer process( const Features& features, const core::Image<T>& i, double scale = 1.0 )
+      Buffer process( const core::Image<T>& i, double scale = 1.0 ) const
       {
          IntegralImage integral;
          integral.process( i );
-         return process( features, integral, scale );
+         return process( integral, scale );
       }
+
+   private:
+      Features    _features;
    };
 }
 }
