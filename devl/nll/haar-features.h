@@ -290,7 +290,7 @@ namespace algorithm
             tr[ 1 ] = std::min<int>( (int)i.sizey() - 1, cy + halfy );
          }
 
-         IntegralImage::value_type getValue( const IntegralImage& i, const core::vector2ui& bl, const core::vector2ui& tr ) const
+         double getValue( const IntegralImage& i, const core::vector2ui& bl, const core::vector2ui& tr ) const
          {
             const int x1 = bl[ 0 ];
             const int x2 = tr[ 0 ];
@@ -298,43 +298,52 @@ namespace algorithm
             const int y1 = bl[ 1 ];
             const int y2 = tr[ 1 ];
 
-            IntegralImage::value_type sump;
-            IntegralImage::value_type sumd;
+            double sump;
+            double sumd;
             ui32 mid;
             ui32 mid1, mid2, d;
+            ui32 sx, sy, sizep, sized;
+
+            const ui32 borderx = ( x2 - x1 + 1 - 1 ) / 2 + 1;
+            const ui32 bordery = ( y2 - y1 + 1 - 1 ) / 2 + 1;
+
             switch ( _direction )
             {
             case Feature::HORIZONTAL:
                mid = ( x1 + x2 ) / 2;
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid, y2 ) );
                sumd = i.getSum( core::vector2ui( mid, y1 ), core::vector2ui( x2, y2 ) );
-               return static_cast<IntegralImage::value_type>( sump - sumd );
+               return static_cast<double>( sump - sumd );
 
             case Feature::VERTICAL:
                mid = ( y1 + y2 ) / 2;
                sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid ) );
                sumd = i.getSum( core::vector2ui( x1, mid ), core::vector2ui( x2, y2 ) );
-               return static_cast<IntegralImage::value_type>( sump - sumd );
+               return static_cast<double>( sump - sumd );
 
             case Feature::VERTICAL_TRIPLE:
-               d = ( y2 - y1 ) / 4;
+               d = ( y2 - y1 + 1 ) / 3;
                mid1 = y1 + 1 * d;
-               mid2 = y1 + 3 * d;
+               mid2 = y1 + 2 * d;
 
-               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid1 ) ) +
+               sy = y2 - y1 + 1;
+               ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
+               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid1 - 1 ) ) +
                       i.getSum( core::vector2ui( x1, mid2 ), core::vector2ui( x2, y2 ) );
-               sumd = i.getSum( core::vector2ui( x1, mid1 ), core::vector2ui( x2, mid2 ) );
-               return static_cast<IntegralImage::value_type>( sump - sumd );
+               sumd = i.getSum( core::vector2ui( x1, mid1 ), core::vector2ui( x2, mid2 - 1 ) );
+               return static_cast<double>( sump - 2 * sumd );
 
             case Feature::HORIZONTAL_TRIPLE:
-               d = ( x2 - x1 ) / 4;
+               d = ( x2 - x1 + 1 ) / 3;
                mid1 = x1 + 1 * d;
-               mid2 = x1 + 3 * d;
+               mid2 = x1 + 2 * d;
 
-               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid1, y2 ) ) +
+               sx = x2 - x1 + 1;
+               ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
+               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid1 - 1, y2 ) ) +
                       i.getSum( core::vector2ui( mid2, y1 ), core::vector2ui( x2, y2 ) );
-               sumd = i.getSum( core::vector2ui( mid1, y1 ), core::vector2ui( mid2, y2 ) );
-               return static_cast<IntegralImage::value_type>( sump - sumd );
+               sumd = i.getSum( core::vector2ui( mid1, y1 ), core::vector2ui( mid2 - 1, y2 ) );
+               return static_cast<double>( sump - 2 * sumd );
 
             case NONE:
             default:

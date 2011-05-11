@@ -248,12 +248,17 @@ namespace detect
             sliceFeature[ n ] = static_cast<Point::value_type>( mpr_xy[ n ] ) / 256.0;
          }
 
+         //std::cout << "EXTRACT" << std::endl;
          // extract 2D Haar features
          core::Image<Point::value_type> mprf( sliceFeature, mpr_xy.sizex(), mpr_xy.sizey(), 1 );
          Point haarFeature = _haar.process( mprf );
 
-         // normalize
-         return _selection.process( _normalization.process( haarFeature ) );
+         //haarFeature.print( std::cout );
+         //std::cout << "-------------" << std::endl;
+
+         Point p = _selection.process( _normalization.process( haarFeature ) );
+         //p.print( std::cout );
+         return p;
       }
 
       /**

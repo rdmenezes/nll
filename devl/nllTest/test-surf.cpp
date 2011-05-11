@@ -9,6 +9,8 @@ namespace nll
 namespace algorithm
 {
    /**
+    @TODO - check the haar approximation of the gaussian
+
     @brief Hold a stack of the hessian determinant using a crude approximation of a gaussian in 2D
            for each point, H(x, o) =| Lxx Lxy |
                                     | Lxy Lyy |
@@ -39,11 +41,16 @@ namespace algorithm
          for ( size_t n = 0; n < scales.size(); ++n )
          {
             ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
+            ensure( scales[ n ] >= 9, "minimal size" );
             ensure( lastScale < scales[ n ], "scales must be in increasing order" );
             lastScale = scales[ n ];
 
+            const ui32 sizeFilterx = scales[ n ];
+            const ui32 sizeFiltery = scales[ n ];
+            const double sizeFilter = sizeFilterx * sizeFiltery;
             const ui32 sizex = i.sizex() / scales[ n ];
             const ui32 sizey = i.sizey() / scales[ n ];
+
             if ( !sizex || !sizey )
                break;   // the scale is too big!
 
@@ -55,6 +62,12 @@ namespace algorithm
             {
                for ( ui32 x = 0; x < sizex; ++x )
                {
+                  core::vector2ui bl( x * sizeFilterx, y * sizeFiltery );
+                  core::vector2ui tr( ( x + 1 ) * sizeFilterx - 1, ( y + 1 ) * sizeFiltery - 1 );
+                  ui32 midx = ( bl[ 0 ] + tr[ 0 ] ) / 2;
+                  ui32 midy = ( bl[ 1 ] + tr[ 1 ] ) / 2;
+                  
+                  //double xx = ( image.getSum( bl, tr ) / sizeFilter;
                }
             }
          }

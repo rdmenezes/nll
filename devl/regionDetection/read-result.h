@@ -417,6 +417,7 @@ namespace detect
 
             // process it
             Point point = features.process( image );
+            //point.print( std::cout );
 
             Database::Sample::Type type = Database::Sample::LEARNING;
             haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type, sourceDatabase[ n ].debug ) );

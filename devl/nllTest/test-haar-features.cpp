@@ -62,12 +62,12 @@ public:
             i2( n, m, 0 ) = static_cast<ui8>( m );
          }
 
-      Haar2dFeatures::Features features;
-      features.push_back( Haar2dFeatures::Feature( Haar2dFeatures::Feature::HORIZONTAL, vector2d( 0, 0 ), vector2d( 0.5, 0.5 ) ) );
-      features.push_back( Haar2dFeatures::Feature( Haar2dFeatures::Feature::VERTICAL, vector2d( 0, 0 ), vector2d( 0.5, 0.5 ) ) );
+      HaarFeatures2d::Features features;
+      features.push_back( HaarFeatures2d::Feature( HaarFeatures2d::Feature::HORIZONTAL, vector2d( 0, 0 ), vector2d( 0.5, 0.5 ) ) );
+      features.push_back( HaarFeatures2d::Feature( HaarFeatures2d::Feature::VERTICAL, vector2d( 0, 0 ), vector2d( 0.5, 0.5 ) ) );
 
-      Haar2dFeatures::Buffer result1 = Haar2dFeatures::process( features, i1 );
-      Haar2dFeatures::Buffer result2 = Haar2dFeatures::process( features, i2 );
+      HaarFeatures2d::Buffer result1 = HaarFeatures2d::process( features, i1 );
+      HaarFeatures2d::Buffer result2 = HaarFeatures2d::process( features, i2 );
 
       TESTER_ASSERT( equal<double>( result1[ 0 ], 5 * ( 1 + 2 ) - 5 * ( 2 + 3 + 4 ) ) );
       TESTER_ASSERT( equal<double>( result1[ 1 ], 0 ) );
