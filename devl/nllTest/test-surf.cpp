@@ -30,8 +30,8 @@ namespace algorithm
        @param scales the size of each level of the pyramid (in pixel), must be in increasing order
        @param displacements the step between two filter evaluation for this particular level
        */
-      template <class T>
-      FastHessianDetPyramid2D( const core::Image<T>& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
+      template <class T, class Mapper, class Alloc>
+      void construct( const core::Image<T, Mapper, Alloc>& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
       {
          ensure( displacements.size() == scales.size(), "must be the same size" );
 
@@ -52,6 +52,7 @@ namespace algorithm
             const ui32 sizeFilterx = scales[ n ];
             const ui32 sizeFiltery = scales[ n ];
             const double sizeFilter = sizeFilterx * sizeFiltery;
+            const double sizeFilter2 = sizeFilter * sizeFilter;
             const ui32 resx = i.sizex() / step;
             const ui32 resy = i.sizey() / step;
 
@@ -59,14 +60,43 @@ namespace algorithm
                break;   // the scale is too big!
 
             // compute the hessian
-            for ( ui32 y = 0; y < sizey; ++y )
+            for ( ui32 y = 0; y < resy; ++y )
             {
-               for ( ui32 x = 0; x < sizex; ++x )
+               for ( ui32 x = 0; x < resx; ++x )
                {
+                  std::cout << "print img:" << std::endl;
+                  for ( ui32 y = 0; y < 9; ++y )
+                  {
+                     for ( ui32 x = 0; x < 9; ++x )
+                     {
+                        std::cout << (float)i( x, y, 0 ) << " ";
+                     }
+                     std::cout << std::endl;
+                  }
+                  core::vector2ui bl( x, y );
+                  core::vector2ui tr( x + sizeFilterx - 1, y + sizeFiltery - 1 );
 
+                  HaarFeatures2d features;
+                  features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::VERTICAL_TRIPLE, image, bl, tr ) );
+                  features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::HORIZONTAL_TRIPLE, image, bl, tr ) );
+                  features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::CHECKER, image, bl, tr ) );
+                  HaarFeatures2d::Buffer f = features.process( image );
+                  f[ 0 ] /= sizeFilter;
+                  f[ 1 ] /= sizeFilter;
+                  f[ 2 ] /= sizeFilter;
+                  f.print( std::cout );
+
+                  value_type detHessian = f[ 1 ] * f[ 0 ] - core::sqr( 0.9 * f[ 2 ] );
+                  //value_type detHessian = ( f[ 1 ] * f[ 0 ] - core::sqr( 0.9 * f[ 2 ] ) ) / sizeFilter2;
+                  std::cout << "der=" << detHessian << std::endl;
                }
             }
          }
+      }
+
+      const std::vector<Matrix>& getPyramid() const
+      {
+         return _pyramid;
       }
 
    private:
@@ -90,6 +120,8 @@ namespace algorithm
          Matrix      features;
          value_type  orientation;
       };
+
+      typedef core::Buffer1D<Point> Points;
 
       /**
        @brief Construct SURF
@@ -115,6 +147,17 @@ namespace algorithm
          }
       }
 
+      template <class T, class Mapper, class Alloc>
+      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i )
+      {
+         Points points;
+
+         FastHessianDetPyramid2D pyramid;
+         pyramid.construct( i, _filterSizes, _filterSteps );
+
+         return points;
+      }
+
    private:
       std::vector<ui32> _filterSizes;
       std::vector<ui32> _filterSteps;
@@ -128,7 +171,15 @@ class TestSurf
 public:
    void testBasic()
    {
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      TESTER_ASSERT( image.sizex() );
+      core::decolor( image );
+
+//      core::extend( image, 3 );
+//      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
+
       algorithm::SpeededUpRobustFeatures surf;
+      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image );
    }
 };
 

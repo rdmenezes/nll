@@ -59,8 +59,8 @@ namespace algorithm
       /**
        @brief Construct the integral image
        */
-      template <class T>
-      void process( const core::Image<T>& image )
+      template <class T, class Mapper, class Alloc>
+      void process( const core::Image<T, Mapper, Alloc>& image )
       {
          //
          // computes the integral image ii, with s the sum of the cumulated rows, s(x, -1) = 0, ii( -1, y ) = 0
@@ -244,9 +244,9 @@ namespace algorithm
             double dx = static_cast<double>( tr[ 0 ] - bf[ 0 ] );
             double dy = static_cast<double>( tr[ 1 ] - bf[ 1 ] );
 
-            _size = core::vector2d( dx, dy );
-            _centre = core::vector2d( ( tr[ 0 ] + bf[ 0 ] ) / ( 2 * i.sizex() ),
-                                      ( tr[ 1 ] + bf[ 1 ] ) / ( 2 * i.sizey() ) );
+            _size = core::vector2d( dx / i.sizex(), dy / i.sizey() );
+            _centre = core::vector2d( ( tr[ 0 ] + bf[ 0 ] ) / ( 2.0 * i.sizex() ),
+                                      ( tr[ 1 ] + bf[ 1 ] ) / ( 2.0 * i.sizey() ) );
          }
 
          Direction getDirection() const
@@ -499,8 +499,8 @@ namespace algorithm
          return buffer;
       }
 
-      template <class T>
-      Buffer process( const core::Image<T>& i, double scale = 1.0 ) const
+      template <class T, class Mapper, class Alloc>
+      Buffer process( const core::Image<T, Mapper, Alloc>& i, double scale = 1.0 ) const
       {
          IntegralImage integral;
          integral.process( i );
