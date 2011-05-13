@@ -28,10 +28,13 @@ namespace algorithm
        @brief Construct and computes the hessian determinant pyramid
        @param i the image,
        @param scales the size of each level of the pyramid (in pixel), must be in increasing order
+       @param displacements the step between two filter evaluation for this particular level
        */
       template <class T>
-      FastHessianDetPyramid2D( const core::Image<T>& i, const std::vector<ui32>& scales )
+      FastHessianDetPyramid2D( const core::Image<T>& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
       {
+         ensure( displacements.size() == scales.size(), "must be the same size" );
+
          // construct an integral image
          IntegralImage image;
          image.process( i );
@@ -44,30 +47,23 @@ namespace algorithm
             ensure( scales[ n ] >= 9, "minimal size" );
             ensure( lastScale < scales[ n ], "scales must be in increasing order" );
             lastScale = scales[ n ];
+            const ui32 step = displacements[ n ];
 
             const ui32 sizeFilterx = scales[ n ];
             const ui32 sizeFiltery = scales[ n ];
             const double sizeFilter = sizeFilterx * sizeFiltery;
-            const ui32 sizex = i.sizex() / scales[ n ];
-            const ui32 sizey = i.sizey() / scales[ n ];
+            const ui32 resx = i.sizex() / step;
+            const ui32 resy = i.sizey() / step;
 
-            if ( !sizex || !sizey )
+            if ( !resx || !resy )
                break;   // the scale is too big!
 
             // compute the hessian
-            const ui32 halfx = scales[ n ] / 2;
-            const ui32 halfy = scales[ n ] / 2;
-
             for ( ui32 y = 0; y < sizey; ++y )
             {
                for ( ui32 x = 0; x < sizex; ++x )
                {
-                  core::vector2ui bl( x * sizeFilterx, y * sizeFiltery );
-                  core::vector2ui tr( ( x + 1 ) * sizeFilterx - 1, ( y + 1 ) * sizeFiltery - 1 );
-                  ui32 midx = ( bl[ 0 ] + tr[ 0 ] ) / 2;
-                  ui32 midy = ( bl[ 1 ] + tr[ 1 ] ) / 2;
-                  
-                  //double xx = ( image.getSum( bl, tr ) / sizeFilter;
+
                }
             }
          }
@@ -101,12 +97,28 @@ namespace algorithm
        @param intervals the number of intervals per octave This increase the filter linearly
        @param threshold the minimal threshold of the hessian. The lower, the more features (but less robust) will be detected
        */
-      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 interfals = 4, value_type threshold = 0.1 )
+      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.1 ) : _threshold( threshold )
       {
+         ui32 step = init_step;
+         for ( ui32 o = 1; o <= octaves; ++o )
+         {
+            for ( ui32 i = 1; i <= intervals; ++i )
+            {
+               const ui32 filterSize = core::round( 3 * ( std::pow( 2.0, (int)o ) * i + 1 ) );
+               if ( _filterSizes.size() == 0 || *_filterSizes.rbegin() < filterSize )
+               {
+                  _filterSizes.push_back( filterSize );
+                  _filterSteps.push_back( step );
+               }
+            }
+            step *= 2;
+         }
       }
 
    private:
       std::vector<ui32> _filterSizes;
+      std::vector<ui32> _filterSteps;
+      value_type _threshold;
    };
 }
 }
@@ -116,6 +128,7 @@ class TestSurf
 public:
    void testBasic()
    {
+      algorithm::SpeededUpRobustFeatures surf;
    }
 };
 

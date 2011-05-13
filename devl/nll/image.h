@@ -586,6 +586,22 @@ namespace core
 		   return col;
 	   }
 
+      void print( std::ostream& o ) const
+      {
+         for ( ui32 col = 0; col < _nbcomp; ++col )
+         {
+            o << "component=" << col << std::endl;
+            for ( ui32 y = 0; y < _sizey; ++y )
+            {
+               for ( ui32 x = 0; x < _sizex; ++x )
+               {
+                  o << at( x, y, col ) << " ";
+               }
+               o << std::endl;
+            }
+         }
+      }
+
    private:
       Mapper      _mapper;
       ui32        _sizex;
