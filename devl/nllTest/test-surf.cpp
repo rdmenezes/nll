@@ -35,6 +35,14 @@ namespace algorithm
       {
          ensure( displacements.size() == scales.size(), "must be the same size" );
 
+         _pyramidDetHessian.clear();
+         _pyramidLaplacian.clear();
+         _scales = scales;
+         _displacements = displacements;
+
+         const T max = (T)std::max( abs( *std::max_element( i.begin(), i.end() ) ),
+                                    abs( *std::min_element( i.begin(), i.end() ) ) );
+
          // construct an integral image
          IntegralImage image;
          image.process( i );
@@ -46,15 +54,19 @@ namespace algorithm
             ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
             ensure( scales[ n ] >= 9, "minimal size" );
             ensure( lastScale < scales[ n ], "scales must be in increasing order" );
+
             lastScale = scales[ n ];
             const ui32 step = displacements[ n ];
 
             const ui32 sizeFilterx = scales[ n ];
             const ui32 sizeFiltery = scales[ n ];
-            const double sizeFilter = sizeFilterx * sizeFiltery;
-            const double sizeFilter2 = sizeFilter * sizeFilter;
+            const double sizeFilter = sizeFilterx * sizeFiltery * max; // we normalize by the filter size and maximum value
+
             const ui32 resx = i.sizex() / step;
             const ui32 resy = i.sizey() / step;
+
+            Matrix detHessian( resy, resx, false );
+            Matrix laplacian( resy, resx, false );
 
             if ( !resx || !resy )
                break;   // the scale is too big!
@@ -64,15 +76,6 @@ namespace algorithm
             {
                for ( ui32 x = 0; x < resx; ++x )
                {
-                  std::cout << "print img:" << std::endl;
-                  for ( ui32 y = 0; y < 9; ++y )
-                  {
-                     for ( ui32 x = 0; x < 9; ++x )
-                     {
-                        std::cout << (float)i( x, y, 0 ) << " ";
-                     }
-                     std::cout << std::endl;
-                  }
                   core::vector2ui bl( x, y );
                   core::vector2ui tr( x + sizeFilterx - 1, y + sizeFiltery - 1 );
 
@@ -81,26 +84,39 @@ namespace algorithm
                   features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::HORIZONTAL_TRIPLE, image, bl, tr ) );
                   features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::CHECKER, image, bl, tr ) );
                   HaarFeatures2d::Buffer f = features.process( image );
+
+                  // normalize the features
                   f[ 0 ] /= sizeFilter;
                   f[ 1 ] /= sizeFilter;
                   f[ 2 ] /= sizeFilter;
-                  f.print( std::cout );
 
-                  value_type detHessian = f[ 1 ] * f[ 0 ] - core::sqr( 0.9 * f[ 2 ] );
-                  //value_type detHessian = ( f[ 1 ] * f[ 0 ] - core::sqr( 0.9 * f[ 2 ] ) ) / sizeFilter2;
-                  std::cout << "der=" << detHessian << std::endl;
+                  // compute the hessian's determinantt & laplacian
+                  detHessian( y, x ) = f[ 1 ] * f[ 0 ] - core::sqr( 0.9 * f[ 2 ] );
+                  laplacian( y, x ) = f[ 0 ] + f[ 1 ];
                }
             }
+
+            _pyramidDetHessian.push_back( detHessian );
+            _pyramidLaplacian.push_back( laplacian );
          }
       }
 
-      const std::vector<Matrix>& getPyramid() const
+      const std::vector<Matrix>& getPyramidDetHessian() const
       {
-         return _pyramid;
+         return _pyramidDetHessian;
+      }
+
+      const std::vector<Matrix>& getPyramidLaplacianSign() const
+      {
+         return _pyramidLaplacian;
       }
 
    private:
-      std::vector<Matrix>  _pyramid;
+      std::vector<Matrix>  _pyramidDetHessian;
+      std::vector<Matrix>  _pyramidLaplacian;
+      std::vector<ui32>    _scales;
+      std::vector<ui32>    _displacements;
+
    };
 
    /**
@@ -178,8 +194,11 @@ public:
 //      core::extend( image, 3 );
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
-      algorithm::SpeededUpRobustFeatures surf;
+      algorithm::SpeededUpRobustFeatures surf; //( 3, 3, 4 );
+
+      nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image );
+      std::cout << "done=" << timer.getCurrentTime() << std::endl;
    }
 };
 
