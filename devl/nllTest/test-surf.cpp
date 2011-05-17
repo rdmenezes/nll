@@ -9,8 +9,6 @@ namespace nll
 namespace algorithm
 {
    /**
-    @TODO - check the haar approximation of the gaussian
-
     @brief Hold a stack of the hessian determinant using a crude approximation of a gaussian in 2D
            for each point, H(x, o) =| Lxx Lxy |
                                     | Lxy Lyy |
@@ -47,6 +45,7 @@ namespace algorithm
          IntegralImage image;
          image.process( i );
 
+          
          // build each level by redimensioning the approximated gaussian derivatives
          ui32 lastScale = 0;
          for ( size_t n = 0; n < scales.size(); ++n )
@@ -62,11 +61,15 @@ namespace algorithm
             const ui32 sizeFiltery = scales[ n ];
             const double sizeFilter = sizeFilterx * sizeFiltery * max; // we normalize by the filter size and maximum value
 
-            const ui32 resx = i.sizex() / step;
-            const ui32 resy = i.sizey() / step;
+            const ui32 halfx = sizeFilterx / 2;
+            const ui32 halfy = sizeFilterx / 2;
 
-            Matrix detHessian( resy, resx, false );
-            Matrix laplacian( resy, resx, false );
+            // the total size must take into account the step size and filter size (it must be fully inside the image to be computed)
+            const ui32 resx = ( i.sizex() - 2 * halfx + 1 ) / step;
+            const ui32 resy = ( i.sizey() - 2 * halfy + 1 ) / step;
+
+            Matrix detHessian( resy, resx );
+            Matrix laplacian( resy, resx );
 
             if ( !resx || !resy )
                break;   // the scale is too big!
@@ -78,27 +81,70 @@ namespace algorithm
                {
                   core::vector2ui bl( x, y );
                   core::vector2ui tr( x + sizeFilterx - 1, y + sizeFiltery - 1 );
-
-                  HaarFeatures2d features;
-                  features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::VERTICAL_TRIPLE, image, bl, tr ) );
-                  features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::HORIZONTAL_TRIPLE, image, bl, tr ) );
-                  features.add( HaarFeatures2d::Feature( HaarFeatures2d::Feature::CHECKER, image, bl, tr ) );
-                  HaarFeatures2d::Buffer f = features.process( image );
-
-                  // normalize the features
-                  f[ 0 ] /= sizeFilter;
-                  f[ 1 ] /= sizeFilter;
-                  f[ 2 ] /= sizeFilter;
-
-                  // compute the hessian's determinantt & laplacian
-                  detHessian( y, x ) = f[ 1 ] * f[ 0 ] - core::sqr( 0.9 * f[ 2 ] );
-                  laplacian( y, x ) = f[ 0 ] + f[ 1 ];
+                  const double dxx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL_TRIPLE,
+                                                                        image,
+                                                                        bl,
+                                                                        tr ) / sizeFilter;
+                  const double dyy = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL_TRIPLE,
+                                                                        image,
+                                                                        bl,
+                                                                        tr ) / sizeFilter;
+                  const double dxy = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::CHECKER,
+                                                                        image,
+                                                                        bl,
+                                                                        tr ) / sizeFilter;
+                  detHessian( y, x ) = dxx * dyy - core::sqr( 0.9 * dxy );
+                  laplacian( y, x ) = dxx + dyy;
                }
             }
 
             _pyramidDetHessian.push_back( detHessian );
             _pyramidLaplacian.push_back( laplacian );
          }
+      }
+
+      // computes the index in mapDest the closest from (xRef, yRef, mapDest)
+      void indexInMap( ui32 xRef, ui32 yRef, ui32 mapRef, ui32 mapDest, int& outx, int& outy ) const
+      {
+         if ( mapRef == mapDest )
+         {
+            outx = xRef;
+            outy = yRef;
+         } else {
+            // map a point at a given scale to the image space
+            const int half = _scales[ mapRef ] / 2;
+            const int x = xRef * _displacements[ mapRef ] + half;
+            const int y = yRef * _displacements[ mapRef ] + half;
+
+            // convert the image space coordinate to the other scale space
+            const int halfd = _scales[ mapDest ] / 2;
+            outx = ( x - halfd ) / (int)_displacements[ mapDest ];
+            outy = ( y - halfd ) / (int)_displacements[ mapDest ];
+         }
+      }
+
+      /**
+       @brief returns true if all value around the projection (xRef, yRef, mapRef) on mapDest are smaller
+       */
+      bool isDetHessianMax( double val, ui32 xRef, ui32 yRef, ui32 mapRef, ui32 mapDest ) const
+      {
+         int x, y;
+
+         // if it is outside, then skip it
+         indexInMap( xRef, yRef, mapRef, mapDest, x, y );
+         const Matrix& m = _pyramidDetHessian[ mapDest ];
+         if ( x < 1 || y < 1 || x + 1 >= m.sizex() || y + 1 >= m.sizey() )
+            return false;
+
+         return val >= m( y + 0, x + 0 ) &&
+                val >= m( y + 1, x + 0 ) &&
+                val >= m( y - 1, x + 0 ) &&
+                val >= m( y + 0, x + 1 ) &&
+                val >= m( y + 1, x + 1 ) &&
+                val >= m( y - 1, x + 1 ) &&
+                val >= m( y + 0, x - 1 ) &&
+                val >= m( y + 1, x - 1 ) &&
+                val >= m( y - 1, x - 1 );
       }
 
       const std::vector<Matrix>& getPyramidDetHessian() const
@@ -145,7 +191,7 @@ namespace algorithm
        @param intervals the number of intervals per octave This increase the filter linearly
        @param threshold the minimal threshold of the hessian. The lower, the more features (but less robust) will be detected
        */
-      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.1 ) : _threshold( threshold )
+      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.0004 ) : _threshold( threshold )
       {
          ui32 step = init_step;
          for ( ui32 o = 1; o <= octaves; ++o )
@@ -167,10 +213,34 @@ namespace algorithm
       Points computesFeatures( const core::Image<T, Mapper, Alloc>& i )
       {
          Points points;
+         ui32 nbPoints = 0;
 
          FastHessianDetPyramid2D pyramid;
          pyramid.construct( i, _filterSizes, _filterSteps );
 
+         for ( ui32 filter = 1; filter < _filterSizes.size() - 1; ++filter )
+         {
+            const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
+            for ( ui32 y = 0; y < f.sizey(); ++y )
+            {
+               for ( ui32 x = 0; x < f.sizex(); ++x )
+               {
+                  const double val = f( y, x );
+                  if ( val > _threshold )
+                  {
+                     bool isMax = pyramid.isDetHessianMax( val, x, y, filter, filter )     &&
+                                  pyramid.isDetHessianMax( val, x, y, filter, filter + 1 ) &&
+                                  pyramid.isDetHessianMax( val, x, y, filter, filter - 1 );
+                     if ( isMax )
+                     {
+                        ++nbPoints;
+                     }
+                  }
+               }
+            }
+         }
+
+         std::cout << "nbpointsSelected=" << nbPoints << std::endl;
          return points;
       }
 
@@ -194,6 +264,7 @@ public:
 //      core::extend( image, 3 );
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
+      std::cout << "start computatio=" << std::endl;
       algorithm::SpeededUpRobustFeatures surf; //( 3, 3, 4 );
 
       nll::core::Timer timer;

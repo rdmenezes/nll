@@ -291,7 +291,7 @@ namespace algorithm
             tr[ 1 ] = std::min<int>( (int)i.sizey() - 1, cy + halfy );
          }
 
-         double getValue( const IntegralImage& i, const core::vector2ui& bl, const core::vector2ui& tr ) const
+         static double getValue( Direction direction, const IntegralImage& i, const core::vector2ui& bl, const core::vector2ui& tr )
          {
             const int x1 = bl[ 0 ];
             const int x2 = tr[ 0 ];
@@ -301,11 +301,12 @@ namespace algorithm
 
             double sump;
             double sumd;
+            int tmp1, tmp2;
             ui32 mid;
             ui32 mid1, mid2, d;
             int border;
 
-            switch ( _direction )
+            switch ( direction )
             {
             case HORIZONTAL:
                mid = ( x1 + x2 ) / 2;
@@ -320,7 +321,7 @@ namespace algorithm
                return static_cast<double>( sump - sumd );
 
             case VERTICAL_TRIPLE:
-               ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
+               //ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
                //
                // note that we remove the border so that a filter of size 9x9
                // is a discrete approximation of a gaussian w = 1.2
@@ -336,13 +337,15 @@ namespace algorithm
                mid2 = y1 + 2 * d;
                border = ( ( x2 - x1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
 
-               ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
-               sump = i.getSum( core::vector2ui( x1 + border, y1 ),   core::vector2ui( x2 - border, y2 ) );
-               sumd = i.getSum( core::vector2ui( x1 + border, mid1 ), core::vector2ui( x2 - border, mid2 - 1 ) );
-               return static_cast<double>( sump - ( 2 + 1 ) * sumd ); // optim: 2 area computation only + weighting
+               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
+               tmp1 = x1 + border;
+               tmp2 = x2 - border;
+               sump = i.getSum( core::vector2ui( tmp1, y1 ),   core::vector2ui( tmp2, y2 ) );
+               sumd = i.getSum( core::vector2ui( tmp1, mid1 ), core::vector2ui( tmp2, mid2 - 1 ) );
+               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
 
             case HORIZONTAL_TRIPLE:
-               ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
+               //ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
                //
                // note that we remove the border so that a filter of size 9x9
                // is a discrete approximation of a gaussian w = 1.2
@@ -359,13 +362,15 @@ namespace algorithm
                mid2 = x1 + 2 * d;
                border = ( ( y2 - y1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
 
-               ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
-               sump = i.getSum( core::vector2ui( x1,   y1 + border ), core::vector2ui( x2,       y2 - border ) );
-               sumd = i.getSum( core::vector2ui( mid1, y1 + border ), core::vector2ui( mid2 - 1, y2 - border ) );
-               return static_cast<double>( sump - ( 2 + 1 ) * sumd ); // optim: 2 area computation only + weighting
+               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
+               tmp1 = y1 + border;
+               tmp2 = y2 - border;
+               sump = i.getSum( core::vector2ui( x1,   tmp1 ), core::vector2ui( x2,       tmp2 ) );
+               sumd = i.getSum( core::vector2ui( mid1, tmp1 ), core::vector2ui( mid2 - 1, tmp2 ) );
+               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
 
             case CHECKER:
-               ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
+               //ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
                //
                // note that we remove the border so that a filter of size 9x9
                // is a discrete approximation of a gaussian w = 1.2
@@ -400,7 +405,7 @@ namespace algorithm
             core::vector2ui bl;
             core::vector2ui tr;
             getPosition( i, scale, bl, tr );
-            return getValue( i, bl, tr );
+            return getValue( _direction, i, bl, tr );
          }
 
          void write( std::ostream& f ) const
