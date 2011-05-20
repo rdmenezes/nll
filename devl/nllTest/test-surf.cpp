@@ -52,7 +52,7 @@ namespace algorithm
          {
             ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
             ensure( scales[ n ] >= 9, "minimal size" );
-            ensure( lastScale < scales[ n ], "scales must be in increasing order" );
+            //ensure( lastScale < scales[ n ], "scales must be in increasing order" );
 
             lastScale = scales[ n ];
             const ui32 step = displacements[ n ];
@@ -79,8 +79,8 @@ namespace algorithm
             {
                for ( ui32 x = 0; x < resx; ++x )
                {
-                  core::vector2ui bl( x, y );
-                  core::vector2ui tr( x + sizeFilterx - 1, y + sizeFiltery - 1 );
+                  core::vector2ui bl( x * step, y * step );
+                  core::vector2ui tr( bl[ 0 ] + sizeFilterx - 1, bl[ 1 ] + sizeFiltery - 1 );
                   const double dxx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL_TRIPLE,
                                                                         image,
                                                                         bl,
@@ -191,7 +191,7 @@ namespace algorithm
        @param intervals the number of intervals per octave This increase the filter linearly
        @param threshold the minimal threshold of the hessian. The lower, the more features (but less robust) will be detected
        */
-      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.0004 ) : _threshold( threshold )
+      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.00012 ) : _threshold( threshold )
       {
          ui32 step = init_step;
          for ( ui32 o = 1; o <= octaves; ++o )
@@ -199,6 +199,7 @@ namespace algorithm
             for ( ui32 i = 1; i <= intervals; ++i )
             {
                const ui32 filterSize = core::round( 3 * ( std::pow( 2.0, (int)o ) * i + 1 ) );
+               
                if ( _filterSizes.size() == 0 || *_filterSizes.rbegin() < filterSize )
                {
                   _filterSizes.push_back( filterSize );
@@ -210,7 +211,7 @@ namespace algorithm
       }
 
       template <class T, class Mapper, class Alloc>
-      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i )
+      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, core::Image<T, Mapper, Alloc>& output )
       {
          Points points;
          ui32 nbPoints = 0;
@@ -218,7 +219,7 @@ namespace algorithm
          FastHessianDetPyramid2D pyramid;
          pyramid.construct( i, _filterSizes, _filterSteps );
 
-         for ( ui32 filter = 1; filter < _filterSizes.size() - 1; ++filter )
+         for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
             for ( ui32 y = 0; y < f.sizey(); ++y )
@@ -234,6 +235,14 @@ namespace algorithm
                      if ( isMax )
                      {
                         ++nbPoints;
+                        
+                        const int half = _filterSizes[ filter ] / 2;
+                        const int px = x * _filterSteps[ filter ] + half;
+                        const int py = y * _filterSteps[ filter ] + half;
+                        core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ), core::vector3uc(255, 0, 0) );
+                        core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ), core::vector3uc(255, 0, 0) );
+                        core::bresham( output, core::vector2i( px, py ), core::vector2i( px + half, py), core::vector3uc(255, 0, 0) );
+                        //return points;
                      }
                   }
                }
@@ -258,6 +267,9 @@ public:
    void testBasic()
    {
       core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::Image<ui8> cpy;
+      cpy.clone( image );
+
       TESTER_ASSERT( image.sizex() );
       core::decolor( image );
 
@@ -265,11 +277,13 @@ public:
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
       std::cout << "start computatio=" << std::endl;
-      algorithm::SpeededUpRobustFeatures surf; //( 3, 3, 4 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0005 );
 
       nll::core::Timer timer;
-      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image );
+      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image, cpy );
       std::cout << "done=" << timer.getCurrentTime() << std::endl;
+
+      core::writeBmp( cpy, "c:/tmp/o.bmp" );
    }
 };
 
