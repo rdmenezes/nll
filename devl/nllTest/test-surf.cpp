@@ -4,6 +4,8 @@
 
 using namespace nll;
 
+#define NLL_ALGORITHM_SURF_NO_OPENMP
+
 namespace nll
 {
 namespace algorithm
@@ -75,7 +77,9 @@ namespace algorithm
             Matrix laplacian( resy, resx );
 
             // compute the hessian
+#ifndef NLL_ALGORITHM_SURF_NO_OPENMP
             #pragma omp parallel for
+#endif
             for ( int y = 0; y < resy; ++y )
             {
                for ( int x = 0; x < resx; ++x )
@@ -317,32 +321,39 @@ namespace algorithm
          }
       }
 
+      /**
+       @param this computes only points of interest (position and scaling) but doesn't compute the features (orientation, feature vector)
+       */
       template <class T, class Mapper, class Alloc>
-      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, core::Image<T, Mapper, Alloc>& output )
+      Points computesPoints( const core::Image<T, Mapper, Alloc>& i, core::Image<T, Mapper, Alloc>& output )
       {
-         Points p;
          ui32 nbPoints = 0;
 
          // each thread can work independently, so allocate an array og points that are not shared
          // between threads
+#ifndef NLL_ALGORITHM_SURF_NO_OPENMP
          const ui32 maxNumberOfThread = omp_get_max_threads();
-         std::vector< std::vector<Point> > points( maxNumberOfThread );
-
-         std::cout << "max thread=" << omp_get_max_threads() << std::endl;
+#else
+         const ui32 maxNumberOfThread = 1;
+#endif
+         std::vector< std::vector<Point> > bins( maxNumberOfThread );
 
          FastHessianDetPyramid2D pyramid;
-         pyramid.construct( i, _filterSizes, _filterSteps );
-
-         
+         pyramid.construct( i, _filterSizes, _filterSteps );         
          for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
             if ( pyramid.getPyramidDetHessian().size() <= filter )
                break; // the filter was not used in the pyramid...
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
+            const int sizex = static_cast<int>( f.sizex() );
+            const int sizey = static_cast<int>( f.sizey() );
+
+#ifndef NLL_ALGORITHM_SURF_NO_OPENMP
             #pragma omp parallel for reduction(+ : nbPoints)
-            for ( int y = 0; y < f.sizey(); ++y )
+#endif
+            for ( int y = 0; y < sizey; ++y )
             {
-               for ( ui32 x = 0; x < f.sizex(); ++x )
+               for ( int x = 0; x < sizex; ++x )
                {
                   const double val = f( y, x );
                   if ( val > _threshold )
@@ -366,21 +377,14 @@ namespace algorithm
                            const int size = _filterSizes[ filter ];
                            const int half = size / 2;
 
-                           int px    = ( x    - 2 * interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half;
-                           int py    = ( y    - 2 * interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half;                           
-                           int scale = size   - 2 * interpolatedPoint[ 2 ]   * _filterSteps[ filter ];
+                           int px    = core::round( ( x    - 2 * interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half );
+                           int py    = core::round( ( y    - 2 * interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half );
+                           int scale = core::round( size   - 2 * interpolatedPoint[ 2 ]   * _filterSteps[ filter ] );
 
                            ui32 threadId = omp_get_thread_num();
-                           points[ threadId ].push_back( Point( core::vector2ui( px, py ), scale ) );
+                           bins[ threadId ].push_back( Point( core::vector2ui( px, py ), scale ) );
 
                            ++nbPoints;
-                           
-                           if ( px > 5 && py > 5 && px + half < output.sizex() - 1 && py + 5 < output.sizey() - 1 )
-                           {
-                              core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
-                              core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
-                              core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + scale / 2, py), core::vector3uc(255, 255, 255) );
-                           }
                         }
                      }
                   }
@@ -388,8 +392,23 @@ namespace algorithm
             }
          }
 
-         std::cout << "nbpointsSelected=" << nbPoints << std::endl;
-         return p;
+         Points points( nbPoints );
+         ui32 cur = 0;
+         for ( size_t bin = 0; bin < bins.size(); ++bin )
+         {
+            for ( size_t p = 0; p < bins[ bin ].size(); ++p )
+            {
+               points[ cur++ ] = bins[ bin ][ p ];
+            }
+         }
+         return points;
+      }
+
+      template <class T, class Mapper, class Alloc>
+      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, core::Image<T, Mapper, Alloc>& output )
+      {
+         Points points = computesPoints( i, output );
+         return points;
       }
 
    private:
@@ -405,9 +424,9 @@ class TestSurf
 public:
    void testBasic()
    {
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf3.bmp" );
-      core::Image<ui8> cpy;
-      cpy.clone( image );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::Image<ui8> output;
+      output.clone( image );
 
       TESTER_ASSERT( image.sizex() );
       core::decolor( image );
@@ -417,13 +436,34 @@ public:
 
       std::cout << "start computatio=" << std::endl;
       //algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.005 );
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00051 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00061 );
 
       nll::core::Timer timer;
-      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image, cpy );
+      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image, output );
       std::cout << "done=" << timer.getCurrentTime() << std::endl;
 
-      core::writeBmp( cpy, "c:/tmp/o.bmp" );
+      std::cout << "nbPOints=" << points.size() << std::endl;
+
+      for ( ui32 n = 0; n < points.size(); ++n )
+      {
+         ui32 px = points[ n ].position[ 0 ];
+         ui32 py = points[ n ].position[ 1 ];
+         ui32 scale = points[ n ].scale;
+         ui32 half = scale / 2;
+
+         if ( px > 5 &&
+              py > 5 &&
+              px + half < output.sizex() - 1 &&
+              py + half < output.sizey() - 1 )
+         {
+            core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
+            core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
+            core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + scale / 2, py), core::vector3uc(255, 255, 255) );
+         }
+
+      }
+
+      core::writeBmp( output, "c:/tmp/o.bmp" );
    }
 };
 
