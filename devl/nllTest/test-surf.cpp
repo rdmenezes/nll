@@ -325,7 +325,7 @@ namespace algorithm
        @param this computes only points of interest (position and scaling) but doesn't compute the features (orientation, feature vector)
        */
       template <class T, class Mapper, class Alloc>
-      Points computesPoints( const core::Image<T, Mapper, Alloc>& i, core::Image<T, Mapper, Alloc>& output )
+      Points computesPoints( const core::Image<T, Mapper, Alloc>& i )
       {
          ui32 nbPoints = 0;
 
@@ -376,10 +376,12 @@ namespace algorithm
                         {
                            const int size = _filterSizes[ filter ];
                            const int half = size / 2;
+                           // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
+                           const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
-                           int px    = core::round( ( x    - 2 * interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half );
-                           int py    = core::round( ( y    - 2 * interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half );
-                           int scale = core::round( size   - 2 * interpolatedPoint[ 2 ]   * _filterSteps[ filter ] );
+                           int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half );
+                           int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half );
+                           int scale = core::round( size   - interpolatedPoint[ 2 ]   * filterStep );
 
                            ui32 threadId = omp_get_thread_num();
                            bins[ threadId ].push_back( Point( core::vector2ui( px, py ), scale ) );
@@ -405,9 +407,9 @@ namespace algorithm
       }
 
       template <class T, class Mapper, class Alloc>
-      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, core::Image<T, Mapper, Alloc>& output )
+      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i )
       {
-         Points points = computesPoints( i, output );
+         Points points = computesPoints( i );
          return points;
       }
 
@@ -435,11 +437,11 @@ public:
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
       std::cout << "start computatio=" << std::endl;
-      //algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.005 );
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00061 );
+      //algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0005 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 7, 2, 0.0011 );
 
       nll::core::Timer timer;
-      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image, output );
+      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image );
       std::cout << "done=" << timer.getCurrentTime() << std::endl;
 
       std::cout << "nbPOints=" << points.size() << std::endl;
