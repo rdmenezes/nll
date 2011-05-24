@@ -58,22 +58,21 @@ namespace algorithm
             lastScale = scales[ n ];
             const ui32 step = displacements[ n ];
 
-            const ui32 sizeFilterx = scales[ n ];
-            const ui32 sizeFiltery = scales[ n ];
+            const int sizeFilterx = scales[ n ];
+            const int sizeFiltery = scales[ n ];
             const double sizeFilter = sizeFilterx * sizeFiltery * max; // we normalize by the filter size and maximum value
 
-            const ui32 halfx = sizeFilterx / 2;
-            const ui32 halfy = sizeFilterx / 2;
+            const int halfx = sizeFilterx / 2;
+            const int halfy = sizeFilterx / 2;
 
             // the total size must take into account the step size and filter size (it must be fully inside the image to be computed)
-            const ui32 resx = ( i.sizex() - 2 * halfx + 1 ) / step;
-            const ui32 resy = ( i.sizey() - 2 * halfy + 1 ) / step;
+            const int resx = ( (int)i.sizex() - 2 * halfx + 1 ) / (int)step;
+            const int resy = ( (int)i.sizey() - 2 * halfy + 1 ) / (int)step;
 
+            if ( resx <= 0 || resy <= 0 )
+               break;   // the scale is too big!
             Matrix detHessian( resy, resx );
             Matrix laplacian( resy, resx );
-
-            if ( !resx || !resy )
-               break;   // the scale is too big!
 
             // compute the hessian
             #pragma omp parallel for
@@ -83,20 +82,26 @@ namespace algorithm
                {
                   core::vector2ui bl( x * step, y * step );
                   core::vector2ui tr( bl[ 0 ] + sizeFilterx - 1, bl[ 1 ] + sizeFiltery - 1 );
-                  const double dxx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL_TRIPLE,
-                                                                        image,
-                                                                        bl,
-                                                                        tr ) / sizeFilter;
-                  const double dyy = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL_TRIPLE,
-                                                                        image,
-                                                                        bl,
-                                                                        tr ) / sizeFilter;
-                  const double dxy = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::CHECKER,
-                                                                        image,
-                                                                        bl,
-                                                                        tr ) / sizeFilter;
-                  detHessian( y, x ) = dxx * dyy - core::sqr( 0.9 * dxy );
-                  laplacian( y, x ) = dxx + dyy;
+                  if ( tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
+                  {
+                     const double dxx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL_TRIPLE,
+                                                                           image,
+                                                                           bl,
+                                                                           tr ) / sizeFilter;
+                     const double dyy = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL_TRIPLE,
+                                                                           image,
+                                                                           bl,
+                                                                           tr ) / sizeFilter;
+                     const double dxy = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::CHECKER,
+                                                                           image,
+                                                                           bl,
+                                                                           tr ) / sizeFilter;
+                     detHessian( y, x ) = dxx * dyy - core::sqr( 0.9 * dxy );
+                     laplacian( y, x ) = dxx + dyy;
+                  } else {
+                     detHessian( y, x ) = 0;
+                     laplacian( y, x ) = 0;
+                  }
                }
             }
 
@@ -109,7 +114,7 @@ namespace algorithm
        @brief Computes the gradient of the hessian at position (x, y, map)
               using finite difference
        */
-      core::Buffer1D<value_type> getHessianGradient( ui32 x, ui32 y, ui32 map ) const
+      core::vector3d getHessianGradient( ui32 x, ui32 y, ui32 map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -125,12 +130,10 @@ namespace algorithm
          indexInMap( x, y, map, map + 1, xplus, yplus ); // we need to look up the closed index in a map that has different dimensions
 
          const Matrix& current = _pyramidDetHessian[ map ];
-         core::Buffer1D<value_type> grad( 3 );
-         grad[ 0 ] = ( current( y, x + 1 ) - current( y, x - 1 ) ) / 2;
-         grad[ 1 ] = ( current( y + 1, x ) - current( y - 1, x ) ) / 2;
-         grad[ 2 ] = ( _pyramidDetHessian[ map + 1 ]( yplus, xplus ) -
-                       _pyramidDetHessian[ map - 1 ]( yminus, xminus ) ) / 2;
-         return grad;
+         return core::vector3d( ( current( y, x + 1 ) - current( y, x - 1 ) ) / 2,
+                                ( current( y + 1, x ) - current( y - 1, x ) ) / 2,
+                                ( _pyramidDetHessian[ map + 1 ]( yplus, xplus ) -
+                                  _pyramidDetHessian[ map - 1 ]( yminus, xminus ) ) / 2 );
       }
 
       /**
@@ -330,8 +333,11 @@ namespace algorithm
          FastHessianDetPyramid2D pyramid;
          pyramid.construct( i, _filterSizes, _filterSteps );
 
+         
          for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
+            if ( pyramid.getPyramidDetHessian().size() <= filter )
+               break; // the filter was not used in the pyramid...
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
             #pragma omp parallel for reduction(+ : nbPoints)
             for ( int y = 0; y < f.sizey(); ++y )
@@ -346,12 +352,13 @@ namespace algorithm
                                   pyramid.isDetHessianMax( val, x, y, filter, filter - 1 );
                      if ( isMax )
                      {
-                        core::Buffer1D<value_type> hessianGradient = pyramid.getHessianGradient( x, y, filter );
+                        
+                        core::vector3d hessianGradient = pyramid.getHessianGradient( x, y, filter );
+                        
                         Matrix hessianHessian = pyramid.getHessianHessian( x, y, filter );
+                        
                         const bool inverted = core::inverse3x3( hessianHessian );
-                        Matrix interpolatedPoint = hessianHessian * Matrix( hessianGradient, 3, 1 );
-                        //std::cout << interpolatedPoint[ 0 ] << " " << interpolatedPoint[ 1 ] << std::endl;
-
+                        core::vector3d interpolatedPoint = core::mat3Mulv( hessianHessian, hessianGradient );
                         if ( inverted && interpolatedPoint[ 0 ] < 0.5 &&
                                          interpolatedPoint[ 1 ] < 0.5 &&
                                          interpolatedPoint[ 2 ] < 0.5 )
@@ -359,22 +366,21 @@ namespace algorithm
                            const int size = _filterSizes[ filter ];
                            const int half = size / 2;
 
-                           int px    = ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half;
-                           int py    = ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half;                           
-                           int scale = size   - interpolatedPoint[ 2 ]   * _filterSteps[ filter ];
+                           int px    = ( x    - 2 * interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half;
+                           int py    = ( y    - 2 * interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half;                           
+                           int scale = size   - 2 * interpolatedPoint[ 2 ]   * _filterSteps[ filter ];
 
                            ui32 threadId = omp_get_thread_num();
                            points[ threadId ].push_back( Point( core::vector2ui( px, py ), scale ) );
-                           ++nbPoints;
 
+                           ++nbPoints;
+                           
                            if ( px > 5 && py > 5 && px + half < output.sizex() - 1 && py + 5 < output.sizey() - 1 )
                            {
-                              core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ), core::vector3uc(255, 0, 0) );
-                              core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ), core::vector3uc(255, 0, 0) );
-                              core::bresham( output, core::vector2i( px, py ), core::vector2i( px + scale / 2, py), core::vector3uc(255, 0, 0) );
+                              core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
+                              core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
+                              core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + scale / 2, py), core::vector3uc(255, 255, 255) );
                            }
-                           
-                           //return points;
                         }
                      }
                   }
@@ -399,7 +405,7 @@ class TestSurf
 public:
    void testBasic()
    {
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf3.bmp" );
       core::Image<ui8> cpy;
       cpy.clone( image );
 
@@ -411,7 +417,7 @@ public:
 
       std::cout << "start computatio=" << std::endl;
       //algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.005 );
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0005 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00051 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image, cpy );
