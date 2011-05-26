@@ -547,7 +547,6 @@ namespace algorithm
 
             for ( double angleMin = 0 ; angleMin < core::PI * 2; angleMin += step )
             {
-               //std::cout << "id=" << omp_get_thread_num() << std::endl;
                double dx = 0;
                double dy = 0;
                ui32 nbPoints = 0;
@@ -555,7 +554,6 @@ namespace algorithm
 
                const double angleMax = ( angleMin > 2 * core::PI - window ) ? ( angleMin + window - 2 * core::PI ) : ( angleMin + window );
 
-               //#pragma omp parallel for reduction(+ : dx) reduction(+: dy) reduction(+: nbPoints)
                for ( int nn = 0; nn < nbLocalPoints; ++nn )
                {
                   double startAngle = localPoints[ nn ].angle;
@@ -633,7 +631,7 @@ public:
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
       std::cout << "start computatio=" << std::endl;
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0 * 0.0000061 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00061 );
       //algorithm::SpeededUpRobustFeatures surf( 5, 7, 2, 0.0031 );
 
       nll::core::Timer timer;
@@ -649,8 +647,8 @@ public:
          ui32 scale = points[ n ].scale;
          ui32 half = scale / 2;
 
-         int dx = (int)cos( points[ n ].orientation ) * half;
-         int dy = (int)sin( points[ n ].orientation ) * half;
+         int dx = cos( points[ n ].orientation ) * half;
+         int dy = sin( points[ n ].orientation ) * half;
          if ( px > 5 &&
               py > 5 &&
               px + dx < output.sizex() - 1 &&
