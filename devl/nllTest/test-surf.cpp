@@ -10,6 +10,43 @@ namespace nll
 {
 namespace algorithm
 {
+   namespace impl
+   {
+      /**
+       @brief Returns the angle
+       */
+      template <class T>
+      T getAngle( T x, T y )
+      {
+        if( x > 0 && y >= 0 )
+          return atan( y / x );
+
+        if( x < 0 && y >= 0)
+           return core::PI - atan( - y / x );
+
+        if( x < 0 && y < 0)
+           return core::PI + atan( y / x );
+
+        if( x > 0 && y < 0 )
+           return 2 * core::PI - atan( -y / x );
+
+        return 0;
+      }
+
+      /**
+       @brief Returns the direction of the closest (left or right) to reach the other angle
+       */
+      int getDirectionToClosest( double angle1, double angle2 )
+      {
+         if ( fabs( angle1 - angle2 ) > core::PI )
+         {
+            return angle1 > angle2 ? 1 : -1;
+         } else {
+            return angle1 > angle2 ? -1 : 1;
+         }
+      }
+   }
+
    /**
     @brief Hold a stack of the hessian determinant using a crude approximation of a gaussian in 2D
            for each point, H(x, o) =| Lxx Lxy |
@@ -46,6 +83,8 @@ namespace algorithm
          // construct an integral image
          IntegralImage image;
          image.process( i );
+
+         _integralImage = image;
 
           
          // build each level by redimensioning the approximated gaussian derivatives
@@ -156,7 +195,7 @@ namespace algorithm
          const Matrix& mc = _pyramidDetHessian[ map ];
          const Matrix& mm = _pyramidDetHessian[ map - 1 ];
          const Matrix& mp = _pyramidDetHessian[ map + 1 ];
-         const double val = mc( y, x );
+         const value_type val = mc( y, x );
 
          int xm, ym;
          indexInMap( x, y, map, map - 1, xm, ym );  // we need to look up the closed index in a map that has different dimensions
@@ -176,14 +215,14 @@ namespace algorithm
                  xp < (int)_pyramidDetHessian[ map + 1 ].sizex() - 1 &&
                  yp < (int)_pyramidDetHessian[ map + 1 ].sizey() - 1 );
 
-         const double dxx = mc( y, x + 1 ) + mc( y, x - 1 ) - 2 * val;
-         const double dyy = mc( y + 1, x ) + mc( y - 1, x ) - 2 * val;
-         const double dss = mp( yp, xp )   + mm( ym, xm )   - 2 * val;
-         const double dxy = ( mc( y + 1, x + 1 ) + mc( y - 1, x - 1 ) -
+         const value_type dxx = mc( y, x + 1 ) + mc( y, x - 1 ) - 2 * val;
+         const value_type dyy = mc( y + 1, x ) + mc( y - 1, x ) - 2 * val;
+         const value_type dss = mp( yp, xp )   + mm( ym, xm )   - 2 * val;
+         const value_type dxy = ( mc( y + 1, x + 1 ) + mc( y - 1, x - 1 ) -
                               mc( y - 1, x + 1 ) - mc( y + 1, x - 1 ) ) / 4;
-         const double dxs = ( mp( yp, xp + 1 ) + mm( ym, xm - 1 ) -
+         const value_type dxs = ( mp( yp, xp + 1 ) + mm( ym, xm - 1 ) -
                               mm( ym, xm + 1 ) - mp( yp, xp - 1 ) ) / 4;
-         const double dys = ( mp( yp + 1, xp ) + mm( ym - 1, xm ) -
+         const value_type dys = ( mp( yp + 1, xp ) + mm( ym - 1, xm ) -
                               mm( ym + 1, xm ) - mp( yp - 1, xp ) ) / 4;
 
          Matrix hs( 3, 3 );
@@ -205,13 +244,6 @@ namespace algorithm
       // computes the index in mapDest the closest from (xRef, yRef, mapDest)
       void indexInMap( ui32 xRef, ui32 yRef, ui32 mapRef, ui32 mapDest, int& outx, int& outy ) const
       {
-         /*
-         // CHECK robustness
-         outx = xRef;
-         outy = yRef;
-         return;
-         */
-
          if ( mapRef == mapDest )
          {
             outx = xRef;
@@ -232,7 +264,7 @@ namespace algorithm
       /**
        @brief returns true if all value around the projection (xRef, yRef, mapRef) on mapDest are smaller
        */
-      bool isDetHessianMax( double val, ui32 xRef, ui32 yRef, ui32 mapRef, ui32 mapDest ) const
+      bool isDetHessianMax( value_type val, ui32 xRef, ui32 yRef, ui32 mapRef, ui32 mapDest ) const
       {
          int x, y;
 
@@ -263,12 +295,17 @@ namespace algorithm
          return _pyramidLaplacian;
       }
 
+      const IntegralImage& getIntegralImage() const
+      {
+         return _integralImage;
+      }
+
    private:
       std::vector<Matrix>  _pyramidDetHessian;
       std::vector<Matrix>  _pyramidLaplacian;
       std::vector<ui32>    _scales;
       std::vector<ui32>    _displacements;
-
+      IntegralImage        _integralImage;
    };
 
    /**
@@ -285,12 +322,12 @@ namespace algorithm
    public:
       struct Point
       {
-         Point( core::vector2ui p, ui32 s ) : position( p ), scale( s )
+         Point( core::vector2i p, ui32 s ) : position( p ), scale( s )
          {}
 
          Matrix            features;
          value_type        orientation;
-         core::vector2ui   position;
+         core::vector2i    position;
          ui32              scale;
       };
 
@@ -355,7 +392,7 @@ namespace algorithm
             {
                for ( int x = 0; x < sizex; ++x )
                {
-                  const double val = f( y, x );
+                  const value_type val = f( y, x );
                   if ( val > _threshold )
                   {
                      bool isMax = pyramid.isDetHessianMax( val, x, y, filter, filter )     &&
@@ -384,7 +421,7 @@ namespace algorithm
                            int scale = core::round( size   - interpolatedPoint[ 2 ]   * filterStep );
 
                            ui32 threadId = omp_get_thread_num();
-                           bins[ threadId ].push_back( Point( core::vector2ui( px, py ), scale ) );
+                           bins[ threadId ].push_back( Point( core::vector2i( px, py ), scale ) );
 
                            ++nbPoints;
                         }
@@ -403,6 +440,11 @@ namespace algorithm
                points[ cur++ ] = bins[ bin ][ p ];
             }
          }
+
+         core::Timer timeOrientation;
+         _computeAngle( pyramid.getIntegralImage(), points );
+         std::cout << "Orientation time=" << timeOrientation.getCurrentTime() << std::endl;
+
          return points;
       }
 
@@ -411,6 +453,224 @@ namespace algorithm
       {
          Points points = computesPoints( i );
          return points;
+      }
+
+   private:
+      /**
+       @brief assign a repeable orientation for each point
+       */
+      void _computeAngle( const IntegralImage& i, Points& points ) const
+      {
+         struct LocalPoint
+         {
+            LocalPoint( value_type a, value_type x, value_type y ) : angle( a ), dx( x ), dy( y )
+            {}
+
+            value_type angle;
+            value_type dx;
+            value_type dy;
+
+            bool operator<( const LocalPoint& p ) const
+            {
+               return angle < p.angle;
+            }
+         };
+
+         // preprocessed gaussian of size 2.5
+         static const value_type gauss25 [7][7] = {
+           0.02350693969273, 0.01849121369071, 0.01239503121241, 0.00708015417522, 0.00344628101733, 0.00142945847484, 0.00050524879060,
+           0.02169964028389, 0.01706954162243, 0.01144205592615, 0.00653580605408, 0.00318131834134, 0.00131955648461, 0.00046640341759,
+           0.01706954162243, 0.01342737701584, 0.00900063997939, 0.00514124713667, 0.00250251364222, 0.00103799989504, 0.00036688592278,
+           0.01144205592615, 0.00900063997939, 0.00603330940534, 0.00344628101733, 0.00167748505986, 0.00069579213743, 0.00024593098864,
+           0.00653580605408, 0.00514124713667, 0.00344628101733, 0.00196854695367, 0.00095819467066, 0.00039744277546, 0.00014047800980,
+           0.00318131834134, 0.00250251364222, 0.00167748505986, 0.00095819467066, 0.00046640341759, 0.00019345616757, 0.00006837798818,
+           0.00131955648461, 0.00103799989504, 0.00069579213743, 0.00039744277546, 0.00019345616757, 0.00008024231247, 0.00002836202103
+         };
+         static const int id[] = { 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6 };
+
+         // this constant is to find the gaussian's sigma
+         // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
+         // so for a filter of size X, sigma = 1.2 / 9 * X
+         static const value_type scaleFactor = 1.2 / 9;
+
+         for ( ui32 n = 0; n < points.size(); ++n )
+         {
+            const Point& point = points[ n ];
+            const int scale = core::round( scaleFactor * point.scale );
+
+            std::vector<LocalPoint> localPoints;
+            localPoints.reserve( 109 );
+            for ( int v = -6; v <= 6; ++v )
+            {
+               for ( int u = -6; u <= 6; ++u )
+               {
+                  if ( u * u + v * v < 36 )
+                  {
+                     const value_type gauss = gauss25[ id[ u + 6 ] ][ id[ v + 6 ] ];
+                     const int x = point.position[ 0 ] + u * scale - 2 * scale;
+                     const int y = point.position[ 1 ] + v * scale - 2 * scale;
+                     const core::vector2ui bl( x, y );
+                     const core::vector2ui tr( x + 2 * scale, y + 2 * scale );
+                     const value_type dx = gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                      i,
+                                                                                      bl,
+                                                                                      tr );
+                     const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                        i,
+                                                                                        bl,
+                                                                                        tr );
+                     const value_type angle = impl::getAngle( dx, dy );
+                     localPoints.push_back( LocalPoint( angle, dx, dy ) );
+                  }
+               }
+            }
+
+            std::sort( localPoints.begin(), localPoints.end() );
+
+            /*
+            for ( ui32 n = 0; n < localPoints.size(); ++n )
+            {
+               std::cout << "p=" << n << " angle=" << localPoints[ n ].angle << std::endl;
+            }*/
+
+            
+            const double step = 0.15;
+            const double window = 0.3 * core::PI;
+            double best_angle = 0;
+            double best_norm = 0;
+            for ( double angleMin = 0 ; angleMin < core::PI * 2; angleMin += step )
+            {
+               double dx = 0;
+               double dy = 0;
+               ui32 nbPoints = 0;
+
+               // find the min point inside the window
+               int start = angleMin / ( core::PI * 2 ) * localPoints.size();   // give an estimate of the initial search position
+
+               double startAngle = localPoints[ start ].angle;
+               const double angleMax = ( angleMin > 2 * core::PI - window ) ? ( angleMin + window - 2 * core::PI ) : ( angleMin + window );
+               int dir = impl::getDirectionToClosest( startAngle, angleMax );
+
+               // if we are not in the window, find the first point inside
+               if ( !_isInside( startAngle, angleMin, angleMax ) )
+               {
+                  int step = 0;  // we use steps so that we now if we have done a full check already...
+                  while ( step < localPoints.size() && !_isInside( localPoints[ computeCircularIndex( start, step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
+                  {
+                     ++step;
+                  }
+                  if ( step == localPoints.size() )
+                     continue; // no point found inside, just skip this window
+                  const int startIndex = computeCircularIndex( start, step * dir, localPoints.size() );
+                  const int startIndexNoMod = start + step * dir;
+
+                  // continue until the next has is not inside
+                  step = 0; // reinit the steps
+                  while ( step < localPoints.size() && _isInside( localPoints[ computeCircularIndex( startIndex, step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
+                  {
+                     ++step;
+                  }
+                  const int endIndex = computeCircularIndex( startIndex, step * dir, localPoints.size() );
+                  const int endIndexNoMod = startIndex + step * dir;
+                  const int size = abs( startIndexNoMod - endIndexNoMod );
+
+                  // finally, accumulate the angles
+                  for ( int n = 0; n < size; ++n )
+                  {
+                     const int index = computeCircularIndex( startIndex, n * dir, localPoints.size() );
+                     //std::cout << "accumulate:" << index << std::endl;
+                     dx += localPoints[ index ].dx;
+                     dy += localPoints[ index ].dy;
+                  }
+
+                  //std::cout << "min=" << angleMin << " max=" << angleMax << std::endl;
+                  //std::cout << "minIndex=" << startIndex << " maxIndex=" << endIndex << std::endl;
+                  //std::cout << "size=" << size << std::endl;
+                  nbPoints += size;
+               } else {
+                  // different approach: we want to go on the left and on the right stopping as soon as we are outside
+                  int step = 0;  // we use steps so that we now if we have done a full check already...
+                  while ( step < localPoints.size() && _isInside( localPoints[ computeCircularIndex( start, step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
+                  {
+                     ++step;
+                  }
+                  --step; // bounds included
+                  const int startIndex = computeCircularIndex( start, step * dir, localPoints.size() );
+                  const int startIndexNoMod = start + step * dir;
+
+                  step = 0;
+                  while ( step < localPoints.size() && _isInside( localPoints[ computeCircularIndex( start, -step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
+                  {
+                     ++step;
+                  }
+                  --step; // bounds included
+                  const int endIndex = computeCircularIndex( start, -step * dir, localPoints.size() );
+                  const int endIndexNoMod = start - step * dir;
+                  const int size = abs( startIndexNoMod - endIndexNoMod + 1 );
+
+                  // finally, accumulate the angles
+                  for ( int n = 0; n < size; ++n )
+                  {
+                     const int index = computeCircularIndex( startIndex, -n * dir, localPoints.size() );
+                     //std::cout << "accumulate:" << index << std::endl;
+                     dx += localPoints[ index ].dx;
+                     dy += localPoints[ index ].dy;
+                  }
+
+                  //std::cout << "min=" << angleMin << " max=" << angleMax << std::endl;
+                  //std::cout << "minIndex=" << startIndex << " maxIndex=" << endIndex << std::endl;
+                  //std::cout << "size=" << size << std::endl;
+               }
+
+               // finally compute the mean direction and save the best one
+               dx /= nbPoints;
+               dy /= nbPoints;
+               const double norm = dx * dx + dy * dy;
+               if ( norm > best_norm )
+               {
+                  best_norm = norm;
+                  best_angle = impl::getAngle( dx, dy );
+               }
+            }
+
+            // assign the angle
+            if ( best_norm > 0 )
+            {
+               points[ n ].orientation = best_angle;
+            }
+         }
+      }
+
+      /**
+       @brief Compute the index  of a circular list, given its size <listSize>, the indexing direction <dir> the start index <start> and the displacement <step>
+       */
+      static int computeCircularIndex( int start, int step, size_t listSize )
+      {
+         int tmp = start + step;
+         if ( tmp < 0 )
+            tmp += listSize;  // in c++ modulo doesn't guaranty a % b is in [0..b[ so we need to handle special case <0
+         const int index = tmp % listSize;
+         return index;
+      }
+
+      static bool _isInside( double angle, double min, double max )
+      {
+         if ( max < min )
+         {
+            // means we are at the angle disconuity point
+            if ( angle < core::PI )
+            {
+               // the angle is 0-PI, so it means min is in PI-2PI
+               min -= 2 * core::PI;
+               return angle <= max && angle >= min;
+            } else {
+               max += 2 * core::PI;
+               return angle <= max && angle >= min;
+            }
+         } else {
+            // default case
+            return angle <= max && angle >= min;
+         }
       }
 
    private:
@@ -426,7 +686,7 @@ class TestSurf
 public:
    void testBasic()
    {
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf3.bmp" );
       core::Image<ui8> output;
       output.clone( image );
 
@@ -437,8 +697,8 @@ public:
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
       std::cout << "start computatio=" << std::endl;
-      //algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0005 );
-      algorithm::SpeededUpRobustFeatures surf( 5, 7, 2, 0.0011 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0005 );
+      //algorithm::SpeededUpRobustFeatures surf( 5, 7, 2, 0.0031 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image );
