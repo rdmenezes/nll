@@ -4,7 +4,7 @@
 
 using namespace nll;
 
-#define NLL_ALGORITHM_SURF_NO_OPENMP
+//#define NLL_ALGORITHM_SURF_NO_OPENMP
 
 namespace nll
 {
@@ -116,9 +116,9 @@ namespace algorithm
             Matrix laplacian( resy, resx );
 
             // compute the hessian
-#ifndef NLL_ALGORITHM_SURF_NO_OPENMP
-            #pragma omp parallel for
-#endif
+            #ifndef NLL_ALGORITHM_SURF_NO_OPENMP
+            # pragma omp parallel for
+            #endif
             for ( int y = 0; y < resy; ++y )
             {
                for ( int x = 0; x < resx; ++x )
@@ -368,15 +368,19 @@ namespace algorithm
 
          // each thread can work independently, so allocate an array og points that are not shared
          // between threads
-#ifndef NLL_ALGORITHM_SURF_NO_OPENMP
-         const ui32 maxNumberOfThread = omp_get_max_threads();
-#else
-         const ui32 maxNumberOfThread = 1;
-#endif
+         #ifndef NLL_ALGORITHM_SURF_NO_OPENMP
+            const ui32 maxNumberOfThread = omp_get_max_threads();
+         #else
+            const ui32 maxNumberOfThread = 1;
+         #endif
          std::vector< std::vector<Point> > bins( maxNumberOfThread );
 
+
+         core::Timer timePyramid;
          FastHessianDetPyramid2D pyramid;
-         pyramid.construct( i, _filterSizes, _filterSteps );         
+         pyramid.construct( i, _filterSizes, _filterSteps );
+         std::cout << "Pyramid=" << timePyramid.getCurrentTime() << std::endl;
+
          for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
             if ( pyramid.getPyramidDetHessian().size() <= filter )
@@ -385,9 +389,9 @@ namespace algorithm
             const int sizex = static_cast<int>( f.sizex() );
             const int sizey = static_cast<int>( f.sizey() );
 
-#ifndef NLL_ALGORITHM_SURF_NO_OPENMP
-            #pragma omp parallel for reduction(+ : nbPoints)
-#endif
+            #ifndef NLL_ALGORITHM_SURF_NO_OPENMP
+            # pragma omp parallel for reduction(+ : nbPoints)
+            #endif
             for ( int y = 0; y < sizey; ++y )
             {
                for ( int x = 0; x < sizex; ++x )
@@ -445,6 +449,10 @@ namespace algorithm
          _computeAngle( pyramid.getIntegralImage(), points );
          std::cout << "Orientation time=" << timeOrientation.getCurrentTime() << std::endl;
 
+         core::Timer timeFeeatures;
+         _computeFeatures( pyramid.getIntegralImage(), points );
+         std::cout << "Features time=" << timeFeeatures.getCurrentTime() << std::endl;
+
          return points;
       }
 
@@ -456,6 +464,10 @@ namespace algorithm
       }
 
    private:
+      void _computeFeatures( const IntegralImage& i, Points& points ) const
+      {
+      }
+
       /**
        @brief assign a repeable orientation for each point
        */
@@ -469,11 +481,6 @@ namespace algorithm
             value_type angle;
             value_type dx;
             value_type dy;
-
-            bool operator<( const LocalPoint& p ) const
-            {
-               return angle < p.angle;
-            }
          };
 
          // preprocessed gaussian of size 2.5
@@ -493,13 +500,17 @@ namespace algorithm
          // so for a filter of size X, sigma = 1.2 / 9 * X
          static const value_type scaleFactor = 1.2 / 9;
 
-         for ( ui32 n = 0; n < points.size(); ++n )
+         #ifndef NLL_ALGORITHM_SURF_NO_OPENMP
+         # pragma omp parallel for
+         #endif
+         for ( int n = 0; n < points.size(); ++n )
          {
             const Point& point = points[ n ];
             const int scale = core::round( scaleFactor * point.scale );
 
             std::vector<LocalPoint> localPoints;
             localPoints.reserve( 109 );
+
             for ( int v = -6; v <= 6; ++v )
             {
                for ( int u = -6; u <= 6; ++u )
@@ -507,124 +518,61 @@ namespace algorithm
                   if ( u * u + v * v < 36 )
                   {
                      const value_type gauss = gauss25[ id[ u + 6 ] ][ id[ v + 6 ] ];
-                     const int x = point.position[ 0 ] + u * scale - 2 * scale;
-                     const int y = point.position[ 1 ] + v * scale - 2 * scale;
-                     const core::vector2ui bl( x, y );
+                     const int x = point.position[ 0 ] + u * scale;
+                     const int y = point.position[ 1 ] + v * scale;
+                     const core::vector2ui bl( x - 2 * scale, y - 2 * scale );
                      const core::vector2ui tr( x + 2 * scale, y + 2 * scale );
-                     const value_type dx = gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                      i,
-                                                                                      bl,
-                                                                                      tr );
-                     const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                        i,
-                                                                                        bl,
-                                                                                        tr );
-                     const value_type angle = impl::getAngle( dx, dy );
-                     localPoints.push_back( LocalPoint( angle, dx, dy ) );
+                     if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
+                     {
+                        const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                           i,
+                                                                                           bl,
+                                                                                           tr );
+                        const value_type dx = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                           i,
+                                                                                           bl,
+                                                                                           tr );
+                        const value_type angle = impl::getAngle( dx, dy );
+                        localPoints.push_back( LocalPoint( angle, dx, dy ) );
+                     }
                   }
                }
             }
-
-            std::sort( localPoints.begin(), localPoints.end() );
-
-            /*
-            for ( ui32 n = 0; n < localPoints.size(); ++n )
-            {
-               std::cout << "p=" << n << " angle=" << localPoints[ n ].angle << std::endl;
-            }*/
-
-            
+           
             const double step = 0.15;
             const double window = 0.3 * core::PI;
             double best_angle = 0;
             double best_norm = 0;
+            const int nbLocalPoints = static_cast<int>( localPoints.size() );
+
             for ( double angleMin = 0 ; angleMin < core::PI * 2; angleMin += step )
             {
+               //std::cout << "id=" << omp_get_thread_num() << std::endl;
                double dx = 0;
                double dy = 0;
                ui32 nbPoints = 0;
+            
 
-               // find the min point inside the window
-               int start = angleMin / ( core::PI * 2 ) * localPoints.size();   // give an estimate of the initial search position
-
-               double startAngle = localPoints[ start ].angle;
                const double angleMax = ( angleMin > 2 * core::PI - window ) ? ( angleMin + window - 2 * core::PI ) : ( angleMin + window );
-               int dir = impl::getDirectionToClosest( startAngle, angleMax );
 
-               // if we are not in the window, find the first point inside
-               if ( !_isInside( startAngle, angleMin, angleMax ) )
+               //#pragma omp parallel for reduction(+ : dx) reduction(+: dy) reduction(+: nbPoints)
+               for ( int nn = 0; nn < nbLocalPoints; ++nn )
                {
-                  int step = 0;  // we use steps so that we now if we have done a full check already...
-                  while ( step < localPoints.size() && !_isInside( localPoints[ computeCircularIndex( start, step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
+                  double startAngle = localPoints[ nn ].angle;
+                  if ( _isInside( startAngle, angleMin, angleMax ) )
                   {
-                     ++step;
+                     dx += localPoints[ nn ].dx;
+                     dy += localPoints[ nn ].dy;
+                     ++nbPoints;
                   }
-                  if ( step == localPoints.size() )
-                     continue; // no point found inside, just skip this window
-                  const int startIndex = computeCircularIndex( start, step * dir, localPoints.size() );
-                  const int startIndexNoMod = start + step * dir;
-
-                  // continue until the next has is not inside
-                  step = 0; // reinit the steps
-                  while ( step < localPoints.size() && _isInside( localPoints[ computeCircularIndex( startIndex, step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
-                  {
-                     ++step;
-                  }
-                  const int endIndex = computeCircularIndex( startIndex, step * dir, localPoints.size() );
-                  const int endIndexNoMod = startIndex + step * dir;
-                  const int size = abs( startIndexNoMod - endIndexNoMod );
-
-                  // finally, accumulate the angles
-                  for ( int n = 0; n < size; ++n )
-                  {
-                     const int index = computeCircularIndex( startIndex, n * dir, localPoints.size() );
-                     //std::cout << "accumulate:" << index << std::endl;
-                     dx += localPoints[ index ].dx;
-                     dy += localPoints[ index ].dy;
-                  }
-
-                  //std::cout << "min=" << angleMin << " max=" << angleMax << std::endl;
-                  //std::cout << "minIndex=" << startIndex << " maxIndex=" << endIndex << std::endl;
-                  //std::cout << "size=" << size << std::endl;
-                  nbPoints += size;
-               } else {
-                  // different approach: we want to go on the left and on the right stopping as soon as we are outside
-                  int step = 0;  // we use steps so that we now if we have done a full check already...
-                  while ( step < localPoints.size() && _isInside( localPoints[ computeCircularIndex( start, step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
-                  {
-                     ++step;
-                  }
-                  --step; // bounds included
-                  const int startIndex = computeCircularIndex( start, step * dir, localPoints.size() );
-                  const int startIndexNoMod = start + step * dir;
-
-                  step = 0;
-                  while ( step < localPoints.size() && _isInside( localPoints[ computeCircularIndex( start, -step * dir, localPoints.size() ) ].angle, angleMin, angleMax ) )
-                  {
-                     ++step;
-                  }
-                  --step; // bounds included
-                  const int endIndex = computeCircularIndex( start, -step * dir, localPoints.size() );
-                  const int endIndexNoMod = start - step * dir;
-                  const int size = abs( startIndexNoMod - endIndexNoMod + 1 );
-
-                  // finally, accumulate the angles
-                  for ( int n = 0; n < size; ++n )
-                  {
-                     const int index = computeCircularIndex( startIndex, -n * dir, localPoints.size() );
-                     //std::cout << "accumulate:" << index << std::endl;
-                     dx += localPoints[ index ].dx;
-                     dy += localPoints[ index ].dy;
-                  }
-
-                  //std::cout << "min=" << angleMin << " max=" << angleMax << std::endl;
-                  //std::cout << "minIndex=" << startIndex << " maxIndex=" << endIndex << std::endl;
-                  //std::cout << "size=" << size << std::endl;
                }
 
                // finally compute the mean direction and save the best one
-               dx /= nbPoints;
-               dy /= nbPoints;
+               if ( nbPoints )
+               {
+                  dx /= nbPoints;
+                  dy /= nbPoints;
+               }
                const double norm = dx * dx + dy * dy;
                if ( norm > best_norm )
                {
@@ -639,18 +587,6 @@ namespace algorithm
                points[ n ].orientation = best_angle;
             }
          }
-      }
-
-      /**
-       @brief Compute the index  of a circular list, given its size <listSize>, the indexing direction <dir> the start index <start> and the displacement <step>
-       */
-      static int computeCircularIndex( int start, int step, size_t listSize )
-      {
-         int tmp = start + step;
-         if ( tmp < 0 )
-            tmp += listSize;  // in c++ modulo doesn't guaranty a % b is in [0..b[ so we need to handle special case <0
-         const int index = tmp % listSize;
-         return index;
       }
 
       static bool _isInside( double angle, double min, double max )
@@ -697,7 +633,7 @@ public:
 //      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
 
       std::cout << "start computatio=" << std::endl;
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0005 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0 * 0.0000061 );
       //algorithm::SpeededUpRobustFeatures surf( 5, 7, 2, 0.0031 );
 
       nll::core::Timer timer;
@@ -713,14 +649,18 @@ public:
          ui32 scale = points[ n ].scale;
          ui32 half = scale / 2;
 
+         int dx = (int)cos( points[ n ].orientation ) * half;
+         int dy = (int)sin( points[ n ].orientation ) * half;
          if ( px > 5 &&
               py > 5 &&
-              px + half < output.sizex() - 1 &&
-              py + half < output.sizey() - 1 )
+              px + dx < output.sizex() - 1 &&
+              py + dy < output.sizey() - 1 &&
+              px + dx > 0 &&
+              py + dy > 0 )
          {
             core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
             core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
-            core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + scale / 2, py), core::vector3uc(255, 255, 255) );
+            core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + dx, py + dy), core::vector3uc(255, 0, 0) );
          }
 
       }
