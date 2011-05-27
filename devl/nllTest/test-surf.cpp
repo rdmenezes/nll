@@ -4,7 +4,7 @@
 
 using namespace nll;
 
-#define NLL_ALGORITHM_SURF_NO_OPENMP
+//#define NLL_ALGORITHM_SURF_NO_OPENMP
 
 namespace nll
 {
@@ -316,19 +316,19 @@ namespace algorithm
     */
    class SpeededUpRobustFeatures
    {
-      typedef double                   value_type;
-      typedef core::Matrix<value_type> Matrix;
+      typedef double                     value_type;
+      typedef core::Matrix<value_type>   Matrix;
 
    public:
       struct Point
       {
-         Point( core::vector2i p, ui32 s ) : position( p ), scale( s )
+         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 4 )
          {}
 
-         Matrix            features;
-         value_type        orientation;
-         core::vector2i    position;
-         ui32              scale;
+         core::Buffer1D<value_type> features;
+         value_type                 orientation;
+         core::vector2i             position;
+         ui32                       scale;
       };
 
       typedef core::Buffer1D<Point> Points;
@@ -466,21 +466,98 @@ namespace algorithm
    private:
       void _computeFeatures( const IntegralImage& i, Points& points ) const
       {
-         ui32 nbPoints = static_cast<ui32>( points.size() );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         int nbPoints = static_cast<ui32>( points.size() );
+
+         #ifndef NLL_ALGORITHM_SURF_NO_OPENMP
+         # pragma omp parallel for
+         #endif
+         for ( int n = 0; n < nbPoints; ++n )
          {
+            Point& point = points[ n ];
+
+            // this constant is to find the gaussian's sigma
+            // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
+            // so for a filter of size X, sigma = 1.2 / 9 * X
+            static const value_type scaleFactor = 1.2 / 9;
+            const float scale = static_cast<float>( scaleFactor * point.scale );
+
             // computes the rotation factor according to the feature orientation
-            const double co = cos( points[ n ].orientation );
-            const double si = sin( points[ n ].orientation );
+            const core::TransformationRotation rotation( (float)point.orientation, core::vector2f( 0, 0 ) );
+            const core::TransformationRotation rotationInv( (float)-point.orientation, core::vector2f( 0, 0 ) );
 
+            // features for this point : mean(dx) mean(dy) mean(|dx|) and mean(|dy|)
+            value_type dxm = 0;
+            value_type dym = 0;
+            value_type adxm = 0;
+            value_type adym = 0;
+            ui32 nbPoints;
 
+            // the haar feature must be of size 2 * scale, but we the point (x, y) is not centered
+            const float haarHalfDistMin = scale / 2;
+            for ( int r = -10; r < 10; r += 5 )
+            {
+               for ( int c = -10; c < 10; c += 5 )
+               {
+                  for ( int y = r; y < r + 5; ++y )
+                  {
+                     for ( int x = c; x < c + 5; ++x )
+                     {
+                        // rotated point according to the descriptor
+                        const value_type gauss = gaussian( x, y, 3.3 ); // TODO check this variance
+                        core::vector2f pr = rotation( core::vector2f( x * scale, y * scale ) );
+                        pr[ 0 ] += point.position[ 0 ];
+                        pr[ 1 ] += point.position[ 1 ];
+
+                        // computes the coordinates
+                        core::vector2ui bl( core::round( pr[ 0 ] - haarHalfDistMin ), core::round( pr[ 1 ] - haarHalfDistMin ) );
+                        core::vector2ui tr( bl[ 0 ] + 2, bl[ 1 ] + 2 );
+                        if ( bl[ 0 ] < i.sizex() && bl[ 1 ] < i.sizey() &&
+                             tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
+                        {
+                           // compute the derivatives
+                           const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                              i,
+                                                                                              bl,
+                                                                                              tr );
+                           const value_type dx = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                              i,
+                                                                                              bl,
+                                                                                              tr );
+                           core::vector2f vect = rotationInv( core::vector2f( (float)dx, (float)dy ) );
+
+                           dxm  += vect[ 0 ];
+                           dym  += vect[ 1 ];
+                           adxm += fabs( vect[ 0 ] );
+                           adym += fabs( vect[ 1 ] );
+                           ++nbPoints;
+                        }
+                     }
+                  }
+               }
+            }
+
+            if ( nbPoints )
+            {
+               dxm /= nbPoints;
+               dym /= nbPoints;
+            }
+
+            point.features[ 0 ] = dxm;
+            point.features[ 1 ] = dym;
+            point.features[ 2 ] = adxm;
+            point.features[ 3 ] = adym;
          }
+      }
+
+      static value_type gaussian(int x, int y, value_type sig)
+      {
+         return ( 1.0 / ( 2.0 * core::PI * sig * sig ) ) * std::exp( -( x * x + y * y ) / ( 2.0 * sig * sig ) );
       }
 
       /**
        @brief assign a repeable orientation for each point
        */
-      void _computeAngle( const IntegralImage& i, Points& points ) const
+      static void _computeAngle( const IntegralImage& i, Points& points )
       {
          struct LocalPoint
          {
@@ -696,7 +773,7 @@ public:
             const algorithm::SpeededUpRobustFeatures::Point& t1 = p1[ n1 ];
             const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ n2 ];
 
-            core::vector2f p = tfm( core::vector2f( t2.position[ 0 ], t2.position[ 1 ] ) );
+            core::vector2f p = tfm( core::vector2f( (f32)t2.position[ 0 ], (f32)t2.position[ 1 ] ) );
 
             float dx = p[ 0 ] - t1.position[ 0 ];
             float dy = p[ 1 ] - t1.position[ 1 ];
@@ -727,8 +804,8 @@ public:
          const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ match[ n ].second ];
 
          const ui32 id2 = match[ n ].second;
-         core::vector2f p( 1000 * cos( t2.orientation ), 
-                           1000 * sin( t2.orientation ) );
+         core::vector2f p( (f32)( 1000 * cos( t2.orientation ) ), 
+                           (f32)( 1000 * sin( t2.orientation ) ) );
          core::vector2f pTfm = tfm( p );
          const double a1 = algorithm::impl::getAngle(  pTfm[ 0 ], pTfm[ 1 ] );
          if ( fabs( a1 - t1.orientation ) < tol )
@@ -743,7 +820,30 @@ public:
    void testBasic()
    {
       // init
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf3.bmp" );
+
+      core::Image<ui8> output;
+      output.clone( image );
+
+      TESTER_ASSERT( image.sizex() );
+      core::decolor( image );
+
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00031 );
+
+      nll::core::Timer timer;
+      algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
+      std::cout << "done=" << timer.getCurrentTime() << std::endl;
+
+      std::cout << "nbPOints=" << points1.size() << std::endl;
+
+      printPoints( output, points1 );
+      core::writeBmp( output, "c:/tmp/o.bmp" );
+   }
+
+   void testRepeatability()
+   {
+      // init
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sq1.bmp" );
 
       core::Image<ui8> output;
       output.clone( image );
@@ -751,7 +851,7 @@ public:
       core::Image<ui8> image2;
       image2.clone( image );
 
-      core::TransformationRotation tfm( 0.1, core::vector2f( 0, 10 ) );
+      core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
       core::transformUnaryFast( image2, tfm );
 
       core::Image<ui8> output2;
@@ -761,7 +861,7 @@ public:
       core::decolor( image );
       core::decolor( image2 );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0011 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00071 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
@@ -793,5 +893,6 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf);
 TESTER_TEST(testBasic);
+//TESTER_TEST(testRepeatability);
 TESTER_TEST_SUITE_END();
 #endif
