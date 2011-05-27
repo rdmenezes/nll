@@ -479,11 +479,7 @@ namespace algorithm
             // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
-            const float scale = static_cast<float>( scaleFactor * point.scale );
-
-            // computes the rotation factor according to the feature orientation
-            const core::TransformationRotation rotation( (float)point.orientation, core::vector2f( 0, 0 ) );
-            const core::TransformationRotation rotationInv( (float)-point.orientation, core::vector2f( 0, 0 ) );
+            /*const*/ float scale = static_cast<float>( scaleFactor * point.scale );
 
             // features for this point : mean(dx) mean(dy) mean(|dx|) and mean(|dy|)
             value_type dxm = 0;
@@ -491,6 +487,17 @@ namespace algorithm
             value_type adxm = 0;
             value_type adym = 0;
             ui32 nbPoints;
+
+            //point.orientation = 0; // TODO REMOVE
+            //scale  = 2; // TODO REMOVE
+
+            //std::cout << "pos=" << point.position << std::endl;
+            //std::cout << "scale=" << scale << std::endl;
+            //std::cout << "angle=" << point.orientation << std::endl;
+
+            // computes the rotation factor according to the feature orientation
+            const core::TransformationRotation rotation( (float)point.orientation, core::vector2f( 0, 0 ) );
+            const core::TransformationRotation rotationInv( (float)-point.orientation, core::vector2f( 0, 0 ) );
 
             // the haar feature must be of size 2 * scale, but we the point (x, y) is not centered
             const float haarHalfDistMin = scale / 2;
@@ -505,12 +512,18 @@ namespace algorithm
                         // rotated point according to the descriptor
                         const value_type gauss = gaussian( x, y, 3.3 ); // TODO check this variance
                         core::vector2f pr = rotation( core::vector2f( x * scale, y * scale ) );
+
+                        //std::cout << "x,y=" << x << y << std::endl;
+                        //std::cout << "rotated scaled x, y=" << pr << std::endl;
+
                         pr[ 0 ] += point.position[ 0 ];
                         pr[ 1 ] += point.position[ 1 ];
 
                         // computes the coordinates
                         core::vector2ui bl( core::round( pr[ 0 ] - haarHalfDistMin ), core::round( pr[ 1 ] - haarHalfDistMin ) );
-                        core::vector2ui tr( bl[ 0 ] + 2, bl[ 1 ] + 2 );
+                        core::vector2ui tr( bl[ 0 ] + 2 * scale, bl[ 1 ] + 2 * scale);
+
+                        //std::cout << "corner=" << std::endl << bl << tr << std::endl;
                         if ( bl[ 0 ] < i.sizex() && bl[ 1 ] < i.sizey() &&
                              tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
                         {
@@ -523,7 +536,9 @@ namespace algorithm
                                                                                               i,
                                                                                               bl,
                                                                                               tr );
-                           core::vector2f vect = rotationInv( core::vector2f( (float)dx, (float)dy ) );
+
+                           // rotate the features to have the correct alignment
+                           core::vector2f vect = rotationInv( core::vector2f( (float)dx, (float)dy ) ); // TODO check inv or not?
 
                            dxm  += vect[ 0 ];
                            dym  += vect[ 1 ];
@@ -536,16 +551,22 @@ namespace algorithm
                }
             }
 
+            /*
             if ( nbPoints )
             {
                dxm /= nbPoints;
                dym /= nbPoints;
-            }
+            }*/
 
-            point.features[ 0 ] = dxm;
-            point.features[ 1 ] = dym;
-            point.features[ 2 ] = adxm;
-            point.features[ 3 ] = adym;
+            value_type norm = sqrt( dxm  * dxm  +
+                                    dym  * dym  +
+                                    adxm * adxm +
+                                    adym * adym ) + 1e-7;
+
+            point.features[ 0 ] = dxm  / norm;
+            point.features[ 1 ] = dym  / norm;
+            point.features[ 2 ] = adxm / norm;
+            point.features[ 3 ] = adym / norm;
          }
       }
 
@@ -555,7 +576,11 @@ namespace algorithm
       }
 
       /**
-       @brief assign a repeable orientation for each point
+       @brief assign a repeable orientation for each point       
+
+         The dominant orientation is determined for each SURF 
+         key point in order to guarantee the invariance of feature 
+         description to image rotatio
        */
       static void _computeAngle( const IntegralImage& i, Points& points )
       {
@@ -828,7 +853,7 @@ public:
       TESTER_ASSERT( image.sizex() );
       core::decolor( image );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00031 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0001 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
