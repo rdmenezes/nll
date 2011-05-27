@@ -4,7 +4,7 @@
 
 using namespace nll;
 
-//#define NLL_ALGORITHM_SURF_NO_OPENMP
+#define NLL_ALGORITHM_SURF_NO_OPENMP
 
 namespace nll
 {
@@ -466,6 +466,15 @@ namespace algorithm
    private:
       void _computeFeatures( const IntegralImage& i, Points& points ) const
       {
+         ui32 nbPoints = static_cast<ui32>( points.size() );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            // computes the rotation factor according to the feature orientation
+            const double co = cos( points[ n ].orientation );
+            const double si = sin( points[ n ].orientation );
+
+
+         }
       }
 
       /**
@@ -499,14 +508,16 @@ namespace algorithm
          // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
          // so for a filter of size X, sigma = 1.2 / 9 * X
          static const value_type scaleFactor = 1.2 / 9;
+         const int nbPoints = static_cast<int>( points.size() );
 
          #ifndef NLL_ALGORITHM_SURF_NO_OPENMP
          # pragma omp parallel for
          #endif
-         for ( int n = 0; n < points.size(); ++n )
+         for ( int n = 0; n < nbPoints; ++n )
          {
             const Point& point = points[ n ];
             const int scale = core::round( scaleFactor * point.scale );
+            //std::cout << "scale=" << scale << std::endl;
 
             std::vector<LocalPoint> localPoints;
             localPoints.reserve( 109 );
@@ -539,12 +550,34 @@ namespace algorithm
                }
             }
            
+            const int nbLocalPoints = static_cast<int>( localPoints.size() );
+
+            
+            //
+            // TODO check: simple averaging seems better...
+            //
+            double dx = 0;
+            double dy = 0;
+            for ( int nn = 0; nn < nbLocalPoints; ++nn )
+            {
+               dx += localPoints[ nn ].dx;
+               dy += localPoints[ nn ].dy;
+            }
+            if ( nbLocalPoints )
+            {
+               dx /= nbLocalPoints;
+               dy /= nbLocalPoints;
+            }
+            points[ n ].orientation = impl::getAngle( dx, dy );
+            
+            /*
+            //
+            // TODO check: implementation following the paper... but seems not as good as the simple one!!
+            //
             const double step = 0.15;
             const double window = 0.3 * core::PI;
             double best_angle = 0;
             double best_norm = 0;
-            const int nbLocalPoints = static_cast<int>( localPoints.size() );
-
             for ( double angleMin = 0 ; angleMin < core::PI * 2; angleMin += step )
             {
                double dx = 0;
@@ -556,7 +589,7 @@ namespace algorithm
 
                for ( int nn = 0; nn < nbLocalPoints; ++nn )
                {
-                  double startAngle = localPoints[ nn ].angle;
+                  const double startAngle = localPoints[ nn ].angle;
                   if ( _isInside( startAngle, angleMin, angleMax ) )
                   {
                      dx += localPoints[ nn ].dx;
@@ -583,7 +616,7 @@ namespace algorithm
             if ( best_norm > 0 )
             {
                points[ n ].orientation = best_angle;
-            }
+            }*/
          }
       }
 
@@ -618,28 +651,9 @@ namespace algorithm
 class TestSurf
 {
 public:
-   void testBasic()
+
+   void printPoints( core::Image<ui8>& output, algorithm::SpeededUpRobustFeatures::Points& points )
    {
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf3.bmp" );
-      core::Image<ui8> output;
-      output.clone( image );
-
-      TESTER_ASSERT( image.sizex() );
-      core::decolor( image );
-
-//      core::extend( image, 3 );
-//      core::writeBmp( image, NLL_TEST_PATH "data/feature/sf2.bmp" );
-
-      std::cout << "start computatio=" << std::endl;
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00061 );
-      //algorithm::SpeededUpRobustFeatures surf( 5, 7, 2, 0.0031 );
-
-      nll::core::Timer timer;
-      algorithm::SpeededUpRobustFeatures::Points points = surf.computesFeatures( image );
-      std::cout << "done=" << timer.getCurrentTime() << std::endl;
-
-      std::cout << "nbPOints=" << points.size() << std::endl;
-
       for ( ui32 n = 0; n < points.size(); ++n )
       {
          ui32 px = points[ n ].position[ 0 ];
@@ -647,8 +661,8 @@ public:
          ui32 scale = points[ n ].scale;
          ui32 half = scale / 2;
 
-         int dx = cos( points[ n ].orientation ) * half;
-         int dy = sin( points[ n ].orientation ) * half;
+         int dx = (int)(cos( points[ n ].orientation ) * half);
+         int dy = (int)(sin( points[ n ].orientation ) * half);
          if ( px > 5 &&
               py > 5 &&
               px + dx < output.sizex() - 1 &&
@@ -658,12 +672,121 @@ public:
          {
             core::bresham( output, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
             core::bresham( output, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
-            core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + dx, py + dy), core::vector3uc(255, 0, 0) );
+            core::bresham( output, core::vector2i( px, py ),     core::vector2i( px + dx, py + dy), core::vector3uc(0, 0, 255) );
          }
+      }
+   }
 
+   /**
+    @brief the similarity can be greater than 1 if the points are clustered with a distance < tolPixel
+    */
+   template <class Transformation>
+   std::vector< std::pair<ui32, ui32> > getRepeatablePointPosition( const algorithm::SpeededUpRobustFeatures::Points& p1,
+                                                                    const algorithm::SpeededUpRobustFeatures::Points& p2,
+                                                                    const Transformation& tfm,
+                                                                    double tolPixel )
+   {
+      std::vector< std::pair<ui32, ui32> > index;
+      const double tolPixel2 = tolPixel * tolPixel;
+
+      for ( ui32 n1 = 0; n1 < (ui32)p1.size(); ++n1 )
+      {
+         for ( ui32 n2 = 0; n2 < (ui32)p2.size(); ++n2 )
+         {
+            const algorithm::SpeededUpRobustFeatures::Point& t1 = p1[ n1 ];
+            const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ n2 ];
+
+            core::vector2f p = tfm( core::vector2f( t2.position[ 0 ], t2.position[ 1 ] ) );
+
+            float dx = p[ 0 ] - t1.position[ 0 ];
+            float dy = p[ 1 ] - t1.position[ 1 ];
+            double d = dx * dx + dy * dy;
+            if ( d < tolPixel2 )
+            {
+               index.push_back( std::make_pair( n1, n2 ) );
+               break;
+            }
+         }
       }
 
+      return index;
+   }
+
+   template <class Transformation>
+   std::vector< ui32 > getRepeatablePointOrientation( const std::vector< std::pair<ui32, ui32> >& match,
+                                                      const algorithm::SpeededUpRobustFeatures::Points& p1,
+                                                      const algorithm::SpeededUpRobustFeatures::Points& p2,
+                                                      const Transformation& tfm,
+                                                      double tol )
+   {
+
+      std::vector< ui32 > matchOrientation;
+      for ( ui32 n = 0; n < (ui32)match.size(); ++n )
+      {
+         const algorithm::SpeededUpRobustFeatures::Point& t1 = p1[ match[ n ].first ];
+         const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ match[ n ].second ];
+
+         const ui32 id2 = match[ n ].second;
+         core::vector2f p( 1000 * cos( t2.orientation ), 
+                           1000 * sin( t2.orientation ) );
+         core::vector2f pTfm = tfm( p );
+         const double a1 = algorithm::impl::getAngle(  pTfm[ 0 ], pTfm[ 1 ] );
+         if ( fabs( a1 - t1.orientation ) < tol )
+         {
+            matchOrientation.push_back( n );
+         }
+      }
+
+      return matchOrientation;
+   }
+
+   void testBasic()
+   {
+      // init
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+
+      core::Image<ui8> output;
+      output.clone( image );
+
+      core::Image<ui8> image2;
+      image2.clone( image );
+
+      core::TransformationRotation tfm( 0.1, core::vector2f( 0, 10 ) );
+      core::transformUnaryFast( image2, tfm );
+
+      core::Image<ui8> output2;
+      output2.clone( image2 );
+
+      TESTER_ASSERT( image.sizex() );
+      core::decolor( image );
+      core::decolor( image2 );
+
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0011 );
+
+      nll::core::Timer timer;
+      algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
+      std::cout << "done=" << timer.getCurrentTime() << std::endl;
+
+      nll::core::Timer timer2;
+      algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( image2 );
+      std::cout << "done2=" << timer2.getCurrentTime() << std::endl;
+
+      std::cout << "nbPOints=" << points1.size() << std::endl;
+      std::cout << "nbPOints=" << points2.size() << std::endl;
+
+      std::vector< std::pair<ui32, ui32> > repeatablePointIndex = getRepeatablePointPosition( points1, points2, tfm, 4);
+      std::cout << "similarity=" << (double)repeatablePointIndex.size() / std::max( points1.size(), points2.size() ) << std::endl;
+
+      std::vector< ui32 > orientation = getRepeatablePointOrientation( repeatablePointIndex, points1, points2, tfm, 0.3 );
+      std::cout << "repeatable orientation=" << (double)orientation.size() / repeatablePointIndex.size() << std::endl;
+
+      
+
+      printPoints( output, points1 );
       core::writeBmp( output, "c:/tmp/o.bmp" );
+
+      printPoints( output2, points2 );
+      core::writeBmp( output2, "c:/tmp/o2.bmp" );
    }
 };
 

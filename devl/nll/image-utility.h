@@ -563,8 +563,8 @@ namespace core
          {
             for ( ui32 col = 0; col < i.getNbComponents(); ++col )
             {
-               it.addcol();
                *it = color[ col ];
+               it.addcol();
             }
             error -= deltay;
             if ( error < 0 )
