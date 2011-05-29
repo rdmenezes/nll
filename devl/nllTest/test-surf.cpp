@@ -486,7 +486,6 @@ namespace algorithm
             value_type dym = 0;
             value_type adxm = 0;
             value_type adym = 0;
-            ui32 nbPoints;
 
             //point.orientation = 0; // TODO REMOVE
             //scale  = 2; // TODO REMOVE
@@ -544,7 +543,6 @@ namespace algorithm
                            dym  += vect[ 1 ];
                            adxm += fabs( vect[ 0 ] );
                            adym += fabs( vect[ 1 ] );
-                           ++nbPoints;
                         }
                      }
                   }
@@ -845,7 +843,7 @@ public:
    void testBasic()
    {
       // init
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf3.bmp" );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
 
       core::Image<ui8> output;
       output.clone( image );
@@ -853,7 +851,7 @@ public:
       TESTER_ASSERT( image.sizex() );
       core::decolor( image );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.0001 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.001 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
@@ -868,7 +866,7 @@ public:
    void testRepeatability()
    {
       // init
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sq1.bmp" );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
 
       core::Image<ui8> output;
       output.clone( image );
