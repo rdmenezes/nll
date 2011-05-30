@@ -82,7 +82,7 @@ public:
          double a, b;
          std::vector< std::pair<ui32, ui32> > points;
 
-         generateLine( size, outliers, 500, 8.5, points, a, b );
+         generateLine( size, outliers, 100, 8.5, points, a, b );
          printPoints( i, points );
 
 
@@ -94,11 +94,11 @@ public:
             pointsTfm.push_back( core::make_vector<double>( points[ nn ].first, points[ nn ].second ) );
          }
          algorithm::Ransac< algorithm::LineEstimator<Point> > estimator;
-         algorithm::LineEstimator<Point>::Model model = estimator.estimate( pointsTfm, 3, 100, 1e-4 );
+         algorithm::LineEstimator<Point>::Model model = estimator.estimate( pointsTfm, 3, 500, 1e-4 );
          printModel<Point>( i, model );
 
          std::cout << "Estimated Model=" << model.a << " " << model.b << std::endl;
-         core::writeBmp( i, "c:/tmp/test" + core::val2str( n ) + ".bmp" );
+         core::writeBmp( i, NLL_TEST_PATH "data/test" + core::val2str( n ) + ".bmp" );
 
          TESTER_ASSERT( fabs( model.a - a ) / a < 0.1 );
          TESTER_ASSERT( fabs( model.b - b ) / b < 0.1 );
