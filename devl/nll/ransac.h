@@ -94,13 +94,17 @@ namespace algorithm
 
          Model                   bestModel;
          std::vector<ui32>       bestSubset;      // just save a reference, faster than copy the actual point...
-         std::vector<ui32>       currentSubset;
-         core::Buffer1D<Point>   initialSubset( minimalSample );
 
-         currentSubset.reserve( points.size() );
          const ui32 nbPoint = static_cast<ui32>( points.size() );
-         for ( ui32 n = 0; n < numberOfSubsets; ++n )
+
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
+            core::Buffer1D<Point>   initialSubset( minimalSample );
+            std::vector<ui32>       currentSubset;
+            currentSubset.reserve( points.size() );
             Estimator estimator = EstimatorFactory::create();
 
             for ( ui32 nn = 0; nn < minimalSample; ++nn )
@@ -113,6 +117,7 @@ namespace algorithm
             }
             estimator.estimate( initialSubset );
 
+
             for ( ui32 nn = 0; nn < nbPoint; ++nn )
             {
                // compute the subset of inliers
@@ -122,20 +127,18 @@ namespace algorithm
                   currentSubset.push_back( nn );
                }
             }
-            if ( currentSubset.size() > bestSubset.size() )
-            {
-               // save the model as it agrees with more points
-               bestModel = estimator.getModel();
-               bestSubset = currentSubset;
-            }
 
+            #ifndef NLL_NOT_MULTITHREADED
+            # pragma omp critical
+            #endif
             {
-               std::stringstream ss;
-               ss << "subset id=" << n << " inlier size=" << currentSubset.size();
-               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+               if ( currentSubset.size() > bestSubset.size() )
+               {
+                  // save the model as it agrees with more points
+                  bestModel = estimator.getModel();
+                  bestSubset = currentSubset;
+               }
             }
-
-            currentSubset.clear();
          }
 
          // now recompute the model parameters with the inlier subset

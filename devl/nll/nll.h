@@ -67,8 +67,8 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.14
- @date 12th January 2011
+ @version 0.15
+ @date 30th May 2011
  */
 
 /// define the version of nll as a string
