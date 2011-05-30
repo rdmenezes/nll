@@ -4,23 +4,12 @@
 
 using namespace nll;
 
-namespace nll
-{
-namespace algorithm
-{
-   template <class Points>
-   class Ransac
-   {
-   };
-}
-}
-
 class TestRansac
 {
 public:
    static void generateLine( ui32 size, double outlier, ui32 nbPoints, double stddev, std::vector< std::pair<ui32, ui32> >& points_out, double& model_a_out, double& model_b_out )
    {
-      ensure( outlier > 0 && outlier < 1, "bad arg" );
+      ensure( outlier >= 0 && outlier < 1, "bad arg" );
       points_out.clear();
       points_out.reserve( nbPoints );
 
@@ -47,7 +36,7 @@ public:
                x = core::generateUniformDistribution( 0, (double)size - 1 );
                y = model_a_out * x + model_b_out + core::generateGaussianDistribution( 0, stddev );
                x += core::generateGaussianDistribution( 0, stddev );
-            } while ( y >= (double)size );
+            } while ( y >= (double)size || y <= 0 );
             points_out.push_back( std::make_pair( x, y ) );
          }
       }
@@ -59,7 +48,7 @@ public:
       {
          const std::pair<ui32, ui32>& p = points[ n ];
          if ( p.first + 5 < i.sizex() && p.second +5 < i.sizey() &&
-              p.first > 5 && p.second > 5 )
+              p.first > 5 &&             p.second > 5 )
          {
             core::bresham( i, core::vector2i( p.first - 4, p.second ), core::vector2i( p.first + 4, p.second ), core::vector3uc( 255, 0, 0 ) );
             core::bresham( i, core::vector2i( p.first, p.second - 4 ), core::vector2i( p.first, p.second + 4 ), core::vector3uc( 255, 0, 0 ) );
@@ -67,21 +56,53 @@ public:
       }
    }
 
+   template <class Type>
+   static void printModel( core::Image<ui8>& i, const typename algorithm::LineEstimator<Type>::Model& m )
+   {
+      const core::vector2i bl( 0, m.b );
+      const core::vector2i tr( i.sizex() / 2, m.b + m.a * i.sizex() / 2 );
+
+      if ( tr[ 1 ] > 0 && tr[ 1 ] < i.sizey() )
+      {
+         core::bresham( i, bl, tr, core::vector3uc( 0, 255, 0 ) );
+      }
+   }
+
+
    void testRobustLineFitting()
    {
-      int x = time( 0 );
-      std::cout << x << std::endl;
-      srand( x );
-      rand();
       const ui32 size = 512;
-      const double outliers = 0.3;
-      core::Image<ui8> i( size, size, 3 );
-      double a, b;
-      std::vector< std::pair<ui32, ui32> > points;
+      const double outliers = 0.5;
+      typedef std::vector<double> Point;
+      srand( 1 );
 
-      generateLine( size, outliers, 100, 4.5, points, a, b );
-      printPoints( i, points );
-      core::writeBmp( i, "c:/tmp/test.bmp" );
+      for ( ui32 n = 0; n < 40; ++n )
+      {
+         core::Image<ui8> i( size, size, 3 );
+         double a, b;
+         std::vector< std::pair<ui32, ui32> > points;
+
+         generateLine( size, outliers, 500, 8.5, points, a, b );
+         printPoints( i, points );
+
+
+         std::cout << "Model=" << a << " " << b << std::endl;
+
+         std::vector< Point > pointsTfm;
+         for ( ui32 nn = 0; nn < points.size(); ++nn )
+         {
+            pointsTfm.push_back( core::make_vector<double>( points[ nn ].first, points[ nn ].second ) );
+         }
+         algorithm::Ransac< algorithm::LineEstimator<Point> > estimator;
+         algorithm::LineEstimator<Point>::Model model = estimator.estimate( pointsTfm, 3, 100, 1e-4 );
+         printModel<Point>( i, model );
+
+         std::cout << "Estimated Model=" << model.a << " " << model.b << std::endl;
+         core::writeBmp( i, "c:/tmp/test" + core::val2str( n ) + ".bmp" );
+
+         TESTER_ASSERT( fabs( model.a - a ) / a < 0.1 );
+         TESTER_ASSERT( fabs( model.b - b ) / b < 0.1 );
+      }
    }
 };
 

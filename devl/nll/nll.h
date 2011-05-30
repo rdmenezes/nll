@@ -233,6 +233,7 @@
 # include "mlp.h"
 # include "normalization.h"
 # include "pca.h"
+# include "ransac.h"
 # include "locally-linear-embedding.h"
 # include "sammon-projection.h"
 # include "ica.h"
