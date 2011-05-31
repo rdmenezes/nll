@@ -22,13 +22,13 @@ namespace algorithm
           return atan( y / x );
 
         if( x < 0 && y >= 0)
-           return core::PI - atan( - y / x );
+           return core::PIf - atan( - y / x );
 
         if( x < 0 && y < 0)
-           return core::PI + atan( y / x );
+           return core::PIf + atan( y / x );
 
         if( x > 0 && y < 0 )
-           return 2 * core::PI - atan( -y / x );
+           return 2 * core::PIf - atan( -y / x );
 
         return 0;
       }
@@ -322,16 +322,43 @@ namespace algorithm
    public:
       struct Point
       {
+         typedef core::Buffer1D<value_type> Features;
          Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 4 )
          {}
 
-         core::Buffer1D<value_type> features;
+         Features                   features;
          value_type                 orientation;
          core::vector2i             position;
          ui32                       scale;
       };
 
       typedef core::Buffer1D<Point> Points;
+
+      /**
+       @brief Expose the <point>'s <features> array as if it was stored as an array only
+       */
+      class ConstPointsFeatureWrapper
+      {
+      public:
+         typedef core::Buffer1D<SpeededUpRobustFeatures::value_type>  value_type;
+
+      public:
+         ConstPointsFeatureWrapper( const Points& points ) : _points( points )
+         {}
+
+         ui32 size() const
+         {
+            return _points.size();
+         }
+
+         const core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
+         {
+            return _points[ n ].features;
+         }
+
+      private:
+         const Points& _points;
+      };
 
       /**
        @brief Construct SURF
@@ -464,7 +491,7 @@ namespace algorithm
       }
 
    private:
-      void _computeFeatures( const IntegralImage& i, Points& points ) const
+      void _computeFeatures( const IntegralImage& i, Points& points, bool normalizeFeatures = true ) const
       {
          int nbPoints = static_cast<ui32>( points.size() );
 
@@ -487,6 +514,9 @@ namespace algorithm
             value_type adxm = 0;
             value_type adym = 0;
 
+            const double co = cos( point.orientation );
+            const double si = sin( point.orientation );
+
             //point.orientation = 0; // TODO REMOVE
             //scale  = 2; // TODO REMOVE
 
@@ -495,8 +525,8 @@ namespace algorithm
             //std::cout << "angle=" << point.orientation << std::endl;
 
             // computes the rotation factor according to the feature orientation
-            const core::TransformationRotation rotation( (float)point.orientation, core::vector2f( 0, 0 ) );
-            const core::TransformationRotation rotationInv( (float)-point.orientation, core::vector2f( 0, 0 ) );
+            //const core::TransformationRotation rotation( (float)-point.orientation, core::vector2f( 0, 0 ) );
+            //const core::TransformationRotation rotationInv( (float)point.orientation, core::vector2f( 0, 0 ) );
 
             // the haar feature must be of size 2 * scale, but we the point (x, y) is not centered
             const float haarHalfDistMin = scale / 2;
@@ -509,8 +539,9 @@ namespace algorithm
                      for ( int x = c; x < c + 5; ++x )
                      {
                         // rotated point according to the descriptor
-                        const value_type gauss = gaussian( x, y, 3.3 ); // TODO check this variance
-                        core::vector2f pr = rotation( core::vector2f( x * scale, y * scale ) );
+                        const value_type gauss = gaussian( x, y, 10 ); // TODO check this variance
+                        core::vector2f pr = core::vector2f( x * scale * co - y * scale * si,
+                                                            x * scale * si + y * scale * co );
 
                         //std::cout << "x,y=" << x << y << std::endl;
                         //std::cout << "rotated scaled x, y=" << pr << std::endl;
@@ -522,6 +553,8 @@ namespace algorithm
                         core::vector2ui bl( core::round( pr[ 0 ] - haarHalfDistMin ), core::round( pr[ 1 ] - haarHalfDistMin ) );
                         core::vector2ui tr( bl[ 0 ] + 2 * scale, bl[ 1 ] + 2 * scale);
 
+                        const int size = (int)( 2 * scale ) * (int)( 2 * scale );
+
                         //std::cout << "corner=" << std::endl << bl << tr << std::endl;
                         if ( bl[ 0 ] < i.sizex() && bl[ 1 ] < i.sizey() &&
                              tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
@@ -530,14 +563,16 @@ namespace algorithm
                            const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
                                                                                               i,
                                                                                               bl,
-                                                                                              tr );
+                                                                                              tr ) / size;
                            const value_type dx = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
                                                                                               i,
                                                                                               bl,
-                                                                                              tr );
+                                                                                              tr ) / size;
 
                            // rotate the features to have the correct alignment
-                           core::vector2f vect = rotationInv( core::vector2f( (float)dx, (float)dy ) ); // TODO check inv or not?
+                           core::vector2f vect = core::vector2f( dy * scale * co - dx * scale * si,
+                                                                 dy * scale * si + dx * scale * co );
+                           //core::vector2f vect = rotationInv( core::vector2f( (float)dx, (float)dy ) ); // TODO check inv or not?
 
                            dxm  += vect[ 0 ];
                            dym  += vect[ 1 ];
@@ -549,15 +584,23 @@ namespace algorithm
                }
             }
 
-            value_type norm = sqrt( dxm  * dxm  +
-                                    dym  * dym  +
-                                    adxm * adxm +
-                                    adym * adym ) + 1e-7;
+            value_type norm;
+            if ( normalizeFeatures )
+            {
+               norm = sqrt( dxm  * dxm  +
+                            dym  * dym  +
+                            adxm * adxm +
+                            adym * adym ) + 1e-7;
+            } else {
+               norm = 1;
+            }
 
             point.features[ 0 ] = dxm  / norm;
             point.features[ 1 ] = dym  / norm;
             point.features[ 2 ] = adxm / norm;
             point.features[ 3 ] = adym / norm;
+
+            //point.features.print( std::cout );
          }
       }
 
@@ -649,6 +692,7 @@ namespace algorithm
             //
             // TODO check: simple averaging seems better...
             //
+         
             double dx = 0;
             double dy = 0;
             for ( int nn = 0; nn < nbLocalPoints; ++nn )
@@ -738,6 +782,60 @@ namespace algorithm
       std::vector<ui32> _filterSteps;
       value_type _threshold;
    };
+
+   /**
+    @brief Find match in two sets of points using a simple kd-tree
+    */
+   class FeatureMatcher
+   {
+   public:
+      struct Match
+      {
+         Match( ui32 i1, ui32 i2, double d ) : index1( i1 ), index2( i2 ), dist( d )
+         {}
+
+         bool operator<( const Match& m ) const
+         {
+            return dist < m.dist;
+         }
+
+         ui32     index1;
+         ui32     index2;
+         double   dist;
+      };
+      typedef std::vector< Match >  Matches;
+
+      template <class Points>
+      void findMatch( const Points& points1, const Points& points2, Matches& matches, double maxError ) const
+      {
+         typedef typename Points::value_type    Point;
+         typedef algorithm::KdTree< Point, MetricEuclidian<Point>, 5, Points >  KdTree;
+         matches.clear();
+
+         if ( points1.size() == 0 )
+            return;
+         const ui32 nbFeatures = points1[ 0 ].size();
+         const float maxErrorf = static_cast<float>( maxError );
+
+         KdTree tree;
+         tree.build( points2, nbFeatures );
+
+         for ( ui32 n = 0; n < points1.size(); ++n )
+         {
+            KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], 1 );
+            if ( list.size() )
+            {
+               const float d = list.begin()->dist;
+               if ( d < maxErrorf )
+               {
+                  matches.push_back( Match( n, list.begin()->id, d ) );
+               }
+            }
+         }
+
+         std::sort( matches.begin(), matches.end() );
+      }
+   };
 }
 }
 
@@ -819,7 +917,7 @@ public:
          const algorithm::SpeededUpRobustFeatures::Point& t1 = p1[ match[ n ].first ];
          const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ match[ n ].second ];
 
-         const ui32 id2 = match[ n ].second;
+         //const ui32 id2 = match[ n ].second;
          core::vector2f p( (f32)( 1000 * cos( t2.orientation ) ), 
                            (f32)( 1000 * sin( t2.orientation ) ) );
          core::vector2f pTfm = tfm( p );
@@ -831,6 +929,44 @@ public:
       }
 
       return matchOrientation;
+   }
+
+   void composeMatch( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output,
+                      const algorithm::SpeededUpRobustFeatures::Points& p1,
+                      const algorithm::SpeededUpRobustFeatures::Points& p2,
+                      const algorithm::FeatureMatcher::Matches& matches )
+   {
+      output = core::Image<ui8>( i1.sizex() + i2.sizex(),
+                                 std::max( i1.sizey(), i2.sizey() ),
+                                 3 );
+      for ( ui32 y = 0; y < i1.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i1.sizex(); ++x )
+         {
+            output( x, y, 0 ) = i1( x, y, 0 );
+            output( x, y, 1 ) = i1( x, y, 1 );
+            output( x, y, 2 ) = i1( x, y, 2 );
+         }
+      }
+
+      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         {
+            output( x + i1.sizex(), y, 0 ) = i2( x, y, 0 );
+            output( x + i1.sizex(), y, 1 ) = i2( x, y, 1 );
+            output( x + i1.sizex(), y, 2 ) = i2( x, y, 2 );
+         }
+      }
+
+      for ( ui32 n = 0; n < 50; ++n )
+      //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
+      {
+         std::cout << "d=" << matches[ n ].dist << std::endl;
+         const algorithm::SpeededUpRobustFeatures::Point& f1 = p1[ matches[ n ].index1 ];
+         const algorithm::SpeededUpRobustFeatures::Point& f2 = p2[ matches[ n ].index2 ];
+         core::bresham( output, f1.position, core::vector2i( f2.position[ 0 ] + i1.sizex(), f2.position[ 1 ] ), core::vector3uc( rand() % 255, rand() % 255, rand() % 255 ) );
+      }
    }
 
    void testBasic()
@@ -859,7 +995,7 @@ public:
    void testRepeatability()
    {
       // init
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sq1.bmp" );
 
       core::Image<ui8> output;
       output.clone( image );
@@ -870,6 +1006,9 @@ public:
       core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
       core::transformUnaryFast( image2, tfm );
 
+      core::writeBmp( image, "c:/tmp/oi1.bmp" );
+      core::writeBmp( image2, "c:/tmp/oi2.bmp" );
+
       core::Image<ui8> output2;
       output2.clone( image2 );
 
@@ -877,7 +1016,7 @@ public:
       core::decolor( image );
       core::decolor( image2 );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00071 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00081 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
@@ -896,6 +1035,17 @@ public:
       std::vector< ui32 > orientation = getRepeatablePointOrientation( repeatablePointIndex, points1, points2, tfm, 0.3 );
       std::cout << "repeatable orientation=" << (double)orientation.size() / repeatablePointIndex.size() << std::endl;
 
+      // match points
+      algorithm::SpeededUpRobustFeatures::ConstPointsFeatureWrapper p1Wrapper( points1 );
+      algorithm::SpeededUpRobustFeatures::ConstPointsFeatureWrapper p2Wrapper( points2 );
+
+      core::Timer matchingTimer;
+      algorithm::FeatureMatcher matcher;
+      std::cout << "maching time=" << matchingTimer.getCurrentTime() << std::endl;
+
+      algorithm::FeatureMatcher::Matches matches;
+      matcher.findMatch( p1Wrapper, p2Wrapper, matches, 10.021 );
+      std::cout << "nb match=" << matches.size() << std::endl;
       
 
       printPoints( output, points1 );
@@ -903,12 +1053,16 @@ public:
 
       printPoints( output2, points2 );
       core::writeBmp( output2, "c:/tmp/o2.bmp" );
+
+      core::Image<ui8> output3;
+      composeMatch( output, output2, output3, points1, points2, matches );
+      core::writeBmp( output3, "c:/tmp/o3.bmp" );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf);
-TESTER_TEST(testBasic);
-//TESTER_TEST(testRepeatability);
+//TESTER_TEST(testBasic);
+TESTER_TEST(testRepeatability);
 TESTER_TEST_SUITE_END();
 #endif
