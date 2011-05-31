@@ -323,7 +323,7 @@ namespace algorithm
       struct Point
       {
          typedef core::Buffer1D<value_type> Features;
-         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 4 )
+         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 64 )
          {}
 
          Features                   features;
@@ -491,7 +491,8 @@ namespace algorithm
       }
 
    private:
-      void _computeFeatures( const IntegralImage& i, Points& points, bool normalizeFeatures = true ) const
+      
+      void _computeFeatures( const IntegralImage& image, Points& points, bool normalizeFeatures = true ) const
       {
          int nbPoints = static_cast<ui32>( points.size() );
 
@@ -500,107 +501,106 @@ namespace algorithm
          #endif
          for ( int n = 0; n < nbPoints; ++n )
          {
+            int y, x, sample_x, sample_y, count=0;
+            int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
+            value_type dx, dy, mdx, mdy, co, si;
+            value_type gauss_s1 = 0, gauss_s2 = 0;
+            value_type rx = 0, ry = 0, rrx = 0, rry = 0, len = 0;
+            value_type cx = -0.5, cy = 0; //Subregion centers for the 4x4 gaussian weighting
             Point& point = points[ n ];
 
             // this constant is to find the gaussian's sigma
             // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
-            /*const*/ float scale = static_cast<float>( scaleFactor * point.scale );
-
-            // features for this point : mean(dx) mean(dy) mean(|dx|) and mean(|dy|)
-            value_type dxm = 0;
-            value_type dym = 0;
-            value_type adxm = 0;
-            value_type adym = 0;
-
-            const double co = cos( point.orientation );
-            const double si = sin( point.orientation );
-
-            //point.orientation = 0; // TODO REMOVE
-            //scale  = 2; // TODO REMOVE
-
-            //std::cout << "pos=" << point.position << std::endl;
-            //std::cout << "scale=" << scale << std::endl;
-            //std::cout << "angle=" << point.orientation << std::endl;
-
-            // computes the rotation factor according to the feature orientation
-            //const core::TransformationRotation rotation( (float)-point.orientation, core::vector2f( 0, 0 ) );
-            //const core::TransformationRotation rotationInv( (float)point.orientation, core::vector2f( 0, 0 ) );
-
-            // the haar feature must be of size 2 * scale, but we the point (x, y) is not centered
+            float scale = static_cast<float>( scaleFactor * point.scale );
+            const int size = (int)( 2 * scale ) * (int)( 2 * scale );
             const float haarHalfDistMin = scale / 2;
-            for ( int r = -10; r < 10; r += 5 )
+
+            x = core::round( point.position[ 0 ] );
+            y = core::round( point.position[ 1 ] );
+
+            co = (float)cos( point.orientation);
+            si = (float)sin( point.orientation);
+
+            i = -8;
+
+            //Calculate descriptor for this interest point
+            while( i < 12 )
             {
-               for ( int c = -10; c < 10; c += 5 )
+               j = -8;
+               i = i-4;
+
+               cx += 1.f;
+               cy = -0.5f;
+
+               while( j < 12 ) 
                {
-                  for ( int y = r; y < r + 5; ++y )
+                  dx= dy = mdx = mdy = 0;
+                  cy += 1;
+
+                  j = j - 4;
+
+                  ix = i + 5;
+                  jx = j + 5;
+
+                  xs = core::round( x + ( -jx * scale * si + ix * scale * co ) );
+                  ys = core::round( y + (  jx * scale * co + ix * scale * si ) );
+
+                  for ( int k = i; k < i + 9; ++k ) 
                   {
-                     for ( int x = c; x < c + 5; ++x )
+                     for ( int l = j; l < j + 9; ++l ) 
                      {
-                        // rotated point according to the descriptor
-                        const value_type gauss = gaussian( x, y, 10 ); // TODO check this variance
-                        core::vector2f pr = core::vector2f( x * scale * co - y * scale * si,
-                                                            x * scale * si + y * scale * co );
+                        //Get coords of sample point on the rotated axis
+                        sample_x = core::round( x + ( -l * scale * si + k * scale * co ) );
+                        sample_y = core::round( y + (  l * scale * co + k * scale * si ) );
 
-                        //std::cout << "x,y=" << x << y << std::endl;
-                        //std::cout << "rotated scaled x, y=" << pr << std::endl;
+                        //Get the gaussian weighted x and y responses
+                        gauss_s1 = gaussian( xs - sample_x, ys - sample_y, 2.5 * scale ); // TODO: do we really need this?
 
-                        pr[ 0 ] += point.position[ 0 ];
-                        pr[ 1 ] += point.position[ 1 ];
-
-                        // computes the coordinates
-                        core::vector2ui bl( core::round( pr[ 0 ] - haarHalfDistMin ), core::round( pr[ 1 ] - haarHalfDistMin ) );
+                        core::vector2ui bl( core::round( sample_x - haarHalfDistMin ),
+                                            core::round( sample_y - haarHalfDistMin ) );
                         core::vector2ui tr( bl[ 0 ] + 2 * scale, bl[ 1 ] + 2 * scale);
 
-                        const int size = (int)( 2 * scale ) * (int)( 2 * scale );
+                        const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                 image,
+                                                                                 bl,
+                                                                                 tr ) / size;
+                        const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                 image,
+                                                                                 bl,
+                                                                                 tr ) / size;
 
-                        //std::cout << "corner=" << std::endl << bl << tr << std::endl;
-                        if ( bl[ 0 ] < i.sizex() && bl[ 1 ] < i.sizey() &&
-                             tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
-                        {
-                           // compute the derivatives
-                           const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                              i,
-                                                                                              bl,
-                                                                                              tr ) / size;
-                           const value_type dx = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                              i,
-                                                                                              bl,
-                                                                                              tr ) / size;
+                        //Get the gaussian weighted x and y responses on rotated axis
+                        rrx = gauss_s1 * ( -rx * si + ry * co);
+                        rry = gauss_s1 * (  rx * co + ry * si);
 
-                           // rotate the features to have the correct alignment
-                           core::vector2f vect = core::vector2f( dy * scale * co - dx * scale * si,
-                                                                 dy * scale * si + dx * scale * co );
-                           //core::vector2f vect = rotationInv( core::vector2f( (float)dx, (float)dy ) ); // TODO check inv or not?
-
-                           dxm  += vect[ 0 ];
-                           dym  += vect[ 1 ];
-                           adxm += fabs( vect[ 0 ] );
-                           adym += fabs( vect[ 1 ] );
-                        }
+                        dx += rrx;
+                        dy += rry;
+                        mdx += fabs(rrx);
+                        mdy += fabs(rry);
                      }
                   }
+
+                  //Add the values to the descriptor vector
+                  gauss_s2 = gaussian( cx - 2, cy - 2, 1.5 );
+
+                  point.features[ count++ ] = dx * gauss_s2;
+                  point.features[ count++ ] = dy * gauss_s2;
+                  point.features[ count++ ] = mdx * gauss_s2;
+                  point.features[ count++ ] = mdy * gauss_s2;
+
+                  len += ( dx * dx + dy * dy + mdx * mdx + mdy * mdy ) * gauss_s2 * gauss_s2;
+
+                  j += 9;
                }
+               i += 9;
             }
 
-            value_type norm;
-            if ( normalizeFeatures )
-            {
-               norm = sqrt( dxm  * dxm  +
-                            dym  * dym  +
-                            adxm * adxm +
-                            adym * adym ) + 1e-7;
-            } else {
-               norm = 1;
-            }
-
-            point.features[ 0 ] = dxm  / norm;
-            point.features[ 1 ] = dym  / norm;
-            point.features[ 2 ] = adxm / norm;
-            point.features[ 3 ] = adym / norm;
-
-            //point.features.print( std::cout );
+            //Convert to Unit Vector
+            len = sqrt( len );
+            for( ui32 i = 0; i < point.features.size(); ++i )
+               point.features[ i ] /= len;
          }
       }
 
@@ -806,7 +806,7 @@ namespace algorithm
       typedef std::vector< Match >  Matches;
 
       template <class Points>
-      void findMatch( const Points& points1, const Points& points2, Matches& matches, double maxError ) const
+      void findMatch( const Points& points1, const Points& points2, Matches& matches ) const
       {
          typedef typename Points::value_type    Point;
          typedef algorithm::KdTree< Point, MetricEuclidian<Point>, 5, Points >  KdTree;
@@ -815,7 +815,6 @@ namespace algorithm
          if ( points1.size() == 0 )
             return;
          const ui32 nbFeatures = points1[ 0 ].size();
-         const float maxErrorf = static_cast<float>( maxError );
 
          KdTree tree;
          tree.build( points2, nbFeatures );
@@ -826,10 +825,7 @@ namespace algorithm
             if ( list.size() )
             {
                const float d = list.begin()->dist;
-               if ( d < maxErrorf )
-               {
-                  matches.push_back( Match( n, list.begin()->id, d ) );
-               }
+               matches.push_back( Match( n, list.begin()->id, d ) );
             }
          }
 
@@ -959,7 +955,7 @@ public:
          }
       }
 
-      for ( ui32 n = 0; n < 50; ++n )
+      for ( ui32 n = 0; n < std::min<ui32>(150, matches.size()); ++n )
       //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
       {
          std::cout << "d=" << matches[ n ].dist << std::endl;
@@ -1044,7 +1040,7 @@ public:
       std::cout << "maching time=" << matchingTimer.getCurrentTime() << std::endl;
 
       algorithm::FeatureMatcher::Matches matches;
-      matcher.findMatch( p1Wrapper, p2Wrapper, matches, 10.021 );
+      matcher.findMatch( p1Wrapper, p2Wrapper, matches );
       std::cout << "nb match=" << matches.size() << std::endl;
       
 
