@@ -79,15 +79,13 @@ public:
 
       for ( ui32 n = 0; n < 40; ++n )
       {
+         std::cout << "case=" << n << std::endl;
          core::Image<ui8> i( size, size, 3 );
          double a, b;
          std::vector< std::pair<ui32, ui32> > points;
 
          generateLine( size, outliers, 100, 8.5, points, a, b );
          printPoints( i, points );
-
-
-         //std::cout << "Model=" << a << " " << b << std::endl;
 
          std::vector< Point > pointsTfm;
          for ( ui32 nn = 0; nn < points.size(); ++nn )

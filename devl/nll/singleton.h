@@ -48,7 +48,9 @@ namespace core
          if ( !_instance )
          {
             // use a double lock so that we only lock this when it is created
+#ifndef NLL_NOT_MULTITHREADED
             #pragma omp critical
+#endif
             {
                if ( !_instance )
                {

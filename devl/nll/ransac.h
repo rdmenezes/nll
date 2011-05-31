@@ -203,8 +203,9 @@ namespace algorithm
          if (success)
          {
             // y = ax + b
-            const double dx = pca.getEigenVectors()( 0, 0 );
-            const double dy = pca.getEigenVectors()( 1, 0 );
+            const ui32 maxIndex = pca.getEigenValues()[ 0 ] > pca.getEigenValues()[ 1 ] ? 0 : 1;
+            const double dx = pca.getEigenVectors()( 0, maxIndex );
+            const double dy = pca.getEigenVectors()( 1, maxIndex );
             if ( fabs( dx ) < 1e-5 )
             {
                _model.a = 0;

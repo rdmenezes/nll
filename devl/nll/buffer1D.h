@@ -273,8 +273,10 @@ public:
 # endif
       if ( _buffer )
       {
+#ifndef NLL_NOT_MULTITHREADED
          #pragma omp atomic
          ++*_cpt;
+#endif
       }
    }
 
@@ -288,7 +290,9 @@ public:
 # ifdef DEBUG_BUFFER1D
          std::cout << "unref buffer1D" << std::endl;
 # endif
+#ifndef NLL_NOT_MULTITHREADED
          #pragma omp atomic
+#endif
          --*_cpt;
          if ( !*_cpt )
          {

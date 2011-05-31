@@ -4,7 +4,7 @@
 
 using namespace nll;
 
-//#define NLL_ALGORITHM_SURF_NO_OPENMP
+#define NLL_ALGORITHM_SURF_NO_OPENMP
 
 namespace nll
 {
@@ -548,13 +548,6 @@ namespace algorithm
                   }
                }
             }
-
-            /*
-            if ( nbPoints )
-            {
-               dxm /= nbPoints;
-               dym /= nbPoints;
-            }*/
 
             value_type norm = sqrt( dxm  * dxm  +
                                     dym  * dym  +
