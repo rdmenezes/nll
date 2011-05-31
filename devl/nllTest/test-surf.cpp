@@ -513,8 +513,8 @@ namespace algorithm
             // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
-            float scale = static_cast<float>( scaleFactor * point.scale );
-            const int size = (int)( 2 * scale ) * (int)( 2 * scale );
+            float scale = (float)core::round( scaleFactor * point.scale );
+            //const int size = (int)( 2 * scale ) * (int)( 2 * scale );
             const float haarHalfDistMin = scale / 2;
 
             x = core::round( point.position[ 0 ] );
@@ -536,7 +536,7 @@ namespace algorithm
 
                while( j < 12 ) 
                {
-                  dx= dy = mdx = mdy = 0;
+                  dx = dy = mdx = mdy = 0;
                   cy += 1;
 
                   j = j - 4;
@@ -556,11 +556,13 @@ namespace algorithm
                         sample_y = core::round( y + (  l * scale * co + k * scale * si ) );
 
                         //Get the gaussian weighted x and y responses
-                        gauss_s1 = gaussian( xs - sample_x, ys - sample_y, 2.5 * scale ); // TODO: do we really need this?
+                        gauss_s1 = gaussian( xs - sample_x, ys - sample_y, 2.5 * scale );
 
-                        core::vector2ui bl( core::round( sample_x - haarHalfDistMin ),
-                                            core::round( sample_y - haarHalfDistMin ) );
-                        core::vector2ui tr( bl[ 0 ] + 2 * scale, bl[ 1 ] + 2 * scale);
+                        core::vector2ui bl( core::round( sample_x - scale ),
+                                            core::round( sample_y - scale ) );
+                        core::vector2ui tr( bl[ 0 ] + scale, bl[ 1 ] + scale);
+                        int size = ( tr[ 0 ] - bl[ 0 ] ) * ( tr[ 1 ] - bl[ 1 ] );
+
 
                         const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
                                                                                  image,
@@ -572,13 +574,13 @@ namespace algorithm
                                                                                  tr ) / size;
 
                         //Get the gaussian weighted x and y responses on rotated axis
-                        rrx = gauss_s1 * ( -rx * si + ry * co);
-                        rry = gauss_s1 * (  rx * co + ry * si);
+                        rrx = gauss_s1 * ( -rx * si + ry * co );
+                        rry = gauss_s1 * (  rx * co + ry * si );
 
                         dx += rrx;
                         dy += rry;
-                        mdx += fabs(rrx);
-                        mdy += fabs(rry);
+                        mdx += fabs( rrx );
+                        mdy += fabs( rry );
                      }
                   }
 
@@ -598,7 +600,7 @@ namespace algorithm
             }
 
             //Convert to Unit Vector
-            len = sqrt( len );
+            len = sqrt( len ) + 1e-7;
             for( ui32 i = 0; i < point.features.size(); ++i )
                point.features[ i ] /= len;
          }
@@ -692,7 +694,7 @@ namespace algorithm
             //
             // TODO check: simple averaging seems better...
             //
-         
+            
             double dx = 0;
             double dy = 0;
             for ( int nn = 0; nn < nbLocalPoints; ++nn )
@@ -707,10 +709,8 @@ namespace algorithm
             }
             points[ n ].orientation = impl::getAngle( dx, dy );
             
-            /*
-            //
-            // TODO check: implementation following the paper... but seems not as good as the simple one!!
-            //
+
+/*
             const double step = 0.15;
             const double window = 0.3 * core::PI;
             double best_angle = 0;
@@ -808,6 +808,7 @@ namespace algorithm
       template <class Points>
       void findMatch( const Points& points1, const Points& points2, Matches& matches ) const
       {
+         
          typedef typename Points::value_type    Point;
          typedef algorithm::KdTree< Point, MetricEuclidian<Point>, 5, Points >  KdTree;
          matches.clear();
@@ -829,8 +830,69 @@ namespace algorithm
             }
          }
 
+/*
+         typedef typename Points::value_type    Point;
+         matches.clear();
+         for ( ui32 n1 = 0; n1 < points1.size(); ++n1 )
+         {
+            double min = 1e300;
+            ui32 index = 0;
+            for ( ui32 n2 = 0; n2 < points2.size(); ++n2 )
+            {
+               double d = core::generic_norm2<Point, double, 64>( points1[ n1 ], points2[ n2 ] );
+               if ( d < min )
+               {
+                  min = d;
+                  index = n2;
+               }
+            }
+            matches.push_back( Match( n1, index, min ) );
+         }
+*/
          std::sort( matches.begin(), matches.end() );
       }
+   };
+
+
+   template <class PointM>
+   class RigidTransformationEstimatorRansac
+   {
+   public:
+      struct Model
+      {
+         double a;
+         double b;
+
+         void print( std::ostream& o ) const
+         {
+            o << "  line model: a=" << a << " b=" << b;
+         }
+      };
+
+      typedef PointM Point;
+
+      template <class Points>
+      void estimate( const Points& points )
+      {
+      }
+
+      /**
+       @brief Returns squared error, assuming a model y = ax + b, measure the error between y estimate and real value / | x |
+       */
+      double error( const Point& point ) const
+      {
+      }
+
+      /**
+       @brief Returns the current model
+       */
+      const Model& getModel() const
+      {
+         return _model;
+      }
+
+   private:
+      Model    _model;
    };
 }
 }
@@ -955,7 +1017,8 @@ public:
          }
       }
 
-      for ( ui32 n = 0; n < std::min<ui32>(150, matches.size()); ++n )
+      ui32 start = 0;
+      for ( ui32 n = start; n < std::min<ui32>(start + 50, matches.size()); ++n )
       //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
       {
          std::cout << "d=" << matches[ n ].dist << std::endl;
@@ -996,10 +1059,12 @@ public:
       core::Image<ui8> output;
       output.clone( image );
 
-      core::Image<ui8> image2;
-      image2.clone( image );
+      core::Image<ui8> image2( NLL_TEST_PATH "data/feature/sq2.bmp" );
+      //core::Image<ui8> image2;
+      //image2.clone( image );
 
-      core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
+      core::TransformationRotation tfm( 0.2, core::vector2f( 0, 0 ) );
+      //core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
       core::transformUnaryFast( image2, tfm );
 
       core::writeBmp( image, "c:/tmp/oi1.bmp" );
@@ -1012,7 +1077,7 @@ public:
       core::decolor( image );
       core::decolor( image2 );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00081 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.000181 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
