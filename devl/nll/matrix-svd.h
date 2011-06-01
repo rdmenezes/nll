@@ -66,8 +66,10 @@ namespace core
 
 	   bool res = svdcmp(aa, w, v);
 	   if (!res)
-		   return x;
-	   svbksb(aa, w, v, b_io, x);
+         throw std::runtime_error( "svdcmp failed in solve_svd" );
+	   res = svbksb(aa, w, v, b_io, x);
+      if (!res)
+         throw std::runtime_error( "singular matrix" );
 	   return x;
    }
 
@@ -99,7 +101,7 @@ namespace core
 	   }
 
 	   if (singular_cnt) {
-		   std::cout << "# of zero singular values: " << singular_cnt << std::endl;
+		   //std::cout << "# of zero singular values: " << singular_cnt << std::endl;
 		   return false;
 	   }
 	   return true;

@@ -799,13 +799,15 @@ namespace algorithm
 
       struct Model
       {
-         double dx;
-         double dy;
+         Model() : tfm( core::identityMatrix< core::Matrix< double > >( 3 ) )
+         {}
 
          void print( std::ostream& o ) const
          {
-            o << " Transformation Translation only=" << dx << " " << dy;
+            o << " Transformation Translation only=" << tfm( 0, 2 ) << " " << tfm( 1, 2 );
          }
+
+         core::Matrix< double > tfm;
       };
 
       typedef FeatureMatcher::Match    Point;
@@ -829,8 +831,8 @@ namespace algorithm
          dx /= nbPoints;
          dy /= nbPoints;
 
-         _model.dx = dx;
-         _model.dy = dy;
+         _model.tfm( 0, 2 ) = dx;
+         _model.tfm( 1, 2 ) = dy;
       }
 
       /**
@@ -840,10 +842,10 @@ namespace algorithm
       {
          const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
          const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
-         double px = p1.position[ 0 ] + _model.dx;
-         double py = p1.position[ 1 ] + _model.dy;
-         return core::sqr( px - p2.position[ 0 ] ) +
-                core::sqr( py - p2.position[ 1 ] );
+         double px = p1.position[ 0 ] + _model.tfm( 0, 2 );
+         double py = p1.position[ 1 ] + _model.tfm( 1, 2 );
+         return core::sqr( ( px - p2.position[ 0 ] ) / ( p2.position[ 0 ] + 1e-2 ) ) +
+                core::sqr( ( py - p2.position[ 1 ] ) / ( p2.position[ 1 ] + 1e-2 ) );
       }
 
       /**
@@ -873,13 +875,16 @@ namespace algorithm
 
       struct Model
       {
-         double dx;
-         double dy;
+         Model() : tfm( core::identityMatrix< core::Matrix<double> >( 3 ) )
+         {}
 
          void print( std::ostream& o ) const
          {
-            o << " Transformation Translation only=" << dx << " " << dy;
+            o << " Transformation Translation only=";
+            tfm.print( o );
          }
+
+         core::Matrix<double> tfm;
       };
 
       typedef FeatureMatcher::Match    Point;
@@ -887,24 +892,61 @@ namespace algorithm
       template <class Points>
       void estimate( const Points& points )
       {
-         double dx = 0;
-         double dy = 0;
+         //
+         // TODO use a least square solution instead
+         //
 
-         const ui32 nbPoints = static_cast<ui32>( points.size() );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+
+         ensure( points.size() >= 2, "at least two pairs are needed" );
+         const ui32 index1 = 0;
+         const ui32 index2 = 1;
+
+         // first and second point
+         const SpeededUpRobustFeatures::Point& p1  = _p1[ points[ index1 ].index1 ];
+         const SpeededUpRobustFeatures::Point& p2  = _p1[ points[ index2 ].index1 ];
+
+         // matched first and second point
+         const SpeededUpRobustFeatures::Point& p1r = _p2[ points[ index1 ].index2 ];
+         const SpeededUpRobustFeatures::Point& p2r = _p2[ points[ index2 ].index2 ];
+
+         double bufMat[ 16 ] =
          {
-            const SpeededUpRobustFeatures::Point& p1 = _p1[ points[ n ].index1 ];
-            const SpeededUpRobustFeatures::Point& p2 = _p2[ points[ n ].index2 ];
+            1, 0, p1.position[ 0 ], -p1.position[ 1 ],
+            0, 1, p1.position[ 1 ],  p1.position[ 0 ],
+            1, 0, p2.position[ 0 ], -p2.position[ 1 ],
+            0, 1, p2.position[ 1 ],  p2.position[ 0 ]
+         };
+         core::Buffer1D<double> buf( bufMat, 16, false );
+         core::Matrix<double> m( buf, 4, 4 );
+         core::transpose( m );
 
-            dx += p2.position[ 0 ] - p1.position[ 0 ];
-            dy += p2.position[ 1 ] - p1.position[ 1 ];
+         double bufB[ 4 ] =
+         {
+            p1r.position[ 0 ],
+            p1r.position[ 1 ],
+            p2r.position[ 0 ],
+            p2r.position[ 1 ]
+         };
+         core::Buffer1D<double> b( bufB, 4, false );
+
+         try
+         {
+            // SVD is likely to fail...
+            core::Buffer1D<double> x = core::solve_svd( m, b );
+            _model.tfm( 0, 2 ) = x[ 0 ];
+            _model.tfm( 1, 2 ) = x[ 1 ];
+
+            const double norm = sqrt( x[ 2 ] * x[ 2 ] + x[ 3 ] * x[ 3 ] );
+
+            _model.tfm( 0, 0 ) =  x[ 2 ];
+            _model.tfm( 0, 1 ) = -x[ 3 ];
+            _model.tfm( 1, 0 ) =  x[ 3 ];
+            _model.tfm( 1, 1 ) =  x[ 2 ];
+         } catch (...)
+         {
+            // do nothing... that's fine: the model will be evaluated with
+            // id and discarded with very high probability
          }
-
-         dx /= nbPoints;
-         dy /= nbPoints;
-
-         _model.dx = dx;
-         _model.dy = dy;
       }
 
       /**
@@ -914,10 +956,15 @@ namespace algorithm
       {
          const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
          const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
-         double px = p1.position[ 0 ] + _model.dx;
-         double py = p1.position[ 1 ] + _model.dy;
-         return core::sqr( px - p2.position[ 0 ] ) +
-                core::sqr( py - p2.position[ 1 ] );
+
+         // transform the point
+         const core::Matrix<double>& tfm = _model.tfm;
+         double px = tfm( 0, 2 ) + p1.position[ 0 ] * tfm( 0, 0 ) + p1.position[ 1 ] * tfm( 0, 1 );
+         double py = tfm( 1, 2 ) + p1.position[ 0 ] * tfm( 1, 0 ) + p1.position[ 1 ] * tfm( 1, 1 );
+
+         // we want a ratio of the error...
+         return core::sqr( ( px - p2.position[ 0 ] ) / ( p2.position[ 0 ] ) ) +
+                core::sqr( ( py - p2.position[ 1 ] ) / ( p2.position[ 1 ] ) );
       }
 
       /**
@@ -1080,7 +1127,7 @@ public:
 
 
       ui32 start = 0;
-      for ( ui32 n = start; n < std::min<ui32>(start + 50, (ui32)matches.size()); ++n )
+      for ( ui32 n = start; n < std::min<ui32>(start + 20, (ui32)matches.size()); ++n )
       //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
       {
          std::cout << "d=" << matches[ n ].dist << std::endl;
@@ -1090,14 +1137,15 @@ public:
       }
    }
 
-   void displayTransformation( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output, double dx, double dy )
+   void displayTransformation( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output, core::Matrix<double>& tfm )
    {
       output = core::Image<ui8>( i2.sizex(), i2.sizey(), 3 );
 
       core::vector3uc black( 0, 0, 0 );
+      /*
       core::Matrix<double> tfm = core::identityMatrix< core::Matrix<double> >( 3 );
       tfm( 0, 2 ) = dx;
-      tfm( 1, 2 ) = dy;
+      tfm( 1, 2 ) = dy;*/
       core::resampleNearestNeighbour( i1, output, tfm, black );
 
       double coef = 0.5;
@@ -1144,7 +1192,7 @@ public:
       core::Image<ui8> output;
       output.clone( image );
 
-      core::Image<ui8> image2( NLL_TEST_PATH "data/feature/sq5.bmp" );
+      core::Image<ui8> image2( NLL_TEST_PATH "data/feature/sq7.bmp" );
       //core::Image<ui8> image2;
       //image2.clone( image );
 
@@ -1210,17 +1258,24 @@ public:
       core::writeBmp( output3, "c:/tmp/o3.bmp" );
 
       // estimate the transformation
+      //typedef algorithm::AffineTransformationEstimatorRansac                       SurfEstimator;
       typedef algorithm::TranslationTransformationEstimatorRansac                       SurfEstimator;
+      //typedef algorithm::SurfEstimatorFactory<algorithm::AffineTransformationEstimatorRansac> SurfEstimatorFactory;
       typedef algorithm::SurfEstimatorFactory<algorithm::TranslationTransformationEstimatorRansac> SurfEstimatorFactory;
       typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory>                    Ransac;
 
       SurfEstimatorFactory estimatorFactory( points1, points2 );
       Ransac ransac( estimatorFactory );
-      SurfEstimator::Model model = ransac.estimate( matches, 3, 500, 0.3 );
+
+      // take only the best subset...
+      algorithm::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + 50 );
+      core::Timer ransacOptimTimer;
+      SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 2, 50000, 0.025 );
+      std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
       model.print( std::cout );
 
       core::Image<ui8> outputReg;
-      displayTransformation( oi1, oi2, outputReg, model.dx, model.dy );
+      displayTransformation( oi1, oi2, outputReg, model.tfm );
       core::writeBmp( outputReg, "c:/tmp/oreg.bmp" );
    }
 };
