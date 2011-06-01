@@ -38,6 +38,71 @@ namespace core
 {
    /**
     @ingroup core
+    @brief resample an image using a specific interpolator and 2D affine transformation
+
+    @param Interpolator interpolator used for resampling
+    */
+   template <class T, class IMapper, class Allocator, class Color, class Interpolator>
+   void resample( const Image<T, IMapper, Allocator>& source, Image<T, IMapper, Allocator>& target, const Matrix<double>& tfm3x3, Color background )
+   {
+      ensure( tfm3x3.sizex() == 3 && tfm3x3.sizey() == 3, "the transformation matrix must be a 3x3" );
+      ensure( source.getNbComponents() == target.getNbComponents(), "same NB of components only" );
+
+      // we want to find the transformation from target->source
+      Matrix<double> invTfm;
+      invTfm.clone( tfm3x3 );
+      inverse3x3( invTfm );
+
+      // here we consider origin = (0,0) for both images
+      Interpolator interpolator( source );
+      vector2d dy( invTfm( 0, 2 ), invTfm( 1, 2 ) );  // start at the translation
+      for ( ui32 y = 0; y < target.sizey(); ++y )
+      {
+         vector2d dx = dy;
+         for ( ui32 x = 0; x < target.sizex(); ++x )
+         {
+            for ( ui32 c = 0; c < target.getNbComponents(); ++c )
+            {
+               if ( dx[ 0 ] < 0 || dx[ 0 ] >= source.sizex() ||
+                    dx[ 1 ] < 0 || dx[ 1 ] >= source.sizey() )
+               {
+                  target( x, y, c ) = background[ c ];
+               } else {
+                  target( x, y, c ) = interpolator.interpolate( dx[ 0 ], dx[ 1 ], c );
+               }
+            }
+            dx[ 0 ] += invTfm( 0, 0 );
+            dx[ 1 ] += invTfm( 1, 0 );
+         }
+         dy[ 0 ] += invTfm( 0, 1 );
+         dy[ 1 ] += invTfm( 1, 1 );
+      }
+   }
+
+   /**
+    @ingroup core
+    @brief resample an image using a Bilinear filtering and 2D affine transformation
+    */
+   template <class T, class IMapper, class Allocator, class Color>
+   void resampleBilinear( const Image<T, IMapper, Allocator>& source, Image<T, IMapper, Allocator>& target, const Matrix<double>& tfm3x3, Color background )
+   {
+      typedef InterpolatorLinear2D<T, IMapper, Allocator> Interpolator;
+      resample<T, IMapper, Allocator, Color, Interpolator>( source, target, tfm3x3, background );
+   }
+
+   /**
+    @ingroup core
+    @brief resample an image using a Nearest Neighbour filter and 2D affine transformation
+    */
+   template <class T, class IMapper, class Allocator, class Color>
+   void resampleNearestNeighbour( const Image<T, IMapper, Allocator>& source, Image<T, IMapper, Allocator>& target, const Matrix<double>& tfm3x3, Color background )
+   {
+      typedef InterpolatorNearestNeighbor2D<T, IMapper, Allocator> Interpolator;
+      resample<T, IMapper, Allocator, Color, Interpolator>( source, target, tfm3x3, background );
+   }
+
+   /**
+    @ingroup core
     @brief resample an image using a specific interpolator
 
     @param Interpolator interpolator used for resampling

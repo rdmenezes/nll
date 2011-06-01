@@ -41,6 +41,26 @@ namespace core
 {
    /**
     @ingroup core
+    @brief Returns the angle in radian from a 2D vector
+
+    This returns the angle between the vector (1,0) and (x, y). The angle returned
+    is always betwee in [0..2*PI[
+    */
+   inline double getAngle( double x, double y )
+   {
+      if( x > 0 && y >= 0 )
+         return atan( y / x );
+      if( x < 0 && y >= 0)
+         return core::PI - atan( - y / x );
+      if( x < 0 && y < 0)
+         return core::PI + atan( y / x );
+      if( x > 0 && y < 0 )
+         return 2 * core::PI - atan( -y / x );
+      return 0;
+   }
+
+   /**
+    @ingroup core
     @brief Test if 2 vectors are colinear
     @note we take the convention that 2 zero vectors are not colinear
     */

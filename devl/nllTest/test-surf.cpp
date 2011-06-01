@@ -13,27 +13,6 @@ namespace algorithm
    namespace impl
    {
       /**
-       @brief Returns the angle
-       */
-      template <class T>
-      T getAngle( T x, T y )
-      {
-        if( x > 0 && y >= 0 )
-          return atan( y / x );
-
-        if( x < 0 && y >= 0)
-           return core::PIf - atan( - y / x );
-
-        if( x < 0 && y < 0)
-           return core::PIf + atan( y / x );
-
-        if( x > 0 && y < 0 )
-           return 2 * core::PIf - atan( -y / x );
-
-        return 0;
-      }
-
-      /**
        @brief Returns the direction of the closest (left or right) to reach the other angle
        */
       int getDirectionToClosest( double angle1, double angle2 )
@@ -689,7 +668,7 @@ namespace algorithm
                                                                                            i,
                                                                                            bl,
                                                                                            tr );
-                        const value_type angle = impl::getAngle( dx, dy );
+                        const value_type angle = core::getAngle( dx, dy );
                         localPoints.push_back( LocalPoint( angle, dx, dy ) );
                      }
                   }
@@ -714,7 +693,7 @@ namespace algorithm
                dx /= nbLocalPoints;
                dy /= nbLocalPoints;
             }
-            points[ n ].orientation = impl::getAngle( dx, dy );
+            points[ n ].orientation = core::getAngle( dx, dy );
          }
       }
 
@@ -811,18 +790,21 @@ namespace algorithm
       }
    };
 
-   class RigidTransformationEstimatorRansac
+   class TranslationTransformationEstimatorRansac
    {
    public:
-      RigidTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
+      TranslationTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
       {
       }
 
       struct Model
       {
+         double dx;
+         double dy;
 
          void print( std::ostream& o ) const
          {
+            o << " Transformation Translation only=" << dx << " " << dy;
          }
       };
 
@@ -833,6 +815,22 @@ namespace algorithm
       {
          double dx = 0;
          double dy = 0;
+
+         const ui32 nbPoints = static_cast<ui32>( points.size() );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            const SpeededUpRobustFeatures::Point& p1 = _p1[ points[ n ].index1 ];
+            const SpeededUpRobustFeatures::Point& p2 = _p2[ points[ n ].index2 ];
+
+            dx += p2.position[ 0 ] - p1.position[ 0 ];
+            dy += p2.position[ 1 ] - p1.position[ 1 ];
+         }
+
+         dx /= nbPoints;
+         dy /= nbPoints;
+
+         _model.dx = dx;
+         _model.dy = dy;
       }
 
       /**
@@ -840,7 +838,12 @@ namespace algorithm
        */
       double error( const Point& point ) const
       {
-         return 0;
+         const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
+         const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
+         double px = p1.position[ 0 ] + _model.dx;
+         double py = p1.position[ 1 ] + _model.dy;
+         return core::sqr( px - p2.position[ 0 ] ) +
+                core::sqr( py - p2.position[ 1 ] );
       }
 
       /**
@@ -853,7 +856,7 @@ namespace algorithm
 
    private:
       // copy disabled
-      RigidTransformationEstimatorRansac& operator=( const RigidTransformationEstimatorRansac& );
+      TranslationTransformationEstimatorRansac& operator=( const TranslationTransformationEstimatorRansac& );
 
    private:
       Model    _model;
@@ -861,10 +864,85 @@ namespace algorithm
       const SpeededUpRobustFeatures::Points& _p2;
    };
 
+   class AffineTransformationEstimatorRansac
+   {
+   public:
+      AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
+      {
+      }
+
+      struct Model
+      {
+         double dx;
+         double dy;
+
+         void print( std::ostream& o ) const
+         {
+            o << " Transformation Translation only=" << dx << " " << dy;
+         }
+      };
+
+      typedef FeatureMatcher::Match    Point;
+
+      template <class Points>
+      void estimate( const Points& points )
+      {
+         double dx = 0;
+         double dy = 0;
+
+         const ui32 nbPoints = static_cast<ui32>( points.size() );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            const SpeededUpRobustFeatures::Point& p1 = _p1[ points[ n ].index1 ];
+            const SpeededUpRobustFeatures::Point& p2 = _p2[ points[ n ].index2 ];
+
+            dx += p2.position[ 0 ] - p1.position[ 0 ];
+            dy += p2.position[ 1 ] - p1.position[ 1 ];
+         }
+
+         dx /= nbPoints;
+         dy /= nbPoints;
+
+         _model.dx = dx;
+         _model.dy = dy;
+      }
+
+      /**
+       @brief Returns squared error, assuming a model y = ax + b, measure the error between y estimate and real value / | x |
+       */
+      double error( const Point& point ) const
+      {
+         const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
+         const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
+         double px = p1.position[ 0 ] + _model.dx;
+         double py = p1.position[ 1 ] + _model.dy;
+         return core::sqr( px - p2.position[ 0 ] ) +
+                core::sqr( py - p2.position[ 1 ] );
+      }
+
+      /**
+       @brief Returns the current model
+       */
+      const Model& getModel() const
+      {
+         return _model;
+      }
+
+   private:
+      // copy disabled
+      AffineTransformationEstimatorRansac& operator=( const AffineTransformationEstimatorRansac& );
+
+   private:
+      Model    _model;
+      const SpeededUpRobustFeatures::Points& _p1;
+      const SpeededUpRobustFeatures::Points& _p2;
+   };
+
+   template <class EstimatorT>
    class SurfEstimatorFactory
    {
    public:
-      typedef RigidTransformationEstimatorRansac Estimator;
+      typedef EstimatorT Estimator;
       SurfEstimatorFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( &p1 ), _p2( &p2 )
       {}
 
@@ -962,7 +1040,7 @@ public:
          core::vector2f p( (f32)( 1000 * cos( t2.orientation ) ), 
                            (f32)( 1000 * sin( t2.orientation ) ) );
          core::vector2f pTfm = tfm( p );
-         const double a1 = algorithm::impl::getAngle(  pTfm[ 0 ], pTfm[ 1 ] );
+         const double a1 = core::getAngle(  pTfm[ 0 ], pTfm[ 1 ] );
          if ( fabs( a1 - t1.orientation ) < tol )
          {
             matchOrientation.push_back( n );
@@ -1012,6 +1090,29 @@ public:
       }
    }
 
+   void displayTransformation( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output, double dx, double dy )
+   {
+      output = core::Image<ui8>( i2.sizex(), i2.sizey(), 3 );
+
+      core::vector3uc black( 0, 0, 0 );
+      core::Matrix<double> tfm = core::identityMatrix< core::Matrix<double> >( 3 );
+      tfm( 0, 2 ) = dx;
+      tfm( 1, 2 ) = dy;
+      core::resampleNearestNeighbour( i1, output, tfm, black );
+
+      double coef = 0.5;
+      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         {
+            for ( ui32 c = 0; c < 3; ++c )
+            {
+               output( x, y, c ) = (c==2) * coef * i2( x, y, c ) + ( 1 - coef) * output( x, y, c );
+            }
+         }
+      }
+   }
+
    void testBasic()
    {
       // init
@@ -1043,13 +1144,18 @@ public:
       core::Image<ui8> output;
       output.clone( image );
 
-      core::Image<ui8> image2( NLL_TEST_PATH "data/feature/sq2.bmp" );
+      core::Image<ui8> image2( NLL_TEST_PATH "data/feature/sq5.bmp" );
       //core::Image<ui8> image2;
       //image2.clone( image );
 
-      core::TransformationRotation tfm( 0.2, core::vector2f( 40, 0 ) );
+      core::TransformationRotation tfm( 0, core::vector2f( 40, 0 ) );
       //core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
       core::transformUnaryFast( image2, tfm );
+
+      core::Image<ui8> oi1;
+      oi1.clone( image );
+      core::Image<ui8> oi2;
+      oi2.clone( image2 );
 
       core::writeBmp( image, "c:/tmp/oi1.bmp" );
       core::writeBmp( image2, "c:/tmp/oi2.bmp" );
@@ -1104,13 +1210,18 @@ public:
       core::writeBmp( output3, "c:/tmp/o3.bmp" );
 
       // estimate the transformation
-      typedef algorithm::RigidTransformationEstimatorRansac          SurfEstimator;
-      typedef algorithm::SurfEstimatorFactory                        SurfEstimatorFactory;
-      typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory> Ransac;
+      typedef algorithm::TranslationTransformationEstimatorRansac                       SurfEstimator;
+      typedef algorithm::SurfEstimatorFactory<algorithm::TranslationTransformationEstimatorRansac> SurfEstimatorFactory;
+      typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory>                    Ransac;
 
       SurfEstimatorFactory estimatorFactory( points1, points2 );
       Ransac ransac( estimatorFactory );
-      ransac.estimate( matches, 2, 500, 0.3 );
+      SurfEstimator::Model model = ransac.estimate( matches, 3, 500, 0.3 );
+      model.print( std::cout );
+
+      core::Image<ui8> outputReg;
+      displayTransformation( oi1, oi2, outputReg, model.dx, model.dy );
+      core::writeBmp( outputReg, "c:/tmp/oreg.bmp" );
    }
 };
 

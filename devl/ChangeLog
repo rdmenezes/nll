@@ -1,6 +1,11 @@
 v0.15
 -added locally linear embedding for feature selection & data structure display
 -integrated LIBLINEAR for massive linear svm
+-added RANSAC parameter estimator
+-added SURF feature detection
+-added 2D image stitching (translation, affine transformation)
+-added 2D image resampler
+-fixed minor bugs (multithreaded logging)
 
 v0.14
 -fixed kernel PCA implementation
