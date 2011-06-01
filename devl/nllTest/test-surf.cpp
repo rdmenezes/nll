@@ -4,7 +4,7 @@
 
 using namespace nll;
 
-#define NLL_ALGORITHM_SURF_NO_OPENMP
+//#define NLL_ALGORITHM_SURF_NO_OPENMP
 
 namespace nll
 {
@@ -560,27 +560,30 @@ namespace algorithm
 
                         core::vector2ui bl( core::round( sample_x - scale ),
                                             core::round( sample_y - scale ) );
-                        core::vector2ui tr( bl[ 0 ] + scale, bl[ 1 ] + scale);
+                        core::vector2ui tr( core::round( sample_x + scale ),
+                                            core::round( sample_y + scale ) );
                         int size = ( tr[ 0 ] - bl[ 0 ] ) * ( tr[ 1 ] - bl[ 1 ] );
 
+                        if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
+                        {
+                           const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                    image,
+                                                                                    bl,
+                                                                                    tr ) / size;
+                           const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                    image,
+                                                                                    bl,
+                                                                                    tr ) / size;
 
-                        const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                 image,
-                                                                                 bl,
-                                                                                 tr ) / size;
-                        const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                 image,
-                                                                                 bl,
-                                                                                 tr ) / size;
+                           //Get the gaussian weighted x and y responses on rotated axis
+                           rrx = gauss_s1 * ( -rx * si + ry * co );
+                           rry = gauss_s1 * (  rx * co + ry * si );
 
-                        //Get the gaussian weighted x and y responses on rotated axis
-                        rrx = gauss_s1 * ( -rx * si + ry * co );
-                        rry = gauss_s1 * (  rx * co + ry * si );
-
-                        dx += rrx;
-                        dy += rry;
-                        mdx += fabs( rrx );
-                        mdy += fabs( rry );
+                           dx += rrx;
+                           dy += rry;
+                           mdx += fabs( rrx );
+                           mdy += fabs( rry );
+                        }
                      }
                   }
 
@@ -808,7 +811,6 @@ namespace algorithm
       template <class Points>
       void findMatch( const Points& points1, const Points& points2, Matches& matches ) const
       {
-         
          typedef typename Points::value_type    Point;
          typedef algorithm::KdTree< Point, MetricEuclidian<Point>, 5, Points >  KdTree;
          matches.clear();
@@ -817,16 +819,33 @@ namespace algorithm
             return;
          const ui32 nbFeatures = points1[ 0 ].size();
 
-         KdTree tree;
-         tree.build( points2, nbFeatures );
-
-         for ( ui32 n = 0; n < points1.size(); ++n )
+         // find a match from the smaller set to the bigger one
+         if ( points2.size() > points1.size() )
          {
-            KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], 1 );
-            if ( list.size() )
+            KdTree tree;
+            tree.build( points2, nbFeatures );
+
+            for ( ui32 n = 0; n < points1.size(); ++n )
             {
-               const float d = list.begin()->dist;
-               matches.push_back( Match( n, list.begin()->id, d ) );
+               KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], 1 );
+               if ( list.size() )
+               {
+                  const float d = list.begin()->dist;
+                  matches.push_back( Match( n, list.begin()->id, d ) );
+               }
+            }
+         } else {
+            KdTree tree;
+            tree.build( points1, nbFeatures );
+
+            for ( ui32 n = 0; n < points2.size(); ++n )
+            {
+               KdTree::NearestNeighborList list = tree.findNearestNeighbor( points2[ n ], 1 );
+               if ( list.size() )
+               {
+                  const float d = list.begin()->dist;
+                  matches.push_back( Match( list.begin()->id, n, d ) );
+               }
             }
          }
 
@@ -874,6 +893,10 @@ namespace algorithm
       template <class Points>
       void estimate( const Points& points )
       {
+         double dx = 0;
+         double dy = 0;
+
+
       }
 
       /**
@@ -1017,7 +1040,7 @@ public:
          }
       }
 
-      ui32 start = 0;
+      ui32 start = 00;
       for ( ui32 n = start; n < std::min<ui32>(start + 50, matches.size()); ++n )
       //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
       {
@@ -1039,7 +1062,7 @@ public:
       TESTER_ASSERT( image.sizex() );
       core::decolor( image );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.001 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.005 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
@@ -1063,7 +1086,7 @@ public:
       //core::Image<ui8> image2;
       //image2.clone( image );
 
-      core::TransformationRotation tfm( 0.2, core::vector2f( 0, 0 ) );
+      core::TransformationRotation tfm( 0.2, core::vector2f( 40, 0 ) );
       //core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
       core::transformUnaryFast( image2, tfm );
 
@@ -1077,7 +1100,7 @@ public:
       core::decolor( image );
       core::decolor( image2 );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.000181 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00061 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
