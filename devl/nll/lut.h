@@ -226,7 +226,7 @@ namespace imaging
             gaussianIndex = 0;
          }
          int index = (int)fitter.getGaussians()[ gaussianIndex ].mean[ 1 ];
-         index = NLL_BOUND( index, 0, bins.size() - 1 );
+         index = NLL_BOUND( index, 0, (int)bins.size() - 1 );
          int inc1 = 0;
          int inc2 = 0;
 

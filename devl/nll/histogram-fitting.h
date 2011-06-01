@@ -29,7 +29,7 @@ namespace algorithm
             sum += h[ n ];
             if ( h[ n ] > max )
             {
-               max = h[ n ];
+               max = (double)h[ n ];
             }
          }
 

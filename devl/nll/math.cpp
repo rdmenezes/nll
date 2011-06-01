@@ -37,5 +37,6 @@ namespace nll
 namespace core
 {
    const double NLL_API PI = 3.1415926535897932384626433;
+   const float  NLL_API PIf = 3.1415926;
 }
 }

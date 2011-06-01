@@ -4,7 +4,7 @@
 
 using namespace nll;
 
-//#define NLL_ALGORITHM_SURF_NO_OPENMP
+#define NLL_ALGORITHM_SURF_NO_OPENMP
 
 namespace nll
 {
@@ -337,18 +337,23 @@ namespace algorithm
       /**
        @brief Expose the <point>'s <features> array as if it was stored as an array only
        */
-      class ConstPointsFeatureWrapper
+      class PointsFeatureWrapper
       {
       public:
          typedef core::Buffer1D<SpeededUpRobustFeatures::value_type>  value_type;
 
       public:
-         ConstPointsFeatureWrapper( const Points& points ) : _points( points )
+         PointsFeatureWrapper( Points& points ) : _points( points )
          {}
 
          ui32 size() const
          {
             return _points.size();
+         }
+
+         core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n )
+         {
+            return _points[ n ].features;
          }
 
          const core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
@@ -357,7 +362,11 @@ namespace algorithm
          }
 
       private:
-         const Points& _points;
+         PointsFeatureWrapper( const PointsFeatureWrapper& );
+         PointsFeatureWrapper& operator=( const PointsFeatureWrapper& );
+
+      private:
+         Points& _points;
       };
 
       /**
@@ -491,8 +500,7 @@ namespace algorithm
       }
 
    private:
-      
-      void _computeFeatures( const IntegralImage& image, Points& points, bool normalizeFeatures = true ) const
+      void _computeFeatures( const IntegralImage& image, Points& points ) const
       {
          int nbPoints = static_cast<ui32>( points.size() );
 
@@ -505,7 +513,7 @@ namespace algorithm
             int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
             value_type dx, dy, mdx, mdy, co, si;
             value_type gauss_s1 = 0, gauss_s2 = 0;
-            value_type rx = 0, ry = 0, rrx = 0, rry = 0, len = 0;
+            value_type rrx = 0, rry = 0, len = 0;
             value_type cx = -0.5, cy = 0; //Subregion centers for the 4x4 gaussian weighting
             Point& point = points[ n ];
 
@@ -514,8 +522,6 @@ namespace algorithm
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
             float scale = (float)core::round( scaleFactor * point.scale );
-            //const int size = (int)( 2 * scale ) * (int)( 2 * scale );
-            const float haarHalfDistMin = scale / 2;
 
             x = core::round( point.position[ 0 ] );
             y = core::round( point.position[ 1 ] );
@@ -658,7 +664,6 @@ namespace algorithm
          {
             const Point& point = points[ n ];
             const int scale = core::round( scaleFactor * point.scale );
-            //std::cout << "scale=" << scale << std::endl;
 
             std::vector<LocalPoint> localPoints;
             localPoints.reserve( 109 );
@@ -695,9 +700,8 @@ namespace algorithm
 
             
             //
-            // TODO check: simple averaging seems better...
-            //
-            
+            // simple averaging seems better than technic in the paper...
+            //  
             double dx = 0;
             double dy = 0;
             for ( int nn = 0; nn < nbLocalPoints; ++nn )
@@ -711,52 +715,6 @@ namespace algorithm
                dy /= nbLocalPoints;
             }
             points[ n ].orientation = impl::getAngle( dx, dy );
-            
-
-/*
-            const double step = 0.15;
-            const double window = 0.3 * core::PI;
-            double best_angle = 0;
-            double best_norm = 0;
-            for ( double angleMin = 0 ; angleMin < core::PI * 2; angleMin += step )
-            {
-               double dx = 0;
-               double dy = 0;
-               ui32 nbPoints = 0;
-            
-
-               const double angleMax = ( angleMin > 2 * core::PI - window ) ? ( angleMin + window - 2 * core::PI ) : ( angleMin + window );
-
-               for ( int nn = 0; nn < nbLocalPoints; ++nn )
-               {
-                  const double startAngle = localPoints[ nn ].angle;
-                  if ( _isInside( startAngle, angleMin, angleMax ) )
-                  {
-                     dx += localPoints[ nn ].dx;
-                     dy += localPoints[ nn ].dy;
-                     ++nbPoints;
-                  }
-               }
-
-               // finally compute the mean direction and save the best one
-               if ( nbPoints )
-               {
-                  dx /= nbPoints;
-                  dy /= nbPoints;
-               }
-               const double norm = dx * dx + dy * dy;
-               if ( norm > best_norm )
-               {
-                  best_norm = norm;
-                  best_angle = impl::getAngle( dx, dy );
-               }
-            }
-
-            // assign the angle
-            if ( best_norm > 0 )
-            {
-               points[ n ].orientation = best_angle;
-            }*/
          }
       }
 
@@ -849,54 +807,32 @@ namespace algorithm
             }
          }
 
-/*
-         typedef typename Points::value_type    Point;
-         matches.clear();
-         for ( ui32 n1 = 0; n1 < points1.size(); ++n1 )
-         {
-            double min = 1e300;
-            ui32 index = 0;
-            for ( ui32 n2 = 0; n2 < points2.size(); ++n2 )
-            {
-               double d = core::generic_norm2<Point, double, 64>( points1[ n1 ], points2[ n2 ] );
-               if ( d < min )
-               {
-                  min = d;
-                  index = n2;
-               }
-            }
-            matches.push_back( Match( n1, index, min ) );
-         }
-*/
          std::sort( matches.begin(), matches.end() );
       }
    };
 
-
-   template <class PointM>
    class RigidTransformationEstimatorRansac
    {
    public:
+      RigidTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
+      {
+      }
+
       struct Model
       {
-         double a;
-         double b;
 
          void print( std::ostream& o ) const
          {
-            o << "  line model: a=" << a << " b=" << b;
          }
       };
 
-      typedef PointM Point;
+      typedef FeatureMatcher::Match    Point;
 
       template <class Points>
       void estimate( const Points& points )
       {
          double dx = 0;
          double dy = 0;
-
-
       }
 
       /**
@@ -904,6 +840,7 @@ namespace algorithm
        */
       double error( const Point& point ) const
       {
+         return 0;
       }
 
       /**
@@ -915,7 +852,30 @@ namespace algorithm
       }
 
    private:
+      // copy disabled
+      RigidTransformationEstimatorRansac& operator=( const RigidTransformationEstimatorRansac& );
+
+   private:
       Model    _model;
+      const SpeededUpRobustFeatures::Points& _p1;
+      const SpeededUpRobustFeatures::Points& _p2;
+   };
+
+   class SurfEstimatorFactory
+   {
+   public:
+      typedef RigidTransformationEstimatorRansac Estimator;
+      SurfEstimatorFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( &p1 ), _p2( &p2 )
+      {}
+
+      Estimator create() const
+      {
+         return Estimator( *_p1, *_p2 );
+      }
+
+   private:
+      const SpeededUpRobustFeatures::Points* _p1;
+      const SpeededUpRobustFeatures::Points* _p2;
    };
 }
 }
@@ -1040,8 +1000,9 @@ public:
          }
       }
 
-      ui32 start = 00;
-      for ( ui32 n = start; n < std::min<ui32>(start + 50, matches.size()); ++n )
+
+      ui32 start = 0;
+      for ( ui32 n = start; n < std::min<ui32>(start + 50, (ui32)matches.size()); ++n )
       //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
       {
          std::cout << "d=" << matches[ n ].dist << std::endl;
@@ -1120,8 +1081,8 @@ public:
       std::cout << "repeatable orientation=" << (double)orientation.size() / repeatablePointIndex.size() << std::endl;
 
       // match points
-      algorithm::SpeededUpRobustFeatures::ConstPointsFeatureWrapper p1Wrapper( points1 );
-      algorithm::SpeededUpRobustFeatures::ConstPointsFeatureWrapper p2Wrapper( points2 );
+      algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p1Wrapper( points1 );
+      algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p2Wrapper( points2 );
 
       core::Timer matchingTimer;
       algorithm::FeatureMatcher matcher;
@@ -1141,6 +1102,15 @@ public:
       core::Image<ui8> output3;
       composeMatch( output, output2, output3, points1, points2, matches );
       core::writeBmp( output3, "c:/tmp/o3.bmp" );
+
+      // estimate the transformation
+      typedef algorithm::RigidTransformationEstimatorRansac          SurfEstimator;
+      typedef algorithm::SurfEstimatorFactory                        SurfEstimatorFactory;
+      typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory> Ransac;
+
+      SurfEstimatorFactory estimatorFactory( points1, points2 );
+      Ransac ransac( estimatorFactory );
+      ransac.estimate( matches, 2, 500, 0.3 );
    }
 };
 

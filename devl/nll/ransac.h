@@ -71,6 +71,10 @@ namespace algorithm
       typedef typename Estimator::Point   Point;
       typedef EstimatorFactoryM           EstimatorFactory;
 
+      Ransac( EstimatorFactory estimatorFactory = EstimatorFactory() ) : _estimatorFactory( estimatorFactory )
+      {
+      }
+
       /**
        @brief Run the algorithm and estimate model parameters
        @param points the set of points, with possibly a highratio of outliers
@@ -82,6 +86,9 @@ namespace algorithm
       template <class Points>
       Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError ) const
       {
+         enum Value{ value = core::Equal<Points::value_type, Point>::value };
+         STATIC_ASSERT( value ); // "the points must be identitcal"
+
          {
             std::stringstream ss;
             ss << "Ransac estimation:" << std::endl <<
@@ -105,14 +112,14 @@ namespace algorithm
             core::Buffer1D<Point>   initialSubset( minimalSample );
             std::vector<ui32>       currentSubset;
             currentSubset.reserve( points.size() );
-            Estimator estimator = EstimatorFactory::create();
+            Estimator estimator = _estimatorFactory.create();
 
             for ( ui32 nn = 0; nn < minimalSample; ++nn )
             {
                // randomly select a subset of point. As it is random, maybe the point
                // will be selected several times, and this is fine: the model will be degenerated
                // and so will be discarded...
-               const ui32 index = rand() % points.size();
+               const ui32 index = rand() % nbPoint;
                initialSubset[ nn ] = points[ index ];
             }
             estimator.estimate( initialSubset );
@@ -142,13 +149,14 @@ namespace algorithm
          }
 
          // now recompute the model parameters with the inlier subset
-         Points inliers( bestSubset.size() );
+         Points inliers;
+         inliers.reserve( bestSubset.size() );
          const ui32 nbInliers = static_cast<ui32>( bestSubset.size() );
          for ( ui32 n = 0; n < nbInliers; ++n )
          {
-            inliers[ n ] = points[ bestSubset[ n ] ];
+            inliers.push_back( points[ bestSubset[ n ] ] );
          }
-         Estimator estimator = EstimatorFactory::create();
+         Estimator estimator = _estimatorFactory.create();
          estimator.estimate( inliers );
 
          {
@@ -160,6 +168,9 @@ namespace algorithm
          }
          return estimator.getModel();
       }
+
+   private:
+      EstimatorFactory  _estimatorFactory;
    };
 
    /**
@@ -169,7 +180,7 @@ namespace algorithm
    class GenericEstimatorFactory
    {
    public:
-      static Estimator create()
+      Estimator create() const
       {
          return Estimator();
       }

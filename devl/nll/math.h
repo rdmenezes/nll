@@ -43,6 +43,7 @@ namespace core
     @brief Define the PI constant
     */
    extern const double NLL_API PI;
+   extern const float  NLL_API PIf;
 
    /**
     @ingroup core
