@@ -51,8 +51,8 @@ namespace algorithm
        @param scale if set to 0, the algorithm will determine the proper scaling, else it will use it
               as an additional constraint
        */
-      template <class Points>
-      Matrix compute( const Points& points1, const Points& points2, double scale = 0 )
+      template <class Points1, class Points2>
+      Matrix compute( const Points1& points1, const Points2& points2, double scale = 0 )
       {
          ensure( points1.size() == points2.size() && points2.size() > 0, "must be pair of points, not empty" );
          

@@ -870,6 +870,53 @@ namespace algorithm
 
    class AffineTransformationEstimatorRansac
    {
+   private:
+      typedef SpeededUpRobustFeatures::Points PointsData;
+
+      template <class PointsMatch>
+      class PointsWrapper1
+      {
+      public:
+         PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
+         {}
+
+         ui32 size() const
+         {
+            return _matches.size();
+         }
+
+         const core::vector2i& operator[]( ui32 index ) const
+         {
+            return _points[ _matches[ index ].index1 ].position;
+         }
+
+      private:
+         const PointsData     _points;
+         const PointsMatch    _matches;
+      };
+
+      template <class PointsMatch>
+      class PointsWrapper2
+      {
+      public:
+         PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
+         {}
+
+         ui32 size() const
+         {
+            return _matches.size();
+         }
+
+         const core::vector2i& operator[]( ui32 index ) const
+         {
+            return _points[ _matches[ index ].index2 ].position;
+         }
+
+      private:
+         const PointsData     _points;
+         const PointsMatch    _matches;
+      };
+
    public:
       AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
       {
@@ -894,23 +941,15 @@ namespace algorithm
       template <class Points>
       void estimate( const Points& points )
       {
-         //
-         // TODO use a least square solution instead
-         //
-
-
-         ensure( points.size() >= 2, "at least two pairs are needed" );
-         const ui32 index1 = 0;
-         const ui32 index2 = 1;
-
-         // first and second point
-         const SpeededUpRobustFeatures::Point& p1  = _p1[ points[ index1 ].index1 ];
-         const SpeededUpRobustFeatures::Point& p2  = _p1[ points[ index2 ].index1 ];
-
-         // matched first and second point
-         const SpeededUpRobustFeatures::Point& p1r = _p2[ points[ index1 ].index2 ];
-         const SpeededUpRobustFeatures::Point& p2r = _p2[ points[ index2 ].index2 ];
-
+         if ( points.size() < 2 )
+            return;
+        
+         PointsWrapper1<Points> wrapperP1( _p1, points );
+         PointsWrapper2<Points> wrapperP2( _p2, points );
+         
+         EstimatorTransformAffine2D affineEstimator;
+         _model.tfm = affineEstimator.compute( wrapperP1, wrapperP2 );
+         /*
          double bufMat[ 16 ] =
          {
             1, 0, p1.position[ 0 ], -p1.position[ 1 ],
@@ -948,7 +987,7 @@ namespace algorithm
          {
             // do nothing... that's fine: the model will be evaluated with
             // id and discarded with very high probability
-         }
+         }*/
       }
 
       /**
@@ -1289,17 +1328,17 @@ public:
          core::writeBmp( output3, "c:/tmp/o3.bmp" );
 
          // estimate the transformation
-         //typedef algorithm::AffineTransformationEstimatorRansac                       SurfEstimator;
-         typedef algorithm::TranslationTransformationEstimatorRansac                       SurfEstimator;
-         //typedef algorithm::SurfEstimatorFactory<algorithm::AffineTransformationEstimatorRansac> SurfEstimatorFactory;
-         typedef algorithm::SurfEstimatorFactory<algorithm::TranslationTransformationEstimatorRansac> SurfEstimatorFactory;
+         typedef algorithm::AffineTransformationEstimatorRansac                       SurfEstimator;
+         //typedef algorithm::TranslationTransformationEstimatorRansac                       SurfEstimator;
+         typedef algorithm::SurfEstimatorFactory<algorithm::AffineTransformationEstimatorRansac> SurfEstimatorFactory;
+         //typedef algorithm::SurfEstimatorFactory<algorithm::TranslationTransformationEstimatorRansac> SurfEstimatorFactory;
          typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory>                    Ransac;
 
          SurfEstimatorFactory estimatorFactory( points1, points2 );
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 3, 50000, 0.01 );
+         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01 );
          std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
          model.print( std::cout );
 

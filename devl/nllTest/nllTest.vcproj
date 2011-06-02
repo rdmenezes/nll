@@ -892,6 +892,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-estimator-affine2D.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath=".\test-feature-selection.cpp"
 				>
 				<FileConfiguration
@@ -2072,10 +2092,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test-similarity-transform-estimation.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\test-slice.cpp"
 				>
 				<FileConfiguration
@@ -2116,7 +2132,6 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -2124,7 +2139,6 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release|Win32"
-					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
