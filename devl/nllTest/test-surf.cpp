@@ -1183,10 +1183,6 @@ public:
       output = core::Image<ui8>( i2.sizex(), i2.sizey(), 3 );
 
       core::vector3uc black( 0, 0, 0 );
-      /*
-      core::Matrix<double> tfm = core::identityMatrix< core::Matrix<double> >( 3 );
-      tfm( 0, 2 ) = dx;
-      tfm( 1, 2 ) = dy;*/
       core::resampleNearestNeighbour( i1, output, tfm, black );
 
       double coef = 0.5;
@@ -1248,10 +1244,13 @@ public:
          "data/feature/sq7.bmp",
 
          "data/feature/sq1.bmp",
-         "data/feature/sq8.bmp"
+         "data/feature/sq8.bmp",
+
+         "data/feature/sq1.bmp",
+         "data/feature/sq9.bmp",
       };
 
-      for ( ui32 n = 0; n < 7; ++n )
+      for ( ui32 n = 0; n < core::getStaticBufferSize( pairs ) / 2; ++n )
       {
          // init
          core::Image<ui8> image( NLL_TEST_PATH + pairs[ 2 * n + 0 ] );
@@ -1321,7 +1320,7 @@ public:
          core::writeBmp( output2, "c:/tmp/o2.bmp" );
 
          // take only the best subset...
-         algorithm::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 100, matches.size() - 1 ) );
+         algorithm::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 200, matches.size() - 1 ) );
 
          core::Image<ui8> output3;
          composeMatch( output, output2, output3, points1, points2, matchesTrimmed );
@@ -1338,7 +1337,7 @@ public:
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01 );
+         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 5000, 0.001 );
          std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
          model.print( std::cout );
 
