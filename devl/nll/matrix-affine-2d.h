@@ -29,14 +29,43 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-# include "stdafx.h"
-# include "nll.h"
+#ifndef NLL_TRANSFORMATION_AFFINE_2D_H_
+# define NLL_TRANSFORMATION_AFFINE_2D_H_
 
 namespace nll
 {
 namespace core
 {
-   const double NLL_API PI = 3.1415926535897932384626433;
-   const float  NLL_API PIf = 3.1415926f;
+   /**
+    @brief Create a 2D transformation matrix, given a rotation, scaling and translation parameters
+    @param roation the rotation angle from the x-axis in radian
+
+    the matrix has this format:
+                       | scalingx * rx0 ; scalingy * ry0 ; tx |
+                   M = | scalingx * rx1 ; scalingy * ry1 ; ty |
+                       |     0          ;     0          ; 1  |
+    */
+   inline core::Matrix<double>
+   createTransformationAffine2D( double rotation,
+                                 const core::vector2d& scaling,
+                                 const core::vector2d& translation )
+   {
+      const double co = cos( rotation );
+      const double si = sin( rotation );
+      core::Matrix<double> tfm( 3, 3, false );
+      tfm( 0, 0 ) =  co * scaling[ 0 ];
+      tfm( 0, 1 ) = -si * scaling[ 1 ];
+      tfm( 0, 2 ) =  translation[ 0 ];
+      tfm( 1, 0 ) =  si * scaling[ 0 ];
+      tfm( 1, 1 ) =  co * scaling[ 1 ];
+      tfm( 1, 2 ) =  translation[ 1 ];
+      tfm( 2, 0 ) =  0;
+      tfm( 2, 1 ) =  0;
+      tfm( 2, 2 ) =  1;
+
+      return tfm;
+   }
 }
 }
+
+#endif

@@ -590,6 +590,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\matrix-affine-2d.h"
+				>
+			</File>
+			<File
 				RelativePath=".\matrix-basic-operations.h"
 				>
 			</File>
@@ -689,10 +693,6 @@
 				RelativePath=".\utility.h"
 				>
 			</File>
-			<Filter
-				Name="performance"
-				>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"
@@ -888,6 +888,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\estimator-affine2D-transformation.h"
+				>
+			</File>
+			<File
 				RelativePath=".\gabor-filter.h"
 				>
 			</File>
@@ -977,6 +981,10 @@
 			</File>
 			<File
 				RelativePath=".\quadratic-discriminant.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ransac.h"
 				>
 			</File>
 			<File
@@ -1091,6 +1099,10 @@
 				RelativePath=".\volume.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="transform"
+			>
 		</Filter>
 		<File
 			RelativePath=".\nll.dox"

@@ -168,7 +168,7 @@ namespace core
 	{
       if ( points.size() == 0 )
          return Output();
-      const ui32 nbFeatures = points[ 0 ].size();
+      const ui32 nbFeatures = static_cast<ui32>( points[ 0 ].size() );
       Output mean( nbFeatures );
 
 		for (ui32 ny = 0; ny < points.size(); ++ny)
@@ -253,6 +253,47 @@ namespace core
             cov( i, j ) = cov( j, i );
          }
       }
+      return cov;
+   }
+
+   /**
+    @ingroup core
+    @brief computes the covariance of 2 sets of points
+    @param p1 it must have the same size (nb points & dimensions) as p2
+    */
+   template <class Points>
+   core::Matrix<double> covariance( const Points& p1, const Points& p2, core::Buffer1D<double>& mean1_out, core::Buffer1D<double>& mean2_out )
+   {
+      typedef core::Buffer1D<double> Vector;
+      typedef core::Matrix<double>   Matrix;
+
+      // constants
+      ensure( p1.size() == p2.size() && p2.size() > 0, "must be pair of points, not empty" );   
+      const ui32 nbPoints = static_cast<ui32>( p1.size() );
+      const ui32 nbDim = static_cast<ui32>( p1[ 0 ].size() );
+      ensure( p2[ 0 ].size() == nbDim, "must be the same dimension" );
+
+      // processing
+      core::Buffer1D<double> mean1 = core::meanData<Points, Vector>( p1 );
+      core::Buffer1D<double> mean2 = core::meanData<Points, Vector>( p2 );
+
+      // compute the covariance
+      Matrix cov( nbDim, nbDim, false );
+      for ( ui32 i = 0; i < nbDim; ++i )
+      {
+         for ( ui32 j = 0; j < nbDim; ++j )
+         {
+            double accum = 0;
+            for ( ui32 k = 0; k < nbPoints; ++k )
+            {
+               accum += ( p1[ k ][ i ] - mean1[ i ] ) * ( p2[ k ][ j ] - mean2[ j ] );
+            }
+            cov( j, i ) = accum / nbPoints;
+         }
+      }
+
+      mean1_out = mean1;
+      mean2_out = mean2;
       return cov;
    }
 }

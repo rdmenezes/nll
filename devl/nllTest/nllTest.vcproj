@@ -1720,42 +1720,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath=".\test-performance.cpp"
-				>
-				<FileConfiguration
-					Name="Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Debug|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Release|x64"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath=".\test-principal-independent-component.cpp"
 				>
 				<FileConfiguration
@@ -1840,6 +1804,34 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\test-ransac.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -2080,6 +2072,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-similarity-transform-estimation.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-slice.cpp"
 				>
 				<FileConfiguration
@@ -2118,6 +2114,29 @@
 			<File
 				RelativePath=".\test-surf.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\test-transformation-normalization.cpp"

@@ -49,7 +49,7 @@ namespace core
    {
    public:
       typedef T      value_type;
-      enum{size = SIZE};
+      enum{sizeDef = SIZE};
 
    public:
       /**
@@ -267,6 +267,11 @@ namespace core
       {
          memcpy( _buffer, cpy._buffer, sizeof ( T ) * SIZE );
          return *this;
+      }
+
+      ui32 size() const
+      {
+         return SIZE;
       }
 
       /**

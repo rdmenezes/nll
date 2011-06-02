@@ -249,6 +249,8 @@ namespace algorithm
 
          // if it is outside, then skip it
          indexInMap( xRef, yRef, mapRef, mapDest, x, y );
+         if ( mapDest >= _pyramidDetHessian.size() )
+            return false;
          const Matrix& m = _pyramidDetHessian[ mapDest ];
          if ( x < 1 || y < 1 || x + 1 >= (int)m.sizex() || y + 1 >= (int)m.sizey() )
             return false;
@@ -1186,97 +1188,125 @@ public:
 
    void testRepeatability()
    {
-      // init
-      core::Image<ui8> image( NLL_TEST_PATH "data/feature/sq1.bmp" );
+      std::string pairs[] =
+      {
+         "data/feature/sq1.bmp",
+         "data/feature/sq2.bmp",
 
-      core::Image<ui8> output;
-      output.clone( image );
+         "data/feature/sq1.bmp",
+         "data/feature/sq3.bmp",
 
-      core::Image<ui8> image2( NLL_TEST_PATH "data/feature/sq7.bmp" );
-      //core::Image<ui8> image2;
-      //image2.clone( image );
+         "data/feature/sq1.bmp",
+         "data/feature/sq4.bmp",
 
-      core::TransformationRotation tfm( 0, core::vector2f( 40, 0 ) );
-      //core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
-      core::transformUnaryFast( image2, tfm );
+         "data/feature/sq1.bmp",
+         "data/feature/sq5.bmp",
 
-      core::Image<ui8> oi1;
-      oi1.clone( image );
-      core::Image<ui8> oi2;
-      oi2.clone( image2 );
+         "data/feature/sq1.bmp",
+         "data/feature/sq6.bmp",
 
-      core::writeBmp( image, "c:/tmp/oi1.bmp" );
-      core::writeBmp( image2, "c:/tmp/oi2.bmp" );
+         "data/feature/sq1.bmp",
+         "data/feature/sq7.bmp",
 
-      core::Image<ui8> output2;
-      output2.clone( image2 );
+         "data/feature/sq1.bmp",
+         "data/feature/sq8.bmp"
+      };
 
-      TESTER_ASSERT( image.sizex() );
-      core::decolor( image );
-      core::decolor( image2 );
+      for ( ui32 n = 0; n < 7; ++n )
+      {
+         // init
+         core::Image<ui8> image( NLL_TEST_PATH + pairs[ 2 * n + 0 ] );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.00061 );
+         core::Image<ui8> output;
+         output.clone( image );
 
-      nll::core::Timer timer;
-      algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
-      std::cout << "done=" << timer.getCurrentTime() << std::endl;
+         core::Image<ui8> image2( NLL_TEST_PATH + pairs[ 2 * n + 1 ] );
+         //core::Image<ui8> image2;
+         //image2.clone( image );
 
-      nll::core::Timer timer2;
-      algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( image2 );
-      std::cout << "done2=" << timer2.getCurrentTime() << std::endl;
+         core::TransformationRotation tfm( 0, core::vector2f( 40, 0 ) );
+         //core::TransformationRotation tfm( 0.1, core::vector2f( 0, -10 ) );
+         core::transformUnaryFast( image2, tfm );
 
-      std::cout << "nbPOints=" << points1.size() << std::endl;
-      std::cout << "nbPOints=" << points2.size() << std::endl;
+         core::Image<ui8> oi1;
+         oi1.clone( image );
+         core::Image<ui8> oi2;
+         oi2.clone( image2 );
 
-      std::vector< std::pair<ui32, ui32> > repeatablePointIndex = getRepeatablePointPosition( points1, points2, tfm, 4);
-      std::cout << "similarity=" << (double)repeatablePointIndex.size() / std::max( points1.size(), points2.size() ) << std::endl;
+         core::writeBmp( image, "c:/tmp/oi1.bmp" );
+         core::writeBmp( image2, "c:/tmp/oi2.bmp" );
 
-      std::vector< ui32 > orientation = getRepeatablePointOrientation( repeatablePointIndex, points1, points2, tfm, 0.3 );
-      std::cout << "repeatable orientation=" << (double)orientation.size() / repeatablePointIndex.size() << std::endl;
+         core::Image<ui8> output2;
+         output2.clone( image2 );
 
-      // match points
-      algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p1Wrapper( points1 );
-      algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p2Wrapper( points2 );
+         TESTER_ASSERT( image.sizex() );
+         core::decolor( image );
+         core::decolor( image2 );
 
-      core::Timer matchingTimer;
-      algorithm::FeatureMatcher matcher;
-      std::cout << "maching time=" << matchingTimer.getCurrentTime() << std::endl;
+         algorithm::SpeededUpRobustFeatures surf( 5, 6, 2, 0.00011 );
 
-      algorithm::FeatureMatcher::Matches matches;
-      matcher.findMatch( p1Wrapper, p2Wrapper, matches );
-      std::cout << "nb match=" << matches.size() << std::endl;
-      
+         nll::core::Timer timer;
+         algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
+         std::cout << "done=" << timer.getCurrentTime() << std::endl;
 
-      printPoints( output, points1 );
-      core::writeBmp( output, "c:/tmp/o.bmp" );
+         nll::core::Timer timer2;
+         algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( image2 );
+         std::cout << "done2=" << timer2.getCurrentTime() << std::endl;
 
-      printPoints( output2, points2 );
-      core::writeBmp( output2, "c:/tmp/o2.bmp" );
+         std::cout << "nbPOints=" << points1.size() << std::endl;
+         std::cout << "nbPOints=" << points2.size() << std::endl;
 
-      core::Image<ui8> output3;
-      composeMatch( output, output2, output3, points1, points2, matches );
-      core::writeBmp( output3, "c:/tmp/o3.bmp" );
+         std::vector< std::pair<ui32, ui32> > repeatablePointIndex = getRepeatablePointPosition( points1, points2, tfm, 4);
+         std::cout << "similarity=" << (double)repeatablePointIndex.size() / std::max( points1.size(), points2.size() ) << std::endl;
 
-      // estimate the transformation
-      //typedef algorithm::AffineTransformationEstimatorRansac                       SurfEstimator;
-      typedef algorithm::TranslationTransformationEstimatorRansac                       SurfEstimator;
-      //typedef algorithm::SurfEstimatorFactory<algorithm::AffineTransformationEstimatorRansac> SurfEstimatorFactory;
-      typedef algorithm::SurfEstimatorFactory<algorithm::TranslationTransformationEstimatorRansac> SurfEstimatorFactory;
-      typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory>                    Ransac;
+         std::vector< ui32 > orientation = getRepeatablePointOrientation( repeatablePointIndex, points1, points2, tfm, 0.3 );
+         std::cout << "repeatable orientation=" << (double)orientation.size() / repeatablePointIndex.size() << std::endl;
 
-      SurfEstimatorFactory estimatorFactory( points1, points2 );
-      Ransac ransac( estimatorFactory );
+         // match points
+         algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p1Wrapper( points1 );
+         algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p2Wrapper( points2 );
 
-      // take only the best subset...
-      algorithm::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + 50 );
-      core::Timer ransacOptimTimer;
-      SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 2, 50000, 0.025 );
-      std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
-      model.print( std::cout );
+         core::Timer matchingTimer;
+         algorithm::FeatureMatcher matcher;
+         std::cout << "maching time=" << matchingTimer.getCurrentTime() << std::endl;
 
-      core::Image<ui8> outputReg;
-      displayTransformation( oi1, oi2, outputReg, model.tfm );
-      core::writeBmp( outputReg, "c:/tmp/oreg.bmp" );
+         algorithm::FeatureMatcher::Matches matches;
+         matcher.findMatch( p1Wrapper, p2Wrapper, matches );
+         std::cout << "nb match=" << matches.size() << std::endl;
+         
+
+         printPoints( output, points1 );
+         core::writeBmp( output, "c:/tmp/o.bmp" );
+
+         printPoints( output2, points2 );
+         core::writeBmp( output2, "c:/tmp/o2.bmp" );
+
+         // take only the best subset...
+         algorithm::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 100, matches.size() - 1 ) );
+
+         core::Image<ui8> output3;
+         composeMatch( output, output2, output3, points1, points2, matchesTrimmed );
+         core::writeBmp( output3, "c:/tmp/o3.bmp" );
+
+         // estimate the transformation
+         //typedef algorithm::AffineTransformationEstimatorRansac                       SurfEstimator;
+         typedef algorithm::TranslationTransformationEstimatorRansac                       SurfEstimator;
+         //typedef algorithm::SurfEstimatorFactory<algorithm::AffineTransformationEstimatorRansac> SurfEstimatorFactory;
+         typedef algorithm::SurfEstimatorFactory<algorithm::TranslationTransformationEstimatorRansac> SurfEstimatorFactory;
+         typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory>                    Ransac;
+
+         SurfEstimatorFactory estimatorFactory( points1, points2 );
+         Ransac ransac( estimatorFactory );
+
+         core::Timer ransacOptimTimer;
+         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 3, 50000, 0.01 );
+         std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
+         model.print( std::cout );
+
+         core::Image<ui8> outputReg;
+         displayTransformation( oi1, oi2, outputReg, model.tfm );
+         core::writeBmp( outputReg, "c:/tmp/oreg" + core::val2str(n) + ".bmp" );
+      }
    }
 };
 
