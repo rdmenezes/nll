@@ -35,6 +35,9 @@
 # include <iostream>
 # include "image.h"
 
+# pragma warning( push )
+# pragma warning( disable:4127 ) // conditional expression is constant
+
 namespace nll
 {
 namespace core
@@ -178,5 +181,7 @@ namespace core
    }
 }
 }
+
+# pragma warning( pop )
 
 #endif

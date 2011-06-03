@@ -299,6 +299,9 @@
 # include "regression-mlp.h"
 # include "regression-svm-nu.h"
 # include "haar-features.h"
+# include "pyramid-hessian-2d.h"
+# include "surf-2d.h"
+# include "point-based-registration-2d.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

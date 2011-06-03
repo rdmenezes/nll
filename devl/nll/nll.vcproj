@@ -976,7 +976,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\point-based-registration-2d.h"
+				>
+			</File>
+			<File
 				RelativePath=".\powell.h"
+				>
+			</File>
+			<File
+				RelativePath=".\pyramid-hessian-2d.h"
 				>
 			</File>
 			<File
@@ -997,6 +1005,10 @@
 			</File>
 			<File
 				RelativePath=".\sammon-projection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\surf-2d.h"
 				>
 			</File>
 			<File
