@@ -394,15 +394,15 @@ public:
    core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
    {
       std::cout << "size=" << v.getSize() << std::endl;
-      core::Image<ui8> p( v.getSize()[ 0 ], v.getSize()[ 2 ], 3 );
-      for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
+      core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
+      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ]; ++z )
       {
-         for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
+         for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ]; ++x )
          {
             double accum = 0;
             for ( ui32 y = 0; y < v.getSize()[ 1 ]; ++y )
             {
-               accum += lut.transform( v( x, y, z ) )[ 0 ];
+               accum += lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
             }
             accum /= 0.5 * v.getSize()[ 1 ];
 
@@ -410,6 +410,33 @@ public:
             p( x, z, 0 ) = val;
             p( x, z, 1 ) = val;
             p( x, z, 2 ) = val;
+            
+         }
+      }
+
+      return p;
+   }
+
+   core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+   {
+      std::cout << "size=" << v.getSize() << std::endl;
+      core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
+      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ]; ++z )
+      {
+         for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ]; ++y )
+         {
+            double accum = 0;
+            for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
+            {
+               accum += lut.transform( v( x, y / v.getSpacing()[ 1 ], z / v.getSpacing()[ 2 ] ) )[ 0 ];
+            }
+            accum /= 0.5 * v.getSize()[ 1 ];
+
+            const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
+            p( y, z, 0 ) = val;
+            p( y, z, 1 ) = val;
+            p( y, z, 2 ) = val;
+            
          }
       }
 
@@ -457,8 +484,8 @@ public:
    void testRegistrationVolume()
    {
       const std::string rootOut = NLL_TEST_PATH "data/";
-      const std::string ct1name = NLL_TEST_PATH "../regionDetectionTest/data/case14.mf2";
-      const std::string ct2name = NLL_TEST_PATH "../regionDetectionTest/data/case37.mf2";
+      const std::string ct1name = NLL_TEST_PATH "../regionDetectionTest/data/case51.mf2";
+      const std::string ct2name = NLL_TEST_PATH "../regionDetectionTest/data/case65.mf2";
       
       typedef nll::imaging::VolumeSpatial<double>           Volume;
       imaging::LookUpTransformWindowingRGB lut( -250, 250, 256, 1 );
@@ -474,10 +501,10 @@ public:
       loaded = nll::imaging::loadSimpleFlatFile( ct2name, ct2 );
       TESTER_ASSERT( loaded );
 
-      core::Image<ui8> py1 = projectImageY( ct1, lut );
+      core::Image<ui8> py1 = projectImageX( ct1, lut );
       core::writeBmp( py1, rootOut + "py1.bmp" );
 
-      core::Image<ui8> py2 = projectImageY( ct2, lut );
+      core::Image<ui8> py2 = projectImageX( ct2, lut );
       core::writeBmp( py2, rootOut + "py2.bmp" );
 
       core::decolor( py1 );
