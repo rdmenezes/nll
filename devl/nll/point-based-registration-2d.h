@@ -331,6 +331,9 @@ namespace algorithm
     @brief Point based registration, internally using SURF to create the interest points,
            RANSAC to estimate the best transformation, and <EstimatorTransformAffine2D> to estimate the
            local transformation
+
+    @note this class is just an example and will likely need a lot of customization by the user to fit
+          the given registration problem
     */
    template <class FeatureMatcher = impl::FeatureMatcher>
    class AffineRegistrationPointBased2d
@@ -370,7 +373,7 @@ namespace algorithm
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 10000, 0.001 );
+         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01 );
          return model.tfm;
      }
 

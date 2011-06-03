@@ -31,6 +31,30 @@ namespace
 
       "data/feature/sq1.bmp",
       "data/feature/sq9.bmp",
+
+      "data/feature/xz-case-1.bmp",
+      "data/feature/xz-case-10.bmp",
+
+      "data/feature/xz-case-13.bmp",
+      "data/feature/xz-case-14.bmp",
+
+      "data/feature/xz-case-15.bmp",
+      "data/feature/xz-case-17.bmp",
+
+      "data/feature/xz-case-18.bmp",
+      "data/feature/xz-case-19.bmp",
+
+      "data/feature/xz-case-2.bmp",
+      "data/feature/xz-case-20.bmp",
+
+      "data/feature/xz-case-3.bmp",
+      "data/feature/xz-case-5.bmp",
+
+      "data/feature/xz-case-3.bmp",
+      "data/feature/xz-case-20.bmp",
+
+      "data/feature/xz-case-228.bmp",
+      "data/feature/xz-case-500.bmp",
    };
 }
 
@@ -288,11 +312,13 @@ public:
       {
          // init
          core::Image<ui8> image( NLL_TEST_PATH + pairs[ 2 * n + 0 ] );
+         //core::addBorder( image, 80, 80 );
 
          core::Image<ui8> output;
          output.clone( image );
 
          core::Image<ui8> image2( NLL_TEST_PATH + pairs[ 2 * n + 1 ] );
+         //core::addBorder( image2, 80, 80 );
 
          core::Image<ui8> oi1;
          oi1.clone( image );
@@ -354,7 +380,7 @@ public:
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 5000, 0.001 );
+         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01 );
          std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
          model.print( std::cout );
 
@@ -364,12 +390,39 @@ public:
       }
    }
 
+   // assume a GREY LUT
+   core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+   {
+      std::cout << "size=" << v.getSize() << std::endl;
+      core::Image<ui8> p( v.getSize()[ 0 ], v.getSize()[ 2 ], 3 );
+      for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
+      {
+         for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
+         {
+            double accum = 0;
+            for ( ui32 y = 0; y < v.getSize()[ 1 ]; ++y )
+            {
+               accum += lut.transform( v( x, y, z ) )[ 0 ];
+            }
+            accum /= 0.5 * v.getSize()[ 1 ];
+
+            const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
+            p( x, z, 0 ) = val;
+            p( x, z, 1 ) = val;
+            p( x, z, 2 ) = val;
+         }
+      }
+
+      return p;
+   }
+
    void testRegistration2()
    {
       const std::string rootOut = NLL_TEST_PATH "data/";
 
       for ( ui32 n = 0; n < core::getStaticBufferSize( pairs ) / 2; ++n )
       {
+         std::cout << "Registration=" << n << std::endl;
          // init
          core::Image<ui8> image( NLL_TEST_PATH + pairs[ 2 * n + 0 ] );
 
@@ -400,6 +453,44 @@ public:
          core::writeBmp( outputReg, rootOut + "oreg-2-" + core::val2str(n) + ".bmp" );
       }
    }
+
+   void testRegistrationVolume()
+   {
+      const std::string rootOut = NLL_TEST_PATH "data/";
+      const std::string ct1name = NLL_TEST_PATH "../regionDetectionTest/data/case14.mf2";
+      const std::string ct2name = NLL_TEST_PATH "../regionDetectionTest/data/case37.mf2";
+      
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      imaging::LookUpTransformWindowingRGB lut( -250, 250, 256, 1 );
+      lut.createGreyscale();
+
+      Volume ct1;
+      Volume ct2;
+
+      std::cout << "loading..." << std::endl;
+      bool loaded = nll::imaging::loadSimpleFlatFile( ct1name, ct1 );
+      TESTER_ASSERT( loaded );
+
+      loaded = nll::imaging::loadSimpleFlatFile( ct2name, ct2 );
+      TESTER_ASSERT( loaded );
+
+      core::Image<ui8> py1 = projectImageY( ct1, lut );
+      core::writeBmp( py1, rootOut + "py1.bmp" );
+
+      core::Image<ui8> py2 = projectImageY( ct2, lut );
+      core::writeBmp( py2, rootOut + "py2.bmp" );
+
+      core::decolor( py1 );
+      core::decolor( py2 );
+      algorithm::AffineRegistrationPointBased2d<> registration;
+      core::Matrix<double> regTfm = registration.compute( py1, py2 );
+
+      core::extend( py1, 3 );
+      core::extend( py2, 3 );
+      core::Image<ui8> outputReg;
+      displayTransformation( py1, py2, outputReg, regTfm );
+      core::writeBmp( outputReg, rootOut + "result.bmp" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -407,6 +498,7 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testBasic);
 //TESTER_TEST(testRepeatability);
 //TESTER_TEST(testRegistration);
-TESTER_TEST(testRegistration2);
+//TESTER_TEST(testRegistration2);
+TESTER_TEST(testRegistrationVolume);
 TESTER_TEST_SUITE_END();
 #endif
