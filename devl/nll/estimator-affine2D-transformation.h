@@ -52,7 +52,7 @@ namespace algorithm
               as an additional constraint
        */
       template <class Points1, class Points2>
-      Matrix compute( const Points1& points1, const Points2& points2, double scale = 0 )
+      Matrix compute( const Points1& points1, const Points2& points2, double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 )
       {
          ensure( points1.size() == points2.size() && points2.size() > 0, "must be pair of points, not empty" );
          
@@ -93,6 +93,16 @@ namespace algorithm
             }
             trace += eiv[ nbDim - 1 ] * core::sign( det );
             scale = nbPoints / accum * trace;
+         }
+
+         if ( scale < minimumScale )
+         {
+            scale = minimumScale;
+         }
+
+         if ( scale > maximumScale )
+         {
+            scale = maximumScale;
          }
 
          core::transpose( v );

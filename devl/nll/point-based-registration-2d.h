@@ -373,7 +373,7 @@ namespace algorithm
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01 );
+         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 3, 50000, 0.01 );
          return model.tfm;
      }
 

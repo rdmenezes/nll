@@ -574,16 +574,18 @@ public:
    {
       const std::string outputDir = "c:/tmp/proj/";
       int n = 0;
-      for ( ui32 n = 0; n < 40; ++n )
+      for ( ui32 n = 0; n < 60; ++n )
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
          core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
-        // core::addBorder( py1, 40, 40 );
+         //core::convolve( py1, core::buildGaussian() );
+         //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
          core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
-       //  core::addBorder( py2, 40, 40 );
+         //core::convolve( py2, core::buildGaussian() );
+         //core::addBorder( py2, 40, 40 );
 
          core::decolor( py1 );
          core::decolor( py2 );
