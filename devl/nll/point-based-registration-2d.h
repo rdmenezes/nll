@@ -363,7 +363,7 @@ namespace algorithm
          _matcher.findMatch( p1Wrapper, p2Wrapper, matches );
 
          // take only the best subset...
-         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 200, (ui32)matches.size() - 1 ) );
+         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 100, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::impl::SurfEstimatorFactory<RansacTransformationEstimator> SurfEstimatorFactory;

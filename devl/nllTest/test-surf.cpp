@@ -395,16 +395,26 @@ public:
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
-      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ]; ++z )
+      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
       {
-         for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ]; ++x )
+         for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
          {
             double accum = 0;
+            //ui32 nbVoxelsNonEmpty = 0;
             for ( ui32 y = 0; y < v.getSize()[ 1 ]; ++y )
             {
-               accum += lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
+               const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
+               accum += val;
+            //   if ( val > 0 )
+            //      ++nbVoxelsNonEmpty;
             }
-            accum /= 0.5 * v.getSize()[ 1 ];
+            /*
+            if ( nbVoxelsNonEmpty < 1 )
+                  accum = 0;
+               else
+                  accum /= nbVoxelsNonEmpty;
+                  */
+            accum /= v.getSize()[ 1 ];
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             p( x, z, 0 ) = val;
@@ -421,16 +431,24 @@ public:
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
-      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ]; ++z )
+      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
       {
-         for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ]; ++y )
+         for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
          {
             double accum = 0;
+            ui32 nbVoxelsNonEmpty = 0;
             for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
             {
-               accum += lut.transform( v( x, y / v.getSpacing()[ 1 ], z / v.getSpacing()[ 2 ] ) )[ 0 ];
+               const double val = lut.transform( v( x, y / v.getSpacing()[ 1 ], z / v.getSpacing()[ 2 ] ) )[ 0 ];
+               accum += val;
+               if ( val > 0 )
+                  ++nbVoxelsNonEmpty;
             }
-            accum /= 0.5 * v.getSize()[ 1 ];
+
+            if ( nbVoxelsNonEmpty < 15 )
+                  accum = 0;
+               else
+                  accum /= nbVoxelsNonEmpty;
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             p( y, z, 0 ) = val;
@@ -518,6 +536,67 @@ public:
       displayTransformation( py1, py2, outputReg, regTfm );
       core::writeBmp( outputReg, rootOut + "result.bmp" );
    }
+
+   void createProjections()
+   {
+      const std::string inputDir = "I:/work/data_CT/";
+      const std::string input = inputDir + "list.txt";
+      const std::string outputDir = "c:/tmp/proj/";
+
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+      imaging::LookUpTransformWindowingRGB lut( -250, 250, 256, 1 );
+      lut.createGreyscale();
+
+      std::ifstream f( input.c_str() );
+      int n = 0;
+      while ( !f.eof() )
+      {
+         std::string file;
+         std::getline( f, file );
+         if ( file != "" )
+         {
+            std::cout << "loading:" << file << std::endl;
+            Volume ct1;
+            bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + file, ct1 );
+            TESTER_ASSERT( loaded );
+
+            core::Image<ui8> py1 = projectImageX( ct1, lut );
+            core::writeBmp( py1, outputDir + "px-" +  core::val2str( n ) + ".bmp" );
+
+            core::Image<ui8> py2 = projectImageY( ct1, lut );
+            core::writeBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+            ++n;
+         }
+      }
+   }
+
+   void testProjections()
+   {
+      const std::string outputDir = "c:/tmp/proj/";
+      int n = 0;
+      for ( ui32 n = 0; n < 40; ++n )
+      {
+         std::cout << "reg=" << n << std::endl;
+         core::Image<ui8> py1;
+         core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+        // core::addBorder( py1, 40, 40 );
+
+         core::Image<ui8> py2;
+         core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
+       //  core::addBorder( py2, 40, 40 );
+
+         core::decolor( py1 );
+         core::decolor( py2 );
+         algorithm::AffineRegistrationPointBased2d<> registration;
+         core::Matrix<double> regTfm = registration.compute( py1, py2 );
+
+         core::extend( py1, 3 );
+         core::extend( py2, 3 );
+         core::Image<ui8> outputReg;
+         displayTransformation( py1, py2, outputReg, regTfm );
+         core::writeBmp( outputReg, outputDir + "../result" + core::val2str( n ) + ".bmp" );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -526,6 +605,8 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testRepeatability);
 //TESTER_TEST(testRegistration);
 //TESTER_TEST(testRegistration2);
-TESTER_TEST(testRegistrationVolume);
+//TESTER_TEST(testRegistrationVolume);
+//TESTER_TEST(createProjections);
+TESTER_TEST(testProjections);
 TESTER_TEST_SUITE_END();
 #endif
