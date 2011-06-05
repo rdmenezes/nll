@@ -391,7 +391,7 @@ public:
    }
 
    // assume a GREY LUT
-   core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+   core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
@@ -401,7 +401,7 @@ public:
          {
             double accum = 0;
             //ui32 nbVoxelsNonEmpty = 0;
-            for ( ui32 y = 0; y < v.getSize()[ 1 ]; ++y )
+            for ( ui32 y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
             {
                const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
                accum += val;
@@ -427,13 +427,13 @@ public:
       return p;
    }
 
-   core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+   core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
       for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
       {
-         for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
+         for ( ui32 y = 0; y < ymax; ++y )
          {
             double accum = 0;
             ui32 nbVoxelsNonEmpty = 0;
@@ -444,11 +444,13 @@ public:
                if ( val > 0 )
                   ++nbVoxelsNonEmpty;
             }
-
-            if ( nbVoxelsNonEmpty < 15 )
+            /*
+            if ( nbVoxelsNonEmpty < 50 && accum / nbVoxelsNonEmpty > 180 )
                   accum = 0;
                else
                   accum /= nbVoxelsNonEmpty;
+                  */
+            accum /= v.getSize()[ 0 ];
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             p( y, z, 0 ) = val;
@@ -459,6 +461,76 @@ public:
       }
 
       return p;
+   }
+
+   core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+   {
+      std::cout << "size=" << v.getSize() << std::endl;
+      core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 1 ] * v.getSpacing()[ 1 ], 3 );
+      for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
+      {
+         for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
+         {
+            double accum = 0;
+            for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
+            {
+               const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y / v.getSpacing()[ 1 ], z ) )[ 0 ];
+               accum += val;
+            }
+
+            accum /= v.getSize()[ 0 ];
+
+            const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
+            p( x, y, 0 ) = val;
+            p( x, y, 1 ) = val;
+            p( x, y, 2 ) = val;
+            
+         }
+      }
+
+      return p;
+   }
+
+   // find the table: from top to bottom, the Y position can be determined: detect the points top to bottom with only a few connected
+   // pixels
+   int findTableY( const core::Image<ui8>& iz )
+   {
+      ui32 nbPixelTable = 0;
+      double mean = 0;
+      for ( ui32 x = 0; x < iz.sizex(); ++x )
+      {
+         ui32 lineId = 0;
+         ui32 nbConnected[ 5 ] = {0, 0, 0, 0, 0};
+         int ymin[ 5 ];
+         int ymax[ 5 ];
+         for ( int y = iz.sizey() - 1; y > 0; --y )
+         {
+            if ( iz( x, y, 0 ) > 0 )
+            {
+               if ( nbConnected[ lineId ] == 0 )
+                  ymin[ lineId ] = y;
+               ++nbConnected[ lineId ];
+            } else if ( nbConnected[ lineId ] && abs( y - ymin[ lineId ] ) < 20 )
+            {
+               ymax[ lineId ] = y;
+               ++lineId;
+               if ( lineId >= 3)
+                  break;
+            }
+         }
+
+         if ( lineId )
+         {
+            ++nbPixelTable;
+            mean += ymax[ lineId - 1 ];
+         }
+      }
+
+      std::cout << "nbPixel=" << nbPixelTable << " mean=" << (mean / nbPixelTable) << std::endl;
+
+      if ( nbPixelTable > 120 )
+         return mean / nbPixelTable;
+      return -1;
    }
 
    void testRegistration2()
@@ -498,7 +570,7 @@ public:
          core::writeBmp( outputReg, rootOut + "oreg-2-" + core::val2str(n) + ".bmp" );
       }
    }
-
+   /*
    void testRegistrationVolume()
    {
       const std::string rootOut = NLL_TEST_PATH "data/";
@@ -536,7 +608,7 @@ public:
       displayTransformation( py1, py2, outputReg, regTfm );
       core::writeBmp( outputReg, rootOut + "result.bmp" );
    }
-
+   */
    void createProjections()
    {
       const std::string inputDir = "I:/work/data_CT/";
@@ -544,7 +616,7 @@ public:
       const std::string outputDir = "c:/tmp/proj/";
 
       typedef nll::imaging::VolumeSpatial<double>           Volume;
-      imaging::LookUpTransformWindowingRGB lut( -250, 250, 256, 1 );
+      imaging::LookUpTransformWindowingRGB lut( 0, 250, 256, 1 );
       lut.createGreyscale();
 
       std::ifstream f( input.c_str() );
@@ -555,17 +627,45 @@ public:
          std::getline( f, file );
          if ( file != "" )
          {
-            std::cout << "loading:" << file << std::endl;
-            Volume ct1;
-            bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + file, ct1 );
-            TESTER_ASSERT( loaded );
+            try
+            {
+               std::cout << "loading:" << file << std::endl;
+               Volume ct1;
+               bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + file, ct1 );
+               if ( loaded )
+               {
+                  core::Image<ui8> py3 = projectImageZ( ct1, lut );
+                  int ymax = findTableY( py3 );
+                  if ( ymax > 0 )
+                  {
+                     for ( ui32 x = 0; x < py3.sizex(); ++x )
+                     {
+                        for ( ui32 y = ymax; y < py3.sizey(); ++y )
+                        {
+                           py3( x, y, 0 ) = 0;
+                           py3( x, y, 1 ) = 0;
+                           py3( x, y, 2 ) = 0;
+                        }
+                     }
+                  } else {
+                     ymax = ct1.getSize()[ 1 ] * ct1.getSpacing()[ 1 ] - 1;
+                  }
+                  core::writeBmp( py3, outputDir + "pz-" + core::val2str( n ) + ".bmp" );
 
-            core::Image<ui8> py1 = projectImageX( ct1, lut );
-            core::writeBmp( py1, outputDir + "px-" +  core::val2str( n ) + ".bmp" );
+                  
 
-            core::Image<ui8> py2 = projectImageY( ct1, lut );
-            core::writeBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
-            ++n;
+                  core::Image<ui8> py1 = projectImageX( ct1, lut, ymax );
+                  core::writeBmp( py1, outputDir + "px-" +  core::val2str( n ) + ".bmp" );
+
+                  core::Image<ui8> py2 = projectImageY( ct1, lut, ymax );
+                  core::writeBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+
+               }
+               ++n;
+            } catch (...)
+            {
+               std::cout << "EXCEPTION" << std::endl;
+            }
          }
       }
    }
@@ -574,16 +674,16 @@ public:
    {
       const std::string outputDir = "c:/tmp/proj/";
       int n = 0;
-      for ( ui32 n = 0; n < 60; ++n )
+      for ( ui32 n = 0; n < 100; ++n )
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py1, outputDir + "px-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py2, outputDir + "px-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
@@ -599,6 +699,15 @@ public:
          core::writeBmp( outputReg, outputDir + "../result" + core::val2str( n ) + ".bmp" );
       }
    }
+
+   void test()
+   {
+      const std::string outputDir = "c:/tmp/proj/";
+      core::Image<ui8> py2;
+      core::readBmp( py2, outputDir + "pz-" + core::val2str( 2 ) + ".bmp" );
+
+      int ymax = findTableY( py2 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -610,5 +719,6 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testRegistrationVolume);
 //TESTER_TEST(createProjections);
 TESTER_TEST(testProjections);
+//TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif
