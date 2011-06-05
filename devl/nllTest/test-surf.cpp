@@ -510,7 +510,7 @@ public:
                if ( nbConnected[ lineId ] == 0 )
                   ymin[ lineId ] = y;
                ++nbConnected[ lineId ];
-            } else if ( nbConnected[ lineId ] && abs( y - ymin[ lineId ] ) < 20 )
+            } else if ( nbConnected[ lineId ] && abs( y - ymin[ lineId ] ) < 30 )
             {
                ymax[ lineId ] = y;
                ++lineId;
@@ -616,7 +616,7 @@ public:
       const std::string outputDir = "c:/tmp/proj/";
 
       typedef nll::imaging::VolumeSpatial<double>           Volume;
-      imaging::LookUpTransformWindowingRGB lut( 0, 250, 256, 1 );
+      imaging::LookUpTransformWindowingRGB lut( -10, 250, 256, 1 );
       lut.createGreyscale();
 
       std::ifstream f( input.c_str() );
@@ -678,12 +678,12 @@ public:
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "px-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "px-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
