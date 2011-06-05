@@ -205,7 +205,7 @@ public:
       core::vector3uc black( 0, 0, 0 );
       core::resampleNearestNeighbour( i1, output, tfm, black );
 
-      double coef = 0.5;
+      double coef = 0.8;
       for ( ui32 y = 0; y < i2.sizey(); ++y )
       {
          for ( ui32 x = 0; x < i2.sizex(); ++x )
@@ -690,13 +690,19 @@ public:
          core::decolor( py1 );
          core::decolor( py2 );
          algorithm::AffineRegistrationPointBased2d<> registration;
-         core::Matrix<double> regTfm = registration.compute( py1, py2 );
+         try
+         {
+            core::Matrix<double> regTfm = registration.compute( py1, py2 );
 
-         core::extend( py1, 3 );
-         core::extend( py2, 3 );
-         core::Image<ui8> outputReg;
-         displayTransformation( py1, py2, outputReg, regTfm );
-         core::writeBmp( outputReg, outputDir + "../result" + core::val2str( n ) + ".bmp" );
+            core::extend( py1, 3 );
+            core::extend( py2, 3 );
+            core::Image<ui8> outputReg;
+            displayTransformation( py1, py2, outputReg, regTfm );
+            core::writeBmp( outputReg, outputDir + "../result" + core::val2str( n ) + ".bmp" );
+         } catch(...)
+         {
+            std::cout << "Error, not enough inliers..." << std::endl;
+         }
       }
    }
 

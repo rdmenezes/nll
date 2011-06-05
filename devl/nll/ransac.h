@@ -84,7 +84,7 @@ namespace algorithm
        @param maxError the maximum error a test point to have to be considered an inlier, specified in %
        */
       template <class Points>
-      Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError ) const
+      Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError )
       {
          enum Value{ value = core::Equal<Points::value_type, Point>::value };
          STATIC_ASSERT( value ); // "the points must be identitcal"
@@ -166,11 +166,18 @@ namespace algorithm
             estimator.getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
+         _nbInliers = inliers.size();
          return estimator.getModel();
+      }
+
+      ui32 getNbInliers() const
+      {
+         return _nbInliers;
       }
 
    private:
       EstimatorFactory  _estimatorFactory;
+      ui32              _nbInliers;
    };
 
    /**

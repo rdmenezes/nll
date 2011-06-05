@@ -47,12 +47,17 @@ namespace algorithm
       typedef core::Matrix<double>     Matrix;
       typedef core::Buffer1D<double>   Vector;
 
+      EstimatorTransformAffine2D( double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : 
+         _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+      {
+      }
+
       /**
        @param scale if set to 0, the algorithm will determine the proper scaling, else it will use it
               as an additional constraint
        */
       template <class Points1, class Points2>
-      Matrix compute( const Points1& points1, const Points2& points2, double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 )
+      Matrix compute( const Points1& points1, const Points2& points2 )
       {
          ensure( points1.size() == points2.size() && points2.size() > 0, "must be pair of points, not empty" );
          
@@ -76,7 +81,8 @@ namespace algorithm
          }
 
          // compute the scale
-         if ( scale <= 1e-20 )
+         double scale = _scale;
+         if ( _scale <= 1e-20 )
          {
             double accum = 0;
             for ( ui32 n = 0; n < nbPoints; ++n )
@@ -95,14 +101,14 @@ namespace algorithm
             scale = nbPoints / accum * trace;
          }
 
-         if ( scale < minimumScale )
+         if ( scale < _minimumScale )
          {
-            scale = minimumScale;
+            scale = _minimumScale;
          }
 
-         if ( scale > maximumScale )
+         if ( scale > _maximumScale )
          {
-            scale = maximumScale;
+            scale = _maximumScale;
          }
 
          core::transpose( v );
@@ -121,6 +127,11 @@ namespace algorithm
          result( nbDim, nbDim ) = 1;
          return result;
       }
+
+   private:
+      double   _scale;
+      double   _minimumScale;
+      double   _maximumScale;
    };
 }
 }

@@ -105,82 +105,6 @@ namespace algorithm
          }
       };
 
-      class TranslationTransformationEstimatorRansac
-      {
-      public:
-         TranslationTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
-         {
-         }
-
-         struct Model
-         {
-            Model() : tfm( core::identityMatrix< core::Matrix< double > >( 3 ) )
-            {}
-
-            void print( std::ostream& o ) const
-            {
-               o << " Transformation Translation only=" << tfm( 0, 2 ) << " " << tfm( 1, 2 );
-            }
-
-            core::Matrix< double > tfm;
-         };
-
-         typedef FeatureMatcher::Match    Point;
-
-         template <class Points>
-         void estimate( const Points& points )
-         {
-            double dx = 0;
-            double dy = 0;
-
-            const ui32 nbPoints = static_cast<ui32>( points.size() );
-            for ( ui32 n = 0; n < nbPoints; ++n )
-            {
-               const SpeededUpRobustFeatures::Point& p1 = _p1[ points[ n ].index1 ];
-               const SpeededUpRobustFeatures::Point& p2 = _p2[ points[ n ].index2 ];
-
-               dx += p2.position[ 0 ] - p1.position[ 0 ];
-               dy += p2.position[ 1 ] - p1.position[ 1 ];
-            }
-
-            dx /= nbPoints;
-            dy /= nbPoints;
-
-            _model.tfm( 0, 2 ) = dx;
-            _model.tfm( 1, 2 ) = dy;
-         }
-
-         /**
-          @brief Returns squared error, assuming a model y = ax + b, measure the error between y estimate and real value / | x |
-          */
-         double error( const Point& point ) const
-         {
-            const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
-            const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
-            double px = p1.position[ 0 ] + _model.tfm( 0, 2 );
-            double py = p1.position[ 1 ] + _model.tfm( 1, 2 );
-            return core::sqr( ( px - p2.position[ 0 ] ) / ( p2.position[ 0 ] + 1e-2 ) ) +
-                   core::sqr( ( py - p2.position[ 1 ] ) / ( p2.position[ 1 ] + 1e-2 ) );
-         }
-
-         /**
-          @brief Returns the current model
-          */
-         const Model& getModel() const
-         {
-            return _model;
-         }
-
-      private:
-         // copy disabled
-         TranslationTransformationEstimatorRansac& operator=( const TranslationTransformationEstimatorRansac& );
-
-      private:
-         Model    _model;
-         const SpeededUpRobustFeatures::Points& _p1;
-         const SpeededUpRobustFeatures::Points& _p2;
-      };
-
       class AffineTransformationEstimatorRansac
       {
       private:
@@ -239,7 +163,8 @@ namespace algorithm
          };
 
       public:
-         AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
+         AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                              double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : _p1( p1 ), _p2( p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {
          }
 
@@ -306,6 +231,9 @@ namespace algorithm
          Model    _model;
          const SpeededUpRobustFeatures::Points& _p1;
          const SpeededUpRobustFeatures::Points& _p2;
+         double   _scale;
+         double   _minimumScale;
+         double   _maximumScale;
       };
 
       template <class EstimatorT>
@@ -313,17 +241,21 @@ namespace algorithm
       {
       public:
          typedef EstimatorT Estimator;
-         SurfEstimatorFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( &p1 ), _p2( &p2 )
+         SurfEstimatorFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                               double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : _p1( &p1 ), _p2( &p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {}
 
          Estimator create() const
          {
-            return Estimator( *_p1, *_p2 );
+            return Estimator( *_p1, *_p2, _scale, _minimumScale, _maximumScale );
          }
 
       private:
          const SpeededUpRobustFeatures::Points* _p1;
          const SpeededUpRobustFeatures::Points* _p2;
+         double   _scale;
+         double   _minimumScale;
+         double   _maximumScale;
       };
    }
 
@@ -369,11 +301,13 @@ namespace algorithm
          typedef algorithm::impl::SurfEstimatorFactory<RansacTransformationEstimator> SurfEstimatorFactory;
          typedef algorithm::Ransac<RansacTransformationEstimator, SurfEstimatorFactory> Ransac;
 
-         SurfEstimatorFactory estimatorFactory( points1, points2 );
+         SurfEstimatorFactory estimatorFactory( points1, points2, 0, 0.8, 1.2 );
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 2, 50000, 0.01 );
+         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 2, 50000, 0.02 );
+         if ( ransac.getNbInliers() <= 20 )
+            throw std::runtime_error( "Error: inliers are too small" );
          return model.tfm;
      }
 
