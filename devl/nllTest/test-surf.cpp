@@ -678,12 +678,12 @@ public:
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py1, outputDir + "px-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py2, outputDir + "px-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
