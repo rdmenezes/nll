@@ -3,8 +3,9 @@ v0.15
 -integrated LIBLINEAR for massive linear svm
 -added RANSAC parameter estimator
 -added SURF feature detection
--added 2D image stitching (translation, affine transformation)
+-added point based 2D registration (rigid, affine) & local registration
 -added 2D image resampler
+-added 3D integral image
 -fixed minor bugs (multithreaded logging)
 
 v0.14

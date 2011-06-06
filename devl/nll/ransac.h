@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief RANSAC is an iterative method to estimate parameters of a mathematical model, it is particularly suited when
            the model is simple (#feature << #sample) and the number of outliers is very high
 
@@ -166,7 +167,7 @@ namespace algorithm
             estimator.getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-         _nbInliers = inliers.size();
+         _nbInliers = static_cast<ui32>( inliers.size() );
          return estimator.getModel();
       }
 

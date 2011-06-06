@@ -62,7 +62,100 @@ namespace nll
 {
 namespace algorithm
 {
-   
+   /**
+    @ingroup algorithm
+    @brief 3D registration of CT-CT medical volume
+    
+    Internally, it is assumed the volume is correctly oriented in a Head-First-Supine orientation
+    (this is assumed for the table removal algorithm). The volume is then projected on the XZ, YZ and XY
+    planes.
+    The XY plane is used to determine the Y position of the table, everything below this position will be removed.
+    Finally the 2 pairs of projection are registered using a SURF 2D - ransac - affine estimator one by one and
+    a global transformation matrix is computed.    
+    */
+   class AffineRegistrationCT3d
+   {
+   public:
+   private:
+      /*
+      static core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
+      {
+         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
+         for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
+         {
+            for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
+            {
+               double accum = 0;
+               for ( ui32 y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
+               {
+                  const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
+                  accum += val;
+                  accum /= v.getSize()[ 1 ];
+
+                  const ui8 val = static_cast<ui8>( accum );
+                  p( x, z, 0 ) = val;
+                  p( x, z, 1 ) = val;
+                  p( x, z, 2 ) = val;
+               
+            }
+         }
+
+         return p;
+      }
+
+      static core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
+      {
+         core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
+         for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
+         {
+            for ( ui32 y = 0; y < ymax; ++y )
+            {
+               double accum = 0;
+               for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
+               {
+                  const double val = lut.transform( v( x, y / v.getSpacing()[ 1 ], z / v.getSpacing()[ 2 ] ) )[ 0 ];
+                  accum += val;
+               }
+               accum /= v.getSize()[ 0 ];
+               const ui8 val = static_cast<ui8>( accum );
+
+               p( y, z, 0 ) = val;
+               p( y, z, 1 ) = val;
+               p( y, z, 2 ) = val;
+               
+            }
+         }
+
+         return p;
+      }
+
+      static core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+      {
+         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 1 ] * v.getSpacing()[ 1 ], 3 );
+         for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
+         {
+            for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
+            {
+               double accum = 0;
+               for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
+               {
+                  const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y / v.getSpacing()[ 1 ], z ) )[ 0 ];
+                  accum += val;
+               }
+
+               accum /= v.getSize()[ 0 ];
+               const ui8 val = static_cast<ui8>( accum );
+
+               p( x, y, 0 ) = val;
+               p( x, y, 1 ) = val;
+               p( x, y, 2 ) = val;
+               
+            }
+         }
+
+         return p;
+      }*/
+   };
 }
 }
 
@@ -205,7 +298,7 @@ public:
       core::vector3uc black( 0, 0, 0 );
       core::resampleNearestNeighbour( i1, output, tfm, black );
 
-      double coef = 0.8;
+      double coef = 0.5;
       for ( ui32 y = 0; y < i2.sizey(); ++y )
       {
          for ( ui32 x = 0; x < i2.sizex(); ++x )
@@ -391,7 +484,7 @@ public:
    }
 
    // assume a GREY LUT
-   core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
+   core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
@@ -414,7 +507,7 @@ public:
                else
                   accum /= nbVoxelsNonEmpty;
                   */
-            accum /= v.getSize()[ 1 ];
+            accum /= ( maxSizeY * v.getSpacing()[ 1 ] );
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             p( x, z, 0 ) = val;
@@ -427,7 +520,7 @@ public:
       return p;
    }
 
-   core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
+   core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
@@ -450,7 +543,7 @@ public:
                else
                   accum /= nbVoxelsNonEmpty;
                   */
-            accum /= v.getSize()[ 0 ];
+            accum /= ( maxSizeY * v.getSpacing()[ 0 ] );
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             p( y, z, 0 ) = val;
@@ -463,10 +556,15 @@ public:
       return p;
    }
 
-   core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+   core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, ui32& maxSizeY, ui32& maxSizeX )
    {
       std::cout << "size=" << v.getSize() << std::endl;
       core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 1 ] * v.getSpacing()[ 1 ], 3 );
+      ui32 min = p.sizey() - 1;
+      ui32 max = 0;
+
+      ui32 minX = p.sizex() - 1;
+      ui32 maxX = 0;
       for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
       {
          for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
@@ -480,14 +578,38 @@ public:
 
             accum /= v.getSize()[ 0 ];
 
-            const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
+            const ui8 val = static_cast<ui8>( NLL_BOUND( accum * 3, 0, 255 ) );
             p( x, y, 0 ) = val;
             p( x, y, 1 ) = val;
             p( x, y, 2 ) = val;
+            if ( val )
+            {
+               if ( min > y )
+               {
+                  min = y;
+               }
+
+               if ( max < y )
+               {
+                  max = y;
+               }
+
+               if ( minX > x )
+               {
+                  minX = x;
+               }
+
+               if ( maxX < x )
+               {
+                  maxX = x;
+               }
+            }
             
          }
       }
 
+      maxSizeY = max - min + 1;
+      maxSizeX = maxX - minX + 1;
       return p;
    }
 
@@ -611,7 +733,8 @@ public:
    */
    void createProjections()
    {
-      const std::string inputDir = "I:/work/data_CT/";
+      const std::string inputDir = "D:/devel/sandbox/nllTest/data/reg1/";
+      //const std::string inputDir = "I:/work/data_CT/";
       const std::string input = inputDir + "list.txt";
       const std::string outputDir = "c:/tmp/proj/";
 
@@ -634,7 +757,9 @@ public:
                bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + file, ct1 );
                if ( loaded )
                {
-                  core::Image<ui8> py3 = projectImageZ( ct1, lut );
+                  ui32 normSizeY;
+                  ui32 normSizeX;
+                  core::Image<ui8> py3 = projectImageZ( ct1, lut, normSizeY, normSizeX );
                   int ymax = findTableY( py3 );
                   if ( ymax > 0 )
                   {
@@ -654,10 +779,10 @@ public:
 
                   
 
-                  core::Image<ui8> py1 = projectImageX( ct1, lut, ymax );
+                  core::Image<ui8> py1 = projectImageX( ct1, lut, ymax, normSizeX / 2 );
                   core::writeBmp( py1, outputDir + "px-" +  core::val2str( n ) + ".bmp" );
 
-                  core::Image<ui8> py2 = projectImageY( ct1, lut, ymax );
+                  core::Image<ui8> py2 = projectImageY( ct1, lut, ymax, normSizeY / 2 );
                   core::writeBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
 
                }
@@ -678,12 +803,12 @@ public:
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "px-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py1, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "px-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
@@ -697,8 +822,11 @@ public:
             core::extend( py1, 3 );
             core::extend( py2, 3 );
             core::Image<ui8> outputReg;
+            //regTfm( 0 , 2 ) = 0;
+            regTfm.print( std::cout );
             displayTransformation( py1, py2, outputReg, regTfm );
             core::writeBmp( outputReg, outputDir + "../result" + core::val2str( n ) + ".bmp" );
+            std::cout << "Run ok..." << std::endl;
          } catch(...)
          {
             std::cout << "Error, not enough inliers..." << std::endl;

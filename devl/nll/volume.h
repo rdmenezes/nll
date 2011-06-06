@@ -159,16 +159,13 @@ namespace imaging
             return _index != i._index;
          }
 
-         // operator= undefined
-         DirectionalIterator& operator=( const DirectionalIterator& i );
-
       protected:
          ui32     _index;
          T*       _buf;
          ui32     _sx;
          ui32     _sy;
          ui32     _sz;
-         const Mapper&  _mapper;
+         Mapper   _mapper;
       };
 
       /**
@@ -257,9 +254,6 @@ namespace imaging
          {
             return this->_buf[ this->_mapper.addz( this->_index, n ) ];
          }
-
-         // operator= undefined
-         ConstDirectionalIterator& operator=( const ConstDirectionalIterator& i );
       };
 
    public:
@@ -620,6 +614,17 @@ namespace imaging
       DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
       {
          return _buffer.getIterator( x, y, z );
+      }
+
+      /**
+       @brief Fill the buffer with a value
+       */
+      void fill( const T value )
+      {
+         for ( typename VoxelBuffer::iterator it = _buffer.begin(); it != _buffer.end(); ++it )
+         {
+            *it = value;
+         }
       }
 
    protected:

@@ -260,6 +260,7 @@ namespace algorithm
    }
 
    /**
+    @ingroup algorithm
     @brief Point based registration, internally using SURF to create the interest points,
            RANSAC to estimate the best transformation, and <EstimatorTransformAffine2D> to estimate the
            local transformation

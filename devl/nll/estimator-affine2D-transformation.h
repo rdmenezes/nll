@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Computes the similarity transform [Rotation, translation scale] from a matching set of points
     @see Shinji Umeyama. Least-Squares Estimation of Transformation Parameters
          Between Two Point Patterns. PAMI, vol. 13, no. 4, April 1991.

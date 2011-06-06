@@ -302,6 +302,7 @@
 # include "pyramid-hessian-2d.h"
 # include "surf-2d.h"
 # include "point-based-registration-2d.h"
+# include "integral-image-3d.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

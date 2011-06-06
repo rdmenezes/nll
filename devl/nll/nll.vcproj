@@ -928,6 +928,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\integral-image-3d.h"
+				>
+			</File>
+			<File
 				RelativePath=".\kd-tree.h"
 				>
 			</File>
