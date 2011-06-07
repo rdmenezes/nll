@@ -164,6 +164,34 @@ namespace algorithm
                sumd = i.getSum( core::vector3ui( mid1, tmp1, tmp3 ), core::vector3ui( mid2 - 1, tmp2, tmp4 ) );
                return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
 
+            case DZ:
+               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
+                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
+               //
+               // note that we remove the border so that a filter of size 9x9x9
+               // is a discrete approximation of a gaussian w = 1.2
+               // compute: b border weight = 0
+               //          + weight = 1
+               //          - weight = 2
+               // bbb
+               // +-+
+               // +-+
+               // +-+
+               // bbb
+               d = ( z2 - z1 + 1 ) / 3;
+               mid1 = z1 + 1 * d;
+               mid2 = z1 + 2 * d;
+               border = ( ( y2 - y1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
+
+               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
+               tmp1 = y1 + border;
+               tmp2 = y2 - border;
+               tmp3 = x1 + border;
+               tmp4 = x2 - border;
+               sump = i.getSum( core::vector3ui( tmp3, tmp1, z1 ),   core::vector3ui( tmp4, tmp2, z2 ) );
+               sumd = i.getSum( core::vector3ui( tmp3, tmp1, mid1 ), core::vector3ui( tmp4, tmp2, mid2 - 1 ) );
+               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
+
             case DXY:
                assert( y2 - y1 + 1 == x2 - x1 + 1 &&
                        y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"

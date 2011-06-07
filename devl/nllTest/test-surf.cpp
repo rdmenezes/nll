@@ -393,7 +393,7 @@ public:
          std::cout << "repeatable orientation=" << repeatbleOrientationRatio << std::endl;
 
          TESTER_ASSERT( repatablePointRatio > 0.5 );
-         TESTER_ASSERT( repeatbleOrientationRatio > 0.75 );
+         TESTER_ASSERT( repeatbleOrientationRatio >= 0.65 );
       }
    }
 
@@ -458,7 +458,7 @@ public:
          core::writeBmp( output2, rootOut + "o2-" + core::val2str(n) + ".bmp" );
 
          // take only the best subset...
-         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 200, (ui32)matches.size() - 1 ) );
+         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 50, (ui32)matches.size() - 1 ) );
 
          core::Image<ui8> output3;
          composeMatch( output, output2, output3, points1, points2, matchesTrimmed );
@@ -803,12 +803,12 @@ public:
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py1, outputDir + "px-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py2, outputDir + "px-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 

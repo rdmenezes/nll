@@ -142,7 +142,7 @@ namespace algorithm
       {
          std::stringstream ss;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "SURF point detection started..." );
-         FastHessianDetPyramid2D pyramid;
+         FastHessianDetPyramid2d pyramid;
          Points points = _computesPoints( i, pyramid );
 
          ss << "Number of points detected=" << points.size();
@@ -159,7 +159,7 @@ namespace algorithm
          std::stringstream ss;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "SURF feature detection started..." );
 
-         FastHessianDetPyramid2D pyramid;
+         FastHessianDetPyramid2d pyramid;
          Points points = _computesPoints( i, pyramid );
          ss << "Number of points detected=" << points.size() << std::endl;
 
@@ -191,7 +191,7 @@ namespace algorithm
 
    private:
       template <class T, class Mapper, class Alloc>
-      Points _computesPoints( const core::Image<T, Mapper, Alloc>& i, FastHessianDetPyramid2D& pyramid )
+      Points _computesPoints( const core::Image<T, Mapper, Alloc>& i, FastHessianDetPyramid2d& pyramid )
       {
          ui32 nbPoints = 0;
 

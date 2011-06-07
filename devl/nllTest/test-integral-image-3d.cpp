@@ -26,7 +26,7 @@ public:
 
       algorithm::IntegralImage3d integral;
       core::Timer t1;
-      integral.construct( volume );
+      integral.process( volume );
 
       for ( ui32 z = 0; z < volume.size()[ 2 ]; ++z )
       {
@@ -71,7 +71,7 @@ public:
 
       algorithm::IntegralImage3d integral;
       core::Timer t1;
-      integral.construct( volume );
+      integral.process( volume );
       for ( ui32 n = 0; n < 5000; ++n )
       {
          

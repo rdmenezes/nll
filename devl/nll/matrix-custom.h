@@ -52,6 +52,20 @@ namespace core
 
    /**
     @ingroup core
+    @brief A custom fast 4x4 multiplication with vector, computes: xA
+    */
+   template <class T, class Vector>
+   inline Vector mat4Mulv( Vector& v, const core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m )
+   {
+      assert( m.sizex() == 4 && m.sizey() == 4 );
+      return Vector( v[ 0 ] * m[ 0 ] + v[ 1 ] * m[ 4 ] + v[ 2 ] * m[ 8 ]  + v[ 3 ] * m[ 12 ],
+                     v[ 0 ] * m[ 1 ] + v[ 1 ] * m[ 5 ] + v[ 2 ] * m[ 9 ]  + v[ 3 ] * m[ 13 ],
+                     v[ 0 ] * m[ 2 ] + v[ 1 ] * m[ 6 ] + v[ 2 ] * m[ 10 ] + v[ 3 ] * m[ 14 ],
+                     v[ 0 ] * m[ 3 ] + v[ 1 ] * m[ 7 ] + v[ 2 ] * m[ 11 ] + v[ 3 ] * m[ 15 ] );
+   }
+
+   /**
+    @ingroup core
     @brief A custom fast 3x3 multiplication with vector, computes: Ax
     */
    template <class T, class Vector>
@@ -61,6 +75,20 @@ namespace core
       return Vector( v[ 0 ] * m[ 0 ] + v[ 1 ] * m[ 1 ] + v[ 2 ] * m[ 2 ],
                      v[ 0 ] * m[ 3 ] + v[ 1 ] * m[ 4 ] + v[ 2 ] * m[ 5 ],
                      v[ 0 ] * m[ 6 ] + v[ 1 ] * m[ 7 ] + v[ 2 ] * m[ 8 ] );
+   }
+
+   /**
+    @ingroup core
+    @brief A custom fast 4x4 multiplication with vector, computes: Ax
+    */
+   template <class T, class Vector>
+   inline Vector mat4Mulv( const core::Matrix<T, core::IndexMapperColumnMajorFlat2D>& m, Vector& v )
+   {
+      assert( m.sizex() == 4 && m.sizey() == 4 );
+      return Vector( v[ 0 ] * m[ 0 ] + v[ 1 ] * m[ 1 ] + v[ 2 ] * m[ 2 ] + v[ 3 ] * m[ 3 ],
+                     v[ 0 ] * m[ 4 ] + v[ 1 ] * m[ 5 ] + v[ 2 ] * m[ 6 ] + v[ 3 ] * m[ 7 ],
+                     v[ 0 ] * m[ 8 ] + v[ 1 ] * m[ 9 ] + v[ 2 ] * m[ 10 ]+ v[ 3 ] * m[ 11 ],
+                     v[ 0 ] * m[ 12 ]+ v[ 1 ] * m[ 13 ]+ v[ 2 ] * m[ 14 ]+ v[ 3 ] * m[ 15 ] );
    }
 
    /**

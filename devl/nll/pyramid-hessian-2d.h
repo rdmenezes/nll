@@ -43,7 +43,7 @@ namespace algorithm
                            det(H)= Lxx*Lyy-(0.9 * Lxy)^2
            note the normalization factor 0.9 comes from the gaussian approximation
     */
-   class FastHessianDetPyramid2D
+   class FastHessianDetPyramid2d
    {
    public:
       typedef double                   value_type;
@@ -71,20 +71,12 @@ namespace algorithm
          // construct an integral image
          IntegralImage image;
          image.process( i );
-
          _integralImage = image;
-
-          
-         // build each level by redimensioning the approximated gaussian derivatives
-         ui32 lastScale = 0;
-
          for ( size_t n = 0; n < scales.size(); ++n )
          {
             ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
             ensure( scales[ n ] >= 9, "minimal size" );
-            //ensure( lastScale < scales[ n ], "scales must be in increasing order" );
 
-            lastScale = scales[ n ];
             const ui32 step = displacements[ n ];
 
             const int sizeFilterx = scales[ n ];
@@ -92,16 +84,14 @@ namespace algorithm
             const double sizeFilter = sizeFilterx * sizeFiltery * max; // we normalize by the filter size and maximum value
 
             const int halfx = sizeFilterx / 2;
-            const int halfy = sizeFilterx / 2;
+            const int halfy = sizeFiltery / 2;
 
-            // the total size must take into account the step size and filter size (it must be fully inside the image to be computed)
-            const int resx = ( (int)i.sizex() - 2 * halfx + 1 ) / (int)step;
-            const int resy = ( (int)i.sizey() - 2 * halfy + 1 ) / (int)step;
+            const int resx = ( (int)i.sizex() ) / (int)step;
+            const int resy = ( (int)i.sizey() ) / (int)step;
 
             if ( resx <= 0 || resy <= 0 )
                break;   // the scale is too big!
             Matrix detHessian( resy, resx );
-            Matrix laplacian( resy, resx );
 
             // compute the hessian
             #ifndef NLL_NOT_MULTITHREADED
@@ -196,7 +186,7 @@ namespace algorithm
 
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
-         assert( xp > 0 && ym > 0 &&
+         assert( xp > 0 && yp > 0 &&
                  xp < (int)_pyramidDetHessian[ map + 1 ].sizex() - 1 &&
                  yp < (int)_pyramidDetHessian[ map + 1 ].sizey() - 1 );
 
@@ -235,14 +225,12 @@ namespace algorithm
             outy = yRef;
          } else {
             // map a point at a given scale to the image space
-            const int half = _scales[ mapRef ] / 2;
-            const int x = xRef * _displacements[ mapRef ] + half;
-            const int y = yRef * _displacements[ mapRef ] + half;
+            const int x = xRef * _displacements[ mapRef ];
+            const int y = yRef * _displacements[ mapRef ];
 
             // convert the image space coordinate to the other scale space
-            const int halfd = _scales[ mapDest ] / 2;
-            outx = ( x - halfd ) / (int)_displacements[ mapDest ];
-            outy = ( y - halfd ) / (int)_displacements[ mapDest ];
+            outx = ( x ) / (int)_displacements[ mapDest ];
+            outy = ( y ) / (int)_displacements[ mapDest ];
          }
       }
 

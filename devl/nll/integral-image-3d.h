@@ -76,9 +76,9 @@ namespace algorithm
       }
 
       template <class Volume>
-      void construct( const Volume& v )
+      void process( const Volume& v )
       {
-         typedef typename Volume::DirectionalIterator Iterator;
+         typedef typename Volume::ConstDirectionalIterator Iterator;
          typedef typename Storage::DirectionalIterator IteratorImg;
 
          // first pass: compute the sum independently for all slices
@@ -146,11 +146,11 @@ namespace algorithm
          {
             for ( ui32 y = 0; y < sizey; ++y )
             {
-               Iterator itSrc = _img.getIterator( 0, y, z );
-               Iterator itSrcPrev = _img.getIterator( 0, y, z - 1 );
+               IteratorImg itSrc = _img.getIterator( 0, y, z );
+               IteratorImg itSrcPrev = _img.getIterator( 0, y, z - 1 );
 
-               Iterator itSrcX = itSrc;
-               Iterator itSrcPrevX = itSrcPrev;
+               IteratorImg itSrcX = itSrc;
+               IteratorImg itSrcPrevX = itSrcPrev;
                for ( ui32 x = 0; x < sizex; ++x )
                {
                   *itSrcX += *itSrcPrevX;
