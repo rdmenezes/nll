@@ -908,6 +908,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\haar-features-3d.h"
+				>
+			</File>
+			<File
 				RelativePath=".\haar-features.h"
 				>
 			</File>

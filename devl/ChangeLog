@@ -6,6 +6,7 @@ v0.15
 -added point based 2D registration (rigid, affine) & local registration
 -added 2D image resampler
 -added 3D integral image
+-added 3D Haar features
 -fixed minor bugs (multithreaded logging)
 
 v0.14
