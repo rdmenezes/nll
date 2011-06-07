@@ -275,7 +275,7 @@ namespace algorithm
       typedef impl::AffineTransformationEstimatorRansac   RansacTransformationEstimator;
       typedef core::Matrix<double> Matrix;
 
-      AffineRegistrationPointBased2d( ui32 surfNumberOfOctaves = 5, ui32 surfNumberOfIntervals = 6, double surfThreshold = 0.00011, FeatureMatcher matcher = FeatureMatcher() ) : _surfNumberOfOctaves( surfNumberOfOctaves ), _surfNumberOfIntervals( surfNumberOfIntervals ), _surfThreshold( surfThreshold ), _matcher( matcher )
+      AffineRegistrationPointBased2d( ui32 surfNumberOfOctaves = 5, ui32 surfNumberOfIntervals = 4, double surfThreshold = 0.00031, FeatureMatcher matcher = FeatureMatcher() ) : _surfNumberOfOctaves( surfNumberOfOctaves ), _surfNumberOfIntervals( surfNumberOfIntervals ), _surfThreshold( surfThreshold ), _matcher( matcher )
       {}
 
    public:
@@ -296,7 +296,7 @@ namespace algorithm
          _matcher.findMatch( p1Wrapper, p2Wrapper, matches );
 
          // take only the best subset...
-         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 100, (ui32)matches.size() - 1 ) );
+         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 120, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::impl::SurfEstimatorFactory<RansacTransformationEstimator> SurfEstimatorFactory;
