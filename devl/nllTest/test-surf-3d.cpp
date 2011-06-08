@@ -3,7 +3,7 @@
 #include <tester/register.h>
 #include "config.h"
 
-#define NLL_NOT_MULTITHREADED
+//#define NLL_NOT_MULTITHREADED
 
 using namespace nll;
 
@@ -79,7 +79,7 @@ namespace algorithm
             const int resy = ( (int)i.size()[ 1 ] ) / (int)step;
             const int resz = ( (int)i.size()[ 2 ] ) / (int)step;
 
-            std::cout << "scale=" << n << " size=" << resx << " " << resy << " " << resz << std::endl;
+            //std::cout << "scale=" << n << " size=" << resx << " " << resy << " " << resz << std::endl;
 
             if ( resx <= 0 || resy <= 0 || resz <= 0 )
                break;   // the scale is too big!
@@ -280,7 +280,7 @@ namespace algorithm
          // TODO CHECK
          //
 
-         std::cout << "check=" << x << " " << y << " " << z << " " << " toMP=" << xp << " " << yp << " " << zp << " sizeM=" << mp.size() << std::endl;
+         //std::cout << "check=" << x << " " << y << " " << z << " " << " toMP=" << xp << " " << yp << " " << zp << " sizeM=" << mp.size() << std::endl;
          const value_type dxx = mc( x + 1, y, z ) + mc( x - 1, y, z ) - 2 * val;
          const value_type dyy = mc( x, y + 1, z ) + mc( x, y - 1, z ) - 2 * val;
          const value_type dzz = mc( x, y, z + 1 ) + mc( x, y, z - 1 ) - 2 * val;
@@ -429,9 +429,9 @@ namespace algorithm
        @param intervals the number of intervals per octave This increase the filter linearly
        @param threshold the minimal threshold of the hessian. The lower, the more features (but less robust) will be detected
        */
-      SpeededUpRobustFeatures3d( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.000012 ) : _threshold( threshold )
+      SpeededUpRobustFeatures3d( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.0000012 ) : _threshold( threshold )
       {
-         std::cout << "intervals=" << intervals << " o=" << octaves << std::endl;
+         //std::cout << "intervals=" << intervals << " o=" << octaves << std::endl;
          ui32 step = init_step;
          for ( ui32 o = 1; o <= octaves; ++o )
          {
@@ -489,6 +489,7 @@ namespace algorithm
             ss << "Pyramid construction time=" << timePyramid.getCurrentTime();
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
+         timePyramid.start();
 
          for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
@@ -503,16 +504,16 @@ namespace algorithm
             #ifndef NLL_NOT_MULTITHREADED
             # pragma omp parallel for reduction(+ : nbPoints)
             #endif
-            for ( int z = step + 1; z < sizez - step - 1; ++z )
+            for ( int z = 0; z < sizez; ++z )
             {
-               for ( int y = step + 1; y < sizey - step - 1; ++y )
+               for ( int y = 0; y < sizey; ++y )
                {
-                  for ( int x = step + 1; x < sizex - step - 1; ++x )
+                  for ( int x = 0; x < sizex; ++x )
                   {
                      const value_type val = f( x, y, z );
                      if ( val > _threshold )
                      {
-                        std::cout << "val=" << val << "pos=" << x << " " << y << " " << z << " step=" << step << std::endl;
+                        //std::cout << "val=" << val << "pos=" << x << " " << y << " " << z << " step=" << step << std::endl;
                         bool isMax = pyramid.isDetHessianMax( val, x, y, z, filter, filter )     &&
                                      pyramid.isDetHessianMax( val, x, y, z, filter, filter + 1 ) &&
                                      pyramid.isDetHessianMax( val, x, y, z, filter, filter - 1 );

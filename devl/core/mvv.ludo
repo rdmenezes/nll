@@ -463,6 +463,11 @@ class ToolAnnotations
    import AnnotationID add( Vector3f position, Vector3f sizeMM, int widhPixel, Vector3i[] colors );
 
    /**
+    @brief create a line specified with 2 points
+    */
+   import AnnotationID addLinePos( Vector3f position1, Vector3f position2, string text1, string text2, Vector3i colors = Vector3i( 255, 255, 255 ) );
+
+   /**
     @brief erase the annotation represented by this ID
     */
    import void erase( AnnotationID id );

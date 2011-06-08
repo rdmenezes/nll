@@ -19,6 +19,7 @@
 #include "mip-tool-pointer.h"
 #include "layout-mip.h"
 #include "annotation-line.h"
+#include "annotation-line-pos.h"
 #include "segment-tool-postprocessing.h"
 #include "mip-tool-postprocessing.h"
 

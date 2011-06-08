@@ -214,6 +214,8 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
+         timePyramid.start();
+
          for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
             if ( pyramid.getPyramidDetHessian().size() <= filter )

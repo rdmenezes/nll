@@ -428,6 +428,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\annotation-line-pos.h"
+				>
+			</File>
+			<File
 				RelativePath=".\annotation-line.h"
 				>
 			</File>
