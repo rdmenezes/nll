@@ -536,9 +536,9 @@ namespace algorithm
                               // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                               const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
-                              int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half );
-                              int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half );
-                              int pz    = core::round( ( z    - interpolatedPoint[ 2 ] ) * _filterSteps[ filter ] + half );
+                              int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] );
+                              int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] );
+                              int pz    = core::round( ( z    - interpolatedPoint[ 2 ] ) * _filterSteps[ filter ] );
                               int scale = core::round( size   - interpolatedPoint[ 3 ]   * filterStep );
 
                               ui32 threadId = omp_get_thread_num();
@@ -608,7 +608,15 @@ public:
       std::cout << "runing surf..." << std::endl;
       algorithm::SpeededUpRobustFeatures3d surf( 5, 4 );
 
-      surf.computesPoints( volume );
+      algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesPoints( volume );
+      std::ofstream f( "c:/tmp/points.txt" );
+      for ( ui32 n = 0; n < points.size(); ++n )
+      {
+         const core::vector3f point = volume.indexToPosition( core::vector3f( points[ n ].position[ 0 ],
+                                                                              points[ n ].position[ 1 ],
+                                                                              points[ n ].position[ 2 ] ) );
+         f << "
+      }
    }
 };
 

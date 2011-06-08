@@ -305,7 +305,8 @@ public:
          {
             for ( ui32 c = 0; c < 3; ++c )
             {
-               output( x, y, c ) = (ui8)( (c==2) * coef * i2( x, y, c ) + ( 1 - coef) * output( x, y, c ) );
+               const double val = ( (c==2) * i2( x, y, c ) + output( x, y, c ) );
+               output( x, y, c ) = NLL_BOUND( val, 0, 255 );
             }
          }
       }
@@ -733,7 +734,8 @@ public:
    */
    void createProjections()
    {
-      const std::string inputDir = "D:/devel/sandbox/nllTest/data/reg1/";
+      //const std::string inputDir = "D:/devel/sandbox/nllTest/data/reg1/";
+      const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
       //const std::string inputDir = "I:/work/data_CT/";
       const std::string input = inputDir + "list.txt";
       const std::string outputDir = "c:/tmp/proj/";
@@ -743,9 +745,17 @@ public:
       lut.createGreyscale();
 
       std::ifstream f( input.c_str() );
-      int n = 0;
+      int startCase = 0;
+      int n = startCase;
       while ( !f.eof() )
       {
+         while ( startCase != 0 )
+         {
+            std::string file;
+            std::getline( f, file );
+            --startCase;
+         }
+
          std::string file;
          std::getline( f, file );
          if ( file != "" )
@@ -799,7 +809,7 @@ public:
    {
       const std::string outputDir = "c:/tmp/proj/";
       int n = 0;
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( ui32 n = 0; n < 1000; ++n )
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
