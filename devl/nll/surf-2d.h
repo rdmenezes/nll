@@ -255,8 +255,8 @@ namespace algorithm
                            // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                            const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
-                           int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] + half );
-                           int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] + half );
+                           int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] );
+                           int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] );
                            int scale = core::round( size   - interpolatedPoint[ 2 ]   * filterStep );
 
                            ui32 threadId = omp_get_thread_num();
