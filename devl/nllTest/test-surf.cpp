@@ -281,8 +281,7 @@ public:
 
 
       ui32 start = 0;
-      for ( ui32 n = start; n < std::min<ui32>(start + 50, (ui32)matches.size()); ++n )
-      //for ( ui32 n = 0; n < (ui32)matches.size(); ++n ) // TODO PUT IT BACK
+      for ( ui32 n = 0; n < (ui32)matches.size(); ++n )
       {
          //std::cout << "d=" << matches[ n ].dist << std::endl;
          const algorithm::SpeededUpRobustFeatures::Point& f1 = p1[ matches[ n ].index1 ];
@@ -305,7 +304,7 @@ public:
          {
             for ( ui32 c = 0; c < 3; ++c )
             {
-               const double val = ( (c==2) * i2( x, y, c ) + output( x, y, c ) );
+               const double val = ( (c==2) * i2( x, y, c ) * 2 + output( x, y, c ) );
                output( x, y, c ) = NLL_BOUND( val, 0, 255 );
             }
          }
@@ -459,7 +458,7 @@ public:
          core::writeBmp( output2, rootOut + "o2-" + core::val2str(n) + ".bmp" );
 
          // take only the best subset...
-         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 50, (ui32)matches.size() - 1 ) );
+         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 150, (ui32)matches.size() - 1 ) );
 
          core::Image<ui8> output3;
          composeMatch( output, output2, output3, points1, points2, matchesTrimmed );
@@ -813,12 +812,12 @@ public:
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py1, outputDir + "px-" + core::val2str( 1 ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py2, outputDir + "px-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
