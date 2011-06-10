@@ -62,6 +62,25 @@ namespace nll
 {
 namespace algorithm
 {
+   template <class T>
+   core::Matrix<T> getRotation4x4( const core::Matrix<T>& tfm4x4, core::vector3d& scaling_out )
+   {
+      ensure( tfm4x4.sizex() == 4 && tfm4x4.sizey() == 4, "it must be a 3D homogeneous matrix" );
+      core::Matrix<T> rot( 4, 4 );
+      for ( ui32 n = 0; n < 3; ++n )
+      {
+         double norm = std::sqrt( core::sqr( tfm4x4( 0, n ) ) +
+                                  core::sqr( tfm4x4( 1, n ) ) +
+                                  core::sqr( tfm4x4( 2, n ) ) );
+         rot( 0, n ) = tfm4x4( 0, n ) / norm;
+         rot( 1, n ) = tfm4x4( 1, n ) / norm;
+         rot( 2, n ) = tfm4x4( 2, n ) / norm;
+         scaling_out[ n ] = norm;
+      }
+      rot( 3, 3 ) = 1;
+      return rot;
+   }
+
    /**
     @ingroup algorithm
     @brief 3D registration of CT-CT medical volume
@@ -76,85 +95,350 @@ namespace algorithm
    class AffineRegistrationCT3d
    {
    public:
-   private:
-      /*
-      static core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
+      typedef core::Matrix<double>  Matrix;
+
+      enum Result
       {
-         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
-         for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
+         SUCCESS,
+         FAILED_TOO_LITTLE_INLIERS,
+         FAILED_PROJECTIONS_DONT_AGREE
+      };
+
+   public:
+      template <class T, class BufferType>
+      Result process( const imaging::VolumeSpatial<T, BufferType>& source,
+                      const imaging::VolumeSpatial<T, BufferType>& target,
+                      Matrix& out )
+      {
+         out = core::identityMatrix<Matrix>( 4 );
+
+         // preprocess the volume
+         core::Timer preprocessing;
+         core::Timer allProcess;
+         core::Image<ui8> pxs, pys, pzs;
+         core::Image<ui8> pxt, pyt, pzt;
+         getProjections( source, pxs, pys, pzs );
+         getProjections( target, pxt, pyt, pzt );
+
+         std::cout << "projection=done" << preprocessing.getCurrentTime() << std::endl;
+
+         try
+         {
+            /*
+            core::readBmp(pxs, "c:/tmp/proj/px-3.bmp" );
+            core::readBmp(pxt, "c:/tmp/proj/px-4.bmp" );
+            core::decolor( pxs );
+            core::decolor( pxt );
+            */
+            // run the registration on the projected images
+            algorithm::AffineRegistrationPointBased2d<> registration;
+            Matrix tfmx = registration.compute( pxs, pxt );
+            tfmx.print( std::cout );
+            std::cout << "reg1=done" << std::endl;
+            Matrix tfmy = registration.compute( pys, pyt );
+            tfmy.print( std::cout );
+            std::cout << "reg2=done" << std::endl;
+
+            // combine the transformations
+            Matrix rotx( 4, 4 );
+            Matrix roty( 4, 4 );
+            Matrix tfm( 4, 4 );
+            
+
+            rotx( 0, 0 ) = 1;
+            rotx( 1, 1 ) = tfmx( 0, 0 );
+            rotx( 2, 1 ) = tfmx( 1, 0 );
+            rotx( 1, 2 ) = tfmx( 0, 1 );
+            rotx( 2, 2 ) = tfmx( 1, 1 );
+            rotx( 1, 3 ) = tfmx( 0, 2 );
+            rotx( 2, 3 ) = tfmx( 1, 2 );
+            rotx( 3, 3 ) = 1;
+            rotx.print( std::cout );
+            
+
+            
+            // case 227-23
+            roty( 0, 0 ) =  tfmy( 0, 0 );
+            roty( 2, 0 ) =  tfmy( 1, 0 );
+            roty( 0, 2 ) =  tfmy( 0, 1 );
+            roty( 2, 2 ) =  tfmy( 1, 1 );
+            roty( 1, 1 ) = 1;
+            roty( 3, 3 ) = 1;
+            roty( 0, 3 ) = tfmy( 0, 2 );
+            roty( 2, 3 ) = tfmy( 1, 2 );
+            roty.print( std::cout );
+            
+
+            /*
+            for ( ui32 y = 0; y < 3; ++y )
+            {
+               for ( ui32 x = 0; x < 3; ++x )
+               {
+                  rotx( y, x ) = tfmx( y, x );
+                  roty( y, x ) = tfmy( y, x );
+               }
+            }*/
+
+            core::vector3d scalingx;
+            core::vector3d scalingy;
+            Matrix rot = getRotation4x4( rotx, scalingx ) * getRotation4x4( roty, scalingy );
+
+            /*
+            rot.print( std::cout);
+
+            for ( ui32 y = 0; y < 3; ++y )
+            {
+               for ( ui32 x = 0; x < 3; ++x )
+               {
+                  tfm( y, x ) = rot( y, x );
+               }
+            }*/
+
+            tfm = rot;
+            for ( ui32 n = 0; n < 3; ++n )
+            {
+               tfm( n, 0 ) *= scalingy[ 0 ];
+               tfm( n, 1 ) *= scalingx[ 0 ];
+               tfm( n, 2 ) *= ( scalingy[ 0 ] + scalingx[ 0 ] ) / 2;
+            }
+
+            core::vector3f originDisplacement( 0, 0, 0 );
+            /*
+            core::vector3f originDisplacement( - source.getOrigin()[ 0 ] + target.getOrigin()[ 0 ],
+                                               - source.getOrigin()[ 1 ] + target.getOrigin()[ 1 ],
+                                               - source.getOrigin()[ 2 ] + target.getOrigin()[ 2 ] );
+                                               */
+            
+            tfm( 0, 3 ) = originDisplacement[ 0 ] + tfmy( 0, 2 );
+            tfm( 1, 3 ) = originDisplacement[ 1 ] + tfmx( 0, 2 );
+            tfm( 2, 3 ) = originDisplacement[ 2 ] + ( tfmx( 1, 2 ) + tfmy( 1, 2 ) ) / 2;
+            tfm( 3, 3 ) = 1;
+            out = tfm;
+         } catch(...)
+         {
+            return FAILED_TOO_LITTLE_INLIERS;
+         }
+
+         core::extend( pxs, 3 );
+         core::writeBmp( pxs, "c:/tmp/outXS.bmp" );
+         core::extend( pxt, 3 );
+         core::writeBmp( pxt, "c:/tmp/outXT.bmp" );
+         std::cout << "regTime=" << allProcess.getCurrentTime() << std::endl;
+         return SUCCESS;
+      }
+
+   private:
+      template <class T, class BufferType>
+      void getProjections( const imaging::VolumeSpatial<T, BufferType>& v,
+                           core::Image<ui8>& px,
+                           core::Image<ui8>& py,
+                           core::Image<ui8>& pz )
+      {
+         // first get the projections and y-position of the table
+         imaging::LookUpTransformWindowingRGB lut( -10, 250, 256, 1 );
+         lut.createGreyscale();
+
+         ui32 normSizeY;
+         ui32 normSizeX;
+         pz = projectImageZ( v, lut, normSizeY, normSizeX );
+         int ymax = findTableY( pz );
+         if ( ymax > 0 )
+         {
+            #ifndef NLL_NOT_MULTITHREADED
+            # pragma omp parallel for
+            #endif
+            for ( int x = 0; x < (int)pz.sizex(); ++x )
+            {
+               for ( ui32 y = ymax; y < pz.sizey(); ++y )
+               {
+                  pz( x, y, 0 ) = 0;
+               }
+            }
+         } else {
+            ymax = v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1;
+         }
+
+         px = projectImageX( v, lut, ymax, normSizeX / 2 );
+         py = projectImageY( v, lut, ymax, normSizeY / 2 );
+      }
+
+   public:
+      template <class T, class BufferType>
+      static core::Image<ui8> projectImageY( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
+      {
+         typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
+         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ],
+                             v.getSize()[ 2 ] * v.getSpacing()[ 2 ],
+                             1 );
+         const int endz = v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1;
+         const double norm = ( maxSizeY * v.getSpacing()[ 1 ] );
+
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int z = 0; z < endz; ++z )
          {
             for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
             {
                double accum = 0;
+               ConstDirectionalIterator it = v.getIterator( x / v.getSpacing()[ 0 ], 0, z / v.getSpacing()[ 2 ] );
                for ( ui32 y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
                {
-                  const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
+                  const double val = lut.transform( *it )[ 0 ];
+                  it.addy();
                   accum += val;
-                  accum /= v.getSize()[ 1 ];
-
-                  const ui8 val = static_cast<ui8>( accum );
-                  p( x, z, 0 ) = val;
-                  p( x, z, 1 ) = val;
-                  p( x, z, 2 ) = val;
+               }
                
+               accum /= norm;
+               p( x, z, 0 ) = NLL_BOUND( accum, 0, 255 );
             }
          }
-
          return p;
       }
 
-      static core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax )
+      template <class T, class BufferType>
+      static core::Image<ui8> projectImageX( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
       {
-         core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
-         for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
+         typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
+
+         core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ],
+                             v.getSize()[ 2 ] * v.getSpacing()[ 2 ],
+                             1 );
+         const int endz = v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1;
+         const double norm = ( maxSizeY * v.getSpacing()[ 0 ] );
+
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int z = 0; z < endz; ++z )
          {
             for ( ui32 y = 0; y < ymax; ++y )
             {
                double accum = 0;
+               ConstDirectionalIterator it = v.getIterator( 0,
+                                                            y / v.getSpacing()[ 1 ],
+                                                            z / v.getSpacing()[ 2 ] );
                for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
                {
-                  const double val = lut.transform( v( x, y / v.getSpacing()[ 1 ], z / v.getSpacing()[ 2 ] ) )[ 0 ];
+                  const double val = lut.transform( *it )[ 0 ];
+                  it.addx();
                   accum += val;
                }
-               accum /= v.getSize()[ 0 ];
-               const ui8 val = static_cast<ui8>( accum );
-
-               p( y, z, 0 ) = val;
-               p( y, z, 1 ) = val;
-               p( y, z, 2 ) = val;
-               
+               accum /= norm;
+               p( y, z, 0 ) = NLL_BOUND( accum, 0, 255 );
             }
          }
 
          return p;
       }
 
-      static core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut )
+      template <class T, class BufferType>
+      static core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, ui32& maxSizeY, ui32& maxSizeX )
       {
-         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 1 ] * v.getSpacing()[ 1 ], 3 );
-         for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
+         typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
+         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ],
+                             v.getSize()[ 1 ] * v.getSpacing()[ 1 ],
+                             1 );
+         ui32 min = p.sizey() - 1;
+         ui32 max = 0;
+
+         ui32 minX = p.sizex() - 1;
+         ui32 maxX = 0;
+
+         const int endx = v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1;
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int x = 0; x < endx; ++x )
          {
             for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
             {
                double accum = 0;
+               ConstDirectionalIterator it = v.getIterator( x / v.getSpacing()[ 0 ],
+                                                            y / v.getSpacing()[ 1 ],
+                                                            0 );
                for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
                {
-                  const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y / v.getSpacing()[ 1 ], z ) )[ 0 ];
+                  const double val = lut.transform( *it )[ 0 ];
+                  it.addz();
                   accum += val;
                }
 
                accum /= v.getSize()[ 0 ];
-               const ui8 val = static_cast<ui8>( accum );
 
+               const ui8 val = static_cast<ui8>( NLL_BOUND( accum * 3, 0, 255 ) );
                p( x, y, 0 ) = val;
-               p( x, y, 1 ) = val;
-               p( x, y, 2 ) = val;
-               
+
+               if ( val )
+               {
+                  if ( min > y )
+                  {
+                     min = y;
+                  }
+
+                  if ( max < y )
+                  {
+                     max = y;
+                  }
+
+                  if ( minX > x )
+                  {
+                     minX = x;
+                  }
+
+                  if ( maxX < x )
+                  {
+                     maxX = x;
+                  }
+               }
             }
          }
 
+         maxSizeY = max - min + 1;
+         maxSizeX = maxX - minX + 1;
          return p;
-      }*/
+      }
+
+      // find the table: from top to bottom, the Y position can be determined: detect the points top to bottom with only a few connected
+      // pixels
+      static int findTableY( const core::Image<ui8>& iz )
+      {
+         ui32 nbPixelTable = 0;
+         double mean = 0;
+
+         for ( ui32 x = 0; x < iz.sizex(); ++x )
+         {
+            ui32 lineId = 0;
+            ui32 nbConnected[ 5 ] = {0, 0, 0, 0, 0};
+            int ymin[ 5 ];
+            int ymax[ 5 ];
+            for ( int y = iz.sizey() - 1; y > 0; --y )
+            {
+               if ( iz( x, y, 0 ) > 0 )
+               {
+                  if ( nbConnected[ lineId ] == 0 )
+                     ymin[ lineId ] = y;
+                  ++nbConnected[ lineId ];
+               } else if ( nbConnected[ lineId ] && abs( y - ymin[ lineId ] ) < 30 )
+               {
+                  ymax[ lineId ] = y;
+                  ++lineId;
+                  if ( lineId >= 3)
+                     break;
+               }
+            }
+
+            if ( lineId )
+            {
+               ++nbPixelTable;
+               mean += ymax[ lineId - 1 ];
+            }
+         }
+
+         if ( nbPixelTable > 120 )
+            return mean / nbPixelTable;
+         return -1;
+      }
    };
 }
 }
@@ -482,7 +766,7 @@ public:
          core::writeBmp( outputReg, rootOut + "oreg" + core::val2str(n) + ".bmp" );
       }
    }
-
+/*
    // assume a GREY LUT
    core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
    {
@@ -501,12 +785,7 @@ public:
             //   if ( val > 0 )
             //      ++nbVoxelsNonEmpty;
             }
-            /*
-            if ( nbVoxelsNonEmpty < 1 )
-                  accum = 0;
-               else
-                  accum /= nbVoxelsNonEmpty;
-                  */
+
             accum /= ( maxSizeY * v.getSpacing()[ 1 ] );
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
@@ -537,12 +816,7 @@ public:
                if ( val > 0 )
                   ++nbVoxelsNonEmpty;
             }
-            /*
-            if ( nbVoxelsNonEmpty < 50 && accum / nbVoxelsNonEmpty > 180 )
-                  accum = 0;
-               else
-                  accum /= nbVoxelsNonEmpty;
-                  */
+
             accum /= ( maxSizeY * v.getSpacing()[ 0 ] );
 
             const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
@@ -653,7 +927,7 @@ public:
       if ( nbPixelTable > 120 )
          return mean / nbPixelTable;
       return -1;
-   }
+   }*/
 
    void testRegistration2()
    {
@@ -768,8 +1042,9 @@ public:
                {
                   ui32 normSizeY;
                   ui32 normSizeX;
-                  core::Image<ui8> py3 = projectImageZ( ct1, lut, normSizeY, normSizeX );
-                  int ymax = findTableY( py3 );
+                  core::Image<ui8> py3 = algorithm::AffineRegistrationCT3d::projectImageZ( ct1, lut, normSizeY, normSizeX );
+                  core::extend( py3, 3 );
+                  int ymax = algorithm::AffineRegistrationCT3d::findTableY( py3 );
                   if ( ymax > 0 )
                   {
                      for ( ui32 x = 0; x < py3.sizex(); ++x )
@@ -788,10 +1063,12 @@ public:
 
                   
 
-                  core::Image<ui8> py1 = projectImageX( ct1, lut, ymax, normSizeX / 2 );
+                  core::Image<ui8> py1 = algorithm::AffineRegistrationCT3d::projectImageX( ct1, lut, ymax, normSizeX / 2 );
+                  core::extend( py1, 3 );
                   core::writeBmp( py1, outputDir + "px-" +  core::val2str( n ) + ".bmp" );
 
-                  core::Image<ui8> py2 = projectImageY( ct1, lut, ymax, normSizeY / 2 );
+                  core::Image<ui8> py2 = algorithm::AffineRegistrationCT3d::projectImageY( ct1, lut, ymax, normSizeY / 2 );
+                  core::extend( py2, 3 );
                   core::writeBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
 
                }
@@ -808,16 +1085,16 @@ public:
    {
       const std::string outputDir = "c:/tmp/proj/";
       int n = 0;
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( ui32 n = 0; n < 2004; ++n )
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "px-" + core::val2str( 1 ) + ".bmp" );
+         core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "px-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
@@ -832,6 +1109,11 @@ public:
             core::extend( py2, 3 );
             core::Image<ui8> outputReg;
             //regTfm( 0 , 2 ) = 0;
+            /*
+            for ( ui32 y = 0; y < 2; ++y )
+               for ( ui32 x = 0; x < 2; ++x )
+                  regTfm( y, x ) = x == y;
+                  */
             regTfm.print( std::cout );
             displayTransformation( py1, py2, outputReg, regTfm );
             core::writeBmp( outputReg, outputDir + "../result" + core::val2str( n ) + ".bmp" );
@@ -845,11 +1127,33 @@ public:
 
    void test()
    {
-      const std::string outputDir = "c:/tmp/proj/";
-      core::Image<ui8> py2;
-      core::readBmp( py2, outputDir + "pz-" + core::val2str( 2 ) + ".bmp" );
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
 
-      int ymax = findTableY( py2 );
+      const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
+      //const std::string inputDir = "I:/work/data_CT/";
+      const std::string input = inputDir + "list.txt";
+      const std::string outputDir = "c:/tmp/proj/";
+
+      Volume ct1;
+      Volume ct2;
+      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "case227.mf2", ct1 );
+          loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "case23.mf2", ct2 );
+      //bool loaded = nll::imaging::loadSimpleFlatFile( "c:/tmp/c1.mf2", ct1 );
+      //    loaded &= nll::imaging::loadSimpleFlatFile( "c:/tmp/c2.mf2", ct2 );
+      TESTER_ASSERT( loaded, "cannot load volume" );
+      std::cout << ct2.size() << std::endl;
+
+      algorithm::AffineRegistrationCT3d ctRegistration;
+      core::Matrix<double> tfm;
+      algorithm::AffineRegistrationCT3d::Result r = ctRegistration.process( ct1, ct2, tfm );
+      if ( r == algorithm::AffineRegistrationCT3d::SUCCESS )
+      {
+         std::cout << "tfm=" << std::endl;
+         tfm.print( std::cout );
+      } else {
+         std::cout << "case error" << std::endl;
+      }
+
    }
 };
 
@@ -861,7 +1165,7 @@ TESTER_TEST(testBasic);
 //TESTER_TEST(testRegistration2);
 //TESTER_TEST(testRegistrationVolume);
 //TESTER_TEST(createProjections);
-TESTER_TEST(testProjections);
-//TESTER_TEST(test);
+//TESTER_TEST(testProjections);
+TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif
