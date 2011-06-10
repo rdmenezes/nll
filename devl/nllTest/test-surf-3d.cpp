@@ -354,6 +354,8 @@ namespace algorithm
 
     @see http://sites.google.com/site/chrisevansdev/files/opensurf.pdf for good notes on the algorithm
          http://www.vision.ee.ethz.ch/~surf/eccv06.pdf reference paper
+
+    @note we are assuming the spacing is the same for all dimensions
     */
    class SpeededUpRobustFeatures3d
    {
@@ -606,7 +608,7 @@ public:
       TESTER_ASSERT( loaded );
 
       std::cout << "runing surf..." << std::endl;
-      algorithm::SpeededUpRobustFeatures3d surf( 5, 4 );
+      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.0000042 );
 
       algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesPoints( volume );
       std::ofstream f( "c:/tmp/points.txt" );
@@ -615,7 +617,7 @@ public:
          const core::vector3f point = volume.indexToPosition( core::vector3f( points[ n ].position[ 0 ],
                                                                               points[ n ].position[ 1 ],
                                                                               points[ n ].position[ 2 ] ) );
-         f << "
+         f << point[ 0 ] << " " << point[ 1 ] << " " << point[ 2 ] << " " << ( points[ n ].scale * volume.getSpacing()[ 0 ] ) << std::endl;
       }
    }
 };
