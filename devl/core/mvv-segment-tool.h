@@ -369,7 +369,7 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 4 )
+      if ( args.size() != 5 )
       {
          throw std::runtime_error( "unexpected number of arguments" );
       }
@@ -378,8 +378,10 @@ public:
       RuntimeValue& v2 = unref( *args[ 1 ] );
       RuntimeValue& v3 = unref( *args[ 2 ] );
       RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
       if ( v3.type != RuntimeValue::STRING || (*v2.vals).size() != 1 || (*(*v2.vals)[ 0 ].vals).size() != 3
-                                           || (*v4.vals).size() != 1 || (*(*v4.vals)[ 0 ].vals).size() != 3 )
+                                           || (*v4.vals).size() != 1 || (*(*v4.vals)[ 0 ].vals).size() != 3
+                                           || v5.type != RuntimeValue::CMP_FLOAT )
       {
          throw std::runtime_error( "wrong argument type: expecting Vector3f, string and Vector3f" );
       }
@@ -403,7 +405,7 @@ public:
       nll::core::vector3uc color( static_cast<ui8>( (*(*v4.vals)[ 0 ].vals)[ 0 ].intval ),
                                   static_cast<ui8>( (*(*v4.vals)[ 0 ].vals)[ 1 ].intval ),
                                   static_cast<ui8>( (*(*v4.vals)[ 0 ].vals)[ 2 ].intval ) );
-      RefcountedTyped<Annotation> annotation( new AnnotationPoint( position, v3.stringval, global->commonFont, 12, color ) );
+      RefcountedTyped<Annotation> annotation( new AnnotationPoint( position, v3.stringval, global->commonFont, 12, color, v5.floatval ) );
 
       // register it
       pointee->annotations.insert( annotation );

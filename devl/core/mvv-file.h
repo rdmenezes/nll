@@ -243,7 +243,7 @@ public:
       Pointee* file;
       file = new Pointee( v2.stringval.c_str(), ( v3.intval == 0 ) ? std::ios::out : std::ios::binary | std::ios::out );
       if ( !file->good() )
-         throw std::runtime_error( "IFStream() : cannot open the requested file" );
+         throw std::runtime_error( "IFStream() : cannot open the requested file=" + v2.stringval );
 
 
       RuntimeValue field( RuntimeValue::PTR );

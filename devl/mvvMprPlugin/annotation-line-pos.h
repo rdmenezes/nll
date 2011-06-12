@@ -23,7 +23,6 @@ namespace platform
                          ui32 fontSize = 16,
                          nll::core::vector3uc color = nll::core::vector3uc( 255, 255, 0 ) ) : _position1( position1 ), _position2( position2 ), _caption( caption ), _caption2( caption2 ), _font( font ), _fontSize( fontSize ),_color( color )
       {
-         _orientation /= _orientation.norm2();
       }
 
       virtual void setPosition( const nll::core::vector3f& pos )
@@ -174,7 +173,6 @@ namespace platform
    private:
       nll::core::vector3f  _position1;
       nll::core::vector3f  _position2;
-      nll::core::vector3f  _orientation;
       std::string          _caption;
       std::string          _caption2;
       Font&                _font;

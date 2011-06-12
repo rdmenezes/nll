@@ -448,9 +448,10 @@ class ToolAnnotations
 
    /**
     @brief create a point annotation
+    @param the distance to display the point, 0 means always displayed
     @returns a unique annotation ID
     */
-   import AnnotationID add( Vector3f position, string text, Vector3i color = Vector3i( 255, 255, 255 ) );
+   import AnnotationID add( Vector3f position, string text, Vector3i color = Vector3i( 255, 255, 255 ), float distanceToDisplay = 0.0 );
    
    /**
     @brief create a line annotation, following the direction given
