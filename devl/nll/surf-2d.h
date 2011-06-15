@@ -483,6 +483,7 @@ namespace algorithm
             //
             // simple averaging seems better than the technique described in the original paper...
             //  
+            /*
             double dx = 0;
             double dy = 0;
             for ( int nn = 0; nn < nbLocalPoints; ++nn )
@@ -496,6 +497,51 @@ namespace algorithm
                dy /= nbLocalPoints;
             }
             points[ n ].orientation = core::getAngle( dx, dy );
+            */
+
+            const double step = 0.15;
+            const double window = 0.3 * core::PI;
+            double best_angle = 0;
+            double best_norm = 0;
+            for ( double angleMin = 0 ; angleMin < core::PI * 2; angleMin += step )
+            {
+               double dx = 0;
+               double dy = 0;
+               ui32 nbPoints = 0;
+            
+
+               const double angleMax = ( angleMin > 2 * core::PI - window ) ? ( angleMin + window - 2 * core::PI ) : ( angleMin + window );
+
+               for ( int nn = 0; nn < nbLocalPoints; ++nn )
+               {
+                  const double startAngle = localPoints[ nn ].angle;
+                  if ( _isInside( startAngle, angleMin, angleMax ) )
+                  {
+                     dx += localPoints[ nn ].dx;
+                     dy += localPoints[ nn ].dy;
+                     ++nbPoints;
+                  }
+               }
+
+               // finally compute the mean direction and save the best one
+               if ( nbPoints )
+               {
+                  dx /= nbPoints;
+                  dy /= nbPoints;
+               }
+               const double norm = dx * dx + dy * dy;
+               if ( norm > best_norm )
+               {
+                  best_norm = norm;
+                  best_angle = core::getAngle( dx, dy );
+               }
+            }
+
+            // assign the angle
+            if ( best_norm > 0 )
+            {
+               points[ n ].orientation = best_angle;
+            }
          }
       }
 
