@@ -171,6 +171,11 @@ namespace algorithm
          return _img;
       }
 
+      const core::vector3ui& size() const
+      {
+         return _img.size();
+      }
+
       /**
        @brief Returns of the voxel bounded by <bottomLeft> and <topRight>. The bounds are _inclusive_
        */
