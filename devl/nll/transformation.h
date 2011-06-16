@@ -111,10 +111,13 @@ namespace imaging
                   The spacing is extracted from the matrix: s_x = sqrt( r1^2 + r4^2 + r7^2 ) and so on
                   for s_y and s_z spacing.
        */
-      TransformationAffine( const Matrix& init )
+      template <class T>
+      TransformationAffine( const core::Matrix<T>& init ) : _affine( 4, 4, false )
       {
          ensure( init.sizex() == 4 && init.sizex() == 4, "only 4x4 matrices are handled" );
-         _affine.clone( init );
+         for ( ui32 y = 0; y < 4; ++y )
+            for ( ui32 x = 0; x < 4; ++x )
+               _affine( y, x ) = init( y, x );
 
          _affineInverted.clone( _affine );
          bool res = core::inverse( _affineInverted );

@@ -53,7 +53,7 @@
 // #define NLL_DISABLE_SSE_SUPPORT
 
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
-// #define NLL_NOT_MULTITHREADED
+ #define NLL_NOT_MULTITHREADED
 
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
@@ -167,7 +167,7 @@
 # include "matrix-custom.h"
 # include "matrix-cholesky.h"
 # include "matrix-pseudo-inverse.h"
-# include "matrix-affine-2d.h"
+# include "matrix-affine-transformation.h"
 # include "math-distribution-multinormal.h"
 # include "type-traits.h"
 # include "type-traits-inherited.h"

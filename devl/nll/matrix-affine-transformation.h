@@ -65,6 +65,47 @@ namespace core
 
       return tfm;
    }
+
+   /**
+    @brief Returns the roation contained in a 4x4 affine transformation
+    */
+   template <class type, class mapper, class allocator>
+   Matrix<type, mapper, allocator> getRotation4x4( const Matrix<type, mapper, allocator>& m )
+   {
+      ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
+      StaticVector<type, 3> spacing;
+      for ( ui32 x = 0; x < 3; ++x )
+      {
+         spacing[ x ] = std::sqrt( core::sqr( m( 0, x ) ) +
+                                   core::sqr( m( 1, x ) ) +
+                                   core::sqr( m( 2, x ) ) );
+      }
+
+      Matrix<type, mapper, allocator> rot( 4, 4 );
+      for ( ui32 y = 0; y < 3; ++y )
+      {
+         for ( ui32 x = 0; x < 3; ++x )
+         {
+            rot( y, x ) = m( y, x ) / spacing[ x ];
+         }
+      }
+      rot( 3, 3 ) = 1;
+      return rot;
+   }
+
+   template <class type, class mapper, class allocator>
+   vector3f getSpacing4x4( const Matrix<type, mapper, allocator>& m )
+   {
+      ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
+      vector3f spacing;
+      for ( ui32 x = 0; x < 3; ++x )
+      {
+         spacing[ x ] = std::sqrt( core::sqr( m( 0, x ) ) +
+                                   core::sqr( m( 1, x ) ) +
+                                   core::sqr( m( 2, x ) ) );
+      }
+      return spacing;
+   }
 }
 }
 
