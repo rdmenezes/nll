@@ -62,6 +62,27 @@ namespace nll
 {
 namespace algorithm
 {
+   void displayTransformation( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output, core::Matrix<double>& tfm )
+   {
+      output = core::Image<ui8>( i2.sizex(), i2.sizey(), 3 );
+
+      core::vector3uc black( 0, 0, 0 );
+      core::resampleNearestNeighbour( i1, output, tfm, black );
+
+      double coef = 0.5;
+      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         {
+            for ( ui32 c = 0; c < 3; ++c )
+            {
+               const double val = ( (c==2) * i2( x, y, c ) * 2 + output( x, y, c ) );
+               output( x, y, c ) = NLL_BOUND( val, 0, 255 );
+            }
+         }
+      }
+   }
+
    template <class T>
    core::Matrix<T> getRotation4x4( const core::Matrix<T>& tfm4x4, core::vector3d& scaling_out )
    {
@@ -122,6 +143,32 @@ namespace algorithm
 
          std::cout << "projection=done" << preprocessing.getCurrentTime() << std::endl;
 
+         {
+            core::extend( pxs, 3 );
+            core::writeBmp( pxs, "c:/tmp/prx0.bmp" );
+            core::decolor( pxs );
+
+            core::extend( pys, 3 );
+            core::writeBmp( pys, "c:/tmp/pry0.bmp" );
+            core::decolor( pys );
+
+            core::extend( pzs, 3 );
+            core::writeBmp( pzs, "c:/tmp/prz0.bmp" );
+            core::decolor( pzs );
+
+            core::extend( pxt, 3 );
+            core::writeBmp( pxt, "c:/tmp/prx1.bmp" );
+            core::decolor( pxt );
+
+            core::extend( pyt, 3 );
+            core::writeBmp( pyt, "c:/tmp/pry1.bmp" );
+            core::decolor( pyt );
+
+            core::extend( pzt, 3 );
+            core::writeBmp( pzt, "c:/tmp/prz1.bmp" );
+            core::decolor( pzt );
+         }
+
          try
          {
             /*
@@ -135,16 +182,38 @@ namespace algorithm
             Matrix tfmx = registration.compute( pxs, pxt );
             tfmx.print( std::cout );
             std::cout << "reg1=done" << std::endl;
+
+            core::Image<ui8> ox;
+            core::extend( pxt, 3 );
+            core::extend( pxs, 3 );
+            displayTransformation( pxs, pxt, ox, tfmx );
+            core::writeBmp( ox, "c:/tmp/ox.bmp" );
+
+
             Matrix tfmy = registration.compute( pys, pyt );
             tfmy.print( std::cout );
             std::cout << "reg2=done" << std::endl;
+
+            core::Image<ui8> oy;
+            core::extend( pyt, 3 );
+            core::extend( pys, 3 );
+            displayTransformation( pys, pyt, oy, tfmy );
+            core::writeBmp( oy, "c:/tmp/oy.bmp" );
+
 
             // combine the transformations
             Matrix rotx( 4, 4 );
             Matrix roty( 4, 4 );
             Matrix tfm( 4, 4 );
             
+            Matrix tsourceOriginI = core::createTranslation4x4( core::vector3d( -source.getOrigin()[ 0 ],
+                                                                                -source.getOrigin()[ 1 ],
+                                                                                -source.getOrigin()[ 2 ] ) );
+            Matrix tsourceOrigin  = core::createTranslation4x4( core::vector3d( source.getOrigin()[ 0 ],
+                                                                                source.getOrigin()[ 1 ],
+                                                                                source.getOrigin()[ 2 ] ) );
 
+            std::cout << "Rotx=" << std::endl;
             rotx( 0, 0 ) = 1;
             rotx( 1, 1 ) = tfmx( 0, 0 );
             rotx( 2, 1 ) = tfmx( 1, 0 );
@@ -154,7 +223,13 @@ namespace algorithm
             rotx( 2, 3 ) = tfmx( 1, 2 );
             rotx( 3, 3 ) = 1;
             rotx.print( std::cout );
-            
+
+            // we rotate at the origin, this is how the registration transformation is defined
+            // then we readjust with the correct origin
+            rotx = tsourceOrigin * rotx * tsourceOriginI;
+            rotx.print( std::cout );
+        
+            std::cout << "Roty=" << std::endl;
 
             
             // case 227-23
@@ -168,62 +243,22 @@ namespace algorithm
             roty( 2, 3 ) = tfmy( 1, 2 );
             roty.print( std::cout );
             
+            // remove the z transformation: we don't want it as it is covered by the other transformation
+            roty( 2, 3 ) = 0;
+            roty = tsourceOrigin * roty * tsourceOriginI;
+            roty.print( std::cout );
 
-            /*
-            for ( ui32 y = 0; y < 3; ++y )
-            {
-               for ( ui32 x = 0; x < 3; ++x )
-               {
-                  rotx( y, x ) = tfmx( y, x );
-                  roty( y, x ) = tfmy( y, x );
-               }
-            }*/
+            // computes the global transformation
+            out = roty * rotx;
 
-            core::vector3d scalingx;
-            core::vector3d scalingy;
-            Matrix rot = getRotation4x4( rotx, scalingx ) * getRotation4x4( roty, scalingy );
+            std::cout << "FINAL=" << std::endl;
+            out.print( std::cout );
 
-            /*
-            rot.print( std::cout);
-
-            for ( ui32 y = 0; y < 3; ++y )
-            {
-               for ( ui32 x = 0; x < 3; ++x )
-               {
-                  tfm( y, x ) = rot( y, x );
-               }
-            }*/
-
-            tfm = rot;
-            for ( ui32 n = 0; n < 3; ++n )
-            {
-               tfm( n, 0 ) *= scalingy[ 0 ];
-               tfm( n, 1 ) *= scalingx[ 0 ];
-               tfm( n, 2 ) *= ( scalingy[ 0 ] + scalingx[ 0 ] ) / 2;
-            }
-
-            core::vector3f originDisplacement( 0, 0, 0 );
-            /*
-            core::vector3f originDisplacement( - source.getOrigin()[ 0 ] + target.getOrigin()[ 0 ],
-                                               - source.getOrigin()[ 1 ] + target.getOrigin()[ 1 ],
-                                               - source.getOrigin()[ 2 ] + target.getOrigin()[ 2 ] );
-                                               */
-            
-            tfm( 0, 3 ) = originDisplacement[ 0 ] + tfmy( 0, 2 );
-            tfm( 1, 3 ) = originDisplacement[ 1 ] + tfmx( 0, 2 );
-            tfm( 2, 3 ) = originDisplacement[ 2 ] + ( tfmx( 1, 2 ) + tfmy( 1, 2 ) ) / 2;
-            tfm( 3, 3 ) = 1;
-            out = tfm;
          } catch(...)
          {
             return FAILED_TOO_LITTLE_INLIERS;
          }
 
-         core::extend( pxs, 3 );
-         core::writeBmp( pxs, "c:/tmp/outXS.bmp" );
-         core::extend( pxt, 3 );
-         core::writeBmp( pxt, "c:/tmp/outXT.bmp" );
-         std::cout << "regTime=" << allProcess.getCurrentTime() << std::endl;
          return SUCCESS;
       }
 
@@ -1125,19 +1160,55 @@ public:
       }
    }
 
+   void createTfmVolume()
+   {
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+
+      core::Matrix<double> rz;
+      core::matrix4x4RotationZ( rz, 0);
+
+      core::Matrix<double> ry;
+      core::matrix4x4RotationY( ry, 0.4 *1 );
+
+      core::Matrix<double> rx;
+      core::matrix4x4RotationX( rx, -0.1 *2   );
+
+      core::Matrix<double> tfmMat = rz * ry * rx;
+      tfmMat( 0, 3 ) = 20;
+      tfmMat( 1, 3 ) = 10;
+      tfmMat( 2, 3 ) = -35;
+
+      tfmMat.print( std::cout );
+
+      imaging::TransformationAffine tfm( tfmMat );
+      tfm.getAffineMatrix().print( std::cout );
+      tfm.getInvertedAffineMatrix().print( std::cout );
+
+      Volume ct1;
+      const std::string inputDir = "c:/tmp/";
+      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "sourceo.mf2", ct1 );
+      ct1.setOrigin( core::vector3f(0, 0, 0) );
+      imaging::VolumeSpatial<double> resampled( ct1.size(), ct1.getPst() );
+
+      imaging::resampleVolumeTrilinear( ct1, resampled, tfm );
+
+      imaging::saveSimpleFlatFile( "c:/tmp/target.mf2", resampled );
+      imaging::saveSimpleFlatFile( "c:/tmp/source.mf2", ct1 );
+   }
+
    void test()
    {
       typedef nll::imaging::VolumeSpatial<double>           Volume;
 
-      const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
+      const std::string inputDir = "c:/tmp/";
+      //const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
       //const std::string inputDir = "I:/work/data_CT/";
-      const std::string input = inputDir + "list.txt";
       const std::string outputDir = "c:/tmp/proj/";
 
       Volume ct1;
       Volume ct2;
-      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "case227.mf2", ct1 );
-          loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "case23.mf2", ct2 );
+      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "source.mf2", ct1 );
+          loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "target.mf2", ct2 );
       //bool loaded = nll::imaging::loadSimpleFlatFile( "c:/tmp/c1.mf2", ct1 );
       //    loaded &= nll::imaging::loadSimpleFlatFile( "c:/tmp/c2.mf2", ct2 );
       TESTER_ASSERT( loaded, "cannot load volume" );
@@ -1153,7 +1224,6 @@ public:
       } else {
          std::cout << "case error" << std::endl;
       }
-
    }
 };
 
@@ -1165,7 +1235,8 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testRegistration2);
 //TESTER_TEST(testRegistrationVolume);
 //TESTER_TEST(createProjections);
-TESTER_TEST(testProjections);
+//TESTER_TEST(testProjections);
+TESTER_TEST(createTfmVolume);
 //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif

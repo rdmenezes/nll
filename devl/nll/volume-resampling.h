@@ -57,26 +57,22 @@ namespace imaging
          throw std::runtime_error( "invalid volume" );
       }
 
-      //
-      // Compute the transformation source index->source position->transformation in source position to target->to target index
-      // we don't really care about the order of composition as rotation and scalling are associative
-      //
-      Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst();
-      const core::vector3f dx( transformation( 0, 0 ),
-                               transformation( 1, 0 ),
-                               transformation( 2, 0 ) );
-      const core::vector3f dy( transformation( 0, 1 ),
-                               transformation( 1, 1 ),
-                               transformation( 2, 1 ) );
-      const core::vector3f dz( transformation( 0, 2 ),
-                               transformation( 1, 2 ),
-                               transformation( 2, 2 ) );
+      // compute the transformation target voxel -> source voxel
+      Matrix transformation = source.getInvertedPst() *
+                              tfm.getAffineMatrix() *
+                              target.getPst();
+      core::vector3f dx( transformation( 0, 0 ),
+                         transformation( 1, 0 ),
+                         transformation( 2, 0 ) );
+      core::vector3f dy( transformation( 0, 1 ),
+                         transformation( 1, 1 ),
+                         transformation( 2, 1 ) );
+      core::vector3f dz( transformation( 0, 2 ),
+                         transformation( 1, 2 ),
+                         transformation( 2, 2 ) );
 
-      Transformation::Matrix tfmI;
-      tfmI.clone( tfm.getAffineMatrix() );
-      core::inverse( tfmI );
-
-      core::vector3f originInTarget = transf4( target.getInvertedPst() * tfmI, source.getOrigin() );
+      // we transform the origin (voxel index=(0, 0, 0)) to the correponding index in source
+      core::vector3f originInTarget = transf4( transformation, core::vector3f( 0, 0, 0 ) );
 
       Interpolator interpolator( target );
       typename VolumeType::DirectionalIterator  sliceIt = source.getIterator( 0, 0, 0 );

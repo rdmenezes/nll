@@ -296,6 +296,10 @@ namespace algorithm
          _matcher.findMatch( p1Wrapper, p2Wrapper, matches );
 
          // take only the best subset...
+         if ( matches.size() == 0 )
+         {
+            throw std::runtime_error( "No match found" );
+         }
          algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 1000, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
@@ -308,7 +312,9 @@ namespace algorithm
          core::Timer ransacOptimTimer;
          RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 2, 50000, 0.01 );
          if ( ransac.getNbInliers() <= 20 )
+         {
             throw std::runtime_error( "Error: inliers are too small" );
+         }
          return model.tfm;
      }
 

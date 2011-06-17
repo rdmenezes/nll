@@ -728,7 +728,11 @@ namespace algorithm
                               int pz    = core::round( ( z    - interpolatedPoint[ 2 ] ) * _filterSteps[ filter ] );
                               int scale = core::round( size   - interpolatedPoint[ 3 ]   * filterStep );
 
+                              #ifndef NLL_NOT_MULTITHREADED
                               ui32 threadId = omp_get_thread_num();
+                              #else
+                              ui32 threadId = 0;
+                              #endif
                               bins[ threadId ].push_back( Point( core::vector3i( px, py, pz ), scale ) );
 
                               ++nbPoints;

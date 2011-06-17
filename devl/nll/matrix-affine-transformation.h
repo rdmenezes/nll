@@ -93,6 +93,53 @@ namespace core
       return rot;
    }
 
+   /**
+    @brief Assuming a 4x4 transformation matrix defined as
+                 | Rx Ry Rz Tx |
+           Tfm = | Rx Ry Rz Ty |
+                 | Rx Ry Rz Tz |
+                 | 0  0  0  1  |
+           Returns an homogeneous 4x4 matrix with only the R part
+    */
+   template <class type, class mapper, class allocator>
+   Matrix<type, mapper, allocator> getRotationAndSpacing( const Matrix<type, mapper, allocator>& m )
+   {
+      ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
+
+      Matrix<type, mapper, allocator> rot( 4, 4 );
+      for ( ui32 y = 0; y < 3; ++y )
+      {
+         for ( ui32 x = 0; x < 3; ++x )
+         {
+            rot( y, x ) = m( y, x );
+         }
+      }
+      rot( 3, 3 ) = 1;
+      return rot;
+   }
+
+
+   /**
+    @brief Assuming a 4x4 transformation matrix defined as
+                 | 1 0 0 Tx |
+           Tfm = | 0 1 0 Ty |
+                 | 0 0 1 Tz |
+                 | 0 0 0 1  |
+           Returns an homogeneous 4x4 matrix with only the T part
+    */
+   template <class type>
+   Matrix<type> createTranslation4x4( const StaticVector<type, 3>& translation )
+   {
+      Matrix<type> rot = identityMatrix< Matrix<type> >( 4 );
+      rot( 0, 3 ) = translation[ 0 ];
+      rot( 1, 3 ) = translation[ 1 ];
+      rot( 2, 3 ) = translation[ 2 ];
+      return rot;
+   }
+
+   /**
+    @brief Returns the spacing of a 4x4 homogeneous transformation matrix
+    */
    template <class type, class mapper, class allocator>
    vector3f getSpacing4x4( const Matrix<type, mapper, allocator>& m )
    {
