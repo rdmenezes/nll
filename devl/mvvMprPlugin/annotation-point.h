@@ -53,7 +53,7 @@ namespace platform
                                 nll::core::sqr( p1[ 1 ] - _position[ 1 ] ) +
                                 nll::core::sqr( p1[ 2 ] - _position[ 2 ] );
             double norm = NLL_BOUND( _distanceToDisplay * _distanceToDisplay / dist, 0, 1 );
-            if ( norm < 0.01 )
+            if ( norm < 0.15 )
                return; // too far, don't display
 
             color[ 0 ] *= norm;
