@@ -296,6 +296,12 @@ import float toFloat( int a );
 
 /**
  @ingroup core
+ @brief transform value to a float
+ */
+import float toFloat( string a );
+
+/**
+ @ingroup core
  @brief transform value to a string
  */
 import string toString( int a );

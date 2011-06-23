@@ -1235,8 +1235,8 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testRegistration2);
 //TESTER_TEST(testRegistrationVolume);
 //TESTER_TEST(createProjections);
-//TESTER_TEST(testProjections);
-TESTER_TEST(createTfmVolume);
+TESTER_TEST(testProjections);
+//TESTER_TEST(createTfmVolume);
 //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif

@@ -566,7 +566,8 @@ namespace parser
                      {
                         funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *c, *e.getSimpleName() ), e.getArgs() );
                      } else {
-                        ensure( 0, "compiler error: should not happen..." );
+                        impl::reportTypeError( e.getName().getLocation(), _context, "name is undefined or wrong type" );
+                        e.setNodeType( new TypeError() );
                      }
                   }
                }

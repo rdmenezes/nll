@@ -272,15 +272,17 @@ namespace algorithm
    class AffineRegistrationPointBased2d
    {
    public:
-      typedef impl::AffineTransformationEstimatorRansac   RansacTransformationEstimator;
-      typedef core::Matrix<double> Matrix;
+      typedef impl::AffineTransformationEstimatorRansac        RansacTransformationEstimator;
+      typedef core::Matrix<double>                             Matrix;
+      typedef typename FeatureMatcher::Matches::value_type     Match;
+      typedef algorithm::SpeededUpRobustFeatures::Point        Point;
 
       AffineRegistrationPointBased2d( ui32 surfNumberOfOctaves = 5, ui32 surfNumberOfIntervals = 6, double surfThreshold = 0.00011, FeatureMatcher matcher = FeatureMatcher() ) : _surfNumberOfOctaves( surfNumberOfOctaves ), _surfNumberOfIntervals( surfNumberOfIntervals ), _surfThreshold( surfThreshold ), _matcher( matcher )
       {}
 
    public:
       template <class T, class Mapper, class Alloc>
-      Matrix compute( const core::Image<T, Mapper, Alloc>& source, const core::Image<T, Mapper, Alloc>& target ) const
+      Matrix compute( const core::Image<T, Mapper, Alloc>& source, const core::Image<T, Mapper, Alloc>& target )
       {
          nll::core::Timer timer;
          algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
@@ -315,14 +317,34 @@ namespace algorithm
          {
             throw std::runtime_error( "Error: inliers are too small" );
          }
+
+         _inliers.clear();
+         _inliers.reserve( ransac.getNbInliers() );
+         const std::vector<ui32>& inliers = ransac.getInliers();
+         for ( ui32 n = 0; n < (ui32)inliers.size(); ++n )
+         {
+            const ui32 inlierId = ransac.getInliers()[ n ];
+            const Point& p1 = points1[ matchesTrimmed[ inlierId ].index1 ];
+            const Point& p2 = points2[ matchesTrimmed[ inlierId ].index2 ];
+            _inliers.push_back( std::make_pair( p1, p2 ) );
+         }
          return model.tfm;
-     }
+      }
+
+      const std::vector< std::pair<Point, Point> >& getInliers() const
+      {
+         return _inliers;
+      }
+
+
+      
 
   private:
-     FeatureMatcher                 _matcher;
-     ui32                           _surfNumberOfOctaves;
-     ui32                           _surfNumberOfIntervals;
-     double                         _surfThreshold;
+     FeatureMatcher                    _matcher;
+     ui32                              _surfNumberOfOctaves;
+     ui32                              _surfNumberOfIntervals;
+     double                            _surfThreshold;
+     std::vector< std::pair<Point, Point> >                _inliers;
   };
 }
 }

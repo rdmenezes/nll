@@ -1338,6 +1338,31 @@ public:
    }
 };
 
+class FunctionRunnableToFloatS : public FunctionRunnable
+{
+public:
+   FunctionRunnableToFloatS( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type != RuntimeValue::STRING   )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 string as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = atoi( v1.stringval.c_str() );
+      return rt;
+   }
+};
+
 class FunctionRunnableToStringI : public FunctionRunnable
 {
 public:
@@ -2345,6 +2370,12 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "toFloat" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ) ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableToFloat( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "toFloat" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableToFloatS( fn ) ) );
    }
 
    {

@@ -168,6 +168,7 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
          _nbInliers = static_cast<ui32>( inliers.size() );
+         _inlierId = bestSubset;
          return estimator.getModel();
       }
 
@@ -176,9 +177,15 @@ namespace algorithm
          return _nbInliers;
       }
 
+      const std::vector<ui32>& getInliers() const
+      {
+         return _inlierId;
+      }
+
    private:
       EstimatorFactory  _estimatorFactory;
       ui32              _nbInliers;
+      std::vector<ui32> _inlierId;
    };
 
    /**
