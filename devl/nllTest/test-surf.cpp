@@ -3,6 +3,7 @@
 #include "config.h"
 
 using namespace nll;
+using namespace nll::algorithm;
 
 namespace
 {
@@ -103,6 +104,171 @@ namespace algorithm
    }
 
    /**
+    @brief alter significantly one paramter of the registration
+    */
+   class GeneticAlgorithmMutateRegistration3D
+   {
+   public:
+      typedef core::Matrix<double>  Matrix;
+
+   public:
+      void operator()( Matrix& mutate ) const
+      {
+         //const ui32 n = 10 + rand() % 3;
+
+         Matrix tfm = core::identityMatrix<Matrix>( 4 );
+         for ( ui32 y = 0; y < 3; ++y )
+            for ( ui32 x = 0; x < 3; ++x )
+               mutate( y, x ) += core::generateGaussianDistribution( 0, 0.81 );
+         mutate( 0, 3 ) += core::generateGaussianDistribution( 0, 30 );
+         mutate( 1, 3 ) += core::generateGaussianDistribution( 0, 30 );
+         mutate( 2, 3 ) += core::generateGaussianDistribution( 0, 30 );
+         mutate( 0, 1 ) = 0;
+         mutate( 1, 0 ) = 0;
+
+         /*
+         const ui32 n = rand() % 12;
+         if ( n < 9 )
+         {
+            const ui32 x = rand() % 3;
+            const ui32 y = rand() % 3;
+            mutate( y, x ) += core::generateGaussianDistribution( 0, 0.81 );
+         } //else if ( n == 10 )
+         {
+            mutate( 0, 3 ) += core::generateGaussianDistribution( 0, 10 );
+         } //else  if ( n == 11 )
+         {
+            mutate( 1, 3 ) += core::generateGaussianDistribution( 0, 10 );
+         } //else if ( n == 12 )
+         {
+            mutate( 2, 3 ) += core::generateGaussianDistribution( 0, 10 );
+         }
+
+         // add constraints...
+         mutate( 0, 1 ) = 0;
+         mutate( 1, 0 ) = 0;*/
+      }
+   };
+
+   class EvalRegistration3D
+   {
+   public:
+      typedef AffineRegistrationPointBased2d<>::Point    Point;
+      typedef std::vector< std::pair<Point, Point> >     Points;
+      typedef core::Matrix<double>                       Matrix;
+
+      EvalRegistration3D( const Points& projx, const Points& projy ) : _projx( projx ), _projy( projy )
+      {
+      }
+
+      double operator()(const Matrix& g) const
+      {
+         double error = 0;
+
+         // compute the error for the projection in x
+         for ( ui32 n = 0; n < _projx.size(); ++n )
+         {
+            // First, unproject the 2D point (e.g., create a fake coordinate for the missing x attribut)
+            // Then Transform the 3D points, finally project this 3D point and compare the 2D point obtained
+            // to the one found in the matching
+            const core::vector3d point3d( 0, _projx[ n ].first.position[ 0 ], _projx[ n ].first.position[ 1 ] );
+            const core::vector3d ptfm = core::transf4( g, point3d );
+            const double e = core::sqr( ptfm[ 1 ] - _projx[ n ].second.position[ 0 ] ) +
+                             core::sqr( ptfm[ 2 ] - _projx[ n ].second.position[ 1 ] );
+            error += sqrt( e );
+         }
+
+         for ( ui32 n = 0; n < _projy.size(); ++n )
+         {
+            // First, unproject the 2D point (e.g., create a fake coordinate for the missing x attribut)
+            // Then Transform the 3D points, finally project this 3D point and compare the 2D point obtained
+            // to the one found in the matching
+            const core::vector3d point3d( _projy[ n ].first.position[ 0 ], 0, _projy[ n ].first.position[ 1 ] );
+            const core::vector3d ptfm = core::transf4( g, point3d );
+            const double e = core::sqr( ptfm[ 0 ] - _projy[ n ].second.position[ 0 ] ) +
+                             core::sqr( ptfm[ 2 ] - _projy[ n ].second.position[ 1 ] );
+            error += sqrt( e );
+         }
+
+         return error;
+      }
+
+   private:
+      const Points& _projx;
+      const Points& _projy;
+   };
+
+   class GenerateRegistration3D
+   {
+   public:
+      typedef core::Matrix<double>                       Matrix;
+
+   public:
+      GenerateRegistration3D() //( const Matrix& tfmx, const Matrix& tfmy ) : _tfmx( tfmx ), _tfmy( tfmy )
+      {}
+
+      Matrix operator()() const
+      {
+         Matrix tfm = core::identityMatrix<Matrix>( 4 );
+         for ( ui32 y = 0; y < 3; ++y )
+            for ( ui32 x = 0; x < 3; ++x )
+               tfm( y, x ) += core::generateGaussianDistribution( 0, 1.5 );
+         tfm( 0, 3 ) += core::generateGaussianDistribution( 0, 100 );
+         tfm( 1, 3 ) += core::generateGaussianDistribution( 0, 100 );
+         tfm( 2, 3 ) += core::generateGaussianDistribution( 0, 100 );
+
+         // add constraints...
+         tfm( 0, 1 ) = 0;
+         tfm( 1, 0 ) = 0;
+         return tfm;
+      }
+
+   private:
+    //  Matrix   _tfmx;
+    //  Matrix   _tfmy;
+   };
+
+   class RecombinateRegistration3D
+   {
+   public:
+      typedef core::Matrix<double>                       Matrix;
+
+   public:
+      Matrix operator()( const Matrix& g1, const Matrix& g2, ui32 size ) const
+      {
+
+         Matrix g( 4, 4 );
+         for ( ui32 y = 0; y < 3; ++y )
+            for ( ui32 x = 0; x < 3; ++x )
+               g( y, x ) += (g1(y,x) + g2(y, x)) / 2;
+         g( 0, 3 ) = (g1(0,3) + g2(0, 3)) / 2;
+         g( 1, 3 ) = (g1(1,3) + g2(1, 3)) / 2;
+         g( 2, 3 ) = (g1(2,3) + g2(2, 3)) / 2;
+         g( 3, 3 ) = 1;
+         return g;
+
+         /*
+         assert( size == 16 );
+         ui32 r1 = rand() % size;
+	      ui32 r2 = rand() % size;
+	      if ( r1 > r2 )
+		      std::swap( r1, r2 );
+	      Matrix g( 4, 4 );
+         for ( ui32 n = 0; n < r1; ++n )
+            g[ n ] = g1[ n ];
+	      for ( ui32 n = r1; n <= r2; ++n )
+		      g[ n ] = g2[ n ];
+         for ( ui32 n = r2 + 1; n < size; ++n )
+		      g[ n ] = g1[ n ];
+
+         // add constraints...
+         g( 0, 1 ) = 0;
+         g( 1, 0 ) = 0;
+	      return g;*/
+      }
+   };
+
+   /**
     @ingroup algorithm
     @brief 3D registration of CT-CT medical volume
     
@@ -171,12 +337,69 @@ namespace algorithm
 
          try
          {
+            algorithm::AffineRegistrationPointBased2d<> registrationx;
+            Matrix tfmx = registrationx.compute( pxs, pxt );
+            tfmx.print( std::cout );
+            std::cout << "reg1=done" << std::endl;
+
+            algorithm::AffineRegistrationPointBased2d<> registrationy;
+            Matrix tfmy = registrationy.compute( pys, pyt );
+            tfmy.print( std::cout );
+            std::cout << "reg2=done" << std::endl;
+
+            GeneticAlgorithmMutateRegistration3D mutate;
+            EvalRegistration3D evaluate( registrationx.getInliers(), registrationy.getInliers() );
+            GenerateRegistration3D generate;
+   
+            RecombinateRegistration3D recombinate;
+            GeneticAlgorithmSelectElitism<Matrix,EvalRegistration3D> select( evaluate, true );
+
+            GeneticAlgorithmStopMaxIteration<Matrix> stop( 100 );
+
+            std::ofstream fx( "c:/tmp/px.txt" );
+            for ( ui32 n = 0; n < registrationx.getInliers().size(); ++n )
+            {
+               fx << registrationx.getInliers()[ n ].first.position[ 0 ] << " " <<
+                     registrationx.getInliers()[ n ].first.position[ 1 ] << " " <<
+                     registrationx.getInliers()[ n ].second.position[ 0 ] << " " <<
+                     registrationx.getInliers()[ n ].second.position[ 1 ] << " ";
+               if ( n + 1 != registrationx.getInliers(). size() )
+                  fx << std::endl;
+            }
+
+            std::ofstream fy( "c:/tmp/py.txt" );
+            for ( ui32 n = 0; n < registrationy.getInliers(). size(); ++n )
+            {
+               fy << registrationy.getInliers()[ n ].first.position[ 0 ] << " " <<
+                     registrationy.getInliers()[ n ].first.position[ 1 ] << " " <<
+                     registrationy.getInliers()[ n ].second.position[ 0 ] << " " <<
+                     registrationy.getInliers()[ n ].second.position[ 1 ] << " ";
+               if ( n + 1 != registrationy.getInliers(). size() )
+                  fy << std::endl;
+            }
+            
+            Matrix seed = core::identityMatrix<Matrix>( 4 );
+            std::vector<Matrix> solutions = launchGeneticAlgorithm( seed,
+                                                                    generate,
+                                                                    evaluate,
+                                                                    select,
+                                                                    stop,
+                                                                    recombinate,
+                                                                    mutate, 200, 0.3, 0.1, 20 );
+
+            
+            // computes the global transformation
+            out = solutions[ 0 ];
+
+            std::cout << "FINAL=" << std::endl;
+            out.print( std::cout );
             /*
             core::readBmp(pxs, "c:/tmp/proj/px-3.bmp" );
             core::readBmp(pxt, "c:/tmp/proj/px-4.bmp" );
             core::decolor( pxs );
             core::decolor( pxt );
             */
+            /*
             // run the registration on the projected images
             algorithm::AffineRegistrationPointBased2d<> registration;
             Matrix tfmx = registration.compute( pxs, pxt );
@@ -253,7 +476,7 @@ namespace algorithm
 
             std::cout << "FINAL=" << std::endl;
             out.print( std::cout );
-
+            */
          } catch(...)
          {
             return FAILED_TOO_LITTLE_INLIERS;
@@ -1124,12 +1347,12 @@ public:
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
-         core::readBmp( py1, outputDir + "py-" + core::val2str( n ) + ".bmp" );
+         core::readBmp( py1, outputDir + "px-" + core::val2str( n ) + ".bmp" );
          //core::convolve( py1, core::buildGaussian() );
          //core::addBorder( py1, 40, 40 );
 
          core::Image<ui8> py2;
-         core::readBmp( py2, outputDir + "py-" + core::val2str( n + 1 ) + ".bmp" );
+         core::readBmp( py2, outputDir + "px-" + core::val2str( n + 1 ) + ".bmp" );
          //core::convolve( py2, core::buildGaussian() );
          //core::addBorder( py2, 40, 40 );
 
@@ -1196,6 +1419,31 @@ public:
       imaging::saveSimpleFlatFile( "c:/tmp/source.mf2", ct1 );
    }
 
+   typedef algorithm::AffineRegistrationPointBased2d<>::Point    PointPair;
+   typedef std::vector< std::pair<PointPair, PointPair> >     PointPairs;
+
+   PointPairs readPairs( const std::string& s )
+   {
+      PointPairs pairs;
+      std::ifstream f( s.c_str() );
+      while ( !f.eof() )
+      {
+         std::string line;
+         std::getline( f, line );
+         std::vector<const char*> splits = core::split( line, ' ' );
+
+         PointPair p1( core::vector2i( core::str2val<float>( splits[ 0 ] ),
+                                       core::str2val<float>( splits[ 1 ] ) ),
+                       1 );
+         PointPair p2( core::vector2i( core::str2val<float>( splits[ 2 ] ),
+                                       core::str2val<float>( splits[ 3 ] ) ),
+                       1 );
+         pairs.push_back( std::make_pair( p1, p2 ) );
+      }
+
+      return pairs;
+   }
+
    void test()
    {
       typedef nll::imaging::VolumeSpatial<double>           Volume;
@@ -1225,6 +1473,39 @@ public:
          std::cout << "case error" << std::endl;
       }
    }
+
+   void testOptim()
+   {
+      typedef core::Matrix<double>  Matrix;
+      PointPairs px = readPairs( "c:/tmp/px.txt" );
+      PointPairs py = readPairs( "c:/tmp/py.txt" );
+
+      GeneticAlgorithmMutateRegistration3D mutate;
+      EvalRegistration3D evaluate( px, py );
+      GenerateRegistration3D generate;
+
+      RecombinateRegistration3D recombinate;
+      GeneticAlgorithmSelectElitism<Matrix,EvalRegistration3D> select( evaluate, true );
+
+      GeneticAlgorithmStopMaxIteration<Matrix> stop( 50 );
+      
+      Matrix seed = core::identityMatrix<Matrix>( 4 );
+
+      seed( 0, 0 ) = 0.921061;    seed( 0, 1 ) = 8.08913e-009;    seed( 0, 2 ) = -0.389418;       seed( 0, 3 ) = -32.0509;
+      seed( 1, 0 ) = -0.0773655;  seed( 1, 1 ) = 0.980067;        seed( 1, 2 ) = -0.182987;       seed( 1, 3 ) = -14.6579;
+      seed( 2, 0 ) = 0.381656;    seed( 2, 1 ) = 0.198669;        seed( 2, 2 ) = 0.902701;        seed( 2, 3 ) = 21.9747;
+      seed( 3, 0 ) = 0;           seed( 3, 1 ) = 0;               seed( 3, 2 ) = 0;               seed( 3, 3 ) = 1;
+
+
+      std::vector<Matrix> solutions = launchGeneticAlgorithm( seed,
+                                                              generate,
+                                                              evaluate,
+                                                              select,
+                                                              stop,
+                                                              recombinate,
+                                                              mutate, 50, 0.9, 0.1, 400 );
+      solutions[ 0 ].print( std::cout );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -1235,8 +1516,9 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testRegistration2);
 //TESTER_TEST(testRegistrationVolume);
 //TESTER_TEST(createProjections);
-TESTER_TEST(testProjections);
+//TESTER_TEST(testProjections);
 //TESTER_TEST(createTfmVolume);
 //TESTER_TEST(test);
+TESTER_TEST(testOptim);
 TESTER_TEST_SUITE_END();
 #endif
