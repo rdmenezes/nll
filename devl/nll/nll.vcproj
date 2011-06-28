@@ -888,10 +888,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\estimator-affine2D-transformation.h"
-				>
-			</File>
-			<File
 				RelativePath=".\gabor-filter.h"
 				>
 			</File>
@@ -908,14 +904,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\haar-features-3d.h"
-				>
-			</File>
-			<File
-				RelativePath=".\haar-features.h"
-				>
-			</File>
-			<File
 				RelativePath=".\histogram-fitting.h"
 				>
 			</File>
@@ -929,10 +917,6 @@
 			</File>
 			<File
 				RelativePath=".\ica.h"
-				>
-			</File>
-			<File
-				RelativePath=".\integral-image-3d.h"
 				>
 			</File>
 			<File
@@ -984,15 +968,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\point-based-registration-2d.h"
-				>
-			</File>
-			<File
 				RelativePath=".\powell.h"
-				>
-			</File>
-			<File
-				RelativePath=".\pyramid-hessian-2d.h"
 				>
 			</File>
 			<File
@@ -1013,10 +989,6 @@
 			</File>
 			<File
 				RelativePath=".\sammon-projection.h"
-				>
-			</File>
-			<File
-				RelativePath=".\surf-2d.h"
 				>
 			</File>
 			<File
@@ -1123,6 +1095,42 @@
 		<Filter
 			Name="transform"
 			>
+		</Filter>
+		<Filter
+			Name="algorithm-regs"
+			>
+			<File
+				RelativePath=".\estimator-affine2D-transformation.h"
+				>
+			</File>
+			<File
+				RelativePath=".\haar-features-3d.h"
+				>
+			</File>
+			<File
+				RelativePath=".\haar-features.h"
+				>
+			</File>
+			<File
+				RelativePath=".\integral-image-3d.h"
+				>
+			</File>
+			<File
+				RelativePath=".\point-based-registration-2d.h"
+				>
+			</File>
+			<File
+				RelativePath=".\pyramid-hessian-2d.h"
+				>
+			</File>
+			<File
+				RelativePath=".\registration-3d-ct.h"
+				>
+			</File>
+			<File
+				RelativePath=".\surf-2d.h"
+				>
+			</File>
 		</Filter>
 		<File
 			RelativePath=".\nll.dox"
