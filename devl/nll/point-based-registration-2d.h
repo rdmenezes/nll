@@ -276,6 +276,7 @@ namespace algorithm
       typedef core::Matrix<double>                             Matrix;
       typedef typename FeatureMatcher::Matches::value_type     Match;
       typedef algorithm::SpeededUpRobustFeatures::Point        Point;
+      typedef std::vector< std::pair<Point, Point> >           PointPairs;
 
       AffineRegistrationPointBased2d( ui32 surfNumberOfOctaves = 5, ui32 surfNumberOfIntervals = 6, double surfThreshold = 0.00011, FeatureMatcher matcher = FeatureMatcher() ) : _surfNumberOfOctaves( surfNumberOfOctaves ), _surfNumberOfIntervals( surfNumberOfIntervals ), _surfThreshold( surfThreshold ), _matcher( matcher )
       {}
@@ -331,7 +332,7 @@ namespace algorithm
          return model.tfm;
       }
 
-      const std::vector< std::pair<Point, Point> >& getInliers() const
+      const PointPairs& getInliers() const
       {
          return _inliers;
       }
@@ -344,7 +345,7 @@ namespace algorithm
      ui32                              _surfNumberOfOctaves;
      ui32                              _surfNumberOfIntervals;
      double                            _surfThreshold;
-     std::vector< std::pair<Point, Point> >                _inliers;
+     PointPairs                        _inliers;
   };
 }
 }

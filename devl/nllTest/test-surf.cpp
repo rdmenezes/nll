@@ -165,6 +165,14 @@ namespace algorithm
       {
          double error = 0;
 
+         Matrix projectionx = core::identityMatrix<Matrix>( 4 );
+         projectionx( 0, 0 ) = 0;
+         projectionx = g * projectionx;
+
+         Matrix projectiony = core::identityMatrix<Matrix>( 4 );
+         projectiony( 1, 1 ) = 0;
+         projectiony = g * projectiony;
+
          // compute the error for the projection in x
          for ( ui32 n = 0; n < _projx.size(); ++n )
          {
@@ -172,7 +180,7 @@ namespace algorithm
             // Then Transform the 3D points, finally project this 3D point and compare the 2D point obtained
             // to the one found in the matching
             const core::vector3d point3d( 0, _projx[ n ].first.position[ 0 ], _projx[ n ].first.position[ 1 ] );
-            const core::vector3d ptfm = core::transf4( g, point3d );
+            const core::vector3d ptfm = core::transf4( projectionx, point3d );
             const double e = core::sqr( ptfm[ 1 ] - _projx[ n ].second.position[ 0 ] ) +
                              core::sqr( ptfm[ 2 ] - _projx[ n ].second.position[ 1 ] );
             error += sqrt( e );
@@ -184,7 +192,7 @@ namespace algorithm
             // Then Transform the 3D points, finally project this 3D point and compare the 2D point obtained
             // to the one found in the matching
             const core::vector3d point3d( _projy[ n ].first.position[ 0 ], 0, _projy[ n ].first.position[ 1 ] );
-            const core::vector3d ptfm = core::transf4( g, point3d );
+            const core::vector3d ptfm = core::transf4( projectiony, point3d );
             const double e = core::sqr( ptfm[ 0 ] - _projy[ n ].second.position[ 0 ] ) +
                              core::sqr( ptfm[ 2 ] - _projy[ n ].second.position[ 1 ] );
             error += sqrt( e );
@@ -283,6 +291,7 @@ namespace algorithm
    {
    public:
       typedef core::Matrix<double>  Matrix;
+      typedef algorithm::AffineRegistrationPointBased2d<>   Registration2D;
 
       enum Result
       {
@@ -295,7 +304,8 @@ namespace algorithm
       template <class T, class BufferType>
       Result process( const imaging::VolumeSpatial<T, BufferType>& source,
                       const imaging::VolumeSpatial<T, BufferType>& target,
-                      Matrix& out )
+                      Matrix& out,
+                      bool exportDebug = true )
       {
          out = core::identityMatrix<Matrix>( 4 );
 
@@ -337,15 +347,28 @@ namespace algorithm
 
          try
          {
-            algorithm::AffineRegistrationPointBased2d<> registrationx;
+            Registration2D registrationx;
             Matrix tfmx = registrationx.compute( pxs, pxt );
             tfmx.print( std::cout );
             std::cout << "reg1=done" << std::endl;
 
-            algorithm::AffineRegistrationPointBased2d<> registrationy;
+            Registration2D registrationy;
             Matrix tfmy = registrationy.compute( pys, pyt );
             tfmy.print( std::cout );
             std::cout << "reg2=done" << std::endl;
+
+            // save some debug info
+            if ( exportDebug )
+            {
+               pxSrc = pxs;
+               pySrc = pys;
+               pxTgt = pxt;
+               pyTgt = pyt;
+               pxInliers = registrationx.getInliers();
+               pyInliers = registrationy.getInliers();
+               pxTfm = tfmx;
+               pyTfm = tfmy;
+            }
 
             GeneticAlgorithmMutateRegistration3D mutate;
             EvalRegistration3D evaluate( registrationx.getInliers(), registrationy.getInliers() );
@@ -393,90 +416,7 @@ namespace algorithm
 
             std::cout << "FINAL=" << std::endl;
             out.print( std::cout );
-            /*
-            core::readBmp(pxs, "c:/tmp/proj/px-3.bmp" );
-            core::readBmp(pxt, "c:/tmp/proj/px-4.bmp" );
-            core::decolor( pxs );
-            core::decolor( pxt );
-            */
-            /*
-            // run the registration on the projected images
-            algorithm::AffineRegistrationPointBased2d<> registration;
-            Matrix tfmx = registration.compute( pxs, pxt );
-            tfmx.print( std::cout );
-            std::cout << "reg1=done" << std::endl;
 
-            core::Image<ui8> ox;
-            core::extend( pxt, 3 );
-            core::extend( pxs, 3 );
-            displayTransformation( pxs, pxt, ox, tfmx );
-            core::writeBmp( ox, "c:/tmp/ox.bmp" );
-
-
-            Matrix tfmy = registration.compute( pys, pyt );
-            tfmy.print( std::cout );
-            std::cout << "reg2=done" << std::endl;
-
-            core::Image<ui8> oy;
-            core::extend( pyt, 3 );
-            core::extend( pys, 3 );
-            displayTransformation( pys, pyt, oy, tfmy );
-            core::writeBmp( oy, "c:/tmp/oy.bmp" );
-
-
-            // combine the transformations
-            Matrix rotx( 4, 4 );
-            Matrix roty( 4, 4 );
-            Matrix tfm( 4, 4 );
-            
-            Matrix tsourceOriginI = core::createTranslation4x4( core::vector3d( -source.getOrigin()[ 0 ],
-                                                                                -source.getOrigin()[ 1 ],
-                                                                                -source.getOrigin()[ 2 ] ) );
-            Matrix tsourceOrigin  = core::createTranslation4x4( core::vector3d( source.getOrigin()[ 0 ],
-                                                                                source.getOrigin()[ 1 ],
-                                                                                source.getOrigin()[ 2 ] ) );
-
-            std::cout << "Rotx=" << std::endl;
-            rotx( 0, 0 ) = 1;
-            rotx( 1, 1 ) = tfmx( 0, 0 );
-            rotx( 2, 1 ) = tfmx( 1, 0 );
-            rotx( 1, 2 ) = tfmx( 0, 1 );
-            rotx( 2, 2 ) = tfmx( 1, 1 );
-            rotx( 1, 3 ) = tfmx( 0, 2 );
-            rotx( 2, 3 ) = tfmx( 1, 2 );
-            rotx( 3, 3 ) = 1;
-            rotx.print( std::cout );
-
-            // we rotate at the origin, this is how the registration transformation is defined
-            // then we readjust with the correct origin
-            rotx = tsourceOrigin * rotx * tsourceOriginI;
-            rotx.print( std::cout );
-        
-            std::cout << "Roty=" << std::endl;
-
-            
-            // case 227-23
-            roty( 0, 0 ) =  tfmy( 0, 0 );
-            roty( 2, 0 ) =  tfmy( 1, 0 );
-            roty( 0, 2 ) =  tfmy( 0, 1 );
-            roty( 2, 2 ) =  tfmy( 1, 1 );
-            roty( 1, 1 ) = 1;
-            roty( 3, 3 ) = 1;
-            roty( 0, 3 ) = tfmy( 0, 2 );
-            roty( 2, 3 ) = tfmy( 1, 2 );
-            roty.print( std::cout );
-            
-            // remove the z transformation: we don't want it as it is covered by the other transformation
-            roty( 2, 3 ) = 0;
-            roty = tsourceOrigin * roty * tsourceOriginI;
-            roty.print( std::cout );
-
-            // computes the global transformation
-            out = roty * rotx;
-
-            std::cout << "FINAL=" << std::endl;
-            out.print( std::cout );
-            */
          } catch(...)
          {
             return FAILED_TOO_LITTLE_INLIERS;
@@ -697,6 +637,17 @@ namespace algorithm
             return mean / nbPixelTable;
          return -1;
       }
+
+   public:
+      // debug info
+      core::Image<ui8>  pxSrc;
+      core::Image<ui8>  pxTgt;
+      core::Image<ui8>  pySrc;
+      core::Image<ui8>  pyTgt;
+      Registration2D::PointPairs    pxInliers;
+      Registration2D::PointPairs    pyInliers;
+      Matrix            pxTfm;
+      Matrix            pyTfm;
    };
 }
 }
@@ -828,6 +779,42 @@ public:
          //std::cout << "d=" << matches[ n ].dist << std::endl;
          const algorithm::SpeededUpRobustFeatures::Point& f1 = p1[ matches[ n ].index1 ];
          const algorithm::SpeededUpRobustFeatures::Point& f2 = p2[ matches[ n ].index2 ];
+         core::bresham( output, f1.position, core::vector2i( f2.position[ 0 ] + i1.sizex(), f2.position[ 1 ] ), core::vector3uc( (ui8)( rand() % 255 ), (ui8)( rand() % 255 ), (ui8)( rand() % 255 ) ) );
+      }
+   }
+
+   void composeMatch( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output,
+      algorithm::AffineRegistrationPointBased2d<>::PointPairs& points )
+   {
+      output = core::Image<ui8>( i1.sizex() + i2.sizex(),
+                                 std::max( i1.sizey(), i2.sizey() ),
+                                 3 );
+      for ( ui32 y = 0; y < i1.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i1.sizex(); ++x )
+         {
+            output( x, y, 0 ) = i1( x, y, 0 );
+            output( x, y, 1 ) = i1( x, y, 1 );
+            output( x, y, 2 ) = i1( x, y, 2 );
+         }
+      }
+
+      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         {
+            output( x + i1.sizex(), y, 0 ) = i2( x, y, 0 );
+            output( x + i1.sizex(), y, 1 ) = i2( x, y, 1 );
+            output( x + i1.sizex(), y, 2 ) = i2( x, y, 2 );
+         }
+      }
+
+
+      ui32 start = 0;
+      for ( ui32 n = 0; n < (ui32)points.size(); ++n )
+      {
+         const algorithm::SpeededUpRobustFeatures::Point& f1 = points[ n ].first;
+         const algorithm::SpeededUpRobustFeatures::Point& f2 = points[ n ].second;
          core::bresham( output, f1.position, core::vector2i( f2.position[ 0 ] + i1.sizex(), f2.position[ 1 ] ), core::vector3uc( (ui8)( rand() % 255 ), (ui8)( rand() % 255 ), (ui8)( rand() % 255 ) ) );
       }
    }
@@ -1024,168 +1011,6 @@ public:
          core::writeBmp( outputReg, rootOut + "oreg" + core::val2str(n) + ".bmp" );
       }
    }
-/*
-   // assume a GREY LUT
-   core::Image<ui8> projectImageY( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
-   {
-      std::cout << "size=" << v.getSize() << std::endl;
-      core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
-      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
-      {
-         for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
-         {
-            double accum = 0;
-            //ui32 nbVoxelsNonEmpty = 0;
-            for ( ui32 y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
-            {
-               const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y, z / v.getSpacing()[ 2 ] ) )[ 0 ];
-               accum += val;
-            //   if ( val > 0 )
-            //      ++nbVoxelsNonEmpty;
-            }
-
-            accum /= ( maxSizeY * v.getSpacing()[ 1 ] );
-
-            const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
-            p( x, z, 0 ) = val;
-            p( x, z, 1 ) = val;
-            p( x, z, 2 ) = val;
-            
-         }
-      }
-
-      return p;
-   }
-
-   core::Image<ui8> projectImageX( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
-   {
-      std::cout << "size=" << v.getSize() << std::endl;
-      core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ], v.getSize()[ 2 ] * v.getSpacing()[ 2 ], 3 );
-      for ( ui32 z = 0; z < v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1; ++z )
-      {
-         for ( ui32 y = 0; y < ymax; ++y )
-         {
-            double accum = 0;
-            ui32 nbVoxelsNonEmpty = 0;
-            for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
-            {
-               const double val = lut.transform( v( x, y / v.getSpacing()[ 1 ], z / v.getSpacing()[ 2 ] ) )[ 0 ];
-               accum += val;
-               if ( val > 0 )
-                  ++nbVoxelsNonEmpty;
-            }
-
-            accum /= ( maxSizeY * v.getSpacing()[ 0 ] );
-
-            const ui8 val = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
-            p( y, z, 0 ) = val;
-            p( y, z, 1 ) = val;
-            p( y, z, 2 ) = val;
-            
-         }
-      }
-
-      return p;
-   }
-
-   core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<double>& v, const imaging::LookUpTransformWindowingRGB& lut, ui32& maxSizeY, ui32& maxSizeX )
-   {
-      std::cout << "size=" << v.getSize() << std::endl;
-      core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ], v.getSize()[ 1 ] * v.getSpacing()[ 1 ], 3 );
-      ui32 min = p.sizey() - 1;
-      ui32 max = 0;
-
-      ui32 minX = p.sizex() - 1;
-      ui32 maxX = 0;
-      for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
-      {
-         for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
-         {
-            double accum = 0;
-            for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
-            {
-               const double val = lut.transform( v( x / v.getSpacing()[ 0 ], y / v.getSpacing()[ 1 ], z ) )[ 0 ];
-               accum += val;
-            }
-
-            accum /= v.getSize()[ 0 ];
-
-            const ui8 val = static_cast<ui8>( NLL_BOUND( accum * 3, 0, 255 ) );
-            p( x, y, 0 ) = val;
-            p( x, y, 1 ) = val;
-            p( x, y, 2 ) = val;
-            if ( val )
-            {
-               if ( min > y )
-               {
-                  min = y;
-               }
-
-               if ( max < y )
-               {
-                  max = y;
-               }
-
-               if ( minX > x )
-               {
-                  minX = x;
-               }
-
-               if ( maxX < x )
-               {
-                  maxX = x;
-               }
-            }
-            
-         }
-      }
-
-      maxSizeY = max - min + 1;
-      maxSizeX = maxX - minX + 1;
-      return p;
-   }
-
-   // find the table: from top to bottom, the Y position can be determined: detect the points top to bottom with only a few connected
-   // pixels
-   int findTableY( const core::Image<ui8>& iz )
-   {
-      ui32 nbPixelTable = 0;
-      double mean = 0;
-      for ( ui32 x = 0; x < iz.sizex(); ++x )
-      {
-         ui32 lineId = 0;
-         ui32 nbConnected[ 5 ] = {0, 0, 0, 0, 0};
-         int ymin[ 5 ];
-         int ymax[ 5 ];
-         for ( int y = iz.sizey() - 1; y > 0; --y )
-         {
-            if ( iz( x, y, 0 ) > 0 )
-            {
-               if ( nbConnected[ lineId ] == 0 )
-                  ymin[ lineId ] = y;
-               ++nbConnected[ lineId ];
-            } else if ( nbConnected[ lineId ] && abs( y - ymin[ lineId ] ) < 30 )
-            {
-               ymax[ lineId ] = y;
-               ++lineId;
-               if ( lineId >= 3)
-                  break;
-            }
-         }
-
-         if ( lineId )
-         {
-            ++nbPixelTable;
-            mean += ymax[ lineId - 1 ];
-         }
-      }
-
-      std::cout << "nbPixel=" << nbPixelTable << " mean=" << (mean / nbPixelTable) << std::endl;
-
-      if ( nbPixelTable > 120 )
-         return mean / nbPixelTable;
-      return -1;
-   }*/
 
    void testRegistration2()
    {
@@ -1224,45 +1049,7 @@ public:
          core::writeBmp( outputReg, rootOut + "oreg-2-" + core::val2str(n) + ".bmp" );
       }
    }
-   /*
-   void testRegistrationVolume()
-   {
-      const std::string rootOut = NLL_TEST_PATH "data/";
-      const std::string ct1name = NLL_TEST_PATH "../regionDetectionTest/data/case51.mf2";
-      const std::string ct2name = NLL_TEST_PATH "../regionDetectionTest/data/case65.mf2";
-      
-      typedef nll::imaging::VolumeSpatial<double>           Volume;
-      imaging::LookUpTransformWindowingRGB lut( -250, 250, 256, 1 );
-      lut.createGreyscale();
 
-      Volume ct1;
-      Volume ct2;
-
-      std::cout << "loading..." << std::endl;
-      bool loaded = nll::imaging::loadSimpleFlatFile( ct1name, ct1 );
-      TESTER_ASSERT( loaded );
-
-      loaded = nll::imaging::loadSimpleFlatFile( ct2name, ct2 );
-      TESTER_ASSERT( loaded );
-
-      core::Image<ui8> py1 = projectImageX( ct1, lut );
-      core::writeBmp( py1, rootOut + "py1.bmp" );
-
-      core::Image<ui8> py2 = projectImageX( ct2, lut );
-      core::writeBmp( py2, rootOut + "py2.bmp" );
-
-      core::decolor( py1 );
-      core::decolor( py2 );
-      algorithm::AffineRegistrationPointBased2d<> registration;
-      core::Matrix<double> regTfm = registration.compute( py1, py2 );
-
-      core::extend( py1, 3 );
-      core::extend( py2, 3 );
-      core::Image<ui8> outputReg;
-      displayTransformation( py1, py2, outputReg, regTfm );
-      core::writeBmp( outputReg, rootOut + "result.bmp" );
-   }
-   */
    void createProjections()
    {
       //const std::string inputDir = "D:/devel/sandbox/nllTest/data/reg1/";
@@ -1391,10 +1178,10 @@ public:
       core::matrix4x4RotationZ( rz, 0);
 
       core::Matrix<double> ry;
-      core::matrix4x4RotationY( ry, 0.4 *1 );
+      core::matrix4x4RotationY( ry, 0.3 *1 );
 
       core::Matrix<double> rx;
-      core::matrix4x4RotationX( rx, -0.1 *2   );
+      core::matrix4x4RotationX( rx, -0.3 *1   );
 
       core::Matrix<double> tfmMat = rz * ry * rx;
       tfmMat( 0, 3 ) = 20;
@@ -1449,18 +1236,14 @@ public:
       typedef nll::imaging::VolumeSpatial<double>           Volume;
 
       const std::string inputDir = "c:/tmp/";
-      //const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
-      //const std::string inputDir = "I:/work/data_CT/";
       const std::string outputDir = "c:/tmp/proj/";
 
       Volume ct1;
       Volume ct2;
       bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "source.mf2", ct1 );
           loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "target.mf2", ct2 );
-      //bool loaded = nll::imaging::loadSimpleFlatFile( "c:/tmp/c1.mf2", ct1 );
-      //    loaded &= nll::imaging::loadSimpleFlatFile( "c:/tmp/c2.mf2", ct2 );
       TESTER_ASSERT( loaded, "cannot load volume" );
-      std::cout << ct2.size() << std::endl;
+      std::cout << "volumes loaded..." << std::endl;
 
       algorithm::AffineRegistrationCT3d ctRegistration;
       core::Matrix<double> tfm;
@@ -1472,6 +1255,37 @@ public:
       } else {
          std::cout << "case error" << std::endl;
       }
+
+      // export debug
+      /*
+        void composeMatch( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output,
+                      const algorithm::SpeededUpRobustFeatures::Points& p1,
+                      const algorithm::SpeededUpRobustFeatures::Points& p2,
+                      const algorithm::impl::FeatureMatcher::Matches& matches )
+      */
+      //displayTransformation( py1, py2, outputReg, regTfm );
+
+      core::Image<ui8> result;
+      core::extend( ctRegistration.pxSrc, 3 );
+      core::extend( ctRegistration.pxTgt, 3 );
+      composeMatch( ctRegistration.pxSrc, ctRegistration.pxTgt, result, ctRegistration.pxInliers );
+      core::writeBmp( result, "c:/tmp/reg3d-match-px.bmp" );
+
+      core::extend( ctRegistration.pySrc, 3 );
+      core::extend( ctRegistration.pyTgt, 3 );
+      composeMatch( ctRegistration.pySrc, ctRegistration.pyTgt, result, ctRegistration.pyInliers );
+      core::writeBmp( result, "c:/tmp/reg3d-match-py.bmp" );
+
+      displayTransformation( ctRegistration.pxSrc, ctRegistration.pxTgt, result, ctRegistration.pxTfm );
+      core::writeBmp( result, "c:/tmp/reg3d-fused-px.bmp" );
+      displayTransformation( ctRegistration.pySrc, ctRegistration.pyTgt, result, ctRegistration.pyTfm );
+      core::writeBmp( result, "c:/tmp/reg3d-fused-py.bmp" );
+
+      core::writeBmp( ctRegistration.pySrc, "c:/tmp/py-src.bmp" );
+      core::writeBmp( ctRegistration.pxSrc, "c:/tmp/px-src.bmp" );
+
+      core::writeBmp( ctRegistration.pyTgt, "c:/tmp/py-tgt.bmp" );
+      core::writeBmp( ctRegistration.pxTgt, "c:/tmp/px-tgt.bmp" );
    }
 
    void testOptim()
@@ -1517,7 +1331,7 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testRegistrationVolume);
 //TESTER_TEST(createProjections);
 //TESTER_TEST(testProjections);
-//TESTER_TEST(createTfmVolume);
+TESTER_TEST(createTfmVolume);
 //TESTER_TEST(test);
 TESTER_TEST(testOptim);
 TESTER_TEST_SUITE_END();
