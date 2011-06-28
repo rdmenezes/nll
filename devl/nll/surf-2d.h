@@ -251,7 +251,6 @@ namespace algorithm
                                          interpolatedPoint[ 2 ] < 0.5 )
                         {
                            const int size = _filterSizes[ filter ];
-                           const int half = size / 2;
                            // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                            const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 

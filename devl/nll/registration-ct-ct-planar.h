@@ -227,7 +227,7 @@ namespace algorithm
                }
             }
          } else {
-            ymax = v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1;
+            ymax = static_cast<int>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ) - 1;
          }
 
          if ( doPx )
@@ -246,10 +246,10 @@ namespace algorithm
       static core::Image<ui8> projectImageY( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
       {
          typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
-         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ],
-                             v.getSize()[ 2 ] * v.getSpacing()[ 2 ],
+         core::Image<ui8> p( static_cast<ui32>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ),
+                             static_cast<ui32>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ),
                              1 );
-         const int endz = v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1;
+         const int endz = static_cast<int>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ) - 1;
          const double norm = ( maxSizeY * v.getSpacing()[ 1 ] );
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -260,16 +260,18 @@ namespace algorithm
             for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
             {
                double accum = 0;
-               ConstDirectionalIterator it = v.getIterator( x / v.getSpacing()[ 0 ], 0, z / v.getSpacing()[ 2 ] );
+               ConstDirectionalIterator it = v.getIterator( static_cast<ui32>( x / v.getSpacing()[ 0 ] ),
+                                                            0,
+                                                            static_cast<ui32>( z / v.getSpacing()[ 2 ] ) );
                for ( ui32 y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
                {
-                  const double val = lut.transform( *it )[ 0 ];
+                  const double val = lut.transform( static_cast<float>( *it ) )[ 0 ];
                   it.addy();
                   accum += val;
                }
                
                accum /= norm;
-               p( x, z, 0 ) = NLL_BOUND( accum, 0, 255 );
+               p( x, z, 0 ) = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             }
          }
          return p;
@@ -280,10 +282,10 @@ namespace algorithm
       {
          typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
 
-         core::Image<ui8> p( v.getSize()[ 1 ] * v.getSpacing()[ 1 ],
-                             v.getSize()[ 2 ] * v.getSpacing()[ 2 ],
+         core::Image<ui8> p( static_cast<ui32>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ),
+                             static_cast<ui32>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ),
                              1 );
-         const int endz = v.getSize()[ 2 ] * v.getSpacing()[ 2 ] - 1;
+         const int endz = static_cast<int>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ) - 1;
          const double norm = ( maxSizeY * v.getSpacing()[ 0 ] );
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -291,20 +293,20 @@ namespace algorithm
          #endif
          for ( int z = 0; z < endz; ++z )
          {
-            for ( ui32 y = 0; y < ymax; ++y )
+            for ( ui32 y = 0; y < (ui32)ymax; ++y )
             {
                double accum = 0;
                ConstDirectionalIterator it = v.getIterator( 0,
-                                                            y / v.getSpacing()[ 1 ],
-                                                            z / v.getSpacing()[ 2 ] );
+                                                            static_cast<ui32>( y / v.getSpacing()[ 1 ] ),
+                                                            static_cast<ui32>( z / v.getSpacing()[ 2 ] ) );
                for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
                {
-                  const double val = lut.transform( *it )[ 0 ];
+                  const double val = lut.transform( static_cast<float>( *it ) )[ 0 ];
                   it.addx();
                   accum += val;
                }
                accum /= norm;
-               p( y, z, 0 ) = NLL_BOUND( accum, 0, 255 );
+               p( y, z, 0 ) = static_cast<ui8>( NLL_BOUND( accum, 0, 255 ) );
             }
          }
 
@@ -315,8 +317,8 @@ namespace algorithm
       static core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, ui32& maxSizeY, ui32& maxSizeX )
       {
          typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
-         core::Image<ui8> p( v.getSize()[ 0 ] * v.getSpacing()[ 0 ],
-                             v.getSize()[ 1 ] * v.getSpacing()[ 1 ],
+         core::Image<ui8> p( static_cast<ui32>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ),
+                             static_cast<ui32>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ),
                              1 );
          ui32 min = p.sizey() - 1;
          ui32 max = 0;
@@ -324,7 +326,7 @@ namespace algorithm
          ui32 minX = p.sizex() - 1;
          ui32 maxX = 0;
 
-         const int endx = v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1;
+         const int endx = static_cast<int>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ) - 1;
          #ifndef NLL_NOT_MULTITHREADED
          # pragma omp parallel for
          #endif
@@ -333,12 +335,12 @@ namespace algorithm
             for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
             {
                double accum = 0;
-               ConstDirectionalIterator it = v.getIterator( x / v.getSpacing()[ 0 ],
-                                                            y / v.getSpacing()[ 1 ],
+               ConstDirectionalIterator it = v.getIterator( static_cast<ui32>( x / v.getSpacing()[ 0 ] ),
+                                                            static_cast<ui32>( y / v.getSpacing()[ 1 ] ),
                                                             0 );
                for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
                {
-                  const double val = lut.transform( *it )[ 0 ];
+                  const double val = lut.transform( static_cast<float>( *it ) )[ 0 ];
                   it.addz();
                   accum += val;
                }
@@ -360,12 +362,12 @@ namespace algorithm
                      max = y;
                   }
 
-                  if ( minX > x )
+                  if ( (int)minX > x )
                   {
                      minX = x;
                   }
 
-                  if ( maxX < x )
+                  if ( (int)maxX < x )
                   {
                      maxX = x;
                   }

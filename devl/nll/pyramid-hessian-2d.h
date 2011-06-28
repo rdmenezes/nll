@@ -83,9 +83,6 @@ namespace algorithm
             const int sizeFiltery = scales[ n ];
             const double sizeFilter = sizeFilterx * sizeFiltery * max; // we normalize by the filter size and maximum value
 
-            const int halfx = sizeFilterx / 2;
-            const int halfy = sizeFiltery / 2;
-
             const int resx = ( (int)i.sizex() ) / (int)step;
             const int resy = ( (int)i.sizey() ) / (int)step;
 
