@@ -74,15 +74,23 @@ namespace imaging
       // we transform the origin (voxel index=(0, 0, 0)) to the correponding index in source
       core::vector3f originInTarget = transf4( transformation, core::vector3f( 0, 0, 0 ) );
 
-      Interpolator interpolator( target );
-      typename VolumeType::DirectionalIterator  sliceIt = source.getIterator( 0, 0, 0 );
       core::vector3f slicePosSrc = originInTarget;
       
-      interpolator.startInterpolation();
-      for ( ui32 z = 0; z < source.getSize()[ 2 ]; ++z )
+
+
+      const int sizez = static_cast<int>( source.getSize()[ 2 ] );
+      #ifndef NLL_NOT_MULTITHREADED
+      # pragma omp parallel for
+      #endif
+      for ( int z = 0; z < sizez; ++z )
       {
-         typename VolumeType::DirectionalIterator  lineIt = sliceIt;
-         core::vector3f linePosSrc = slicePosSrc;
+         Interpolator interpolator( target );
+         interpolator.startInterpolation();
+
+         typename VolumeType::DirectionalIterator  lineIt = source.getIterator( 0, 0, z );
+         core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
+                                                     originInTarget[ 1 ] + z * dz[ 1 ],
+                                                     originInTarget[ 2 ] + z * dz[ 2 ] );
          for ( ui32 y = 0; y < source.getSize()[ 1 ]; ++y )
          {
             typename VolumeType::DirectionalIterator  voxelIt = lineIt;
@@ -107,10 +115,8 @@ namespace imaging
             linePosSrc += dy;
             lineIt.addy();
          }
-         slicePosSrc += dz;
-         sliceIt.addz();
+         interpolator.endInterpolation();
       }
-      interpolator.endInterpolation();
    }
 
    template <class T, class Storage, class Interpolator>

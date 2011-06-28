@@ -134,50 +134,26 @@ namespace algorithm
                       Matrix& out,
                       bool exportDebug = true )
       {
+         // save and set the origins to (0, 0, 0)
+         // this is to simplify the transformation computations
+         _savePst( source, target );
+
          out = core::identityMatrix<Matrix>( 4 );
 
          // preprocess the volume
-         core::Timer preprocessing;
          core::Timer allProcess;
          core::Image<ui8> pxs, pys, pzs;
          core::Image<ui8> pxt, pyt, pzt;
-         getProjections( source, pxs, pys, pzs );
-         getProjections( target, pxt, pyt, pzt );
 
-         {
-            core::extend( pxs, 3 );
-            core::writeBmp( pxs, "c:/tmp/prx0.bmp" );
-            core::decolor( pxs );
-
-            core::extend( pys, 3 );
-            core::writeBmp( pys, "c:/tmp/pry0.bmp" );
-            core::decolor( pys );
-
-            core::extend( pzs, 3 );
-            core::writeBmp( pzs, "c:/tmp/prz0.bmp" );
-            core::decolor( pzs );
-
-            core::extend( pxt, 3 );
-            core::writeBmp( pxt, "c:/tmp/prx1.bmp" );
-            core::decolor( pxt );
-
-            core::extend( pyt, 3 );
-            core::writeBmp( pyt, "c:/tmp/pry1.bmp" );
-            core::decolor( pyt );
-
-            core::extend( pzt, 3 );
-            core::writeBmp( pzt, "c:/tmp/prz1.bmp" );
-            core::decolor( pzt );
-         }
-
-         std::cout << "projection=done" << preprocessing.getCurrentTime() << std::endl;
+         std::cout << "initial projections..." << std::endl;
+         getProjections( source, pxs, pys, pzs, true, true );
+         getProjections( target, pxt, pyt, pzt, true, false );
 
          try
          {
+            std::cout << "registration x..." << std::endl;
             Registration2D registrationx;
             Matrix tfmx = registrationx.compute( pxs, pxt );
-            tfmx.print( std::cout );
-            std::cout << "reg1=done" << std::endl;
 
             Matrix rotx( 4, 4 );
             rotx( 0, 0 ) = 1;
@@ -188,32 +164,22 @@ namespace algorithm
             rotx( 1, 3 ) = tfmx( 0, 2 );
             rotx( 2, 3 ) = tfmx( 1, 2 );
             rotx( 3, 3 ) = 1;
-            rotx.print( std::cout );
-
-            Matrix tsourceOriginI = core::createTranslation4x4( core::vector3d( -source.getOrigin()[ 0 ],
-                                                                                -source.getOrigin()[ 1 ],
-                                                                                -source.getOrigin()[ 2 ] ) );
-            Matrix tsourceOrigin  = core::createTranslation4x4( core::vector3d( source.getOrigin()[ 0 ],
-                                                                                source.getOrigin()[ 1 ],
-                                                                                source.getOrigin()[ 2 ] ) );
-            rotx = tsourceOrigin * rotx * tsourceOriginI;
-
             
+            std::cout << "resampling..." << std::endl;
             imaging::VolumeSpatial<T, BufferType> resampledTarget( target.size(), target.getPst(), target.getBackgroundValue() );
             imaging::resampleVolumeTrilinear( target, resampledTarget, rotx );
 
-            // TODO REMOVE
-            imaging::saveSimpleFlatFile( "c:/tmp/targetRegResampled.mf2", resampledTarget );
-
             // recompute the projection on the resampled volume
+            std::cout << "projection2..." << std::endl;
             core::Image<ui8> pxt2, pyt2, pzt2;
-            getProjections( resampledTarget, pxt2, pyt2, pzt2 );
+            getProjections( resampledTarget, pxt2, pyt2, pzt2, false, true );
 
             // compute the second registration
+            std::cout << "registration y..." << std::endl;
             Registration2D registrationy;
             Matrix tfmy = registrationy.compute( pys, pyt2 );
-            tfmy.print( std::cout );
-            std::cout << "reg2=done" << std::endl;
+
+            std::cout << "postprocessing" << std::endl;
 
             Matrix roty( 4, 4 );
             roty( 0, 0 ) =  tfmy( 0, 0 );
@@ -224,15 +190,6 @@ namespace algorithm
             roty( 3, 3 ) = 1;
             roty( 0, 3 ) = tfmy( 0, 2 );
             roty( 2, 3 ) = tfmy( 1, 2 );
-            roty.print( std::cout );
-
-            Matrix tsourceOriginI2 = core::createTranslation4x4( core::vector3d( -target.getOrigin()[ 0 ],
-                                                                                -target.getOrigin()[ 1 ],
-                                                                                -target.getOrigin()[ 2 ] ) );
-            Matrix tsourceOrigin2  = core::createTranslation4x4( core::vector3d( target.getOrigin()[ 0 ],
-                                                                                target.getOrigin()[ 1 ],
-                                                                                target.getOrigin()[ 2 ] ) );
-            roty = tsourceOrigin * roty * tsourceOriginI;
 
             // save some debug info
             if ( exportDebug )
@@ -247,31 +204,67 @@ namespace algorithm
                pyTfm = tfmy;
             }
 
-            // correction for the origin
-            Matrix tr = core::createTranslation4x4( core::vector3d( target.getOrigin()[ 0 ] - source.getOrigin()[ 0 ],
-                                                                    target.getOrigin()[ 1 ] - source.getOrigin()[ 1 ],
-                                                                    target.getOrigin()[ 2 ] - source.getOrigin()[ 2 ] ) );
-            out =  tr *  rotx * roty;
+            // we have set the origin of the volumes to 0
+            // to correct this for the final transformation, we need to take into account:
+            //  - the transformation source->target
+            //  - the shift to origin: source->0
+            Matrix tr = core::createTranslation4x4( core::vector3d( _pstTarget( 0, 3 ) - _pstSource( 0, 3 ),
+                                                                    _pstTarget( 1, 3 ) - _pstSource( 1, 3 ),
+                                                                    _pstTarget( 2, 3 ) - _pstSource( 2, 3 ) ) );
 
-           
+            Matrix tr2 = core::createTranslation4x4( core::vector3d( _pstSource( 0, 3 ),
+                                                                     _pstSource( 1, 3 ),
+                                                                     _pstSource( 2, 3 ) ) );
 
-            std::cout << "FINAL=" << std::endl;
-            out.print( std::cout );
+            Matrix tr2I = core::createTranslation4x4( core::vector3d( - _pstSource( 0, 3 ),
+                                                                      - _pstSource( 1, 3 ),
+                                                                      - _pstSource( 2, 3 ) ) );
+            out =  tr * tr2 *  rotx * roty * tr2I;
 
          } catch(...)
          {
+            _loadPst( source, target );
             return FAILED_TOO_LITTLE_INLIERS;
          }
 
+         // restore the original origins
+         _loadPst( source, target );
          return SUCCESS;
       }
 
    private:
       template <class T, class BufferType>
+      void _loadPst( const imaging::VolumeSpatial<T, BufferType>& source,
+                     const imaging::VolumeSpatial<T, BufferType>& target )
+      {
+         imaging::VolumeSpatial<T, BufferType>& snc = const_cast< imaging::VolumeSpatial<T, BufferType>& >( source );
+         imaging::VolumeSpatial<T, BufferType>& tnc = const_cast< imaging::VolumeSpatial<T, BufferType>& >( target );
+
+         snc.setPst( _pstSource );
+         tnc.setPst( _pstTarget );
+      }
+
+      template <class T, class BufferType>
+      void _savePst( const imaging::VolumeSpatial<T, BufferType>& source,
+                     const imaging::VolumeSpatial<T, BufferType>& target )
+      {
+         _pstSource.clone( source.getPst() );
+         _pstTarget.clone( target.getPst() );
+
+         imaging::VolumeSpatial<T, BufferType>& snc = const_cast< imaging::VolumeSpatial<T, BufferType>& >( source );
+         imaging::VolumeSpatial<T, BufferType>& tnc = const_cast< imaging::VolumeSpatial<T, BufferType>& >( target );
+
+         snc.setOrigin( core::vector3f( 0, 0, 0 ) );
+         tnc.setOrigin( core::vector3f( 0, 0, 0 ) );
+      }
+
+      template <class T, class BufferType>
       void getProjections( const imaging::VolumeSpatial<T, BufferType>& v,
                            core::Image<ui8>& px,
                            core::Image<ui8>& py,
-                           core::Image<ui8>& pz )
+                           core::Image<ui8>& pz,
+                           bool doPx,
+                           bool doPy )
       {
          // first get the projections and y-position of the table
          imaging::LookUpTransformWindowingRGB lut( -10, 250, 256, 1 );
@@ -297,8 +290,15 @@ namespace algorithm
             ymax = v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1;
          }
 
-         px = projectImageX( v, lut, ymax, normSizeX / 2 );
-         py = projectImageY( v, lut, ymax, normSizeY / 2 );
+         if ( doPx )
+         {
+            px = projectImageX( v, lut, ymax, normSizeX / 2 );
+         }
+
+         if ( doPy )
+         {
+            py = projectImageY( v, lut, ymax, normSizeY / 2 );
+         }
       }
 
    public:
@@ -489,6 +489,10 @@ namespace algorithm
       Registration2D::PointPairs    pyInliers;
       Matrix            pxTfm;
       Matrix            pyTfm;
+
+   private:
+      core::Matrix<float> _pstSource;
+      core::Matrix<float> _pstTarget;
    };
 }
 }
@@ -1043,11 +1047,29 @@ public:
       core::Matrix<float> newPst;
       newPst.clone( ct1.getPst() );
       imaging::VolumeSpatial<double> resampled( ct1.size(), newPst );
-      resampled.setOrigin( core::vector3f(1050, 1100, 1350) );
+      resampled.setOrigin( core::vector3f(1050, 1130, 1390) );
 
       imaging::resampleVolumeTrilinear( ct1, resampled, tfm );
 
       imaging::saveSimpleFlatFile( "c:/tmp/target.mf2", resampled );
+      imaging::saveSimpleFlatFile( "c:/tmp/source.mf2", ct1 );
+   }
+
+   void createTfmVolume2()
+   {
+      typedef nll::imaging::VolumeSpatial<double>           Volume;
+
+      Volume ct1;
+      Volume ct2;
+      const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
+      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "case13.mf2", ct1 );
+      loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "case14.mf2", ct2 );
+      TESTER_ASSERT( loaded );
+      //ct1.setOrigin( core::vector3f(0, 0, 0) );
+      //ct2.setOrigin( core::vector3f(0, 0, 0) );
+      //imaging::resampleVolumeTrilinear( ct1, resampled, tfm );
+
+      imaging::saveSimpleFlatFile( "c:/tmp/target.mf2", ct2 );
       imaging::saveSimpleFlatFile( "c:/tmp/source.mf2", ct1 );
    }
 
@@ -1067,7 +1089,9 @@ public:
 
       algorithm::AffineRegistrationCT3d ctRegistration;
       core::Matrix<double> tfm;
+      core::Timer regTime;
       algorithm::AffineRegistrationCT3d::Result r = ctRegistration.process( ct1, ct2, tfm );
+      std::cout << "Registration time=" << regTime.getCurrentTime() << std::endl;
       if ( r == algorithm::AffineRegistrationCT3d::SUCCESS )
       {
          std::cout << "tfm=" << std::endl;
@@ -1075,15 +1099,6 @@ public:
       } else {
          std::cout << "case error" << std::endl;
       }
-
-      // export debug
-      /*
-        void composeMatch( const core::Image<ui8>& i1, const core::Image<ui8>& i2, core::Image<ui8>& output,
-                      const algorithm::SpeededUpRobustFeatures::Points& p1,
-                      const algorithm::SpeededUpRobustFeatures::Points& p2,
-                      const algorithm::impl::FeatureMatcher::Matches& matches )
-      */
-      //displayTransformation( py1, py2, outputReg, regTfm );
 
       core::Image<ui8> result;
       core::extend( ctRegistration.pxSrc, 3 );
@@ -1119,6 +1134,7 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(createProjections);
 //TESTER_TEST(testProjections);
 //TESTER_TEST(createTfmVolume);
+//TESTER_TEST(createTfmVolume2);
 TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif
