@@ -15,6 +15,7 @@ include "math-geometry"
 include "image"
 include "imagef"
 include "mouse"
+include "registration"
 
 /**
  @ingroup core

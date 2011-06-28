@@ -23,6 +23,7 @@
 #include "mvv-manipulators.h"
 #include "mvv-mouse.h"
 #include "mvv-geometry.h"
+#include "mvv-registration.h"
 
 using namespace mvv::parser;
 using namespace mvv;
@@ -3791,5 +3792,13 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Plane"), platform::Symbol::create( "getOrigin") ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionPlaneGetOrigin( fn ) ) );
+   }
+
+   {
+      Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      assert( volumeId );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "affinePlanarRegistrationCt") ), nll::core::make_vector<const Type*>( volumeId, volumeId ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRegistrationAffinePlanar( fn,context, &e.getEvaluator(), e ) ) );
    }
 }
