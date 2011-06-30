@@ -8,6 +8,14 @@ namespace nll
 {
 namespace imaging
 {
+   void invertSpecial( core::Matrix<float>& tfm4x4 )
+   {
+      core::inverse3x3M4( tfm4x4 );
+      tfm4x4( 0, 3 ) = - tfm4x4( 0, 3 );
+      tfm4x4( 1, 3 ) = - tfm4x4( 1, 3 );
+      tfm4x4( 2, 3 ) = - tfm4x4( 2, 3 );
+   }
+
    /**
     @ingroup imaging
     @brief Resample a target volume to an arbitrary source geometry
@@ -32,9 +40,6 @@ namespace imaging
       // compute the transformation target voxel -> source voxel
       Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst();
 
-//     Matrix transformation =  source.getInvertedPst() *
-//                              tfm.getAffineMatrix() *
-//                              target.getPst();
       core::vector3f dx( transformation( 0, 0 ),
                          transformation( 1, 0 ),
                          transformation( 2, 0 ) );
@@ -45,43 +50,27 @@ namespace imaging
                          transformation( 1, 2 ),
                          transformation( 2, 2 ) );
 
-      // we transform the origin (voxel index=(0, 0, 0)) to the correponding index in source
-      std::cout << "target=" << std::endl;
-      target.getPst().print(std::cout );
-      //core::VolumeGeometry geom( tfm.getAffineMatrix() * target.getInvertedPst() );
-      core::VolumeGeometry geom( tfm.getAffineMatrix() * target.getInvertedPst() );
-      std::cout << "geom=" << std::endl;
-      geom.getPst().print( std::cout );
-      std::cout << "origin in geom=" << geom.indexToPosition( core::vector3f() );
-
-      Matrix targetOriginTfm = tfm.getAffineMatrix() * target.getPst();
-      core::inverse( targetOriginTfm );
 
 
-      core::vector3f targetOrigin2 = transf4( tfm.getInvertedAffineMatrix() * target.getPst(), core::vector3f( 0, 0, 0 ) );
+
+      core::Matrix<float> targetOriginTfm = tfm.getAffineMatrix();
+      invertSpecial( targetOriginTfm );
+      targetOriginTfm = targetOriginTfm * target.getPst();
+
+      core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
 
       Matrix g( 4, 4 );
       for ( ui32 y = 0; y < 3; ++y )
          for ( ui32 x = 0; x < 3; ++x )
-            g( y, x ) = (tfm.getAffineMatrix() * target.getPst())(y, x);//transformation( y, x );
+            g( y, x ) = (tfm.getAffineMatrix() * target.getPst())(y, x);
       g( 3, 3 ) = 1;
       g( 0, 3 ) = targetOrigin2[ 0 ];
       g( 1, 3 ) = targetOrigin2[ 1 ];
       g( 2, 3 ) = targetOrigin2[ 2 ];
 
       core::VolumeGeometry geom2( g );
-      core::vector3f sourceOrigin = geom2.positionToIndex( source.getOrigin() );
-      /*sourceOrigin[ 0 ] = -sourceOrigin[ 0 ];
-      sourceOrigin[ 1 ] = -sourceOrigin[ 1 ];
-      sourceOrigin[ 2 ] = -sourceOrigin[ 2 ];*/
-      
-      
 
-      core::vector3f targetOrigin = geom.indexToPosition( core::vector3f() );
-
-      core::vector3f originInTarget = transf4( transformation, core::vector3f( 0, 0, 0 ) );
-      core::vector3f originInTargetBAD = sourceOrigin;
-      //core::vector3f originInTarget = sourceOrigin; // transf4( transformation, core::vector3f( 0, 0, 0 ) );
+      core::vector3f originInTarget = geom2.positionToIndex( source.getOrigin() );
 
       core::vector3f slicePosSrc = originInTarget;
     
@@ -310,7 +299,7 @@ public:
    {
       const core::vector3f origingResampled( -5, -5, 0 );
       const core::vector3f origing( 3, 1, 0 );
-      const core::vector3f tfmTrans( 1, 0, 0 );
+      const core::vector3f tfmTrans( 2, 4, 0 );
       Volume resampled(  core::vector3ui( 10, 10, 10 ), core::createTranslation4x4( origingResampled ) );
       Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
 
@@ -338,10 +327,10 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolumeResampling);
-/*TESTER_TEST( testResamplingOriginNoTfm );
+TESTER_TEST( testResamplingOriginNoTfm );
 TESTER_TEST( testResamplingRotPstVol );
 TESTER_TEST( testResamplingRotPstResampled );
-TESTER_TEST( testResamplingTrans );*/
+TESTER_TEST( testResamplingTrans );
 TESTER_TEST( testResamplingRot );
 TESTER_TEST_SUITE_END();
 #endif
