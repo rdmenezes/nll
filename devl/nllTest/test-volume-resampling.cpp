@@ -2,598 +2,346 @@
 #include <tester/register.h>
 #include "config.h"
 
+using namespace nll;
+
+namespace nll
+{
+namespace imaging
+{
+   /**
+    @ingroup imaging
+    @brief Resample a target volume to an arbitrary source geometry
+    @param target the volume that will be resampled
+    @param source the volume into wich it will be resampled.
+    @param tfm a transformation defined from source to target (easier to see if we transform first the source, and continue as if no transformation...)
+
+    The source must already be allocated.
+    */
+   template <class T, class Storage, class Interpolator>
+   void resampleVolume2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm )
+   {
+      typedef VolumeSpatial<T, Storage>   VolumeType;
+      typedef core::Matrix<f32>  Matrix;
+
+      if ( !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] ||
+           !source.getSize()[ 0 ] || !source.getSize()[ 1 ] || !source.getSize()[ 2 ] )
+      {
+         throw std::runtime_error( "invalid volume" );
+      }
+
+      // compute the transformation target voxel -> source voxel
+      Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst();
+
+//     Matrix transformation =  source.getInvertedPst() *
+//                              tfm.getAffineMatrix() *
+//                              target.getPst();
+      core::vector3f dx( transformation( 0, 0 ),
+                         transformation( 1, 0 ),
+                         transformation( 2, 0 ) );
+      core::vector3f dy( transformation( 0, 1 ),
+                         transformation( 1, 1 ),
+                         transformation( 2, 1 ) );
+      core::vector3f dz( transformation( 0, 2 ),
+                         transformation( 1, 2 ),
+                         transformation( 2, 2 ) );
+
+      // we transform the origin (voxel index=(0, 0, 0)) to the correponding index in source
+      std::cout << "target=" << std::endl;
+      target.getPst().print(std::cout );
+      //core::VolumeGeometry geom( tfm.getAffineMatrix() * target.getInvertedPst() );
+      core::VolumeGeometry geom( tfm.getAffineMatrix() * target.getInvertedPst() );
+      std::cout << "geom=" << std::endl;
+      geom.getPst().print( std::cout );
+      std::cout << "origin in geom=" << geom.indexToPosition( core::vector3f() );
+
+      Matrix targetOriginTfm = tfm.getAffineMatrix() * target.getPst();
+      core::inverse( targetOriginTfm );
+
+
+      core::vector3f targetOrigin2 = transf4( tfm.getInvertedAffineMatrix() * target.getPst(), core::vector3f( 0, 0, 0 ) );
+
+      Matrix g( 4, 4 );
+      for ( ui32 y = 0; y < 3; ++y )
+         for ( ui32 x = 0; x < 3; ++x )
+            g( y, x ) = (tfm.getAffineMatrix() * target.getPst())(y, x);//transformation( y, x );
+      g( 3, 3 ) = 1;
+      g( 0, 3 ) = targetOrigin2[ 0 ];
+      g( 1, 3 ) = targetOrigin2[ 1 ];
+      g( 2, 3 ) = targetOrigin2[ 2 ];
+
+      core::VolumeGeometry geom2( g );
+      core::vector3f sourceOrigin = geom2.positionToIndex( source.getOrigin() );
+      /*sourceOrigin[ 0 ] = -sourceOrigin[ 0 ];
+      sourceOrigin[ 1 ] = -sourceOrigin[ 1 ];
+      sourceOrigin[ 2 ] = -sourceOrigin[ 2 ];*/
+      
+      
+
+      core::vector3f targetOrigin = geom.indexToPosition( core::vector3f() );
+
+      core::vector3f originInTarget = transf4( transformation, core::vector3f( 0, 0, 0 ) );
+      core::vector3f originInTargetBAD = sourceOrigin;
+      //core::vector3f originInTarget = sourceOrigin; // transf4( transformation, core::vector3f( 0, 0, 0 ) );
+
+      core::vector3f slicePosSrc = originInTarget;
+    
+      std::cout << "Tfm=" << std::endl;
+      transformation.print( std::cout );;
+
+      std::cout << "Orig=" << originInTarget << std::endl;
+
+      std::cout << "dx=" << dx << " dy=" << dy << " dz=" << dz;
+
+      const int sizez = static_cast<int>( source.getSize()[ 2 ] );
+      #ifndef NLL_NOT_MULTITHREADED
+      # pragma omp parallel for
+      #endif
+      for ( int z = 0; z < sizez; ++z )
+      {
+         Interpolator interpolator( target );
+         interpolator.startInterpolation();
+
+         typename VolumeType::DirectionalIterator  lineIt = source.getIterator( 0, 0, z );
+         core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
+                                                     originInTarget[ 1 ] + z * dz[ 1 ],
+                                                     originInTarget[ 2 ] + z * dz[ 2 ] );
+         for ( ui32 y = 0; y < source.getSize()[ 1 ]; ++y )
+         {
+            typename VolumeType::DirectionalIterator  voxelIt = lineIt;
+            
+            NLL_ALIGN_16 float voxelPosSrc[ 4 ] =
+            { 
+               linePosSrc[ 0 ],
+               linePosSrc[ 1 ],
+               linePosSrc[ 2 ],
+               0
+            };
+
+            for ( ui32 x = 0; x < source.getSize()[ 0 ]; ++x )
+            {
+               *voxelIt = interpolator( voxelPosSrc );
+
+               voxelPosSrc[ 0 ] += dx[ 0 ];
+               voxelPosSrc[ 1 ] += dx[ 1 ];
+               voxelPosSrc[ 2 ] += dx[ 2 ];
+               voxelIt.addx();
+            }
+            linePosSrc += dy;
+            lineIt.addy();
+         }
+         interpolator.endInterpolation();
+      }
+   }
+
+   template <class T, class Storage, class Interpolator>
+   void resampleVolume2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source )
+   {
+      typedef core::Matrix<f32>  Matrix;
+
+      Matrix id = core::identityMatrix<Matrix>( 4 );
+      resampleVolume2<T, Storage, Interpolator>( target, source, TransformationAffine( id ) );
+   }
+
+
+
+   /**
+    @ingroup imaging
+    @brief Resample a target volume to an arbitrary source geometry. Use a default nearest neighbour interpolation for resampling.
+
+    The source must already be allocated.
+    */
+   template <class T, class Storage>
+   void resampleVolumeNearestNeighbour2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source )
+   {
+      resampleVolume2<T, Storage, InterpolatorNearestNeighbour< VolumeSpatial<T, Storage> > >( target, source );
+   }
+
+   template <class T, class Storage>
+   void resampleVolumeNearestNeighbour2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm )
+   {
+      resampleVolume2<T, Storage, InterpolatorNearestNeighbour< VolumeSpatial<T, Storage> > >( target, source, tfm );
+   }
+}
+}
+
 class TestVolumeResampling
 {
 public:
-   void testResamplingTranslation()
+   typedef  imaging::VolumeSpatial<int>  Volume;
+
+   void fillVolume( Volume& v )
    {
-      typedef  nll::imaging::VolumeSpatial<int>  Volume;
-
-      Volume::Matrix tfm1 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      Volume v1( nll::core::vector3ui( 8, 8, 4 ), tfm1 );
-
-      Volume::Matrix tfm2 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm2( 0, 3 ) = -1;
-      tfm2( 2, 3 ) = -1;
-      Volume v2( nll::core::vector3ui( 8, 8, 4 ), tfm2 );
-
-      int n = 0;
-      for ( Volume::iterator it = v1.begin(); it != v1.end(); ++it, ++n )
-         *it = n;
-      nll::imaging::resampleVolumeNearestNeighbour( v1, v2 );
-
-      int vec[] = {-1, 0, -1};
-      for ( int z = 0; z < (int)v2.getSize()[ 2 ]; ++z )
+      ui32 n = 1;
+      for ( ui32 z = 0; z < v.size()[ 2 ]; ++z )
       {
-         for ( int y = 0; y < (int)v2.getSize()[ 1 ]; ++y )
+         for ( ui32 y = 0; y < v.size()[ 1 ]; ++y )
          {
-            for ( int x = 0; x < (int)v2.getSize()[ 0 ]; ++x )
+            for ( ui32 x = 0; x < v.size()[ 0 ]; ++x )
             {
-               if ( x + vec[ 0 ] >= 0 && y + vec[ 1 ] >= 0 && z + vec[ 2 ] >= 0 )
-               {
-                  TESTER_ASSERT( v1( x + vec[ 0 ], y + vec[ 1 ], z + vec[ 2 ] ) == v2( x, y, z ) );
-               }
+               v( x, y, z ) = n++;
             }
          }
       }
-      nll::imaging::writeVolumeText( v1, NLL_TEST_PATH "data/volume1-resampled-translation-before" );
-      nll::imaging::writeVolumeText( v2, NLL_TEST_PATH "data/volume1-resampled-translation" );
    }
 
-   void testResamplingCropping()
+   void print( Volume& v )
    {
-      typedef  nll::imaging::VolumeSpatial<int>  Volume;
-
-      Volume::Matrix tfm1 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      Volume v1( nll::core::vector3ui( 8, 8, 4 ), tfm1 );
-
-      Volume::Matrix tfm2 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm2( 0, 3 ) = 0;
-      tfm2( 2, 3 ) = 3;
-      Volume v2( nll::core::vector3ui( 4, 4, 1 ), tfm2 );
-
-      int n = 0;
-      for ( Volume::iterator it = v1.begin(); it != v1.end(); ++it, ++n )
-         *it = n;
-      nll::imaging::resampleVolumeNearestNeighbour( v1, v2 );
-
-      int vec[] = {0, 0, 3};
-      for ( int z = 0; z < (int)v2.getSize()[ 2 ]; ++z )
+      for ( i32 y = v.size()[ 1 ] - 1; y >= 0; --y )
       {
-         for ( int y = 0; y < (int)v2.getSize()[ 1 ]; ++y )
+         for ( ui32 x = 0; x < v.size()[ 0 ]; ++x )
          {
-            for ( int x = 0; x < (int)v2.getSize()[ 0 ]; ++x )
-            {
-               if ( x + vec[ 0 ] >= 0 && y + vec[ 1 ] >= 0 && z + vec[ 2 ] >= 0 )
-               {
-                  TESTER_ASSERT( v1( x + vec[ 0 ], y + vec[ 1 ], z + vec[ 2 ] ) == v2( x, y, z ) );
-               }
-            }
-         }
-      }
-      nll::imaging::writeVolumeText( v2, NLL_TEST_PATH "data/volume1-resampled-cropping" );
-   }
-
-   void testResamplingSpeed()
-   {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
-
-      Volume::Matrix tfm1 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      Volume v1( nll::core::vector3ui( 512, 512, 386 ), tfm1 );
-
-      Volume::Matrix tfm2 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm2( 0, 0 ) = -2;
-      tfm2( 0, 3 ) = 50;
-      tfm2( 2, 3 ) = -10;
-      Volume v2( nll::core::vector3ui( 512, 512, 386 ), tfm2 );
-
-      float n = 0;
-      for ( Volume::iterator it = v1.begin(); it != v1.end(); ++it, ++n )
-         *it = n;
-
-      nll::core::Timer t1;
-      nll::imaging::resampleVolumeTrilinear( v1, v2 );
-      std::cout << "resamplingTrilinearTime(512*512*386)=" << t1.getCurrentTime() << std::endl;
-   }
-
-   void testResamplingTranslation1()
-   {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
-
-      // target
-      Volume::Matrix tfm1 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm1( 0, 3 ) = 10;
-      tfm1( 1, 3 ) = 5;
-      tfm1( 2, 3 ) = 1;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
-
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 1;
-
-      // source
-      Volume::Matrix tfm2 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm2( 0, 3 ) = 10;
-      tfm2( 1, 3 ) = 5;
-      tfm2( 2, 3 ) = 1;
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
+            std::cout << v( x, y, 0 ) << " ";
          }
          std::cout << std::endl;
       }
-
-      TESTER_ASSERT( source( 0, 0, 0 ) == 100 );
-      TESTER_ASSERT( source( 10, 0, 0 ) == 10 );
-      TESTER_ASSERT( source( 0, 5, 0 ) == 5 );
-      TESTER_ASSERT( source( 0, 0, 1 ) == 1 );
    }
 
-   void testResamplingTranslation2()
+   // basic test checking the volume is correctly resampled, just with different origins
+   void testResamplingOriginNoTfm()
    {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
-      nll::core::vector3f tf( -1, -2, -3 );
+      int dx = 1;
+      int dy = 2;
+      int dz = 0;
 
-      // target
-      Volume::Matrix tfm1 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm1( 0, 3 ) = 10;
-      tfm1( 1, 3 ) = 5;
-      tfm1( 2, 3 ) = 1;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
+      const core::vector3f origingResampled( 10, 15, 20 );
+      const core::vector3f origing( origingResampled[ 0 ] + dx,
+                                    origingResampled[ 1 ] + dy,
+                                    origingResampled[ 2 ] + dz );
+      Volume resampled(  core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origingResampled ) );
+      Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
 
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 1;
+      fillVolume( vol );
+      resampleVolumeNearestNeighbour2( vol, resampled );
 
-      // source
-      Volume::Matrix tfm2 = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tfm2( 0, 3 ) = 10 + tf[ 0 ];
-      tfm2( 1, 3 ) = 5 + tf[ 1 ];
-      tfm2( 2, 3 ) = 1 + tf[ 2 ];
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
+      print( resampled );
 
-      nll::imaging::resampleVolumeNearestNeighbour( target, source );
-      TESTER_ASSERT( source( 0 - (int)tf[ 0 ], 0 - (int)tf[ 1 ], 0 - (int)tf[ 2 ] ) == 100 );
-      TESTER_ASSERT( source( 10 - (int)tf[ 0 ], 0 - (int)tf[ 1 ], 0 - (int)tf[ 2 ] ) == 10 );
-      TESTER_ASSERT( source( 0 - (int)tf[ 0 ], 5 - (int)tf[ 1 ], 0 - (int)tf[ 2 ] ) == 5 );
-      TESTER_ASSERT( source( 0 - (int)tf[ 0 ], 0 - (int)tf[ 1 ], 1 - (int)tf[ 2 ] ) == 1 );
+      // expected: simple translation of the volume
+      // sourceOriginComparedToTarget=(-1, -2, 0)
+      TESTER_ASSERT( resampled( 1, 2, 0 ) == 1 );
+      TESTER_ASSERT( resampled( 2, 2, 0 ) == 2 );
+      TESTER_ASSERT( resampled( 3, 2, 0 ) == 3 );
+
+      TESTER_ASSERT( resampled( 1, 3, 0 ) == 6 );
+      TESTER_ASSERT( resampled( 2, 3, 0 ) == 7 );
+      TESTER_ASSERT( resampled( 3, 3, 0 ) == 8 );
    }
 
-   void testResamplingTranslationRotation()
+   void testResamplingRotPstVol()
    {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
+      const core::vector3f origingResampled( -5, -5, 0 );
+      const core::vector3f origing( 2, 1, 0 );
+      Volume resampled(  core::vector3ui( 10, 10, 10 ), core::createTranslation4x4( origingResampled ) );
 
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tf( 0, 3 ) = -1;
-      tf( 1, 3 ) = -2;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
+      core::Matrix<float> volPst( 4, 4 );
+      core::matrix4x4RotationZ( volPst, core::PIf / 2 );
+      volPst = core::createTranslation4x4( origing ) * volPst;
+      Volume vol( core::vector3ui( 5, 5, 5 ), volPst );
 
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( nll::core::PI / 2 ) );
 
-      tfm1( 0, 3 ) = 0;
-      tfm1( 1, 3 ) = 0;
-      tfm1( 2, 3 ) = 0;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
 
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
+      fillVolume( vol );
+      resampleVolumeNearestNeighbour2( vol, resampled );
 
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, /*static_cast<float>( nll::core::PI / 2 )*/ 0 );
-      tfm2( 0, 3 ) = 0;
-      tfm2( 1, 3 ) = 0;
-      tfm2( 2, 3 ) = 0;
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
+      print( resampled );
 
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 1, 2, 0 ) == 100 );
-      TESTER_ASSERT( source( 6, 2, 0 ) == 5 );
+      // expected: rotation of the volume on the left on its origin (ie, due to the PST only)
+      // sourceOriginComparedToTarget=(-6, 7, 0)
+      TESTER_ASSERT( resampled( 7, 6, 0 ) == 1 );
+      TESTER_ASSERT( resampled( 7, 7, 0 ) == 2 );
+      TESTER_ASSERT( resampled( 7, 8, 0 ) == 3 );
+      TESTER_ASSERT( resampled( 6, 6, 0 ) == 6 );
+      TESTER_ASSERT( resampled( 6, 7, 0 ) == 7 );
+      TESTER_ASSERT( resampled( 6, 8, 0 ) == 8 );
    }
 
-   void testResamplingTranslationRotation2()
+   void testResamplingRotPstResampled()
    {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
+      const core::vector3f origingResampled( 4, 2, 0 );
+      const core::vector3f origing( 1, 1, 0 );
+      
+      core::Matrix<float> volPst( 4, 4 );
+      core::matrix4x4RotationZ( volPst, core::PIf / 2 );
+      volPst = core::createTranslation4x4( origingResampled ) * volPst;
+      Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
+      Volume resampled(  core::vector3ui( 10, 10, 10 ), volPst );
 
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tf( 0, 3 ) = -5;
-      tf( 1, 3 ) = 0;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
+      fillVolume( vol );
+      resampleVolumeNearestNeighbour2( vol, resampled );
 
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( -nll::core::PI / 2 ) );
+      print( resampled );
 
-      tfm1( 0, 3 ) = 0;
-      tfm1( 1, 3 ) = 0;
-      tfm1( 2, 3 ) = 0;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
-
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
-
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, /*static_cast<float>( nll::core::PI / 2 )*/ 0 );
-      tfm2( 0, 3 ) = 0;
-      tfm2( 1, 3 ) = 0;
-      tfm2( 2, 3 ) = 0;
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 0, 0, 0 ) == 5 );
-      TESTER_ASSERT( source( 5, 0, 0 ) == 100 );
-      TESTER_ASSERT( source( 5, 10, 0 ) == 10 );
+      // expected: rotation of the resampled volume on the left on the point (4,2)
+      // x axis is (0 1 0)
+      // y axis is (-1 0 0 )
+      TESTER_ASSERT( resampled( 0, 0, 0 ) == 9 );
+      TESTER_ASSERT( resampled( 1, 0, 0 ) == 14 );
+      TESTER_ASSERT( resampled( 2, 0, 0 ) == 19 );
+      TESTER_ASSERT( resampled( 0, 1, 0 ) == 8 );
+      TESTER_ASSERT( resampled( 1, 1, 0 ) == 13 );
+      TESTER_ASSERT( resampled( 2, 1, 0 ) == 18);
    }
 
-   void testResamplingTranslationRotation3()
+   void testResamplingTrans()
    {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
+      const core::vector3f origingResampled( 10, 15, 0 );
+      const core::vector3f origing( 13, 16, 0 );
+      const core::vector3f tfmMat( 2, 2, 0 );
+      Volume resampled(  core::vector3ui( 10, 10, 10 ), core::createTranslation4x4( origingResampled ) );
+      Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
 
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tf( 0, 3 ) = 0;
-      tf( 1, 3 ) = 0;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
+      imaging::TransformationAffine tfm( core::createTranslation4x4( tfmMat ) );
 
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( -nll::core::PI / 2 ) );
+      // expected: vol is shifted on by (-2,-2): tfm is defined from source->target,
+      // but we are resampling the target, meaning we inverse the tfm to have the target->source
+      fillVolume( vol );
+      resampleVolumeNearestNeighbour2( vol, resampled, tfm );
 
-      tfm1( 0, 3 ) = 0;
-      tfm1( 1, 3 ) = 0;
-      tfm1( 2, 3 ) = 0;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
+      print( resampled );
 
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
-
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, /*static_cast<float>( nll::core::PI / 2 )*/ 0 );
-      tfm2( 0, 3 ) = -5;
-      tfm2( 1, 3 ) = 0;
-      tfm2( 2, 3 ) = 0;
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 0, 0, 0 ) == 5 );
-      TESTER_ASSERT( source( 5, 0, 0 ) == 100 );
-      TESTER_ASSERT( source( 5, 10, 0 ) == 10 );
+      TESTER_ASSERT( resampled( 1, 0, 0 ) == 6 );
+      TESTER_ASSERT( resampled( 2, 0, 0 ) == 7 );
+      TESTER_ASSERT( resampled( 3, 0, 0 ) == 8 );
+      TESTER_ASSERT( resampled( 1, 1, 0 ) == 11 );
+      TESTER_ASSERT( resampled( 2, 1, 0 ) == 12 );
+      TESTER_ASSERT( resampled( 3, 1, 0 ) == 13 );
    }
 
-   void testResamplingTranslationRotation4()
+   void testResamplingRot()
    {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
+      const core::vector3f origingResampled( -5, -5, 0 );
+      const core::vector3f origing( 3, 1, 0 );
+      const core::vector3f tfmTrans( 1, 0, 0 );
+      Volume resampled(  core::vector3ui( 10, 10, 10 ), core::createTranslation4x4( origingResampled ) );
+      Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
 
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tf( 0, 3 ) = 0;
-      tf( 1, 3 ) = 0;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
+      core::Matrix<float> tfmMat( 4, 4 );
+      core::matrix4x4RotationZ( tfmMat, -core::PIf / 2 );
+      tfmMat = core::createTranslation4x4( tfmTrans ) * tfmMat;
 
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( -nll::core::PI / 2 ) );
+      imaging::TransformationAffine tfm( tfmMat );
 
-      tfm1( 0, 3 ) = 5;
-      tfm1( 1, 3 ) = 0;
-      tfm1( 2, 3 ) = 0;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
+      // expected: the vol is rotated on the origin (0, 0, 0) then translated by (-2, -4, 0)
+      fillVolume( vol );
+      resampleVolumeNearestNeighbour2( vol, resampled, tfm );
 
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
-
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, /*static_cast<float>( nll::core::PI / 2 )*/ 0 );
-      tfm2( 0, 3 ) = 0;
-      tfm2( 1, 3 ) = 0;
-      tfm2( 2, 3 ) = 0;
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 0, 0, 0 ) == 5 );
-      TESTER_ASSERT( source( 5, 0, 0 ) == 100 );
-      TESTER_ASSERT( source( 5, 10, 0 ) == 10 );
-   }
-
-   void testResamplingSpacing()
-   {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
-
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tf( 0, 3 ) = 0;
-      tf( 1, 3 ) = 0;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
-
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( 0 ) );
-
-      tfm1( 0, 3 ) = 0;
-      tfm1( 1, 3 ) = 0;
-      tfm1( 2, 3 ) = 0;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
-
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
-
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, 0 );
-      tfm2( 0, 3 ) = -1;
-      tfm2( 1, 3 ) = -1;
-      tfm2( 2, 3 ) = 0;
-
-      tfm2( 0, 0 ) = 0.5;
-      tfm2( 1, 1 ) = 0.5;
-      tfm2( 2, 2 ) = 0.5;
-
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 1, 1, 0 ) == 100 );
-      TESTER_ASSERT( source( 2, 1, 0 ) == 100 );
-      TESTER_ASSERT( source( 1, 2, 0 ) == 100 );
-      TESTER_ASSERT( source( 2, 2, 0 ) == 100 );
-
-      TESTER_ASSERT( source( 1, 2 * 5 + 1, 0 ) == 5 );
-      TESTER_ASSERT( source( 2, 2 * 5 + 1, 0 ) == 5 );
-      TESTER_ASSERT( source( 1, 2 * 5 + 1 + 1, 0 ) == 5 );
-      TESTER_ASSERT( source( 2, 2 * 5 + 1 + 1, 0 ) == 5 );
-   }
-
-   void testResamplingSpacing2()
-   {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
-
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      tf( 0, 3 ) = 0;
-      tf( 1, 3 ) = 0;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
-
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( 0 ) );
-
-      tfm1( 0, 3 ) = 0;
-      tfm1( 1, 3 ) = 0;
-      tfm1( 2, 3 ) = 0;
-
-      tfm1( 0, 0 ) = 0.5;
-      tfm1( 1, 1 ) = 0.5;
-      tfm1( 2, 2 ) = 0.5;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
-
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
-
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, 0 );
-      tfm2( 0, 3 ) = -1;
-      tfm2( 1, 3 ) = -1;
-      tfm2( 2, 3 ) = 0;
-
-      tfm2( 0, 0 ) = 0.5;
-      tfm2( 1, 1 ) = 0.5;
-      tfm2( 2, 2 ) = 0.5;
-
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 1, 1, 0 ) == 0 );
-      TESTER_ASSERT( source( 2, 1, 0 ) == 0 );
-      TESTER_ASSERT( source( 1, 2, 0 ) == 0 );
-      TESTER_ASSERT( source( 2, 2, 0 ) == 100 );
-
-      TESTER_ASSERT( source( 1, 5 + 1, 0 ) == 0 );
-      TESTER_ASSERT( source( 2, 5 + 1, 0 ) == 0 );
-      TESTER_ASSERT( source( 1, 5 + 1 + 1, 0 ) == 0 );
-      TESTER_ASSERT( source( 2, 5 + 1 + 1, 0 ) == 5 );
-   }
-
-   void testResamplingTranslationRotation5()
-   {
-      typedef  nll::imaging::VolumeSpatial<float>  Volume;
-
-      Volume::Matrix tf = nll::core::identityMatrix<Volume::Matrix>( 4 );
-      nll::core::matrix4x4RotationZ( tf, static_cast<float>( nll::core::PI/2 ) );
-      tf( 0, 3 ) = -7;
-      tf( 1, 3 ) = 0;
-      tf( 2, 3 ) = 0;
-      nll::imaging::TransformationAffine tfm( tf );
-
-      // target
-      Volume::Matrix tfm1( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm1, static_cast<float>( 0 ) );
-
-      tfm1( 0, 3 ) = -2;
-      tfm1( 1, 3 ) = -1;
-      tfm1( 2, 3 ) = 0;
-      Volume target( nll::core::vector3ui( 16, 32, 4 ), tfm1 );
-
-      target( 0, 0, 0 ) = 100;
-      target( 10, 0, 0 ) = 10;
-      target( 0, 5, 0 ) = 5;
-      target( 0, 0, 1 ) = 0;
-
-      // source
-      Volume::Matrix tfm2( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm2, 0 );
-      tfm2( 0, 3 ) = 0;
-      tfm2( 1, 3 ) = -1;
-      tfm2( 2, 3 ) = 0;
-      Volume source( nll::core::vector3ui( 15, 20, 6 ), tfm2 );
-
-      nll::imaging::resampleVolumeNearestNeighbour( target, source, tfm );
-
-      for ( int y = source.size()[ 1 ] - 1; y >= 0; --y )
-      {
-         for ( unsigned x = 0; x < source.size()[ 0 ]; ++x )
-         {
-            std::cout << source( x, y, 0 ) << " ";
-         }
-         std::cout << std::endl;
-      }
-      TESTER_ASSERT( source( 0, 0, 0 ) == 5 );
-      TESTER_ASSERT( source( 5, 0, 0 ) == 100 );
-      TESTER_ASSERT( source( 5, 10, 0 ) == 10 );
-   }
+      print( resampled );
 
 
-   void testResamplingOutput()
-   {
-      const std::string volname = NLL_TEST_PATH "data/medical/test1.mf2";
-      typedef nll::imaging::VolumeSpatial<float>           Volume;
-      typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
-      typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
-
-      nll::core::Matrix<float> tfm( 4, 4 );
-      nll::core::matrix4x4RotationZ( tfm, (float)nll::core::PI * 0.5f);
-      tfm( 1, 3 ) = -100;
-      nll::imaging::TransformationAffine atfm( tfm );
-
-
-      std::cout << "loadind..." << std::endl;
-      Volume volume;
-      nll::imaging::loadSimpleFlatFile( volname, volume );
-      volume.setOrigin( nll::core::vector3f( 0, 0, 0 ) );
-
-      Volume volumeResampled( nll::core::vector3ui( 8, 8, 8 ), volume.getPst() );
-      volumeResampled.setOrigin( nll::core::vector3f( 0, 0, 0 ) );
-      nll::imaging::resampleVolumeNearestNeighbour( volume, volumeResampled, atfm );
-
-      std::cout << "loaded" << std::endl;
-      Mpr mpr( volumeResampled );
-
-      Mpr::Slice slice( nll::core::vector3ui( 1024, 1024, 1 ),
-                        nll::core::vector3f( 1, 0, 0 ),
-                        nll::core::vector3f( 0, 1, 0 ),
-                        nll::core::vector3f( 0, 0, 0 ),
-                        nll::core::vector2f( 1.0f, 1.0f ) );
-
-
-      nll::core::Timer mprTime;
-      mpr.getSlice( slice );
-      mprTime.end();
-
-      nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
-      for ( unsigned y = 0; y < bmp.sizey(); ++y )
-         for ( unsigned x = 0; x < bmp.sizex(); ++x )
-            bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( (double)slice( x, y, 0 ), 0, 255 );
-      bmp( bmp.sizex() / 2, bmp.sizey() / 2, 0 ) = 255;
-      bmp( bmp.sizex() / 2 - 1, bmp.sizey() / 2, 0 ) = 255;
-      bmp( bmp.sizex() / 2 + 1, bmp.sizey() / 2, 0 ) = 255;
-      bmp( bmp.sizex() / 2, bmp.sizey() / 2 - 1, 0 ) = 255;
-      bmp( bmp.sizex() / 2, bmp.sizey() / 2 + 1, 0 ) = 255;
-      nll::core::extend( bmp, 3 );
-      nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mprtfm.bmp" );
-
-      nll::imaging::writeVolumeText( volumeResampled, "D:/Devel/sandbox/nllTest/data/test" );
+      TESTER_ASSERT( resampled( 2, 4, 0 ) == 1 );
+      TESTER_ASSERT( resampled( 2, 5, 0 ) == 2 );
+      TESTER_ASSERT( resampled( 2, 6, 0 ) == 3 );
+      TESTER_ASSERT( resampled( 1, 4, 0 ) == 6 );
+      TESTER_ASSERT( resampled( 1, 5, 0 ) == 7 );
+      TESTER_ASSERT( resampled( 1, 6, 0 ) == 8 );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolumeResampling);
- TESTER_TEST(testResamplingOutput);
- 
- TESTER_TEST(testResamplingTranslation);
- TESTER_TEST(testResamplingCropping);
- TESTER_TEST(testResamplingTranslation1);
- TESTER_TEST(testResamplingTranslation2);
- TESTER_TEST(testResamplingSpacing);
- TESTER_TEST(testResamplingSpacing2);
- /*
- // TODO: UPDATE THE ROTATION TEST
- TESTER_TEST(testResamplingTranslationRotation);
- TESTER_TEST(testResamplingTranslationRotation2);
- TESTER_TEST(testResamplingTranslationRotation3);
- TESTER_TEST(testResamplingTranslationRotation4);
- TESTER_TEST(testResamplingTranslationRotation5);
- */
- TESTER_TEST(testResamplingSpeed);
- 
+/*TESTER_TEST( testResamplingOriginNoTfm );
+TESTER_TEST( testResamplingRotPstVol );
+TESTER_TEST( testResamplingRotPstResampled );
+TESTER_TEST( testResamplingTrans );*/
+TESTER_TEST( testResamplingRot );
 TESTER_TEST_SUITE_END();
 #endif
