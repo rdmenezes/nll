@@ -576,9 +576,15 @@ namespace parser
             AstVarField* field = dynamic_cast<AstVarField*>( &e.getName() );
             if ( field )
             {
-               AstDeclClass* decl = dynamic_cast<AstDeclClass*>( field->getReference() );
-               ensure( decl, "field must be of class type" );
-               funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *decl, field->getName() ), e.getArgs() );
+               if ( field->getReference() == 0 )
+               {
+                  impl::reportTypeError( e.getLocation(), _context, "reference not found: " + std::string( field->getName().getName() ) );
+                  //return
+               } else {
+                  AstDeclClass* decl = dynamic_cast<AstDeclClass*>( field->getReference() );
+                  ensure( decl, "field must be of class type: declaration not found" );
+                  funcs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *decl, field->getName() ), e.getArgs() );
+               }
             } else {
                ensure( 0, "Error: unexpected node type..." );
             }

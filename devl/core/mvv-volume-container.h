@@ -302,6 +302,7 @@ public:
 
       // set the lut
       mvv::SymbolVolume volume = mvv::SymbolVolume::create( (*v2.vals)[ 0 ].stringval );
+      pointee->luts.erase( volume ); // first erase the lut if already inserted...
       pointee->luts.insert( volume, *reinterpret_cast<FunctionLutConstructor::Pointee*>( (*v3.vals)[ 0 ].ref ) );
 
       // clean the cache

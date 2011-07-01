@@ -67,7 +67,6 @@ namespace imaging
 
       // compute the transformation target voxel -> source voxel
       Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst();
-
       core::vector3f dx( transformation( 0, 0 ),
                          transformation( 1, 0 ),
                          transformation( 2, 0 ) );
@@ -78,17 +77,15 @@ namespace imaging
                          transformation( 1, 2 ),
                          transformation( 2, 2 ) );
 
-
-
-
+      // compute the target origin with the tfm applied
       core::Matrix<float> targetOriginTfm;
       targetOriginTfm.clone( tfm.getAffineMatrix() );
-      //invertSpecial( targetOriginTfm );
       core::inverse( targetOriginTfm );
       targetOriginTfm = targetOriginTfm * target.getPst();
-
       core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
 
+      // create the transformation representing this displacement and compute the source origin in this
+      // coordinate system
       Matrix g( 4, 4 );
       for ( ui32 y = 0; y < 3; ++y )
          for ( ui32 x = 0; x < 3; ++x )
@@ -99,18 +96,8 @@ namespace imaging
       g( 2, 3 ) = targetOrigin2[ 2 ];
 
       core::VolumeGeometry geom2( g );
-
       core::vector3f originInTarget = geom2.positionToIndex( source.getOrigin() );
-
       core::vector3f slicePosSrc = originInTarget;
-    
-      std::cout << "Tfm=" << std::endl;
-      transformation.print( std::cout );;
-
-      std::cout << "Orig=" << originInTarget << std::endl;
-
-      std::cout << "dx=" << dx << " dy=" << dy << " dz=" << dz;
-
       const int sizez = static_cast<int>( source.getSize()[ 2 ] );
       #ifndef NLL_NOT_MULTITHREADED
       # pragma omp parallel for

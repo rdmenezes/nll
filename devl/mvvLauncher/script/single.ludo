@@ -39,7 +39,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 0;
+   int index                        = 20;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -60,9 +60,6 @@ class VolumeSwitchReg
 
       preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index + 0 ] );
       preloaded2 = readVolumeMF2Asynchronous( list[ 2 * index + 1 ] );
-
-      //volumes.add( preloaded1, lut1 );
-      //volumes.add( preloaded2, lut2 );
    }
 
    void next()
@@ -76,8 +73,8 @@ class VolumeSwitchReg
       AffineRegistration tfm = affinePlanarRegistrationCt( displayed1, displayed2 );
       resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
 
-      volumes.add( resampled, lut1 );
-      volumes.add( displayed1, lut2 );
+      volumes.add( resampled, lut1, 0.5 );
+      volumes.add( displayed1, lut2, 0.75 );
 
       index = index + 1;
 
@@ -87,6 +84,53 @@ class VolumeSwitchReg
       print("pre-load2 volume:" + list[ 2 * index + 1 ] );
    }
 }
+
+class InsentisySwitchReg
+{
+   int state = 1;
+   VolumeSwitchReg switch = NULL;
+   InsentisySwitchReg( VolumeSwitchReg sw )
+   {
+      switch = sw;
+   }
+
+   void run()
+   {
+      //VolumeContainer& volumes = switch.volumes;
+      if ( state == 0 )
+      {
+         switch.volumes.setIntensity( switch.displayed1, 0.75 );
+      } else {
+         switch.volumes.setIntensity( switch.displayed1, 0.25 );
+      }
+      state = 1 - state;
+   }
+}
+
+class LutSwitchReg
+{
+   int state = 1;
+   VolumeSwitchReg switch = NULL;
+   LutSwitchReg( VolumeSwitchReg sw )
+   {
+      switch = sw;
+   }
+
+   void run()
+   {
+      //VolumeContainer& volumes = switch.volumes;
+      if ( state == 0 )
+      {
+         switch.volumes.setLut( switch.displayed1, switch.lut2 );
+         switch.volumes.setLut( switch.resampled, switch.lut1 );
+      } else {
+         switch.volumes.setLut( switch.displayed1, switch.lut1 );
+         switch.volumes.setLut( switch.resampled, switch.lut2 );
+      }
+      state = 1 - state;
+   }
+}
+
 
 
 Lut ctLut1( -250.0, 250.0 );
@@ -98,10 +142,16 @@ AnnotationCreator annotationCreator( annotations, pointer );
 
 
 KeyboardCallback callbacks;
-callbacks.addShortcut( annotationCreator.run, "F1" );
+
 
 VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrationVolumes );
 callbacks.addShortcut( switch.next, "F3" );
+
+InsentisySwitchReg switchIntensity( switch );
+callbacks.addShortcut( switchIntensity.run, "F1" );
+
+LutSwitchReg switchLut( switch );
+callbacks.addShortcut( switchLut.run, "F2" );
 
 
 
@@ -141,3 +191,7 @@ ImageHolder holder;
 Layout layout1 = layout;
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 
+
+
+// start directly...
+switch.next();
