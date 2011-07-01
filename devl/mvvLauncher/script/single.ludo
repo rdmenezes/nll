@@ -39,7 +39,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 20;
+   int index                        = 0;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -70,16 +70,20 @@ class VolumeSwitchReg
 
       Volume v = preloaded1.getVolume();
 
+
+      // change volume in case reg failed...
+      index = index + 1;
+      preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index ] );
+      preloaded2 = readVolumeMF2Asynchronous( list[ 2 * index + 1 ] );
+
+
+
       AffineRegistration tfm = affinePlanarRegistrationCt( displayed1, displayed2 );
       resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
 
       volumes.add( resampled, lut1, 0.5 );
       volumes.add( displayed1, lut2, 0.75 );
-
-      index = index + 1;
-
-      preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index ] );
-      preloaded2 = readVolumeMF2Asynchronous( list[ 2 * index + 1 ] );
+      
       print("pre-load1 volume:" + list[ 2 * index ] );
       print("pre-load2 volume:" + list[ 2 * index + 1 ] );
    }

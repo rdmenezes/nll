@@ -748,6 +748,48 @@ public:
       imaging::resampleVolumeTrilinear( ct2, vout, tfm  );
       imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", vout );
    }
+
+   void createPairTruncated()
+   {
+      const std::string outDir = "c:/VolumePairPart/";
+      const std::string inDir = "c:/VolumePair/";
+      std::ifstream f( ( inDir + "list.txt" ).c_str() );
+
+      std::string line1;
+      std::string line2;
+      int n = 1;
+      while ( !f.eof() )
+      {
+         std::getline( f, line1 );
+         std::getline( f, line2 );
+
+         typedef nll::imaging::VolumeSpatial<float>    Volume;
+
+         Volume target;
+         imaging::loadSimpleFlatFile( inDir + line2, target );
+         
+         ui32 nbSlices = 50 + ( rand() % 10 );
+         ui32 position = target.size()[ 2 ] / 2;
+         Volume part( core::vector3ui( target.size()[ 0 ],
+                                       target.size()[ 1 ],
+                                       nbSlices ),
+                      target.getPst() );
+
+         for ( ui32 z = 0; z < nbSlices; ++z )
+         {
+            for ( ui32 x = 0; x < target.size()[ 0 ]; ++x )
+            {
+               for ( ui32 y = 0; y < target.size()[ 1 ]; ++y )
+               {
+                  part( x, y, z ) = target( x, y, z + position );
+               }
+            }
+         }
+
+         imaging::saveSimpleFlatFile( outDir + line2, part );
+         ++n;
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -761,7 +803,8 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testProjections);
 //TESTER_TEST(createTfmVolume);
 //TESTER_TEST(createTfmVolume2);
-TESTER_TEST(test);
+TESTER_TEST(createPairTruncated);
+//TESTER_TEST(test);
 //TESTER_TEST(testResampling);
 TESTER_TEST_SUITE_END();
 #endif
