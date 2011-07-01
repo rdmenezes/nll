@@ -8,13 +8,6 @@ namespace nll
 {
 namespace imaging
 {
-   void invertSpecial( core::Matrix<float>& tfm4x4 )
-   {
-      core::inverse3x3M4( tfm4x4 );
-      tfm4x4( 0, 3 ) = - tfm4x4( 0, 3 );
-      tfm4x4( 1, 3 ) = - tfm4x4( 1, 3 );
-      tfm4x4( 2, 3 ) = - tfm4x4( 2, 3 );
-   }
 
    /**
     @ingroup imaging
@@ -53,7 +46,8 @@ namespace imaging
 
 
 
-      core::Matrix<float> targetOriginTfm = tfm.getAffineMatrix();
+      core::Matrix<float> targetOriginTfm;
+      targetOriginTfm.clone( tfm.getAffineMatrix() );
       invertSpecial( targetOriginTfm );
       targetOriginTfm = targetOriginTfm * target.getPst();
 
@@ -62,7 +56,7 @@ namespace imaging
       Matrix g( 4, 4 );
       for ( ui32 y = 0; y < 3; ++y )
          for ( ui32 x = 0; x < 3; ++x )
-            g( y, x ) = (tfm.getAffineMatrix() * target.getPst())(y, x);
+            g( y, x ) = targetOriginTfm(y, x);
       g( 3, 3 ) = 1;
       g( 0, 3 ) = targetOrigin2[ 0 ];
       g( 1, 3 ) = targetOrigin2[ 1 ];
