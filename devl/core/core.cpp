@@ -614,6 +614,32 @@ public:
    }
 };
 
+class FunctionRunnableEqSS : public FunctionRunnable
+{
+public:
+   FunctionRunnableEqSS( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::STRING || v2.type != RuntimeValue::STRING  )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 2 string as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_INT );
+      rt.intval = v1.stringval == v2.stringval;
+      return rt;
+   }
+};
+
 class FunctionRunnableEqFI : public FunctionRunnable
 {
 public:
@@ -688,6 +714,32 @@ public:
       }
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = fabs( v1.floatval - v2.floatval ) < 1e-6;
+      return rt;
+   }
+};
+
+class FunctionRunnableNEqSS : public FunctionRunnable
+{
+public:
+   FunctionRunnableNEqSS( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v1.type != RuntimeValue::STRING || v2.type != RuntimeValue::STRING  )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 2 string as arguments" );
+      }
+      RuntimeValue rt( RuntimeValue::CMP_INT );
+      rt.intval = v1.stringval != v2.stringval;
       return rt;
    }
 };
@@ -2222,6 +2274,19 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableNEqII( fn ) ) );
    }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator!=" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableNEqSS( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator==" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableEqSS( fn ) ) );
+   }
+
 
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "operator!=" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeFloat( false ) ) );

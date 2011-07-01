@@ -135,6 +135,12 @@ import int operator==( int a, float b );
  @ingroup core
  @brief Defines the basic operators + - * / == != <= < >= > on int and float types
  */
+import int operator==( string a, string b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
 import int operator==( float a, int b );
 
 /**
@@ -160,6 +166,12 @@ import int operator!=( int a, float b );
  @brief Defines the basic operators + - * / == != <= < >= > on int and float types
  */
 import int operator!=( float a, int b );
+
+/**
+ @ingroup core
+ @brief Defines the basic operators + - * / == != <= < >= > on int and float types
+ */
+import int operator!=( string a, string b );
 
 /**
  @ingroup core

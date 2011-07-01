@@ -627,8 +627,8 @@ public:
       Volume ct1;
       Volume ct2;
       const std::string inputDir = "D:/devel/sandbox/regionDetectionTest/data/";
-      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "case13.mf2", ct1 );
-      loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "case14.mf2", ct2 );
+      bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "case38.mf2", ct1 );
+      loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "case39.mf2", ct2 );
       TESTER_ASSERT( loaded );
       //ct1.setOrigin( core::vector3f(0, 0, 0) );
       //ct2.setOrigin( core::vector3f(0, 0, 0) );
@@ -636,6 +636,62 @@ public:
 
       imaging::saveSimpleFlatFile( "c:/tmp/target.mf2", ct2 );
       imaging::saveSimpleFlatFile( "c:/tmp/source.mf2", ct1 );
+   }
+
+   void testResampling()
+   {
+      const std::string inputDir = "c:/tmp/";
+      typedef nll::imaging::VolumeSpatial<float>           Volume;
+      core::Matrix<float> tfmMat = core::identityMatrix< core::Matrix<float> >( 4 );
+
+      tfmMat( 0, 0 ) = 0.9211;
+      tfmMat( 0, 1 ) = 0;
+      tfmMat( 0, 2 ) = -0.3894;
+      tfmMat( 0, 3 ) = -32.05;
+
+      tfmMat( 1, 0 ) = -0.0774;
+      tfmMat( 1, 1 ) = 0.9801;
+      tfmMat( 1, 2 ) = -0.1830;
+      tfmMat( 1, 3 ) = -14.6579;
+
+      tfmMat( 2, 0 ) = 0.3817;
+      tfmMat( 2, 1 ) = 0.1987;
+      tfmMat( 2, 2 ) = 0.9027;
+      tfmMat( 2, 3 ) = 21.9747;
+
+      /*
+      tfmMat( 0, 0 ) = 1;
+      tfmMat( 0, 1 ) = 0;
+      tfmMat( 0, 2 ) = 0;
+      tfmMat( 0, 3 ) = -32.05;
+
+      tfmMat( 1, 0 ) = 0;
+      tfmMat( 1, 1 ) = 0;
+      tfmMat( 1, 2 ) = -1;
+      tfmMat( 1, 3 ) = -14.6579;
+
+      tfmMat( 2, 0 ) = 0;
+      tfmMat( 2, 1 ) = 1;
+      tfmMat( 2, 2 ) = 0;
+      tfmMat( 2, 3 ) = 221.9747;
+      */
+      tfmMat( 3, 0 ) = 0;
+      tfmMat( 3, 1 ) = 0;
+      tfmMat( 3, 2 ) = 0;
+      tfmMat( 3, 3 ) = 1;
+      imaging::TransformationAffine tfm( tfmMat );
+
+      Volume ct2;
+      imaging::loadSimpleFlatFile( inputDir + "target.mf2", ct2 );
+
+      
+      core::Matrix<float> pst;
+      pst.clone( ct2.getPst() );
+      pst( 0, 3 ) += 80;
+
+      Volume resampled( ct2.size(), pst );
+      imaging::resampleVolumeTrilinear( ct2, resampled, tfm );
+      imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", resampled );
    }
 
    void test()
@@ -659,7 +715,7 @@ public:
       std::cout << "Registration time=" << regTime.getCurrentTime() << std::endl;
       if ( r == algorithm::AffineRegistrationCT3d::SUCCESS )
       {
-         std::cout << "tfm=" << std::endl;
+         std::cout << "tfm REG=" << std::endl;
          tfm.print( std::cout );
       } else {
          std::cout << "case error" << std::endl;
@@ -686,6 +742,11 @@ public:
 
       core::writeBmp( ctRegistration.pyTgt, "c:/tmp/py-tgt.bmp" );
       core::writeBmp( ctRegistration.pxTgt, "c:/tmp/px-tgt.bmp" );
+
+      // output resampled volume
+      Volume vout( ct2.size(), ct2.getPst() );
+      imaging::resampleVolumeTrilinear( ct2, vout, tfm  );
+      imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", vout );
    }
 };
 
@@ -701,5 +762,6 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(createTfmVolume);
 //TESTER_TEST(createTfmVolume2);
 TESTER_TEST(test);
+//TESTER_TEST(testResampling);
 TESTER_TEST_SUITE_END();
 #endif

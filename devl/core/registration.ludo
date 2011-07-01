@@ -1,1 +1,16 @@
+/**
+ @brief Planar CT-CT registration
+
+ Internally, computes projection XZ and YZ of the 2 volumes, and register them in 2D. Both
+ transformations are combined to give a 3D registration. Note that the rotation in the
+ XY planes will not be recovered as this would need a XY projection.
+
+ To register in 2D, a point based registration algorithm is used: SURF determines salient
+ and repeatable features, then RANSAC determine a set of inliers from which a 2D affine
+ transformation will be computed.
+
+The registration is aligning the bone structures
+
+ @return an affine transformation that register 
+ */
 import AffineRegistration affinePlanarRegistrationCt( VolumeID source, VolumeID target );

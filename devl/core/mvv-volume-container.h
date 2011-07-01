@@ -132,6 +132,11 @@ public:
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
 
       // preconditions
+      if ( v2.type != RuntimeValue::TYPE || (*v2.vals)[ 0 ].type != RuntimeValue::STRING )
+      {
+         throw std::runtime_error( "cannot add this volume in the container" );
+      }
+
       assert( (*v2.vals)[ 0 ].type == RuntimeValue::STRING );
       assert( (*v3.vals)[ 0 ].type == RuntimeValue::PTR );
       assert( v4.type == RuntimeValue::CMP_FLOAT );

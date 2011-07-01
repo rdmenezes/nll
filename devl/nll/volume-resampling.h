@@ -36,6 +36,14 @@ namespace nll
 {
 namespace imaging
 {
+   inline void invertSpecial( core::Matrix<float>& tfm4x4 )
+   {
+      core::inverse3x3M4( tfm4x4 );
+      tfm4x4( 0, 3 ) = - tfm4x4( 0, 3 );
+      tfm4x4( 1, 3 ) = - tfm4x4( 1, 3 );
+      tfm4x4( 2, 3 ) = - tfm4x4( 2, 3 );
+   }
+
    /**
     @ingroup imaging
     @brief Resample a target volume to an arbitrary source geometry
@@ -58,9 +66,8 @@ namespace imaging
       }
 
       // compute the transformation target voxel -> source voxel
-      Matrix transformation = source.getInvertedPst() *
-                              tfm.getAffineMatrix() *
-                              target.getPst();
+      Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * source.getPst();
+
       core::vector3f dx( transformation( 0, 0 ),
                          transformation( 1, 0 ),
                          transformation( 2, 0 ) );
@@ -71,12 +78,38 @@ namespace imaging
                          transformation( 1, 2 ),
                          transformation( 2, 2 ) );
 
-      // we transform the origin (voxel index=(0, 0, 0)) to the correponding index in source
-      core::vector3f originInTarget = transf4( transformation, core::vector3f( 0, 0, 0 ) );
+
+
+
+      core::Matrix<float> targetOriginTfm;
+      targetOriginTfm.clone( tfm.getAffineMatrix() );
+      //invertSpecial( targetOriginTfm );
+      core::inverse( targetOriginTfm );
+      targetOriginTfm = targetOriginTfm * target.getPst();
+
+      core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
+
+      Matrix g( 4, 4 );
+      for ( ui32 y = 0; y < 3; ++y )
+         for ( ui32 x = 0; x < 3; ++x )
+            g( y, x ) = targetOriginTfm(y, x);
+      g( 3, 3 ) = 1;
+      g( 0, 3 ) = targetOrigin2[ 0 ];
+      g( 1, 3 ) = targetOrigin2[ 1 ];
+      g( 2, 3 ) = targetOrigin2[ 2 ];
+
+      core::VolumeGeometry geom2( g );
+
+      core::vector3f originInTarget = geom2.positionToIndex( source.getOrigin() );
 
       core::vector3f slicePosSrc = originInTarget;
-      
+    
+      std::cout << "Tfm=" << std::endl;
+      transformation.print( std::cout );;
 
+      std::cout << "Orig=" << originInTarget << std::endl;
+
+      std::cout << "dx=" << dx << " dy=" << dy << " dz=" << dz;
 
       const int sizez = static_cast<int>( source.getSize()[ 2 ] );
       #ifndef NLL_NOT_MULTITHREADED

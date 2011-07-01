@@ -7,8 +7,9 @@ v0.15
 -added 2D image resampler
 -added 3D integral image
 -added 3D Haar features
+-added planar point based CT-CT registration algorithm
 -fixed minor bugs (multithreaded logging)
--fixed 3D resampling problem with rotation
+-fixed 3D resampling problem with rotation and added multithreading
 
 v0.14
 -fixed kernel PCA implementation

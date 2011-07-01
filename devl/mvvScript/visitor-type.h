@@ -1025,7 +1025,7 @@ namespace parser
                operator()( *e.getObjectInitialization() );
 
                // if object initialization, check we can construct the object
-               ensure( ty->getDecl(), "Internal compiler error" );
+               ensure( ty && ty->getDecl(), "Internal compiler error" );
 
                std::vector<AstDeclFun*> funs = getMatchingFunctionsFromArgs( getFunctionsFromClass( *ty->getDecl(), ty->getDecl()->getName() ), *e.getObjectInitialization() );
                if ( funs.size() == 1 )

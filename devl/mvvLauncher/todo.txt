@@ -52,5 +52,11 @@ FEATURES TO BE ADDED:
   }
   
   also think about {{return}} -> need to exit all the seqs until the end of function declation
+  
+  - add array initialization
+     typedef string[] strings;
+     strings strs( 15 );
+  
+ 
 
     
