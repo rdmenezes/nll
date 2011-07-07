@@ -380,6 +380,61 @@ namespace core
       return true;
    }
 
+   /**
+    @brief Computes the least square solution of an overdetermined system
+
+    minimize the norm ||Ax-b||_2 given A and b
+    
+    A: m * n, b: m * 1, x: n * 1
+
+    Method: A = U * s * V^t using SVD,
+            x = V * s^-1 * U^t * b
+
+    @note throw if A one of the eigen values is null
+    */
+   template <class T>
+   core::Buffer1D<T> leastSquareSvd( const core::Matrix<T>& _a, const core::Buffer1D<T>& _b )
+   {
+      typedef core::Matrix<T>    Matrix;
+      typedef core::Buffer1D<T>  Vector;
+
+      Matrix u, v;
+      Vector w;
+
+      u.clone( _a );
+      bool good = core::svdcmp( u, w, v );
+      ensure( good, "SVD failed..." );
+
+      // compute d = U^t * b => d^t = (U^t * b)^t = b^t * U
+      Matrix b( _b, 1, _b.size() );
+      Matrix dt = b * u;
+
+      // find the rank
+      ui32 rank = 0;
+      for ( ui32 n = 0; n < w.size(); ++n )
+      {
+         if ( w[ n ] > std::numeric_limits<T>::epsilon() )
+         {
+            ++rank;
+         }
+      }
+
+      // rewrite the SV values and padd them with 0 is necessary: TODO. For now
+      // if some of the least square values cannot be computed, then throw...
+      if ( rank != w.size() )
+      {
+         throw std::runtime_error( "not enough eigen vectors" );
+      }
+
+      for ( ui32 n = 0; n < w.size(); ++n )
+      {
+         dt[ n ] /= w[ n ];
+      }
+      Matrix d( dt, dt.size(), 1 );
+      Matrix x = v * d;
+
+      return x;
+   }
 }
 }
 

@@ -48,11 +48,12 @@ namespace algorithm
     Finally the 2 pairs of projection are registered using a SURF 2D - ransac - affine estimator one by one and
     a global transformation matrix is computed.
     */
+   template <class TransformationEstimatorFactory = impl::SurfEstimatorAffineIsotropicFactory>
    class AffineRegistrationCT3d
    {
    public:
       typedef core::Matrix<double>  Matrix;
-      typedef algorithm::AffineRegistrationPointBased2d<>   Registration2D;
+      typedef algorithm::AffineRegistrationPointBased2d<TransformationEstimatorFactory>   Registration2D;
 
       enum Result
       {
@@ -427,8 +428,8 @@ namespace algorithm
       core::Image<ui8>  pxTgt;
       core::Image<ui8>  pySrc;
       core::Image<ui8>  pyTgt;
-      Registration2D::PointPairs    pxInliers;
-      Registration2D::PointPairs    pyInliers;
+      typename Registration2D::PointPairs    pxInliers;
+      typename Registration2D::PointPairs    pyInliers;
       Matrix            pxTfm;
       Matrix            pyTfm;
 

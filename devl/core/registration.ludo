@@ -11,6 +11,15 @@
 
 The registration is aligning the bone structures
 
- @return an affine transformation that register 
+ @return an affine transformation that register. The affine transformation is isotropic.
+ */
+import AffineRegistration affineIsotropicPlanarRegistrationCt( VolumeID source, VolumeID target );
+
+/**
+ @brief Planar CT-CT registration
+
+ Very similar to <affinePlanarRegistrationCt> except that the affine estimator is non isotropic,
+ giving different scale factors along the dimensions. This can be used if the morphology between
+ the CTs are very different, but they have a high overlap.
  */
 import AffineRegistration affinePlanarRegistrationCt( VolumeID source, VolumeID target );

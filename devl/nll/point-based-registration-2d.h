@@ -105,6 +105,142 @@ namespace algorithm
          }
       };
 
+      class AffineIsotropicTransformationEstimatorRansac
+      {
+      private:
+         typedef SpeededUpRobustFeatures::Points PointsData;
+
+         template <class PointsMatch>
+         class PointsWrapper1
+         {
+         public:
+            PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
+            {}
+
+            ui32 size() const
+            {
+               return static_cast<ui32>( _matches.size() );
+            }
+
+            const core::vector2i& operator[]( ui32 index ) const
+            {
+               return _points[ _matches[ index ].index1 ].position;
+            }
+
+         private:
+            // copy disabled
+            PointsWrapper1& operator=( const PointsWrapper1& );
+
+         private:
+            const PointsData     _points;
+            const PointsMatch    _matches;
+         };
+
+         template <class PointsMatch>
+         class PointsWrapper2
+         {
+         public:
+            PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
+            {}
+
+            ui32 size() const
+            {
+               return static_cast<ui32>( _matches.size() );
+            }
+
+            const core::vector2i& operator[]( ui32 index ) const
+            {
+               return _points[ _matches[ index ].index2 ].position;
+            }
+
+         private:
+            // copy disabled
+            PointsWrapper2& operator=( const PointsWrapper2& );
+
+         private:
+            const PointsData     _points;
+            const PointsMatch    _matches;
+         };
+
+      public:
+         AffineIsotropicTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                                       double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : _p1( p1 ), _p2( p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+         {
+         }
+
+         static ui32 minimumNumberOfPointsForEstimation()
+         {
+            return 2;
+         }
+
+         struct Model
+         {
+            Model() : tfm( core::identityMatrix< core::Matrix<double> >( 3 ) )
+            {}
+
+            void print( std::ostream& o ) const
+            {
+               o << " Transformation Translation only=";
+               tfm.print( o );
+            }
+
+            core::Matrix<double> tfm;
+         };
+
+         typedef FeatureMatcher::Match    Point;
+
+         template <class Points>
+         void estimate( const Points& points )
+         {
+            if ( points.size() < 2 )
+               return;
+           
+            PointsWrapper1<Points> wrapperP1( _p1, points );
+            PointsWrapper2<Points> wrapperP2( _p2, points );
+            
+            EstimatorTransformAffine2D affineEstimator( _scale, _minimumScale, _maximumScale );
+            _model.tfm = affineEstimator.compute( wrapperP1, wrapperP2 );
+         }
+
+         /**
+          @brief Returns squared error, assuming a model y = ax + b, measure the error between y estimate and real value / | x |
+          */
+         double error( const Point& point ) const
+         {
+            const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
+            const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
+
+            // transform the point
+            const core::Matrix<double>& tfm = _model.tfm;
+            double px = tfm( 0, 2 ) + p1.position[ 0 ] * tfm( 0, 0 ) + p1.position[ 1 ] * tfm( 0, 1 );
+            double py = tfm( 1, 2 ) + p1.position[ 0 ] * tfm( 1, 0 ) + p1.position[ 1 ] * tfm( 1, 1 );
+
+            // we want a ratio of the error...
+            return core::sqr( ( px - p2.position[ 0 ] ) / ( p2.position[ 0 ] ) ) +
+                   core::sqr( ( py - p2.position[ 1 ] ) / ( p2.position[ 1 ] ) );
+         }
+
+         /**
+          @brief Returns the current model
+          */
+         const Model& getModel() const
+         {
+            return _model;
+         }
+
+      private:
+         // copy disabled
+         AffineIsotropicTransformationEstimatorRansac& operator=( const AffineIsotropicTransformationEstimatorRansac& );
+
+      private:
+         Model    _model;
+         const SpeededUpRobustFeatures::Points& _p1;
+         const SpeededUpRobustFeatures::Points& _p2;
+         double   _scale;
+         double   _minimumScale;
+         double   _maximumScale;
+      };
+
       class AffineTransformationEstimatorRansac
       {
       private:
@@ -163,9 +299,13 @@ namespace algorithm
          };
 
       public:
-         AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
-                                              double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : _p1( p1 ), _p2( p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+         AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
          {
+         }
+
+         static ui32 minimumNumberOfPointsForEstimation()
+         {
+            return 3;
          }
 
          struct Model
@@ -193,7 +333,7 @@ namespace algorithm
             PointsWrapper1<Points> wrapperP1( _p1, points );
             PointsWrapper2<Points> wrapperP2( _p2, points );
             
-            EstimatorTransformAffine2D affineEstimator;
+            EstimatorTransformAffine2dDlt affineEstimator;
             _model.tfm = affineEstimator.compute( wrapperP1, wrapperP2 );
          }
 
@@ -231,18 +371,14 @@ namespace algorithm
          Model    _model;
          const SpeededUpRobustFeatures::Points& _p1;
          const SpeededUpRobustFeatures::Points& _p2;
-         double   _scale;
-         double   _minimumScale;
-         double   _maximumScale;
       };
 
-      template <class EstimatorT>
-      class SurfEstimatorFactory
+      class SurfEstimatorAffineIsotropicFactory
       {
       public:
-         typedef EstimatorT Estimator;
-         SurfEstimatorFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
-                               double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : _p1( &p1 ), _p2( &p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+         typedef AffineIsotropicTransformationEstimatorRansac Estimator;
+         SurfEstimatorAffineIsotropicFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                              double scale = 0, double minimumScale = 0.8, double maximumScale = 1.2 ) : _p1( &p1 ), _p2( &p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {}
 
          Estimator create() const
@@ -257,6 +393,23 @@ namespace algorithm
          double   _minimumScale;
          double   _maximumScale;
       };
+
+      class SurfEstimatorAffineFactory
+      {
+      public:
+         typedef AffineTransformationEstimatorRansac Estimator;
+         SurfEstimatorAffineFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( &p1 ), _p2( &p2 )
+         {}
+
+         Estimator create() const
+         {
+            return Estimator( *_p1, *_p2 );
+         }
+
+      private:
+         const SpeededUpRobustFeatures::Points* _p1;
+         const SpeededUpRobustFeatures::Points* _p2;
+      };
    }
 
    /**
@@ -268,11 +421,12 @@ namespace algorithm
     @note this class is just an example and will likely need a lot of customization by the user to fit
           the given registration problem
     */
-   template <class FeatureMatcher = impl::FeatureMatcher>
+   template <class FactoryT = impl::SurfEstimatorAffineIsotropicFactory, class FeatureMatcher = impl::FeatureMatcher>
    class AffineRegistrationPointBased2d
    {
    public:
-      typedef impl::AffineTransformationEstimatorRansac        RansacTransformationEstimator;
+      typedef typename FactoryT::Estimator                     RansacTransformationEstimator;
+      typedef FactoryT                                         Factory;
       typedef core::Matrix<double>                             Matrix;
       typedef typename FeatureMatcher::Matches::value_type     Match;
       typedef algorithm::SpeededUpRobustFeatures::Point        Point;
@@ -306,14 +460,13 @@ namespace algorithm
          algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 1000, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
-         typedef algorithm::impl::SurfEstimatorFactory<RansacTransformationEstimator> SurfEstimatorFactory;
-         typedef algorithm::Ransac<RansacTransformationEstimator, SurfEstimatorFactory> Ransac;
+         typedef algorithm::Ransac<RansacTransformationEstimator, Factory> Ransac;
 
-         SurfEstimatorFactory estimatorFactory( points1, points2, 0, 0.8, 1.2 );
+         Factory estimatorFactory( points1, points2 );
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, 2, 50000, 0.01 );
+         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), 50000, 0.01 );
          if ( ransac.getNbInliers() <= 20 )
          {
             throw std::runtime_error( "Error: inliers are too small" );

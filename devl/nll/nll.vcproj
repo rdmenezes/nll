@@ -1100,6 +1100,10 @@
 			Name="algorithm-regs"
 			>
 			<File
+				RelativePath=".\estimator-affine2D-transformation-dlt.h"
+				>
+			</File>
+			<File
 				RelativePath=".\estimator-affine2D-transformation.h"
 				>
 			</File>

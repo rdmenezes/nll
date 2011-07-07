@@ -5,6 +5,14 @@
 using namespace nll;
 using namespace nll::algorithm;
 
+namespace nll
+{
+namespace algorithm
+{
+   
+}
+}
+
 namespace
 {
    std::string pairs[] =
@@ -404,8 +412,8 @@ public:
          core::writeBmp( output3, rootOut + "o3-" + core::val2str(n) + ".bmp" );
 
          // estimate the transformation
-         typedef algorithm::impl::AffineTransformationEstimatorRansac SurfEstimator;
-         typedef algorithm::impl::SurfEstimatorFactory<algorithm::impl::AffineTransformationEstimatorRansac> SurfEstimatorFactory;
+         typedef algorithm::impl::SurfEstimatorAffineIsotropicFactory              SurfEstimatorFactory;
+         typedef algorithm::impl::SurfEstimatorAffineIsotropicFactory::Estimator   SurfEstimator;
          typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory> Ransac;
 
          SurfEstimatorFactory estimatorFactory( points1, points2 );
@@ -497,9 +505,9 @@ public:
                {
                   ui32 normSizeY;
                   ui32 normSizeX;
-                  core::Image<ui8> py3 = algorithm::AffineRegistrationCT3d::projectImageZ( ct1, lut, normSizeY, normSizeX );
+                  core::Image<ui8> py3 = algorithm::AffineRegistrationCT3d<>::projectImageZ( ct1, lut, normSizeY, normSizeX );
                   core::extend( py3, 3 );
-                  int ymax = algorithm::AffineRegistrationCT3d::findTableY( py3 );
+                  int ymax = algorithm::AffineRegistrationCT3d<>::findTableY( py3 );
                   if ( ymax > 0 )
                   {
                      for ( ui32 x = 0; x < py3.sizex(); ++x )
@@ -518,11 +526,11 @@ public:
 
                   
 
-                  core::Image<ui8> py1 = algorithm::AffineRegistrationCT3d::projectImageX( ct1, lut, ymax, normSizeX / 2 );
+                  core::Image<ui8> py1 = algorithm::AffineRegistrationCT3d<>::projectImageX( ct1, lut, ymax, normSizeX / 2 );
                   core::extend( py1, 3 );
                   core::writeBmp( py1, outputDir + "px-" +  core::val2str( n ) + ".bmp" );
 
-                  core::Image<ui8> py2 = algorithm::AffineRegistrationCT3d::projectImageY( ct1, lut, ymax, normSizeY / 2 );
+                  core::Image<ui8> py2 = algorithm::AffineRegistrationCT3d<>::projectImageY( ct1, lut, ymax, normSizeY / 2 );
                   core::extend( py2, 3 );
                   core::writeBmp( py2, outputDir + "py-" + core::val2str( n ) + ".bmp" );
 
@@ -708,12 +716,12 @@ public:
       TESTER_ASSERT( loaded, "cannot load volume" );
       std::cout << "volumes loaded..." << std::endl;
 
-      algorithm::AffineRegistrationCT3d ctRegistration;
+      algorithm::AffineRegistrationCT3d<> ctRegistration;
       core::Matrix<double> tfm;
       core::Timer regTime;
-      algorithm::AffineRegistrationCT3d::Result r = ctRegistration.process( ct1, ct2, tfm );
+      algorithm::AffineRegistrationCT3d<>::Result r = ctRegistration.process( ct1, ct2, tfm );
       std::cout << "Registration time=" << regTime.getCurrentTime() << std::endl;
-      if ( r == algorithm::AffineRegistrationCT3d::SUCCESS )
+      if ( r == algorithm::AffineRegistrationCT3d<>::SUCCESS )
       {
          std::cout << "tfm REG=" << std::endl;
          tfm.print( std::cout );
@@ -803,8 +811,9 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(testProjections);
 //TESTER_TEST(createTfmVolume);
 //TESTER_TEST(createTfmVolume2);
-TESTER_TEST(createPairTruncated);
+//TESTER_TEST(createPairTruncated);
 //TESTER_TEST(test);
 //TESTER_TEST(testResampling);
+ TESTER_TEST(testAffine);
 TESTER_TEST_SUITE_END();
 #endif

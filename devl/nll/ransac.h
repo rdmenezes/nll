@@ -158,7 +158,14 @@ namespace algorithm
             inliers.push_back( points[ bestSubset[ n ] ] );
          }
          Estimator estimator = _estimatorFactory.create();
-         estimator.estimate( inliers );
+
+         try
+         {
+            estimator.estimate( inliers );
+         } catch (...)
+         {
+            // error in estimation...
+         }
 
          {
             std::stringstream ss;

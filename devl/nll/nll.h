@@ -235,6 +235,7 @@
 # include "normalization.h"
 # include "pca.h"
 # include "estimator-affine2D-transformation.h"
+# include "estimator-affine2D-transformation-dlt.h"
 # include "ransac.h"
 # include "locally-linear-embedding.h"
 # include "sammon-projection.h"

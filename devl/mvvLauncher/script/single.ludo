@@ -2,7 +2,7 @@ import "core"
 import "siemens"
 
 include "helper1"
-include "c:/tmp/regs"
+include "C:/RegTestData/regsRandom3"
 
 /**
  @note the following variables must have been defined:
@@ -35,7 +35,29 @@ ToolManipulators        manipultors;
 ManipulatorPointer      pointer;
 
 VolumeContainer         volumes;
+VolumeContainer         volumes2;
 
+class PostProcessing
+{
+   string text;
+
+   PostProcessing( string t )
+   {
+      text = t;
+   }
+
+   void run( Image image, Vector2f spacing, Vector3f origin, Vector3f axisx, Vector3f axisy )
+   {
+      drawText( image,
+                text,
+                Vector2i( 0, image.sizey() - 26 ),
+                25,
+                Vector3i( 255, 0, 0 ) );
+   }
+}
+
+PostProcessing postprocessingAffineIsotropic( "Affine isotropic Transformation" );
+PostProcessing postprocessingAffine( "Full Affine Transformation" );
 
 class VolumeSwitchReg
 {
@@ -47,15 +69,18 @@ class VolumeSwitchReg
    VolumeID displayed2              = NULL;
    VolumeID preloaded2              = NULL;
    VolumeID resampled               = NULL;
+   VolumeID resampled2              = NULL;
    DisplayRegionDetection detection = NULL;
    VolumeContainer volumes          = NULL;
+   VolumeContainer volumes2         = NULL;
    string[] list;
 
-   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, string[] volumeList )
+   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, VolumeContainer vs2, string[] volumeList )
    {
       lut1 = l1;
       lut2 = l2;
       volumes = vs;
+      volumes2 = vs2;
       list = volumeList;
 
       preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index + 0 ] );
@@ -65,6 +90,7 @@ class VolumeSwitchReg
    void next()
    {
       volumes.clear();
+      volumes2.clear();
       displayed1 = preloaded1;
       displayed2 = preloaded2;
 
@@ -78,11 +104,17 @@ class VolumeSwitchReg
 
 
 
-      AffineRegistration tfm = affinePlanarRegistrationCt( displayed1, displayed2 );
+      AffineRegistration tfm = affineIsotropicPlanarRegistrationCt( displayed1, displayed2 );
       resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
+
+      AffineRegistration tfm2 = affinePlanarRegistrationCt( displayed1, displayed2 );
+      resampled2 = resampleNearest( displayed2, tfm2, v.getSize(), v.getPst() );
 
       volumes.add( resampled, lut1, 0.5 );
       volumes.add( displayed1, lut2, 0.75 );
+
+      volumes2.add( resampled2, lut1, 0.5 );
+      volumes2.add( displayed1, lut2, 0.75 );
       
       print("pre-load1 volume:" + list[ 2 * index ] );
       print("pre-load2 volume:" + list[ 2 * index + 1 ] );
@@ -148,7 +180,7 @@ AnnotationCreator annotationCreator( annotations, pointer );
 KeyboardCallback callbacks;
 
 
-VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrationVolumes );
+VolumeSwitchReg switch( ctLut1, ctLut2, volumes, volumes2, registrationVolumes );
 callbacks.addShortcut( switch.next, "F3" );
 
 InsentisySwitchReg switchIntensity( switch );
@@ -166,19 +198,33 @@ Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 )
 segment1.setTool( toolCentering );
 segment1.setTool( manipultors );
 segment1.setTool( annotations );
-//segment1.setInterpolator( typename Segment::Nearest() );
 
 Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment2.setTool( toolCentering );
 segment2.setTool( manipultors );
 segment2.setTool( annotations );
-//segment2.setInterpolator( typename Segment::Nearest() );
 
 Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
 segment3.setTool( toolCentering );
 segment3.setTool( manipultors );
 segment3.setTool( annotations );
-//segment3.setInterpolator( typename Segment::Nearest() );
+segment3.setTool( ToolPostprocessing( postprocessingAffineIsotropic.run ) );
+
+Segment segment4( volumes2, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment4.setTool( toolCentering );
+segment4.setTool( manipultors );
+segment4.setTool( annotations );
+
+Segment segment5( volumes2, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment5.setTool( toolCentering );
+segment5.setTool( manipultors );
+segment5.setTool( annotations );
+
+Segment segment6( volumes2, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment6.setTool( toolCentering );
+segment6.setTool( manipultors );
+segment6.setTool( annotations );
+segment6.setTool( ToolPostprocessing( postprocessingAffine.run ) );
 
 
 Layout::Vertical vertical;
@@ -188,12 +234,19 @@ Layout l2( segment2 );
 Layout l3( segment3 );
 Layout l6( Console() );
 
-Layout layoutDisplay1( vertical, Layout(horizontal, l1, l2, 0.51), l3, 0.51 );
-Layout layout = Layout(vertical, l6, layoutDisplay1, 0.15);
+Layout l1a( segment4 );
+Layout l2a( segment5 );
+Layout l3a( segment6 );
 
-ImageHolder holder;
-Layout layout1 = layout;
-Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
+Layout layoutDisplay1( vertical, Layout(horizontal, l1, l2, 0.51), l3, 0.51 );
+
+
+Layout layoutDisplay2( vertical, Layout(horizontal, l1a, l2a, 0.51), l3a, 0.51 );
+
+
+Layout layoutDisplay( horizontal, layoutDisplay1, layoutDisplay2, 0.51);
+
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
 
 
 
