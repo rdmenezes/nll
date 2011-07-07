@@ -11,9 +11,20 @@
 
 The registration is aligning the bone structures
 
+If the bounding box has a size different than 0, local registration will be performed:
+only the points of interest within the bounding box will be taken into account
+
+ @param minBoundingBoxSource the min index of the bounding box of the source volume
+ @param maxBoundingBoxSource the max index of the bounding box of the source volume
+ @param minBoundingBoxTarget the min index of the bounding box of the source volume
+ @param maxBoundingBoxTarget the max index of the bounding box of the source volume
  @return an affine transformation that register. The affine transformation is isotropic.
  */
-import AffineRegistration affineIsotropicPlanarRegistrationCt( VolumeID source, VolumeID target );
+import AffineRegistration affineIsotropicPlanarRegistrationCt( VolumeID source, VolumeID target,
+                                                               Vector3i minBoundingBoxSource = Vector3i(0, 0, 0),
+                                                               Vector3i maxBoundingBoxSource = Vector3i(0, 0, 0),
+                                                               Vector3i minBoundingBoxTarget = Vector3i(0, 0, 0),
+                                                               Vector3i maxBoundingBoxTarget = Vector3i(0, 0, 0) );
 
 /**
  @brief Planar CT-CT registration
@@ -21,5 +32,17 @@ import AffineRegistration affineIsotropicPlanarRegistrationCt( VolumeID source, 
  Very similar to <affinePlanarRegistrationCt> except that the affine estimator is non isotropic,
  giving different scale factors along the dimensions. This can be used if the morphology between
  the CTs are very different, but they have a high overlap.
+
+ If the bounding box has a size different than 0, local registration will be performed:
+ only the points of interest within the bounding box will be taken into account
+
+ @param minBoundingBoxSource the min index of the bounding box of the source volume
+ @param maxBoundingBoxSource the max index of the bounding box of the source volume
+ @param minBoundingBoxTarget the min index of the bounding box of the source volume
+ @param maxBoundingBoxTarget the max index of the bounding box of the source volume
  */
-import AffineRegistration affinePlanarRegistrationCt( VolumeID source, VolumeID target );
+import AffineRegistration affinePlanarRegistrationCt( VolumeID source, VolumeID target,
+                                                               Vector3i minBoundingBoxSource = Vector3i(0, 0, 0),
+                                                               Vector3i maxBoundingBoxSource = Vector3i(0, 0, 0),
+                                                               Vector3i minBoundingBoxTarget = Vector3i(0, 0, 0),
+                                                               Vector3i maxBoundingBoxTarget = Vector3i(0, 0, 0) );

@@ -3860,17 +3860,19 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      Type* vec = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
       Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
       assert( volumeId );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "affineIsotropicPlanarRegistrationCt") ), nll::core::make_vector<const Type*>( volumeId, volumeId ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "affineIsotropicPlanarRegistrationCt") ), nll::core::make_vector<const Type*>( volumeId, volumeId, vec, vec, vec, vec ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRegistrationAffineIstropicPlanar( fn,context, &e.getEvaluator(), e ) ) );
    }
 
    {
+      Type* vec = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
       Type* volumeId = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
       assert( volumeId );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "affinePlanarRegistrationCt") ), nll::core::make_vector<const Type*>( volumeId, volumeId ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "affinePlanarRegistrationCt") ), nll::core::make_vector<const Type*>( volumeId, volumeId, vec, vec, vec, vec ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRegistrationAffinePlanar( fn,context, &e.getEvaluator(), e ) ) );
    }

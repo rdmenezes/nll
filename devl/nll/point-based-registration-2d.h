@@ -437,13 +437,20 @@ namespace algorithm
 
    public:
       template <class T, class Mapper, class Alloc>
-      Matrix compute( const core::Image<T, Mapper, Alloc>& source, const core::Image<T, Mapper, Alloc>& target )
+      Matrix compute( const core::Image<T, Mapper, Alloc>& source,
+                      const core::Image<T, Mapper, Alloc>& target,
+                      const core::vector2i& minBoundingBoxSource = core::vector2i(),
+                      const core::vector2i& maxBoundingBoxSource = core::vector2i(),
+                      const core::vector2i& minBoundingBoxTarget = core::vector2i(),
+                      const core::vector2i& maxBoundingBoxTarget = core::vector2i() )
       {
          nll::core::Timer timer;
          algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
 
          algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( source );
+         points1 = trimPoints( points1, minBoundingBoxSource, maxBoundingBoxSource );
          algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( target );
+         points2 = trimPoints( points2, minBoundingBoxTarget, maxBoundingBoxTarget );
 
          // match points
          algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p1Wrapper( points1 );
@@ -488,6 +495,37 @@ namespace algorithm
       const PointPairs& getInliers() const
       {
          return _inliers;
+      }
+
+   private:
+      // remove the points not within the bounding box
+      algorithm::SpeededUpRobustFeatures::Points trimPoints( const algorithm::SpeededUpRobustFeatures::Points& points,
+                                                             const core::vector2i& minBoundingBox,
+                                                             const core::vector2i& maxBoundingBox )
+      {
+         if ( minBoundingBox == maxBoundingBox )
+            return points;
+
+         std::vector<ui32> indexes;
+         for ( ui32 n = 0; n < points.size(); ++n )
+         {
+            if ( points[ n ].position[ 0 ] >= minBoundingBox[ 0 ] &&
+                 points[ n ].position[ 1 ] >= minBoundingBox[ 1 ] &&
+                 points[ n ].position[ 0 ] <= maxBoundingBox[ 0 ] &&
+                 points[ n ].position[ 1 ] <= maxBoundingBox[ 1 ] )
+            {
+               indexes.push_back( n );
+            }
+         }
+
+         const ui32 size = static_cast<ui32>( indexes.size() );
+         algorithm::SpeededUpRobustFeatures::Points trimmedPoints( size );
+         for ( ui32 n = 0; n < size; ++n )
+         {
+            trimmedPoints[ n ] = points[ indexes[ n ] ];
+         }
+
+         return trimmedPoints;
       }
 
 

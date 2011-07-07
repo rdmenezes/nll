@@ -62,10 +62,24 @@ namespace algorithm
       };
 
    public:
+      /**
+       @brief run the registration
+       @param minBoundingBoxSource the min index of the bounding box of the source volume
+       @param maxBoundingBoxSource the max index of the bounding box of the source volume
+       @param minBoundingBoxTarget the min index of the bounding box of the source volume
+       @param maxBoundingBoxTarget the max index of the bounding box of the source volume
+       @param out the registration matrix to register the target, expressed as a source->target transformation
+              (i.e., resampling the <target> with <out> will have the volumes aligned
+       @param exportDebug if true the planes, points and registration matrices will be exported
+       */
       template <class T, class BufferType>
       Result process( const imaging::VolumeSpatial<T, BufferType>& source,
                       const imaging::VolumeSpatial<T, BufferType>& target,
                       Matrix& out,
+                      const core::vector3i& minBoundingBoxSource = core::vector3i(),
+                      const core::vector3i& maxBoundingBoxSource = core::vector3i(),
+                      const core::vector3i& minBoundingBoxTarget = core::vector3i(),
+                      const core::vector3i& maxBoundingBoxTarget = core::vector3i(),
                       bool exportDebug = true )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting CT-CT planar registration..." );
@@ -86,9 +100,12 @@ namespace algorithm
 
          try
          {
-            // computes the registration in YZ plane
+            // computes the registration in YZ plane. We must multiply the bounding box by the spacing as the planes are formed like this...
             Registration2D registrationx;
-            Matrix tfmx = registrationx.compute( pxs, pxt );
+            Matrix tfmx = registrationx.compute( pxs, pxt, core::vector2i( minBoundingBoxSource[ 1 ] * source.getSpacing()[ 1 ], minBoundingBoxSource[ 2 ] * source.getSpacing()[ 2 ] ),
+                                                           core::vector2i( maxBoundingBoxSource[ 1 ] * source.getSpacing()[ 1 ], maxBoundingBoxSource[ 2 ] * source.getSpacing()[ 2 ] ),
+                                                           core::vector2i( minBoundingBoxTarget[ 1 ] * target.getSpacing()[ 1 ], minBoundingBoxTarget[ 2 ] * target.getSpacing()[ 2 ] ),
+                                                           core::vector2i( maxBoundingBoxTarget[ 1 ] * target.getSpacing()[ 1 ], maxBoundingBoxTarget[ 2 ] * target.getSpacing()[ 2 ] ) );
 
             Matrix rotx( 4, 4 );
             rotx( 0, 0 ) = 1;
@@ -120,7 +137,10 @@ namespace algorithm
 
             // // computes the registration in XZ plane
             Registration2D registrationy;
-            Matrix tfmy = registrationy.compute( pys, pyt2 );
+            Matrix tfmy = registrationy.compute( pys, pyt2, core::vector2i( minBoundingBoxSource[ 0 ] * source.getSpacing()[ 0 ], minBoundingBoxSource[ 2 ] * source.getSpacing()[ 2 ] ),
+                                                            core::vector2i( maxBoundingBoxSource[ 0 ] * source.getSpacing()[ 0 ], maxBoundingBoxSource[ 2 ] * source.getSpacing()[ 2 ] ),
+                                                            core::vector2i( minBoundingBoxTarget[ 0 ] * target.getSpacing()[ 0 ], minBoundingBoxTarget[ 2 ] * target.getSpacing()[ 2 ] ),
+                                                            core::vector2i( maxBoundingBoxTarget[ 0 ] * target.getSpacing()[ 0 ], maxBoundingBoxTarget[ 2 ] * target.getSpacing()[ 2 ] ) );
 
             // do some postprocessing...
             Matrix roty( 4, 4 );

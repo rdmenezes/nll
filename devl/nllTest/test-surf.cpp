@@ -814,6 +814,5 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(createPairTruncated);
 //TESTER_TEST(test);
 //TESTER_TEST(testResampling);
- TESTER_TEST(testAffine);
 TESTER_TEST_SUITE_END();
 #endif

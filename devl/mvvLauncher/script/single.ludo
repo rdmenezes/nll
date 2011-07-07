@@ -2,7 +2,7 @@ import "core"
 import "siemens"
 
 include "helper1"
-include "C:/RegTestData/regsRandom3"
+include "C:/RegTestData/regsRandom1"
 
 /**
  @note the following variables must have been defined:
@@ -32,10 +32,23 @@ SegmentToolCentering    toolCentering;
 MipToolPointer          toolPointerMip(17);
 ToolAnnotations         annotations;
 ToolManipulators        manipultors;
+ToolManipulators        manipultors2;
+ToolManipulators        manipultors3;
 ManipulatorPointer      pointer;
+ManipulatorPointer      pointer2;
+ManipulatorPointer      pointer3;
+
+ManipulatorCuboid cuboid2( Vector3f( 0.0, 0.0, 0.0 ), Vector3f( 100.0, 100.0, 100.0 ), Vector3i( 255, 0, 0 ) );
+manipultors2.add( cuboid2 );
+manipultors2.add( pointer2 );
+ManipulatorCuboid cuboid3( Vector3f( 0.0, 0.0, 0.0 ), Vector3f( 100.0, 100.0, 100.0 ), Vector3i( 255, 0, 0 ) );
+manipultors3.add( cuboid3 );
+manipultors3.add( pointer3 );
+
 
 VolumeContainer         volumes;
 VolumeContainer         volumes2;
+VolumeContainer         volumes3;
 
 class PostProcessing
 {
@@ -56,8 +69,21 @@ class PostProcessing
    }
 }
 
-PostProcessing postprocessingAffineIsotropic( "Affine isotropic Transformation" );
-PostProcessing postprocessingAffine( "Full Affine Transformation" );
+PostProcessing postprocessingAffine( "Local Registration - Affine isotropic Transformation" );
+PostProcessing postprocessingSource( "Source Volume bounding box" );
+PostProcessing postprocessingTarget( "Source Volume bounding box" );
+
+Vector3f operator* (Vector3f f, Vector3f v )
+{
+   return Vector3f( f[ 0 ] * v[ 0 ], f[ 1 ] * v[ 1 ], f[ 2 ] * v[ 2 ] );
+}
+
+Vector3i round( Vector3f v )
+{
+   return Vector3i( round( v[ 0 ] ),
+                    round( v[ 1 ] ),
+                    round( v[ 2 ] ) );
+}
 
 class VolumeSwitchReg
 {
@@ -69,19 +95,25 @@ class VolumeSwitchReg
    VolumeID displayed2              = NULL;
    VolumeID preloaded2              = NULL;
    VolumeID resampled               = NULL;
-   VolumeID resampled2              = NULL;
    DisplayRegionDetection detection = NULL;
    VolumeContainer volumes          = NULL;
    VolumeContainer volumes2         = NULL;
+   VolumeContainer volumes3         = NULL;
    string[] list;
 
-   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, VolumeContainer vs2, string[] volumeList )
+   ManipulatorCuboid cuboid2 = NULL;
+   ManipulatorCuboid cuboid3 = NULL;
+
+   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, VolumeContainer vs2, VolumeContainer vs3, string[] volumeList, ManipulatorCuboid cu2, ManipulatorCuboid cu3 )
    {
       lut1 = l1;
       lut2 = l2;
       volumes = vs;
       volumes2 = vs2;
+      volumes3 = vs3;
       list = volumeList;
+      cuboid2 = cu2;
+      cuboid3 = cu3;
 
       preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index + 0 ] );
       preloaded2 = readVolumeMF2Asynchronous( list[ 2 * index + 1 ] );
@@ -91,8 +123,8 @@ class VolumeSwitchReg
    {
       volumes.clear();
       volumes2.clear();
+      volumes3.clear();
       resampled = NULL;
-      resampled2 = NULL;
       displayed1 = preloaded1;
       displayed2 = preloaded2;
 
@@ -104,22 +136,59 @@ class VolumeSwitchReg
       preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index ] );
       preloaded2 = readVolumeMF2Asynchronous( list[ 2 * index + 1 ] );
 
+      // compute the bounding box
+      Volume v2 = displayed1.getVolume();
+      Vector3f size2( v2.getSize()[ 0 ] * v2.getSpacing()[ 0 ],
+                      v2.getSize()[ 1 ] * v2.getSpacing()[ 1 ],
+                      v2.getSize()[ 2 ] * v2.getSpacing()[ 2 ] );
+      cuboid2.setP2( v2.getOrigin() + Vector3f( 0.0, 0.0, 0.2 ) * size2 );
+      cuboid2.setP1( v2.getOrigin() + Vector3f( 1.0, 1.0, 0.8 ) * size2 );
+      Vector3i min2 = round( v2.positionToIndex( cuboid2.getP2() ) );
+      Vector3i max2 = round( v2.positionToIndex( cuboid2.getP1() ) );
 
 
-      AffineRegistration tfm = affineIsotropicPlanarRegistrationCt( displayed1, displayed2 );
-      resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
+      Volume v3 = displayed2.getVolume();
+      Vector3f size3( v3.getSize()[ 0 ] * v3.getSpacing()[ 0 ],
+                      v3.getSize()[ 1 ] * v3.getSpacing()[ 1 ],
+                      v3.getSize()[ 2 ] * v3.getSpacing()[ 2 ] );
+      cuboid3.setP2( v3.getOrigin() + Vector3f( 0.0, 0.0, 0.2 ) * size3 );
+      cuboid3.setP1( v3.getOrigin() + Vector3f( 1.0, 1.0, 0.8 ) * size3 );
+      Vector3i min3 = round( v3.positionToIndex( cuboid3.getP2() ) );
+      Vector3i max3 = round( v3.positionToIndex( cuboid3.getP1() ) );
 
-      AffineRegistration tfm2 = affinePlanarRegistrationCt( displayed1, displayed2 );
-      resampled2 = resampleNearest( displayed2, tfm2, v.getSize(), v.getPst() );
+      register( min2, max2, min3, max3, v, displayed1, displayed2 );
 
-      volumes.add( resampled, lut1, 0.5 );
-      volumes.add( displayed1, lut2, 0.75 );
-
-      volumes2.add( resampled2, lut1, 0.5 );
-      volumes2.add( displayed1, lut2, 0.75 );
+      volumes2.add( displayed1, lut1, 0.5 );
+      volumes3.add( displayed2, lut1, 0.5 );
       
       print("pre-load1 volume:" + list[ 2 * index ] );
       print("pre-load2 volume:" + list[ 2 * index + 1 ] );
+   }
+
+   void register( Vector3i min2, Vector3i max2, Vector3i min3, Vector3i max3, Volume v, VolumeID displayed1, VolumeID displayed2 )
+   {
+      volumes.clear();
+
+      AffineRegistration tfm = affineIsotropicPlanarRegistrationCt( displayed1, displayed2, min2, max2,
+                                                                                            min3, max3 );
+      resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
+
+      volumes.add( resampled, lut1, 0.5 );
+      volumes.add( displayed1, lut2, 0.75 );
+   }
+
+   void registerBoundingBox()
+   {
+      Volume v2 = displayed1.getVolume();
+      Vector3i min2 = round( v2.positionToIndex( cuboid2.getP2() ) );
+      Vector3i max2 = round( v2.positionToIndex( cuboid2.getP1() ) );
+
+
+      Volume v3 = displayed2.getVolume();
+      Vector3i min3 = round( v3.positionToIndex( cuboid3.getP2() ) );
+      Vector3i max3 = round( v3.positionToIndex( cuboid3.getP1() ) );
+
+      register( min2, max2, min3, max3, v2, displayed1, displayed2 );
    }
 }
 
@@ -182,7 +251,7 @@ AnnotationCreator annotationCreator( annotations, pointer );
 KeyboardCallback callbacks;
 
 
-VolumeSwitchReg switch( ctLut1, ctLut2, volumes, volumes2, registrationVolumes );
+VolumeSwitchReg switch( ctLut1, ctLut2, volumes, volumes2, volumes3, registrationVolumes, cuboid2, cuboid3 );
 callbacks.addShortcut( switch.next, "F3" );
 
 InsentisySwitchReg switchIntensity( switch );
@@ -190,6 +259,8 @@ callbacks.addShortcut( switchIntensity.run, "F1" );
 
 LutSwitchReg switchLut( switch );
 callbacks.addShortcut( switchLut.run, "F2" );
+
+callbacks.addShortcut( switch.registerBoundingBox, "F5" );
 
 
 
@@ -210,23 +281,39 @@ Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) 
 segment3.setTool( toolCentering );
 segment3.setTool( manipultors );
 segment3.setTool( annotations );
-segment3.setTool( ToolPostprocessing( postprocessingAffineIsotropic.run ) );
+segment3.setTool( ToolPostprocessing( postprocessingAffine.run ) );
 
-Segment segment4( volumes2, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+Segment segment4( volumes2, Vector3f( 0.25, 0.0, 0.0 ), Vector3f( 0.0, -0.25, 0.0 ) );
 segment4.setTool( toolCentering );
-segment4.setTool( manipultors );
+segment4.setTool( manipultors2 );
 segment4.setTool( annotations );
 
-Segment segment5( volumes2, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+Segment segment5( volumes2, Vector3f( 0.0, 0.25, 0.0 ), Vector3f( 0.0, 0.0, 0.25 ) );
 segment5.setTool( toolCentering );
-segment5.setTool( manipultors );
+segment5.setTool( manipultors2 );
 segment5.setTool( annotations );
 
-Segment segment6( volumes2, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+Segment segment6( volumes2, Vector3f( 0.25, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 0.25 ) );
 segment6.setTool( toolCentering );
-segment6.setTool( manipultors );
+segment6.setTool( manipultors2 );
 segment6.setTool( annotations );
-segment6.setTool( ToolPostprocessing( postprocessingAffine.run ) );
+segment6.setTool( ToolPostprocessing( postprocessingSource.run ) );
+
+Segment segment7( volumes3, Vector3f( 0.25, 0.0, 0.0 ), Vector3f( 0.0, -0.25, 0.0 ) );
+segment7.setTool( toolCentering );
+segment7.setTool( manipultors3 );
+segment7.setTool( annotations );
+
+Segment segment8( volumes3, Vector3f( 0.0, 0.25, 0.0 ), Vector3f( 0.0, 0.0, 0.25 ) );
+segment8.setTool( toolCentering );
+segment8.setTool( manipultors3 );
+segment8.setTool( annotations );
+
+Segment segment9( volumes3, Vector3f( 0.25, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 0.25 ) );
+segment9.setTool( toolCentering );
+segment9.setTool( manipultors3 );
+segment9.setTool( annotations );
+segment9.setTool( ToolPostprocessing( postprocessingTarget.run ) );
 
 
 Layout::Vertical vertical;
@@ -240,15 +327,18 @@ Layout l1a( segment4 );
 Layout l2a( segment5 );
 Layout l3a( segment6 );
 
+Layout l1b( segment7 );
+Layout l2b( segment8 );
+Layout l3b( segment9 );
+
 Layout layoutDisplay1( vertical, Layout(horizontal, l1, l2, 0.51), l3, 0.51 );
-
-
 Layout layoutDisplay2( vertical, Layout(horizontal, l1a, l2a, 0.51), l3a, 0.51 );
+Layout layoutDisplay3( vertical, Layout(horizontal, l1b, l2b, 0.51), l3b, 0.51 );
 
 
-Layout layoutDisplay( horizontal, layoutDisplay1, layoutDisplay2, 0.51);
+Layout layoutDisplay( horizontal, layoutDisplay1, Layout(vertical, layoutDisplay2, layoutDisplay3, 0.51), 0.51);
 
-Layout layout = Layout(vertical, l6, layoutDisplay, 0.05);
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
 
 
 
