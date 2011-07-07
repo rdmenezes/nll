@@ -91,6 +91,8 @@ class VolumeSwitchReg
    {
       volumes.clear();
       volumes2.clear();
+      resampled = NULL;
+      resampled2 = NULL;
       displayed1 = preloaded1;
       displayed2 = preloaded2;
 
@@ -246,7 +248,7 @@ Layout layoutDisplay2( vertical, Layout(horizontal, l1a, l2a, 0.51), l3a, 0.51 )
 
 Layout layoutDisplay( horizontal, layoutDisplay1, layoutDisplay2, 0.51);
 
-Layout layout = Layout(vertical, l6, layoutDisplay, 0.15);
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.05);
 
 
 

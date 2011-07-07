@@ -68,6 +68,9 @@ namespace algorithm
                       Matrix& out,
                       bool exportDebug = true )
       {
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting CT-CT planar registration..." );
+         core::Timer timer;
+
          // save and set the origins to (0, 0, 0)
          // this is to simplify the transformation computations
          _savePst( source, target );
@@ -75,7 +78,6 @@ namespace algorithm
          out = core::identityMatrix<Matrix>( 4 );
 
          // preprocess the volume
-         core::Timer allProcess;
          core::Image<ui8> pxs, pys, pzs;
          core::Image<ui8> pxt, pyt, pzt;
 
@@ -163,9 +165,16 @@ namespace algorithm
 
          } catch(...)
          {
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "too little inliers, registration failed..." );
             // restore the original origins
             _loadPst( source, target );
             return FAILED_TOO_LITTLE_INLIERS;
+         }
+
+         {
+            std::stringstream ss;
+            ss << " registration successful, time=" << timer.getCurrentTime();
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
          // restore the original origins
