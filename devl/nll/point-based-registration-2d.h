@@ -173,6 +173,11 @@ namespace algorithm
             return 2;
          }
 
+         static ui32 minimumNumberOfSubsets()
+         {
+            return 50000;
+         }
+
          struct Model
          {
             Model() : tfm( core::identityMatrix< core::Matrix<double> >( 3 ) )
@@ -306,6 +311,11 @@ namespace algorithm
          static ui32 minimumNumberOfPointsForEstimation()
          {
             return 3;
+         }
+
+         static ui32 minimumNumberOfSubsets()
+         {
+            return 150000;
          }
 
          struct Model
@@ -444,6 +454,18 @@ namespace algorithm
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i() )
       {
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
+         {
+            std::stringstream ss;
+            ss << " source size=" << source.sizex() << " " << source.sizey() << std::endl;
+            ss << " target size=" << target.sizex() << " " << target.sizey() << std::endl;
+            ss << " source bounding box=" << minBoundingBoxSource[ 0 ] << " " << minBoundingBoxSource[ 1 ] << " " << "|| "
+                                          << maxBoundingBoxSource[ 0 ] << " " << maxBoundingBoxSource[ 1 ] << " " << std::endl;
+            ss << " target bounding box=" << minBoundingBoxTarget[ 0 ] << " " << minBoundingBoxTarget[ 1 ] << " " << "|| "
+                                          << maxBoundingBoxTarget[ 0 ] << " " << maxBoundingBoxTarget[ 1 ] << " " << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          nll::core::Timer timer;
          algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
 
@@ -473,7 +495,7 @@ namespace algorithm
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), 50000, 0.01 );
+         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), RansacTransformationEstimator::minimumNumberOfSubsets(), 0.01 );
          if ( ransac.getNbInliers() <= 20 )
          {
             throw std::runtime_error( "Error: inliers are too small" );
@@ -489,6 +511,7 @@ namespace algorithm
             const Point& p2 = points2[ matchesTrimmed[ inlierId ].index2 ];
             _inliers.push_back( std::make_pair( p1, p2 ) );
          }
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "2D registration successful..." );
          return model.tfm;
       }
 

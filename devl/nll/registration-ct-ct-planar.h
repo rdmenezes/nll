@@ -82,8 +82,18 @@ namespace algorithm
                       const core::vector3i& maxBoundingBoxTarget = core::vector3i(),
                       bool exportDebug = true )
       {
+         srand( 0 );   // TODO REMOVE
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting CT-CT planar registration..." );
          core::Timer timer;
+
+         {
+            std::stringstream ss;
+            ss << " source bounding box=" << minBoundingBoxSource[ 0 ] << " " << minBoundingBoxSource[ 1 ] << " " << minBoundingBoxSource[ 2 ] << "|| "
+                                          << maxBoundingBoxSource[ 0 ] << " " << maxBoundingBoxSource[ 1 ] << " " << maxBoundingBoxSource[ 2 ] << std::endl;
+            ss << " target bounding box=" << minBoundingBoxTarget[ 0 ] << " " << minBoundingBoxTarget[ 1 ] << " " << minBoundingBoxTarget[ 2 ] << "|| "
+                                          << maxBoundingBoxTarget[ 0 ] << " " << maxBoundingBoxTarget[ 1 ] << " " << maxBoundingBoxTarget[ 2 ] << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
 
          // save and set the origins to (0, 0, 0)
          // this is to simplify the transformation computations
@@ -193,7 +203,9 @@ namespace algorithm
 
          {
             std::stringstream ss;
-            ss << " registration successful, time=" << timer.getCurrentTime();
+            ss << " registration successful, time=" << timer.getCurrentTime() << std::endl;
+            ss << " final transformation=";
+            out.print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 

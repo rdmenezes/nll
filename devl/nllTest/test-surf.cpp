@@ -757,6 +757,64 @@ public:
       imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", vout );
    }
 
+   void test2()
+   {
+      typedef nll::imaging::VolumeSpatial<float>           Volume;
+
+      const std::string inputDir = "c:/tmp/";
+      const std::string outputDir = "c:/tmp/proj/";
+
+      Volume ct1;
+      Volume ct2;
+      bool loaded = nll::imaging::loadSimpleFlatFile( "\\\\ox4705vc/RegTestData/Random/case1.mf2", ct1 );
+          loaded &= nll::imaging::loadSimpleFlatFile( "\\\\ox4705vc/RegTestData/Random/case13.mf2", ct2 );
+      TESTER_ASSERT( loaded, "cannot load volume" );
+      std::cout << "volumes loaded..." << std::endl;
+
+      typedef algorithm::AffineRegistrationCT3d<algorithm::impl::SurfEstimatorAffineFactory> Registration;
+      //typedef algorithm::AffineRegistrationCT3d<algorithm::impl::SurfEstimatorAffineFactory> Registration;
+      Registration ctRegistration;
+      core::Matrix<double> tfm;
+      core::Timer regTime;
+      Registration::Result r = ctRegistration.process( ct1, ct2, tfm, core::vector3i( -682, -1814, -444 ), core::vector3i( 1423, 2316, 924 ),
+                                                                                             core::vector3i( 0, 0, 81 ), core::vector3i( 512, 512, 323 ) );
+      std::cout << "Registration time=" << regTime.getCurrentTime() << std::endl;
+      if ( r == Registration::SUCCESS )
+      {
+         std::cout << "tfm REG=" << std::endl;
+         tfm.print( std::cout );
+      } else {
+         std::cout << "case error" << std::endl;
+      }
+
+      core::Image<ui8> result;
+      core::extend( ctRegistration.pxSrc, 3 );
+      core::extend( ctRegistration.pxTgt, 3 );
+      composeMatch( ctRegistration.pxSrc, ctRegistration.pxTgt, result, ctRegistration.pxInliers );
+      core::writeBmp( result, "c:/tmp/reg3d-match-px.bmp" );
+
+      core::extend( ctRegistration.pySrc, 3 );
+      core::extend( ctRegistration.pyTgt, 3 );
+      composeMatch( ctRegistration.pySrc, ctRegistration.pyTgt, result, ctRegistration.pyInliers );
+      core::writeBmp( result, "c:/tmp/reg3d-match-py.bmp" );
+
+      displayTransformation( ctRegistration.pxSrc, ctRegistration.pxTgt, result, ctRegistration.pxTfm );
+      core::writeBmp( result, "c:/tmp/reg3d-fused-px.bmp" );
+      displayTransformation( ctRegistration.pySrc, ctRegistration.pyTgt, result, ctRegistration.pyTfm );
+      core::writeBmp( result, "c:/tmp/reg3d-fused-py.bmp" );
+
+      core::writeBmp( ctRegistration.pySrc, "c:/tmp/py-src.bmp" );
+      core::writeBmp( ctRegistration.pxSrc, "c:/tmp/px-src.bmp" );
+
+      core::writeBmp( ctRegistration.pyTgt, "c:/tmp/py-tgt.bmp" );
+      core::writeBmp( ctRegistration.pxTgt, "c:/tmp/px-tgt.bmp" );
+
+      // output resampled volume
+      Volume vout( ct2.size(), ct2.getPst() );
+      imaging::resampleVolumeTrilinear( ct2, vout, tfm  );
+      imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", vout );
+   }
+
    void createPairTruncated()
    {
       const std::string outDir = "c:/VolumePairPart/";
@@ -813,6 +871,7 @@ TESTER_TEST_SUITE(TestSurf);
 //TESTER_TEST(createTfmVolume2);
 //TESTER_TEST(createPairTruncated);
 //TESTER_TEST(test);
+TESTER_TEST(test2);
 //TESTER_TEST(testResampling);
 TESTER_TEST_SUITE_END();
 #endif

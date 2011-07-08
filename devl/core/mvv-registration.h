@@ -34,10 +34,10 @@ public:
       nll::core::vector3i maxTarget;
       nll::core::vector3i minSource;
       nll::core::vector3i maxSource;
-      getVector3iValues( v3, minTarget );
-      getVector3iValues( v4, maxTarget );
-      getVector3iValues( v5, minSource );
-      getVector3iValues( v6, maxSource );
+      getVector3iValues( v3, minSource );
+      getVector3iValues( v4, maxSource );
+      getVector3iValues( v5, minTarget );
+      getVector3iValues( v6, maxTarget );
 
       if ( v1.type != RuntimeValue::TYPE || (*v1.vals).size() != 1 || (*v1.vals)[ 0 ].type != RuntimeValue::STRING )
       {
