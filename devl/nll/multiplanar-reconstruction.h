@@ -94,25 +94,9 @@ namespace imaging
        */
       void getSlice( Slice& slice, const TransformationAffine& tfm2 ) const
       {
-         // transform source->target to a target->source matrix
-         Transformation::Matrix tfmI;
-         tfmI.clone( tfm2.getAffineMatrix() );
-         core::inverse( tfmI );
-         tfmI( 0, 3 ) = - tfm2.getAffineMatrix()( 0, 3 );
-         tfmI( 1, 3 ) = - tfm2.getAffineMatrix()( 1, 3 );
-         tfmI( 2, 3 ) = - tfm2.getAffineMatrix()( 2, 3 );
-
-         // invert the rotational part of the transformation
-         assert( slice.getSpacing()[ 0 ] > 0 && slice.getSpacing()[ 1 ] > 0 );
-         Transformation::Matrix tfmRotInv;
-         tfmRotInv.clone( tfmI );
-         core::inverse( tfmRotInv );
-
-         core::VolumeGeometry geometry( _volume.getPst(), tfmI );
-         core::VolumeGeometry geometry2( _volume.getPst(), tfmRotInv );
-
-         // compute the slopes. First rotate the vectors so we are in the same coordinate system
-         Transformation::Matrix transformation = geometry2.getPst();
+         // compute the rotational part of the transformation
+         Transformation::Matrix transformation = tfm2.getInvertedAffineMatrix() * _volume.getPst();
+         core::inverse( transformation );
 
          core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
@@ -126,24 +110,29 @@ namespace imaging
          dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
          dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
 
-         core::vector3f index = geometry.positionToIndex( slice.getOrigin() );
-         //std::cout << "orig=" << slice.getOrigin() << " index=" << index << std::endl;
-         /*
-         core::vector3f t r( tfm.getAffineMatrix()( 0, 3 ) ,
-                            tfm.getAffineMatrix()( 1, 3 ),
-                            tfm.getAffineMatrix()( 2, 3 ) );.
+         // compute the origin
+         // compute the target origin with the tfm applied
+         core::Matrix<float> targetOriginTfm;
+         targetOriginTfm.clone( tfm2.getAffineMatrix() );
+         core::inverse( targetOriginTfm );
+         targetOriginTfm = targetOriginTfm * _volume.getPst();
+         core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
 
-         Transformation::Matrix tfmRot;
-         tfmRot.clone( tfm.getAffineMatrix() );
-         tfmRot( 0, 3 ) = 0;
-         tfmRot( 1, 3 ) = 0;
-         tfmRot( 2, 3 ) = 0;
+         // create the transformation representing this displacement and compute the source origin in this
+         // coordinate system
+         core::Matrix<float> g( 4, 4 );
+         for ( ui32 y = 0; y < 3; ++y )
+            for ( ui32 x = 0; x < 3; ++x )
+               g( y, x ) = targetOriginTfm(y, x);
+         g( 3, 3 ) = 1;
+         g( 0, 3 ) = targetOrigin2[ 0 ];
+         g( 1, 3 ) = targetOrigin2[ 1 ];
+         g( 2, 3 ) = targetOrigin2[ 2 ];
+
+         core::VolumeGeometry geom2( g );
+         core::vector3f index = geom2.positionToIndex( slice.getOrigin() );
+
          
-
-         core::vector3f index = transf4( tfmRot * _volume.getInvertedPst(), slice.getOrigin() ) + 
-                                transf4( tfmRot, core::vector3f( _volume.positionToIndex( tr ) - _volume.positionToIndex( core::vector3f( 0, 0, 0 ) ) ) );
-                                */
-
          float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
          float startz = ( index[ 2 ] - ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );

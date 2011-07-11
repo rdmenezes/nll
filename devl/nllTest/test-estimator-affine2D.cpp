@@ -39,7 +39,7 @@ public:
             points2.push_back( core::vector2d( ptfm[ 0 ], ptfm[ 1 ] ) );
          }
 
-         EstimatorTransformAffine2D estimator;
+         EstimatorTransformAffineIsometric estimator;
          core::Matrix<double> tfm = estimator.compute( points1, points2 );
 
          for ( ui32 n = 0; n < tfm.size(); ++n )

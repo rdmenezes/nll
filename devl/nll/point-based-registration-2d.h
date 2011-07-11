@@ -203,7 +203,7 @@ namespace algorithm
             PointsWrapper1<Points> wrapperP1( _p1, points );
             PointsWrapper2<Points> wrapperP2( _p2, points );
             
-            EstimatorTransformAffine2D affineEstimator( _scale, _minimumScale, _maximumScale );
+            EstimatorTransformAffineIsometric affineEstimator( _scale, _minimumScale, _maximumScale );
             _model.tfm = affineEstimator.compute( wrapperP1, wrapperP2 );
          }
 
