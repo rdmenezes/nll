@@ -148,7 +148,7 @@ public:
 
    void testResamplingRot()
    {
-      /*
+      
       // TEST: results not as expected, but checked with matlab -> this is what is expected
       const core::vector3f origingResampled( -5, -5, 0 );
       const core::vector3f origing( 3, 1, 0 );
@@ -162,20 +162,19 @@ public:
 
       imaging::TransformationAffine tfm( tfmMat );
 
-      // expected: the vol is rotated on the origin (0, 0, 0) then translated by (-2, -4, 0)
+      // expected: the coordinate system is rotated first by the PST. Within this coodinate sytem, do the TFM
       fillVolume( vol );
       resampleVolumeNearestNeighbour( vol, resampled, tfm );
 
       print( resampled );
 
 
-      TESTER_ASSERT( resampled( 2, 4, 0 ) == 1 );
-      TESTER_ASSERT( resampled( 2, 5, 0 ) == 2 );
-      TESTER_ASSERT( resampled( 2, 6, 0 ) == 3 );
-      TESTER_ASSERT( resampled( 1, 4, 0 ) == 6 );
-      TESTER_ASSERT( resampled( 1, 5, 0 ) == 7 );
-      TESTER_ASSERT( resampled( 1, 6, 0 ) == 8 );
-      */
+      TESTER_ASSERT( resampled( 8, 6, 0 ) == 1 );
+      TESTER_ASSERT( resampled( 8, 7, 0 ) == 2 );
+      TESTER_ASSERT( resampled( 8, 8, 0 ) == 3 );
+      TESTER_ASSERT( resampled( 7, 6, 0 ) == 6 );
+      TESTER_ASSERT( resampled( 7, 7, 0 ) == 7 );
+      TESTER_ASSERT( resampled( 7, 8, 0 ) == 8 );
    }
 };
 

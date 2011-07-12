@@ -36,14 +36,6 @@ namespace nll
 {
 namespace imaging
 {
-   inline void invertSpecial( core::Matrix<float>& tfm4x4 )
-   {
-      core::inverse3x3M4( tfm4x4 );
-      tfm4x4( 0, 3 ) = - tfm4x4( 0, 3 );
-      tfm4x4( 1, 3 ) = - tfm4x4( 1, 3 );
-      tfm4x4( 2, 3 ) = - tfm4x4( 2, 3 );
-   }
-
    /**
     @ingroup imaging
     @brief Resample a target volume to an arbitrary source geometry

@@ -112,18 +112,15 @@ namespace imaging
 
          // compute the origin
          // compute the target origin with the tfm applied
-         core::Matrix<float> targetOriginTfm;
-         targetOriginTfm.clone( tfm2.getAffineMatrix() );
-         core::inverse( targetOriginTfm );
-         targetOriginTfm = targetOriginTfm * _volume.getPst();
-         core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
+         core::Matrix<float> volumeToWorld = tfm2.getInvertedAffineMatrix() * _volume.getPst();
+         core::vector3f targetOrigin2 = transf4( volumeToWorld, core::vector3f( 0, 0, 0 ) );
 
          // create the transformation representing this displacement and compute the source origin in this
          // coordinate system
          core::Matrix<float> g( 4, 4 );
          for ( ui32 y = 0; y < 3; ++y )
             for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = targetOriginTfm(y, x);
+               g( y, x ) = volumeToWorld(y, x);
          g( 3, 3 ) = 1;
          g( 0, 3 ) = targetOrigin2[ 0 ];
          g( 1, 3 ) = targetOrigin2[ 1 ];

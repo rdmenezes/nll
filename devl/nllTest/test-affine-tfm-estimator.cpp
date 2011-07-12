@@ -136,8 +136,8 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestAffineTransformationEstimator);
-//TESTER_TEST(testAffineIsotropic2D);
-//TESTER_TEST(testAffineIsotropic3D);
+TESTER_TEST(testAffineIsotropic2D);
+TESTER_TEST(testAffineIsotropic3D);
 TESTER_TEST(testAffineAnisotropic2D);
 TESTER_TEST_SUITE_END();
 #endif
