@@ -138,6 +138,24 @@ namespace core
    }
 
    /**
+    @brief Assuming a 4x4 transformation matrix defined as
+                 | sx   0  0 |
+           Tfm = | 0 sy 0  0 |
+                 | 0 0  sz 0 |
+                 | 0 0  0  1 |
+           Returns an homogeneous 4x4 matrix with only the T part
+    */
+   template <class type>
+   Matrix<type> createScaling4x4( const StaticVector<type, 3>& scaling )
+   {
+      Matrix<type> rot = identityMatrix< Matrix<type> >( 4 );
+      rot( 0, 0 ) = scaling[ 0 ];
+      rot( 1, 1 ) = scaling[ 1 ];
+      rot( 2, 2 ) = scaling[ 2 ];
+      return rot;
+   }
+
+   /**
     @brief Returns the spacing of a 4x4 homogeneous transformation matrix
     */
    template <class type, class mapper, class allocator>

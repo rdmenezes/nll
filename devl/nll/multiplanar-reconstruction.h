@@ -92,35 +92,51 @@ namespace imaging
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
              source->target.
        */
-      void getSlice( Slice& slice, const TransformationAffine& tfm2 ) const
+      void getSlice( Slice& slice, const TransformationAffine& tfm2, bool isSliceCenter = true ) const
       {
+         const double isCenter = isSliceCenter ? 1 : 0;
+
          // compute the rotational part of the transformation
-         Transformation::Matrix transformation = tfm2.getInvertedAffineMatrix() * _volume.getPst();
-         core::inverse( transformation );
+         // we only want the rotation else the spacing will cause problems as we set it up independently
+         Transformation::Matrix transformationRot = ( tfm2.getInvertedAffineMatrix() * _volume.getPst() );
+         const core::vector3f spacingTfm = core::getSpacing4x4( transformationRot );
 
-         core::vector3f dx = core::mul4Rot( transformation, slice.getAxisX() );
+         core::inverse( transformationRot );
+
+         std::cout << "ROT=" << std::endl;
+         transformationRot.print( std::cout );
+
+         core::vector3f dx = core::mul4Rot( transformationRot, slice.getAxisX() );
+         std::cout << "dx before=" << dx;
          const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
-         dx[ 0 ] = dx[ 0 ] / ( c1 * _volume.getSpacing()[ 0 ] );
-         dx[ 1 ] = dx[ 1 ] / ( c1 * _volume.getSpacing()[ 1 ] );
-         dx[ 2 ] = dx[ 2 ] / ( c1 * _volume.getSpacing()[ 2 ] );
+         dx[ 0 ] = dx[ 0 ] / ( c1 * spacingTfm[ 0 ] );
+         dx[ 1 ] = dx[ 1 ] / ( c1 * spacingTfm[ 1 ] );
+         dx[ 2 ] = dx[ 2 ] / ( c1 * spacingTfm[ 2 ] );
 
-         core::vector3f dy = core::mul4Rot( transformation, slice.getAxisY() );
+         core::vector3f dy = core::mul4Rot( transformationRot, slice.getAxisY() );
+         std::cout << "dy before=" << dy;
          const float c2 = (float)dy.norm2() / slice.getSpacing()[ 1 ];
-         dy[ 0 ] = dy[ 0 ] / ( c2 * _volume.getSpacing()[ 0 ] );
-         dy[ 1 ] = dy[ 1 ] / ( c2 * _volume.getSpacing()[ 1 ] );
-         dy[ 2 ] = dy[ 2 ] / ( c2 * _volume.getSpacing()[ 2 ] );
+         dy[ 0 ] = dy[ 0 ] / ( c2 * spacingTfm[ 0 ] );
+         dy[ 1 ] = dy[ 1 ] / ( c2 * spacingTfm[ 1 ] );
+         dy[ 2 ] = dy[ 2 ] / ( c2 * spacingTfm[ 2 ] );
+
+         std::cout << "slice spacing=" << slice.getSpacing()[ 0 ] << " " << slice.getSpacing()[ 1 ] << std::endl;
+         transformationRot.print( std::cout );
+         std::cout << dx << dy;
 
          // compute the origin
          // compute the target origin with the tfm applied
          core::Matrix<float> volumeToWorld = tfm2.getInvertedAffineMatrix() * _volume.getPst();
          core::vector3f targetOrigin2 = transf4( volumeToWorld, core::vector3f( 0, 0, 0 ) );
 
+         std::cout << "origin=" << targetOrigin2;
+
          // create the transformation representing this displacement and compute the source origin in this
          // coordinate system
          core::Matrix<float> g( 4, 4 );
          for ( ui32 y = 0; y < 3; ++y )
             for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = volumeToWorld(y, x);
+               g( y, x ) = /*getRotation4x4*/( volumeToWorld )(y, x);
          g( 3, 3 ) = 1;
          g( 0, 3 ) = targetOrigin2[ 0 ];
          g( 1, 3 ) = targetOrigin2[ 1 ];
@@ -130,9 +146,9 @@ namespace imaging
          core::vector3f index = geom2.positionToIndex( slice.getOrigin() );
 
          
-         float startx = ( index[ 0 ] - ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
-         float starty = ( index[ 1 ] - ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
-         float startz = ( index[ 2 ] - ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
+         float startx = ( index[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
+         float starty = ( index[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
+         float startz = ( index[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
 
          // set up the interpolator
          // if SSE is not supported, use the default interpolator

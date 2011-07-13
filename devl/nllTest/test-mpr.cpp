@@ -147,7 +147,6 @@ public:
       const core::vector3f origingResampled( 10, 15, 0 );
       const core::vector3f origing( 13, 16, 0 );
       const core::vector3f tfmMat( 2, 3, 0 );
-      Volume resampled(  core::vector3ui( 10, 10, 10 ), core::createTranslation4x4( origingResampled ) );
       Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
 
       imaging::TransformationAffine tfm( core::createTranslation4x4( tfmMat ) );
@@ -213,15 +212,81 @@ public:
       TESTER_ASSERT( slice( 6, 9, 0 )  == 7 );
       TESTER_ASSERT( slice( 6, 10, 0 ) == 8 );
    }
-   
+
+   void testMPRSpacing()
+   {
+      const core::vector3f origingResampled( 0, 0, 0 );
+      const core::vector3f origing( 1, 1, 0 );
+      const core::vector3f spacing( 2, 2, 2 );
+      Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
+
+      imaging::TransformationAffine tfm( core::createScaling4x4( spacing ) );
+
+      // expected: vol is shifted on by (-2,-3): as tfm is defined from source->target,
+      // but we are displaying the target, meaning we inverse the tfm to have the target->source
+      Mpr::Slice slice( nll::core::vector3ui( 12, 12, 1 ),
+                        nll::core::vector3f( 1, 0, 0 ),
+                        nll::core::vector3f( 0, 1, 0 ),
+                        origingResampled,
+                        nll::core::vector2f( 0.99, 0.99 ) );
+
+
+      fillVolume( vol );
+      Mpr mpr( vol );
+      mpr.getSlice( slice, tfm, false );
+      print( slice );
+
+      TESTER_ASSERT( slice( 7, 4, 0 )  == 1 );
+      TESTER_ASSERT( slice( 8, 4, 0 )  == 2 );
+      TESTER_ASSERT( slice( 9, 4, 0 )  == 3 );
+      TESTER_ASSERT( slice( 7, 5, 0 )  == 6 );
+      TESTER_ASSERT( slice( 8, 5, 0 )  == 7 );
+      TESTER_ASSERT( slice( 9, 5, 0 )  == 8 );
+   }
+  
+   /*
+   void test()
+   {
+      // TEST: results not as expected, but checked with matlab -> this is what is expected
+      const core::vector3f origingResampled( -0, -0, 0 );
+      const core::vector3f origing( 3, 1, 0 );
+      const core::vector3f tfmTrans( 1 *1 , 2 *1, 0 );
+      Volume resampled(  core::vector3ui( 10, 10, 10 ), core::createTranslation4x4( origingResampled ) );
+      Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
+
+      core::Matrix<float> tfmMat( 4, 4 );
+      core::matrix4x4RotationZ( tfmMat, -core::PIf / 2 *1  );
+      tfmMat = core::createTranslation4x4( tfmTrans ) * tfmMat;
+
+      imaging::TransformationAffine tfm( tfmMat );
+
+      tfm.getAffineMatrix().print( std::cout );
+
+      // expected: rotate the volume on the world origin (0, 0, 0) to the left
+      // translate by (1,-2) due to the translation of the: as it is defined source->target, we need to invert it
+      // tfm = T * R, tfm^-1 = R^-1 * T^-1 => now the translation is rotated by the rotational part of tfm
+      Mpr::Slice slice( nll::core::vector3ui( 12, 12, 1 ),
+                  nll::core::vector3f( 1, 0, 0 ),
+                  nll::core::vector3f( 0, 1, 0 ),
+                  origingResampled,
+                  nll::core::vector2f( 1, 1 ) );
+      fillVolume( vol );
+      Mpr mpr( vol );
+      mpr.getSlice( slice, tfm, false );
+      print( slice );
+
+   }*/
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestMPR);
+/*
 TESTER_TEST( testMPROriginNoTfm );
 TESTER_TEST( testMPRRotPstVol );
 TESTER_TEST( testMPRRotPstResampled );
 TESTER_TEST( testMPRTrans );
 TESTER_TEST( testMPRRot );
+*/
+TESTER_TEST( testMPRSpacing );
 TESTER_TEST_SUITE_END();
 #endif
