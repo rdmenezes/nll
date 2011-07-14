@@ -98,8 +98,15 @@ namespace imaging
 
          // compute the rotational part of the transformation
          // we only want the rotation else the spacing will cause problems as we set it up independently
+         Transformation::Matrix t = core::createTranslation4x4( core::vector3f( _volume.getPst()( 0, 3 ),
+                                                                                _volume.getPst()( 1, 3 ),
+                                                                                _volume.getPst()( 2, 3 ) ) );
+         Transformation::Matrix ti = core::createTranslation4x4( core::vector3f( - _volume.getPst()( 0, 3 ),
+                                                                                 - _volume.getPst()( 1, 3 ),
+                                                                                 - _volume.getPst()( 2, 3 ) ) );
+
          Transformation::Matrix transformationRot = ( tfm2.getInvertedAffineMatrix() * _volume.getPst() );
-         const core::vector3f spacingTfm = core::getSpacing4x4( transformationRot );
+         core::vector3f spacingTfm = core::getSpacing4x4( transformationRot );
 
          core::inverse( transformationRot );
 
@@ -107,18 +114,19 @@ namespace imaging
          transformationRot.print( std::cout );
 
          core::vector3f dx = core::mul4Rot( transformationRot, slice.getAxisX() );
+         spacingTfm = core::mul4Rot( transformationRot, spacingTfm );
          std::cout << "dx before=" << dx;
-         const float c1 = (float)dx.norm2() / slice.getSpacing()[ 0 ];
-         dx[ 0 ] = dx[ 0 ] / ( c1 * spacingTfm[ 0 ] );
-         dx[ 1 ] = dx[ 1 ] / ( c1 * spacingTfm[ 1 ] );
-         dx[ 2 ] = dx[ 2 ] / ( c1 * spacingTfm[ 2 ] );
+         const float c1 = (float)/* dx.norm2() / */ slice.getSpacing()[ 0 ];
+         dx[ 0 ] = dx[ 0 ] / ( c1 /** spacingTfm[ 0 ] */);
+         dx[ 1 ] = dx[ 1 ] / ( c1 /** spacingTfm[ 1 ] */);
+         dx[ 2 ] = dx[ 2 ] / ( c1 /** spacingTfm[ 2 ] */);
 
          core::vector3f dy = core::mul4Rot( transformationRot, slice.getAxisY() );
          std::cout << "dy before=" << dy;
-         const float c2 = (float)dy.norm2() / slice.getSpacing()[ 1 ];
-         dy[ 0 ] = dy[ 0 ] / ( c2 * spacingTfm[ 0 ] );
-         dy[ 1 ] = dy[ 1 ] / ( c2 * spacingTfm[ 1 ] );
-         dy[ 2 ] = dy[ 2 ] / ( c2 * spacingTfm[ 2 ] );
+         const float c2 = (float)/* dy.norm2() / */ slice.getSpacing()[ 1 ];
+         dy[ 0 ] = dy[ 0 ] / ( c2 /* * spacingTfm[ 0 ] */ );
+         dy[ 1 ] = dy[ 1 ] / ( c2 /* * spacingTfm[ 1 ] */ );
+         dy[ 2 ] = dy[ 2 ] / ( c2 /* * spacingTfm[ 2 ] */ );
 
          std::cout << "slice spacing=" << slice.getSpacing()[ 0 ] << " " << slice.getSpacing()[ 1 ] << std::endl;
          transformationRot.print( std::cout );

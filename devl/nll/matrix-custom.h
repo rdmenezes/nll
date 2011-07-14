@@ -247,7 +247,7 @@ namespace core
       m( 3, 3 ) = 1;
    }
 
-   /**
+      /**
     @ingroup core
     @brief Create a rotation matrix on the y-axis
     @note the matrix is directly modified!
@@ -263,6 +263,27 @@ namespace core
       m( 2, 2 ) = cos( angleRadian );
       m( 1, 1 ) = 1;
       m( 3, 3 ) = 1;
+   }
+
+   inline core::Matrix<float> getRotation4Zf( float angleRadian )
+   {
+      core::Matrix<float> m = identityMatrix< core::Matrix<float> >( 4 );
+      matrix4x4RotationZ( m, angleRadian );
+      return m;
+   }
+
+   inline core::Matrix<float> getRotation4Yf( float angleRadian )
+   {
+      core::Matrix<float> m = identityMatrix< core::Matrix<float> >( 4 );
+      matrix4x4RotationY( m, angleRadian );
+      return m;
+   }
+
+   inline core::Matrix<float> getRotation4Xf( float angleRadian )
+   {
+      core::Matrix<float> m = identityMatrix< core::Matrix<float> >( 4 );
+      matrix4x4RotationX( m, angleRadian );
+      return m;
    }
 }
 }
