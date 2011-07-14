@@ -96,64 +96,43 @@ namespace imaging
       {
          const double isCenter = isSliceCenter ? 1 : 0;
 
-         // compute the rotational part of the transformation
-         // we only want the rotation else the spacing will cause problems as we set it up independently
-         Transformation::Matrix t = core::createTranslation4x4( core::vector3f( _volume.getPst()( 0, 3 ),
-                                                                                _volume.getPst()( 1, 3 ),
-                                                                                _volume.getPst()( 2, 3 ) ) );
-         Transformation::Matrix ti = core::createTranslation4x4( core::vector3f( - _volume.getPst()( 0, 3 ),
-                                                                                 - _volume.getPst()( 1, 3 ),
-                                                                                 - _volume.getPst()( 2, 3 ) ) );
-
+         // compute the rotation & scaling of the transformation tfm( pst( volume ) )
+         // we inverse the resulting transformation: we actually fit the axis on the transformed volume!
          Transformation::Matrix transformationRot = ( tfm2.getInvertedAffineMatrix() * _volume.getPst() );
-         core::vector3f spacingTfm = core::getSpacing4x4( transformationRot );
-
          core::inverse( transformationRot );
 
-         std::cout << "ROT=" << std::endl;
-         transformationRot.print( std::cout );
-
+         // rotate & scale the axis of the MPR
          core::vector3f dx = core::mul4Rot( transformationRot, slice.getAxisX() );
-         spacingTfm = core::mul4Rot( transformationRot, spacingTfm );
-         std::cout << "dx before=" << dx;
-         const float c1 = (float)/* dx.norm2() / */ slice.getSpacing()[ 0 ];
-         dx[ 0 ] = dx[ 0 ] / ( c1 /** spacingTfm[ 0 ] */);
-         dx[ 1 ] = dx[ 1 ] / ( c1 /** spacingTfm[ 1 ] */);
-         dx[ 2 ] = dx[ 2 ] / ( c1 /** spacingTfm[ 2 ] */);
+         dx[ 0 ] = dx[ 0 ] * slice.getSpacing()[ 0 ];
+         dx[ 1 ] = dx[ 1 ] * slice.getSpacing()[ 0 ];
+         dx[ 2 ] = dx[ 2 ] * slice.getSpacing()[ 0 ];
 
          core::vector3f dy = core::mul4Rot( transformationRot, slice.getAxisY() );
-         std::cout << "dy before=" << dy;
-         const float c2 = (float)/* dy.norm2() / */ slice.getSpacing()[ 1 ];
-         dy[ 0 ] = dy[ 0 ] / ( c2 /* * spacingTfm[ 0 ] */ );
-         dy[ 1 ] = dy[ 1 ] / ( c2 /* * spacingTfm[ 1 ] */ );
-         dy[ 2 ] = dy[ 2 ] / ( c2 /* * spacingTfm[ 2 ] */ );
+         dy[ 0 ] = dy[ 0 ] * slice.getSpacing()[ 1 ];
+         dy[ 1 ] = dy[ 1 ] * slice.getSpacing()[ 1 ];
+         dy[ 2 ] = dy[ 2 ] * slice.getSpacing()[ 1 ];
 
-         std::cout << "slice spacing=" << slice.getSpacing()[ 0 ] << " " << slice.getSpacing()[ 1 ] << std::endl;
-         transformationRot.print( std::cout );
-         std::cout << dx << dy;
-
-         // compute the origin
-         // compute the target origin with the tfm applied
+         // compute the origin target within this transormation to build
+         // a geometric space of the transformed volume
          core::Matrix<float> volumeToWorld = tfm2.getInvertedAffineMatrix() * _volume.getPst();
-         core::vector3f targetOrigin2 = transf4( volumeToWorld, core::vector3f( 0, 0, 0 ) );
-
-         std::cout << "origin=" << targetOrigin2;
+         core::vector3f targetOrigin = transf4( volumeToWorld, core::vector3f( 0, 0, 0 ) );
 
          // create the transformation representing this displacement and compute the source origin in this
          // coordinate system
          core::Matrix<float> g( 4, 4 );
          for ( ui32 y = 0; y < 3; ++y )
             for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = /*getRotation4x4*/( volumeToWorld )(y, x);
+               g( y, x ) = volumeToWorld(y, x);
          g( 3, 3 ) = 1;
-         g( 0, 3 ) = targetOrigin2[ 0 ];
-         g( 1, 3 ) = targetOrigin2[ 1 ];
-         g( 2, 3 ) = targetOrigin2[ 2 ];
+         g( 0, 3 ) = targetOrigin[ 0 ];
+         g( 1, 3 ) = targetOrigin[ 1 ];
+         g( 2, 3 ) = targetOrigin[ 2 ];
 
+         // compute the origin of the slice within the geometric space of the transformed volume
          core::VolumeGeometry geom2( g );
          core::vector3f index = geom2.positionToIndex( slice.getOrigin() );
 
-         
+         // if isCenter == true, the slice geometric space (0,0) is the center and not the bottom left point of the slice
          float startx = ( index[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
          float starty = ( index[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
          float startz = ( index[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
