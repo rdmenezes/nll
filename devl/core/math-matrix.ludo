@@ -264,8 +264,8 @@ class Matrix4f
 Matrix4f createRotationX( float angle)
 {
    return Matrix4f( 1.0, 0.0         , 0.0         , 0.0,
-                    0.0, cos( angle ), sin( angle ), 0.0,
-                    0.0, -sin( angle), cos( angle ), 0.0,
+                    0.0, cos( angle ), -sin( angle ), 0.0,
+                    0.0, sin( angle), cos( angle ), 0.0,
                     0.0, 0.0         , 0.0         , 1.0 );
 }
 
@@ -289,8 +289,8 @@ Matrix4f createRotationY( float angle)
  */
 Matrix4f createRotationZ( float angle)
 {
-   return Matrix4f( cos( angle ), sin( angle ), 0.0, 0.0,
-                    -sin( angle), cos( angle ), 0.0, 0.0,
+   return Matrix4f( cos( angle ), -sin( angle ), 0.0, 0.0,
+                    sin( angle), cos( angle ), 0.0, 0.0,
                     0.0         , 0.0         , 1.0, 0.0,
                     0.0         , 0.0         , 0.0, 1.0 );
 }
