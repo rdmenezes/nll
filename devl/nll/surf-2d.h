@@ -177,15 +177,16 @@ namespace algorithm
 
       /**
        @brief Compute the SURF features given a user supplied list of points
+       @note features and orientation will be assigned for each point
        */
       template <class T, class Mapper, class Alloc>
-      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, const Points& points )
+      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, Points& points )
       {
          IntegralImage integral;
          integral.process( i );
 
          _computeAngle( integral, points );
-         _computeFeatures( pyramid.getIntegralImage(), points );
+         _computeFeatures( integral, points );
          return points;
       }
 

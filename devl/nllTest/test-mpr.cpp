@@ -251,18 +251,16 @@ public:
       TESTER_ASSERT( slice( 8, 4, 0 )  == 8 );
    }
 
-   /*
+   
    void testMPRSpacingRot()
    {
-      const core::vector3f origingResampled( -1, -1, 0 );
+      const core::vector3f origingResampled( -8, -5, 0 );
       const core::vector3f origing( 1, 2, 0 );
       const core::vector3f spacing( 0.5, 1, 1 );
       Volume vol( core::vector3ui( 5, 5, 5 ), core::createTranslation4x4( origing ) );
 
-      imaging::TransformationAffine tfm( core::createScaling4x4( spacing ) );
+      imaging::TransformationAffine tfm( core::createScaling4x4( spacing ) * core::getRotation4Zf( -core::PI / 2 ) );
 
-      // expected: origin in X is multiplied by two, size x too, finally with slice origin, shifted by (1,1,0)
-      // but we are displaying the target, meaning we inverse the tfm to have the target->source, this is why scaling = 2
       Mpr::Slice slice( nll::core::vector3ui( 12, 12, 1 ),
                         nll::core::vector3f( 1, 0, 0 ),
                         nll::core::vector3f( 0, 1, 0 ),
@@ -275,20 +273,18 @@ public:
       mpr.getSlice( slice, tfm, false );
       print( slice );
 
-      TESTER_ASSERT( slice( 3, 3, 0 )  == 1 );
-      TESTER_ASSERT( slice( 4, 3, 0 )  == 1 );
-      TESTER_ASSERT( slice( 5, 3, 0 )  == 2 );
-      TESTER_ASSERT( slice( 6, 3, 0 )  == 2 );
-      TESTER_ASSERT( slice( 7, 3, 0 )  == 3 );
-      TESTER_ASSERT( slice( 8, 3, 0 )  == 3 );
+      TESTER_ASSERT( slice( 6, 7, 0 )  == 1 );
+      TESTER_ASSERT( slice( 6, 8, 0 )  == 1 );
+      TESTER_ASSERT( slice( 6, 9, 0 )  == 2 );
+      TESTER_ASSERT( slice( 6, 10, 0 )  == 2 );
+      TESTER_ASSERT( slice( 6, 11, 0 )  == 3 );
 
-      TESTER_ASSERT( slice( 3, 4, 0 )  == 6 );
-      TESTER_ASSERT( slice( 4, 4, 0 )  == 6 );
-      TESTER_ASSERT( slice( 5, 4, 0 )  == 7 );
-      TESTER_ASSERT( slice( 6, 4, 0 )  == 7 );
-      TESTER_ASSERT( slice( 7, 4, 0 )  == 8 );
-      TESTER_ASSERT( slice( 8, 4, 0 )  == 8 );
-   }*/
+      TESTER_ASSERT( slice( 5, 7, 0 )  == 6 );
+      TESTER_ASSERT( slice( 5, 8, 0 )  == 6 );
+      TESTER_ASSERT( slice( 5, 9, 0 )  == 7 );
+      TESTER_ASSERT( slice( 5, 10, 0 )  == 7 );
+      TESTER_ASSERT( slice( 5, 11, 0 )  == 8 );
+   }
   
    imaging::Slice<ui8> getSlice( const Volume& volume, const imaging::TransformationAffine& tfm, const core::vector3f& origin  )
    {
@@ -303,7 +299,6 @@ public:
       Mpr mpr( volume );
       mpr.getSlice( slice, tfm, true );
       
-      //imaging::LookUpTransformWindowingRGB lut( 0, 10000, 255 );
       imaging::LookUpTransformWindowingRGB lut( -250, 250, 255 );
       lut.createGreyscale();
 
@@ -319,57 +314,52 @@ public:
       return sliceRgb;
    }
    
+   // the test must display the same thing (except with boundary cropping/NN artifacts due to the resampled volume)
    void testComparison()
    {
       typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
       typedef nll::imaging::Slice<Volume::value_type>       Slice;
       typedef core::Matrix<float>                           Matrix;
 
-      
-      const std::string volname = "c:/tmp/v2.mf2";
-      //const std::string volname = NLL_TEST_PATH "data/medical/CT.mf2";
+      const std::string volname = NLL_TEST_PATH "data/medical/CT.mf2";
       Volume volume;
       bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
       TESTER_ASSERT( loaded );
 
-      //volume.setOrigin( core::vector3f( 0, 0, 0 ) );
-      //volume.setSpacing( core::vector3f( 1, 0.5, 1 ) );
       
-          core::vector3f center = volume.indexToPosition( core::vector3f( volume.getSize()[ 0 ] / 2,
-                                                                            volume.getSize()[ 1 ] / 2,
-                                                                            volume.getSize()[ 2 ] / 2 ) );
+      core::vector3f center = volume.indexToPosition( core::vector3f( volume.getSize()[ 0 ] / 2,
+                                                                      volume.getSize()[ 1 ] / 2,
+                                                                      volume.getSize()[ 2 ] / 2 ) );
 
-      //const core::vector3f center = volume.indexToPosition( core::vector3f( 0, 0, 0 ) );
 
-      const core::vector3f spacing( 1, 1, 1 );
-      imaging::TransformationAffine tfm( core::createScaling4x4( spacing ) * core::getRotation4Zf( -0.1 ) );
+      const core::vector3f spacing( 1.1, 0.9, 0.95 );
+      imaging::TransformationAffine tfm( core::createTranslation4x4( core::vector3f( 10, -5, 20 ) ) * core::createScaling4x4( spacing ) * core::getRotation4Zf( -0.1 ) * core::getRotation4Yf( -0.05 ) * core::getRotation4Xf( 0.15 ) );
       imaging::TransformationAffine tfmId( core::identityMatrix<Matrix>( 4 ) );
 
      
       tfm.getAffineMatrix().print( std::cout );
 
       imaging::Slice<ui8> sliceRgb = getSlice( volume, tfm, center );
-      core::writeBmp( sliceRgb.getStorage(), "c:/tmp/slice1.bmp" );
+      core::writeBmp( sliceRgb.getStorage(), NLL_TEST_PATH "data/comparisonMpr-mpr.bmp" );
 
       Volume resampled( volume.getSize(), volume.getPst() );
       resampleVolumeTrilinear( volume, resampled, tfm );
 
       sliceRgb = getSlice( resampled, tfmId, center );
-      core::writeBmp( sliceRgb.getStorage(), "c:/tmp/slice2.bmp" );
+      core::writeBmp( sliceRgb.getStorage(), NLL_TEST_PATH "data/comparisonMpr-resampled.bmp" );
 
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestMPR);
-/*
 TESTER_TEST( testMPROriginNoTfm );
 TESTER_TEST( testMPRRotPstVol );
 TESTER_TEST( testMPRRotPstResampled );
 TESTER_TEST( testMPRTrans );
 TESTER_TEST( testMPRRot );
+TESTER_TEST( testMPRSpacingRot )
 TESTER_TEST( testMPRSpacing );
-*/
 TESTER_TEST( testComparison );
 TESTER_TEST_SUITE_END();
 #endif

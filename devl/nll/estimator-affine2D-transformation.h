@@ -64,7 +64,6 @@ namespace algorithm
          
          const ui32 nbPoints = static_cast<ui32>( points1.size() );
          const ui32 nbDim = static_cast<ui32>( points1[ 0 ].size() );
-         ensure( nbDim == 2, "only for 2D cases - check directly applicable to more dim" );
 
          Vector mean1;
          Vector mean2;

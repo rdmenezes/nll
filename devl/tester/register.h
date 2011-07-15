@@ -16,7 +16,7 @@
 //#define NLL_TESTER_NO_REGRESSION
 
 // define this if you don't want to run unit tests on several threads
-#define NO_MULTITHREADED_UNIT_TESTS
+//#define NO_MULTITHREADED_UNIT_TESTS
 
 # define NLL_TESTER_LOG_PATH   "../../tester/log/"
 # define TESTER_STREAM std::cout
@@ -123,7 +123,9 @@ public:
    void successful()
    {
       // add a crtical section: it must not be accessed concurently
+#ifndef NO_MULTITHREADED_UNIT_TESTS
       #pragma omp critical
+#endif
       {
          ++_successful;
       }
@@ -132,7 +134,9 @@ public:
    void failed( const char* func, const char* file, std::exception& msg )
    {
       // add a crtical section: it must not be accessed concurently
+#ifndef NO_MULTITHREADED_UNIT_TESTS
       #pragma omp critical
+#endif
       {
          _faileds.push_back( Failed( func, file, msg.what() ) );
       }

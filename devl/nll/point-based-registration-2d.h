@@ -79,7 +79,7 @@ namespace algorithm
 
                for ( ui32 n = 0; n < points1.size(); ++n )
                {
-                  KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], 1 );
+                  typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], 1 );
                   if ( list.size() )
                   {
                      const float d = list.begin()->dist;
@@ -92,7 +92,7 @@ namespace algorithm
 
                for ( ui32 n = 0; n < points2.size(); ++n )
                {
-                  KdTree::NearestNeighborList list = tree.findNearestNeighbor( points2[ n ], 1 );
+                  typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points2[ n ], 1 );
                   if ( list.size() )
                   {
                      const float d = list.begin()->dist;
@@ -495,7 +495,7 @@ namespace algorithm
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), RansacTransformationEstimator::minimumNumberOfSubsets(), 0.01 );
+         typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), RansacTransformationEstimator::minimumNumberOfSubsets(), 0.01 );
          if ( ransac.getNbInliers() <= 20 )
          {
             throw std::runtime_error( "Error: inliers are too small" );

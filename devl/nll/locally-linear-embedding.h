@@ -112,10 +112,10 @@ namespace algorithm
          std::vector< std::vector<ui32> > neighbours( nbPoints );
          for ( ui32 i = 0; i < nbPoints; ++i )
          {
-            KdTreeT::NearestNeighborList nn = kdtree.findNearestNeighbor( points[ i ], nbNeighbours + 1 ); // nbNeighbours + 1, as nn[ 0 ] is the point we are starting from
+            typename KdTreeT::NearestNeighborList nn = kdtree.findNearestNeighbor( points[ i ], nbNeighbours + 1 ); // nbNeighbours + 1, as nn[ 0 ] is the point we are starting from
             ui32 n = 0;
             std::vector<ui32> index( nbNeighbours );
-            for ( KdTreeT::NearestNeighborList::iterator it = ++nn.begin(); it != nn.end(); ++it, ++n )
+            for ( typename KdTreeT::NearestNeighborList::iterator it = ++nn.begin(); it != nn.end(); ++it, ++n )
                index[ n ] = it->id;
             neighbours[ i ] = index;
 

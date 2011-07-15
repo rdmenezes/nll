@@ -115,8 +115,12 @@ class VolumeSwitchReg
       cuboid2 = cu2;
       cuboid3 = cu3;
 
+    //  preloaded1 = readVolumeMF2Asynchronous( "c:/tmp/v1.mf2" );
+    //  preloaded2 = readVolumeMF2Asynchronous( "c:/tmp/v2.mf2" );
+
       preloaded1 = readVolumeMF2Asynchronous( list[ 2 * index + 0 ] );
       preloaded2 = readVolumeMF2Asynchronous( list[ 2 * index + 1 ] );
+      
    }
 
    void next()
@@ -124,7 +128,6 @@ class VolumeSwitchReg
       volumes.clear();
       volumes2.clear();
       volumes3.clear();
-      resampled = NULL;
       displayed1 = preloaded1;
       displayed2 = preloaded2;
 
@@ -167,19 +170,20 @@ class VolumeSwitchReg
 
    void register( Vector3i min2, Vector3i max2, Vector3i min3, Vector3i max3, Volume v, VolumeID displayed1, VolumeID displayed2 )
    {
+      Lut ctLut3( -250.0, 250.0, Vector3i( 0, 255, 0 ) );
+
       volumes.clear();
 
       
       AffineRegistration tfm = affineIsotropicPlanarRegistrationCt( displayed1, displayed2, min2, max2,
                                                                                             min3, max3 );
-      /*                                                                                            
-      AffineRegistration tfm = affinePlanarRegistrationCt( displayed1, displayed2, min2, max2,
-                                                                                   min3, max3 );*/
+      Matrix4f m = tfm.getMatrix();
+      //resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
 
-      resampled = resampleNearest( displayed2, tfm, v.getSize(), v.getPst() );
-
-      volumes.add( resampled, lut1, 0.5 );
+      //volumes.add( resampled, lut1, 0.5 );
+      volumes.add( displayed2, lut1, 0.5, tfm );
       volumes.add( displayed1, lut2, 0.75 );
+      //volumes.add( resampled, ctLut3, 0.75 );
    }
 
    void registerBoundingBox()
@@ -211,9 +215,9 @@ class InsentisySwitchReg
       //VolumeContainer& volumes = switch.volumes;
       if ( state == 0 )
       {
-         switch.volumes.setIntensity( switch.displayed1, 0.75 );
+         switch.volumes.setIntensity( switch.displayed2, 0.75 );
       } else {
-         switch.volumes.setIntensity( switch.displayed1, 0.25 );
+         switch.volumes.setIntensity( switch.displayed2, 0.25 );
       }
       state = 1 - state;
    }
@@ -233,10 +237,10 @@ class LutSwitchReg
       //VolumeContainer& volumes = switch.volumes;
       if ( state == 0 )
       {
-         switch.volumes.setLut( switch.displayed1, switch.lut2 );
+         switch.volumes.setLut( switch.displayed2, switch.lut2 );
          switch.volumes.setLut( switch.resampled, switch.lut1 );
       } else {
-         switch.volumes.setLut( switch.displayed1, switch.lut1 );
+         switch.volumes.setLut( switch.displayed2, switch.lut1 );
          switch.volumes.setLut( switch.resampled, switch.lut2 );
       }
       state = 1 - state;
@@ -341,7 +345,7 @@ Layout layoutDisplay2( vertical, Layout(horizontal, l1a, l2a, 0.51), l3a, 0.51 )
 Layout layoutDisplay3( vertical, Layout(horizontal, l1b, l2b, 0.51), l3b, 0.51 );
 
 
-Layout layoutDisplay( horizontal, layoutDisplay1, Layout(vertical, layoutDisplay2, layoutDisplay3, 0.51), 0.51);
+Layout layoutDisplay( horizontal, layoutDisplay1, Layout(vertical, layoutDisplay2, layoutDisplay3, 0.51), 0.61);
 
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.05);
 

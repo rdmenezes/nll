@@ -39,31 +39,7 @@ namespace
       "data/feature/sq8.bmp",
 
       "data/feature/sq1.bmp",
-      "data/feature/sq9.bmp",
-
-      "data/feature/xz-case-1.bmp",
-      "data/feature/xz-case-10.bmp",
-
-      "data/feature/xz-case-13.bmp",
-      "data/feature/xz-case-14.bmp",
-
-      "data/feature/xz-case-15.bmp",
-      "data/feature/xz-case-17.bmp",
-
-      "data/feature/xz-case-18.bmp",
-      "data/feature/xz-case-19.bmp",
-
-      "data/feature/xz-case-2.bmp",
-      "data/feature/xz-case-20.bmp",
-
-      "data/feature/xz-case-3.bmp",
-      "data/feature/xz-case-5.bmp",
-
-      "data/feature/xz-case-3.bmp",
-      "data/feature/xz-case-20.bmp",
-
-      "data/feature/xz-case-228.bmp",
-      "data/feature/xz-case-500.bmp",
+      "data/feature/sq9.bmp"
    };
 }
 
@@ -278,7 +254,7 @@ public:
       std::cout << "nbPOints=" << points1.size() << std::endl;
 
       printPoints( output, points1 );
-      core::writeBmp( output, "c:/tmp/o.bmp" );
+      core::writeBmp( output, "pointsSurf.bmp" );
    }
 
    void testRepeatability()
@@ -308,8 +284,8 @@ public:
          core::Image<ui8> oi2;
          oi2.clone( image2 );
 
-         core::writeBmp( image, "c:/tmp/oi1.bmp" );
-         core::writeBmp( image2, "c:/tmp/oi2.bmp" );
+         core::writeBmp( image, "oi1.bmp" );
+         core::writeBmp( image2, "oi2.bmp" );
 
          core::Image<ui8> output2;
          output2.clone( image2 );
@@ -340,7 +316,7 @@ public:
          std::cout << "repeatable orientation=" << repeatbleOrientationRatio << std::endl;
 
          TESTER_ASSERT( repatablePointRatio > 0.5 );
-         TESTER_ASSERT( repeatbleOrientationRatio >= 0.65 );
+         TESTER_ASSERT( repeatbleOrientationRatio >= 0.55 );
       }
    }
 
@@ -860,18 +836,21 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf);
-//TESTER_TEST(testBasic);
-//TESTER_TEST(testRepeatability);
-//TESTER_TEST(testRegistration);
-//TESTER_TEST(testRegistration2);
+TESTER_TEST(testBasic);
+TESTER_TEST(testRepeatability);
+TESTER_TEST(testRegistration);   // check the slices are registered
+
+// UTILITY FUNCTIONS
 //TESTER_TEST(testRegistrationVolume);
-//TESTER_TEST(createProjections);
-//TESTER_TEST(testProjections);
-//TESTER_TEST(createTfmVolume);
-//TESTER_TEST(createTfmVolume2);
-//TESTER_TEST(createPairTruncated);
-//TESTER_TEST(test);
-TESTER_TEST(test2);
-//TESTER_TEST(testResampling);
+//TESTER_TEST(createProjections);   // create projection of hundreds of cases YZ or XZ
+//TESTER_TEST(testProjections);     // test the registration on the projections
+//TESTER_TEST(createTfmVolume);     // create a normalized volume
+//TESTER_TEST(createTfmVolume2);    // create a normalized volume
+//TESTER_TEST(createPairTruncated); // create from a pair of volume, a pair of truncated volume
+//TESTER_TEST(test);                // test volume
+//TESTER_TEST(test2);               // test volume
+//TESTER_TEST(testRegistration);    // test volume
+//TESTER_TEST(testRegistration2);   // test volume
+//TESTER_TEST(testResampling);      // test resampling
 TESTER_TEST_SUITE_END();
 #endif

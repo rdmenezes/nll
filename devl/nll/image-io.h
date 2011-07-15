@@ -129,7 +129,7 @@ namespace core
     @brief read a BMP, image internal format is BGR
     */
    template <class T, class Mapper, class Alloc>
-   bool readBmp( Image<T, Mapper>& out_i, std::istream& f, Alloc alloc = Alloc() )
+   bool readBmp( Image<T, Mapper, Alloc>& out_i, std::istream& f, Alloc alloc = Alloc() )
    {
       assert( IsNativeType<T>::value );
       ui32 sx = 0;

@@ -77,7 +77,7 @@ namespace core
       /**
        @brief build a classification sample initialized.
        */
-      ClassificationSample( const Input& i, const Output& o, const Type t, const String d = make_buffer1D_from_string("noname") ) : input( i ), output( o ), type( t ), debug( d )
+      ClassificationSample( const Input& i, const Output& o, const Type t, String d = String () ) : input( i ), output( o ), type( t ), debug( d )
       {}
 
       /**

@@ -2,7 +2,7 @@ v0.15
 -added locally linear embedding for feature selection & data structure display
 -integrated LIBLINEAR for massive linear svm
 -added RANSAC parameter estimator
--added SURF & 3D SURF feature detection
+-added SURF feature detection
 -added point based 2D registration (rigid, affine) & local registration
 -added 2D image resampler
 -added 3D integral image
@@ -10,7 +10,8 @@ v0.15
 -added linear least square based on SVD decomposition
 -added planar point based affine CT-CT registration algorithm
 -fixed minor bugs (multithreaded logging)
--fixed 3D resampling problem with rotation and added multithreading
+-fixed 3D resampling problem with rotation. Added multithreading
+-fixed affine MPR transformation display
 
 v0.14
 -fixed kernel PCA implementation

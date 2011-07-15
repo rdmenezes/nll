@@ -37,6 +37,19 @@ namespace nll
 namespace algorithm
 {
    /**
+    @brief Factory for creating the estimator with no parameter
+    */
+   template <class Estimator>
+   class GenericEstimatorFactory
+   {
+   public:
+      Estimator create() const
+      {
+         return Estimator();
+      }
+   };
+
+   /**
     @ingroup algorithm
     @brief RANSAC is an iterative method to estimate parameters of a mathematical model, it is particularly suited when
            the model is simple (#feature << #sample) and the number of outliers is very high
@@ -87,7 +100,7 @@ namespace algorithm
       template <class Points>
       Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError )
       {
-         enum Value{ value = core::Equal<Points::value_type, Point>::value };
+         enum Value{ value = core::Equal<typename Points::value_type, Point>::value };
          STATIC_ASSERT( value ); // "the points must be identitcal"
 
          {
@@ -193,19 +206,6 @@ namespace algorithm
       EstimatorFactory  _estimatorFactory;
       ui32              _nbInliers;
       std::vector<ui32> _inlierId;
-   };
-
-   /**
-    @brief Factory for creating the estimator with no parameter
-    */
-   template <class Estimator>
-   class GenericEstimatorFactory
-   {
-   public:
-      Estimator create() const
-      {
-         return Estimator();
-      }
    };
 
    /**

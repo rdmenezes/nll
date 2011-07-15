@@ -197,14 +197,22 @@
 # include "geometry.h"
 # include "converter.h"
 
+
+// must be included before...
+# include "metric.h"
+# include "kmeans.h"
+# include "gmm.h"
+# include "histogram-fitting.h"
+
+
 /**
  @defgroup imaging
 
  This group defines the main algorithms for imaging such as volumes, interpolation and
  images.
  */
-# include "transformation.h"
 # include "lut.h"
+# include "transformation.h"
 # include "volume.h"
 # include "volume-spatial.h"
 # include "volume-interpolator.h"
@@ -237,7 +245,6 @@
 # include "estimator-affine2D-transformation.h"
 # include "estimator-affine2D-transformation-dlt.h"
 # include "ransac.h"
-# include "locally-linear-embedding.h"
 # include "sammon-projection.h"
 # include "ica.h"
 # include "quadratic-discriminant.h"
@@ -262,6 +269,7 @@
 # include "svm-linear.h"
 # include "lsdbc.h"
 # include "kd-tree.h"
+# include "locally-linear-embedding.h"
 # include "gabor-filter.h"
 # include "gabor.h"
 # include "markov-chain.h"

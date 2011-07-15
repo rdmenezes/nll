@@ -1222,7 +1222,9 @@ public:
 
    void testSingleton()
    {
+#ifndef NLL_NOT_MULTITHREADED
       #pragma omp parallel num_threads(200)
+#endif
       {
          Test::instance().n = 3;
       }

@@ -41,7 +41,7 @@ tarball: clean doc all
 	cp tutorial/data/uci/yeast/*.data tarball/nll/tutorial/data/uci/yeast/
 	cp tutorial/data/usps/*.txt tarball/nll/tutorial/data/usps/
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
-	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect medical ica
+	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect medical ica feature
 	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln Readme.txt tarball/nll
 	cp nll/*.h tarball/nll/include
 	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcproj tarball/nll/tutorial
@@ -56,4 +56,5 @@ tarball: clean doc all
 	cp nllTest/data/image/*.bmp tarball/nll/nllTest/data/image
 	cp nllTest/data/medical/pet-NAC.mf2 nllTest/data/medical/test1.mf2 nllTest/data/medical/test2.mf2 nllTest/data/medical/pet.mf2 tarball/nll/nllTest/data/medical
 	cp nllTest/data/ica/*.bmp tarball/nll/nllTest/data/ica
+	cp nllTest/data/feature/*.bmp tarball/nll/nllTest/data/feature
 	cp tester/*.h tester/*.cpp tester/tester.vcproj tester/ReadMe.txt tester/Makefile tarball/nll/tester
