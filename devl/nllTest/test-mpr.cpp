@@ -321,7 +321,7 @@ public:
       typedef nll::imaging::Slice<Volume::value_type>       Slice;
       typedef core::Matrix<float>                           Matrix;
 
-      const std::string volname = NLL_TEST_PATH "data/medical/CT.mf2";
+      const std::string volname = NLL_TEST_PATH "data/medical/pet.mf2";
       Volume volume;
       bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
       TESTER_ASSERT( loaded );

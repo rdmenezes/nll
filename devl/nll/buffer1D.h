@@ -275,8 +275,8 @@ public:
       {
 #ifndef NLL_NOT_MULTITHREADED
          #pragma omp atomic
-         ++*_cpt;
 #endif
+         ++*_cpt;
       }
    }
 
