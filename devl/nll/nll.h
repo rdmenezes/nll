@@ -72,10 +72,10 @@
  */
 
 /// define the version of nll as a string
-#define NLL_VERSION     "nll-0.15"
+#define NLL_VERSION     "nll-0.16"
 
 /// define the version of nll as a plain number
-#define NLL_VERSION_ID  0x015
+#define NLL_VERSION_ID  0x016
 
 
 #ifdef _MSC_VER

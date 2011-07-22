@@ -21,6 +21,7 @@ only the points of interest within the bounding box will be taken into account
  @return an affine transformation that register. The affine transformation is isotropic.
  */
 import AffineRegistration affineIsotropicPlanarRegistrationCt( VolumeID source, VolumeID target,
+                                                               int tableRemoval = 1,
                                                                Vector3i minBoundingBoxSource = Vector3i(0, 0, 0),
                                                                Vector3i maxBoundingBoxSource = Vector3i(0, 0, 0),
                                                                Vector3i minBoundingBoxTarget = Vector3i(0, 0, 0),
@@ -42,7 +43,8 @@ import AffineRegistration affineIsotropicPlanarRegistrationCt( VolumeID source, 
  @param maxBoundingBoxTarget the max index of the bounding box of the source volume
  */
 import AffineRegistration affinePlanarRegistrationCt( VolumeID source, VolumeID target,
-                                                               Vector3i minBoundingBoxSource = Vector3i(0, 0, 0),
-                                                               Vector3i maxBoundingBoxSource = Vector3i(0, 0, 0),
-                                                               Vector3i minBoundingBoxTarget = Vector3i(0, 0, 0),
-                                                               Vector3i maxBoundingBoxTarget = Vector3i(0, 0, 0) );
+                                                      int tableRemoval = 1,
+                                                      Vector3i minBoundingBoxSource = Vector3i(0, 0, 0),
+                                                      Vector3i maxBoundingBoxSource = Vector3i(0, 0, 0),
+                                                      Vector3i minBoundingBoxTarget = Vector3i(0, 0, 0),
+                                                      Vector3i maxBoundingBoxTarget = Vector3i(0, 0, 0) );

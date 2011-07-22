@@ -18,17 +18,18 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 6 )
+      if ( args.size() != 7 )
       {
          throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      RuntimeValue& v3 = unref( *args[ 2 ] );
-      RuntimeValue& v4 = unref( *args[ 3 ] );
-      RuntimeValue& v5 = unref( *args[ 4 ] );
-      RuntimeValue& v6 = unref( *args[ 5 ] );
+      RuntimeValue& vbool = unref( *args[ 2 ] );
+      RuntimeValue& v3 = unref( *args[ 3 ] );
+      RuntimeValue& v4 = unref( *args[ 4 ] );
+      RuntimeValue& v5 = unref( *args[ 5 ] );
+      RuntimeValue& v6 = unref( *args[ 6 ] );
 
       nll::core::vector3i minTarget;
       nll::core::vector3i maxTarget;
@@ -62,7 +63,7 @@ public:
       typedef nll::algorithm::AffineRegistrationCT3d<> Registration;
       Registration registration;
       nll::core::Matrix<double> tfm;
-      Registration::Result result = registration.process( *vol1, *vol2, tfm, minSource, maxSource, minTarget, maxTarget, false );
+      Registration::Result result = registration.process( *vol1, *vol2, tfm, vbool.intval, minSource, maxSource, minTarget, maxTarget, false );
       if ( result == Registration::FAILED_TOO_LITTLE_INLIERS )
       {
          throw std::runtime_error( "Registration failed: Insufficient inliers" );
@@ -117,17 +118,18 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 6 )
+      if ( args.size() != 7 )
       {
          throw std::runtime_error( "unexpected number of arguments" );
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
       RuntimeValue& v2 = unref( *args[ 1 ] );
-      RuntimeValue& v3 = unref( *args[ 2 ] );
-      RuntimeValue& v4 = unref( *args[ 3 ] );
-      RuntimeValue& v5 = unref( *args[ 4 ] );
-      RuntimeValue& v6 = unref( *args[ 5 ] );
+      RuntimeValue& vbool = unref( *args[ 2 ] );
+      RuntimeValue& v3 = unref( *args[ 3 ] );
+      RuntimeValue& v4 = unref( *args[ 4 ] );
+      RuntimeValue& v5 = unref( *args[ 5 ] );
+      RuntimeValue& v6 = unref( *args[ 6 ] );
 
       nll::core::vector3i minTarget;
       nll::core::vector3i maxTarget;
@@ -161,7 +163,7 @@ public:
       typedef nll::algorithm::AffineRegistrationCT3d<nll::algorithm::impl::SurfEstimatorAffineFactory> Registration;
       Registration registration;
       nll::core::Matrix<double> tfm;
-      Registration::Result result = registration.process( *vol1, *vol2, tfm, minSource, maxSource, minTarget, maxTarget, false );
+      Registration::Result result = registration.process( *vol1, *vol2, tfm, vbool.intval, minSource, maxSource, minTarget, maxTarget, false );
       if ( result == Registration::FAILED_TOO_LITTLE_INLIERS )
       {
          throw std::runtime_error( "Registration failed: Insufficient inliers" );

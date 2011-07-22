@@ -370,7 +370,7 @@ int main(int argc, char** argv)
    int sizex = 1280;
    int sizey = 1024;
 
-   int nbThreads = 8;
+   int nbThreads = 12; //8;
    std::string mainScript = "../../mvvLauncher/script/single";
    std::string font = "../../nllTest/data/font/bitmapfont1_24";
    bool nowindow = false;

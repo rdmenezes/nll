@@ -76,6 +76,7 @@ namespace algorithm
       Result process( const imaging::VolumeSpatial<T, BufferType>& source,
                       const imaging::VolumeSpatial<T, BufferType>& target,
                       Matrix& out,
+                      bool tableRemoval = true,
                       const core::vector3i& minBoundingBoxSource = core::vector3i(),
                       const core::vector3i& maxBoundingBoxSource = core::vector3i(),
                       const core::vector3i& minBoundingBoxTarget = core::vector3i(),
@@ -105,8 +106,8 @@ namespace algorithm
          core::Image<ui8> pxs, pys, pzs;
          core::Image<ui8> pxt, pyt, pzt;
 
-         getProjections( source, pxs, pys, pzs, true, true );
-         getProjections( target, pxt, pyt, pzt, true, false );
+         getProjections( source, pxs, pys, pzs, true, true, tableRemoval );
+         getProjections( target, pxt, pyt, pzt, true, false, tableRemoval );
 
          try
          {
@@ -143,7 +144,7 @@ namespace algorithm
 
             // recompute the projection on the resampled volume
             core::Image<ui8> pxt2, pyt2, pzt2;
-            getProjections( resampledTarget, pxt2, pyt2, pzt2, false, true );
+            getProjections( resampledTarget, pxt2, pyt2, pzt2, false, true, tableRemoval );
 
             // // computes the registration in XZ plane
             Registration2D registrationy;
@@ -246,7 +247,8 @@ namespace algorithm
                            core::Image<ui8>& py,
                            core::Image<ui8>& pz,
                            bool doPx,
-                           bool doPy )
+                           bool doPy,
+                           bool doTableRemoval )
       {
          // first get the projections and y-position of the table
          imaging::LookUpTransformWindowingRGB lut( -10, 250, 256, 1 );
@@ -255,7 +257,11 @@ namespace algorithm
          ui32 normSizeY;
          ui32 normSizeX;
          pz = projectImageZ( v, lut, normSizeY, normSizeX );
-         int ymax = findTableY( pz );
+         int ymax;
+         if ( doTableRemoval )
+            ymax = findTableY( pz );
+         else
+            ymax = v.size()[ 1 ] * v.getSpacing()[ 1 ] - 1;
          if ( ymax > 0 )
          {
             #ifndef NLL_NOT_MULTITHREADED

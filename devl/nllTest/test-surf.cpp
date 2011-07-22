@@ -752,7 +752,7 @@ public:
       Registration ctRegistration;
       core::Matrix<double> tfm;
       core::Timer regTime;
-      Registration::Result r = ctRegistration.process( ct1, ct2, tfm, core::vector3i( -682, -1814, -444 ), core::vector3i( 1423, 2316, 924 ),
+      Registration::Result r = ctRegistration.process( ct1, ct2, tfm, true, core::vector3i( -682, -1814, -444 ), core::vector3i( 1423, 2316, 924 ),
                                                                                              core::vector3i( 0, 0, 81 ), core::vector3i( 512, 512, 323 ) );
       std::cout << "Registration time=" << regTime.getCurrentTime() << std::endl;
       if ( r == Registration::SUCCESS )
