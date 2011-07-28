@@ -42,7 +42,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="$(SolutionDir)"
+				AdditionalIncludeDirectories="$(SolutionDir); $(SolutionDir)/dcmtk"
 				PreprocessorDefinitions="WIN32;MVVDICOMTOOLS_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
@@ -69,6 +69,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="dcmdata.lib dcmimgle.lib ofstd.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -100,7 +101,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\mvvDicomTools\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -158,6 +159,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="dcmdata.lib dcmimgle.lib ofstd.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -191,7 +193,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\mvvDicomTools\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -247,6 +249,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="dcmdata.lib dcmimgle.lib ofstd.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -278,7 +281,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
+				CommandLine="Copy $(OutDir)\..\..\mvvDicomTools\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -337,6 +340,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies="dcmdata.lib dcmimgle.lib ofstd.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(OutDir)"

@@ -3,7 +3,7 @@
 
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
-# include <Boost/filesystem.hpp>
+# include "utils.h"
 
 using namespace mvv::platform;
 using namespace mvv::parser;
@@ -11,6 +11,11 @@ using namespace mvv;
 
 namespace
 {
+   typedef std::map<mvv::Symbol, std::vector<size_t> >   MapSeriesUid;
+   typedef std::vector<DcmFileFormat>                    DicomFiles;
+
+   
+
    class FunctionReadDicomVolume : public FunctionRunnable
    {
 
@@ -34,8 +39,9 @@ namespace
             throw std::runtime_error( "expecting <string, DicomAttributs> as argument" );
          }
 
-         // get the list of files
-
+         DicomDatasets datasets;
+         datasets.loadDicomDirectory( v0.stringval );
+         datasets.sortSeriesUids();
 
          
 

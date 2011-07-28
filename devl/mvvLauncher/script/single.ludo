@@ -30,6 +30,8 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
 //
 // -----------------------------------------------------------------------------------------------------------------
 
+readDicomVolume( "C:/HIREZ_#9_UTMC/2_Timepoints" );
+
 SegmentToolCentering    toolCentering;
 MipToolPointer          toolPointerMip(17);
 ToolAnnotations         annotations;
