@@ -83,7 +83,8 @@ namespace imaging
       VolumeSpatial( const core::vector3ui& size,
                      const Matrix& pst,
                      T background = 0,
-                     bool zero = true ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _pst( pst )
+                     bool zero = true,
+                     std::auto_ptr<core::Context> context = std::auto_ptr<core::Context>() ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _pst( pst ), _context( context )
       {
          _constructVolume();
       }
@@ -278,6 +279,12 @@ namespace imaging
          return true;
       }
 
+      const core::Context& getContext() const
+      {
+         ensure( _context.get(), "no context was passed!" );
+         return *_context;
+      }
+
 
    protected:
       /**
@@ -342,6 +349,8 @@ namespace imaging
       Matrix         _pst;
       core::vector3f _spacing;
       Matrix         _invertedPst;
+
+      std::auto_ptr<core::Context>  _context;   // can hold specific information such as the original DICOM tags...
    };
 }
 }

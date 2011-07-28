@@ -428,6 +428,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\context.h"
+				>
+			</File>
+			<File
 				RelativePath=".\converter.h"
 				>
 			</File>

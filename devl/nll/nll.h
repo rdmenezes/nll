@@ -117,6 +117,7 @@
 # include <stdexcept>
 # include <cstdlib>
 # include <memory>
+# include <map>
 
 /**
  @defgroup core
@@ -130,6 +131,7 @@
  - databases
  - math
  */
+# include "context.h"
 # include "singleton.h"
 # include "configuration.h"
 # include "types.h"
@@ -196,7 +198,6 @@
 # include "allocator-aligned.h"
 # include "geometry.h"
 # include "converter.h"
-
 
 // must be included before...
 # include "metric.h"

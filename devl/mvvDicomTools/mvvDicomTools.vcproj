@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="8.00"
-	Name="mvvMprPlugin"
-	ProjectGUID="{F915B23F-16AC-4F6E-824A-DEEFADC8DDC5}"
-	RootNamespace="mvvMprPlugin"
+	Name="mvvDicomTools"
+	ProjectGUID="{5DD2BFA5-46C6-4A60-81E7-4DDCC464C8D6}"
+	RootNamespace="mvvDicomTools"
 	>
 	<Platforms>
 		<Platform
@@ -43,7 +43,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="$(SolutionDir)"
-				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS"
+				PreprocessorDefinitions="WIN32;MVVDICOMTOOLS_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -52,7 +52,7 @@
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="4"
 				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
@@ -75,7 +75,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)\$(TargetName).pdb"
 				SubSystem="2"
-				LargeAddressAware="2"
 				TargetMachine="1"
 			/>
 			<Tool
@@ -101,6 +100,98 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(ConfigurationName)\$(PlatformName)"
+			ConfigurationType="2"
+			CharacterSet="1"
+			WholeProgramOptimization="-1"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				InlineFunctionExpansion="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="true"
+				AdditionalIncludeDirectories="$(SolutionDir)"
+				PreprocessorDefinitions="WIN32;MVVDICOMTOOLS_EXPORTS"
+				StringPooling="true"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="true"
+				TreatWChar_tAsBuiltInType="true"
+				ForceConformanceInForLoopScope="true"
+				RuntimeTypeInfo="true"
+				UsePrecompiledHeader="2"
+				WarningLevel="4"
+				WarnAsError="false"
+				Detect64BitPortabilityProblems="true"
+				DebugInformationFormat="3"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				OutputFile="$(OutDir)/$(ProjectName).dll"
+				LinkIncremental="1"
+				AdditionalLibraryDirectories="$(OutDir)"
+				GenerateDebugInformation="true"
+				SubSystem="2"
+				LargeAddressAware="2"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				TargetMachine="1"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -130,7 +221,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="$(SolutionDir)"
-				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS"
+				PreprocessorDefinitions="WIN32;MVVDICOMTOOLS_EXPORTS"
 				StringPooling="true"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -139,7 +230,7 @@
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="4"
 				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
@@ -162,7 +253,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile="$(TargetDir)\$(TargetName).pdb"
 				SubSystem="2"
-				LargeAddressAware="2"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -188,103 +278,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-			/>
-		</Configuration>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)\$(ConfigurationName)\$(PlatformName)"
-			IntermediateDirectory="$(ConfigurationName)\$(PlatformName)"
-			ConfigurationType="2"
-			CharacterSet="1"
-			WholeProgramOptimization="-1"
-			>
-			<Tool
-				Name="VCPreBuildEventTool"
-			/>
-			<Tool
-				Name="VCCustomBuildTool"
-			/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"
-			/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"
-			/>
-			<Tool
-				Name="VCMIDLTool"
-			/>
-			<Tool
-				Name="VCCLCompilerTool"
-				Optimization="2"
-				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="true"
-				FavorSizeOrSpeed="1"
-				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
-				WholeProgramOptimization="true"
-				AdditionalIncludeDirectories="$(SolutionDir)"
-				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS"
-				StringPooling="false"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="false"
-				EnableEnhancedInstructionSet="2"
-				FloatingPointModel="2"
-				TreatWChar_tAsBuiltInType="true"
-				ForceConformanceInForLoopScope="true"
-				RuntimeTypeInfo="true"
-				OpenMP="true"
-				UsePrecompiledHeader="0"
-				WarningLevel="4"
-				WarnAsError="false"
-				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="3"
-			/>
-			<Tool
-				Name="VCManagedResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCResourceCompilerTool"
-			/>
-			<Tool
-				Name="VCPreLinkEventTool"
-			/>
-			<Tool
-				Name="VCLinkerTool"
-				OutputFile="$(OutDir)/$(ProjectName).dll"
-				LinkIncremental="1"
-				AdditionalLibraryDirectories="$(OutDir)"
-				GenerateDebugInformation="true"
-				SubSystem="2"
-				LargeAddressAware="2"
-				OptimizeReferences="2"
-				EnableCOMDATFolding="2"
-				LinkTimeCodeGeneration="1"
-				TargetMachine="1"
-			/>
-			<Tool
-				Name="VCALinkTool"
-			/>
-			<Tool
-				Name="VCManifestTool"
-			/>
-			<Tool
-				Name="VCXDCMakeTool"
-			/>
-			<Tool
-				Name="VCBscMakeTool"
-			/>
-			<Tool
-				Name="VCFxCopTool"
-			/>
-			<Tool
-				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
-			/>
-			<Tool
-				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\core\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -313,24 +307,20 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
+				Optimization="3"
 				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				EnableFiberSafeOptimizations="true"
 				AdditionalIncludeDirectories="$(SolutionDir)"
-				PreprocessorDefinitions="WIN32;MVVMPRPLUGIN_EXPORTS;NDEBUG"
-				StringPooling="false"
+				PreprocessorDefinitions="WIN32;MVVDICOMTOOLS_EXPORTS"
+				StringPooling="true"
 				RuntimeLibrary="2"
-				BufferSecurityCheck="false"
-				EnableFunctionLevelLinking="false"
-				FloatingPointModel="2"
+				EnableFunctionLevelLinking="true"
 				TreatWChar_tAsBuiltInType="true"
 				ForceConformanceInForLoopScope="true"
 				RuntimeTypeInfo="true"
-				OpenMP="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				WarningLevel="4"
 				WarnAsError="false"
 				Detect64BitPortabilityProblems="true"
@@ -380,6 +370,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="Copy $(OutDir)\..\..\mvvDicomTools\*.ludo $(OutDir)"
 			/>
 		</Configuration>
 	</Configurations>
@@ -392,150 +383,88 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\engine-mpr.h"
+				RelativePath=".\mvvDicomTools.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\mip-tool.cpp"
+				RelativePath=".\stdafx.cpp"
 				>
-			</File>
-			<File
-				RelativePath=".\mvvMprPlugin.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\mvvMprPlugin.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\segment.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\types.h"
-				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release|x64"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
-			Name="API"
+			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\annotation-colors.h"
+				RelativePath=".\mvvDicomTools.h"
 				>
 			</File>
 			<File
-				RelativePath=".\annotation-line-pos.h"
+				RelativePath=".\read-dicom.h"
 				>
 			</File>
 			<File
-				RelativePath=".\annotation-line.h"
+				RelativePath=".\stdafx.h"
 				>
 			</File>
 			<File
-				RelativePath=".\annotation-point.h"
+				RelativePath=".\utils.h"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="Resource Files"
+			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
+			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
+			>
 			<File
-				RelativePath=".\annotation.h"
+				RelativePath=".\mvvDicomTools.rc"
 				>
 			</File>
+		</Filter>
+		<Filter
+			Name="script"
+			>
 			<File
-				RelativePath=".\context-segments.h"
-				>
-			</File>
-			<File
-				RelativePath=".\layout-mip.h"
-				>
-			</File>
-			<File
-				RelativePath=".\layout-segment.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mip-tool-annotations.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\mip-tool-annotations.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mip-tool-pointer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mip-tool-postprocessing.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mip-tool-sorter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mip-tool.h"
-				>
-			</File>
-			<File
-				RelativePath=".\mip.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\mip.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-annotations.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-autocenter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-camera.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-manipulators.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-manipulators.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-pointer.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-postprocessing.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool-sorter.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment-tool.h"
-				>
-			</File>
-			<File
-				RelativePath=".\segment.h"
+				RelativePath=".\mvvDicomTools.ludo"
 				>
 			</File>
 		</Filter>
 		<File
-			RelativePath=".\mvvMprPlugin.dox"
-			>
-		</File>
-		<File
-			RelativePath=".\mvvMprPlugin.rc"
+			RelativePath=".\mvvDicomTools.dox"
 			>
 		</File>
 	</Files>

@@ -1,8 +1,10 @@
 import "core"
 import "siemens"
+import "mvvDicomTools"
 
 include "helper1"
-include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/regsSkullData"
+//include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/regsSkullData"
+include "\\\\ox4705vc\\RegTestData\\regsRandom3"
 
 /**
  @note the following variables must have been defined:
@@ -77,7 +79,7 @@ class VolumeSwitchReg
 
 
 
-      AffineRegistration tfm = affineIsotropicPlanarRegistrationCt( displayed1, displayed2, 0 );
+      AffineRegistration tfm = affineIsotropicPlanarRegistrationCt( displayed1, displayed2, 1 );
       volumes.add( displayed2, lut1, 0.5, tfm );
       volumes.add( displayed1, lut2, 0.75 );
       

@@ -133,9 +133,9 @@ namespace imaging
          core::vector3f index = geom2.positionToIndex( slice.getOrigin() );
 
          // if isCenter == true, the slice geometric space (0,0) is the center and not the bottom left point of the slice
-         float startx = ( index[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
-         float starty = ( index[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
-         float startz = ( index[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
+         float startx = (float)( index[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
+         float starty = (float)( index[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
+         float startz = (float)( index[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
 
          // set up the interpolator
          // if SSE is not supported, use the default interpolator
