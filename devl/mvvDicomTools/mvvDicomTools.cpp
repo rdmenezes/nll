@@ -24,6 +24,6 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       ensure( ty, "can't find 'DicomAttributs' in srouce" );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "readDicomVolume" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), ty ) );
       ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionReadDicomVolume( fn, context ) ) );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionReadDicomVolume( fn, context, e ) ) );
    }
 }

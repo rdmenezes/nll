@@ -23,7 +23,7 @@ namespace
    {
 
    public:
-      FunctionReadDicomVolume( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+      FunctionReadDicomVolume( const AstDeclFun* fun, mvv::platform::Context& context, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _context( context ), _e( e )
       {
       }
 
@@ -54,9 +54,19 @@ namespace
          if ( datasets.getSeriesUids().size() )
          {
             RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( 0 ) );
+            const std::string volumeId = "DICOM" + nll::core::val2str( dicomVolumeId );
+            volumes->volumes.insert( mvv::SymbolVolume::create( volumeId ), volume );
 
             ++dicomVolumeId;
-            RuntimeValue rt( RuntimeValue::EMPTY );
+
+            // create the volume ID
+            RuntimeValue rt( RuntimeValue::TYPE );
+            Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
+            assert( ty );
+
+            rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
+            (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
+            (*rt.vals)[ 0 ].stringval = volumeId;
             return rt;
          } else {
             RuntimeValue rt( RuntimeValue::EMPTY );
@@ -66,6 +76,7 @@ namespace
 
    private:
       mvv::platform::Context&    _context;
+      CompilerFrontEnd&          _e;
    };
 }
 
