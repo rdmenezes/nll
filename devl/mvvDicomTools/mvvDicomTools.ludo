@@ -1,0 +1,152 @@
+include "core"
+
+/**
+ DICOM manipulation wrapper using DCMTK (see http://dicom.offis.de/) as back end
+ */
+
+/**
+ @brief DICOM common attributs for Volume/Slice description
+ */
+class DicomAttributs
+{
+   // 1 - [0010-0010] Patient name
+   string patientName;
+
+   // 2 - [ 0010-4000 ] Patient ID
+   string patientID;
+
+   // 3 - [ 0010-0040 ] Patient Sex
+   string patientSex;
+
+   // 4 - [ 0010-1010 ] Patient Age
+   float patientAge;
+
+   // 5 - [ 0010-1030 ] Patient Weight
+   float patientWeight;
+
+   // 6 - [ 0008-0020 ] Study date
+   string studyDate;
+
+   // 7 - [ 0008-0030 ] Study Time
+   string studyTime;
+
+   // 8 - [ 0008-1030 ] Study description
+   string studyDescription;
+
+   // 9 - [ 0020-0010 ] Study ID
+   string studyID;
+
+   // 10 - [ 0008-0021 ] Series Date
+   string seriesDate;
+
+   // 11 - [ 0008-0031 ] Series Time
+   string seriesTime;
+
+   // 12 - [ 0008-103E ] Series Description
+   string seriesDescription;
+
+   // 13 - [ 0008-0022 ] Acquisition Date
+   string acquisitionDate;
+
+   // 14 - [ 0008-0032 ] Acquisition Time
+   string acquisitionTime;
+
+   // 15 - [ 0008-0070 ] Modality
+   string modality;
+
+   // 16 - [ 0020-000D ] Study Instance UID
+   string studyInstanceUid;
+
+   // 17 - [ 0020-000E ] Series Instance UID
+   string seriesInstanceUid;
+
+   // 18 - [ 0020-0032 ] Image Position Patient
+   Vector3f imagePositionPatient;
+
+   // 19 - [ 0028-0010 ] Rows
+   int rows;
+
+   // 20 - [ 0028-0011 ] Columns
+   int columns;
+
+   // 21 - [ 0028-0030 ] pixel spacing
+   Vector2f spacing;
+
+   // 22 - [ 0020-0013 ] Instance number
+   int instanceNumber;
+}
+
+/**
+ @brief Read a volume from a DICOM directory. The first volume read is returned
+ @param attributs if an attribut is not NULL, it will be populated with the corresponding values
+ */
+import VolumeID readDicomVolume( string directory, DicomAttributs attributs = NULL );
+
+/**
+ @brief Read the volumes contained in a DICOM directory
+ @param attributs if an attribut is not NULL, it will be populated with the corresponding values
+ */
+import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs = NULL );
+
+/**
+ @brief Hold a DICOM slice
+ */
+class DicomSlice
+{
+   DicomAttributs attributs = NULL;
+
+   // not constructible!
+   import ~DicomSlice();
+}
+
+/**
+ @brief Read a specific DICOM slice
+ */
+import DicomSlice readDicomSlice( string path );
+
+/**
+ @brief Read a specific DICOM directory and return all DICOM slices
+ */
+import DicomSlice[] readDicomSlices( string path );
+
+/**
+ @brief Function that will name a DICOM slice, this is used to personalize the how the slice are named
+        It can be extended so that the functions give different directories to different series instance UID...
+ */
+typedef string ( DicomSlice slice )  DicomSliceNamingFunc;
+
+string defaultDicomSliceNamingFunc( DicomSlice slice )
+{
+   return slice.attributs.studyInstanceUid + "-" + slice.attributs.seriesInstanceUid;
+}
+
+/**
+ @brief Write a DICOM slice on the disk
+ @note  Note that if the <attributs> in <DicomSlice> have been modified
+        they will be updated
+ */
+import void writeDicomSlice( DicomSlice slice, string path );
+
+/**
+ @brief Write DICOM slices on the disk
+ @note  Note that if the <attributs> in <DicomSlice> have been modified
+        they will be updated
+ */
+import void writeDicomSlices( DicomSlice[] slices, string directory, DicomSliceNamingFunc namingSlice = defaultDicomSliceNamingFunc );
+
+/**
+ @brief Defines a soring operation, if lhs < rhs, returns -1, else if lhs > rhs return 1, else return 0
+ */
+typedef int ( DicomSlice lhs, DicomSlice rhs )  DicomComparisonFunc;
+
+/**
+ @brief Sort a set of slices according to a sort operation
+ */
+import void sortSlice( DicomSlice[] slices, DicomComparisonFunc sorter );
+
+/**
+ @brief Efficient sorter for the most common sorting operation.
+ 
+ Sort the slice by study ID, within study ID, sort by series ID and finally within series ID sort by position
+ */
+import void sortSliceByPosition( DicomSlice[] slices );
