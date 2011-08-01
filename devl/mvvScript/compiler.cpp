@@ -12,10 +12,11 @@ namespace parser
    void CompilerFrontEnd::importDll( const std::string& name )
    {
       std::string libpath = _findFileInPath( name + ".dll", _runtimePath );
-      void* hMod = LoadLibraryWrapper( libpath );
+      std::string reason;
+      void* hMod = LoadLibraryWrapper( libpath, reason );
       if ( !hMod )
       {
-         throw std::runtime_error( ( std::string( "LoadLibrary failed to load the library \"" ) + name + ".dll\"" ).c_str() );
+         throw std::runtime_error( ( std::string( "LoadLibrary failed to load the library \"" ) + name + ".dll\" reason:" + reason ).c_str() );
       }
 
       functionImportDecl pfn = (functionImportDecl)GetProcAdressWrapper( hMod, "importFunctions" );

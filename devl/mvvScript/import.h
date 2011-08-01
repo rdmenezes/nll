@@ -10,7 +10,7 @@ namespace parser
    /**
     @brief Wrappers to isolate the corresponding functionalities ( win32 or Unix...)
     */
-   void* LoadLibraryWrapper( const std::string& path );
+   void* LoadLibraryWrapper( const std::string& path, std::string& reason_out );
    void* GetProcAdressWrapper( void* module, const std::string& name );
    void  FreeLibraryWrapper( void* module );
 }
