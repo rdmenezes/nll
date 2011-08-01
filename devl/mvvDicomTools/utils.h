@@ -14,7 +14,7 @@ using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
 
-namespace
+namespace mvv
 {
    /**
     @brief Utility to recursively return all files in a given source folder
@@ -66,9 +66,89 @@ namespace
          return getString( DCM_SeriesInstanceUID );
       }
 
+      const char* getPatientName()
+      {
+         return getString( DCM_PatientsName );
+      }
+
+      const char* getPatientId()
+      {
+         return getString( DCM_PatientID );
+      }
+
+      const char* getPatientSex()
+      {
+         return getString( DCM_PatientsSex );
+      }
+
       const char* getStudyInstanceUid()
       {
          return getString( DCM_StudyInstanceUID );
+      }
+
+      float getPatientAge()
+      {
+         return convertPatientAge( getString( DCM_PatientsAge ) );
+      }
+
+      const char* getStudyDate()
+      {
+         return getString( DCM_StudyDate );
+      }
+
+      const char* getStudyTime()
+      {
+         return getString( DCM_StudyTime );
+      }
+
+      const char* getStudyDescription()
+      {
+         return getString( DCM_StudyDescription );
+      }
+
+      const char* getStudyId()
+      {
+         return getString( DCM_StudyID );
+      }
+
+      const char* getSeriesDate()
+      {
+         return getString( DCM_SeriesDate );
+      }
+
+      const char* getSeriesTime()
+      {
+         return getString( DCM_SeriesTime );
+      }
+
+      const char* getSeriesDescription()
+      {
+         return getString( DCM_SeriesDescription );
+      }
+
+      const char* getAcquisitionDate()
+      {
+         return getString( DCM_AcquisitionDate );
+      }
+
+      const char* getAcquisitionTime()
+      {
+         return getString( DCM_AcquisitionTime );
+      }
+
+      const char* getModality()
+      {
+         return getString( DCM_Modality );
+      }
+
+      float getPatientWeight()
+      {
+         return nll::core::str2val<float>( getString( DCM_PatientsWeight ) );
+      }
+
+      int getInstanceNumber()
+      {
+         return nll::core::str2val<int>( getString( DCM_InstanceNumber ) );
       }
 
       void getPixelSpacing( nll::core::vector2f& spacing )
@@ -104,7 +184,7 @@ namespace
          }
       }
 
-      void getImagePositionPatitient( nll::core::vector3f& x )
+      void getImagePositionPatient( nll::core::vector3f& x )
       {
          std::vector<std::string> strs;
          getStrings( DCM_ImagePositionPatient, strs );
@@ -145,7 +225,18 @@ namespace
          memcpy( allocatedOutput, array, sizeof( ui16 ) * getRows() * getColumns() );
       }
 
+      const char* getFrameOfReference()
+      {
+         return getString( DCM_FrameOfReferenceUID );
+      }
+
    private:
+      float convertPatientAge( const char* str )
+      {
+         // TODO: handle the string representation
+         return 0;
+      }
+
       ui16 getUnsignedShort( const DcmTagKey& key )
       {
          ui16 val;
@@ -370,8 +461,8 @@ namespace
             DicomWrapper wrapper2( *suids[ n + 1 ].getDataset(), true );
 
             nll::core::vector3f pos1, pos2;
-            wrapper1.getImagePositionPatitient( pos1 );
-            wrapper2.getImagePositionPatitient( pos2 );
+            wrapper1.getImagePositionPatient( pos1 );
+            wrapper2.getImagePositionPatient( pos2 );
             const float spacing = static_cast<float>( fabs( pos1.dot( normal ) - pos2.dot( normal ) ) );
             ++robustSpacing[ spacing ];
          }
@@ -392,7 +483,7 @@ namespace
          // compute the volume origin
          DicomWrapper wrapperLastSlice( *suids[ suids.size() - 1 ].getDataset(), true );
          nll::core::vector3f origin;
-         wrapperLastSlice.getImagePositionPatitient( origin );
+         wrapperLastSlice.getImagePositionPatient( origin );
 
          nll::core::Matrix<f32> pst( 4, 4 );
          for ( ui32 n = 0; n < 3; ++n )
@@ -406,8 +497,13 @@ namespace
          pst( 2, 3 ) = origin[ 2 ];
          pst( 3, 3 ) = 1;
 
+         // fill the DICOM header in case we need it later for some algorithms...
+         std::auto_ptr<nll::core::Context> context( new nll::core::Context() );
+         DicomAttributs dicomHeader = createDicomAttributs( *suids[ 0 ].getDataset() );
+         context->add( new ContextInstanceDicomInfo( dicomHeader ) );
+
          // fill the slices
-         Volume* volume = new Volume( size, pst, backgroundValue, false );
+         Volume* volume = new Volume( size, pst, backgroundValue, false, context );
          std::auto_ptr<ui16> ptr( new ui16[ size[ 0 ] * size[ 1 ] ] );
          for ( ui32 z = 0; z < size[ 2 ]; ++z )
          {
@@ -456,7 +552,7 @@ namespace
 
                nll::core::vector3f x, y, pos;
                wrapper.getImageOrientationPatient( x, y );
-               wrapper.getImagePositionPatitient( pos );
+               wrapper.getImagePositionPatient( pos );
 
                // check the slices have the same orientation
                if ( slice == 0 )

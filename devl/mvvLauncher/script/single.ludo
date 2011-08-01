@@ -38,13 +38,12 @@ ManipulatorPointer pointer;
 VolumeContainer         volumes;
 
 VolumeID pet = NULL;
-//VolumeID pet = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
-VolumeID ct = readDicomVolume( "C:/HIREZ_#9_UTMC/2_Timepoints/ct" );
+DicomAttributs cta;
+VolumeID ct = readDicomVolume( "C:/HIREZ_#9_UTMC/2_Timepoints/ct", cta );
 VolumeID ct2 = readDicomVolume( "C:/HIREZ_#9_UTMC/2_Timepoints/ct2" );
 
 AffineRegistration regCtCt = affineIsotropicPlanarRegistrationCt( ct, ct2 );
 
-//readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
 
 Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 Lut petLutWhite( 4000.0, 20000.0, Vector3i( 255, 255, 255 ) );
@@ -52,13 +51,7 @@ petLutWhite.setColor(0, 100, 100, 100);
 Lut ctLut( -250.0, 250.0 );
 
 
-DisplayRegionDetection detection( annotations );
-AnnotationCreator annotationCreator( annotations, pointer );
-VolumeSwitch switch( ctLut, volumes, volumeList, detection );
-
-
 KeyboardCallback callbacks;
-callbacks.addShortcut( annotationCreator.run, "F1" );
 //callbacks.addShortcut( switch.next, "F3" );
 
 AffineRegistration petReg;
@@ -66,6 +59,7 @@ AffineRegistration ctReg;
 
 volumes.add( ct, ctLut, 0.5, ctReg );
 volumes.add( ct2, ctLut, 0.5, regCtCt );
+//volumes.add( ct2, ctLut, 0.5, ctReg );
 //volumes.add( pet, petLut, 0.5, petReg );
 
 ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, - 159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));

@@ -15,7 +15,10 @@
 using namespace mvv::parser;
 using namespace mvv;
 
-ui32 dicomVolumeId = 1;
+namespace mvv
+{
+   ui32 dicomVolumeId = 1;
+}
 
 void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 {

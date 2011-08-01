@@ -70,10 +70,36 @@ class DicomAttributs
    int columns;
 
    // 21 - [ 0028-0030 ] pixel spacing
-   Vector2f spacing;
+   Vector2f pixelSpacing;
 
    // 22 - [ 0020-0013 ] Instance number
    int instanceNumber;
+   
+   // 23 - [ 0028-1053] Rescale slope
+   float slope;
+   
+   // 24 - [ 0028-1052] Rescale Intercept
+   float intercept;
+   
+   // 25 - [ 0020-0052 ] Frame of Reference UID
+   string frameOfReference;
+   
+   // 26 - not a DICOM tag, this can be used when exporting a Volume as a DICOM file
+   float extraSliceSpacing;
+   
+   // 27 - [ 0020-0037 ] Image Orientation patient X
+   Vector3f imageOrientationPatientX;
+   
+   // 28 - [ 0020-0037 ] Image Orientation patient Y
+   Vector3f imageOrientationPatientY;
+   
+   
+   DicomAttributs()
+   {
+      instanceNumber = -1;
+	  extraSliceSpacing = -1.0;
+	  imagePositionPatient = Vector3f( -1.0, -1.0, -1.0 );
+   }
 }
 
 /**
@@ -89,11 +115,21 @@ import VolumeID readDicomVolume( string directory, DicomAttributs attributs = NU
 import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs = NULL );
 
 /**
+ @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files
+ */
+import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttributs attributs = NULL );
+
+/**
+ @brief returns the size of the array
+ */
+import int size( VolumeID[] array );
+
+/**
  @brief Hold a DICOM slice
  */
 class DicomSlice
 {
-   DicomAttributs attributs = NULL;
+   DicomAttributs attributs;
 
    // not constructible!
    import ~DicomSlice();

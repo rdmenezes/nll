@@ -131,7 +131,6 @@
  - databases
  - math
  */
-# include "context.h"
 # include "singleton.h"
 # include "configuration.h"
 # include "types.h"
@@ -140,6 +139,7 @@
 # include "math-floor.h"
 # include "static-assert.h"
 # include "ensure.h"
+# include "context.h"
 # include "log.h"
 # include "logger.h"
 # include "unreachable.h"

@@ -340,7 +340,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="dcmdata.lib dcmimgle.lib ofstd.lib"
+				AdditionalDependencies="dcmdata.lib dcmimgle.lib ofstd.lib zlibwapi.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -432,6 +432,10 @@
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\dicom-attributs.h"
+				>
+			</File>
 			<File
 				RelativePath=".\mvvDicomTools.h"
 				>
