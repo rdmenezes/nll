@@ -5,6 +5,8 @@
 # include <dcmtk/dcfilefo.h>
 # include <dcmtk/dcdeftag.h>
 # include <dcmtk/dcmimage.h>
+# include <dcmtk/dcxfer.h>
+# include <memory>
 # include <mvvScript/function-runnable.h>
 
 using namespace boost::filesystem;
@@ -127,11 +129,39 @@ namespace
          return getUnsignedShort( DCM_Columns );
       }
 
+      float getRescaleIntercept()
+      {
+         return nll::core::str2val<float>( getString( DCM_RescaleIntercept ) );
+      }
+
+      float getRescaleSlope()
+      {
+         return nll::core::str2val<float>( getString( DCM_RescaleSlope ) );
+      }
+
+      void getPixelData( ui16* allocatedOutput )
+      {
+         ui16* array = getUint16Array( DCM_PixelData );
+         memcpy( allocatedOutput, array, sizeof( ui16 ) * getRows() * getColumns() );
+      }
+
    private:
       ui16 getUnsignedShort( const DcmTagKey& key )
       {
          ui16 val;
          OFCondition cond = _dataset.findAndGetUint16( key, val );
+         if ( cond.good() )
+         {
+         } else {
+            error( "missing tag:" + nll::core::val2str( key.getGroup() ) + " " + nll::core::val2str( key.getElement() ) );
+         }
+         return val;
+      }
+
+      ui16* getUint16Array( const DcmTagKey& key )
+      {
+         ui16* val;
+         OFCondition cond = _dataset.findAndGetUint16Array( key, val );
          if ( cond.good() )
          {
          } else {
@@ -309,6 +339,9 @@ namespace
       template <class T>
       nll::imaging::VolumeSpatial<T>* constructVolumeFromSeries( ui32 seriesIndex, T backgroundValue = 0 )
       {
+         nll::core::Timer timerConstruction;
+
+         typedef nll::imaging::VolumeSpatial<T> Volume;
          DicomFiles& suids = _dicomBySeriesUid[ seriesIndex ];
 
          // consider the first slice, all the other slices must be consistent
@@ -373,8 +406,31 @@ namespace
          pst( 2, 3 ) = origin[ 2 ];
          pst( 3, 3 ) = 1;
 
+         // fill the slices
+         Volume* volume = new Volume( size, pst, backgroundValue, false );
+         std::auto_ptr<ui16> ptr( new ui16[ size[ 0 ] * size[ 1 ] ] );
+         for ( ui32 z = 0; z < size[ 2 ]; ++z )
+         {
+            DicomWrapper wrapper( *suids[ z ].getDataset(), true );
+            wrapper.getPixelData( ptr.get() );
+            const float slope = wrapper.getRescaleSlope();
+            const float intercept = wrapper.getRescaleIntercept();
+
+            for ( ui32 y = 0; y < size[ 1 ]; ++y )
+            {
+               typename Volume::DirectionalIterator iter = volume->getIterator( 0, y, z );
+               for ( ui32 x = 0; x < size[ 0 ]; ++x )
+               {
+                  *iter = ( (float)ptr.get()[ x + y * size[ 0 ] ] ) * slope + intercept;
+                  ++iter;
+               }
+            }
+         }
+
+         std::cout << "volume construction time=" << timerConstruction.getCurrentTime() << std::endl;
+
          // create the volume
-         return new nll::imaging::VolumeSpatial<T>( size, pst, backgroundValue );
+         return volume;
       }
 
    private:
@@ -424,7 +480,13 @@ namespace
                list.push_back( std::make_pair( d, slice ) );
             }
 
-            std::sort( list.rbegin(), list.rend() );
+            std::sort( list.begin(), list.end() );
+            DicomFiles sortedFiles( list.size() );
+            for ( size_t t = 0; t < sortedFiles.size(); ++t )
+            {
+               sortedFiles[ t ] = _dicomBySeriesUid[ n ][ list[ t ].second ];
+            }
+            _dicomBySeriesUid[ n ] = sortedFiles;
          }
       }
 
