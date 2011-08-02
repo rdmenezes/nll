@@ -110,8 +110,15 @@ namespace parser
          return true;
       if ( t1->isArray() != t2->isArray() )
          return false;
-      if ( t1->isArray() && t1->getSize()->size() != t2->getSize()->size() )
-         return false;
+      if ( t1->isArray() )
+      {
+         const std::vector<AstExp*>* t1Size = t1->getSize();
+         const std::vector<AstExp*>* t2Size = t2->getSize();
+         if ( t1Size && !t2Size || t2Size && !t1Size )
+            return false;
+         if ( t1Size && t1Size->size() != t2Size->size() )
+            return false;
+      }
       const AstTypeField* t1field = dynamic_cast<const AstTypeField*>( t1 );
       const AstTypeField* t2field = dynamic_cast<const AstTypeField*>( t2 );
       if ( t1field && !t2field || !t2field && t1field )

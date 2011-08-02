@@ -244,7 +244,7 @@ namespace mvv
          if ( cond.good() )
          {
          } else {
-            error( "missing tag:" + nll::core::val2str( key.getGroup() ) + " " + nll::core::val2str( key.getElement() ) );
+            error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
          return val;
       }
@@ -256,7 +256,7 @@ namespace mvv
          if ( cond.good() )
          {
          } else {
-            error( "missing tag:" + nll::core::val2str( key.getGroup() ) + " " + nll::core::val2str( key.getElement() ) );
+            error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
          return val;
       }
@@ -268,8 +268,10 @@ namespace mvv
          if ( cond.good() )
          {
          } else {
-            error( "missing tag:" + nll::core::val2str( key.getGroup() ) + " " + nll::core::val2str( key.getElement() ) );
+            error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
+         if ( !str )
+            return "";
          return str;
       }
 
@@ -279,7 +281,7 @@ namespace mvv
          _dataset.search( key, result );
          if ( result.empty() )
          {
-            error( "missing tag:" + nll::core::val2str( key.getGroup() ) + " " + nll::core::val2str( key.getElement() ) );
+            error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
          const ui32 size = result.top()->getVM();
          strings = std::vector<std::string>( size );
@@ -289,7 +291,7 @@ namespace mvv
             OFCondition cond = _dataset.findAndGetOFString( key, str, n );
             if ( !cond.good() )
             {
-               error( "cannot access element:" + nll::core::val2str( n ) + " of " + nll::core::val2str( key.getGroup() ) + " " + nll::core::val2str( key.getElement() ) );
+               error( "cannot access element (hex):" + nll::core::val2str( n ) + " of " + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
             }
             strings[ n ] = str.c_str();
          }
@@ -338,25 +340,40 @@ namespace mvv
             OFCondition cond = dcm.loadFile( files[ n ].c_str() );
             if ( cond.good() )
             {
-               DicomWrapper wrapper( *dcm.getDataset() );
-               const char* seriesInstanceUid = wrapper.getSeriesInstanceUid();
-               if ( seriesInstanceUid )
+               DicomWrapper wrapper( *dcm.getDataset(), true );
+               try
                {
-                  size_t index;
-                  mvv::Symbol seriesInstanceUidSymbol = mvv::Symbol::create( seriesInstanceUid );
-                  DicomUids::iterator it = seriesUids.find( seriesInstanceUidSymbol );
-                  if ( it == seriesUids.end() ) // it is a new serie instance UID
+                  nll::core::vector3f x;
+                  wrapper.getImageOrientationPatient( x, x );
+               } catch (...)
+               {
+                  std::cout << "warning: slice removed, missing mandatory tag" << std::endl;
+                  continue;
+               }
+
+               if ( std::string( wrapper.getModality() ) != "OT" )   // we don't handle unknown modality...
+               {
+                  const char* seriesInstanceUid = wrapper.getSeriesInstanceUid();
+                  if ( seriesInstanceUid )
                   {
-                     std::cout << "new SUID=" << seriesInstanceUid << std::endl;
-                     index = _dicomBySeriesUid.size(); // create a new one
-                     _dicomBySeriesUid.push_back( DicomFiles() );
-                     seriesUids[ seriesInstanceUidSymbol ] = index;
-                  } else {
-                     index = it->second;  // retrieve the position
+                     size_t index;
+                     mvv::Symbol seriesInstanceUidSymbol = mvv::Symbol::create( seriesInstanceUid );
+                     DicomUids::iterator it = seriesUids.find( seriesInstanceUidSymbol );
+                     if ( it == seriesUids.end() ) // it is a new serie instance UID
+                     {
+                        std::cout << "new SUID=" << seriesInstanceUid << std::endl;
+                        index = _dicomBySeriesUid.size(); // create a new one
+                        _dicomBySeriesUid.push_back( DicomFiles() );
+                        seriesUids[ seriesInstanceUidSymbol ] = index;
+                     } else {
+                        index = it->second;  // retrieve the position
+                     }
+                     
+                     // finally add the slice at its correct location
+                     _dicomBySeriesUid[ index ].push_back( dcm );
                   }
-                  
-                  // finally add the slice at its correct location
-                  _dicomBySeriesUid[ index ].push_back( dcm );
+               } else {
+                  std::cout << "warning: slice removed, unknown modality" << std::endl;
                }
             }
          }
@@ -390,6 +407,15 @@ namespace mvv
 
          std::cout << "nb series UID=" << _dicomBySeriesUid.size() << std::endl;
          std::cout << "nb study UID=" << _dicomByStudyUid.size() << std::endl;
+
+         for ( ui32 n = 0; n < _dicomByStudyUid.size(); ++n )
+         {
+            std::cout << "study[" << n << "]" << std::endl;
+            for ( ui32 nn = 0; nn < _dicomByStudyUid[ n ].size(); ++nn )
+            {
+               std::cout << "series[" << _dicomByStudyUid[ n ][ nn ] << "], numberOfSlices=" << _dicomBySeriesUid[ _dicomByStudyUid[ n ][ nn ] ].size() << std::endl;
+            }
+         }
       }
 
       void clear()
@@ -469,6 +495,11 @@ namespace mvv
 
          ui32 countMax = 0;
          float zspacing = 0;
+         if ( nbSlices == 1 )
+         {
+            // we have only one slice, we can't compute the spacing! any value is fine...
+            zspacing = 1;
+         }
          for ( std::map<float, ui32>::const_iterator it = robustSpacing.begin(); it != robustSpacing.end(); ++it )
          {
             if ( it->second > countMax )
@@ -492,6 +523,8 @@ namespace mvv
             pst( n, 1 ) = y[ n ]      * pixelSpacing[ 0 ];
             pst( n, 2 ) = normal[ n ] * zspacing;
          }
+
+         // TODO: check which corner should be the origin?
          pst( 0, 3 ) = origin[ 0 ];
          pst( 1, 3 ) = origin[ 1 ];
          pst( 2, 3 ) = origin[ 2 ];
@@ -543,6 +576,8 @@ namespace mvv
          // determine if we have the tag <0020, 0013> Instance Number to sort the image
          for ( size_t n = 0; n < _dicomBySeriesUid.size(); ++n )
          {
+            if ( _dicomBySeriesUid[ n ].size() == 1 )
+               continue;   // no need to sort!
             nll::core::vector3f refx, refy, normal;
             std::vector< std::pair< double, size_t > > list;
             for ( size_t slice = 0; slice < _dicomBySeriesUid[ n ].size(); ++slice )
@@ -566,7 +601,11 @@ namespace mvv
                      if ( !nll::core::equal<f32>( refx[ n ], x[ n ], 1e-5f ) ||
                           !nll::core::equal<f32>( refy[ n ], y[ n ], 1e-5f ) )
                      {
-                        throw std::runtime_error( "Slices do not have the same orientation!" );
+                        std::stringstream ss;
+                        ss << "Slices do not have the same orientation! ";
+                        ss << "dx=" << refx[ n ] << " " << x[ n ];
+                        ss << "dy=" << refy[ n ] << " " << y[ n ];
+                        throw std::runtime_error( ss.str() );
                      }
                   }
                }

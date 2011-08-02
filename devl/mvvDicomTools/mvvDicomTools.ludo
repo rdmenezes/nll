@@ -84,21 +84,21 @@ class DicomAttributs
    // 25 - [ 0020-0052 ] Frame of Reference UID
    string frameOfReference;
    
-   // 26 - not a DICOM tag, this can be used when exporting a Volume as a DICOM file
+   // 26 - not a DICOM tag, this will be used in the following cases:
+   // - exporting a Volume as a DICOM file
    float extraSliceSpacing;
-   
-   // 27 - [ 0020-0037 ] Image Orientation patient X
+
+   // 27 - [ 0020-0037 ] Image Orientation Patient, axis X
    Vector3f imageOrientationPatientX;
-   
-   // 28 - [ 0020-0037 ] Image Orientation patient Y
+
+   // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
    Vector3f imageOrientationPatientY;
-   
    
    DicomAttributs()
    {
       instanceNumber = -1;
-	  extraSliceSpacing = -1.0;
-	  imagePositionPatient = Vector3f( -1.0, -1.0, -1.0 );
+	   extraSliceSpacing = -1.0;
+	   imagePositionPatient = Vector3f( -1.0, -1.0, -1.0 );
    }
 }
 
@@ -111,18 +111,25 @@ import VolumeID readDicomVolume( string directory, DicomAttributs attributs = NU
 /**
  @brief Read the volumes contained in a DICOM directory
  @param attributs if an attribut is not NULL, it will be populated with the corresponding values
+ @param studyIndex index on the volumes belonging to the same Study
+        e.g. studyIndex = [ 3, 6 ], with 10 series,
+        means the volume 0-3 => study 0
+                  volume 4-6 => study 1
+                  volume 7-9 => study 2
+ @note when loaded, it is guaranteed volumes belonging to the same study UID will be consecutive
  */
-import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs = NULL );
-
-/**
- @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files
- */
-import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttributs attributs = NULL );
+import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs = NULL, int[] studyIndex = NULL );
 
 /**
  @brief returns the size of the array
  */
 import int size( VolumeID[] array );
+import int size( int[] array );
+
+/**
+ @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files
+ */
+import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttributs attributs = NULL );
 
 /**
  @brief Hold a DICOM slice

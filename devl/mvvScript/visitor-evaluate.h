@@ -447,7 +447,7 @@ namespace parser
             //_debug( array );
             assert( array.type == RuntimeValue::TYPE );
 
-            if ( index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
+            if ( array.vals.getDataPtr() == 0 || index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
             {
                throw std::runtime_error( "out of bound exception" );
             }
@@ -603,7 +603,7 @@ namespace parser
             }
             _env.resultRegister = fun.getImportedFunction()->run( valsPtr );
          } else {
-            throw std::runtime_error( "unable to find function implementation" );
+            throw std::runtime_error( "unable to find function implementation:" + std::string( fun.getName().getName() ) );
          }
 
          // restaure FP, frame pointer & stack

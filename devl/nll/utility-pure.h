@@ -97,6 +97,20 @@ namespace core
 
    /**
     @ingroup core
+    @brief compute a string representing this value
+   */
+   template <class T>
+   std::string val2strHex( const T& val )
+   {
+      std::stringstream s;
+      s << std::hex << val;
+      std::string res;
+      s >> res;
+      return res;
+   }
+
+   /**
+    @ingroup core
     @brief compute a value representing a string
    */
    template <class T>

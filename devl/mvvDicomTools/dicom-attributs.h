@@ -11,6 +11,16 @@ using namespace mvv::platform;
 using namespace mvv::parser;
 using namespace mvv;
 
+//
+// Note: this module relies on the perfect synchronization of the <mvvDicomTools.ludo> header,
+// and the <DicomAttributs> class. The DICOM tags will be extracted and persisted in the volume via <DicomAttributs>
+// this may then exported to a <RuntimeValue> to be usable in the environment.
+//
+// 3 parts must be synchronized:
+//   - <DicomAttributs>
+//   - <DicomAttributs> in <mvvDicomTools.ludo>
+//   - <DicomAttributs::isTagHandled> that registers all the tag used
+//
 namespace mvv
 {
    extern ui32 dicomVolumeId;
@@ -51,8 +61,8 @@ namespace mvv
       float intercept;           // 24 - [ 0028-1053] Rescale intercept
       string frameOfReference;   // 25 - [ 0020-0052 ] Frame of Reference UID
       float extraSliceSpacing;   // 26 - Not a DICOM tag, extra info to write a DICOM volume
-      nll::core::vector3f imageOrientationPatientX;  // 27 - [ 0020-0037 ]
-      nll::core::vector3f imageOrientationPatientY;  // 28 - [ 0020-0037 ]
+      nll::core::vector3f imageOrientationPatientX;  // 27 - [ 0020-0037 ] Image Orientation Patient, axis X
+      nll::core::vector3f imageOrientationPatientY;  // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
 
       /**
        @brief Returns the index of the tag <group, element> defined in <mvvDicomTools.ludo>, -1 if it is not handled
@@ -121,6 +131,7 @@ namespace mvv
       static void exportTagsToRuntime( RuntimeValue& val, const DicomAttributs& src )
       {
          val.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( DicomAttributs::getNumberOfHandledTags() ) );
+         val.type = RuntimeValue::TYPE;
          
          (*val.vals)[ 0 ].type = RuntimeValue::STRING;
          (*val.vals)[ 0 ].stringval = src.patientName;
