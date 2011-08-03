@@ -140,7 +140,7 @@ namespace mvv
                   int accum = 0;
                   for ( ui32 n = 0; n < datasets.getStudyUids().size() - 1; ++n )
                   {
-                     accum += datasets.getStudyUids()[ n ].size();
+                     accum += (int)datasets.getStudyUids()[ n ].size();
                      RuntimeValue v( RuntimeValue::CMP_INT );
                      v.intval = accum - 1;
                      (*v2.vals)[ n ] = v;
@@ -171,8 +171,8 @@ namespace mvv
             {
                for ( ui32 series = 0; series < datasets.getStudyUids()[ study ].size(); ++series )
                {
-                  const ui32 n = datasets.getStudyUids()[ study ][ series ];
-                  RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( n ) );
+                  const size_t n = datasets.getStudyUids()[ study ][ series ];
+                  RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( (ui32)n ) );
                   const std::string volumeId = "DICOM" + nll::core::val2str( dicomVolumeId );
                   volumes->volumes.insert( mvv::SymbolVolume::create( volumeId ), volume );
 
@@ -239,7 +239,7 @@ namespace mvv
          {
             rt.intval = 0;
          } else {
-            rt.intval = (*v0.vals).size();
+            rt.intval = (int)(*v0.vals).size();
          }
          return rt;
       }
@@ -267,7 +267,35 @@ namespace mvv
          {
             rt.intval = 0;
          } else {
-            rt.intval = (*v0.vals).size();
+            rt.intval = (int)(*v0.vals).size();
+         }
+         return rt;
+      }
+   };
+
+   class FunctionSizeDicomSlice : public FunctionRunnable
+   {
+
+   public:
+      FunctionSizeDicomSlice( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 1 )
+         {
+            throw std::runtime_error( "unexpected number of arguments, expecting string, DicomAttributs" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+
+         RuntimeValue rt( RuntimeValue::CMP_INT );
+         if ( v0.vals.getDataPtr() == 0 )
+         {
+            rt.intval = 0;
+         } else {
+            rt.intval = (int)(*v0.vals).size();
          }
          return rt;
       }

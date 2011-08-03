@@ -63,6 +63,7 @@ namespace mvv
       float extraSliceSpacing;   // 26 - Not a DICOM tag, extra info to write a DICOM volume
       nll::core::vector3f imageOrientationPatientX;  // 27 - [ 0020-0037 ] Image Orientation Patient, axis X
       nll::core::vector3f imageOrientationPatientY;  // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
+      string sopInstanceUid;     // 29 - [ 0008, 0018 ] SOP Instance UID
 
       /**
        @brief Returns the index of the tag <group, element> defined in <mvvDicomTools.ludo>, -1 if it is not handled
@@ -100,7 +101,8 @@ namespace mvv
             { 0x20, 0x0052 }, // 25
             { 0, 0 },
             { 0x20, 0x0037 },
-            { 0x20, 0x0037 }
+            { 0x20, 0x0037 },
+            { 0x08, 0x0018 }
          };
 
          static ui32 nbTags = nll::core::getStaticBufferSize( tags );
@@ -130,6 +132,7 @@ namespace mvv
       // this must follow exaclty the order in which the members are defined in <mvvDicomTools.ludo>
       static void exportTagsToRuntime( RuntimeValue& val, const DicomAttributs& src )
       {
+         //std::cout << "nbTagsCreated=" << DicomAttributs::getNumberOfHandledTags() << std::endl;
          val.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( DicomAttributs::getNumberOfHandledTags() ) );
          val.type = RuntimeValue::TYPE;
          
@@ -219,6 +222,16 @@ namespace mvv
          mvv::parser::createVector3f( (*val.vals)[ 27 ], src.imageOrientationPatientY[ 0 ], 
                                                          src.imageOrientationPatientY[ 1 ],
                                                          src.imageOrientationPatientY[ 2 ] );
+
+         (*val.vals)[ 28 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 28 ].stringval = src.sopInstanceUid;
+      }
+
+      static void exportTagsToDataset( DicomAttributs& val, DcmDataset& out )
+      {
+         DicomWrapper wrapper( out );
+
+         wrapper.setPatientName( val.patientName.c_str() );
       }
    };
 
@@ -258,6 +271,44 @@ namespace mvv
       attributs.frameOfReference = wrapper.getFrameOfReference();
       attributs.extraSliceSpacing = -1;
       wrapper.getImageOrientationPatient( attributs.imageOrientationPatientX, attributs.imageOrientationPatientY );
+      attributs.sopInstanceUid = wrapper.getSopInstanceUid();
+      return attributs;
+   }
+
+   inline DicomAttributs createDicomAttributs( const RuntimeValue& val )
+   {
+      DicomAttributs attributs;
+      attributs.patientName = (*val.vals)[ 0 ].stringval;
+         //std::string( wrapper.getPatientName() );
+      /*
+      attributs.patientID = std::string( wrapper.getPatientId() );
+      attributs.patientSex = std::string( wrapper.getPatientSex() );
+      attributs.patientAge = wrapper.getPatientAge();
+      attributs.patientWeight = wrapper.getPatientWeight();
+      attributs.studyDate = std::string( wrapper.getStudyDate() );
+      attributs.studyTime = std::string( wrapper.getStudyTime() );
+      attributs.studyDescription = std::string( wrapper.getStudyDescription() );
+      attributs.studyID = std::string( wrapper.getStudyId() );
+      attributs.seriesDate = std::string( wrapper.getSeriesDate() );
+      attributs.seriesTime = std::string( wrapper.getSeriesTime() );
+      attributs.seriesDescription = std::string( wrapper.getSeriesDescription() );
+      attributs.acquisitionDate = std::string( wrapper.getAcquisitionDate() );
+      attributs.acquisitionTime = std::string( wrapper.getAcquisitionTime() );
+      attributs.modality = std::string( wrapper.getModality() );
+      attributs.studyInstanceUid = std::string( wrapper.getStudyInstanceUid() );
+      attributs.seriesInstanceUid = std::string( wrapper.getSeriesInstanceUid() );
+      wrapper.getImagePositionPatient( attributs.imagePositionPatient );
+      attributs.rows = wrapper.getRows();
+      attributs.columns = wrapper.getColumns();
+      wrapper.getPixelSpacing( attributs.pixelSpacing );
+      attributs.instanceNumber = wrapper.getInstanceNumber();
+      attributs.slope = wrapper.getRescaleSlope();
+      attributs.intercept = wrapper.getRescaleIntercept();
+      attributs.frameOfReference = wrapper.getFrameOfReference();
+      attributs.extraSliceSpacing = -1;
+      wrapper.getImageOrientationPatient( attributs.imageOrientationPatientX, attributs.imageOrientationPatientY );
+      attributs.sopInstanceUid = wrapper.getSopInstanceUid();
+      */
       return attributs;
    }
 

@@ -71,6 +71,11 @@ namespace mvv
          return getString( DCM_PatientsName );
       }
 
+      void setPatientName( const char* name )
+      {
+         setString( DCM_PatientsName, name );
+      }
+
       const char* getPatientId()
       {
          return getString( DCM_PatientID );
@@ -109,6 +114,11 @@ namespace mvv
       const char* getStudyId()
       {
          return getString( DCM_StudyID );
+      }
+
+      const char* getSopInstanceUid()
+      {
+         return getString( DCM_SOPInstanceUID );
       }
 
       const char* getSeriesDate()
@@ -275,14 +285,24 @@ namespace mvv
          return str;
       }
 
+      void setString( const DcmTagKey& key, const char* v )
+      {
+         OFCondition cond = _dataset.putAndInsertString( key, v );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
       void getStrings( const DcmTagKey& key, std::vector<std::string>& strings )
       {
          DcmStack result;
          _dataset.search( key, result );
-         if ( result.empty() )
+         if ( result.empty() || !result.top() )
          {
-            error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+            error( "missing or empty tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
+
          const ui32 size = result.top()->getVM();
          strings = std::vector<std::string>( size );
          for ( ui32 n = 0; n < size; ++n )

@@ -1,5 +1,9 @@
 include "core"
 
+//
+// TODO: handle DYNAMIC and GATED DICOM data
+//
+
 /**
  DICOM manipulation wrapper using DCMTK (see http://dicom.offis.de/) as back end
  */
@@ -93,6 +97,9 @@ class DicomAttributs
 
    // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
    Vector3f imageOrientationPatientY;
+
+   // 29 - [ 0008-0018 ] SOP Instance IUD
+   string sopInstanceUid;
    
    DicomAttributs()
    {
@@ -125,6 +132,7 @@ import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs
  */
 import int size( VolumeID[] array );
 import int size( int[] array );
+import int size( DicomSlice[] array );
 
 /**
  @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files
@@ -133,10 +141,13 @@ import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttr
 
 /**
  @brief Hold a DICOM slice
+
+ Internally the DICOM file is stored but not accessible except form the <mainAttributs> that will be synced
+ for I/O
  */
 class DicomSlice
 {
-   DicomAttributs attributs;
+   DicomAttributs mainAttributs;
 
    // not constructible!
    import ~DicomSlice();
@@ -149,6 +160,7 @@ import DicomSlice readDicomSlice( string path );
 
 /**
  @brief Read a specific DICOM directory and return all DICOM slices
+ @note it is guaranteed to be sorted by Series Instance UID
  */
 import DicomSlice[] readDicomSlices( string path );
 
@@ -160,19 +172,19 @@ typedef string ( DicomSlice slice )  DicomSliceNamingFunc;
 
 string defaultDicomSliceNamingFunc( DicomSlice slice )
 {
-   return slice.attributs.studyInstanceUid + "-" + slice.attributs.seriesInstanceUid;
+   return slice.mainAttributs.seriesInstanceUid + "-" + slice.mainAttributs.sopInstanceUid + ".dcm";
 }
 
 /**
  @brief Write a DICOM slice on the disk
- @note  Note that if the <attributs> in <DicomSlice> have been modified
+ @note  Note that if the <mainAttributs> in <DicomSlice> have been modified
         they will be updated
  */
 import void writeDicomSlice( DicomSlice slice, string path );
 
 /**
  @brief Write DICOM slices on the disk
- @note  Note that if the <attributs> in <DicomSlice> have been modified
+ @note  Note that if the <mainAttributs> in <DicomSlice> have been modified
         they will be updated
  */
 import void writeDicomSlices( DicomSlice[] slices, string directory, DicomSliceNamingFunc namingSlice = defaultDicomSliceNamingFunc );
