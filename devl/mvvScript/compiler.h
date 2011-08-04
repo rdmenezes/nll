@@ -436,7 +436,7 @@ namespace parser
          AstDeclVar* val = _vars.find( name );
          if ( !val )
          {
-            throw std::runtime_error("can't find this variable in the current execution context" );
+            throw std::runtime_error( std::string("can't find this variable in the current execution context:") + name.getName() );
          }
          if ( val->getRuntimeIndex() >= _env.stack.size() )
          {

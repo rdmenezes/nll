@@ -148,10 +148,17 @@ namespace mvv
 
          // the only thing we absolutely need to find is a handle on the "layout", which MUST be defined in the script
          // the reference must be kept alive until the end of the program
-         const RuntimeValue& layoutRef = compiler.getVariable( mvv::Symbol::create( "layout" ) );
-         FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
-         layout = pointee->pane;
-         oldLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
+         try
+         {
+            const RuntimeValue& layoutRef = compiler.getVariable( mvv::Symbol::create( "layout" ) );
+            FunctionLayoutConstructorSegment::Pointee* pointee = reinterpret_cast<FunctionLayoutConstructorSegment::Pointee*>( (*layoutRef.vals)[ 0 ].ref );
+            layout = pointee->pane;
+            oldLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
+         } catch ( std::exception& e )
+         {
+            std::cerr << "warning:" << e.what() << " This may be a problem if the application is with a viewer attached..." << std::endl;
+            return;
+         }
 
          // update the layout
          platform::ContextGlobal* global = context.get<platform::ContextGlobal>();
