@@ -66,6 +66,11 @@ namespace mvv
          return getString( DCM_SeriesInstanceUID );
       }
 
+      void setSeriesInstanceUid( const char* s )
+      {
+         setString( DCM_SeriesInstanceUID, s );
+      }
+
       const char* getPatientName()
       {
          return getString( DCM_PatientsName );
@@ -81,9 +86,19 @@ namespace mvv
          return getString( DCM_PatientID );
       }
 
+      void setPatientId( const char* s )
+      {
+         setString( DCM_PatientID, s );
+      }
+
       const char* getPatientSex()
       {
          return getString( DCM_PatientsSex );
+      }
+
+      void setPatientSex( const char* s )
+      {
+         setString( DCM_PatientsSex, s );
       }
 
       const char* getStudyInstanceUid()
@@ -91,9 +106,20 @@ namespace mvv
          return getString( DCM_StudyInstanceUID );
       }
 
+      void setStudyInstanceUid( const char* s )
+      {
+         setString( DCM_StudyInstanceUID, s );
+      }
+
       float getPatientAge()
       {
          return convertPatientAge( getString( DCM_PatientsAge ) );
+      }
+
+      void setPatientAge( float s )
+      {
+         // TODO: do the real conversion!!!
+         setString( DCM_PatientsAge, "1Y" );
       }
 
       const char* getStudyDate()
@@ -101,9 +127,19 @@ namespace mvv
          return getString( DCM_StudyDate );
       }
 
+      void setStudyDate( const char* s )
+      {
+         setString( DCM_StudyDate, s );
+      }
+
       const char* getStudyTime()
       {
          return getString( DCM_StudyTime );
+      }
+
+      void setStudyTime( const char* s )
+      {
+         setString( DCM_StudyTime, s );
       }
 
       const char* getStudyDescription()
@@ -111,9 +147,19 @@ namespace mvv
          return getString( DCM_StudyDescription );
       }
 
+      void setStudyDescription( const char* s )
+      {
+         setString( DCM_StudyDescription, s );
+      }
+
       const char* getStudyId()
       {
          return getString( DCM_StudyID );
+      }
+
+      void setStudyId( const char* s )
+      {
+         setString( DCM_StudyID, s );
       }
 
       const char* getSopInstanceUid()
@@ -121,9 +167,19 @@ namespace mvv
          return getString( DCM_SOPInstanceUID );
       }
 
+      void setSopInstanceUid( const char* s )
+      {
+         setString( DCM_SOPInstanceUID, s );
+      }
+
       const char* getSeriesDate()
       {
          return getString( DCM_SeriesDate );
+      }
+
+      void setSeriesDate( const char* s )
+      {
+         setString( DCM_SeriesDate, s );
       }
 
       const char* getSeriesTime()
@@ -131,9 +187,19 @@ namespace mvv
          return getString( DCM_SeriesTime );
       }
 
+      void setSeriesTime( const char* s )
+      {
+         setString( DCM_SeriesTime, s );
+      }
+
       const char* getSeriesDescription()
       {
          return getString( DCM_SeriesDescription );
+      }
+
+      void setSeriesDescription( const char* s )
+      {
+         setString( DCM_SeriesDescription, s );
       }
 
       const char* getAcquisitionDate()
@@ -141,9 +207,19 @@ namespace mvv
          return getString( DCM_AcquisitionDate );
       }
 
+      void setAcquisitionDate( const char* s )
+      {
+         setString( DCM_AcquisitionDate, s );
+      }
+
       const char* getAcquisitionTime()
       {
          return getString( DCM_AcquisitionTime );
+      }
+
+      void setAcquisitionTime( const char* s )
+      {
+         setString( DCM_AcquisitionTime, s );
       }
 
       const char* getModality()
@@ -151,14 +227,29 @@ namespace mvv
          return getString( DCM_Modality );
       }
 
+      void setModality( const char* s )
+      {
+         setString( DCM_Modality, s );
+      }
+
       float getPatientWeight()
       {
          return nll::core::str2val<float>( getString( DCM_PatientsWeight ) );
       }
 
+      void setPatientWeight( float s )
+      {
+         setFloat( DCM_PatientsWeight, s );
+      }
+
       int getInstanceNumber()
       {
          return nll::core::str2val<int>( getString( DCM_InstanceNumber ) );
+      }
+
+      void setInstanceNumber( int s )
+      {
+         setInt( DCM_InstanceNumber, s );
       }
 
       void getPixelSpacing( nll::core::vector2f& spacing )
@@ -173,6 +264,11 @@ namespace mvv
             spacing = nll::core::vector2f( nll::core::str2val<f32>( strs[ 0 ] ),
                                            nll::core::str2val<f32>( strs[ 1 ] ) );
          }
+      }
+
+      void setPixelSpacing( const nll::core::vector2f& spacing )
+      {
+         setVector2f( DCM_PixelSpacing, spacing );
       }
 
       void getImageOrientationPatient( nll::core::vector3f& x, nll::core::vector3f& y )
@@ -194,6 +290,11 @@ namespace mvv
          }
       }
 
+      void setImageOrientationPatient( const nll::core::vector3f& x, const nll::core::vector3f& y )
+      {
+         setVector6f( DCM_ImageOrientationPatient, x, y );
+      }
+
       void getImagePositionPatient( nll::core::vector3f& x )
       {
          std::vector<std::string> strs;
@@ -209,9 +310,19 @@ namespace mvv
          }
       }
 
+      void setImagePositionPatient( const nll::core::vector3f& s )
+      {
+         setVector3f( DCM_ImagePositionPatient, s );
+      }
+
       ui32 getRows()
       {
          return getUnsignedShort( DCM_Rows );
+      }
+
+      void setRows( int s )
+      {
+         setInt( DCM_Rows, s );
       }
 
       ui32 getColumns()
@@ -219,14 +330,29 @@ namespace mvv
          return getUnsignedShort( DCM_Columns );
       }
 
+      void setColumns( int s )
+      {
+         setInt( DCM_Columns, s );
+      }
+
       float getRescaleIntercept()
       {
          return nll::core::str2val<float>( getString( DCM_RescaleIntercept ) );
       }
 
+      void setRescaleIntercept( float s )
+      {
+         setInt( DCM_RescaleIntercept, s );
+      }
+
       float getRescaleSlope()
       {
          return nll::core::str2val<float>( getString( DCM_RescaleSlope ) );
+      }
+
+      void setRescaleSlope( float s )
+      {
+         setInt( DCM_RescaleSlope, s );
       }
 
       void getPixelData( ui16* allocatedOutput )
@@ -238,6 +364,11 @@ namespace mvv
       const char* getFrameOfReference()
       {
          return getString( DCM_FrameOfReferenceUID );
+      }
+
+      void setFrameOfReference( const char* s )
+      {
+         setString( DCM_FrameOfReferenceUID, s );
       }
 
    private:
@@ -294,6 +425,61 @@ namespace mvv
          }
       }
 
+      void setFloat( const DcmTagKey& key, float v )
+      {
+         OFCondition cond = _dataset.putAndInsertString( key, nll::core::val2str( v ).c_str() );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
+      void setVector3f( const DcmTagKey& key, const nll::core::vector3f& v )
+      {
+         std::stringstream ss;
+         ss << v[ 0 ] << "\\" << v[ 1 ] << "\\" << v[ 2 ];
+         
+         OFCondition cond = _dataset.putAndInsertString( key, ss.str().c_str() );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
+      void setVector6f( const DcmTagKey& key, const nll::core::vector3f& v1, const nll::core::vector3f& v2 )
+      {
+         std::stringstream ss;
+         ss << v1[ 0 ] << "\\" << v1[ 1 ] << "\\" << v1[ 2 ] << "\\"
+            << v2[ 0 ] << "\\" << v2[ 1 ] << "\\" << v2[ 2 ];
+         OFCondition cond = _dataset.putAndInsertString( key, ss.str().c_str() );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
+      void setVector2f( const DcmTagKey& key, const nll::core::vector2f& v )
+      {
+         std::stringstream ss;
+         ss << v[ 0 ] << "\\" << v[ 1 ];
+         
+         OFCondition cond = _dataset.putAndInsertString( key, ss.str().c_str() );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
+      void setInt( const DcmTagKey& key, int v )
+      {
+
+         OFCondition cond = _dataset.putAndInsertString( key, nll::core::val2str( v ).c_str() );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
       void getStrings( const DcmTagKey& key, std::vector<std::string>& strings )
       {
          DcmStack result;
@@ -327,7 +513,7 @@ namespace mvv
 
    private:
       bool        _throwIfMissingTag;
-      DcmDataset  _dataset;
+      DcmDataset& _dataset;
    };
 
    /**

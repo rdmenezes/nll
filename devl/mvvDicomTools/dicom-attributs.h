@@ -212,8 +212,8 @@ namespace mvv
          (*val.vals)[ 24 ].type = RuntimeValue::STRING;
          (*val.vals)[ 24 ].stringval = src.frameOfReference;
 
-         (*val.vals)[ 25 ].type = RuntimeValue::STRING;
-         (*val.vals)[ 25 ].stringval = src.extraSliceSpacing;
+         (*val.vals)[ 25 ].type = RuntimeValue::CMP_FLOAT;
+         (*val.vals)[ 25 ].floatval = src.extraSliceSpacing;
 
          mvv::parser::createVector3f( (*val.vals)[ 26 ], src.imageOrientationPatientX[ 0 ], 
                                                          src.imageOrientationPatientX[ 1 ],
@@ -230,8 +230,33 @@ namespace mvv
       static void exportTagsToDataset( DicomAttributs& val, DcmDataset& out )
       {
          DicomWrapper wrapper( out );
-
-         wrapper.setPatientName( val.patientName.c_str() );
+         wrapper.setPatientName( val.patientName.c_str() );  
+         wrapper.setPatientId( val.patientID.c_str() );
+         wrapper.setPatientSex( val.patientSex.c_str() );
+         wrapper.setPatientAge( val.patientAge );
+         wrapper.setPatientWeight( val.patientWeight );
+         wrapper.setStudyDate( val.studyDate.c_str() );
+         wrapper.setStudyTime( val.studyTime.c_str() );
+         wrapper.setStudyDescription( val.studyDescription.c_str() );
+         wrapper.setStudyId( val.studyID.c_str() );
+         wrapper.setSeriesDate( val.seriesDate.c_str() );
+         wrapper.setSeriesTime( val.seriesTime.c_str() );
+         wrapper.setSeriesDescription( val.seriesDescription.c_str() );
+         wrapper.setAcquisitionDate( val.acquisitionDate.c_str() );
+         wrapper.setAcquisitionTime( val.acquisitionTime.c_str() );
+         wrapper.setModality( val.modality.c_str() );
+         wrapper.setStudyInstanceUid( val.studyInstanceUid.c_str() );
+         wrapper.setSeriesInstanceUid( val.seriesInstanceUid.c_str() );
+         wrapper.setImagePositionPatient( val.imagePositionPatient );
+         wrapper.setRows( val.rows );
+         wrapper.setColumns( val.columns );
+         wrapper.setPixelSpacing( val.pixelSpacing );
+         wrapper.setInstanceNumber( val.instanceNumber );
+         wrapper.setRescaleSlope( val.slope );
+         wrapper.setRescaleIntercept( val.intercept );
+         wrapper.setFrameOfReference( val.frameOfReference.c_str() );
+         wrapper.setImageOrientationPatient( val.imageOrientationPatientX, val.imageOrientationPatientY );
+         wrapper.setSopInstanceUid( val.sopInstanceUid.c_str() );
       }
    };
 
@@ -278,37 +303,35 @@ namespace mvv
    inline DicomAttributs createDicomAttributs( const RuntimeValue& val )
    {
       DicomAttributs attributs;
-      attributs.patientName = (*val.vals)[ 0 ].stringval;
-         //std::string( wrapper.getPatientName() );
-      /*
-      attributs.patientID = std::string( wrapper.getPatientId() );
-      attributs.patientSex = std::string( wrapper.getPatientSex() );
-      attributs.patientAge = wrapper.getPatientAge();
-      attributs.patientWeight = wrapper.getPatientWeight();
-      attributs.studyDate = std::string( wrapper.getStudyDate() );
-      attributs.studyTime = std::string( wrapper.getStudyTime() );
-      attributs.studyDescription = std::string( wrapper.getStudyDescription() );
-      attributs.studyID = std::string( wrapper.getStudyId() );
-      attributs.seriesDate = std::string( wrapper.getSeriesDate() );
-      attributs.seriesTime = std::string( wrapper.getSeriesTime() );
-      attributs.seriesDescription = std::string( wrapper.getSeriesDescription() );
-      attributs.acquisitionDate = std::string( wrapper.getAcquisitionDate() );
-      attributs.acquisitionTime = std::string( wrapper.getAcquisitionTime() );
-      attributs.modality = std::string( wrapper.getModality() );
-      attributs.studyInstanceUid = std::string( wrapper.getStudyInstanceUid() );
-      attributs.seriesInstanceUid = std::string( wrapper.getSeriesInstanceUid() );
-      wrapper.getImagePositionPatient( attributs.imagePositionPatient );
-      attributs.rows = wrapper.getRows();
-      attributs.columns = wrapper.getColumns();
-      wrapper.getPixelSpacing( attributs.pixelSpacing );
-      attributs.instanceNumber = wrapper.getInstanceNumber();
-      attributs.slope = wrapper.getRescaleSlope();
-      attributs.intercept = wrapper.getRescaleIntercept();
-      attributs.frameOfReference = wrapper.getFrameOfReference();
-      attributs.extraSliceSpacing = -1;
-      wrapper.getImageOrientationPatient( attributs.imageOrientationPatientX, attributs.imageOrientationPatientY );
-      attributs.sopInstanceUid = wrapper.getSopInstanceUid();
-      */
+      attributs.patientName =       (*val.vals)[ 0 ].stringval;
+      attributs.patientID =         (*val.vals)[ 1 ].stringval;
+      attributs.patientSex =        (*val.vals)[ 2 ].stringval;
+      attributs.patientAge =        (*val.vals)[ 3 ].floatval;
+      attributs.patientWeight =     (*val.vals)[ 4 ].floatval;
+      attributs.studyDate =         (*val.vals)[ 5 ].stringval;
+      attributs.studyTime =         (*val.vals)[ 6 ].stringval;
+      attributs.studyDescription =  (*val.vals)[ 7 ].stringval;
+      attributs.studyID =           (*val.vals)[ 8 ].stringval;
+      attributs.seriesDate =        (*val.vals)[ 9 ].stringval;
+      attributs.seriesTime =        (*val.vals)[ 10 ].stringval;
+      attributs.seriesDescription = (*val.vals)[ 11 ].stringval;
+      attributs.acquisitionDate =   (*val.vals)[ 12 ].stringval;
+      attributs.acquisitionTime =   (*val.vals)[ 13 ].stringval;
+      attributs.modality =          (*val.vals)[ 14 ].stringval;
+      attributs.studyInstanceUid =  (*val.vals)[ 15 ].stringval;
+      attributs.seriesInstanceUid = (*val.vals)[ 16 ].stringval;
+      getVector3fValues( (*val.vals)[ 17 ], attributs.imagePositionPatient );
+      attributs.rows =              (*val.vals)[ 18 ].intval;
+      attributs.columns =           (*val.vals)[ 19 ].intval;
+      getVector2fValues(            (*val.vals)[ 20 ], attributs.pixelSpacing );
+      attributs.instanceNumber =    (*val.vals)[ 21 ].intval;
+      attributs.slope =             (*val.vals)[ 22 ].floatval;
+      attributs.intercept =         (*val.vals)[ 23 ].floatval;;
+      attributs.frameOfReference =  (*val.vals)[ 24 ].stringval;
+      attributs.extraSliceSpacing = (*val.vals)[ 25 ].floatval;
+      getVector3fValues(            (*val.vals)[ 26 ], attributs.imageOrientationPatientX );
+      getVector3fValues(            (*val.vals)[ 27 ], attributs.imageOrientationPatientY );
+      attributs.sopInstanceUid =    (*val.vals)[ 28 ].stringval;
       return attributs;
    }
 

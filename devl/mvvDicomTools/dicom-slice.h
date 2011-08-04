@@ -63,6 +63,111 @@ namespace mvv
       }
    };
 
+   class FunctionDicomSliceSetTag : public FunctionRunnable
+   {
+      typedef FunctionDicomSliceDestructor::Pointee Pointee;
+
+   public:
+      FunctionDicomSliceSetTag( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 4 )
+         {
+            throw std::runtime_error( "unexpected number of arguments" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+         RuntimeValue& v1 = unref( *args[ 1 ] );
+         RuntimeValue& v2 = unref( *args[ 2 ] );
+         RuntimeValue& v3 = unref( *args[ 3 ] );
+         if ( v1.type != RuntimeValue::CMP_INT ||
+              v2.type != RuntimeValue::CMP_INT ||
+              v3.type != RuntimeValue::STRING )
+         {
+            throw std::runtime_error( "FunctionDicomSliceSetTag: expected (int, int, string)" );
+         }
+
+         //
+         // TODO: very inefficient way, but the simplest...
+         //
+
+         // check we have the data
+         ensure( (*v0.vals).size() == 2, "we are expecting [0] <mainAttributs>, [1] <source object pointer>" );
+         ensure( (*v0.vals)[ 0 ].type == RuntimeValue::TYPE, "must be <mainAttributs> structure" ); // it must be 1 field, PTR type
+         ensure( (*v0.vals)[ 1 ].type == RuntimeValue::PTR, "must be a pointer on the source object" ); // it must be 1 field, PTR type
+         Pointee* p = reinterpret_cast<Pointee*>( (*v0.vals)[ 1 ].ref );
+         
+         // convert everything to a dataset
+         RuntimeValue& sliceStruct = (*v0.vals)[ 0 ];
+         DicomAttributs attributs = createDicomAttributs( sliceStruct );
+         DcmDataset* data = p->getDataset();
+         DicomAttributs::exportTagsToDataset( attributs, *data );
+
+         // now update the actual tag
+         data->putAndInsertString( DcmTagKey( v1.intval, v2.intval ), v3.stringval.c_str() );
+         attributs = createDicomAttributs( *data );
+         DicomAttributs::exportTagsToRuntime( sliceStruct, attributs );
+
+         
+         RuntimeValue rt( RuntimeValue::EMPTY );
+         return rt;
+      }
+   };
+
+   class FunctionDicomSliceGetTag : public FunctionRunnable
+   {
+      typedef FunctionDicomSliceDestructor::Pointee Pointee;
+
+   public:
+      FunctionDicomSliceGetTag( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 3 )
+         {
+            throw std::runtime_error( "unexpected number of arguments" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+         RuntimeValue& v1 = unref( *args[ 1 ] );
+         RuntimeValue& v2 = unref( *args[ 2 ] );
+         if ( v1.type != RuntimeValue::CMP_INT ||
+              v2.type != RuntimeValue::CMP_INT )
+         {
+            throw std::runtime_error( "FunctionDicomSliceSetTag: expected (int, int, string)" );
+         }
+
+         //
+         // TODO: very inefficient way, but the simplest...
+         //
+
+         // check we have the data
+         ensure( (*v0.vals).size() == 2, "we are expecting [0] <mainAttributs>, [1] <source object pointer>" );
+         ensure( (*v0.vals)[ 0 ].type == RuntimeValue::TYPE, "must be <mainAttributs> structure" ); // it must be 1 field, PTR type
+         ensure( (*v0.vals)[ 1 ].type == RuntimeValue::PTR, "must be a pointer on the source object" ); // it must be 1 field, PTR type
+         Pointee* p = reinterpret_cast<Pointee*>( (*v0.vals)[ 1 ].ref );
+         
+         // convert everything to a dataset
+         RuntimeValue& sliceStruct = (*v0.vals)[ 0 ];
+         DicomAttributs attributs = createDicomAttributs( sliceStruct );
+         DcmDataset* data = p->getDataset();
+         DicomAttributs::exportTagsToDataset( attributs, *data );
+
+         // extract the tag
+         OFString str;
+         data->findAndGetOFStringArray( DcmTagKey( v1.intval, v2.intval ), str );
+         
+         RuntimeValue rt( RuntimeValue::STRING );
+         rt.stringval = str.c_str();
+         return rt;
+      }
+   };
+
 
    class FunctionReadDicomSlice : public FunctionRunnable
    {
@@ -166,8 +271,14 @@ namespace mvv
          ensure( v0.type == RuntimeValue::TYPE, "must be a type" );
          ensure( (*v0.vals).size() == 2, "must contain (DicomAttributs, PTR)" );
          Pointee* p = reinterpret_cast<Pointee*>( (*v0.vals)[ 1 ].ref );
-         p->saveFile( v1.stringval.c_str() );
 
+         // update the DICOM tags with the header...
+         RuntimeValue& sliceStruct = (*v0.vals)[ 0 ];
+         DicomAttributs attributs = createDicomAttributs( sliceStruct );
+         DcmDataset* data = p->getDataset();
+         DicomAttributs::exportTagsToDataset( attributs, *data );
+
+         p->saveFile( v1.stringval.c_str() );
          RuntimeValue rt( RuntimeValue::EMPTY );
          return rt;
       }
@@ -211,6 +322,7 @@ namespace mvv
                }
 
                // override the slice tags by the DicomAttributs tags
+               // and export the modified DICOM file
                RuntimeValue& sliceStruct = (*slice.vals)[ 0 ];
                Pointee* p = reinterpret_cast<Pointee*>( (*slice.vals)[ 1 ].ref );
                DicomAttributs attributs = createDicomAttributs( sliceStruct );
@@ -218,19 +330,8 @@ namespace mvv
                DcmDataset* data = p->getDataset();
                DicomAttributs::exportTagsToDataset( attributs, *data );
 
-               DicomWrapper wrapper( *p->getDataset() );
-               DicomWrapper wrapper2( *data );
-               wrapper2.setPatientName( "TESTESTTEST") ;
-               std::cout << "nameFound=" << wrapper.getPatientName() << std::endl;
-               std::cout << "nameFound=" << wrapper2.getPatientName() << std::endl;
-               std::cout << "name=" << attributs.patientName << std::endl;
-
-               DcmFileFormat f( data );
-               std::cout << "nameFound2=" << DicomWrapper( *f.getDataset() ).getPatientName() << std::endl;
-               std::cout << "nameFound3=" << DicomWrapper( *data ).getPatientName() << std::endl;
-
                // save the slice
-               f.saveFile( ( v1.stringval + val.stringval ).c_str() );
+               p->saveFile( ( v1.stringval + val.stringval ).c_str() );
             }
          }
 

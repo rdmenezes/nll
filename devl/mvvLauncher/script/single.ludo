@@ -38,11 +38,17 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
    int n = 0;
    while ( n < size( slices ) )
    {
+      slices[ n ].mainAttributs.imageOrientationPatientX = Vector3f( -1.0 );
+      slices[ n ].mainAttributs.imageOrientationPatientY = Vector3f( 0.0, -1.0 );
       slices[ n ].mainAttributs.patientName = "TEST";
       n = n + 1;
    }
 
-   writeDicomSlices( slices, "c:/tmp/" );
+   slices[0].setTag( 16, 16, "PATIENT___" );
+   println(slices[0].getTag( 16, 16 ) );
+   println( slices[0].mainAttributs.patientName );
+   //println( slices[0].mainAttributs.extraSliceSpacing);
+   //writeDicomSlice( slices[0], "c:/tmp/s1.dcm" );
 }
 
 /**

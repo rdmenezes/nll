@@ -1,7 +1,7 @@
 include "core"
 
 //
-// TODO: handle DYNAMIC and GATED DICOM data
+// TODO: handle DYNAMIC and GATED for DICOM volume loading
 //
 
 /**
@@ -104,8 +104,10 @@ class DicomAttributs
    DicomAttributs()
    {
       instanceNumber = -1;
-	   extraSliceSpacing = -1.0;
-	   imagePositionPatient = Vector3f( -1.0, -1.0, -1.0 );
+	   extraSliceSpacing = 0.0;
+	   imagePositionPatient = Vector3f( 0.0, 0.0, 0.0 );
+      imageOrientationPatientX = Vector3f( 1.0, 0.0, 0.0 );
+      imageOrientationPatientY = Vector3f( 0.0, 1.0, 0.0 );
    }
 }
 
@@ -151,6 +153,18 @@ class DicomSlice
 
    // not constructible!
    import ~DicomSlice();
+
+   /**
+    @brief Set a tag (group, element) with a new value. If the tag is part of <DicomAttributs>,
+           the attribut will be updated, if not the actual Dicom file held internally will be updated
+
+    @note the string will be internally converted to any require VR, it can also be used with VM > 1
+          by separating the values by the character '\'
+          e.g. pixel spacing: setTag( 0x0028, 0x0030, "1.5" + "\\" + "1.6" )
+    */
+   import void setTag( int group, int element, string value );
+
+   import string getTag( int group, int element );
 }
 
 /**
@@ -188,20 +202,3 @@ import void writeDicomSlice( DicomSlice slice, string path );
         they will be updated
  */
 import void writeDicomSlices( DicomSlice[] slices, string directory, DicomSliceNamingFunc namingSlice = defaultDicomSliceNamingFunc );
-
-/**
- @brief Defines a soring operation, if lhs < rhs, returns -1, else if lhs > rhs return 1, else return 0
- */
-typedef int ( DicomSlice lhs, DicomSlice rhs )  DicomComparisonFunc;
-
-/**
- @brief Sort a set of slices according to a sort operation
- */
-import void sortSlice( DicomSlice[] slices, DicomComparisonFunc sorter );
-
-/**
- @brief Efficient sorter for the most common sorting operation.
- 
- Sort the slice by study ID, within study ID, sort by series ID and finally within series ID sort by position
- */
-import void sortSliceByPosition( DicomSlice[] slices );

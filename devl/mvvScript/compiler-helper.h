@@ -156,7 +156,7 @@ namespace parser
          vals[ n ].type = RuntimeValue::CMP_FLOAT;
    }
 
-   inline void getVector3iValues( RuntimeValue& vector, nll::core::vector3i& out )
+   inline void getVector3iValues( const RuntimeValue& vector, nll::core::vector3i& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 3 )
@@ -164,13 +164,13 @@ namespace parser
          throw std::runtime_error( "expected Vector" );
       }
 
-      std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
+      const std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
       out[ 0 ] = vec[ 0 ].intval;
       out[ 1 ] = vec[ 1 ].intval;
       out[ 2 ] = vec[ 2 ].intval;
    }
 
-   inline void getVector2iValues( RuntimeValue& vector, nll::core::vector2i& out )
+   inline void getVector2iValues( const RuntimeValue& vector, nll::core::vector2i& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 2 )
@@ -178,12 +178,12 @@ namespace parser
          throw std::runtime_error( "expected Vector" );
       }
 
-      std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
+      const std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
       out[ 0 ] = vec[ 0 ].intval;
       out[ 1 ] = vec[ 1 ].intval;
    }
 
-   inline void getVector2fValues( RuntimeValue& vector, nll::core::vector2f& out )
+   inline void getVector2fValues( const RuntimeValue& vector, nll::core::vector2f& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 2 )
@@ -191,12 +191,12 @@ namespace parser
          throw std::runtime_error( "expected Vector" );
       }
 
-      std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
+      const std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
       out[ 0 ] = vec[ 0 ].floatval;
       out[ 1 ] = vec[ 1 ].floatval;
    }
 
-   inline void getVector3fValues( RuntimeValue& vector, nll::core::vector3f& out )
+   inline void getVector3fValues( const RuntimeValue& vector, nll::core::vector3f& out )
    {
       if ( vector.type != RuntimeValue::TYPE || (*vector.vals).size() != 1 ||
            (*vector.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*vector.vals)[ 0 ].vals).size() != 3 )
@@ -204,13 +204,13 @@ namespace parser
          throw std::runtime_error( "expected Vector" );
       }
 
-      std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
+      const std::vector<RuntimeValue>& vec = (*(*vector.vals)[ 0 ].vals);
       out[ 0 ] = vec[ 0 ].floatval;
       out[ 1 ] = vec[ 1 ].floatval;
       out[ 2 ] = vec[ 2 ].floatval;
    }
 
-   inline void getMatrix4fValues( RuntimeValue& val, nll::core::Matrix<float>& m )
+   inline void getMatrix4fValues( const RuntimeValue& val, nll::core::Matrix<float>& m )
    {
       if ( val.type != RuntimeValue::TYPE || (*val.vals).size() != 1 ||
            (*val.vals)[ 0 ].type != RuntimeValue::TYPE || (*(*val.vals)[ 0 ].vals).size() != 16 )
@@ -219,7 +219,7 @@ namespace parser
       }
 
       m = nll::core::Matrix<float>( 4, 4 );
-      RuntimeValues& vals = (*(*val.vals)[ 0 ].vals);
+      const RuntimeValues& vals = (*(*val.vals)[ 0 ].vals);
 
       m( 0, 0 ) = vals[ 0 ].floatval;
       m( 0, 1 ) = vals[ 1 ].floatval;

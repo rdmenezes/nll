@@ -84,6 +84,18 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "DicomSlice" ), platform::Symbol::create( "setTag" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ), new TypeString( false ) ) );
+      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionDicomSliceSetTag( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "DicomSlice" ), platform::Symbol::create( "getTag" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
+      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionDicomSliceGetTag( fn ) ) );
+   }
+
+   {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "DicomSlice" ) ) ) );
       ensure( ty, "can't find 'DicomSlice' in source" );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "writeDicomSlice" ) ), nll::core::make_vector<const Type*>( ty, new TypeString( false ) ) );
