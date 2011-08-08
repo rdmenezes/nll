@@ -165,6 +165,10 @@ namespace platform
          }
          (*_segment).receive( e, _origin );
       }
+   private:
+      // copy disabled
+      PaneSegment& operator=( const PaneSegment& );
+      PaneSegment( const PaneSegment& );
 
    protected:
       RefcountedTyped<Segment>   _segment;

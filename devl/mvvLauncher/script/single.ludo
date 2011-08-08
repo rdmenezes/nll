@@ -29,7 +29,7 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
 // -----------------------------------------------------------------------------------------------------------------
 //
 
-
+/*
 {
    DicomSlice[] slices = readDicomSlices( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC/" );
    println( "-----" + slices[0].mainAttributs.patientName );
@@ -49,7 +49,7 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
    println( slices[0].mainAttributs.patientName );
    //println( slices[0].mainAttributs.extraSliceSpacing);
    //writeDicomSlice( slices[0], "c:/tmp/s1.dcm" );
-}
+}*/
 
 /**
  @brief Fully handle the display of a DICOM directory. It will create timepoint for each
@@ -194,6 +194,7 @@ class DicomPresentation
 }
 
 //DicomPresentation presentation( "N:\\MBoxData\\ImagePool\\Clinical\\PET_CT_WB_MULTI_PHASE\\CHILD_MULTIPLE_CT_SCANS\\PET_PETCT_BABY_BIPHASISCH_NEU_(CHILD)" );
+//DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
 DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
 presentation.run();
 
@@ -202,7 +203,7 @@ Layout::Vertical vertical;
 Layout::Horizontal horizontal;
 Layout l6( Console() );
 
-Layout layout = Layout(vertical, l6, presentation.layoutMain, 0.15);
+Layout layout = Layout(vertical, l6, presentation.layoutMain, 0.05);
 
 
 KeyboardCallback callbacks;

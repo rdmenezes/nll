@@ -87,7 +87,7 @@ namespace detect
             }
             if ( pb )
             {
-               pb[ n ] = results.probabilities[ n ];
+               pb[ n ] = (float)results.probabilities[ n ];
             }
          }
 

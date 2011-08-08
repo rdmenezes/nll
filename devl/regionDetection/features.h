@@ -119,7 +119,7 @@ namespace detect
       int maxIndex = -1;
       for ( ui32 n = 0; n < info.components.size(); ++n )
       {
-         if ( info.components[ n ].size > max &&
+         if ( info.components[ n ].size > (ui32)max &&
               sliceTfm( info.components[ n ].posx, info.components[ n ].posy, 0 ) > 0 )
          {
             maxIndex = n;

@@ -238,7 +238,7 @@ namespace imaging
          {
             for ( unsigned int i = 0; i < width; ++i )
             {
-               float value = vol( i, j, k );
+               float value = static_cast<float>( vol( i, j, k ) );
                file.write( (char*)&value, sizeof( float ) );
             }
          }

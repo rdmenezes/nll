@@ -342,7 +342,7 @@ namespace mvv
 
       void setRescaleIntercept( float s )
       {
-         setInt( DCM_RescaleIntercept, s );
+         setFloat( DCM_RescaleIntercept, s );
       }
 
       float getRescaleSlope()
@@ -352,7 +352,7 @@ namespace mvv
 
       void setRescaleSlope( float s )
       {
-         setInt( DCM_RescaleSlope, s );
+         setFloat( DCM_RescaleSlope, s );
       }
 
       void getPixelData( ui16* allocatedOutput )
@@ -510,6 +510,11 @@ namespace mvv
             throw std::runtime_error( msg );
          }
       }
+
+   private:
+      // copy disabled
+      DicomWrapper& operator=( const DicomWrapper& );
+      DicomWrapper( const DicomWrapper& );
 
    private:
       bool        _throwIfMissingTag;

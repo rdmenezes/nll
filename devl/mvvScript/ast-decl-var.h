@@ -23,13 +23,7 @@ namespace parser
          _isPreinit = false;
       }
 
-      ~AstDeclVar()
-      {
-         delete _type;
-         delete _init;
-         delete _declarationList;
-         delete _objectInit;
-      }
+      ~AstDeclVar();
 
       const AstTypeT& getType() const
       {

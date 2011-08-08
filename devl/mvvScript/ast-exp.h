@@ -2,6 +2,7 @@
 # define MVV_PARSER_AST_EXP2_H_
 
 # include "typable.h"
+# include "ast.h"
 
 
 namespace mvv
