@@ -213,12 +213,13 @@ namespace mvv
 
       virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
       {
-         if ( args.size() != 1 )
+         if ( args.size() != 2 )
          {
-            throw std::runtime_error( "unexpected number of arguments, expecting string" );
+            throw std::runtime_error( "unexpected number of arguments, expecting string, int[]" );
          }
 
          RuntimeValue& v0 = unref( *args[ 0 ] );
+         RuntimeValue& v1 = unref( *args[ 1 ] );
 
          DicomDatasets datasets;
          datasets.loadDicomDirectory( v0.stringval );
@@ -231,6 +232,26 @@ namespace mvv
             {
                DcmFileFormat& f = datasets.getSeriesUids()[ series ][ i ];
                files.push_back( new DcmFileFormat( f ) );
+            }
+         }
+
+         if ( v1.type != RuntimeValue::NIL )
+         {
+            v1.type = RuntimeValue::TYPE;
+            if ( datasets.getSeriesUids().size() >= 2 )
+            {
+               v1.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), 0, new RuntimeValues( datasets.getSeriesUids().size() - 1 ) );
+               ui32 accum = 0;
+               for ( ui32 n = 0; n < datasets.getSeriesUids().size() - 1; ++n )
+               {
+                  accum += datasets.getSeriesUids()[ n ].size();
+
+                  RuntimeValue v( RuntimeValue::CMP_INT );
+                  v.intval = accum - 1;
+                  (*v1.vals)[ n ] = v;
+               }
+            } else {
+               // just empty, as we need two series at least
             }
          }
 

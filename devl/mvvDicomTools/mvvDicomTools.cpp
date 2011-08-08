@@ -78,7 +78,8 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "readDicomSlices" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      TypeArray* arrayty = new TypeArray( 0, *new TypeInt( false ), false );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "readDicomSlices" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), arrayty ) );
       ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionReadDicomSlices( fn, e ) ) );
    }

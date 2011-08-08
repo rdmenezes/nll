@@ -138,6 +138,8 @@ import int size( DicomSlice[] array );
 
 /**
  @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files
+
+ TODO IMPLEMENT
  */
 //import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttributs attributs = NULL );
 
@@ -175,8 +177,27 @@ import DicomSlice readDicomSlice( string path );
 /**
  @brief Read a specific DICOM directory and return all DICOM slices
  @note it is guaranteed to be sorted by Series Instance UID
+ @param seriesIndex index on the slices belonging to the same series
+        e.g. seriesIndex = [ 3, 6 ], with 10 slices,
+        means the slice 0-3 => series 0
+                  slice 4-6 => series 1
+                  slice 7-9 => series 2
+        if seriesIndex == NULL, the series will not be exported
  */
-import DicomSlice[] readDicomSlices( string path );
+import DicomSlice[] readDicomSlices( string path, int[] seriesIndex = NULL );
+
+
+/**
+ @brief find the different studies.
+ @param slices It is assuming the slices are grouped by series and studies (i.e., all studies are stored
+        contiguously)
+ @param studiesIndex
+           e.g. studiesIndex = [ 3, 6 ], with 10 series,
+           means the series 0-3 => study 0
+                     series 4-6 => study 1
+                     series 7-9 => study 2
+ */
+// int[] findDicomStudies( DicomSlice[] slices, int[] studiesIndex ); // TODO IMPLEMENT
 
 /**
  @brief Function that will name a DICOM slice, this is used to personalize the how the slice are named

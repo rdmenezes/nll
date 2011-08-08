@@ -29,10 +29,30 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
 // -----------------------------------------------------------------------------------------------------------------
 //
 
-/*
+void print( int[] array )
 {
-   DicomSlice[] slices = readDicomSlices( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC/" );
+   int n = 0;
+   int size = size( array );
+   println( "array size=" + toString( size ) );
+   while ( n != size )
+   {
+      println( array[ n ] );
+      n = n + 1;
+   }
+}
+
+{
+   int[] series;
+   DicomSlice[] slices = readDicomSlices( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC/", series );
    println( "-----" + slices[0].mainAttributs.patientName );
+
+   print( series );
+
+   println( slices[ 0 ].mainAttributs.seriesInstanceUid );
+   println( slices[ series[0] ].mainAttributs.seriesInstanceUid );
+   println( slices[ series[0] + 1 ].mainAttributs.seriesInstanceUid );
+   println( slices[ series[1] ].mainAttributs.seriesInstanceUid );
+   println( slices[ series[1] + 1 ].mainAttributs.seriesInstanceUid );
 
    
    int n = 0;
@@ -49,7 +69,7 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
    println( slices[0].mainAttributs.patientName );
    //println( slices[0].mainAttributs.extraSliceSpacing);
    //writeDicomSlice( slices[0], "c:/tmp/s1.dcm" );
-}*/
+}
 
 /**
  @brief Fully handle the display of a DICOM directory. It will create timepoint for each
