@@ -366,87 +366,103 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
 int main(int argc, char** argv)
 {
    // default
-   
-   int sizex = 1280;
-   int sizey = 1024;
+   try
+   { 
+      int sizex = 1280;
+      int sizey = 1024;
 
-   int nbThreads = 12; //8;
-   std::string mainScript = "../../mvvLauncher/script/single";
-   std::string font = "../../nllTest/data/font/bitmapfont1_24";
-   bool nowindow = false;
-   std::vector<std::string> argvParam;
-   std::vector<std::string> importPaths;
+      int nbThreads = 12; //8;
+      std::string mainScript = "../../mvvLauncher/script/single";
+      std::string font = "../../nllTest/data/font/bitmapfont1_24";
+      bool nowindow = false;
+      std::vector<std::string> argvParam;
+      std::vector<std::string> importPaths;
 
-   std::string val;
-   if ( checkOptionVal( argc, argv, "-sizex", val ) )
-   {
-      sizex = atoi( val.c_str() );
-   }
-   if ( checkOptionVal( argc, argv, "-sizey", val ) )
-   {
-      sizey = atoi( val.c_str() );
-   }
-   if ( checkOptionVal( argc, argv, "-threads", val ) )
-   {
-      nbThreads = atoi( val.c_str() );
-   }
-   if ( checkOptionVal( argc, argv, "-input", val ) )
-   {
-      mainScript = val;
-   }
-   if ( checkOptionVal( argc, argv, "-font", val ) )
-   {
-      font = val;
-   }
-   checkOptionArgv( argc, argv, "-argv", ' ', argvParam );
-   checkOptionArgv( argc, argv, "-import", ';', importPaths );
-   if ( checkOptionVal( argc, argv, "-nowindow", val ) )
-   {
-      nowindow = true;
-   }
-   mainScript = "include \"" + mainScript + "\""; // we will include the script to import it!
-
-   // init
-   applicationVariables = new mvv::ApplicationVariables( sizex, sizey, nbThreads, mainScript, importPaths, font, argvParam );
-
-   if ( !nowindow )
-   {
-      // GLUT Window Initialization:
-      glutInit( &argc, argv );
-      glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
-      glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE /*| GLUT_DEPTH*/ );
-      glutCreateWindow( "Medical Volume Viewer" );
-      //glutGameModeString( "1280x1024" );
-      //glutEnterGameMode();
-
-      // Initialize OpenGL graphics state
-      initGraphics();
-
-      // Register callbacks:
-      glutDisplayFunc( display );
-      glutReshapeFunc( reshape );
-      glutKeyboardFunc( keyboard );
-      glutSpecialFunc( keyboardSpecial );
-      glutMouseFunc( mouseButton );
-      glutMotionFunc( mouseMotion );
-      glutPassiveMotionFunc( mouseMotion );
-      glutTimerFunc( 0, handleOrders, 0 );
-
-      // Turn the flow of control over to GLUT
-      glutMainLoop ();
-   } else {
-      // as long as orders have not been runned and results dispatched we need to keep the interpreter alive
-      applicationVariables->engineHandler.run();
-      applicationVariables->orderManager.run();
-
-      ui32 nbOrders = applicationVariables->orderManager.getNumberOfOrdersToRun();
-      while ( nbOrders )
+      std::string val;
+      if ( checkOptionVal( argc, argv, "-sizex", val ) )
       {
-         // run orders & engines
+         sizex = atoi( val.c_str() );
+      }
+      if ( checkOptionVal( argc, argv, "-sizey", val ) )
+      {
+         sizey = atoi( val.c_str() );
+      }
+      if ( checkOptionVal( argc, argv, "-threads", val ) )
+      {
+         nbThreads = atoi( val.c_str() );
+      }
+      if ( checkOptionVal( argc, argv, "-input", val ) )
+      {
+         mainScript = val;
+      }
+      if ( checkOptionVal( argc, argv, "-font", val ) )
+      {
+         font = val;
+      }
+      checkOptionArgv( argc, argv, "-argv", ' ', argvParam );
+      checkOptionArgv( argc, argv, "-import", ';', importPaths );
+      if ( checkOptionVal( argc, argv, "-nowindow", val ) )
+      {
+         nowindow = true;
+      }
+      mainScript = "include \"" + mainScript + "\""; // we will include the script to import it!
+
+      // init
+      std::cout << "Viewer is attached=" << !nowindow << std::endl;
+      applicationVariables = new mvv::ApplicationVariables( sizex, sizey, nbThreads, mainScript, importPaths, font, argvParam, nowindow );
+
+      if ( !nowindow )
+      {
+         // GLUT Window Initialization:
+         glutInit( &argc, argv );
+         glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
+         glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE /*| GLUT_DEPTH*/ );
+         glutCreateWindow( "Medical Volume Viewer" );
+         //glutGameModeString( "1280x1024" );
+         //glutEnterGameMode();
+
+         // Initialize OpenGL graphics state
+         initGraphics();
+
+         // Register callbacks:
+         glutDisplayFunc( display );
+         glutReshapeFunc( reshape );
+         glutKeyboardFunc( keyboard );
+         glutSpecialFunc( keyboardSpecial );
+         glutMouseFunc( mouseButton );
+         glutMotionFunc( mouseMotion );
+         glutPassiveMotionFunc( mouseMotion );
+         glutTimerFunc( 0, handleOrders, 0 );
+
+         // Turn the flow of control over to GLUT
+         glutMainLoop ();
+      } else {
+         // as long as orders have not been runned and results dispatched we need to keep the interpreter alive
          applicationVariables->engineHandler.run();
          applicationVariables->orderManager.run();
-         nbOrders = applicationVariables->orderManager.getNumberOfOrdersToRun();
+
+         ui32 nbOrders = applicationVariables->orderManager.getNumberOfOrdersToRun();
+         while ( nbOrders )
+         {
+            // run orders & engines
+            applicationVariables->engineHandler.run();
+            applicationVariables->orderManager.run();
+            nbOrders = applicationVariables->orderManager.getNumberOfOrdersToRun();
+         }
       }
    }
+
+   catch ( std::runtime_error& e )
+   {
+      std::cerr << "Fatal error: " << e.what() << std::endl;
+      exit(1);
+   }
+
+   catch (...)
+   {
+      std::cerr << "unexpexted exception thrown, exiting... " << std::endl;
+      exit(1);
+   }
+
    return 0;
 }

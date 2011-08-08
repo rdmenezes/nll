@@ -77,7 +77,7 @@ namespace mvv
       RuntimeValues*                      oldLayout;  // in case a script if modifying the root of the layout, we must be able to detect it by comparing the pointers...
       Callbacks                           callbacks;
 
-      ApplicationVariables( ui32 sx, ui32 sy, ui32 nbThreads, const std::string& mainScript, const std::vector<std::string>& importPath, const std::string& font, const std::vector<std::string>& argv ) : screen( sx, sy, 3 ), orderManager( nbThreads ), callbacks( compiler )
+      ApplicationVariables( ui32 sx, ui32 sy, ui32 nbThreads, const std::string& mainScript, const std::vector<std::string>& importPath, const std::string& font, const std::vector<std::string>& argv, bool nowindow ) : screen( sx, sy, 3 ), orderManager( nbThreads ), callbacks( compiler )
       {  
          for ( ui32 n = 0; n < importPath.size(); ++n )
          {
@@ -101,9 +101,19 @@ namespace mvv
             }
             ss << " };";
             Error::ErrorType result = compiler.run( ss.str() );
-            ensure( result == Error::SUCCESS, "Problem in creating the command line arguments" );
+            if ( result != Error::SUCCESS )
+            {
+               std::string s = ss.str();
+               std::cerr << "Problem in creating the command line arguments:" << compiler.getLastErrorMesage() << std::endl;
+               std::cerr << "Command arguments was generated like:" << std::endl << ss.str() << std::endl;
+               if ( std::find( s.begin(), s.end(), '\\' ) != s.end() )
+               {
+                  std::cerr << "Reminder: use UNIX style path such as X:/path1/" << std::endl;
+               }
+               exit( 1 );
+            }
          }
-         initScript( mainScript );
+         initScript( mainScript, nowindow );
 
          // event
          mouseEvent.isMouseRightButtonJustReleased = false;
@@ -116,7 +126,7 @@ namespace mvv
 
    private:
       
-      void initScript( const std::string& mainScript )
+      void initScript( const std::string& mainScript, bool nowindow )
       {
          // set the extension, so we can access the context
          compiler.setContextExtension( RefcountedTyped<Context>( &context, false ) );
@@ -156,8 +166,11 @@ namespace mvv
             oldLayout = const_cast<RuntimeValues*>( layoutRef.vals.getDataPtr() );
          } catch ( std::exception& e )
          {
-            std::cerr << "warning:" << e.what() << " This may be a problem if the application is with a viewer attached..." << std::endl;
-            return;
+            if ( !nowindow )
+            {
+               std::cerr << "error: runtime cannot find \"layout\" variable which is required when a viewer is attached" << std::endl;
+               exit(1);
+            }
          }
 
          // update the layout
