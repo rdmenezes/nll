@@ -206,12 +206,22 @@ namespace parser
             if ( e.getOp() == AstOpBin::EQ )
             {
                _env.resultRegister.type = RuntimeValue::CMP_INT;
-               _env.resultRegister.intval = ur0.vals.getDataPtr() == ur1.vals.getDataPtr();
+               if ( ur1.type != RuntimeValue::NIL )
+               {
+                  _env.resultRegister.intval = ur0.vals.getDataPtr() == ur1.vals.getDataPtr();
+               } else { // if the RHS is NIL and the LHS is not...
+                  _env.resultRegister.intval = 0;
+               }
                return;
             } else if ( e.getOp() == AstOpBin::NE )
             {
                _env.resultRegister.type = RuntimeValue::CMP_INT;
-               _env.resultRegister.intval = ur0.vals.getDataPtr() != ur1.vals.getDataPtr();
+               if ( ur1.type != RuntimeValue::NIL )
+               {
+                  _env.resultRegister.intval = ur0.vals.getDataPtr() != ur1.vals.getDataPtr();
+               } else { // if the RHS is NIL and the LHS is not...
+                  _env.resultRegister.intval = 1;
+               }
                return;
             }
          }

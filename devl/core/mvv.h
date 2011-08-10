@@ -82,6 +82,13 @@ public:
       }
 
       RuntimeValue& v1 = unref( *args[ 0 ] );
+      if ( v1.type == RuntimeValue::NIL   ||
+           v1.type == RuntimeValue::EMPTY )
+      {
+         RuntimeValue rt( RuntimeValue::NIL );
+         return rt;
+      }
+
       if ( v1.type != RuntimeValue::TYPE || (*v1.vals).size() != 1 || (*v1.vals)[ 0 ].type != RuntimeValue::STRING )
       {
          throw std::runtime_error( "invalid argument" );

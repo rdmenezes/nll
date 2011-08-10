@@ -357,6 +357,15 @@ namespace parser
             e.setNodeType( new TypeError() );
             return;
          } else {
+
+            if ( e.getOp() == AstOpBin::EQ ||
+                 e.getOp() == AstOpBin::NE )
+            {
+               // this is a type with no operator, so use the default
+               e.setNodeType( new TypeInt( false ) );
+               return;
+            }
+
             // no function found
             impl::reportTypeError( e.getLocation(), _context, "no function found associated with this operator");
             e.setNodeType( new TypeError() );

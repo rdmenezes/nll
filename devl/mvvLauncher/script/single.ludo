@@ -51,13 +51,17 @@ class DicomPresentation
    SegmentToolCentering    toolCentering;
    ManipulatorPointer      pointer;
 
-   DicomPresentation( string path )
+   DicomPresentation( string path = "" )
    {
       dicomPath = path;
    }
 
    void run()
    {
+      if ( dicomPath == "" )
+      {
+         dicomPath = boxOpenFolder( "Choose a DICOM directory" );
+      }
       volumes = readDicomVolumes( dicomPath, attributs, studyIndex );
 
       nbTimepoints = size( studyIndex ) + 1;
@@ -148,22 +152,25 @@ class DicomPresentation
       int n = start;
       while ( n <= end )
       {
-         Volume& v = getVolume( volumes[ n ] );
-         if ( v.getSize()[ 2 ] > 1 ) // just discard one slice volumes...
+         Volume v = getVolume( volumes[ n ] );
+         if ( v != NULL )
          {
-            if ( attributs[ n ].modality == "CT" )
+            if ( v.getSize()[ 2 ] > 1 ) // just discard one slice volumes...
             {
-               volumesContainer[ timepoint ].add( volumes[ n ], ctLut );
-            }
+               if ( attributs[ n ].modality == "CT" )
+               {
+                  volumesContainer[ timepoint ].add( volumes[ n ], ctLut );
+               }
 
-            if ( attributs[ n ].modality == "PT" )
-            {
-               volumesContainer[ timepoint ].add( volumes[ n ], petLut );
-            }
+               if ( attributs[ n ].modality == "PT" )
+               {
+                  volumesContainer[ timepoint ].add( volumes[ n ], petLut );
+               }
 
-            if ( attributs[ n ].modality == "MR" )
-            {
-               volumesContainer[ timepoint ].add( volumes[ n ], mrLut );
+               if ( attributs[ n ].modality == "MR" )
+               {
+                  volumesContainer[ timepoint ].add( volumes[ n ], mrLut );
+               }
             }
          }
          n = n + 1;
@@ -174,7 +181,8 @@ class DicomPresentation
 
 //DicomPresentation presentation( "N:\\MBoxData\\ImagePool\\Clinical\\PET_CT_WB_MULTI_PHASE\\CHILD_MULTIPLE_CT_SCANS\\PET_PETCT_BABY_BIPHASISCH_NEU_(CHILD)" );
 //DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
-DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
+//DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
+DicomPresentation presentation;
 presentation.run();
 
 

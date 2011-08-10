@@ -1103,7 +1103,7 @@ struct TestEval
          TESTER_ASSERT( rt5.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( rt5.intval == 12 );
 
-         result = fe.run( "int size = 10; int array[ size ]; int tmp = 0; while ( tmp < size ){ array[ tmp ] = tmp; tmp = tmp + 1; }" );
+         result = fe.run( "int sizeA = 10; int array[ sizeA ]; int tmp = 0; while ( tmp < sizeA ){ array[ tmp ] = tmp; tmp = tmp + 1; }" );
          TESTER_ASSERT( result == Error::SUCCESS );
 
          result = fe.run( "int n0 = array[ 0 ]; int n1 = array[ 1 ]; int n9 = array[ 9 ];" );
@@ -1473,7 +1473,7 @@ struct TestEval
          // create a front end and run it in another thread
          CompilerFrontEnd fe;
          fe.setContextExtension( mvv::platform::RefcountedTyped<Context>( &context, false ) );
-         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = readVolumeMF2Asynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i size = vol1.getSize(); int x = size[ 0 ]; Vector3f spacing = vol1.getSpacing(); float spx = spacing[ 0 ]; Vector3f pos = vol1.getOrigin(); float posx = pos[ 0 ];" );
+         Launcher launcher( fe, "import \"core\"  VolumeID vid1 = readVolumeMF2Asynchronous( \"../../nllTest/data/medical/pet.mf2\"); Volume vol1 = getVolume( vid1 ); Vector3i sizeA = vol1.getSize(); int x = sizeA[ 0 ]; Vector3f spacing = vol1.getSpacing(); float spx = spacing[ 0 ]; Vector3f pos = vol1.getOrigin(); float posx = pos[ 0 ];" );
          boost::thread dispatchThread( boost::ref( launcher ) );
 
          // in the meantime, for this thread, wait a bit to receive the orders
@@ -2498,7 +2498,6 @@ struct TestEval
 
    void eval8()
    {
-      /*
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "int creator(){ return 42;} int n = creator();" );
@@ -2528,9 +2527,9 @@ struct TestEval
          RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( i.intval == 42 );
-      }*/
+      }
 
-      /*
+      
       {
          CompilerFrontEnd fe;
          Error::ErrorType result = fe.run( "import \"core\" int XX = 42; class Test2{}" );
@@ -2540,7 +2539,7 @@ struct TestEval
          RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "n" ) ) );
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( i.intval == 42 );
-      }*/
+      }
 
       {
          CompilerFrontEnd fe;
@@ -2552,6 +2551,34 @@ struct TestEval
          TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
          TESTER_ASSERT( i.intval == 3 );
       }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){}} int a1 = Test() == NULL; int a2 = Test() != NULL;" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "a1" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 0 );
+
+         RuntimeValue& i2 = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "a2" ) ) );
+         TESTER_ASSERT( i2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i2.intval == 1 );
+      }
+
+      {
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "class Test{Test(){}} int a1 = NULL == Test(); int a2 = NULL != Test();" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "a1" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i.intval == 0 );
+
+         RuntimeValue& i2 = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "a2" ) ) );
+         TESTER_ASSERT( i2.type == RuntimeValue::CMP_INT );
+         TESTER_ASSERT( i2.intval == 1 );
+      }
    }
 };
 
@@ -2559,7 +2586,6 @@ TESTER_TEST_SUITE(TestEval);
 
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
-
 TESTER_TEST(eval3);
 TESTER_TEST(eval4);
 TESTER_TEST(eval5);
