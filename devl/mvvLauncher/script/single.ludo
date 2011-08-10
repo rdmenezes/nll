@@ -1,6 +1,7 @@
 import "core"
 import "siemens"
 import "mvvDicomTools"
+import "mvvForms"
 
 include "helper1"
 
@@ -28,48 +29,6 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
 //
 // -----------------------------------------------------------------------------------------------------------------
 //
-
-void print( int[] array )
-{
-   int n = 0;
-   int size = size( array );
-   println( "array size=" + toString( size ) );
-   while ( n != size )
-   {
-      println( array[ n ] );
-      n = n + 1;
-   }
-}
-
-{
-   int[] series;
-   DicomSlice[] slices = readDicomSlices( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC/", series );
-   println( "-----" + slices[0].mainAttributs.patientName );
-
-   print( series );
-
-   println( slices[ 0 ].mainAttributs.seriesInstanceUid );
-   println( slices[ series[0] ].mainAttributs.seriesInstanceUid );
-   println( slices[ series[0] + 1 ].mainAttributs.seriesInstanceUid );
-   println( slices[ series[1] ].mainAttributs.seriesInstanceUid );
-   println( slices[ series[1] + 1 ].mainAttributs.seriesInstanceUid );
-
-   
-   int n = 0;
-   while ( n < size( slices ) )
-   {
-      slices[ n ].mainAttributs.imageOrientationPatientX = Vector3f( -1.0 );
-      slices[ n ].mainAttributs.imageOrientationPatientY = Vector3f( 0.0, -1.0 );
-      slices[ n ].mainAttributs.patientName = "TEST";
-      n = n + 1;
-   }
-
-   slices[0].setTag( 16, 16, "PATIENT___" );
-   println(slices[0].getTag( 16, 16 ) );
-   println( slices[0].mainAttributs.patientName );
-   //println( slices[0].mainAttributs.extraSliceSpacing);
-   //writeDicomSlice( slices[0], "c:/tmp/s1.dcm" );
-}
 
 /**
  @brief Fully handle the display of a DICOM directory. It will create timepoint for each

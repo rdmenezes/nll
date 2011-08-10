@@ -13,6 +13,15 @@ namespace mvv
       std::copy(s.begin(), s.end(), str2.begin());
       return str2;
    }
+
+   inline std::string getString( const std::wstring& s )
+   {
+      std::string str2(s.length(), L' '); // Make room for characters
+
+      // Copy string to wstring.
+      std::copy(s.begin(), s.end(), str2.begin());
+      return str2;
+   }
 }
 
 #endif

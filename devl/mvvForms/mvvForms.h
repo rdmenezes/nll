@@ -1,6 +1,8 @@
 #ifndef MVVFORMS_H
 #define MVVFORMS_H
 
+#include <mvvScript/Compiler.h>
+
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the MVVFORMS_EXPORTS
@@ -24,7 +26,13 @@
 namespace mvv
 {
    MVVFORMS_API void createMessageBoxError( const std::string& title, const std::string& msg );
-   MVVFORMS_API std::vector<std::string> openFiles( const std::string& root );
+   MVVFORMS_API bool createMessageBoxQuestion( const std::string& title, const std::string& msg );
+   MVVFORMS_API std::vector<std::string> openFiles( const std::string& title );
+   MVVFORMS_API std::string openFolder( const std::string title );
+   MVVFORMS_API std::string getWorkingDirectory();
+   MVVFORMS_API void setWorkingDirectory( const std::string& s );
 }
+
+extern "C" _declspec(dllexport) void importFunctions( mvv::parser::CompilerFrontEnd&, mvv::platform::Context& );
 
 #endif

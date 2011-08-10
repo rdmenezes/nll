@@ -217,62 +217,6 @@ namespace mvv
       CompilerFrontEnd&          _e;
    };
 
-   class FunctionSizeDicomVolumes : public FunctionRunnable
-   {
-
-   public:
-      FunctionSizeDicomVolumes( const AstDeclFun* fun ) : FunctionRunnable( fun )
-      {
-      }
-
-      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
-      {
-         if ( args.size() != 1 )
-         {
-            throw std::runtime_error( "unexpected number of arguments, expecting string, DicomAttributs" );
-         }
-
-         RuntimeValue& v0 = unref( *args[ 0 ] );
-
-         RuntimeValue rt( RuntimeValue::CMP_INT );
-         if ( v0.vals.getDataPtr() == 0 )
-         {
-            rt.intval = 0;
-         } else {
-            rt.intval = (int)(*v0.vals).size();
-         }
-         return rt;
-      }
-   };
-
-   class FunctionSizeInt : public FunctionRunnable
-   {
-
-   public:
-      FunctionSizeInt( const AstDeclFun* fun ) : FunctionRunnable( fun )
-      {
-      }
-
-      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
-      {
-         if ( args.size() != 1 )
-         {
-            throw std::runtime_error( "unexpected number of arguments, expecting string, DicomAttributs" );
-         }
-
-         RuntimeValue& v0 = unref( *args[ 0 ] );
-
-         RuntimeValue rt( RuntimeValue::CMP_INT );
-         if ( v0.vals.getDataPtr() == 0 )
-         {
-            rt.intval = 0;
-         } else {
-            rt.intval = (int)(*v0.vals).size();
-         }
-         return rt;
-      }
-   };
-
    class FunctionSizeDicomSlice : public FunctionRunnable
    {
 

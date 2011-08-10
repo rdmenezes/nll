@@ -1,0 +1,32 @@
+include "core"
+
+/**
+ @brief set the current working directory
+ */
+import void       setWorkingDirectory( string path );
+
+/**
+ @brief get the current working directory
+ */
+import string     getWorkingDirectory();
+
+/**
+ @brief create a window explorer to select files
+ */
+import string[]   boxOpenFiles( string title = "Open Files" );
+
+/**
+ @brief create a window explorer to one folder
+ */
+import string     boxOpenFolder( string title = "Open Directory" );
+
+/**
+ @brief create a message box for errors
+ */
+import void       boxError( string title, string message );
+
+/**
+ @brief create a message box question
+ @return 0 if no, 1 yes
+ */
+import int        boxQuestion( string title, string message );

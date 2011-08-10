@@ -1962,6 +1962,35 @@ static std::pair<std::vector<std::string>,
 }
 
 
+class FunctionSize : public FunctionRunnable
+{
+
+public:
+   FunctionSize( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments, expexted array" );
+      }
+
+      RuntimeValue& v0 = unref( *args[ 0 ] );
+
+      RuntimeValue rt( RuntimeValue::CMP_INT );
+      if ( v0.vals.getDataPtr() == 0 )
+      {
+         rt.intval = 0;
+      } else {
+         rt.intval = (int)(*v0.vals).size();
+      }
+      return rt;
+   }
+};
+
+
 class FunctionRunnableSystem : public FunctionRunnable
 {
 public:
@@ -3875,5 +3904,28 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "affinePlanarRegistrationCt") ), nll::core::make_vector<const Type*>( volumeId, volumeId, new TypeInt( false ), vec, vec, vec, vec ) );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRegistrationAffinePlanar( fn,context, &e.getEvaluator(), e ) ) );
+   }
+
+   {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      TypeArray* arrayty = new TypeArray( 0, *ty, false );
+      ensure( ty, "can't find 'VolumeID' in srouce" );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );
+      ensure( fn, "can't find the function declaration in core.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSize( fn ) ) );
+   }
+
+   {
+      TypeArray* arrayty = new TypeArray( 0, *new TypeInt( false ), false );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );
+      ensure( fn, "can't find the function declaration in core.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSize( fn ) ) );
+   }
+
+   {
+      TypeArray* arrayty = new TypeArray( 0, *new TypeFloat( false ), false );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );
+      ensure( fn, "can't find the function declaration in core.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSize( fn ) ) );
    }
 }

@@ -132,8 +132,6 @@ import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs
 /**
  @brief returns the size of the array
  */
-import int size( VolumeID[] array );
-import int size( int[] array );
 import int size( DicomSlice[] array );
 
 /**

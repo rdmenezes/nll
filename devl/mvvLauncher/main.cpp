@@ -4,6 +4,7 @@
 #undef INT
 
 #include <GL/freeglut.h>
+#include <mvvForms/mvvForms.h>
 
 #undef FLOAT
 #undef INT
@@ -365,7 +366,6 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
 //
 int main(int argc, char** argv)
 {
-   // default
    try
    { 
       int sizex = 1280;

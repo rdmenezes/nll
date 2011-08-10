@@ -42,22 +42,6 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
-      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
-      TypeArray* arrayty = new TypeArray( 0, *ty, false );
-      ensure( ty, "can't find 'VolumeID' in srouce" );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );
-      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSizeDicomVolumes( fn ) ) );
-   }
-
-   {
-      TypeArray* arrayty = new TypeArray( 0, *new TypeInt( false ), false );
-      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );
-      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
-      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSizeInt( fn ) ) );
-   }
-
-   {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "DicomSlice" ) ) ) );
       TypeArray* arrayty = new TypeArray( 0, *ty, false );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );

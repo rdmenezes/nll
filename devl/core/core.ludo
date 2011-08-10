@@ -349,3 +349,8 @@ import void assert( int val, string msg );
  @note Throw std::runtime_error if split is not a one character string
  */
 import string[] split( string text, string split );
+
+import int size( VolumeID[]   array );
+import int size( int[]        array );
+import int size( string[]     array );
+import int size( float[]      array );
