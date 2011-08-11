@@ -1,4 +1,4 @@
-include "core"
+import "core"
 
 //
 // TODO: handle DYNAMIC and GATED for DICOM volume loading

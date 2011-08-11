@@ -23,6 +23,8 @@ namespace mvv
 
 void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 {
+   std::cout << "mvvDicomTools.dll import functions..." << std::endl;
+
    {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "DicomAttributs" ) ) ) );
       ensure( ty, "can't find 'DicomAttributs' in srouce" );
@@ -99,4 +101,5 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionWriteDicomSlices( fn, e ) ) );
    }
 
+   std::cout << "mvvDicomTools.dll import functions done" << std::endl;
 }

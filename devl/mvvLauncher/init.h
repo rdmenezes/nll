@@ -32,6 +32,8 @@ using namespace mvv;
 using namespace mvv::platform;
 using namespace mvv::parser;
 
+void exitApplication( int exitCode );
+
 /**
  -BUG: script VolumeContainer v1 -> create segments, VolumeContainer v2 -> v1 = v2 -> should replace all the volumes, we must define a kind of operator=
  */
@@ -110,7 +112,8 @@ namespace mvv
                {
                   std::cerr << "Reminder: use UNIX style path such as X:/path1/" << std::endl;
                }
-               exit( 1 );
+
+               exitApplication( 1 );
             }
          }
          initScript( mainScript, nowindow );
@@ -141,18 +144,18 @@ namespace mvv
             if ( state != Error::SUCCESS )
             {
                std::cerr << "script failure:" << compiler.getLastErrorMesage() << std::endl;
-               exit(1);
+               exitApplication( 1 );
             }
          }
 
          catch ( std::runtime_error e )
          {
             std::cerr << "script failure, exception:" << e.what() << std::endl;
-            exit(1);
+            exitApplication( 1 );
          } catch ( ... )
          {
             std::cerr << "script failure, exception thrown" << std::endl;
-            exit(1);
+            exitApplication( 1 );
          }
          std::cout << "script parsed!" << std::endl;
 
@@ -169,7 +172,7 @@ namespace mvv
             if ( !nowindow )
             {
                std::cerr << "error: runtime cannot find \"layout\" variable which is required when a viewer is attached" << std::endl;
-               exit(1);
+               exitApplication( 1 );
             }
          }
 
@@ -208,7 +211,7 @@ namespace mvv
          if ( !i.good() )
          {
             std::cout << "can't load font:" << fontTxt << std::endl;
-            exit( 1 );
+            exitApplication( 1 );
          }
 
          std::string line;

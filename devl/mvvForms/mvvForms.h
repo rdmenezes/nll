@@ -2,6 +2,7 @@
 #define MVVFORMS_H
 
 #include <mvvScript/Compiler.h>
+#include <windows.h>
 
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
@@ -25,6 +26,7 @@
 
 namespace mvv
 {
+   MVVFORMS_API void createMessageBoxText( const std::string& title );
    MVVFORMS_API void createMessageBoxError( const std::string& title, const std::string& msg );
    MVVFORMS_API bool createMessageBoxQuestion( const std::string& title, const std::string& msg );
    MVVFORMS_API std::vector<std::string> openFiles( const std::string& title );

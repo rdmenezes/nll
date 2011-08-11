@@ -10,6 +10,8 @@
 #include <Shlobj.h>
 #include <algorithm>
 
+#include "resource.h"
+
 #ifdef WIN32
 #  include <direct.h>
 #  define getcwd  _getcwd
@@ -22,8 +24,12 @@
 #define new DEBUG_NEW
 #endif
 
+#pragma comment(lib, "comctl32.lib")
+
 namespace mvv
 {
+   HINSTANCE hinstDLL;
+
    namespace impl
    {
       #define ILNext(pidl)           ILSkip(pidl, (pidl)->mkid.cb)
@@ -232,4 +238,40 @@ namespace mvv
       // error
       throw std::runtime_error( "can't create message box question" );
    }
+
+   LRESULT CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM, LPARAM)
+   {
+      switch (uMsg)
+      {
+         case WM_INITDIALOG:
+         {
+            SendMessage(hwndDlg,WM_SETICON,ICON_BIG,(LPARAM)LoadIcon(NULL,IDI_APPLICATION));
+            return true;
+         }
+         case WM_CLOSE:
+         {
+            EndDialog(hwndDlg,0);
+            break;
+         }
+      }
+      return FALSE;
+   }
+
+   void createMessageBoxText( const std::string& title )
+   {
+      int res = (int)DialogBox(hinstDLL, (LPCTSTR)IDD_DIALOG1, 0, (DLGPROC)DlgProc);
+      if ( res == 0 || res == -1 )
+      {
+         std::cout << "LastError=" << GetLastError() << std::endl;
+      }
+   }
+}
+
+// here we need to get the handle of the DLL, so that the dialog resources are looked in the
+// correct assembly
+BOOL WINAPI DllMain(HINSTANCE hinst,DWORD,LPVOID)
+{
+   std::cout << "mvvForms.dll attached!" << std::endl;
+   mvv::hinstDLL = hinst;
+   return true;
 }

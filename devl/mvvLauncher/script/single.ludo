@@ -1,9 +1,12 @@
 import "core"
+include "helper1"
+
 import "siemens"
 import "mvvDicomTools"
 import "mvvForms"
 
-include "helper1"
+
+println( "RUN SCRIPT" );
 
 /**
  @note the following variables must have been defined:

@@ -181,6 +181,7 @@ namespace mvv
 
 void importFunctions( mvv::parser::CompilerFrontEnd& e, mvv::platform::Context&  )
 {
+   std::cout << "mvvForms.dll function importing..." << std::endl;
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "setWorkingDirectory" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
       ensure( fn, "can't find the function declaration in mvvForms.dll" );
@@ -216,4 +217,5 @@ void importFunctions( mvv::parser::CompilerFrontEnd& e, mvv::platform::Context& 
       ensure( fn, "can't find the function declaration in mvvForms.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionBoxQuestion( fn ) ) );
    }
+   std::cout << "mvvForms.dll function importing done..." << std::endl;
 }

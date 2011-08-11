@@ -2070,6 +2070,7 @@ private:
 
 void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
 {
+   std::cout << "core.dll import functions" << std::endl;
    {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "split" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
       assert( fn );
@@ -3928,4 +3929,5 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       ensure( fn, "can't find the function declaration in core.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSize( fn ) ) );
    }
+   std::cout << "core.dll import functions done" << std::endl;
 }

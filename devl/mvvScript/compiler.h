@@ -340,6 +340,12 @@ namespace parser
                         // before runtime, load the new DLL
                         for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
                         {
+                           std::cout << "script:to be imported DLL=" << it->getName() << std::endl;
+                        }
+
+                        for ( Files::iterator it = importedLib.begin(); it != importedLib.end(); ++it )
+                        {
+                           std::cout << "script:import DLL=" << it->getName() << std::endl;
                            importDll( it->getName() );
                         }
 

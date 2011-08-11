@@ -5,6 +5,8 @@
 
 #include <GL/freeglut.h>
 #include <mvvForms/mvvForms.h>
+#include <mvvForms/utils.h>
+#include <Shellapi.h>
 
 #undef FLOAT
 #undef INT
@@ -283,6 +285,9 @@ void keyboard( unsigned char key, int x, int y )
       (*applicationVariables->layout).destroy();
       applicationVariables->orderManager.kill();
       applicationVariables->context.clear();
+
+      Sleep(5000); 
+      FreeConsole(); 
       exit( 0 );
    }
 }
@@ -360,11 +365,34 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
    return false;
 }
 
+void convertCmdArg( LPSTR command_line, int& argc_out, char**& argv_out )
+{
+   int argc;
+   LPWSTR* strs = CommandLineToArgvW( mvv::getWideString( command_line ).c_str(), &argc );
+   ++argc; // store the file name
+   char** argv = new char*[ argc + 1 ];
+
+
+   wchar_t filename[MAX_PATH];
+   GetModuleFileName(NULL, filename, MAX_PATH);
+
+   argv[ 0 ] = strdup( mvv::getString( filename ).c_str() );
+   for ( ui32 n = 1; n < argc; ++n )
+   {
+      argv[ n ] = strdup( mvv::getString( strs[ n - 1 ] ).c_str() );
+   }
+   argv[ argc ] = strdup( "" );
+
+
+   argv_out = argv;
+   argc_out = argc;
+}
+
 //
 // arguments:
 // sizex sizey nbThreads initialscript importpath:path1;path2;path3 font -nowindow
 //
-int main(int argc, char** argv)
+int main( int argc, char** argv )
 {
    try
    { 
@@ -416,7 +444,7 @@ int main(int argc, char** argv)
          // GLUT Window Initialization:
          glutInit( &argc, argv );
          glutInitWindowSize( (*applicationVariables->layout).getSize()[ 0 ], (*applicationVariables->layout).getSize()[ 1 ] );
-         glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE /*| GLUT_DEPTH*/ );
+         glutInitDisplayMode( GLUT_RGB | GLUT_DOUBLE );
          glutCreateWindow( "Medical Volume Viewer" );
          //glutGameModeString( "1280x1024" );
          //glutEnterGameMode();
@@ -455,14 +483,44 @@ int main(int argc, char** argv)
    catch ( std::runtime_error& e )
    {
       std::cerr << "Fatal error: " << e.what() << std::endl;
+      Sleep(5000); 
       exit(1);
    }
 
    catch (...)
    {
       std::cerr << "unexpexted exception thrown, exiting... " << std::endl;
+      Sleep(5000); 
       exit(1);
    }
+}
 
+void exitApplication( int exitCode )
+{
+   Sleep(10000); 
+   FreeConsole(); 
+   exit( exitCode );
+}
+
+int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, 
+				LPSTR lpCmdLine, int nCmdShow)
+{
+   // create output console
+   AllocConsole();
+   freopen("CONIN$","rb", stdin);   // reopen stdin handle as console window input
+   freopen("CONOUT$","wb",stdout);  // reopen stout handle as console window output
+   freopen("CONOUT$","wb",stderr);  // reopen stderr handle as console window output
+
+   std::cout << "TEST" << std::endl;
+   // parse argc, argv
+   int argc;
+   char** argv;
+   convertCmdArg( lpCmdLine, argc, argv );
+
+   // run the application code
+   main( argc, argv );
+
+   Sleep(5000); 
+   FreeConsole(); 
    return 0;
 }
