@@ -6,8 +6,6 @@ import "mvvDicomTools"
 import "mvvForms"
 
 
-println( "RUN SCRIPT" );
-
 /**
  @note the following variables must have been defined:
        - "layout" of type "Layout" defines the layout and event dispatcher to be used.

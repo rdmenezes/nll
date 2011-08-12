@@ -350,13 +350,15 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
       if ( splits.size() == 2 && strcmp( splits[ 0 ], opt.c_str() ) == 0 )
       {
          std::string str2 = splits[ 1 ];
+         /*
          std::vector<const char*> vals = nll::core::split( str2, ' ' );
          if ( vals.size() != 1 )
          {
             std::cerr << "error: expected commandline -sizex=XXX" << std::endl;
             exit( 1 );
          }
-         val = vals[ 0 ];
+         */
+         val = str2;
          return true;
       }
    }
@@ -369,7 +371,7 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
 //
 int main( int argc, char** argv )
 {
-   mvv::createMessageBoxText("TEST");
+ //  mvv::createMessageBoxText("TEST");
 
    try
    { 
@@ -404,7 +406,7 @@ int main( int argc, char** argv )
       {
          font = val;
       }
-      checkOptionArgv( argc, argv, "-argv", ' ', argvParam );
+      checkOptionArgv( argc, argv, "-argv", ';', argvParam );
       checkOptionArgv( argc, argv, "-import", ';', importPaths );
       if ( checkOptionVal( argc, argv, "-nowindow", val ) )
       {

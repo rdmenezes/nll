@@ -197,8 +197,11 @@ namespace mvv
 
          global->layout = layout;
 
-         (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
-         (*layout).updateLayout();
+         if ( !nowindow )
+         {
+            (*layout).setSize( nll::core::vector2ui( screen.sizex(), screen.sizey() ) );
+            (*layout).updateLayout();
+         }
       }
 
       void initFont( const std::string& fontpath )
