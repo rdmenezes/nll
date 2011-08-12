@@ -1,4 +1,5 @@
 #include "mvvForms.h"
+#include <forms/forms.h>
 #include <mvvScript/compiler-helper.h>
 
 using namespace mvv::parser;

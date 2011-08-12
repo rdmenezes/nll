@@ -2,7 +2,7 @@
 #define MVVFORMS_H
 
 #include <mvvScript/Compiler.h>
-#include <windows.h>
+//#include <windows.h>
 
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
@@ -24,6 +24,7 @@
 # include <string>
 # include <vector>
 
+/*
 namespace mvv
 {
    MVVFORMS_API void createMessageBoxText( const std::string& title );
@@ -34,6 +35,7 @@ namespace mvv
    MVVFORMS_API std::string getWorkingDirectory();
    MVVFORMS_API void setWorkingDirectory( const std::string& s );
 }
+*/
 
 extern "C" _declspec(dllexport) void importFunctions( mvv::parser::CompilerFrontEnd&, mvv::platform::Context& );
 

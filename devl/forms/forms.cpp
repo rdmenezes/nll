@@ -1,13 +1,17 @@
-// mvvForms.cpp : Defines the entry point for the DLL.
+// forms.cpp : Defines the entry point for the DLL.
 //
 
-/*
 #include "stdafx.h"
-#include "mvvForms.h"
-#include "windows.h"
+#include "forms.h"
+
+#if defined(_MSC_VER) && defined(_DEBUG)
+#define new DEBUG_NEW
+#endif
+
 #include "utils.h"
+#include <windows.h>
 #include <iostream>
-#include <stdio.h>
+#include <stdio.h>  /* defines FILENAME_MAX */
 #include <Shlobj.h>
 #include <algorithm>
 
@@ -246,7 +250,7 @@ namespace mvv
       {
          case WM_INITDIALOG:
          {
-            SendMessage(hwndDlg,WM_SETICON,ICON_BIG,(LPARAM)LoadIcon(NULL,IDI_APPLICATION));
+            // TODO // SendMessage(hwndDlg,WM_SETICON,ICON_BIG,(LPARAM)LoadIcon(NULL,IDI_APPLICATION));
             return true;
          }
          case WM_CLOSE:
@@ -272,8 +276,7 @@ namespace mvv
 // correct assembly
 BOOL WINAPI DllMain(HINSTANCE hinst,DWORD,LPVOID)
 {
-   std::cout << "mvvForms.dll attached!" << std::endl;
+   std::cout << "forms.dll attached!" << std::endl;
    mvv::hinstDLL = hinst;
    return true;
 }
-*/

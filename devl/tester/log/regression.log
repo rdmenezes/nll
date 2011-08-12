@@ -2,7 +2,7 @@
 
 [nll.metadata.debug.AMD64_3.4G]
 nll.machine=AMD64_3.4G
-nll.version=nll-0.15
+nll.version=nll-0.16
 
 [nll.metadata.debug.I64_12_core_2.66]
 nll.machine=I64_12_core_2.66
