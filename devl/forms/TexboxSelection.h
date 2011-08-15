@@ -14,6 +14,7 @@ public:
 	virtual ~TexboxSelection();
    int DoModal(const std::string& title, const std::vector<std::string>& texts);
    BOOL OnInitDialog();
+   const std::vector<unsigned>& getSelection() const { return _selection; }
 
 // Dialog Data
 	enum { IDD = TEXTBOX_SELECTION };
@@ -30,4 +31,5 @@ private:
    CString     _title;
    CListBox    _listbox;
    std::vector<std::string>   _textToDisplay;
+   std::vector<unsigned>      _selection;
 };

@@ -24,18 +24,6 @@
 # include <string>
 # include <vector>
 
-/*
-namespace mvv
-{
-   MVVFORMS_API void createMessageBoxText( const std::string& title );
-   MVVFORMS_API void createMessageBoxError( const std::string& title, const std::string& msg );
-   MVVFORMS_API bool createMessageBoxQuestion( const std::string& title, const std::string& msg );
-   MVVFORMS_API std::vector<std::string> openFiles( const std::string& title );
-   MVVFORMS_API std::string openFolder( const std::string title );
-   MVVFORMS_API std::string getWorkingDirectory();
-   MVVFORMS_API void setWorkingDirectory( const std::string& s );
-}
-*/
 
 extern "C" _declspec(dllexport) void importFunctions( mvv::parser::CompilerFrontEnd&, mvv::platform::Context& );
 

@@ -245,36 +245,11 @@ namespace mvv
       throw std::runtime_error( "can't create message box question" );
    }
 
-   LRESULT CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM p, LPARAM l)
-   {
-      std::cout << "MSG=" << uMsg << std::endl;
-      switch (uMsg)
-      {
-         case WM_INITDIALOG:
-         {
-            SendMessage(hwndDlg,WM_SETICON,ICON_BIG,(LPARAM)LoadIcon(NULL,IDI_APPLICATION));
-            return true;
-         }
-         case WM_CLOSE:
-         {
-            EndDialog(hwndDlg,0);
-            break;
-         }
-         case IDOK:
-			   EndDialog(hwndDlg, 0);
-			   return TRUE;
-		   case IDCANCEL:
-			   EndDialog(hwndDlg, 0);
-			   return TRUE;
-      }
-      return FALSE;
-   }
-
    template <class T>
    std::string val2str( T val )
    {
       std::stringstream ss;
-      ss << GetLastError();
+      ss << val;
       std::string n;
       ss >> n;
       return n;
@@ -302,7 +277,7 @@ namespace mvv
       {
          throw std::runtime_error( "cannot create modal dialog, GetLastError()=" + val2str( GetLastError() ) );
       }
-      return selection;
+      return box.getSelection();
    }
 }
 

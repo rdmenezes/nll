@@ -6,6 +6,7 @@
 #include "TexboxSelection.h"
 #include "utils.h"
 #include <iostream>
+#include <afxtempl.h>
 
 // TexboxSelection dialog
 
@@ -49,7 +50,19 @@ BOOL TexboxSelection::OnInitDialog()
 
 void TexboxSelection::OnOK()
 {
-   std::cout <<  "DONE" << std::endl;
+   int nCount = _listbox.GetSelCount();
+   CArray<int,int> aryListBoxSel;
+   
+   aryListBoxSel.SetSize(nCount);
+   _listbox.GetSelItems(nCount, aryListBoxSel.GetData()); 
+   
+
+   _selection.clear();
+   for ( size_t n = 0; n < aryListBoxSel.GetSize(); ++n )
+   {
+      _selection.push_back( aryListBoxSel.GetAt(n ) );
+   }
+
    CDialog::OnOK();
 }
 

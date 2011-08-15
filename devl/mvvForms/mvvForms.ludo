@@ -30,3 +30,15 @@ import void       boxError( string title, string message );
  @return 0 if no, 1 yes
  */
 import int        boxQuestion( string title, string message );
+
+/**
+ @brief Create a text box with the specified title and a choice of selectable text messages
+ @return the index of the selected messages
+ */
+import int[]      boxTextSelection( string title, string[] texts );
+
+/**
+ @brief Create a text box asking a text input from the user
+ @return return the text typed
+ */
+import string     boxTextInput( string title );

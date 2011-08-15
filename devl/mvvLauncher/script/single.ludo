@@ -5,6 +5,21 @@ import "siemens"
 import "mvvDicomTools"
 import "mvvForms"
 
+/*
+string strs[] =
+{
+   "T1",
+   "T2",
+   "T3"
+};
+int[] sel = boxTextSelection( "OK1", strs );
+println( size(sel) );
+println( sel[0] );
+println( sel[1] );
+*/
+
+string str = boxTextInput( "TEST2");
+println( str );
 
 /**
  @note the following variables must have been defined:

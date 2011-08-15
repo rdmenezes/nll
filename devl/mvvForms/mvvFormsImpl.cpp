@@ -7,6 +7,12 @@ using namespace mvv;
 
 namespace mvv
 {
+   // create the type tu use at runtime
+   TypeInt     intType( false );
+   TypeArray   intArray( 0, intType, false );
+   TypeString  stringType( false );
+   TypeArray   stringArray( 0, stringType, false );
+
    class FunctionGetWorkingDirectory : public FunctionRunnable
    {
 
@@ -178,6 +184,83 @@ namespace mvv
          return rt;
       }
    };
+
+   class FunctionBoxTextInput : public FunctionRunnable
+   {
+
+   public:
+      FunctionBoxTextInput( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 1 )
+         {
+            throw std::runtime_error( "unexpected number of arguments, expected string" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+         if ( v0.type != RuntimeValue::STRING )
+         {
+            throw std::runtime_error( "expecting 1 string" );
+         }
+
+         RuntimeValue rt( RuntimeValue::STRING );
+         rt.stringval = createMessageBoxText( v0.stringval );
+         return rt;
+      }
+   };
+
+   class FunctionBoxTextSelection : public FunctionRunnable
+   {
+
+   public:
+      FunctionBoxTextSelection( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 2 )
+         {
+            throw std::runtime_error( "unexpected number of arguments, expected string, string[]" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+         RuntimeValue& v1 = unref( *args[ 1 ] );
+         if ( v0.type != RuntimeValue::STRING ||
+              v1.type != RuntimeValue::TYPE )
+         {
+            throw std::runtime_error( "expecting 2 string" );
+         }
+
+         size_t size = (*v1.vals).size();
+         std::vector<std::string> strings;
+         for ( size_t n = 0; n < size; ++n )
+         {
+            RuntimeValue& v = unref( (*v1.vals)[ n ] );
+            if ( v.type != RuntimeValue::STRING )
+            {
+               throw std::runtime_error( "expecting string in string[]" );
+            }
+            strings.push_back( v.stringval );
+         }
+
+         std::vector<unsigned> selection = createMessageBoxTextSelection( v0.stringval, strings );
+
+
+         RuntimeValue rt( RuntimeValue::TYPE );
+         rt.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( selection.size() ) );
+         for ( size_t n = 0; n < selection.size(); ++n )
+         {
+            RuntimeValue r( RuntimeValue::CMP_INT );
+            r.intval = (int)selection[ n ];
+            (*rt.vals)[ n ] = r;
+         }
+         return rt;
+      }
+   };
 }
 
 void importFunctions( mvv::parser::CompilerFrontEnd& e, mvv::platform::Context&  )
@@ -217,6 +300,18 @@ void importFunctions( mvv::parser::CompilerFrontEnd& e, mvv::platform::Context& 
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "boxQuestion" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ) ) );
       ensure( fn, "can't find the function declaration in mvvForms.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionBoxQuestion( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "boxTextInput" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      ensure( fn, "can't find the function declaration in mvvForms.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionBoxTextInput( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "boxTextSelection" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), &mvv::stringArray ) );
+      ensure( fn, "can't find the function declaration in mvvForms.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionBoxTextSelection( fn ) ) );
    }
    std::cout << "mvvForms.dll function importing done..." << std::endl;
 }
