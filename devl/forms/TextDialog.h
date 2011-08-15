@@ -1,7 +1,6 @@
 #pragma once
-#include "resource.h"
-#include "afxwin.h"
 
+#include "resource"
 
 // TextDialog dialog
 
@@ -21,13 +20,6 @@ protected:
 
 	DECLARE_MESSAGE_MAP()
 public:
-   afx_msg void OnEnChangeFirstname();
-   CString m_strFirstName;
-   CString m_strTitle;
-   afx_msg void OnLbnSelchangeList1();
-   CListBox m_NameList;
    afx_msg void OnBnClickedOk();
-   CString m_strFullName;
-   afx_msg void OnBnClickedCancel();
-   afx_msg void OnBnClickedButton2();
+   CString _textBox;
 };

@@ -15,7 +15,6 @@
 #include <Shlobj.h>
 #include <algorithm>
 #include "TextDialog.h"
-#include "resource.h"
 
 #ifdef WIN32
 #  include <direct.h>

@@ -636,10 +636,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\resource.h"
-				>
-			</File>
-			<File
 				RelativePath=".\stdafx.h"
 				>
 			</File>
@@ -664,6 +660,30 @@
 		</Filter>
 		<File
 			RelativePath=".\forms.dox"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
 			>
 		</File>
 		<File

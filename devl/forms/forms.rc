@@ -86,25 +86,6 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Dialog
-//
-
-IDD_DIALOG1 DIALOGEX 0, 0, 186, 95
-STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Dialog"
-FONT 8, "MS Shell Dlg", 400, 0, 0x1
-BEGIN
-    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
-    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
-    COMBOBOX        IDC_COMBO1,72,7,48,38,CBS_DROPDOWNLIST | CBS_SORT | WS_VSCROLL | WS_TABSTOP
-    EDITTEXT        FirstName,7,7,59,14,ES_AUTOHSCROLL
-    LISTBOX         IDC_COMBO1,7,25,117,63,LBS_SORT | LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
-    PUSHBUTTON      "Button2",IDC_BUTTON2,119,62,50,14
-END
-
-
-/////////////////////////////////////////////////////////////////////////////
-//
 // DESIGNINFO
 //
 
@@ -116,7 +97,7 @@ BEGIN
         LEFTMARGIN, 7
         RIGHTMARGIN, 179
         TOPMARGIN, 7
-        BOTTOMMARGIN, 88
+        BOTTOMMARGIN, 39
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -124,20 +105,17 @@ END
 
 /////////////////////////////////////////////////////////////////////////////
 //
-// Dialog Info
+// Dialog
 //
 
-IDD_DIALOG1 DLGINIT
+IDD_DIALOG1 DIALOGEX 0, 0, 186, 46
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Dialog"
+FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
-    IDC_COMBO1, 0x403, 3, 0
-0x724d, "\000" 
-    IDC_COMBO1, 0x403, 4, 0
-0x724d, 0x0073, 
-    IDC_COMBO1, 0x403, 3, 0
-0x734d, "\000" 
-    IDC_COMBO1, 0x403, 3, 0
-0x7244, "\000" 
-    0
+    DEFPUSHBUTTON   "OK",IDOK,129,7,50,14
+    PUSHBUTTON      "Cancel",IDCANCEL,129,24,50,14
+    EDITTEXT        IDC_EDIT1,7,7,121,32,ES_AUTOHSCROLL
 END
 
 #endif    // English (U.K.) resources
