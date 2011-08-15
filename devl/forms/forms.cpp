@@ -14,7 +14,7 @@
 #include <stdio.h>  /* defines FILENAME_MAX */
 #include <Shlobj.h>
 #include <algorithm>
-
+#include "TextDialog.h"
 #include "resource.h"
 
 #ifdef WIN32
@@ -244,13 +244,14 @@ namespace mvv
       throw std::runtime_error( "can't create message box question" );
    }
 
-   LRESULT CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM, LPARAM)
+   LRESULT CALLBACK DlgProc(HWND hwndDlg, UINT uMsg, WPARAM p, LPARAM l)
    {
+      std::cout << "MSG=" << uMsg << std::endl;
       switch (uMsg)
       {
          case WM_INITDIALOG:
          {
-            // TODO // SendMessage(hwndDlg,WM_SETICON,ICON_BIG,(LPARAM)LoadIcon(NULL,IDI_APPLICATION));
+            SendMessage(hwndDlg,WM_SETICON,ICON_BIG,(LPARAM)LoadIcon(NULL,IDI_APPLICATION));
             return true;
          }
          case WM_CLOSE:
@@ -258,25 +259,42 @@ namespace mvv
             EndDialog(hwndDlg,0);
             break;
          }
+         case IDOK:
+			   EndDialog(hwndDlg, 0);
+			   return TRUE;
+		   case IDCANCEL:
+			   EndDialog(hwndDlg, 0);
+			   return TRUE;
       }
       return FALSE;
    }
 
    void createMessageBoxText( const std::string& title )
    {
-      int res = (int)DialogBox(hinstDLL, (LPCTSTR)IDD_DIALOG1, 0, (DLGPROC)DlgProc);
-      if ( res == 0 || res == -1 )
+      TextDialog dialog;
+      INT_PTR res = dialog.DoModal();
+      if ( res == -1 )
       {
-         std::cout << "LastError=" << GetLastError() << std::endl;
+         std::cout << "ERROR=" << GetLastError() << std::endl;
       }
    }
 }
 
+CWinApp theApp;   // the application
+
 // here we need to get the handle of the DLL, so that the dialog resources are looked in the
 // correct assembly
-BOOL WINAPI DllMain(HINSTANCE hinst,DWORD,LPVOID)
+BOOL WINAPI DllMain(HINSTANCE hinst,DWORD reason,LPVOID)
 {
-   std::cout << "forms.dll attached!" << std::endl;
-   mvv::hinstDLL = hinst;
+   if ( reason == DLL_PROCESS_ATTACH )
+   {
+      std::cout << "forms.dll attached!" << std::endl;
+      mvv::hinstDLL = hinst;
+
+      if (!AfxWinInit(mvv::hinstDLL, NULL, ::GetCommandLine(), 0))
+      {
+         throw std::runtime_error( "failed to initialize MFC..." );
+      }
+   }
    return true;
 }

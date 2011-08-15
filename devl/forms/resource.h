@@ -5,6 +5,8 @@
 #define IDD_DIALOG1                     101
 #define IDC_COMBO1                      1003
 #define IDC_TITLE                       1003
+#define FirstName                       1004
+#define IDC_LIST1                       1003
 
 // Next default values for new objects
 // 
