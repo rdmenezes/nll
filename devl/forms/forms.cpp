@@ -282,13 +282,19 @@ namespace mvv
    std::string createMessageBoxText( const std::string& title )
    {
       TextDialog dialog;
-      INT_PTR res = dialog.DoModal();
+      INT_PTR res = dialog.DoModal( title );
       if ( res == -1 )
       {
          throw std::runtime_error( "cannot create modal dialog, GetLastError()=" + val2str( GetLastError() ) );
       }
 
       return dialog.getString();
+   }
+
+   std::vector<unsigned> createMessageBoxTextSelection( const std::string& title, const std::vector<std::string>& texts )
+   {
+      std::vector<unsigned> selection;
+      return selection;
    }
 }
 

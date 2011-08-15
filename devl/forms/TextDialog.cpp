@@ -28,6 +28,20 @@ void TextDialog::DoDataExchange(CDataExchange* pDX)
    DDX_Control(pDX, IDC_EDIT1, _editControl);
 }
 
+int TextDialog::DoModal(const std::string& title)
+{
+  // Initialization
+  _title = mvv::getWideString( title ).c_str();
+  return CDialog::DoModal();
+}
+
+BOOL TextDialog::OnInitDialog()
+{
+   CDialog::OnInitDialog();
+   SetWindowText(_title);
+   return TRUE;
+}
+
 
 BEGIN_MESSAGE_MAP(TextDialog, CDialog)
    ON_BN_CLICKED(IDC_BUTTON1, &TextDialog::OnBnClickedButton1)

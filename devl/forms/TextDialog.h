@@ -14,6 +14,8 @@ public:
 	virtual ~TextDialog();
 
    std::string getString() const;
+   int DoModal(const std::string& title);
+   BOOL OnInitDialog();
 
 // Dialog Data
 	enum { IDD = IDD_DIALOG1 };
@@ -29,4 +31,5 @@ private:
 
 private:
    std::string _msg;
+   CString     _title;
 };

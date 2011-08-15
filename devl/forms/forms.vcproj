@@ -702,6 +702,10 @@
 			RelativePath=".\resource"
 			>
 		</File>
+		<File
+			RelativePath=".\resource"
+			>
+		</File>
 	</Files>
 	<Globals>
 		<Global

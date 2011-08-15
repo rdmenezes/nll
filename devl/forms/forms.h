@@ -21,8 +21,13 @@
 # include <string>
 # include <vector>
 
+/**
+ @brief Defines the set of controls which is OS dependent...
+ @note in the windows implementation, a CWinApp object is created!
+ */
 namespace mvv
 {
+   FORMS_API std::vector<unsigned> createMessageBoxTextSelection( const std::string& title, const std::vector<std::string>& texts );
    FORMS_API std::string createMessageBoxText( const std::string& title );
    FORMS_API void createMessageBoxError( const std::string& title, const std::string& msg );
    FORMS_API bool createMessageBoxQuestion( const std::string& title, const std::string& msg );
