@@ -622,6 +622,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\TexboxSelection.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\TextDialog.cpp"
 				>
 			</File>
@@ -637,6 +641,10 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
+				>
+			</File>
+			<File
+				RelativePath=".\TexboxSelection.h"
 				>
 			</File>
 			<File
@@ -660,6 +668,10 @@
 		</Filter>
 		<File
 			RelativePath=".\forms.dox"
+			>
+		</File>
+		<File
+			RelativePath=".\resource"
 			>
 		</File>
 		<File

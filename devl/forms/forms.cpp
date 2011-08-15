@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <sstream>
 #include "TextDialog.h"
+#include "TexboxSelection.h"
 
 #ifdef WIN32
 #  include <direct.h>
@@ -294,6 +295,13 @@ namespace mvv
    std::vector<unsigned> createMessageBoxTextSelection( const std::string& title, const std::vector<std::string>& texts )
    {
       std::vector<unsigned> selection;
+
+      TexboxSelection box;
+      INT_PTR res = box.DoModal( title, texts );
+      if ( res == -1 )
+      {
+         throw std::runtime_error( "cannot create modal dialog, GetLastError()=" + val2str( GetLastError() ) );
+      }
       return selection;
    }
 }
