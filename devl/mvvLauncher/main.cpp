@@ -371,10 +371,10 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
 //
 int main( int argc, char** argv )
 {
-   
+   /*
    std::string str = mvv::createMessageBoxText("TEST465");
    std::cout << "STRING=" << str << std::endl;
-   
+   */
    try
    { 
       int sizex = 1280;
