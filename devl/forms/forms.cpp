@@ -14,6 +14,7 @@
 #include <stdio.h>  /* defines FILENAME_MAX */
 #include <Shlobj.h>
 #include <algorithm>
+#include <sstream>
 #include "TextDialog.h"
 
 #ifdef WIN32
@@ -268,14 +269,26 @@ namespace mvv
       return FALSE;
    }
 
-   void createMessageBoxText( const std::string& title )
+   template <class T>
+   std::string val2str( T val )
+   {
+      std::stringstream ss;
+      ss << GetLastError();
+      std::string n;
+      ss >> n;
+      return n;
+   }
+
+   std::string createMessageBoxText( const std::string& title )
    {
       TextDialog dialog;
       INT_PTR res = dialog.DoModal();
       if ( res == -1 )
       {
-         std::cout << "ERROR=" << GetLastError() << std::endl;
+         throw std::runtime_error( "cannot create modal dialog, GetLastError()=" + val2str( GetLastError() ) );
       }
+
+      return dialog.getString();
    }
 }
 

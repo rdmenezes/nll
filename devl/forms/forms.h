@@ -23,7 +23,7 @@
 
 namespace mvv
 {
-   FORMS_API void createMessageBoxText( const std::string& title );
+   FORMS_API std::string createMessageBoxText( const std::string& title );
    FORMS_API void createMessageBoxError( const std::string& title, const std::string& msg );
    FORMS_API bool createMessageBoxQuestion( const std::string& title, const std::string& msg );
    FORMS_API std::vector<std::string> openFiles( const std::string& title );

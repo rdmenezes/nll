@@ -371,7 +371,8 @@ bool checkOptionVal( int argc, char** argv, const std::string& opt, std::string&
 //
 int main( int argc, char** argv )
 {
-   mvv::createMessageBoxText("TEST");
+   std::string str = mvv::createMessageBoxText("TEST");
+   std::cout << "STRING=" << str << std::endl;
 
    try
    { 
