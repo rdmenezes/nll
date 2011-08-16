@@ -498,7 +498,7 @@ namespace parser
                {
                   if ( val.type == RuntimeValue::EMPTY || val.type == RuntimeValue::NIL )
                   {
-                     throw std::runtime_error( "null reference" );
+                     throw std::runtime_error( "null reference in:" + e.getLocation().toString() );
                   }
                   assert( 0 );   // we are expecting a null ref in case user made a mistake, else compiler error
                }

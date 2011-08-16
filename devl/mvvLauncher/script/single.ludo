@@ -149,32 +149,58 @@ class DicomPresentation
          }
       }
 
-      int n = start;
-      while ( n <= end )
+      int n = 0;
+      int size = end - start + 1;
+      if ( size > 0 )
       {
-         Volume v = getVolume( volumes[ n ] );
-         if ( v != NULL )
+         // create the selection list
+         string str[ size ];
+         while ( n < size )
          {
-            if ( v.getSize()[ 2 ] > 1 ) // just discard one slice volumes...
+            int id = start + n;
+            Volume v = getVolume( volumes[ id ] );
+            if ( v != NULL )  // in case the volume couldn't be generated (e.g., wrong DICOM manipulated data...)
             {
-               if ( attributs[ n ].modality == "CT" )
-               {
-                  volumesContainer[ timepoint ].add( volumes[ n ], ctLut );
-               }
+               str[ n ] = attributs[ id ].modality + "-" + attributs[ id ].seriesDescription + "-" + attributs[ id ].patientName;
+            } else {
+               str[ n ] = "Invalid data";
+            }
+            n = n + 1;
+         }
 
-               if ( attributs[ n ].modality == "PT" )
-               {
-                  volumesContainer[ timepoint ].add( volumes[ n ], petLut );
-               }
+         int[] selection = boxTextSelection( "Timepoint=" + toString( timepoint ) + ", Choose DICOM series to display", str );
 
-               if ( attributs[ n ].modality == "MR" )
+         // finally populate the timepoint
+         n = 0;
+         end = size( selection );
+         while ( n < end )
+         {
+            int id = start + selection[ n ];
+            Volume v = getVolume( volumes[ id ] );
+            if ( v != NULL )
+            {
+               if ( v.getSize()[ 2 ] > 1 ) // just discard one slice volumes...
                {
-                  volumesContainer[ timepoint ].add( volumes[ n ], mrLut );
+                  if ( attributs[ id ].modality == "CT" )
+                  {
+                     volumesContainer[ timepoint ].add( volumes[ id ], ctLut );
+                  }
+
+                  if ( attributs[ id ].modality == "PT" )
+                  {
+                     volumesContainer[ timepoint ].add( volumes[ id ], petLut );
+                  }
+
+                  if ( attributs[ id ].modality == "MR" )
+                  {
+                     volumesContainer[ timepoint ].add( volumes[ id ], mrLut );
+                  }
                }
             }
+            n = n + 1;
          }
-         n = n + 1;
       }
+      
       return layoutDisplay;
    }
 }
