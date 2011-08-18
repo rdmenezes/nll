@@ -452,14 +452,14 @@ namespace parser
             // regular array
             if ( array.type == RuntimeValue::EMPTY || array.type == RuntimeValue::NIL )
             {
-               throw std::runtime_error( "uninitialized array" );
+               throw std::runtime_error( "uninitialized array (see " + e.getLocation().toString() + ")" );
             }
             //_debug( array );
             assert( array.type == RuntimeValue::TYPE );
 
             if ( array.vals.getDataPtr() == 0 || index >= static_cast<int>( (*array.vals).size() ) || index < 0 )
             {
-               throw std::runtime_error( "out of bound exception" );
+               throw std::runtime_error( "out of bound exception (see " + e.getLocation().toString() + ")" );
             }
 
             // a L-value must return a ref

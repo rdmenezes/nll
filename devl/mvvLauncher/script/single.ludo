@@ -1,19 +1,293 @@
-import "core"
-include "helper1"
 
+import "core"
 import "siemens"
 import "mvvDicomTools"
-import "mvvForms"
+include "helper1"
+
+//
+// define the different landmarks we are handling
+//
+int LD_DENS                      = 1;
+int LD_LUNGL                     = 2;
+int LD_LUNGR                     = 3;
+int LD_AORTIC_ARCH               = 4;
+int LD_HUMERUSL                  = 5;
+int LD_HUMERUSR                  = 6;
+int LD_SBLADEL                   = 7;
+int LD_SBLADER                   = 8;
+int LD_HEART_VEIN_CAVE_ENTRANCE  = 9;
+int LD_CARINA                    = 10;
+int LD_PORTAL_VEIN               = 11;
+int LD_SPLEEN_HEAD               = 12;
+int LD_KIDNEYL                   = 13;
+int LD_KIDNEYR                   = 14;
+int LD_HIPS                      = 15;
+int LD_FEMURL                    = 16;
+int LD_FEMURR                    = 17;
+int LD_COCCYX                    = 18;
+
+string LD_STRINGS[] =
+{
+   "Dens' tip",
+   "Left Lung's tip",
+   "Right Lung's tip",
+   "Aortic Arch",
+   "Left Humerus tip",
+   "Right Humerus tip",
+   "Left shoulder blade tip",
+   "Rgiht shoulder blade tip",
+   "Heart vein cave entrance",
+   "Carina",
+   "Liver Portal Vein entrance",
+   "Spleen Vein entrance",
+   "Left Kidney",
+   "Right Kidney",
+   "Center Hips",
+   "Left Femur tip",
+   "Right Femur tip",
+   "Coccyx"
+};
 
 /**
- @note the following variables must have been defined:
-       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
-       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
-
- @note the following variables may be defined (if not default values apply)
-       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
-       - "historyExportLocation" of type "string", defines where the command history is imported/exported
+ @brief Store the case attributs
  */
+class VolumeFile
+{
+   int LANDMARKS_NB = 17;
+   string caseId = "unknown";
+   int[] landmarks;     // hold the landmarks found
+   VolumeFile()
+   {
+      emptyLandmarks();
+   }
+
+   void emptyLandmarks()
+   {
+      int ls[ LANDMARKS_NB + 1 ];
+      int n = 1;
+      while ( n <= LANDMARKS_NB )
+      {
+         ls[ n ] = -1;
+         n = n + 1;
+      }
+
+      landmarks = ls;
+   }
+
+
+   void write( string file )
+   {
+      OFStream f( file );
+      f.write( "nbFeatures=" + toString( LANDMARKS_NB ) + "\n" );
+
+      int n = 1;
+      while ( n <= LANDMARKS_NB )
+      {
+         f.write( "id-" + toString( n ) + "=" + toString( landmarks[ n ] ) + "\n" );
+         n = n + 1;
+      }
+      f.write( "caseId=" + caseId );
+   }
+
+   int toInt( string v )
+   {
+      return round( toFloat( v ) );
+   }
+
+   void print()
+   {
+      int n = 1;
+      while ( n <= LANDMARKS_NB )
+      {
+         println( "feature[" + toString(n) + "]=" + toString( landmarks[ n ] ) );
+         n = n + 1;
+      }
+      println( "caseId=" + caseId );
+   }
+
+   void read( string file )
+   {
+      emptyLandmarks();
+
+      IFStream f( file );
+      if ( f.good() == 0 )
+      {
+         return;
+      } else {
+         string line = f.getline();
+         string[] parts = split( line, "=" );
+         assert( size( parts ) == 2, "must be nbFeatures=XXX format" );
+         assert( parts[ 0 ] == "nbFeatures", "must be nbFeatures=XXX format" );
+         assert( toInt( parts[ 1 ] ) == 17, "it must be exactly 17 features, else not good version" );
+
+         int n = 1;
+         while ( n <= LANDMARKS_NB )
+         {
+            line = f.getline();
+            parts = split( line, "=" );
+            assert( size( parts ) == 2, "must be id-XX=XXX format"  );
+            string[] parts2 = split( parts[ 0 ], "-" );
+            assert( size( parts2 ) == 2, "must be id-XX=XXX format" );
+            assert( toInt( parts2[ 1 ] ) == n, "feature ID doesn't match!" );
+            landmarks[ n ] = toInt( parts[ 1 ] );
+            n = n + 1;
+         }
+
+         line = f.getline();
+         parts = split( line, "=" );
+         assert( size( parts ) == 2, "must be caseId=XXX format" );
+         assert( parts[ 0 ] == "caseId", "must be caseId=XXX format" );
+         caseId = parts[ 1 ];
+      }
+   }
+}
+
+class Configuration
+{
+   // configuration specific
+   string dataPath         = "C:/DicomDataRepositery/";                // path where the data is stored
+   string index            = "C:/DicomDataRepositery/index/index.txt"; // list of all the cases
+   string landmarksOutput  = "C:/DicomDataRepositery/landmarks/";      // where all the landmars are loaded and exported
+
+   // data cache
+   int currentCase = -1;               // the current case
+   int previousCase = -1;
+   VolumeID previousCaseId = NULL;    // a pointer on the previous case
+   VolumeID currentCaseId = NULL;     // a pointer on the current case
+   VolumeID nextCaseId = NULL;        // a pointer on the next case
+
+   // private member variables
+   VolumeContainer   volumes;
+   Lut               lut = NULL;
+   string[]          volumeList;
+   VolumeFile        landmarks;
+
+   Configuration( VolumeContainer vs )
+   {
+      lut = Lut( -250.0, 250.0 );
+      volumes = vs;
+
+      readCases();
+   }
+
+   string createStringId( int case )
+   {
+      string v = volumeList[ case ];
+      replace( v, "_", "-" );
+      replace( v, "/", "-" );
+      replace( v, "\\", "-" );
+      return v;
+   }
+
+   void addCase( string caseName )
+   {
+      println( "case=" + caseName );
+      int size = size( volumeList );
+      int sizen = size + 1;
+      string list[ sizen ];
+
+      int n = 0;
+      while ( n < size )
+      {
+         list[ n ] = volumeList[ n ];
+         n = n + 1;
+      }
+      list[ size ] = caseName;
+      volumeList = list;
+   }
+
+   void readCases()
+   {
+      IFStream f( index );
+      string line = f.getline();
+      while ( line != "" )
+      {
+         addCase( line );
+         line = f.getline();
+      }
+
+   }
+
+   void next()
+   {
+      volumes.clear();
+      previousCaseId = currentCaseId;
+      assert( currentCase < size( volumeList ), "no more volume to examine" );
+
+      previousCase = currentCase;
+      currentCase = currentCase + 1;
+      if ( nextCaseId != NULL )
+      {
+         // it is cached!
+         currentCaseId = nextCaseId;
+         nextCaseId = NULL;
+      } else {
+         // load it from HD
+         string volumePath = dataPath + volumeList[ currentCase ];
+         currentCaseId = loadVolume( volumePath );
+      }
+      saveCase( previousCase );
+      loadCase( currentCase );
+      volumes.add( currentCaseId, lut );
+   }
+
+   void loadCase( int case )
+   {
+      string id = createStringId( case );
+      println( "loading case landmarks=" + id );
+
+      landmarks.read( landmarksOutput + id + ".txt" );
+      landmarks.caseId = id;
+   }
+
+   void saveCase( int case )
+   {
+      if ( case >= 0 )
+      {
+         string id = createStringId( case );
+         println( "saving case landmarks=" + id );
+
+         landmarks.write( landmarksOutput + id + ".txt" );
+      }
+   }
+
+   void previous()
+   {
+      volumes.clear();
+      nextCaseId = currentCaseId;
+      assert( currentCase > 0 );
+
+      previousCase = currentCase;
+      currentCase = currentCase - 1;
+      if ( previousCaseId != NULL )
+      {
+         currentCaseId = previousCaseId;
+         previousCaseId = NULL;
+      } else {
+         string volumePath = dataPath + volumeList[ currentCase ];
+         currentCaseId = loadVolume( volumePath );
+      }
+      saveCase( previousCase );
+      loadCase( currentCase );
+      volumes.add( currentCaseId, lut );
+   }
+
+   // load a DICOM directory, or a MF2 file
+   VolumeID loadVolume( string v )
+   {
+      VolumeID id = NULL;
+      string[] splits = split( v, "." );
+      string extension = splits[ size( splits ) - 1 ];
+      if ( extension != "mf2" )
+      {
+         id = readDicomVolume( v );
+      } else {
+         id = readVolumeMF2( v );
+      }
+      return id;
+   }
+}
+
 
 //
 // configuration constants
@@ -30,193 +304,57 @@ string   historyExportLocation        = "c:/Temp/command_history.txt";
 // -----------------------------------------------------------------------------------------------------------------
 //
 
-/**
- @brief Fully handle the display of a DICOM directory. It will create timepoint for each
-        Study UID, and populate them with all the belonging Series UID
- @TODO: introduce a selection mecanism to display the selected modules
- */
-class DicomPresentation
-{
-   VolumeID[]        volumes = NULL;
-   DicomAttributs[]  attributs;
-   string            dicomPath;
-   int[]             studyIndex;
-   int               nbTimepoints;
-   int               nbVolumes;
-   Layout            layoutMain = NULL;
-   VolumeContainer[] volumesContainer;
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+ToolAnnotations         annotations;
+ToolManipulators        manipultors;
+ManipulatorPointer      pointer;
+VolumeContainer         volumes;
 
-   ToolAnnotations         annotations;
-   ToolManipulators        manipultors;
-   SegmentToolCentering    toolCentering;
-   ManipulatorPointer      pointer;
 
-   DicomPresentation( string path = "" )
-   {
-      dicomPath = path;
-   }
+//VolumeID ct   = readVolumeMF2Asynchronous("../../nllTest/data/medical/MR-1.mf2");
 
-   void run()
-   {
-      if ( dicomPath == "" )
-      {
-         dicomPath = boxOpenFolder( "Choose a DICOM directory" );
-      }
-      volumes = readDicomVolumes( dicomPath, attributs, studyIndex );
+//Lut ctLut( -50.0, 250.0 );
+//DisplayRegionDetection detection( annotations );
+//detection.compute( ct );
 
-      nbTimepoints = size( studyIndex ) + 1;
-      nbVolumes = size( volumes );
-      VolumeContainer vc[ nbTimepoints ];
-      volumesContainer = vc;
 
-      if ( nbTimepoints > 0 )
-      {
-         layoutMain = createTimepoints( 0 );
-      }
 
-      manipultors.add( pointer );
-   }
+//AffineRegistration ctReg;
+//volumes.add( ct, ctLut, 0.5, ctReg );
 
-   Layout createTimepoints( int timepoint )
-   {
-      Layout::Horizontal h;
-      Layout layout = createTimepoint( timepoint );
+manipultors.add( pointer );
 
-      float ratio = 1.0 / ( nbTimepoints - timepoint );
-      if ( timepoint + 1 != nbTimepoints )
-      {
-         Layout layoutTp = createTimepoints( timepoint + 1 );
-         layout = Layout(h, layout, layoutTp, ratio);
-      }
-      return layout;
-   }
+Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
+segment1.setTool( annotations );
 
-   Layout createTimepoint( int timepoint )
-   {
-      println( "---create timepoint=" + toString( timepoint ) );
-      // create the segments
-      Segment segment1( volumesContainer[ timepoint ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
-      segment1.setTool( toolCentering );
-      segment1.setTool( manipultors );
-      segment1.setTool( annotations );
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
+segment2.setTool( annotations );
 
-      Segment segment2( volumesContainer[ timepoint ], Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-      segment2.setTool( toolCentering );
-      segment2.setTool( manipultors );
-      segment2.setTool( annotations );
-
-      Segment segment3( volumesContainer[ timepoint ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-      segment3.setTool( toolCentering );
-      segment3.setTool( manipultors );
-      segment3.setTool( annotations );
-
-      Layout::Vertical vertical;
-      Layout::Horizontal horizontal;
-      Layout l1( segment1 );
-      Layout l2( segment2 );
-      Layout l3( segment3 );
-      Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), l3, 0.51 );
-
-      Lut petLut( 1000.0, 12000.0, Vector3i( 0, 255, 0 ) );
-      Lut ctLut( -250.0, 250.0 );
-      Lut mrLut( -250.0, 10250.0,  Vector3i( 0, 255, 0 ) );
-      int lastTimepoint = nbTimepoints - 1;
-
-      
-      // populate the segments
-      int start;
-      int end;
-
-      if ( timepoint == 0 )
-      {
-         if ( nbTimepoints == 1 )
-         {
-            start = 0;
-            end = nbVolumes - 1;
-         } else {
-            start = 0;
-            end = studyIndex[ 0 ];
-         }
-      } else {
-         
-         if ( timepoint == lastTimepoint )
-         {
-            start = studyIndex[ timepoint - 1 ] + 1;
-            end = nbVolumes - 1;
-         } else {
-            start = studyIndex[ timepoint - 1 ] + 1;
-            end = studyIndex[ timepoint ];
-         }
-      }
-
-      int n = 0;
-      int size = end - start + 1;
-      if ( size > 0 )
-      {
-         // create the selection list
-         string str[ size ];
-         while ( n < size )
-         {
-            int id = start + n;
-            Volume v = getVolume( volumes[ id ] );
-            if ( v != NULL )  // in case the volume couldn't be generated (e.g., wrong DICOM manipulated data...)
-            {
-               str[ n ] = attributs[ id ].modality + "-" + attributs[ id ].seriesDescription + "-" + attributs[ id ].patientName;
-            } else {
-               str[ n ] = "Invalid data";
-            }
-            n = n + 1;
-         }
-
-         int[] selection = boxTextSelection( "Timepoint=" + toString( timepoint ) + ", Choose DICOM series to display", str );
-
-         // finally populate the timepoint
-         n = 0;
-         end = size( selection );
-         while ( n < end )
-         {
-            int id = start + selection[ n ];
-            Volume v = getVolume( volumes[ id ] );
-            if ( v != NULL )
-            {
-               if ( v.getSize()[ 2 ] > 1 ) // just discard one slice volumes...
-               {
-                  if ( attributs[ id ].modality == "CT" )
-                  {
-                     volumesContainer[ timepoint ].add( volumes[ id ], ctLut );
-                  }
-
-                  if ( attributs[ id ].modality == "PT" )
-                  {
-                     volumesContainer[ timepoint ].add( volumes[ id ], petLut );
-                  }
-
-                  if ( attributs[ id ].modality == "MR" )
-                  {
-                     volumesContainer[ timepoint ].add( volumes[ id ], mrLut );
-                  }
-               }
-            }
-            n = n + 1;
-         }
-      }
-      
-      return layoutDisplay;
-   }
-}
-
-//DicomPresentation presentation( "N:\\MBoxData\\ImagePool\\Clinical\\PET_CT_WB_MULTI_PHASE\\CHILD_MULTIPLE_CT_SCANS\\PET_PETCT_BABY_BIPHASISCH_NEU_(CHILD)" );
-//DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
-//DicomPresentation presentation( "C:/HIREZ_#9_UTMC/2_Timepoints/HIREZ_#9_UTMC" );
-DicomPresentation presentation;
-presentation.run();
-
+Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
+segment3.setTool( annotations );
 
 Layout::Vertical vertical;
 Layout::Horizontal horizontal;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout l3( segment3 );
 Layout l6( Console() );
 
-Layout layout = Layout(vertical, l6, presentation.layoutMain, 0.05);
+Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.50), l3, 0.50 );
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.10);
+
+
+Configuration conf( volumes );
+conf.next();
 
 
 KeyboardCallback callbacks;
+callbacks.addShortcut( conf.next, "+" );
+callbacks.addShortcut( conf.previous, "-" );

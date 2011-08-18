@@ -275,9 +275,12 @@ void keyboard( unsigned char key, int x, int y )
       key = noCtrl( key );
       modifier = Callbacks::Key::CTRL;
    }
-   applicationVariables->callbacks.handleKey( toLower( key ), modifier );  // we lower the case as it should be handled by the modifier instead
+   bool handled = applicationVariables->callbacks.handleKey( toLower( key ), modifier );  // we lower the case as it should be handled by the modifier instead
 
-   (*applicationVariables->layout).receive( e );
+   if ( !handled )
+   {
+      (*applicationVariables->layout).receive( e );
+   }
 
    // handle 'esc' at the end so we have the opportunity to grab this key (i.e. save the sate) before quitting
    if ( key == 27 )

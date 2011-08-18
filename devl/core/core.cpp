@@ -1715,7 +1715,7 @@ public:
          throw std::runtime_error( "wrong arguments: expecting 1 int as arguments" );
       }
       if ( v1.intval == 0 )
-         throw std::runtime_error( "assert failed!" );
+         throw std::runtime_error( "assert failed" );
       RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
@@ -1908,6 +1908,48 @@ public:
          (*rt.vals)[ n ] = RuntimeValue( RuntimeValue::STRING );
          (*rt.vals)[ n ].stringval = splits[ n ];
       }
+      return rt;
+   }
+};
+
+class FunctionRunnableReplace : public FunctionRunnable
+{
+public:
+   FunctionRunnableReplace( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      if ( v1.type != RuntimeValue::STRING || v2.type != RuntimeValue::STRING || v3.type != RuntimeValue::STRING )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 3 string as arguments" );
+      }
+      if ( v2.stringval.size() != 1 )
+      {
+         throw std::runtime_error( "expecting one letter as argument" );
+      }
+      if ( v3.stringval.size() != 1 )
+      {
+         throw std::runtime_error( "expecting one letter as argument" );
+      }
+      for ( size_t n = 0; n < v1.stringval.size(); ++n )
+      {
+         if ( v1.stringval[ n ] == v2.stringval[ 0 ] )
+         {
+            v1.stringval[ n ] = v3.stringval[ 0 ];
+         }
+      }
+      
+      RuntimeValue rt( RuntimeValue::EMPTY );
       return rt;
    }
 };
@@ -3225,6 +3267,12 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "good" ) ), std::vector<const Type*>() );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamGood( fn ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "IFStream"), platform::Symbol::create( "getline" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionIFStreamGetline( fn ) ) );
@@ -3929,5 +3977,19 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       ensure( fn, "can't find the function declaration in core.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSize( fn ) ) );
    }
+
+   {
+      TypeArray* arrayty = new TypeArray( 0, *new TypeString( false ), false );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "size" ) ), nll::core::make_vector<const Type*>( arrayty ) );
+      ensure( fn, "can't find the function declaration in core.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionSize( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "replace" ) ), nll::core::make_vector<const Type*>( new TypeString( false ), new TypeString( false ), new TypeString( false ) ) );
+      ensure( fn, "can't find the function declaration in core.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionRunnableReplace( fn ) ) );
+   }
+
    std::cout << "core.dll import functions done" << std::endl;
 }

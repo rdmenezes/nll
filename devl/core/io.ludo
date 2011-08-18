@@ -83,6 +83,11 @@ class IFStream
    import ~IFStream();
 
    /**
+    @brief return 1 if the file is usable, 0 else
+    */
+   import int good();
+
+   /**
     @brief close the associated stream
     */
    import void close();

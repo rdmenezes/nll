@@ -242,8 +242,8 @@ public:
 
       Pointee* file;
       file = new Pointee( v2.stringval.c_str(), ( v3.intval == 0 ) ? std::ios::out : std::ios::binary | std::ios::out );
-      if ( !file->good() )
-         throw std::runtime_error( "IFStream() : cannot open the requested file=" + v2.stringval );
+      //if ( !file->good() ) // actually, if eof() then file is not good!
+      //   throw std::runtime_error( "IFStream() : cannot open the requested file=" + v2.stringval );
 
 
       RuntimeValue field( RuntimeValue::PTR );
@@ -384,6 +384,34 @@ public:
 
       RuntimeValue rt( RuntimeValue::CMP_INT );
       rt.intval = file->eof();
+      return rt;
+   }
+};
+
+class FunctionIFStreamGood : public FunctionRunnable
+{
+   typedef FunctionIFStreamConstructor::Pointee Pointee;
+
+public:
+   FunctionIFStreamGood( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* file = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      RuntimeValue rt( RuntimeValue::CMP_INT );
+      rt.intval = file->good();
       return rt;
    }
 };

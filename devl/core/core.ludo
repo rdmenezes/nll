@@ -354,3 +354,8 @@ import int size( VolumeID[]   array );
 import int size( int[]        array );
 import int size( string[]     array );
 import int size( float[]      array );
+
+/**
+ @brief Replace the all the letters <letterToReplace> in <theString> by <replacement>
+ */
+import void replace( string theString, string letterToReplace, string replacement );

@@ -73,6 +73,11 @@ namespace detect
          for ( ui32 n = 0; n < NB_CLASS; ++n )
             maxPos[ n ] = -1;
 
+         if ( results.probabilities.size() == 0 )
+         {
+            throw std::runtime_error( "cannot compute bodyPart, algorithm failed/No data." );
+         }
+
          // select the highest probability
          for ( ui32 n = 1; n < results.probabilities.size() - 1; ++n )
          {
