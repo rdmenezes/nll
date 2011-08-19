@@ -383,7 +383,7 @@ public:
                                            || (*v4.vals).size() != 1 || (*(*v4.vals)[ 0 ].vals).size() != 3
                                            || v5.type != RuntimeValue::CMP_FLOAT )
       {
-         throw std::runtime_error( "wrong argument type: expecting Vector3f, string and Vector3f" );
+         throw std::runtime_error( "wrong argument type: expecting Vector3f, string and Vector3f, float" );
       }
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();

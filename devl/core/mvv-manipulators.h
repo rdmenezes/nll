@@ -231,7 +231,7 @@ public:
 
    virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
    {
-      if ( args.size() != 4 )
+      if ( args.size() != 6 )
       {
          throw std::runtime_error( "unexpected number of arguments" );
       }
@@ -240,9 +240,14 @@ public:
       RuntimeValue& v2 = unref( *args[ 1 ] );
       RuntimeValue& v3 = unref( *args[ 2 ] );
       RuntimeValue& v4 = unref( *args[ 3 ] );
+      RuntimeValue& v5 = unref( *args[ 4 ] );
+      RuntimeValue& v6 = unref( *args[ 5 ] );
 
       nll::core::vector3f position;
       getVector3fValues( v2, position );
+
+      nll::core::vector3i color;
+      getVector3iValues( v5, color );
 
       platform::ContextGlobal* global = _context.get<platform::ContextGlobal>();
       if ( !global )
@@ -251,7 +256,7 @@ public:
       }
       
       // construct the type
-      Pointee* pointee = new Pointee( new ToolManipulatorsPoint( position, v3.stringval, global->commonFont, v4.intval, nll::core::vector3uc( 255, 255, 255 ) ) );
+      Pointee* pointee = new Pointee( new ToolManipulatorsPoint( position, v3.stringval, global->commonFont, v4.intval, nll::core::vector3uc( color[0], color[1], color[2] ), v6.floatval ) );
       RuntimeValue field( RuntimeValue::PTR );
       field.ref = reinterpret_cast<RuntimeValue*>( pointee ); // we are not interested in the pointer type! just a convenient way to store a pointer without having to create another field saving storage & speed
       (*v1.vals).resize( 1 );    // resize the original field

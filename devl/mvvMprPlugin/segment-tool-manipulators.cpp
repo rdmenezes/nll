@@ -61,6 +61,20 @@ namespace platform
       nll::core::vector2i size( static_cast<int>( slice.size()[ 0 ] ),
                                 static_cast<int>( slice.size()[ 1 ] ) );
 
+      if ( _distanceToDisplay > 0 )
+      {
+         const double dist = nll::core::sqr( p1[ 0 ] - _position[ 0 ] ) +
+                             nll::core::sqr( p1[ 1 ] - _position[ 1 ] ) +
+                             nll::core::sqr( p1[ 2 ] - _position[ 2 ] );
+         double norm = NLL_BOUND( _distanceToDisplay * _distanceToDisplay / dist, 0, 1 );
+         if ( norm < 0.15 )
+            return; // too far, don't display
+
+         color[ 0 ] *= norm;
+         color[ 1 ] *= norm;
+         color[ 2 ] *= norm;
+      }
+
       if ( slice.contains( p2 ) )
       {
          const int pointSize = 5;

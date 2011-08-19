@@ -164,7 +164,7 @@ class VolumeFile
    {
       if ( landmarks[ id ].id == NULL )
       {
-         ManipulatorPoint point( pos, LD_STRINGS[ id ], 16 );
+         ManipulatorPoint point( pos, LD_STRINGS[ id ], 16, Vector3i(0, 255, 0), 30.0 );
          manipulators.add( point );
          landmarks[ id ].id = point;
       } else {
@@ -232,6 +232,7 @@ class Configuration
    // data cache
    int currentCase = -1;               // the current case
    int previousCase = -1;
+   int landmarkNavigator = 0;          // the current landmark to sync the MPR
 
    VolumeID previousCaseId = NULL;    // a pointer on the previous case
    VolumeID currentCaseId = NULL;     // a pointer on the current case
@@ -294,12 +295,46 @@ class Configuration
          addCase( line );
          line = f.getline();
       }
+   }
 
+   void nextLandmarkNavigation()
+   {
+      if ( landmarkNavigator < landmarks.LANDMARKS_NB )
+      {
+         while (1)
+         {
+            landmarkNavigator = landmarkNavigator + 1;
+            println( "navigateToLandmark=" + toString( landmarkNavigator ) );
+            if ( landmarks.landmarks[ landmarkNavigator ].id != NULL )
+            {
+               pointer.setPosition( landmarks.landmarks[ landmarkNavigator ].id.getPosition() );
+               break;
+            }
+         }
+      }
+   }
+
+   void previousLandmarkNavigation()
+   {
+      if ( landmarkNavigator > 1 )
+      {
+         while (1)
+         {
+            landmarkNavigator = landmarkNavigator - 1;
+            println( "navigateToLandmark=" + toString( landmarkNavigator ) );
+            if ( landmarks.landmarks[ landmarkNavigator ].id != NULL )
+            {
+               pointer.setPosition( landmarks.landmarks[ landmarkNavigator ].id.getPosition() );
+               break;
+            }
+         }
+      }
    }
 
    void next()
    {
       assert( currentCase < size( volumeList ), "no more volume to examine" );
+      landmarkNavigator = 0;
 
       volumes.clear();
       previousCaseId = currentCaseId;
@@ -345,6 +380,7 @@ class Configuration
    void previous()
    {
       assert( currentCase > 0 );
+      landmarkNavigator = 0;
 
       volumes.clear();
       nextCaseId = currentCaseId;
@@ -403,7 +439,6 @@ class LandmarkCallbackWrapper
 
    void add()
    {
-      println( "ADD" );
       conf.addLandmark( landmark );
    }
 }
@@ -488,7 +523,20 @@ while ( n < nbLandmarks )
 
 KeyboardCallback callbacks;
 callbacks.addShortcut( conf.next, "+" );
+callbacks.addShortcut( conf.nextLandmarkNavigation, "+", 2 );
 callbacks.addShortcut( conf.previous, "-" );
+callbacks.addShortcut( conf.previousLandmarkNavigation, "-", 2 );
 
 
 callbacks.addShortcut( wrappers[ 1 ].add, "F1" );
+callbacks.addShortcut( wrappers[ 2 ].add, "F2" );
+callbacks.addShortcut( wrappers[ 3 ].add, "F3" );
+callbacks.addShortcut( wrappers[ 4 ].add, "F4" );
+callbacks.addShortcut( wrappers[ 5 ].add, "F5" );
+callbacks.addShortcut( wrappers[ 6 ].add, "F6" );
+callbacks.addShortcut( wrappers[ 7 ].add, "F7" );
+callbacks.addShortcut( wrappers[ 8 ].add, "F8" );
+callbacks.addShortcut( wrappers[ 9 ].add, "F9" );
+callbacks.addShortcut( wrappers[ 10 ].add, "F10" );
+callbacks.addShortcut( wrappers[ 11 ].add, "F11" );
+callbacks.addShortcut( wrappers[ 12 ].add, "F12" );

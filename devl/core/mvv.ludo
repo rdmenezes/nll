@@ -518,7 +518,10 @@ class ToolPostprocessing
  */
 class ManipulatorPoint
 {
-   import ManipulatorPoint( Vector3f positionMM, string txt = "", int txtSize = 12 );
+   /*
+    @param distanceToDisplay if > 0, the further away is the projection of the manipulator from its position, the darker it will be displayed
+    */
+   import ManipulatorPoint( Vector3f positionMM, string txt = "", int txtSize = 12, Vector3i color = Vector3i( 255, 255, 255 ), float distanceToDisplay = -1.0 );
    import ~ManipulatorPoint();
 
    /**
