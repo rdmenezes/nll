@@ -35,7 +35,10 @@ namespace platform
          KEY_F6 = 0x0006,
          KEY_F7 = 0x0007,
          KEY_F8 = 0x0008,
-         KEY_F9 = 0x0009
+         KEY_F9 = 0x0009,
+         KEY_F10= 0x000A,
+         KEY_F11= 0x000B,
+         KEY_F12= 0x000C,
       };
 
       EventKeyboard()

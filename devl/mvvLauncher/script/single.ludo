@@ -69,46 +69,46 @@ class VolumeFile
       //
       // defines the landmarks used
       //
-      LANDMARKS_NB = 17;
+      LANDMARKS_NB = 18;
       LD_DENS                      = 1;
-      LD_LUNGL                     = 2;
-      LD_LUNGR                     = 3;
+      LD_LUNGR                     = 2;
+      LD_LUNGL                     = 3;
       LD_AORTIC_ARCH               = 4;
-      LD_HUMERUSL                  = 5;
-      LD_HUMERUSR                  = 6;
-      LD_SBLADEL                   = 7;
-      LD_SBLADER                   = 8;
+      LD_HUMERUSR                  = 5;
+      LD_HUMERUSL                  = 6;
+      LD_SBLADER                   = 7;
+      LD_SBLADEL                   = 8;
       LD_HEART_VEIN_CAVE_ENTRANCE  = 9;
       LD_CARINA                    = 10;
       LD_PORTAL_VEIN               = 11;
       LD_SPLEEN_HEAD               = 12;
-      LD_KIDNEYL                   = 13;
-      LD_KIDNEYR                   = 14;
+      LD_KIDNEYR                   = 13;
+      LD_KIDNEYL                   = 14;
       LD_HIPS                      = 15;
-      LD_FEMURL                    = 16;
-      LD_FEMURR                    = 17;
+      LD_FEMURR                    = 16;
+      LD_FEMURL                    = 17;
       LD_COCCYX                    = 18;
 
       string strs[] =
       {
          "EMPTY",
          "Dens' tip",
-         "Left Lung's tip",
          "Right Lung's tip",
+         "Left Lung's tip",
          "Aortic Arch",
-         "Left Humerus tip",
          "Right Humerus tip",
+         "Left Humerus tip",
+         "Right shoulder blade tip",
          "Left shoulder blade tip",
-         "Rgiht shoulder blade tip",
          "Heart vein cave entrance",
          "Carina",
          "Liver Portal Vein entrance",
          "Spleen Vein entrance",
-         "Left Kidney",
          "Right Kidney",
+         "Left Kidney",
          "Center Hips",
-         "Left Femur tip",
          "Right Femur tip",
+         "Left Femur tip",
          "Coccyx"
       };
       LD_STRINGS = strs;
@@ -185,7 +185,7 @@ class VolumeFile
          string[] parts = split( line, "=" );
          assert( size( parts ) == 2, "must be nbFeatures=XXX format" );
          assert( parts[ 0 ] == "nbFeatures", "must be nbFeatures=XXX format" );
-         assert( toInt( parts[ 1 ] ) == 17, "it must be exactly 17 features, else not good version" );
+         assert( toInt( parts[ 1 ] ) == LANDMARKS_NB, "it must be exactly LANDMARKS_NB features, else not good version" );
 
          int n = 1;
          while ( n <= LANDMARKS_NB )
@@ -250,7 +250,7 @@ class Configuration
 
    Configuration( VolumeContainer vs, ToolManipulators as, ManipulatorPointer pt )
    {
-      lut = Lut( -150.0, 250.0 );
+      lut = Lut( -100.0, 250.0 );
       volumes = vs;
       manipulators = as;
       pointer = pt;
@@ -509,7 +509,7 @@ Layout layout = Layout(vertical, l6, layoutDisplay, 0.10);
 Configuration conf( volumes, manipultors, pointer );
 conf.next();
 
-int nbLandmarks = conf.landmarks.LANDMARKS_NB;
+int nbLandmarks = conf.landmarks.LANDMARKS_NB + 1;
 LandmarkCallbackWrapper wrappers[ nbLandmarks ];
 int n = 0;
 while ( n < nbLandmarks )
@@ -540,3 +540,9 @@ callbacks.addShortcut( wrappers[ 9 ].add, "F9" );
 callbacks.addShortcut( wrappers[ 10 ].add, "F10" );
 callbacks.addShortcut( wrappers[ 11 ].add, "F11" );
 callbacks.addShortcut( wrappers[ 12 ].add, "F12" );
+callbacks.addShortcut( wrappers[ 13 ].add, "1" );
+callbacks.addShortcut( wrappers[ 14 ].add, "2" );
+callbacks.addShortcut( wrappers[ 15 ].add, "3" );
+callbacks.addShortcut( wrappers[ 16 ].add, "4" );
+callbacks.addShortcut( wrappers[ 17 ].add, "5" );
+callbacks.addShortcut( wrappers[ 18 ].add, "6" );

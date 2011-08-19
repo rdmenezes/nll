@@ -132,6 +132,21 @@ public:
                _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F9, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
                continue;
             }
+            if ( keys[ n ].stringval == "F10" )
+            {
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F10, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               continue;
+            }
+            if ( keys[ n ].stringval == "F11" )
+            {
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F11, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               continue;
+            }
+            if ( keys[ n ].stringval == "F12" )
+            {
+               _callbacks[ Key( mvv::platform::EventKeyboard::KEY_F12, (Key::Modifier)modifiers[ n ].intval ) ] = "callbacks.callbacks[" + nll::core::val2str( n ) + "]();";
+               continue;
+            }
          }
       }
    }
