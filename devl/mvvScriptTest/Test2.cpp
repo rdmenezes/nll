@@ -2580,10 +2580,23 @@ struct TestEval
          TESTER_ASSERT( i2.intval == 1 );
       }
    }
+
+   void eval9()
+   {
+      {
+         // TEST L-VALUE for ARRAY/Custom type
+         CompilerFrontEnd fe;
+         Error::ErrorType result = fe.run( "import \"core\"  Vector3f v( -1.0, -1.0, -1.0 ); Vector3f vs[ 10 ]; vs[ 0 ] = v; float a1 = vs[ 0 ][ 0 ];" );
+         TESTER_ASSERT( result == Error::SUCCESS );
+
+         RuntimeValue& i = const_cast<RuntimeValue&>( fe.getVariable( mvv::Symbol::create( "a1" ) ) );
+         TESTER_ASSERT( i.type == RuntimeValue::CMP_FLOAT );
+         TESTER_ASSERT( i.floatval == -1 );
+      }
+   }
 };
 
 TESTER_TEST_SUITE(TestEval);
-
 TESTER_TEST(eval1);
 TESTER_TEST(eval2);
 TESTER_TEST(eval3);
@@ -2592,4 +2605,5 @@ TESTER_TEST(eval5);
 TESTER_TEST(eval6);
 TESTER_TEST(eval7);
 TESTER_TEST(eval8);
+TESTER_TEST(eval9);
 TESTER_TEST_SUITE_END();

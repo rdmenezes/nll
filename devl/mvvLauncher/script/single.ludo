@@ -4,58 +4,61 @@ import "siemens"
 import "mvvDicomTools"
 include "helper1"
 
-//
-// define the different landmarks we are handling
-//
-int LD_DENS                      = 1;
-int LD_LUNGL                     = 2;
-int LD_LUNGR                     = 3;
-int LD_AORTIC_ARCH               = 4;
-int LD_HUMERUSL                  = 5;
-int LD_HUMERUSR                  = 6;
-int LD_SBLADEL                   = 7;
-int LD_SBLADER                   = 8;
-int LD_HEART_VEIN_CAVE_ENTRANCE  = 9;
-int LD_CARINA                    = 10;
-int LD_PORTAL_VEIN               = 11;
-int LD_SPLEEN_HEAD               = 12;
-int LD_KIDNEYL                   = 13;
-int LD_KIDNEYR                   = 14;
-int LD_HIPS                      = 15;
-int LD_FEMURL                    = 16;
-int LD_FEMURR                    = 17;
-int LD_COCCYX                    = 18;
-
-string LD_STRINGS[] =
-{
-   "Dens' tip",
-   "Left Lung's tip",
-   "Right Lung's tip",
-   "Aortic Arch",
-   "Left Humerus tip",
-   "Right Humerus tip",
-   "Left shoulder blade tip",
-   "Rgiht shoulder blade tip",
-   "Heart vein cave entrance",
-   "Carina",
-   "Liver Portal Vein entrance",
-   "Spleen Vein entrance",
-   "Left Kidney",
-   "Right Kidney",
-   "Center Hips",
-   "Left Femur tip",
-   "Right Femur tip",
-   "Coccyx"
-};
-
 /**
  @brief Store the case attributs
  */
 class VolumeFile
 {
-   int LANDMARKS_NB = 17;
+   // defines the constants for landmarks
+   int LANDMARKS_NB;
+   int LD_DENS;
+   int LD_LUNGL;
+   int LD_LUNGR;
+   int LD_AORTIC_ARCH;
+   int LD_HUMERUSL;
+   int LD_HUMERUSR;
+   int LD_SBLADEL;
+   int LD_SBLADER;
+   int LD_HEART_VEIN_CAVE_ENTRANCE;
+   int LD_CARINA;
+   int LD_PORTAL_VEIN;
+   int LD_SPLEEN_HEAD;
+   int LD_KIDNEYL;
+   int LD_KIDNEYR;
+   int LD_HIPS;
+   int LD_FEMURL;
+   int LD_FEMURR;
+   int LD_COCCYX;
+   string[] LD_STRINGS;
+
+   // private attributs
+   class LandmarkAnnotation
+   {
+      LandmarkAnnotation(){}
+
+      Vector3f       pos;           // position in INDEX, only used for serialization, else use <ManipulatorPoint> methods
+      Vector3f       oldPos;        // position in INDEX
+      ManipulatorPoint id = NULL;
+   }
+
    string caseId = "unknown";
-   int[] landmarks;     // hold the landmarks found
+   LandmarkAnnotation[] landmarks;     // hold the landmarks found
+   ToolManipulators manipulators = NULL;
+   ManipulatorPointer pointer = NULL;
+
+   void print()
+   {
+      int n = 1;
+      while ( n <= LANDMARKS_NB )
+      {
+         println( "feature[" + toString(n) + "]=" + toString( landmarks[ n ].pos[ 0 ] ) + ", "
+                                                  + toString( landmarks[ n ].pos[ 1 ] ) + ", "
+                                                  + toString( landmarks[ n ].pos[ 2 ] ) + ", " );
+         n = n + 1;
+      }
+      println( "caseId=" + caseId );
+   }
+
    VolumeFile()
    {
       emptyLandmarks();
@@ -63,27 +66,90 @@ class VolumeFile
 
    void emptyLandmarks()
    {
-      int ls[ LANDMARKS_NB + 1 ];
-      int n = 1;
-      while ( n <= LANDMARKS_NB )
+      //
+      // defines the landmarks used
+      //
+      LANDMARKS_NB = 17;
+      LD_DENS                      = 1;
+      LD_LUNGL                     = 2;
+      LD_LUNGR                     = 3;
+      LD_AORTIC_ARCH               = 4;
+      LD_HUMERUSL                  = 5;
+      LD_HUMERUSR                  = 6;
+      LD_SBLADEL                   = 7;
+      LD_SBLADER                   = 8;
+      LD_HEART_VEIN_CAVE_ENTRANCE  = 9;
+      LD_CARINA                    = 10;
+      LD_PORTAL_VEIN               = 11;
+      LD_SPLEEN_HEAD               = 12;
+      LD_KIDNEYL                   = 13;
+      LD_KIDNEYR                   = 14;
+      LD_HIPS                      = 15;
+      LD_FEMURL                    = 16;
+      LD_FEMURR                    = 17;
+      LD_COCCYX                    = 18;
+
+      string strs[] =
       {
-         ls[ n ] = -1;
+         "EMPTY",
+         "Dens' tip",
+         "Left Lung's tip",
+         "Right Lung's tip",
+         "Aortic Arch",
+         "Left Humerus tip",
+         "Right Humerus tip",
+         "Left shoulder blade tip",
+         "Rgiht shoulder blade tip",
+         "Heart vein cave entrance",
+         "Carina",
+         "Liver Portal Vein entrance",
+         "Spleen Vein entrance",
+         "Left Kidney",
+         "Right Kidney",
+         "Center Hips",
+         "Left Femur tip",
+         "Right Femur tip",
+         "Coccyx"
+      };
+      LD_STRINGS = strs;
+
+      int sizeBuf = LANDMARKS_NB + 1;
+      LandmarkAnnotation ls[ sizeBuf ];
+      int n = 0;
+      while ( n < sizeBuf )
+      {
+         LandmarkAnnotation a;
+         Vector3f v1( -1.0, -1.0, -1.0 );
+         Vector3f v2( -1.0, -1.0, -1.0 );
+         a.pos = v1;
+         a.oldPos = v2;
+         ls[ n ] = a;
          n = n + 1;
       }
-
       landmarks = ls;
    }
 
 
-   void write( string file )
+   void write( string file, Volume v )
    {
+      
+      assert( v != NULL, "EMPTY VOLUME" );
       OFStream f( file );
       f.write( "nbFeatures=" + toString( LANDMARKS_NB ) + "\n" );
 
       int n = 1;
       while ( n <= LANDMARKS_NB )
       {
-         f.write( "id-" + toString( n ) + "=" + toString( landmarks[ n ] ) + "\n" );
+         Vector3f pos;
+         if ( landmarks[ n ].id != NULL )
+         {
+            pos = v.positionToIndex( landmarks[ n ].id.getPosition() );
+         } else {
+            pos = Vector3f( -1.0, -1.0, -1.0 );
+         }
+         f.write( "id-" + toString( n ) + "=" + toString( pos[ 0 ] ) + ", "
+                                              + toString( pos[ 1 ] ) + ", "
+                                              + toString( pos[ 2 ] ) + "\n" );
          n = n + 1;
       }
       f.write( "caseId=" + caseId );
@@ -94,26 +160,27 @@ class VolumeFile
       return round( toFloat( v ) );
    }
 
-   void print()
+   void addLandmark( int id, Vector3f pos )
    {
-      int n = 1;
-      while ( n <= LANDMARKS_NB )
+      if ( landmarks[ id ].id == NULL )
       {
-         println( "feature[" + toString(n) + "]=" + toString( landmarks[ n ] ) );
-         n = n + 1;
+         ManipulatorPoint point( pos, LD_STRINGS[ id ], 16 );
+         manipulators.add( point );
+         landmarks[ id ].id = point;
+      } else {
+         landmarks[ id ].id.setPosition( pos );
       }
-      println( "caseId=" + caseId );
    }
 
-   void read( string file )
+   void read( string file, Volume v )
    {
+      manipulators.clear();
+      manipulators.add( pointer );
       emptyLandmarks();
 
       IFStream f( file );
-      if ( f.good() == 0 )
+      if ( f.good() )
       {
-         return;
-      } else {
          string line = f.getline();
          string[] parts = split( line, "=" );
          assert( size( parts ) == 2, "must be nbFeatures=XXX format" );
@@ -129,7 +196,20 @@ class VolumeFile
             string[] parts2 = split( parts[ 0 ], "-" );
             assert( size( parts2 ) == 2, "must be id-XX=XXX format" );
             assert( toInt( parts2[ 1 ] ) == n, "feature ID doesn't match!" );
-            landmarks[ n ] = toInt( parts[ 1 ] );
+            string[] parts3 = split( parts[ 1 ], "," );
+            assert( size( parts3 ) == 3, "it must be XX, XX, XX format" );
+            landmarks[ n ].pos[ 0 ] = toFloat( parts3[ 0 ] );
+            landmarks[ n ].pos[ 1 ] = toFloat( parts3[ 1 ] );
+            landmarks[ n ].pos[ 2 ] = toFloat( parts3[ 2 ] );
+
+            // display it in MM
+            Vector3f pos = v.indexToPosition( landmarks[ n ].pos );
+            if ( landmarks[ n ].pos[ 0 ] >= 0.0 &&
+                 landmarks[ n ].pos[ 1 ] >= 0.0 &&
+                 landmarks[ n ].pos[ 2 ] >= 0.0 )   // if <0, don't display anything
+            {
+               addLandmark( n, pos );
+            }
             n = n + 1;
          }
 
@@ -152,22 +232,31 @@ class Configuration
    // data cache
    int currentCase = -1;               // the current case
    int previousCase = -1;
+
    VolumeID previousCaseId = NULL;    // a pointer on the previous case
    VolumeID currentCaseId = NULL;     // a pointer on the current case
    VolumeID nextCaseId = NULL;        // a pointer on the next case
+   VolumeID previousId = NULL;        // the volume displayed the previous time (i.e., independent of the list order)
+
+   ToolManipulators manipulators = NULL;
 
    // private member variables
-   VolumeContainer   volumes;
-   Lut               lut = NULL;
-   string[]          volumeList;
-   VolumeFile        landmarks;
+   VolumeContainer      volumes;
+   Lut                  lut = NULL;
+   string[]             volumeList;
+   VolumeFile           landmarks;
+   ManipulatorPointer   pointer;
 
-   Configuration( VolumeContainer vs )
+   Configuration( VolumeContainer vs, ToolManipulators as, ManipulatorPointer pt )
    {
-      lut = Lut( -250.0, 250.0 );
+      lut = Lut( -150.0, 250.0 );
       volumes = vs;
+      manipulators = as;
+      pointer = pt;
 
       readCases();
+      landmarks.manipulators = manipulators;
+      landmarks.pointer = pointer;
    }
 
    string createStringId( int case )
@@ -210,9 +299,11 @@ class Configuration
 
    void next()
    {
+      assert( currentCase < size( volumeList ), "no more volume to examine" );
+
       volumes.clear();
       previousCaseId = currentCaseId;
-      assert( currentCase < size( volumeList ), "no more volume to examine" );
+      previousId = currentCaseId;
 
       previousCase = currentCase;
       currentCase = currentCase + 1;
@@ -226,7 +317,7 @@ class Configuration
          string volumePath = dataPath + volumeList[ currentCase ];
          currentCaseId = loadVolume( volumePath );
       }
-      saveCase( previousCase );
+      saveCase();
       loadCase( currentCase );
       volumes.add( currentCaseId, lut );
    }
@@ -236,26 +327,28 @@ class Configuration
       string id = createStringId( case );
       println( "loading case landmarks=" + id );
 
-      landmarks.read( landmarksOutput + id + ".txt" );
+      landmarks.read( landmarksOutput + id + ".txt", getVolume( currentCaseId ) );
       landmarks.caseId = id;
    }
 
-   void saveCase( int case )
+   void saveCase()
    {
-      if ( case >= 0 )
+      if ( previousCase >= 0 )
       {
-         string id = createStringId( case );
+         string id = createStringId( previousCase );
          println( "saving case landmarks=" + id );
 
-         landmarks.write( landmarksOutput + id + ".txt" );
+         landmarks.write( landmarksOutput + id + ".txt", getVolume( previousId )  );
       }
    }
 
    void previous()
    {
+      assert( currentCase > 0 );
+
       volumes.clear();
       nextCaseId = currentCaseId;
-      assert( currentCase > 0 );
+      previousId = currentCaseId;
 
       previousCase = currentCase;
       currentCase = currentCase - 1;
@@ -267,7 +360,7 @@ class Configuration
          string volumePath = dataPath + volumeList[ currentCase ];
          currentCaseId = loadVolume( volumePath );
       }
-      saveCase( previousCase );
+      saveCase();
       loadCase( currentCase );
       volumes.add( currentCaseId, lut );
    }
@@ -285,6 +378,33 @@ class Configuration
          id = readVolumeMF2( v );
       }
       return id;
+   }
+
+   void addLandmark( int id )
+   {
+      landmarks.addLandmark( id, pointer.getPosition() );
+   }
+}
+
+class LandmarkCallbackWrapper
+{
+   Configuration conf = NULL;
+   int landmark = -1;
+
+   LandmarkCallbackWrapper()
+   {
+   }
+
+   void set( int ld, Configuration c )
+   {
+      conf = c;
+      landmark = ld;
+   }
+
+   void add()
+   {
+      println( "ADD" );
+      conf.addLandmark( landmark );
    }
 }
 
@@ -351,10 +471,24 @@ Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.50), l3, 0.50 );
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.10);
 
 
-Configuration conf( volumes );
+Configuration conf( volumes, manipultors, pointer );
 conf.next();
+
+int nbLandmarks = conf.landmarks.LANDMARKS_NB;
+LandmarkCallbackWrapper wrappers[ nbLandmarks ];
+int n = 0;
+while ( n < nbLandmarks )
+{
+   wrappers[ n ].set( n, conf );
+   n = n + 1;
+}
+
+
 
 
 KeyboardCallback callbacks;
 callbacks.addShortcut( conf.next, "+" );
 callbacks.addShortcut( conf.previous, "-" );
+
+
+callbacks.addShortcut( wrappers[ 1 ].add, "F1" );

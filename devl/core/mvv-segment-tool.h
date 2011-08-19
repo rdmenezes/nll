@@ -679,7 +679,8 @@ public:
       assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
       Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
 
-      Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( (*v2.vals)[ 0 ].intval );
+      const int id = (*v2.vals)[ 0 ].intval;
+      Pointee::AnnotationDictionary::iterator it = pointee->dictionary.find( id );
       if ( it == pointee->dictionary.end() )
       {
          throw std::runtime_error( "the AnnotationID doesn't belong to this tool" );

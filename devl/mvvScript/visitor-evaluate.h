@@ -229,15 +229,16 @@ namespace parser
          // in case the dynamic type is NIL
          if ( ur0.type == RuntimeValue::NIL && !e.getFunctionCall() )
          {
+            const int test = ( ur1.type == RuntimeValue::NIL ) /* || 0 == ur1.vals.getDataPtr() */;
             if ( e.getOp() == AstOpBin::EQ )
             {
                _env.resultRegister.type = RuntimeValue::CMP_INT;
-               _env.resultRegister.intval = 0 == ur1.vals.getDataPtr();
+               _env.resultRegister.intval = test;
                return;
             } else if ( e.getOp() == AstOpBin::NE )
             {
                _env.resultRegister.type = RuntimeValue::CMP_INT;
-               _env.resultRegister.intval = 0 != ur1.vals.getDataPtr();
+               _env.resultRegister.intval = !test;
                return;
             }
          }
@@ -332,12 +333,6 @@ namespace parser
 
          if ( _env.resultRegister.type == RuntimeValue::TYPE )
          {
-            std::cout << "LHS=" << std::endl;
-            _debug( _env.resultRegister );
-
-            std::cout << "RHS=" << std::endl;
-            _debug( val );
-
             _env.resultRegister = val;
          } else {
             if ( isRef && unref( _env.resultRegister ).type == RuntimeValue::EMPTY && !forceCopyValue )   // if we have a ref and this ref doesn't have value, then copy the ref, else we copy by value
@@ -463,7 +458,7 @@ namespace parser
             }
 
             // a L-value must return a ref
-            _createRef( _env.resultRegister, (*array.vals)[ index ], false );
+            _createRef( _env.resultRegister, (*array.vals)[ index ], true );
          }
       }
 
