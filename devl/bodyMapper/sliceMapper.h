@@ -2,6 +2,7 @@
 # define MVV_SLICE_MAPPER_H_
 
 # include "def.h"
+# include "dataset.h"
 
 namespace mvv
 {

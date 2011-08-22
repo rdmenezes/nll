@@ -1,5 +1,7 @@
 #include <tester/register.h>
+#include <bodyMapper/sliceMapper.h>
 
+using namespace mvv::mapper;
 /**
  * Test harness for bodyMapperTest.
  *
@@ -11,6 +13,7 @@ class TestBodyMapper
 public:
    void test1()
    {
+      LandmarkDataset dataset;
    }
 
 };
