@@ -4,10 +4,14 @@
 # include "def.h"
 # include <nll/nll.h>
 
-#define LANDMARK_DEFAULT_INDEX      "../../bodyMapper/index/index.txt"
-#define LANDMARK_DEFAULT_DIR        "../../bodyMapper/landmarks/"
-#define LANDMARK_DATA_DEFAULT_DIR   "C:/DicomDataRepositery/"
-#define LANDMARK_NB                 17
+# define LANDMARK_DEFAULT_INDEX      "../../bodyMapper/index/index.txt"
+# define LANDMARK_DEFAULT_DIR        "../../bodyMapper/landmarks/"
+# define LANDMARK_DATA_DEFAULT_DIR   "C:/DicomDataRepositery/"
+
+# define LANDMARK_DEFAULT_INDEX_LEARNING    "../../bodyMapper/index/learning.txt"
+# define LANDMARK_DEFAULT_INDEX_TESTING     "../../bodyMapper/index/testing.txt"
+# define LANDMARK_DEFAULT_INDEX_VALIDATING  "../../bodyMapper/index/validating.txt"
+
 namespace mvv
 {
 namespace mapper
@@ -25,6 +29,7 @@ namespace mapper
       {
          /// landmarks, position is indicated in voxels
          std::vector<vector3f> landmarks;
+         std::string fileId;
 
          /// this may not be exhaustive and will depend on the landmark definitions, we can use it as shortcut only...
          enum LandmarkId
@@ -109,14 +114,36 @@ namespace mapper
                              nll::core::str2val<float>( splitsLandmarkPos[ 2 ] ) );
                landmarks[ landmarkId ] = pos;
             }
+
+            std::getline( f, line );
+            splits = nll::core::split( line, '=' );
+            ensure( splits.size() == 2, "expecting caseId=XXX" );
+            fileId = splits[ 1 ];
          }
       };
 
-      LandmarkDataset( const std::string& index                = LANDMARK_DEFAULT_INDEX,
-                       const std::string& landmarksDirectory   = LANDMARK_DEFAULT_DIR,
-                       const std::string& dataDirectory        = LANDMARK_DATA_DEFAULT_DIR )
+      /**
+       @param index the index of the cases to handle
+       @param landmarksDirectory the directory where the landmarks for each case are stored
+       @param dataDirectory where the data are stored
+       @param learningIndex contains the ID of the cases read in <index> that will be used to train the models
+       @param testingIndex contains the ID of the cases read in <index> that will be used to test the models
+       @param validateIndex contains the ID of the cases read in <index> that will be used to by algorithms requiring validation of the models
+       */
+      LandmarkDataset( const std::string index                = LANDMARK_DEFAULT_INDEX,
+                       const std::string landmarksDirectory   = LANDMARK_DEFAULT_DIR,
+                       const std::string dataDirectory        = LANDMARK_DATA_DEFAULT_DIR,
+                       const std::string learningIndex        = LANDMARK_DEFAULT_INDEX_LEARNING,
+                       const std::string testingIndex         = LANDMARK_DEFAULT_INDEX_TESTING,
+                       const std::string validatingIndex      = LANDMARK_DEFAULT_INDEX_VALIDATING )
       {
          _populatePath( index, landmarksDirectory, dataDirectory );
+
+         _learning   = _readIndex( learningIndex );
+         _testing    = _readIndex( testingIndex );
+         _validating = _readIndex( validatingIndex );
+
+         _validateDataPartitions();
       }
 
       unsigned size() const
@@ -124,10 +151,7 @@ namespace mapper
          return (unsigned) _dataPath.size();
       }
 
-      std::auto_ptr<Volume> loadData( unsigned id ) const
-      {
-         return std::auto_ptr<Volume>();
-      }
+      std::auto_ptr<Volume> loadData( unsigned id ) const;
 
    private:
       std::string _dirToLandmarkId( const std::string& dir )
@@ -153,6 +177,7 @@ namespace mapper
             throw std::runtime_error( "cannot open index=" + index );
          }
 
+         size_t nbLandmarks = 0;
          while ( !f.eof() )
          {
             std::string id;
@@ -164,12 +189,93 @@ namespace mapper
             
             _landmarks.push_back( dataset );
             _dataPath.push_back( dataDir + id );
+            if ( nbLandmarks == 0 )
+            {
+               nbLandmarks = dataset.landmarks.size();
+            }
+         }
+
+         for ( size_t n = 0; n < _landmarks.size(); ++n )
+         {
+            ensure( _landmarks[ n ].landmarks.size() == nbLandmarks, "the number of landmarks between landmark files are not identical!" );
+         }
+      }
+
+      std::vector<unsigned> _readIndex( const std::string& file )
+      {
+         std::vector<unsigned> ids;
+
+         std::ifstream f( file.c_str() );
+         if ( !f.good() )
+         {
+            throw std::runtime_error( "cannot open file=" + file );
+         }
+
+         while ( !f.eof() )
+         {
+            std::string line;
+            std::getline( f, line );
+            if ( line != "" )
+            {
+               ids.push_back( nll::core::str2val<unsigned>( line ) );
+            };
+         }
+
+         return ids;
+      }
+
+      void _validateDataPartitions()
+      {
+         std::set<unsigned> learning;
+         std::set<unsigned> testing;
+         std::set<unsigned> validating;
+
+         for ( unsigned n = 0; n < _learning.size(); ++n )
+         {
+            unsigned id = _learning[ n ];
+            learning.insert( id );
+         }
+
+         for ( unsigned n = 0; n < _testing.size(); ++n )
+         {
+            unsigned id = _testing[ n ];
+            testing.insert( id );
+            std::set<unsigned>::const_iterator it1 = learning.find( id );
+            if ( it1 != learning.end() )
+            {
+               throw std::runtime_error( "learning and testing datasets have common sample:" + nll::core::val2str( id ) );
+            }
+         }
+
+         for ( unsigned n = 0; n < _validating.size(); ++n )
+         {
+            unsigned id = _validating[ n ];
+            validating.insert( id );
+            std::set<unsigned>::const_iterator it1 = learning.find( id );
+            std::set<unsigned>::const_iterator it2 = testing.find( id );
+            if ( it1 != learning.end() )
+            {
+               throw std::runtime_error( "learning and validating datasets have common sample:" + nll::core::val2str( id ) );
+            }
+
+            if ( it2 != testing.end() )
+            {
+               throw std::runtime_error( "testing and validating datasets have common sample:" + nll::core::val2str( id ) );
+            }
+         }
+
+         if ( _learning.size() + _testing.size() + validating.size() != _dataPath.size() )
+         {
+            throw std::runtime_error( "data validation: a data has a role missing (LEARNING|TESTING|VALIDATING)" );
          }
       }
 
    private:
       std::vector<std::string>   _dataPath;
       std::vector<Dataset>       _landmarks;
+      std::vector<unsigned>      _learning;
+      std::vector<unsigned>      _testing;
+      std::vector<unsigned>      _validating;
    };
 }
 }

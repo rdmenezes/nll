@@ -226,8 +226,8 @@ class Configuration
 {
    // configuration specific
    string dataPath         = "C:/DicomDataRepositery/";                // path where the data is stored
-   string index            = "C:/DicomDataRepositery/index/index.txt"; // list of all the cases
-   string landmarksOutput  = "C:/DicomDataRepositery/landmarks/";      // where all the landmars are loaded and exported
+   string index            = "../../bodyMapper/index/index.txt"; // list of all the cases
+   string landmarksOutput  = "../../bodyMapper/landmarks/";      // where all the landmars are loaded and exported
 
    // data cache
    int currentCase = -1;               // the current case
@@ -250,7 +250,7 @@ class Configuration
 
    Configuration( VolumeContainer vs, ToolManipulators as, ManipulatorPointer pt )
    {
-      lut = Lut( -100.0, 250.0 );
+      lut = Lut( -400.0, 250.0 );
       volumes = vs;
       manipulators = as;
       pointer = pt;

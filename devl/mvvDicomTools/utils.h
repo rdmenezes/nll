@@ -1,6 +1,7 @@
 #ifndef MVV_DICOM_TOOLS_UTILS_H_
 # define MVV_DICOM_TOOLS_UTILS_H_
 
+# include "mvvDicomTools.h"
 # include <Boost/filesystem.hpp>
 # include <dcmtk/dcfilefo.h>
 # include <dcmtk/dcdeftag.h>

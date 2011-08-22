@@ -382,6 +382,14 @@
 				RelativePath=".\bodyMapper.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\dataset.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\sliceMapper.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

@@ -4,6 +4,11 @@
 #include <mvvScript/Compiler.h>
 
 #ifdef _MSC_VER
+
+#pragma comment(lib, "dcmdata.lib")
+#pragma comment(lib, "dcmimgle.lib")
+#pragma comment(lib, "ofstd.lib")
+
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the MVVDICOMTOOLS_EXPORTS
 // symbol defined on the command line. this symbol should not be defined on any project
