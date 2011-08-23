@@ -56,7 +56,7 @@ namespace mapper
       typedef LandmarkDataset::Volume                          Volume;
 
       SliceMapper( const SliceMapperParameters params = SliceMapperParameters() ) : _params( params ), _lut( params.lutMin, params.lutMax, 256, 1 ),
-                                                                                                       _lutMask( -440, 320, 256, 1 )
+                                                                                                       _lutMask( -100, 320, 256, 1 )
       {
          _lut.createGreyscale();
          _lutMask.createGreyscale();
