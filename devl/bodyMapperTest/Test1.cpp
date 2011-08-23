@@ -14,7 +14,7 @@ public:
    void test1()
    {
       LandmarkDataset dataset;
-      for ( unsigned v = 7; v < 8; ++v )
+      for ( unsigned v = 8; v < 24; ++v )
       {
          std::auto_ptr<LandmarkDataset::Volume> data = dataset.loadData( v );
 

@@ -153,6 +153,48 @@ namespace mapper
 
       std::auto_ptr<Volume> loadData( unsigned id ) const;
 
+      const std::vector<unsigned>& getTesting() const
+      {
+         return _testing;
+      }
+
+      const std::vector<unsigned>& getLearning() const
+      {
+         return _learning;
+      }
+
+      const std::vector<unsigned>& getValidating() const
+      {
+         return _validating;
+      }
+
+      int getSampleType( unsigned caseid ) const
+      {
+         std::vector<unsigned>::const_iterator itTesting = std::find( getTesting().begin(),
+                                                                      getTesting().end(),
+                                                                      caseid );
+         if ( itTesting != getTesting().end() )
+         {
+            return (int)nll::core::ClassificationSample<int,int>::TESTING;
+         }
+
+         std::vector<unsigned>::const_iterator itLearning = std::find( getLearning().begin(),
+                                                                       getLearning().end(),
+                                                                       caseid );
+         if ( itLearning != getLearning().end() )
+         {
+            return (int)nll::core::ClassificationSample<int,int>::LEARNING;
+         }
+         std::vector<unsigned>::const_iterator itValidating = std::find( getValidating().begin(),
+                                                                         getValidating().end(),
+                                                                         caseid );
+         if ( itValidating != getValidating().end() )
+         {
+            return (int)nll::core::ClassificationSample<int,int>::VALIDATION;
+         }
+         throw std::runtime_error( "can't reach: data doesn't have role, but this was validated!" );
+      }
+
    private:
       std::string _dirToLandmarkId( const std::string& dir )
       {
