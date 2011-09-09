@@ -18,7 +18,7 @@ namespace mapper
          lutMin = -100;
          lutMax = 250;
 
-         lutMaskMin = -150;
+         lutMaskMin = -300;
          lutMaskMax = 50;
 
          minDistanceBetweenRoiInMM = 20;
@@ -82,7 +82,7 @@ namespace mapper
       typedef LandmarkDataset::Volume                          Volume;
 
       SliceMapper( const SliceMapperParameters params = SliceMapperParameters() ) : _params( params ), _lut( params.lutMin, params.lutMax, 256, 1 ),
-                                                                                                       _lutMask( -100, 320, 256, 1 )
+                                                                                                       _lutMask( params.lutMaskMin, params.lutMaskMax, 256, 1 )
       {
          _lut.createGreyscale();
          _lutMask.createGreyscale();
