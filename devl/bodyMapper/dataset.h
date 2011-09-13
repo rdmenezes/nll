@@ -4,6 +4,9 @@
 # include "def.h"
 # include <nll/nll.h>
 
+# pragma warning( push )
+# pragma warning( disable:4251 ) // dll interface for STL
+
 # define LANDMARK_DEFAULT_INDEX      "../../bodyMapper/index/index.txt"
 # define LANDMARK_DEFAULT_DIR        "../../bodyMapper/landmarks/"
 # define LANDMARK_DATA_DEFAULT_DIR   "C:/DicomDataRepositery/"
@@ -151,6 +154,11 @@ namespace mapper
          return (unsigned) _dataPath.size();
       }
 
+      const Dataset& operator[]( unsigned caseid ) const
+      {
+         return _landmarks[ caseid ];
+      }
+
       std::auto_ptr<Volume> loadData( unsigned id ) const;
 
       const std::vector<unsigned>& getTesting() const
@@ -168,6 +176,7 @@ namespace mapper
          return _validating;
       }
 
+      // return the type {LEARNING, TESTING, VALIDATING} of a case
       int getSampleType( unsigned caseid ) const
       {
          std::vector<unsigned>::const_iterator itTesting = std::find( getTesting().begin(),
@@ -323,3 +332,5 @@ namespace mapper
 }
 
 #endif
+
+# pragma warning( pop )

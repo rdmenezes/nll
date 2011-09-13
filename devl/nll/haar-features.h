@@ -259,6 +259,7 @@ namespace algorithm
             return _centre;
          }
 
+         // note that by size it is meant the ratio size!
          const core::vector2d& getSize() const
          {
             return _size;
