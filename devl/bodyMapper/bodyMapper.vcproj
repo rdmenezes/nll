@@ -413,6 +413,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\facadeSliceMapper.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\facadeSliceMapper.h"
+				>
+			</File>
+			<File
 				RelativePath=".\sliceMapper.h"
 				>
 			</File>

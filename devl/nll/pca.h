@@ -275,14 +275,15 @@ namespace algorithm
       /**
        @brief Project a point using the previously computed projection.
        */
-      Point process( const Point& point ) const
+      template <class Point2>
+      Point2 process( const Point2& point ) const
       {
          ensure( _projection.size(), "Empty projection" );
          core::Matrix<double> p( static_cast<ui32>( point.size() ), 1 );
          for ( ui32 n = 0; n < p.size(); ++n )
             p[ n ] = point[ n ] - _mean[ n ];
          core::Matrix<double> r = core::mul( _projection, p );
-         Point result( r.size() );
+         Point2 result( r.size() );
          for ( ui32 n = 0; n < r.size(); ++n )
             result[ n ] = r[ n ];
          return result;
@@ -291,14 +292,15 @@ namespace algorithm
       /**
        @brief reconstruct a point projected on the PCA back to the original space
        */
-      Point reconstruct( const Point& point ) const
+      template <class Point2>
+      Point2 reconstruct( const Point2& point ) const
       {
          assert( point.size() == _nbVectors );
          assert( _eigenVectors.size() );
 
          const ui32 finalSize = _mean.size();
 
-         Point reconstructed( finalSize );
+         Point2 reconstructed( finalSize );
          for ( ui32 n = 0; n < _nbVectors; ++n )
          {
             for ( ui32 nn = 0; nn < finalSize; ++nn )

@@ -45,6 +45,14 @@ namespace mapper
             << " horizontalCroppingRatio="   << horizontalCroppingRatio << std::endl;
       }
 
+      void write( const std::string& str ) const
+      {
+         std::ofstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         write( f );
+      }
+
       void write( std::ostream& o ) const
       {
          nll::core::write<unsigned>( preprocessSizeX, o );
@@ -56,6 +64,14 @@ namespace mapper
          nll::core::write<float>( minDistanceBetweenRoiInMM, o );
          nll::core::write<float>( verticalCroppingRatio, o );
          nll::core::write<float>( horizontalCroppingRatio, o );
+      }
+
+      void read( const std::string& str )
+      {
+         std::ifstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         read( f );
       }
 
       void read( std::istream& i )
@@ -88,9 +104,39 @@ namespace mapper
       SliceMapperPreprocessingClassifierParametersInput()
       {
          nbFinalFeatures = 512;
+         skipSliceInterval = 8;
       }
 
-      unsigned nbFinalFeatures;
+      void write( const std::string& str ) const
+      {
+         std::ofstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         write( f );
+      }
+
+      void write( std::ostream& o ) const
+      {
+         nll::core::write<unsigned>( nbFinalFeatures, o );
+         nll::core::write<unsigned>( skipSliceInterval, o );
+      }
+
+      void read( std::istream& i )
+      {
+         nll::core::read( nbFinalFeatures, i );
+         nll::core::read( skipSliceInterval, i );
+      }
+
+      void read( const std::string& str )
+      {
+         std::ifstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         read( f );
+      }
+
+      unsigned nbFinalFeatures;     // number of features that are needed for each classifier
+      unsigned skipSliceInterval;   // the non point of interest slices will be sampled every <skipSliceInterval>
    };  
 
    /**
@@ -114,6 +160,11 @@ namespace mapper
          _lutMask.createGreyscale();
       }
 
+      SliceBasicPreprocessing( const std::string& config ) : _lut( 0, 10, 256, 1 ), _lutMask( 0, 10, 256, 1 )
+      {
+         read( config );
+      }
+
       // preprocess the slice (i.e. LUT transform the image, extract biggest CC, cropping, center, resample...)
       Image preprocessSlice( const Volume& volume, unsigned slice ) const;
       Imagef preprocessSlicef( const Volume& volume, unsigned slice ) const;
@@ -126,6 +177,38 @@ namespace mapper
          return _params;
       }
 
+      void write( const std::string& str ) const
+      {
+         std::ofstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         write( f );
+      }
+
+      void write( std::ostream& o ) const
+      {
+         _params.write( o );
+      }
+
+      void read( std::istream& i )
+      {
+         _params.read( i );
+
+         _lut = Lut( _params.lutMin, _params.lutMax, 256, 1 );
+         _lutMask = Lut( _params.lutMaskMin, _params.lutMaskMax, 256, 1 );
+
+         _lut.createGreyscale();
+         _lutMask.createGreyscale();
+      }
+
+      void read( const std::string& str )
+      {
+         std::ifstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         read( f );
+      }
+
    private:
       SliceMapperPreprocessingParameters     _params;
       Lut                                    _lut;
@@ -136,25 +219,32 @@ namespace mapper
     @brief This class is a helper class to handle the feature preprocessing and database generation used
            by a classifier
     */
-   class BODYMAPPER_API SliceMapperPreprocessingClassifierInput
+   class BODYMAPPER_API SlicePreprocessingClassifierInput
    {
-      typedef nll::algorithm::HaarFeatures2d                                  HaarFeatures;
-      typedef nll::algorithm::PrincipalComponentAnalysis<SliceBasicPreprocessing::Point>  Pca;
-      typedef SliceBasicPreprocessing::Imagef                                 Imagef;
       typedef nll::core::Buffer1D<double>                                     Point;
+      typedef nll::algorithm::HaarFeatures2d                                  HaarFeatures;
+      typedef nll::algorithm::PrincipalComponentAnalysis<Point>               Pca;
+      typedef SliceBasicPreprocessing::Imagef                                 Imagef;
       typedef SliceBasicPreprocessing::Database                               Database;
       typedef nll::algorithm::IntegralImage                                   IntegralImage;
 
    public:
-      SliceMapperPreprocessingClassifierInput( const SliceMapperPreprocessingClassifierParametersInput& params,
-                                               const SliceMapperPreprocessingParameters& paramsPreprocessing ) : _params( params ), _paramsPreprocessing( paramsPreprocessing )
+      SlicePreprocessingClassifierInput( const SliceMapperPreprocessingClassifierParametersInput& params,
+                                         const SliceMapperPreprocessingParameters& paramsPreprocessing ) : _params( params ), _paramsPreprocessing( paramsPreprocessing )
       {
+      }
+
+      SlicePreprocessingClassifierInput( const std::string& classifierFeaturePrerpocessingConfig,
+                                         const std::string& slicePreprocessingConfig )
+      {
+         _params.read( classifierFeaturePrerpocessingConfig );
+         _paramsPreprocessing.read( slicePreprocessingConfig );
       }
 
       /**
        @brief Preprocess the image, including haar feature extraction and feature projection
        */
-      Point preprocess( const Imagef& preprocessedSlice ) const;
+      Point preprocess( const IntegralImage& preprocessedSlice, unsigned classifierId ) const;
 
       /**
        @brief Compute the features (Haar + dimension reduction)
@@ -166,12 +256,44 @@ namespace mapper
        */
       std::vector<Database> createClassifierInputDatabases( const Database& preprocessedSliceDatabase ) const;
 
+      void write( const std::string& str ) const
+      {
+         std::ofstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         write( f );
+      }
+
+      void write( std::ostream& o ) const
+      {
+         _params.write( o );
+         _paramsPreprocessing.write( o );
+         nll::core::write< std::vector<HaarFeatures> >( _featuresByType, o );
+         nll::core::write< std::vector<Pca> >( _featureReductionByType, o );
+      }
+
+      void read( std::istream& i )
+      {
+         _params.read( i );
+         _paramsPreprocessing.read( i );
+         nll::core::read( _featuresByType, i );
+         nll::core::read( _featureReductionByType, i );
+      }
+
+      void read( const std::string& str )
+      {
+         std::ifstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         read( f );
+      }
+
    private:
       void _createHaarFeatures( const Database& dat );
       std::vector<Point> _computeHaarFeatures( const IntegralImage& input );
 
       // sort the samples belonging to their respective classifier
-      std::vector<Database> _sortDatabaseByClassifier( const Database& preprocessedSliceDatabase );
+      std::vector<Database> _sortAndSelectDatabaseByClassifier( const Database& preprocessedSliceDatabase ) const;
 
    private:
       SliceMapperPreprocessingClassifierParametersInput  _params;

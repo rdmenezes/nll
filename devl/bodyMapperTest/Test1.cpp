@@ -56,7 +56,7 @@ public:
       SliceMapperPreprocessingParameters                 paramBasicPreprocessing;
       SliceMapperPreprocessingClassifierParametersInput  paramClassifierPreprocessing;
 
-      SliceMapperPreprocessingClassifierInput classifierInputPreprocessor( paramClassifierPreprocessing, paramBasicPreprocessing );
+      SlicePreprocessingClassifierInput classifierInputPreprocessor( paramClassifierPreprocessing, paramBasicPreprocessing );
       classifierInputPreprocessor.computeClassifierFeatures( preprocessedDatabase );
       std::vector<SliceBasicPreprocessing::Database> dats = classifierInputPreprocessor.createClassifierInputDatabases( preprocessedDatabase );
    }

@@ -151,24 +151,49 @@ namespace mapper
       return database;
    }
 
-   SliceMapperPreprocessingClassifierInput::Point
-   SliceMapperPreprocessingClassifierInput::preprocess( const Imagef& preprocessedSlice ) const
+   SlicePreprocessingClassifierInput::Point
+   SlicePreprocessingClassifierInput::preprocess( const IntegralImage& preprocessedSlice, unsigned classifierId ) const
    {
-      return Point();
+      Point haar = _featuresByType[ classifierId ].process( preprocessedSlice );
+      const Pca& pca = _featureReductionByType[ classifierId ];
+
+      Point features = pca.process( haar );
+      return features;
    }
 
 
-   void SliceMapperPreprocessingClassifierInput::computeClassifierFeatures( const SliceMapperPreprocessingClassifierInput::Database& preprocessedSliceDatabase )
+   void SlicePreprocessingClassifierInput::computeClassifierFeatures( const SlicePreprocessingClassifierInput::Database& preprocessedSliceDatabase )
    {
       // first create the corresponding haar features
       _createHaarFeatures( preprocessedSliceDatabase );
 
-      std::vector<Database> dats = _sortDatabaseByClassifier( preprocessedSliceDatabase );
+      std::vector<Database> dats = _sortAndSelectDatabaseByClassifier( preprocessedSliceDatabase );
+
+      // extract the haar features
+      #pragma omp parallel for
+      for ( int datid = 0; datid < (int)dats.size(); ++datid )
+      {
+         for ( ui32 n = 0; n < dats[ datid ].size(); ++n )
+         {
+            nll::core::Buffer1D<double> buffer = dats[ datid ][ n ].input;
+            Imagef bufferAsImage( buffer,
+                                  _paramsPreprocessing.preprocessSizeX,
+                                  _paramsPreprocessing.preprocessSizeY,
+                                  1 );
+            IntegralImage integralImage;
+            integralImage.process( bufferAsImage );
+
+            Point haar = _featuresByType[ datid ].process( integralImage );
+            dats[ datid ][ n ].input = haar;
+         }
+      }
+
+      // compute the PCA transform
       _featureReductionByType = std::vector<Pca>( dats.size() ); //.clear();
       #pragma omp parallel for
       for ( int n = 0; n < (int)dats.size(); ++n )
       {
-         std::cout << "compute PCA projector:" << n << std::endl;
+         std::cout << "compute PCA projector:" << n << " dataSize=" << dats[ n ].size() << std::endl;
          const ui32 nbClasses = nll::core::getNumberOfClass( dats[ n ] );
          ensure(  nbClasses == 2, "this must be a binary classification: class or not class" );
 
@@ -184,24 +209,26 @@ namespace mapper
       }
    }
 
-   void SliceMapperPreprocessingClassifierInput::_createHaarFeatures( const SliceMapperPreprocessingClassifierInput::Database& dat )
+   void SlicePreprocessingClassifierInput::_createHaarFeatures( const SlicePreprocessingClassifierInput::Database& dat )
    {
       typedef HaarFeatures::Feature Feature;
 
       // create a pyramid like feature detector, with number of levels = <nbScales>, and nb features=<nbFeaturesFirstLevel> for the first level
       // for each following level, the number of features is decreased by 2
       const ui32 nbScales = 3;
-      const ui32 nbFeaturesFirstLevel = 24;
+      const ui32 nbFeaturesFirstLevel = 12;
 
       // compute the number of features
       ui32 nbFeatures = 0;
       ui32 nbFeaturesPerLevelTmp = nbFeaturesFirstLevel;
-      for ( ui32 n = 0; n < nbFeaturesFirstLevel; ++n )
+      for ( ui32 n = 0; n < nbScales; ++n )
       {
          nbFeatures += nbFeaturesFirstLevel * nbFeaturesFirstLevel;
          nbFeaturesPerLevelTmp /= 2;
       }
       ensure( nbFeatures > 1, "not enough features!" );
+
+      std::cout << "preprocessing slice: nbHaarFeatures=" << nbFeatures * 2 << std::endl;
 
       // now instanciate the haar features
       const ui32 nbClasses = nll::core::getNumberOfClass( dat );
@@ -236,8 +263,8 @@ namespace mapper
       }
    }
 
-   std::vector<SliceMapperPreprocessingClassifierInput::Point>
-   SliceMapperPreprocessingClassifierInput::_computeHaarFeatures( const SliceMapperPreprocessingClassifierInput::IntegralImage& input )
+   std::vector<SlicePreprocessingClassifierInput::Point>
+   SlicePreprocessingClassifierInput::_computeHaarFeatures( const SlicePreprocessingClassifierInput::IntegralImage& input )
    {
       std::vector<Point> points( _featuresByType.size() );
       for ( size_t n = 0; n < _featuresByType.size(); ++n )
@@ -247,13 +274,14 @@ namespace mapper
       return points;
    }
 
-   std::vector<SliceMapperPreprocessingClassifierInput::Database>
-   SliceMapperPreprocessingClassifierInput::_sortDatabaseByClassifier( const SliceMapperPreprocessingClassifierInput::Database& preprocessedSliceDatabase )
+   std::vector<SlicePreprocessingClassifierInput::Database>
+   SlicePreprocessingClassifierInput::_sortAndSelectDatabaseByClassifier( const SlicePreprocessingClassifierInput::Database& preprocessedSliceDatabase ) const
    {
       const ui32 nbClasses = nll::core::getNumberOfClass( preprocessedSliceDatabase );
       std::vector<Database> datsInput;
       for ( ui32 datid = 1; datid < nbClasses; ++datid )
       {
+         int lastNonSliceOfInterestIndex = std::numeric_limits<int>::max();
          Database dat;
          for ( ui32 n = 0; n < preprocessedSliceDatabase.size(); ++n )
          {
@@ -266,7 +294,17 @@ namespace mapper
                sample.output = 1;
             } else {
                sample.output = 0;
+
+               // now skip the slice if necessary
+               ui32 dist = std::abs( lastNonSliceOfInterestIndex - (int)n );
+               if ( dist < _params.skipSliceInterval )
+               {
+                  continue;
+               } else {
+                  lastNonSliceOfInterestIndex = n;
+               }
             }
+
             dat.add( sample );
          }
 
@@ -276,40 +314,29 @@ namespace mapper
       return datsInput;
    }
 
-   std::vector<SliceMapperPreprocessingClassifierInput::Database>
-   SliceMapperPreprocessingClassifierInput::createClassifierInputDatabases( const SliceMapperPreprocessingClassifierInput::Database& preprocessedSliceDatabase ) const
+   std::vector<SlicePreprocessingClassifierInput::Database>
+   SlicePreprocessingClassifierInput::createClassifierInputDatabases( const SlicePreprocessingClassifierInput::Database& preprocessedSliceDatabase ) const
    {
       ensure( _featuresByType.size() && _featureReductionByType.size(), "first: preprocess the database to compute the haar features" );
-      ensure( nll::core::getNumberOfClass( preprocessedSliceDatabase ) == _featuresByType.size() + 1, "error: number of classes doens't match" );
+      ensure( nll::core::getNumberOfClass( preprocessedSliceDatabase ) == _featuresByType.size(), "error: number of classes doens't match" );
 
-      std::vector<Database> datsInput;
-      for ( ui32 datid = 1; datid < _featuresByType.size(); ++datid )
+      // this can be greatly improved by storing an index of the sorted list and compute only one time the <IntegralImage> per slice
+      std::vector<Database> sortedSlice = _sortAndSelectDatabaseByClassifier( preprocessedSliceDatabase );
+      for ( ui32 datid = 0; datid < sortedSlice.size(); ++datid )
       {
-         Database dat;
-         for ( ui32 n = 0; n < preprocessedSliceDatabase.size(); ++n )
+         for ( ui32 n = 0; n < sortedSlice[ datid ].size(); ++n )
          {
-            Database::Sample sample;
-
-            nll::core::Buffer1D<double> buffer = preprocessedSliceDatabase[ n ].input;
+            nll::core::Buffer1D<double> buffer = sortedSlice[ datid ][ n ].input;
             Imagef bufferAsImage( buffer,
                                   _paramsPreprocessing.preprocessSizeX,
                                   _paramsPreprocessing.preprocessSizeY,
                                   1 );
-            sample.input = preprocess( bufferAsImage );
-            sample.type = preprocessedSliceDatabase[ n ].type;
-            if ( datid == preprocessedSliceDatabase[ n ].output ) // if the landmark id is the same than the datid, this is a sample of interest for this classifier
-            {
-               sample.output = 1;
-            } else {
-               sample.output = 0;
-            }
-            dat.add( sample );
+            IntegralImage integralImage;
+            integralImage.process( bufferAsImage );
+            sortedSlice[ datid ][ n ].input = preprocess( integralImage, datid );
          }
-
-         datsInput.push_back( dat );
       }
-
-      return datsInput;
+      return sortedSlice;
    }
 }
 }
