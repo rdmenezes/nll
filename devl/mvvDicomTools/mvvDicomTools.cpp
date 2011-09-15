@@ -77,9 +77,21 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "DicomSlice" ), platform::Symbol::create( "setPixelTag" ) ), nll::core::make_vector<const Type*>( new TypeString( false ) ) );
+      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionDicomSliceSetPixelTag( fn ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "DicomSlice" ), platform::Symbol::create( "getTag" ) ), nll::core::make_vector<const Type*>( new TypeInt( false ), new TypeInt( false ) ) );
       ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionDicomSliceGetTag( fn ) ) );
+   }
+
+   {
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "DicomSlice" ), platform::Symbol::create( "getPixelTag" ) ), std::vector<const Type*>() );
+      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionDicomSliceGetPixelTag( fn ) ) );
    }
 
    {

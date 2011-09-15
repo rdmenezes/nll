@@ -230,18 +230,6 @@ void mouseMotion(int x, int y)
    }
    applicationVariables->mouseEvent.mousePosition = nll::core::vector2ui( x, y );
 
-   //(*applicationVariables.layout).receive( applicationVariables.mouseEvent ); // TODO put back!
-
- //  RefcountedTyped<Segment> segment1;
- //  applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment1"), segment1 );
- //  (*segment1).position.setValue( 2, (float)x/10 );
-
- //  RefcountedTyped<Segment> segment2;
- //  bool found = applicationVariables->context.get<ContextSegments>()->segments.find( SymbolSegment::create("segment2"), segment2 );
- //  if ( found )
- //  {
- //     (*segment2).position.setValue( 2, (float)x/10 );
- //  }
    (*applicationVariables->layout).receive( applicationVariables->mouseEvent );
 }
 

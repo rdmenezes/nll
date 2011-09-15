@@ -338,6 +338,38 @@ namespace mapper
       }
       return sortedSlice;
    }
+
+   void
+   SliceMapperClassifierSvm::destroy()
+   {
+      for ( size_t n = 0; n < _classifiers.size(); ++n )
+      {
+         delete _classifiers[ n ];
+      }
+      _classifiers.clear();
+   }
+
+   SliceMapperClassifierSvm::~SliceMapperClassifierSvm()
+   {
+      destroy();
+   }
+
+   void
+   SliceMapperClassifierSvm::learn( const SliceMapperClassifierSvmParameters& params, const std::vector<SliceMapperClassifierSvm::Database>& databases )
+   {
+      _classifiers = std::vector< Classifier* >( databases.size() );
+
+      #pragma omp parallel for
+      for ( int n = 0; n < (int)databases.size(); ++n )
+      {
+         std::cout << "Learning classifier=" << n << std::endl;
+         std::auto_ptr<Classifier> c( new Classifier( true, true ) );
+         const Classifier::Database& dat = databases[ n ];
+         c->learn( dat, nll::core::make_buffer1D<double>( params.gamma, params.costMargin ) );
+
+         _classifiers[ n ] = c.release();
+      }
+   }
 }
 }
 

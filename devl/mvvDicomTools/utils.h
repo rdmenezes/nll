@@ -362,6 +362,11 @@ namespace mvv
          memcpy( allocatedOutput, array, sizeof( ui16 ) * getRows() * getColumns() );
       }
 
+      void setPixelData( const ui16* allocatedOutput )
+      {
+         setUint16Array( DCM_PixelData, allocatedOutput, getRows() * getColumns() );
+      }
+
       const char* getFrameOfReference()
       {
          return getString( DCM_FrameOfReferenceUID );
@@ -401,6 +406,16 @@ namespace mvv
             error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
          return val;
+      }
+
+      void setUint16Array( const DcmTagKey& key, const ui16* data, ui32 size )
+      {
+         OFCondition cond = _dataset.putAndInsertUint16Array( key, data, size );
+         if ( cond.good() )
+         {
+         } else {
+            error( "missing tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
       }
 
       const char* getString( const DcmTagKey& key )

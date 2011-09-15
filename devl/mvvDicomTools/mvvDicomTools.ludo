@@ -161,10 +161,16 @@ class DicomSlice
     @note the string will be internally converted to any require VR, it can also be used with VM > 1
           by separating the values by the character '\'
           e.g. pixel spacing: setTag( 0x0028, 0x0030, "1.5" + "\\" + "1.6" )
+
+          This may not work for some specific Tag. Only for Tag with VR = {AE, AS, CS, DA, DS, DT, IS, LO, LT, PN, SH, ST, TM, UI, UT}
+          For example pixel data tag has VR VR_ox in DCMTK
     */
    import void setTag( int group, int element, string value );
 
    import string getTag( int group, int element );
+
+   import void setPixelTag( string value );
+   import string getPixelTag();
 }
 
 /**

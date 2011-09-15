@@ -15,6 +15,17 @@ using namespace mvv;
 
 namespace mvv
 {
+   template <class T>
+   T* createArrayFromString( const char* str, size_t size )
+   {
+      if ( str == 0 )
+         return 0;
+      const size_t sizeBytes = size * sizeof( T );
+      T* array = new T[ size ];
+      memcpy( array, str, sizeBytes );
+      return array;
+   }
+
    RuntimeValue createDicomSlice( DcmFileFormat* p, CompilerFrontEnd& e )
    {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("DicomSlice") ) ) );
@@ -107,7 +118,21 @@ namespace mvv
          DicomAttributs::exportTagsToDataset( attributs, *data );
 
          // now update the actual tag
-         data->putAndInsertString( DcmTagKey( v1.intval, v2.intval ), v3.stringval.c_str() );
+         if ( DcmTagKey( v1.intval, v2.intval ) == DCM_PixelData )
+         {
+            
+            DicomWrapper wrapper( *data, false );
+            const size_t sizeSlice = wrapper.getRows() * wrapper.getColumns();
+            ensure( v3.intval == sizeSlice, "new data size and slice data size don't match" );
+            std::auto_ptr<ui16> buffer( createArrayFromString<ui16>( v3.stringval.c_str(), sizeSlice ) );
+            //std::auto_ptr<ui16> buffer( new ui16[ sizeSlice ] );
+            //memset( buffer.get(), 255, sizeof( ui16 ) * sizeSlice );
+            wrapper.setPixelData( buffer.get() );
+         } else {
+            OFCondition res = data->putAndInsertOFStringArray( DcmTagKey( v1.intval, v2.intval ), v3.stringval.c_str() );
+            ensure( res.good(), "FunctionDicomSliceSetTag: error: cannot update DICOM data" );
+         }
+
          attributs = createDicomAttributs( *data );
          DicomAttributs::exportTagsToRuntime( sliceStruct, attributs );
 
@@ -116,6 +141,69 @@ namespace mvv
          return rt;
       }
    };
+
+   class FunctionDicomSliceSetPixelTag : public FunctionRunnable
+   {
+      typedef FunctionDicomSliceDestructor::Pointee Pointee;
+
+   public:
+      FunctionDicomSliceSetPixelTag( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 2 )
+         {
+            throw std::runtime_error( "unexpected number of arguments" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+         RuntimeValue& v3 = unref( *args[ 1 ] );
+         if ( v3.type != RuntimeValue::STRING )
+         {
+            throw std::runtime_error( "FunctionDicomSliceSetTag: expected (string)" );
+         }
+
+         //
+         // TODO: very inefficient way, but the simplest...
+         //
+
+         // check we have the data
+         ensure( (*v0.vals).size() == 2, "we are expecting [0] <mainAttributs>, [1] <source object pointer>" );
+         ensure( (*v0.vals)[ 0 ].type == RuntimeValue::TYPE, "must be <mainAttributs> structure" ); // it must be 1 field, PTR type
+         ensure( (*v0.vals)[ 1 ].type == RuntimeValue::PTR, "must be a pointer on the source object" ); // it must be 1 field, PTR type
+         Pointee* p = reinterpret_cast<Pointee*>( (*v0.vals)[ 1 ].ref );
+         
+         // convert everything to a dataset
+         RuntimeValue& sliceStruct = (*v0.vals)[ 0 ];
+         DicomAttributs attributs = createDicomAttributs( sliceStruct );
+         DcmDataset* data = p->getDataset();
+         DicomAttributs::exportTagsToDataset( attributs, *data );
+
+         // now update the actual tag
+         DicomWrapper wrapper( *data, false );
+         const size_t sizeSlice = wrapper.getRows() * wrapper.getColumns();
+         ensure( v3.intval == sizeSlice, "new data size and slice data size don't match" );
+         std::auto_ptr<ui16> buffer( createArrayFromString<ui16>( v3.stringval.c_str(), sizeSlice ) );
+         wrapper.setPixelData( buffer.get() );
+
+         attributs = createDicomAttributs( *data );
+         DicomAttributs::exportTagsToRuntime( sliceStruct, attributs );
+
+         RuntimeValue rt( RuntimeValue::EMPTY );
+         return rt;
+      }
+   };
+
+   template <class T>
+   void createStringFromArray( const T* array, ui32 size, std::string& str )
+   {
+      const size_t sizeBytes = size * sizeof( T );
+      str.resize( sizeBytes + 1 );
+      str[ sizeBytes ] = 0;
+      memcpy( &str[ 0 ], array, sizeBytes );
+   }
 
    class FunctionDicomSliceGetTag : public FunctionRunnable
    {
@@ -159,11 +247,74 @@ namespace mvv
          DicomAttributs::exportTagsToDataset( attributs, *data );
 
          // extract the tag
-         OFString str;
-         data->findAndGetOFStringArray( DcmTagKey( v1.intval, v2.intval ), str );
+
+         // special case for pixel data
+         if ( DcmTagKey( v1.intval, v2.intval ) == DCM_PixelData )
+         {
+            DicomWrapper wrapper( *data, false );
+
+            const ui32 size = wrapper.getRows() * wrapper.getColumns();
+            std::auto_ptr<ui16> buffer( new ui16[ size ] );
+            wrapper.getPixelData( buffer.get() );
+
+            RuntimeValue rt( RuntimeValue::STRING );
+            createStringFromArray( buffer.get(), size, rt.stringval );
+            rt.intval = size; // save the size!!!!
+            return rt;
+         }
          
+         OFString str( "0" );
+         data->findAndGetOFStringArray( DcmTagKey( v1.intval, v2.intval ), str );
          RuntimeValue rt( RuntimeValue::STRING );
          rt.stringval = str.c_str();
+         return rt;
+      }
+   };
+
+   class FunctionDicomSliceGetPixelTag : public FunctionRunnable
+   {
+      typedef FunctionDicomSliceDestructor::Pointee Pointee;
+
+   public:
+      FunctionDicomSliceGetPixelTag( const AstDeclFun* fun ) : FunctionRunnable( fun )
+      {
+      }
+
+      virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+      {
+         if ( args.size() != 1 )
+         {
+            throw std::runtime_error( "unexpected number of arguments" );
+         }
+
+         RuntimeValue& v0 = unref( *args[ 0 ] );
+
+         //
+         // TODO: very inefficient way, but the simplest...
+         //
+
+         // check we have the data
+         ensure( (*v0.vals).size() == 2, "we are expecting [0] <mainAttributs>, [1] <source object pointer>" );
+         ensure( (*v0.vals)[ 0 ].type == RuntimeValue::TYPE, "must be <mainAttributs> structure" ); // it must be 1 field, PTR type
+         ensure( (*v0.vals)[ 1 ].type == RuntimeValue::PTR, "must be a pointer on the source object" ); // it must be 1 field, PTR type
+         Pointee* p = reinterpret_cast<Pointee*>( (*v0.vals)[ 1 ].ref );
+         
+         // convert everything to a dataset
+         RuntimeValue& sliceStruct = (*v0.vals)[ 0 ];
+         DicomAttributs attributs = createDicomAttributs( sliceStruct );
+         DcmDataset* data = p->getDataset();
+         DicomAttributs::exportTagsToDataset( attributs, *data );
+
+         // extract the tag
+         DicomWrapper wrapper( *data, false );
+
+         const ui32 size = wrapper.getRows() * wrapper.getColumns();
+         std::auto_ptr<ui16> buffer( new ui16[ size ] );
+         wrapper.getPixelData( buffer.get() );
+
+         RuntimeValue rt( RuntimeValue::STRING );
+         createStringFromArray( buffer.get(), size, rt.stringval );
+         rt.intval = size; // save the size!!!!
          return rt;
       }
    };

@@ -1,8 +1,10 @@
 #include <tester/register.h>
-#include <bodyMapper/sliceMapper.h>
+#include <bodyMapper/facadeSliceMapper.h>
 
-#define SLICE_MAPPER_PREPROCESSED_DATABASE      "../../bodyMapper/data/sliceMapperPreprocessedDatabase.dat"
-#define SLICE_MAPPER_CLASSIFIER_INPUT_DATABASE  "../../bodyMapper/data/sliceMapperClassifierInputDatabase.dat"
+#define SLICE_MAPPER_PREPROCESSED_DATABASE               "../../bodyMapper/data/sliceMapperPreprocessedDatabase.dat"
+#define SLICE_MAPPER_CLASSIFIER_FEATURES_DATABASE        "../../bodyMapper/data/sliceClassifierFeatureDatabase.dat"
+#define SLICE_MAPPER_CLASSIFIER_FEATURES_PREPROCESSING   "../../bodyMapper/data/sliceClassifierFeaturePreprocessing.dat"
+#define SLICE_MAPPER_CLASSIFIERS                         "../../bodyMapper/data/sliceClassifiers.dat"
 
 using namespace mvv::mapper;
 /**
@@ -14,7 +16,10 @@ using namespace mvv::mapper;
 class TestBodyMapper
 {
 public:
-   void test1()
+   /**
+    @brief Simply a visualization of the preprocessed slices
+    */
+   void exportPreprocessedSliceDebug()
    {
       LandmarkDataset dataset;
       for ( unsigned v = 0; v <24; ++v )
@@ -37,32 +42,41 @@ public:
    // this database much less often
    void createPreprocessedDatabase()
    {
+      std::cout << "createPreprocessedDatabase()" << std::endl;
       LandmarkDataset datasets;
-      SliceBasicPreprocessing sliceMapper;
 
-      SliceBasicPreprocessing::Database preprocessedDatabase = sliceMapper.createPreprocessedDatabase( datasets );
-      preprocessedDatabase.write( SLICE_MAPPER_PREPROCESSED_DATABASE );
-
-      std::ofstream desc( SLICE_MAPPER_PREPROCESSED_DATABASE ".desc" );
-      sliceMapper.getPreprocessingParameters().print( desc );
+      FacadeSliceMapper sliceMapper;
+      sliceMapper.createPreprocessedDatabase( datasets, SLICE_MAPPER_PREPROCESSED_DATABASE );
    }
 
-   // now create the database feeding the classifier
-   void createClassifierInputDatabase()
+   // now create feature processing, features that will be fed to the classifier
+   void createClassifierFeaturesPreprocessing()
    {
-      SliceBasicPreprocessing::Database preprocessedDatabase;
-      preprocessedDatabase.read( SLICE_MAPPER_PREPROCESSED_DATABASE );
-      
-      SliceMapperPreprocessingParameters                 paramBasicPreprocessing;
-      SliceMapperPreprocessingClassifierParametersInput  paramClassifierPreprocessing;
+      std::cout << "createClassifierFeaturesPreprocessing()" << std::endl;
 
-      SlicePreprocessingClassifierInput classifierInputPreprocessor( paramClassifierPreprocessing, paramBasicPreprocessing );
-      classifierInputPreprocessor.computeClassifierFeatures( preprocessedDatabase );
-      std::vector<SliceBasicPreprocessing::Database> dats = classifierInputPreprocessor.createClassifierInputDatabases( preprocessedDatabase );
+      FacadeSliceMapper sliceMapper;
+      sliceMapper.createClassifierFeatures( SLICE_MAPPER_PREPROCESSED_DATABASE, SLICE_MAPPER_CLASSIFIER_FEATURES_PREPROCESSING );
+   }
+
+   void createClassifierFeaturesDatabase()
+   {
+      std::cout << "createClassifierFeaturesDatabase()" << std::endl;
+
+      FacadeSliceMapper sliceMapper;
+      sliceMapper.createClassifierFeaturesDatabase( SLICE_MAPPER_PREPROCESSED_DATABASE, SLICE_MAPPER_CLASSIFIER_FEATURES_PREPROCESSING, SLICE_MAPPER_CLASSIFIER_FEATURES_DATABASE );
+   }
+
+   void createSliceClassifiers()
+   {
+      std::cout << "createSliceClassifiers()" << std::endl;
+      FacadeSliceMapper sliceMapper;
+      sliceMapper.createClassifiersSvm( SLICE_MAPPER_CLASSIFIER_FEATURES_DATABASE, SLICE_MAPPER_CLASSIFIERS );
    }
 };
 
 TESTER_TEST_SUITE(TestBodyMapper);
-//TESTER_TEST(createPreprocessedDatabase);
-TESTER_TEST(createClassifierInputDatabase);
+/*TESTER_TEST(createPreprocessedDatabase);
+TESTER_TEST(createClassifierFeaturesPreprocessing);
+TESTER_TEST(createClassifierFeaturesDatabase);*/
+TESTER_TEST(createSliceClassifiers);
 TESTER_TEST_SUITE_END();

@@ -6,6 +6,7 @@ using namespace mvv;
 
 #include <mvvScript/function-runnable.h>
 #include "dataset.h"
+#include <mvvDicomTools/mvvDicomTools.h>
 #include <mvvDicomTools/utils.h>
 #include <mvvDicomTools/dicom-attributs.h>
 

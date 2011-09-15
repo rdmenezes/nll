@@ -70,6 +70,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies=" "
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -105,8 +106,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(ConfigurationName)\$(PlatformName)"
 			ConfigurationType="2"
 			CharacterSet="1"
 			>
@@ -157,6 +158,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies=" dcmdata.lib dcmimgle.lib ofstd.lib"
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -246,6 +248,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
+				AdditionalDependencies=" "
 				OutputFile="$(OutDir)/$(ProjectName).dll"
 				LinkIncremental="1"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -283,8 +286,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\$(ConfigurationName)\$(PlatformName)"
+			IntermediateDirectory="$(ConfigurationName)\$(PlatformName)"
 			ConfigurationType="2"
 			CharacterSet="1"
 			WholeProgramOptimization="-1"

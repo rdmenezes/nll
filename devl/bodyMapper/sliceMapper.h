@@ -145,13 +145,13 @@ namespace mapper
    class BODYMAPPER_API SliceBasicPreprocessing
    {
    public:
-      typedef nll::core::Buffer1D<double>                      Point;
-      typedef nll::core::ClassificationSample<Point, unsigned> Sample;
-      typedef nll::core::Database<Sample>                      Database;
-      typedef nll::core::Image<unsigned char>                  Image;
-      typedef nll::core::Image<double>                         Imagef;
-      typedef nll::imaging::LookUpTransformWindowingRGB        Lut;
-      typedef LandmarkDataset::Volume                          Volume;
+      typedef nll::core::Buffer1D<double>                       Point;
+      typedef nll::core::ClassificationSample<Point, nll::ui32> Sample;
+      typedef nll::core::Database<Sample>                       Database;
+      typedef nll::core::Image<unsigned char>                   Image;
+      typedef nll::core::Image<double>                          Imagef;
+      typedef nll::imaging::LookUpTransformWindowingRGB         Lut;
+      typedef LandmarkDataset::Volume                           Volume;
 
       SliceBasicPreprocessing( const SliceMapperPreprocessingParameters params = SliceMapperPreprocessingParameters() ) : _params( params ), _lut( params.lutMin, params.lutMax, 256, 1 ),
                                                                                                        _lutMask( params.lutMaskMin, params.lutMaskMax, 256, 1 )
@@ -213,6 +213,124 @@ namespace mapper
       SliceMapperPreprocessingParameters     _params;
       Lut                                    _lut;
       Lut                                    _lutMask;
+   };
+
+   /**
+    @parameters for the SVM classifiers
+    */
+   struct BODYMAPPER_API SliceMapperClassifierSvmParameters
+   {
+      SliceMapperClassifierSvmParameters()
+      {
+         gamma = 0.1;
+         costMargin = 100;
+      }
+
+      void write( const std::string& str ) const
+      {
+         std::ofstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         write( f );
+      }
+
+      void write( std::ostream& o ) const
+      {
+         nll::core::write<double>( gamma, o );
+         nll::core::write<double>( costMargin, o );
+      }
+
+      void read( std::istream& i )
+      {
+         nll::core::read( gamma, i );
+         nll::core::read( costMargin, i );
+      }
+
+      void read( const std::string& str )
+      {
+         std::ifstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         read( f );
+      }
+
+      double gamma;        // SVM model paramter 1
+      double costMargin;   // SVM model paramter 2
+   };
+
+   /**
+    @brief Handle the classification of a slice
+    */
+   class BODYMAPPER_API SliceMapperClassifierSvm
+   {
+   public:
+      typedef nll::core::Buffer1D<double>                       Point;
+      typedef nll::algorithm::ClassifierSvm<Point>              Classifier;
+      typedef nll::core::ClassificationSample<Point, nll::ui32> Sample;
+      typedef nll::core::Database<Sample>                       Database;
+
+   public:
+      SliceMapperClassifierSvm(){}
+
+      void learn( const SliceMapperClassifierSvmParameters& params, const std::vector<Database>& databases );
+
+      ~SliceMapperClassifierSvm();
+
+      /**
+       @brief destroy and release the memory of the classifiers
+       */
+      void destroy();
+
+      /**
+       @brief test 
+       */
+      void test( const std::vector<Point>& points, std::vector<unsigned>& classIds_out, std::vector<double>& pbs_out ) const;
+
+      void write( const std::string& str ) const
+      {
+         std::ofstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         write( f );
+      }
+
+      void write( std::ostream& o ) const
+      {
+         unsigned size = static_cast<unsigned>( _classifiers.size() );
+         nll::core::write<unsigned>( size, o );
+         for ( size_t n = 0; n < _classifiers.size(); ++n )
+         {
+            _classifiers[ n ]->write( o );
+         }
+      }
+
+      void read( std::istream& i )
+      {
+         unsigned size = 0;
+         nll::core::read<unsigned>( size, i );
+         for ( size_t n = 0; n < _classifiers.size(); ++n )
+         {
+            Classifier* c = new Classifier( true, true );
+            _classifiers.push_back( c );
+            (*_classifiers.rbegin())->read( i );
+         }
+      }
+
+      void read( const std::string& str )
+      {
+         std::ifstream f( str.c_str(), std::ios::binary );
+         if ( !f.good() )
+            throw std::runtime_error( "cannot write file:" + str );
+         read( f );
+      }
+
+   private:
+      // copy disabled
+      SliceMapperClassifierSvm& operator=( const SliceMapperClassifierSvm& );
+      SliceMapperClassifierSvm( const SliceMapperClassifierSvm& );
+
+   private:
+      std::vector< Classifier* >  _classifiers;
    };
 
    /**

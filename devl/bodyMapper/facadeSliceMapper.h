@@ -15,6 +15,7 @@ namespace mapper
    {
       SliceMapperPreprocessingParameters                 slicePreprocessingParams;
       SliceMapperPreprocessingClassifierParametersInput  classifierPreprocessingParams;
+      SliceMapperClassifierSvmParameters                 sliceMapperClassifierSvmParams;
    };
 
    /**
@@ -38,14 +39,25 @@ namespace mapper
       void createPreprocessedDatabase( const LandmarkDataset& datasets, const std::string& preprocessedSliceDatabaseOutput ) const;
 
       /**
-       @brief This will create the database 
+       @brief This will create the classifier feature preprocessing and export it to a file, assuming the slice preprocessed database has been computed before
        */
-      //void createClassifierFeatures( const std::string& preprocessedSliceDatabase, const std::string&  ) const;
+      void createClassifierFeatures( const std::string& preprocessedSliceDatabase, const std::string& classifierFeaturesOutput ) const;
+
+      /**
+       @brief This will create the classifier's input database and export it to a file, assuming the classifier 's feature preprocessing has been computed before
+       */
+      void createClassifierFeaturesDatabase( const std::string& preprocessedSliceDatabase, const std::string& classifierFeatures, const std::string& classifierFeaturesDatabaseOutput ) const;
+
+      /**
+       @brief Create all the classifiers
+       */
+      void createClassifiersSvm( const std::string& classifierFeaturesDatabase, const std::string& sliceClassifiersOutput );
 
    private:
       FacadeSliceMapperParameters         _params;
       SliceBasicPreprocessing             _slicePreprocessing;
       SlicePreprocessingClassifierInput   _classifierPreprocessing;
+      SliceMapperClassifierSvm            _classifiers;
    };
 }
 }

@@ -1,35 +1,35 @@
 import "core"
+import "mvvDicomTools"
 
-VolumeID pet = loadVolumeAsynchronous("../../nllTest/data/medical/1_-NAC.mf2");
-VolumeID ct = loadVolumeAsynchronous("../../nllTest/data/medical/1_-CT.mf2");
+// configure options
+string path = "c:/tmp";
+string exportPath = "c:/tmpOut/";
+int shiftSlice = 30;
 
-Lut ctLut( -240.0, 320.0 );
-Lut petLut( 0.0, 10000.0, Vector3i( 255, 0, 0 ) );
+println("DICOM input directory=" + path);
+println("shiftSlice=" + toString(shiftSlice));
+println("Export directory=" + exportPath);
 
+// read slices
+DicomSlice[] slices = readDicomSlices( path );
+int nbSlices = size( slices );
 
-VolumeContainer volumes;
-volumes.add( ct, ctLut, 0.3 );
-volumes.add( pet, petLut, 0.3 );
+// move the slice voxels by [shiftSlice] slices
+int slice = 0;
+int sliceEnd = nbSlices - shiftSlice;
+while ( slice < sliceEnd )
+{
+   string data = slices[ slice + shiftSlice ].getPixelTag();
+	slices[ slice ].setPixelTag( data );
+	slice = slice + 1;
+}
 
-SegmentToolCentering    toolCentering;
-SegmentToolPointer      toolPointer;
-ToolAnnotations         toolAnnotations;
-SegmentToolCamera       toolCamera;
+slice = 0;
+while ( slice < nbSlices )
+{
+   slices[ slice ].mainAttributs.seriesDescription = "MANIPULATED DATA: slice shuffled.";
+   slice = slice + 1;
+}
 
-toolAnnotations.add(Vector3f(0.488281, -159.512, 1604.84), "head", Vector3i(0, 255, 255));
-
-Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 1.0, 0.0 ) );
-//segment1.setTool( toolCentering );
-//segment1.setTool( toolPointer );
-//segment1.setTool( toolAnnotations );
-//segment1.setTool( toolCamera );
-
-
-Layout::Vertical vertical;
-Layout::Horizontal horizontal;
-Layout l1( segment1 );
-Layout l2( Console() );
-
-//Layout layout( typename Layout::Vertical(), Layout( typename Layout::Horizontal(), l1, l2, 0.51), l3, 0.51 );
-Layout layout(horizontal, l1, l2, 0.51);
-//Layout layout( segment1 );
+// finally export the DICOM slices
+writeDicomSlices( slices, exportPath );
