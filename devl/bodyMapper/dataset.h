@@ -332,6 +332,6 @@ namespace mapper
 }
 }
 
-#endif
-
 # pragma warning( pop )
+
+#endif

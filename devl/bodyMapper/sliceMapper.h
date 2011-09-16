@@ -98,7 +98,7 @@ namespace mapper
    {
       SliceMapperPreprocessingClassifierParametersInput()
       {
-         nbFinalFeatures = 512;
+         nbFinalFeatures = 128;
          skipSliceInterval = 8;
          minDistanceBetweenSliceOfInterest = 10;
       }
@@ -222,7 +222,7 @@ namespace mapper
    {
       SliceMapperClassifierSvmParameters()
       {
-         gamma = 0.1;
+         gamma = 0.051;
          costMargin = 100;
       }
 
@@ -286,33 +286,18 @@ namespace mapper
        */
       void test( const std::vector<Point>& points, std::vector<unsigned>& classIds_out, std::vector<double>& pbs_out ) const;
 
+
       void write( const std::string& str ) const
       {
          std::ofstream f( str.c_str(), std::ios::binary );
          if ( !f.good() )
             throw std::runtime_error( "cannot write file:" + str );
-         write( f );
-      }
-
-      void write( std::ostream& o ) const
-      {
          unsigned size = static_cast<unsigned>( _classifiers.size() );
-         nll::core::write<unsigned>( size, o );
-         for ( size_t n = 0; n < _classifiers.size(); ++n )
-         {
-            _classifiers[ n ]->write( o );
-         }
-      }
+         nll::core::write<unsigned>( size, f );
 
-      void read( std::istream& i )
-      {
-         unsigned size = 0;
-         nll::core::read<unsigned>( size, i );
          for ( size_t n = 0; n < _classifiers.size(); ++n )
          {
-            Classifier* c = new Classifier( true, true );
-            _classifiers.push_back( c );
-            (*_classifiers.rbegin())->read( i );
+            _classifiers[ n ]->write( str + "sliceMapper.svm" + nll::core::val2str( n ) + ".dat" );
          }
       }
 
@@ -321,7 +306,15 @@ namespace mapper
          std::ifstream f( str.c_str(), std::ios::binary );
          if ( !f.good() )
             throw std::runtime_error( "cannot write file:" + str );
-         read( f );
+         
+         unsigned size = 0;
+         nll::core::read<unsigned>( size, f );
+         for ( size_t n = 0; n < _classifiers.size(); ++n )
+         {
+            Classifier* c = new Classifier( true, true );
+            _classifiers.push_back( c );
+            (*_classifiers.rbegin())->read( str + "sliceMapper.svm" + nll::core::val2str( n ) + ".dat" );
+         }
       }
 
    private:

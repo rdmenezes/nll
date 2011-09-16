@@ -1,6 +1,7 @@
 #include <tester/register.h>
 #include <bodyMapper/datasetSliceMapper.h>
 #include <bodyMapper/facadeSliceMapper.h>
+#include <bodyMapper/sliceMapperVisualization.h>
 
 #define SLICE_MAPPER_PREPROCESSED_DATABASE               "../../bodyMapper/data/sliceMapperPreprocessedDatabase.dat"
 #define SLICE_MAPPER_CLASSIFIER_FEATURES_DATABASE        "../../bodyMapper/data/sliceClassifierFeatureDatabase.dat"
@@ -17,6 +18,12 @@ using namespace mvv::mapper;
 class TestBodyMapper
 {
 public:
+   void createSliceMapperPreview()
+   {
+      LandmarkDataset dataset;
+      SliceMapperVisualization::createPreview( dataset );
+   }
+
    /**
     @brief Simply a visualization of the preprocessed slices
     */
@@ -77,6 +84,8 @@ public:
 };
 
 TESTER_TEST_SUITE(TestBodyMapper);
+
+//TESTER_TEST(createSliceMapperPreview);
 TESTER_TEST(createPreprocessedDatabase);
 TESTER_TEST(createClassifierFeaturesPreprocessing);
 TESTER_TEST(createClassifierFeaturesDatabase);

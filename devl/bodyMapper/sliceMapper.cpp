@@ -187,7 +187,7 @@ namespace mapper
       #pragma omp parallel for
       for ( int n = 0; n < (int)dats.size(); ++n )
       {
-         std::cout << "compute PCA projector:" << n << " dataSize=" << dats[ n ].size() << std::endl;
+         std::cout << "compute PCA projector:" << n << " dataSize=" << dats[ n ].size() << " toNbComponents=" <<  _params.nbFinalFeatures << std::endl;
          const ui32 nbClasses = nll::core::getNumberOfClass( dats[ n ] );
          ensure(  nbClasses == 2, "this must be a binary classification: class or not class" );
 
@@ -375,7 +375,11 @@ namespace mapper
       #pragma omp parallel for
       for ( int n = 0; n < (int)databases.size(); ++n )
       {
-         std::cout << "Learning classifier=" << n << std::endl;
+         if ( databases[ n ].size() )
+         {
+            std::cout << "Learning classifier=" << n << " nbInputFeatures=" << databases[ n ][ 0 ].input.size() << std::endl;
+         }
+
          std::auto_ptr<Classifier> c( new Classifier( true, true ) );
          const Classifier::Database& dat = databases[ n ];
          c->learn( dat, nll::core::make_buffer1D<double>( params.gamma, params.costMargin ) );
