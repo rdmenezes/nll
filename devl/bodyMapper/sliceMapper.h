@@ -3,6 +3,7 @@
 
 # include "def.h"
 # include "dataset.h"
+# include "datasetSliceMapper.h"
 
 # pragma warning( push )
 # pragma warning( disable:4251 ) // dll interface for STL
@@ -25,8 +26,6 @@ namespace mapper
          lutMaskMin = -200;
          lutMaskMax = 50;
 
-         minDistanceBetweenRoiInMM = 20;
-
          verticalCroppingRatio = 0.06f;
          horizontalCroppingRatio = 0.03f;
       }
@@ -40,7 +39,6 @@ namespace mapper
             << " lutMax="     << lutMax << std::endl
             << " lutMaskMin=" << lutMaskMin << std::endl
             << " lutMaskMax=" << lutMaskMax << std::endl
-            << " minDistanceBetweenRoiInMM=" << minDistanceBetweenRoiInMM << std::endl
             << " verticalCroppingRatio="     << verticalCroppingRatio << std::endl
             << " horizontalCroppingRatio="   << horizontalCroppingRatio << std::endl;
       }
@@ -61,7 +59,6 @@ namespace mapper
          nll::core::write<float>( lutMax, o );
          nll::core::write<float>( lutMaskMin, o );
          nll::core::write<float>( lutMaskMax, o );
-         nll::core::write<float>( minDistanceBetweenRoiInMM, o );
          nll::core::write<float>( verticalCroppingRatio, o );
          nll::core::write<float>( horizontalCroppingRatio, o );
       }
@@ -82,7 +79,6 @@ namespace mapper
          nll::core::read( lutMax, i );
          nll::core::read( lutMaskMin, i );
          nll::core::read( lutMaskMax, i );
-         nll::core::read( minDistanceBetweenRoiInMM, i );
          nll::core::read( verticalCroppingRatio, i );
          nll::core::read( horizontalCroppingRatio, i );
       }
@@ -93,7 +89,6 @@ namespace mapper
       float lutMax;                 // the LUT max value
       float lutMaskMin;             // the LUT min value
       float lutMaskMax;             // the LUT max value
-      float minDistanceBetweenRoiInMM; // the distance where it is not possible to have a NOTHING slice from a <anything landmark>
       float verticalCroppingRatio;  // the ratio of the pixel removed for the preprocessed slice before resampling
       float horizontalCroppingRatio;  // the ratio of the pixel removed for the preprocessed slice before resampling
    };
@@ -105,6 +100,7 @@ namespace mapper
       {
          nbFinalFeatures = 512;
          skipSliceInterval = 8;
+         minDistanceBetweenSliceOfInterest = 10;
       }
 
       void write( const std::string& str ) const
@@ -119,12 +115,14 @@ namespace mapper
       {
          nll::core::write<unsigned>( nbFinalFeatures, o );
          nll::core::write<unsigned>( skipSliceInterval, o );
+         nll::core::write<unsigned>( minDistanceBetweenSliceOfInterest, o );
       }
 
       void read( std::istream& i )
       {
          nll::core::read( nbFinalFeatures, i );
          nll::core::read( skipSliceInterval, i );
+         nll::core::read( minDistanceBetweenSliceOfInterest, i );
       }
 
       void read( const std::string& str )
@@ -135,8 +133,9 @@ namespace mapper
          read( f );
       }
 
-      unsigned nbFinalFeatures;     // number of features that are needed for each classifier
-      unsigned skipSliceInterval;   // the non point of interest slices will be sampled every <skipSliceInterval>
+      unsigned minDistanceBetweenSliceOfInterest;  // the distance in slices where it is not possible to have a NOTHING slice from a <anything landmark>
+      unsigned nbFinalFeatures;        // number of features that are needed for each classifier
+      unsigned skipSliceInterval;      // the non point of interest slices will be sampled every <skipSliceInterval>
    };  
 
    /**
@@ -154,7 +153,7 @@ namespace mapper
       typedef LandmarkDataset::Volume                           Volume;
 
       SliceBasicPreprocessing( const SliceMapperPreprocessingParameters params = SliceMapperPreprocessingParameters() ) : _params( params ), _lut( params.lutMin, params.lutMax, 256, 1 ),
-                                                                                                       _lutMask( params.lutMaskMin, params.lutMaskMax, 256, 1 )
+                                                                                                                                             _lutMask( params.lutMaskMin, params.lutMaskMax, 256, 1 )
       {
          _lut.createGreyscale();
          _lutMask.createGreyscale();
@@ -170,7 +169,8 @@ namespace mapper
       Imagef preprocessSlicef( const Volume& volume, unsigned slice ) const;
       
       // create a database with all the volumes already preprocessed and export it. A database is created for each landmark (except <0>)
-      Database createPreprocessedDatabase( const LandmarkDataset& datasets ) const;
+      // It will contain all the slices and it is guaranteed the slices are in order, with debug string containing their index
+      Database createPreprocessedDatabase( const SliceMapperDataset& datasets ) const;
 
       const SliceMapperPreprocessingParameters& getPreprocessingParameters() const
       {

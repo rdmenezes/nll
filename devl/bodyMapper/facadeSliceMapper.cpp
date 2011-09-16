@@ -12,7 +12,7 @@ namespace mapper
    {
    }
 
-   void FacadeSliceMapper::createPreprocessedDatabase( const LandmarkDataset& datasets, const std::string& preprocessedSliceDatabaseOutput ) const
+   void FacadeSliceMapper::createPreprocessedDatabase( const SliceMapperDataset& datasets, const std::string& preprocessedSliceDatabaseOutput ) const
    {
       Database preprocessedDat = _slicePreprocessing.createPreprocessedDatabase( datasets );
       preprocessedDat.write( preprocessedSliceDatabaseOutput );

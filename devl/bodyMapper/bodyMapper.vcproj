@@ -412,6 +412,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\datasetSliceMapper.h"
+				>
+			</File>
+			<File
 				RelativePath=".\def.h"
 				>
 			</File>

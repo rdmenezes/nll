@@ -768,11 +768,12 @@ namespace mvv
          for ( ui32 z = 0; z < size[ 2 ]; ++z )
          {
             DicomWrapper wrapper( *suids[ z ].getDataset(), true );
-            wrapper.getPixelData( ptr.get() );
+            wrapper.getPixelData( ptr.get() ); // we really don't want this to be in the multithreaded loop as it is reading slices from disk
             const float slope = wrapper.getRescaleSlope();
             const float intercept = wrapper.getRescaleIntercept();
 
-            for ( ui32 y = 0; y < size[ 1 ]; ++y )
+            #pragma omp parallel for
+            for ( int y = 0; y < (int)size[ 1 ]; ++y )
             {
                typename Volume::DirectionalIterator iter = volume->getIterator( 0, y, z );
                for ( ui32 x = 0; x < size[ 0 ]; ++x )

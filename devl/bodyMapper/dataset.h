@@ -58,6 +58,7 @@ namespace mapper
             LD_COCCYX                    = 18
          };
 
+         // return true if the landmark is set, false if missing
          bool isValid( unsigned landmarkId ) const
          {
             return landmarkId < landmarks.size() && landmarks[ landmarkId ][ 0 ] >= 0 &&

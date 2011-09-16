@@ -36,7 +36,7 @@ namespace mapper
 
          The function will export the preprocessed database and is a prerequisite for more advanced functions.
        */
-      void createPreprocessedDatabase( const LandmarkDataset& datasets, const std::string& preprocessedSliceDatabaseOutput ) const;
+      void createPreprocessedDatabase( const SliceMapperDataset& datasets, const std::string& preprocessedSliceDatabaseOutput ) const;
 
       /**
        @brief This will create the classifier feature preprocessing and export it to a file, assuming the slice preprocessed database has been computed before

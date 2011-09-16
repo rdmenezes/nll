@@ -84,7 +84,7 @@ namespace mapper
    }
 
    SliceBasicPreprocessing::Database
-   SliceBasicPreprocessing::createPreprocessedDatabase( const LandmarkDataset& datasets ) const
+   SliceBasicPreprocessing::createPreprocessedDatabase( const SliceMapperDataset& datasets ) const
    {
       Database database;
       for ( unsigned caseid = 0; caseid < datasets.size(); ++caseid )
@@ -93,13 +93,12 @@ namespace mapper
 
          Database::Sample::Type type = (Database::Sample::Type)datasets.getSampleType( caseid );
          std::auto_ptr<Volume> v = datasets.loadData( caseid );
-         float lastSliceOfInterest = std::numeric_limits<float>::max();
 
          // prepare a quick slice type lookup indicating the landmark
          std::vector<int> sliceType( v->getSize()[ 2 ], -1 );
          for ( ui32 index = 0; index < datasets[ caseid ].landmarks.size(); ++index )
          {
-            const LandmarkDataset::Dataset& dataset = datasets[ caseid ];
+            const SliceMapperDataset::Dataset& dataset = datasets[ caseid ];
             if ( dataset.landmarks[ index ][ 0 ] >= 0 && // only the position with positive coordinates are right
                  dataset.landmarks[ index ][ 1 ] >= 0 &&
                  dataset.landmarks[ index ][ 2 ] >= 0 )
@@ -113,6 +112,9 @@ namespace mapper
          // now go through all the slices and extract them using simple preprocessing. This processing
          // level is relatively independent to the classification step (i.e., the features used by the classifier)
          // so that it is regenerated much less frequently, as this step is relatively long
+
+         // first precompute the samples, as we want to keep the slices ordered!
+         std::vector<Database::Sample> samples( v->getSize()[ 2 ] );
          #pragma omp parallel for
          for ( int slice = 0; slice < (int)v->getSize()[ 2 ]; ++slice )
          {
@@ -120,31 +122,23 @@ namespace mapper
 
             Imagef i = preprocessSlicef( *v, slice );
             
-            const ui32 MAX_CLASS = std::numeric_limits<Database::Sample::Output>::max();
             Database::Sample::Input input = i;
-            Database::Sample::Output output = MAX_CLASS;
-
-            const float sliceMM = slice * v->getSpacing()[ 2 ];
-            if ( sliceType[ slice ] == -1 && // check that all non 'landmark' slices are not located too close to the landmark we are interested in
-                 std::fabs( lastSliceOfInterest - sliceMM ) > _params.minDistanceBetweenRoiInMM )
-            {
-               output = 0;
-            }
+            Database::Sample::Output output = 0;
+            Database::Sample::String str = nll::core::make_buffer1D_from_string( nll::core::val2str( caseid ) );
 
             if ( sliceType[ slice ] != -1 )
             {
-               lastSliceOfInterest = sliceMM;
                output = sliceType[ slice ];
             }
 
-            if ( output < MAX_CLASS )
-            {
-               Database::Sample sample( input, output, (Database::Sample::Type)type );
-               #pragma omp critical
-               {
-                  database.add( sample );
-               }
-            }
+            Database::Sample sample( input, output, (Database::Sample::Type)type );
+            samples[ slice ] = sample;
+         }
+
+         // finally, add them to the database
+         for ( unsigned slice = 0; slice < v->getSize()[ 2 ]; ++slice )
+         {
+            database.add( samples[ slice ] );
          }
       }
 
@@ -283,8 +277,18 @@ namespace mapper
       {
          int lastNonSliceOfInterestIndex = std::numeric_limits<int>::max();
          Database dat;
+         int lastLandmarkOfInterest = std::numeric_limits<int>::max();
+         int currentId = -1;
          for ( ui32 n = 0; n < preprocessedSliceDatabase.size(); ++n )
          {
+            int sliceId = nll::core::str2val<int>( nll::core::string_from_Buffer1D( preprocessedSliceDatabase[ n ].debug ) );
+            if ( sliceId != currentId )
+            {
+               // when we change of volumes, we also must reinit the min slice distances
+               currentId = sliceId;
+               lastNonSliceOfInterestIndex = std::numeric_limits<int>::max();
+               lastLandmarkOfInterest = std::numeric_limits<int>::max();
+            }
             Database::Sample sample;
 
             sample.input = preprocessedSliceDatabase[ n ].input;
@@ -292,6 +296,7 @@ namespace mapper
             if ( datid == preprocessedSliceDatabase[ n ].output ) // if the landmark id is the same than the datid, this is a sample of interest for this classifier
             {
                sample.output = 1;
+               lastLandmarkOfInterest = n;
             } else {
                sample.output = 0;
 
@@ -305,6 +310,14 @@ namespace mapper
                }
             }
 
+            if ( sample.output == 0 )
+            {
+               int dist = abs( lastLandmarkOfInterest - (int)n );
+               if ( (ui32)dist < _params.minDistanceBetweenSliceOfInterest )
+               {
+                  continue;
+               }
+            }
             dat.add( sample );
          }
 

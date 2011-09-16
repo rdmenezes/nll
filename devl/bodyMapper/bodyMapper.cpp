@@ -3,6 +3,7 @@
 
 #include "bodyMapper.h"
 #include "sliceMapper.h"
+#include "datasetSliceMapper.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
 #define new DEBUG_NEW

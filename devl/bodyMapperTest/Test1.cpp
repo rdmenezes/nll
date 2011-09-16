@@ -1,4 +1,5 @@
 #include <tester/register.h>
+#include <bodyMapper/datasetSliceMapper.h>
 #include <bodyMapper/facadeSliceMapper.h>
 
 #define SLICE_MAPPER_PREPROCESSED_DATABASE               "../../bodyMapper/data/sliceMapperPreprocessedDatabase.dat"
@@ -44,9 +45,10 @@ public:
    {
       std::cout << "createPreprocessedDatabase()" << std::endl;
       LandmarkDataset datasets;
+      SliceMapperDataset sliceMapperDatasets( datasets );
 
       FacadeSliceMapper sliceMapper;
-      sliceMapper.createPreprocessedDatabase( datasets, SLICE_MAPPER_PREPROCESSED_DATABASE );
+      sliceMapper.createPreprocessedDatabase( sliceMapperDatasets, SLICE_MAPPER_PREPROCESSED_DATABASE );
    }
 
    // now create feature processing, features that will be fed to the classifier
@@ -75,8 +77,8 @@ public:
 };
 
 TESTER_TEST_SUITE(TestBodyMapper);
-/*TESTER_TEST(createPreprocessedDatabase);
+TESTER_TEST(createPreprocessedDatabase);
 TESTER_TEST(createClassifierFeaturesPreprocessing);
-TESTER_TEST(createClassifierFeaturesDatabase);*/
+TESTER_TEST(createClassifierFeaturesDatabase);
 TESTER_TEST(createSliceClassifiers);
 TESTER_TEST_SUITE_END();
