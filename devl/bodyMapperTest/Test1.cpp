@@ -21,7 +21,8 @@ public:
    void createSliceMapperPreview()
    {
       LandmarkDataset dataset;
-      SliceMapperVisualization::createPreview( dataset );
+      SliceMapperVisualization vizualization;
+      vizualization.createPreview( dataset );
    }
 
    /**

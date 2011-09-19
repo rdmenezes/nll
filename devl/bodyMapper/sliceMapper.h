@@ -362,6 +362,14 @@ namespace mapper
        */
       void computeClassifierFeatures( const Database& preprocessedSliceDatabase );
 
+      void testDatabase( const std::vector<Database>& preprocessedSliceDatabases )
+      {
+         std::vector<nll::ui32> types = nll::core::make_vector<nll::ui32>( (nll::ui32)Database::Sample::TESTING );
+         Database testDat = nll::core::filterDatabase( preprocessedSliceDatabase, types, (nll::ui32)Database::Sample::TESTING );
+
+         
+      }
+
       /**
        @brief Create the databases for the classifiers, one by landmark, except <0>
        */

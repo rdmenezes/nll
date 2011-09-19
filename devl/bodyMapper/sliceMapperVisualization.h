@@ -16,9 +16,42 @@ namespace mapper
       typedef nll::imaging::LookUpTransformWindowingRGB    Lut;
       typedef nll::imaging::Slice<float>                   Slice;
       typedef nll::core::Image<nll::ui8>                   Image;
+      typedef nll::core::Matrix<float>                     Matrix;
+      typedef nll::core::vector3uc                         Color;
 
    public:
-      static void createPreview( const LandmarkDataset& data, const std::string outputDir = "../../bodyMapper/data/sliceMapperVolumePreview/" )
+      SliceMapperVisualization( const std::string previewOutputDir = "../../bodyMapper/data/sliceMapperVolumePreview/" ) : _previewOutputDir( previewOutputDir )
+      {
+         _colors.push_back( Color( 255, 0, 0 ) );
+         _colors.push_back( Color( 0, 255, 0 ) );
+         _colors.push_back( Color( 0, 0, 255 ) );
+
+         _colors.push_back( Color( 255, 255, 0 ) );
+         _colors.push_back( Color( 255, 0, 255 ) );
+         _colors.push_back( Color( 0, 255, 255 ) );
+
+         _colors.push_back( Color( 128, 0, 0 ) );
+         _colors.push_back( Color( 0, 128, 0 ) );
+         _colors.push_back( Color( 0, 0, 128 ) );
+
+         _colors.push_back( Color( 128, 255, 0 ) );
+         _colors.push_back( Color( 128, 0, 255 ) );
+         _colors.push_back( Color( 0, 255, 128 ) );
+
+         _colors.push_back( Color( 255, 128, 0 ) );
+         _colors.push_back( Color( 255, 0, 128 ) );
+         _colors.push_back( Color( 0, 255, 128 ) );
+
+         _colors.push_back( Color( 255, 128, 128 ) );
+         _colors.push_back( Color( 255, 128, 128 ) );
+         _colors.push_back( Color( 128, 255, 128 ) );
+
+         _colors.push_back( Color( 255, 128, 255 ) );
+         _colors.push_back( Color( 255, 255, 128 ) );
+         _colors.push_back( Color( 255, 255, 128 ) );
+      }
+
+      void createPreview( const LandmarkDataset& data ) const
       {
          for ( unsigned n = 0; n < data.size(); ++n )
          {
@@ -29,11 +62,81 @@ namespace mapper
 
             Image i = _extractXZ( *v );
             nll::core::extend( i, 3 );
-            nll::core::writeBmp( i, outputDir + data[ n ].fileId + ".bmp" );
+
+            const std::string outName = _getPreviewName( data, n );
+            nll::core::writeBmp( i, outName );
          }
       }
 
+      /**
+       @brief create the preview of a result
+       */
+      Image annotate( const LandmarkDataset& data, unsigned id, const Matrix& pbs, const std::vector<unsigned>& annotations ) const
+      {
+         Image res( _getPreviewName( data, id ) );
+         ensure( res.sizex() && res.sizey(), "can't load the preview data" );
+         ensure( res.sizey() == pbs.sizey(), "the y-size of the preview must match the y size of pbs" );
+
+         const double pbsRatio = 0.3;
+         const double step = res.sizex() * pbsRatio / annotations.size();
+         ensure( step > 0, "image too small!" );
+
+         // display the pbs
+         for ( unsigned y = 0; y < pbs.sizey(); ++y )
+         {
+            for ( unsigned n = 0; n < pbs.sizex(); ++n )
+            {
+               const unsigned start = static_cast<unsigned>( n * step );
+               const unsigned end = start + static_cast<unsigned>( step ) - 1;
+               _drawHorizontalLine( res, y, start, end, _colors[ n ], true );
+            }
+         }
+
+         // display the final decision
+         for ( unsigned l = 0; l < annotations.size(); ++l )
+         {
+            if ( annotations[ l ] >= 0 )
+            {
+               const unsigned start = static_cast<unsigned>( res.sizex() * pbsRatio );
+               const unsigned end = res.sizex() - 1;
+               _drawHorizontalLine( res, annotations[ l ], start, end, _colors[ l ], true );
+            }
+         }
+         return res;
+      }
+
    private:
+      std::string _getPreviewName( const LandmarkDataset& data, unsigned id ) const
+      {
+         return _previewOutputDir + data[ id ].fileId + ".bmp";
+      }
+
+      void _drawHorizontalLine( Image& i, unsigned ypos, unsigned min, unsigned max, const Color& color, bool blendWithBackground ) const
+      {
+         ensure( ypos < i.sizey() && min < max && max <i.sizex(), "out of bound" );
+         if ( blendWithBackground )
+         {
+            for ( unsigned n = min; n <= max; ++n )
+            {
+               nll::ui8* p = i.point( n, ypos );
+               nll::core::vector3f val( ( (float)color[ 0 ] + (float)p[ 0 ] ) * 0.5f,
+                                        ( (float)color[ 1 ] + (float)p[ 1 ] ) * 0.5f,
+                                        ( (float)color[ 2 ] + (float)p[ 2 ] ) * 0.5f );
+               p[ 0 ] = (nll::ui8)NLL_BOUND( val[ 0 ], 0, 255 );
+               p[ 1 ] = (nll::ui8)NLL_BOUND( val[ 1 ], 0, 255 );
+               p[ 2 ] = (nll::ui8)NLL_BOUND( val[ 2 ], 0, 255 );
+            }
+         } else {
+            for ( unsigned n =  min; n <= max; ++ n )
+            {
+               nll::ui8* p = i.point( n, ypos );
+               p[ 0 ] = color[ 0 ];
+               p[ 1 ] = color[ 1 ];
+               p[ 2 ] = color[ 2 ];
+            }
+         }
+      }
+
       static Image _extractXZ( const Volume& v )
       {
          typedef nll::imaging::Mpr< Volume, nll::imaging::InterpolatorTriLinear<Volume> >  Mpr;
@@ -78,6 +181,10 @@ namespace mapper
          }
          return sliceTfm;
       }
+
+   private:
+      std::vector<Color>   _colors;
+      std::string          _previewOutputDir;
    };
 }
 }
