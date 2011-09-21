@@ -1,35 +1,65 @@
 import "core"
 import "mvvDicomTools"
+import "mvvForms"
 
-// configure options
-string path = "c:/tmp";
-string exportPath = "c:/tmpOut/";
-int shiftSlice = 30;
+class DicomSliceNaming
+{
+	int series;
+	int sliceId;
+	string lastSeriesUid;
+   string directory;
+   string output;
+	
+	void init()
+	{
+		series = 0;
+		sliceId = 0;
+		lastSeriesUid = "";
+	}
+	
+	DicomSliceNaming( string outputPath )
+	{
+		init();
+      output = outputPath;
+	}
+	
+	string getName( DicomSlice slice )
+	{
+		string seriesUid = slice.mainAttributs.seriesInstanceUid;
+		if ( seriesUid != lastSeriesUid )
+		{
+			series = series + 1;
+			lastSeriesUid = seriesUid;
+			sliceId = 0;
 
-println("DICOM input directory=" + path);
-println("shiftSlice=" + toString(shiftSlice));
-println("Export directory=" + exportPath);
+         // create the directory directory
+         directory = toString( series ) + "." + slice.mainAttributs.modality + "." + slice.mainAttributs.seriesDescription;
+         string cmd = "MD " + output + "\\\"" + directory + "\"";
+         replace( cmd, "/", "\\" );
+         system( "echo \"" + cmd + "\"" );
+         system( cmd );
+		} else {
+			sliceId = sliceId + 1;
+		}
+		
+		// here: customize the output
+		return directory + "\\" + toString( series ) + "." + toString( sliceId ) + "." + slice.mainAttributs.modality + "." + slice.mainAttributs.seriesDescription + ".dcm";
+	}
+}
+
+string inputPath;
+string outputPath;
+
+//inputPath = "G:\\ForLudo\\db173-0\\syngo1\\";
+//outputPath = "c:\\tmpOut\\";
+
+inputPath = "G:/ForLudo/db173-0/syngo1/";
+outputPath = "c:/tmpOut/";
 
 // read slices
-DicomSlice[] slices = readDicomSlices( path );
-int nbSlices = size( slices );
-
-// move the slice voxels by [shiftSlice] slices
-int slice = 0;
-int sliceEnd = nbSlices - shiftSlice;
-while ( slice < sliceEnd )
-{
-   string data = slices[ slice + shiftSlice ].getPixelTag();
-	slices[ slice ].setPixelTag( data );
-	slice = slice + 1;
-}
-
-slice = 0;
-while ( slice < nbSlices )
-{
-   slices[ slice ].mainAttributs.seriesDescription = "MANIPULATED DATA: slice shuffled.";
-   slice = slice + 1;
-}
+int[] series;
+DicomSlice[] slices = readDicomSlices( inputPath, series );
 
 // finally export the DICOM slices
-writeDicomSlices( slices, exportPath );
+DicomSliceNaming naming( outputPath );
+writeDicomSlices( slices, outputPath, naming.getName );	

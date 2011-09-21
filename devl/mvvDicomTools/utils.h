@@ -808,7 +808,9 @@ namespace mvv
                continue;   // no need to sort!
             nll::core::vector3f refx, refy, normal;
             std::vector< std::pair< double, size_t > > list;
-            for ( size_t slice = 0; slice < _dicomBySeriesUid[ n ].size(); ++slice )
+            const size_t nbSlices = _dicomBySeriesUid[ n ].size();
+            bool skipped = false;
+            for ( size_t slice = 0; slice < nbSlices; ++slice )
             {
                DcmDataset& dataset = *_dicomBySeriesUid[ n ][ slice ].getDataset();
                DicomWrapper wrapper( dataset, true );
@@ -830,17 +832,30 @@ namespace mvv
                           !nll::core::equal<f32>( refy[ n ], y[ n ], 1e-5f ) )
                      {
                         std::stringstream ss;
-                        ss << "Slices do not have the same orientation! ";
+                        ss << "Slices do not have the same orientation! Series skipped! ";
                         ss << "dx=" << refx[ n ] << " " << x[ n ];
                         ss << "dy=" << refy[ n ] << " " << y[ n ];
-                        throw std::runtime_error( ss.str() );
+                        ss << "nbSlices=" << nbSlices;
+                        std::cout << ss.str() << std::endl;
+                        //throw std::runtime_error( ss.str() );
+                        skipped = true;
+                        break;
                      }
                   }
                }
 
+               if ( skipped )
+                  break;
+
                // finally assign a distance to this slice
                const double d = normal.dot( pos );
                list.push_back( std::make_pair( d, slice ) );
+            }
+
+            if ( skipped )
+            {
+               _dicomBySeriesUid[ n ] = DicomFiles(); // the volume is not valid for some reason
+               continue;
             }
 
             std::sort( list.begin(), list.end() );

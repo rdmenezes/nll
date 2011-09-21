@@ -2066,11 +2066,17 @@ public:
       std::vector<std::string>& strsout = result.first;
       std::vector<std::string>& strserr = result.second;
 
-      Pane* p = (*global->layout).find( mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) );
-      LayoutCommandLine* cmd = dynamic_cast<LayoutCommandLine*>( p );
+      Pane* p = NULL;
+      LayoutCommandLine* cmd = NULL;
+      if ( global->layout.getDataPtr() )
+      {
+         p = (*global->layout).find( mvv::Symbol::create( "mvv::platform::LayoutCommandLine" ) );
+         cmd = dynamic_cast<LayoutCommandLine*>( p );
+      }
+
       if ( !cmd )
       {
-         throw std::runtime_error( "invalid class for mvv::platform::LayoutCommandLine ID");
+         std::cout << "couldn't find a LayoutCommandLine to display system's output. Defaulted to command line" << std::endl;
       }
 
       if ( !p )
