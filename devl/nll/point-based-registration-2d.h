@@ -500,6 +500,7 @@ namespace algorithm
          {
             throw std::runtime_error( "Error: inliers are too small" );
          }
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "RANSAC optimization time=" + nll::core::val2str( ransacOptimTimer.getCurrentTime() ) );
 
          _inliers.clear();
          _inliers.reserve( ransac.getNbInliers() );

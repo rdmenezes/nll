@@ -224,6 +224,22 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class Result>
+   inline Result generic_dot( typename BestConstArgType<T>::type buf1, typename BestConstArgType<T>::type buf2, int size )
+   {
+      Result accum = 0;
+      for ( int n = 0; n < size; ++n )
+      {
+         Result val = buf1[ n ] - buf2[ n ];
+         accum += val * val;
+      }
+      return accum;
+   }
+
+   /**
+    @ingroup core
+    @brief generic operation, target types must define operator[]
+    */
+   template <class T, class Result>
    inline Result generic_norm2( typename BestConstArgType<T>::type buf, int size )
    {
       Result accum = 0;

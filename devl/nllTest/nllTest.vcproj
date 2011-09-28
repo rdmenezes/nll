@@ -642,6 +642,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-gaussian-tfm.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-genetic-algorithm.cpp"
 				>
 				<FileConfiguration

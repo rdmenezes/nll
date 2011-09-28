@@ -106,8 +106,10 @@ namespace algorithm
          core::Image<ui8> pxs, pys, pzs;
          core::Image<ui8> pxt, pyt, pzt;
 
+         core::Timer projectionTimer1;
          getProjections( source, pxs, pys, pzs, true, true, tableRemoval );
          getProjections( target, pxt, pyt, pzt, true, false, tableRemoval );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " projection time=" + core::val2str( projectionTimer1.getCurrentTime() ) );
 
          try
          {
@@ -139,12 +141,14 @@ namespace algorithm
             const core::vector3ui& size = ( volSource > volTarget ) ? source.size() : target.size();
             const core::Matrix<float>& pst = ( volSource > volTarget ) ? source.getPst() : target.getPst();
 
+            core::Timer projectionTimer2;
             imaging::VolumeSpatial<T, BufferType> resampledTarget( size, pst, 0 );
             imaging::resampleVolumeTrilinear( target, resampledTarget, rotx );
 
             // recompute the projection on the resampled volume
             core::Image<ui8> pxt2, pyt2, pzt2;
             getProjections( resampledTarget, pxt2, pyt2, pzt2, false, true, tableRemoval );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " projection time2=" + core::val2str( projectionTimer2.getCurrentTime() ) );
 
             // // computes the registration in XZ plane
             Registration2D registrationy;
