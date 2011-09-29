@@ -290,7 +290,6 @@ namespace core
                   o << at( ny, nx ) << "\t";
                o << std::endl;
             }
-            o << std::endl;
          } else {
             o << "Buffer2D(NULL)" << std::endl;
          }
