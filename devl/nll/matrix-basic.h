@@ -214,6 +214,94 @@ namespace core
          }
       }
    }
+
+      /**
+    @ingroup core
+    @brief Computes quickly v^t * m * v
+    */
+   template <class T, class IndexMapper2D, class AllocatorT, class Vector>
+   typename T fastDoubleMultiplication( const Vector& v, const Matrix<T, IndexMapper2D, AllocatorT>& m )
+   {
+      typedef T value_type;
+
+      const ui32 sizex = m.sizex();
+      const ui32 sizey = m.sizey();
+
+      ensure( v.size() == sizex, "dim don't match" );
+
+      value_type accum = 0;
+      for ( ui32 y = 0; y < sizey; ++y )
+      {
+         const value_type px = v[ y ];
+         for ( ui32 x = 0; x < sizex; ++x )
+         {
+            accum += m( y, x ) * px * v[ x ];
+         }
+      }
+      return accum;
+   }
+
+   /**
+    @ingroup core
+    @brief Recompose a matrix given 2 index vector X and Y so that the matrix has this format:
+             src = | XX XY |
+                   | YX XX |
+    */
+   template <class T, class IndexMapper2D, class AllocatorT, class Index>
+   void partitionMatrix( const core::Matrix<T, IndexMapper2D, AllocatorT>& src,
+                         const Index& x, const Index& y,
+                         core::Matrix<T, IndexMapper2D, AllocatorT>& xx,
+                         core::Matrix<T, IndexMapper2D, AllocatorT>& yy,
+                         core::Matrix<T, IndexMapper2D, AllocatorT>& xy,
+                         core::Matrix<T, IndexMapper2D, AllocatorT>& yx )
+   {
+      typedef core::Matrix<T, IndexMapper2D, AllocatorT> MatrixT;
+
+      // now create the submatrix XX YY XY YX
+      xx = MatrixT( (ui32)x.size(), (ui32)x.size() );
+      for ( ui32 ny = 0; ny < xx.sizey(); ++ny )
+      {
+         const ui32 idy = x[ ny ];
+         for ( ui32 nx = 0; nx < xx.sizex(); ++nx )
+         {
+            const ui32 idx = x[ nx ];
+            xx( ny, nx ) = src( idy, idx );
+         }
+      }
+
+      yy = MatrixT( (ui32)y.size(), (ui32)y.size() );
+      for ( ui32 ny = 0; ny < yy.sizey(); ++ny )
+      {
+         const ui32 idy = y[ ny ];
+         for ( ui32 nx = 0; nx < yy.sizex(); ++nx )
+         {
+            const ui32 idx = y[ nx ];
+            yy( ny, nx ) = src( idy, idx );
+         }
+      }
+
+      xy = MatrixT( (ui32)x.size(), (ui32)y.size() );
+      for ( ui32 ny = 0; ny < xy.sizey(); ++ny )
+      {
+         const ui32 idy = y[ ny ];
+         for ( ui32 nx = 0; nx < xy.sizex(); ++nx )
+         {
+            const ui32 idx = x[ nx ];
+            xy( nx, ny ) = src( idx, idy );
+         }
+      }
+
+      yx = MatrixT( (ui32)y.size(), (ui32)x.size() );
+      for ( ui32 ny = 0; ny < xy.sizex(); ++ny )
+      {
+         const ui32 idy = x[ ny ];
+         for ( ui32 nx = 0; nx < xy.sizey(); ++nx )
+         {
+            const ui32 idx = y[ nx ];
+            yx( nx, ny ) = src( idx, idy );
+         }
+      }
+   }
 }
 }
 

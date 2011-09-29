@@ -9,66 +9,7 @@ namespace nll
 {
 namespace core
 {
-   /**
-    @brief Recompose a matrix given 2 index vector X and Y so that the matrix has this format:
-             src = | XX XY |
-                   | YX XX |
-    */
-   template <class T, class IndexMapper2D, class AllocatorT, class Index>
-   void partitionMatrix( const core::Matrix<T, IndexMapper2D, AllocatorT>& src,
-                         const Index& x, const Index& y,
-                         core::Matrix<T, IndexMapper2D, AllocatorT>& xx,
-                         core::Matrix<T, IndexMapper2D, AllocatorT>& yy,
-                         core::Matrix<T, IndexMapper2D, AllocatorT>& xy,
-                         core::Matrix<T, IndexMapper2D, AllocatorT>& yx )
-   {
-      typedef core::Matrix<T, IndexMapper2D, AllocatorT> MatrixT;
 
-      // now create the submatrix XX YY XY YX
-      xx = MatrixT( (ui32)x.size(), (ui32)x.size() );
-      for ( ui32 ny = 0; ny < xx.sizey(); ++ny )
-      {
-         const ui32 idy = x[ ny ];
-         for ( ui32 nx = 0; nx < xx.sizex(); ++nx )
-         {
-            const ui32 idx = x[ nx ];
-            xx( ny, nx ) = src( idy, idx );
-         }
-      }
-
-      yy = MatrixT( (ui32)y.size(), (ui32)y.size() );
-      for ( ui32 ny = 0; ny < yy.sizey(); ++ny )
-      {
-         const ui32 idy = y[ ny ];
-         for ( ui32 nx = 0; nx < yy.sizex(); ++nx )
-         {
-            const ui32 idx = y[ nx ];
-            yy( ny, nx ) = src( idy, idx );
-         }
-      }
-
-      xy = MatrixT( (ui32)x.size(), (ui32)y.size() );
-      for ( ui32 ny = 0; ny < xy.sizey(); ++ny )
-      {
-         const ui32 idy = y[ ny ];
-         for ( ui32 nx = 0; nx < xy.sizex(); ++nx )
-         {
-            const ui32 idx = x[ nx ];
-            xy( nx, ny ) = src( idx, idy );
-         }
-      }
-
-      yx = MatrixT( (ui32)y.size(), (ui32)x.size() );
-      for ( ui32 ny = 0; ny < xy.sizex(); ++ny )
-      {
-         const ui32 idy = x[ ny ];
-         for ( ui32 nx = 0; nx < xy.sizey(); ++nx )
-         {
-            const ui32 idx = y[ nx ];
-            yx( nx, ny ) = src( idx, idy );
-         }
-      }
-   }
 }
 namespace algorithm
 {
@@ -97,31 +38,6 @@ namespace algorithm
       {
       }
    };
-
-   /**
-    @brief Computes quickly v^t * m * v
-    */
-   template <class Vector, class Matrix>
-   typename Matrix::value_type fastDoubleMultiplication( const Vector& v, const Matrix& m )
-   {
-      typedef typename Matrix::value_type value_type;
-
-      const ui32 sizex = m.sizex();
-      const ui32 sizey = m.sizey();
-
-      ensure( v.size() == sizex, "dim don't match" );
-
-      value_type accum = 0;
-      for ( ui32 y = 0; y < sizey; ++y )
-      {
-         const value_type px = v[ y ];
-         for ( ui32 x = 0; x < sizex; ++x )
-         {
-            accum += m( y, x ) * px * v[ x ];
-         }
-      }
-      return accum;
-   }
 
    /**
     @brief Represent a multivariate gaussian in its canonical form
@@ -158,7 +74,7 @@ namespace algorithm
       value_type value( const Vector& x ) const
       {
          ensure( x.size() == _h.size(), "size doesn't match" );
-         return std::exp( _g + core::generic_dot<Vector, value_type>( x, _h, x.size() ) + fastDoubleMultiplication( x, _k ) );
+         return std::exp( _g + core::generic_dot<Vector, value_type>( x, _h, x.size() ) + core::fastDoubleMultiplication( x, _k ) );
       }
 
       /**
@@ -270,38 +186,10 @@ namespace algorithm
        */
       GaussianMultivariateCanonical marginalization( const VectorI& varIndexToRemove ) const
       {
-         if ( varIndexToRemove.size() > 1 )
-         {
-            for ( ui32 n = 0; n < varIndexToRemove.size() - 1; ++n )
-            {
-               ensure( varIndexToRemove[ n ] < varIndexToRemove[ n + 1 ], "the list must be sorted" );
-            }
-         }
-
          // compute the remaining set
          std::vector<ui32> ids;
          std::vector<ui32> mids;
-         ids.reserve( varIndexToRemove.size() );
-         mids.reserve( varIndexToRemove.size() );
-
-         ui32 indexToCheck = 0;
-         const ui32 MAX = std::numeric_limits<ui32>::max();
-         for ( ui32 n = 0; n < _id.size(); ++n )
-         {
-            const ui32 mid = ( indexToCheck < varIndexToRemove.size() ) ? varIndexToRemove[ indexToCheck ] : MAX;
-            const ui32 id = _id[ n ];
-            if ( mid > id )
-            {
-               ids.push_back( n );
-            } else {
-               if ( mid == id )
-               {
-                  mids.push_back( n );
-               }
-               // if == or < we need to increase the index to check
-               ++indexToCheck;
-            }
-         }
+         computeIndexInstersection( varIndexToRemove, ids, mids );
 
          // create the hx and hy subvectors
          Matrix hx( (ui32)ids.size(), 1 );
@@ -333,7 +221,7 @@ namespace algorithm
          // new params:
          Matrix      knew = xx - xyyyinv * yx;
          Matrix      hnew = hx - knew * hy;
-         value_type  gnew = _g - 0.5 * log( fabs( detyyinv / ( 2 * core::PI ) ) ) + 0.5 * fastDoubleMultiplication( hy, yyinv ); // TODO: check this value as "Probabilistic Graphical Models" D. Koller don't agree on this and was wrong at the previous edition... using as defined in [1]
+         value_type  gnew = _g - 0.5 * log( fabs( detyyinv / ( 2 * core::PI ) ) ) + 0.5 * core::fastDoubleMultiplication( hy, yyinv ); // TODO: check this value as "Probabilistic Graphical Models" D. Koller don't agree on this and was wrong at the previous edition... using as defined in [1]
          return GaussianMultivariateCanonical( hnew, knew, gnew, indexNew );
       }
 
@@ -342,19 +230,36 @@ namespace algorithm
        @param vars the values of Y=y
        @param varsIndex the index of Y's, must be sorted 0->+inf
        */
-      GaussianMultivariateCanonical conditioning( const Vector& vars, const VectorI& varsIndex )
+      GaussianMultivariateCanonical conditioning( const Vector& vars, const VectorI& varsIndex ) const
       {
+         // sort the data
          std::vector<ui32> ids;
          std::vector<ui32> mids;
          computeIndexInstersection( varsIndex, ids, mids );
-         
 
          Matrix xx, yy, xy, yx;
          partitionMatrix( _k, ids, mids, xx, yy, xy, yx );
+
+         Vector hx( (ui32)ids.size() );
+         VectorI indexNew( hx.size() );
+         for ( ui32 n = 0; n < hx.size(); ++n )
+         {
+            hx[ n ] = ids[ n ];
+            indexNew[ n ] = ids[ n ];
+         }
+
+         Vector hy( (ui32)ids.size() );
+         for ( ui32 n = 0; n < hy.size(); ++n )
+         {
+            hy[ n ] = mids[ n ];
+         }
+
+         // compute the new parameters
+         Vector hnew = Matrix( hx, hx.size(), 1 ) - xy * Matrix( vars, vars.size(), 1 );
+         Matrix knew = xx;
+         value_type gnew = _g + core::dot( hy, vars ) -0.5 * core::fastDoubleMultiplication( vars, yy );
+         return GaussianMultivariateCanonical( hnew, knew, gnew, indexNew );
       }
-
-
-
 
       void print( std::ostream& o )
       {
@@ -389,7 +294,7 @@ namespace algorithm
       }
 
    private:
-      void computeIndexInstersection( const VectorI& varsIndex, std::vector<ui32>& ids, std::vector<ui32>& mids )
+      void computeIndexInstersection( const VectorI& varsIndex, std::vector<ui32>& ids, std::vector<ui32>& mids ) const
       {
          // first check the index is in correct order
          if ( varsIndex.size() > 1 )
