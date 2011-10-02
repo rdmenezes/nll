@@ -13,6 +13,8 @@ namespace core
 }
 namespace algorithm
 {
+   class GaussianMultivariateCanonical;
+
    /**
     @brief Represent a multivariate gaussian parametrized by its moments (mean = m, covariance = cov)
 
@@ -39,6 +41,19 @@ namespace algorithm
       {
          ensure( m.size() == c.sizex(), "mean size and cov size don't match" );
          ensure( c.sizex() == c.sizey(), "covariance matrix must be square" );
+         ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
+
+         ensure( isOrdered( id ), "the id list must be ordered first" );
+
+         if ( id.size() == 0 )
+         {
+            // generate the id
+            _id = VectorI( m.size() );
+            for ( ui32 n = 0; n < _id.size(); ++n )
+            {
+               _id[ n ] = n;
+            }
+         }
       }
 
       value_type value( const Vector& x ) const
@@ -70,22 +85,50 @@ namespace algorithm
          return _covInv;
       }
 
+      const Matrix& getCov() const
+      {
+         return _cov;
+      }
+
+      const Vector& getMean() const
+      {
+         return _mean;
+      }
+
+      value_type getCte() const
+      {
+         if ( !_isCovSync )
+         {
+            getCovInv();
+         }
+         return _cte;
+      }
+
+      value_type getCovDet() const
+      {
+         if ( !_isCovSync )
+         {
+            getCovInv();
+         }
+         return _covDet;
+      }
+
       /**
        @brief computes p(X | Y=y)
        @param vars the values of Y=y
        @param varsIndex the index of Y's, must be sorted 0->+inf
        */
-      GaussianMultivariateMoment conditioning( const Vector& vars, const VectorI& varsIndex ) const
+      GaussianMultivariateMoment marginalization( const VectorI& varIndexToRemove ) const
       {
          std::vector<ui32> ids, mids;
-         computeIndexInstersection( varsIndex, ids, mids );
-         ensure( ids.size() == varsIndex.size(), "wrong index: some vars are missing!" );
+         computeIndexInstersection( varIndexToRemove, ids, mids );
+         ensure( ids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
 
          Matrix xx;
          partitionMatrix( _cov, ids, xx );
 
-         Vector newMean( varsIndex.size() );
-         VectorI newId( varsIndex.size() );
+         Vector newMean( varIndexToRemove.size() );
+         VectorI newId( varIndexToRemove.size() );
          for ( ui32 n = 0; n < ids.size(); ++n )
          {
             newMean[ n ] = _mean[ ids[ n ] ];
@@ -95,7 +138,22 @@ namespace algorithm
          return GaussianMultivariateMoment( newMean, xx, newId );
       }
 
+      GaussianMultivariateCanonical toGaussianCanonical() const;
+
    private:
+      static bool isOrdered( const VectorI& v )
+      {
+         if ( !v.size() )
+            return true;
+         const ui32 s = v.size() - 1;
+         for ( ui32 n = 0; n < s; ++n )
+         {
+            if ( v[ n ] >= v[ n + 1 ] )
+               return false;
+         }
+         return true;
+      }
+
       void computeIndexInstersection( const VectorI& varsIndex, std::vector<ui32>& ids, std::vector<ui32>& mids ) const
       {
          // first check the index is in correct order
@@ -160,7 +218,7 @@ namespace algorithm
       Matrix   _cov;
       mutable Matrix       _covInv; // NOTE: this must NEVER be used alone, but use the getter getCovInv() to ensure correct update
       mutable value_type   _covDet;
-      mutable value_type   _cte;
+      mutable value_type   _cte;    // the normalization constante so that integrale(-inf, +inf)(p(x)dx) = 1
       mutable bool         _isCovSync;    // if true, it means <_cov> and <_covInv> are synchronized, else <_covInv> will need to be recomputed
       VectorI  _id;
    };
@@ -191,7 +249,18 @@ namespace algorithm
          _h = h;
          _k = k;
          _g = g;
-         _id = id;
+
+         if ( id.size() == 0 )
+         {
+            // generate the id
+            _id = VectorI( h.size() );
+            for ( ui32 n = 0; n < _id.size(); ++n )
+            {
+               _id[ n ] = n;
+            }
+         } else {
+            _id = id;
+         }
       }
 
       /**
@@ -387,6 +456,18 @@ namespace algorithm
          return GaussianMultivariateCanonical( hnew, knew, gnew, indexNew );
       }
 
+      GaussianMultivariateMoment toGaussianMoment() const
+      {
+         Matrix cov;
+         cov.clone( _k );
+
+         const bool r = core::inverse( cov );
+         ensure( r, "can't inverse precision matrix" );
+         
+         Vector mean = cov * Matrix( _h,  _h.size(), 1 );
+         return GaussianMultivariateMoment( mean, cov, _id );
+      }
+
       void print( std::ostream& o )
       {
          o << "GaussianMultivariateCanonical:" << std::endl;
@@ -490,13 +571,34 @@ namespace algorithm
       value_type     _g;
       VectorI        _id;
    };
+
+   GaussianMultivariateCanonical GaussianMultivariateMoment::toGaussianCanonical() const
+   {
+      const Matrix& covInv = getCovInv();
+
+      Matrix k;
+      k.clone( covInv );
+
+      Vector h = k * Matrix( _mean, _mean.size(), 1 );
+
+      const value_type g = std::log( getCte() ) - 0.5 * log ( 2 * core::PI * getCovDet() ) - 0.5 * core::fastDoubleMultiplication( _mean, k );
+
+      VectorI id;
+      id.clone( _id );
+
+      return GaussianMultivariateCanonical( h, k, g, id );
+   }
 }
 }
 
+using namespace nll;
 using namespace nll::algorithm;
 
 class TestGaussianTransformation
 {
+   typedef std::vector<double>   Point;
+   typedef std::vector<Point>    Points;
+
 public:
    void testMul1()
    {
@@ -596,11 +698,68 @@ public:
 
       TESTER_ASSERT( nll::core::equal<double>( r.getG(), -0.200, 1e-3  ) );
    }
+
+   Points generateGaussianData()
+   {
+      ui32 nbDim = core::generateUniformDistributioni( 1, 15 );
+
+      // generate distribution parameters
+      std::vector< std::pair< double, double > > params;
+      for ( ui32 nn = 0; nn < nbDim; ++nn )
+      {
+         const double mean = core::generateUniformDistribution( -30, 30 );
+         const double var = core::generateUniformDistribution( 1, 6 );
+         params.push_back( std::make_pair( mean, var ) );
+      }
+
+      // generate the data
+      std::vector<Point> points;
+      for ( ui32 nn = 0; nn < 5 * nbDim; ++nn )
+      {
+         Point p( nbDim );
+         for ( ui32 i = 0; i < nbDim; ++i )
+         {
+            const double val = core::generateGaussianDistribution( params[ i ].first, params[ i ].second );
+            p[ i ] = val;
+         }
+         points.push_back( p );
+      }
+
+      return points;
+   }
+
+   void testConversion()
+   {
+      const ui32 nbTests = 200;
+      for ( ui32 n = 0; n < nbTests; ++n )
+      {
+         Points points = generateGaussianData();
+
+         // generate points
+         core::Buffer1D<double> mean;
+         core::Matrix<double> cov = nll::core::covariance( points, &mean );
+
+         // check the conversion between the gaussian representations
+         GaussianMultivariateMoment gm( mean, cov );
+         GaussianMultivariateCanonical gc = gm.toGaussianCanonical();
+         GaussianMultivariateMoment gm2 = gc.toGaussianMoment();
+
+         const GaussianMultivariateMoment::Matrix& cov1 = gm.getCov();
+         const GaussianMultivariateMoment::Matrix& cov2 = gm2.getCov();
+
+         const GaussianMultivariateMoment::Vector& mean1 = gm.getMean();
+         const GaussianMultivariateMoment::Vector& mean2 = gm2.getMean();
+
+         TESTER_ASSERT( mean1.equal( mean2, 1e-4 ) );
+         TESTER_ASSERT( cov1.equal( cov2, 1e-4 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianTransformation);
 TESTER_TEST(testMarginalization1);
 TESTER_TEST(testMul1);
+TESTER_TEST(testConversion);
 TESTER_TEST_SUITE_END();
 #endif

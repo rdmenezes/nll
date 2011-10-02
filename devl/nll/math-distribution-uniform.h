@@ -63,6 +63,20 @@ namespace core
       assert( min <= max );
       return static_cast<float>( rand() ) / RAND_MAX * ( max - min ) + min;
    }
+
+   /**
+    @ingroup core
+    @brief generate a sample of a specific uniform distribution
+    @param min the min of the distribution
+    @param max the max of the distribution
+    @return a sample of this distribution
+    */
+   inline int NLL_API generateUniformDistributioni( const int min, const int max )
+   {
+      assert( min <= max );
+      const int interval = max - min;
+      return ( rand() % interval ) + min;
+   }
 }
 }
 

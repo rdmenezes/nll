@@ -195,7 +195,7 @@ namespace core
       assert( points.size() );
       if ( points.size() == 0 )
          return Matrix<double>();
-      const ui32 nbFeatures = points[ 0 ].size();
+      const ui32 nbFeatures = (ui32)points[ 0 ].size();
 
 		Matrix<double> cov( nbFeatures, nbFeatures );
 		OutputMean mean = meanData<PointsRow, OutputMean>( points );
