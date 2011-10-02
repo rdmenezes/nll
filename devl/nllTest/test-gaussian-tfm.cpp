@@ -34,9 +34,135 @@ namespace algorithm
        @param c covariance
        @param id naming of the variable
        */
-      GaussianMultivariateMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI() )
+      GaussianMultivariateMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI() ) : _mean( m ),
+         _cov( c ), _isCovSync( false ), _id( id )
       {
+         ensure( m.size() == c.sizex(), "mean size and cov size don't match" );
+         ensure( c.sizex() == c.sizey(), "covariance matrix must be square" );
       }
+
+      value_type value( const Vector& x ) const
+      {
+         ensure( x.size() == _mean.size(), "data size don't match the model parameters" );
+
+         const Matrix& covInv = getCovInv();
+         Vector xm( x.size() );
+         for ( unsigned n = 0; n < x.size(); ++n )
+         {
+            xm[ n ] = x[ n ] - _mean[ n ];
+         }
+
+         return _cte * std::exp( -0.5 * core::fastDoubleMultiplication( x, covInv ) );
+      }
+
+      const Matrix& getCovInv() const
+      {
+         if ( !_isCovSync )
+         {
+            // if cov and covInv are not sunchronized, then do it...
+            _covInv.clone( _cov );
+            bool r = core::inverse( _covInv, &_covDet );
+            ensure( r, "covariance is singular!" );
+            _isCovSync = true;
+            _cte = 1.0 / ( std::pow( (value_type)core::PI, (value_type)_cov.sizex() / 2 ) * sqrt( _covDet ) );
+         }
+
+         return _covInv;
+      }
+
+      /**
+       @brief computes p(X | Y=y)
+       @param vars the values of Y=y
+       @param varsIndex the index of Y's, must be sorted 0->+inf
+       */
+      GaussianMultivariateMoment conditioning( const Vector& vars, const VectorI& varsIndex ) const
+      {
+         std::vector<ui32> ids, mids;
+         computeIndexInstersection( varsIndex, ids, mids );
+         ensure( ids.size() == varsIndex.size(), "wrong index: some vars are missing!" );
+
+         Matrix xx;
+         partitionMatrix( _cov, ids, xx );
+
+         Vector newMean( varsIndex.size() );
+         VectorI newId( varsIndex.size() );
+         for ( ui32 n = 0; n < ids.size(); ++n )
+         {
+            newMean[ n ] = _mean[ ids[ n ] ];
+            newId[ n ] = _id[ ids[ n ] ];
+         }
+
+         return GaussianMultivariateMoment( newMean, xx, newId );
+      }
+
+   private:
+      void computeIndexInstersection( const VectorI& varsIndex, std::vector<ui32>& ids, std::vector<ui32>& mids ) const
+      {
+         // first check the index is in correct order
+         if ( varsIndex.size() > 1 )
+         {
+            for ( ui32 n = 0; n < varsIndex.size() - 1; ++n )
+            {
+               ensure( varsIndex[ n ] < varsIndex[ n + 1 ], "the list must be sorted" );
+            }
+         }
+
+         ids.clear();
+         mids.clear();
+
+         ids.reserve( varsIndex.size() );
+         mids.reserve( varsIndex.size() );
+
+         ui32 indexToCheck = 0;
+         const ui32 MAX = std::numeric_limits<ui32>::max();
+         for ( ui32 n = 0; n < _id.size(); ++n )
+         {
+            const ui32 mid = ( indexToCheck < varsIndex.size() ) ? varsIndex[ indexToCheck ] : MAX;
+            const ui32 id = _id[ n ];
+            if ( mid > id )
+            {
+               ids.push_back( n );
+            } else {
+               if ( mid == id )
+               {
+                  mids.push_back( n );
+               }
+               // if == or < we need to increase the index to check
+               ++indexToCheck;
+            }
+         }
+      }
+
+      /**
+        Recompose a matrix given 2 index vector X and Y so that the matrix has this format:
+                src = | XX XY |
+                      | YX XX |
+              => export XX
+       */
+      void partitionMatrix( const Matrix& src,
+                            const std::vector<ui32>& x,
+                            Matrix& xx ) const
+      {
+         xx = Matrix( (ui32)x.size(), (ui32)x.size() );
+         for ( ui32 ny = 0; ny < xx.sizey(); ++ny )
+         {
+            const ui32 idy = x[ ny ];
+            for ( ui32 nx = 0; nx < xx.sizex(); ++nx )
+            {
+               const ui32 idx = x[ nx ];
+               xx( ny, nx ) = src( idy, idx );
+            }
+         }
+      }
+
+   private:
+      Vector   _mean;
+      Matrix   _cov;
+      mutable Matrix       _covInv; // NOTE: this must NEVER be used alone, but use the getter getCovInv() to ensure correct update
+      mutable value_type   _covDet;
+      mutable value_type   _cte;
+      mutable bool         _isCovSync;    // if true, it means <_cov> and <_covInv> are synchronized, else <_covInv> will need to be recomputed
+      VectorI  _id;
    };
 
    /**
@@ -197,7 +323,7 @@ namespace algorithm
          for ( ui32 n = 0; n < hx.size(); ++n )
          {
             hx[ n ] = ids[ n ];
-            indexNew[ n ] = ids[ n ];
+            indexNew[ n ] = _id[ ids[ n ] ];
          }
 
          Matrix hy( (ui32)mids.size(), 1 );
@@ -245,7 +371,7 @@ namespace algorithm
          for ( ui32 n = 0; n < hx.size(); ++n )
          {
             hx[ n ] = ids[ n ];
-            indexNew[ n ] = ids[ n ];
+            indexNew[ n ] = _id[ ids[ n ] ];
          }
 
          Vector hy( (ui32)ids.size() );
