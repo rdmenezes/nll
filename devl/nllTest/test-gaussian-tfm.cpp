@@ -18,7 +18,9 @@ namespace algorithm
    /**
     @brief Represent a multivariate gaussian parametrized by its moments (mean = m, covariance = cov)
 
-    p(x) = 1 / ( (2Pi)^(n/2) * |cov|^(1/2) ) * exp( -0.5 * (x - m)^t * cov^-1 * (x - m) )
+    p(x) = alpha * exp( -0.5 * (x - m)^t * cov^-1 * (x - m) )
+
+    with alpha = 1 / ( (2Pi)^(n/2) * |cov|^(1/2) ) in case of normalized gaussian
 
     with size(x) = n
     */
@@ -35,15 +37,23 @@ namespace algorithm
        @param m mean
        @param c covariance
        @param id naming of the variable
+       @param alpha if alpha not set, ensure that integral -inf/+inf p(x)dx = 1 (it represents a PDF)
        */
-      GaussianMultivariateMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI() ) : _mean( m ),
-         _cov( c ), _isCovSync( false ), _id( id )
+      GaussianMultivariateMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI(), const value_type alpha = std::numeric_limits<value_type>::max() ) : _mean( m ),
+         _cov( c ), _isCovSync( false ), _id( id ), _alpha( alpha )
       {
          ensure( m.size() == c.sizex(), "mean size and cov size don't match" );
          ensure( c.sizex() == c.sizey(), "covariance matrix must be square" );
          ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
 
          ensure( isOrdered( id ), "the id list must be ordered first" );
+
+         if ( alpha >= std::numeric_limits<value_type>::max() )
+         {
+            _isAlphaNormalized = true;
+         } else {
+            _isAlphaNormalized = false;
+         }
 
          if ( id.size() == 0 )
          {
@@ -54,6 +64,36 @@ namespace algorithm
                _id[ n ] = n;
             }
          }
+      }
+
+      GaussianMultivariateMoment() : _isCovSync( false ), _isAlphaNormalized( true )
+      {
+      }
+
+      /**
+       @brief Create a multivariate gaussian pdf given a set of points using Maximum likelihood estimation
+       */
+      template <class Points>
+      GaussianMultivariateMoment( const Points& points, const VectorI id = VectorI() ) : _isCovSync( false ), _id( id ), _isAlphaNormalized( true )
+      {
+         ensure( points.size(), "cannot do an estimation with no points" );
+         const ui32 nbDim = (ui32)points[ 0 ].size();
+         if ( id.size() == 0 )
+         {
+            // generate the id
+            _id = VectorI( nbDim );
+            for ( ui32 n = 0; n < _id.size(); ++n )
+            {
+               _id[ n ] = n;
+            }
+         }
+
+         // now do a Maximum likelihood estimate
+         Vector mean;
+         Matrix cov = core::covariance( points, &mean );
+
+         _mean = mean;
+         _cov = cov;
       }
 
       value_type value( const Vector& x ) const
@@ -67,7 +107,7 @@ namespace algorithm
             xm[ n ] = x[ n ] - _mean[ n ];
          }
 
-         return _cte * std::exp( -0.5 * core::fastDoubleMultiplication( x, covInv ) );
+         return getAlpha() * std::exp( -0.5 * core::fastDoubleMultiplication( x, covInv ) );
       }
 
       const Matrix& getCovInv() const
@@ -79,7 +119,10 @@ namespace algorithm
             bool r = core::inverse( _covInv, &_covDet );
             ensure( r, "covariance is singular!" );
             _isCovSync = true;
-            _cte = 1.0 / ( std::pow( (value_type)core::PI, (value_type)_cov.sizex() / 2 ) * sqrt( _covDet ) );
+            if ( _isAlphaNormalized )
+            {
+               _alpha = 1.0 / ( std::pow( (value_type)core::PI, (value_type)_cov.sizex() / 2 ) * sqrt( _covDet ) );
+            }
          }
 
          return _covInv;
@@ -95,13 +138,13 @@ namespace algorithm
          return _mean;
       }
 
-      value_type getCte() const
+      value_type getAlpha() const
       {
-         if ( !_isCovSync )
+         if ( _isAlphaNormalized && !_isCovSync )
          {
             getCovInv();
          }
-         return _cte;
+         return _alpha;
       }
 
       value_type getCovDet() const
@@ -122,13 +165,14 @@ namespace algorithm
       {
          std::vector<ui32> ids, mids;
          computeIndexInstersection( varIndexToRemove, ids, mids );
-         ensure( ids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
+         ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
+         ensure( ids.size() > 0, "marginalization of a gaussian on all its variables is 1!" );
 
          Matrix xx;
          partitionMatrix( _cov, ids, xx );
 
-         Vector newMean( varIndexToRemove.size() );
-         VectorI newId( varIndexToRemove.size() );
+         Vector newMean( (ui32)ids.size() );
+         VectorI newId( (ui32)ids.size() );
          for ( ui32 n = 0; n < ids.size(); ++n )
          {
             newMean[ n ] = _mean[ ids[ n ] ];
@@ -216,10 +260,11 @@ namespace algorithm
    private:
       Vector   _mean;
       Matrix   _cov;
-      mutable Matrix       _covInv; // NOTE: this must NEVER be used alone, but use the getter getCovInv() to ensure correct update
+      mutable Matrix       _covInv;       // NOTE: this must NEVER be used alone, but use the getter getCovInv() to ensure correct update
       mutable value_type   _covDet;
-      mutable value_type   _cte;    // the normalization constante so that integrale(-inf, +inf)(p(x)dx) = 1
+      mutable value_type   _alpha;        // the normalization constante
       mutable bool         _isCovSync;    // if true, it means <_cov> and <_covInv> are synchronized, else <_covInv> will need to be recomputed
+      mutable bool         _isAlphaNormalized;    // if true, the alpha will make sure integral -inf/+inf p(x)dx = 1
       VectorI  _id;
    };
 
@@ -385,20 +430,22 @@ namespace algorithm
          std::vector<ui32> ids;
          std::vector<ui32> mids;
          computeIndexInstersection( varIndexToRemove, ids, mids );
+         ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
+         ensure( ids.size() > 0, "marginalization of a gaussian on all its variables is 1!" );
 
          // create the hx and hy subvectors
          Matrix hx( (ui32)ids.size(), 1 );
          VectorI indexNew( hx.size() );
          for ( ui32 n = 0; n < hx.size(); ++n )
          {
-            hx[ n ] = ids[ n ];
+            hx[ n ] = _h[ ids[ n ] ];
             indexNew[ n ] = _id[ ids[ n ] ];
          }
 
          Matrix hy( (ui32)mids.size(), 1 );
          for ( ui32 n = 0; n < hy.size(); ++n )
          {
-            hy[ n ] = mids[ n ];
+            hy[ n ] = _h[ mids[ n ] ];
          }
 
          // now create the submatrix XX YY XY YX
@@ -415,7 +462,7 @@ namespace algorithm
 
          // new params:
          Matrix      knew = xx - xyyyinv * yx;
-         Matrix      hnew = hx - knew * hy;
+         Matrix      hnew = hx - xyyyinv * hy;
          value_type  gnew = _g - 0.5 * log( fabs( detyyinv / ( 2 * core::PI ) ) ) + 0.5 * core::fastDoubleMultiplication( hy, yyinv ); // TODO: check this value as "Probabilistic Graphical Models" D. Koller don't agree on this and was wrong at the previous edition... using as defined in [1]
          return GaussianMultivariateCanonical( hnew, knew, gnew, indexNew );
       }
@@ -439,14 +486,14 @@ namespace algorithm
          VectorI indexNew( hx.size() );
          for ( ui32 n = 0; n < hx.size(); ++n )
          {
-            hx[ n ] = ids[ n ];
+            hx[ n ] = _h[ ids[ n ] ];
             indexNew[ n ] = _id[ ids[ n ] ];
          }
 
          Vector hy( (ui32)ids.size() );
          for ( ui32 n = 0; n < hy.size(); ++n )
          {
-            hy[ n ] = mids[ n ];
+            hy[ n ] = _h[ mids[ n ] ];
          }
 
          // compute the new parameters
@@ -461,11 +508,17 @@ namespace algorithm
          Matrix cov;
          cov.clone( _k );
 
-         const bool r = core::inverse( cov );
+         value_type detcov;
+         const bool r = core::inverse( cov, &detcov );
          ensure( r, "can't inverse precision matrix" );
          
          Vector mean = cov * Matrix( _h,  _h.size(), 1 );
-         return GaussianMultivariateMoment( mean, cov, _id );
+
+         const value_type cte1 = std::log( fabs( detcov ) / ( 2.0 * core::PI ) );
+         const value_type cte2 = 0.5 * cte1 - 0.5 * core::fastDoubleMultiplication( _h, cov );
+         const value_type alpha = std::exp( _g  - cte2 );
+
+         return GaussianMultivariateMoment( mean, cov, _id, alpha );
       }
 
       void print( std::ostream& o )
@@ -581,7 +634,9 @@ namespace algorithm
 
       Vector h = k * Matrix( _mean, _mean.size(), 1 );
 
-      const value_type g = std::log( getCte() ) - 0.5 * log ( 2 * core::PI * getCovDet() ) - 0.5 * core::fastDoubleMultiplication( _mean, k );
+      const value_type cte1 = log( 1.0 / ( 2.0 * core::PI * fabs( getCovDet() ) ) );
+      const value_type cte2 = 0.5 * cte1 - 0.5 * core::fastDoubleMultiplication( h, _cov );
+      const value_type g = std::log( getAlpha() ) + cte2;
 
       VectorI id;
       id.clone( _id );
@@ -687,16 +742,16 @@ public:
       mids[ 1 ] = 2;
       GaussianMultivariateCanonical r = g1.marginalization( mids );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 0 ], -2.823, 1e-3 ) );
-      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 1 ], 0.176, 1e-3  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 0 ], 1.5882352941176499, 1e-8 ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 1 ], 1.5882352941176485, 1e-8  ) );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 0 ), 0.9411, 1e-3  ) );
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 1 ), 0.9411, 1e-3  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 0 ), 0.94117647058823906, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 1 ), 0.94117647058823906, 1e-8  ) );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 0 ), 0.9411, 1e-3  ) );
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 1 ), 0.9411, 1e-3  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 0 ), 0.94117647058823906, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 1 ), 0.94117647058823906, 1e-8  ) );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getG(), -0.200, 1e-3  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getG(), -0.093587560811534409, 1e-8  ) );
    }
 
    Points generateGaussianData()
@@ -750,16 +805,110 @@ public:
          const GaussianMultivariateMoment::Vector& mean1 = gm.getMean();
          const GaussianMultivariateMoment::Vector& mean2 = gm2.getMean();
 
-         TESTER_ASSERT( mean1.equal( mean2, 1e-4 ) );
-         TESTER_ASSERT( cov1.equal( cov2, 1e-4 ) );
+         TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
+         TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
+         TESTER_ASSERT( core::equal( gm.getAlpha(), gm2.getAlpha(), 1e-4 ) );
       }
+   }
+
+   void testMarginalization()
+   {
+      const ui32 nbTests = 200;
+      for ( ui32 n = 0; n < nbTests; ++n )
+      {
+         Points points = generateGaussianData();
+
+         // generate points
+         core::Buffer1D<double> mean;
+         core::Matrix<double> cov = nll::core::covariance( points, &mean );
+
+         // check the conversion between the gaussian representations
+         GaussianMultivariateMoment gm( mean, cov );
+         GaussianMultivariateCanonical gc = gm.toGaussianCanonical();
+
+         if ( cov.sizex() <= 2 )
+         {
+            continue;
+         }
+
+         // check we find the same results
+         std::vector<ui32> list = core::generateUniqueList( 0, cov.sizex() - 1 );
+         ui32 nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
+         
+         GaussianMultivariateMoment::VectorI varToMarginalize( nbVar );
+         for ( ui32 nn = 0; nn < nbVar; ++nn )
+         {
+            varToMarginalize[ nn ] = list[ nn ];
+         }
+
+         std::sort( varToMarginalize.begin(), varToMarginalize.end() );
+
+         GaussianMultivariateMoment gmm = gm.marginalization( varToMarginalize );
+         GaussianMultivariateCanonical gcm = gc.marginalization( varToMarginalize );
+         GaussianMultivariateMoment gmm2 = gcm.toGaussianMoment();
+
+         const GaussianMultivariateMoment::Matrix& cov1 = gmm.getCov();
+         const GaussianMultivariateMoment::Matrix& cov2 = gmm2.getCov();
+
+         const GaussianMultivariateMoment::Vector& mean1 = gmm.getMean();
+         const GaussianMultivariateMoment::Vector& mean2 = gmm2.getMean();
+
+         TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
+         TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
+      }
+   }
+
+   void testConditioning()
+   {
+      const double m1 = 2;
+      const double m2 = -3;
+      const double c1 = 0.5;
+      const double c2 = 2.5;
+
+      Points points1;
+      Points points2;
+      for ( ui32 n = 0; n < 5000; ++n )
+      {
+         Point p1( 1 );
+         p1[ 0 ] = core::generateGaussianDistribution( m1, c1 );
+
+         Point p2( 1 );
+         p2[ 0 ] = core::generateGaussianDistribution( m2, c2 );
+
+         points1.push_back( p1 );
+         points2.push_back( p2 );
+      }
+
+      GaussianMultivariateMoment::VectorI i1( 1 );
+      i1[ 0 ] = 0;
+      GaussianMultivariateMoment::VectorI i2( 1 );
+      i2[ 0 ] = 1;
+
+      GaussianMultivariateMoment g1( points1, i1 );
+      GaussianMultivariateMoment g2( points2, i2 );
+
+      GaussianMultivariateCanonical g1c = g1.toGaussianCanonical();
+      GaussianMultivariateCanonical g2c = g2.toGaussianCanonical();
+
+      GaussianMultivariateMoment::Vector v( 1 );
+      v[ 0 ] = -3;
+      GaussianMultivariateCanonical gc = g1c.mul( g2c );
+      GaussianMultivariateCanonical gcc = gc.conditioning( v, i2 );
+      GaussianMultivariateMoment g = gcc.toGaussianMoment();
+
+      std::cout << std::endl;
+
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianTransformation);
+/*
 TESTER_TEST(testMarginalization1);
+TESTER_TEST(testMarginalization);
 TESTER_TEST(testMul1);
+*/
 TESTER_TEST(testConversion);
+//TESTER_TEST(testConditioning);
 TESTER_TEST_SUITE_END();
 #endif
