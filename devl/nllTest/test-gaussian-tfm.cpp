@@ -508,15 +508,16 @@ namespace algorithm
          Matrix cov;
          cov.clone( _k );
 
-         value_type detcov;
-         const bool r = core::inverse( cov, &detcov );
+         value_type detcovinv;
+         const bool r = core::inverse( cov, &detcovinv );
          ensure( r, "can't inverse precision matrix" );
          
          Vector mean = cov * Matrix( _h,  _h.size(), 1 );
 
-         const value_type cte1 = std::log( fabs( detcov ) / ( 2.0 * core::PI ) );
-         const value_type cte2 = 0.5 * cte1 - 0.5 * core::fastDoubleMultiplication( _h, cov );
-         const value_type alpha = std::exp( _g  - cte2 );
+         // alpha = exp( g + 0.5 log ( 2 * PI * det(cov) ) + 0.5 mean^t * covinv * mean
+         const value_type cte1 = std::log( 2.0 * core::PI / fabs( detcovinv ) );
+         const value_type cte2 = 0.5 * cte1 + 0.5 * core::fastDoubleMultiplication( mean, _k );
+         const value_type alpha = std::exp( _g + cte2 );
 
          return GaussianMultivariateMoment( mean, cov, _id, alpha );
       }
@@ -634,8 +635,9 @@ namespace algorithm
 
       Vector h = k * Matrix( _mean, _mean.size(), 1 );
 
-      const value_type cte1 = log( 1.0 / ( 2.0 * core::PI * fabs( getCovDet() ) ) );
-      const value_type cte2 = 0.5 * cte1 - 0.5 * core::fastDoubleMultiplication( h, _cov );
+      // g = log (alpha) - 0.5 * log (2*PI*det(cov)) - 0.5 mean^t * covinv * mean
+      const value_type cte1 = log ( 2 * core::PI * getCovDet() );
+      const value_type cte2 = - 0.5 * cte1 - 0.5 * core::fastDoubleMultiplication( _mean, covInv );
       const value_type g = std::log( getAlpha() ) + cte2;
 
       VectorI id;
@@ -785,7 +787,7 @@ public:
 
    void testConversion()
    {
-      const ui32 nbTests = 200;
+      const ui32 nbTests = 500;
       for ( ui32 n = 0; n < nbTests; ++n )
       {
          Points points = generateGaussianData();
