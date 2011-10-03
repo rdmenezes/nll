@@ -315,6 +315,7 @@
 # include "integral-image-3d.h"
 # include "haar-features-3d.h"
 # include "registration-ct-ct-planar.h"
+# include "gaussian-representation.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

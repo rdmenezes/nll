@@ -1102,6 +1102,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\gaussian-representation.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\gaussian-representation.h"
+				>
+			</File>
+			<File
 				RelativePath=".\genetic-algorithm.h"
 				>
 			</File>

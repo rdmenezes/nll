@@ -281,10 +281,10 @@ namespace core
       }
 
       xy = MatrixT( (ui32)x.size(), (ui32)y.size() );
-      for ( ui32 ny = 0; ny < xy.sizey(); ++ny )
+      for ( ui32 ny = 0; ny < xy.sizex(); ++ny )
       {
          const ui32 idy = y[ ny ];
-         for ( ui32 nx = 0; nx < xy.sizex(); ++nx )
+         for ( ui32 nx = 0; nx < xy.sizey(); ++nx )
          {
             const ui32 idx = x[ nx ];
             xy( nx, ny ) = src( idx, idy );
@@ -292,10 +292,10 @@ namespace core
       }
 
       yx = MatrixT( (ui32)y.size(), (ui32)x.size() );
-      for ( ui32 ny = 0; ny < xy.sizex(); ++ny )
+      for ( ui32 ny = 0; ny < xy.sizey(); ++ny )
       {
          const ui32 idy = x[ ny ];
-         for ( ui32 nx = 0; nx < xy.sizey(); ++nx )
+         for ( ui32 nx = 0; nx < xy.sizex(); ++nx )
          {
             const ui32 idx = y[ nx ];
             yx( nx, ny ) = src( idx, idy );
