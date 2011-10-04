@@ -45,12 +45,17 @@ namespace algorithm
 
    /**
     @brief Represent a multivariate gaussian parametrized by its moments (mean = m, covariance = cov)
+    @see "A Technique for Painless Derivation of Kalman Filtering Recursions", Ali Taylan Cemgil [1]
+         http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.20.3377
 
     p(x) = alpha * exp( -0.5 * (x - m)^t * cov^-1 * (x - m) )
 
     with alpha = 1 / ( (2Pi)^(n/2) * |cov|^(1/2) ) in case of normalized gaussian
 
     with size(x) = n
+
+    Usually marginalization is done using gaussian moment form and factor multiplication, division, conditioning
+    are done in the canonical form.
     */
    class NLL_API GaussianMultivariateMoment
    {
@@ -195,6 +200,13 @@ namespace algorithm
          return _alpha;
       }
 
+      // force a specific alpha, it will remove synchronization
+      void setAlpha( value_type alpha )
+      {
+         _isAlphaNormalized = false;
+         _alpha = alpha;
+      }
+
       value_type getCovDet() const
       {
          if ( !_isCovSync )
@@ -271,21 +283,6 @@ namespace algorithm
 
          Matrix newCov = xx - xyyyinv * yx;
          Vector newMean = Matrix( hx, hx.size(), 1 ) + xyyyinv * Matrix( t, t.size(), 1 );
-
-         /*
-         // CHECK
-         Matrix cpy;
-         cpy.clone( newCov );
-         value_type det;
-         core::inverse( cpy, &det );
-
-         const value_type newAlpha2 = getAlpha() / std::sqrt( 2 * core::PI * det );
-
-         GaussianMultivariateMoment g( newMean, newCov, indexNew );
-         value_type alpha3 = g.getAlpha();
-         const value_type alpha4 = getAlpha() / std::sqrt( 2 * core::PI * yydet );
-         // END CHECK
-         */
 
          const value_type newAlpha = getAlpha() / std::sqrt( 2 * core::PI * yydet ) * 
             std::exp( -0.5 * core::fastDoubleMultiplication( t, yyinv ) );

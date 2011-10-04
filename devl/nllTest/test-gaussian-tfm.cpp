@@ -291,6 +291,8 @@ public:
          TESTER_ASSERT( cov1a.equal( cov2a, 1e-8 ) );
          TESTER_ASSERT( mean1b.equal( mean2b, 1e-8 ) );
          TESTER_ASSERT( cov1b.equal( cov2b, 1e-8 ) );
+
+         // TODO CHECK : alpha are not the same?
       }
    }
 
