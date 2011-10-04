@@ -138,6 +138,7 @@ namespace algorithm
          return getAlpha() * std::exp( -0.5 * core::fastDoubleMultiplication( x, covInv ) );
       }
 
+      // this will sync alpha & cov if necessary
       const Matrix& getCovInv() const
       {
          if ( !_isCovSync )
@@ -149,11 +150,21 @@ namespace algorithm
             _isCovSync = true;
             if ( _isAlphaNormalized )
             {
-               _alpha = 1.0 / ( std::pow( (value_type)core::PI, (value_type)_cov.sizex() / 2 ) * sqrt( _covDet ) );
+               normalizeGaussian();
             }
          }
 
          return _covInv;
+      }
+
+      /**
+       @brief ensure integral -inf/+inf p(x)dx = 1 by adjusting alpha
+       */
+      void normalizeGaussian() const
+      {
+         value_type det = getCovDet();
+         _alpha = 1.0 / ( std::pow( (value_type)core::PI, (value_type)_cov.sizex() / 2 ) * sqrt( det ) );
+         _isAlphaNormalized = true;
       }
 
       const Matrix& getCov() const
@@ -217,6 +228,69 @@ namespace algorithm
          }
 
          return GaussianMultivariateMoment( newMean, xx, newId );
+      }
+
+      /**
+       @brief computes p(X | Y=y)
+       @param vars the values of Y=y
+       @param varsIndex the index of Y's, must be sorted 0->+inf
+       */
+      GaussianMultivariateMoment conditioning( const Vector& vars, const VectorI& varsIndex ) const
+      {
+         // sort the data
+         std::vector<ui32> ids;
+         std::vector<ui32> mids;
+         computeIndexInstersection( varsIndex, ids, mids );
+
+         Matrix xx, yy, xy, yx;
+         core::partitionMatrix( _cov, ids, mids, xx, yy, xy, yx );
+
+         Vector hx( (ui32)ids.size() );
+         VectorI indexNew( hx.size() );
+         for ( ui32 n = 0; n < hx.size(); ++n )
+         {
+            hx[ n ] = _mean[ ids[ n ] ];
+            indexNew[ n ] = _id[ ids[ n ] ];
+         }
+
+         Vector hy( (ui32)mids.size() );
+         for ( ui32 n = 0; n < hy.size(); ++n )
+         {
+            hy[ n ] = _mean[ mids[ n ] ];
+         }
+
+         Matrix yyinv;
+         yyinv.clone( yy );
+         value_type yydet;
+         bool r = core::inverse( yyinv, &yydet );
+         ensure( r, "matrix is singular!" );
+
+         Vector t = vars - hy;
+         Matrix xyyyinv = xy * yyinv;
+
+
+         Matrix newCov = xx - xyyyinv * yx;
+         Vector newMean = Matrix( hx, hx.size(), 1 ) + xyyyinv * Matrix( t, t.size(), 1 );
+
+         /*
+         // CHECK
+         Matrix cpy;
+         cpy.clone( newCov );
+         value_type det;
+         core::inverse( cpy, &det );
+
+         const value_type newAlpha2 = getAlpha() / std::sqrt( 2 * core::PI * det );
+
+         GaussianMultivariateMoment g( newMean, newCov, indexNew );
+         value_type alpha3 = g.getAlpha();
+         const value_type alpha4 = getAlpha() / std::sqrt( 2 * core::PI * yydet );
+         // END CHECK
+         */
+
+         const value_type newAlpha = getAlpha() / std::sqrt( 2 * core::PI * yydet ) * 
+            std::exp( -0.5 * core::fastDoubleMultiplication( t, yyinv ) );
+
+         return GaussianMultivariateMoment( newMean, newCov, indexNew, newAlpha );
       }
 
       GaussianMultivariateCanonical toGaussianCanonical() const;
@@ -472,7 +546,7 @@ namespace algorithm
             indexNew[ n ] = _id[ ids[ n ] ];
          }
 
-         Vector hy( (ui32)ids.size() );
+         Vector hy( (ui32)mids.size() );
          for ( ui32 n = 0; n < hy.size(); ++n )
          {
             hy[ n ] = _h[ mids[ n ] ];

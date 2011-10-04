@@ -110,7 +110,7 @@ public:
       TESTER_ASSERT( nll::core::equal<double>( r.getG(), -0.093587560811534409, 1e-8  ) );
    }
 
-   Points generateGaussianData()
+   Points generateGaussianData( std::vector< std::pair< double, double > >* param_out = 0 )
    {
       ui32 nbDim = core::generateUniformDistributioni( 1, 15 );
 
@@ -136,6 +136,10 @@ public:
          points.push_back( p );
       }
 
+      if ( param_out )
+      {
+         *param_out = params;
+      }
       return points;
    }
 
@@ -163,7 +167,7 @@ public:
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
-         TESTER_ASSERT( core::equal( gm.getAlpha(), gm2.getAlpha(), 1e-4 ) );
+         TESTER_ASSERT( core::equal( gm.getAlpha(), gm2.getAlpha(), 1e-8 ) );
       }
    }
 
@@ -289,6 +293,61 @@ public:
          TESTER_ASSERT( cov1b.equal( cov2b, 1e-8 ) );
       }
    }
+
+   void testConditioning2()
+   {
+      const ui32 nbTests = 200;
+      for ( ui32 n = 0; n < nbTests; ++n )
+      {
+         std::vector< std::pair< double, double > > params;
+         Points points = generateGaussianData( &params );
+
+         // generate points
+         core::Buffer1D<double> mean;
+         core::Matrix<double> cov = nll::core::covariance( points, &mean );
+
+         // check the conversion between the gaussian representations
+         GaussianMultivariateMoment gm( mean, cov );
+         GaussianMultivariateCanonical gc = gm.toGaussianCanonical();
+
+         if ( cov.sizex() <= 2 )
+         {
+            continue;
+         }
+
+         // check we find the same results
+         std::vector<ui32> list = core::generateUniqueList( 0, cov.sizex() - 1 );
+         ui32 nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
+         
+         GaussianMultivariateMoment::VectorI varToMarginalize( nbVar );
+         for ( ui32 nn = 0; nn < nbVar; ++nn )
+         {
+            varToMarginalize[ nn ] = list[ nn ];
+         }
+
+         std::sort( varToMarginalize.begin(), varToMarginalize.end() );
+
+         GaussianMultivariateMoment::Vector x( nbVar );
+         for ( ui32 nn = 0; nn < nbVar; ++nn )
+         {
+            x[ nn ] = core::generateGaussianDistribution( params[ nn ].first, params[ nn ].second );
+         }
+
+         GaussianMultivariateMoment gmm = gm.conditioning( x, varToMarginalize );
+         GaussianMultivariateCanonical gcm = gc.conditioning( x, varToMarginalize );
+         GaussianMultivariateMoment gmm2 = gcm.toGaussianMoment();
+
+         const GaussianMultivariateMoment::Matrix& cov1 = gmm.getCov();
+         const GaussianMultivariateMoment::Matrix& cov2 = gmm2.getCov();
+
+         const GaussianMultivariateMoment::Vector& mean1 = gmm.getMean();
+         const GaussianMultivariateMoment::Vector& mean2 = gmm2.getMean();
+
+         TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
+         TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
+         // TODO: CHECK WHY WE HAVE DIFFERENCES // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-3 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -296,7 +355,8 @@ TESTER_TEST_SUITE(TestGaussianTransformation);
 TESTER_TEST(testMarginalization1);
 TESTER_TEST(testMarginalization);
 TESTER_TEST(testMul1);
-TESTER_TEST(testConversion);
 TESTER_TEST(testConditioning);
+TESTER_TEST(testConversion);
+TESTER_TEST(testConditioning2);
 TESTER_TEST_SUITE_END();
 #endif
