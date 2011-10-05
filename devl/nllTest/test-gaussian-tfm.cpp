@@ -68,13 +68,13 @@ public:
       TESTER_ASSERT( nll::core::equal<double>( r.getG(), 5 ) );
    }
 
-   void testMarginalization1()
+   void testMarginalization1() // checked with matlab, BNT
    {
       GaussianMultivariateCanonical::VectorI i1( 4 );
-      i1[ 0 ] = 0;
-      i1[ 1 ] = 1;
-      i1[ 2 ] = 2;
-      i1[ 3 ] = 3;
+      i1[ 0 ] = 1;
+      i1[ 1 ] = 2;
+      i1[ 2 ] = 3;
+      i1[ 3 ] = 4;
 
       GaussianMultivariateCanonical::Vector m1( 4 );
       m1[ 0 ] = 4;
@@ -83,31 +83,44 @@ public:
       m1[ 3 ] = 7;
 
       GaussianMultivariateCanonical::Matrix k1( 4, 4 );
-      unsigned accum = 0;
-      for ( unsigned y = 0; y < 4; ++y )
-      {
-         for ( unsigned x = 0; x < 4; ++x )
-         {
-            ++accum;
-            k1( y, x ) = accum * accum;
-         }
-      }
-      GaussianMultivariateCanonical g1( m1, k1, 2, i1 );
+      k1( 0, 0 ) = 1;
+      k1( 0, 1 ) = 1;
+      k1( 0, 2 ) = 0;
+      k1( 0, 3 ) = -3;
+
+      k1( 1, 0 ) = 4;
+      k1( 1, 1 ) = 5;
+      k1( 1, 2 ) = 0;
+      k1( 1, 3 ) = -1;
+
+      k1( 2, 0 ) = 2;
+      k1( 2, 1 ) = 3;
+      k1( 2, 2 ) = -1;
+      k1( 2, 3 ) = -1;
+
+      k1( 3, 0 ) = 0.5;
+      k1( 3, 1 ) = 2.5;
+      k1( 3, 2 ) = 3.5;
+      k1( 3, 3 ) = 1.5;
+
+      GaussianMultivariateCanonical g1( m1, k1, 0.3, i1 );
       GaussianMultivariateCanonical::VectorI mids( 2 );
       mids[ 0 ] = 1;
       mids[ 1 ] = 2;
       GaussianMultivariateCanonical r = g1.marginalization( mids );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 0 ], 1.5882352941176499, 1e-8 ) );
-      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 1 ], 1.5882352941176485, 1e-8  ) );
+      r.print(std::cout);
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 0 ), 0.94117647058823906, 1e-8  ) );
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 1 ), 0.94117647058823906, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 0 ], 9, 1e-8 ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getH()[ 1 ], 27, 1e-8  ) );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 0 ), 0.94117647058823906, 1e-8  ) );
-      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 1 ), 0.94117647058823906, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 0 ), -1, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 0, 1 ), -6, 1e-8  ) );
 
-      TESTER_ASSERT( nll::core::equal<double>( r.getG(), -0.093587560811534409, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 0 ), 3.5, 1e-8  ) );
+      TESTER_ASSERT( nll::core::equal<double>( r.getK()( 1, 1 ), -19, 1e-8  ) );
+
+      TESTER_ASSERT( nll::core::equal<double>( r.getG(), 4.63788, 1e-5  ) );
    }
 
    Points generateGaussianData( std::vector< std::pair< double, double > >* param_out = 0 )
@@ -145,6 +158,7 @@ public:
 
    void testConversion()
    {
+      srand(1);
       const ui32 nbTests = 500;
       for ( ui32 n = 0; n < nbTests; ++n )
       {
@@ -215,6 +229,7 @@ public:
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
+         // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-8 ) ); // not the same!
       }
    }
 
@@ -350,15 +365,78 @@ public:
          // TODO: CHECK WHY WE HAVE DIFFERENCES // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-3 ) );
       }
    }
+
+   void testConversionBasic() // checked against matlab, BNT
+   {
+      GaussianMultivariateCanonical::VectorI i1( 2 );
+      i1[ 0 ] = 0;
+      i1[ 1 ] = 1;
+
+      GaussianMultivariateCanonical::Vector m1( 2 );
+      m1[ 0 ] = 4;
+      m1[ 1 ] = 5;
+
+      GaussianMultivariateCanonical::Matrix c1( 2, 2 );
+      c1( 0, 0 ) = 4;
+      c1( 0, 1 ) = 2;
+      c1( 1, 0 ) = 3;
+      c1( 1, 1 ) = 5;
+
+      GaussianMultivariateMoment gm1( m1, c1, i1, exp( 0.3 ) );
+      GaussianMultivariateCanonical gc1 = gm1.toGaussianCanonical();
+      GaussianMultivariateMoment gm2 = gc1.toGaussianMoment();
+
+      TESTER_ASSERT( gm1.getMean().equal( gm2.getMean(), 1e-8 ) );
+      TESTER_ASSERT( gm1.getCov().equal( gm2.getCov(), 1e-8 ) );
+      TESTER_ASSERT( core::equal( gm1.getAlpha(), gm2.getAlpha(), 1e-8 ) );
+
+      TESTER_ASSERT( core::equal( gc1.getG(), -5.7145, 1e-4 ) );
+      TESTER_ASSERT( core::equal( gm1.getAlpha(), 1.3499, 1e-4 ) );
+   }
+
+   void testConditioning3()   // checked with matlab BNT
+   {
+      GaussianMultivariateCanonical::VectorI i1( 2 );
+      i1[ 0 ] = 0;
+      i1[ 1 ] = 1;
+
+      GaussianMultivariateCanonical::Vector m1( 2 );
+      m1[ 0 ] = -0.2250;
+      m1[ 1 ] = -1.4625;
+
+      GaussianMultivariateCanonical::Matrix c1( 2, 2 );
+      c1( 0, 0 ) = -0.4750;
+      c1( 0, 1 ) = 0.1500;
+      c1( 1, 0 ) = -0.0875;
+      c1( 1, 1 ) = -0.0250;
+
+      GaussianMultivariateCanonical gc1( m1, c1, -1.8937, i1 );
+
+
+      GaussianMultivariateCanonical::VectorI i2( 1 );
+      i2[ 0 ] = 1;
+
+      GaussianMultivariateCanonical::Vector m2( 1 );
+      m2[ 0 ] = -1.6;
+
+      GaussianMultivariateCanonical gc2 = gc1.conditioning(m2, i2);
+
+      TESTER_ASSERT( core::equal( gc2.getH()[ 0 ], 0.015, 1e-3 ) );
+      TESTER_ASSERT( core::equal( gc2.getK()[ 0 ], -0.475, 1e-3 ) );
+      TESTER_ASSERT( core::equal( gc2.getG(), 0.4783, 1e-3 ) );
+   }
+
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianTransformation);
+TESTER_TEST(testConversionBasic);
+TESTER_TEST(testConversion);
 TESTER_TEST(testMarginalization1);
 TESTER_TEST(testMarginalization);
 TESTER_TEST(testMul1);
 TESTER_TEST(testConditioning);
-TESTER_TEST(testConversion);
 TESTER_TEST(testConditioning2);
+TESTER_TEST(testConditioning3);
 TESTER_TEST_SUITE_END();
 #endif

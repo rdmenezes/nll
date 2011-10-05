@@ -239,7 +239,8 @@ namespace algorithm
             newId[ n ] = _id[ ids[ n ] ];
          }
 
-         return GaussianMultivariateMoment( newMean, xx, newId );
+         // _alpha stays the same!
+         return GaussianMultivariateMoment( newMean, xx, newId, _alpha );
       }
 
       /**
@@ -512,11 +513,13 @@ namespace algorithm
          ensure( success, "could not inverse matrix yy" );
 
          Matrix xyyyinv = xy * yyinv;
+         const value_type detyy = 1.0 / detyyinv;
 
          // new params:
          Matrix      knew = xx - xyyyinv * yx;
          Matrix      hnew = hx - xyyyinv * hy;
-         value_type  gnew = _g - 0.5 * log( fabs( detyyinv / ( 2 * core::PI ) ) ) + 0.5 * core::fastDoubleMultiplication( hy, yyinv ); // TODO: check this value as "Probabilistic Graphical Models" D. Koller don't agree on this and was wrong at the previous edition... using as defined in [1]
+         value_type  gnew = _g + 0.5 * ( yyinv.sizex() * std::log( 2 * core::PI ) - std::log( detyy )
+                                       + core::fastDoubleMultiplication( hy, yyinv ) );
          return GaussianMultivariateCanonical( hnew, knew, gnew, indexNew );
       }
 
@@ -561,16 +564,16 @@ namespace algorithm
          Matrix cov;
          cov.clone( _k );
 
-         value_type detcovinv;
-         const bool r = core::inverse( cov, &detcovinv );
+         value_type detk;
+         const bool r = core::inverse( cov, &detk );
          ensure( r, "can't inverse precision matrix" );
          
          Vector mean = cov * Matrix( _h,  _h.size(), 1 );
 
-         // alpha = exp( g + 0.5 log ( 2 * PI * det(cov) ) + 0.5 mean^t * covinv * mean
-         const value_type cte1 = std::log( 2.0 * core::PI / fabs( detcovinv ) );
-         const value_type cte2 = 0.5 * cte1 + 0.5 * core::fastDoubleMultiplication( mean, _k );
-         const value_type alpha = std::exp( _g + cte2 );
+         const value_type cte1 = 0.5 * ( log( detk )
+                                       - _h.size() * std::log( 2.0 * core::PI )
+                                       - core::fastDoubleMultiplication( mean, _k ) );
+         const value_type alpha = std::exp( _g - cte1 );
 
          return GaussianMultivariateMoment( mean, cov, _id, alpha );
       }
