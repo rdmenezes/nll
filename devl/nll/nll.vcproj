@@ -1102,14 +1102,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\gaussian-representation.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\gaussian-representation.h"
-				>
-			</File>
-			<File
 				RelativePath=".\genetic-algorithm.h"
 				>
 			</File>
@@ -1179,6 +1171,22 @@
 			</File>
 			<File
 				RelativePath=".\pca.h"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-gaussian-canonical.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-gaussian-canonical.h"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-gaussian-moment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-table.h"
 				>
 			</File>
 			<File

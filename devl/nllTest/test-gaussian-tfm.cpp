@@ -13,37 +13,37 @@ class TestGaussianTransformation
 public:
    void testMul1()
    {
-      GaussianMultivariateCanonical::VectorI i1( 2 );
+      PotentialGaussianCanonical::VectorI i1( 2 );
       i1[ 0 ] = 0;
       i1[ 1 ] = 2;
 
-      GaussianMultivariateCanonical::Vector m1( 2 );
+      PotentialGaussianCanonical::Vector m1( 2 );
       m1[ 0 ] = 4;
       m1[ 1 ] = 5;
 
-      GaussianMultivariateCanonical::Matrix k1( 2, 2 );
+      PotentialGaussianCanonical::Matrix k1( 2, 2 );
       k1( 0, 0 ) = 1;
       k1( 0, 1 ) = 2;
       k1( 1, 0 ) = 3;
       k1( 1, 1 ) = 4;
 
-      GaussianMultivariateCanonical::VectorI i2( 2 );
+      PotentialGaussianCanonical::VectorI i2( 2 );
       i2[ 0 ] = 0;
       i2[ 1 ] = 1;
 
-      GaussianMultivariateCanonical::Vector m2( 2 );
+      PotentialGaussianCanonical::Vector m2( 2 );
       m2[ 0 ] = 10;
       m2[ 1 ] = 11;
 
-      GaussianMultivariateCanonical::Matrix k2( 2, 2 );
+      PotentialGaussianCanonical::Matrix k2( 2, 2 );
       k2( 0, 0 ) = 10;
       k2( 0, 1 ) = 11;
       k2( 1, 0 ) = 12;
       k2( 1, 1 ) = 13;
 
-      GaussianMultivariateCanonical g1( m1, k1, 2, i1 );
-      GaussianMultivariateCanonical g2( m2, k2, 3, i2 );
-      GaussianMultivariateCanonical r = g1.mul( g2 );
+      PotentialGaussianCanonical g1( m1, k1, 2, i1 );
+      PotentialGaussianCanonical g2( m2, k2, 3, i2 );
+      PotentialGaussianCanonical r = g1.mul( g2 );
 
       g1.print( std::cout );
       g2.print( std::cout );
@@ -70,19 +70,19 @@ public:
 
    void testMarginalization1() // checked with matlab, BNT
    {
-      GaussianMultivariateCanonical::VectorI i1( 4 );
+      PotentialGaussianCanonical::VectorI i1( 4 );
       i1[ 0 ] = 1;
       i1[ 1 ] = 2;
       i1[ 2 ] = 3;
       i1[ 3 ] = 4;
 
-      GaussianMultivariateCanonical::Vector m1( 4 );
+      PotentialGaussianCanonical::Vector m1( 4 );
       m1[ 0 ] = 4;
       m1[ 1 ] = 5;
       m1[ 2 ] = 6;
       m1[ 3 ] = 7;
 
-      GaussianMultivariateCanonical::Matrix k1( 4, 4 );
+      PotentialGaussianCanonical::Matrix k1( 4, 4 );
       k1( 0, 0 ) = 1;
       k1( 0, 1 ) = 1;
       k1( 0, 2 ) = 0;
@@ -103,11 +103,11 @@ public:
       k1( 3, 2 ) = 3.5;
       k1( 3, 3 ) = 1.5;
 
-      GaussianMultivariateCanonical g1( m1, k1, 0.3, i1 );
-      GaussianMultivariateCanonical::VectorI mids( 2 );
+      PotentialGaussianCanonical g1( m1, k1, 0.3, i1 );
+      PotentialGaussianCanonical::VectorI mids( 2 );
       mids[ 0 ] = 1;
       mids[ 1 ] = 2;
-      GaussianMultivariateCanonical r = g1.marginalization( mids );
+      PotentialGaussianCanonical r = g1.marginalization( mids );
 
       r.print(std::cout);
 
@@ -169,15 +169,15 @@ public:
          core::Matrix<double> cov = nll::core::covariance( points, &mean );
 
          // check the conversion between the gaussian representations
-         GaussianMultivariateMoment gm( mean, cov );
-         GaussianMultivariateCanonical gc = gm.toGaussianCanonical();
-         GaussianMultivariateMoment gm2 = gc.toGaussianMoment();
+         PotentialGaussianMoment gm( mean, cov );
+         PotentialGaussianCanonical gc = gm.toGaussianCanonical();
+         PotentialGaussianMoment gm2 = gc.toGaussianMoment();
 
-         const GaussianMultivariateMoment::Matrix& cov1 = gm.getCov();
-         const GaussianMultivariateMoment::Matrix& cov2 = gm2.getCov();
+         const PotentialGaussianMoment::Matrix& cov1 = gm.getCov();
+         const PotentialGaussianMoment::Matrix& cov2 = gm2.getCov();
 
-         const GaussianMultivariateMoment::Vector& mean1 = gm.getMean();
-         const GaussianMultivariateMoment::Vector& mean2 = gm2.getMean();
+         const PotentialGaussianMoment::Vector& mean1 = gm.getMean();
+         const PotentialGaussianMoment::Vector& mean2 = gm2.getMean();
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
@@ -197,8 +197,8 @@ public:
          core::Matrix<double> cov = nll::core::covariance( points, &mean );
 
          // check the conversion between the gaussian representations
-         GaussianMultivariateMoment gm( mean, cov );
-         GaussianMultivariateCanonical gc = gm.toGaussianCanonical();
+         PotentialGaussianMoment gm( mean, cov );
+         PotentialGaussianCanonical gc = gm.toGaussianCanonical();
 
          if ( cov.sizex() <= 2 )
          {
@@ -209,7 +209,7 @@ public:
          std::vector<ui32> list = core::generateUniqueList( 0, cov.sizex() - 1 );
          ui32 nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
          
-         GaussianMultivariateMoment::VectorI varToMarginalize( nbVar );
+         PotentialGaussianMoment::VectorI varToMarginalize( nbVar );
          for ( ui32 nn = 0; nn < nbVar; ++nn )
          {
             varToMarginalize[ nn ] = list[ nn ];
@@ -217,15 +217,15 @@ public:
 
          std::sort( varToMarginalize.begin(), varToMarginalize.end() );
 
-         GaussianMultivariateMoment gmm = gm.marginalization( varToMarginalize );
-         GaussianMultivariateCanonical gcm = gc.marginalization( varToMarginalize );
-         GaussianMultivariateMoment gmm2 = gcm.toGaussianMoment();
+         PotentialGaussianMoment gmm = gm.marginalization( varToMarginalize );
+         PotentialGaussianCanonical gcm = gc.marginalization( varToMarginalize );
+         PotentialGaussianMoment gmm2 = gcm.toGaussianMoment();
 
-         const GaussianMultivariateMoment::Matrix& cov1 = gmm.getCov();
-         const GaussianMultivariateMoment::Matrix& cov2 = gmm2.getCov();
+         const PotentialGaussianMoment::Matrix& cov1 = gmm.getCov();
+         const PotentialGaussianMoment::Matrix& cov2 = gmm2.getCov();
 
-         const GaussianMultivariateMoment::Vector& mean1 = gmm.getMean();
-         const GaussianMultivariateMoment::Vector& mean2 = gmm2.getMean();
+         const PotentialGaussianMoment::Vector& mean1 = gmm.getMean();
+         const PotentialGaussianMoment::Vector& mean2 = gmm2.getMean();
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
@@ -262,25 +262,25 @@ public:
             points.push_back( p );
          }
 
-         GaussianMultivariateMoment::VectorI i1( 1 );
+         PotentialGaussianMoment::VectorI i1( 1 );
          i1[ 0 ] = 0;
-         GaussianMultivariateMoment::VectorI i2( 1 );
+         PotentialGaussianMoment::VectorI i2( 1 );
          i2[ 0 ] = 1;
 
-         GaussianMultivariateMoment g1( points1, i1 );
-         GaussianMultivariateMoment g2( points2, i2 );
+         PotentialGaussianMoment g1( points1, i1 );
+         PotentialGaussianMoment g2( points2, i2 );
 
-         GaussianMultivariateCanonical g1c = g1.toGaussianCanonical();
-         GaussianMultivariateCanonical g2c = g2.toGaussianCanonical();
+         PotentialGaussianCanonical g1c = g1.toGaussianCanonical();
+         PotentialGaussianCanonical g2c = g2.toGaussianCanonical();
 
-         GaussianMultivariateMoment::Vector v( 1 );
-         GaussianMultivariateCanonical gc = g1c * g2c;
+         PotentialGaussianMoment::Vector v( 1 );
+         PotentialGaussianCanonical gc = g1c * g2c;
          v[ 0 ] = m2;
-         GaussianMultivariateMoment gg1 = gc.conditioning( v, i2 ).toGaussianMoment();
+         PotentialGaussianMoment gg1 = gc.conditioning( v, i2 ).toGaussianMoment();
          v[ 0 ] = m1;
-         GaussianMultivariateMoment gg2 = gc.conditioning( v, i1 ).toGaussianMoment();
+         PotentialGaussianMoment gg2 = gc.conditioning( v, i1 ).toGaussianMoment();
 
-         GaussianMultivariateMoment gg( points, i2 );
+         PotentialGaussianMoment gg( points, i2 );
 
          /*
          std::cout << "---" << std::endl;
@@ -292,15 +292,15 @@ public:
 
 
          // var(0) and var(1) are indenpendent, so knowing the value of (0) or (1) should not change the value of the conditioned gaussian
-         const GaussianMultivariateMoment::Matrix& cov1a = gg1.getCov();
-         const GaussianMultivariateMoment::Matrix& cov2a = g1.getCov();
-         const GaussianMultivariateMoment::Vector& mean1a = gg1.getMean();
-         const GaussianMultivariateMoment::Vector& mean2a = g1.getMean();
+         const PotentialGaussianMoment::Matrix& cov1a = gg1.getCov();
+         const PotentialGaussianMoment::Matrix& cov2a = g1.getCov();
+         const PotentialGaussianMoment::Vector& mean1a = gg1.getMean();
+         const PotentialGaussianMoment::Vector& mean2a = g1.getMean();
 
-         const GaussianMultivariateMoment::Matrix& cov1b = gg2.getCov();
-         const GaussianMultivariateMoment::Matrix& cov2b = g2.getCov();
-         const GaussianMultivariateMoment::Vector& mean1b = gg2.getMean();
-         const GaussianMultivariateMoment::Vector& mean2b = g2.getMean();
+         const PotentialGaussianMoment::Matrix& cov1b = gg2.getCov();
+         const PotentialGaussianMoment::Matrix& cov2b = g2.getCov();
+         const PotentialGaussianMoment::Vector& mean1b = gg2.getMean();
+         const PotentialGaussianMoment::Vector& mean2b = g2.getMean();
 
          TESTER_ASSERT( mean1a.equal( mean2a, 1e-8 ) );
          TESTER_ASSERT( cov1a.equal( cov2a, 1e-8 ) );
@@ -324,8 +324,8 @@ public:
          core::Matrix<double> cov = nll::core::covariance( points, &mean );
 
          // check the conversion between the gaussian representations
-         GaussianMultivariateMoment gm( mean, cov );
-         GaussianMultivariateCanonical gc = gm.toGaussianCanonical();
+         PotentialGaussianMoment gm( mean, cov );
+         PotentialGaussianCanonical gc = gm.toGaussianCanonical();
 
          if ( cov.sizex() <= 2 )
          {
@@ -336,7 +336,7 @@ public:
          std::vector<ui32> list = core::generateUniqueList( 0, cov.sizex() - 1 );
          ui32 nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
          
-         GaussianMultivariateMoment::VectorI varToMarginalize( nbVar );
+         PotentialGaussianMoment::VectorI varToMarginalize( nbVar );
          for ( ui32 nn = 0; nn < nbVar; ++nn )
          {
             varToMarginalize[ nn ] = list[ nn ];
@@ -344,21 +344,21 @@ public:
 
          std::sort( varToMarginalize.begin(), varToMarginalize.end() );
 
-         GaussianMultivariateMoment::Vector x( nbVar );
+         PotentialGaussianMoment::Vector x( nbVar );
          for ( ui32 nn = 0; nn < nbVar; ++nn )
          {
             x[ nn ] = core::generateGaussianDistribution( params[ nn ].first, params[ nn ].second );
          }
 
-         GaussianMultivariateMoment gmm = gm.conditioning( x, varToMarginalize );
-         GaussianMultivariateCanonical gcm = gc.conditioning( x, varToMarginalize );
-         GaussianMultivariateMoment gmm2 = gcm.toGaussianMoment();
+         PotentialGaussianMoment gmm = gm.conditioning( x, varToMarginalize );
+         PotentialGaussianCanonical gcm = gc.conditioning( x, varToMarginalize );
+         PotentialGaussianMoment gmm2 = gcm.toGaussianMoment();
 
-         const GaussianMultivariateMoment::Matrix& cov1 = gmm.getCov();
-         const GaussianMultivariateMoment::Matrix& cov2 = gmm2.getCov();
+         const PotentialGaussianMoment::Matrix& cov1 = gmm.getCov();
+         const PotentialGaussianMoment::Matrix& cov2 = gmm2.getCov();
 
-         const GaussianMultivariateMoment::Vector& mean1 = gmm.getMean();
-         const GaussianMultivariateMoment::Vector& mean2 = gmm2.getMean();
+         const PotentialGaussianMoment::Vector& mean1 = gmm.getMean();
+         const PotentialGaussianMoment::Vector& mean2 = gmm2.getMean();
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
@@ -368,23 +368,23 @@ public:
 
    void testConversionBasic() // checked against matlab, BNT
    {
-      GaussianMultivariateCanonical::VectorI i1( 2 );
+      PotentialGaussianCanonical::VectorI i1( 2 );
       i1[ 0 ] = 0;
       i1[ 1 ] = 1;
 
-      GaussianMultivariateCanonical::Vector m1( 2 );
+      PotentialGaussianCanonical::Vector m1( 2 );
       m1[ 0 ] = 4;
       m1[ 1 ] = 5;
 
-      GaussianMultivariateCanonical::Matrix c1( 2, 2 );
+      PotentialGaussianCanonical::Matrix c1( 2, 2 );
       c1( 0, 0 ) = 4;
       c1( 0, 1 ) = 2;
       c1( 1, 0 ) = 3;
       c1( 1, 1 ) = 5;
 
-      GaussianMultivariateMoment gm1( m1, c1, i1, exp( 0.3 ) );
-      GaussianMultivariateCanonical gc1 = gm1.toGaussianCanonical();
-      GaussianMultivariateMoment gm2 = gc1.toGaussianMoment();
+      PotentialGaussianMoment gm1( m1, c1, i1, exp( 0.3 ) );
+      PotentialGaussianCanonical gc1 = gm1.toGaussianCanonical();
+      PotentialGaussianMoment gm2 = gc1.toGaussianMoment();
 
       TESTER_ASSERT( gm1.getMean().equal( gm2.getMean(), 1e-8 ) );
       TESTER_ASSERT( gm1.getCov().equal( gm2.getCov(), 1e-8 ) );
@@ -396,30 +396,30 @@ public:
 
    void testConditioning3()   // checked with matlab BNT
    {
-      GaussianMultivariateCanonical::VectorI i1( 2 );
+      PotentialGaussianCanonical::VectorI i1( 2 );
       i1[ 0 ] = 0;
       i1[ 1 ] = 1;
 
-      GaussianMultivariateCanonical::Vector m1( 2 );
+      PotentialGaussianCanonical::Vector m1( 2 );
       m1[ 0 ] = -0.2250;
       m1[ 1 ] = -1.4625;
 
-      GaussianMultivariateCanonical::Matrix c1( 2, 2 );
+      PotentialGaussianCanonical::Matrix c1( 2, 2 );
       c1( 0, 0 ) = -0.4750;
       c1( 0, 1 ) = 0.1500;
       c1( 1, 0 ) = -0.0875;
       c1( 1, 1 ) = -0.0250;
 
-      GaussianMultivariateCanonical gc1( m1, c1, -1.8937, i1 );
+      PotentialGaussianCanonical gc1( m1, c1, -1.8937, i1 );
 
 
-      GaussianMultivariateCanonical::VectorI i2( 1 );
+      PotentialGaussianCanonical::VectorI i2( 1 );
       i2[ 0 ] = 1;
 
-      GaussianMultivariateCanonical::Vector m2( 1 );
+      PotentialGaussianCanonical::Vector m2( 1 );
       m2[ 0 ] = -1.6;
 
-      GaussianMultivariateCanonical gc2 = gc1.conditioning(m2, i2);
+      PotentialGaussianCanonical gc2 = gc1.conditioning(m2, i2);
 
       TESTER_ASSERT( core::equal( gc2.getH()[ 0 ], 0.015, 1e-3 ) );
       TESTER_ASSERT( core::equal( gc2.getK()[ 0 ], -0.475, 1e-3 ) );

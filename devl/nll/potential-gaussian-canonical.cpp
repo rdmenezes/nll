@@ -4,7 +4,7 @@ namespace nll
 {
 namespace algorithm
 {
-   GaussianMultivariateCanonical GaussianMultivariateMoment::toGaussianCanonical() const
+   PotentialGaussianCanonical PotentialGaussianMoment::toGaussianCanonical() const
    {
       const Matrix& covInv = getCovInv();
       ensure( getCovDet() > 0, "determinant K must be > 0" );
@@ -22,7 +22,7 @@ namespace algorithm
 
       VectorI id;
       id.clone( _id );
-      return GaussianMultivariateCanonical( h, k, g, id );
+      return PotentialGaussianCanonical( h, k, g, id );
    }
 }
 }
