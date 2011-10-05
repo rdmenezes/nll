@@ -362,7 +362,7 @@ public:
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
-         // TODO: CHECK WHY WE HAVE DIFFERENCES // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-3 ) );
+         // TODO: CHECK WHY WE HAVE DIFFERENCES, however same matlab results... // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-3 ) );
       }
    }
 

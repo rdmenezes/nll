@@ -239,7 +239,7 @@ namespace algorithm
             newId[ n ] = _id[ ids[ n ] ];
          }
 
-         // _alpha stays the same!
+         // _alpha stays the same! TODO: check as the marginalization in canonical form doesn't give the same resutls
          return GaussianMultivariateMoment( newMean, xx, newId, _alpha );
       }
 
@@ -513,6 +513,7 @@ namespace algorithm
          ensure( success, "could not inverse matrix yy" );
 
          Matrix xyyyinv = xy * yyinv;
+         ensure( detyyinv > 0, "determinant YY must be > 0" );
          const value_type detyy = 1.0 / detyyinv;
 
          // new params:
@@ -570,6 +571,7 @@ namespace algorithm
          
          Vector mean = cov * Matrix( _h,  _h.size(), 1 );
 
+         ensure( detk > 0, "determinant K must be > 0" );
          const value_type cte1 = 0.5 * ( log( detk )
                                        - _h.size() * std::log( 2.0 * core::PI )
                                        - core::fastDoubleMultiplication( mean, _k ) );

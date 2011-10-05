@@ -7,6 +7,7 @@ namespace algorithm
    GaussianMultivariateCanonical GaussianMultivariateMoment::toGaussianCanonical() const
    {
       const Matrix& covInv = getCovInv();
+      ensure( getCovDet() > 0, "determinant K must be > 0" );
       const value_type detk = 1.0 / getCovDet(); // K = cov^-1
 
       Matrix k;
@@ -21,10 +22,6 @@ namespace algorithm
 
       VectorI id;
       id.clone( _id );
-
-      const double debug1 = core::fastDoubleMultiplication( _mean, covInv );
-      const double debug2 = _mean.size() * log ( 2 * core::PI );
-
       return GaussianMultivariateCanonical( h, k, g, id );
    }
 }
