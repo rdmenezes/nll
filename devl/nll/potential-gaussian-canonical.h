@@ -80,6 +80,11 @@ namespace algorithm
          }
       }
 
+      PotentialGaussianCanonical()
+      {
+         // nothing, unsusable moment
+      }
+
       /**
        @brief computes p(x)
        */
@@ -243,7 +248,7 @@ namespace algorithm
          return PotentialGaussianMoment( mean, cov, _id, alpha );
       }
 
-      void print( std::ostream& o )
+      void print( std::ostream& o ) const
       {
          o << "PotentialGaussianCanonical:" << std::endl;
          o << "h=";

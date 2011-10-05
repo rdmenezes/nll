@@ -1,3 +1,7 @@
+v0.16
+-added gaussian moment and canonical representation and associated operations
+-added matrix utilities
+
 v0.15
 -added locally linear embedding for feature selection & data structure display
 -integrated LIBLINEAR for massive linear svm
