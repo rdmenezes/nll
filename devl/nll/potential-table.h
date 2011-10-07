@@ -32,86 +32,10 @@
 #ifndef NLL_ALGORITHM_POTENTIAL_GAUSSIAN_TABLE_H_
 # define NLL_ALGORITHM_POTENTIAL_GAUSSIAN_TABLE_H_
 
-namespace nll
-{
-namespace algorithm
-{
-   /**
-    @ingroup algorithm
-    @brief represent a potential constructed as discrete events
-    */
-   class PotentialTable
-   {
-   public:
-      typedef double                      value_type;
-      typedef ui32                        value_typei;
-      typedef core::Matrix<value_type>    Matrix;
-      typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<ui32>        VectorI;
+# pragma warning( push )
+# pragma warning( disable:4996 ) // checked iterator warning
 
-   public:
-      PotentialTable()
-      {
-         // nothing, unusable potential!
-      }
 
-      /**
-       @brief table the table of events annotated with the corresponding probability
-
-       event  A B
-       ex: T[ 0 0 ] = 0.01 | index = 0
-           T[ 0 1 ] = 0.25 | index = 1
-           T[ 1 0 ] = 0.05 | index = 2
-           T[ 1 1 ] = 0.75 | index = 3
-
-        For example index = 1, represents p(A=false, B=true) = 0.25
-       */
-      PotentialTable( const Vector& table, const VectorI id = VectorI() )
-      {
-         if ( id.size() == 0 )
-         {
-            const double val = std::log( (double)table.size() ) / std::log( 2.0 );
-            const ui32 vali = core::round( val );
-            ensure( fabs( val - (double)vali ) < 1e-3, "the table size must be a power of 2 (ie. it must be a full iteration of the possible cases)" );
-            // assign default ID
-            _id = VectorI( vali );
-            for ( ui32 n = 0; n < vali; ++n )
-            {
-               _id[ n ] = n;
-            }
-         } else {
-            _id = id;
-         }
-
-         ensure( ( id.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
-         ensure( table.size() == ( (ui32)1 << id.size() ), "the table must be full!" );
-      }
-
-      const Vector& getTable() const
-      {
-         return _table;
-      }
-
-      PotentialTable marginalization( const VectorI& varIndexToRemove ) const
-      {
-         return PotentialTable();
-      }
-
-      PotentialTable conditioning( const Vector& vars, const VectorI& varsIndex ) const
-      {
-         return PotentialTable();
-      }
-
-      PotentialTable operator*( const PotentialTable& g2 ) const
-      {
-         return PotentialTable();
-      }
-
-   private:
-      Vector   _table;
-      VectorI  _id;
-   };
-}
-}
+# pragma warning( pop )
 
 #endif

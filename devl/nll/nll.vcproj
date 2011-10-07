@@ -1174,18 +1174,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\potential-gaussian-canonical.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\potential-gaussian-canonical.h"
-				>
-			</File>
-			<File
-				RelativePath=".\potential-gaussian-moment.h"
-				>
-			</File>
-			<File
 				RelativePath=".\potential-table.h"
 				>
 			</File>
@@ -1355,6 +1343,22 @@
 			</File>
 			<File
 				RelativePath=".\surf-2d.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="algorithm-bayes"
+			>
+			<File
+				RelativePath=".\potential-gaussian-canonical.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-gaussian-canonical.h"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-gaussian-moment.h"
 				>
 			</File>
 		</Filter>

@@ -764,6 +764,14 @@
 			<File
 				RelativePath=".\test-gaussian-tfm.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\test-genetic-algorithm.cpp"
@@ -1224,6 +1232,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\test-potential-table.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\test-principal-independent-component.cpp"
