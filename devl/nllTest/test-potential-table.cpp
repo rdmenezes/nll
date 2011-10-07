@@ -46,7 +46,7 @@ namespace algorithm
       {
          const ui32 expectedTableSize = getTableSize( cardinality );
          ensure( expectedTableSize == table.size(), "missing table entries" );
-         ensure( _domain.size() == cardinality.size(), "missing id" );
+         ensure( domain.size() == cardinality.size(), "missing id" );
          ensure( isDomainSorted( domain ), "the domain must be sorted!" );
          _domain = domain;
          _cardinality = cardinality;
@@ -65,9 +65,28 @@ namespace algorithm
          return _table;
       }
 
+      void print( std::ostream& o ) const
+      {
+         o << "Potential Table:" << std::endl;
+         o << "Domain=" ;
+         _domain.print( o );
+         o << "Cardinality=" ;
+         _cardinality.print( o );
+         o << "Table=" << std::endl;
+         _table.print( o );
+      }
+
       PotentialTable marginalization( const VectorI& varIndexToRemove ) const
       {
-         return PotentialTable();
+         ensure( varIndexToRemove.size(), "empty set" );
+
+         int size = (int)varIndexToRemove.size();
+         PotentialTable p = marginalization( varIndexToRemove[ 0 ] );
+         for ( int n = 1; n < size; ++n )
+         {
+            p = p.marginalization( varIndexToRemove[ n ] );
+         }
+         return p;
       }
 
       PotentialTable conditioning( const Vector& vars, const VectorI& varsIndex ) const
@@ -82,7 +101,7 @@ namespace algorithm
          const ui32 size = extended1.getTable().size();
          for ( ui32 n = 0; n < size; ++n )
          {
-            
+            extended1.getTable()[ n ] *= extended2.getTable()[ n ];
          }
          return extended1;
       }
@@ -129,9 +148,59 @@ namespace algorithm
          return tableSize;
       }
 
+      PotentialTable marginalization( ui32 varIndexToRemove ) const
+      {
+         ensure( _domain.size(), "domain is empty!" );
+         VectorI newDomain( _domain.size() - 1 );
+         VectorI newCardinality( _domain.size() - 1 );
+
+         // create the new domain, cardinality and computes the stride necessary to marginalize this variable
+         int removedIndex = -1;
+         ui32 stride = 1;
+         const ui32 oldSize = _domain.size();
+         ui32 index = 0;
+         for ( ui32 n = 0; n < oldSize; ++n )
+         {
+            const ui32 id = _domain[ n ];
+            if ( id == varIndexToRemove )
+            {
+               removedIndex = n;
+            } else {
+               if ( removedIndex == -1 )
+                  stride *= _cardinality[ n ];
+               newDomain[ index ] = id;
+               newCardinality[ index ] = _cardinality[ n ];
+               ++index;
+            }
+         }
+
+         const ui32 newSize = getTableSize( newCardinality );
+         Vector newTable( newSize );
+         std::vector<char> used( _table.size() );
+         ui32 indexWrite = 0;
+         for ( ui32 index = 0; index < _table.size(); ++index )
+         {
+            if ( used[ index ] == 0 )
+            {
+               value_type accum = 0;
+               for ( ui32 nn = 0; nn < _cardinality[ removedIndex ]; ++nn )
+               {
+                  const ui32 indexRef = index + nn * stride;
+                  accum += _table[ indexRef ];
+                  used[ indexRef ] = 1;
+               }
+               newTable[ indexWrite++ ] = accum;
+            }
+         }
+
+         return PotentialTable( newTable, newDomain, newCardinality );
+      }
+
       // given the current domain, extend the table to another domain
       Vector extend( const VectorI& domain, const VectorI& cardinality, VectorI& newDomain_out, VectorI& newCardinality_out ) const
       {
+         ensure( domain.size() == cardinality.size(), "args don't match" );
+
          std::vector<ui32> newDomain;
          std::vector<ui32> newCardinality;
          std::vector<char> newDomainBelongs;
@@ -351,6 +420,152 @@ public:
       TESTER_ASSERT( p2.getTable()[ 10 ] == 5 );
       TESTER_ASSERT( p2.getTable()[ 11 ] == 6 );
    }
+
+   void testMul4()
+   {
+      PotentialTable::VectorI domain1( 2 );
+      domain1[ 0 ] = 0;
+      domain1[ 1 ] = 2;
+      PotentialTable::VectorI multiplicity1( 2 );
+      multiplicity1[ 0 ] = 2;
+      multiplicity1[ 1 ] = 2;
+      PotentialTable::VectorI domain2( 2 );
+      domain2[ 0 ] = 1;
+      domain2[ 1 ] = 3;
+      PotentialTable::VectorI multiplicity2( 2 );
+      multiplicity2[ 0 ] = 2;
+      multiplicity2[ 1 ] = 2;
+      PotentialTable::Vector table( 4 );
+      for ( ui32 n = 0; n < table.size(); ++n )
+      {
+         table[ n ] = n + 1;
+      }
+
+      PotentialTable p1( table, domain1, multiplicity1 );
+      PotentialTable p2 = p1.extendDomain( domain2, multiplicity2 );
+      p2.getTable().print( std::cout );
+
+      TESTER_ASSERT( p2.getTable().size() == 16 );
+      TESTER_ASSERT( p2.getTable()[ 0 ] == 1 );
+      TESTER_ASSERT( p2.getTable()[ 1 ] == 2 );
+      TESTER_ASSERT( p2.getTable()[ 2 ] == 1 );
+      TESTER_ASSERT( p2.getTable()[ 3 ] == 2 );
+      TESTER_ASSERT( p2.getTable()[ 4 ] == 3 );
+      TESTER_ASSERT( p2.getTable()[ 5 ] == 4 );
+      TESTER_ASSERT( p2.getTable()[ 6 ] == 3 );
+      TESTER_ASSERT( p2.getTable()[ 7 ] == 4 );
+
+      TESTER_ASSERT( p2.getTable()[ 8 ] == 1 );
+      TESTER_ASSERT( p2.getTable()[ 9 ] == 2 );
+      TESTER_ASSERT( p2.getTable()[ 10 ] == 1 );
+      TESTER_ASSERT( p2.getTable()[ 11 ] == 2 );
+      TESTER_ASSERT( p2.getTable()[ 12 ] == 3 );
+      TESTER_ASSERT( p2.getTable()[ 13 ] == 4 );
+      TESTER_ASSERT( p2.getTable()[ 14 ] == 3 );
+      TESTER_ASSERT( p2.getTable()[ 15 ] == 4 );
+   }
+
+   void testMarginalization1()
+   {
+      double vals[] =
+      {
+         0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
+      };
+
+      PotentialTable::VectorI domain1( 3 );
+      domain1[ 0 ] = 0;
+      domain1[ 1 ] = 1;
+      domain1[ 2 ] = 2;
+
+      PotentialTable::VectorI multiplicity1( 3 );
+      multiplicity1[ 0 ] = 2;
+      multiplicity1[ 1 ] = 2;
+      multiplicity1[ 2 ] = 3;
+
+      PotentialTable::Vector table( vals, 12, false );
+      PotentialTable p1( table, domain1, multiplicity1 );
+
+      PotentialTable::VectorI var( 1 );
+      var[ 0 ] = 1;
+
+      PotentialTable p2 = p1.marginalization( var );
+
+      TESTER_ASSERT( p2.getTable().size() == 6 );
+      TESTER_ASSERT( p2.getTable()[ 0 ] == 0.33 );
+      TESTER_ASSERT( p2.getTable()[ 1 ] == 0.51 );
+      TESTER_ASSERT( p2.getTable()[ 2 ] == 0.05 );
+      TESTER_ASSERT( p2.getTable()[ 3 ] == 0.07 );
+      TESTER_ASSERT( p2.getTable()[ 4 ] == 0.24 );
+      TESTER_ASSERT( p2.getTable()[ 5 ] == 0.39 );
+   }
+
+   void testMarginalization2()
+   {
+      double vals[] =
+      {
+         0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
+      };
+
+      PotentialTable::VectorI domain1( 3 );
+      domain1[ 0 ] = 0;
+      domain1[ 1 ] = 1;
+      domain1[ 2 ] = 2;
+
+      PotentialTable::VectorI multiplicity1( 3 );
+      multiplicity1[ 0 ] = 2;
+      multiplicity1[ 1 ] = 2;
+      multiplicity1[ 2 ] = 3;
+
+      PotentialTable::Vector table( vals, 12, false );
+      PotentialTable p1( table, domain1, multiplicity1 );
+
+      PotentialTable::VectorI var( 1 );
+      var[ 0 ] = 0;
+
+      PotentialTable p2 = p1.marginalization( var );
+      p2.print( std::cout );
+
+      TESTER_ASSERT( p2.getTable().size() == 6 );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 0 ], 0.6, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 1 ], 0.24, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 2 ], 0.12, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 3 ], 0.0, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 4 ], 0.36, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 5 ], 0.27, 1e-3 ) );
+   }
+
+   void testMarginalization3()
+   {
+      double vals[] =
+      {
+         0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
+      };
+
+      PotentialTable::VectorI domain1( 3 );
+      domain1[ 0 ] = 0;
+      domain1[ 1 ] = 1;
+      domain1[ 2 ] = 2;
+
+      PotentialTable::VectorI multiplicity1( 3 );
+      multiplicity1[ 0 ] = 2;
+      multiplicity1[ 1 ] = 2;
+      multiplicity1[ 2 ] = 3;
+
+      PotentialTable::Vector table( vals, 12, false );
+      PotentialTable p1( table, domain1, multiplicity1 );
+
+      PotentialTable::VectorI var( 1 );
+      var[ 0 ] = 2;
+
+      PotentialTable p2 = p1.marginalization( var );
+      p2.print( std::cout );
+
+      TESTER_ASSERT( p2.getTable().size() == 4 );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 0 ], 0.45, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 1 ], 0.63, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 2 ], 0.17, 1e-3 ) );
+      TESTER_ASSERT( core::equal( p2.getTable()[ 3 ], 0.34, 1e-3 ) );
+   }
 };
 
 
@@ -359,5 +574,9 @@ TESTER_TEST_SUITE(TestPotentialTable);
 TESTER_TEST(testMul1);
 TESTER_TEST(testMul2);
 TESTER_TEST(testMul3);
+TESTER_TEST(testMul4);
+TESTER_TEST(testMarginalization1);
+TESTER_TEST(testMarginalization2);
+TESTER_TEST(testMarginalization3);
 TESTER_TEST_SUITE_END();
 #endif
