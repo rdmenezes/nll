@@ -89,9 +89,17 @@ namespace algorithm
          return p;
       }
 
-      PotentialTable conditioning( const Vector& vars, const VectorI& varsIndex ) const
+      PotentialTable conditioning( const VectorI& evidence, const VectorI& varIndexToRemove ) const
       {
-         return PotentialTable();
+         ensure( varIndexToRemove.size(), "empty set" );
+
+         int size = (int)varIndexToRemove.size();
+         PotentialTable p = conditioning( evidence[ 0 ], varIndexToRemove[ 0 ] );
+         for ( int n = 1; n < size; ++n )
+         {
+            p = p.conditioning( evidence[ n ], varIndexToRemove[ n ] );
+         }
+         return p;
       }
 
       PotentialTable operator*( const PotentialTable& g2 ) const
@@ -148,14 +156,53 @@ namespace algorithm
          return tableSize;
       }
 
-      PotentialTable marginalization( ui32 varIndexToRemove ) const
+      // compute P( X | E = e ) = P( X, E ) / P( E )
+      PotentialTable conditioning( ui32 evidence, ui32 varIndexToRemove ) const
       {
          ensure( _domain.size(), "domain is empty!" );
-         VectorI newDomain( _domain.size() - 1 );
-         VectorI newCardinality( _domain.size() - 1 );
+         VectorI newDomain;
+         VectorI newCardinality;
+         int removedIndex = -1;
+         std::vector<ui32> strides;
+         computeIndexToRemove( varIndexToRemove, removedIndex, newDomain, newCardinality, strides );
+         ui32 stride = strides[ removedIndex ];
+
+         // compute p(E=e)
+         value_type pe = 0;
+         for ( ui32 index = evidence * stride; index < _table.size(); index += stride * _cardinality[ removedIndex ] )
+         {
+            for ( ui32 c = 0; c < _cardinality[ removedIndex ]; ++c )
+            {
+               pe += _table[ index + c ];
+            }
+         }
+         ensure( pe > 0, "p(E = e) <= 0" );
+         
+         // now remove the evidence from the table and normalize
+         const ui32 newSize = getTableSize( newCardinality );
+         Vector newTable( newSize );
+         for ( ui32 index = 0; index < newSize; )
+         {
+            const ui32 indexSrc = stride * ( evidence + index * _cardinality[ removedIndex ] );
+            for ( ui32 nn = 0; nn < _cardinality[ removedIndex ]; ++nn )
+            {
+               const ui32 indexRef = indexSrc + nn;
+               newTable[ index++ ] = _table[ indexRef ] / pe;
+            }
+         }
+
+         return PotentialTable( newTable, newDomain, newCardinality );
+      }
+
+
+      void computeIndexToRemove( ui32 varIndexToRemove, int& removedIndex, VectorI& newDomain, VectorI& newCardinality, std::vector<ui32>& strides ) const
+      {
+         newDomain = VectorI( _domain.size() - 1 );
+         newCardinality = VectorI( _domain.size() - 1 );
+         strides = std::vector<ui32>( _domain.size() );
 
          // create the new domain, cardinality and computes the stride necessary to marginalize this variable
-         int removedIndex = -1;
+         removedIndex = -1;
          ui32 stride = 1;
          const ui32 oldSize = _domain.size();
          ui32 index = 0;
@@ -166,13 +213,28 @@ namespace algorithm
             {
                removedIndex = n;
             } else {
-               if ( removedIndex == -1 )
-                  stride *= _cardinality[ n ];
                newDomain[ index ] = id;
                newCardinality[ index ] = _cardinality[ n ];
                ++index;
             }
+            strides[ n ] = stride;
+            stride *= _cardinality[ n ];
          }
+         ensure( removedIndex != -1, "variable not found in domain" );
+      }
+
+
+      PotentialTable marginalization( ui32 varIndexToRemove ) const
+      {
+         // create the new domain, cardinality and computes the stride necessary to marginalize this variable
+         ensure( _domain.size(), "domain is empty!" );
+         VectorI newDomain;
+         VectorI newCardinality;
+         int removedIndex = -1;
+         std::vector<ui32> strides;
+         computeIndexToRemove( varIndexToRemove, removedIndex, newDomain, newCardinality, strides );
+         ui32 stride = strides[ removedIndex ];
+         
 
          const ui32 newSize = getTableSize( newCardinality );
          Vector newTable( newSize );
