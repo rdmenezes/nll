@@ -223,7 +223,11 @@ namespace algorithm
          ensure( removedIndex != -1, "variable not found in domain" );
       }
 
+      //
+      // TODO SPEED IMPROVEMENT: REMOVE (used)
+      //
 
+      // assuming a partition X = [ U V ], computes integral(-inf,+inf)p(U)dV
       PotentialTable marginalization( ui32 varIndexToRemove ) const
       {
          // create the new domain, cardinality and computes the stride necessary to marginalize this variable
