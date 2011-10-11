@@ -1174,10 +1174,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\potential-table.h"
-				>
-			</File>
-			<File
 				RelativePath=".\powell.h"
 				>
 			</File>
@@ -1359,6 +1355,10 @@
 			</File>
 			<File
 				RelativePath=".\potential-gaussian-moment.h"
+				>
+			</File>
+			<File
+				RelativePath=".\potential-table.h"
 				>
 			</File>
 		</Filter>
