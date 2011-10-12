@@ -140,6 +140,8 @@ namespace algorithm
 
       PotentialTable extendDomain( const VectorI& domain, const VectorI& cardinality ) const
       {
+         ensure( isDomainSorted( domain ), "domain must be sorted first" );
+
          VectorI newDomain;
          VectorI newCardinality;
          Vector newTable = extend( domain, cardinality, newDomain, newCardinality );
