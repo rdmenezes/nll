@@ -21,558 +21,773 @@ namespace core
    class Undirected
    {};
 
-   template <class NodeDetailT = Empty, class ArcDetailT = Empty, class DirectedT = Directed>
+   template <class VertexDetailT = Empty, class EdgeDetailT = Empty, class DirectedT = Directed>
    struct GraphImplAdjencyList
    {
-      typedef DirectedT                   Direction;
-      typedef NodeDetailT                 NodeDetail;
-      typedef ArcDetailT                  ArcDetail;
+      typedef DirectedT               Direction;
+      typedef VertexDetailT           VertexDetail;
+      typedef EdgeDetailT             EdgeDetail;
 
-      struct Arc
+      struct Edge
       {
          friend GraphImplAdjencyList;
 
       private:
-         Arc( ui32 duid, ui32 toUid ) : detailUid( duid ), toNodeUid( toUid )
+         Edge( ui32 duid, ui32 toUid ) : detailUid( duid ), toVertexUid( toUid )
          {}
 
+      public:
+         ui32 getDetailUid() const
+         {
+            return detailUid;
+         }
+
+         ui32 getToVertexUid() const
+         {
+            return toVertexUid;
+         }
+
+      private:
          ui32           detailUid;
-         ui32           toNodeUid;
+         ui32           toVertexUid;
       };
-      typedef std::vector<Arc>     Arcs;
+      typedef std::vector<Edge>     Edges;
 
-      struct Node
+      struct Vertex
       {
          friend GraphImplAdjencyList;
 
       private:
-         Node( ui32 duid ) : detailUid( duid )
+         Vertex( ui32 duid ) : detailUid( duid )
          {}
 
-         ui32  detailUid;
-         Arcs  arcs;
-      };
-      typedef std::vector<Node>     Nodes;
+      public:
+         typedef typename Edges::iterator       EdgeIterator;
+         typedef typename Edges::const_iterator ConstEdgeIterator;
 
-      struct NodeDescriptor
+         EdgeIterator begin()
+         {
+            return edges.begin();
+         }
+
+         EdgeIterator end()
+         {
+            return edges.end();
+         }
+
+         ConstEdgeIterator begin() const
+         {
+            return edges.begin();
+         }
+
+         ConstEdgeIterator end() const
+         {
+            return edges.end();
+         }
+
+      private:
+         ui32     detailUid;
+         Edges    edges;
+      };
+      typedef std::vector<Vertex>     Vertexs;
+
+      struct VertexDescriptor
       {
-         NodeDescriptor( ui32 suid, ui32 duid ) : detailUid( duid ), storageUid( suid )
+         VertexDescriptor( ui32 suid, ui32 duid ) : detailUid( duid ), storageUid( suid )
          {}
 
          ui32           detailUid;
          ui32           storageUid;
       };
 
-      struct ArcDescriptor
+      struct EdgeDescriptor
       {
-         ArcDescriptor( ui32 sid, ui32 did, const NodeDescriptor& s, const NodeDescriptor& d ) : storageUid( sid ), detailUid( did ), src( s ), dst( d )
+         EdgeDescriptor( ui32 sid, ui32 did, const VertexDescriptor& s, const VertexDescriptor& d ) : storageUid( sid ), detailUid( did ), src( s ), dst( d )
          {
          }
          ui32           detailUid;
          ui32           storageUid;
-         NodeDescriptor src;
-         NodeDescriptor dst;
+         VertexDescriptor src;
+         VertexDescriptor dst;
       };
 
-      typedef std::vector<NodeDescriptor>    NodeDescriptors;
-      typedef std::vector<ArcDescriptor>     ArcDescriptors;
-      typedef std::vector<NodeDetail>        NodeDetails;
-      typedef std::vector<ArcDetail>         ArcDetails;
+      typedef std::vector<VertexDescriptor>   VertexDescriptors;
+      typedef std::vector<EdgeDescriptor>     EdgeDescriptors;
+      typedef std::vector<VertexDetail>       VertexDetails;
+      typedef std::vector<EdgeDetail>         EdgeDetails;
 
-      class ConstNodeIterator
+      class ConstVertexIterator
       {
       public:
-         ConstNodeIterator( GraphImplAdjencyList& graph, ui32 uid ) : _graph( graph ), _it( graph._nodes.begin() + uid )
+         ConstVertexIterator( const GraphImplAdjencyList& graph, ui32 uid ) : _graph( &const_cast<GraphImplAdjencyList&>( graph ) ), _it( _graph->_vertexs.begin() + uid )
          {}
 
-         ConstNodeIterator& operator++()
+         ConstVertexIterator& operator++()
          {
             ++_it;
             return *this;
          }
 
-         ConstNodeIterator& operator++(int)
+         ConstVertexIterator operator++(int)
          {
-            ConstNodeIterator it( *this );
+            ConstVertexIterator it( *this );
             ++_it;
             return it;
          }
 
-         bool operator!=( const ConstNodeIterator& it ) const
+         ConstVertexIterator operator+( size_t d ) const
+         {
+            ConstVertexIterator it( * this );
+            it._it += d;
+            return it;
+         }
+
+         size_t operator-( const ConstVertexIterator& it ) const
+         {
+            return _it - it._it;
+         }
+
+         bool operator!=( const ConstVertexIterator& it ) const
          {
             return _it != it._it;
          }
 
-         const NodeDetail& operator*() const
+         const VertexDetail& operator*() const
          {
-            return _graph._nodeDetails[ _it->detailUid ];
+            return _graph->_vertexDetails[ _it->detailUid ];
          }
 
-      private:
-         ConstNodeIterator operator=( ConstNodeIterator& ); // disabled copy
+         const Vertex& getVertex() const
+         {
+            return *_it;
+         }
 
       protected:
-         GraphImplAdjencyList&      _graph;
-         typename Nodes::iterator   _it;
+         GraphImplAdjencyList*         _graph;
+         typename Vertexs::iterator    _it;
       };
 
-      class NodeIterator : public ConstNodeIterator
+      class VertexIterator : public ConstVertexIterator
       {
       public:
-         NodeIterator( GraphImplAdjencyList& graph, ui32 uid ) : ConstNodeIterator( graph, uid )
+         VertexIterator( GraphImplAdjencyList& graph, ui32 uid ) : ConstVertexIterator( graph, uid )
          {}
 
-         bool operator!=( const NodeIterator& it ) const
+         bool operator!=( const VertexIterator& it ) const
          {
             return _it != it._it;
          }
 
-         NodeDetail& operator*()
+         VertexDetail& operator*()
          {
-            return _graph._nodeDetails[ _it->detailUid ];
+            return _graph->_vertexDetails[ _it->detailUid ];
+         }
+
+         Vertex& getVertex()
+         {
+            return *_it;
          }
       };
 
-      class ConstArcIterator
+      class ConstEdgeIterator
       {
       public:
-         ConstArcIterator( GraphImplAdjencyList& graph, ui32 nodeUid, ui32 arcUid ) : _graph( graph ), _it( graph._nodes[ nodeUid ].arcs.begin() + arcUid )
+         ConstEdgeIterator( const GraphImplAdjencyList& graph, ui32 VertexUid, ui32 EdgeUid ) : _graph( const_cast<GraphImplAdjencyList&>( graph ) ), _it( _graph._vertexs[ VertexUid ].edges.begin() + EdgeUid )
          {}
 
-         ConstArcIterator& operator++()
+         ConstEdgeIterator& operator++()
          {
             ++_it;
             return *this;
          }
 
-         ConstArcIterator& operator++(int)
+         ConstEdgeIterator operator++(int)
          {
-            ConstArcIterator it( *this );
+            ConstEdgeIterator it( *this );
             ++_it;
             return it;
          }
 
-         bool operator!=( const ConstArcIterator& it ) const
+         bool operator!=( const ConstEdgeIterator& it ) const
          {
             return _it != it._it;
          }
 
-         const ArcDetail& operator*() const
+         const EdgeDetail& operator*() const
          {
-            return _graph._arcDetails[ _it->detailUid ];
+            return _graph._edgeDetails[ _it->detailUid ];
          }
 
       private:
-         ConstArcIterator operator=( ConstArcIterator& ); // disabled copy
+         ConstEdgeIterator operator=( ConstEdgeIterator& ); // disabled copy
 
       protected:
-         GraphImplAdjencyList&      _graph;
-         typename Arcs::iterator    _it;
+         GraphImplAdjencyList&         _graph;
+         typename Edges::iterator      _it;
       };
 
-      class ArcIterator : public ConstArcIterator
+      class EdgeIterator : public ConstEdgeIterator
       {
       public:
-         ArcIterator( GraphImplAdjencyList& graph, ui32 nodeUid, ui32 arcUid ) : ConstArcIterator( graph, nodeUid, arcUid )
+         EdgeIterator( GraphImplAdjencyList& graph, ui32 VertexUid, ui32 EdgeUid ) : ConstEdgeIterator( graph, VertexUid, EdgeUid )
          {}
 
-         ArcDetail& operator*()
+         EdgeDetail& operator*()
          {
-            return _graph._arcDetails[ _it->detailUid ];
+            return _graph._edgeDetails[ _it->detailUid ];
          }
       };
-
-      class Visitor
-      {
-      public:
-         virtual void start(){}
-         virtual void end(){}
-      };
-
-      
 
    public:
       GraphImplAdjencyList()
       {}
 
       
-      NodeDescriptor addNode( const NodeDetail& detail )
+      VertexDescriptor addVertex( const VertexDetail& detail )
       {
-         return addNodeImpl( Direction(), detail );
+         return addVertexImpl( Direction(), detail );
       }
       
-      ArcDescriptor addArc( const NodeDescriptor& n1, const NodeDescriptor& n2, const ArcDetail& detail )
+      EdgeDescriptor addEdge( const VertexDescriptor& n1, const VertexDescriptor& n2, const EdgeDetail& detail )
       {
-         return addArcImpl( Direction(), n1, n2, detail );
+         return addEdgeImpl( Direction(), n1, n2, detail );
       }
 
-      ArcDescriptor getArc( const NodeDescriptor& n1, const NodeDescriptor& n2, bool& found )
+      EdgeDescriptor getEdge( const VertexDescriptor& n1, const VertexDescriptor& n2, bool& found )
       {
-         return getArcImpl( Direction(), n1, n2, found );
+         return getEdgeImpl( Direction(), n1, n2, found );
       }
 
-      NodeIterator beginNodes()
+      VertexIterator beginVertexs()
       {
-         return NodeIterator( *this, 0 );
+         return VertexIterator( *this, 0 );
       }
 
-      NodeIterator endNodes()
+      VertexIterator endVertexs()
       {
-         return NodeIterator( *this, _nodes.size() );
+         return VertexIterator( *this, _vertexs.size() );
       }
 
-      ConstNodeIterator beginNodes() const
+      ConstVertexIterator beginVertexs() const
       {
-         return ConstNodeIterator( *this, 0 );
+         return ConstVertexIterator( *this, 0 );
       }
 
-      ConstNodeIterator endNodes() const
+      ConstVertexIterator endVertexs() const
       {
-         return ConstNodeIterator( *this, _nodes.size() );
+         return ConstVertexIterator( *this, _vertexs.size() );
       }
 
-      ArcIterator beginOutEdges( const NodeDescriptor& desc )
+      EdgeIterator beginOutEdges( const VertexDescriptor& desc )
       {
-         return ArcIterator( *this, desc.storageUid, 0 );
+         return EdgeIterator( *this, desc.storageUid, 0 );
       }
 
-      ConstArcIterator beginOutEdges( const NodeDescriptor& desc ) const
+      ConstEdgeIterator beginOutEdges( const VertexDescriptor& desc ) const
       {
-         return ConstArcIterator( *this, desc.storageUid, 0 );
+         return ConstEdgeIterator( *this, desc.storageUid, 0 );
       }
 
-      ArcIterator endOutEdges( const NodeDescriptor& desc )
+      EdgeIterator endOutEdges( const VertexDescriptor& desc )
       {
-         return ArcIterator( *this, desc.storageUid, _nodes[ desc.storageUid ].arcs.size() );
+         return EdgeIterator( *this, desc.storageUid, _vertexs[ desc.storageUid ].edges.size() );
       }
 
-      ConstArcIterator endOutEdges( const NodeDescriptor& desc ) const
+      ConstEdgeIterator endOutEdges( const VertexDescriptor& desc ) const
       {
-         return ConstArcIterator( *this, desc.storageUid, _nodes[ desc.storageUid ].arcs.size() );
+         return ConstEdgeIterator( *this, desc.storageUid, _vertexs[ desc.storageUid ].edges.size() );
       }
 
-      const ArcDetail& getArcDetail( const ArcDescriptor& desc ) const
+      const EdgeDetail& getEdgeDetail( const EdgeDescriptor& desc ) const
       {
-         return _arcDetails[ desc.detailUid ];
+         return _edgeDetails[ desc.detailUid ];
       }
 
-      ArcDetail& getArcDetail( const ArcDescriptor& desc )
+      EdgeDetail& getEdgeDetail( const EdgeDescriptor& desc )
       {
-         return _arcDetails[ desc.detailUid ];
+         return _edgeDetails[ desc.detailUid ];
       }
 
-      const ArcDetail& getArcDetail( const Arc& desc ) const
+      const EdgeDetail& getEdgeDetail( const Edge& desc ) const
       {
-         return _arcDetails[ desc.detailUid ];
+         return _edgeDetails[ desc.detailUid ];
       }
 
-      ArcDetail& getArcDetail( const Arc& desc )
+      EdgeDetail& getEdgeDetail( const Edge& desc )
       {
-         return _arcDetails[ desc.detailUid ];
+         return _edgeDetails[ desc.detailUid ];
       }
 
-      NodeDetail& getNodeDetail( const NodeDescriptor& desc )
+      VertexDetail& getVertexDetail( const VertexDescriptor& desc )
       {
-         return _nodeDetails[ desc.detailUid ];
+         return _vertexDetails[ desc.detailUid ];
       }
 
-      const NodeDetail& getNodeDetail( const NodeDescriptor& desc ) const
+      const VertexDetail& getVertexDetail( const VertexDescriptor& desc ) const
       {
-         return _nodeDetails[ desc.detailUid ];
+         return _vertexDetails[ desc.detailUid ];
       }
 
-      NodeDetail& getNodeDetail( const Node& desc )
+      VertexDetail& getVertexDetail( const Vertex& desc )
       {
-         return _nodeDetails[ desc.detailUid ];
+         return _vertexDetails[ desc.detailUid ];
       }
 
-      const NodeDetail& getNodeDetail( const Node& desc ) const
+      const VertexDetail& getVertexDetail( const Vertex& desc ) const
       {
-         return _nodeDetails[ desc.detailUid ];
+         return _vertexDetails[ desc.detailUid ];
       }
 
    private:
-      NodeDescriptor createNode( ui32 detailUid )
+      VertexDescriptor createVertex( ui32 detailUid )
       {
-         NodeDescriptor desc( _nodes.size(), detailUid );
-         _nodes.push_back( Node( detailUid ) );
+         VertexDescriptor desc( _vertexs.size(), detailUid );
+         _vertexs.push_back( Vertex( detailUid ) );
          return desc;
       }
 
-      NodeDetail& createNodeDetail( const NodeDetail& detail, ui32& uid )
+      VertexDetail& createVertexDetail( const VertexDetail& detail, ui32& uid )
       {
-         if ( _recycleNodeDetails.size() )
+         if ( _recycleVertexDetails.size() )
          {
-            const ui32 uidRecycled = *_recycleNodeDetails.rbegin();
-            NodeDetail& d = _nodeDetails[ uidRecycled ];
-            _recycleNodeDetails.pop_back();
+            const ui32 uidRecycled = *_recycleVertexDetails.rbegin();
+            VertexDetail& d = _vertexDetails[ uidRecycled ];
+            _recycleVertexDetails.pop_back();
 
             uid = uidRecycled;
             d = detail;
             return d;
          } else {
-            uid = _nodeDetails.size();
-            _nodeDetails.push_back( detail );
-            return *_nodeDetails.rbegin();
+            uid = _vertexDetails.size();
+            _vertexDetails.push_back( detail );
+            return *_vertexDetails.rbegin();
          }
       }
 
-      ArcDetail& createArcDetail( const ArcDetail& detail, ui32& uid )
+      EdgeDetail& createEdgeDetail( const EdgeDetail& detail, ui32& uid )
       {
-         if ( _recycleArcDetails.size() )
+         if ( _recycleEdgeDetails.size() )
          {
-            const ui32 uidRecycled = *_recycleArcDetails.rbegin();
-            ArcDetail& d = _arcDetails[ uidRecycled ];
-            _recycleArcDetails.pop_back();
+            const ui32 uidRecycled = *_recycleEdgeDetails.rbegin();
+            EdgeDetail& d = _edgeDetails[ uidRecycled ];
+            _recycleEdgeDetails.pop_back();
 
             uid = uidRecycled;
             d = detail;
             return d;
          } else {
-            uid = _arcDetails.size();
-            _arcDetails.push_back( detail );
-            return *_arcDetails.rbegin();
+            uid = _edgeDetails.size();
+            _edgeDetails.push_back( detail );
+            return *_edgeDetails.rbegin();
          }
       }
 
       
       template <class IsDirected>
-      NodeDescriptor addNodeImpl( IsDirected fswitch, const NodeDetail& detail );
+      VertexDescriptor addVertexImpl( IsDirected fswitch, const VertexDetail& detail );
 
       
       template <class IsDirected>
-      ArcDescriptor addArcImpl( IsDirected fswitch, const NodeDescriptor& n1, const NodeDescriptor& n2, const ArcDetail& detail );
+      EdgeDescriptor addEdgeImpl( IsDirected fswitch, const VertexDescriptor& n1, const VertexDescriptor& n2, const EdgeDetail& detail );
 
 
       template <class IsDirected>
-      ArcDescriptor getArcImpl( IsDirected fswitch, const NodeDescriptor& n1, const NodeDescriptor& n2, bool& found );
+      EdgeDescriptor getEdgeImpl( IsDirected fswitch, const VertexDescriptor& n1, const VertexDescriptor& n2, bool& found );
 
       template <>
-      NodeDescriptor addNodeImpl( Directed, const NodeDetail& detail )
+      VertexDescriptor addVertexImpl( Directed, const VertexDetail& detail )
       {
          ui32 duid;
-         createNodeDetail( detail, duid );
-         return createNode( duid );
+         createVertexDetail( detail, duid );
+         return createVertex( duid );
       }  
 
       template <>
-      ArcDescriptor addArcImpl( Directed, const NodeDescriptor& n1, const NodeDescriptor& n2, const ArcDetail& detail )
+      EdgeDescriptor addEdgeImpl( Directed, const VertexDescriptor& n1, const VertexDescriptor& n2, const EdgeDetail& detail )
       {
          ui32 uid;
-         createArcDetail( detail, uid );
-         Node& node = _nodes[ n1.storageUid ];
-         ArcDescriptor newArc( node.arcs.size(), uid, n1, n2 );
+         createEdgeDetail( detail, uid );
+         Vertex& Vertex = _vertexs[ n1.storageUid ];
+         EdgeDescriptor newEdge( Vertex.edges.size(), uid, n1, n2 );
 
          #ifdef NLL_GRAPH_SECURE_CHECKS
-         for ( Arcs::iterator it = node.arcs.begin(); it != node.arcs.end(); ++it )
+         for ( Edges::iterator it = Vertex.edges.begin(); it != Vertex.edges.end(); ++it )
          {
-            ensure( it->toNodeUid != n2.storageUid, "the arc has been added twice" );
+            ensure( it->toVertexUid != n2.storageUid, "the Edge has been added twice" );
          }
          #endif
-         node.arcs.push_back( Arc( uid, n2.storageUid ) );
-         return newArc;
+         Vertex.edges.push_back( Edge( uid, n2.storageUid ) );
+         return newEdge;
       }
 
       template <>
-      ArcDescriptor getArcImpl( Directed, const NodeDescriptor& n1, const NodeDescriptor& n2, bool& found )
+      EdgeDescriptor getEdgeImpl( Directed, const VertexDescriptor& n1, const VertexDescriptor& n2, bool& found )
       {
-         Node& node = _nodes[ n1.storageUid ];
-         Arcs& arcs = node.arcs;
-         Arcs::iterator it = std::find_if( arcs.begin(), arcs.end(), PredicateAreDirectedNodeUidEqual( n2.storageUid ) );
-         if ( it != arcs.end() )
+         Vertex& Vertex = _vertexs[ n1.storageUid ];
+         Edges& edges = Vertex.edges;
+         Edges::iterator it = std::find_if( edges.begin(), edges.end(), PredicateAreDirectedVertexUidEqual( n2.storageUid ) );
+         if ( it != edges.end() )
          {
             found = true;
-            return ArcDescriptor( it - arcs.begin(), it->detailUid, n1, n2 );
+            return EdgeDescriptor( it - edges.begin(), it->detailUid, n1, n2 );
          } else {
             found = false;
-            return ArcDescriptor( (ui32)-1, (ui32)-1, n1, n2 );
+            return EdgeDescriptor( (ui32)-1, (ui32)-1, n1, n2 );
          }
       }
 
-      struct PredicateAreDirectedNodeUidEqual
+      struct PredicateAreDirectedVertexUidEqual
       {
-         PredicateAreDirectedNodeUidEqual( ui32 toNodeUid ) : _toNodeUid( toNodeUid )
+         PredicateAreDirectedVertexUidEqual( ui32 toVertexUid ) : _toVertexUid( toVertexUid )
          {}
 
-         bool operator()( const Arc& n ) const
+         bool operator()( const Edge& n ) const
          {
-            return _toNodeUid == n.toNodeUid;
+            return _toVertexUid == n.toVertexUid;
          }
 
       private:
-         ui32   _toNodeUid;
+         ui32   _toVertexUid;
       };
 
 
    private:
-      Nodes             _nodes;
-
-      NodeDetails       _nodeDetails;
-      ArcDetails        _arcDetails;
-      std::vector<ui32> _recycleNodeDetails;
-      std::vector<ui32> _recycleArcDetails;
+      Vertexs              _vertexs;
+      VertexDetails        _vertexDetails;
+      EdgeDetails          _edgeDetails;
+      std::vector<ui32>    _recycleVertexDetails;
+      std::vector<ui32>    _recycleEdgeDetails;
    };
 
    template <class Impl = GraphImpl<> >
    class Graph
    {
    public:
-      typedef typename Impl::NodeDetail     NodeDetail;
-      typedef typename Impl::ArcDetail      ArcDetail;
-      typedef typename Impl::NodeDescriptor NodeDescriptor;
-      typedef typename Impl::ArcDescriptor  ArcDescriptor;
-      typedef typename Impl::Node           Node;
-      typedef typename Impl::Arc            Arc;
-      typedef Impl                          GraphImpl;
+      typedef typename Impl::VertexDetail       VertexDetail;
+      typedef typename Impl::EdgeDetail         EdgeDetail;
+      typedef typename Impl::VertexDescriptor   VertexDescriptor;
+      typedef typename Impl::EdgeDescriptor     EdgeDescriptor;
+      typedef typename Impl::Vertex             Vertex;
+      typedef typename Impl::Edge               Edge;
+      typedef Impl                              GraphImpl;
+      typedef typename Impl::Direction          Direction;
 
-      typedef typename Impl::NodeIterator      NodeIterator;
-      typedef typename Impl::ConstNodeIterator ConstNodeIterator;
-      typedef typename Impl::ArcIterator       ArcIterator;
-      typedef typename Impl::ConstArcIterator  ConstArcIterator;
+      typedef typename Impl::VertexIterator        VertexIterator;
+      typedef typename Impl::ConstVertexIterator   ConstVertexIterator;
+      typedef typename Impl::EdgeIterator          EdgeIterator;
+      typedef typename Impl::ConstEdgeIterator     ConstEdgeIterator;
+
+   public:
+      class ConstVisitorBfs
+      {
+      public:
+         typedef typename Impl::Vertex             Vertex;
+         typedef typename Impl::Edge               Edge;
+         typedef Graph<Impl>                       Graph;
+
+         virtual void start( const Graph& ){}
+         virtual void finish( const Graph& ){}
+
+         // called when the vertex has been discovered for the first time (
+         virtual void discoverVertex( const Vertex& , const Graph& ){}
+         virtual void finishVertex( const Vertex& , const Graph& ){}
+         virtual void discoverEdge( const Edge& , const Graph& ){}
+
+         virtual void visit( const Graph& g )
+         {
+            //std::vector<char> visited( g.getNbVertexs() );
+            std::vector<char> vertexDiscovered( g.getNbVertexs() );
+            std::list<ConstVertexIterator> its;
+
+            start( g );
+            if ( vertexDiscovered.size() )
+            {
+               for ( ui32 vertex = 0; vertex < g.getNbVertexs(); ++vertex )
+               {
+                  if ( vertexDiscovered[ vertex ] == 1 )
+                     continue;   // we already checked this vertex
+
+                  // queue the first vertex
+                  its.push_back( g.beginVertexs() + vertex );
+                  discoverVertex( its.rbegin()->getVertex(), g );
+                  vertexDiscovered[ vertex ] = 1;
+
+                  // finally continue until all vertexes have been visited
+                  while ( its.size() )
+                  {
+                     ConstVertexIterator it = *its.rbegin();
+                     its.pop_back();
+                     for ( Vertex::ConstEdgeIterator ite = it.getVertex().begin(); ite != it.getVertex().end(); ++ite )
+                     {
+                        const ui32 uid = ite->getToVertexUid();
+                        const bool hasBeenDiscovered = vertexDiscovered[ uid ] == 1;
+                        if ( !hasBeenDiscovered )
+                        {
+                           discoverEdge( *ite, g );
+
+                           ConstVertexIterator newVertex = g.beginVertexs() + uid;
+                           its.push_back( newVertex );
+                           discoverVertex( newVertex.getVertex(), g );
+                           vertexDiscovered[ uid ] = 1;
+                        }
+                     }
+                     finishVertex( it.getVertex(), g );  // we have visited all out edges...
+                  }
+               }
+            }
+            finish( g );
+         }
+      };
 
    public:
       Graph( const Impl impl = Impl() ) : _impl( impl )
       {}
 
-      NodeDescriptor addNode( const NodeDetail details = NodeDetail() )
+      size_t getNbVertexs() const
       {
-         return _impl.addNode( details );
+         return endVertexs() - beginVertexs();
       }
 
-      ArcDescriptor addArc( const NodeDescriptor& n1, const NodeDescriptor& n2, const ArcDetail d = ArcDetail() )
+      VertexDescriptor addVertex( const VertexDetail details = VertexDetail() )
       {
-         return _impl.addArc( n1, n2, d );
+         return _impl.addVertex( details );
       }
 
-      ArcDescriptor getArc( const NodeDescriptor& n1, const NodeDescriptor& n2, bool& found )
+      EdgeDescriptor addEdge( const VertexDescriptor& n1, const VertexDescriptor& n2, const EdgeDetail d = EdgeDetail() )
       {
-         return _impl.getArc( n1, n2, found );
+         return _impl.addEdge( n1, n2, d );
       }
 
-      NodeIterator beginNodes()
+      EdgeDescriptor getEdge( const VertexDescriptor& n1, const VertexDescriptor& n2, bool& found )
       {
-         return _impl.beginNodes();
+         return _impl.getEdge( n1, n2, found );
       }
 
-      NodeIterator endNodes()
+      VertexIterator beginVertexs()
       {
-         return _impl.endNodes();
+         return _impl.beginVertexs();
       }
 
-      ConstNodeIterator beginNodes() const
+      VertexIterator endVertexs()
       {
-         return _impl.beginNodes();
+         return _impl.endVertexs();
       }
 
-      ConstNodeIterator endNodes() const
+      ConstVertexIterator beginVertexs() const
       {
-         return _impl.endNodes();
+         return _impl.beginVertexs();
       }
 
-      ArcIterator beginOutEdges( const NodeDescriptor& desc )
+      ConstVertexIterator endVertexs() const
+      {
+         return _impl.endVertexs();
+      }
+
+      EdgeIterator beginOutEdges( const VertexDescriptor& desc )
       {
          return _impl.beginOutEdges( desc );
       }
 
-      ArcIterator beginOutEdges( const NodeDescriptor& desc ) const
+      EdgeIterator beginOutEdges( const VertexDescriptor& desc ) const
       {
          return _impl.beginOutEdges( desc );
       }
 
-      ArcIterator endOutEdges( const NodeDescriptor& desc )
+      EdgeIterator endOutEdges( const VertexDescriptor& desc )
       {
          return _impl.endOutEdges( desc );
       }
 
-      ArcIterator endOutEdges( const NodeDescriptor& desc ) const
+      EdgeIterator endOutEdges( const VertexDescriptor& desc ) const
       {
          return _impl.endOutEdges( desc );
       }
 
-      const ArcDetail& operator[]( const ArcDescriptor& desc ) const
+      const EdgeDetail& operator[]( const EdgeDescriptor& desc ) const
       {
-         return _impl.getArcDetail( desc );
+         return _impl.getEdgeDetail( desc );
       }
 
-      ArcDetail& operator[]( const ArcDescriptor& desc )
+      EdgeDetail& operator[]( const EdgeDescriptor& desc )
       {
-         return _impl.getArcDetail( desc );
+         return _impl.getEdgeDetail( desc );
       }
 
-      const ArcDetail& operator[]( const Arc& desc ) const
+      const EdgeDetail& operator[]( const Edge& desc ) const
       {
-         return _impl.getArcDetail( desc );
+         return _impl.getEdgeDetail( desc );
       }
 
-      ArcDetail& operator[]( const Arc& desc )
+      EdgeDetail& operator[]( const Edge& desc )
       {
-         return _impl.getArcDetail( desc );
+         return _impl.getEdgeDetail( desc );
       }
 
-      const NodeDetail& operator[]( const NodeDescriptor& desc ) const
+      const VertexDetail& operator[]( const VertexDescriptor& desc ) const
       {
-         return _impl.getNodeDetail( desc );
+         return _impl.getVertexDetail( desc );
       }
 
-      NodeDetail& operator[]( const NodeDescriptor& desc )
+      VertexDetail& operator[]( const VertexDescriptor& desc )
       {
-         return _impl.getNodeDetail( desc );
+         return _impl.getVertexDetail( desc );
       }
 
-      const NodeDetail& operator[]( const Node& desc ) const
+      const VertexDetail& operator[]( const Vertex& desc ) const
       {
-         return _impl.getNodeDetail( desc );
+         return _impl.getVertexDetail( desc );
       }
 
-      NodeDetail& operator[]( const Node& desc )
+      VertexDetail& operator[]( const Vertex& desc )
       {
-         return _impl.getNodeDetail( desc );
+         return _impl.getVertexDetail( desc );
       }
 
    private:
       GraphImpl   _impl;
    };
+
+   template <class GraphImpl>
+   class _VisitorFindRoot : public GraphImpl::ConstVisitorBfs
+   {
+      typedef typename GraphImpl::ConstVisitorBfs  Base;
+
+   public:
+      typedef typename Base::Graph                 Graph;
+      typedef typename Base::Edge                  Edge;
+      typedef typename Base::Vertex                Vertex;
+
+      typedef typename GraphImpl::ConstVertexIterator     ConstVertexIterator;
+
+      virtual void start( const Graph& g )
+      {
+         enum {VAL = Equal<GraphImpl::Direction, Directed>::value };
+         STATIC_ASSERT( VAL ); // the graph must be directed!
+         _counts = std::vector<ui32>( g.getNbVertexs() );
+      }
+
+      virtual void discoverEdge( const typename Base::Edge& edge, const Graph& )
+      {
+         ++_counts[ edge.getToVertexUid() ];
+      }
+
+      virtual void finish( const Graph& g )
+      {
+         _roots.clear();
+
+         typedef std::vector< std::pair< ui32, ui32 > >  Pairs;
+         Pairs pairs;
+         for ( ConstVertexIterator it = g.beginVertexs(); it != g.endVertexs(); ++it )
+         {
+            ui32 index = (ui32)(it - g.beginVertexs());
+            pairs.push_back( std::make_pair( _counts[ index ], index ) );
+         }
+
+         std::sort( pairs.begin(), pairs.end() );
+         for ( Pairs::const_iterator it = pairs.begin(); it != pairs.end(); ++it )
+         {
+            if ( it->first != 0 )
+               break;
+            _roots.push_back( g.beginVertexs() + it->second );
+         }
+
+         _counts.clear();
+      }
+
+      const std::vector<ConstVertexIterator>& getRoots() const
+      {
+         return _roots;
+      }
+
+   private:
+      std::vector<ui32>                _counts;
+      std::vector<ConstVertexIterator> _roots;
+   };
+
+   template <class GraphImpl>
+   std::vector<typename Graph<GraphImpl>::ConstVertexIterator> findRoots( const Graph<GraphImpl>& graph )
+   {
+      _VisitorFindRoot< Graph<GraphImpl> > visitor;
+      visitor.visit( graph );
+      return visitor.getRoots();
+   }
 }
 }
 
 class TestGraph
 {
 public:
+   typedef core::Graph< GraphImplAdjencyList<int, std::string, Directed> > Graph1;
+
+   class ConstVisitorBfsPrint : public Graph1::ConstVisitorBfs
+   {
+   public:
+      virtual void discoverVertex( const Vertex& vertex, const Graph& g )
+      {
+         std::cout << "Vertex=" << g[ vertex ] << std::endl;
+         discoveryList.push_back( g[ vertex ] );
+      }
+
+      virtual void discoverEdge( const Edge& edge, const Graph& g )
+      {
+         std::cout << "Edge=" << g[ edge ] << std::endl;
+      }
+
+      std::vector<ui32> discoveryList;
+   };
+
    void test1()
    {
-      typedef core::Graph< GraphImplAdjencyList<int, std::string, Directed> > Graph;
-      Graph g;
+      Graph1 g;
 
-      Graph::NodeDescriptor n1 = g.addNode( 10 );
-      Graph::NodeDescriptor n2 = g.addNode( 11 );
-      Graph::NodeDescriptor n3 = g.addNode( 12 );
+      Graph1::VertexDescriptor n1 = g.addVertex( 10 );
+      Graph1::VertexDescriptor n2 = g.addVertex( 11 );
+      Graph1::VertexDescriptor n3 = g.addVertex( 12 );
+      g.addVertex( 13 );
+      g.addVertex( 14 );
 
-      Graph::ArcDescriptor a2 = g.addArc( n1, n2, "test" );
-      Graph::ArcDescriptor a3 = g.addArc( n1, n3, "test2" );
+      Graph1::EdgeDescriptor a2 = g.addEdge( n1, n2, "test" );
+      Graph1::EdgeDescriptor a3 = g.addEdge( n1, n3, "test2" );
 
       bool found;
-      Graph::ArcDescriptor a2a = g.getArc( n1, n2, found );
+      Graph1::EdgeDescriptor a2a = g.getEdge( n1, n2, found );
 
 
-      for ( Graph::NodeIterator it = g.beginNodes(); it != g.endNodes(); ++it )
+      for ( Graph1::VertexIterator it = g.beginVertexs(); it != g.endVertexs(); ++it )
       {
          std::cout << "V=" << *it << std::endl;
       }
 
-      for ( Graph::ConstNodeIterator it = g.beginNodes(); it != g.endNodes(); ++it )
+      for ( Graph1::ConstVertexIterator it = g.beginVertexs(); it != g.endVertexs(); ++it )
       {
          std::cout << "V=" << *it << std::endl;
       }
 
-      for ( Graph::ArcIterator it = g.beginOutEdges( n1 ); it != g.endOutEdges( n1 ); ++it )
+      for ( Graph1::EdgeIterator it = g.beginOutEdges( n1 ); it != g.endOutEdges( n1 ); ++it )
       {
          std::cout << "A=" << *it << std::endl;
       }
 
-      for ( Graph::ConstArcIterator it = g.beginOutEdges( n1 ); it != g.endOutEdges( n1 ); ++it )
+      for ( Graph1::ConstEdgeIterator it = g.beginOutEdges( n1 ); it != g.endOutEdges( n1 ); ++it )
       {
          std::cout << "A=" << *it << std::endl;
       }
+
+      ConstVisitorBfsPrint bfs;
+      bfs.visit( g );
+
+      TESTER_ASSERT( bfs.discoveryList.size() == 5 );
+      TESTER_ASSERT( bfs.discoveryList[ 0 ] == 10 );
+      TESTER_ASSERT( bfs.discoveryList[ 1 ] == 11 );
+      TESTER_ASSERT( bfs.discoveryList[ 2 ] == 12 );
+      TESTER_ASSERT( bfs.discoveryList[ 3 ] == 13 );
+      TESTER_ASSERT( bfs.discoveryList[ 4 ] == 14 );
+
+      std::vector<Graph1::ConstVertexIterator> roots = findRoots( g );
+      TESTER_ASSERT( roots.size() == 3 );
+      TESTER_ASSERT( *roots[ 0 ] == 10 );
+      TESTER_ASSERT( *roots[ 1 ] == 13 );
+      TESTER_ASSERT( *roots[ 2 ] == 14 );
    }
 };
 
