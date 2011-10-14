@@ -21,6 +21,14 @@ namespace core
    class Undirected
    {};
 
+   /**
+    @brief Graph with an adjacency list representation
+
+    TODO: remove VertexDescriptor and replace it by an iterator instead
+          replace ConstEdgeIterator by proper iterator on Edge and Vertex and not on the descriptors
+          policy to give a unique ID to Edge/Vertex
+
+    */
    template <class VertexDetailT = Empty, class EdgeDetailT = Empty, class DirectedT = Directed>
    struct GraphImplAdjencyList
    {
@@ -30,6 +38,9 @@ namespace core
 
       struct VertexDescriptor
       {
+         friend GraphImplAdjencyList;
+
+      private:
          VertexDescriptor( ui32 suid, ui32 duid ) : detailUid( duid ), storageUid( suid )
          {}
 
@@ -39,6 +50,9 @@ namespace core
 
       struct EdgeDescriptor
       {
+         friend GraphImplAdjencyList;
+
+      private:
          EdgeDescriptor( ui32 sid, ui32 did, const VertexDescriptor& s, const VertexDescriptor& d ) : storageUid( sid ), detailUid( did ), src( s ), dst( d )
          {
          }
@@ -60,22 +74,6 @@ namespace core
          {}
 
       public:
-         ui32 getDetailUid() const
-         {
-            return detailUid;
-         }
-
-         
-         ui32 getToVertexUid() const
-         {
-            return toVertexUid;
-         }
-
-         ui32 getFromVertexUid() const
-         {
-            return fromVertexUid;
-         }
-
          ConstVertexIterator getToVertexIterator() const;
          ConstVertexIterator getFromVertexIterator() const;
          VertexIterator getToVertexIterator();
@@ -94,12 +92,12 @@ namespace core
          friend GraphImplAdjencyList;
 
       private:
-         Vertex( ui32 duid ) : detailUid( duid )
+         Vertex( GraphImplAdjencyList& g, ui32 duid ) : graph( &g ), detailUid( duid )
          {}
 
       public:
-         typedef typename Edges::iterator       EdgeIterator;
-         typedef typename Edges::const_iterator ConstEdgeIterator;
+         typedef typename Edges::iterator          EdgeIterator;
+         typedef typename Edges::const_iterator    ConstEdgeIterator;
 
          EdgeIterator begin()
          {
@@ -121,7 +119,13 @@ namespace core
             return edges.end();
          }
 
+         size_t getNbEdges() const
+         {
+            return edges.size();
+         }
+
       private:
+         GraphImplAdjencyList* graph;
          ui32     detailUid;
          Edges    edges;
       };
@@ -220,7 +224,7 @@ namespace core
       class ConstEdgeIterator
       {
       public:
-         ConstEdgeIterator( const GraphImplAdjencyList& graph, ui32 VertexUid, ui32 EdgeUid ) : _graph( const_cast<GraphImplAdjencyList&>( graph ) ), _it( _graph._vertexs[ VertexUid ].edges.begin() + EdgeUid )
+         ConstEdgeIterator( const GraphImplAdjencyList& graph, ui32 VertexUid, ui32 EdgeUid ) : _graph( &const_cast<GraphImplAdjencyList&>( graph ) ), _it( _graph->_vertexs[ VertexUid ].edges.begin() + EdgeUid )
          {}
 
          ConstEdgeIterator& operator++()
@@ -243,14 +247,16 @@ namespace core
 
          const EdgeDetail& operator*() const
          {
-            return _graph._edgeDetails[ _it->detailUid ];
+            return _graph->_edgeDetails[ _it->detailUid ];
          }
 
-      private:
-         ConstEdgeIterator operator=( ConstEdgeIterator& ); // disabled copy
+         const Edge& getEdge() const
+         {
+            return *_it;
+         }
 
       protected:
-         GraphImplAdjencyList&         _graph;
+         GraphImplAdjencyList*         _graph;
          typename Edges::iterator      _it;
       };
 
@@ -262,7 +268,12 @@ namespace core
 
          EdgeDetail& operator*()
          {
-            return _graph._edgeDetails[ _it->detailUid ];
+            return _graph->_edgeDetails[ _it->detailUid ];
+         }
+
+         Edge& getEdge()
+         {
+            return *_it;
          }
       };
 
@@ -326,7 +337,7 @@ namespace core
          return ConstEdgeIterator( *this, desc.storageUid, _vertexs[ desc.storageUid ].edges.size() );
       }
 
-      const EdgeDetail& getEdgeDetail( const EdgeDescriptor& desc ) const
+      EdgeDetail& getEdgeDetail( const EdgeDescriptor& desc ) const
       {
          return _edgeDetails[ desc.detailUid ];
       }
@@ -336,7 +347,7 @@ namespace core
          return _edgeDetails[ desc.detailUid ];
       }
 
-      const EdgeDetail& getEdgeDetail( const Edge& desc ) const
+      EdgeDetail& getEdgeDetail( const Edge& desc ) const
       {
          return _edgeDetails[ desc.detailUid ];
       }
@@ -351,7 +362,8 @@ namespace core
          return _vertexDetails[ desc.detailUid ];
       }
 
-      const VertexDetail& getVertexDetail( const VertexDescriptor& desc ) const
+      
+      VertexDetail& getVertexDetail( const VertexDescriptor& desc ) const
       {
          return _vertexDetails[ desc.detailUid ];
       }
@@ -361,18 +373,17 @@ namespace core
          return _vertexDetails[ desc.detailUid ];
       }
 
-      const VertexDetail& getVertexDetail( const Vertex& desc ) const
+      
+      VertexDetail& getVertexDetail( const Vertex& desc ) const
       {
          return _vertexDetails[ desc.detailUid ];
       }
-
-
 
    private:
       VertexDescriptor createVertex( ui32 detailUid )
       {
          VertexDescriptor desc( _vertexs.size(), detailUid );
-         _vertexs.push_back( Vertex( detailUid ) );
+         _vertexs.push_back( Vertex( *this, detailUid ) );
          return desc;
       }
 
@@ -483,8 +494,8 @@ namespace core
 
    private:
       Vertexs              _vertexs;
-      VertexDetails        _vertexDetails;
-      EdgeDetails          _edgeDetails;
+      mutable VertexDetails        _vertexDetails;
+      mutable EdgeDetails          _edgeDetails;
       std::vector<ui32>    _recycleVertexDetails;
       std::vector<ui32>    _recycleEdgeDetails;
    };
@@ -540,30 +551,30 @@ namespace core
          typedef Graph<Impl>                       Graph;
 
          // run before the algorithm is started
-         virtual void start( Graph& ){}
+         virtual void start( const Graph& ){}
 
          // run after the algorithm has finished
-         virtual void finish( Graph& ){}
+         virtual void finish( const Graph& ){}
 
          // called when the vertex has been discovered for the first time
-         virtual void discoverVertex( const Vertex& , Graph& ){}
+         virtual void discoverVertex( const Vertex& , const Graph& ){}
 
          // called when all the edges have been discovered
-         virtual void finishVertex( const Vertex& , Graph& ){}
+         virtual void finishVertex( const Vertex& , const Graph& ){}
 
          // called each time an edge is discovered
-         virtual void discoverEdge( const Edge& , Graph& ){}
+         virtual void discoverEdge( const Edge& , const Graph& ){}
 
-         virtual void visit( Graph& g )
+         virtual void visit( const Graph& g )
          {
             //std::vector<char> visited( g.getNbVertexs() );
             std::vector<char> vertexDiscovered( g.getNbVertexs() );
-            std::list<VertexIterator> its;
+            std::list<ConstVertexIterator> its;
 
             start( g );
             if ( vertexDiscovered.size() )
             {
-               for ( VertexIterator vertex = g.beginVertexs(); vertex != g.endVertexs(); ++vertex )
+               for ( ConstVertexIterator vertex = g.beginVertexs(); vertex != g.endVertexs(); ++vertex )
                {
                   size_t vertexId = vertex - g.beginVertexs();
                   if ( vertexDiscovered[ vertexId ] == 1 )
@@ -577,11 +588,11 @@ namespace core
                   // finally continue until all vertexes have been visited
                   while ( its.size() )
                   {
-                     VertexIterator it = *its.rbegin();
+                     ConstVertexIterator it = *its.rbegin();
                      its.pop_back();
-                     for ( Vertex::EdgeIterator ite = it.getVertex().begin(); ite != it.getVertex().end(); ++ite )
+                     for ( Vertex::ConstEdgeIterator ite = it.getVertex().begin(); ite != it.getVertex().end(); ++ite )
                      {
-                        VertexIterator toVertexIt = (*ite).getToVertexIterator();
+                        ConstVertexIterator toVertexIt = ite->getToVertexIterator();
                         const size_t uid = toVertexIt - g.beginVertexs();
                         const bool hasBeenDiscovered = vertexDiscovered[ uid ] == 1;
                         if ( !hasBeenDiscovered )
@@ -593,6 +604,85 @@ namespace core
                         }
                      }
                      finishVertex( it.getVertex(), g );  // we have visited all out edges...
+                  }
+               }
+            }
+            finish( g );
+         }
+      };
+
+      class VisitorDfs
+      {
+      public:
+         typedef typename Impl::Vertex             Vertex;
+         typedef typename Impl::Edge               Edge;
+         typedef Graph<Impl>                       Graph;
+
+         // run before the algorithm is started
+         virtual void start( const Graph& ){}
+
+         // run after the algorithm has finished
+         virtual void finish( const Graph& ){}
+
+         // called when the vertex has been discovered for the first time
+         virtual void discoverVertex( const Vertex& , const Graph& ){}
+
+         // called when all the edges have been discovered
+         virtual void finishVertex( const Vertex& , const Graph& ){}
+
+         // called each time an edge is discovered
+         virtual void discoverEdge( const Edge& , const Graph& ){}
+
+         virtual void visit( const Graph& g )
+         {
+            //std::vector<char> visited( g.getNbVertexs() );
+            std::vector<char> vertexDiscovered( g.getNbVertexs() );
+            std::list<ConstVertexIterator> its;
+            std::list< std::pair<Vertex::ConstEdgeIterator, Vertex::ConstEdgeIterator> > eits;
+
+            start( g );
+            if ( vertexDiscovered.size() )
+            {
+               for ( ConstVertexIterator vertex = g.beginVertexs(); vertex != g.endVertexs(); ++vertex )
+               {
+                  size_t vertexId = vertex - g.beginVertexs();
+                  if ( vertexDiscovered[ vertexId ] == 1 )
+                     continue;   // we already checked this vertex
+
+                  eits.push_back( std::make_pair( vertex.getVertex().begin(), vertex.getVertex().end() ) );
+                  its.push_back( vertex );
+                  discoverVertex( vertex.getVertex(), g );
+                  vertexDiscovered[ vertexId ] = 1;
+
+                  // finally continue until all vertexes have been visited
+                  while ( eits.size() )
+                  {
+                     Vertex::ConstEdgeIterator& begin = eits.rbegin()->first;
+                     Vertex::ConstEdgeIterator& end = eits.rbegin()->second;
+                     if ( begin == end )
+                     {
+                        finishVertex( (*its.rbegin()).getVertex(), g );
+                        eits.pop_back();
+                        its.pop_back();
+                     } else {
+                        // explore another vertex
+                        ConstVertexIterator itTo = begin->getToVertexIterator();
+                        const size_t vertexIdTo = itTo - g.beginVertexs();
+                        discoverEdge( *begin, g );
+                        if ( !vertexDiscovered[ vertexIdTo ] )
+                        {
+                           discoverVertex( itTo.getVertex(), g );
+                           vertexDiscovered[ vertexIdTo ] = 1;
+                           if ( itTo.getVertex().getNbEdges() )
+                           {
+                              eits.push_back( std::make_pair( itTo.getVertex().begin(), itTo.getVertex().end() ) );
+                              its.push_back( itTo );
+                           } else {
+                              finishVertex( itTo.getVertex(), g );
+                           }
+                        }
+                        ++begin;
+                     }
                   }
                }
             }
@@ -664,7 +754,7 @@ namespace core
          return _impl.endOutEdges( desc );
       }
 
-      const EdgeDetail& operator[]( const EdgeDescriptor& desc ) const
+      EdgeDetail& operator[]( const EdgeDescriptor& desc ) const
       {
          return _impl.getEdgeDetail( desc );
       }
@@ -674,7 +764,7 @@ namespace core
          return _impl.getEdgeDetail( desc );
       }
 
-      const EdgeDetail& operator[]( const Edge& desc ) const
+      EdgeDetail& operator[]( const Edge& desc ) const
       {
          return _impl.getEdgeDetail( desc );
       }
@@ -684,7 +774,7 @@ namespace core
          return _impl.getEdgeDetail( desc );
       }
 
-      const VertexDetail& operator[]( const VertexDescriptor& desc ) const
+      VertexDetail& operator[]( const VertexDescriptor& desc ) const
       {
          return _impl.getVertexDetail( desc );
       }
@@ -693,8 +783,8 @@ namespace core
       {
          return _impl.getVertexDetail( desc );
       }
-
-      const VertexDetail& operator[]( const Vertex& desc ) const
+      
+      VertexDetail& operator[]( const Vertex& desc ) const
       {
          return _impl.getVertexDetail( desc );
       }
@@ -708,70 +798,73 @@ namespace core
       GraphImpl   _impl;
    };
 
-   template <class GraphImpl>
-   class _VisitorFindRoot : public GraphImpl::VisitorBfs
+   namespace impl
    {
-      typedef typename GraphImpl::VisitorBfs  Base;
-
-   public:
-      typedef typename Base::Graph                 Graph;
-      typedef typename Base::Edge                  Edge;
-      typedef typename Base::Vertex                Vertex;
-
-      typedef typename GraphImpl::ConstVertexIterator     ConstVertexIterator;
-      typedef typename GraphImpl::VertexIterator          VertexIterator;
-      typedef typename GraphImpl::VertexDescriptor        VertexDescriptor;
-
-      virtual void start( Graph& g )
+      template <class GraphImpl>
+      class _VisitorFindRoot : public GraphImpl::VisitorBfs
       {
-         enum {VAL = Equal<GraphImpl::Direction, Directed>::value };
-         STATIC_ASSERT( VAL ); // the graph must be directed!
-         _counts = std::vector<ui32>( g.getNbVertexs() );
-      }
+         typedef typename GraphImpl::VisitorBfs  Base;
 
-      virtual void discoverEdge( const typename Base::Edge& edge, Graph& g )
-      {
-         size_t uid = edge.getToVertexIterator() - g.beginVertexs();
-         ++_counts[ uid ];
-      }
+      public:
+         typedef typename Base::Graph                 Graph;
+         typedef typename Base::Edge                  Edge;
+         typedef typename Base::Vertex                Vertex;
 
-      virtual void finish( Graph& g )
-      {
-         _roots.clear();
+         typedef typename GraphImpl::ConstVertexIterator     ConstVertexIterator;
+         typedef typename GraphImpl::VertexIterator          VertexIterator;
+         typedef typename GraphImpl::VertexDescriptor        VertexDescriptor;
 
-         typedef std::vector< std::pair< ui32, ui32 > >  Pairs;
-         Pairs pairs;
-         for ( ConstVertexIterator it = g.beginVertexs(); it != g.endVertexs(); ++it )
+         virtual void start( const Graph& g )
          {
-            ui32 index = (ui32)(it - g.beginVertexs());
-            pairs.push_back( std::make_pair( _counts[ index ], index ) );
+            enum {VAL = Equal<GraphImpl::Direction, Directed>::value };
+            STATIC_ASSERT( VAL ); // the graph must be directed!
+            _counts = std::vector<ui32>( g.getNbVertexs() );
          }
 
-         std::sort( pairs.begin(), pairs.end() );
-         for ( Pairs::const_iterator it = pairs.begin(); it != pairs.end(); ++it )
+         virtual void discoverEdge( const typename Base::Edge& edge, const Graph& g )
          {
-            if ( it->first != 0 )
-               break;
-            _roots.push_back( g.beginVertexs() + it->second );
+            size_t uid = edge.getToVertexIterator() - g.beginVertexs();
+            ++_counts[ uid ];
          }
 
-         _counts.clear();
-      }
+         virtual void finish( const Graph& g )
+         {
+            _roots.clear();
 
-      const std::vector<VertexIterator>& getRoots() const
-      {
-         return _roots;
-      }
+            typedef std::vector< std::pair< ui32, ui32 > >  Pairs;
+            Pairs pairs;
+            for ( ConstVertexIterator it = g.beginVertexs(); it != g.endVertexs(); ++it )
+            {
+               ui32 index = (ui32)(it - g.beginVertexs());
+               pairs.push_back( std::make_pair( _counts[ index ], index ) );
+            }
 
-   private:
-      std::vector<ui32>                _counts;
-      std::vector<VertexIterator> _roots;
-   };
+            std::sort( pairs.begin(), pairs.end() );
+            for ( Pairs::const_iterator it = pairs.begin(); it != pairs.end(); ++it )
+            {
+               if ( it->first != 0 )
+                  break;
+               _roots.push_back( g.beginVertexs() + it->second );
+            }
+
+            _counts.clear();
+         }
+
+         const std::vector<ConstVertexIterator>& getRoots() const
+         {
+            return _roots;
+         }
+
+      private:
+         std::vector<ui32>                _counts;
+         std::vector<ConstVertexIterator> _roots;
+      };
+   }
 
    template <class GraphImpl>
-   std::vector<typename Graph<GraphImpl>::VertexIterator> findRoots( Graph<GraphImpl>& graph )
+   std::vector<typename Graph<GraphImpl>::ConstVertexIterator> findRoots( const Graph<GraphImpl>& graph )
    {
-      _VisitorFindRoot< Graph<GraphImpl> > visitor;
+      impl::_VisitorFindRoot< Graph<GraphImpl> > visitor;
       visitor.visit( graph );
       return visitor.getRoots();
    }
@@ -786,15 +879,69 @@ public:
    class ConstVisitorBfsPrint : public Graph1::VisitorBfs
    {
    public:
-      virtual void discoverVertex( const Vertex& vertex, Graph& g )
+      virtual void start( const Graph& )
+      {
+         std::cout << "---DFS started---" << std::endl;
+      }
+      virtual void discoverVertex( const Vertex& vertex, const Graph& g )
       {
          std::cout << "Vertex=" << g[ vertex ] << std::endl;
-         discoveryList.push_back( g[ vertex ] );
+         discoveryList.push_back( "V" + core::val2str( g[ vertex ] ) );
       }
 
-      virtual void discoverEdge( const Edge& edge, Graph& g )
+      virtual void discoverEdge( const Edge& edge, const Graph& g )
       {
          std::cout << "Edge=" << g[ edge ] << std::endl;
+         discoveryList.push_back( "E" + g[ edge ] );
+      }
+
+      virtual void finishVertex( const Vertex& vertex, const Graph& g )
+      {
+         std::cout << "END Vertex=" << g[ vertex ] << std::endl;
+         discoveryList.push_back( "EV" + core::val2str( g[ vertex ] ) );
+      }
+
+      std::vector<std::string> discoveryList;
+   };
+
+   class ConstVisitorDfsPrint : public Graph1::VisitorDfs
+   {
+   public:
+      virtual void start( const Graph& )
+      {
+         std::cout << "---DFS started---" << std::endl;
+      }
+      virtual void discoverVertex( const Vertex& vertex, const Graph& g )
+      {
+         std::cout << "Vertex=" << g[ vertex ] << std::endl;
+         discoveryList.push_back( "V" + core::val2str( g[ vertex ] ) );
+      }
+
+      virtual void discoverEdge( const Edge& edge, const Graph& g )
+      {
+         std::cout << "Edge=" << g[ edge ] << std::endl;
+         discoveryList.push_back( "E" + g[ edge ] );
+      }
+
+      virtual void finishVertex( const Vertex& vertex, const Graph& g )
+      {
+         std::cout << "END Vertex=" << g[ vertex ] << std::endl;
+         discoveryList.push_back( "EV" + core::val2str( g[ vertex ] ) );
+      }
+
+      std::vector<std::string> discoveryList;
+   };
+
+   class VisitorBfsInc : public Graph1::VisitorBfs
+   {
+   public:
+      virtual void discoverVertex( const Vertex& vertex, const Graph& g )
+      {
+         ++g[ vertex ];
+      }
+
+      virtual void discoverEdge( const Edge&, const Graph& )
+      {
       }
 
       std::vector<ui32> discoveryList;
@@ -840,28 +987,118 @@ public:
          std::cout << "A=" << *it << std::endl;
       }
 
-      ConstVisitorBfsPrint bfs;
-      bfs.visit( g );
-
-      TESTER_ASSERT( bfs.discoveryList.size() == 5 );
-      TESTER_ASSERT( bfs.discoveryList[ 0 ] == 10 );
-      TESTER_ASSERT( bfs.discoveryList[ 1 ] == 11 );
-      TESTER_ASSERT( bfs.discoveryList[ 2 ] == 12 );
-      TESTER_ASSERT( bfs.discoveryList[ 3 ] == 13 );
-      TESTER_ASSERT( bfs.discoveryList[ 4 ] == 14 );
-
-      std::vector<Graph1::VertexIterator> roots = findRoots( g );
+      std::vector<Graph1::ConstVertexIterator> roots = findRoots( g );
       TESTER_ASSERT( roots.size() == 3 );
       TESTER_ASSERT( *roots[ 0 ] == 10 );
       TESTER_ASSERT( *roots[ 1 ] == 13 );
       TESTER_ASSERT( *roots[ 2 ] == 14 );
 
+      VisitorBfsInc visitor;
+      visitor.visit( g );
+      std::vector<Graph1::ConstVertexIterator> roots2 = findRoots( g );
+      TESTER_ASSERT( roots2.size() == 3 );
+      TESTER_ASSERT( *roots2[ 0 ] == 11 );
+      TESTER_ASSERT( *roots2[ 1 ] == 14 );
+      TESTER_ASSERT( *roots2[ 2 ] == 15 );
+
+      ConstVisitorDfsPrint visitor2;
+      visitor2.visit( g );
       std::cout << "time=" << time.getCurrentTime() << std::endl;
+   }
+
+   void testDfs()
+   {
+      nll::core::Timer time;
+      Graph1 g;
+
+      Graph1::VertexDescriptor n1 = g.addVertex( 1 );
+      Graph1::VertexDescriptor n2 = g.addVertex( 2 );
+      Graph1::VertexDescriptor n3 = g.addVertex( 3 );
+      Graph1::VertexDescriptor n4 = g.addVertex( 4 );
+      Graph1::VertexDescriptor n5 = g.addVertex( 5 );
+      Graph1::VertexDescriptor n6 = g.addVertex( 6 );
+
+      g.addEdge( n1, n2, "a" );
+      g.addEdge( n2, n3, "b" );
+      g.addEdge( n2, n4, "c" );
+      g.addEdge( n4, n5, "d" );
+      g.addEdge( n4, n6, "e" );
+      g.addEdge( n4, n1, "f" );
+      g.addEdge( n1, n4, "g" );
+
+      ConstVisitorDfsPrint visitor;
+      visitor.visit( g );
+
+      TESTER_ASSERT( visitor.discoveryList.size() == 19 );
+      TESTER_ASSERT( visitor.discoveryList[ 0 ] == "V1" );
+      TESTER_ASSERT( visitor.discoveryList[ 1 ] == "Ea" );
+      TESTER_ASSERT( visitor.discoveryList[ 2 ] == "V2" );
+      TESTER_ASSERT( visitor.discoveryList[ 3 ] == "Eb" );
+      TESTER_ASSERT( visitor.discoveryList[ 4 ] == "V3" );
+      TESTER_ASSERT( visitor.discoveryList[ 5 ] == "EV3" );
+      TESTER_ASSERT( visitor.discoveryList[ 6 ] == "Ec" );
+      TESTER_ASSERT( visitor.discoveryList[ 7 ] == "V4" );
+      TESTER_ASSERT( visitor.discoveryList[ 8 ] == "Ed" );
+      TESTER_ASSERT( visitor.discoveryList[ 9 ] == "V5" );
+      TESTER_ASSERT( visitor.discoveryList[ 10 ] == "EV5" );
+      TESTER_ASSERT( visitor.discoveryList[ 11 ] == "Ee" );
+      TESTER_ASSERT( visitor.discoveryList[ 12 ] == "V6" );
+      TESTER_ASSERT( visitor.discoveryList[ 13 ] == "EV6" );
+      TESTER_ASSERT( visitor.discoveryList[ 14 ] == "Ef" );
+      TESTER_ASSERT( visitor.discoveryList[ 15 ] == "EV4" );
+      TESTER_ASSERT( visitor.discoveryList[ 16 ] == "EV2" );
+      TESTER_ASSERT( visitor.discoveryList[ 17 ] == "Eg" );
+      TESTER_ASSERT( visitor.discoveryList[ 18 ] == "EV1" );
+   }
+
+   void testBfs()
+   {
+      nll::core::Timer time;
+      Graph1 g;
+
+      Graph1::VertexDescriptor n1 = g.addVertex( 1 );
+      Graph1::VertexDescriptor n2 = g.addVertex( 2 );
+      Graph1::VertexDescriptor n3 = g.addVertex( 3 );
+      Graph1::VertexDescriptor n4 = g.addVertex( 4 );
+      Graph1::VertexDescriptor n5 = g.addVertex( 5 );
+      Graph1::VertexDescriptor n6 = g.addVertex( 6 );
+
+      g.addEdge( n1, n2, "a" );
+      g.addEdge( n2, n3, "b" );
+      g.addEdge( n2, n4, "c" );
+      g.addEdge( n4, n5, "d" );
+      g.addEdge( n4, n6, "e" );
+      g.addEdge( n4, n1, "f" );
+      g.addEdge( n1, n4, "g" );
+
+      ConstVisitorBfsPrint visitor;
+      visitor.visit( g );
+
+      TESTER_ASSERT( visitor.discoveryList.size() == 17 );
+      TESTER_ASSERT( visitor.discoveryList[ 0 ] == "V1" );
+      TESTER_ASSERT( visitor.discoveryList[ 1 ] == "Ea" );
+      TESTER_ASSERT( visitor.discoveryList[ 2 ] == "V2" );
+      TESTER_ASSERT( visitor.discoveryList[ 3 ] == "Eg" );
+      TESTER_ASSERT( visitor.discoveryList[ 4 ] == "V4" );
+      TESTER_ASSERT( visitor.discoveryList[ 5 ] == "EV1" );
+      TESTER_ASSERT( visitor.discoveryList[ 6 ] == "Ed" );
+      TESTER_ASSERT( visitor.discoveryList[ 7 ] == "V5" );
+      TESTER_ASSERT( visitor.discoveryList[ 8 ] == "Ee" );
+      TESTER_ASSERT( visitor.discoveryList[ 9 ] == "V6" );
+      TESTER_ASSERT( visitor.discoveryList[ 10 ] == "EV4" );
+      TESTER_ASSERT( visitor.discoveryList[ 11 ] == "EV6" );
+      TESTER_ASSERT( visitor.discoveryList[ 12 ] == "EV5" );
+      TESTER_ASSERT( visitor.discoveryList[ 13 ] == "Eb" );
+      TESTER_ASSERT( visitor.discoveryList[ 14 ] == "V3" );
+      TESTER_ASSERT( visitor.discoveryList[ 15 ] == "EV2" );
+      TESTER_ASSERT( visitor.discoveryList[ 16 ] == "EV3" );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGraph);
 TESTER_TEST( test1 );
+TESTER_TEST( testDfs );
+TESTER_TEST( testBfs );
 TESTER_TEST_SUITE_END();
 #endif
