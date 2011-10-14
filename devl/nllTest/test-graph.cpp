@@ -28,12 +28,35 @@ namespace core
       typedef VertexDetailT           VertexDetail;
       typedef EdgeDetailT             EdgeDetail;
 
+      struct VertexDescriptor
+      {
+         VertexDescriptor( ui32 suid, ui32 duid ) : detailUid( duid ), storageUid( suid )
+         {}
+
+         ui32           detailUid;
+         ui32           storageUid;
+      };
+
+      struct EdgeDescriptor
+      {
+         EdgeDescriptor( ui32 sid, ui32 did, const VertexDescriptor& s, const VertexDescriptor& d ) : storageUid( sid ), detailUid( did ), src( s ), dst( d )
+         {
+         }
+         ui32           detailUid;
+         ui32           storageUid;
+         VertexDescriptor src;
+         VertexDescriptor dst;
+      };
+
+      class ConstVertexIterator;
+      class VertexIterator;
+
       struct Edge
       {
          friend GraphImplAdjencyList;
 
       private:
-         Edge( ui32 duid, ui32 toUid ) : detailUid( duid ), toVertexUid( toUid )
+         Edge( GraphImplAdjencyList& g, ui32 duid, ui32 toUid, ui32 fromUid ) : graph( &g ), detailUid( duid ), toVertexUid( toUid ), fromVertexUid( fromUid )
          {}
 
       public:
@@ -42,14 +65,27 @@ namespace core
             return detailUid;
          }
 
+         
          ui32 getToVertexUid() const
          {
             return toVertexUid;
          }
 
+         ui32 getFromVertexUid() const
+         {
+            return fromVertexUid;
+         }
+
+         ConstVertexIterator getToVertexIterator() const;
+         ConstVertexIterator getFromVertexIterator() const;
+         VertexIterator getToVertexIterator();
+         VertexIterator getFromVertexIterator();
+
       private:
+         GraphImplAdjencyList* graph;
          ui32           detailUid;
          ui32           toVertexUid;
+         ui32           fromVertexUid;
       };
       typedef std::vector<Edge>     Edges;
 
@@ -90,26 +126,6 @@ namespace core
          Edges    edges;
       };
       typedef std::vector<Vertex>     Vertexs;
-
-      struct VertexDescriptor
-      {
-         VertexDescriptor( ui32 suid, ui32 duid ) : detailUid( duid ), storageUid( suid )
-         {}
-
-         ui32           detailUid;
-         ui32           storageUid;
-      };
-
-      struct EdgeDescriptor
-      {
-         EdgeDescriptor( ui32 sid, ui32 did, const VertexDescriptor& s, const VertexDescriptor& d ) : storageUid( sid ), detailUid( did ), src( s ), dst( d )
-         {
-         }
-         ui32           detailUid;
-         ui32           storageUid;
-         VertexDescriptor src;
-         VertexDescriptor dst;
-      };
 
       typedef std::vector<VertexDescriptor>   VertexDescriptors;
       typedef std::vector<EdgeDescriptor>     EdgeDescriptors;
@@ -186,6 +202,18 @@ namespace core
          Vertex& getVertex()
          {
             return *_it;
+         }
+
+         size_t operator-( const VertexIterator& it ) const
+         {
+            return _it - it._it;
+         }
+
+         VertexIterator operator+( size_t d ) const
+         {
+            VertexIterator it( * this );
+            it._it += d;
+            return it;
          }
       };
 
@@ -338,6 +366,8 @@ namespace core
          return _vertexDetails[ desc.detailUid ];
       }
 
+
+
    private:
       VertexDescriptor createVertex( ui32 detailUid )
       {
@@ -416,7 +446,7 @@ namespace core
             ensure( it->toVertexUid != n2.storageUid, "the Edge has been added twice" );
          }
          #endif
-         Vertex.edges.push_back( Edge( uid, n2.storageUid ) );
+         Vertex.edges.push_back( Edge( *this, uid, n2.storageUid, n1.storageUid ) );
          return newEdge;
       }
 
@@ -458,6 +488,30 @@ namespace core
       std::vector<ui32>    _recycleVertexDetails;
       std::vector<ui32>    _recycleEdgeDetails;
    };
+   
+   template <class VertexDetailT, class EdgeDetailT, class DirectedT>
+   typename GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::ConstVertexIterator GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::Edge::getToVertexIterator() const
+   {
+      return graph->beginVertexs() + toVertexUid;
+   }
+
+   template <class VertexDetailT, class EdgeDetailT, class DirectedT>
+   typename GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::ConstVertexIterator GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::Edge::getFromVertexIterator() const
+   {
+      return graph->beginVertexs() + fromVertexUid;
+   }
+
+   template <class VertexDetailT, class EdgeDetailT, class DirectedT>
+   typename GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::VertexIterator GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::Edge::getToVertexIterator()
+   {
+      return graph->beginVertexs() + toVertexUid;
+   }
+
+   template <class VertexDetailT, class EdgeDetailT, class DirectedT>
+   typename GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::VertexIterator GraphImplAdjencyList<VertexDetailT, EdgeDetailT, DirectedT>::Edge::getFromVertexIterator()
+   {
+      return graph->beginVertexs() + fromVertexUid;
+   }
 
    template <class Impl = GraphImpl<> >
    class Graph
@@ -478,56 +532,63 @@ namespace core
       typedef typename Impl::ConstEdgeIterator     ConstEdgeIterator;
 
    public:
-      class ConstVisitorBfs
+      class VisitorBfs
       {
       public:
          typedef typename Impl::Vertex             Vertex;
          typedef typename Impl::Edge               Edge;
          typedef Graph<Impl>                       Graph;
 
-         virtual void start( const Graph& ){}
-         virtual void finish( const Graph& ){}
+         // run before the algorithm is started
+         virtual void start( Graph& ){}
 
-         // called when the vertex has been discovered for the first time (
-         virtual void discoverVertex( const Vertex& , const Graph& ){}
-         virtual void finishVertex( const Vertex& , const Graph& ){}
-         virtual void discoverEdge( const Edge& , const Graph& ){}
+         // run after the algorithm has finished
+         virtual void finish( Graph& ){}
 
-         virtual void visit( const Graph& g )
+         // called when the vertex has been discovered for the first time
+         virtual void discoverVertex( const Vertex& , Graph& ){}
+
+         // called when all the edges have been discovered
+         virtual void finishVertex( const Vertex& , Graph& ){}
+
+         // called each time an edge is discovered
+         virtual void discoverEdge( const Edge& , Graph& ){}
+
+         virtual void visit( Graph& g )
          {
             //std::vector<char> visited( g.getNbVertexs() );
             std::vector<char> vertexDiscovered( g.getNbVertexs() );
-            std::list<ConstVertexIterator> its;
+            std::list<VertexIterator> its;
 
             start( g );
             if ( vertexDiscovered.size() )
             {
-               for ( ui32 vertex = 0; vertex < g.getNbVertexs(); ++vertex )
+               for ( VertexIterator vertex = g.beginVertexs(); vertex != g.endVertexs(); ++vertex )
                {
-                  if ( vertexDiscovered[ vertex ] == 1 )
+                  size_t vertexId = vertex - g.beginVertexs();
+                  if ( vertexDiscovered[ vertexId ] == 1 )
                      continue;   // we already checked this vertex
 
                   // queue the first vertex
-                  its.push_back( g.beginVertexs() + vertex );
+                  its.push_back( vertex );
                   discoverVertex( its.rbegin()->getVertex(), g );
-                  vertexDiscovered[ vertex ] = 1;
+                  vertexDiscovered[ vertexId ] = 1;
 
                   // finally continue until all vertexes have been visited
                   while ( its.size() )
                   {
-                     ConstVertexIterator it = *its.rbegin();
+                     VertexIterator it = *its.rbegin();
                      its.pop_back();
-                     for ( Vertex::ConstEdgeIterator ite = it.getVertex().begin(); ite != it.getVertex().end(); ++ite )
+                     for ( Vertex::EdgeIterator ite = it.getVertex().begin(); ite != it.getVertex().end(); ++ite )
                      {
-                        const ui32 uid = ite->getToVertexUid();
+                        VertexIterator toVertexIt = (*ite).getToVertexIterator();
+                        const size_t uid = toVertexIt - g.beginVertexs();
                         const bool hasBeenDiscovered = vertexDiscovered[ uid ] == 1;
                         if ( !hasBeenDiscovered )
                         {
                            discoverEdge( *ite, g );
-
-                           ConstVertexIterator newVertex = g.beginVertexs() + uid;
-                           its.push_back( newVertex );
-                           discoverVertex( newVertex.getVertex(), g );
+                           its.push_back( toVertexIt );
+                           discoverVertex( toVertexIt.getVertex(), g );
                            vertexDiscovered[ uid ] = 1;
                         }
                      }
@@ -648,9 +709,9 @@ namespace core
    };
 
    template <class GraphImpl>
-   class _VisitorFindRoot : public GraphImpl::ConstVisitorBfs
+   class _VisitorFindRoot : public GraphImpl::VisitorBfs
    {
-      typedef typename GraphImpl::ConstVisitorBfs  Base;
+      typedef typename GraphImpl::VisitorBfs  Base;
 
    public:
       typedef typename Base::Graph                 Graph;
@@ -658,20 +719,23 @@ namespace core
       typedef typename Base::Vertex                Vertex;
 
       typedef typename GraphImpl::ConstVertexIterator     ConstVertexIterator;
+      typedef typename GraphImpl::VertexIterator          VertexIterator;
+      typedef typename GraphImpl::VertexDescriptor        VertexDescriptor;
 
-      virtual void start( const Graph& g )
+      virtual void start( Graph& g )
       {
          enum {VAL = Equal<GraphImpl::Direction, Directed>::value };
          STATIC_ASSERT( VAL ); // the graph must be directed!
          _counts = std::vector<ui32>( g.getNbVertexs() );
       }
 
-      virtual void discoverEdge( const typename Base::Edge& edge, const Graph& )
+      virtual void discoverEdge( const typename Base::Edge& edge, Graph& g )
       {
-         ++_counts[ edge.getToVertexUid() ];
+         size_t uid = edge.getToVertexIterator() - g.beginVertexs();
+         ++_counts[ uid ];
       }
 
-      virtual void finish( const Graph& g )
+      virtual void finish( Graph& g )
       {
          _roots.clear();
 
@@ -694,18 +758,18 @@ namespace core
          _counts.clear();
       }
 
-      const std::vector<ConstVertexIterator>& getRoots() const
+      const std::vector<VertexIterator>& getRoots() const
       {
          return _roots;
       }
 
    private:
       std::vector<ui32>                _counts;
-      std::vector<ConstVertexIterator> _roots;
+      std::vector<VertexIterator> _roots;
    };
 
    template <class GraphImpl>
-   std::vector<typename Graph<GraphImpl>::ConstVertexIterator> findRoots( const Graph<GraphImpl>& graph )
+   std::vector<typename Graph<GraphImpl>::VertexIterator> findRoots( Graph<GraphImpl>& graph )
    {
       _VisitorFindRoot< Graph<GraphImpl> > visitor;
       visitor.visit( graph );
@@ -719,16 +783,16 @@ class TestGraph
 public:
    typedef core::Graph< GraphImplAdjencyList<int, std::string, Directed> > Graph1;
 
-   class ConstVisitorBfsPrint : public Graph1::ConstVisitorBfs
+   class ConstVisitorBfsPrint : public Graph1::VisitorBfs
    {
    public:
-      virtual void discoverVertex( const Vertex& vertex, const Graph& g )
+      virtual void discoverVertex( const Vertex& vertex, Graph& g )
       {
          std::cout << "Vertex=" << g[ vertex ] << std::endl;
          discoveryList.push_back( g[ vertex ] );
       }
 
-      virtual void discoverEdge( const Edge& edge, const Graph& g )
+      virtual void discoverEdge( const Edge& edge, Graph& g )
       {
          std::cout << "Edge=" << g[ edge ] << std::endl;
       }
@@ -738,6 +802,7 @@ public:
 
    void test1()
    {
+      nll::core::Timer time;
       Graph1 g;
 
       Graph1::VertexDescriptor n1 = g.addVertex( 10 );
@@ -748,6 +813,8 @@ public:
 
       Graph1::EdgeDescriptor a2 = g.addEdge( n1, n2, "test" );
       Graph1::EdgeDescriptor a3 = g.addEdge( n1, n3, "test2" );
+
+      //TESTER_ASSERT( *a2.getToVertexIterator() == n2 );
 
       bool found;
       Graph1::EdgeDescriptor a2a = g.getEdge( n1, n2, found );
@@ -783,11 +850,13 @@ public:
       TESTER_ASSERT( bfs.discoveryList[ 3 ] == 13 );
       TESTER_ASSERT( bfs.discoveryList[ 4 ] == 14 );
 
-      std::vector<Graph1::ConstVertexIterator> roots = findRoots( g );
+      std::vector<Graph1::VertexIterator> roots = findRoots( g );
       TESTER_ASSERT( roots.size() == 3 );
       TESTER_ASSERT( *roots[ 0 ] == 10 );
       TESTER_ASSERT( *roots[ 1 ] == 13 );
       TESTER_ASSERT( *roots[ 2 ] == 14 );
+
+      std::cout << "time=" << time.getCurrentTime() << std::endl;
    }
 };
 
