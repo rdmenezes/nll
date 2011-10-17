@@ -102,6 +102,16 @@ namespace core
       }*/
    };
 
+   /**
+    @brief Create a mapper with a contiguous vector implementation
+
+    Note: there are two mecanism to access data via:
+             - direct access with a cached UID, this is assuming the descriptor was not invalidated
+             - finding a generic UID, this always work even if the descriptor is invalidated. This is the typical
+               way of handling invalidated descriptor
+          When a data is removed from the structure, it will invalidate all descriptors and iterators! If this is not
+          acceptable then another implementation should be used (e.g., MapperList or MapperSet)
+    */
    template <class DataStorageT>
    class Mapper<DataStorageT, MapperVector>
    {
@@ -113,12 +123,12 @@ namespace core
       class DataStorageWrapper
       {
       public:
-         DataStorageWrapper( const DataStorageT& d, ui32 uidi, ui32 uidPerVectori ) : data( d ), uid( uidi ), uidPerVector( uidPerVectori )
+         DataStorageWrapper( const DataStorageT& d, Uid uidi, Uid uidPerVectori ) : data( d ), uid( uidi ), uidPerVector( uidPerVectori )
          {}
 
          DataStorageT data;
-         ui32         uid;              // unique identifier, valid all the time
-         ui32         uidPerVector;     // temporary identifier for quick look up, invalid as soon as an element is erased, so it must be updated
+         Uid          uid;              // unique identifier, valid all the time
+         mutable Uid  uidPerVector;     // temporary identifier for quick look up, invalid as soon as an element is erased, so it must be updated
       };
       typedef std::vector<DataStorageWrapper>                DataStorageWrappers;
       typedef typename DataStorageWrappers::iterator         iteratorImpl;
@@ -130,6 +140,8 @@ namespace core
 
       class iterator
       {
+         friend Mapper;
+
       public:
          iterator( const_iteratorImpl it ) : _it( it )
          {}
@@ -149,6 +161,13 @@ namespace core
          bool operator!=( const iterator& it ) const
          {
             return _it != it._it;
+         }
+
+      protected:
+         DataStorageWrapper& getWrapper()
+         {
+            const DataStorageWrapper& it = *_it;
+            return const_cast<DataStorageWrapper&>( it );
          }
 
          const_iteratorImpl& getIterator()
@@ -186,11 +205,11 @@ namespace core
          friend Mapper;
 
       private:
-         Descriptor( ui32 uidi, ui32 uidPerVectori ) : uid( uidi ), uidPerVector( uidPerVectori )
+         Descriptor( Uid uidi, Uid uidPerVectori ) : uid( uidi ), uidPerVector( uidPerVectori )
          {}
 
-         ui32 uid;               // unique identifier, valid all the time
-         ui32 uidPerVector;      // temporary identifier for quick look up, invalid as soon as an element is erased, so it must be updated
+         Uid uid;                   // unique identifier, valid all the time
+         mutable Uid uidPerVector;  // temporary identifier for quick look up, invalid as soon as an element is erased, so it must be updated
       };
 
       /**
@@ -221,8 +240,13 @@ namespace core
       {
          for ( iterator it = _wrappers.begin(); it != _wrappers.end(); ++it )
          {
-            if ( it.getIterator()->uid == d.uid )
+            DataStorageWrapper& wrapper = it.getWrapper();
+            if ( wrapper.uid == d.uid )
+            {
+               Uid newUid = it.getIterator() - _wrappers.begin(); // here we cache the UID so that we can have a quick look up next time!
+               wrapper.uidPerVector = newUid;
                return it;
+            }
          }
          return _wrappers.end();
       }
@@ -256,14 +280,14 @@ namespace core
    private:
       DataStorageWrapper createWrapper( const DataStorage& data )
       {
-         return DataStorageWrapper( data, data.getUid(), (ui32)_wrappers.size() );
+         return DataStorageWrapper( data, data.getUid(), _wrappers.size() );
       }
 
       template <class iter>
       Descriptor get( const iter& it ) const
       {
-         const ui32 uid = it->uid;
-         const ui32 uidPerVector = it->uidPerVector;
+         const Uid uid = it->uid;
+         const Uid uidPerVector = it->uidPerVector;
          return Descriptor( uid, uidPerVector );
       }
 
@@ -277,51 +301,96 @@ namespace core
       class Edge;
       class Vertex;
       typedef Mapper< Vertex, MapperVector > Vertexs;
+      typedef Vertexs::iterator              vertex_iterator;
+      typedef Vertexs::const_iterator        const_vertex_iterator;
+      typedef Vertexs::Uid                   Uid;
 
       class Edge
       {
-      public:
-         Edge( ui32 uid, Vertexs::Descriptor& from, Vertexs::Descriptor& to ) : _uid( uid ), fromVertex( from ), toVertex( to )
+         friend Graph;
+
+         Edge( Uid uid, const Vertexs::Descriptor& source, const Vertexs::Descriptor& destination ) : _uid( uid ), src( source ), dst( destination )
          {}
 
-         ui32 getUid() const
+      public:
+         Uid getUid() const
          {
             return _uid;
          }
 
-         Vertexs::Descriptor fromVertex;
-         Vertexs::Descriptor toVertex;
+      private:
+         Vertexs::Descriptor src;
+         Vertexs::Descriptor dst;
 
       private:
-         ui32  _uid;
+         Uid  _uid;
       };
-      typedef Mapper< Edge, MapperVector > Edges;
+      typedef Mapper< Edge, MapperVector >   Edges;
+      typedef Edges::iterator                edge_iterator;
+      typedef Edges::const_iterator          const_edge_iterator;
 
       class Vertex
       {
-      public:
-         Vertex( ui32 uidi ) : uid( uidi )
+         friend Graph;
+
+         Vertex( Uid uid ) : _uid( uid )
          {}
 
-         ui32 getUid() const
+      public:
+         Uid getUid() const
          {
-            return uid;
+            return _uid;
          }
 
-         ui32  uid;
+         edge_iterator begin() const
+         {
+            return _edges.begin();
+         }
+
+         edge_iterator end() const
+         {
+            return _edges.end();
+         }
+
+      private:
+         Uid   _uid;
+         Edges _edges;
       };
 
       typedef Vertexs::Descriptor      VertexDescriptor;
       typedef Edges::Descriptor        EdgeDescriptor;
 
    public:
+      Graph() : _uidGenerator( 0 )
+      {
+      }
+
       VertexDescriptor addVertex()
       {
-         return _vertexs.insert( Vertex( _vertexs.size() ) );
+         ++_uidGenerator;
+         return _vertexs.insert( Vertex( _uidGenerator ) );
+      }
+
+      EdgeDescriptor addEdge( const VertexDescriptor& src, const VertexDescriptor& dst )
+      {
+         ++_uidGenerator;
+         vertex_iterator it = _vertexs.getIterator( src );
+         return (*it)._edges.insert( Edge( _uidGenerator, src, dst ) );
+      }
+
+      vertex_iterator begin() const
+      {
+         return _vertexs.begin();
+      }
+
+      vertex_iterator end() const
+      {
+         return _vertexs.end();
       }
 
    private:
       Vertexs  _vertexs;
+      Uid      _uidGenerator;
    };
 }
 }
@@ -336,11 +405,11 @@ public:
    public:
       DataUq( T v ) : _v( v )
       {
-         static ui32 n = 0;
+         static size_t n = 0;
          _uid = ++n;
       }
 
-      ui32 getUid() const
+      size_t getUid() const
       {
          return _uid;
       }
@@ -351,7 +420,7 @@ public:
       }
 
       T        _v;
-      ui32     _uid;
+      size_t   _uid;
    };
 
    void test()
@@ -417,6 +486,28 @@ public:
    void testGraph()
    {
       Graph g;
+      Graph::VertexDescriptor v1 = g.addVertex();
+      Graph::VertexDescriptor v2 = g.addVertex();
+      Graph::VertexDescriptor v3 = g.addVertex();
+      Graph::VertexDescriptor v4 = g.addVertex();
+      Graph::VertexDescriptor v5 = g.addVertex();
+      Graph::VertexDescriptor v6 = g.addVertex();
+
+      g.addEdge( v1, v2 );
+      g.addEdge( v2, v3 );
+      g.addEdge( v2, v4 );
+      g.addEdge( v4, v5 );
+      g.addEdge( v4, v6 );
+      g.addEdge( v4, v1 );
+      g.addEdge( v1, v4 );
+
+      for ( Graph::const_vertex_iterator v = g.begin(); v != g.end(); ++v )
+      {
+         for ( Graph::const_edge_iterator e = (*v).begin(); e != (*v).end(); ++e )
+         {
+            std::cout << "AA" << std::endl;
+         }
+      }
    }
 };
 
