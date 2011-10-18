@@ -1,4 +1,5 @@
 #include <nll/nll.h>
+#include <stack>
 #include <tester/register.h>
 #include "config.h"
 
@@ -33,73 +34,38 @@ namespace core
    /**
     @brief Wrapper on the different possible storage classes <MapperVector> <MapperList> <MapperSet>
 
-    <DataInput> requires a unique id <getId()> method returning a unique identifier
+    The <Mapper> must define the types:
+      Descriptor
+      iterator
+      const_iterator
+      Uid
 
-    The class must define types:
-       DataInput
-       DataStorage
-       MapperType
-       Container
-       iterator
-       const_iterator
-       Descriptor
-    The class must implement:
-       const DataStorage& operator[]( const DataInput& d ) const
-       DataStorage& operator[]( const DataInput& d )
-       void add( const DataInput& d, class DataStorage& data )
-       void erase( const DataInput& d )
-       typename const_iterator find( const DataInput& d ) const
-       typename iterator find( const DataInput& d )
+    <Mapper> must define the operations:
+      Mapper( size_t size, const DataStorageT val )
+      DataStorage& getData( const Descriptor& d )
+      const DataStorage& getData( const Descriptor& d ) const
+      const_iterator getIterator( const Descriptor& d ) const
+      iterator getIterator( const Descriptor& d )
+      const_iterator find( const Descriptor& d ) const
+      iterator find( const Descriptor& d )
+      Descriptor insert( const DataStorage& data )
+      iterator erase( iterator& it )
+      const_iterator begin() const
+      iterator begin()
+      const_iterator end() const
+      iterator end()
+      size_t size() const
+
+    <Descriptor> must define the operations:
+      Uid getUid() const      // Uids need not be compact
+
+    Concept:
+      Descriptor/iterators must be lightweight as they will be often copied by value
     */
    template <class DataStorageT, class MapperTypeT>
    class Mapper
    {
-   public:
-      //typedef DataInputT               DataInput;
-      typedef DataStorageT             DataStorage;
-      typedef MapperTypeT              MapperType;
-      typedef std::vector<DataStorage> Container;
-      typedef typename Container::iterator iterator;
-      typedef typename Container::const_iterator const_iterator;
-
-      class Descriptor
-      {
-      };
-/*
-      Descriptor get( const const_iterator& it ) const
-      {
-         ensure( 0, "data specialization not implemented" );
-      }
-
-      const DataStorage& operator[]( const DataInput& d ) const
-      {
-         ensure( 0, "data specialization not implemented" );
-      }
-
-      DataStorage& operator[]( const DataInput& d )
-      {
-         ensure( 0, "data specialization not implemented" );
-      }
-
-      void add( const DataInput& d, const DataStorage& data )
-      {
-         ensure( 0, "data specialization not implemented" );
-      }
-
-      void erase( const DataInput& d )
-      {
-         ensure( 0, "data specialization not implemented" );
-      }
-
-      typename const_iterator find( const DataInput& d ) const
-      {
-         ensure( 0, "data specialization not implemented" );
-      }
-
-      typename iterator find( const DataInput& d )
-      {
-         ensure( 0, "data specialization not implemented" );
-      }*/
+      // need specialization
    };
 
    /**
@@ -138,12 +104,14 @@ namespace core
       typedef DataStorageT             DataStorage;
       typedef MapperVector             MapperType;
 
+      class const_iterator;
       class iterator
       {
+         friend const_iterator;
          friend Mapper;
 
       public:
-         iterator( const_iteratorImpl it ) : _it( it )
+         explicit iterator( iteratorImpl it ) : _it( it )
          {}
 
          iterator& operator++()
@@ -163,29 +131,17 @@ namespace core
             return _it != it._it;
          }
 
-      protected:
-         DataStorageWrapper& getWrapper()
-         {
-            const DataStorageWrapper& it = *_it;
-            return const_cast<DataStorageWrapper&>( it );
-         }
-
-         const_iteratorImpl& getIterator()
-         {
-            return _it;
-         };
-
-      protected:
-         const_iteratorImpl   _it;
+      private:
+         iteratorImpl   _it;
       };
 
-      class const_iterator : public iterator
+      class const_iterator
       {
       public:
-         const_iterator( const_iteratorImpl it ) : iterator( it )
+         const_iterator( const_iteratorImpl it ) : _it( it )
          {}
 
-         const_iterator( iterator it ) : iterator( it )
+         const_iterator( iterator it ) : _it( it._it )
          {}
 
          bool operator!=( const const_iterator& it ) const
@@ -193,16 +149,31 @@ namespace core
             return _it != it._it;
          }
 
+         const_iterator& operator++()
+         {
+            ++_it;
+            return *this;
+         }
+
          const DataStorage& operator*() const
          {
             return _it->data;
          }
+
+      private:
+         const_iteratorImpl   _it;
       };
 
       // lightweight descriptor pointing to a DataStorage
       class Descriptor
       {
          friend Mapper;
+
+      public:
+         Uid getUid() const
+         {
+            return uid;
+         }
 
       private:
          Descriptor( Uid uidi, Uid uidPerVectori ) : uid( uidi ), uidPerVector( uidPerVectori )
@@ -211,6 +182,14 @@ namespace core
          Uid uid;                   // unique identifier, valid all the time
          mutable Uid uidPerVector;  // temporary identifier for quick look up, invalid as soon as an element is erased, so it must be updated
       };
+
+      Mapper( size_t size, const DataStorageT val ) : _wrappers( size, createWrapper( val ) )
+      {
+      }
+
+      Mapper()
+      {
+      }
 
       /**
        @brief Quick access to find the data. Internally using the quick index, wich is invalidated while erasing elements
@@ -227,28 +206,44 @@ namespace core
       /**
        @brief Use the quick index to find the corresponding iterator
        */
-      iterator getIterator( const Descriptor& d ) const
+      const_iterator getIterator( const Descriptor& d ) const
       {
-         return _wrappers.begin() + d.uidPerVector;
+         return const_iterator( _wrappers.begin() + d.uidPerVector );
+      }
+
+      iterator getIterator( const Descriptor& d )
+      {
+         return iterator( _wrappers.begin() + d.uidPerVector );
       }
 
       /**
        @brief Given the descriptor, do a full search on the unique id to find an iterator.
               This is to handle cases with iterator invalidation while erasing elements
        */
-      iterator find( const Descriptor& d ) const
+      const_iterator find( const Descriptor& d ) const
       {
-         for ( iterator it = _wrappers.begin(); it != _wrappers.end(); ++it )
+         for ( const_iteratorImpl it = _wrappers.begin(); it != _wrappers.end(); ++it )
          {
-            DataStorageWrapper& wrapper = it.getWrapper();
+            const DataStorageWrapper& wrapper = *it;
             if ( wrapper.uid == d.uid )
             {
-               Uid newUid = it.getIterator() - _wrappers.begin(); // here we cache the UID so that we can have a quick look up next time!
-               wrapper.uidPerVector = newUid;
-               return it;
+               return const_iterator( it );
             }
          }
-         return _wrappers.end();
+         return const_iterator( _wrappers.end() );
+      }
+
+      iterator find( const Descriptor& d )
+      {
+         for ( iteratorImpl it = _wrappers.begin(); it != _wrappers.end(); ++it )
+         {
+            DataStorageWrapper& wrapper = *it;
+            if ( wrapper.uid == d.uid )
+            {
+               return iterator( it );
+            }
+         }
+         return iterator( _wrappers.end() );
       }
 
       Descriptor insert( const DataStorage& data )
@@ -257,17 +252,28 @@ namespace core
          return get( _wrappers.rbegin() );
       }
 
-      void erase( const DataStorage& d )
+      iterator erase( iterator& it )
       {
-         ensure( 0, "data specialization not implemented" );
+         iteratorImpl newIt = _wrappers.erase( it._it );
+         return iterator( newIt );
       }
 
-      iterator begin() const
+      const_iterator begin() const
+      {
+         return const_iterator( _wrappers.begin() );
+      }
+
+      iterator begin()
       {
          return iterator( _wrappers.begin() );
       }
 
-      iterator end() const
+      const_iterator end() const
+      {
+         return const_iterator( _wrappers.end() );
+      }
+
+      iterator end()
       {
          return iterator( _wrappers.end() );
       }
@@ -295,6 +301,13 @@ namespace core
       DataStorageWrappers      _wrappers;
    };
 
+   /**
+    @brief Graph with adjacency list implementation
+
+    It is assuming the UID generation for the Edges and Vertexes are compact (i.e. there is no holes,
+    or they will be filled at the next insertion). This is to ensure that the data can be retrieved
+    in o(1) if necessary (but at the cost of more memory consumption)
+    */
    class Graph
    {
    public:
@@ -305,6 +318,31 @@ namespace core
       typedef Vertexs::const_iterator        const_vertex_iterator;
       typedef Vertexs::Uid                   Uid;
 
+   private:
+      /**
+       @brief Data mapper main interface to allow the data mapper observe graph modifications
+       */
+      class DataMapperInterface
+      {
+         friend Graph;
+
+      public:
+         virtual ~DataMapperInterface()
+         {}
+
+      protected:
+         // if the graph is destroyed before the mapper, stop observing...
+         virtual void setUnobserved() = 0;
+
+         // will be called by the graph when a UID is being destroyed
+         virtual void erase( Uid uid ) = 0;
+
+         // will be called by the graph when a UID is being added
+         virtual void add( Uid uid ) = 0;
+      };
+      typedef std::list<DataMapperInterface*> DataMapperInterfaces;
+
+   public:
       class Edge
       {
          friend Graph;
@@ -342,12 +380,22 @@ namespace core
             return _uid;
          }
 
-         edge_iterator begin() const
+         const_edge_iterator begin() const
          {
             return _edges.begin();
          }
 
-         edge_iterator end() const
+         edge_iterator begin()
+         {
+            return _edges.begin();
+         }
+
+         edge_iterator end()
+         {
+            return _edges.end();
+         }
+
+         const_edge_iterator end() const
          {
             return _edges.end();
          }
@@ -361,36 +409,267 @@ namespace core
       typedef Edges::Descriptor        EdgeDescriptor;
 
    public:
-      Graph() : _uidGenerator( 0 )
+      //
+      // Here we handle the observer methods and notify them everytime the graph has been updated
+      //
+      void registerEdgeObserver( DataMapperInterface* i )
       {
+         _edgesObserver.push_back( i );
+      }
+
+      void registerVertexObserver( DataMapperInterface* i )
+      {
+         _vertexsObserver.push_back( i );
+      }
+
+      void unregisterObserver( DataMapperInterface* i )
+      {
+         DataMapperInterfaces::iterator it = std::find( _vertexsObserver.begin(), _vertexsObserver.end(), i );
+         if ( it != _vertexsObserver.end() )
+         {
+            _vertexsObserver.erase( it );
+            return;
+         }
+
+         it = std::find( _edgesObserver.begin(), _edgesObserver.end(), i );
+         if ( it != _edgesObserver.end() )
+         {
+            _edgesObserver.erase( it );
+         }
+      }
+
+      /**
+       @brief Object to retrieve efficiently data associated to vertices and edges
+       */
+      template <class T, class StorageImpl>
+      class DataMapper : public DataMapperInterface
+      {
+      protected:
+         typedef std::vector<T>     Storage;
+
+      public:
+         DataMapper( Graph& g, const T val = T() ) : _g( &g ), _storage( g.size(), val ), _default( val )
+         {
+         }
+
+         virtual ~DataMapper()
+         {
+            if ( _g )
+            {
+               _g->unregisterObserver( this );
+            }
+         }
+
+      protected:
+         // means the graph has been destroyed before the data mapper...
+         virtual void setUnobserved()
+         {
+            _g = 0;
+         }
+
+         template <class Descriptor>
+         const T& operator[]( const Descriptor& desc ) const
+         {
+            Uid uid = desc.getUid();
+            return _storage[ uid ];
+         }
+
+         template <class Descriptor>
+         T& operator[]( const Descriptor& desc )
+         {
+            Uid uid = desc.getUid();
+            return _storage[ uid ];
+         }
+
+      protected:
+         Graph*      _g;
+         Storage     _storage;
+         T           _default;
+      };
+
+      /**
+       @brief Specialization for the vertex data, complexity o(1) op for accessing o(N) in memory
+       */
+      template <class T>
+      class VertexMapper : public DataMapper<T, std::vector<T> >
+      {
+         typedef DataMapper<T, std::vector<T> > Base;
+
+      public:
+         VertexMapper( Graph& g, const T val = T() ) : DataMapper( g, val )
+         {
+            _g->registerVertexObserver( this );
+         }
+
+         const T& operator[]( const VertexDescriptor& desc ) const
+         {
+            return Base::operator[]( desc );
+         }
+
+         T& operator[]( const VertexDescriptor& desc )
+         {
+            return Base::operator[]( desc );
+         }
+
+         virtual void erase( Uid uid ) 
+         {
+            Storage::iterator it = _storage.begin() + uid;
+            _storage.erase( it );
+         }
+
+         virtual void add( Uid uid )
+         {
+            // if the UID is >= _storage.size it means the UID the compactness assumption is wrong,
+            // or it is the wrong container
+            assert( uid <= _storage.size() );
+            if ( uid == _storage.size() )
+            {
+               _storage.push_back( _default );
+            }
+         }
+      };
+
+      /**
+       @brief Specialization for the edge data, complexity o(1) op for accessing o(N) in memory
+       */
+      template <class T>
+      class EdgeMapper : public DataMapper<T, std::vector<T> >
+      {
+         typedef DataMapper<T, std::vector<T> > Base;
+
+      public:
+         EdgeMapper( Graph& g, const T val = T() ) : DataMapper( g, val )
+         {
+            _g->registerEdgeObserver( this );
+         }
+
+         const T& operator[]( const EdgeDescriptor& desc ) const
+         {
+            return Base::operator[]( desc );
+         }
+
+         T& operator[]( const EdgeDescriptor& desc )
+         {
+            return Base::operator[]( desc );
+         }
+
+         virtual void erase( Uid uid ) 
+         {
+            Storage::iterator it = _storage.begin() + uid;
+            _storage.erase( it );
+         }
+
+         virtual void add( Uid uid )
+         {
+            // if the UID is >= _storage.size it means the UID the compactness assumption is wrong,
+            // or it is the wrong container
+            assert( uid <= _storage.size() );
+            if ( uid == _storage.size() )
+            {
+               _storage.push_back( _default );
+            }
+         }
+      };
+
+      Graph() : _uidVertexGenerator( 0 ), _uidEdgeGenerator( 0 )
+      {
+      }
+
+      ~Graph()
+      {
+         // we need to unregister the observers so that it doesn't cause problems if the graph is destroyed first...
+         for ( DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
+         {
+            (*it)->setUnobserved();
+         }
+
+         for ( DataMapperInterfaces::iterator it = _edgesObserver.begin(); it != _edgesObserver.end(); ++it )
+         {
+            (*it)->setUnobserved();
+         }
       }
 
       VertexDescriptor addVertex()
       {
-         ++_uidGenerator;
-         return _vertexs.insert( Vertex( _uidGenerator ) );
+         Uid uid;
+         if ( _uidVertexRecyling.empty() )
+         {
+            // generate a new UID
+            uid = _uidVertexGenerator;
+            ++_uidVertexGenerator;
+         } else {
+            // recycle a UID
+            uid = _uidVertexRecyling.top();
+            _uidVertexRecyling.pop();
+         }
+
+         // notify oberservers
+         for ( DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
+         {
+            (*it)->add( uid );
+         }
+         return _vertexs.insert( Vertex( uid ) );
       }
 
       EdgeDescriptor addEdge( const VertexDescriptor& src, const VertexDescriptor& dst )
       {
-         ++_uidGenerator;
+         Uid uid;
+         if ( _uidEdgeRecyling.empty() )
+         {
+            // generate a new UID
+            uid = _uidEdgeGenerator;
+            ++_uidEdgeGenerator;
+         } else {
+
+            // reuse a UID
+            uid = _uidEdgeRecyling.top();
+            _uidEdgeRecyling.pop();
+         }
+
+         // notify the observers
+         for ( DataMapperInterfaces::iterator it = _edgesObserver.begin(); it != _edgesObserver.end(); ++it )
+         {
+            (*it)->add( uid );
+         }
+
+         // finally add a new edge
          vertex_iterator it = _vertexs.getIterator( src );
-         return (*it)._edges.insert( Edge( _uidGenerator, src, dst ) );
+         return (*it)._edges.insert( Edge( uid, src, dst ) );
       }
 
-      vertex_iterator begin() const
+      const_vertex_iterator begin() const
       {
          return _vertexs.begin();
       }
 
-      vertex_iterator end() const
+      const_vertex_iterator end() const
       {
          return _vertexs.end();
       }
 
+      vertex_iterator begin()
+      {
+         return _vertexs.begin();
+      }
+
+      vertex_iterator end()
+      {
+         return _vertexs.end();
+      }
+
+      size_t size() const
+      {
+         return _vertexs.size();
+      }
+
    private:
-      Vertexs  _vertexs;
-      Uid      _uidGenerator;
+      Vertexs                 _vertexs;
+      Uid                     _uidVertexGenerator;
+      std::stack<Uid>         _uidVertexRecyling;
+      Uid                     _uidEdgeGenerator;
+      std::stack<Uid>         _uidEdgeRecyling;
+      DataMapperInterfaces    _vertexsObserver;
+      DataMapperInterfaces    _edgesObserver;
    };
 }
 }
@@ -435,6 +714,8 @@ public:
       {
          1, 2, 3
       };
+
+      Mapper1 m2( 10, DataUq1( dav[ 0 ] ) );
 
       DataUq1 da1( dav[ 0 ] );
       Mapper1::Descriptor d1 = mapper1.insert( da1 );
@@ -481,6 +762,14 @@ public:
          int res = (*it)._v;
          TESTER_ASSERT( res == id );
       }
+
+      mapper1.erase( it1 );
+      id = 2;
+      for ( Mapper1::iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
+      {
+         int res = (*it)._v;
+         TESTER_ASSERT( res == id );
+      }
    }
 
    void testGraph()
@@ -508,6 +797,24 @@ public:
             std::cout << "AA" << std::endl;
          }
       }
+
+      Graph::VertexMapper<int> intmap( g, -1 );
+      TESTER_ASSERT( intmap[ v1 ] == -1 );
+      std::cout << "DATA=" << intmap[ v1 ] << std::endl;
+      intmap[ v3 ] = 2;
+      TESTER_ASSERT( intmap[ v3 ] == 2 );
+
+      Graph* g2 = new Graph();
+      Graph::VertexMapper<int> intmap2( *g2, -2 );
+      Graph::VertexDescriptor v1b = g2->addVertex();
+      Graph::VertexDescriptor v2b = g2->addVertex();
+      Graph::VertexDescriptor v3b = g2->addVertex();
+      delete g2;
+
+      TESTER_ASSERT( intmap2[ v1b ] == -2 );
+      TESTER_ASSERT( intmap2[ v2b ] == -2 );
+      TESTER_ASSERT( intmap2[ v3b ] == -2 );
+      std::cout << "DATA=" << intmap2[ v1b ] << std::endl;
    }
 };
 

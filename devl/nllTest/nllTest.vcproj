@@ -836,6 +836,18 @@
 			<File
 				RelativePath=".\test-graph.cpp"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\test-graph2.cpp"
+				>
 			</File>
 			<File
 				RelativePath=".\test-haar-features.cpp"
