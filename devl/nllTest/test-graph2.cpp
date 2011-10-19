@@ -13,15 +13,6 @@ namespace nll
 {
 namespace core
 {
-   class Empty
-   {};
-
-   class Directed
-   {};
-
-   class Undirected
-   {};
-
    class MapperVector
    {};
 
@@ -39,9 +30,10 @@ namespace core
       iterator
       const_iterator
       Uid
+      DataStorage
 
     <Mapper> must define the operations:
-      Mapper( size_t size, const DataStorageT val )
+      Mapper()
       DataStorage& getData( const Descriptor& d )
       const DataStorage& getData( const Descriptor& d ) const
       const_iterator getIterator( const Descriptor& d ) const
@@ -49,12 +41,13 @@ namespace core
       const_iterator find( const Descriptor& d ) const
       iterator find( const Descriptor& d )
       Descriptor insert( const DataStorage& data )
-      iterator erase( iterator& it )
+      iterator erase( const iterator& it )
       const_iterator begin() const
       iterator begin()
       const_iterator end() const
       iterator end()
       size_t size() const
+      Descriptor get( const iterator& it ) const
 
     <Descriptor> must define the operations:
       Uid getUid() const      // Uids need not be compact
@@ -66,6 +59,126 @@ namespace core
    class Mapper
    {
       // need specialization
+   };
+
+   /**
+    @brief Mapper implemented in terms of std::set
+
+    N = nb elements
+    Insertion/deletion is o(log N)
+    get iterators, find and iterator->descriptor conversions are o(1)
+    descriptors and iterators are never invalidated if deletion/insertion
+    */
+   template <class DataStorageT>
+   class Mapper<DataStorageT, MapperSet>
+   {
+   public:
+      typedef size_t             Uid;
+      typedef DataStorageT       DataStorage;
+      typedef MapperVector       MapperType;
+
+   private:
+      // private support classes
+      class CompareData
+      {
+      public:
+         bool operator()( const DataStorage& d1, const DataStorage& d2 ) const
+         {
+            return d1.getUid() < d2.getUid();
+         }
+      };
+      typedef std::set<DataStorage, CompareData>             DataStore;
+
+   public:
+      typedef typename DataStore::iterator         iterator;
+      typedef typename DataStore::const_iterator   const_iterator;
+
+      // we can directly hold an iterator as they are not invalidated by insertion/deletion
+      class Descriptor
+      {
+         friend Mapper;
+
+      public:
+         Descriptor( iterator it ) : _it( it )
+         {}
+
+      private:
+         iterator _it;
+      };
+
+      Descriptor insert( const DataStorage& data )
+      {
+         std::pair<iterator, bool> p = _store.insert( data );
+         return Descriptor( p.first );
+      }
+
+      DataStorage& getData( const Descriptor& d )
+      {
+         return *d._it;
+      }
+
+      const DataStorage& getData( const Descriptor& d ) const
+      {
+         return *d._it;
+      }
+
+      iterator find( const Descriptor& d )
+      {
+         return d._it;
+      }
+
+      const_iterator find( const Descriptor& d ) const
+      {
+         return d._it;
+      }
+
+      const_iterator getIterator( const Descriptor& d ) const
+      {
+         return find( d );
+      }
+
+      iterator getIterator( const Descriptor& d )
+      {
+         return find( d );
+      }
+
+      const_iterator begin() const
+      {
+         return _store.begin();
+      }
+
+      iterator begin()
+      {
+         return _store.begin();
+      }
+
+      const_iterator end() const
+      {
+         return _store.end();
+      }
+
+      iterator end()
+      {
+         return _store.end();
+      }
+
+      size_t size() const
+      {
+         return _store.size();
+      }
+
+      iterator erase( const iterator& it )
+      {
+         return _store.erase( it );
+      }
+
+      Descriptor get( const iterator& it ) const
+      {
+         Descriptor( it );
+      }
+
+   private:
+      DataStore _store;
    };
 
    /**
@@ -120,7 +233,7 @@ namespace core
             return *this;
          }
 
-         DataStorage& operator*()
+         DataStorage& operator*() const
          {
             const DataStorage& data = _it->data;
             return const_cast<DataStorage&>( data );
@@ -249,10 +362,13 @@ namespace core
       Descriptor insert( const DataStorage& data )
       {
          _wrappers.push_back( createWrapper( data ) );
-         return get( _wrappers.rbegin() );
+
+         const Uid uid = _wrappers.rbegin()->uid;
+         const Uid uidPerVector = _wrappers.rbegin()->uidPerVector;
+         return Descriptor( uid, uidPerVector );
       }
 
-      iterator erase( iterator& it )
+      iterator erase( const iterator& it )
       {
          iteratorImpl newIt = _wrappers.erase( it._it );
          return iterator( newIt );
@@ -283,18 +399,17 @@ namespace core
          return _wrappers.size();
       }
 
-   private:
-      DataStorageWrapper createWrapper( const DataStorage& data )
-      {
-         return DataStorageWrapper( data, data.getUid(), _wrappers.size() );
-      }
-
-      template <class iter>
-      Descriptor get( const iter& it ) const
+      Descriptor get( const iterator& it ) const
       {
          const Uid uid = it->uid;
          const Uid uidPerVector = it->uidPerVector;
          return Descriptor( uid, uidPerVector );
+      }
+
+   private:
+      DataStorageWrapper createWrapper( const DataStorage& data )
+      {
+         return DataStorageWrapper( data, data.getUid(), _wrappers.size() );
       }
 
    private:
@@ -307,16 +422,58 @@ namespace core
     It is assuming the UID generation for the Edges and Vertexes are compact (i.e. there is no holes,
     or they will be filled at the next insertion). This is to ensure that the data can be retrieved
     in o(1) if necessary (but at the cost of more memory consumption)
+
+    N = nb vertices, E = nb edges, mE = mean nb edges
+    VertexType = MapperVector | EdgeType = MapperVector
+      vertex add,          complexity time on average o(1)
+      vertex erase,        complexity time o(E+N)
+      edge add,            complexity time on average o(1)
+      edge erase,          complexity time on average o(1)
+      vertex iterator get, complexity time o(1)
+      edge iterator get,   complexity time o(1)
+
+    VertexType = MapperSet | EdgeType = MapperSet
+      vertex add,          complexity time o(log(N))
+      vertex erase,        complexity time o(log(N)+E)
+      edge add,            complexity time on average o(log mE)
+      edge erase,          complexity time on average o(log mE)
+      vertex iterator get, complexity time on average o(log N)
+      edge iterator get,   complexity time on average o(log mE)
+
+    Adding/retriving data using data mapper if o(1) on average. This is achieved by using a global ID (hence
+    the constraint of UID compactness). The data mapper will only grow and never decrease...
+
+    iterator invalidation:
+      VertexType = MapperVector
+        add vertex         all iterator invalidated
+        erase vertex       all iterator invalidated after erase position
+      VertexType = MapperSet
+        add vertex         all iterator valid
+        erase vertex       all iterator valid
+      EdgeType = MapperVector
+        add edge           all iterator invalidated
+        erase edge         all iterator invalidated after erase position
+      EdgeType = MapperSet
+        add edge           all iterator valid
+        erase edge         all iterator valid
+
+    When an iterator is invalidated, the corresponding descriptor is also invalidated, except
+    for the method <getSafe> which will "find" the corresponding element Indeed, for some mapper
+    type, some indexing will be done but won't be valid anymore after iterator invalidation
+    and must be recalculated
     */
+   template <class VertexStorageTypeT = MapperVector, class EdgeStorageTypeT = MapperVector>
    class Graph
    {
    public:
+      typedef VertexStorageTypeT             VertexStorageType;
+      typedef EdgeStorageTypeT               EdgeStorageType;
       class Edge;
       class Vertex;
       typedef Mapper< Vertex, MapperVector > Vertexs;
-      typedef Vertexs::iterator              vertex_iterator;
-      typedef Vertexs::const_iterator        const_vertex_iterator;
-      typedef Vertexs::Uid                   Uid;
+      typedef typename Vertexs::iterator              vertex_iterator;
+      typedef typename Vertexs::const_iterator        const_vertex_iterator;
+      typedef typename Vertexs::Uid                   Uid;
 
    private:
       /**
@@ -347,7 +504,7 @@ namespace core
       {
          friend Graph;
 
-         Edge( Uid uid, const Vertexs::Descriptor& source, const Vertexs::Descriptor& destination ) : _uid( uid ), src( source ), dst( destination )
+         Edge( Uid uid, const typename Vertexs::Descriptor& source, const typename Vertexs::Descriptor& destination ) : _uid( uid ), src( source ), dst( destination )
          {}
 
       public:
@@ -357,15 +514,15 @@ namespace core
          }
 
       private:
-         Vertexs::Descriptor src;
-         Vertexs::Descriptor dst;
+         typename Vertexs::Descriptor src;
+         typename Vertexs::Descriptor dst;
 
       private:
          Uid  _uid;
       };
       typedef Mapper< Edge, MapperVector >   Edges;
-      typedef Edges::iterator                edge_iterator;
-      typedef Edges::const_iterator          const_edge_iterator;
+      typedef typename Edges::iterator       edge_iterator;
+      typedef typename Edges::const_iterator const_edge_iterator;
 
       class Vertex
       {
@@ -405,8 +562,21 @@ namespace core
          Edges _edges;
       };
 
-      typedef Vertexs::Descriptor      VertexDescriptor;
-      typedef Edges::Descriptor        EdgeDescriptor;
+      typedef typename Vertexs::Descriptor      VertexDescriptor;
+      typedef typename Edges::Descriptor        EdgeDescriptorImpl;
+
+      class EdgeDescriptor
+      {
+         friend Graph;
+
+      public:
+         EdgeDescriptor( const VertexDescriptor& src, const EdgeDescriptorImpl& d ) : _src( src ), _desc( d )
+         {}
+
+      private:
+         VertexDescriptor     _src;
+         EdgeDescriptorImpl   _desc;
+      };
 
    public:
       //
@@ -545,12 +715,12 @@ namespace core
 
          const T& operator[]( const EdgeDescriptor& desc ) const
          {
-            return Base::operator[]( desc );
+            return Base::operator[]( desc._desc );
          }
 
          T& operator[]( const EdgeDescriptor& desc )
          {
-            return Base::operator[]( desc );
+            return Base::operator[]( desc._desc );
          }
 
          virtual void erase( Uid uid ) 
@@ -589,6 +759,10 @@ namespace core
          }
       }
 
+      //
+      // Graph modification operations
+      //
+
       VertexDescriptor addVertex()
       {
          Uid uid;
@@ -609,6 +783,30 @@ namespace core
             (*it)->add( uid );
          }
          return _vertexs.insert( Vertex( uid ) );
+      }
+
+      edge_iterator erase( const edge_iterator& it )
+      {
+         // get the source vertex
+         Edge& e = *it;
+         Vertex& v = _vertexs.getData( e.src );
+         const Uid uid = e.getUid();
+         _uidEdgeRecyling.push( uid );   // here we recycle the UID to be reused for next <add>
+         return v._edges.erase( it );
+      }
+
+      /*
+      vertex_iterator erase( const vertex_iterator& it )
+      {
+         Vertex& v = *it;
+
+      }*/
+
+      edge_iterator erase( const EdgeDescriptor& desc )
+      {
+         // from the descriptor we need to know the source so that we can lookup the edge iterator
+         edge_iterator it = get( desc );
+         return erase( it );
       }
 
       EdgeDescriptor addEdge( const VertexDescriptor& src, const VertexDescriptor& dst )
@@ -634,8 +832,12 @@ namespace core
 
          // finally add a new edge
          vertex_iterator it = _vertexs.getIterator( src );
-         return (*it)._edges.insert( Edge( uid, src, dst ) );
+         return EdgeDescriptor( src, (*it)._edges.insert( Edge( uid, src, dst ) ) );
       }
+
+      //
+      // Accessors
+      //
 
       const_vertex_iterator begin() const
       {
@@ -661,6 +863,42 @@ namespace core
       {
          return _vertexs.size();
       }
+
+      //
+      // Converters descriptor->iterator
+      //
+
+      edge_iterator get( const EdgeDescriptor& desc )
+      {
+         // first get the source vertex
+         vertex_iterator it = _vertexs.getIterator( desc._src );
+         assert( it != _vertexs.end() );
+
+         return (*it)._edges.getIterator( desc._desc );
+      }
+
+      const_edge_iterator get( const EdgeDescriptor& desc ) const
+      {
+         // first get the source vertex
+         const_vertex_iterator it = _vertexs.getIterator( desc._src );
+         assert( it != _vertexs.end() );
+
+         return (*it)._edges.getIterator( desc._desc );
+      }
+
+      vertex_iterator get( const VertexDescriptor& desc )
+      {
+         return _vertexs.getIterator( desc );
+      }
+
+      const_vertex_iterator get( const VertexDescriptor& desc ) const
+      {
+         return _vertexs.getIterator( desc );
+      }
+
+      //
+      // TODO GET DESC FROM ITER
+      //
 
    private:
       Vertexs                 _vertexs;
@@ -702,10 +940,11 @@ public:
       size_t   _uid;
    };
 
-   void test()
+   template <class MapperType>
+   void testImpl()
    {
       typedef DataUq<int> DataUq1;
-      typedef Mapper<DataUq1, MapperVector> Mapper1;
+      typedef Mapper<DataUq1, MapperType> Mapper1;
       Mapper1  mapper1;
 
       const Mapper1&  mapper2 = mapper1;
@@ -714,8 +953,6 @@ public:
       {
          1, 2, 3
       };
-
-      Mapper1 m2( 10, DataUq1( dav[ 0 ] ) );
 
       DataUq1 da1( dav[ 0 ] );
       Mapper1::Descriptor d1 = mapper1.insert( da1 );
@@ -772,17 +1009,42 @@ public:
       }
    }
 
-   void testGraph()
+   void testVector()
    {
-      Graph g;
-      Graph::VertexDescriptor v1 = g.addVertex();
-      Graph::VertexDescriptor v2 = g.addVertex();
-      Graph::VertexDescriptor v3 = g.addVertex();
-      Graph::VertexDescriptor v4 = g.addVertex();
-      Graph::VertexDescriptor v5 = g.addVertex();
-      Graph::VertexDescriptor v6 = g.addVertex();
+      testImpl<MapperVector>();
 
-      g.addEdge( v1, v2 );
+      typedef DataUq<int> DataUq1;
+      typedef Mapper<DataUq1, MapperVector> Mapper1;
+      Mapper1  mapper1;
+
+      int dav[] =
+      {
+         1, 2, 3
+      };
+
+      Mapper1 m2( 10, DataUq1( dav[ 0 ] ) );
+   }
+
+   void testSet()
+   {
+      testImpl<MapperSet>();
+   }
+
+   template <class VertexType, class EdgeType>
+   void testGraphImpl()
+   {
+      typedef Graph<VertexType, EdgeType>   Graph1;
+      Graph1 g;
+      Graph1::VertexDescriptor v1 = g.addVertex();
+      Graph1::VertexDescriptor v2 = g.addVertex();
+      Graph1::VertexDescriptor v3 = g.addVertex();
+      Graph1::VertexDescriptor v4 = g.addVertex();
+      Graph1::VertexDescriptor v5 = g.addVertex();
+      Graph1::VertexDescriptor v6 = g.addVertex();
+
+      Graph1::EdgeDescriptor e1 = g.addEdge( v1, v2 );
+      Graph1::EdgeDescriptor e2 = g.addEdge( v1, v5 );
+      g.addEdge( v1, v3 );
       g.addEdge( v2, v3 );
       g.addEdge( v2, v4 );
       g.addEdge( v4, v5 );
@@ -790,37 +1052,82 @@ public:
       g.addEdge( v4, v1 );
       g.addEdge( v1, v4 );
 
-      for ( Graph::const_vertex_iterator v = g.begin(); v != g.end(); ++v )
+      for ( Graph1::const_vertex_iterator v = g.begin(); v != g.end(); ++v )
       {
-         for ( Graph::const_edge_iterator e = (*v).begin(); e != (*v).end(); ++e )
+         for ( Graph1::const_edge_iterator e = (*v).begin(); e != (*v).end(); ++e )
          {
             std::cout << "AA" << std::endl;
          }
       }
 
-      Graph::VertexMapper<int> intmap( g, -1 );
+      Graph1::VertexMapper<int> intmap( g, -1 );
       TESTER_ASSERT( intmap[ v1 ] == -1 );
       std::cout << "DATA=" << intmap[ v1 ] << std::endl;
       intmap[ v3 ] = 2;
       TESTER_ASSERT( intmap[ v3 ] == 2 );
 
-      Graph* g2 = new Graph();
-      Graph::VertexMapper<int> intmap2( *g2, -2 );
-      Graph::VertexDescriptor v1b = g2->addVertex();
-      Graph::VertexDescriptor v2b = g2->addVertex();
-      Graph::VertexDescriptor v3b = g2->addVertex();
+      Graph1* g2 = new Graph1();
+      Graph1::VertexMapper<int> intmap2( *g2, -2 );
+      Graph1::VertexDescriptor v1b = g2->addVertex();
+      Graph1::VertexDescriptor v2b = g2->addVertex();
+      Graph1::VertexDescriptor v3b = g2->addVertex();
       delete g2;
 
       TESTER_ASSERT( intmap2[ v1b ] == -2 );
       TESTER_ASSERT( intmap2[ v2b ] == -2 );
       TESTER_ASSERT( intmap2[ v3b ] == -2 );
       std::cout << "DATA=" << intmap2[ v1b ] << std::endl;
+
+      Graph1::edge_iterator ie1n = g.erase( (*g.begin()).begin() );
+      TESTER_ASSERT( (*ie1n).getUid() == 1 );
+
+      Graph1::edge_iterator ie2n = g.erase( (*g.begin()).begin() );
+      TESTER_ASSERT( (*ie2n).getUid() == 2 );
+
+      Graph1::EdgeDescriptor e1b = g.addEdge( v1, v2 );
+      Graph1::EdgeDescriptor e2b = g.addEdge( v1, v5 );
+      Graph1::edge_iterator ie2b = g.get( e2b );
+      size_t uid = (*ie2b).getUid();
+
+      // test the const method
+      const Graph1& gc = g;
+      g.get( e1b );
+      gc.get( e1b );
+      g.get( v3 );
+      gc.get( v3 );
+
+      Graph1::edge_iterator ie1bn = g.erase( e1b );
+      TESTER_ASSERT( (*ie1bn).getUid() == uid );
+   }
+
+   void testGraphVV()
+   {
+      testGraphImpl<MapperVector, MapperVector>();
+   }
+
+   void testGraphSS()
+   {
+      testGraphImpl<MapperSet, MapperSet>();
+   }
+
+   void testGraphSV()
+   {
+      testGraphImpl<MapperSet, MapperVector>();
+   }
+
+   void testGraphVS()
+   {
+      testGraphImpl<MapperVector, MapperSet>();
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGraph2);
-TESTER_TEST( test );
-TESTER_TEST( testGraph );
+TESTER_TEST( testVector );
+TESTER_TEST( testSet );
+TESTER_TEST( testGraphVV );
+TESTER_TEST( testGraphSS );
+TESTER_TEST( testGraphSV );
+TESTER_TEST( testGraphVS );
 TESTER_TEST_SUITE_END();
 #endif
