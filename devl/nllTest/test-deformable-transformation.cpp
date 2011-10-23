@@ -3,6 +3,90 @@
 
 using namespace nll;
 
+namespace nll
+{
+namespace algorithm
+{
+   class RadialBasisFunctions
+   {
+      typedef double  value_type;
+
+   public:
+      /**
+       @brief Defines a Gaussian RBF parametrized by a weigh, variance and mean.
+              If the mean has size > 1, creates a RBF with the same number of values
+       */
+      struct GaussianRbf
+      {
+         value_type                    weight;
+         core::Buffer1D<value_type>    mean;
+         core::Buffer1D<value_type>    var;
+
+         template <class Vector>
+         core::Buffer1D<value_type> eval( const Vector& v )
+         {
+            ensure( v.size() == mean.size(), "vector size mismatch" );
+            core::Buffer1D<value_type> r( v.size() );
+            for ( ui32 n = 0; n < mean.size(); ++n )
+            {
+               const value_type diff = v[ n ] - mean[ n ];
+               r[ n ] = std::exp( - diff * diff / ( 2 * var[ n ] ) );
+            }
+
+            return r;
+         }
+      };
+      typedef std::vector<GaussianRbf> Rbfs;
+
+   public:
+      RadialBasisFunctions()
+      {}
+
+      RadialBasisFunctions( const Rbfs& g ) : _rbfs( g )
+      {
+      }
+
+      void clear()
+      {
+         _rbfs.clear();
+      }
+
+      void add( const GaussianRbf& g )
+      {
+         _rbfs.push_back( g );
+      }
+
+      GaussianRbf& operator[]( size_t i )
+      {
+         return _rbfs[ i ];
+      }
+
+      const GaussianRbf& operator[]( size_t i ) const
+      {
+         return _rbfs[ i ];
+      }
+
+      size_t size() const
+      {
+         return _rbfs.size();
+      }
+
+   private:
+      Rbfs   _rbfs;
+   };
+
+
+   /**
+    @brief Export a mixture of gaussians as a dense displacement field
+    @param mixture the gaussian mixture. The intensity at a given point is computed from the weighted gaussian sum
+    */
+   template <class T, class Mapper, class Allocator>
+   void exportAsDenseDensityField( const RadialBasisFunctions& mixture, core::Image<T, Mapper, Allocator>& outDdf )
+   {
+   }
+}
+}
+
 struct TestDeformable2D
 {
    typedef core::Image<double>   Image;
