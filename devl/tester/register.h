@@ -173,13 +173,20 @@ public:
                // check the timings
                const double vref = nll::core::str2val<double>( rconfig[ item->first ] );
                const double v = nll::core::str2val<double>( item->second );
+               bool displayedWarning = false;
                if ( v > vref * ( 1 + _tolerance ) )
                {
                   if ( v > _regressionMinTime )
                   {
+                     displayedWarning = true;
                      TESTER_STREAM << "warning performance:" << directory->first << ":" << item->first << " ref="
                                    << vref << " current=" << v << std::endl;
                   }
+               }
+               if ( !displayedWarning )
+               {
+                  TESTER_STREAM << "time:" << item->first << " ref="
+                                << vref << " current=" << v << std::endl;
                }
 
                // if better value, just copy it

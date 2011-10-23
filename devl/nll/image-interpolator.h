@@ -55,6 +55,10 @@ namespace core
    class Interpolator2D
    {
    public:
+      // if the volume is a floating point type, the interpolation is the same type
+      // else a float
+      typedef typename core::If<T, float, core::IsFloatingType<T>::value >::type value_type;
+
       typedef Image<T, Mapper, Alloc>   TImage;
 
       /**
@@ -82,7 +86,7 @@ namespace core
       /**
        @brief return the value of an interpolated point
        */
-      virtual double interpolate( double x, double y, ui32 c ) const = 0;
+      virtual value_type interpolate( value_type x, value_type y, ui32 c ) const = 0;
 
    protected:
       Interpolator2D& operator=( const Interpolator2D& );
@@ -101,17 +105,15 @@ namespace core
    public:
       typedef Interpolator2D<T, Mapper, Alloc>   Base;
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
-      double interpolate( double x, double y, ui32 c ) const
+      value_type interpolate( value_type x, value_type y, ui32 c ) const
       {
-         double buf[ 4 ];
+         value_type buf[ 4 ];
 
-         x -= 0.5;
-         y -= 0.5;
          const int xi = core::floor( x );
          const int yi = core::floor( y );
 
-         const double dx = fabs( x - xi );
-         const double dy = fabs( y - yi );
+         const value_type dx = fabs( x - xi );
+         const value_type dy = fabs( y - yi );
 
          // if we can't interpolate first & last line/column (we are missing one sample), just don't do any interpolation
          // and return background value
@@ -133,8 +135,8 @@ namespace core
          //             ( dx )     * ( 1 - dy ) * buf[ 1 ] +
          //             ( dx )     * ( dy )     * buf[ 2 ] +
          //             ( 1 - dx ) * ( dy )     * buf[ 3 ];
-         double val = ( 1 - dy ) * ( ( 1 - dx ) * buf[ 0 ] + ( dx ) * buf[ 1 ] ) +
-                      ( dy )     * ( ( dx )     * buf[ 2 ] + ( 1 - dx ) * buf[ 3 ] );
+         value_type val = ( 1 - dy ) * ( ( 1 - dx ) * buf[ 0 ] + ( dx ) * buf[ 1 ] ) +
+                          ( dy )     * ( ( dx )     * buf[ 2 ] + ( 1 - dx ) * buf[ 3 ] );
 
          // the first line|col is discarded as we can't really interpolate it correctly
          assert( val >= Bound<T>::min );
@@ -146,15 +148,15 @@ namespace core
        @brief Helper method to do interpolation on multi valued values
        */
       template <class Iterator>
-      void interpolateValues( float x, float y, Iterator output ) const
+      void interpolateValues( value_type x, value_type y, Iterator output ) const
       {
-         float buf[ 4 ];
+         value_type buf[ 4 ];
 
          const int xi = static_cast<int>( std::floor( x ) );
          const int yi = static_cast<int>( std::floor( y ) );
 
-         const float dx = fabs( x - xi );
-         const float dy = fabs( y - yi );
+         const value_type dx = fabs( x - xi );
+         const value_type dy = fabs( y - yi );
 
          // if we can't interpolate first & last line/column (we are missing one sample), just don't do any interpolation
          // and return background value
@@ -167,10 +169,10 @@ namespace core
          }
   
          // precompute coef
-         const float a0 = ( 1 - dx ) * ( 1 - dy );
-         const float a1 = ( dx )     * ( 1 - dy );
-         const float a2 = ( dx )     * ( dy );
-         const float a3 = ( 1 - dx ) * ( dy );
+         const value_type a0 = ( 1 - dx ) * ( 1 - dy );
+         const value_type a1 = ( dx )     * ( 1 - dy );
+         const value_type a2 = ( dx )     * ( dy );
+         const value_type a3 = ( 1 - dx ) * ( dy );
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
          for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp, iterOrig.addcol() )
@@ -199,13 +201,20 @@ namespace core
    public:
       typedef Interpolator2D<T, Mapper, Alloc>   Base;
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
-      inline double interpolate( double x, double y, ui32 c ) const
+      value_type interpolate( value_type x, value_type y, ui32 c ) const
       {
-         // we need to add a bias factor due to rounding error. In this case the pixel
-         // location could be both ways. In this case, we force to choose the right one
-         // (it is also right to choose the left one, but we have to choose one way...)
-         const double val = this->_img( (ui32)NLL_BOUND( ( x + NLL_IMAGE_BIAS ), 0, this->_img.sizex() - 1 ), (ui32)NLL_BOUND( ( y + NLL_IMAGE_BIAS ), 0, this->_img.sizey() - 1 ), c );
-         assert( val >= Bound<T>::min && val <= (Bound<T>::max + 0.999) );
+         const value_type xf = x + 0.5f;
+         const value_type yf = y + 0.5f;
+         const int xi = static_cast<int>( xf );
+         const int yi = static_cast<int>( yf );
+
+         if ( xf < 0 || ( xi ) >= static_cast<int>( this->_img.sizex() ) ||
+              yf < 0 || ( yi ) >= static_cast<int>( this->_img.sizey() ) )
+         {
+            return 0;
+         }
+
+         const value_type val = this->_img( xi, yi, c );
          return val;
       }
 
@@ -213,13 +222,15 @@ namespace core
        @brief Helper method to do interpolation on multi valued values
        */
       template <class Iterator>
-      void interpolateValues( float x, float y, Iterator output ) const
+      void interpolateValues( value_type x, value_type y, Iterator output ) const
       {
-         int xi = (int)( x + 0.5f );
-         int yi = (int)( y + 0.5f );
+         const value_type xf = x + 0.5f;
+         const value_type yf = y + 0.5f;
+         const int xi = static_cast<int>( xf );
+         const int yi = static_cast<int>( yf );
 
-         if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
-              yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
+         if ( xf < 0 || ( xi ) >= static_cast<int>( this->_img.sizex() ) ||
+              yf < 0 || ( yi ) >= static_cast<int>( this->_img.sizey() ) )
          {
             for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
                *output++ = 0;

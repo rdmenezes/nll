@@ -68,7 +68,7 @@ namespace core
                {
                   target( x, y, c ) = background[ c ];
                } else {
-                  target( x, y, c ) = interpolator.interpolate( dx[ 0 ], dx[ 1 ], c );
+                  target( x, y, c ) = interpolator.interpolate( dx[ 0 ] - 0.5, dx[ 1 ] - 0.5, c );
                }
             }
             dx[ 0 ] += invTfm( 0, 0 );
@@ -119,7 +119,7 @@ namespace core
          for ( ui32 x = 0; x < newSizeX; ++x )
             for ( ui32 c = 0; c < img.getNbComponents(); ++c )
             {
-               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize, y * dysize, c ) );
+               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize - 0.5, y * dysize - 0.5, c ) );
             }
       img = i;
    }
