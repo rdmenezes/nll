@@ -11,7 +11,6 @@
 
 using namespace mvv::platform;
 using namespace mvv::parser;
-using namespace mvv;
 
 namespace mvv
 {

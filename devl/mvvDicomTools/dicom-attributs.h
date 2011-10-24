@@ -9,7 +9,6 @@
 
 using namespace mvv::platform;
 using namespace mvv::parser;
-using namespace mvv;
 
 //
 // Note: this module relies on the perfect synchronization of the <mvvDicomTools.ludo> header,

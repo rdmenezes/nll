@@ -9,9 +9,8 @@
 
 using namespace mvv::platform;
 using namespace mvv::parser;
-using namespace mvv;
 
-extern ui32 dicomVolumeId;
+extern mvv::ui32 dicomVolumeId;
 
 namespace mvv
 {

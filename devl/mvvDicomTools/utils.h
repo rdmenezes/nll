@@ -13,7 +13,6 @@
 using namespace boost::filesystem;
 using namespace mvv::platform;
 using namespace mvv::parser;
-using namespace mvv;
 
 namespace mvv
 {
@@ -769,8 +768,18 @@ namespace mvv
          {
             DicomWrapper wrapper( *suids[ z ].getDataset(), true );
             wrapper.getPixelData( ptr.get() ); // we really don't want this to be in the multithreaded loop as it is reading slices from disk
-            const float slope = wrapper.getRescaleSlope();
-            const float intercept = wrapper.getRescaleIntercept();
+            float slope = 1.0f;
+            float intercept = 0.0f;
+
+            try
+            {
+               slope = wrapper.getRescaleSlope();
+               wrapper.getRescaleIntercept();
+            } catch (...)
+            {
+               // missing RSI tag, but that's ok (e.g., MR data)
+               //std::cout << "warning: RSI tag is missing!" << std::endl;
+            }
 
             #pragma omp parallel for
             for ( int y = 0; y < (int)size[ 1 ]; ++y )

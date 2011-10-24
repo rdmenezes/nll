@@ -223,6 +223,17 @@ namespace algorithm
             // we want a ratio of the error...
             return core::sqr( ( px - p2.position[ 0 ] ) / ( p2.position[ 0 ] ) ) +
                    core::sqr( ( py - p2.position[ 1 ] ) / ( p2.position[ 1 ] ) );
+
+            /*
+            // we want a ratio of the error...
+            const double dx = core::sqr( p1.position[ 0 ] - p2.position[ 0 ] );
+            const double dy = core::sqr( p1.position[ 1 ] - p2.position[ 1 ] );
+
+            const double dex = core::sqr( px - p2.position[ 0 ] );
+            const double dey = core::sqr( py - p2.position[ 1 ] );
+            
+            return ( dex + dey ) / ( dx + dy );
+            */
          }
 
          /**
@@ -470,8 +481,10 @@ namespace algorithm
          algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
 
          algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( source );
+         _originalPoints1 = points1;
          points1 = trimPoints( points1, minBoundingBoxSource, maxBoundingBoxSource );
          algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( target );
+         _originalPoints2 = points2;
          points2 = trimPoints( points2, minBoundingBoxTarget, maxBoundingBoxTarget );
 
          // match points
@@ -495,7 +508,7 @@ namespace algorithm
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), RansacTransformationEstimator::minimumNumberOfSubsets(), 0.01 );
+         typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), RansacTransformationEstimator::minimumNumberOfSubsets(), 0.02 );
          if ( ransac.getNbInliers() <= 20 )
          {
             throw std::runtime_error( "Error: inliers are too small" );
@@ -519,6 +532,16 @@ namespace algorithm
       const PointPairs& getInliers() const
       {
          return _inliers;
+      }
+
+      const SpeededUpRobustFeatures::Points& getPoints1() const
+      {
+         return _originalPoints1;
+      }
+
+      const SpeededUpRobustFeatures::Points& getPoints2() const
+      {
+         return _originalPoints2;
       }
 
    private:
@@ -561,6 +584,8 @@ namespace algorithm
      ui32                              _surfNumberOfIntervals;
      double                            _surfThreshold;
      PointPairs                        _inliers;
+     SpeededUpRobustFeatures::Points   _originalPoints1;
+     SpeededUpRobustFeatures::Points   _originalPoints2;
   };
 }
 }
