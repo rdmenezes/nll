@@ -7,43 +7,127 @@ namespace nll
 {
 namespace algorithm
 {
-   class RadialBasisFunctions
+   template <class StorageT, class Adaptor>
+   class DeformableTransformationDenseDisplacementField
    {
-      typedef double  value_type;
-
    public:
-      /**
-       @brief Defines a Gaussian RBF parametrized by a weigh, variance and mean.
-              If the mean has size > 1, creates a RBF with the same number of values
-       */
-      struct GaussianRbf
-      {
-         value_type                    weight;
-         core::Buffer1D<value_type>    mean;
-         core::Buffer1D<value_type>    var;
+      typedef RbfGaussian::value_type     value_type;  // link all the value_type to avoid confusion...
+      typedef core::Matrix<value_type>    Matrix;
+      typedef core::Buffer1D<value_type>  Vector;
+      typedef StorageT                    Storage;
 
-         template <class Vector>
-         core::Buffer1D<value_type> eval( const Vector& v )
-         {
-            ensure( v.size() == mean.size(), "vector size mismatch" );
-            core::Buffer1D<value_type> r( v.size() );
-            for ( ui32 n = 0; n < mean.size(); ++n )
-            {
-               const value_type diff = v[ n ] - mean[ n ];
-               r[ n ] = std::exp( - diff * diff / ( 2 * var[ n ] ) );
-            }
-
-            return r;
-         }
-      };
-      typedef std::vector<GaussianRbf> Rbfs;
-
-   public:
-      RadialBasisFunctions()
+      DeformableTransformationDenseDisplacementField()
       {}
 
-      RadialBasisFunctions( const Rbfs& g ) : _rbfs( g )
+      DeformableTransformationDenseDisplacementField( const Matrix& affine, const Storage& storage ) : _affine( affine ), _storage( storage )
+      {}
+
+   private:
+      Matrix      _affine;
+      Storage     _storage;
+   };
+
+   /**
+    @brief Defines a Gaussian RBF parametrized by a value, variance and mean.
+
+    val = exp( - sum( || x_i - mean_i ||^2 / ( 2 * var_i ) ) )
+
+    The RBF is parametrized by (mean, var). This will give a "weight" to any point representing the
+    influence of the RBF.
+    */
+   struct RbfGaussian
+   {
+      typedef f64                         value_type;
+      typedef core::Buffer1D<value_type>  Vector;
+
+   public:
+      RbfGaussian( const Vector& value,
+                   const Vector& mean,
+                   const Vector& variance ) : _value( value ), _mean( mean ), _variance( variance )
+      {}
+
+      template <class Vector>
+      core::Buffer1D<value_type> eval( const Vector& pos ) const
       {
+         ensure( pos.size() == _mean.size(), "vector size mismatch" );
+         value_type accum = 0;
+         for ( size_t n = 0; n < _mean.size(); ++n )
+         {
+            const type diff = _mean[ n ] - x[ n ];
+            accum += diff * diff / ( 2.0 * _var[ n ] );
+         }
+
+         return exp( - accum );
+      }
+
+      const Vector& getValue() const
+      {
+         return _value;
+      }
+
+      Vector& getValue()
+      {
+         return _value;
+      }
+
+      const Vector& getMean() const
+      {
+         return _mean;
+      }
+
+      Vector& getMean()
+      {
+         return _mean;
+      }
+
+      const Vector& getVariance() const
+      {
+         return _variance;
+      }
+
+      Vector& getVariance()
+      {
+         return _variance;
+      }
+
+   private:
+      Vector    _value;
+      Vector    _mean;
+      Vector    _variance;
+   };
+
+   /**
+    @brief model a deformable transformation using RBF functions as parameters.
+
+    There are two components:
+    - affine transformation, which basically move the DDF grid to the target position
+    - Rbfs, specifying a deformable transformation
+
+    The value of the displacement at point <x> is computed as follow:
+    displacement = sum_i( Rbf::compute( A^-1 * x - mean_i ) * RbfValue_i  // we use A^-1 to reduce computational load and is equivalent to x - A * mean_i
+    */
+   template <class RbfT = RbfGaussian>
+   class DeformableTransformationRadialBasis
+   {
+   public:
+      typedef RbfT                        Rbf;
+      typedef typename Rbf::value_type    value_type;
+      typedef core::Matrix<value_type>    Matrix;
+      typedef core::Buffer1D<value_type>  Vector;
+
+   public:
+      typedef std::vector<Rbf> Rbfs;
+
+   public:
+      
+      DeformableTransformationRadialBasis()
+      {}
+
+      DeformableTransformationRadialBasis( const Matrix& affineTfm, const Rbfs& g ) : _affine( affineTfm ), _rbfs( g )
+      {
+         ensure( _affine.sizex() == _affine.sizey(), "must be square matrix" );
+         ensure( g.size() > 0 && _affine.sizex() == g[ 0 ].getMean().size(), "size doesn't match" );
+         _affineUpdated();
       }
 
       void clear()
@@ -51,17 +135,17 @@ namespace algorithm
          _rbfs.clear();
       }
 
-      void add( const GaussianRbf& g )
+      void add( const Rbf& g )
       {
          _rbfs.push_back( g );
       }
 
-      GaussianRbf& operator[]( size_t i )
+      Rbf& operator[]( size_t i )
       {
          return _rbfs[ i ];
       }
 
-      const GaussianRbf& operator[]( size_t i ) const
+      const Rbf& operator[]( size_t i ) const
       {
          return _rbfs[ i ];
       }
@@ -71,19 +155,100 @@ namespace algorithm
          return _rbfs.size();
       }
 
+      template <class VectorT>
+      Vector getDisplacement( const VectorT& pInMm ) const
+      {
+         // compute pInMm * affine^-1
+         Vector p( pInMm.size() + 1 );
+         for ( ui32 n = 0; n < pInMm.size(); ++n )
+         {
+            p[ n ] = static_cast<value_type>( pInMm );
+         }
+         p[ pInMm.size() ] = 1;
+         p = _invAffine * Matrix( p, p.size(), 1 );
+
+         return _getDisplacement( p );
+      }
+
+      template <class T, class Mapper, class Allocator, class Storage, class Adaptor>
+      void createDdf( DeformableTransformationDenseDisplacementField<Storage, Adaptor>& ddf, const core::Buffer1D<ui32>& size ) const
+      {
+         
+      }
+
+
+
    private:
-      Rbfs   _rbfs;
+      // here pinv is in the space of the RBF
+      template <class VectorT>
+      Vector _getDisplacement( const VectorT& pinv ) const
+      {
+         // finally computes the displacement
+         const ui32 nbDim = _affine.sizex();
+         Vector accum( nbDim );
+         for ( ui32 n = 0; n < mixture.size(); ++n )
+         {
+            const value_type weight = _rbfs[ n ].compute( pinv );
+            for ( ui32 nn = 0; nn < nbDim; ++nn )
+            {
+               accum[ nn ] += weight * _rbfs[ n ].getValue()[ nn ];
+            }
+         }
+
+         return accum;
+      }
+
+      void _affineUpdated()
+      {
+         _invAffine.clone( _affine );
+         bool r = core::inverse( _invAffine );
+         ensure( r, "not an affine transformation" );
+      }
+
+   private:
+      Matrix   _affine;
+      Matrix   _invAffine;
+      Rbfs     _rbfs;
    };
 
 
    /**
     @brief Export a mixture of gaussians as a dense displacement field
     @param mixture the gaussian mixture. The intensity at a given point is computed from the weighted gaussian sum
+    @param outDdf the allocated output DDF. Note that the <outDdf.getNbComponents()> must be 2
+
+    The transformation represented by the <DeformableTransformationRadialBasis> will be discretized by a DDF for fast manipulation/visualization
     */
-   template <class T, class Mapper, class Allocator>
-   void exportAsDenseDensityField( const RadialBasisFunctions& mixture, core::Image<T, Mapper, Allocator>& outDdf )
+   template <class Rbf, class T, class Mapper, class Allocator>
+   void exportAsDenseDensityField( const DeformableTransformationRadialBasis<Rbf>& mixture, core::Image<T, Mapper, Allocator>& outDdf )
    {
+      typedef DeformableTransformationRadialBasis<Rbf> Tfm;
+      typedef typename Tfm::value_type       value_type;
+
+      ensure( outDdf.getNbComponents() == 2, "we must have exactly 2 components for a 2D DDF" );
+      for ( ui32 y = 0; y < outDdf.sizey(); ++y )
+      {
+         for ( ui32 x = 0; x < outDdf.sizex(); ++x )
+         {
+            T* dst = outDdf.getPoint( x, y );
+            core::Buffer1D<value_type> accum( 2 );
+            core::Buffer1D<value_type> p( 2 );
+            p[ 0 ] = static_cast<value_type>( x );
+            p[ 1 ] = static_cast<value_type>( y );
+            for ( ui32 n = 0; n < mixture.size(); ++n )
+            {
+               const value_type weight = mixture[ n ].compute( p );
+               accum[ 0 ] += weight * mixture[ n ].getValue()[ 0 ];
+               accum[ 1 ] += weight * mixture[ n ].getValue()[ 1 ];
+            }
+
+            dst[ 0 ] = static_cast<T>( p[ 0 ] );
+            dst[ 1 ] = static_cast<T>( p[ 1 ] );
+         }
+      }
    }
+
+
 }
 }
 
