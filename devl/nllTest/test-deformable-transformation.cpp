@@ -7,26 +7,6 @@ namespace nll
 {
 namespace algorithm
 {
-   template <class StorageT, class Adaptor>
-   class DeformableTransformationDenseDisplacementField
-   {
-   public:
-      typedef RbfGaussian::value_type     value_type;  // link all the value_type to avoid confusion...
-      typedef core::Matrix<value_type>    Matrix;
-      typedef core::Buffer1D<value_type>  Vector;
-      typedef StorageT                    Storage;
-
-      DeformableTransformationDenseDisplacementField()
-      {}
-
-      DeformableTransformationDenseDisplacementField( const Matrix& affine, const Storage& storage ) : _affine( affine ), _storage( storage )
-      {}
-
-   private:
-      Matrix      _affine;
-      Storage     _storage;
-   };
-
    /**
     @brief Defines a Gaussian RBF parametrized by a value, variance and mean.
 
@@ -37,7 +17,7 @@ namespace algorithm
     */
    struct RbfGaussian
    {
-      typedef f64                         value_type;
+      typedef f32                         value_type;
       typedef core::Buffer1D<value_type>  Vector;
 
    public:
@@ -47,17 +27,17 @@ namespace algorithm
       {}
 
       template <class Vector>
-      core::Buffer1D<value_type> eval( const Vector& pos ) const
+      value_type eval( const Vector& pos ) const
       {
          ensure( pos.size() == _mean.size(), "vector size mismatch" );
          value_type accum = 0;
-         for ( size_t n = 0; n < _mean.size(); ++n )
+         for ( ui32 n = 0; n < _mean.size(); ++n )
          {
-            const type diff = _mean[ n ] - x[ n ];
-            accum += diff * diff / ( 2.0 * _var[ n ] );
+            const value_type diff = _mean[ n ] - pos[ n ];
+            accum += diff * diff / ( 2 * _variance[ n ] );
          }
 
-         return exp( - accum );
+         return static_cast<value_type>( exp( - accum ) );
       }
 
       const Vector& getValue() const
@@ -100,8 +80,8 @@ namespace algorithm
     @brief model a deformable transformation using RBF functions as parameters.
 
     There are two components:
-    - affine transformation, which basically move the DDF grid to the target position
-    - Rbfs, specifying a deformable transformation
+    - affine transformation, which basically move the DDF grid in source space to the target space
+    - Rbfs, specifying a deformable transformation. They are specified in source space.
 
     The value of the displacement at point <x> is computed as follow:
     displacement = sum_i( Rbf::compute( A^-1 * x - mean_i ) * RbfValue_i  // we use A^-1 to reduce computational load and is equivalent to x - A * mean_i
@@ -135,6 +115,12 @@ namespace algorithm
          _rbfs.clear();
       }
 
+      /**
+       @brief add a RBF to our set of RBFs.
+
+       Note that the RBF must be specified in source space (i.e., the affine transformation will be applied
+       on the RBF to get the displacement in target space)
+       */
       void add( const Rbf& g )
       {
          _rbfs.push_back( g );
@@ -155,6 +141,15 @@ namespace algorithm
          return _rbfs.size();
       }
 
+      const Matrix& getAffineTfm() const
+      {
+         _affine;
+      }
+
+      /**
+       @brief return the displacement given a point in target space (after all transformation applied and in MM)
+              This is usually the normal way of computing the displacement.
+       */
       template <class VectorT>
       Vector getDisplacement( const VectorT& pInMm ) const
       {
@@ -170,13 +165,14 @@ namespace algorithm
          return _getDisplacement( p );
       }
 
-      template <class T, class Mapper, class Allocator, class Storage, class Adaptor>
-      void createDdf( DeformableTransformationDenseDisplacementField<Storage, Adaptor>& ddf, const core::Buffer1D<ui32>& size ) const
+      /**
+       @brief return the displacement given a point in source space (i.e., by not applying the affine transformation)
+       */
+      template <class VectorT>
+      Vector getDisplacementInSourceSpace( const VectorT& pInSrc ) const
       {
-         
+         return _getDisplacement( pInSrc );
       }
-
-
 
    private:
       // here pinv is in the space of the RBF
@@ -186,9 +182,9 @@ namespace algorithm
          // finally computes the displacement
          const ui32 nbDim = _affine.sizex();
          Vector accum( nbDim );
-         for ( ui32 n = 0; n < mixture.size(); ++n )
+         for ( ui32 n = 0; n < _rbfs.size(); ++n )
          {
-            const value_type weight = _rbfs[ n ].compute( pinv );
+            const value_type weight = _rbfs[ n ].eval( pinv );
             for ( ui32 nn = 0; nn < nbDim; ++nn )
             {
                accum[ nn ] += weight * _rbfs[ n ].getValue()[ nn ];
@@ -206,49 +202,136 @@ namespace algorithm
       }
 
    private:
-      Matrix   _affine;
+      Matrix   _affine;       // the transform source->target
       Matrix   _invAffine;
-      Rbfs     _rbfs;
+      Rbfs     _rbfs;         // specified in source space
    };
 
-
-   /**
-    @brief Export a mixture of gaussians as a dense displacement field
-    @param mixture the gaussian mixture. The intensity at a given point is computed from the weighted gaussian sum
-    @param outDdf the allocated output DDF. Note that the <outDdf.getNbComponents()> must be 2
-
-    The transformation represented by the <DeformableTransformationRadialBasis> will be discretized by a DDF for fast manipulation/visualization
-    */
-   template <class Rbf, class T, class Mapper, class Allocator>
-   void exportAsDenseDensityField( const DeformableTransformationRadialBasis<Rbf>& mixture, core::Image<T, Mapper, Allocator>& outDdf )
+   class DeformableTransformationDenseDisplacementField2d
    {
-      typedef DeformableTransformationRadialBasis<Rbf> Tfm;
-      typedef typename Tfm::value_type       value_type;
+   public:
+      typedef f32                                  value_type;
+      typedef core::Matrix<value_type>             Matrix;
+      typedef core::Buffer1D<value_type>           Vector;
+      typedef core::Image<value_type>              Storage;
 
-      ensure( outDdf.getNbComponents() == 2, "we must have exactly 2 components for a 2D DDF" );
-      for ( ui32 y = 0; y < outDdf.sizey(); ++y )
+      DeformableTransformationDenseDisplacementField2d() // empty but not valid DDF
+      {}
+
+      // create an empty DDF with a specified size
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const Matrix tfm ) : _affine( tfm ), _storage( size[ 0 ], size[ 1 ], 2 )
       {
-         for ( ui32 x = 0; x < outDdf.sizex(); ++x )
-         {
-            T* dst = outDdf.getPoint( x, y );
-            core::Buffer1D<value_type> accum( 2 );
-            core::Buffer1D<value_type> p( 2 );
-            p[ 0 ] = static_cast<value_type>( x );
-            p[ 1 ] = static_cast<value_type>( y );
-            for ( ui32 n = 0; n < mixture.size(); ++n )
-            {
-               const value_type weight = mixture[ n ].compute( p );
-               accum[ 0 ] += weight * mixture[ n ].getValue()[ 0 ];
-               accum[ 1 ] += weight * mixture[ n ].getValue()[ 1 ];
-            }
+         _invaffine.clone( _affine );
+         const bool r = core::inverse( _invaffine );
+         ensure( r, "matrix is not affine" );
+      }
 
-            dst[ 0 ] = static_cast<T>( p[ 0 ] );
-            dst[ 1 ] = static_cast<T>( p[ 1 ] );
+      /**
+       @brief Create a DDF from a RBF transformation
+
+       The position of the RBF is important as we do not say what portion of the target space we are mapping! RBFs means
+       should be inside a grid [0..X][0..Y], with (X,Y) < size
+
+       For example, assume the RBF are in the range [0..5][0..3], and the size = [10, 6]. If we import the DDF with this
+       method, it will basically create a grid of size [10, 6], with position (0, 0) the first voxel of the
+       grid corresponding in the DDF mean (0, 0). It will then evaluate the RBF at each position of the grid.
+       */
+      template <class Rbf>
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      {
+         importFromRbfTfm( size, rbfTfm );
+      }
+
+      /**
+       @note create a DDF form a RBF transformation.
+       
+       Note that the affine matrix is updated to the one contained by the rbfTfm transform
+       */
+      template <class Rbf>
+      void importFromRbfTfm( const core::vector2ui& size, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      {
+         // set the initial parameters
+         _storage = Storage( size[ 0 ], size[ 1 ], 2 );
+         _affine = rbfTfm.getAffineTfm();
+         _invaffine.clone( _affine );
+         const bool r = core::inverse( _invaffine );
+         ensure( r, "matrix is not affine" );
+
+
+         // then compute the DDF. Now, we are using the same affine transformation matrix between the DDF and RBF
+         // based transform, so we can work directly in the non transformed space
+         for ( ui32 y = 0; y < _storage.sizey(); ++y )
+         {
+            for ( ui32 x = 0; x < _storage.sizex(); ++x )
+            {
+               value_type* p = _storage.point( x, y );
+               Vector d = rbfTfm.getDisplacementInSourceSpace( core::make_buffer1D<value_type>( static_cast<value_type>( x ),
+                                                                                                static_cast<value_type>( y ) ) );
+               p[ 0 ] = d[ 0 ];
+               p[ 1 ] = d[ 1 ];
+            }
          }
       }
+
+      /**
+       @brief Return the displacement at a specified point expressed in the target space
+       */
+      template <class VectorT>
+      Vector getDisplacement( const VectorT& ptarget ) const
+      {
+         // compute p in target space
+         Vector v( ptarget.size() + 1 );
+         for ( ui32 n = 0; n < ptarget.size(); ++n )
+         {
+            v[ n ] = ptarget[ n ];
+         }
+
+         Vector vsrc = _invaffine * Matrix( v, v.size(), 1 );
+
+         // now interpolate
+         return getDisplacementSource( vsrc );
+      }
+
+      template <class VectorT>
+      Vector getDisplacementSource( const VectorT& psource ) const
+      {
+         // now interpolate
+         Vector out( 2 );
+         core::InterpolatorLinear2D<value_type, Storage::IndexMapper, Storage::Allocator> interpolator( _storage );
+         interpolator.interpolateValues( vsrc[ 0 ], vsrc[ 1 ], out.begin() );
+         return out;
+      }
+
+      ui32 sizex() const
+      {
+         return _storage.sizex();
+      }
+
+      ui32 sizey() const
+      {
+         return _storage.sizey();
+      }
+
+   private:
+      
+
+   private:
+      Matrix      _affine;
+      Matrix      _invaffine;
+      Storage     _storage;
+   };
+
+   /**
+    @brief Resample a target Image defined by (target, affine) given the deformable transformation
+    @param target the target image which used the <affine> tranformation to be transformed
+    @param affine the affine transformation by which the target image was transformed
+    @param targetOut the output image defined in the same space than the target image
+    */
+   template <class Image, class Matrix>
+   void resample( const Image& target, const Matrix& affine, const DeformableTransformationDenseDisplacementField2d& ddf, Image& targetOut )
+   {
+      // compute the rotation and spacing of the deformation
    }
-
-
 }
 }
 
@@ -573,6 +656,13 @@ struct TestDeformable2D
 
       //core::writeBmp( toImagec(i), "c:/tmp/reampled.bmp" );
       //core::writeBmp( toImagec(resampled), "c:/tmp/reampled2.bmp" );
+   }
+
+   void testDdfResampling()
+   {
+      algorithm::DeformableTransformationRadialBasis<> rbfTfm;
+
+      algorithm::DeformableTransformationDenseDisplacementField2d ddfTfm( core::vector2ui( 15, 30 ), rbfTfm );
    }
 };
 
