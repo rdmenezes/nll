@@ -134,9 +134,11 @@ public:
       // expected: vol is shifted on by (-2,-2): tfm is defined from source->target,
       // but we are resampling the target, meaning we inverse the tfm to have the target->source
       fillVolume( vol );
-      resampleVolumeNearestNeighbour( vol, resampled, tfm );
+      resampleVolumeNearestNeighbour( vol, tfm, resampled );
 
       print( resampled );
+
+      print( vol );
 
       TESTER_ASSERT( resampled( 1, 0, 0 ) == 6 );
       TESTER_ASSERT( resampled( 2, 0, 0 ) == 7 );
@@ -164,7 +166,7 @@ public:
 
       // expected: the coordinate system is rotated first by the PST. Within this coodinate sytem, do the TFM
       fillVolume( vol );
-      resampleVolumeNearestNeighbour( vol, resampled, tfm );
+      resampleVolumeNearestNeighbour( vol, tfm, resampled );
 
       print( resampled );
 

@@ -37,6 +37,93 @@ namespace nll
 namespace imaging
 {
    /**
+    @brief Use a simple volume processor to compute the resampled volume
+    */
+   template <class Volume, class Interpolator>
+   class VolumeProcessorResampler
+   {
+   public:
+      typedef typename Volume::DirectionalIterator          DirectionalIterator;
+      typedef typename Volume::ConstDirectionalIterator     ConstDirectionalIterator;
+      typedef typename Volume::value_type value_type;
+
+   public:
+      VolumeProcessorResampler( const Volume& source, Volume& target ) : _source( source ), _target( target )
+      {}
+
+      // called as soon as the volume mapper started the mapping process
+      void start()
+      {
+         _interpolator = std::auto_ptr<Interpolator> ( new Interpolator( _source ) );
+      }
+
+      // called as soon as the volume mapper ended the mapping process
+      void end()
+      {
+         _interpolator.release();
+      }
+
+      // called everytime a new voxel in the target volume is reached
+      // sourcePosition is guaranteed to be aligned on 16 bytes and to contain 4 values: [x, y, z, 0]
+      void process( DirectionalIterator& targetIterator, const float* sourcePosition )
+      {
+         const value_type v = (*_interpolator)( sourcePosition );
+         *targetIterator = v;
+      }
+
+   private:
+      // copy disabled
+      VolumeProcessorResampler( const VolumeProcessorResampler& );
+      VolumeProcessorResampler& operator=( const VolumeProcessorResampler& );
+
+   private:
+      const Volume&  _source;
+      Volume&        _target;
+      std::auto_ptr<Interpolator> _interpolator;
+   };
+
+   template <class T, class Storage>
+   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& target )
+   {
+      typedef VolumeSpatial<T, Storage> VolumeT;
+      typedef InterpolatorNearestNeighbour<VolumeT>  Interpolator;
+
+      imaging::VolumeProcessorResampler<VolumeT, Interpolator> procResample( source, target );
+      imaging::VolumeMapper mapper;
+      mapper.run( procResample, source, tfm, target );
+   }
+
+   template <class T, class Storage>
+   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& source, VolumeSpatial<T, Storage>& target )
+   {
+      TransformationAffine tfm;
+      resampleVolumeNearestNeighbour( source, tfm, target );
+   }
+
+   template <class T, class Storage>
+   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& target )
+   {
+      typedef VolumeSpatial<T, Storage> VolumeT;
+      typedef InterpolatorTriLinear<VolumeT>  Interpolator;
+
+      imaging::VolumeProcessorResampler<VolumeT, Interpolator> procResample( source, target );
+      imaging::VolumeMapper mapper;
+      mapper.run( procResample, source, tfm, target );
+   }
+
+   template <class T, class Storage>
+   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& source, VolumeSpatial<T, Storage>& target )
+   {
+      TransformationAffine tfm;
+      resampleVolumeTrilinear( source, tfm, target );
+   }
+
+
+   //
+   // LEGACY COMPONENT TODO REMOVE: TEST PROCESSOR IS NOT SLOWER FIRST...
+   //
+
+   /**
     @ingroup imaging
     @brief Resample a target volume to an arbitrary source geometry
     @param target the volume that will be resampled
@@ -147,13 +234,13 @@ namespace imaging
     The source must already be allocated.
     */
    template <class T, class Storage>
-   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source )
+   void resampleVolumeTrilinear2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source )
    {
       resampleVolume<T, Storage, InterpolatorTriLinear< VolumeSpatial<T, Storage> > >( target, source );
    }
 
    template <class T, class Storage>
-   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm )
+   void resampleVolumeTrilinear2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm )
    {
       resampleVolume<T, Storage, InterpolatorTriLinear< VolumeSpatial<T, Storage> > >( target, source, tfm );
    }
@@ -165,13 +252,13 @@ namespace imaging
     The source must already be allocated.
     */
    template <class T, class Storage>
-   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source )
+   void resampleVolumeNearestNeighbour2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source )
    {
       resampleVolume<T, Storage, InterpolatorNearestNeighbour< VolumeSpatial<T, Storage> > >( target, source );
    }
 
    template <class T, class Storage>
-   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm )
+   void resampleVolumeNearestNeighbour2( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm )
    {
       resampleVolume<T, Storage, InterpolatorNearestNeighbour< VolumeSpatial<T, Storage> > >( target, source, tfm );
    }
