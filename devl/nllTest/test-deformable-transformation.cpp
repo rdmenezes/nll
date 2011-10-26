@@ -322,13 +322,20 @@ namespace algorithm
    };
 
    /**
-    @brief Resample a target Image defined by (target, affine) given the deformable transformation
+
+   TODO rename TARGET=>SOURCE
+    @brief Resample a target Image defined by (target, affine) given a deformable transformation
     @param target the target image which used the <affine> tranformation to be transformed
     @param affine the affine transformation by which the target image was transformed
     @param targetOut the output image defined in the same space than the target image
+
+    The <target> image and <affine> will define a target space.
+    The DDF is also defining another target space
+    Now, using the image target, find the corresponding displacement in the DDF target space. Using this displacement,
+    deform the target image
     */
    template <class Image, class Matrix>
-   void resample( const Image& target, const Matrix& affine, const DeformableTransformationDenseDisplacementField2d& ddf, Image& targetOut )
+   void resample( const Image& source, const Matrix& affine, const DeformableTransformationDenseDisplacementField2d& ddf, Image& targetOut )
    {
       // compute the rotation and spacing of the deformation
    }

@@ -40,6 +40,13 @@ namespace core
     @ingroup core
     @brief resample an image using a specific interpolator and 2D affine transformation
 
+    The source image and tfm3x3 is defining a source space : the source image is transformed using this transformation
+    The target image is defined in the same space as the source image
+
+    So the resampling basically a source image using this tfm and directly output it in the target image (as they are defined in the same space)
+
+    Here we are simplifying the problem compared to the 3D case where the target is not defined in the same space.
+
     @param Interpolator interpolator used for resampling
     */
    template <class T, class IMapper, class Allocator, class Color, class Interpolator>
