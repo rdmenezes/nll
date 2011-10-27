@@ -87,8 +87,8 @@ namespace imaging
        @brief Compute the slice according to a position and 2 vectors and a size factor.
               The volume's spacing is used to compute the correct MPR.
        @param slice the slice to be filled, defined in source space
-       @param tfm an affine that transform source->target, assuming we have a target volume. We can see the transformation as
-              transforming the source geometry and then do as if there was no transformation
+       @param tfm an affine that transform source->target, assuming we have a target volume. Internally, if will invert
+              the tfm and apply it to the <_volume>
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
              source->target.
        */

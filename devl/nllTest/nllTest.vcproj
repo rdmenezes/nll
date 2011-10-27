@@ -1094,6 +1094,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\test-image-spatial.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\test-integral-image-3d.cpp"
 				>
 				<FileConfiguration
@@ -2070,6 +2074,7 @@
 				>
 				<FileConfiguration
 					Name="Debug|Win32"
+					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"

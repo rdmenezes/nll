@@ -32,6 +32,10 @@
 #ifndef NLL_IMAGE_RESAMPLE_H_
 # define NLL_IMAGE_RESAMPLE_H_
 
+//
+// TODO THIS FILE IS TO BE REWRITED USING TRANSFORMATION MAPPER
+//
+//
 namespace nll
 {
 namespace core

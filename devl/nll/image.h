@@ -602,7 +602,7 @@ namespace core
          }
       }
 
-   private:
+   protected:
       Mapper      _mapper;
       ui32        _sizex;
       ui32        _sizey;

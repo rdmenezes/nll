@@ -704,6 +704,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\image-spatial-resampling.h"
+				>
+			</File>
+			<File
+				RelativePath=".\image-spatial-transformation-mapper.h"
+				>
+			</File>
+			<File
+				RelativePath=".\image-spatial.h"
+				>
+			</File>
+			<File
 				RelativePath=".\image-threshold.h"
 				>
 			</File>

@@ -741,6 +741,84 @@ namespace core
       Matrix      _pst;
       Matrix      _invertedPst;
    };
+
+   /**
+    @ingroup core
+    @brief Helper function to convert world coordinate index and conversely from a transformation matrix.
+    */
+   class VolumeGeometry2d
+   {
+   public:
+      typedef core::Matrix<float>               Matrix;
+
+   public:
+      VolumeGeometry2d( const Matrix& pst )
+      {
+         _constructGeometry( pst );
+      }
+
+      /**
+       @param pst
+       @param RegTgtToSrcMM a 4x4 transformation, transforming target->source space
+       */
+      VolumeGeometry2d( const Matrix& pst, const Matrix& RegTgtToSrcMM )
+      {
+         _constructGeometry( RegTgtToSrcMM * pst );
+      }
+
+      core::vector2f indexToPosition( const core::vector2f& index ) const
+      {
+         core::vector2f result( 0, 0 );
+         for ( unsigned n = 0; n < 2; ++n )
+         {
+            result[ 0 ] += index[ n ] * _pst( 0, n );
+            result[ 1 ] += index[ n ] * _pst( 1, n );
+         }
+         return core::vector2f( result[ 0 ] + _pst( 0, 2 ),
+                                result[ 1 ] + _pst( 1, 2 ) );
+      }
+
+      /**
+       @brief Given a position in Patient Coordinate system, it will be returned a voxel
+              position. The integer part represent the voxel coordinate, the real part represents
+              how far is the point from this voxel.
+       */
+      core::vector2f positionToIndex( const core::vector2f& position ) const
+      {
+         core::vector2f result( 0, 0 );
+         for ( unsigned n = 0; n < 2; ++n )
+         {
+            result[ 0 ] += ( position[ n ] - _pst( n, 2 ) ) * _invertedPst( 0, n );
+            result[ 1 ] += ( position[ n ] - _pst( n, 2 ) ) * _invertedPst( 1, n );
+         }
+         return result;
+      }
+
+      const Matrix& getPst() const
+      {
+         return _pst;
+      }
+
+      const Matrix& getInvertedPst() const
+      {
+         return _invertedPst;
+      }
+
+   private:
+      void _constructGeometry( const Matrix& pst )
+      {
+         ensure( pst.sizex() == 3 &&
+                 pst.sizey() == 3, "Invalid PST. Must be a 3x3 matrix" );
+         _pst.clone( pst );
+         _invertedPst.clone( _pst );
+         bool inversed = core::inverse( _invertedPst );
+         ensure( inversed, "error: the PST is singular, meaning the pst is malformed" );
+      }
+
+   private:
+      Matrix      _pst;
+      Matrix      _invertedPst;
+   };
 }
 }
 

@@ -188,7 +188,11 @@
 # include "image-snr.h"
 # include "image-mask.h"
 # include "image-morphology.h"
+# include "geometry.h"
 # include "image-distance-transform.h"
+# include "image-spatial.h"
+# include "image-spatial-transformation-mapper.h"
+# include "image-spatial-resampling.h"
 # include "database.h"
 # include "database-manipulation.h"
 # include "database-input-adapter.h"
@@ -196,7 +200,6 @@
 # include "timer.h"
 # include "sequence-converter.h"
 # include "allocator-aligned.h"
-# include "geometry.h"
 # include "converter.h"
 
 // must be included before...
@@ -211,6 +214,11 @@
 
  This group defines the main algorithms for imaging such as volumes, interpolation and
  images.
+
+ Often the library will use the concept of source and target volumes associated with affine transformation
+ The "source" volume is a fixed volume, the "target" volume is the moving one. It is "moved" by an associated
+ transformation. This associated transformation if always given in the form source->target because this is
+ how we display the volumes and it may not be possible to invert a transformation (or not easily, think about deformable tfm).
  */
 # include "lut.h"
 # include "transformation.h"
