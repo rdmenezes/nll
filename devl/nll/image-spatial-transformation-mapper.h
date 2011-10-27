@@ -91,55 +91,55 @@ namespace core
       typedef core::Matrix<float>   Matrix;
 
       /**
-       @brief Map a transformed target coordinate system to a source coordinate system
-       @param source the <source> volume
-       @param tfm an affine transformattion defined as <source> to <target>, inv(tfm) This will be applied on the source volume
-       @param target the volume to map the coordinate from
+       @brief Map a transformed target coordinate system to a <resampled> coordinate system
+       @param target the <target> volume
+       @param tfm an affine transformattion defined as <source> to <target>, inv(tfm) will be applied on the target volume
+       @param resampled the volume to map the coordinate from
 
-       Basically, for each voxel of the target, it finds the corresponding pixels in the transformed source volume.
+       Basically, for each voxel of the resampled, it finds the corresponding pixels in the transformed target volume.
 
        A typical use case is:
        - compute registration between source and target. It will be returned the a source->target matrix
        - resample the moving volume (target) in the source geometry with correct registraton
        */
       template <class Processor, class T, class Mapper, class Alloc>
-      void run( Processor& procOrig, const ImageSpatial<T, Mapper, Alloc>& source, const Matrix& tfm, ImageSpatial<T, Mapper, Alloc>& target )
+      void run( Processor& procOrig, const ImageSpatial<T, Mapper, Alloc>& target, const Matrix& tfm, ImageSpatial<T, Mapper, Alloc>& resampled )
       {
          typedef ImageSpatial<T, Mapper, Alloc>   ImageType;
 
-         if ( !source.size() || !target.size() )
+         if ( !target.size() || !resampled.size() )
          {
             return; // nothing to do
          }
 
-         ensure( source.getNbComponents() == target.getNbComponents(), "must have the same number of dimensions" );
+         ensure( target.getNbComponents() == resampled.getNbComponents(), "must have the same number of dimensions" );
 
-         // compute the transformation source voxel -> target voxel
-         Matrix transformation = source.getInvertedPst() * tfm * target.getPst();
+         // compute the transformation target voxel -> resampled voxel
+         Matrix transformation = target.getInvertedPst() * tfm * resampled.getPst();
          core::vector2f dx( transformation( 0, 0 ),
                             transformation( 1, 0 ) );
          core::vector2f dy( transformation( 0, 1 ),
                             transformation( 1, 1 ) );
 
-         // compute the source origin with the tfm applied
-         core::Matrix<float> sourceOriginTfm;
-         sourceOriginTfm.clone( tfm );
-         core::inverse( sourceOriginTfm );
-         sourceOriginTfm = sourceOriginTfm * source.getPst();
-         core::vector2f sourceOrigin2 = transf2d4( sourceOriginTfm, core::vector2f( 0, 0 ) );
+         // compute the target origin with the tfm applied
+         core::Matrix<float> targetOriginTfm;
+         targetOriginTfm.clone( tfm );
+         core::inverse( targetOriginTfm );
+         targetOriginTfm = targetOriginTfm * target.getPst();
+         core::vector2f targetOrigin2 = transf2d4( targetOriginTfm, core::vector2f( 0, 0 ) );
 
-         // create the transformation representing this displacement and compute the target origin in this
+         // create the transformation representing this displacement and compute the resampled origin in this
          // coordinate system
          Matrix g( 3, 3 );
          for ( ui32 y = 0; y < 2; ++y )
             for ( ui32 x = 0; x < 2; ++x )
-               g( y, x ) = sourceOriginTfm(y, x);
+               g( y, x ) = targetOriginTfm(y, x);
          g( 2, 2 ) = 1;
-         g( 0, 2 ) = sourceOrigin2[ 0 ];
-         g( 1, 2 ) = sourceOrigin2[ 1 ];
+         g( 0, 2 ) = targetOrigin2[ 0 ];
+         g( 1, 2 ) = targetOrigin2[ 1 ];
 
          core::VolumeGeometry2d geom2( g );
-         core::vector2f originInTarget = geom2.positionToIndex( target.getOrigin() );
+         core::vector2f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
          core::vector2f slicePosSrc = originInTarget;
 
          procOrig.start();
@@ -147,15 +147,15 @@ namespace core
          #ifndef NLL_NOT_MULTITHREADED
          # pragma omp parallel for
          #endif
-         for ( int y = 0; y < (int)target.sizey(); ++y )
+         for ( int y = 0; y < (int)resampled.sizey(); ++y )
          {
             Processor proc = procOrig;
-            typename ImageType::DirectionalIterator  lineIt = target.getIterator( 0, y, 0 );
+            typename ImageType::DirectionalIterator  lineIt = resampled.getIterator( 0, y, 0 );
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + y * dy[ 0 ],
                                                         originInTarget[ 1 ] + y * dy[ 1 ],
                                                         0 );
             typename ImageType::DirectionalIterator  voxelIt = lineIt;
-            for ( ui32 x = 0; x < target.sizex(); ++x )
+            for ( ui32 x = 0; x < resampled.sizex(); ++x )
             {
                proc.process( voxelIt, &linePosSrc[0] );
                linePosSrc[ 0 ] += dx[ 0 ];

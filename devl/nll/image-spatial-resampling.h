@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Processor used for resampling
     */
    template <class ImageSpatial, class Interpolator>
@@ -47,7 +48,7 @@ namespace core
       typedef typename ImageSpatial::ConstDirectionalIterator     ConstDirectionalIterator;
 
    public:
-      ImageTransformationProcessorResampler( const ImageSpatial& source, ImageSpatial& target ) : _source( &source ), _target( &target ), _interpolator( source )
+      ImageTransformationProcessorResampler( const ImageSpatial& target, ImageSpatial& resampled ) : _target( &target ), _resampled( &resampled ), _interpolator( target )
       {}
 
       // called as soon as the volume mapper started the mapping process
@@ -58,39 +59,51 @@ namespace core
       void end()
       {}
 
-      // called everytime a new voxel in the target volume is reached
-      // sourcePosition contains 2 values: [x, y ]
-      void process( const DirectionalIterator& targetPos, const float* sourcePosition )
+      // called everytime a new voxel in the resampled volume is reached
+      // targetPosition contains 2 values: [x, y ]
+      void process( const DirectionalIterator& resampledPos, const float* targetPosition )
       {
          // it is guaranteed the colors are contiguous
-         _interpolator.interpolateValues( sourcePosition[ 0 ], sourcePosition[ 1 ], &(*targetPos) );
+         _interpolator.interpolateValues( targetPosition[ 0 ], targetPosition[ 1 ], &(*resampledPos) );
       }
 
    private:
-      const ImageSpatial*  _source;
-      ImageSpatial*        _target;
+      const ImageSpatial*  _target;
+      ImageSpatial*        _resampled;
       Interpolator         _interpolator;
    };
 
+   /**
+    @ingroup core
+    @brief Resample a target volume transformed with a tfm source->target to a resampled geometry
+    */
    template <class T, class Mapper, class Alloc, class Interpolator>
-   void resample( const ImageSpatial<T, Mapper, Alloc>& source, const Matrix<float>& tfm, ImageSpatial<T, Mapper, Alloc>& target )
+   void resample( const ImageSpatial<T, Mapper, Alloc>& target, const Matrix<float>& tfm, ImageSpatial<T, Mapper, Alloc>& resampled )
    {
       typedef core::ImageSpatial<T, Mapper, Alloc> ImageSpacialT;
-      core::ImageTransformationProcessorResampler<ImageSpacialT, Interpolator> proc( source, target );
+      core::ImageTransformationProcessorResampler<ImageSpacialT, Interpolator> proc( target, resampled );
       core::ImageTransformationMapper mapper;
-      mapper.run( proc, source, tfm, target );
+      mapper.run( proc, target, tfm, resampled );
    }
 
+   /**
+    @ingroup core
+    @brief Resample a target volume transformed with a tfm source->target to a resampled geometry
+    */
    template <class T, class Mapper, class Alloc>
-   void resampleNearest( const ImageSpatial<T, Mapper, Alloc>& source, const Matrix<float>& tfm, ImageSpatial<T, Mapper, Alloc>& target )
+   void resampleNearest( const ImageSpatial<T, Mapper, Alloc>& target, const Matrix<float>& tfm, ImageSpatial<T, Mapper, Alloc>& resampled )
    {
-      resample< T, Mapper, Alloc, InterpolatorNearestNeighbor2D<T, Mapper, Alloc> >( source, tfm, target );
+      resample< T, Mapper, Alloc, InterpolatorNearestNeighbor2D<T, Mapper, Alloc> >( target, tfm, resampled );
    }
 
+   /**
+    @ingroup core
+    @brief Resample a target volume transformed with a tfm source->target to a resampled geometry
+    */
    template <class T, class Mapper, class Alloc>
-   void resampleLinear( const ImageSpatial<T, Mapper, Alloc>& source, const Matrix<float>& tfm, ImageSpatial<T, Mapper, Alloc>& target )
+   void resampleLinear( const ImageSpatial<T, Mapper, Alloc>& target, const Matrix<float>& tfm, ImageSpatial<T, Mapper, Alloc>& resampled )
    {
-      resample< T, Mapper, Alloc, InterpolatorLinear2D<T, Mapper, Alloc> >( source, tfm, target );
+      resample< T, Mapper, Alloc, InterpolatorLinear2D<T, Mapper, Alloc> >( target, tfm, resampled );
    }
 }
 }

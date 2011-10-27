@@ -438,6 +438,10 @@ namespace algorithm
     @brief Point based registration, internally using SURF to create the interest points,
            RANSAC to estimate the best transformation, and <EstimatorTransformAffine2D> to estimate the
            local transformation
+    
+    Target is the moving volume.
+
+    Compute the transformation in the form source->target to apply on the target volume.
 
     @note this class is just an example and will likely need a lot of customization by the user to fit
           the given registration problem
