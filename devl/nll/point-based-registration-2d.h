@@ -503,6 +503,7 @@ namespace algorithm
                                           << maxBoundingBoxSource[ 0 ] << " " << maxBoundingBoxSource[ 1 ] << " " << std::endl;
             ss << " target bounding box=" << minBoundingBoxTarget[ 0 ] << " " << minBoundingBoxTarget[ 1 ] << " " << "|| "
                                           << maxBoundingBoxTarget[ 0 ] << " " << maxBoundingBoxTarget[ 1 ] << " " << std::endl;
+            ss << " surfNumberOfOctaves=" << _surfNumberOfOctaves << " surfNumberOfIntervals=" << _surfNumberOfIntervals << " surfThreshold=" << _surfThreshold;
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
