@@ -1,65 +1,189 @@
 import "core"
+import "siemens"
 import "mvvDicomTools"
-import "mvvForms"
 
-class DicomSliceNaming
+include "helper1"
+include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/mrRegistrationData"
+
+/**
+ @note the following variables must have been defined:
+       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
+       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
+
+ @note the following variables may be defined (if not default values apply)
+       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
+       - "historyExportLocation" of type "string", defines where the command history is imported/exported
+ */
+
+//
+// configuration constants
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+/// saves the last XXX commands typed by the user, these will be imported next sessions
+int      sizeHistoryExport            = 500;
+
+/// defines the export/import location
+string   historyExportLocation        = "c:/Temp/command_history.txt";
+
+//
+// -----------------------------------------------------------------------------------------------------------------
+
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+ToolAnnotations         annotations;
+ToolManipulators        manipultors;
+ManipulatorPointer      pointer;
+
+VolumeContainer         volumes;
+
+
+class VolumeSwitchReg
 {
-	int series;
-	int sliceId;
-	string lastSeriesUid;
-   string directory;
-   string output;
-	
-	void init()
-	{
-		series = 0;
-		sliceId = 0;
-		lastSeriesUid = "";
-	}
-	
-	DicomSliceNaming( string outputPath )
-	{
-		init();
-      output = outputPath;
-	}
-	
-	string getName( DicomSlice slice )
-	{
-		string seriesUid = slice.mainAttributs.seriesInstanceUid;
-		if ( seriesUid != lastSeriesUid )
-		{
-			series = series + 1;
-			lastSeriesUid = seriesUid;
-			sliceId = 0;
+   int index                        = 0;
+   Lut lut1                         = NULL;
+   Lut lut2                         = NULL;
+   VolumeID displayed1              = NULL;
+   VolumeID displayed2              = NULL;
+   DisplayRegionDetection detection = NULL;
+   VolumeContainer volumes          = NULL;
+   RegistrationMr registrator		   = NULL;
+   string[] list;
 
-         // create the directory directory
-         directory = toString( series ) + "." + slice.mainAttributs.modality + "." + slice.mainAttributs.seriesDescription;
-         string cmd = "MD " + output + "\\\"" + directory + "\"";
-         replace( cmd, "/", "\\" );
-         system( "echo \"" + cmd + "\"" );
-         system( cmd );
-		} else {
-			sliceId = sliceId + 1;
-		}
-		
-		// here: customize the output
-		return directory + "\\" + toString( series ) + "." + toString( sliceId ) + "." + slice.mainAttributs.modality + "." + slice.mainAttributs.seriesDescription + ".dcm";
-	}
+   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, string[] volumeList, RegistrationMr reg )
+   {
+      lut1 = l1;
+      lut2 = l2;
+      volumes = vs;
+      list = volumeList;
+	   registrator = reg;
+   }
+
+   void next()
+   {
+      volumes.clear();
+      displayed2 = readDicomVolume( list[ index ] );
+
+	   int id =0;
+      AffineRegistration tfm = registrator.affinePlanarRegistrationMr( displayed2, id );
+	   displayed1 = registrator.templates[id];
+	  
+      volumes.add( displayed2, lut1, 0.5, tfm );
+      volumes.add( displayed1, lut2, 0.75 );
+      //volumes.add( displayed2, lut2, 0.75 );
+      
+      print("pre-load2 volume:" + list[ index ] );
+      index = index + 1;
+   }
 }
 
-string inputPath;
-string outputPath;
+class InsentisySwitchReg
+{
+   int state = 1;
+   VolumeSwitchReg switch = NULL;
+   InsentisySwitchReg( VolumeSwitchReg sw )
+   {
+      switch = sw;
+   }
 
-//inputPath = "G:\\ForLudo\\db173-0\\syngo1\\";
-//outputPath = "c:\\tmpOut\\";
+   void run()
+   {
+      //VolumeContainer& volumes = switch.volumes;
+      if ( state == 0 )
+      {
+         switch.volumes.setIntensity( switch.displayed1, 0.75 );
+      } else {
+         switch.volumes.setIntensity( switch.displayed1, 0.25 );
+      }
+      state = 1 - state;
+   }
+}
 
-inputPath = "G:/ForLudo/db173-0/syngo1/";
-outputPath = "c:/tmpOut/";
+class LutSwitchReg
+{
+   int state = 1;
+   VolumeSwitchReg switch = NULL;
+   LutSwitchReg( VolumeSwitchReg sw )
+   {
+      switch = sw;
+   }
 
-// read slices
-int[] series;
-DicomSlice[] slices = readDicomSlices( inputPath, series );
+   void run()
+   {
+      //VolumeContainer& volumes = switch.volumes;
+      if ( state == 0 )
+      {
+         switch.volumes.setLut( switch.displayed1, switch.lut2 );
+         switch.volumes.setLut( switch.displayed2, switch.lut1 );
+      } else {
+         switch.volumes.setLut( switch.displayed1, switch.lut1 );
+         switch.volumes.setLut( switch.displayed2, switch.lut2 );
+      }
+      state = 1 - state;
+   }
+}
 
-// finally export the DICOM slices
-DicomSliceNaming naming( outputPath );
-writeDicomSlices( slices, outputPath, naming.getName );	
+
+
+Lut ctLut1( 35000.0, 50000.0 );
+Lut ctLut2( 35000.0, 50000.0, Vector3i( 255, 0, 0 ) );
+
+
+DisplayRegionDetection detection( annotations );
+AnnotationCreator annotationCreator( annotations, pointer );
+RegistrationMr registrator( "c:/tmp/templates.bin" );
+
+KeyboardCallback callbacks;
+
+
+VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrationVolumes, registrator );
+callbacks.addShortcut( switch.next, "F3" );
+
+InsentisySwitchReg switchIntensity( switch );
+callbacks.addShortcut( switchIntensity.run, "F1" );
+
+LutSwitchReg switchLut( switch );
+callbacks.addShortcut( switchLut.run, "F2" );
+
+
+
+ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
+manipultors.add( pointer );
+
+Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
+segment1.setTool( annotations );
+//segment1.setInterpolator( typename Segment::Nearest() );
+
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
+segment2.setTool( annotations );
+//segment2.setInterpolator( typename Segment::Nearest() );
+
+Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
+segment3.setTool( annotations );
+//segment3.setInterpolator( typename Segment::Nearest() );
+
+
+Layout::Vertical vertical;
+Layout::Horizontal horizontal;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout l3( segment3 );
+Layout l6( Console() );
+
+Layout layoutDisplay1( vertical, Layout(horizontal, l1, l2, 0.51), l3, 0.51 );
+Layout layout = Layout(vertical, l6, layoutDisplay1, 0.05);
+
+ImageHolder holder;
+Layout layout1 = layout;
+Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
+
+
+
+// start directly...
+switch.next();
