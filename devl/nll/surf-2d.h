@@ -75,6 +75,7 @@ namespace algorithm
          {
             features.write( o );
             core::write<value_type>( orientation, o );
+            position.write( o );
             core::write<ui32>( scale, o );
          }
 
@@ -82,6 +83,7 @@ namespace algorithm
          {
             features.read( i );
             core::read<value_type>( orientation, i );
+            position.read( i );
             core::read<ui32>( scale, i );
          }
       };
