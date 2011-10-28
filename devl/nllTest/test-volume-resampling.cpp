@@ -8,6 +8,7 @@ class TestVolumeResampling
 {
 public:
    typedef  imaging::VolumeSpatial<int>  Volume;
+   typedef  imaging::VolumeSpatial<float>  Volumef;
 
    void fillVolume( Volume& v )
    {
@@ -178,6 +179,49 @@ public:
       TESTER_ASSERT( resampled( 7, 7, 0 ) == 7 );
       TESTER_ASSERT( resampled( 7, 8, 0 ) == 8 );
    }
+
+   void testResamplingPerf()
+   {
+      const std::string volname = NLL_TEST_PATH "data/medical/ct-long.mf2";
+
+      Volumef volume;
+      bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
+      TESTER_ASSERT( loaded );
+
+      Volumef volume2( volume.getSize(), volume.getPst() );
+/*
+      core::Timer timer;
+      imaging::resampleVolumeTrilinear2( volume, volume2 );
+      std::cout << "Time=" << timer.getCurrentTime() << std::endl;
+*/
+      core::Matrix<float> tfmMat( 4, 4 );
+      core::matrix4x4RotationZ( tfmMat, 0.01 );
+      const core::vector3f tfmTrans( 2.1, 4.8, -1.5 );
+      tfmMat = core::createTranslation4x4( tfmTrans ) * tfmMat;
+      imaging::TransformationAffine tfm( tfmMat );
+
+      Volumef volume3( volume.getSize(), volume.getPst() );
+
+      core::Timer timer2;
+      imaging::resampleVolumeTrilinear( volume, tfm, volume3 );
+      std::cout << "Time=" << timer2.getCurrentTime() << std::endl;
+
+      imaging::LookUpTransformWindowingRGB lut(-300,300, 256 );
+      lut.createGreyscale();
+
+      /*
+      core::Timer timer4;
+      core::vector3f b2 = imaging::computeBarycentre2( volume, lut );
+      std::cout << "Time=" << timer4.getCurrentTime() << std::endl;
+*/
+      core::Timer timer3;
+      core::vector3f b = imaging::computeBarycentre( volume, lut );
+      std::cout << "Time=" << timer3.getCurrentTime() << std::endl;
+
+
+      std::cout << "b=" << b;
+      //std::cout << "b=" << b2;
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -187,5 +231,6 @@ TESTER_TEST( testResamplingRotPstVol );
 TESTER_TEST( testResamplingRotPstResampled );
 TESTER_TEST( testResamplingTrans );
 TESTER_TEST( testResamplingRot );
+TESTER_TEST( testResamplingPerf );
 TESTER_TEST_SUITE_END();
 #endif

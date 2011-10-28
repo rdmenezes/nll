@@ -143,7 +143,7 @@ namespace algorithm
 
             core::Timer projectionTimer2;
             imaging::VolumeSpatial<T, BufferType> resampledTarget( size, pst, 0 );
-            imaging::resampleVolumeTrilinear( target, resampledTarget, rotx );
+            imaging::resampleVolumeTrilinear( target, rotx, resampledTarget );
 
             // recompute the projection on the resampled volume
             core::Image<ui8> pxt2, pyt2, pzt2;

@@ -598,7 +598,7 @@ public:
       imaging::VolumeSpatial<double> resampled( ct1.size(), newPst );
       resampled.setOrigin( core::vector3f(1050, 1130, 1390) );
 
-      imaging::resampleVolumeTrilinear( ct1, resampled, tfm );
+      imaging::resampleVolumeTrilinear( ct1, tfm, resampled );
 
       imaging::saveSimpleFlatFile( "c:/tmp/target.mf2", resampled );
       imaging::saveSimpleFlatFile( "c:/tmp/source.mf2", ct1 );
@@ -674,7 +674,7 @@ public:
       pst( 0, 3 ) += 80;
 
       Volume resampled( ct2.size(), pst );
-      imaging::resampleVolumeTrilinear( ct2, resampled, tfm );
+      imaging::resampleVolumeTrilinear( ct2, tfm, resampled );
       imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", resampled );
    }
 
@@ -729,7 +729,7 @@ public:
 
       // output resampled volume
       Volume vout( ct2.size(), ct2.getPst() );
-      imaging::resampleVolumeTrilinear( ct2, vout, tfm  );
+      imaging::resampleVolumeTrilinear( ct2, tfm, vout  );
       imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", vout );
    }
 
@@ -787,7 +787,7 @@ public:
 
       // output resampled volume
       Volume vout( ct2.size(), ct2.getPst() );
-      imaging::resampleVolumeTrilinear( ct2, vout, tfm  );
+      imaging::resampleVolumeTrilinear( ct2, tfm, vout  );
       imaging::saveSimpleFlatFile( "c:/tmp/resampled.mf2", vout );
    }
 

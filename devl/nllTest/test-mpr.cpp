@@ -343,7 +343,7 @@ public:
       core::writeBmp( sliceRgb.getStorage(), NLL_TEST_PATH "data/comparisonMpr-mpr.bmp" );
 
       Volume resampled( volume.getSize(), volume.getPst() );
-      resampleVolumeTrilinear( volume, resampled, tfm );
+      resampleVolumeTrilinear( volume, tfm, resampled );
 
       sliceRgb = getSlice( resampled, tfmId, center );
       core::writeBmp( sliceRgb.getStorage(), NLL_TEST_PATH "data/comparisonMpr-resampled.bmp" );
