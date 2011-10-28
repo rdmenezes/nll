@@ -70,6 +70,20 @@ namespace algorithm
          value_type                 orientation;
          core::vector2i             position;
          ui32                       scale;
+
+         void write( std::ostream& o ) const
+         {
+            features.write( o );
+            core::write<value_type>( orientation, o );
+            core::write<ui32>( scale, o );
+         }
+
+         void read( std::istream& i )
+         {
+            features.read( i );
+            core::read<value_type>( orientation, i );
+            core::read<ui32>( scale, i );
+         }
       };
 
       typedef core::Buffer1D<Point> Points;
@@ -83,19 +97,19 @@ namespace algorithm
          typedef core::Buffer1D<SpeededUpRobustFeatures::value_type>  value_type;
 
       public:
-         PointsFeatureWrapper( Points& points ) : _points( points )
+         PointsFeatureWrapper( const Points& points ) : _points( points )
          {}
 
          ui32 size() const
          {
             return _points.size();
          }
-
+/*
          core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n )
          {
             return _points[ n ].features;
          }
-
+*/
          const core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
          {
             return _points[ n ].features;
@@ -106,7 +120,7 @@ namespace algorithm
          PointsFeatureWrapper& operator=( const PointsFeatureWrapper& );
 
       private:
-         Points& _points;
+         const Points& _points;
       };
 
       /**

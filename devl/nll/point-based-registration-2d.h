@@ -481,13 +481,38 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         nll::core::Timer timer;
          algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
 
          algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( source );
+         algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( target );
+         return compute( points1, points2, minBoundingBoxSource, maxBoundingBoxSource,
+                                           minBoundingBoxTarget, maxBoundingBoxTarget );
+      }
+
+      Matrix compute( const algorithm::SpeededUpRobustFeatures::Points& sourcePoints,
+                      const algorithm::SpeededUpRobustFeatures::Points& targetPoints,
+                      const core::vector2i& minBoundingBoxSource = core::vector2i(),
+                      const core::vector2i& maxBoundingBoxSource = core::vector2i(),
+                      const core::vector2i& minBoundingBoxTarget = core::vector2i(),
+                      const core::vector2i& maxBoundingBoxTarget = core::vector2i() )
+      {
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
+         {
+            std::stringstream ss;
+            ss << " source bounding box=" << minBoundingBoxSource[ 0 ] << " " << minBoundingBoxSource[ 1 ] << " " << "|| "
+                                          << maxBoundingBoxSource[ 0 ] << " " << maxBoundingBoxSource[ 1 ] << " " << std::endl;
+            ss << " target bounding box=" << minBoundingBoxTarget[ 0 ] << " " << minBoundingBoxTarget[ 1 ] << " " << "|| "
+                                          << maxBoundingBoxTarget[ 0 ] << " " << maxBoundingBoxTarget[ 1 ] << " " << std::endl;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+         nll::core::Timer timer;
+         algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
+
+         algorithm::SpeededUpRobustFeatures::Points points1 = sourcePoints;
          _originalPoints1 = points1;
          points1 = trimPoints( points1, minBoundingBoxSource, maxBoundingBoxSource );
-         algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( target );
+         algorithm::SpeededUpRobustFeatures::Points points2 = targetPoints;
          _originalPoints2 = points2;
          points2 = trimPoints( points2, minBoundingBoxTarget, maxBoundingBoxTarget );
 

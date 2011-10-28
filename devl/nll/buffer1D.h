@@ -326,7 +326,7 @@ public:
       nll::core::read<ui32>( _size, i );
       if ( _size )
       {
-         _allocate( _size, false );
+         _allocate( _size, true );  // true! in case of recursive Buffer1D<Buffer1D<>> we need to set to the zero the pointers!
          for ( ui32 n = 0; n < _size; ++n )
             nll::core::read<T>( _buffer[ n ], i );
       }

@@ -500,7 +500,7 @@ namespace core
          nll::core::read<ui32>( _sizex, i );
          nll::core::read<ui32>( _sizey, i );
          nll::core::read<ui32>( _nbcomp, i );
-         Base::_indexMapper = IndexMapper( _sizex, _sizey, _nbcomp );
+         _mapper = IndexMapper( _sizex, _sizey, _nbcomp );
          Base::read( i );
       }
 

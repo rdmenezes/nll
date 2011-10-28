@@ -63,7 +63,7 @@ public:
       ++volumeId;
       std::string volumeIdStr = nll::core::val2str( volumeId );
       mvv::platform::RefcountedTyped<Volume> resampled( new Volume( nll::core::vector3ui( size[ 0 ], size[ 1 ], size[ 2 ] ), m, (*vol).getBackgroundValue(), false ) );
-      nll::imaging::resampleVolumeNearestNeighbour( *vol, *resampled, reg->getValue() );
+      nll::imaging::resampleVolumeNearestNeighbour( *vol, reg->getValue(), *resampled );
 
       volumes->volumes.insert( mvv::SymbolVolume::create( volumeIdStr ), resampled );
       
