@@ -217,11 +217,9 @@
 
  Often the library will use the concept of source and target volumes associated with affine transformation
  The "source" volume is a fixed volume, the "target" volume is the moving one. It is "moved" by an associated
- transformation (see multiplanar reconstruction). This associated transformation if often given in the form source->target
- because this is how we display the volumes and it may not be possible to invert a transformation (or not easily, think about deformable tfm).
-
- However in the resampling case, we always resample the target with the given transform. Typically, a registration
- between source and target is computed and we want to resample the target in the source geometry.
+ transformation (see multiplanar reconstruction). This associated transformation is ALWAYS given in the form source->target
+ because this is how we display the volumes and it may not be possible to invert a transformation (or not efficiently, think
+ about deformable tfm).
  */
 # include "lut.h"
 # include "transformation.h"

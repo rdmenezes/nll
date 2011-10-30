@@ -5,7 +5,7 @@ using namespace nll;
 
 namespace nll
 {
-namespace algorithm
+namespace core
 {
    /**
     @brief Defines a Gaussian RBF parametrized by a value, variance and mean.
@@ -103,6 +103,10 @@ namespace algorithm
       DeformableTransformationRadialBasis()
       {}
 
+      /**
+       @brief Construct a RBF transform based on RBFs and PST
+       @param affineTfm acts as a PST, i.e., localize the transformation in MM
+       */
       DeformableTransformationRadialBasis( const Matrix& affineTfm, const Rbfs& g ) : _affine( affineTfm ), _rbfs( g )
       {
          ensure( _affine.sizex() == _affine.sizey(), "must be square matrix" );
@@ -144,6 +148,11 @@ namespace algorithm
       const Matrix& getAffineTfm() const
       {
          _affine;
+      }
+
+      const Matrix& getAffineInvTfm() const
+      {
+         _invAffine;
       }
 
       /**
@@ -207,91 +216,121 @@ namespace algorithm
       Rbfs     _rbfs;         // specified in source space
    };
 
+   /**
+    @brief Map a source image to a target image using a DDF and affine transform
+
+    Internally, we are using a <Storage> image to store the displacement field. This field
+    has its own affine matrix. This storage affine models the mapping of the DDF index to
+    position in MM and is not the same as the affine tfm passed to initialize.
+    */
    class DeformableTransformationDenseDisplacementField2d
    {
    public:
       typedef f32                                  value_type;
       typedef core::Matrix<value_type>             Matrix;
       typedef core::Buffer1D<value_type>           Vector;
-      typedef core::Image<value_type>              Storage;
+      typedef core::ImageSpatial<value_type>       Storage;
 
       DeformableTransformationDenseDisplacementField2d() // empty but not valid DDF
       {}
 
-      // create an empty DDF with a specified size
-      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const Matrix tfm ) : _affine( tfm ), _storage( size[ 0 ], size[ 1 ], 2 )
+      /**
+       @brief create an empty DDF with a specified size and PST.
+
+       The size and PST will define a 2D area in MM to map from
+       */
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const Matrix tfm ) : _affine( tfm )
       {
-         _invaffine.clone( _affine );
-         const bool r = core::inverse( _invaffine );
-         ensure( r, "matrix is not affine" );
+         _affineUpdated();
+
+         // TODO get the right tfm for storage
+         _storage = Storage( size[ 0 ], size[ 1 ], 2, tfm );
       }
 
       /**
-       @brief Create a DDF from a RBF transformation
-
-       The position of the RBF is important as we do not say what portion of the target space we are mapping! RBFs means
-       should be inside a grid [0..X][0..Y], with (X,Y) < size
-
-       For example, assume the RBF are in the range [0..5][0..3], and the size = [10, 6]. If we import the DDF with this
-       method, it will basically create a grid of size [10, 6], with position (0, 0) the first voxel of the
-       grid corresponding in the DDF mean (0, 0). It will then evaluate the RBF at each position of the grid.
+       @brief create a DDF form a RBF transformation.
+       @param size the new size of the DDF
+       @param tfm the PST of the DDF, which map index coordinates to MM coordinates
+       @param rbfTfm a deformable transformation based on RBFs
        */
       template <class Rbf>
-      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const Matrix tfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
       {
-         importFromRbfTfm( size, rbfTfm );
+         importFromRbfTfm( size, tfm, rbfTfm );
       }
 
       /**
-       @note create a DDF form a RBF transformation.
-       
-       Note that the affine matrix is updated to the one contained by the rbfTfm transform
+       @brief create a DDF form a RBF transformation.
+       @param size the new size of the DDF
+       @param tfm the PST of the DDF, which map index coordinates to MM coordinates
+       @param rbfTfm a deformable transformation based on RBFs
        */
       template <class Rbf>
-      void importFromRbfTfm( const core::vector2ui& size, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      void importFromRbfTfm( const core::vector2ui& size, const Matrix tfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
       {
          // set the initial parameters
-         _storage = Storage( size[ 0 ], size[ 1 ], 2 );
-         _affine = rbfTfm.getAffineTfm();
-         _invaffine.clone( _affine );
-         const bool r = core::inverse( _invaffine );
-         ensure( r, "matrix is not affine" );
+         ensure( rbfTfm.getAffineTfm().size() == 9, "must be a 2D RBF tfm" );
+         Matrix tfmStorage = tfm; // TODO COMPUTE CORRECT TFM
+         _storage = Storage( size[ 0 ], size[ 1 ], 2, tfmStorage );
+         _affine = tfm;
+         _affineUpdated();
 
+         // compute the transformation DDF->RBF
+         const Matrix tfmDdfToRbf = getStorageAffineTfm() * rbfTfm.getAffineInvTfm();
+         const core::vector2f dx( tfmDdfToRbf( 0, 0 ), tfmDdfToRbf( 1, 0 ) );
+         const core::vector2f dy( tfmDdfToRbf( 0, 1 ), tfmDdfToRbf( 1, 1 ) );
+
+         // get the origin of the DDF in the RBF to initilize the mapping position
+         Vector ddfOriginInRbf = getStorageAffineInvTfm() * Matrix( core::make_buffer1D<value_type>( rbfTfm.getAffineTfm()( 0, 3 ), rbfTfm.getAffineTfm()( 1, 3 ), 1 ), 3, 1 );
 
          // then compute the DDF. Now, we are using the same affine transformation matrix between the DDF and RBF
          // based transform, so we can work directly in the non transformed space
+         Vector linePos = core::make_buffer1D<value_type>( ddfOriginInRbf[ 0 ], ddfOriginInRbf[ 1 ] );
          for ( ui32 y = 0; y < _storage.sizey(); ++y )
          {
+            Vector startLine;
+            startLine.clone( linePos );
             for ( ui32 x = 0; x < _storage.sizex(); ++x )
             {
                value_type* p = _storage.point( x, y );
-               Vector d = rbfTfm.getDisplacementInSourceSpace( core::make_buffer1D<value_type>( static_cast<value_type>( x ),
-                                                                                                static_cast<value_type>( y ) ) );
+               Vector d = rbfTfm.getDisplacementInSourceSpace( startLine );
                p[ 0 ] = d[ 0 ];
                p[ 1 ] = d[ 1 ];
+
+               startLine[ 0 ] += dx[ 0 ];
+               startLine[ 1 ] += dx[ 1 ];
             }
+
+            linePos[ 0 ] += dy[ 0 ];
+            linePos[ 1 ] += dy[ 1 ];
          }
       }
 
       /**
-       @brief Return the displacement at a specified point expressed in the target space
+       @brief Return the displacement at a specified point expressed in the target space in MM
        */
       template <class VectorT>
       Vector getDisplacement( const VectorT& ptarget ) const
       {
+         assert( ptarget.size() == 2 ); // "wrong dimensions!"
+
          // compute p in target space
          Vector v( ptarget.size() + 1 );
          for ( ui32 n = 0; n < ptarget.size(); ++n )
          {
             v[ n ] = ptarget[ n ];
          }
+         v[ ptarget.size() ] = 1;
 
-         Vector vsrc = _invaffine * Matrix( v, v.size(), 1 );
+         Vector vsrc = getStorageAffineInvTfm() * Matrix( v, v.size(), 1 );
 
          // now interpolate
          return getDisplacementSource( vsrc );
       }
 
+      /**
+       @brief Compute the displacement in index space directly
+       */
       template <class VectorT>
       Vector getDisplacementSource( const VectorT& psource ) const
       {
@@ -312,30 +351,164 @@ namespace algorithm
          return _storage.sizey();
       }
 
+      const Matrix& getAffineTfm() const
+      {
+         _affine;
+      }
+
+      const Matrix& getStorageAffineTfm() const
+      {
+         _affine;
+      }
+
+      const Matrix& getAffineInvTfm() const
+      {
+         _invAffine;
+      }
+
+      const Matrix& getStorageAffineInvTfm() const
+      {
+         _invAffine;
+      }
+
+      const Storage& getStorage() const
+      {
+         return _storage;
+      }
+
    private:
-      
+      void _affineUpdated()
+      {
+         _invAffine.clone( _affine );
+         const bool r = core::inverse( _invAffine );
+         ensure( r, "matrix is not affine" );
+      }
 
    private:
       Matrix      _affine;
-      Matrix      _invaffine;
+      Matrix      _invAffine;
       Storage     _storage;
    };
 
    /**
+    @brief Efficient mapping of the target pixels to source voxels using a DDF as transformation
 
-   TODO rename TARGET=>SOURCE
-    @brief Resample a target Image defined by (target, affine) given a deformable transformation
-    @param target the target image which used the <affine> tranformation to be transformed
-    @param affine the affine transformation by which the target image was transformed
-    @param targetOut the output image defined in the same space than the target image
+    For each pixel of the target, apply the tfm on the source volume and find the corresponding source pixel
 
-    The <target> image and <affine> will define a target space.
-    The DDF is also defining another target space
-    Now, using the image target, find the corresponding displacement in the DDF target space. Using this displacement,
-    deform the target image
+    CAUTION: Internally, the mapper will use different threads. So for maximal efficiency, new processors
+    will be instanciated for each line from the initial processor. Typically the start/end methods will be called
+    on the original processor (this is to allow reduction if necessary), while the process method will be called
+    on the replicated processors.
+
+    Processors MUST be threadsafe
     */
-   template <class Image, class Matrix>
-   void resample( const Image& source, const Matrix& affine, const DeformableTransformationDenseDisplacementField2d& ddf, Image& targetOut )
+   class ImageTransformationMapperDeformable
+   {
+   public:
+      typedef core::Matrix<float>   Matrix;
+
+      /**
+       @brief Map a transformed target coordinate system to a <resampled> coordinate system
+       @param target the <target> volume
+       @param tfm an affine transformattion defined as <source> to <target>, inv(tfm) will be applied on the target volume
+       @param resampled the volume to map the coordinate from
+
+       Basically, for each voxel of the resampled, it finds the corresponding pixels in the transformed target volume.
+
+       A typical use case is:
+       - compute registration between source and target. It will be returned the a source->target matrix
+       - resample the moving volume (target) in the source geometry with correct registraton
+
+       The deformable case is slighly more complex than the affine case as we need to retrieve a displacement
+       in the DDF to add to the lookup target index
+       */
+      template <class Processor, class T, class Mapper, class Alloc>
+      void run( Processor& procOrig, const ImageSpatial<T, Mapper, Alloc>& target,
+               const DeformableTransformationDenseDisplacementField2d& ddfTfm,
+               ImageSpatial<T, Mapper, Alloc>& resampled )
+      {
+         const Matrix tfm = ddfTfm.getAffineTfm();
+
+         typedef ImageSpatial<T, Mapper, Alloc>   ImageType;
+
+         if ( !target.size() || !resampled.size() )
+         {
+            return; // nothing to do
+         }
+
+         ensure( target.getNbComponents() == resampled.getNbComponents(), "must have the same number of dimensions" );
+
+         // compute the transformation target voxel -> resampled voxel
+         Matrix transformation = target.getInvertedPst() * tfm * resampled.getPst();
+         core::vector2f dx( transformation( 0, 0 ),
+                            transformation( 1, 0 ) );
+         core::vector2f dy( transformation( 0, 1 ),
+                            transformation( 1, 1 ) );
+
+         // compute the target origin with the tfm applied
+         core::Matrix<float> targetOriginTfm;
+         targetOriginTfm.clone( tfm );
+         core::inverse( targetOriginTfm );
+         targetOriginTfm = targetOriginTfm * target.getPst();
+         core::vector2f targetOrigin2 = transf2d4( targetOriginTfm, core::vector2f( 0, 0 ) );
+
+         // create the transformation representing this displacement and compute the resampled origin in this
+         // coordinate system
+         Matrix g( 3, 3 );
+         for ( ui32 y = 0; y < 2; ++y )
+            for ( ui32 x = 0; x < 2; ++x )
+               g( y, x ) = targetOriginTfm(y, x);
+         g( 2, 2 ) = 1;
+         g( 0, 2 ) = targetOrigin2[ 0 ];
+         g( 1, 2 ) = targetOrigin2[ 1 ];
+
+         core::VolumeGeometry2d geom2( g );
+         core::vector2f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
+         core::vector2f slicePosSrc = originInTarget;
+
+         procOrig.start();
+       
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int y = 0; y < (int)resampled.sizey(); ++y )
+         {
+            Processor proc = procOrig;
+            typename ImageType::DirectionalIterator  lineIt = resampled.getIterator( 0, y, 0 );
+            core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + y * dy[ 0 ],
+                                                        originInTarget[ 1 ] + y * dy[ 1 ],
+                                                        0 );
+            typename ImageType::DirectionalIterator  voxelIt = lineIt;
+            for ( ui32 x = 0; x < resampled.sizex(); ++x )
+            {
+               proc.process( voxelIt, &linePosSrc[0] );
+               linePosSrc[ 0 ] += dx[ 0 ];
+               linePosSrc[ 1 ] += dx[ 1 ];
+               voxelIt.addx();
+            }
+            lineIt.addy();
+         }
+         procOrig.end();
+      }
+
+   private:
+      template <class T, class Mapper, class Allocator, class Vector>
+      static Vector transf2d4( const core::Matrix<T, Mapper, Allocator>& m, const Vector& v )
+      {
+         assert( m.sizex() == 3 && m.sizey() == 3 );
+         return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + m( 0, 2 ),
+                        v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + m( 1, 2 ) );
+      }
+   };
+
+   /**
+    @brief Resample a 2D spatial image using a 2 DDF deformable transformation
+    @param target the target image to map from
+    @param ddf a transformation defined source->target applied to the target image (so internally the affine TFM will be inverted before applying it to the target)
+    @param source the image to map to
+    */
+   template <class T, class Mapper, class Allocator>
+   void resample( const ImageSpatial<T, Mapper, Allocator>& target, const DeformableTransformationDenseDisplacementField2d& ddf, ImageSpatial<T, Mapper, Allocator>& source )
    {
       // compute the rotation and spacing of the deformation
    }
@@ -667,9 +840,12 @@ struct TestDeformable2D
 
    void testDdfResampling()
    {
-      algorithm::DeformableTransformationRadialBasis<> rbfTfm;
+      typedef core::DeformableTransformationRadialBasis<>            RbfTransform;
+      typedef core::DeformableTransformationDenseDisplacementField2d DdfTransform;
+      RbfTransform rbfTfm;
 
-      algorithm::DeformableTransformationDenseDisplacementField2d ddfTfm( core::vector2ui( 15, 30 ), rbfTfm );
+      DdfTransform::Matrix pst = core::identityMatrix<DdfTransform::Matrix>( 3 );
+      DdfTransform ddfTfm( core::vector2ui( 15, 30 ), pst, rbfTfm );
    }
 };
 
