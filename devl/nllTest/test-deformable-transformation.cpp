@@ -235,28 +235,29 @@ namespace core
       {}
 
       /**
-       @brief create an empty DDF with a specified size and PST.
-
-       The size and PST will define a 2D area in MM to map from
+       @brief create an empty DDF with a specified size and PST
+       @param storageSize specify the number of pixels composint the DDF
+       @param mappedSize the size to be mapped
+       @param mappedTfm the affine tfm 
        */
-      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const Matrix tfm ) : _affine( tfm )
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix mappedTfm ) : _affine( mappedTfm )
       {
          _affineUpdated();
 
-         // TODO get the right tfm for storage
-         _storage = Storage( size[ 0 ], size[ 1 ], 2, tfm );
+
+         _storage = Storage( storageSize[ 0 ], storageSize[ 1 ], 2, _computeStorageTfm( storageSize, mappedSize, mappedTfm ) );
       }
 
       /**
        @brief create a DDF form a RBF transformation.
        @param size the new size of the DDF
        @param tfm the PST of the DDF, which map index coordinates to MM coordinates
-       @param rbfTfm a deformable transformation based on RBFs
+       @param rbfTfm a deformable transformation based on RBFs 
        */
       template <class Rbf>
-      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& size, const Matrix tfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix tfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
       {
-         importFromRbfTfm( size, tfm, rbfTfm );
+         importFromRbfTfm( storageSize, mappedSize, tfm, rbfTfm );
       }
 
       /**
@@ -266,12 +267,14 @@ namespace core
        @param rbfTfm a deformable transformation based on RBFs
        */
       template <class Rbf>
-      void importFromRbfTfm( const core::vector2ui& size, const Matrix tfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      void importFromRbfTfm( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix mappedTfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
       {
          // set the initial parameters
+
          ensure( rbfTfm.getAffineTfm().size() == 9, "must be a 2D RBF tfm" );
-         Matrix tfmStorage = tfm; // TODO COMPUTE CORRECT TFM
-         _storage = Storage( size[ 0 ], size[ 1 ], 2, tfmStorage );
+         Matrix tfmStorage = _computeStorageTfm( storageSize, mappedSize, mappedTfm );
+         _storage = Storage( storageSize[ 0 ], storageSize[ 1 ], 2, tfmStorage );
+
          _affine = tfm;
          _affineUpdated();
 
@@ -382,6 +385,30 @@ namespace core
          _invAffine.clone( _affine );
          const bool r = core::inverse( _invAffine );
          ensure( r, "matrix is not affine" );
+      }
+
+      Matrix _computeStorageTfm( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix mappedTfm )
+      {
+         // compute the storage PST mapping to (mappedSize, tfm)
+         const core::vector2f mappedSpacing = getSpacing3x3( mappedTfm );
+         const core::vector2f sizeMm( mappedSize[ 0 ] * mappedSpacing[ 0 ],
+                                      mappedSize[ 1 ] * mappedSpacing[ 1 ] );
+
+         // now compute the spacing for the storage
+         const core::vector2f storageSpacing( sizeMm[ 0 ] / storageSize[ 0 ],
+                                              sizeMm[ 1 ] / storageSize[ 1 ] );
+
+         // finally compute the storage affine transformation: we simply update the spacing so that
+         // we are mapping exactly the same area with the storage
+         Matrix storageTfm;
+         storageTfm.clone( mappedTfm );
+         for ( ui32 n = 0; n < 2; ++n )
+         {
+            storageTfm( 0, n ) = storageTfm( 0, n ) / mappedSpacing[ n ] * storageSpacing[ n ];
+            storageTfm( 1, n ) = storageTfm( 1, n ) / mappedSpacing[ n ] * storageSpacing[ n ];
+         }
+
+         return storageTfm;
       }
 
    private:

@@ -171,6 +171,22 @@ namespace core
       }
       return spacing;
    }
+
+   /**
+    @brief Returns the spacing of a 3x3 homogeneous transformation matrix
+    */
+   template <class type, class mapper, class allocator>
+   vector2f getSpacing3x3( const Matrix<type, mapper, allocator>& m )
+   {
+      ensure( m.sizex() == 3 && m.sizey() == 3, "must be a 3x3 matrix" );
+      vector2f spacing;
+      for ( ui32 x = 0; x < 2; ++x )
+      {
+         spacing[ x ] = std::sqrt( core::sqr( m( 0, x ) ) +
+                                   core::sqr( m( 1, x ) ) );
+      }
+      return spacing;
+   }
 }
 }
 
