@@ -84,8 +84,8 @@ namespace imaging
    };
 
    /**
-    @brief Efficiently iterate on all target voxels and compute the corresponding position in the transformed
-           source volume
+    @brief Efficiently iterate on all resampled voxels and compute the corresponding position in the transformed
+           target volume
 
     //
     //
@@ -103,28 +103,28 @@ namespace imaging
    {
    public:
       /**
-       @brief Map a target coordinate system to a source transformed coordinate system
-       @param source the <source> volume transformed by <tfm>
-       @param tfm a <source> to <target> affine transformation
-       @param target the volume to map the coordinate from
+       @brief Map a resampled coordinate system to a target transformed coordinate system
+       @param target the <target> volume transformed by <tfm>
+       @param tfm a <target> to <resampled> affine transformation, the transformation is defined as source->target
+       @param resampled the volume to map the coordinate from
 
-       Basically, for each voxel of the target, it finds the corresponding in the transformed source volume.
-       it will call Processor( const DirectionalIterator& targetPosition, const float* sourcePosition )
+       Basically, for each voxel of the resampled, it finds the corresponding voxel in the transformed target volume.
+       it will call Processor( const DirectionalIterator& resampledPosition, const float* targetPosition )
        */
       template <class Processor, class T, class Storage>
-      void run( Processor& procOrig, const VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& target ) const
+      void run( Processor& procOrig, const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled ) const
       {
          typedef VolumeSpatial<T, Storage>   VolumeType;
          typedef core::Matrix<f32>  Matrix;
 
-         if ( !source.getSize()[ 0 ] || !source.getSize()[ 1 ] || !source.getSize()[ 2 ] ||
-              !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] )
+         if ( !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] ||
+              !resampled.getSize()[ 0 ] || !resampled.getSize()[ 1 ] || !resampled.getSize()[ 2 ] )
          {
             return;
          }
 
-         // compute the transformation source voxel -> target voxel
-         Matrix transformation = source.getInvertedPst() * tfm.getAffineMatrix() * target.getPst();
+         // compute the transformation target voxel -> resampled voxel
+         Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * resampled.getPst();
          core::vector3f dx( transformation( 0, 0 ),
                             transformation( 1, 0 ),
                             transformation( 2, 0 ) );
@@ -135,28 +135,28 @@ namespace imaging
                             transformation( 1, 2 ),
                             transformation( 2, 2 ) );
 
-         // compute the source origin with the tfm applied
-         core::Matrix<float> sourceOriginTfm;
-         sourceOriginTfm.clone( tfm.getAffineMatrix() );
-         core::inverse( sourceOriginTfm );
-         sourceOriginTfm = sourceOriginTfm * source.getPst();
-         core::vector3f sourceOrigin2 = transf4( sourceOriginTfm, core::vector3f( 0, 0, 0 ) );
+         // compute the target origin with the tfm applied
+         core::Matrix<float> targetOriginTfm;
+         targetOriginTfm.clone( tfm.getAffineMatrix() );
+         core::inverse( targetOriginTfm );
+         targetOriginTfm = targetOriginTfm * target.getPst();
+         core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
 
-         // create the transformation representing this displacement and compute the target origin in this
+         // create the transformation representing this displacement and compute the resampled origin in this
          // coordinate system
          Matrix g( 4, 4 );
          for ( ui32 y = 0; y < 3; ++y )
             for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = sourceOriginTfm(y, x);
+               g( y, x ) = targetOriginTfm(y, x);
          g( 3, 3 ) = 1;
-         g( 0, 3 ) = sourceOrigin2[ 0 ];
-         g( 1, 3 ) = sourceOrigin2[ 1 ];
-         g( 2, 3 ) = sourceOrigin2[ 2 ];
+         g( 0, 3 ) = targetOrigin2[ 0 ];
+         g( 1, 3 ) = targetOrigin2[ 1 ];
+         g( 2, 3 ) = targetOrigin2[ 2 ];
 
          core::VolumeGeometry geom2( g );
-         core::vector3f originInTarget = geom2.positionToIndex( target.getOrigin() );
+         core::vector3f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
          core::vector3f slicePosSrc = originInTarget;
-         const int sizez = static_cast<int>( target.getSize()[ 2 ] );
+         const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
          procOrig.start();
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -167,11 +167,11 @@ namespace imaging
             Processor proc = procOrig;
             proc.startSlice( z );
 
-            typename VolumeType::DirectionalIterator  lineIt = target.getIterator( 0, 0, z );
+            typename VolumeType::DirectionalIterator  lineIt = resampled.getIterator( 0, 0, z );
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
                                                         originInTarget[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < target.getSize()[ 1 ]; ++y )
+            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
@@ -183,7 +183,7 @@ namespace imaging
                   0
                };
 
-               for ( ui32 x = 0; x < target.getSize()[ 0 ]; ++x )
+               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
                {
                   proc.process( voxelIt, voxelPosSrc );
                   //*voxelIt = interpolator( voxelPosSrc );
@@ -200,29 +200,51 @@ namespace imaging
          }
          procOrig.end();
       }
+   };
 
+   /**
+    @brief Efficiently iterate on all resampled voxels and compute the corresponding position in the transformed
+           target volume
+
+    This version of the mapper will use coordinate on the resampled rather than an iterator.
+
+    //
+    //
+    BEWARE: the input processor will be local to each slice (each slice will have its own processor object),
+    this is because when multithreaded we want to have local objects (else huge drop in performance x6)
+
+    => processors must be thread safe! INCLUDING //// operator=  ////
+    //
+    //
+
+    start() and end() methods will be called on the original processor
+    startSlice(), endSlice(), process() will be called on the local processor
+    */
+   class VolumeTransformationMapperPosition
+   {
+   public:
       /**
-       @brief Map a target coordinate system to a source transformed coordinate system
-       @param source the <source> volume transformed by <tfm>
-       @param tfm a <source> to <target> affine transformation
-       @param target the volume to map the coordinate from
+       @brief Map a resampled coordinate system to a target transformed coordinate system
+       @param target the <target> volume transformed by <tfm>
+       @param tfm a <target> to <resampled> affine transformation
+       @param resampled the volume to map the coordinate from
 
        Exactly the same version, except that it will call the Processor::process with position index instead of iterator
        */
       template <class Processor, class T, class Storage>
-      void runWithPosition( Processor& procOrig, const VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& target ) const
+      void run( Processor& procOrig, const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled ) const
       {
          typedef VolumeSpatial<T, Storage>   VolumeType;
          typedef core::Matrix<f32>  Matrix;
 
-         if ( !source.getSize()[ 0 ] || !source.getSize()[ 1 ] || !source.getSize()[ 2 ] ||
-              !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] )
+         if ( !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] ||
+              !resampled.getSize()[ 0 ] || !resampled.getSize()[ 1 ] || !resampled.getSize()[ 2 ] )
          {
             throw std::runtime_error( "invalid volume" );
          }
 
-         // compute the transformation source voxel -> target voxel
-         Matrix transformation = source.getInvertedPst() * tfm.getAffineMatrix() * target.getPst();
+         // compute the transformation target voxel -> resampled voxel
+         Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * resampled.getPst();
          core::vector3f dx( transformation( 0, 0 ),
                             transformation( 1, 0 ),
                             transformation( 2, 0 ) );
@@ -233,28 +255,28 @@ namespace imaging
                             transformation( 1, 2 ),
                             transformation( 2, 2 ) );
 
-         // compute the source origin with the tfm applied
-         core::Matrix<float> sourceOriginTfm;
-         sourceOriginTfm.clone( tfm.getAffineMatrix() );
-         core::inverse( sourceOriginTfm );
-         sourceOriginTfm = sourceOriginTfm * source.getPst();
-         core::vector3f sourceOrigin2 = transf4( sourceOriginTfm, core::vector3f( 0, 0, 0 ) );
+         // compute the target origin with the tfm applied
+         core::Matrix<float> targetOriginTfm;
+         targetOriginTfm.clone( tfm.getAffineMatrix() );
+         core::inverse( targetOriginTfm );
+         targetOriginTfm = targetOriginTfm * target.getPst();
+         core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
 
-         // create the transformation representing this displacement and compute the target origin in this
+         // create the transformation representing this displacement and compute the resampled origin in this
          // coordinate system
          Matrix g( 4, 4 );
          for ( ui32 y = 0; y < 3; ++y )
             for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = sourceOriginTfm(y, x);
+               g( y, x ) = targetOriginTfm(y, x);
          g( 3, 3 ) = 1;
-         g( 0, 3 ) = sourceOrigin2[ 0 ];
-         g( 1, 3 ) = sourceOrigin2[ 1 ];
-         g( 2, 3 ) = sourceOrigin2[ 2 ];
+         g( 0, 3 ) = targetOrigin2[ 0 ];
+         g( 1, 3 ) = targetOrigin2[ 1 ];
+         g( 2, 3 ) = targetOrigin2[ 2 ];
 
          core::VolumeGeometry geom2( g );
-         core::vector3f originInTarget = geom2.positionToIndex( target.getOrigin() );
+         core::vector3f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
          core::vector3f slicePosSrc = originInTarget;
-         const int sizez = static_cast<int>( target.getSize()[ 2 ] );
+         const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
          procOrig.start();
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -265,11 +287,11 @@ namespace imaging
             Processor proc = procOrig;
             proc.startSlice( z );
 
-            typename VolumeType::DirectionalIterator  lineIt = target.getIterator( 0, 0, z );
+            typename VolumeType::DirectionalIterator  lineIt = resampled.getIterator( 0, 0, z );
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
                                                         originInTarget[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < target.getSize()[ 1 ]; ++y )
+            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
@@ -281,7 +303,7 @@ namespace imaging
                   0
                };
 
-               for ( ui32 x = 0; x < target.getSize()[ 0 ]; ++x )
+               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
                {
                   proc.process( core::vector3ui( x, y, z ), voxelPosSrc );
 

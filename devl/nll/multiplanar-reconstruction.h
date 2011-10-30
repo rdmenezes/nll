@@ -90,7 +90,7 @@ namespace imaging
        @param tfm an affine that transform source->target, assuming we have a target volume. Internally, if will invert
               the tfm and apply it to the <_volume>
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
-             source->target.
+             source->target, and <_volume> playing as the target volume
        */
       void getSlice( Slice& slice, const TransformationAffine& tfm2, bool isSliceCenter = true ) const
       {
