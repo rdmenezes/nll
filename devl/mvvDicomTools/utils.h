@@ -774,7 +774,7 @@ namespace mvv
             try
             {
                slope = wrapper.getRescaleSlope();
-               wrapper.getRescaleIntercept();
+               intercept = wrapper.getRescaleIntercept();
             } catch (...)
             {
                // missing RSI tag, but that's ok (e.g., MR data)
