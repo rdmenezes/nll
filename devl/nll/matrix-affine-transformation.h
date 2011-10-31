@@ -187,6 +187,16 @@ namespace core
       }
       return spacing;
    }
+
+   // assuming a 2D affine matrix with no shearing
+   template <class type, class mapper, class allocator>
+   void getMatrixProperties3x3( const Matrix<type, mapper, allocator>& m, vector2f& outSpacing, float& outAngle, vector2f& outTranslation )
+   {
+      outSpacing = getSpacing3x3( m );
+      outTranslation = vector2f( m( 0, 2 ), m( 1, 2 ) );
+      outAngle = getAngle( m( 0, 0 ), m( 0, 1 ) );
+         //static_cast<float>( std::acos( m( 0, 0 ) / outSpacing[ 0 ] ) );
+   }
 }
 }
 
