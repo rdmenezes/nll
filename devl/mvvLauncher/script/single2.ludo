@@ -85,7 +85,7 @@ class VolumeSwitchReg
       list = volumeList;
 	   registrator = reg;
 
-      displayed1 = readDicomVolume( list[ 5 ] );
+      //displayed1 = readDicomVolume( list[ 6 ] );
    }
 
    void next()
@@ -163,8 +163,8 @@ class LutSwitchReg
 
 
 
-Lut ctLut1( 30000.0, 50000.0 );
-Lut ctLut2( 30000.0, 50000.0, Vector3i( 255, 0, 0 ) );
+Lut ctLut1( 25000.0, 45000.0 );
+Lut ctLut2( 25000.0, 45000.0, Vector3i( 255, 0, 0 ) );
 
 
 DisplayRegionDetection detection( annotations );
