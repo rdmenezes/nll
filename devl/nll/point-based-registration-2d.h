@@ -175,7 +175,7 @@ namespace algorithm
 
          static ui32 minimumNumberOfSubsets()
          {
-            return 75000;
+            return 50000;
          }
 
          struct Model
