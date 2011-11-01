@@ -676,15 +676,6 @@ namespace core
          _constructGeometry( pst );
       }
 
-      /**
-       @param pst
-       @param RegTgtToSrcMM a 4x4 transformation, transforming target->source space
-       */
-      VolumeGeometry( const Matrix& pst, const Matrix& RegTgtToSrcMM )
-      {
-         _constructGeometry( RegTgtToSrcMM * pst );
-      }
-
       core::vector3f indexToPosition( const core::vector3f& index ) const
       {
          core::vector3f result( 0, 0, 0 );
@@ -755,15 +746,6 @@ namespace core
       VolumeGeometry2d( const Matrix& pst )
       {
          _constructGeometry( pst );
-      }
-
-      /**
-       @param pst
-       @param RegTgtToSrcMM a 4x4 transformation, transforming target->source space
-       */
-      VolumeGeometry2d( const Matrix& pst, const Matrix& RegTgtToSrcMM )
-      {
-         _constructGeometry( RegTgtToSrcMM * pst );
       }
 
       core::vector2f indexToPosition( const core::vector2f& index ) const

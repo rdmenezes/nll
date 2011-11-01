@@ -14,6 +14,9 @@ namespace core
 
     The RBF is parametrized by (mean, var). This will give a "weight" to any point representing the
     influence of the RBF.
+
+    In the transformation context, they are defined in the source space in MM (so there is no PST associated
+    with the RBFs)
     */
    struct RbfGaussian
    {
@@ -81,7 +84,8 @@ namespace core
 
     There are two components:
     - affine transformation, which basically move the DDF grid in source space to the target space
-    - Rbfs, specifying a deformable transformation. They are specified in source space.
+    - Rbfs, specifying a deformable transformation. They are specified in MM and are spread on the
+      source image (so there is no PST associated with the RBFs).
 
     The value of the displacement at point <x> is computed as follow:
     displacement = sum_i( Rbf::compute( A^-1 * x - mean_i ) * RbfValue_i  // we use A^-1 to reduce computational load and is equivalent to x - A * mean_i
@@ -106,6 +110,8 @@ namespace core
       /**
        @brief Construct a RBF transform based on RBFs and PST
        @param affineTfm acts as a PST, i.e., localize the transformation in MM
+
+       Typically the RBFs will be spread on the source image. Each RBF will have its position in MM
        */
       DeformableTransformationRadialBasis( const Matrix& affineTfm, const Rbfs& g ) : _affine( affineTfm ), _rbfs( g )
       {
@@ -219,9 +225,11 @@ namespace core
    /**
     @brief Map a source image to a target image using a DDF and affine transform
 
+    The DDF is mapping the source image (and with its own geometry and size) and will be applied
+    source->target affine transformation
+
     Internally, we are using a <Storage> image to store the displacement field. This field
-    has its own affine matrix. This storage affine models the mapping of the DDF index to
-    position in MM and is not the same as the affine tfm passed to initialize.
+    has its own affine matrix.
     */
    class DeformableTransformationDenseDisplacementField2d
    {
@@ -240,24 +248,25 @@ namespace core
        @param mappedSize the size to be mapped
        @param mappedTfm the affine tfm 
        */
-      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix mappedTfm ) : _affine( mappedTfm )
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& sourceSize, const Matrix& sourcePst, const core::vector2ui& ddfSize, const Matrix tfm ) : _affine( tfm )
       {
          _affineUpdated();
-
-
-         _storage = Storage( storageSize[ 0 ], storageSize[ 1 ], 2, _computeStorageTfm( storageSize, mappedSize, mappedTfm ) );
+         _storage = Storage( ddfSize[ 0 ], ddfSize[ 1 ], 2, _computeDdfPst( sourceSize, sourcePst, ddfSize ) );
       }
 
       /**
-       @brief create a DDF form a RBF transformation.
-       @param size the new size of the DDF
-       @param tfm the PST of the DDF, which map index coordinates to MM coordinates
-       @param rbfTfm a deformable transformation based on RBFs 
+
+      /**
+       @brief create a DDF from 
+       @param sourceSize the source that will be mapped by the DDF
+       @param sourcePst the source that will be mapped by the DDF
+       @param ddfSize the number of voxels used to store the DDF
+       @param rbfTfm the source->target affine deformable transformation
        */
       template <class Rbf>
-      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix tfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      DeformableTransformationDenseDisplacementField2d( const core::vector2ui& sourceSize, const Matrix& sourcePst, const core::vector2ui& ddfSize, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
       {
-         importFromRbfTfm( storageSize, mappedSize, tfm, rbfTfm );
+         importFromRbfTfm( sourceSize, sourcePst, ddfSize, rbfTfm );
       }
 
       /**
@@ -267,32 +276,35 @@ namespace core
        @param rbfTfm a deformable transformation based on RBFs
        */
       template <class Rbf>
-      void importFromRbfTfm( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix mappedTfm, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
+      void importFromRbfTfm( const core::vector2ui& sourceSize, const Matrix& sourcePst, const core::vector2ui& ddfSize, const DeformableTransformationRadialBasis<Rbf>& rbfTfm )
       {
-         // set the initial parameters
+         // here we are approximating a RBF transformation by a fixed DDF
+         // first we compute the DDF PST so that we are mapping the same source geometry
+         // the affine part of the DDF is the same as the RBF
+         // it remains the RBF deformation to compute. The RBF are defined MM in the source geometry
+         // so we simply need to convert the Index DDF to MM and get the RBF value
 
+         // set up the DDF
          ensure( rbfTfm.getAffineTfm().size() == 9, "must be a 2D RBF tfm" );
-         Matrix tfmStorage = _computeStorageTfm( storageSize, mappedSize, mappedTfm );
-         _storage = Storage( storageSize[ 0 ], storageSize[ 1 ], 2, tfmStorage );
+         Matrix pstStorage = _computeDdfPst( sourceSize, sourcePst, ddfSize );
+         _storage = Storage( ddfSize[ 0 ], ddfSize[ 1 ], 2, pstStorage );
 
-         _affine = tfm;
+         // use the same affine TFM
+         _affine = rbfTfm.getAffineTfm();
          _affineUpdated();
 
-         // compute the transformation DDF->RBF
-         const Matrix tfmDdfToRbf = getStorageAffineTfm() * rbfTfm.getAffineInvTfm();
-         const core::vector2f dx( tfmDdfToRbf( 0, 0 ), tfmDdfToRbf( 1, 0 ) );
-         const core::vector2f dy( tfmDdfToRbf( 0, 1 ), tfmDdfToRbf( 1, 1 ) );
+         // compute the transformation DDF index->Source MM
+         const core::vector2f dx( getPst()( 0, 0 ),
+                                  getPst()( 1, 0 ) );
+         const core::vector2f dy( getPst()( 0, 1 ),
+                                  getPst()( 1, 1 ) );
+         core::vector2f linePos(  getPst()( 0, 3 ),
+                                  getPst()( 1, 3 ) );
 
-         // get the origin of the DDF in the RBF to initilize the mapping position
-         Vector ddfOriginInRbf = getStorageAffineInvTfm() * Matrix( core::make_buffer1D<value_type>( rbfTfm.getAffineTfm()( 0, 3 ), rbfTfm.getAffineTfm()( 1, 3 ), 1 ), 3, 1 );
-
-         // then compute the DDF. Now, we are using the same affine transformation matrix between the DDF and RBF
-         // based transform, so we can work directly in the non transformed space
-         Vector linePos = core::make_buffer1D<value_type>( ddfOriginInRbf[ 0 ], ddfOriginInRbf[ 1 ] );
+         // finally iterate on all voxels and compute the displacement vector
          for ( ui32 y = 0; y < _storage.sizey(); ++y )
          {
-            Vector startLine;
-            startLine.clone( linePos );
+            core::vector2f startLine = linePos;
             for ( ui32 x = 0; x < _storage.sizex(); ++x )
             {
                value_type* p = _storage.point( x, y );
@@ -359,9 +371,9 @@ namespace core
          _affine;
       }
 
-      const Matrix& getStorageAffineTfm() const
+      const Matrix& getPst() const
       {
-         _affine;
+         _storage.getPst();
       }
 
       const Matrix& getAffineInvTfm() const
@@ -369,9 +381,9 @@ namespace core
          _invAffine;
       }
 
-      const Matrix& getStorageAffineInvTfm() const
+      const Matrix& getPstInv() const
       {
-         _invAffine;
+         _storage.getInvertedPst();
       }
 
       const Storage& getStorage() const
@@ -387,28 +399,29 @@ namespace core
          ensure( r, "matrix is not affine" );
       }
 
-      Matrix _computeStorageTfm( const core::vector2ui& storageSize, const core::vector2ui& mappedSize, const Matrix mappedTfm )
+      // given the source geometry, compute the PST so that the DDF has exactly the same orientation and size in MM than the source given the DDF size in pixel
+      Matrix _computeDdfPst( const core::vector2ui& sourceSize, const Matrix& sourcePst, const core::vector2ui& ddfSize )
       {
-         // compute the storage PST mapping to (mappedSize, tfm)
-         const core::vector2f mappedSpacing = getSpacing3x3( mappedTfm );
-         const core::vector2f sizeMm( mappedSize[ 0 ] * mappedSpacing[ 0 ],
-                                      mappedSize[ 1 ] * mappedSpacing[ 1 ] );
+         // compute the storage PST mapping to (sourceSize, tfm)
+         const core::vector2f ddfSpacing = getSpacing3x3( sourcePst );
+         const core::vector2f sizeMm( sourceSize[ 0 ] * ddfSpacing[ 0 ],
+                                      sourceSize[ 1 ] * ddfSpacing[ 1 ] );
 
          // now compute the spacing for the storage
-         const core::vector2f storageSpacing( sizeMm[ 0 ] / storageSize[ 0 ],
-                                              sizeMm[ 1 ] / storageSize[ 1 ] );
+         const core::vector2f storageSpacing( sizeMm[ 0 ] / ddfSize[ 0 ],
+                                              sizeMm[ 1 ] / ddfSize[ 1 ] );
 
          // finally compute the storage affine transformation: we simply update the spacing so that
          // we are mapping exactly the same area with the storage
-         Matrix storageTfm;
-         storageTfm.clone( mappedTfm );
+         Matrix storagePst;
+         storagePst.clone( sourcePst );
          for ( ui32 n = 0; n < 2; ++n )
          {
-            storageTfm( 0, n ) = storageTfm( 0, n ) / mappedSpacing[ n ] * storageSpacing[ n ];
-            storageTfm( 1, n ) = storageTfm( 1, n ) / mappedSpacing[ n ] * storageSpacing[ n ];
+            storagePst( 0, n ) = storagePst( 0, n ) / ddfSpacing[ n ] * storageSpacing[ n ];
+            storagePst( 1, n ) = storagePst( 1, n ) / ddfSpacing[ n ] * storageSpacing[ n ];
          }
 
-         return storageTfm;
+         return storagePst;
       }
 
    private:
@@ -872,7 +885,7 @@ struct TestDeformable2D
       RbfTransform rbfTfm;
 
       DdfTransform::Matrix pst = core::identityMatrix<DdfTransform::Matrix>( 3 );
-      DdfTransform ddfTfm( core::vector2ui( 15, 30 ), pst, rbfTfm );
+      DdfTransform ddfTfm( core::vector2ui( 15, 30 ), pst, core::vector2ui( 15, 30 ), rbfTfm );
    }
 };
 
