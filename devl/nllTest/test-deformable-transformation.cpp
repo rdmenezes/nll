@@ -116,7 +116,7 @@ namespace core
       DeformableTransformationRadialBasis( const Matrix& affineTfm, const Rbfs& g ) : _affine( affineTfm ), _rbfs( g )
       {
          ensure( _affine.sizex() == _affine.sizey(), "must be square matrix" );
-         ensure( g.size() > 0 && _affine.sizex() == g[ 0 ].getMean().size(), "size doesn't match" );
+         ensure( g.size() > 0 && _affine.sizex() == ( g[ 0 ].getMean().size() + 1 ), "size doesn't match" );
          _affineUpdated();
       }
 
@@ -153,12 +153,12 @@ namespace core
 
       const Matrix& getAffineTfm() const
       {
-         _affine;
+         return _affine;
       }
 
       const Matrix& getAffineInvTfm() const
       {
-         _invAffine;
+         return _invAffine;
       }
 
       /**
@@ -195,7 +195,7 @@ namespace core
       Vector _getDisplacement( const VectorT& pinv ) const
       {
          // finally computes the displacement
-         const ui32 nbDim = _affine.sizex();
+         const ui32 nbDim = _affine.sizex() - 1;
          Vector accum( nbDim );
          for ( ui32 n = 0; n < _rbfs.size(); ++n )
          {
@@ -298,8 +298,8 @@ namespace core
                                   getPst()( 1, 0 ) );
          const core::vector2f dy( getPst()( 0, 1 ),
                                   getPst()( 1, 1 ) );
-         core::vector2f linePos(  getPst()( 0, 3 ),
-                                  getPst()( 1, 3 ) );
+         core::vector2f linePos(  getPst()( 0, 2 ),
+                                  getPst()( 1, 2 ) );
 
          // finally iterate on all voxels and compute the displacement vector
          for ( ui32 y = 0; y < _storage.sizey(); ++y )
@@ -322,22 +322,22 @@ namespace core
       }
 
       /**
-       @brief Return the displacement at a specified point expressed in the target space in MM
+       @brief Return the displacement at a specified point expressed in the source space in MM (ie. before applying the affine transformation)
        */
       template <class VectorT>
-      Vector getDisplacement( const VectorT& ptarget ) const
+      Vector getDisplacement( const VectorT& psource ) const
       {
-         assert( ptarget.size() == 2 ); // "wrong dimensions!"
+         assert( psource.size() == 2 ); // "wrong dimensions!"
 
          // compute p in target space
-         Vector v( ptarget.size() + 1 );
-         for ( ui32 n = 0; n < ptarget.size(); ++n )
+         Vector v( psource.size() + 1 );
+         for ( ui32 n = 0; n < psource.size(); ++n )
          {
-            v[ n ] = ptarget[ n ];
+            v[ n ] = psource[ n ];
          }
-         v[ ptarget.size() ] = 1;
+         v[ psource.size() ] = 1;
 
-         Vector vsrc = getStorageAffineInvTfm() * Matrix( v, v.size(), 1 );
+         Vector vsrc = getPstInv() * Matrix( v, v.size(), 1 );
 
          // now interpolate
          return getDisplacementSource( vsrc );
@@ -347,12 +347,12 @@ namespace core
        @brief Compute the displacement in index space directly
        */
       template <class VectorT>
-      Vector getDisplacementSource( const VectorT& psource ) const
+      Vector getDisplacementSource( const VectorT& index ) const
       {
          // now interpolate
          Vector out( 2 );
          core::InterpolatorLinear2D<value_type, Storage::IndexMapper, Storage::Allocator> interpolator( _storage );
-         interpolator.interpolateValues( vsrc[ 0 ], vsrc[ 1 ], out.begin() );
+         interpolator.interpolateValues( index[ 0 ], index[ 1 ], out.begin() );
          return out;
       }
 
@@ -368,22 +368,22 @@ namespace core
 
       const Matrix& getAffineTfm() const
       {
-         _affine;
+         return _affine;
       }
 
       const Matrix& getPst() const
       {
-         _storage.getPst();
+         return _storage.getPst();
       }
 
       const Matrix& getAffineInvTfm() const
       {
-         _invAffine;
+         return _invAffine;
       }
 
       const Matrix& getPstInv() const
       {
-         _storage.getInvertedPst();
+         return _storage.getInvertedPst();
       }
 
       const Storage& getStorage() const
@@ -882,20 +882,52 @@ struct TestDeformable2D
    {
       typedef core::DeformableTransformationRadialBasis<>            RbfTransform;
       typedef core::DeformableTransformationDenseDisplacementField2d DdfTransform;
-      RbfTransform rbfTfm;
+
+      DdfTransform::Matrix pstRbf = core::identityMatrix<DdfTransform::Matrix>( 3 );
+      core::RbfGaussian rbf1( core::make_buffer1D<float>( 1, 2 ),
+                              core::make_buffer1D<float>( 20, 40 ),
+                              core::make_buffer1D<float>( 50, 100 ) );
+      core::RbfGaussian rbf2( core::make_buffer1D<float>( 2, 4 ),
+                              core::make_buffer1D<float>( 30, 70 ),
+                              core::make_buffer1D<float>( 20, 20 ) );
+      RbfTransform::Rbfs rbfs;
+      rbfs.push_back( rbf1 );
+      rbfs.push_back( rbf2 );
+      RbfTransform rbfTfm( pstRbf, rbfs );
 
       DdfTransform::Matrix pst = core::identityMatrix<DdfTransform::Matrix>( 3 );
-      DdfTransform ddfTfm( core::vector2ui( 15, 30 ), pst, core::vector2ui( 15, 30 ), rbfTfm );
+      pst( 0, 2 ) = 10;
+      pst( 1, 2 ) = 20;
+      DdfTransform ddf( core::vector2ui( 30, 60 ), pst, core::vector2ui( 15, 30 ), rbfTfm );
+
+      // query in source space in MM the RBF origin, we must find the exact value, the other RBF is too far to influence the result
+      DdfTransform::Vector d = ddf.getDisplacement( core::vector2f( 20, 40 ) );
+      TESTER_ASSERT( core::equal<float>( d[ 0 ], 1 ) );
+      TESTER_ASSERT( core::equal<float>( d[ 1 ], 2 ) );
+
+      // now check a point in between
+      core::vector2f p2( 25, 60 );
+      float v1 = rbf1.eval( p2 );
+      float v2 = rbf2.eval( p2 );
+      core::vector2f expectedDef( v1 * 1 + v2 * 2, v1 * 2 + v2 * 4 );
+      d = ddf.getDisplacement( p2 );
+
+      // the error is due to the interpolation...
+      TESTER_ASSERT( core::equal<float>( d[ 0 ], expectedDef[ 0 ], 1e-4 ) );
+      TESTER_ASSERT( core::equal<float>( d[ 1 ], expectedDef[ 1 ], 1e-4 ) );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestDeformable2D);
+/*
  TESTER_TEST(testResamplerNearest2Dvals);
  TESTER_TEST(testResamplerNearest2D);
  TESTER_TEST(testResamplerLinear2Dvals);
  TESTER_TEST(testResamplerLinear2D);
  TESTER_TEST(testResizeNn);
  TESTER_TEST(testResampleNn);
+*/
+ TESTER_TEST(testDdfResampling);
 TESTER_TEST_SUITE_END();
 #endif
