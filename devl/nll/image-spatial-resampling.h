@@ -105,6 +105,24 @@ namespace core
    {
       resample< T, Mapper, Alloc, InterpolatorLinear2D<T, Mapper, Alloc> >( target, tfm, resampled );
    }
+
+   /**
+    @brief Resample a 2D spatial image using a 2 DDF deformable transformation
+    @param target the target image to map from
+    @param ddf a transformation defined source->target applied to the target image (so internally the affine TFM will be inverted before applying it to the target)
+    @param source the image to map to
+    */
+   template <class T, class Mapper, class Allocator>
+   void resampleLinear( const ImageSpatial<T, Mapper, Allocator>& target, const DeformableTransformationDenseDisplacementField2d& ddf, ImageSpatial<T, Mapper, Allocator>& source )
+   {
+      typedef core::ImageSpatial<T, Mapper, Allocator>                                 ImageSpatial;
+      typedef core::InterpolatorNearestNeighbor2D<T, Mapper, Allocator>                Interpolator;
+      typedef core::ImageTransformationProcessorResampler<ImageSpatial, Interpolator>  Processor;
+
+      core::ImageTransformationMapperDdf ddfTransformationMapper;
+      Processor proc( target, source );
+      ddfTransformationMapper.run( proc, target, ddf, source );
+   }
 }
 }
 
