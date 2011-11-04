@@ -70,7 +70,7 @@ namespace imaging
 
        v must remain valid until the end of the calls to the interpolator
        */
-      InterpolatorNearestNeighbour( const VolumeType& v ) : _volume( v )
+      InterpolatorNearestNeighbour( const VolumeType& v ) : _volume( &v )
       {}
 
       /**
@@ -82,17 +82,13 @@ namespace imaging
          const int iy = core::floor( pos[ 1 ] + 0.5f );
          const int iz = core::floor( pos[ 2 ] + 0.5f );
 
-         if ( _volume.inside( ix, iy, iz ) )
-            return _volume( ix, iy, iz );
-         return _volume.getBackgroundValue();
+         if ( _volume->inside( ix, iy, iz ) )
+            return (*_volume)( ix, iy, iz );
+         return _volume->getBackgroundValue();
       }
 
    protected:
-      /// non copiable
-      InterpolatorNearestNeighbour& operator=( const InterpolatorNearestNeighbour& );
-
-   protected:
-      const VolumeType& _volume;
+      const VolumeType* _volume;
    };
 
 
@@ -138,7 +134,7 @@ namespace imaging
 
        v must remain valid until the end of the calls to the interpolator
        */
-      InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( v )
+      InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v )
       {
          iix = -1000;
          iiy = -1000;
@@ -156,10 +152,10 @@ namespace imaging
          const int iz = core::floor( pos[ 2 ] );
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         const typename Volume::value_type background = _volume.getBackgroundValue();
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume.size()[ 0 ] ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume.size()[ 1 ] ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume.size()[ 2 ] ) )
+         const typename Volume::value_type background = _volume->getBackgroundValue();
+         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
+              iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
+              iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
          {
             return background;
          }
@@ -179,7 +175,7 @@ namespace imaging
             iiz = iz;
 
             // case we are not using the cached values
-            typename VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
+            typename VolumeType::ConstDirectionalIterator it = _volume->getIterator( ix, iy, iz );
             typename VolumeType::ConstDirectionalIterator itz( it );
             itz.addz();
 
@@ -207,11 +203,7 @@ namespace imaging
       }
 
    protected:
-      /// non copiable
-      InterpolatorTriLinearDummy& operator=( const InterpolatorTriLinearDummy& );
-
-   protected:
-      const VolumeType& _volume;
+      const VolumeType* _volume;
 
       mutable value_type v000;
       mutable value_type v001, v010, v011, v100, v110, v101, v111;
@@ -274,10 +266,6 @@ namespace imaging
       }
 
    protected:
-      /// non copiable
-      InterpolatorTriLinear& operator=( const InterpolatorTriLinear& );
-
-   protected:
       InterpolatorTriLinearDummy<Volume>  _interpolator;
    };
 
@@ -321,7 +309,7 @@ namespace imaging
 
        v must remain valid until the end of the calls to the interpolator
        */
-      InterpolatorTriLinear( const VolumeType& v ) : _volume( v )
+      InterpolatorTriLinear( const VolumeType& v ) : _volume( &v )
       {
          iix = -1000;
          iiy = -1000;
@@ -348,10 +336,10 @@ namespace imaging
          const int iz = result[ 2 ];
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         const float background = _volume.getBackgroundValue();
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume.size()[ 0 ] ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume.size()[ 1 ] ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume.size()[ 2 ] ) )
+         const float background = _volume->getBackgroundValue();
+         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
+              iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
+              iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
          {
             return background;
          }
@@ -371,7 +359,7 @@ namespace imaging
             iiz = iz;
 
             // case we are not using the cached values
-            VolumeType::ConstDirectionalIterator it = _volume.getIterator( ix, iy, iz );
+            VolumeType::ConstDirectionalIterator it = _volume->getIterator( ix, iy, iz );
             VolumeType::ConstDirectionalIterator itz( it );
             itz.addz();
 
@@ -399,11 +387,7 @@ namespace imaging
       }
 
    protected:
-      /// non copiable
-      InterpolatorTriLinear& operator=( const InterpolatorTriLinear& );
-
-   protected:
-      const VolumeType& _volume;
+      const VolumeType* _volume;
 
       mutable value_type v000;
       mutable value_type v001, v010, v011, v100, v110, v101, v111;

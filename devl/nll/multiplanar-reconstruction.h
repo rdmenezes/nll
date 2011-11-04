@@ -143,14 +143,10 @@ namespace imaging
          {
             typedef InterpolatorTriLinearDummy< Volume > InterpolatorNoSSE;
             InterpolatorNoSSE interpolator( _volume );
-            interpolator.startInterpolation();
             _fill<InterpolatorNoSSE>( startx, starty, startz, dx, dy, interpolator, slice );
-            interpolator.endInterpolation();
          } else {
             Interpolator interpolator( _volume );
-            interpolator.startInterpolation();
             _fill<Interpolator>( startx, starty, startz, dx, dy, interpolator, slice );
-            interpolator.endInterpolation();
          }
       }
 
@@ -158,27 +154,33 @@ namespace imaging
       template <class Interpolator>
       void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
-         typename Slice::DirectionalIterator it = slice.getIterator( 0, 0 );
-         for ( ui32 y = 0; y < slice.size()[ 1 ]; ++y )
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int y = 0; y < (int)slice.size()[ 1 ]; ++y )
          {
             NLL_ALIGN_16 float pos[ 4 ] =
             {
-               startx, starty, startz
+               startx + dy[ 0 ] * y,
+               starty + dy[ 1 ] * y,
+               startz + dy[ 2 ] * y,
+               0
             };
 
-            it = slice.getIterator( 0, y );
+            Interpolator interpolatorCp = interpolator;
+            interpolatorCp.startInterpolation();
+
+            typename Slice::DirectionalIterator it = slice.getIterator( 0, y );
             for ( ui32 x = 0; x < slice.size()[ 0 ]; ++x )
             {
-               *it = interpolator( pos );
+               *it = interpolatorCp( pos );
                pos[ 0 ] += dx[ 0 ];
                pos[ 1 ] += dx[ 1 ];
                pos[ 2 ] += dx[ 2 ];
                it.addx();
             }
 
-            startx += dy[ 0 ];
-            starty += dy[ 1 ];
-            startz += dy[ 2 ];
+            interpolatorCp.endInterpolation();
          }
       }
 

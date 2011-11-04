@@ -188,19 +188,20 @@ callbacks.addShortcut( switchLut.run, "F2" );
 ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
 manipultors.add( pointer );
 
-Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+float factor = 1.5;
+Segment segment1( volumes, Vector3f( factor, 0.0, 0.0 ), Vector3f( 0.0, -factor, 0.0 ) );
 segment1.setTool( toolCentering );
 segment1.setTool( manipultors );
 segment1.setTool( annotations );
 //segment1.setInterpolator( typename Segment::Nearest() );
 
-Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+Segment segment2( volumes, Vector3f( 0.0, factor, 0.0 ), Vector3f( 0.0, 0.0, factor ) );
 segment2.setTool( toolCentering );
 segment2.setTool( manipultors );
 segment2.setTool( annotations );
 //segment2.setInterpolator( typename Segment::Nearest() );
 
-Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+Segment segment3( volumes, Vector3f( factor, 0.0, 0.0 ), Vector3f( 0.0, 0.0, factor ) );
 segment3.setTool( toolCentering );
 segment3.setTool( manipultors );
 segment3.setTool( annotations );
@@ -214,7 +215,7 @@ Layout l2( segment2 );
 Layout l3( segment3 );
 Layout l6( Console() );
 
-Layout layoutDisplay1( vertical, Layout(horizontal, l1, l2, 0.51), l3, 0.51 );
+Layout layoutDisplay1( horizontal, Layout(horizontal, l1, l2, 0.51), l3, 0.66 );
 Layout layout = Layout(vertical, l6, layoutDisplay1, 0.05);
 
 ImageHolder holder;
