@@ -1,6 +1,9 @@
 v0.16
 -added gaussian moment and canonical representation and associated operations
 -added matrix utilities
+-added RBF deformable transformation
+-added 2D DDF transformation & associated resampling
+-multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
 
 v0.15
 -added locally linear embedding for feature selection & data structure display
