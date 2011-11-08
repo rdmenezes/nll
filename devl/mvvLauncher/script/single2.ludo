@@ -3,7 +3,7 @@ import "siemens"
 import "mvvDicomTools"
 
 include "helper1"
-include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/mrRegistrationData"
+//include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/mrRegistrationData"
 /*
 string base = "C:/Users/Civo/Desktop/nll/Registration/data/mr/";
 
@@ -75,14 +75,12 @@ class VolumeSwitchReg
    DisplayRegionDetection detection = NULL;
    VolumeContainer volumes          = NULL;
    RegistrationMr registrator		   = NULL;
-   string[] list;
 
-   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, string[] volumeList, RegistrationMr reg )
+   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, RegistrationMr reg )
    {
       lut1 = l1;
       lut2 = l2;
       volumes = vs;
-      list = volumeList;
 	   registrator = reg;
 
       //displayed1 = readDicomVolume( list[ 6 ] );
@@ -91,7 +89,13 @@ class VolumeSwitchReg
    void next()
    {
       volumes.clear();
-      displayed2 = readDicomVolume( list[ index ] );
+
+      string base = "D:/devel/sandbox/Registration/data/mr/";
+      string volname = base + registrator.getTestMrVolume( index );
+      index = index + 1;
+
+      print( "----------------=" + volname );
+      displayed2 = readDicomVolume( volname );
       //displayed2 = readVolumeMF2( "c:/tmp/test.mf2" );
 
       
@@ -103,15 +107,12 @@ class VolumeSwitchReg
       //AffineRegistration tfm = affinePlanarRegistrationMrMr( displayed1, displayed2 );
 
 
-      //lut2.detectRange( displayed2, 0.8 );
-      //lut1.detectRange( displayed1, 0.8 );
+      lut2.detectRange( displayed2, 0.8 );
+      lut1.detectRange( displayed1, 0.8 );
 	  
       volumes.add( displayed2, lut2, 0.5, tfm );
       volumes.add( displayed1, lut1, 0.5 );
       //volumes.add( displayed2, lut2, 0.75 );
-      
-      print("pre-load2 volume:" + list[ index ] );
-      index = index + 1;
    }
 }
 
@@ -174,7 +175,7 @@ RegistrationMr registrator( "c:/tmp/templates.bin" );
 KeyboardCallback callbacks;
 
 
-VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrationVolumes, registrator );
+VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrator );
 callbacks.addShortcut( switch.next, "F3" );
 
 InsentisySwitchReg switchIntensity( switch );

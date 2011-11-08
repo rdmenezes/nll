@@ -194,8 +194,7 @@ namespace core
    {
       outSpacing = getSpacing3x3( m );
       outTranslation = vector2f( m( 0, 2 ), m( 1, 2 ) );
-      outAngle = getAngle( m( 0, 0 ), m( 0, 1 ) );
-         //static_cast<float>( std::acos( m( 0, 0 ) / outSpacing[ 0 ] ) );
+      outAngle = getAngle( m( 0, 0 ), m( 1, 0 ) );
    }
 }
 }
