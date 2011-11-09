@@ -363,6 +363,7 @@ namespace algorithm
           */
          double error( const Point& point ) const
          {
+            /*
             const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
             const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
 
@@ -374,6 +375,22 @@ namespace algorithm
             // we want a ratio of the error...
             return core::sqr( ( px - p2.position[ 0 ] ) / ( p2.position[ 0 ] ) ) +
                    core::sqr( ( py - p2.position[ 1 ] ) / ( p2.position[ 1 ] ) );
+                   */
+
+            const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
+            const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
+
+            // transform the point
+            const core::Matrix<double>& tfm = _model.tfm;
+            double px = tfm( 0, 2 ) + p1.position[ 0 ] * tfm( 0, 0 ) + p1.position[ 1 ] * tfm( 0, 1 );
+            double py = tfm( 1, 2 ) + p1.position[ 0 ] * tfm( 1, 0 ) + p1.position[ 1 ] * tfm( 1, 1 );
+
+            // we want a ratio of the error...
+            const double length = core::sqr( p1.position[ 0 ] - p2.position[ 0 ] ) +
+                                  core::sqr( p1.position[ 1 ] - p2.position[ 1 ] );
+            const double lengthTfm = core::sqr( px - p2.position[ 0 ] ) +
+                                     core::sqr( py - p2.position[ 1 ] );
+            return fabs( lengthTfm - length ) / length;
          }
 
          /**
