@@ -60,6 +60,9 @@ namespace algorithm
       typedef Vector                       Point;
       typedef std::vector<Point>           Points;
 
+      EstimatorTransformAffine2dDlt( double minimumScale = 0.8, double maximumScale = 1.2 ) : _minScale( minimumScale ), _maxScale( maximumScale )
+      {}
+
       /**
        @param scale if set to 0, the algorithm will determine the proper scaling, else it will use it
               as an additional constraint
@@ -105,7 +108,16 @@ namespace algorithm
             core::inverse( normalize2 );
 
             _result = OK;
-            return normalize2 * tfm * normalize1;
+
+            // check the constraints
+            Matrix matrix = normalize2 * tfm * normalize1;
+            core::vector2f sp = getSpacing3x3( matrix );
+            if ( sp[ 0 ] < _minScale || sp[ 0 ] > _maxScale ||
+                 sp[ 1 ] < _minScale || sp[ 1 ] > _maxScale )
+            {
+               matrix = core::identityMatrix<Matrix>( 3 );
+            }
+            return matrix;
          } catch (...)
          {
             _result = ERROR;
@@ -195,6 +207,8 @@ namespace algorithm
 
    private:
       Result    _result;
+      double    _minScale;
+      double    _maxScale;
    };
 }
 }

@@ -349,12 +349,12 @@ namespace algorithm
 
          static ui32 minimumNumberOfPointsForEstimation()
          {
-            return 3;
+            return 4;
          }
 
          static ui32 minimumNumberOfSubsets()
          {
-            return 150000;
+            return 200000;
          }
 
          struct Model
@@ -513,7 +513,7 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxSource = core::vector2i(),
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
-                      ui32 maxErrorInPixel = 12,
+                      ui32 maxErrorInPixel = 16,
                       ui32 minimumInliers = 20 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
@@ -543,7 +543,7 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxSource = core::vector2i(),
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
-                      ui32 maxErrorInPixel = 12,
+                      ui32 maxErrorInPixel = 16,
                       ui32 minimumInliers = 20 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );

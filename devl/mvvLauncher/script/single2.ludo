@@ -67,7 +67,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 0;
+   int index                        = 4;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
