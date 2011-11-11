@@ -113,6 +113,7 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
+         double                  bestError;
          Model                   bestModel;
          std::vector<ui32>       bestSubset;      // just save a reference, faster than copy the actual point...
 
@@ -139,6 +140,7 @@ namespace algorithm
             estimator.estimate( initialSubset );
 
 
+            double meanError = 0;
             for ( ui32 nn = 0; nn < nbPoint; ++nn )
             {
                // compute the subset of inliers
@@ -146,8 +148,10 @@ namespace algorithm
                if ( err < maxError )
                {
                   currentSubset.push_back( nn );
+                  meanError += err;
                }
             }
+            meanError /= currentSubset.size();
 
             #ifndef NLL_NOT_MULTITHREADED
             # pragma omp critical
@@ -158,6 +162,7 @@ namespace algorithm
                   // save the model as it agrees with more points
                   bestModel = estimator.getModel();
                   bestSubset = currentSubset;
+                  bestError = meanError;
                }
             }
          }
@@ -183,7 +188,9 @@ namespace algorithm
          {
             std::stringstream ss;
             ss << " best subset:" << std::endl <<
-                  "  inlier size=" << inliers.size() << std::endl;
+                  "  inlier size=" << inliers.size() << std::endl <<
+                  "  inlier error=" << bestError << std::endl;
+
             estimator.getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
