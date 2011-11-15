@@ -14,6 +14,8 @@ using namespace boost::filesystem;
 using namespace mvv::platform;
 using namespace mvv::parser;
 
+#define ORIENTATION_FOR_MATLAB_COMPABILITY
+
 namespace mvv
 {
    /**
@@ -261,8 +263,8 @@ namespace mvv
             error( "expecting VM 2!" );
             spacing = nll::core::vector2f( -1, -1 );
          } else {
-            spacing = nll::core::vector2f( nll::core::str2val<f32>( strs[ 0 ] ),
-                                           nll::core::str2val<f32>( strs[ 1 ] ) );
+            spacing = nll::core::vector2f( nll::core::str2val<f32>( strs[ 1 ] ),
+                                           nll::core::str2val<f32>( strs[ 0 ] ) );  // the spacing is defined (row, column)
          }
       }
 
@@ -337,7 +339,10 @@ namespace mvv
 
       float getRescaleIntercept()
       {
-         return nll::core::str2val<float>( getString( DCM_RescaleIntercept ) );
+         const char* str = getString( DCM_RescaleIntercept );
+         if ( strlen( str ) == 0 )
+            return 0;
+         return nll::core::str2val<float>( str );
       }
 
       void setRescaleIntercept( float s )
@@ -347,7 +352,10 @@ namespace mvv
 
       float getRescaleSlope()
       {
-         return nll::core::str2val<float>( getString( DCM_RescaleSlope ) );
+         const char* str = getString( DCM_RescaleSlope );
+         if ( strlen( str ) == 0 )
+            return 1;
+         return nll::core::str2val<float>( str );
       }
 
       void setRescaleSlope( float s )
@@ -746,14 +754,20 @@ namespace mvv
          for ( ui32 n = 0; n < 3; ++n )
          {
             pst( n, 0 ) = x[ n ]      * pixelSpacing[ 0 ];
-            pst( n, 1 ) = y[ n ]      * pixelSpacing[ 0 ];
+            pst( n, 1 ) = y[ n ]      * pixelSpacing[ 1 ];
             pst( n, 2 ) = normal[ n ] * zspacing;
          }
 
          // TODO: check which corner should be the origin?
+#ifdef ORIENTATION_FOR_MATLAB_COMPABILITY
          pst( 0, 3 ) = origin[ 0 ];
-         pst( 1, 3 ) = origin[ 1 ];
+         pst( 1, 3 ) = -origin[ 1 ];
+         pst( 2, 3 ) = -origin[ 2 ];
+#else
+         pst( 0, 3 ) = -origin[ 0 ];
+         pst( 1, 3 ) = -origin[ 1 ];
          pst( 2, 3 ) = origin[ 2 ];
+#endif
          pst( 3, 3 ) = 1;
 
          // fill the DICOM header in case we need it later for some algorithms...
@@ -766,7 +780,7 @@ namespace mvv
          std::auto_ptr<ui16> ptr( new ui16[ size[ 0 ] * size[ 1 ] ] );
          for ( ui32 z = 0; z < size[ 2 ]; ++z )
          {
-            DicomWrapper wrapper( *suids[ z ].getDataset(), true );
+            DicomWrapper wrapper( *suids[ z ].getDataset(), false );
             wrapper.getPixelData( ptr.get() ); // we really don't want this to be in the multithreaded loop as it is reading slices from disk
             float slope = 1.0f;
             float intercept = 0.0f;
