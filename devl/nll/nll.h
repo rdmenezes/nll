@@ -49,6 +49,10 @@
 #define NLL_API
 #endif
 
+#ifdef NDEBUG
+#define _SCL_SECURE 0   // disable bound checking!
+#endif
+
 // define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
 // #define NLL_DISABLE_SSE_SUPPORT
 
