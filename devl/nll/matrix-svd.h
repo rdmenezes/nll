@@ -187,7 +187,7 @@ namespace core
 				   for (k=l-1;k<n;k++) a(i, k) *= scale;
 			   }
 		   }
-         anorm=std::max((f64)anorm,(fabs(w[i])+fabs(rv1[i])));
+         anorm=std::max<type>(anorm,(fabs(w[i])+fabs(rv1[i])));
 	   }
 	   for (i=n-1;i>=0;i--) {
 		   if (i < n-1) {

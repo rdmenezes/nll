@@ -84,12 +84,12 @@ namespace core
 
 
    template <class type, class mapper, class allocator>
-	double det( const Matrix<type, mapper, allocator>& a )
+	type det( const Matrix<type, mapper, allocator>& a )
 	{
 		assert(a.sizex() == a.sizey()); //  "non square matrix"
 		Buffer1D<ui32> perm(a.sizex());
 		
-		double d;
+		type d;
       Matrix<type, mapper, allocator> cp;
       cp.clone( a );
 

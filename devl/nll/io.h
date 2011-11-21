@@ -134,6 +134,29 @@ namespace core
       }
    };
 
+   template <>
+   struct _write<std::string, false>
+   {
+      _write( const std::string& val, std::ostream& f )
+      {
+         ui32 size = static_cast<ui32>( val.size() );
+         write<ui32>( size, f );
+         f.write( val.c_str(), size );
+      }
+   };
+
+   template <>
+   struct _read<std::string, false>
+   {
+      _read( std::string& val, std::istream& i )
+      {
+         ui32 size = 0;
+         read<ui32>( size, i );
+         val = std::string( size, ' ' );
+         i.read( &val[ 0 ], size );
+      }
+   };
+
    /**
     @ingroup core
     @brief write data to a stream. If native type, write it using stream functions, else the type needs to provide write()
