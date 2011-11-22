@@ -104,7 +104,7 @@ namespace imaging
    public:
       /**
        @brief Map a resampled coordinate system to a target transformed coordinate system
-       @param target the <target> volume transformed by <tfm>
+       @param target the <target> volume transformed by inverse of <tfm>
        @param tfm a <target> to <resampled> affine transformation, the transformation is defined as source->target
        @param resampled the volume to map the coordinate from
 
