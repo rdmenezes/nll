@@ -121,8 +121,9 @@ namespace core
    template <class T, class IMapper, class Interpolator, class Allocator>
    void rescale( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
    {
-      f64 dxsize = static_cast<f64> ( img.sizex() - 0 ) / newSizeX;
-		f64 dysize = static_cast<f64> ( img.sizey() - 0 ) / newSizeY;
+      typedef typename Interpolator::value_type CoordType;
+      CoordType dxsize = static_cast<CoordType> ( img.sizex() - 0 ) / newSizeX;
+		CoordType dysize = static_cast<CoordType> ( img.sizey() - 0 ) / newSizeY;
       Image<T, IMapper, Allocator> i( newSizeX, newSizeY, img.getNbComponents(), false, alloc );
 
       Interpolator interpolator( img );
@@ -130,7 +131,7 @@ namespace core
          for ( ui32 x = 0; x < newSizeX; ++x )
             for ( ui32 c = 0; c < img.getNbComponents(); ++c )
             {
-               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize - 0.5, y * dysize - 0.5, c ) );
+               i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize - (CoordType)0.5, y * dysize - (CoordType)0.5, c ) );
             }
       img = i;
    }

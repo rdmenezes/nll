@@ -340,6 +340,7 @@
 
 /// @defgroup utility
 # include "mask-exporter.h"
+# include "statistics.h"
 
 /// @defgroup debug
 # include "debug-io.h"

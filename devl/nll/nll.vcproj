@@ -1257,6 +1257,10 @@
 				RelativePath=".\mask-exporter.h"
 				>
 			</File>
+			<File
+				RelativePath=".\statistics.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="imaging"
