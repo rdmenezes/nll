@@ -521,6 +521,14 @@ namespace core
    template <class Image, class Color>
    void bresham( Image& i, const vector2i a1, const vector2i a2, Color color )
    {
+      if ( a1[ 0 ] < 0 || a1[ 1 ] < 0 ||
+           a2[ 0 ] < 0 || a2[ 1 ] < 0 ||
+           a1[ 0 ] >= i.sizex() || a1[ 1 ] >=  i.sizey() ||
+           a2[ 0 ] >= i.sizex() || a2[ 1 ] >=  i.sizey() )
+      {
+         return;
+      }
+
       vector2i p1 = a1;
       vector2i p2 = a2;
       const bool steep = abs( p2[ 1 ] - p1[ 1 ] ) > abs( p2[ 0 ] - p1[ 0 ] );
