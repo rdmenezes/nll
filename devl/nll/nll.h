@@ -176,6 +176,7 @@
 # include "matrix-cholesky.h"
 # include "matrix-pseudo-inverse.h"
 # include "matrix-affine-transformation.h"
+# include "matrix-affine-decomposition.h"
 # include "math-distribution-multinormal.h"
 # include "type-traits.h"
 # include "type-traits-inherited.h"

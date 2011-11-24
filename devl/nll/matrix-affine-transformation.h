@@ -67,7 +67,8 @@ namespace core
    }
 
    /**
-    @brief Returns the roation contained in a 4x4 affine transformation
+    @brief Returns the rotation contained in a 4x4 affine transformation
+    @note the matrix must not contain shearing components to be valid
     */
    template <class type, class mapper, class allocator>
    Matrix<type, mapper, allocator> getRotation4x4( const Matrix<type, mapper, allocator>& m )
@@ -100,6 +101,7 @@ namespace core
                  | Rx Ry Rz Tz |
                  | 0  0  0  1  |
            Returns an homogeneous 4x4 matrix with only the R part
+    @note the matrix must not contain shearing components to be valid
     */
    template <class type, class mapper, class allocator>
    Matrix<type, mapper, allocator> getRotationAndSpacing( const Matrix<type, mapper, allocator>& m )

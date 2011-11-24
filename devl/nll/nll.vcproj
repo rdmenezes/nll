@@ -812,6 +812,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\matrix-affine-decomposition.h"
+				>
+			</File>
+			<File
 				RelativePath=".\matrix-affine-transformation.h"
 				>
 			</File>
