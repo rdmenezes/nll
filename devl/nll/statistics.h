@@ -36,11 +36,11 @@ namespace utility
    public:
       struct Attribut
       {
-         Attribut( const std::string& pdescriptor, ui32 pbinSize, bool pisError ) : descriptor( pdescriptor ), binSize( pbinSize ), isError( pisError )
+         Attribut( const std::string& pdescriptor, double pbinSize, bool pisError ) : descriptor( pdescriptor ), binSize( pbinSize ), isError( pisError )
          {}
 
          std::string    descriptor;    // parameter name
-         ui32           binSize;       // the size to be used in the histogram
+         double         binSize;       // the size to be used in the histogram
          bool           isError;       // indicates this this parameter is an error measure, used to select the worst examples
 
          bool operator<( const Attribut& p ) const
@@ -161,7 +161,7 @@ namespace utility
 
             // compute the histogram
             const double binSize = attribut->binSize;
-            const ui32 nbBins = (ui32)std::ceil( ( maxValue - minValue ) / binSize );
+            const ui32 nbBins = 1 + (ui32)std::ceil( ( maxValue - minValue ) / binSize );
             std::vector<ui32> histogram( nbBins );
             for ( size_t n = 0; n < values.size(); ++n )
             {

@@ -523,8 +523,8 @@ namespace core
    {
       if ( a1[ 0 ] < 0 || a1[ 1 ] < 0 ||
            a2[ 0 ] < 0 || a2[ 1 ] < 0 ||
-           a1[ 0 ] >= i.sizex() || a1[ 1 ] >=  i.sizey() ||
-           a2[ 0 ] >= i.sizex() || a2[ 1 ] >=  i.sizey() )
+           a1[ 0 ] >= (int)i.sizex() || a1[ 1 ] >= (int)i.sizey() ||
+           a2[ 0 ] >= (int)i.sizex() || a2[ 1 ] >= (int)i.sizey() )
       {
          return;
       }
