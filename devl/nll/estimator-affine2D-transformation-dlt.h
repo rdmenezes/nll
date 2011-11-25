@@ -60,7 +60,7 @@ namespace algorithm
       typedef Vector                       Point;
       typedef std::vector<Point>           Points;
 
-      EstimatorTransformAffine2dDlt( double minimumScale = 0.8, double maximumScale = 1.2 ) : _minScale( minimumScale ), _maxScale( maximumScale )
+      EstimatorTransformAffine2dDlt( double minimumScale = 0.5, double maximumScale = 1.6 ) : _minScale( minimumScale ), _maxScale( maximumScale )
       {}
 
       /**

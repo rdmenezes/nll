@@ -472,7 +472,7 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxSource = core::vector2i(),
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
-                      ui32 maxErrorInPixel = 12,
+                      ui32 maxErrorInPixel = 15,
                       ui32 minimumInliers = 20 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
@@ -502,7 +502,7 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxSource = core::vector2i(),
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
-                      ui32 maxErrorInPixel = 12,
+                      ui32 maxErrorInPixel = 15,
                       ui32 minimumInliers = 20 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
