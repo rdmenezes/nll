@@ -13,8 +13,43 @@ namespace nll
 {
 namespace core
 {
-   
+   template <class Graph>
+   class _ComputeGraphRoots : public GraphVisitorDfs<Graph>
+   {
+   public:
+      typedef typename Graph::VertexMapper<unsigned>              VertexMapper;
+      typedef typename Graph::VertexDescriptor                    VertexDescriptor;
+      typedef typename Graph::EdgeDescriptor                      EdgeDescriptor;
 
+      _ComputeGraphRoots( VertexMapper& emapper ) :  _emapper( emapper )
+      {}
+
+      virtual void start( Graph& )
+      {
+      }
+      
+      virtual void discoverVertex( const const_vertex_iterator&, const Graph&)
+      {
+      }
+
+      virtual void discoverEdge( const const_edge_iterator& edge, const Graph& )
+      {
+         ++_emapper[ (*edge).getDestination() ];
+         ++_emapper[ (*edge).getSource() ];
+      }
+
+      virtual void finishVertex( const const_vertex_iterator& , const Graph& )
+      {}
+
+      virtual void finish( const Graph& )
+      {
+         _roots.clear();
+      }
+
+   private:
+      VertexMapper                        _emapper;
+      std::vector<VertexDescriptor>       _roots;
+   };
    
 }
 }
@@ -226,7 +261,7 @@ public:
    template <class VertexType, class EdgeType>
    void testGraphImpl()
    {
-      typedef Graph<VertexType, EdgeType>   Graph1;
+      typedef GraphAdgencyList<VertexType, EdgeType>   Graph1;
       {
          Graph1 g;
          Graph1::VertexDescriptor v1 = g.addVertex();
@@ -428,7 +463,7 @@ public:
    template <class VertexType, class EdgeType>
    void testBfsImpl()
    {
-      typedef Graph<VertexType, EdgeType>   Graph1;
+      typedef GraphAdgencyList<VertexType, EdgeType>   Graph1;
 
       nll::core::Timer time;
       Graph1 g;

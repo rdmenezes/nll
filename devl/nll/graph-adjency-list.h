@@ -527,7 +527,7 @@ namespace core
     Order of the edges and vertices are not specified and depends on the container implementation.
     */
    template <class VertexStorageTypeT = MapperVector, class EdgeStorageTypeT = MapperVector>
-   class Graph
+   class GraphAdgencyList
    {
    public:
       typedef VertexStorageTypeT             VertexStorageType;
@@ -546,7 +546,7 @@ namespace core
        */
       class DataMapperInterface
       {
-         friend Graph;
+         friend GraphAdgencyList;
 
       public:
          virtual ~DataMapperInterface()
@@ -567,7 +567,7 @@ namespace core
    public:
       class Edge
       {
-         friend Graph;
+         friend GraphAdgencyList;
 
          Edge( Uid uid, const typename Vertexs::Descriptor& source, const typename Vertexs::Descriptor& destination ) : _uid( uid ), src( source ), dst( destination )
          {}
@@ -601,7 +601,7 @@ namespace core
 
       class Vertex
       {
-         friend Graph;
+         friend GraphAdgencyList;
 
          Vertex( Uid uid ) : _uid( uid )
          {}
@@ -646,7 +646,7 @@ namespace core
 
       class EdgeDescriptor
       {
-         friend Graph;
+         friend GraphAdgencyList;
 
       public:
          EdgeDescriptor( const VertexDescriptor& src, const EdgeDescriptorImpl& d ) : _src( src ), _desc( d )
@@ -698,8 +698,32 @@ namespace core
          typedef std::vector<T>     Storage;
 
       public:
-         DataMapper( const Graph& g, const T val = T() ) : _g( &g  ), _storage( g.size(), val ), _default( val )
+         typedef typename Storage::iterator        iterator;
+         typedef typename Storage::const_iterator  const_iterator;
+
+      public:
+         DataMapper( const GraphAdgencyList& g, const T val = T() ) : _g( &g  ), _storage( g.size(), val ), _default( val )
          {
+         }
+
+         iterator begin()
+         {
+            return _storage.begin();
+         }
+
+         const_iterator begin() const
+         {
+            return _storage.begin();
+         }
+
+         iterator end()
+         {
+            return _storage.end();
+         }
+
+         const_iterator end() const
+         {
+            return _storage.end();
          }
 
          virtual ~DataMapper()
@@ -732,9 +756,9 @@ namespace core
          }
 
       protected:
-         const Graph*   _g;
-         Storage        _storage;
-         T              _default;
+         const GraphAdgencyList*    _g;
+         Storage                    _storage;
+         T                          _default;
       };
 
       /**
@@ -746,7 +770,7 @@ namespace core
          typedef DataMapper<T, std::vector<T> > Base;
 
       public:
-         VertexMapper( const Graph& g, const T val = T() ) : DataMapper( g, val )
+         VertexMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, val )
          {
             _g->registerVertexObserver( this );
          }
@@ -813,7 +837,7 @@ namespace core
          typedef DataMapper<T, std::vector<T> > Base;
 
       public:
-         EdgeMapper( const Graph& g, const T val = T() ) : DataMapper( g, val )
+         EdgeMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, val )
          {
             _g->registerEdgeObserver( this );
          }
@@ -871,11 +895,11 @@ namespace core
          }
       };
 
-      Graph() : _uidVertexGenerator( 0 ), _uidEdgeGenerator( 0 )
+      GraphAdgencyList() : _uidVertexGenerator( 0 ), _uidEdgeGenerator( 0 )
       {
       }
 
-      ~Graph()
+      ~GraphAdgencyList()
       {
          // we need to unregister the observers so that it doesn't cause problems if the graph is destroyed first...
          for ( DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
@@ -1120,7 +1144,7 @@ namespace core
 
       EdgeDescriptor getDescriptor( const edge_iterator& it ) const
       {
-         Graph& g = const_cast<Graph&>( *this );
+         GraphAdgencyList& g = const_cast<GraphAdgencyList&>( *this );
          vertex_iterator itf = g._vertexs.getIterator( (*it).src );
          assert( itf != g.end() );  // doesn't contain it?
          const Edges& edges = (*itf)._edges; 

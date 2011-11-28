@@ -215,6 +215,7 @@
 # include "converter.h"
 # include "graph-adjency-list.h"
 # include "graph-visitor.h"
+# include "graph-traits.h"
 
 // must be included before...
 # include "metric.h"
