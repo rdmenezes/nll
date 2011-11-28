@@ -124,6 +124,8 @@
 # include <cstdlib>
 # include <memory>
 # include <map>
+# include <list>
+# include <stack>
 
 /**
  @defgroup core
@@ -211,6 +213,8 @@
 # include "sequence-converter.h"
 # include "allocator-aligned.h"
 # include "converter.h"
+# include "graph-adjency-list.h"
+# include "graph-visitor.h"
 
 // must be included before...
 # include "metric.h"

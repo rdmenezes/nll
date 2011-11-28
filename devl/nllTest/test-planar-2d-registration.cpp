@@ -296,7 +296,7 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestPlanarRegistration);
 //TESTER_TEST(testResampling);
-//TESTER_TEST(testRegistration);
+TESTER_TEST(testRegistration);
 TESTER_TEST(debugRegistration);
 TESTER_TEST_SUITE_END();
 #endif

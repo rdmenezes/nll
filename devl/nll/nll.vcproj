@@ -660,6 +660,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\graph-adjency-list.h"
+				>
+			</File>
+			<File
+				RelativePath=".\graph-visitor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\id-maker.h"
 				>
 			</File>
