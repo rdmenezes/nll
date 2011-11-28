@@ -63,6 +63,7 @@ namespace mvv
       nll::core::vector3f imageOrientationPatientX;  // 27 - [ 0020-0037 ] Image Orientation Patient, axis X
       nll::core::vector3f imageOrientationPatientY;  // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
       string sopInstanceUid;     // 29 - [ 0008, 0018 ] SOP Instance UID
+      string sopClassUid;        // 30 - [ 0008, 0016 ] SOP Class UID
 
       /**
        @brief Returns the index of the tag <group, element> defined in <mvvDicomTools.ludo>, -1 if it is not handled
@@ -101,7 +102,8 @@ namespace mvv
             { 0, 0 },
             { 0x20, 0x0037 },
             { 0x20, 0x0037 },
-            { 0x08, 0x0018 }
+            { 0x08, 0x0018 },
+            { 0x08, 0x0016 },
          };
 
          static ui32 nbTags = nll::core::getStaticBufferSize( tags );
@@ -224,6 +226,9 @@ namespace mvv
 
          (*val.vals)[ 28 ].type = RuntimeValue::STRING;
          (*val.vals)[ 28 ].stringval = src.sopInstanceUid;
+
+         (*val.vals)[ 29 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 29 ].stringval = src.sopClassUid;
       }
 
       static void exportTagsToDataset( DicomAttributs& val, DcmDataset& out )
@@ -256,6 +261,7 @@ namespace mvv
          wrapper.setFrameOfReference( val.frameOfReference.c_str() );
          wrapper.setImageOrientationPatient( val.imageOrientationPatientX, val.imageOrientationPatientY );
          wrapper.setSopInstanceUid( val.sopInstanceUid.c_str() );
+         wrapper.setSopClassUid( val.sopClassUid.c_str() );
       }
    };
 
@@ -296,6 +302,7 @@ namespace mvv
       attributs.extraSliceSpacing = -1;
       wrapper.getImageOrientationPatient( attributs.imageOrientationPatientX, attributs.imageOrientationPatientY );
       attributs.sopInstanceUid = wrapper.getSopInstanceUid();
+      attributs.sopClassUid = wrapper.getSopClassUid();
       return attributs;
    }
 
@@ -331,6 +338,7 @@ namespace mvv
       getVector3fValues(            (*val.vals)[ 26 ], attributs.imageOrientationPatientX );
       getVector3fValues(            (*val.vals)[ 27 ], attributs.imageOrientationPatientY );
       attributs.sopInstanceUid =    (*val.vals)[ 28 ].stringval;
+      attributs.sopClassUid =       (*val.vals)[ 29 ].stringval;
       return attributs;
    }
 

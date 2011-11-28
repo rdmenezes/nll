@@ -174,6 +174,16 @@ namespace mvv
          setString( DCM_SOPInstanceUID, s );
       }
 
+      void setSopClassUid( const char* s )
+      {
+         setString( DCM_SOPClassUID, s );
+      }
+
+      const char* getSopClassUid()
+      {
+         return getString( DCM_SOPClassUID );
+      }
+
       const char* getSeriesDate()
       {
          return getString( DCM_SeriesDate );

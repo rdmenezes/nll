@@ -98,8 +98,11 @@ class DicomAttributs
    // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
    Vector3f imageOrientationPatientY;
 
-   // 29 - [ 0008-0018 ] SOP Instance IUD
+   // 29 - [ 0008-0018 ] SOP Instance UID
    string sopInstanceUid;
+
+   // 30 - [ 0008-0016 ] SOP Class UID
+   string sopClassUid;
    
    DicomAttributs()
    {
