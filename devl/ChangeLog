@@ -4,6 +4,8 @@ v0.16
 -added RBF deformable transformation
 -added 2D DDF transformation & associated resampling
 -multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
+-added utilities to compose/decompose affine matrices in rotation, scale, sheat components
+-added graph classes and basic algorithms
 
 v0.15
 -added locally linear embedding for feature selection & data structure display

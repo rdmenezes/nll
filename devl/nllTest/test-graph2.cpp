@@ -18,13 +18,15 @@ namespace core
    {
    public:
       typedef typename Graph::VertexMapper<unsigned>              VertexMapper;
+      typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperIts;
       typedef typename Graph::VertexDescriptor                    VertexDescriptor;
       typedef typename Graph::EdgeDescriptor                      EdgeDescriptor;
 
-      _ComputeGraphRoots( VertexMapper& emapper ) :  _emapper( emapper )
+      _ComputeGraphRoots( VertexMapper& emapper,
+                          VertexMapperIts& itmapper ) :  _emapper( emapper ), _itmapper( itmapper )
       {}
 
-      virtual void start( Graph& )
+      virtual void start( const Graph& )
       {
       }
       
@@ -32,10 +34,13 @@ namespace core
       {
       }
 
-      virtual void discoverEdge( const const_edge_iterator& edge, const Graph& )
+      virtual void discoverEdge( const const_edge_iterator& edge, const Graph& g )
       {
-         ++_emapper[ (*edge).getDestination() ];
-         ++_emapper[ (*edge).getSource() ];
+         unsigned& valDst = _emapper[ (*edge).getDestination() ];
+         if ( ++valDst == 1 )
+         {
+            _itmapper[ (*edge).getDestination() ] = g.getIterator( (*edge).getDestination() );
+         }
       }
 
       virtual void finishVertex( const const_vertex_iterator& , const Graph& )
@@ -46,11 +51,39 @@ namespace core
          _roots.clear();
       }
 
+      std::vector<const_vertex_iterator> getRoots() const
+      {
+         std::vector<const_vertex_iterator> roots;
+         for ( VertexMapper::const_iterator it = _emapper.begin(); it != _emapper.end(); ++it )
+         {
+            if ( *it == 0 )
+            {
+               roots.push_back( _itmapper[ it - _emapper.begin() ] );
+            }
+         }
+         return roots;
+      }
+
    private:
       VertexMapper                        _emapper;
-      std::vector<VertexDescriptor>       _roots;
+      VertexMapperIts                     _itmapper;
+      std::vector<const_vertex_iterator>  _roots;
    };
    
+
+   template <class Graph>
+   std::vector< typename GraphVisitorDfs<Graph>::const_vertex_iterator >
+   getGraphRoots( const Graph& g )
+   {
+      typedef _ComputeGraphRoots<Graph>   RootFinder;
+
+      RootFinder::VertexMapper vmapper( g );
+      RootFinder::VertexMapperIts itsmapper( g, g.end() );
+
+      RootFinder rootFinder( vmapper, itsmapper );
+      rootFinder.visit( g );
+      return rootFinder.getRoots();
+   }
 }
 }
 
@@ -533,6 +566,38 @@ public:
    {
       testBfsImpl<MapperSet, MapperSet>();
    }
+
+   void computeRoots()
+   {
+      typedef GraphAdgencyList<MapperVector, MapperVector>   Graph1;
+
+      nll::core::Timer time;
+      Graph1 g;
+
+      Graph1::VertexDescriptor n1 = g.addVertex();
+      Graph1::VertexDescriptor n2 = g.addVertex();
+      Graph1::VertexDescriptor n3 = g.addVertex();
+      Graph1::VertexDescriptor n4 = g.addVertex();
+      Graph1::VertexDescriptor n5 = g.addVertex();
+      Graph1::VertexDescriptor n6 = g.addVertex();
+
+      Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
+      Graph1::EdgeDescriptor e2 = g.addEdge( n2, n3 );
+      Graph1::EdgeDescriptor e3 = g.addEdge( n2, n4 );
+      Graph1::EdgeDescriptor e4 = g.addEdge( n4, n5 );
+      Graph1::EdgeDescriptor e5 = g.addEdge( n6, n4 );
+      Graph1::EdgeDescriptor e7 = g.addEdge( n1, n4 );
+
+      /*
+      typedef _ComputeGraphRoots<Graph1> Visitor;
+      Visitor::VertexMapper mv( g );
+      Visitor::VertexMapperIts mits( g, g.end() );
+
+      Visitor visitor( mv, mits );
+      visitor.visit( g );*/
+
+      getGraphRoots( g );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -545,5 +610,6 @@ TESTER_TEST( testGraphSV );
 TESTER_TEST( testGraphVS );
 TESTER_TEST( testBfsVV );
 TESTER_TEST( testBfsSS );
+TESTER_TEST( computeRoots );
 TESTER_TEST_SUITE_END();
 #endif

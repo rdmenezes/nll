@@ -734,6 +734,21 @@ namespace core
             }
          }
 
+         size_t size() const
+         {
+            return _storage.size();
+         }
+
+         const T& operator[]( size_t uid ) const
+         {
+            return _storage[ uid ];
+         }
+
+         T& operator[]( size_t uid )
+         {
+            return _storage[ uid ];
+         }
+
       protected:
          // means the graph has been destroyed before the data mapper...
          virtual void setUnobserved()

@@ -368,6 +368,8 @@ int main( int argc, char** argv )
    */
    try
    { 
+      std::cout << "current working directory=" << mvv::getWorkingDirectory() << std::endl;
+
       int sizex = 1280;
       int sizey = 1024;
 
@@ -405,6 +407,15 @@ int main( int argc, char** argv )
       {
          nowindow = true;
       }
+      // replace all windows based path to unix based ones
+      std::replace( font.begin(), font.end(), '\\', '/' );
+      std::replace( mainScript.begin(), mainScript.end(), '\\', '/' );
+      for ( size_t n = 0; n < argvParam.size(); ++n )
+      {
+         std::replace( argvParam[n].begin(), argvParam[n].end(), '\\', '/' );
+      }
+
+      
       mainScript = "include \"" + mainScript + "\""; // we will include the script to import it!
 
       // init

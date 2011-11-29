@@ -2593,6 +2593,36 @@ struct TestEval
          TESTER_ASSERT( i.type == RuntimeValue::CMP_FLOAT );
          TESTER_ASSERT( i.floatval == -1 );
       }
+      
+      /*
+      // NOT OF CORRECT TYPE/Pointing wrong value?
+      class VolumeInfo
+   {
+	Vector3f position = Vector3f( 0.0, 0.0, 0.0 );
+	Vector3f spacing = Vector3f( 1.0, 1.0, 1.0 );
+	string frameOfReference = "FoR_1.0";
+	int nbSlices = 6;
+	string seriesInstanceUid = "1.2.3.4";
+	string sopClassUid = "1.2.840.10008.5.1.4.1.1.2";
+	string sopInstanceUid = "1.3.12.2.1107.5.1.4.41102.4.0";
+	string studyInstanceUid = "1.3.12.2.1107.5.1.4.41102.4.1";
+	string modality = "CT";
+	string seriesDate = "20050729";
+	string seriesTime = "155221.000000";
+   string acquisitionDate = seriesDate;
+	string acquisitionTime = "155221.000000";
+	
+	VolumeInfo()
+	{
+		if ( modality == "CT" )
+		{
+			sopClassUid = "1.2.840.10008.5.1.4.1.1.2";
+		} else {
+		    sopClassUid = "1.2.840.10008.5.1.4.1.1.128";
+		}
+	}
+}
+      */
    }
 };
 

@@ -379,7 +379,12 @@ namespace parser
                //assert( unref(_env.stack[ index ]).type == RuntimeValue::TYPE ); // in case member function pointer, we need to hold a function pointer & type ref so it can be both
 
                // if class member, the result must be in the class itself
-               RuntimeValue& src = (*unref(_env.stack[ index ]).vals)[ v->getRuntimeIndex() ];
+               ensure( unref(_env.stack[ index ]).type == RuntimeValue::TYPE ||
+                       unref(_env.stack[ index ]).type == RuntimeValue::FUN_PTR ||
+                       unref(_env.stack[ index ]).type == RuntimeValue::PTR , "Compiler problem: not a type" );
+               RuntimeValues& values = (*unref(_env.stack[ index ]).vals);
+               ensure( v->getRuntimeIndex() < values.size(), "Compiler problem: out of bound index!!!" );
+               RuntimeValue& src = values[ v->getRuntimeIndex() ];
                _createRef( _env.resultRegister, src, src.type == RuntimeValue::TYPE );
             } else {
                // else, just compute its position on the stack

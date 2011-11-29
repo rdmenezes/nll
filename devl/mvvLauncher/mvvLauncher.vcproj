@@ -584,6 +584,10 @@
 				RelativePath=".\script\single2.ludo"
 				>
 			</File>
+			<File
+				RelativePath=".\script\single3.ludo"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"

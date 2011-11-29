@@ -167,15 +167,15 @@ namespace core
                      its.pop_back();
                   } else {
                      // explore another vertex
-                     const_vertex_iterator itTo = g.getIterator( begin->getDestination() );
+                     const_vertex_iterator itTo = g.getIterator( (*begin).getDestination() );
                      discoverEdge( begin, g );
                      if ( vertexDiscovered[ itTo ] == 0 )
                      {
                         discoverVertex( itTo, g );
                         vertexDiscovered[ itTo ] = 1;
-                        if ( itTo.size() )
+                        if ( (*itTo).size() )
                         {
-                           eits.push_back( std::make_pair( itTo.begin(), itTo.end() ) );
+                           eits.push_back( std::make_pair( (*itTo).begin(), (*itTo).end() ) );
                            its.push_back( itTo );
                         } else {
                            finishVertex( itTo, g );
