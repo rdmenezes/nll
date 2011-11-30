@@ -7,39 +7,52 @@
 using namespace nll;
 using namespace nll::core;
 
-#define NLL_GRAPH_SECURE_CHECKS
 
 namespace nll
 {
 namespace core
 {
-   template <class Graph>
-   class _ComputeGraphRoots : public GraphVisitorDfs<Graph>
+	// TODO: use GraphVisitorBfs with a priority queue!
+   template <class Graph, class MapperValueType>
+   class Dijkstra : public GraphVisitorBfs<Graph>
    {
    public:
-      typedef typename Graph::VertexMapper<unsigned>              VertexMapper;
-      typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperIts;
-      typedef typename Graph::VertexDescriptor                    VertexDescriptor;
-      typedef typename Graph::EdgeDescriptor                      EdgeDescriptor;
+      typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperBacktrack;
+      typedef typename Graph::VertexMapper<MapperValueType>       VertexMapper;
+      typedef typename Graph::EdgeMapper<MapperValueType>         EdgeMapper;
 
-      _ComputeGraphRoots( VertexMapper& emapper,
-                          VertexMapperIts& itmapper ) :  _emapper( emapper ), _itmapper( itmapper )
-      {}
-
-      virtual void start( const Graph& )
+      Dijkstra( EdgeMapper& distanceMap,
+                const const_vertex_iterator& begin ) :  _distanceMap( distanceMap ), _begin( begin ), _current( begin ), _g( 0 )
       {
       }
-      
-      virtual void discoverVertex( const const_vertex_iterator&, const Graph&)
+
+      virtual void start( const Graph& g )
       {
+         _vertexDistance = std::auto_ptr<VertexMapper>( new VertexMapper( g, std::numeric_limits<MapperValueType>::max() ) );
+         (*_vertexDistance)[ _begin ] = 0;
+
+         const_vertex_iterator end( g.end() );
+         _vertexMapperBacktrack = std::auto_ptr<VertexMapperBacktrack>( new VertexMapperBacktrack( g, end ) );
+
+         _g = &g;
+      }
+
+      virtual void newSourceVertex( const const_vertex_iterator& it, const Graph& )
+      {
+         _currentVertexVal = (*_vertexDistance)[ it ];
+         _current = it;
       }
 
       virtual void discoverEdge( const const_edge_iterator& edge, const Graph& g )
       {
-         unsigned& valDst = _emapper[ (*edge).getDestination() ];
-         if ( ++valDst == 1 )
+         const_vertex_iterator toNode = g.getIterator( (*edge).getDestination() );
+         const MapperValueType arcDist = _distanceMap[ edge ];
+         ensure( arcDist >= 0, "Dijkstra works only for arc >= 0" );
+         MapperValueType& toNodeVal = (*_vertexDistance)[ toNode ];
+         if ( toNodeVal > ( arcDist + _currentVertexVal ) )
          {
-            _itmapper[ (*edge).getDestination() ] = g.getIterator( (*edge).getDestination() );
+            toNodeVal = arcDist + _currentVertexVal;
+            (*_vertexMapperBacktrack)[ toNode ] = _current;
          }
       }
 
@@ -48,42 +61,35 @@ namespace core
 
       virtual void finish( const Graph& )
       {
-         _roots.clear();
+         //_vertexDistance = std::auto_ptr<VertexMapper>();   // clear the mapper
       }
 
-      std::vector<const_vertex_iterator> getRoots() const
+      std::vector<const_vertex_iterator> getPathTo( const const_vertex_iterator& end )
       {
-         std::vector<const_vertex_iterator> roots;
-         for ( VertexMapper::const_iterator it = _emapper.begin(); it != _emapper.end(); ++it )
+         std::vector<const_vertex_iterator> path;
+         if ( (*_vertexMapperBacktrack)[ end ] == _g->end() )
+            return std::vector<const_vertex_iterator>();
+         const_vertex_iterator cur = end;
+         path.push_back( cur );
+         while ( cur != _begin )
          {
-            if ( *it == 0 )
-            {
-               roots.push_back( _itmapper[ it - _emapper.begin() ] );
-            }
+            cur = (*_vertexMapperBacktrack)[ cur ];
+            path.push_back( cur );
          }
-         return roots;
+
+         return std::vector<const_vertex_iterator>( path.rbegin(), path.rend() );
       }
 
    private:
-      VertexMapper                        _emapper;
-      VertexMapperIts                     _itmapper;
-      std::vector<const_vertex_iterator>  _roots;
-   };
-   
+      EdgeMapper                             _distanceMap;
+      std::auto_ptr<VertexMapper>            _vertexDistance;
+      const_vertex_iterator                  _begin;
 
-   template <class Graph>
-   std::vector< typename GraphVisitorDfs<Graph>::const_vertex_iterator >
-   getGraphRoots( const Graph& g )
-   {
-      typedef _ComputeGraphRoots<Graph>   RootFinder;
-
-      RootFinder::VertexMapper vmapper( g );
-      RootFinder::VertexMapperIts itsmapper( g, g.end() );
-
-      RootFinder rootFinder( vmapper, itsmapper );
-      rootFinder.visit( g );
-      return rootFinder.getRoots();
-   }
+      MapperValueType                        _currentVertexVal;
+      const_vertex_iterator                  _current;
+      std::auto_ptr<VertexMapperBacktrack>   _vertexMapperBacktrack;
+      const Graph*                           _g;
+   };  
 }
 }
 
@@ -588,20 +594,57 @@ public:
       Graph1::EdgeDescriptor e5 = g.addEdge( n6, n4 );
       Graph1::EdgeDescriptor e7 = g.addEdge( n1, n4 );
 
-      /*
-      typedef _ComputeGraphRoots<Graph1> Visitor;
-      Visitor::VertexMapper mv( g );
-      Visitor::VertexMapperIts mits( g, g.end() );
-
-      Visitor visitor( mv, mits );
-      visitor.visit( g );*/
-
-      getGraphRoots( g );
+      std::vector<Graph1::const_vertex_iterator> roots = getGraphRoots( g );
+      TESTER_ASSERT( roots.size() == 2 );
+      TESTER_ASSERT( Graph1::const_vertex_iterator( g.getIterator( n1 ) ) == roots[ 0 ] );
+      TESTER_ASSERT( Graph1::const_vertex_iterator( g.getIterator( n6 ) ) == roots[ 1 ] );
    }
+
+   void testDijkstra()
+   {
+      typedef GraphAdgencyList<MapperVector, MapperVector>   Graph1;
+
+      nll::core::Timer time;
+      Graph1 g;
+
+      Graph1::VertexDescriptor n1 = g.addVertex();
+      Graph1::VertexDescriptor n2 = g.addVertex();
+      Graph1::VertexDescriptor n3 = g.addVertex();
+      Graph1::VertexDescriptor n4 = g.addVertex();
+      Graph1::VertexDescriptor n5 = g.addVertex();
+      Graph1::VertexDescriptor n6 = g.addVertex();
+
+      Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
+      Graph1::EdgeDescriptor e2 = g.addEdge( n1, n3 );
+      Graph1::EdgeDescriptor e3 = g.addEdge( n1, n6 );
+      Graph1::EdgeDescriptor e4 = g.addEdge( n2, n3 );
+      Graph1::EdgeDescriptor e5 = g.addEdge( n2, n4 );
+      Graph1::EdgeDescriptor e6 = g.addEdge( n3, n4 );
+      Graph1::EdgeDescriptor e7 = g.addEdge( n4, n5 );
+      Graph1::EdgeDescriptor e8 = g.addEdge( n6, n5 );
+      Graph1::EdgeDescriptor e9 = g.addEdge( n3, n6 );
+
+      Graph1::EdgeMapper<double> emapper( g );
+      emapper[ e1 ] = 7;
+      emapper[ e2 ] = 9;
+      emapper[ e3 ] = 14;
+      emapper[ e4 ] = 10;
+      emapper[ e5 ] = 15;
+      emapper[ e6 ] = 11;
+      emapper[ e7 ] = 6;
+      emapper[ e8 ] = 9;
+      emapper[ e9 ] = 2;
+
+      Dijkstra<Graph1, double> dijkstra( emapper, g.getIterator(n1) );
+      dijkstra.visit( g );
+      dijkstra.getPathTo( g.getIterator(n6) );
+   }
+
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGraph2);
+/*
 TESTER_TEST( testVector );
 TESTER_TEST( testSet );
 TESTER_TEST( testGraphVV );
@@ -610,6 +653,7 @@ TESTER_TEST( testGraphSV );
 TESTER_TEST( testGraphVS );
 TESTER_TEST( testBfsVV );
 TESTER_TEST( testBfsSS );
-TESTER_TEST( computeRoots );
+TESTER_TEST( computeRoots );*/
+TESTER_TEST( testDijkstra );
 TESTER_TEST_SUITE_END();
 #endif

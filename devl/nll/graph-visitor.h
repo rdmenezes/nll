@@ -47,6 +47,15 @@ namespace core
       typedef typename Graph::const_vertex_iterator   const_vertex_iterator;
       typedef typename Graph::const_edge_iterator     const_edge_iterator;
 
+      GraphVisitorBfs() : _mustAbort( false )
+      {}
+
+      // signal the algorithm to stop before the next vertex visited
+      bool abort()
+      {
+         _mustAbort = true;
+      }
+
       // run before the algorithm is started
       virtual void start( const Graph& ){}
 
@@ -55,6 +64,9 @@ namespace core
 
       // called when the vertex has been discovered for the first time
       virtual void discoverVertex( const const_vertex_iterator& , const Graph& ){}
+
+      // called when there is a new "source" vertex (e.g., when all edges have been discovered, this method will be called on the next vertex to handle)
+      virtual void newSourceVertex( const const_vertex_iterator& , const Graph& ){}
 
       // called when all the edges have been discovered
       virtual void finishVertex( const const_vertex_iterator& , const Graph& ){}
@@ -71,7 +83,8 @@ namespace core
          {
             for ( const_vertex_iterator vertex = g.begin(); vertex != g.end(); ++vertex )
             {
-
+               if ( _mustAbort )
+                  return;
                if ( vertexDiscovered[ vertex ] )
                   continue;   // we already checked this vertex
 
@@ -86,6 +99,7 @@ namespace core
                while ( its.size() )
                {
                   const_vertex_iterator it = *its.rbegin();
+                  newSourceVertex( it, g );
                   its.pop_back();
                   
                   for ( const_edge_iterator ite = (*it).begin(); ite != (*it).end(); ++ite )
@@ -108,6 +122,9 @@ namespace core
          }
          finish( g );
       }
+
+   protected:
+      bool _mustAbort;
    };
 
    template <class GraphT>
@@ -120,6 +137,15 @@ namespace core
 
       typedef typename Graph::const_vertex_iterator   const_vertex_iterator;
       typedef typename Graph::const_edge_iterator     const_edge_iterator;
+
+      GraphVisitorDfs() : _mustAbort( false )
+      {}
+
+      // signal the algorithm to stop before the next vertex is visited
+      bool abort()
+      {
+         _mustAbort = true;
+      }
 
       // run before the algorithm is started
       virtual void start( const Graph& ){}
@@ -147,6 +173,8 @@ namespace core
          {
             for ( const_vertex_iterator vertex = g.begin(); vertex != g.end(); ++vertex )
             {
+               if ( _mustAbort )
+                  return;
                if ( vertexDiscovered[ vertex ] == 1 )
                   continue;   // we already checked this vertex
 
@@ -188,6 +216,9 @@ namespace core
          }
          finish( g );
       }
+
+   protected:
+      bool  _mustAbort;
    };
 }
 }

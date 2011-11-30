@@ -516,7 +516,7 @@ namespace core
     <CAUTION>
     When an iterator is invalidated, the corresponding descriptor is also invalidated, except
     for the methods annotated with <Safe> which will "find" the corresponding element. Indeed,
-    for some mapper type, some indexing will be done but won't be valid anymore after iterator
+    for some mapper type, some indexing will be done (e.g., <VertexType>) but won't be valid anymore after iterator
     invalidation and must be recalculated.
 
     The graph defines only the structure, the data are stored externally. Each time the graph is updated,
@@ -702,7 +702,7 @@ namespace core
          typedef typename Storage::const_iterator  const_iterator;
 
       public:
-         DataMapper( const GraphAdgencyList& g, const T val = T() ) : _g( &g  ), _storage( g.size(), val ), _default( val )
+         DataMapper( const GraphAdgencyList& g, size_t size, const T val = T() ) : _g( &g  ), _storage( size, val ), _default( val )
          {
          }
 
@@ -785,7 +785,9 @@ namespace core
          typedef DataMapper<T, std::vector<T> > Base;
 
       public:
-         VertexMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, val )
+         using Base::operator[];
+
+         VertexMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, g.size(), val )
          {
             _g->registerVertexObserver( this );
          }
@@ -852,7 +854,9 @@ namespace core
          typedef DataMapper<T, std::vector<T> > Base;
 
       public:
-         EdgeMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, val )
+         using Base::operator[];
+
+         EdgeMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, g.getNbEdges(), val )
          {
             _g->registerEdgeObserver( this );
          }
@@ -1050,8 +1054,8 @@ namespace core
          }
 
          // finally add a new edge
-         vertex_iterator it = _vertexs.getIterator( src );
-         return EdgeDescriptor( src, (*it)._edges.insert( Edge( uid, src, dst ) ) );
+         vertex_iterator ita = _vertexs.getIterator( src );
+         return EdgeDescriptor( src, (*ita)._edges.insert( Edge( uid, src, dst ) ) );
       }
 
       //
@@ -1081,6 +1085,17 @@ namespace core
       size_t size() const
       {
          return _vertexs.size();
+      }
+
+      size_t getNbEdges() const
+      {
+         size_t nb = 0;
+         for ( const_vertex_iterator it = begin(); it != end(); ++it )
+         {
+            nb += (*it).size();
+         }
+
+         return nb;
       }
 
       //
