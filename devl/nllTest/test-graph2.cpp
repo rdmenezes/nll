@@ -345,7 +345,10 @@ public:
          TESTER_ASSERT( intmap2[ v2b ] == -2 );
          TESTER_ASSERT( intmap2[ v3b ] == -2 );
          std::cout << "DATA=" << intmap2[ v1b ] << std::endl;
-
+		 /*
+		 Graph1::vertex_iterator vvv = g.begin();
+		 Graph1::Vertex& vertex = *vvv;
+		 Graph1::edge_iterator vite = vertex.begin();*/
          Graph1::edge_iterator ie1n = g.erase( (*g.begin()).begin() );
          TESTER_ASSERT( (*ie1n).getUid() == 1 );
 
@@ -397,8 +400,8 @@ public:
 
          Graph1::vertex_iterator iv1 = g3.begin();
          Graph1::vertex_iterator iv1c = iv1;
-         Graph1::edge_iterator ie1 = (*iv1).begin();
-         Graph1::edge_iterator ie1c = ie1;
+         Graph1::const_edge_iterator ie1 = (*iv1).begin();
+         Graph1::const_edge_iterator ie1c = ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 1 );
          ++ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 2 );
@@ -644,7 +647,7 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGraph2);
-/*
+
 TESTER_TEST( testVector );
 TESTER_TEST( testSet );
 TESTER_TEST( testGraphVV );
@@ -653,7 +656,7 @@ TESTER_TEST( testGraphSV );
 TESTER_TEST( testGraphVS );
 TESTER_TEST( testBfsVV );
 TESTER_TEST( testBfsSS );
-TESTER_TEST( computeRoots );*/
+TESTER_TEST( computeRoots );
 TESTER_TEST( testDijkstra );
 TESTER_TEST_SUITE_END();
 #endif

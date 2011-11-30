@@ -193,69 +193,6 @@ public:
       TESTER_ASSERT( !box1.contains( nll::core::vector3f( 5, 5, 50 ) ) );
       TESTER_ASSERT( !box1.contains( nll::core::vector3f( 50, 5, 5 ) ) );
    }
-
-   void testGeometryReg1()
-   {
-      {
-         // simple translation
-         nll::core::Matrix<float> pst = nll::core::identityMatrix<nll::core::Matrix<float> >( 4 );
-         pst( 0, 3 ) = 1;
-         pst( 1, 3 ) = 2;
-         pst( 2, 3 ) = 3;
-         nll::core::Matrix<float> tfm = nll::core::identityMatrix<nll::core::Matrix<float> >( 4 );
-         tfm( 0, 3 ) = 10;
-         tfm( 1, 3 ) = 20;
-         tfm( 2, 3 ) = 30;
-
-         VolumeGeometry geom( pst, tfm );
-         nll::core::vector3f c1 = geom.indexToPosition( nll::core::vector3f( 0, 0, 0 ) );
-         TESTER_ASSERT( c1 == nll::core::vector3f( 11, 22, 33 ) );
-      }
-
-      {
-         // PST T R
-         nll::core::Matrix<float> pst;
-         nll::core::matrix4x4RotationZ( pst, (float)nll::core::PI / 2 );
-         pst( 0, 3 ) = 1;
-
-         VolumeGeometry geom( pst );
-         nll::core::vector3f c1 = geom.indexToPosition( nll::core::vector3f( 0, 0, 0 ) );
-         nll::core::vector3f c2 = geom.indexToPosition( nll::core::vector3f( 1, 0, 0 ) );
-         TESTER_ASSERT( c1 == nll::core::vector3f( 1, 0, 0 ) );
-         TESTER_ASSERT( c2 == nll::core::vector3f( 1, 1, 0 ) );
-      }
-
-      {
-         // PST T R
-         nll::core::Matrix<float> pst;
-         nll::core::matrix4x4RotationZ( pst, (float)nll::core::PI / 2 );
-         pst( 0, 3 ) = 1;
-
-         nll::core::Matrix<float> tfm = nll::core::identityMatrix<nll::core::Matrix<float> >( 4 );
-         tfm( 0, 3 ) = 10;
-
-         VolumeGeometry geom( pst, tfm );
-         nll::core::vector3f c1 = geom.indexToPosition( nll::core::vector3f( 0, 0, 0 ) );
-         nll::core::vector3f c2 = geom.indexToPosition( nll::core::vector3f( 1, 0, 0 ) );
-         TESTER_ASSERT( c1 == nll::core::vector3f( 11, 0, 0 ) );
-         TESTER_ASSERT( c2 == nll::core::vector3f( 11, 1, 0 ) );
-      }
-
-      {
-         // PST ID TFM R T
-         nll::core::Matrix<float> pst = nll::core::identityMatrix<nll::core::Matrix<float> >( 4 );
-
-         nll::core::Matrix<float> tfm;
-         nll::core::matrix4x4RotationZ( tfm, (float)nll::core::PI / 2 );
-         tfm( 0, 3 ) = 10;
-
-         VolumeGeometry geom( pst, tfm );
-         nll::core::vector3f c1 = geom.indexToPosition( nll::core::vector3f( 0, 0, 0 ) );
-         nll::core::vector3f c2 = geom.indexToPosition( nll::core::vector3f( 1, 0, 0 ) );
-         TESTER_ASSERT( c1 == nll::core::vector3f( 10, 0, 0 ) );
-         TESTER_ASSERT( c2 == nll::core::vector3f( 10, 1, 0 ) );
-      }
-   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -266,7 +203,6 @@ TESTER_TEST(testPlaneIntersection);
 TESTER_TEST(testNormalConstructor);
 TESTER_TEST(testBoxIntersectionSimple);
 TESTER_TEST(testBoxContainsSimple);
-TESTER_TEST(testGeometryReg1);
 TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST_SUITE_END();
 #endif

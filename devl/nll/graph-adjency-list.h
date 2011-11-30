@@ -143,7 +143,7 @@ namespace core
 
       DataStorage& getData( const Descriptor& d )
       {
-         return *d._it;
+         return const_cast<DataStorage&>( *d._it );	// Bad: const_cast workaround as the set is always returning a const to preserve order, but we guaranty the ID will not be modified
       }
 
       const DataStorage& getData( const Descriptor& d ) const
@@ -196,12 +196,12 @@ namespace core
          return _store.size();
       }
 
-      iterator erase( const iterator& it )
+      iterator erase( const const_iterator& it )
       {
          return _store.erase( it );
       }
 
-      Descriptor getDescriptor( const iterator& it ) const
+      Descriptor getDescriptor( const const_iterator& it ) const
       {
          return Descriptor( it );
       }
@@ -290,11 +290,16 @@ namespace core
 
       class const_iterator
       {
+		  friend Mapper;
+
       public:
          const_iterator( const_iteratorImpl it ) : _it( it )
          {}
 
          const_iterator( iterator it ) : _it( it._it )
+         {}
+
+		 const_iterator( const const_iterator& it ) : _it( it._it )
          {}
 
          bool operator!=( const const_iterator& it ) const
@@ -419,7 +424,7 @@ namespace core
          return Descriptor( uid, uidPerVector );
       }
 
-      iterator erase( const iterator& it )
+      iterator erase( const const_iterator& it )
       {
          iteratorImpl newIt = _wrappers.erase( it._it );
          for ( iteratorImpl itUp = newIt; itUp != _wrappers.end(); ++itUp )
@@ -455,7 +460,7 @@ namespace core
          return _wrappers.size();
       }
 
-      Descriptor getDescriptor( const iterator& it ) const
+      Descriptor getDescriptor( const const_iterator& it ) const
       {
          const Uid uid = it.getIterator()->uid;
          const Uid uidPerVector = it.getIterator()->uidPerVector;
@@ -802,24 +807,28 @@ namespace core
             return Base::operator[]( desc );
          }
 
+		 /*
          T& operator[]( const vertex_iterator& it )
          {
 
             return _storage[ (*it).getUid() ];
-         }
+         }*/
 
+		 
          T& operator[]( const const_vertex_iterator& it )
          {
 
             return _storage[ (*it).getUid() ];
          }
 
+		 /*
          const T& operator[]( const vertex_iterator& it ) const
          {
 
             return _storage[ (*it).getUid() ];
-         }
+         }*/
 
+		 
          const T& operator[]( const const_vertex_iterator& it ) const
          {
 
@@ -871,24 +880,27 @@ namespace core
             return Base::operator[]( desc._desc );
          }
 
+		 /*
          T& operator[]( const edge_iterator& it )
          {
 
             return _storage[ (*it).getUid() ];
-         }
+         }*/
 
+		 
          T& operator[]( const const_edge_iterator& it )
          {
 
             return _storage[ (*it).getUid() ];
          }
-
+		 /*
          const T& operator[]( const edge_iterator& it ) const
          {
 
             return _storage[ (*it).getUid() ];
-         }
+         }*/
 
+		 
          const T& operator[]( const const_edge_iterator& it ) const
          {
 
@@ -962,10 +974,10 @@ namespace core
        @param safeMode if true, it means some of the vertex iterators were invalidated and a deep search must be done
               to retrieve iterators from descriptors. E.g. if only edges are removed/added safeMode = false is good
        */
-      edge_iterator erase( const edge_iterator& it, bool safeMode = true )
+      edge_iterator erase( const const_edge_iterator& it, bool safeMode = true )
       {
          // get the source vertex
-         Edge& e = *it;
+         const Edge& e = *it;
          Uid uid;
          Vertex* v = 0;
          if ( safeMode )
@@ -974,7 +986,7 @@ namespace core
             assert( vi != _vertexs.end() );  // not in the list?
             uid = (*vi).getUid();
 
-            v = &(*vi);
+            v = const_cast<Vertex*>( &(*vi) ); // work around for std::set implementation
          } else {
             v = &_vertexs.getData( e.src ); // quick retrieval. safe mode assumed 
             uid = e.getUid();
@@ -987,7 +999,7 @@ namespace core
        @param safeMode if true, it means some of the vertex iterators were invalidated and a deep search must be done
               to retrieve iterators from descriptors. E.g. if only edges are removed/added safeMode = false is good
        */
-      vertex_iterator erase( const vertex_iterator& it, bool safeMode = true )
+      vertex_iterator erase( const const_vertex_iterator& it, bool safeMode = true )
       {
          // run through all the edges, remove the edges that are connected to this vertex
          for ( vertex_iterator iv = begin(); iv != end(); ++iv )
@@ -995,14 +1007,16 @@ namespace core
             if ( it == iv )
             {
                // recycle all the edges in this vertex
-               for ( edge_iterator ie = (*iv).begin(); ie != (*iv).end(); ++ie )
+               Vertex& v = const_cast<Vertex&>( *iv );
+               for ( edge_iterator ie = v.begin(); ie != v.end(); ++ie )
                {
                   Uid uid = (*ie).getUid();
                   _uidVertexRecyling.push( uid );
                }
             } else {
                // else individually check all the edges
-               for ( edge_iterator ie = (*iv).begin(); ie != (*iv).end(); )
+               Vertex& v = const_cast<Vertex&>( *iv );
+               for ( edge_iterator ie = v.begin(); ie != v.end(); )
                {
                   const VertexDescriptor& desc = (*ie).dst;
                   vertex_iterator idst = safeMode ? _vertexs.find( desc ) : _vertexs.getIterator( desc );
@@ -1014,7 +1028,7 @@ namespace core
                      _uidVertexRecyling.push( uid );
 
                      // remove it from the list of edges
-                     ie = (*iv)._edges.erase( ie );
+                     ie = v._edges.erase( ie );
                   } else {
                      ++ie;
                   }
@@ -1055,7 +1069,8 @@ namespace core
 
          // finally add a new edge
          vertex_iterator ita = _vertexs.getIterator( src );
-         return EdgeDescriptor( src, (*ita)._edges.insert( Edge( uid, src, dst ) ) );
+		 Vertex& itav = const_cast<Vertex&>( *ita );
+         return EdgeDescriptor( src, itav._edges.insert( Edge( uid, src, dst ) ) );
       }
 
       //
@@ -1109,7 +1124,8 @@ namespace core
          vertex_iterator it = _vertexs.getIterator( desc._src );
          assert( it != _vertexs.end() );
 
-         return (*it)._edges.getIterator( desc._desc );
+         Vertex& v = const_cast<Vertex&>( *it );   // std::set work around
+         return v._edges.getIterator( desc._desc );
       }
 
       const_edge_iterator getIterator( const EdgeDescriptor& desc ) const
@@ -1167,12 +1183,12 @@ namespace core
       // other safe conversions (assuming the iterator is valid)
       //
 
-      VertexDescriptor getDescriptor( const vertex_iterator& it ) const
+      VertexDescriptor getDescriptor( const const_vertex_iterator& it ) const
       {
          return _vertexs.getDescriptor( it );
       }
 
-      EdgeDescriptor getDescriptor( const edge_iterator& it ) const
+      EdgeDescriptor getDescriptor( const const_edge_iterator& it ) const
       {
          GraphAdgencyList& g = const_cast<GraphAdgencyList&>( *this );
          vertex_iterator itf = g._vertexs.getIterator( (*it).src );
