@@ -65,6 +65,11 @@
 # include <omp.h>
 #endif
 
+// define this constant to disable all multithreading in quick loops. This is a workaround for the problematic implementation
+// of OpenMP in VS2010 with spin lock.
+// See http://social.msdn.microsoft.com/Forums/en-AU/parallelcppnative/thread/528479c8-fb70-4b05-83ce-7a552fd49895
+#define NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS
+
 /**
  @mainpage Numerical Learning Library
    The Numerical Learning Library intends to provide a wide range of machine learning

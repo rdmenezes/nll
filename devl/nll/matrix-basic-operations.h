@@ -95,7 +95,7 @@ namespace core
          assert( op1.sizex() == op2.sizey() );
          Matrix<T1, Mapper1, Allocator> m(op1.sizey(), op2.sizex());
 
-         #ifndef NLL_NOT_MULTITHREADED
+         #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          #pragma omp parallel for
          #endif
 	      for (int nx = 0; nx < (int)op2.sizex(); ++nx)
@@ -121,7 +121,7 @@ namespace core
 
 	      for (int nx = 0; nx < (int)op2.sizex(); ++nx)
          {
-            #ifndef NLL_NOT_MULTITHREADED
+            #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
             #pragma omp parallel for
             #endif
 		      for (int ny = 0; ny < (int)op1.sizey(); ++ny)

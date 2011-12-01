@@ -154,7 +154,7 @@ namespace imaging
       template <class Interpolator>
       void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
-         #ifndef NLL_NOT_MULTITHREADED
+         #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          # pragma omp parallel for
          #endif
          for ( int y = 0; y < (int)slice.size()[ 1 ]; ++y )

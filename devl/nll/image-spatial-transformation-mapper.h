@@ -144,7 +144,7 @@ namespace core
 
          procOrig.start();
        
-         #ifndef NLL_NOT_MULTITHREADED
+         #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          # pragma omp parallel for
          #endif
          for ( int y = 0; y < (int)resampled.sizey(); ++y )

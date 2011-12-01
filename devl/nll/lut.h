@@ -301,7 +301,7 @@ namespace imaging
          std::cout << "specialized" << std::endl;
          size_t size = last - first;
 
-#  ifndef NLL_NOT_MULTITHREADED
+#  if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          // finally the multithreaded version doesn't not improve the time performance
          // usuall it is a very small fraction of time for blending a frame and it costs
          // more to create the threads and synchronize them, it is only worth it when
@@ -309,7 +309,7 @@ namespace imaging
          #pragma omp parallel
 #  endif
          {
-#  ifndef NLL_NOT_MULTITHREADED
+#  if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
             const int numberOfThreads = omp_get_num_threads();
 				const int threadNumber = omp_get_thread_num();
 

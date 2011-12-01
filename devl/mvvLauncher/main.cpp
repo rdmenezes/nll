@@ -7,6 +7,7 @@
 #include <mvvForms/mvvForms.h>
 #include <forms/forms.h>
 #include <forms/utils.h>
+#include <iostream>
 
 #undef FLOAT
 #undef INT
@@ -67,14 +68,19 @@ void handleOrders( int )
 
 void renderObjects()
 {
+   //nll::core::writeBmp( applicationVariables->screen, "c:/tmp/screen.bmp" );
    // generate the texture we are going to draw
    (*applicationVariables->layout).draw( applicationVariables->screen );
-
+   
    //nll::core::writeBmp( applicationVariables->screen, "c:/screen.bmp" );
+   glDisable( GL_DEPTH_TEST );
+   glDisable( GL_LIGHTING );
+   glEnable( GL_TEXTURE_2D );
    glBindTexture( GL_TEXTURE_2D, applicationVariables->screenTextureId );
+   
    glTexImage2D(GL_TEXTURE_2D, 0, 3, applicationVariables->screen.sizex(), applicationVariables->screen.sizey(),
                 0, GL_RGB, GL_UNSIGNED_BYTE, applicationVariables->screen.getBuf() );
-
+   
    // draw the screen
    glEnable( GL_TEXTURE_2D );
    glBindTexture( GL_TEXTURE_2D, applicationVariables->screenTextureId );
@@ -370,8 +376,8 @@ int main( int argc, char** argv )
    { 
       std::cout << "current working directory=" << mvv::getWorkingDirectory() << std::endl;
 
-      int sizex = 1280;
-      int sizey = 1024;
+      int sizex = 2048;
+      int sizey = 2048;
 
       int nbThreads = 12; //8;
       std::string mainScript = "../../mvvLauncher/script/single2";
