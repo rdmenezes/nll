@@ -144,6 +144,7 @@ namespace utility
             if ( attribut->isError )
             {
                statistic.minValue = 0; // if it is an "error" attribut, the min value is 0!
+               minValue = 0;
             } else {
                statistic.minValue = minValue;
             }
