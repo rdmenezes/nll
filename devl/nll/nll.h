@@ -50,7 +50,7 @@
 #endif
 
 // define this in debug mode to find memory leaks
-#define NLL_FIND_MEMORY_LEAK
+//#define NLL_FIND_MEMORY_LEAK
 
 #ifdef NLL_FIND_MEMORY_LEAK
 # ifdef _MSC_VER
