@@ -1,12 +1,6 @@
 #ifndef MVV_PLATFORM_THREAD_WORKER_H_
 # define MVV_PLATFORM_THREAD_WORKER_H_
 
-# pragma warning( push )
-# pragma warning( disable:4244 ) // conversion from 'const double' to XXX, possible loss of data
-# include <boost/thread/mutex.hpp>
-# include <boost/thread/condition.hpp>
-# pragma warning( pop )
-
 # include "mvvPlatform.h"
 # include "refcounted.h"
 # include "order.h"

@@ -1,6 +1,4 @@
 #include "engine-order-volume-loading.h"
-#include <boost/thread/mutex.hpp>
-#include <boost/thread/condition.hpp>
 
 namespace mvv
 {

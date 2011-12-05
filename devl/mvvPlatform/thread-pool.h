@@ -6,9 +6,6 @@
 # pragma warning( push )
 # pragma warning( disable:4244 ) // conversion from 'const double' to XXX, possible loss of data
 
-# include <boost/thread/mutex.hpp>
-# include <boost/thread/condition.hpp>
-
 # pragma warning( pop )
 
 # include "types.h"

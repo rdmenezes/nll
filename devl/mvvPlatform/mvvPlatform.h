@@ -41,4 +41,18 @@
                                  // and same compilation options
 
 
+#ifdef NLL_FIND_MEMORY_LEAK
+#undef new
+#endif
+
+# pragma warning( push )
+# pragma warning( disable:4244 ) // conversion from 'const double' to XXX, possible loss of data
+# include <boost/thread/mutex.hpp>
+# include <boost/thread/condition.hpp>
+# pragma warning( pop )
+
+#ifdef NLL_FIND_MEMORY_LEAK
+# define new DEBUG_NEW
+#endif
+
 //#define MVV_RELEASE
