@@ -50,19 +50,18 @@
 #endif
 
 // define this in debug mode to find memory leaks
-//#define NLL_FIND_MEMORY_LEAK
+#define NLL_FIND_MEMORY_LEAK
 
 #ifdef NLL_FIND_MEMORY_LEAK
 # ifdef _MSC_VER
-#  ifndef _DEBUG
-#   define _DEBUG
+#  ifdef _DEBUG
+#   define _CRTDBG_MAP_ALLOC
+#   include <stdlib.h>
+#   include <crtdbg.h>
+#   define DEBUG_NEW     new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#   define new           DEBUG_NEW
+#   define malloc(s)     _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
 #  endif
-#  define _CRTDBG_MAP_ALLOC
-#  include <stdlib.h>
-#  include <crtdbg.h>
-#  define DEBUG_NEW     new(_NORMAL_BLOCK, __FILE__, __LINE__)
-#  define new           DEBUG_NEW
-#  define malloc(s)     _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
 # else
   NOT HANDLED!
 #endif
