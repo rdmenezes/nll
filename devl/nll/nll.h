@@ -49,11 +49,27 @@
 #define NLL_API
 #endif
 
-/*
-#ifdef NDEBUG
-#define _SCL_SECURE 0   // disable bound checking!
+// define this in debug mode to find memory leaks
+//#define NLL_FIND_MEMORY_LEAK
+
+#ifdef NLL_FIND_MEMORY_LEAK
+# ifdef _MSC_VER
+#  ifndef _DEBUG
+#   define _DEBUG
+#  endif
+#  define _CRTDBG_MAP_ALLOC
+#  include <stdlib.h>
+#  include <crtdbg.h>
+#  define DEBUG_NEW     new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#  define new           DEBUG_NEW
+#  define malloc(s)     _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
+# else
+  NOT HANDLED!
 #endif
-*/
+#endif
+
+#define PLACEMENT_NEW   new
+
 
 // define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
 // #define NLL_DISABLE_SSE_SUPPORT
@@ -87,6 +103,7 @@
 
 /// define the version of nll as a plain number
 #define NLL_VERSION_ID  0x016
+
 
 
 #ifdef _MSC_VER

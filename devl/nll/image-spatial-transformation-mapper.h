@@ -105,6 +105,7 @@ namespace core
       template <class Processor, class T, class Mapper, class Alloc>
       void run( Processor& procOrig, const ImageSpatial<T, Mapper, Alloc>& target, const Matrix& tfm, ImageSpatial<T, Mapper, Alloc>& resampled )
       {
+         
          typedef ImageSpatial<T, Mapper, Alloc>   ImageType;
 
          if ( !target.size() || !resampled.size() )
@@ -116,18 +117,19 @@ namespace core
 
          // compute the transformation target voxel -> resampled voxel
          Matrix transformation = target.getInvertedPst() * tfm * resampled.getPst();
+         
          core::vector2f dx( transformation( 0, 0 ),
                             transformation( 1, 0 ) );
          core::vector2f dy( transformation( 0, 1 ),
                             transformation( 1, 1 ) );
-
+         
          // compute the target origin with the tfm applied
          core::Matrix<float> targetOriginTfm;
          targetOriginTfm.clone( tfm );
          core::inverse( targetOriginTfm );
          targetOriginTfm = targetOriginTfm * target.getPst();
          core::vector2f targetOrigin2 = transf2d4( targetOriginTfm, core::vector2f( 0, 0 ) );
-
+         
          // create the transformation representing this displacement and compute the resampled origin in this
          // coordinate system
          Matrix g( 3, 3 );

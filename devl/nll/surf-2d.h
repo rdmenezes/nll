@@ -66,6 +66,9 @@ namespace algorithm
          Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 64 )
          {}
 
+         Point()
+         {}
+
          Features                   features;
          value_type                 orientation;
          core::vector2i             position;

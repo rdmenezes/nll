@@ -40,6 +40,14 @@
 # include "index-mapper.h"
 # include "io.h"
 
+
+#ifdef NLL_FIND_MEMORY_LEAK
+#undef new
+#endif
+
+# pragma warning( push )
+# pragma warning( disable:4127 ) // conditional expression is constant
+
 //#define DEBUG_BUFFER1D
 
 namespace nll
@@ -54,8 +62,6 @@ namespace core
  @param T type of the buffer
  @param IndexMapper1D define how the buffer is internally mapped in memory. By default it is simply linear it must
         define the function static ui32 index(const ui32)
- @todo ONLY WORKING FOR POD DATATYPES (CHECK COPY CONSTRUCTOR IS CORRECTLY CALLED) -> else memset(0) is used to init data
-       which can cause problems for data structures of the STL for example. Quickfix: set zero = false in constructor
  */
 template <class T, class IndexMapper1D = IndexMapperFlat1D, class AllocatorT = std::allocator<T> >
 class Buffer1D
@@ -73,7 +79,8 @@ public:
 public:
    /**
     @brief contructs a buffer with a specified size
-    @param zero if set to true, the buffer is cleared by zero, else undefined value
+    @param zero is IsPOS<T>::value and if set to true, the buffer is cleared by zero, else undefined value.
+                if !IsPOS<T>::value, this parameter is not used
     @param size the number of elements of the buffer
     */
    explicit Buffer1D( ui32 size, bool zero = true, Allocator allocator = Allocator() ) : _cpt( 0 ), _buffer ( 0 ), _size( 0 ), _ownsBuffer( true ), _allocator( allocator ) { _allocate( size, zero ); }
@@ -104,7 +111,7 @@ public:
    /**
     @brief decrease the reference count. If zero, the internal buffer is destroyed.
     */
-   virtual ~Buffer1D(){ unref(); } // TODO: virtual
+   virtual ~Buffer1D(){ unref(); }
 
    /**
     @return the index in the buffer of its i th element.
@@ -302,7 +309,16 @@ public:
             typename Allocator::template rebind<i32>::other( _allocator ).deallocate( _cpt, 1 );
             _cpt = 0;
             if ( _ownsBuffer )
+            {
+               if ( !IsPOD<T>::value )
+               {
+                  for ( ui32 n = 0; n < _size; ++n )
+                  {
+                     (_buffer + n )->~T();
+                  }
+               }
                _allocator.deallocate( _buffer, _size );
+            }
             _buffer = 0;
          }
       }
@@ -433,10 +449,17 @@ protected:
       }
       _buffer = _allocator.allocate( size );
       _size = size;
-
-      // TODO : if NON-POD data?
-      if ( zero )
-         memset( _buffer, 0, sizeof ( T ) * size );
+      if ( !IsPOD<T>::value )
+      {
+         for ( ui32 n = 0; n < size; ++n )
+         {
+            char* addr = (char*)(_buffer + n);
+            PLACEMENT_NEW (addr)T();
+         }
+      } else {
+         if ( zero )
+            memset( _buffer, 0, sizeof ( T ) * size );
+      }
 
       ref();
    }
@@ -451,4 +474,11 @@ protected:
 
 }
 }
+
+#ifdef NLL_FIND_MEMORY_LEAK
+# define new DEBUG_NEW
+#endif
+
+# pragma warning( pop )
+
 #endif

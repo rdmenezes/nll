@@ -201,6 +201,8 @@ namespace core
       Matrix( T* buf, ui32 sizey, ui32 sizex, bool ownsBuffer, Allocator allocator = Allocator() ) : Base( buf, sizex * sizey, ownsBuffer, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
       {}
 
+      virtual ~Matrix(){}
+
       /**
        @brief clone a matrix (memory is copied)
        */

@@ -49,6 +49,9 @@ namespace algorithm
             Match( ui32 i1, ui32 i2, double d ) : index1( i1 ), index2( i2 ), dist( d )
             {}
 
+            Match()
+            {}
+
             bool operator<( const Match& m ) const
             {
                return dist < m.dist;
