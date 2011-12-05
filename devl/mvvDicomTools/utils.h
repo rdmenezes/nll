@@ -892,11 +892,12 @@ namespace mvv
             }
 
             std::sort( list.begin(), list.end() );
-            DicomFiles sortedFiles( list.size() );
-            for ( size_t t = 0; t < sortedFiles.size(); ++t )
+            DicomFiles sortedFiles; //( list.size() );
+            for ( size_t t = 0; t < list.size(); ++t )
             {
-               sortedFiles[ t ] = _dicomBySeriesUid[ n ][ list[ t ].second ];
+               sortedFiles.push_back( _dicomBySeriesUid[ n ][ list[ t ].second ] );
             }
+            _dicomBySeriesUid[ n ] = DicomFiles(); // use this to prevent a memleak in dcmtk
             _dicomBySeriesUid[ n ] = sortedFiles;
          }
       }
