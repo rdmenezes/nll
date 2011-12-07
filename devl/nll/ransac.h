@@ -67,7 +67,7 @@ namespace algorithm
            that optimally explains or fits this data.
 
     @param Estimator must define <Mode> and <Point> types, as well as methods:
-           - template <class Points> void estimate( const Points& points )
+           - template <class Points> void estimate( const Points& points ) MUST BE THREADSAFE
            - const Model& getModel() const
            - double error( const Point& point ) const, returns the % of error compared to the predicted value
 
@@ -76,6 +76,7 @@ namespace algorithm
 
     @note the <Estimator> must be guarded against degenerated model, as the subset selection doesn't
           ensure unicity of the data selected...
+    @note Estimator::estimate must be threadsafe
     */
    template < class Estimator, class EstimatorFactoryM = GenericEstimatorFactory<Estimator> >
    class Ransac
@@ -124,7 +125,7 @@ namespace algorithm
          #endif
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
-            core::Buffer1D<Point>   initialSubset( minimalSample );
+            std::vector<Point>      initialSubset( minimalSample );
             std::vector<ui32>       currentSubset;
             currentSubset.reserve( points.size() );
             Estimator estimator = _estimatorFactory.create();

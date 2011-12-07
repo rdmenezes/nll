@@ -135,8 +135,8 @@ namespace algorithm
             PointsWrapper1& operator=( const PointsWrapper1& );
 
          private:
-            const PointsData     _points;
-            const PointsMatch    _matches;
+            const PointsData&     _points;
+            const PointsMatch&    _matches;
          };
 
          template <class PointsMatch>
@@ -161,8 +161,8 @@ namespace algorithm
             PointsWrapper2& operator=( const PointsWrapper2& );
 
          private:
-            const PointsData     _points;
-            const PointsMatch    _matches;
+            const PointsData&     _points;
+            const PointsMatch&    _matches;
          };
 
       public:

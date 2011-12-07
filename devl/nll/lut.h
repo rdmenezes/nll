@@ -133,7 +133,7 @@ namespace imaging
        @param minIntensity the minimal intensity to be displayed
        @param maxIntensity the maximal intensity to be displayed
        */
-      LookUpTransform( const TMapper& mapper, float minIntensity, float maxIntensity ) : _mapper( mapper ), _min( minIntensity ), _max( maxIntensity ), _interval( maxIntensity - minIntensity + 1 )
+      LookUpTransform( const TMapper& mapper, float minIntensity, float maxIntensity ) : _mapper( mapper ), _min( minIntensity ), _max( maxIntensity ), _interval( maxIntensity - minIntensity )
       {
          ensure( _interval > 0, "must be >0" );
          _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
@@ -177,11 +177,12 @@ namespace imaging
 
          // do binning
          std::vector<size_t> bins( nbBins );
-         const double range = ( static_cast<double>( max ) - static_cast<double>( min ) + 1 ) / nbBins;
+         const double range = ( static_cast<double>( max ) - static_cast<double>( min ) ) / nbBins;
          size_t nbVoxels = 0;
          for ( typename Volume::const_iterator it = v.begin(); it != v.end(); ++it )
          {
-            const ui32 bin = static_cast<ui32>( ( *it - min ) / range );
+            const ui32 bin = ( *it >= max ) ? ( nbBins - 1 ) : ( ( *it <= min ) ? ( 0 ) : ( static_cast<ui32>( ( *it - min ) / range ) ) );
+            //const ui32 bin = static_cast<ui32>( ( *it - min ) / range );
             ++bins[ bin ];
             ++nbVoxels;
          }
@@ -248,7 +249,7 @@ namespace imaging
 
          _min = static_cast<float>( min + ( index - inc1 ) * range );
          _max = static_cast<float>( min + ( index + inc2 ) * range );
-         _interval = _max - _min + 1;
+         _interval = _max - _min;
          _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
 
          {
@@ -278,7 +279,7 @@ namespace imaging
       {
          if ( value < _min )
             return 0;
-         if ( value > _max )
+         if ( value >= _max )
             return _mapper.getSize() - 1;
          return (ui32)( ( value - _min ) * _ratio );
       }
