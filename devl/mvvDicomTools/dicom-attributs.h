@@ -4,7 +4,7 @@
 # include <mvvPlatform/context-tools.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
-# include <dcmtk/dcmimage.h>
+# include <dcmtk/dcmimgle/dcmimage.h>
 # include "utils.h"
 
 using namespace mvv::platform;
@@ -34,23 +34,23 @@ namespace mvv
    class DicomAttributs
    {
    public:
-      string patientName;        // 1 - [ 0010-0010 ] Patient name
-      string patientID;          // 2 - [ 0010-4000 ] Patient ID
-      string patientSex;         // 3 - [ 0010-0040 ] Patient Sex
+      std::string patientName;        // 1 - [ 0010-0010 ] Patient name
+      std::string patientID;          // 2 - [ 0010-4000 ] Patient ID
+      std::string patientSex;         // 3 - [ 0010-0040 ] Patient Sex
       float patientAge;          // 4 - [ 0010-1010 ] Patient Age
       float patientWeight;       // 5 - [ 0010-1030 ] Patient Weight
-      string studyDate;          // 6 - [ 0008-0020 ] Study date
-      string studyTime;          // 7 - [ 0008-0030 ] Study Time
-      string studyDescription;   // 8 - [ 0008-1030 ] Study description
-      string studyID;            // 9 - [ 0020-0010 ] Study ID
-      string seriesDate;         // 10 - [ 0008-0021 ] Series Date
-      string seriesTime;         // 11 - [ 0008-0031 ] Series Time
-      string seriesDescription;  // 12 - [ 0008-103E ] Series Description
-      string acquisitionDate;    // 13 - [ 0008-0022 ] Acquisition Date
-      string acquisitionTime;    // 14 - [ 0008-0032 ] Acquisition Time
-      string modality;           // 15 - [ 0008-0070 ] Modality
-      string studyInstanceUid;   // 16 - [ 0020-000D ] Study Instance UID
-      string seriesInstanceUid;  // 17 - [ 0020-000E ] Series Instance UID
+      std::string studyDate;          // 6 - [ 0008-0020 ] Study date
+      std::string studyTime;          // 7 - [ 0008-0030 ] Study Time
+      std::string studyDescription;   // 8 - [ 0008-1030 ] Study description
+      std::string studyID;            // 9 - [ 0020-0010 ] Study ID
+      std::string seriesDate;         // 10 - [ 0008-0021 ] Series Date
+      std::string seriesTime;         // 11 - [ 0008-0031 ] Series Time
+      std::string seriesDescription;  // 12 - [ 0008-103E ] Series Description
+      std::string acquisitionDate;    // 13 - [ 0008-0022 ] Acquisition Date
+      std::string acquisitionTime;    // 14 - [ 0008-0032 ] Acquisition Time
+      std::string modality;           // 15 - [ 0008-0070 ] Modality
+      std::string studyInstanceUid;   // 16 - [ 0020-000D ] Study Instance UID
+      std::string seriesInstanceUid;  // 17 - [ 0020-000E ] Series Instance UID
       nll::core::vector3f imagePositionPatient;   // 18 - [ 0020-0032 ] Image Position Patient
       int rows;                  // 19 - [ 0028-0010 ] Rows
       int columns;               // 20 - [ 0028-0011 ] Columns
@@ -58,12 +58,12 @@ namespace mvv
       int instanceNumber;        // 22 - [ 0020-0013 ] Instance number
       float slope;               // 23 - [ 0028-1053] Rescale slope
       float intercept;           // 24 - [ 0028-1053] Rescale intercept
-      string frameOfReference;   // 25 - [ 0020-0052 ] Frame of Reference UID
+      std::string frameOfReference;   // 25 - [ 0020-0052 ] Frame of Reference UID
       float extraSliceSpacing;   // 26 - Not a DICOM tag, extra info to write a DICOM volume
       nll::core::vector3f imageOrientationPatientX;  // 27 - [ 0020-0037 ] Image Orientation Patient, axis X
       nll::core::vector3f imageOrientationPatientY;  // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
-      string sopInstanceUid;     // 29 - [ 0008, 0018 ] SOP Instance UID
-      string sopClassUid;        // 30 - [ 0008, 0016 ] SOP Class UID
+      std::string sopInstanceUid;     // 29 - [ 0008, 0018 ] SOP Instance UID
+      std::string sopClassUid;        // 30 - [ 0008, 0016 ] SOP Class UID
 
       /**
        @brief Returns the index of the tag <group, element> defined in <mvvDicomTools.ludo>, -1 if it is not handled

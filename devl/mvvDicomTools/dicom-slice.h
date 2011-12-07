@@ -4,7 +4,7 @@
 # include <mvvPlatform/context-tools.h>
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
-# include <dcmtk/dcmimage.h>
+# include <dcmtk/dcmimgle/dcmimage.h>
 # include "read-dicom.h"
 # include "dicom-attributs.h"
 # include "utils.h"

@@ -3,10 +3,10 @@
 
 # include "mvvDicomTools.h"
 # include <Boost/filesystem.hpp>
-# include <dcmtk/dcfilefo.h>
-# include <dcmtk/dcdeftag.h>
-# include <dcmtk/dcmimage.h>
-# include <dcmtk/dcxfer.h>
+# include <dcmtk/dcmdata/dcfilefo.h>
+# include <dcmtk/dcmdata/dcdeftag.h>
+# include <dcmtk/dcmimgle/dcmimage.h>
+# include <dcmtk/dcmdata/dcxfer.h>
 # include <memory>
 # include <mvvScript/function-runnable.h>
 
@@ -75,12 +75,12 @@ namespace mvv
 
       const char* getPatientName()
       {
-         return getString( DCM_PatientsName );
+         return getString( DCM_PatientName );
       }
 
       void setPatientName( const char* name )
       {
-         setString( DCM_PatientsName, name );
+         setString( DCM_PatientName, name );
       }
 
       const char* getPatientId()
@@ -95,12 +95,12 @@ namespace mvv
 
       const char* getPatientSex()
       {
-         return getString( DCM_PatientsSex );
+         return getString( DCM_PatientSex );
       }
 
       void setPatientSex( const char* s )
       {
-         setString( DCM_PatientsSex, s );
+         setString( DCM_PatientSex, s );
       }
 
       const char* getStudyInstanceUid()
@@ -115,13 +115,13 @@ namespace mvv
 
       float getPatientAge()
       {
-         return convertPatientAge( getString( DCM_PatientsAge ) );
+         return convertPatientAge( getString( DCM_PatientAge ) );
       }
 
       void setPatientAge( float s )
       {
          // TODO: do the real conversion!!!
-         setString( DCM_PatientsAge, "1Y" );
+         setString( DCM_PatientAge, "1Y" );
       }
 
       const char* getStudyDate()
@@ -246,12 +246,12 @@ namespace mvv
 
       float getPatientWeight()
       {
-         return nll::core::str2val<float>( getString( DCM_PatientsWeight ) );
+         return nll::core::str2val<float>( getString( DCM_PatientWeight ) );
       }
 
       void setPatientWeight( float s )
       {
-         setFloat( DCM_PatientsWeight, s );
+         setFloat( DCM_PatientWeight, s );
       }
 
       int getInstanceNumber()
@@ -375,7 +375,7 @@ namespace mvv
 
       void getPixelData( ui16* allocatedOutput )
       {
-         ui16* array = getUint16Array( DCM_PixelData );
+         const ui16* array = getUint16Array( DCM_PixelData );
          memcpy( allocatedOutput, array, sizeof( ui16 ) * getRows() * getColumns() );
       }
 
@@ -413,9 +413,9 @@ namespace mvv
          return val;
       }
 
-      ui16* getUint16Array( const DcmTagKey& key )
+      const ui16* getUint16Array( const DcmTagKey& key )
       {
-         ui16* val;
+         const ui16* val;
          OFCondition cond = _dataset.findAndGetUint16Array( key, val );
          if ( cond.good() )
          {

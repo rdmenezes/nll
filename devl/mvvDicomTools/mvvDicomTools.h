@@ -5,11 +5,14 @@
 
 #ifdef _MSC_VER
 
-#pragma comment(lib, "zlibwapi.lib")
-#pragma comment(lib, "ofstd.lib")
+#pragma comment(lib, "dcmnet.lib")
 #pragma comment(lib, "dcmdata.lib")
-#pragma comment(lib, "dcmimgle.lib")
+#pragma comment(lib, "oflog.lib")
+#pragma comment(lib, "ofstd.lib")
 
+// windows specific lib for DCMTK
+#pragma comment(lib, "netapi32.lib")
+#pragma comment(lib, "wsock32.lib")
 
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the MVVDICOMTOOLS_EXPORTS
