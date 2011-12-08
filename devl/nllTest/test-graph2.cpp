@@ -12,9 +12,32 @@ namespace nll
 {
 namespace core
 {
+   namespace impl
+   {
+      template <class Graph, class MapperValueType>
+      class DijkstraVertexEvaluator
+      {
+      public:
+         typedef typename Graph::VertexMapper<MapperValueType>       VertexMapper;
+         typedef typename Graph::const_vertex_iterator               const_vertex_iterator;
+
+      public:
+         DijkstraVertexEvaluator( const VertexMapper& vertexMapper ) : _vertexMapper( vertexMapper )
+         {}
+
+         double operator()( const const_vertex_iterator& vit ) const
+         {
+            return _vertexMapper[ vit ];
+         }
+
+      private:
+         const VertexMapper& _vertexMapper;
+      };
+   }
+
 	// TODO: use GraphVisitorBfs with a priority queue!
    template <class Graph, class MapperValueType>
-   class Dijkstra : public GraphVisitorBfs<Graph>
+   class Dijkstra : public GraphVisitorBfsPriority<Graph, impl::DijkstraVertexEvaluator<Graph, MapperValueType> >
    {
    public:
       typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperBacktrack;
@@ -28,9 +51,6 @@ namespace core
 
       virtual void start( const Graph& g )
       {
-         _vertexDistance = std::auto_ptr<VertexMapper>( new VertexMapper( g, std::numeric_limits<MapperValueType>::max() ) );
-         (*_vertexDistance)[ _begin ] = 0;
-
          const_vertex_iterator end( g.end() );
          _vertexMapperBacktrack = std::auto_ptr<VertexMapperBacktrack>( new VertexMapperBacktrack( g, end ) );
 
@@ -49,7 +69,7 @@ namespace core
          const MapperValueType arcDist = _distanceMap[ edge ];
          ensure( arcDist >= 0, "Dijkstra works only for arc >= 0" );
          MapperValueType& toNodeVal = (*_vertexDistance)[ toNode ];
-         if ( toNodeVal > ( arcDist + _currentVertexVal ) )
+         if ( ( arcDist + _currentVertexVal ) < toNodeVal )
          {
             toNodeVal = arcDist + _currentVertexVal;
             (*_vertexMapperBacktrack)[ toNode ] = _current;
@@ -62,6 +82,15 @@ namespace core
       virtual void finish( const Graph& )
       {
          //_vertexDistance = std::auto_ptr<VertexMapper>();   // clear the mapper
+      }
+
+      virtual void visit( const Graph& g )
+      {
+         _vertexDistance = std::auto_ptr<VertexMapper>( new VertexMapper( g, std::numeric_limits<MapperValueType>::max() ) );
+         (*_vertexDistance)[ _begin ] = 0;
+
+         impl::DijkstraVertexEvaluator<Graph, MapperValueType> eval( *_vertexDistance );
+         GraphVisitorBfsPriority::visit( g, eval );
       }
 
       std::vector<const_vertex_iterator> getPathTo( const const_vertex_iterator& end )

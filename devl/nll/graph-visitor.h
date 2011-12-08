@@ -127,6 +127,113 @@ namespace core
       bool _mustAbort;
    };
 
+   /**
+    @brief Breadth First Search visitor, using a priotity queue to sort the breadth vertex
+    */
+   template <class GraphT, class VertexEvaluator>
+   class GraphVisitorBfsPriority
+   {
+   public:
+      typedef GraphT                   Graph;
+      typedef typename Graph::Vertex   Vertex;
+      typedef typename Graph::Edge     Edge;
+      typedef typename Graph::const_vertex_iterator   const_vertex_iterator;
+      typedef typename Graph::const_edge_iterator     const_edge_iterator;
+
+      struct Pair
+      {
+         double                  first;
+         const_vertex_iterator   second;
+
+         Pair( double v, const const_vertex_iterator& it ) : first( v ), second( it )
+         {}
+
+         bool operator<( const Pair& p ) const
+         {
+            return first > p.first;
+         }
+      };
+
+      GraphVisitorBfsPriority() : _mustAbort( false )
+      {}
+
+      // signal the algorithm to stop before the next vertex visited
+      bool abort()
+      {
+         _mustAbort = true;
+      }
+
+      // run before the algorithm is started
+      virtual void start( const Graph& ){}
+
+      // run after the algorithm has finished
+      virtual void finish( const Graph& ){}
+
+      // called when the vertex has been discovered for the first time
+      virtual void discoverVertex( const const_vertex_iterator& , const Graph& ){}
+
+      // called when there is a new "source" vertex (e.g., when all edges have been discovered, this method will be called on the next vertex to handle)
+      virtual void newSourceVertex( const const_vertex_iterator& , const Graph& ){}
+
+      // called when all the edges have been discovered
+      virtual void finishVertex( const const_vertex_iterator& , const Graph& ){}
+
+      // called each time an edge is discovered
+      virtual void discoverEdge( const const_edge_iterator& , const Graph& ){}
+
+      virtual void visit( const Graph& g, const VertexEvaluator& eval )
+      {
+         typename GraphT::VertexMapper<char> vertexDiscovered( g, 0 );
+         std::priority_queue<Pair> its;
+         start( g );
+         if ( g.size() )
+         {
+            for ( const_vertex_iterator vertex = g.begin(); vertex != g.end(); ++vertex )
+            {
+               if ( _mustAbort )
+                  return;
+               if ( vertexDiscovered[ vertex ] )
+                  continue;   // we already checked this vertex
+
+               
+               // queue the first vertex
+               its.push( Pair( eval( vertex ), vertex ) );
+               const_vertex_iterator& itsrc = its.top().second;
+               discoverVertex( itsrc, g );
+               vertexDiscovered[ itsrc ] = 1;
+
+               // finally continue until all vertexes have been visited
+               while ( its.size() )
+               {
+                  const_vertex_iterator it = its.top().second;
+                  newSourceVertex( it, g );
+                  its.pop();
+                  
+                  for ( const_edge_iterator ite = (*it).begin(); ite != (*it).end(); ++ite )
+                  {
+                     const_vertex_iterator toVertexIt = g.getIterator( (*ite).getDestination() );
+                     const char v = vertexDiscovered[ toVertexIt ];
+                     const bool hasBeenDiscovered = v == 1;
+                     if ( !hasBeenDiscovered )
+                     {
+                        
+                        discoverEdge( ite, g );
+                        its.push( Pair( eval( toVertexIt ), toVertexIt ) );
+                        discoverVertex( toVertexIt, g );
+                        vertexDiscovered[ toVertexIt ] = 1;
+                     }
+                  }
+                  finishVertex( it, g );  // we have visited all out edges...
+               }
+            }
+         }
+         finish( g );
+      }
+
+   protected:
+      bool              _mustAbort;
+   };
+
    template <class GraphT>
    class GraphVisitorDfs
    {
