@@ -147,6 +147,7 @@
 # include <map>
 # include <list>
 # include <stack>
+# include <vector>
 
 /**
  @defgroup core
@@ -163,6 +164,7 @@
 # include "singleton.h"
 # include "configuration.h"
 # include "types.h"
+# include "collection-wrapper.h"
 # include "utility-pure.h"
 # include "utility-matlab.h"
 # include "math-floor.h"

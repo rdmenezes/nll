@@ -216,10 +216,10 @@
     </Midl>
     <ClCompile>
       <Optimization>Full</Optimization>
-      <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
-      <OmitFramePointers>true</OmitFramePointers>
+      <OmitFramePointers>false</OmitFramePointers>
       <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -514,6 +514,7 @@
     <ClInclude Include="slice-resampling.h" />
     <ClInclude Include="slice.h" />
     <ClInclude Include="transformation.h" />
+    <ClInclude Include="collection-wrapper.h" />
     <ClInclude Include="volume-barycentre.h" />
     <ClInclude Include="volume-interpolator.h" />
     <ClInclude Include="volume-io-bin.h" />

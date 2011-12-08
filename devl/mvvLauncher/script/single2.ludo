@@ -67,7 +67,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 80;
+   int index                        = 0;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -178,7 +178,7 @@ Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) );
 
 DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, pointer );
-RegistrationMr registrator( "c:/tmp/templates.bin" );
+RegistrationMr registrator( "c:/tmp/templatesW32.bin" );
 
 KeyboardCallback callbacks;
 
