@@ -107,10 +107,9 @@ namespace core
                      const_vertex_iterator toVertexIt = g.getIterator( (*ite).getDestination() );
                      const char v = vertexDiscovered[ toVertexIt ];
                      const bool hasBeenDiscovered = v == 1;
+                     discoverEdge( ite, g );
                      if ( !hasBeenDiscovered )
                      {
-                        
-                        discoverEdge( ite, g );
                         its.push_back( toVertexIt );
                         discoverVertex( toVertexIt, g );
                         vertexDiscovered[ toVertexIt ] = 1;
@@ -214,10 +213,9 @@ namespace core
                      const_vertex_iterator toVertexIt = g.getIterator( (*ite).getDestination() );
                      const char v = vertexDiscovered[ toVertexIt ];
                      const bool hasBeenDiscovered = v == 1;
+                     discoverEdge( ite, g );
                      if ( !hasBeenDiscovered )
                      {
-                        
-                        discoverEdge( ite, g );
                         its.push( Pair( eval( toVertexIt ), toVertexIt ) );
                         discoverVertex( toVertexIt, g );
                         vertexDiscovered[ toVertexIt ] = 1;

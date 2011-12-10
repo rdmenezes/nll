@@ -359,6 +359,7 @@
     <ClInclude Include="configuration.h" />
     <ClInclude Include="context.h" />
     <ClInclude Include="converter.h" />
+    <ClInclude Include="data-compression-count.h" />
     <ClInclude Include="database-input-adapter.h" />
     <ClInclude Include="database-manipulation.h" />
     <ClInclude Include="database.h" />
@@ -516,9 +517,11 @@
     <ClInclude Include="transformation.h" />
     <ClInclude Include="collection-wrapper.h" />
     <ClInclude Include="volume-barycentre.h" />
+    <ClInclude Include="volume-discretizer.h" />
     <ClInclude Include="volume-interpolator.h" />
     <ClInclude Include="volume-io-bin.h" />
     <ClInclude Include="volume-io-mf2.h" />
+    <ClInclude Include="volume-io-mf3.h" />
     <ClInclude Include="volume-io-txt.h" />
     <ClInclude Include="volume-resampling.h" />
     <ClInclude Include="volume-spatial.h" />

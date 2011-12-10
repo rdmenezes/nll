@@ -55,12 +55,12 @@ namespace core
          {
          }
          
-         virtual void discoverVertex( const const_vertex_iterator& it, const Graph& g)
+         virtual void discoverVertex( const const_vertex_iterator& it, const Graph&)
          {
             _itmapper[ it ] = it;
          }
 
-         virtual void discoverEdge( const const_edge_iterator& edge, const Graph& g )
+         virtual void discoverEdge( const const_edge_iterator& edge, const Graph& )
          {
             ++_emapper[ (*edge).getDestination() ];
          }
@@ -92,23 +92,6 @@ namespace core
          VertexMapperIts                     _itmapper;
          std::vector<const_vertex_iterator>  _roots;
       };
-
-      /**
-       @brief Find the roots 
-       */
-      template <class Graph>
-      std::vector< typename GraphVisitorDfs<Graph>::const_vertex_iterator >
-      getGraphRootsDirected( const Graph& g )
-      {
-         typedef _ComputeGraphRoots<Graph>   RootFinder;
-
-         RootFinder::VertexMapper vmapper( g );
-         RootFinder::VertexMapperIts itsmapper( g, g.end() );
-
-         RootFinder rootFinder( vmapper, itsmapper );
-         rootFinder.visit( g );
-         return rootFinder.getRoots();
-      }
    }
 
    /**
@@ -118,13 +101,121 @@ namespace core
    std::vector< typename GraphVisitorDfs<Graph>::const_vertex_iterator >
    getGraphRoots( const Graph& g )
    {
-      if ( TraitGraphIsDirected<Graph>::Value )
-      {
-         return impl::getGraphRootsDirected( g );
-      } else {
-         ensure( 0, "TO IMPLEMENT" );
-      }
+      typedef impl::_ComputeGraphRoots<Graph>   RootFinder;
+
+      RootFinder::VertexMapper vmapper( g );
+      RootFinder::VertexMapperIts itsmapper( g, g.end() );
+
+      RootFinder rootFinder( vmapper, itsmapper );
+      rootFinder.visit( g );
+      return rootFinder.getRoots();
    }
+
+   namespace impl
+   {
+      /**
+       @brief Vertex evaluator used in the dijkstra algorithm to set the visit priority
+       */
+      template <class Graph, class MapperValueType>
+      class DijkstraVertexEvaluator
+      {
+      public:
+         typedef typename Graph::VertexMapper<MapperValueType>       VertexMapper;
+         typedef typename Graph::const_vertex_iterator               const_vertex_iterator;
+
+      public:
+         DijkstraVertexEvaluator( const VertexMapper& vertexMapper ) : _vertexMapper( vertexMapper )
+         {}
+
+         double operator()( const const_vertex_iterator& vit ) const
+         {
+            return _vertexMapper[ vit ];
+         }
+
+      private:
+         const VertexMapper& _vertexMapper;
+      };
+   }
+
+   /**
+    @brief Dijkstra algorithm
+    @see http://en.wikipedia.org/wiki/Dijkstra's_algorithm
+    */
+   template <class Graph, class MapperValueType>
+   class Dijkstra : public GraphVisitorBfsPriority<Graph, impl::DijkstraVertexEvaluator<Graph, MapperValueType> >
+   {
+   public:
+      typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperBacktrack;
+      typedef typename Graph::VertexMapper<MapperValueType>       VertexMapper;
+      typedef typename Graph::EdgeMapper<MapperValueType>         EdgeMapper;
+
+      Dijkstra( EdgeMapper& distanceMap,
+                const const_vertex_iterator& begin ) :  _distanceMap( distanceMap ), _begin( begin ), _current( begin ), _g( 0 )
+      {
+      }
+
+      virtual void start( const Graph& g )
+      {
+         const_vertex_iterator end( g.end() );
+         _vertexMapperBacktrack = std::auto_ptr<VertexMapperBacktrack>( new VertexMapperBacktrack( g, end ) );
+
+         _g = &g;
+      }
+
+      virtual void newSourceVertex( const const_vertex_iterator& it, const Graph& )
+      {
+         _currentVertexVal = (*_vertexDistance)[ it ];
+         _current = it;
+      }
+
+      virtual void discoverEdge( const const_edge_iterator& edge, const Graph& g )
+      {
+         const_vertex_iterator toNode = g.getIterator( (*edge).getDestination() );
+         const MapperValueType arcDist = _distanceMap[ edge ];
+         ensure( arcDist >= 0, "Dijkstra works only for arc >= 0" );
+         MapperValueType& toNodeVal = (*_vertexDistance)[ toNode ];
+         if ( ( arcDist + _currentVertexVal ) < toNodeVal )
+         {
+            toNodeVal = arcDist + _currentVertexVal;
+            (*_vertexMapperBacktrack)[ toNode ] = _current;
+         }
+      }
+
+      virtual void visit( const Graph& g )
+      {
+         _vertexDistance = std::auto_ptr<VertexMapper>( new VertexMapper( g, std::numeric_limits<MapperValueType>::max() ) );
+         (*_vertexDistance)[ _begin ] = 0;
+
+         impl::DijkstraVertexEvaluator<Graph, MapperValueType> eval( *_vertexDistance );
+         GraphVisitorBfsPriority::visit( g, eval );
+      }
+
+      std::vector<const_vertex_iterator> getPathTo( const const_vertex_iterator& end )
+      {
+         std::vector<const_vertex_iterator> path;
+         if ( (*_vertexMapperBacktrack)[ end ] == _g->end() )
+            return std::vector<const_vertex_iterator>();
+         const_vertex_iterator cur = end;
+         path.push_back( cur );
+         while ( cur != _begin )
+         {
+            cur = (*_vertexMapperBacktrack)[ cur ];
+            path.push_back( cur );
+         }
+
+         return std::vector<const_vertex_iterator>( path.rbegin(), path.rend() );
+      }
+
+   private:
+      EdgeMapper                             _distanceMap;
+      std::auto_ptr<VertexMapper>            _vertexDistance;
+      const_vertex_iterator                  _begin;
+
+      MapperValueType                        _currentVertexVal;
+      const_vertex_iterator                  _current;
+      std::auto_ptr<VertexMapperBacktrack>   _vertexMapperBacktrack;
+      const Graph*                           _g;
+   };
 }
 }
 

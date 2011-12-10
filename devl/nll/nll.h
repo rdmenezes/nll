@@ -148,6 +148,7 @@
 # include <list>
 # include <stack>
 # include <vector>
+# include <queue>
 
 /**
  @defgroup core
@@ -246,7 +247,7 @@
 # include "kmeans.h"
 # include "gmm.h"
 # include "histogram-fitting.h"
-
+# include "data-compression-count.h"
 
 /**
  @defgroup imaging
@@ -276,6 +277,8 @@
 # include "volume-io-txt.h"
 # include "maximum-intensity-projection.h"
 # include "volume-barycentre.h"
+# include "volume-discretizer.h"
+# include "volume-io-mf3.h"
 
 /**
  @defgroup algorithm
