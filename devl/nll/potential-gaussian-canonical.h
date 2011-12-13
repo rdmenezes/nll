@@ -193,7 +193,7 @@ namespace algorithm
       }
 
       /**
-       @brief computes p(X | Y=y)
+       @brief computes p(X | Y=y) i.e., entering evidence
        @param vars the values of Y=y
        @param varsIndex the index of Y's, must be sorted 0->+inf
        */

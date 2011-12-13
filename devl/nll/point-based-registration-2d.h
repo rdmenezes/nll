@@ -178,7 +178,7 @@ namespace algorithm
 
          static ui32 minimumNumberOfSubsets()
          {
-            return 50000;
+            return 15000;
          }
 
          struct Model
@@ -409,9 +409,9 @@ namespace algorithm
                                               double scale = 0, double minimumScale = 0.8, double maximumScale = 1.2 ) : _p1( &p1 ), _p2( &p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {}
 
-         Estimator create() const
+         std::auto_ptr<Estimator> create() const
          {
-            return Estimator( *_p1, *_p2, _scale, _minimumScale, _maximumScale );
+            return std::auto_ptr<Estimator>( new Estimator( *_p1, *_p2, _scale, _minimumScale, _maximumScale ) );
          }
 
       private:
@@ -429,9 +429,9 @@ namespace algorithm
          SurfEstimatorAffineFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( &p1 ), _p2( &p2 )
          {}
 
-         Estimator create() const
+         std::auto_ptr<Estimator> create() const
          {
-            return Estimator( *_p1, *_p2 );
+            return std::auto_ptr<Estimator>( new Estimator( *_p1, *_p2 ) );
          }
 
       private:

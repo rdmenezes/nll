@@ -43,9 +43,9 @@ namespace algorithm
    class GenericEstimatorFactory
    {
    public:
-      Estimator create() const
+      std::auto_ptr<Estimator> create() const
       {
-         return Estimator();
+         return std::auto_ptr<Estimator>( new Estimator() );
       }
    };
 
@@ -125,31 +125,45 @@ namespace algorithm
          #endif
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
-            std::vector<Point>      initialSubset( minimalSample );
+            std::auto_ptr<Estimator> estimator;
             std::vector<ui32>       currentSubset;
-            currentSubset.reserve( points.size() );
-            Estimator estimator = _estimatorFactory.create();
 
+            {
+               currentSubset.reserve( points.size() );
+               estimator = _estimatorFactory.create();
+            }
+
+            core::ConstCollectionWrapper<Points> initialSubset( points );
+            initialSubset.reserve( minimalSample );
             for ( ui32 nn = 0; nn < minimalSample; ++nn )
             {
                // randomly select a subset of point. As it is random, maybe the point
                // will be selected several times, and this is fine: the model will be degenerated
                // and so will be discarded...
                const ui32 index = rand() % nbPoint;
-               initialSubset[ nn ] = points[ index ];
+               initialSubset.insertRef( index );
             }
-            estimator.estimate( initialSubset );
+
+            {
+               estimator->estimate( initialSubset );
+            }
 
 
             double meanError = 0;
-            for ( ui32 nn = 0; nn < nbPoint; ++nn )
+
+            #ifndef NLL_NOT_MULTITHREADED
+            # pragma omp critical
+            #endif
             {
-               // compute the subset of inliers
-               const double err = estimator.error( points[ nn ] );
-               if ( err < maxError )
+               for ( ui32 nn = 0; nn < nbPoint; ++nn )
                {
-                  currentSubset.push_back( nn );
-                  meanError += err;
+                  // compute the subset of inliers
+                  const double err = estimator->error( points[ nn ] );
+                  if ( err < maxError )
+                  {
+                     currentSubset.push_back( nn );
+                     meanError += err;
+                  }
                }
             }
             meanError /= currentSubset.size();
@@ -161,7 +175,7 @@ namespace algorithm
                if ( currentSubset.size() > bestSubset.size() )
                {
                   // save the model as it agrees with more points
-                  bestModel = estimator.getModel();
+                  bestModel = estimator->getModel();
                   bestSubset = currentSubset;
                   bestError = meanError;
                }
@@ -176,11 +190,11 @@ namespace algorithm
          {
             inliers.push_back( points[ bestSubset[ n ] ] );
          }
-         Estimator estimator = _estimatorFactory.create();
+         std::auto_ptr<Estimator> estimator = _estimatorFactory.create();
 
          try
          {
-            estimator.estimate( inliers );
+            estimator->estimate( inliers );
          } catch (...)
          {
             // error in estimation...
@@ -192,12 +206,12 @@ namespace algorithm
                   "  inlier size=" << inliers.size() << std::endl <<
                   "  inlier error=" << bestError << std::endl;
 
-            estimator.getModel().print( ss );
+            estimator->getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
          _nbInliers = static_cast<ui32>( inliers.size() );
          _inlierId = bestSubset;
-         return estimator.getModel();
+         return estimator->getModel();
       }
 
       ui32 getNbInliers() const

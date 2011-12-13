@@ -160,6 +160,14 @@ namespace core
       enum {value = true};
    };
 
+#ifdef WIN64
+   template <>
+   struct _IsNativeType<size_t>
+   {
+      enum {value = true};
+   };
+#endif
+
    /**
     @ingroup core
     @brief define if the type is a native type

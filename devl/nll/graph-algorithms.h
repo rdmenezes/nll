@@ -206,6 +206,23 @@ namespace core
          return std::vector<const_vertex_iterator>( path.rbegin(), path.rend() );
       }
 
+      std::vector<const_vertex_iterator> getPathTo( const typename Graph::VertexDescriptor& desc )
+      {
+         const_vertex_iterator it = _g->getIterator( desc );
+         return getPathTo( it );
+      }
+
+      MapperValueType getDistanceTo( const const_vertex_iterator& it ) const
+      {
+
+         return (*_vertexDistance)[ it ];
+      }
+
+      MapperValueType getDistanceTo( const typename Graph::VertexDescriptor& desc ) const
+      {
+         return (*_vertexDistance)[ desc ];
+      }
+
    private:
       EdgeMapper                             _distanceMap;
       std::auto_ptr<VertexMapper>            _vertexDistance;
