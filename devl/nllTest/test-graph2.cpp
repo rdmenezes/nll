@@ -563,14 +563,25 @@ public:
 
       Dijkstra<Graph1, double> dijkstra( emapper, g.getIterator(n1) );
       dijkstra.visit( g );
-      dijkstra.getPathTo( g.getIterator(n6) );
+      std::vector<Graph1::const_vertex_iterator> path1 = dijkstra.getPathTo( n5 );
+      TESTER_ASSERT( path1.size() == 4 );
+      TESTER_ASSERT( path1[ 0 ] == g.getIterator(n1) );
+      TESTER_ASSERT( path1[ 1 ] == g.getIterator(n3) );
+      TESTER_ASSERT( path1[ 2 ] == g.getIterator(n6) );
+      TESTER_ASSERT( path1[ 3 ] == g.getIterator(n5) );
+
+      TESTER_ASSERT( dijkstra.getDistanceTo( n1 ) == 0 );
+      TESTER_ASSERT( dijkstra.getDistanceTo( n2 ) == 7 );
+      TESTER_ASSERT( dijkstra.getDistanceTo( n3 ) == 9 );
+      TESTER_ASSERT( dijkstra.getDistanceTo( n4 ) == 20 );
+      TESTER_ASSERT( dijkstra.getDistanceTo( n5 ) == 20 );
+      TESTER_ASSERT( dijkstra.getDistanceTo( n6 ) == 11 );
    }
 
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGraph2);
-/*
 TESTER_TEST( testVector );
 TESTER_TEST( testSet );
 TESTER_TEST( testGraphVV );
@@ -579,7 +590,7 @@ TESTER_TEST( testGraphSV );
 TESTER_TEST( testGraphVS );
 TESTER_TEST( testBfsVV );
 TESTER_TEST( testBfsSS );
-TESTER_TEST( computeRoots );*/
+TESTER_TEST( computeRoots );
 TESTER_TEST( testDijkstra );
 TESTER_TEST_SUITE_END();
 #endif

@@ -62,7 +62,8 @@ namespace algorithm
    public:
       struct Point
       {
-         typedef core::Buffer1D<value_type> Features;
+         //typedef core::Buffer1D<value_type> Features;
+         typedef std::vector<value_type> Features;
          Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 64 )
          {}
 
@@ -76,7 +77,8 @@ namespace algorithm
 
          void write( std::ostream& o ) const
          {
-            features.write( o );
+            core::write<Features>( features, o );
+            //features.write( o );
             core::write<value_type>( orientation, o );
             position.write( o );
             core::write<ui32>( scale, o );
@@ -84,14 +86,16 @@ namespace algorithm
 
          void read( std::istream& i )
          {
-            features.read( i );
+            core::read<Features>( features, i );
+            //features.read( i );
             core::read<value_type>( orientation, i );
             position.read( i );
             core::read<ui32>( scale, i );
          }
       };
 
-      typedef core::Buffer1D<Point> Points;
+      typedef std::vector<Point> Points;
+      //typedef core::Buffer1D<Point> Points;
 
       /**
        @brief Expose the <point>'s <features> array as if it was stored as an array only
@@ -99,7 +103,8 @@ namespace algorithm
       class PointsFeatureWrapper
       {
       public:
-         typedef core::Buffer1D<SpeededUpRobustFeatures::value_type>  value_type;
+         typedef std::vector<SpeededUpRobustFeatures::value_type>  value_type;
+         //typedef core::Buffer1D<SpeededUpRobustFeatures::value_type>  value_type;
 
       public:
          PointsFeatureWrapper( const Points& points ) : _points( points )
@@ -107,7 +112,7 @@ namespace algorithm
 
          ui32 size() const
          {
-            return _points.size();
+            return static_cast<ui32>( _points.size() );
          }
 /*
          core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n )
@@ -115,7 +120,7 @@ namespace algorithm
             return _points[ n ].features;
          }
 */
-         const core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
+         const std::vector<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
          {
             return _points[ n ].features;
          }

@@ -128,6 +128,9 @@ namespace algorithm
             std::auto_ptr<Estimator> estimator;
             std::vector<ui32>       currentSubset;
 
+    //        #ifndef NLL_NOT_MULTITHREADED
+    //        # pragma omp critical
+    //        #endif
             {
                currentSubset.reserve( points.size() );
                estimator = _estimatorFactory.create();
@@ -144,6 +147,9 @@ namespace algorithm
                initialSubset.insertRef( index );
             }
 
+   //         #ifndef NLL_NOT_MULTITHREADED
+   //         # pragma omp critical
+   //         #endif
             {
                estimator->estimate( initialSubset );
             }
@@ -151,9 +157,9 @@ namespace algorithm
 
             double meanError = 0;
 
-            #ifndef NLL_NOT_MULTITHREADED
-            # pragma omp critical
-            #endif
+   //         #ifndef NLL_NOT_MULTITHREADED
+   //         # pragma omp critical
+   //         #endif
             {
                for ( ui32 nn = 0; nn < nbPoint; ++nn )
                {

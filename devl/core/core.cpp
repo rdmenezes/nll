@@ -2037,7 +2037,7 @@ static std::pair<std::vector<std::string>,
       }
    }
 
-#ifdef WIN32
+#if defined( WIN32 ) || defined( WIN64 )
    freopen("CON", "w", stdout);
    freopen("CON", "w", stderr);
 #else
