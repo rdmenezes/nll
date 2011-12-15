@@ -469,7 +469,7 @@ public:
       ConstVisitorBfsPrint<Graph1> visitor( mv, me );
       visitor.visit( g );
 
-      TESTER_ASSERT( visitor.discoveryList.size() == 17 );
+      TESTER_ASSERT( visitor.discoveryList.size() == 19 );
       TESTER_ASSERT( visitor.discoveryList[ 0 ] == "V1" );
       TESTER_ASSERT( visitor.discoveryList[ 1 ] == "Ea" );
       TESTER_ASSERT( visitor.discoveryList[ 2 ] == "V2" );
@@ -480,13 +480,15 @@ public:
       TESTER_ASSERT( visitor.discoveryList[ 7 ] == "V5" );
       TESTER_ASSERT( visitor.discoveryList[ 8 ] == "Ee" );
       TESTER_ASSERT( visitor.discoveryList[ 9 ] == "V6" );
-      TESTER_ASSERT( visitor.discoveryList[ 10 ] == "EV4" );
-      TESTER_ASSERT( visitor.discoveryList[ 11 ] == "EV6" );
-      TESTER_ASSERT( visitor.discoveryList[ 12 ] == "EV5" );
-      TESTER_ASSERT( visitor.discoveryList[ 13 ] == "Eb" );
-      TESTER_ASSERT( visitor.discoveryList[ 14 ] == "V3" );
-      TESTER_ASSERT( visitor.discoveryList[ 15 ] == "EV2" );
-      TESTER_ASSERT( visitor.discoveryList[ 16 ] == "EV3" );
+      TESTER_ASSERT( visitor.discoveryList[ 10 ] == "Ef" );
+      TESTER_ASSERT( visitor.discoveryList[ 11 ] == "EV4" );
+      TESTER_ASSERT( visitor.discoveryList[ 12 ] == "EV6" );
+      TESTER_ASSERT( visitor.discoveryList[ 13 ] == "EV5" );
+      TESTER_ASSERT( visitor.discoveryList[ 14 ] == "Eb" );
+      TESTER_ASSERT( visitor.discoveryList[ 15 ] == "V3" );
+      TESTER_ASSERT( visitor.discoveryList[ 16 ] == "Ec" );
+      TESTER_ASSERT( visitor.discoveryList[ 17 ] == "EV2" );
+      TESTER_ASSERT( visitor.discoveryList[ 18 ] == "EV3" );
    }
 
    void testBfsVV()
