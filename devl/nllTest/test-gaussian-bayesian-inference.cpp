@@ -27,7 +27,7 @@ namespace algorithm
       typedef typename Graph::VertexDescriptor           NodeDescritor;
 
    public:
-      BayesianNetwork() : _names( _network ), _Factors( _network )
+      BayesianNetwork() : _names( _network ), _factors( _network )
       {}
 
       NodeDescritor addNode( const std::string& name, const Factor& factor )
@@ -57,10 +57,25 @@ class TestGaussianBayesianInference
 public:
    void testBasicInf1()
    {
-      typedef algorithm::PotentialGaussianCanonical   Factor;
-      typedef algorithm::BayesianNetwork BayesianNetwork;
+      // see example from BNT http://bnt.googlecode.com/svn/trunk/docs/usage.html
+      enum DomainVariable
+      {
+         CLOUDY,
+         SPRINKLER,
+         RAIN,
+         WETGRASS
+      };
+
+      typedef algorithm::PotentialTable            Factor;
+      typedef algorithm::BayesianNetwork<Factor>   BayesianNetwork;
 
       BayesianNetwork bnet;
+
+      Factor::VectorI domainCloudyTable( 1 );
+      domainCloudyTable[ 0 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalityCloudy( 1 );
+      cardinalityCloudy[ 0 ] = 2;
+      Factor cloudy( core::make_buffer1D<double>( 0.5, 0.5 ), domainCloudyTable, cardinalityCloudy );
    }
 
 };

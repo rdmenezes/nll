@@ -89,6 +89,21 @@ namespace algorithm
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
       }
 
+      /**
+       @brief same as before but set all probabilities to zero
+       */
+      PotentialTable( const VectorI domain, const VectorI& cardinality )
+      {
+         const ui32 expectedTableSize = getTableSize( cardinality );
+         ensure( domain.size() == cardinality.size(), "missing id" );
+         ensure( isDomainSorted( domain ), "the domain must be sorted!" );
+         _domain = domain;
+         _cardinality = cardinality;
+         _table = Vector( domain.size() );
+
+         ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
+      }
+
       void print( std::ostream& o ) const
       {
          o << "Potential Table:" << std::endl;
@@ -111,6 +126,34 @@ namespace algorithm
             p = p.marginalization( varIndexToRemove[ n ] );
          }
          return p;
+      }
+
+      /**
+       @brief returns the probability associated to the evidence stored in the table
+       @note this is a convenient way to initialize the table but it is not very performant...
+       @param evidence the evidence for all the table variable!
+       */
+      value_type& getProbability( const VectorI& evidence )
+      {
+         ensure( evidence.size() == _domain.size(), "all variables must be specified!" );
+
+         // first compute the strides
+         std::vector<ui32> strides( _domain.size() );
+         ui32 stride = 1;
+         for ( ui32 n = 0; n < _domain.size(); ++n )
+         {
+            strides[ n ] = stride;
+            stride *= _cardinality[ n ];
+         }
+
+         // now compute the table index
+         ui32 index = 0;
+         for ( ui32 n = 0; n < _domain.size(); ++n )
+         {
+            index += evidence[ n ] * strides[ n ];
+         }
+
+         return _table[ index ];
       }
 
       PotentialTable conditioning( const VectorI& evidence, const VectorI& varIndexToRemove ) const

@@ -226,7 +226,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bounds.h" />
-    <ClInclude Include="test-gaussian-bayesian-inference.h" />
     <CustomBuildStep Include="config.h" />
     <CustomBuildStep Include="database-builder.h" />
     <ClInclude Include="problem-builder-gmm.h" />
@@ -330,6 +329,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="test-gaussian-bayesian-inference.cpp" />
     <ClCompile Include="test-gaussian-tfm.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -362,6 +362,7 @@
     </ClCompile>
     <ClCompile Include="test-graph2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="test-haar-features.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
