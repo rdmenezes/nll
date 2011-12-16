@@ -48,7 +48,7 @@ namespace algorithm
       typedef core::Matrix<double>     Matrix;
       typedef core::Buffer1D<double>   Vector;
 
-      EstimatorTransformAffineIsometric( double scale = 0, double minimumScale = 0.5, double maximumScale = 1.6 ) : 
+      EstimatorTransformAffineIsometric( double scale = 0, double minimumScale = 0.7, double maximumScale = 1.6 ) : 
          _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
       {
       }

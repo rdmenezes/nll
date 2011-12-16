@@ -60,7 +60,13 @@ namespace algorithm
       typedef Vector                       Point;
       typedef std::vector<Point>           Points;
 
-      EstimatorTransformAffine2dDlt( double minimumScale = 0.5, double maximumScale = 1.6 ) : _minScale( minimumScale ), _maxScale( maximumScale )
+      /**
+       @brief Affine estimation using DLT method
+       @param maxShearing the maximum shearing factor allowed
+       @param minimumScale the minimal scaling for a transformation to have for not begin rejected
+       @param maximumScale the maximal scaling for a transformation to have for not begin rejected
+       */
+      EstimatorTransformAffine2dDlt( double minimumScale = 0.7, double maximumScale = 1.6, double maxShearing = 0.1 ) : _minScale( minimumScale ), _maxScale( maximumScale ), _maxShearing( maxShearing )
       {}
 
       /**
@@ -112,8 +118,11 @@ namespace algorithm
             // check the constraints
             Matrix matrix = normalize2 * tfm * normalize1;
             core::vector2f sp = getSpacing3x3( matrix );
+            const double shearingFactor = fabs( matrix( 0, 0 ) / sp[ 0 ] * matrix( 0, 1 ) / sp[ 1 ] +
+                                                matrix( 1, 0 ) / sp[ 0 ] * matrix( 1, 1 ) / sp[ 1 ] );
             if ( sp[ 0 ] < _minScale || sp[ 0 ] > _maxScale ||
-                 sp[ 1 ] < _minScale || sp[ 1 ] > _maxScale )
+                 sp[ 1 ] < _minScale || sp[ 1 ] > _maxScale || 
+                 shearingFactor > _maxShearing )
             {
                matrix = core::identityMatrix<Matrix>( 3 );
             }
@@ -209,6 +218,7 @@ namespace algorithm
       Result    _result;
       double    _minScale;
       double    _maxScale;
+      double    _maxShearing;
    };
 }
 }

@@ -226,6 +226,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="bounds.h" />
+    <ClInclude Include="test-gaussian-bayesian-inference.h" />
     <CustomBuildStep Include="config.h" />
     <CustomBuildStep Include="database-builder.h" />
     <ClInclude Include="problem-builder-gmm.h" />

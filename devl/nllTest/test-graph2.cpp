@@ -10,7 +10,7 @@ using namespace nll::core;
 
 namespace nll
 {
-namespace core
+namespace algorithm
 {
    
 }

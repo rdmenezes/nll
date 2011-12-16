@@ -167,7 +167,7 @@ namespace algorithm
 
       public:
          AffineIsotropicTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
-                                                       double scale = 0, double minimumScale = 0.75, double maximumScale = 1.25 ) : _p1( p1 ), _p2( p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+                                                       double scale = 0, double minimumScale = 0.8, double maximumScale = 1.2 ) : _p1( p1 ), _p2( p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {
          }
 
@@ -258,9 +258,9 @@ namespace algorithm
          Model    _model;
          const SpeededUpRobustFeatures::Points& _p1;
          const SpeededUpRobustFeatures::Points& _p2;
-         double   _scale;
-         double   _minimumScale;
-         double   _maximumScale;
+         const double   _scale;
+         const double   _minimumScale;
+         const double   _maximumScale;
       };
 
       class AffineTransformationEstimatorRansac
@@ -321,7 +321,8 @@ namespace algorithm
          };
 
       public:
-         AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( p1 ), _p2( p2 )
+         AffineTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                              double minimumScale = 0.8, double maximumScale = 1.2, double maxShearing = 0.1 ) : _p1( p1 ), _p2( p2 ), _minimumScale( minimumScale ), _maximumScale( maximumScale ), _maxShearing( maxShearing )
          {
          }
 
@@ -332,7 +333,7 @@ namespace algorithm
 
          static ui32 minimumNumberOfSubsets()
          {
-            return 200000;
+            return 150000;
          }
 
          struct Model
@@ -360,7 +361,7 @@ namespace algorithm
             PointsWrapper1<Points> wrapperP1( _p1, points );
             PointsWrapper2<Points> wrapperP2( _p2, points );
             
-            EstimatorTransformAffine2dDlt affineEstimator;
+            EstimatorTransformAffine2dDlt affineEstimator( _minimumScale, _maximumScale, _maxShearing );
             _model.tfm = affineEstimator.compute( wrapperP1, wrapperP2 );
          }
 
@@ -399,6 +400,9 @@ namespace algorithm
          Model    _model;
          const SpeededUpRobustFeatures::Points& _p1;
          const SpeededUpRobustFeatures::Points& _p2;
+         const double   _minimumScale;
+         const double   _maximumScale;
+         const double   _maxShearing;
       };
 
       class SurfEstimatorAffineIsotropicFactory
@@ -417,26 +421,30 @@ namespace algorithm
       private:
          const SpeededUpRobustFeatures::Points* _p1;
          const SpeededUpRobustFeatures::Points* _p2;
-         double   _scale;
-         double   _minimumScale;
-         double   _maximumScale;
+         const double   _scale;
+         const double   _minimumScale;
+         const double   _maximumScale;
       };
 
       class SurfEstimatorAffineFactory
       {
       public:
          typedef AffineTransformationEstimatorRansac Estimator;
-         SurfEstimatorAffineFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2 ) : _p1( &p1 ), _p2( &p2 )
+         SurfEstimatorAffineFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                     double minimumScale = 0.5, double maximumScale = 1.6, double maximumShearing = 10 ) : _p1( &p1 ), _p2( &p2 ), _minimumScale( minimumScale ), _maximumScale( maximumScale ), _maximumShearing( maximumShearing )
          {}
 
          std::auto_ptr<Estimator> create() const
          {
-            return std::auto_ptr<Estimator>( new Estimator( *_p1, *_p2 ) );
+            return std::auto_ptr<Estimator>( new Estimator( *_p1, *_p2, _minimumScale, _maximumScale, _maximumShearing ) );
          }
 
       private:
          const SpeededUpRobustFeatures::Points* _p1;
          const SpeededUpRobustFeatures::Points* _p2;
+         const double   _minimumScale;
+         const double   _maximumScale;
+         const double   _maximumShearing;
       };
    }
 
