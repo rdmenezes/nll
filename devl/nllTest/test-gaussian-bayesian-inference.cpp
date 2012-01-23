@@ -12,6 +12,20 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @brief Model a bayesian network with by a single type of factor <FactorT>
+
+    U = all the model's variables
+
+    Inference: 3 main questions:
+    - likelyhood queries: computes p(E=e) = Sum_(y in U-E) p(Y=y, E=e)
+    - conditional probability queries: on a set of variables Y, computes p(Y=y | E=e) = p(Y=y, E=e) / p(E=e) = sum_(w in U-E-Y) p(W=w, Y=y, E=e)/sum_(z in U-E)p(Z=z, E=e)
+    - maximum a posteriory assignment: computes MAP(Y|E=e) = argmax_y p(Y=y | E=e)  <=> argmax_y p(Y=y, E=e)
+
+    Learning:
+    - parameter optimizations
+    - structure learning
+    */
    template <class FactorT>
    class BayesianNetwork
    {
