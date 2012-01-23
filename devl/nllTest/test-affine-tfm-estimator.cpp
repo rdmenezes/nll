@@ -4,6 +4,47 @@
 
 using namespace nll;
 
+namespace nll
+{
+namespace algorithm
+{
+   /**
+    @brief Find the exact solution for the isometry mapping (i.e., this find the exact solution by using only the minimal number of points to find the transformation)
+    
+    Uses exactly 2 pairs of points A and B to find the transformation T such that B = T(A), with T = | R(theta) 0 translation |
+                                                                                                     | 0        1             |
+    @see http://personal.lut.fi/users/joni.kamarainen/downloads/publications/laitosrap111.pdf for implementation reference
+         Experimental Study on Fast 2D Homography Estimation from a Few Point Correspondences
+         Joni-Kristian Kamarainen
+         Pekka Paalanen
+    */
+   class AffineIsometryExact
+   {
+      template <class Points1, class Points2>
+      Matrix compute( const Points1& points1, const Points2& points2 )
+      {
+         ensure( points1.size() == 2, "we can only use one point" );
+         ensure( points2.size() == 2, "we can only use one point" );
+
+         typedef typename Points1::value_type Type;
+
+         const Type dx = points1[ 0 ][ 0 ] - points1[ 1 ][ 0 ];
+         const Type dy = points1[ 0 ][ 1 ] - points1[ 1 ][ 1 ];
+
+         const Type dxp = points2[ 0 ][ 0 ] - points2[ 1 ][ 0 ];
+         const Type dyp = points2[ 0 ][ 1 ] - points2[ 1 ][ 1 ];
+
+         const Type r  = std::sqrt( core::sqr( dx )  + core::sqr( dy ) );
+         const Type rp = std::sqrt( core::sqr( dxp ) + core::sqr( dyp ) );
+
+         const Type r0 =  dx * dxp + dy  * dyp;
+         const Type r1 = -dx * dyp + dxp * dy;
+         const Type r2 =  dx * dyp - dxp * dy;
+         const Type r3 =  dx * dxp + dy  * dyp;
+      }
+   };
+}
+}
 
 class TestAffineTransformationEstimator
 {
