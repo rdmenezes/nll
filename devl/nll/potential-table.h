@@ -115,6 +115,10 @@ namespace algorithm
          _table.print( o );
       }
 
+      /**
+       @brief Given a representing PDF p( X, Y ), compute p( X ) by integrating over Y
+       @param varIndexToRemove refering to the Y above
+       */
       PotentialTable marginalization( const VectorI& varIndexToRemove ) const
       {
          ensure( varIndexToRemove.size(), "empty set" );
@@ -129,13 +133,13 @@ namespace algorithm
       }
 
       /**
-       @brief returns the probability associated to the evidence stored in the table
+       @brief returns the probability stored in the table and associated to the provided event
        @note this is a convenient way to initialize the table but it is not very performant...
        @param evidence the evidence for all the table variable!
        */
-      value_type& getProbability( const VectorI& evidence )
+      value_type& getProbability( const VectorI& event )
       {
-         ensure( evidence.size() == _domain.size(), "all variables must be specified!" );
+         ensure( event.size() == _domain.size(), "all variables must be specified!" );
 
          // first compute the strides
          std::vector<ui32> strides( _domain.size() );
@@ -150,12 +154,17 @@ namespace algorithm
          ui32 index = 0;
          for ( ui32 n = 0; n < _domain.size(); ++n )
          {
-            index += evidence[ n ] * strides[ n ];
+            index += event[ n ] * strides[ n ];
          }
 
          return _table[ index ];
       }
 
+      /**
+       @brief computes p(X | Y=y) i.e., entering evidence
+       @param vars the evidence of Y=y
+       @param varIndexToRemove the index of Y's, must be sorted 0->+inf
+       */
       PotentialTable conditioning( const VectorI& evidence, const VectorI& varIndexToRemove ) const
       {
          ensure( varIndexToRemove.size(), "empty set" );
@@ -181,6 +190,10 @@ namespace algorithm
          return extended1;
       }
 
+      /**
+       @brief Extend the domain of the table by adding new domain variable with
+              associated probability of 0
+       */
       PotentialTable extendDomain( const VectorI& domain, const VectorI& cardinality ) const
       {
          ensure( isDomainSorted( domain ), "domain must be sorted first" );
