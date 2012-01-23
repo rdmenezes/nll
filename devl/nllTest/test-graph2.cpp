@@ -323,8 +323,8 @@ public:
 
          Graph1::vertex_iterator iv1 = g3.begin();
          Graph1::vertex_iterator iv1c = iv1;
-         Graph1::const_edge_iterator ie1 = (*iv1).begin();
-         Graph1::const_edge_iterator ie1c = ie1;
+         Graph1::edge_iterator ie1 = (*iv1).begin();
+         Graph1::edge_iterator ie1c = ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 1 );
          ++ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 2 );
@@ -501,9 +501,20 @@ public:
       testBfsImpl<MapperSet, MapperSet>();
    }
 
-   void computeRoots()
+   void computeRootsVV()
    {
-      typedef GraphAdgencyList<MapperVector, MapperVector>   Graph1;
+      computeRootsImpl<MapperVector, MapperVector>();
+   }
+
+   void computeRootsSS()
+   {
+      computeRootsImpl<MapperSet, MapperSet>();
+   }
+
+   template <class MapperVertex, class MapperEdge>
+   void computeRootsImpl()
+   {
+      typedef GraphAdgencyList<MapperVertex, MapperEdge>   Graph1;
 
       nll::core::Timer time;
       Graph1 g;
@@ -528,9 +539,20 @@ public:
       TESTER_ASSERT( Graph1::const_vertex_iterator( g.getIterator( n6 ) ) == roots[ 1 ] );
    }
 
-   void testDijkstra()
+   void testDijkstraVV()
    {
-      typedef GraphAdgencyList<MapperVector, MapperVector>   Graph1;
+      testDijkstraImpl<MapperVector, MapperVector>();
+   }
+
+   void testDijkstraSS()
+   {
+      testDijkstraImpl<MapperSet, MapperSet>();
+   }
+   
+   template <class MapperVertex, class MapperEdge>
+   void testDijkstraImpl()
+   {
+      typedef GraphAdgencyList<MapperVertex, MapperEdge>   Graph1;
 
       nll::core::Timer time;
       Graph1 g;
@@ -592,7 +614,9 @@ TESTER_TEST( testGraphSV );
 TESTER_TEST( testGraphVS );
 TESTER_TEST( testBfsVV );
 TESTER_TEST( testBfsSS );
-TESTER_TEST( computeRoots );
-TESTER_TEST( testDijkstra );
+TESTER_TEST( computeRootsVV );
+TESTER_TEST( computeRootsSS );
+TESTER_TEST( testDijkstraVV );
+TESTER_TEST( testDijkstraSS );
 TESTER_TEST_SUITE_END();
 #endif
