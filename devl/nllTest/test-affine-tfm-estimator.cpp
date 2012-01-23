@@ -95,7 +95,7 @@ public:
 
    void testAffineAnisotropic2D()
    {
-      srand(11);
+      srand(12);
       for ( ui32 n = 0; n < 100; ++n )
       {
          const double angle = core::generateUniformDistribution( - core::PI, core::PI );
@@ -119,7 +119,7 @@ public:
             points2.push_back( core::make_vector<double>( pointTfm[ 0 ], pointTfm[ 1 ] ) );
          }
 
-         algorithm::EstimatorTransformAffine2dDlt estimator;
+         algorithm::EstimatorTransformAffine2dDlt estimator( 0, 999, 999 );
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
          std::cout << "real spacing=" << spx << " " << spy << std::endl;
