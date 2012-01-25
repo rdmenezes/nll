@@ -112,7 +112,7 @@ namespace utility
          }
       }
 
-      AttributsStatistics computeStatistics( ui32 nbWorstValuesPerAttribut = 30 ) const
+      AttributsStatistics computeStatistics( ui32 nbWorstValuesPerAttribut = 300 ) const
       {
          AttributsStatistics attributsStatistics;
          for ( Attributs::const_iterator attribut = _attributs.begin(); attribut != _attributs.end(); ++attribut )

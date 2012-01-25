@@ -108,7 +108,7 @@ namespace algorithm
          }
       };
 
-      class AffineIsotropicTransformationEstimatorRansac
+      class SimilarityIsotropicTransformationEstimatorRansac
       {
       private:
          typedef SpeededUpRobustFeatures::Points PointsData;
@@ -166,7 +166,7 @@ namespace algorithm
          };
 
       public:
-         AffineIsotropicTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+         SimilarityIsotropicTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
                                                        double scale = 0, double minimumScale = 0.8, double maximumScale = 1.2 ) : _p1( p1 ), _p2( p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {
          }
@@ -206,7 +206,7 @@ namespace algorithm
             PointsWrapper1<Points> wrapperP1( _p1, points );
             PointsWrapper2<Points> wrapperP2( _p2, points );
             
-            EstimatorTransformAffineIsometric affineEstimator( _scale, _minimumScale, _maximumScale );
+            EstimatorTransformSimilarityIsometric affineEstimator( _scale, _minimumScale, _maximumScale );
             _model.tfm = affineEstimator.compute( wrapperP1, wrapperP2 );
          }
 
@@ -252,13 +252,167 @@ namespace algorithm
 
       private:
          // copy disabled
-         AffineIsotropicTransformationEstimatorRansac& operator=( const AffineIsotropicTransformationEstimatorRansac& );
+         SimilarityIsotropicTransformationEstimatorRansac& operator=( const SimilarityIsotropicTransformationEstimatorRansac& );
 
       private:
          Model    _model;
          const SpeededUpRobustFeatures::Points& _p1;
          const SpeededUpRobustFeatures::Points& _p2;
          const double   _scale;
+         const double   _minimumScale;
+         const double   _maximumScale;
+      };
+
+      class SimilarityNonIsotropicTransformationEstimatorRansac
+      {
+      private:
+         typedef SpeededUpRobustFeatures::Points PointsData;
+
+         template <class PointsMatch>
+         class PointsWrapper1
+         {
+         public:
+            PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
+            {}
+
+            ui32 size() const
+            {
+               return static_cast<ui32>( _matches.size() );
+            }
+
+            const core::vector2i& operator[]( ui32 index ) const
+            {
+               return _points[ _matches[ index ].index1 ].position;
+            }
+
+         private:
+            // copy disabled
+            PointsWrapper1& operator=( const PointsWrapper1& );
+
+         private:
+            const PointsData&     _points;
+            const PointsMatch&    _matches;
+         };
+
+         template <class PointsMatch>
+         class PointsWrapper2
+         {
+         public:
+            PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
+            {}
+
+            ui32 size() const
+            {
+               return static_cast<ui32>( _matches.size() );
+            }
+
+            const core::vector2i& operator[]( ui32 index ) const
+            {
+               return _points[ _matches[ index ].index2 ].position;
+            }
+
+         private:
+            // copy disabled
+            PointsWrapper2& operator=( const PointsWrapper2& );
+
+         private:
+            const PointsData&     _points;
+            const PointsMatch&    _matches;
+         };
+
+      public:
+         SimilarityNonIsotropicTransformationEstimatorRansac( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                                          double minimumScale = 0.8, double maximumScale = 1.2 ) : _p1( p1 ), _p2( p2 ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+         {
+         }
+
+         static ui32 minimumNumberOfPointsForEstimation()
+         {
+            return 3;
+         }
+
+         static ui32 minimumNumberOfSubsets()
+         {
+            return 25000;
+         }
+
+         struct Model
+         {
+            Model() : tfm( core::identityMatrix< core::Matrix<double> >( 3 ) )
+            {}
+
+            void print( std::ostream& o ) const
+            {
+               o << " Transformation Translation only=";
+               tfm.print( o );
+            }
+
+            core::Matrix<double> tfm;
+         };
+
+         typedef FeatureMatcher::Match    Point;
+
+         template <class Points>
+         void estimate( const Points& points )
+         {
+            if ( points.size() < 2 )
+               return;
+           
+            PointsWrapper1<Points> wrapperP1( _p1, points );
+            PointsWrapper2<Points> wrapperP2( _p2, points );
+            
+            EstimatorAffineSimilarityNonIsotropic2d estimator( _minimumScale, _maximumScale );
+            _model.tfm = estimator.compute( wrapperP1, wrapperP2 );
+         }
+
+         /**
+          @brief Returns squared error. Transforms the source point to target point given a transformation,
+                 and returns the squared sum of the differences
+          */
+         double error( const Point& point ) const
+         {
+            
+            const SpeededUpRobustFeatures::Point& p1 = _p1[ point.index1 ];
+            const SpeededUpRobustFeatures::Point& p2 = _p2[ point.index2 ];
+
+            // transform the point
+            const core::Matrix<double>& tfm = _model.tfm;
+            double px = tfm( 0, 2 ) + p1.position[ 0 ] * tfm( 0, 0 ) + p1.position[ 1 ] * tfm( 0, 1 );
+            double py = tfm( 1, 2 ) + p1.position[ 0 ] * tfm( 1, 0 ) + p1.position[ 1 ] * tfm( 1, 1 );
+
+            // we want a ratio of the error...
+            const double lengthTfm = core::sqr( px - p2.position[ 0 ] ) +
+                                     core::sqr( py - p2.position[ 1 ] );
+            const double errorVal = fabs( lengthTfm );
+            return errorVal;
+         }
+
+         /**
+          @brief Returns the current model
+          */
+         const Model& getModel() const
+         {
+            return _model;
+         }
+
+         const SpeededUpRobustFeatures::Points& getP1() const
+         {
+            return _p1;
+         }
+
+         const SpeededUpRobustFeatures::Points& getP2() const
+         {
+            return _p2;
+         }
+
+      private:
+         // copy disabled
+         SimilarityNonIsotropicTransformationEstimatorRansac& operator=( const SimilarityNonIsotropicTransformationEstimatorRansac& );
+
+      private:
+         Model    _model;
+         const SpeededUpRobustFeatures::Points& _p1;
+         const SpeededUpRobustFeatures::Points& _p2;
          const double   _minimumScale;
          const double   _maximumScale;
       };
@@ -405,11 +559,11 @@ namespace algorithm
          const double   _maxShearing;
       };
 
-      class SurfEstimatorAffineIsotropicFactory
+      class SurfEstimatorSimilarityIsotropicFactory
       {
       public:
-         typedef AffineIsotropicTransformationEstimatorRansac Estimator;
-         SurfEstimatorAffineIsotropicFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+         typedef SimilarityIsotropicTransformationEstimatorRansac Estimator;
+         SurfEstimatorSimilarityIsotropicFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
                                               double scale = 0, double minimumScale = 0.8, double maximumScale = 1.2 ) : _p1( &p1 ), _p2( &p2 ), _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {}
 
@@ -420,12 +574,36 @@ namespace algorithm
 
       private:
          // copy disabled
-         const SurfEstimatorAffineIsotropicFactory& operator=( const SurfEstimatorAffineIsotropicFactory& );
+         const SurfEstimatorSimilarityIsotropicFactory& operator=( const SurfEstimatorSimilarityIsotropicFactory& );
 
       private:
          const SpeededUpRobustFeatures::Points* _p1;
          const SpeededUpRobustFeatures::Points* _p2;
          const double   _scale;
+         const double   _minimumScale;
+         const double   _maximumScale;
+      };
+
+      class SurfEstimatorSimilarityNonIsotropicFactory
+      {
+      public:
+         typedef SimilarityNonIsotropicTransformationEstimatorRansac Estimator;
+         SurfEstimatorSimilarityNonIsotropicFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
+                                                 double minimumScale = 0.5, double maximumScale = 1.5 ) : _p1( &p1 ), _p2( &p2 ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+         {}
+
+         std::auto_ptr<Estimator> create() const
+         {
+            return std::auto_ptr<Estimator>( new Estimator( *_p1, *_p2, _minimumScale, _maximumScale ) );
+         }
+
+      private:
+         // copy disabled
+         const SurfEstimatorSimilarityNonIsotropicFactory& operator=( const SurfEstimatorSimilarityNonIsotropicFactory& );
+
+      private:
+         const SpeededUpRobustFeatures::Points* _p1;
+         const SpeededUpRobustFeatures::Points* _p2;
          const double   _minimumScale;
          const double   _maximumScale;
       };
@@ -468,7 +646,7 @@ namespace algorithm
     @note this class is just an example and will likely need a lot of customization by the user to fit
           the given registration problem
     */
-   template <class FactoryT = impl::SurfEstimatorAffineIsotropicFactory, class FeatureMatcher = impl::FeatureMatcher>
+   template <class FactoryT = impl::SurfEstimatorSimilarityIsotropicFactory, class FeatureMatcher = impl::FeatureMatcher>
    class AffineRegistrationPointBased2d
    {
    public:

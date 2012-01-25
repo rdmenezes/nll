@@ -343,7 +343,7 @@ namespace algorithm
     @see Direct implementation of Least-squares estimation of anisotropic similarity transformations from corresponding 2D point sets
          Carsten Steger
     */
-   class AffineSimilarityNonIsotropic2d
+   class EstimatorAffineSimilarityNonIsotropic2d
    {
    public:
       typedef double Type;
@@ -351,6 +351,11 @@ namespace algorithm
       typedef core::vector2d      Point;
 
    public:
+      EstimatorAffineSimilarityNonIsotropic2d( double minimumScale = 0.7, double maximumScale = 1.6 ) : 
+         _minimumScale( minimumScale ), _maximumScale( maximumScale )
+      {
+      }
+
       template <class Points1, class Points2>
       Matrix compute( const Points1& points1, const Points2& points2 )
       {
@@ -406,7 +411,12 @@ namespace algorithm
          const Type c2 = core::sqr( c );
          const Type d2 = core::sqr( d );
 
-         ensure( fabs( e ) > 1e-7 && fabs( f ) > 1e-7, "degenerate points..." );
+         if ( fabs( e ) < 1e-7 || fabs( f ) < 1e-7 )
+         {
+            // generated config
+            return core::identityMatrix<Matrix>( 3 );
+         }
+
          const Type g = 0.5 * ( ( a2 - b2 ) / e + ( d2 - c2 ) / f );
          const Type h = c * d / f - a * b / e;
 
@@ -419,6 +429,12 @@ namespace algorithm
          const Type tx = cy[ 0 ] - ( sc1 * cosa * cx[ 0 ] - sc2 * sina * cx[ 1 ] );
          const Type ty = cy[ 1 ] - ( sc1 * sina * cx[ 0 ] + sc2 * cosa * cx[ 1 ] );
 
+         if ( sc1 < _minimumScale || sc2 < _minimumScale ||
+              sc1 > _maximumScale || sc2 > _maximumScale )
+         {
+            return core::identityMatrix<Matrix>( 3 );
+         }
+
          // finally compose the matrix
          Matrix tfm(3, 3);
          tfm( 0, 0 ) =  cosa * sc1;
@@ -430,6 +446,10 @@ namespace algorithm
          tfm( 2, 2 ) =  1;
          return tfm;
       }
+
+   private:
+      double   _minimumScale;
+      double   _maximumScale;
    };
 }
 }

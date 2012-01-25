@@ -388,8 +388,8 @@ public:
          core::writeBmp( output3, rootOut + "o3-" + core::val2str(n) + ".bmp" );
 
          // estimate the transformation
-         typedef algorithm::impl::SurfEstimatorAffineIsotropicFactory              SurfEstimatorFactory;
-         typedef algorithm::impl::SurfEstimatorAffineIsotropicFactory::Estimator   SurfEstimator;
+         typedef algorithm::impl::SurfEstimatorSimilarityIsotropicFactory              SurfEstimatorFactory;
+         typedef algorithm::impl::SurfEstimatorSimilarityIsotropicFactory::Estimator   SurfEstimator;
          typedef algorithm::Ransac<SurfEstimator, SurfEstimatorFactory> Ransac;
 
          SurfEstimatorFactory estimatorFactory( points1, points2 );

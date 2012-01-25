@@ -42,13 +42,13 @@ namespace algorithm
     @see Shinji Umeyama. Least-Squares Estimation of Transformation Parameters
          Between Two Point Patterns. PAMI, vol. 13, no. 4, April 1991.
     */
-   class EstimatorTransformAffineIsometric
+   class EstimatorTransformSimilarityIsometric
    {
    public:
       typedef core::Matrix<double>     Matrix;
       typedef core::Buffer1D<double>   Vector;
 
-      EstimatorTransformAffineIsometric( double scale = 0, double minimumScale = 0.7, double maximumScale = 1.6 ) : 
+      EstimatorTransformSimilarityIsometric( double scale = 0, double minimumScale = 0.7, double maximumScale = 1.6 ) : 
          _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
       {
       }

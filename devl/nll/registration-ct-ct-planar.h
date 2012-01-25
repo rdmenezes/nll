@@ -48,7 +48,7 @@ namespace algorithm
     Finally the 2 pairs of projection are registered using a SURF 2D - ransac - affine estimator one by one and
     a global transformation matrix is computed.
     */
-   template <class TransformationEstimatorFactory = impl::SurfEstimatorAffineIsotropicFactory>
+   template <class TransformationEstimatorFactory = impl::SurfEstimatorSimilarityIsotropicFactory>
    class AffineRegistrationCT3d
    {
    public:

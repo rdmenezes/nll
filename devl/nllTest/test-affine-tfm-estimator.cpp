@@ -152,7 +152,7 @@ public:
             points2.push_back( core::make_vector<double>( pointTfm[ 0 ], pointTfm[ 1 ] ) );
          }
 
-         algorithm::EstimatorTransformAffineIsometric estimator( 0, 0.1, 10 );
+         algorithm::EstimatorTransformSimilarityIsometric estimator( 0, 0.1, 10 );
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
          for ( ui32 p = 0; p < tfm.size(); ++p )
@@ -200,7 +200,7 @@ public:
             points2.push_back( core::make_vector<double>( pointTfm[ 0 ], pointTfm[ 1 ], pointTfm[ 2 ] ) );
          }
 
-         algorithm::EstimatorTransformAffineIsometric estimator;
+         algorithm::EstimatorTransformSimilarityIsometric estimator;
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
          for ( ui32 p = 0; p < tfm.size(); ++p )
@@ -347,7 +347,7 @@ public:
             points2.push_back( core::make_vector<double>( pointTfm[ 0 ], pointTfm[ 1 ] ) );
          }
 
-         algorithm::AffineSimilarityNonIsotropic2d estimator;
+         algorithm::EstimatorAffineSimilarityNonIsotropic2d estimator( 0, 1000 );
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
          for ( ui32 p = 0; p < tfm.size(); ++p )
