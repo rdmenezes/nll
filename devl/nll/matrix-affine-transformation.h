@@ -184,8 +184,8 @@ namespace core
       vector2f spacing;
       for ( ui32 x = 0; x < 2; ++x )
       {
-         spacing[ x ] = std::sqrt( core::sqr( m( 0, x ) ) +
-                                   core::sqr( m( 1, x ) ) );
+         spacing[ x ] = (f32)std::sqrt( core::sqr( m( 0, x ) ) +
+                                        core::sqr( m( 1, x ) ) );
       }
       return spacing;
    }

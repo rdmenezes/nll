@@ -86,7 +86,7 @@ public:
             for ( ui32 c = 0; c < 3; ++c )
             {
                const double val = ( 2 * (c==2) * source( x, y, c )  + output( x, y, c ) );
-               output( x, y, c ) = NLL_BOUND( val, 0, 255 );
+               output( x, y, c ) = (ui8)NLL_BOUND( val, 0, 255 );
             }
          }
       }
@@ -290,7 +290,7 @@ public:
       core::extend( src, 3 );
       core::writeBmp( src, NLL_TEST_PATH "data/test-resampling-image1-source-tfm.bmp" );
 
-      TESTER_ASSERT( error < 81, "Error too big, registration is wrong!" );
+      TESTER_ASSERT( error < 81 ); // Error too big, registration is wrong!
    }
 
    void debugRegistration()
@@ -317,6 +317,6 @@ public:
 TESTER_TEST_SUITE(TestPlanarRegistration);
 //TESTER_TEST(testResampling);
 TESTER_TEST(testRegistration);
-TESTER_TEST(debugRegistration);
+//TESTER_TEST(debugRegistration);
 TESTER_TEST_SUITE_END();
 #endif

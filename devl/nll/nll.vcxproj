@@ -367,6 +367,7 @@
     <ClInclude Include="database-manipulation.h" />
     <ClInclude Include="database.h" />
     <ClInclude Include="ensure.h" />
+    <ClInclude Include="estimator-affine-transformation.h" />
     <ClInclude Include="generic-operations.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="graph-adjency-list.h" />
@@ -530,7 +531,6 @@
     <ClInclude Include="volume-spatial.h" />
     <ClInclude Include="volume-transformation-mapper.h" />
     <ClInclude Include="volume.h" />
-    <ClInclude Include="estimator-affine2D-transformation-dlt.h" />
     <ClInclude Include="estimator-affine2D-transformation.h" />
     <ClInclude Include="haar-features-3d.h" />
     <ClInclude Include="haar-features.h" />

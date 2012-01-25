@@ -323,8 +323,8 @@ public:
 
          Graph1::vertex_iterator iv1 = g3.begin();
          Graph1::vertex_iterator iv1c = iv1;
-         Graph1::edge_iterator ie1 = (*iv1).begin();
-         Graph1::edge_iterator ie1c = ie1;
+         Graph1::const_edge_iterator ie1 = (*iv1).begin();
+         Graph1::const_edge_iterator ie1c = ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 1 );
          ++ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 2 );

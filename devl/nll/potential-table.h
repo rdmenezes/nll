@@ -94,7 +94,6 @@ namespace algorithm
        */
       PotentialTable( const VectorI domain, const VectorI& cardinality )
       {
-         const ui32 expectedTableSize = getTableSize( cardinality );
          ensure( domain.size() == cardinality.size(), "missing id" );
          ensure( isDomainSorted( domain ), "the domain must be sorted!" );
          _domain = domain;

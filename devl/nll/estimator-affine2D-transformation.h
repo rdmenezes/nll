@@ -29,29 +29,45 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NLL_ESTIMATOR_AFFINE2D_TRANSFORMATION_H_
-# define NLL_ESTIMATOR_AFFINE2D_TRANSFORMATION_H_
+#ifndef NLL_ESTIMATOR_AFFINE2D_TRANSFORMATION_DLT_H_
+# define NLL_ESTIMATOR_AFFINE2D_TRANSFORMATION_DLT_H_
 
 namespace nll
 {
 namespace algorithm
 {
    /**
-    @ingroup algorithm
-    @brief Computes the similarity transform [Rotation, translation scale] from a matching set of points
-    @see Shinji Umeyama. Least-Squares Estimation of Transformation Parameters
-         Between Two Point Patterns. PAMI, vol. 13, no. 4, April 1991.
+    @brief Affine 2D transformation estimation using DLT
+
+      Estimates non isotropic affine transformations
+
+      See for a very good introduction of the different kind of methods for 2D:
+      EXPERIMENTAL STUDY ON FAST 2D HOMOGRAPHY ESTIMATION FROM A FEW POINT CORRESPONDENCES
+      Joni-Kristian Kämäräinen and Pekka Paalanen
+      www.it.lut.fi/publications/files/publications/603/report01_laitosraportti.pdf
+
+      First the points are normalized so that no attribut will have a higher weight, compute
+      and solve the DLT problem, unnormalize the resulting matrix.
     */
-   class EstimatorTransformAffineIsometric
+   class EstimatorTransformAffine2dDlt
    {
    public:
-      typedef core::Matrix<double>     Matrix;
-      typedef core::Buffer1D<double>   Vector;
+      enum Result {OK, ERROR};
 
-      EstimatorTransformAffineIsometric( double scale = 0, double minimumScale = 0.7, double maximumScale = 1.6 ) : 
-         _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
-      {
-      }
+      typedef double value_type;
+      typedef core::Matrix<value_type>     Matrix;
+      typedef core::Buffer1D<value_type>   Vector;
+      typedef Vector                       Point;
+      typedef std::vector<Point>           Points;
+
+      /**
+       @brief Affine estimation using DLT method
+       @param maxShearing the maximum shearing factor allowed
+       @param minimumScale the minimal scaling for a transformation to have for not begin rejected
+       @param maximumScale the maximal scaling for a transformation to have for not begin rejected
+       */
+      EstimatorTransformAffine2dDlt( double minimumScale = 0.7, double maximumScale = 1.6, double maxShearing = 0.1 ) : _minScale( minimumScale ), _maxScale( maximumScale ), _maxShearing( maxShearing )
+      {}
 
       /**
        @param scale if set to 0, the algorithm will determine the proper scaling, else it will use it
@@ -64,74 +80,356 @@ namespace algorithm
          
          const ui32 nbPoints = static_cast<ui32>( points1.size() );
          const ui32 nbDim = static_cast<ui32>( points1[ 0 ].size() );
+         ensure( nbDim == 2, "only for 2D cases - check directly applicable to more dim" );
+         ensure( nbPoints >= 3, "Affine 2D DLT needs at least 3 points to estimate the transformation" );
 
-         Vector mean1;
-         Vector mean2;
-         Matrix cov = core::covariance( points1, points2, mean1, mean2 );
+         // normalize the points
+         Points p1Norm;
+         Points p2Norm;
+         Matrix normalize1;
+         Matrix normalize2;
+         normalize( points1, p1Norm, normalize1 );
+         normalize( points2, p2Norm, normalize2 );
 
-         Vector eiv;
-         Matrix v;
-         core::svdcmp( cov, eiv, v );
-         const double det = core::det( cov ) * core::det( v );
+         Matrix a, b;
+         createMatrices( p1Norm, p2Norm, a, b );
 
-         Matrix s = core::identityMatrix<Matrix>( nbDim );
-         if ( det < 0 )
+         try
          {
-            s( nbDim - 1, nbDim - 1 ) = -1;
-         }
+            Vector h = core::leastSquareSvd( a, b );
 
-         // compute the scale
-         double scale = _scale;
-         if ( _scale <= 1e-20 )
-         {
-            double accum = 0;
-            for ( ui32 n = 0; n < nbPoints; ++n )
-               for ( ui32 k = 0; k < nbDim; ++k )
-               {
-                  const double val = points1[ n ][ k ] - mean1[ k ];
-                  accum += val * val;
-               }
+            Matrix tfm( 3, 3 );
+            tfm( 0, 0 ) = h[ 0 ];
+            tfm( 0, 1 ) = h[ 1 ];
+            tfm( 0, 2 ) = h[ 2 ];
 
-            double trace = 0;
-            for ( ui32 k = 0; k < nbDim - 1; ++k )
+            tfm( 1, 0 ) = h[ 3 ];
+            tfm( 1, 1 ) = h[ 4 ];
+            tfm( 1, 2 ) = h[ 5 ];
+
+            tfm( 2, 0 ) = 0;
+            tfm( 2, 1 ) = 0;
+            tfm( 2, 2 ) = 1;
+
+            core::inverse( normalize2 );
+
+            _result = OK;
+
+            // check the constraints
+            Matrix matrix = normalize2 * tfm * normalize1;
+            core::vector2f sp = getSpacing3x3( matrix );
+            const double shearingFactor = fabs( matrix( 0, 0 ) / sp[ 0 ] * matrix( 0, 1 ) / sp[ 1 ] +
+                                                matrix( 1, 0 ) / sp[ 0 ] * matrix( 1, 1 ) / sp[ 1 ] );
+            if ( sp[ 0 ] < _minScale || sp[ 0 ] > _maxScale ||
+                 sp[ 1 ] < _minScale || sp[ 1 ] > _maxScale || 
+                 shearingFactor > _maxShearing )
             {
-               trace += eiv[ k ];
+               matrix = core::identityMatrix<Matrix>( 3 );
             }
-            trace += eiv[ nbDim - 1 ] * core::sign( det );
-            scale = nbPoints / accum * trace;
-         }
-
-         if ( scale < _minimumScale )
+            return matrix;
+         } catch (...)
          {
-            scale = _minimumScale;
+            _result = ERROR;
+            return core::identityMatrix<Matrix>( 3 );
          }
+      }
 
-         if ( scale > _maximumScale )
-         {
-            scale = _maximumScale;
-         }
-
-         core::transpose( v );
-         Matrix rot = cov * s * v;
-         Matrix t = Matrix( mean2, nbDim, 1 ) - scale * rot * Matrix( mean1, nbDim, 1 );
-
-         Matrix result( nbDim + 1, nbDim + 1 );
-         for ( ui32 y = 0; y < nbDim; ++y )
-         {
-            for ( ui32 x = 0; x < nbDim; ++x )
-            {
-               result( y, x ) = rot( y, x ) * scale;
-            }
-            result( y, nbDim ) = t[ y ];
-         }
-         result( nbDim, nbDim ) = 1;
-         return result;
+      Result getLastResult() const
+      {
+         return _result;
       }
 
    private:
-      double   _scale;
-      double   _minimumScale;
-      double   _maximumScale;
+      template <class Points1>
+      void normalize( const Points1& points1, Points& points1_out, Matrix& normalization )
+      {
+         const ui32 nbPoints = static_cast<ui32>( points1.size() );
+         const ui32 nbDim = static_cast<ui32>( points1[ 0 ].size() );
+
+         Vector mean = Vector( nbDim );
+         Vector std = Vector( nbDim );
+         for ( ui32 n = 0; n < nbDim; ++n )
+         {
+            for ( ui32 p = 0; p < nbPoints; ++p )
+            {
+               mean[ n ] += points1[ p ][ n ];
+            }
+            mean[ n ] /= nbPoints;
+         }
+
+         for ( ui32 n = 0; n < nbDim; ++n )
+         {
+            for ( ui32 p = 0; p < nbPoints; ++p )
+            {
+               std[ n ] += core::sqr( points1[ p ][ n ] - mean[ n ] );
+            }
+            std[ n ] = sqrt( std[ n ] / nbPoints ) + 1e-10;
+         }
+
+         points1_out.clear();
+         for ( ui32 p = 0; p < nbPoints; ++p )
+         {
+            Point point( nbDim );
+            for ( ui32 n = 0; n < nbDim; ++n )
+            {
+               point[ n ] = ( points1[ p ][ n ] - mean[ n ] ) / std[ n ];
+            }
+            points1_out.push_back( point );
+         }
+
+         // compose the normalization matrix M: normalizedPoints = M * x
+         normalization = Matrix( 3, 3 );
+         normalization( 0, 0 ) = 1 / std[ 0 ];
+         normalization( 1, 1 ) = 1 / std[ 1 ];
+         normalization( 2, 2 ) = 1;
+         normalization( 0, 2 ) = - mean[ 0 ] / std[ 0 ];
+         normalization( 1, 2 ) = - mean[ 1 ] / std[ 1 ];
+      }
+
+      template <class Points1, class Points2>
+      static void createMatrices( const Points1& points1, const Points2& points2, Matrix& a_out, Matrix& b_out )
+      {
+         const ui32 nbPoints = static_cast<ui32>( points1.size() );
+
+         Matrix a( 2 * nbPoints, 6 );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            a( 2 * n, 3 ) = - points1[ n ][ 0 ];
+            a( 2 * n, 4 ) = - points1[ n ][ 1 ];
+            a( 2 * n, 5 ) = - 1;
+
+            a( 2 * n + 1, 0 ) = points1[ n ][ 0 ];
+            a( 2 * n + 1, 1 ) = points1[ n ][ 1 ];
+            a( 2 * n + 1, 2 ) = 1;
+         }
+
+         Matrix b( 2 * nbPoints, 1 );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            b( 2 * n, 0 ) = - points2[ n ][ 1 ];
+            b( 2 * n + 1, 0 ) = points2[ n ][ 0 ];
+         }
+
+         a_out = a;
+         b_out = b;
+      }
+
+   private:
+      Result    _result;
+      double    _minScale;
+      double    _maxScale;
+      double    _maxShearing;
+   };
+
+   /**
+    @brief Find the exact solution for the isometry mapping (i.e., this find the exact solution by using only the minimal number of points to find the transformation)
+    
+    Uses exactly 2 pairs of points A and B to find the transformation T such that B = T(A), with T = | R(theta) 0 translation |
+                                                                                                     | 0        1             |
+    @see http://personal.lut.fi/users/joni.kamarainen/downloads/publications/laitosrap111.pdf for implementation reference
+         Experimental Study on Fast 2D Homography Estimation from a Few Point Correspondences
+         Joni-Kristian Kamarainen
+         Pekka Paalanen
+    */
+   class AffineIsometry2dExact
+   {
+   public:
+      typedef core::Matrix<double>  Matrix;
+
+   public:
+      template <class Points1, class Points2>
+      Matrix compute( const Points1& points1, const Points2& points2 )
+      {
+         ensure( points1.size() == 2, "we can only use 2 pairs of points" );
+         ensure( points2.size() == 2, "we can only use 2 pairs of points" );
+
+         const double dx = points1[ 0 ][ 0 ] - points1[ 1 ][ 0 ];
+         const double dy = points1[ 0 ][ 1 ] - points1[ 1 ][ 1 ];
+
+         const double dxp = points2[ 0 ][ 0 ] - points2[ 1 ][ 0 ];
+         const double dyp = points2[ 0 ][ 1 ] - points2[ 1 ][ 1 ];
+
+         const double r   = std::sqrt( core::sqr( dx )  + core::sqr( dy ) );
+         const double rp  = std::sqrt( core::sqr( dxp ) + core::sqr( dyp ) );
+         const double rrp = r * rp;
+
+         if ( fabs( rrp ) <= 1e-7 )
+         {
+            return core::identityMatrix<Matrix>( 3 );
+         }
+
+         const double r0 =  ( dx * dxp + dy  * dyp ) / rrp;
+         const double r1 = ( -dx * dyp + dxp * dy ) / rrp;
+         const double r2 = -r1;
+         const double r3 =  r0;
+
+         Matrix tfm( 3, 3 );
+         tfm( 2, 2 ) = 1;
+         tfm( 0, 0 ) = r0;
+         tfm( 0, 1 ) = r1;
+         tfm( 0, 2 ) = - r0 * points1[ 0 ][ 0 ] + r2 * points1[ 0 ][ 1 ] + points2[ 0 ][ 0 ];
+
+         tfm( 1, 0 ) = r2;
+         tfm( 1, 1 ) = r3;
+         tfm( 1, 2 ) = - r0 * points1[ 0 ][ 1 ] - r2 * points1[ 0 ][ 0 ] + points2[ 0 ][ 1 ];
+         return tfm;
+      }
+   };
+
+
+   /**
+    @brief Find the exact solution for the similarity mapping (i.e., this find the exact solution by using only the minimal number of points to find the transformation)
+    
+    Uses exactly 2 pairs of points A and B to find the transformation T such that B = T(A), with T = | scale * R(theta) 0 translation |
+                                                                                                     | 0        1                     |
+    @see http://personal.lut.fi/users/joni.kamarainen/downloads/publications/laitosrap111.pdf for implementation reference
+         Experimental Study on Fast 2D Homography Estimation from a Few Point Correspondences
+         Joni-Kristian Kamarainen
+         Pekka Paalanen
+    */
+   class AffineSimilarity2dExact
+   {
+   public:
+      typedef core::Matrix<double>  Matrix;
+
+   public:
+      template <class Points1, class Points2>
+      Matrix compute( const Points1& points1, const Points2& points2 )
+      {
+         ensure( points1.size() == 2, "we can only use 2 pairs of points" );
+         ensure( points2.size() == 2, "we can only use 2 pairs of points" );
+
+         const double dx = points1[ 0 ][ 0 ] - points1[ 1 ][ 0 ];
+         const double dy = points1[ 0 ][ 1 ] - points1[ 1 ][ 1 ];
+
+         const double dxp = points2[ 0 ][ 0 ] - points2[ 1 ][ 0 ];
+         const double dyp = points2[ 0 ][ 1 ] - points2[ 1 ][ 1 ];
+
+         const double r   = std::sqrt( core::sqr( dx )  + core::sqr( dy ) );
+         const double rp  = std::sqrt( core::sqr( dxp ) + core::sqr( dyp ) );
+         const double rrp = r * rp;
+
+         if ( fabs( rrp ) <= 1e-7 )
+         {
+            return core::identityMatrix<Matrix>( 3 );
+         }
+
+         const double scale = rp / r;
+         const double r0 = scale * (  dx * dxp + dy  * dyp ) / rrp;
+         const double r1 = scale * ( -dx * dyp + dxp * dy )  / rrp;
+         const double r2 = -r1;
+         const double r3 =  r0;
+
+         Matrix tfm( 3, 3 );
+         tfm( 2, 2 ) = 1;
+         tfm( 0, 0 ) = r0;
+         tfm( 0, 1 ) = r1;
+         tfm( 0, 2 ) = - r0 * points1[ 0 ][ 0 ] + r2 * points1[ 0 ][ 1 ] + points2[ 0 ][ 0 ];
+
+         tfm( 1, 0 ) = r2;
+         tfm( 1, 1 ) = r3;
+         tfm( 1, 2 ) = - r0 * points1[ 0 ][ 1 ] - r2 * points1[ 0 ][ 0 ] + points2[ 0 ][ 1 ];
+         return tfm;
+      }
+   };
+
+   /**
+    @brief Compute a non isotropic similarity transformation on a set of points using least square estimation
+
+    @note the algorithm computes the transformation from source to target. Note that the solution is not symetric! (you find another solution if target->source)
+          The transformation is defined as T = RS, R = rotation, S = [ s1 0
+                                                                       0  s2 ]
+
+    @see Direct implementation of Least-squares estimation of anisotropic similarity transformations from corresponding 2D point sets
+         Carsten Steger
+    */
+   class AffineSimilarityNonIsotropic2d
+   {
+   public:
+      typedef double Type;
+      typedef core::Matrix<Type>  Matrix;
+      typedef core::vector2d      Point;
+
+   public:
+      template <class Points1, class Points2>
+      Matrix compute( const Points1& points1, const Points2& points2 )
+      {
+         const ui32 nbPoints = static_cast<ui32>( points1.size() );
+         ensure( points1.size() >= 3, "we need 3 pairs of points" );
+         ensure( points2.size() >= 3, "we need 3 pairs of points" );
+         ensure( points2.size() == points2.size(), "we need same number of points" );
+
+         // compute the centroid of the two clouds of points
+         Point cx( 0, 0 );
+         Point cy( 0, 0 );
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            cx[ 0 ] += points1[ n ][ 0 ];
+            cx[ 1 ] += points1[ n ][ 1 ];
+
+            cy[ 0 ] += points2[ n ][ 0 ];
+            cy[ 1 ] += points2[ n ][ 1 ];
+         }
+         cx /= nbPoints;
+         cy /= nbPoints;
+
+         // center on (0,0) the points
+         std::vector<Point> xp;
+         xp.reserve( nbPoints );
+         std::vector<Point> yp;
+         yp.reserve( nbPoints );
+
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            xp.push_back( Point( points1[ n ][ 0 ] - cx[ 0 ], points1[ n ][ 1 ] - cx[ 1 ] ) );
+            yp.push_back( Point( points2[ n ][ 0 ] - cy[ 0 ], points2[ n ][ 1 ] - cy[ 1 ] ) );
+         }
+
+         // compute some constants...
+         Type a = 0;
+         Type b = 0;
+         Type c = 0;
+         Type d = 0;
+         Type e = 0;
+         Type f = 0;
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            a += xp[ n ][ 0 ] * yp[ n ][ 0 ];
+            b += xp[ n ][ 0 ] * yp[ n ][ 1 ];
+            c += xp[ n ][ 1 ] * yp[ n ][ 0 ];
+            d += xp[ n ][ 1 ] * yp[ n ][ 1 ];
+            e += core::sqr( xp[ n ][ 0 ] );
+            f += core::sqr( xp[ n ][ 1 ] );
+         }
+         const Type a2 = core::sqr( a );
+         const Type b2 = core::sqr( b );
+         const Type c2 = core::sqr( c );
+         const Type d2 = core::sqr( d );
+
+         ensure( fabs( e ) > 1e-7 && fabs( f ) > 1e-7, "degenerate points..." );
+         const Type g = 0.5 * ( ( a2 - b2 ) / e + ( d2 - c2 ) / f );
+         const Type h = c * d / f - a * b / e;
+
+         // computes the transformation parameters
+         const Type angle = std::atan2( -h, g ) / 2;
+         const Type cosa = std::cos( angle );
+         const Type sina = std::sin( angle );
+         const Type sc1 = a / e * cosa + b / e * sina;
+         const Type sc2 = d / f * cosa - c / f * sina;
+         const Type tx = cy[ 0 ] - ( sc1 * cosa * cx[ 0 ] - sc2 * sina * cx[ 1 ] );
+         const Type ty = cy[ 1 ] - ( sc1 * sina * cx[ 0 ] + sc2 * cosa * cx[ 1 ] );
+
+         // finally compose the matrix
+         Matrix tfm(3, 3);
+         tfm( 0, 0 ) =  cosa * sc1;
+         tfm( 0, 1 ) = -sina * sc2;
+         tfm( 1, 0 ) =  sina * sc1;
+         tfm( 1, 1 ) =  cosa * sc2;
+         tfm( 0, 2 ) =  tx;
+         tfm( 1, 2 ) =  ty;
+         tfm( 2, 2 ) =  1;
+         return tfm;
+      }
    };
 }
 }

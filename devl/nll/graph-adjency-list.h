@@ -28,6 +28,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+ 
 
 #ifndef NLL_GRAPH_ADJENCY_LIST_H_
 # define NLL_GRAPH_ADJENCY_LIST_H_
@@ -196,12 +197,12 @@ namespace core
          return _store.size();
       }
 
-      iterator erase( const iterator& it )
+      iterator erase( const const_iterator& it )
       {
          return _store.erase( it );
       }
 
-      Descriptor getDescriptor( const iterator& it ) const
+      Descriptor getDescriptor( const const_iterator& it ) const
       {
          return Descriptor( it );
       }
@@ -424,7 +425,7 @@ namespace core
          return Descriptor( uid, uidPerVector );
       }
 
-      iterator erase( const iterator& it )
+      iterator erase( const const_iterator& it )
       {
          iteratorImpl newIt = _wrappers.erase( it._it );
          for ( iteratorImpl itUp = newIt; itUp != _wrappers.end(); ++itUp )
@@ -460,7 +461,7 @@ namespace core
          return _wrappers.size();
       }
 
-      Descriptor getDescriptor( const iterator& it ) const
+      Descriptor getDescriptor( const const_iterator& it ) const
       {
          const Uid uid = it.getIterator()->uid;
          const Uid uidPerVector = it.getIterator()->uidPerVector;
@@ -974,7 +975,7 @@ namespace core
        @param safeMode if true, it means some of the vertex iterators were invalidated and a deep search must be done
               to retrieve iterators from descriptors. E.g. if only edges are removed/added safeMode = false is good
        */
-      edge_iterator erase( const edge_iterator& it, bool safeMode = true )
+      edge_iterator erase( const const_edge_iterator& it, bool safeMode = true )
       {
          // get the source vertex
          const Edge& e = *it;
@@ -999,7 +1000,7 @@ namespace core
        @param safeMode if true, it means some of the vertex iterators were invalidated and a deep search must be done
               to retrieve iterators from descriptors. E.g. if only edges are removed/added safeMode = false is good
        */
-      vertex_iterator erase( const vertex_iterator& it, bool safeMode = true )
+      vertex_iterator erase( const const_vertex_iterator& it, bool safeMode = true )
       {
          // run through all the edges, remove the edges that are connected to this vertex
          for ( vertex_iterator iv = begin(); iv != end(); ++iv )
@@ -1069,7 +1070,7 @@ namespace core
 
          // finally add a new edge
          vertex_iterator ita = _vertexs.getIterator( src );
-		   Vertex& itav = const_cast<Vertex&>( *ita );
+		 Vertex& itav = const_cast<Vertex&>( *ita );
          return EdgeDescriptor( src, itav._edges.insert( Edge( uid, src, dst ) ) );
       }
 
@@ -1183,12 +1184,12 @@ namespace core
       // other safe conversions (assuming the iterator is valid)
       //
 
-      VertexDescriptor getDescriptor( const vertex_iterator& it ) const
+      VertexDescriptor getDescriptor( const const_vertex_iterator& it ) const
       {
          return _vertexs.getDescriptor( it );
       }
 
-      EdgeDescriptor getDescriptor( const edge_iterator& it ) const
+      EdgeDescriptor getDescriptor( const const_edge_iterator& it ) const
       {
          GraphAdgencyList& g = const_cast<GraphAdgencyList&>( *this );
          vertex_iterator itf = g._vertexs.getIterator( (*it).src );

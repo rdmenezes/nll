@@ -400,6 +400,9 @@ namespace algorithm
          Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( 4 * ( 4 * 4 * 4 ) )
          {}
 
+         Point()
+         {}
+
          Features                   features;
          value_type                 orientation1;     // dxy
          value_type                 orientation2;     // drz

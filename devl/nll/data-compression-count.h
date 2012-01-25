@@ -275,7 +275,7 @@ namespace algorithm
 
    private:
       template <class Type>
-      void _mergeChunks( Chunks<Type>& chunks ) const
+      void _mergeChunks( Chunks<Type>& ) const
       {
          // now merge all the small chunks as they are not efficient enough
 
@@ -302,7 +302,7 @@ namespace algorithm
                while ( 1 )
                {
                   const size_t nbElements = std::min( maxElements, nbSimilarValues );
-                  chunks_out.push_back( new ChunkSimilar<T>( *it, nbElements ) );
+                  chunks_out.push_back( new ChunkSimilar<T>( *it, (ui16)nbElements ) );
                   if ( nbElements <= maxElements )
                      break;
                   nbSimilarValues -= nbElements;
@@ -321,7 +321,7 @@ namespace algorithm
                      const T val = *it;
                      ptr.get()[ index ] = val;
                   }
-                  chunks_out.push_back( new ChunkEnumerate<T>( ptr, nbPossibleEnumeration ) );
+                  chunks_out.push_back( new ChunkEnumerate<T>( ptr, (ui16)nbPossibleEnumeration ) );
                   break;
                } else {
                   // general case: we have values at the end...
@@ -339,7 +339,7 @@ namespace algorithm
                      const T val = *copy;
                      ptr.get()[ index ] = val;
                   }
-                  chunks_out.push_back( new ChunkEnumerate<T>( ptr, nbPossibleEnumeration ) );
+                  chunks_out.push_back( new ChunkEnumerate<T>( ptr, (ui16)nbPossibleEnumeration ) );
                   it = copy;
                }
             }

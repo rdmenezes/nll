@@ -55,13 +55,14 @@ namespace imaging
        @param components the number of components the mapper will store for each index
        @note one extra block is allocated to enable sse optimization more efficiently
        */
-      MapperLutColor( ui32 size, ui32 components ) : _size( size ), _components( components ), _container( size * components + 1, true )
+      MapperLutColor( ui32 size, ui32 components ) : _size( size ), _components( components ), _container( ( size + 1 ) * components, true )
       {
-         _index = VectorIndex( size );
+         _index = VectorIndex( size + 1 );
          for ( ui32 n = 0; n < size; ++n )
          {
             _index[ n ] = &_container[ n * components ];
          }
+         _index[ size ] = _index[ size - 1 ];
       }
 
       /**

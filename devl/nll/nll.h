@@ -32,6 +32,8 @@
 #ifndef NLL_H
 #define NLL_H
 
+#pragma warning(disable:4996) // we don't care about this warning!
+
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
 // from a DLL simpler. All files within this DLL are compiled with the NLL_EXPORTS
@@ -68,7 +70,6 @@
 #endif
 
 #define PLACEMENT_NEW   new
-
 
 // define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
 // #define NLL_DISABLE_SSE_SUPPORT
@@ -296,7 +297,7 @@
 # include "normalization.h"
 # include "pca.h"
 # include "estimator-affine2D-transformation.h"
-# include "estimator-affine2D-transformation-dlt.h"
+# include "estimator-affine-transformation.h"
 # include "ransac.h"
 # include "sammon-projection.h"
 # include "ica.h"

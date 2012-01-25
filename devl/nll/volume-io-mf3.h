@@ -132,7 +132,8 @@ namespace imaging
 
 
          size_t index = 0;
-         vol = imaging::VolumeSpatial<T, VolumeMemoryBufferType>( core::vector3ui( width, height, depth ), pst );
+         imaging::VolumeSpatial<T, VolumeMemoryBufferType> volumeTmp( core::vector3ui( width, height, depth ), pst );
+         vol = volumeTmp;
          for ( unsigned int k = 0; k < depth; ++k )
          {
             for ( unsigned int j = 0; j < height; ++j )

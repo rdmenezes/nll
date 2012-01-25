@@ -72,7 +72,7 @@ namespace algorithm
 
             if ( points1.size() == 0 )
                return;
-            const ui32 nbFeatures = points1[ 0 ].size();
+            const ui32 nbFeatures = (ui32)points1[ 0 ].size();
 
             // find a match from the smaller set to the bigger one
             if ( points2.size() > points1.size() )
@@ -419,6 +419,10 @@ namespace algorithm
          }
 
       private:
+         // copy disabled
+         const SurfEstimatorAffineIsotropicFactory& operator=( const SurfEstimatorAffineIsotropicFactory& );
+
+      private:
          const SpeededUpRobustFeatures::Points* _p1;
          const SpeededUpRobustFeatures::Points* _p2;
          const double   _scale;
@@ -438,6 +442,9 @@ namespace algorithm
          {
             return std::auto_ptr<Estimator>( new Estimator( *_p1, *_p2, _minimumScale, _maximumScale, _maximumShearing ) );
          }
+
+      private:
+         SurfEstimatorAffineFactory& operator=( const SurfEstimatorAffineFactory& );
 
       private:
          const SpeededUpRobustFeatures::Points* _p1;
