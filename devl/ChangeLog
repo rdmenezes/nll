@@ -6,6 +6,7 @@ v0.16
 -multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
 -added utilities to compose/decompose affine matrices in rotation, scale, sheat components
 -added graph classes and basic algorithms
+-added 2D transformation estimators (similarity isotropic/anisotropic, isometry)
 
 v0.15
 -added locally linear embedding for feature selection & data structure display

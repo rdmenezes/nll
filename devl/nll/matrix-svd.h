@@ -40,13 +40,15 @@ namespace core
     @ingroup core
     @brief compute the euclidian distance AB without out of bound value.
     */
-   inline static double pythag(double a, double b)
+   template <class T>
+   inline static T pythag(T a, T b)
    {
-     double absa,absb;
-     absa=absolute(a);
-     absb=absolute(b);
-     if (absa > absb) return absa*sqrt(1.0+sqr(absb/absa));
-     else return (absb == 0.0 ? 0.0 : absb*sqrt(1.0+sqr(absa/absb)));
+      STATIC_ASSERT( IsFloatingType<T>::value );
+      T absa,absb;
+      absa=absolute(a);
+      absb=absolute(b);
+      if (absa > absb) return absa*sqrt(1.0+sqr(absb/absa));
+      else return (absb == 0.0 ? 0.0 : absb*sqrt(1.0+sqr(absa/absb)));
    }
 
    #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -241,7 +243,7 @@ namespace core
 					   g=w[i];
 					   h=pythag(f,g);
 					   w[i]=h;
-					   h=1.0/h;
+					   h=1/h;
 					   c=g*h;
 					   s = -f*h;
 					   for (j=0;j<m;j++) {
@@ -267,8 +269,8 @@ namespace core
 			   y=w[nm];
 			   g=rv1[nm];
 			   h=rv1[k];
-			   f=((y-z)*(y+z)+(g-h)*(g+h))/(2.0*h*y);
-			   g=pythag(f,1.0);
+			   f=((y-z)*(y+z)+(g-h)*(g+h))/(2*h*y);
+			   g=pythag<type>(f,1);
 			   f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
 			   c=s=1.0;
 			   for (j=l;j<=nm;j++) {
@@ -294,7 +296,7 @@ namespace core
 				   z=pythag(f,h);
 				   w[j]=z;
 				   if (z) {
-					   z=1.0/z;
+					   z=1/z;
 					   c=f*z;
 					   s=h*z;
 				   }
