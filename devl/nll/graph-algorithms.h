@@ -140,6 +140,8 @@ namespace core
    /**
     @brief Dijkstra algorithm
     @see http://en.wikipedia.org/wiki/Dijkstra's_algorithm
+
+    Computes the minimal path from a source vertex given a set of /positive/ distances
     */
    template <class Graph, class MapperValueType>
    class Dijkstra : public GraphVisitorBfsPriority<Graph, impl::DijkstraVertexEvaluator<Graph, MapperValueType> >

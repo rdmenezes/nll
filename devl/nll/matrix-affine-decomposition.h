@@ -195,6 +195,8 @@ namespace core
 
    /**
     @brief Decompose a 4x4 affine matrix into a translation, rotation, shearing and scaling parameters
+
+    Note that this decomposition is not unique!
     */
    template <class T, class Mapper, class Allocator>
    void decomposeAffine4x4( const Matrix<T, Mapper, Allocator>& m,
