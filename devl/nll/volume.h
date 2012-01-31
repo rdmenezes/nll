@@ -472,6 +472,7 @@ namespace imaging
       void clone( const Volume& vol )
       {
          _buffer.clone( vol._buffer );
+         _background = vol._background;
       }
 
       /**

@@ -195,8 +195,8 @@ namespace core
    void getMatrixProperties3x3( const Matrix<type, mapper, allocator>& m, vector2f& outSpacing, float& outAngle, vector2f& outTranslation )
    {
       outSpacing = getSpacing3x3( m );
-      outTranslation = vector2f( m( 0, 2 ), m( 1, 2 ) );
-      outAngle = getAngle( m( 0, 0 ), m( 1, 0 ) );
+      outTranslation = vector2f( (f32)m( 0, 2 ), (f32)m( 1, 2 ) );
+      outAngle = getAngle( (f32)m( 0, 0 ), (f32)m( 1, 0 ) );
    }
 }
 }

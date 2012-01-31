@@ -45,10 +45,10 @@ namespace core
    {
       STATIC_ASSERT( IsFloatingType<T>::value );
       T absa,absb;
-      absa=absolute(a);
-      absb=absolute(b);
-      if (absa > absb) return absa*sqrt(1.0+sqr(absb/absa));
-      else return (absb == 0.0 ? 0.0 : absb*sqrt(1.0+sqr(absa/absb)));
+      absa=absoluteT(a);
+      absb=absoluteT(b);
+      if (absa > absb) return absa * std::sqrt(1+sqr(absb/absa));
+      else return (absb == 0 ? 0 : absb * std::sqrt(1+sqr(absa/absb)));
    }
 
    #define SIGN(a,b) ((b) >= 0.0 ? fabs(a) : -fabs(a))
@@ -88,8 +88,8 @@ namespace core
 	   int n=a.sizey();
 	   Buffer1D<type> tmp(n);
 	   for (j=0;j<n;j++) {
-		   s=0.0;
-		   if (!equal(w[j], 0.0)) {
+		   s=0;
+		   if (!equal<type>(w[j], 0)) {
 			   for (i=0;i<m;i++) s += a(i, j)*b[i];
 			   s /= w[j];
 		   } else ++singular_cnt;
@@ -97,7 +97,7 @@ namespace core
 		   tmp[j]=s;
 	   }
 	   for (j=0;j<n;j++) {
-		   s=0.0;
+		   s=0;
 		   for (jj=0;jj<n;jj++) s += v(j, jj)*tmp[jj];
 		   x[j]=s;
 	   }
@@ -142,13 +142,13 @@ namespace core
 	   int m=a.sizey();
 	   int n=a.sizex();
 	   Buffer1D<type> rv1(n);
-	   g=scale=anorm=0.0;
+	   g=scale=anorm=0;
 	   w = Buffer1D<type>(n);
 	   v = Matrix<type, mapper, allocator>(n, n);
 	   for (i=0;i<n;i++) {
 		   l=i+2;
 		   rv1[i]=scale*g;
-		   g=s=scale=0.0;
+		   g=s=scale=0;
 		   if (i < m) {
 			   for (k=i;k<m;k++) scale += fabs(a(k, i));
 			   if (fabs(scale) >= std::numeric_limits<type>::epsilon()) {
@@ -161,7 +161,7 @@ namespace core
 				   h=f*g-s;
 				   a(i, i)=f-g;
 				   for (j=l-1;j<n;j++) {
-					   for (s=0.0,k=i;k<m;k++) s += a(k, i)*a(k, j);
+					   for (s=0,k=i;k<m;k++) s += a(k, i)*a(k, j);
 					   f=s/h;
 					   for (k=i;k<m;k++) a(k, j) += f*a(k, i);
 				   }
@@ -169,10 +169,10 @@ namespace core
 			   }
 		   }
 		   w[i]=scale *g;
-		   g=s=scale=0.0;
+		   g=s=scale=0;
 		   if (i+1 <= m && i+1 != n) {
 			   for (k=l-1;k<n;k++) scale += fabs(a(i, k));
-			   if (scale != 0.0) {
+			   if (scale != 0) {
 				   for (k=l-1;k<n;k++) {
 					   a(i, k) /= scale;
 					   s += a(i, k)*a(i, k);
@@ -183,7 +183,7 @@ namespace core
 				   a(i, l-1)=f-g;
 				   for (k=l-1;k<n;k++) rv1[k]=a(i, k)/h;
 				   for (j=l-1;j<m;j++) {
-					   for (s=0.0,k=l-1;k<n;k++) s += a(j, k)*a(i, k);
+					   for (s=0,k=l-1;k<n;k++) s += a(j, k)*a(i, k);
 					   for (k=l-1;k<n;k++) a(j, k) += s*rv1[k];
 				   }
 				   for (k=l-1;k<n;k++) a(i, k) *= scale;
@@ -193,33 +193,33 @@ namespace core
 	   }
 	   for (i=n-1;i>=0;i--) {
 		   if (i < n-1) {
-			   if (g != 0.0) {
+			   if (g != 0) {
 				   for (j=l;j<n;j++)
 					   v(j, i)=(a(i, j)/a(i, l))/g;
 				   for (j=l;j<n;j++) {
-					   for (s=0.0,k=l;k<n;k++) s += a(i, k)*v(k, j);
+					   for (s=0,k=l;k<n;k++) s += a(i, k)*v(k, j);
 					   for (k=l;k<n;k++) v(k, j) += s*v(k, i);
 				   }
 			   }
-			   for (j=l;j<n;j++) v(i, j)=v(j, i)=0.0;
+			   for (j=l;j<n;j++) v(i, j)=v(j, i)=0;
 		   }
-		   v(i, i)=1.0;
+		   v(i, i)=1;
 		   g=rv1[i];
 		   l=i;
 	   }
       for (i=std::min(m,n)-1;i>=0;i--) {
 		   l=i+1;
 		   g=w[i];
-		   for (j=l;j<n;j++) a(i, j)=0.0;
-		   if (g != 0.0) {
-			   g=1.0/g;
+		   for (j=l;j<n;j++) a(i, j)=0;
+		   if (g != 0) {
+			   g=1/g;
 			   for (j=l;j<n;j++) {
-				   for (s=0.0,k=l;k<m;k++) s += a(k, i)*a(k, j);
+				   for (s=0,k=l;k<m;k++) s += a(k, i)*a(k, j);
 				   f=(s/a(i, i))*g;
 				   for (k=i;k<m;k++) a(k, j) += f*a(k, i);
 			   }
 			   for (j=i;j<m;j++) a(j, i) *= g;
-		   } else for (j=i;j<m;j++) a(j, i)=0.0;
+		   } else for (j=i;j<m;j++) a(j, i)=0;
 		   ++a(i, i);
 	   }
 	   for (k=n-1;k>=0;k--) {
@@ -234,8 +234,8 @@ namespace core
 				   if (fabs(w[nm])+anorm == anorm) break;
 			   }
 			   if (flag) {
-				   c=0.0;
-				   s=1.0;
+				   c=0;
+				   s=1;
 				   for (i=l;i<k+1;i++) {
 					   f=s*rv1[i];
 					   rv1[i]=c*rv1[i];
@@ -256,7 +256,7 @@ namespace core
 			   }
 			   z=w[k];
 			   if (l == k) {
-				   if (z < 0.0) {
+				   if (z < 0) {
 					   w[k] = -z;
 					   for (j=0;j<n;j++) v(j, k) = -v(j, k);
 				   }
@@ -272,7 +272,7 @@ namespace core
 			   f=((y-z)*(y+z)+(g-h)*(g+h))/(2*h*y);
 			   g=pythag<type>(f,1);
 			   f=((x-z)*(x+z)+h*((y/(f+SIGN(g,f)))-h))/x;
-			   c=s=1.0;
+			   c=s=1;
 			   for (j=l;j<=nm;j++) {
 				   i=j+1;
 				   g=rv1[i];
@@ -309,7 +309,7 @@ namespace core
 					   a(jj, i)=z*c-y*s;
 				   }
 			   }
-			   rv1[l]=0.0;
+			   rv1[l]=0;
 			   rv1[k]=f;
 			   w[k]=x;
 		   }

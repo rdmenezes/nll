@@ -285,6 +285,18 @@ namespace imaging
          return *_context;
       }
 
+      /**
+       @brief Deep copy the current volume. Internally a new buffer is created (and not shared with the volume)
+       @note TODO the context cannot be deep copied, we need to use a shared pointer here!
+       */
+      void clone( const VolumeSpatial& vol )
+      {
+         Base::clone( vol );
+         _pst.clone( vol._pst );
+         _spacing = vol._spacing;
+         _invertedPst = vol._invertedPst;
+      }
+
 
    protected:
       /**

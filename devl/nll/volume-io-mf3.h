@@ -140,7 +140,7 @@ namespace imaging
             {
                for ( unsigned int i = 0; i < width; ++i )
                {
-                  vol( i, j, k ) = rsi[ k ].slope * vals.get()[ index++ ] + rsi[ k ].intercept;
+                  vol( i, j, k ) = static_cast<T>( rsi[ k ].slope * vals.get()[ index++ ] + rsi[ k ].intercept );
                }
             }
          }

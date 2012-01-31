@@ -310,7 +310,6 @@ namespace algorithm
 
                it = similar;
             } else {
-               const_iterator dissimilar;
                if ( similar == end )
                {
                   // handle special case: the last value

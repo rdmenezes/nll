@@ -62,6 +62,12 @@ namespace core
       return val >= 0 ? val : - val;
    }
 
+   template <class T>
+   inline T absoluteT( T val )
+   {
+      return val >= 0 ? val : - val;
+   }
+
    /**
     @ingroup core
     @brief test if 2 values are equal with a certain tolerance

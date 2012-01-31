@@ -98,7 +98,7 @@ namespace core
          return 0;
 
 		for (ui32 n = 0; n < cp.sizex(); ++n)
-			d *= (double)cp(n, n);
+			d *= (type)cp(n, n);
 		return d;
 	}
 

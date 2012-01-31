@@ -46,16 +46,17 @@ namespace core
     This returns the angle between the vector (1,0) and (x, y). The angle returned
     is always betwee in [0..2*PI[
     */
-   inline double getAngle( double x, double y )
+   template <class T>
+   T getAngle( T x, T y )
    {
       if( x > 0 && y >= 0 )
          return atan( y / x );
       if( x < 0 && y >= 0)
-         return core::PI - atan( - y / x );
+         return (T)core::PI - atan( - y / x );
       if( x < 0 && y < 0)
          return core::PI + atan( y / x );
       if( x > 0 && y < 0 )
-         return 2 * core::PI - atan( -y / x );
+         return 2 * (T)core::PI - atan( -y / x );
       return 0;
    }
 
