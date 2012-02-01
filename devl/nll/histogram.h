@@ -50,16 +50,25 @@ namespace core
       {
       }
 
+      /**
+       @brief Returns the min bound of the histogram, i.e., _counts[ 0 ] map the _min value
+       */
       double getMin() const
       {
          return _min;
       }
 
+      /**
+       @brief Returns the max bound of the histogram, i.e., _counts[ nbBins - 1 ] map the _max value
+       */
       double getMax() const
       {
          return _max;
       }
 
+      /**
+       @brief Returns the distance between two bins of _counts
+       */
       double getBinInterval() const
       {
          return _binInterval;
@@ -71,7 +80,9 @@ namespace core
       }
 
       /**
-       @brief Compute the histogram of the data
+       @brief Compute the histogram of the data given the number of bins.
+
+       @note the min and max of the histogram will be automatically computed
        */
       template <class Data>
       void compute( const Data& data, ui32 nbBins )
@@ -86,14 +97,17 @@ namespace core
          for ( const_iterator it = data.begin(); it != data.end(); ++it )
          {
             min = std::min( *it, min );
-            max = std::min( *it, max );
+            max = std::max( *it, max );
          }
 
          return compute( data, nbBins, min, max );
       }
 
+      /**
+       @brief Compute the histogram of the data given the number of bins and the histogram bounds
+       */
       template <class Data>
-      void compute( const Data& data, ui32 nbBins, const typename Data::value_type min, const const typename Data::value_type max )
+      void compute( const Data& data, ui32 nbBins, const typename Data::value_type min, const typename Data::value_type max )
       {
          typedef typename Data::value_type      value_type;
          typedef typename Data::const_iterator  const_iterator;
