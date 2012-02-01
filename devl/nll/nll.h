@@ -166,6 +166,7 @@
 # include "singleton.h"
 # include "configuration.h"
 # include "types.h"
+# include "histogram.h"
 # include "collection-wrapper.h"
 # include "utility-pure.h"
 # include "utility-matlab.h"

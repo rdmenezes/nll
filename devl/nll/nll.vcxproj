@@ -374,6 +374,7 @@
     <ClInclude Include="graph-algorithms.h" />
     <ClInclude Include="graph-traits.h" />
     <ClInclude Include="graph-visitor.h" />
+    <ClInclude Include="histogram.h" />
     <ClInclude Include="id-maker.h" />
     <ClInclude Include="image-binary-transformation.h" />
     <ClInclude Include="image-converter.h" />
