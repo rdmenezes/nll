@@ -114,23 +114,23 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         double                  bestError;
+         double                  bestError = -1000;
          Model                   bestModel;
          std::vector<ui32>       bestSubset;      // just save a reference, faster than copy the actual point...
 
          const ui32 nbPoint = static_cast<ui32>( points.size() );
 
-         #ifndef NLL_NOT_MULTITHREADED
-         # pragma omp parallel for
-         #endif
+    //     #ifndef NLL_NOT_MULTITHREADED
+    //     # pragma omp parallel for
+    //     #endif
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
             std::auto_ptr<Estimator> estimator;
             std::vector<ui32>       currentSubset;
 
-    //        #ifndef NLL_NOT_MULTITHREADED
-    //        # pragma omp critical
-    //        #endif
+            #ifndef NLL_NOT_MULTITHREADED
+            # pragma omp critical
+            #endif
             {
                currentSubset.reserve( points.size() );
                estimator = _estimatorFactory.create();

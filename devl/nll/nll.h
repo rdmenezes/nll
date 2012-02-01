@@ -172,7 +172,7 @@
 # include "math-floor.h"
 # include "static-assert.h"
 # include "ensure.h"
-# include "histogram.h
+# include "histogram.h"
 # include "context.h"
 # include "log.h"
 # include "logger.h"
