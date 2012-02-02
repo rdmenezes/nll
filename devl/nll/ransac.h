@@ -120,17 +120,11 @@ namespace algorithm
 
          const ui32 nbPoint = static_cast<ui32>( points.size() );
 
-    //     #ifndef NLL_NOT_MULTITHREADED
-    //     # pragma omp parallel for
-    //     #endif
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
             std::auto_ptr<Estimator> estimator;
             std::vector<ui32>       currentSubset;
 
-            #ifndef NLL_NOT_MULTITHREADED
-            # pragma omp critical
-            #endif
             {
                currentSubset.reserve( points.size() );
                estimator = _estimatorFactory.create();
@@ -147,9 +141,6 @@ namespace algorithm
                initialSubset.insertRef( index );
             }
 
-   //         #ifndef NLL_NOT_MULTITHREADED
-   //         # pragma omp critical
-   //         #endif
             {
                estimator->estimate( initialSubset );
             }
@@ -157,9 +148,6 @@ namespace algorithm
 
             double meanError = 0;
 
-   //         #ifndef NLL_NOT_MULTITHREADED
-   //         # pragma omp critical
-   //         #endif
             {
                for ( ui32 nn = 0; nn < nbPoint; ++nn )
                {
@@ -174,9 +162,6 @@ namespace algorithm
             }
             meanError /= currentSubset.size();
 
-            #ifndef NLL_NOT_MULTITHREADED
-            # pragma omp critical
-            #endif
             {
                if ( currentSubset.size() > bestSubset.size() )
                {
@@ -307,3 +292,74 @@ namespace algorithm
 }
 
 #endif
+
+
+/* // it seems there is a concurrency problems when running thousands of registration with RANSAC... below is safe
+ //     #ifndef NLL_NOT_MULTITHREADED
+    //     # pragma omp parallel for
+    //     #endif
+         for ( int n = 0; n < (int)numberOfSubsets; ++n )
+         {
+            std::auto_ptr<Estimator> estimator;
+            std::vector<ui32>       currentSubset;
+
+            #ifndef NLL_NOT_MULTITHREADED
+            # pragma omp critical
+            #endif
+            {
+               currentSubset.reserve( points.size() );
+               estimator = _estimatorFactory.create();
+            }
+
+            core::ConstCollectionWrapper<Points> initialSubset( points );
+            initialSubset.reserve( minimalSample );
+            for ( ui32 nn = 0; nn < minimalSample; ++nn )
+            {
+               // randomly select a subset of point. As it is random, maybe the point
+               // will be selected several times, and this is fine: the model will be degenerated
+               // and so will be discarded...
+               const ui32 index = rand() % nbPoint;
+               initialSubset.insertRef( index );
+            }
+
+   //         #ifndef NLL_NOT_MULTITHREADED
+   //         # pragma omp critical
+   //         #endif
+            {
+               estimator->estimate( initialSubset );
+            }
+
+
+            double meanError = 0;
+
+   //         #ifndef NLL_NOT_MULTITHREADED
+   //         # pragma omp critical
+   //         #endif
+            {
+               for ( ui32 nn = 0; nn < nbPoint; ++nn )
+               {
+                  // compute the subset of inliers
+                  const double err = estimator->error( points[ nn ] );
+                  if ( err < maxError )
+                  {
+                     currentSubset.push_back( nn );
+                     meanError += err;
+                  }
+               }
+            }
+            meanError /= currentSubset.size();
+
+            #ifndef NLL_NOT_MULTITHREADED
+            # pragma omp critical
+            #endif
+            {
+               if ( currentSubset.size() > bestSubset.size() )
+               {
+                  // save the model as it agrees with more points
+                  bestModel = estimator->getModel();
+                  bestSubset = currentSubset;
+                  bestError = meanError;
+               }
+            }
+         }
+*/

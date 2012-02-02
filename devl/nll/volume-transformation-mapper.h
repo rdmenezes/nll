@@ -159,7 +159,7 @@ namespace imaging
          const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
          procOrig.start();
 
-         #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
+         #if !defined(NLL_NOT_MULTITHREADED)
          # pragma omp parallel for
          #endif
          for ( int z = 0; z < sizez; ++z )
@@ -279,7 +279,7 @@ namespace imaging
          const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
          procOrig.start();
 
-         #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
+         #if !defined(NLL_NOT_MULTITHREADED)
          # pragma omp parallel for
          #endif
          for ( int z = 0; z < sizez; ++z )
