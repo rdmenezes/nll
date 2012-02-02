@@ -32,6 +32,9 @@
 #ifndef NLL_ALGORITHM_SURF_2D_H_
 # define NLL_ALGORITHM_SURF_2D_H_
 
+// if defined, SURF will use a global angle detection mecanism which seems more efficient/robust
+#define NLL_SURF_USE_FEATURE_ANGLE_UPGRADE
+
 namespace nll
 {
 namespace algorithm
@@ -511,7 +514,7 @@ namespace algorithm
             //
             // simple averaging seems better than the technique described in the original paper...
             //  
-            /*
+# ifdef NLL_SURF_USE_FEATURE_ANGLE_UPGRADE
             double dx = 0;
             double dy = 0;
             for ( int nn = 0; nn < nbLocalPoints; ++nn )
@@ -525,8 +528,7 @@ namespace algorithm
                dy /= nbLocalPoints;
             }
             points[ n ].orientation = core::getAngle( dx, dy );
-            */
-
+#  else
             const double step = 0.15;
             const double window = 0.3 * core::PI;
             double best_angle = 0;
@@ -570,6 +572,7 @@ namespace algorithm
             {
                points[ n ].orientation = best_angle;
             }
+# endif
          }
       }
 
