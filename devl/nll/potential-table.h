@@ -103,6 +103,16 @@ namespace algorithm
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
       }
 
+      /**
+       @brief Utility function to reorder tables given another domain
+
+       This is a convenient function. Often the table statistics don't follow the order constraint, hence this function.
+       */
+      static Vector reorderTable( const Vector& originaltable, const VectorI& originaltableDomain, const VectorI& expectedDomain )
+      {
+         // TODO
+      }
+
       void print( std::ostream& o ) const
       {
          o << "Potential Table:" << std::endl;

@@ -74,10 +74,11 @@ public:
       // see example from BNT http://bnt.googlecode.com/svn/trunk/docs/usage.html
       enum DomainVariable
       {
-         CLOUDY,
-         SPRINKLER,
+         // the order is important for efficiency reason, however for practicality this is not the best. So use PotentialTable::reorderTable
+         WETGRASS,
          RAIN,
-         WETGRASS
+         SPRINKLER,
+         CLOUDY
       };
 
       typedef algorithm::PotentialTable            Factor;
@@ -85,11 +86,50 @@ public:
 
       BayesianNetwork bnet;
 
+      //
+      // cloudy
+      //
       Factor::VectorI domainCloudyTable( 1 );
       domainCloudyTable[ 0 ] = (int)CLOUDY;
       Factor::VectorI  cardinalityCloudy( 1 );
       cardinalityCloudy[ 0 ] = 2;
       Factor cloudy( core::make_buffer1D<double>( 0.5, 0.5 ), domainCloudyTable, cardinalityCloudy );
+
+      //
+      // sprinkler
+      //
+      Factor::VectorI domainSprinklerTable( 2 );
+      domainSprinklerTable[ 0 ] = (int)SPRINKLER;
+      domainSprinklerTable[ 1 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalitySprinkler( 2 );
+      cardinalitySprinkler[ 0 ] = 2;
+      cardinalitySprinkler[ 1 ] = 2;
+      // note: the table is encoded by domain table order starting by FF then FT, TF, TT and so on for more domain...
+      Factor sprinkler( core::make_buffer1D<double>( 0.5, 0.5, 0.9, 0.1 ), domainSprinklerTable, cardinalitySprinkler );
+
+      //
+      // Rain
+      //
+      Factor::VectorI domainRainTable( 2 );
+      domainRainTable[ 0 ] = (int)RAIN;
+      domainRainTable[ 1 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalityRain( 2 );
+      cardinalityRain[ 0 ] = 2;
+      cardinalityRain[ 1 ] = 2;
+      Factor Rain( core::make_buffer1D<double>( 0.8, 0.2, 0.2, 0.8 ), domainRainTable, cardinalityRain );
+
+      //
+      // Wet
+      //
+      Factor::VectorI domainWetTable( 3 );
+      domainWetTable[ 0 ] = (int)WETGRASS;
+      domainWetTable[ 1 ] = (int)RAIN;
+      domainWetTable[ 2 ] = (int)SPRINKLER;
+      Factor::VectorI  cardinalityWet( 3 );
+      cardinalityWet[ 0 ] = 2;
+      cardinalityWet[ 1 ] = 2;
+      cardinalityWet[ 2 ] = 2;
+      Factor Wet( core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99 ), domainWetTable, cardinalityWet );
    }
 
 };
