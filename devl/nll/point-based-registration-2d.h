@@ -355,7 +355,7 @@ namespace algorithm
          template <class Points>
          void estimate( const Points& points )
          {
-            if ( points.size() < 2 )
+            if ( points.size() < 3 )
                return;
            
             PointsWrapper1<Points> wrapperP1( _p1, points );
@@ -363,6 +363,7 @@ namespace algorithm
             
             EstimatorAffineSimilarityNonIsotropic2d estimator( _minimumScale, _maximumScale );
             _model.tfm = estimator.compute( wrapperP1, wrapperP2 );
+            ensure( estimator.getLastResult() == EstimatorAffineSimilarityNonIsotropic2d::OK, "the estimator failed to estimate the 2D transformation" );
          }
 
          /**

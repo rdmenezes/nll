@@ -66,7 +66,7 @@ namespace algorithm
        @param minimumScale the minimal scaling for a transformation to have for not begin rejected
        @param maximumScale the maximal scaling for a transformation to have for not begin rejected
        */
-      EstimatorTransformAffine2dDlt( double minimumScale = 0.7, double maximumScale = 1.6, double maxShearing = 0.1 ) : _minScale( minimumScale ), _maxScale( maximumScale ), _maxShearing( maxShearing )
+      EstimatorTransformAffine2dDlt( double minimumScale = 0.7, double maximumScale = 1.6, double maxShearing = 0.1 ) : _result( ERROR ), _minScale( minimumScale ), _maxScale( maximumScale ), _maxShearing( maxShearing )
       {}
 
       /**
@@ -234,9 +234,13 @@ namespace algorithm
    class AffineIsometry2dExact
    {
    public:
+      enum Result {OK, ERROR};
       typedef core::Matrix<double>  Matrix;
 
    public:
+      AffineIsometry2dExact() : _result( ERROR )
+      {}
+
       template <class Points1, class Points2>
       Matrix compute( const Points1& points1, const Points2& points2 )
       {
@@ -255,6 +259,7 @@ namespace algorithm
 
          if ( fabs( rrp ) <= 1e-7 )
          {
+            _result = ERROR;
             return core::identityMatrix<Matrix>( 3 );
          }
 
@@ -272,8 +277,17 @@ namespace algorithm
          tfm( 1, 0 ) = r2;
          tfm( 1, 1 ) = r3;
          tfm( 1, 2 ) = - r0 * points1[ 0 ][ 1 ] - r2 * points1[ 0 ][ 0 ] + points2[ 0 ][ 1 ];
+         _result = OK;
          return tfm;
       }
+
+      Result getLastResult() const
+      {
+         return _result;
+      }
+
+   private:
+      Result   _result;
    };
 
 
@@ -290,9 +304,13 @@ namespace algorithm
    class AffineSimilarity2dExact
    {
    public:
+      enum Result {OK, ERROR};
       typedef core::Matrix<double>  Matrix;
 
    public:
+      AffineSimilarity2dExact() : _result( ERROR )
+      {}
+
       template <class Points1, class Points2>
       Matrix compute( const Points1& points1, const Points2& points2 )
       {
@@ -311,6 +329,7 @@ namespace algorithm
 
          if ( fabs( rrp ) <= 1e-7 )
          {
+            _result = ERROR;
             return core::identityMatrix<Matrix>( 3 );
          }
 
@@ -329,8 +348,17 @@ namespace algorithm
          tfm( 1, 0 ) = r2;
          tfm( 1, 1 ) = r3;
          tfm( 1, 2 ) = - r0 * points1[ 0 ][ 1 ] - r2 * points1[ 0 ][ 0 ] + points2[ 0 ][ 1 ];
+         _result = OK;
          return tfm;
       }
+
+      Result getLastResult() const
+      {
+         return _result;
+      }
+
+   private:
+      Result   _result;
    };
 
    /**
@@ -346,13 +374,14 @@ namespace algorithm
    class EstimatorAffineSimilarityNonIsotropic2d
    {
    public:
+      enum Result {OK, ERROR};
       typedef double Type;
       typedef core::Matrix<Type>  Matrix;
       typedef core::vector2d      Point;
 
    public:
       EstimatorAffineSimilarityNonIsotropic2d( double minimumScale = 0.7, double maximumScale = 1.6 ) : 
-         _minimumScale( minimumScale ), _maximumScale( maximumScale )
+         _result( ERROR ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
       {
       }
 
@@ -432,10 +461,12 @@ namespace algorithm
          if ( sc1 < _minimumScale || sc2 < _minimumScale ||
               sc1 > _maximumScale || sc2 > _maximumScale )
          {
+            _result = ERROR;
             return core::identityMatrix<Matrix>( 3 );
          }
 
          // finally compose the matrix
+         _result = OK;
          Matrix tfm(3, 3);
          tfm( 0, 0 ) =  cosa * sc1;
          tfm( 0, 1 ) = -sina * sc2;
@@ -447,7 +478,13 @@ namespace algorithm
          return tfm;
       }
 
+      Result getLastResult() const
+      {
+         return _result;
+      }
+
    private:
+      Result   _result;
       double   _minimumScale;
       double   _maximumScale;
    };

@@ -37,6 +37,12 @@ namespace nll
 namespace algorithm
 {
    /**
+    @note for all 2D/3D estimators, they must estimate as best as they can the transformation, especially when they are facing errors
+          or transformation given contraints can't be enforced. If this is the case, the <getLastResult> will ERROR an error, but also
+          a matrix letting the user decide if even if the constraint is not enforced, the result may be somehow valid...
+    */
+
+   /**
     @ingroup algorithm
     @brief Computes the similarity transform [Rotation, translation scale] from a matching set of points
     @see Shinji Umeyama. Least-Squares Estimation of Transformation Parameters
@@ -47,6 +53,7 @@ namespace algorithm
    public:
       typedef core::Matrix<double>     Matrix;
       typedef core::Buffer1D<double>   Vector;
+      enum Result {OK, ERROR};
 
       EstimatorTransformSimilarityIsometric( double scale = 0, double minimumScale = 0.7, double maximumScale = 1.6 ) : 
          _scale( scale ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
@@ -103,11 +110,13 @@ namespace algorithm
 
          if ( scale < _minimumScale )
          {
+            _result = ERROR;
             scale = _minimumScale;
          }
 
          if ( scale > _maximumScale )
          {
+            _result = ERROR;
             scale = _maximumScale;
          }
 
@@ -124,11 +133,18 @@ namespace algorithm
             }
             result( y, nbDim ) = t[ y ];
          }
+         _result = OK;
          result( nbDim, nbDim ) = 1;
          return result;
       }
 
+      Result getLastResult() const
+      {
+         return _result;
+      }
+
    private:
+      Result   _result;
       double   _scale;
       double   _minimumScale;
       double   _maximumScale;

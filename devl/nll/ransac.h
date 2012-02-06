@@ -141,35 +141,37 @@ namespace algorithm
                initialSubset.insertRef( index );
             }
 
+            try
             {
-               estimator->estimate( initialSubset );
-            }
+               estimator->estimate( initialSubset );  // the estimator may throw, we don't want to cancel all computations just because one failed...
+               double meanError = 0;
 
-
-            double meanError = 0;
-
-            {
-               for ( ui32 nn = 0; nn < nbPoint; ++nn )
                {
-                  // compute the subset of inliers
-                  const double err = estimator->error( points[ nn ] );
-                  if ( err < maxError )
+                  for ( ui32 nn = 0; nn < nbPoint; ++nn )
                   {
-                     currentSubset.push_back( nn );
-                     meanError += err;
+                     // compute the subset of inliers
+                     const double err = estimator->error( points[ nn ] );
+                     if ( err < maxError )
+                     {
+                        currentSubset.push_back( nn );
+                        meanError += err;
+                     }
                   }
                }
-            }
-            meanError /= currentSubset.size();
+               meanError /= currentSubset.size();
 
-            {
-               if ( currentSubset.size() > bestSubset.size() )
                {
-                  // save the model as it agrees with more points
-                  bestModel = estimator->getModel();
-                  bestSubset = currentSubset;
-                  bestError = meanError;
+                  if ( currentSubset.size() > bestSubset.size() )
+                  {
+                     // save the model as it agrees with more points
+                     bestModel = estimator->getModel();
+                     bestSubset = currentSubset;
+                     bestError = meanError;
+                  }
                }
+            } catch (...)
+            {
+               // nothing to do...
             }
          }
 
