@@ -505,6 +505,19 @@ namespace imaging
          }
       }
 
+      void createGreyscaleInverted()
+      {
+         core::Buffer1D<value_type> vals( _lut.getNbComponents() );
+         for ( ui32 n = 0; n < _lut.getSize(); ++n )
+         {
+            for ( ui32 i = 0; i < _lut.getNbComponents(); ++i )
+            {
+               vals[ i ] = static_cast<value_type>( 256.0 / _lut.getSize() * ( _lut.getSize() - n - 1 ) );
+            }
+            set( n, vals.getBuf() );
+         }
+      }
+
       template <class Volume>
       void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
       {
