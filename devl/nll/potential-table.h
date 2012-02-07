@@ -104,13 +104,86 @@ namespace algorithm
       }
 
       /**
-       @brief Utility function to reorder tables given another domain
+       @brief Utility function to reorder tables into a sorted domain
 
        This is a convenient function. Often the table statistics don't follow the order constraint, hence this function.
+
+       For exemple, lets say we have a domain of 3 vars [ 1 2 3 ] and for each var 2 posibilities but our table was stored
+       in this order [ 1 3 2 ], we want to express this table in the original order (it must be sorted for performance reasons).
+
+       domain: 1 3 2 probability index         1 2 3 index in original table
+       value   0 0 0 1.0         0             0 0 0 0
+               0 0 1 0.0         1             0 0 1 2
+               0 1 0 0.9         2     sorted  0 1 0 1
+               0 1 1 0.1         3       =>    0 1 1 3
+               1 0 0 0.8         4             1 0 0 4
+               1 0 1 0.2         5             1 0 1 6
+               1 1 0 0.01        6             1 1 0 5
+               1 1 1 0.99        7             1 1 1 7
        */
-      static Vector reorderTable( const Vector& originaltable, const VectorI& originaltableDomain, const VectorI& expectedDomain )
+      static PotentialTable reorderTable( const Vector& table, const VectorI& domain, const VectorI& domainCardinality )
       {
-         // TODO
+         ensure( domain.size() == domainCardinality.size(), "cardinality and domain must have same dimensionality" );
+
+         // now sort the domain and keep track of the original order
+         std::vector< std::pair< ui32, ui32 > > domainSorted;
+         domainSorted.reserve( domain.size() );
+         for ( ui32 n = 0; n < domain.size(); ++n )
+         {
+            domainSorted.push_back( std::make_pair( domain[ n ], n ) );
+         }
+         std::sort( domainSorted.begin(), domainSorted.end() );
+
+         ui32 stride = 1;
+         std::vector<ui32> strides( domain.size() );
+         for ( ui32 n = 0; n < domain.size(); ++n )
+         {
+            const ui32 indexInOriginalDomain = domainSorted[ n ].second;
+            strides[ indexInOriginalDomain ] = stride;
+            stride *= domainCardinality[ n ];
+         }
+
+         // now reorder the table
+         VectorI newDomain( domain.size() );
+         VectorI newCardinality( domain.size() );
+         Vector newTable( table.size() );
+         for ( ui32 n = 0; n < domain.size(); ++n )
+         {
+            const ui32 indexInOriginalDomain = domainSorted[ n ].second;
+            newDomain[ n ] = domain[ indexInOriginalDomain ];
+            newCardinality[ n ] = domainCardinality[ indexInOriginalDomain ];
+         }
+
+         std::vector<ui32> counts( domain.size() );
+         ui32 currentIndex = 0;
+         // TODO: is there a more efficient way to do that?
+         // Currently, a counter is used to backtrack the source index...
+         for ( ui32 n = 0; n < table.size(); ++n )
+         {
+            // check the counter bounds (i.e., it must be within domainCardinality, if not backtrack the source index),
+            for ( ui32 i = 0; i < domain.size(); ++i )
+            {
+               if ( counts[ i ] == newCardinality[ i ] )
+               {
+                  ++counts[ i + 1 ];
+                  for ( int j = (int)i; j >= 0; --j )
+                  {
+                     currentIndex -= strides[ j ] * counts[ j ];
+                     counts[ j ] = 0;
+                  }
+                  currentIndex += strides[ i + 1 ];
+               } else break;
+            }
+
+            // handling the table
+            newTable[ n ] = table[ currentIndex ];
+
+            // finally increase the counter
+            ++counts[ 0 ];
+            currentIndex += strides[ 0 ];
+         }
+
+         return PotentialTable( newTable, newDomain, newCardinality );
       }
 
       void print( std::ostream& o ) const

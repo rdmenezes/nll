@@ -319,6 +319,126 @@ namespace core
     @ingroup core
     @brief helper function for making a Buffer1D out of a set of values
    */
+   template <class T> Buffer1D<T> make_buffer1D( typename BestConstArgType<T>::type val1,
+												             typename BestConstArgType<T>::type val2,
+												             typename BestConstArgType<T>::type val3,
+                                                 typename BestConstArgType<T>::type val4,
+                                                 typename BestConstArgType<T>::type val5,
+                                                 typename BestConstArgType<T>::type val6,
+                                                 typename BestConstArgType<T>::type val7,
+                                                 typename BestConstArgType<T>::type val8,
+                                                 typename BestConstArgType<T>::type val9 )
+   {
+      Buffer1D<T> buf( 9, false );
+      buf( 0 ) = val1;
+      buf( 1 ) = val2;
+      buf( 2 ) = val3;
+      buf( 3 ) = val4;
+      buf( 4 ) = val5;
+      buf( 5 ) = val6;
+      buf( 6 ) = val7;
+      buf( 7 ) = val8;
+      buf( 8 ) = val9;
+      return buf;
+   }
+
+   /**
+    @ingroup core
+    @brief helper function for making a Buffer1D out of a set of values
+   */
+   template <class T> Buffer1D<T> make_buffer1D( typename BestConstArgType<T>::type val1,
+												             typename BestConstArgType<T>::type val2,
+												             typename BestConstArgType<T>::type val3,
+                                                 typename BestConstArgType<T>::type val4,
+                                                 typename BestConstArgType<T>::type val5,
+                                                 typename BestConstArgType<T>::type val6,
+                                                 typename BestConstArgType<T>::type val7,
+                                                 typename BestConstArgType<T>::type val8,
+                                                 typename BestConstArgType<T>::type val9,
+                                                 typename BestConstArgType<T>::type val10 )
+   {
+      Buffer1D<T> buf( 10, false );
+      buf( 0 ) = val1;
+      buf( 1 ) = val2;
+      buf( 2 ) = val3;
+      buf( 3 ) = val4;
+      buf( 4 ) = val5;
+      buf( 5 ) = val6;
+      buf( 6 ) = val7;
+      buf( 7 ) = val8;
+      buf( 8 ) = val9;
+      buf( 9 ) = val10;
+      return buf;
+   }
+
+   /**
+    @ingroup core
+    @brief helper function for making a Buffer1D out of a set of values
+   */
+   template <class T> Buffer1D<T> make_buffer1D( typename BestConstArgType<T>::type val1,
+												             typename BestConstArgType<T>::type val2,
+												             typename BestConstArgType<T>::type val3,
+                                                 typename BestConstArgType<T>::type val4,
+                                                 typename BestConstArgType<T>::type val5,
+                                                 typename BestConstArgType<T>::type val6,
+                                                 typename BestConstArgType<T>::type val7,
+                                                 typename BestConstArgType<T>::type val8,
+                                                 typename BestConstArgType<T>::type val9,
+                                                 typename BestConstArgType<T>::type val10,
+                                                 typename BestConstArgType<T>::type val11 )
+   {
+      Buffer1D<T> buf( 11, false );
+      buf( 0 ) = val1;
+      buf( 1 ) = val2;
+      buf( 2 ) = val3;
+      buf( 3 ) = val4;
+      buf( 4 ) = val5;
+      buf( 5 ) = val6;
+      buf( 6 ) = val7;
+      buf( 7 ) = val8;
+      buf( 8 ) = val9;
+      buf( 9 ) = val10;
+      buf( 10 ) = val11;
+      return buf;
+   }
+
+   /**
+    @ingroup core
+    @brief helper function for making a Buffer1D out of a set of values
+   */
+   template <class T> Buffer1D<T> make_buffer1D( typename BestConstArgType<T>::type val1,
+												             typename BestConstArgType<T>::type val2,
+												             typename BestConstArgType<T>::type val3,
+                                                 typename BestConstArgType<T>::type val4,
+                                                 typename BestConstArgType<T>::type val5,
+                                                 typename BestConstArgType<T>::type val6,
+                                                 typename BestConstArgType<T>::type val7,
+                                                 typename BestConstArgType<T>::type val8,
+                                                 typename BestConstArgType<T>::type val9,
+                                                 typename BestConstArgType<T>::type val10,
+                                                 typename BestConstArgType<T>::type val11,
+                                                 typename BestConstArgType<T>::type val12 )
+   {
+      Buffer1D<T> buf( 12, false );
+      buf( 0 ) = val1;
+      buf( 1 ) = val2;
+      buf( 2 ) = val3;
+      buf( 3 ) = val4;
+      buf( 4 ) = val5;
+      buf( 5 ) = val6;
+      buf( 6 ) = val7;
+      buf( 7 ) = val8;
+      buf( 8 ) = val9;
+      buf( 9 ) = val10;
+      buf( 10 ) = val11;
+      buf( 11 ) = val12;
+      return buf;
+   }
+
+   /**
+    @ingroup core
+    @brief helper function for making a Buffer1D out of a set of values
+   */
    inline Buffer1D<i8> make_buffer1D_from_string( const std::string& str )
    {
       Buffer1D<i8> buf( strdup( str.c_str() ), static_cast<ui32> ( str.size() ), true );

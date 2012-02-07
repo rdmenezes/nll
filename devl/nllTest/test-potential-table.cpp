@@ -588,12 +588,83 @@ public:
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
    }
+
+   void testTableSorting()
+   {
+      PotentialTable::VectorI domain( 3 );
+      domain[ 0 ] = 1;
+      domain[ 1 ] = 0;
+      domain[ 2 ] = 2;
+      PotentialTable::VectorI  cardinality( 3 );
+      cardinality[ 0 ] = 2;
+      cardinality[ 1 ] = 2;
+      cardinality[ 2 ] = 2;
+
+      core::Buffer1D<double> initialTable = core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99 );
+      PotentialTable pot = PotentialTable::reorderTable( initialTable,
+                                                         domain,
+                                                         cardinality );
+      TESTER_ASSERT( pot.getDomain()[ 0 ] == 0 );
+      TESTER_ASSERT( pot.getDomain()[ 1 ] == 1 );
+      TESTER_ASSERT( pot.getDomain()[ 2 ] == 2 );
+
+      TESTER_ASSERT( pot.getCardinality()[ 0 ] == 2 );
+      TESTER_ASSERT( pot.getCardinality()[ 1 ] == 2 );
+      TESTER_ASSERT( pot.getCardinality()[ 2 ] == 2 );
+
+      TESTER_ASSERT( fabs( pot.getTable()[ 0 ] - initialTable[ 0 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 1 ] - initialTable[ 2 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 2 ] - initialTable[ 1 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 3 ] - initialTable[ 3 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 4 ] - initialTable[ 4 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 5 ] - initialTable[ 6 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 6 ] - initialTable[ 5 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 7 ] - initialTable[ 7 ] ) < 0.001 );
+   }
+
+   void testTableSorting2()
+   {
+      PotentialTable::VectorI domain( 3 );
+      domain[ 0 ] = 1;
+      domain[ 1 ] = 0;
+      domain[ 2 ] = 2;
+      PotentialTable::VectorI  cardinality( 3 );
+      cardinality[ 0 ] = 2;
+      cardinality[ 1 ] = 3;
+      cardinality[ 2 ] = 2;
+
+      core::Buffer1D<double> initialTable = core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99, 0.6, 0.4, 0.3, 0.7 );
+      PotentialTable pot = PotentialTable::reorderTable( initialTable,
+                                                         domain,
+                                                         cardinality );
+      TESTER_ASSERT( pot.getDomain()[ 0 ] == 0 );
+      TESTER_ASSERT( pot.getDomain()[ 1 ] == 1 );
+      TESTER_ASSERT( pot.getDomain()[ 2 ] == 2 );
+
+      TESTER_ASSERT( pot.getCardinality()[ 0 ] == 3 );
+      TESTER_ASSERT( pot.getCardinality()[ 1 ] == 2 );
+      TESTER_ASSERT( pot.getCardinality()[ 2 ] == 2 );
+
+      TESTER_ASSERT( fabs( pot.getTable()[ 0 ] - initialTable[ 0 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 1 ] - initialTable[ 2 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 2 ] - initialTable[ 4 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 3 ] - initialTable[ 1 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 4 ] - initialTable[ 3 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 5 ] - initialTable[ 5 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 6 ] - initialTable[ 6 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 7 ] - initialTable[ 8 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 8 ] - initialTable[ 10 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 9 ] - initialTable[ 7 ]  ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 10 ] - initialTable[ 9 ] ) < 0.001 );
+      TESTER_ASSERT( fabs( pot.getTable()[ 11 ] - initialTable[ 11 ]) < 0.001 );
+   }
 };
 
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestPotentialTable);
-
+TESTER_TEST(testTableSorting);
+TESTER_TEST(testTableSorting2);
 TESTER_TEST(testMul1);
 TESTER_TEST(testMul2);
 TESTER_TEST(testMul3);
@@ -609,4 +680,4 @@ TESTER_TEST(testConditioning3a);
 TESTER_TEST(testConditioning3b);
 TESTER_TEST(testConditioning3c);
 TESTER_TEST_SUITE_END();
-#endif
+#endif%
