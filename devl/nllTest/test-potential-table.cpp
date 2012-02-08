@@ -1,7 +1,6 @@
 #include <nll/nll.h>
 #include <tester/register.h>
 
-
 using namespace nll;
 using namespace nll::core;
 using namespace nll::algorithm;

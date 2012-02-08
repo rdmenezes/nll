@@ -31,9 +31,7 @@ namespace algorithm
    {
    public:
       typedef FactorT                                    Factor;
-
-   private:
-      typedef core::GraphAdgencyList<> Graph;
+      typedef core::GraphAdgencyList<>                   Graph;
       typedef typename Graph::VertexMapper<std::string>  NodeNameMapper;
       typedef typename Graph::VertexMapper<Factor>       NodeFactorMapper;
 
@@ -48,7 +46,7 @@ namespace algorithm
       {
          NodeDescritor desc = _network.addVertex();
          _names[ desc ] = name;
-         _Factors[ desc ] = factor;
+         _factors[ desc ] = factor;
          return desc;
       }
 
@@ -57,10 +55,120 @@ namespace algorithm
          _network.addEdge( source, destination );
       }
 
+      const Graph& getNetwork() const
+      {
+         return _network;
+      }
+
+      const NodeFactorMapper& getFactors() const
+      {
+         return _factors;
+      }
+
+      const NodeNameMapper& getNames() const
+      {
+         return _names;
+      }
+
    private:
       Graph                   _network;
       NodeNameMapper          _names;
       NodeFactorMapper        _factors;
+   };
+
+   /**
+    @brief computes p(U-E, E=e) with E observed variables (evidence) and U-E the rest of the variables modeled by the BN
+
+    Given U = all the model's variables,
+    it computes likelyhood queries: p(U-E, E=e) = (Sum_(y in U-E) p(Y=y, E=e))
+    */
+   template <class Factor>
+   class BayesianInferenceVariableElimination
+   {
+   public:
+      typedef PotentialGaussianMoment::Vector         Vector;
+      typedef PotentialGaussianMoment::VectorI        VectorI;
+      typedef BayesianNetwork<Factor>                 Bn;
+      typedef typename Bn::Graph                      Graph;
+
+   private:
+      template <class Functor>
+      class BnVisitor : public core::GraphVisitorBfs<Graph>
+      {
+      public:
+         typedef typename Graph::const_vertex_iterator   const_vertex_iterator;
+
+      public:
+         BnVisitor( const Bn& bn, Functor& fun ) : _bn( bn ), _func( fun )
+         {}
+
+         void run()
+         {
+            visit( _bn.getNetwork() );
+         }
+
+      private:
+         virtual void discoverVertex( const const_vertex_iterator& it, const Graph& g )
+         {
+            const Factor& f = _bn.getFactors()[ it ];
+            _func( f );
+         }
+
+      private:
+         const Bn&   _bn;
+         Functor&    _func;
+      };
+
+      class GetFactorsFunctor
+      {
+      public:
+         void clear()
+         {
+            _factors.clear();
+         }
+
+         void operator()( const Factor& f )
+         {
+            _factors.push_back( &f );
+         }
+
+         const std::vector<const Factor*>& getFactors() const
+         {
+            return _factors;
+         }
+
+      private:
+         std::vector<const Factor*> _factors;
+      };
+
+   public:
+      /**
+       @param bn the bayesian network
+       @param evidenceDomain the domain of the evidence
+       @param evidenceValue the value of the evidence
+       */
+      Factor run( const BayesianNetwork<Factor>& bn, 
+                  const VectorI& evidenceDomain,
+                  const Vector& evidenceValue ) const
+      {
+         GetFactorsFunctor functor;
+         BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
+         visitorGetFactors.run();
+
+         std::set<ui32> varEliminationOrder;
+         for ( size_t n = 0; n < functor.getFactors().size(); ++n )
+         {
+            std::for_each( functor.getFactors()[ n ]->getDomain().begin(),
+                           functor.getFactors()[ n ]->getDomain().end(),
+                           [&]( ui32 v )
+                           {
+                              varEliminationOrder.insert( v );
+                           } );
+         }
+
+         std::cout << "F=" << functor.getFactors().size() << std::endl;
+         return Factor();
+      }
    };
 }
 }
@@ -116,7 +224,7 @@ public:
       Factor::VectorI  cardinalityRain( 2 );
       cardinalityRain[ 0 ] = 2;
       cardinalityRain[ 1 ] = 2;
-      Factor Rain( core::make_buffer1D<double>( 0.8, 0.2, 0.2, 0.8 ), domainRainTable, cardinalityRain );
+      Factor rain( core::make_buffer1D<double>( 0.8, 0.2, 0.2, 0.8 ), domainRainTable, cardinalityRain );
 
       //
       // Wet
@@ -129,7 +237,26 @@ public:
       cardinalityWet[ 0 ] = 2;
       cardinalityWet[ 1 ] = 2;
       cardinalityWet[ 2 ] = 2;
-      Factor Wet( core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99 ), domainWetTable, cardinalityWet );
+      Factor wet( core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99 ), domainWetTable, cardinalityWet );
+
+      //
+      // create network
+      //
+      BayesianNetwork::NodeDescritor cloudyNode    = bnet.addNode( "CLOUDY",     cloudy );
+      BayesianNetwork::NodeDescritor wetNode       = bnet.addNode( "WET",        wet );
+      BayesianNetwork::NodeDescritor sprinklerNode = bnet.addNode( "SPRINKLER",  sprinkler );
+      BayesianNetwork::NodeDescritor rainNode      = bnet.addNode( "RAIN",       rain );
+
+      bnet.addLink( cloudyNode, sprinklerNode );
+      bnet.addLink( cloudyNode, rainNode );
+      bnet.addLink( sprinklerNode, wetNode );
+      bnet.addLink( rainNode, wetNode );
+
+      //
+      // inference test
+      //
+      algorithm::BayesianInferenceVariableElimination<Factor> inference;
+      inference.run( bnet, core::make_buffer1D<ui32>( (int)RAIN ), core::make_buffer1D<double>( 1.0 ) );
    }
 
 };

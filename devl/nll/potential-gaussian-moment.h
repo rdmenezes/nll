@@ -220,8 +220,7 @@ namespace algorithm
 
       /**
        assuming a partition X = [ U V ], computes integral(-inf,+inf)p(U)dV
-       @param vars the values of Y=y
-       @param varsIndex the index of Y's, must be sorted 0->+inf
+       @param varIndexToRemove the index of V's
        */
       PotentialGaussianMoment marginalization( const VectorI& varIndexToRemove ) const
       {
@@ -246,7 +245,7 @@ namespace algorithm
       }
 
       /**
-       @brief computes p(X | Y=y)
+       @brief computes p(X, Y=y)
        @param vars the values of Y=y
        @param varsIndex the index of Y's, must be sorted 0->+inf
        */
