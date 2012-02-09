@@ -147,10 +147,12 @@ namespace algorithm
        @param bn the bayesian network
        @param evidenceDomain the domain of the evidence
        @param evidenceValue the value of the evidence
+       @param domainOfInterest the domain we want to get the likelihood
        */
       Factor run( const BayesianNetwork<Factor>& bn, 
                   const VectorI& evidenceDomain,
-                  const EvidenceValue& evidenceValue ) const
+                  const EvidenceValue& evidenceValue,
+                  const VectorI& domainOfInterest ) const
       {
          GetFactorsFunctor functor;
          BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
@@ -173,8 +175,15 @@ namespace algorithm
             varEliminationOrder.erase( evidenceDomain[ n ] );
          }
 
+         for ( ui32 n = 0; n < domainOfInterest.size(); ++n )
+         {
+            // remove the domain of interest
+            varEliminationOrder.erase( domainOfInterest[ n ] );
+         }
+
          // now enter the evidence
          std::vector<Factor> newFactors;
+         newFactors.reserve( functor.getFactors().size() );
          for ( size_t n = 0; n < functor.getFactors().size(); ++n )
          {
             VectorI intersectionDomain;
@@ -188,18 +197,38 @@ namespace algorithm
                newFactors.push_back( *functor.getFactors()[ n ] );
             } else {
                // enter the evidence
-               functor.getFactors()[ n ]->conditioning( intersectionValue, intersectionDomain );
+               newFactors.push_back( functor.getFactors()[ n ]->conditioning( intersectionValue, intersectionDomain ) );
             }
+
+            std::cout << "potential=" << n << std::endl;
+            newFactors.rbegin()->print( std::cout );
          }
 
          // finally, run the variable elimination
-         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         for ( std::set<ui32>::const_reverse_iterator it = varEliminationOrder.rbegin(); it != varEliminationOrder.rend(); ++it )
          {
+            // TODO: we can improve with a lookup table instead of linear search for factors...
+            for ( size_t factor = 0; factor < newFactors.size(); ++factor )
+            {
+               const bool isInFactor = std::binary_search( newFactors[ factor ].getDomain().begin(),
+                                                           newFactors[ factor ].getDomain().end(),
+                                                           *it );
+               if ( isInFactor )
+               {
+                  VectorI domain( 1 );
+                  domain[ 0 ] = *it;
+                  newFactors[ factor ] = newFactors[ factor ].marginalization( domain );
+               }
+            }
          }
 
+         Factor f = newFactors[ 0 ];
+         for ( size_t factor = 1; factor < newFactors.size(); ++factor )
+         {
+            f = f * newFactors[ factor ];
+         }
 
-         std::cout << "F=" << functor.getFactors().size() << std::endl;
-         return Factor();
+         return f;
       }
 
 
@@ -314,7 +343,7 @@ public:
       // inference test
       //
       algorithm::BayesianInferenceVariableElimination<Factor> inference;
-      inference.run( bnet, core::make_buffer1D<ui32>( (int)RAIN ), core::make_buffer1D<ui32>( 1 ) );
+      inference.run( bnet, core::make_buffer1D<ui32>( (int)RAIN ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)WETGRASS ) );
    }
 
 };

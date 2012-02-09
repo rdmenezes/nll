@@ -210,7 +210,7 @@ public:
    {
       if ( _buffer )
       {
-         o << "Buffer1D(" << *_cpt << ") size=" << _size << " ";
+         o << "Buffer1D(" << *_cpt << ") size=" << _size << " values=";
          for (ui32 n = 0; n < _size; ++n)
             o << at( n ) << " ";
          o << std::endl;
