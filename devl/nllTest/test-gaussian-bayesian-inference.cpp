@@ -88,6 +88,7 @@ namespace algorithm
    public:
       typedef PotentialGaussianMoment::Vector         Vector;
       typedef PotentialGaussianMoment::VectorI        VectorI;
+      typedef typename Factor::EvidenceValue          EvidenceValue;
       typedef BayesianNetwork<Factor>                 Bn;
       typedef typename Bn::Graph                      Graph;
 
@@ -149,7 +150,7 @@ namespace algorithm
        */
       Factor run( const BayesianNetwork<Factor>& bn, 
                   const VectorI& evidenceDomain,
-                  const Vector& evidenceValue ) const
+                  const EvidenceValue& evidenceValue ) const
       {
          GetFactorsFunctor functor;
          BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
@@ -166,8 +167,65 @@ namespace algorithm
                            } );
          }
 
+         for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
+         {
+            // remove the evidence variable from the variable to eliminate
+            varEliminationOrder.erase( evidenceDomain[ n ] );
+         }
+
+         // now enter the evidence
+         std::vector<Factor> newFactors;
+         for ( size_t n = 0; n < functor.getFactors().size(); ++n )
+         {
+            VectorI intersectionDomain;
+            EvidenceValue  intersectionValue;
+            std::set<ui32> potentialDomain( functor.getFactors()[ n ]->getDomain().begin(),
+                                            functor.getFactors()[ n ]->getDomain().end() );
+            computeIntersection( evidenceDomain, evidenceValue, potentialDomain, intersectionDomain, intersectionValue );
+            if ( intersectionDomain.size() == 0 )
+            {
+               // there is no evidence, so just copy the potential
+               newFactors.push_back( *functor.getFactors()[ n ] );
+            } else {
+               // enter the evidence
+               functor.getFactors()[ n ]->conditioning( intersectionValue, intersectionDomain );
+            }
+         }
+
+         // finally, run the variable elimination
+         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         {
+         }
+
+
          std::cout << "F=" << functor.getFactors().size() << std::endl;
          return Factor();
+      }
+
+
+   private:
+      static void computeIntersection( const VectorI& evidenceDomain,
+                                       const EvidenceValue&  evidenceValue,
+                                       const std::set<ui32>& potentialDomain, 
+                                       VectorI& intersectionDomain,
+                                       EvidenceValue&  intersectionValue )
+      {
+         std::vector<ui32> indexIntersection;
+         for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
+         {
+            if ( potentialDomain.find( evidenceDomain[ n ] ) != potentialDomain.end() )
+            {
+               indexIntersection.push_back( n );
+            }
+         }
+
+         intersectionDomain = VectorI( static_cast<ui32>( indexIntersection.size() ) );
+         intersectionValue = EvidenceValue( static_cast<ui32>( indexIntersection.size() ) );
+         for ( size_t n = 0; n < indexIntersection.size(); ++n )
+         {
+            intersectionDomain[ n ] = evidenceDomain[ indexIntersection[ n ] ];
+            intersectionValue[ n ] = evidenceValue[ indexIntersection[ n ] ];
+         }
       }
    };
 }
@@ -256,7 +314,7 @@ public:
       // inference test
       //
       algorithm::BayesianInferenceVariableElimination<Factor> inference;
-      inference.run( bnet, core::make_buffer1D<ui32>( (int)RAIN ), core::make_buffer1D<double>( 1.0 ) );
+      inference.run( bnet, core::make_buffer1D<ui32>( (int)RAIN ), core::make_buffer1D<ui32>( 1 ) );
    }
 
 };

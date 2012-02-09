@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NLL_ALGORITHM_POTENTIAL_GAUSSIAN_TABLE_H_
-# define NLL_ALGORITHM_POTENTIAL_GAUSSIAN_TABLE_H_
+#ifndef NLL_ALGORITHM_POTENTIAL_TABLE_H_
+# define NLL_ALGORITHM_POTENTIAL_TABLE_H_
 
 # pragma warning( push )
 # pragma warning( disable:4996 ) // checked iterator warning
@@ -57,6 +57,7 @@ namespace algorithm
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
       typedef core::Buffer1D<ui32>        VectorI;
+      typedef VectorI                     EvidenceValue;
 
    public:
       PotentialTable()
@@ -244,18 +245,18 @@ namespace algorithm
 
       /**
        @brief computes p(X | Y=y) i.e., entering evidence
-       @param vars the evidence of Y=y
+       @param evidenceValue the evidence of Y=y
        @param varIndexToRemove the index of Y's, must be sorted 0->+inf
        */
-      PotentialTable conditioning( const VectorI& evidence, const VectorI& varIndexToRemove ) const
+      PotentialTable conditioning( const EvidenceValue& evidenceValue, const VectorI& varIndexToRemove ) const
       {
          ensure( varIndexToRemove.size(), "empty set" );
 
          int size = (int)varIndexToRemove.size();
-         PotentialTable p = conditioning( evidence[ 0 ], varIndexToRemove[ 0 ] );
+         PotentialTable p = conditioning( evidenceValue[ 0 ], varIndexToRemove[ 0 ] );
          for ( int n = 1; n < size; ++n )
          {
-            p = p.conditioning( evidence[ n ], varIndexToRemove[ n ] );
+            p = p.conditioning( evidenceValue[ n ], varIndexToRemove[ n ] );
          }
          return p;
       }
@@ -326,7 +327,7 @@ namespace algorithm
       }
 
       // compute P( X | E = e ) = P( X, E ) / P( E )
-      PotentialTable conditioning( ui32 evidence, ui32 varIndexToRemove ) const
+      PotentialTable conditioning( EvidenceValue::value_type evidence, ui32 varIndexToRemove ) const
       {
          ensure( _domain.size(), "domain is empty!" );
          VectorI newDomain;
