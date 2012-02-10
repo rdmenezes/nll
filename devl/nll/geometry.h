@@ -54,7 +54,7 @@ namespace core
       if( x < 0 && y >= 0)
          return (T)core::PI - atan( - y / x );
       if( x < 0 && y < 0)
-         return core::PI + atan( y / x );
+         return (T)core::PI + atan( y / x );
       if( x > 0 && y < 0 )
          return 2 * (T)core::PI - atan( -y / x );
       return 0;
