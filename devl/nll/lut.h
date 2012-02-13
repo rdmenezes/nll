@@ -423,6 +423,16 @@ namespace imaging
          _mapper.set( index, value );
       }
 
+      value_type getMin() const
+      {
+         return _min;
+      }
+
+      value_type getMax() const
+      {
+         return _max;
+      }
+
    protected:
       TMapper  _mapper;
       float   _min;
@@ -458,6 +468,17 @@ namespace imaging
       {
          return _lut.transform( value );
       }
+
+      value_type getMin() const
+      {
+         return _lut.getMin();
+      }
+
+      value_type getMax() const
+      {
+         return _lut.getMax();
+      }
+
 
       /**
        @brief Do the same than <code>transform</code> but instead do it on a sequence and returns
