@@ -91,7 +91,7 @@ namespace platform
 
             // check the dot product to know what direction the points are...
             const nll::core::vector3f intersectionDir( i2[ 0 ] - i1[ 0 ], i2[ 1 ] - i1[ 1 ], 1 );
-            int sign = nll::core::sign( dir.dot( intersectionDir ) );
+            int sign = (int)nll::core::sign( dir.dot( intersectionDir ) );
 
             // update the points
             if ( !p1isInside )
