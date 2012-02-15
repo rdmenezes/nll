@@ -569,6 +569,7 @@ namespace mvv
       void loadDicomDirectory( const std::string& dir )
       {
          std::cout << "loading DICOM directory..." << std::endl;
+         clear(); // we need to erase previous DICOM volumes
 
          // get the potential DICOM files
          std::vector< std::string > files;
