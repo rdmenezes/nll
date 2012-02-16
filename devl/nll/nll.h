@@ -150,6 +150,7 @@
 # include <stack>
 # include <vector>
 # include <queue>
+# include <numeric>
 
 /**
  @defgroup core
@@ -372,6 +373,8 @@
 # include "potential-gaussian-moment.h"
 # include "potential-gaussian-canonical.h"
 # include "potential-table.h"
+# include "bayesian-network.h"
+# include "bayesian-inference-naive.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

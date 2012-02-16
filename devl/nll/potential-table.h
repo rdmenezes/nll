@@ -60,11 +60,6 @@ namespace algorithm
       typedef VectorI                     EvidenceValue;
 
    public:
-      PotentialTable()
-      {
-         // nothing, unusable potential!
-      }
-
       /**
        @brief table the table of events annotated with the corresponding probability
 
@@ -76,7 +71,32 @@ namespace algorithm
            T[ 1 1 ] = 0.75 | index = 3
 
         For example index = 1, represents p(A=false, B=true) = 0.25
-       */
+
+        Format that must be followed:
+          for a bayesian network the parent nodes must have a higher domain than the current node, consequently
+          the table will be stored with domain[0] being the probability
+
+          See a working example: BNT of 4 nodes with Cloudy->Sprinkler, Cloudy->Rainy, Sprinkler->Wet, Rainy->Wet dependencies
+                                         Cloudy (domain = 3)
+                    Sprinkler (domain = 2)             Rainy (domain = 1)
+                                         Wet (domain = 0)
+
+           The table will be stored as:
+            Cloudy  p(C=t)    p(C=f)  =>   table encoding = 0.5  table index = 0
+                     0.5        0.5                         0.5                1
+            Rainy  C P(R=t)   p(R=f)  =>   table encoding = 0.2                0
+                   f 0.8      0.2                           0.8                1
+                   t 0.2      0.8                           0.8                2
+                                                            0.2                3
+            Wet  S R P(W=f)  P(W=t)   =>   table encoding = 1
+                 f f 1       0                              0
+                 t f 0.1     0.9                            0.1
+                 f t 0.1     0.9                            0.9
+                 t t 0.01    0.99                           0.1
+                                                            0.9
+                                                            0.01
+                                                            0.99
+                                                            */
       PotentialTable( const Vector& table, const VectorI domain, const VectorI& cardinality )
       {
          const ui32 expectedTableSize = getTableSize( cardinality );
@@ -102,6 +122,15 @@ namespace algorithm
          _table = Vector( domain.size() );
 
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
+      }
+
+      /**
+       @brief Create a neutral potential
+       */
+      PotentialTable()
+      {
+         _table = Vector( 1 );
+         _table[ 0 ] = 1;
       }
 
       /**
@@ -261,8 +290,34 @@ namespace algorithm
          return p;
       }
 
+      /**
+       @brief Normalize the potential so that it represents a PDF i.e. integral(-inf,+inf)p(x) = 1
+       */
+      void normalize()
+      {
+         value_type sum = 0;
+         for ( ui32 n = 0; n < _table.size(); ++n )
+         {
+            sum += _table[ n ];
+         }
+         for ( ui32 n = 0; n < _table.size(); ++n )
+         {
+            _table[ n ] /= sum;
+         }
+      }
+
       PotentialTable operator*( const PotentialTable& g2 ) const
       {
+         // no more computations, the other one is empty!
+         if ( getDomain().size() == 0 && g2.getDomain().size() == 0 )
+         {
+            return PotentialTable();
+         }
+         if ( g2.getDomain().size() == 0 )
+            return *this;
+         if ( getDomain().size() == 0 )
+            return g2;
+
          PotentialTable extended1 = extendDomain( g2.getDomain(), g2.getCardinality() );
          PotentialTable extended2 = g2.extendDomain( _domain, _cardinality );
          const ui32 size = extended1.getTable().size();
@@ -327,8 +382,14 @@ namespace algorithm
       }
 
       // compute P( X | E = e ) = P( X, E ) / P( E )
-      PotentialTable conditioning( EvidenceValue::value_type evidence, ui32 varIndexToRemove ) const
+      /**
+       @brief compute P( X, E = e ), i.e. this is unormalized
+       @param pe_out if != 0, computes P(E) to easily compute P( X | E = e ) = P( X, E ) / P( E )
+       */
+      PotentialTable conditioning( EvidenceValue::value_type evidence, ui32 varIndexToRemove, value_type* pe_out = 0 ) const
       {
+         assert( std::binary_search( _domain.begin(), _domain.end(), varIndexToRemove ) ); // can't find the variable!
+
          ensure( _domain.size(), "domain is empty!" );
          VectorI newDomain;
          VectorI newCardinality;
@@ -357,10 +418,16 @@ namespace algorithm
          }
          ensure( pe > 0, "p(E = e) <= 0" );
          
+         /*
          // now just normalize
          for ( ui32 index = 0; index < newSize; index++ )
          {
             newTable[ index ] /= pe;
+         }*/
+
+         if ( pe_out )
+         {
+            *pe_out = pe;
          }
 
          return PotentialTable( newTable, newDomain, newCardinality );

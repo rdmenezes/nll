@@ -13,83 +13,20 @@ namespace nll
 namespace algorithm
 {
    /**
-    @brief Model a bayesian network with by a single type of factor <FactorT>
-
-    U = all the model's variables
-
-    Inference: 3 main questions:
-    - likelyhood queries: computes p(E=e) = Sum_(y in U-E) p(Y=y, E=e)
-    - conditional probability queries: on a set of variables Y, computes p(Y=y | E=e) = p(Y=y, E=e) / p(E=e) = sum_(w in U-E-Y) p(W=w, Y=y, E=e)/sum_(z in U-E)p(Z=z, E=e)
-    - maximum a posteriory assignment: computes MAP(Y|E=e) = argmax_y p(Y=y | E=e)  <=> argmax_y p(Y=y, E=e)
-
-    Learning:
-    - parameter optimizations
-    - structure learning
-    */
-   template <class FactorT>
-   class BayesianNetwork
-   {
-   public:
-      typedef FactorT                                    Factor;
-      typedef core::GraphAdgencyList<>                   Graph;
-      typedef typename Graph::VertexMapper<std::string>  NodeNameMapper;
-      typedef typename Graph::VertexMapper<Factor>       NodeFactorMapper;
-
-   public:
-      typedef typename Graph::VertexDescriptor           NodeDescritor;
-
-   public:
-      BayesianNetwork() : _names( _network ), _factors( _network )
-      {}
-
-      NodeDescritor addNode( const std::string& name, const Factor& factor )
-      {
-         NodeDescritor desc = _network.addVertex();
-         _names[ desc ] = name;
-         _factors[ desc ] = factor;
-         return desc;
-      }
-
-      void addLink( const NodeDescritor& source, const NodeDescritor& destination )
-      {
-         _network.addEdge( source, destination );
-      }
-
-      const Graph& getNetwork() const
-      {
-         return _network;
-      }
-
-      const NodeFactorMapper& getFactors() const
-      {
-         return _factors;
-      }
-
-      const NodeNameMapper& getNames() const
-      {
-         return _names;
-      }
-
-   private:
-      Graph                   _network;
-      NodeNameMapper          _names;
-      NodeFactorMapper        _factors;
-   };
-
-   /**
     @brief computes p(U-E, E=e) with E observed variables (evidence) and U-E the rest of the variables modeled by the BN
 
     Given U = all the model's variables,
     it computes likelyhood queries: p(U-E, E=e) = (Sum_(y in U-E) p(Y=y, E=e))
     */
-   template <class Factor>
+   template <class BNetwork>
    class BayesianInferenceVariableElimination
    {
    public:
       typedef PotentialGaussianMoment::Vector         Vector;
       typedef PotentialGaussianMoment::VectorI        VectorI;
+      typedef typename BNetwork::Factor               Factor;
       typedef typename Factor::EvidenceValue          EvidenceValue;
-      typedef BayesianNetwork<Factor>                 Bn;
+      typedef BNetwork                                Bn;
       typedef typename Bn::Graph                      Graph;
 
    private:
@@ -158,6 +95,9 @@ namespace algorithm
          BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
          visitorGetFactors.run();
 
+         if ( functor.getFactors().size() == 0 )
+            return Factor();
+
          std::set<ui32> varEliminationOrder;
          for ( size_t n = 0; n < functor.getFactors().size(); ++n )
          {
@@ -169,18 +109,60 @@ namespace algorithm
                            } );
          }
 
-         for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
-         {
-            // remove the evidence variable from the variable to eliminate
-            varEliminationOrder.erase( evidenceDomain[ n ] );
-         }
-
+         // discard the domain of interest and evidence
          for ( ui32 n = 0; n < domainOfInterest.size(); ++n )
          {
-            // remove the domain of interest
             varEliminationOrder.erase( domainOfInterest[ n ] );
          }
 
+         for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
+         {
+            varEliminationOrder.erase( evidenceDomain[ n ] );
+         }
+
+         // enter the evidence in the factors
+         VectorI evidenceDomainMarg( 1 );
+         EvidenceValue evidenceValueMarg( 1 );
+
+         std::vector<Factor> newFactors;
+         newFactors.reserve( functor.getFactors().size() );
+         for ( size_t n = 0; n < functor.getFactors().size(); ++n )
+         {
+            newFactors.push_back( *functor.getFactors()[ n ] );
+
+            // check we have some evidence
+            for ( ui32 evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
+            {
+               bool isInPotential = std::binary_search( newFactors[ n ].getDomain().begin(),
+                                                        newFactors[ n ].getDomain().end(),
+                                                        evidenceVar );
+               if ( isInPotential )
+               {
+                  evidenceDomainMarg[ 0 ] = evidenceDomain[ evidenceVar ];
+                  evidenceValueMarg[ 0 ] = evidenceValue[ evidenceVar ];
+                  newFactors[ n ] = newFactors[ n ].conditioning( evidenceValueMarg, evidenceDomainMarg );
+               }
+            }
+         }
+
+         // finally create the big potential and marginalize out everything
+         Factor f = newFactors[ 0 ];
+         for ( size_t n = 1; n < newFactors.size(); ++n )
+         {
+            f = f * newFactors[ n ];
+         }
+
+         VectorI domainToMarginalize( 1 );
+         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         {
+            domainToMarginalize[ 0 ] = *it;
+            f = f.marginalization( domainToMarginalize );
+         }
+
+         return f;
+
+
+         /*
          // now enter the evidence
          std::vector<Factor> newFactors;
          newFactors.reserve( functor.getFactors().size() );
@@ -205,34 +187,77 @@ namespace algorithm
          }
 
          // finally, run the variable elimination
-         for ( std::set<ui32>::const_reverse_iterator it = varEliminationOrder.rbegin(); it != varEliminationOrder.rend(); ++it )
+         VectorI domainToMarginalize( 1 );
+         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         //for ( std::set<ui32>::const_reverse_iterator it = varEliminationOrder.rbegin(); it != varEliminationOrder.rend(); ++it )
          {
-            // TODO: we can improve with a lookup table instead of linear search for factors...
-            for ( size_t factor = 0; factor < newFactors.size(); ++factor )
+            std::vector<ui32> factorsInScope;
+            std::vector<ui32> factorsNotInScope;
+            getFactorsInScope( newFactors, *it, factorsInScope, factorsNotInScope );
+
+            std::vector<Factor> factors;
+            if ( factorsInScope.size() )
             {
-               const bool isInFactor = std::binary_search( newFactors[ factor ].getDomain().begin(),
-                                                           newFactors[ factor ].getDomain().end(),
-                                                           *it );
-               if ( isInFactor )
+               std::cout << "domain=" << *it << std::endl;
+               domainToMarginalize[ 0 ] = *it;
+               Factor tmpFactor;
+               for ( std::vector<ui32>::const_iterator itInScope = factorsInScope.begin(); itInScope != factorsInScope.end(); ++itInScope )
                {
-                  VectorI domain( 1 );
-                  domain[ 0 ] = *it;
-                  newFactors[ factor ] = newFactors[ factor ].marginalization( domain );
+                  std::cout << "factorInScope=" << *itInScope << std::endl;
+                  tmpFactor = tmpFactor * newFactors[ *itInScope ].marginalization( domainToMarginalize );
                }
+               tmpFactor.print( std::cout );
+               factors.push_back( tmpFactor );
             }
+
+            for ( std::vector<ui32>::const_iterator itNotInScope = factorsNotInScope.begin(); itNotInScope != factorsNotInScope.end(); ++itNotInScope )
+            {
+               factors.push_back( newFactors[ *itNotInScope ] );
+            }
+
+            newFactors = factors;
          }
 
+         ensure( newFactors.size(), "unexpected error: no remaining factors!" );
          Factor f = newFactors[ 0 ];
          for ( size_t factor = 1; factor < newFactors.size(); ++factor )
          {
             f = f * newFactors[ factor ];
          }
 
-         return f;
+         return f;*/
       }
 
 
    private:
+      static bool isDomainInScope( const Factor& f, ui32 domainVariable )
+      {
+         return std::binary_search( f.getDomain().begin(),
+                                    f.getDomain().end(),
+                                    domainVariable );
+      }
+
+      static void getFactorsInScope( const std::vector<Factor>& factors,
+                                    ui32 domainVariable,
+                                    std::vector<ui32>& indexFactorsInScope_out,
+                                    std::vector<ui32>& indexFactorsNotInScope_out )
+      {
+         indexFactorsInScope_out.clear();
+
+         for ( size_t factor = 0; factor < factors.size(); ++factor )
+         {
+            const bool isInFactor = std::binary_search( factors[ factor ].getDomain().begin(),
+                                                        factors[ factor ].getDomain().end(),
+                                                        domainVariable );
+            if ( isDomainInScope( factors[ factor ], domainVariable ) )
+            {
+               indexFactorsInScope_out.push_back( factor );
+            } else {
+               indexFactorsNotInScope_out.push_back( factor );
+            }
+         }
+      }
+
       static void computeIntersection( const VectorI& evidenceDomain,
                                        const EvidenceValue&  evidenceValue,
                                        const std::set<ui32>& potentialDomain, 
@@ -264,7 +289,8 @@ namespace algorithm
 class TestGaussianBayesianInference
 {
 public:
-   void testBasicInf1()
+   template <class InferenceAlgo>
+   void testBasicInfPotentialTableImpl()
    {
       // see example from BNT http://bnt.googlecode.com/svn/trunk/docs/usage.html
       enum DomainVariable
@@ -340,16 +366,68 @@ public:
       bnet.addLink( rainNode, wetNode );
 
       //
-      // inference test
+      // inference test. Checked against Matlab BNT
       //
-      algorithm::BayesianInferenceVariableElimination<Factor> inference;
-      inference.run( bnet, core::make_buffer1D<ui32>( (int)RAIN ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)WETGRASS ) );
+
+      InferenceAlgo inference;
+      Factor query1 = inference.run( bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      TESTER_ASSERT( query1.getDomain().size() == 1 );
+      TESTER_ASSERT( query1.getDomain()[ 0 ] == SPRINKLER );
+      TESTER_ASSERT( query1.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query1.getTable()[ 0 ], 0.5702, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query1.getTable()[ 1 ], 0.4298, 1e-2 ) );
+
+      Factor query2 = inference.run( bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 0 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      TESTER_ASSERT( query2.getDomain().size() == 1 );
+      TESTER_ASSERT( query2.getDomain()[ 0 ] == SPRINKLER );
+      TESTER_ASSERT( query2.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query2.getTable()[ 0 ], 0.9379, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query2.getTable()[ 1 ], 0.0621, 1e-2 ) );
+      
+      Factor query3 = inference.run( bnet, core::make_buffer1D<ui32>( (int)WETGRASS, (int)CLOUDY ), core::make_buffer1D<ui32>( 1, 1 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      TESTER_ASSERT( query3.getDomain().size() == 1 );
+      TESTER_ASSERT( query3.getDomain()[ 0 ] == SPRINKLER );
+      TESTER_ASSERT( query3.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query3.getTable()[ 0 ], 0.8696, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query3.getTable()[ 1 ], 0.1304, 1e-2 ) );
+
+      Factor query4 = inference.run( bnet, core::make_buffer1D<ui32>( (int)WETGRASS, (int)CLOUDY ), core::make_buffer1D<ui32>( 1, 0 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      TESTER_ASSERT( query4.getDomain().size() == 1 );
+      TESTER_ASSERT( query4.getDomain()[ 0 ] == SPRINKLER );
+      TESTER_ASSERT( query4.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query4.getTable()[ 0 ], 0.1639, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query4.getTable()[ 1 ], 0.8361, 1e-2 ) );
+
+      Factor query5 = inference.run( bnet, core::Buffer1D<ui32>(), Buffer1D<ui32>(), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      TESTER_ASSERT( query5.getDomain().size() == 1 );
+      TESTER_ASSERT( query5.getDomain()[ 0 ] == SPRINKLER );
+      TESTER_ASSERT( query5.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query5.getTable()[ 0 ], 0.7, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query5.getTable()[ 1 ], 0.3, 1e-2 ) );
+
+      Factor query6 = inference.run( bnet, core::Buffer1D<ui32>(), Buffer1D<ui32>(), core::make_buffer1D<ui32>( (int)CLOUDY ) );
+      TESTER_ASSERT( query6.getDomain().size() == 1 );
+      TESTER_ASSERT( query6.getDomain()[ 0 ] == CLOUDY );
+      TESTER_ASSERT( query6.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query6.getTable()[ 0 ], 0.5, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query6.getTable()[ 1 ], 0.5, 1e-2 ) );
+
+      Factor query7 = inference.run( bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)CLOUDY ) );
+      TESTER_ASSERT( query7.getDomain().size() == 1 );
+      TESTER_ASSERT( query7.getDomain()[ 0 ] == CLOUDY );
+      TESTER_ASSERT( query7.getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( query7.getTable()[ 0 ], 0.4242, 1e-2 ) );
+      TESTER_ASSERT( core::equal( query7.getTable()[ 1 ], 0.5758, 1e-2 ) );
    }
 
+   void testBasicInfPotentialTable()
+   {
+      testBasicInfPotentialTableImpl<algorithm::BayesianInferenceNaive<algorithm::BayesianNetwork<algorithm::PotentialTable>>>();
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
-TESTER_TEST( testBasicInf1 );
+TESTER_TEST( testBasicInfPotentialTable );
 TESTER_TEST_SUITE_END();
 #endif
