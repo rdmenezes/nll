@@ -2,7 +2,7 @@
  * Numerical learning library
  * http://nll.googlecode.com/
  *
- * Copyright (c) 2009-2011, Ludovic Sibille
+ * Copyright (c) 2009-2012, Ludovic Sibille
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

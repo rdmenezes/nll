@@ -2,7 +2,7 @@
  * Numerical learning library
  * http://nll.googlecode.com/
  *
- * Copyright (c) 2009-2011, Ludovic Sibille
+ * Copyright (c) 2009-2012, Ludovic Sibille
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,8 @@
 #   define DEBUG_NEW     new(_NORMAL_BLOCK, __FILE__, __LINE__)
 #   define new           DEBUG_NEW
 #   define malloc(s)     _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
+#  else
+  NOT HANDLED!
 #  endif
 # else
   NOT HANDLED!
@@ -282,6 +284,7 @@
 # include "volume-barycentre.h"
 # include "volume-discretizer.h"
 # include "volume-io-mf3.h"
+# include "volume-distance-transform.h"
 
 /**
  @defgroup algorithm

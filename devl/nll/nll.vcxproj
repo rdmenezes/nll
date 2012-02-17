@@ -525,6 +525,7 @@
     <ClInclude Include="collection-wrapper.h" />
     <ClInclude Include="volume-barycentre.h" />
     <ClInclude Include="volume-discretizer.h" />
+    <ClInclude Include="volume-distance-transform.h" />
     <ClInclude Include="volume-interpolator.h" />
     <ClInclude Include="volume-io-bin.h" />
     <ClInclude Include="volume-io-mf2.h" />

@@ -2,7 +2,7 @@
  * Numerical learning library
  * http://nll.googlecode.com/
  *
- * Copyright (c) 2009-2011, Ludovic Sibille
+ * Copyright (c) 2009-2012, Ludovic Sibille
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,9 +57,10 @@ namespace core
        @param size the size of the input and output buffers.
        @param outBuf the output abstract buffer. Needs toprovide double &operator[]( unsigned ). It should be
               allocated beforehand.
+       @param spacing it is used to scale the distance in the considered direction
        */
       template <class AbstractBufferIn, class AbstractBufferOut>
-      void dt1d( const AbstractBufferIn& buf, unsigned size, AbstractBufferOut& outBuf )
+      void dt1d( const AbstractBufferIn& buf, unsigned size, AbstractBufferOut& outBuf, double spacing = 1.0 )
       {
          const double infinity = std::numeric_limits<double>::max();
          const double ninfinity = std::numeric_limits<double>::min();
@@ -72,10 +73,12 @@ namespace core
          z[ 0 ] = ninfinity;
          z[ 1 ] = infinity;
 
+         const double spacing2 = core::sqr( spacing );
          for ( unsigned q = 1; q < size; ++q )
          {
-            double s = ( buf[ q ] + q * q - ( buf[ static_cast<unsigned>( v[ k ] ) ] + v[ k ] * v [ k ] ) )
-                     / ( 2 * q - 2 * v[ k ] );
+            double s = ( buf[ q ] + q * q * spacing2  - ( buf[ static_cast<unsigned>( v[ k ] ) ] + v[ k ] * v [ k ] * spacing2 ) )
+                       / ( 2 * q * spacing - 2 * v[ k ] * spacing );
+ 
 
             // difference with the paper "&& k" so that we are sure the first parabolla is never destroyed
             // Reasons why we should never destroy it is that anyway the initial parabolla is the worst
@@ -83,8 +86,8 @@ namespace core
             while ( s <= z[ k ] && k  )
             {
                --k;
-               s = ( buf[ q ] + q * q - ( buf[ static_cast<unsigned>( v[ k ] ) ] + v[ k ] * v [ k ] ) )
-                   / ( 2 * q - 2 * v[ k ] );
+               s = ( buf[ q ] + q * q * spacing2 - ( buf[ static_cast<unsigned>( v[ k ] ) ] + v[ k ] * v [ k ] * spacing2 ) )
+                     / ( 2 * q * spacing - 2 * v[ k ] * spacing );
             }
 
             ++k;
@@ -96,9 +99,12 @@ namespace core
          k = 0;
          for ( unsigned q = 0; q < size; ++q )
          {
-            while ( z[ k + 1 ] < q )
+            while ( z[ k + 1 ] < q * spacing )
+            {
                ++k;
-            outBuf[ q ] = ( q - v[ k ] ) * ( q - v[ k ] ) + buf[ static_cast<unsigned>( v[ k ] ) ];
+            }
+            const double outVal = ( q - v[ k ] ) * ( q - v[ k ] ) * spacing2 + buf[ static_cast<unsigned>( v[ k ] ) ];
+            outBuf[ q ] = static_cast<typename AbstractBufferOut::value_type>( outVal );
          }
       }
 
@@ -106,6 +112,8 @@ namespace core
       class ImageWrapperRow
       {
       public:
+         typedef T value_type;
+
          ImageWrapperRow( Image<T, Mapper>& i, ui32 col ) :
             _i( i ), _col( col )
             {}
@@ -130,6 +138,8 @@ namespace core
       class ImageWrapperCol
       {
       public:
+         typedef T value_type;
+
          ImageWrapperCol( Image<T, Mapper>& i, ui32 row ) :
             _i( i ), _row( row )
             {}
