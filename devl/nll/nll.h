@@ -378,6 +378,7 @@
 # include "potential-table.h"
 # include "bayesian-network.h"
 # include "bayesian-inference-naive.h"
+# include "bayesian-inference-elimination-variable.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

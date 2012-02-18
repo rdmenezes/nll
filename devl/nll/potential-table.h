@@ -292,17 +292,23 @@ namespace algorithm
 
       /**
        @brief Normalize the potential so that it represents a PDF i.e. integral(-inf,+inf)p(x) = 1
+
+       This is valid only if there is an associated domain, else no normalization is done
        */
       void normalize()
       {
-         value_type sum = 0;
-         for ( ui32 n = 0; n < _table.size(); ++n )
+         if ( _domain.size() )
          {
-            sum += _table[ n ];
-         }
-         for ( ui32 n = 0; n < _table.size(); ++n )
-         {
-            _table[ n ] /= sum;
+            // if there is no domain, we don't want to normalize even if the table is not empty!
+            value_type sum = 0;
+            for ( ui32 n = 0; n < _table.size(); ++n )
+            {
+               sum += _table[ n ];
+            }
+            for ( ui32 n = 0; n < _table.size(); ++n )
+            {
+               _table[ n ] /= sum;
+            }
          }
       }
 
@@ -381,7 +387,6 @@ namespace algorithm
          return tableSize;
       }
 
-      // compute P( X | E = e ) = P( X, E ) / P( E )
       /**
        @brief compute P( X, E = e ), i.e. this is unormalized
        @param pe_out if != 0, computes P(E) to easily compute P( X | E = e ) = P( X, E ) / P( E )

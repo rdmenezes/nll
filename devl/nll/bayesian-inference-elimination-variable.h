@@ -29,8 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NLL_ALGORITHM_BAYESIAN_INFERENCE_NAIVE_H_
-# define NLL_ALGORITHM_BAYESIAN_INFERENCE_NAIVE_H_
+#ifndef NLL_ALGORITHM_BAYESIAN_INFERENCE_VARIABLE_ELIMINATION_H_
+# define NLL_ALGORITHM_BAYESIAN_INFERENCE_VARIABLE_ELIMINATION_H_
 
 namespace nll
 {
@@ -38,13 +38,11 @@ namespace algorithm
 {
    /**
     @brief computes p(U-E-Q | E=e) with U all variables, Q query variables, E observed variables (evidence)
-    @param BNetwork the bayesian network type
 
-    This is the simplest implementation on the exact inference on BN, this should only be used for debug only as this method is extremly inefficient.
-    It is creating the full enumeration without using at all the independence property of the factors
+    Computes exact inference given a graph, query variables and evidence
     */
    template <class BNetwork>
-   class BayesianInferenceNaive
+   class BayesianInferenceVariableElimination
    {
    public:
       typedef PotentialGaussianMoment::Vector         Vector;
@@ -110,16 +108,10 @@ namespace algorithm
       };
 
    public:
-      /**
-       @param bn the bayesian network
-       @param evidenceDomain the domain of the evidence
-       @param evidenceValue the value of the evidence
-       @param domainOfInterest the domain we want to get the likelihood
-       */
       Factor run( const BayesianNetwork<Factor>& bn, 
-                  const VectorI& evidenceDomain,
-                  const EvidenceValue& evidenceValue,
-                  const VectorI& domainOfInterest ) const
+            const VectorI& evidenceDomain,
+            const EvidenceValue& evidenceValue,
+            const VectorI& domainOfInterest ) const
       {
          GetFactorsFunctor functor;
          BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
@@ -139,15 +131,58 @@ namespace algorithm
                            } );
          }
 
+         std::vector<ui32> eliminationOrder;
+         eliminationOrder.reserve( varEliminationOrder.size() );
+
+         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         {
+            eliminationOrder.push_back( *it );
+         }
+
+         return run( bn, evidenceDomain, evidenceValue, domainOfInterest, eliminationOrder );
+      }
+
+      /**
+       @param bn the bayesian network
+       @param evidenceDomain the domain of the evidence
+       @param evidenceValue the value of the evidence
+       @param domainOfInterest the domain we want to get the likelihood
+       @param variableEliminationOrder the variable elimination order
+       */
+      Factor run( const BayesianNetwork<Factor>& bn, 
+                  const VectorI& evidenceDomain,
+                  const EvidenceValue& evidenceValue,
+                  const VectorI& domainOfInterest,
+                  const std::vector<ui32>& variableEliminationOrder ) const
+      {
+         GetFactorsFunctor functor;
+         BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
+         visitorGetFactors.run();
+
+         if ( functor.getFactors().size() == 0 )
+            return Factor();
+
+         std::vector<ui32> varEliminationOrder = variableEliminationOrder;
+
          // discard the domain of interest and evidence
          for ( ui32 n = 0; n < domainOfInterest.size(); ++n )
          {
-            varEliminationOrder.erase( domainOfInterest[ n ] );
+            std::vector<ui32>::iterator it = std::find( varEliminationOrder.begin(), varEliminationOrder.end(), domainOfInterest[ n ] );
+            if ( it != varEliminationOrder.end() )
+            {
+               varEliminationOrder.erase( it );
+            }
+            assert( std::find( varEliminationOrder.begin(), varEliminationOrder.end(), domainOfInterest[ n ] ) == varEliminationOrder.end() );
          }
 
          for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
          {
-            varEliminationOrder.erase( evidenceDomain[ n ] );
+            std::vector<ui32>::iterator it = std::find( varEliminationOrder.begin(), varEliminationOrder.end(), evidenceDomain[ n ] );
+            if ( it != varEliminationOrder.end() )
+            {
+               varEliminationOrder.erase( it );
+            }
+            assert( std::find( varEliminationOrder.begin(), varEliminationOrder.end(), evidenceDomain[ n ] ) == varEliminationOrder.end() );
          }
 
          // enter the evidence in the factors
@@ -175,23 +210,74 @@ namespace algorithm
             }
          }
 
-         // finally create the big potential and marginalize out everything
+         // finally run the variable elimination algo
+         for ( std::vector<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         {
+            std::vector<ui32> factorsInScope;
+            std::vector<ui32> factorsNotInScope;
+            getFactorsInScope( newFactors, *it, factorsInScope, factorsNotInScope );
+
+            if ( factorsInScope.size() )
+            {
+               // just save the unused factors
+               std::vector<Factor> tmpFactors;
+               for ( size_t n = 0; n < factorsNotInScope.size(); ++n )
+               {
+                  tmpFactors.push_back( newFactors[ factorsNotInScope[ n ] ] );
+               }
+
+               // create a big factor with all factors involved with this domain and marginalize it
+               Factor f = newFactors[ factorsInScope[ 0 ] ];
+               for ( size_t n = 1; n < factorsInScope.size(); ++n )
+               {
+                  f = f * newFactors[ factorsInScope[ n ] ];
+               }
+               VectorI domainToMarginalize( 1 );
+               domainToMarginalize[ 0 ] = *it;
+               tmpFactors.push_back( f.marginalization( domainToMarginalize ) );
+
+               // finally export the saved factors for a new pass
+               newFactors = tmpFactors;
+            }
+         }
+
+         // ... and combines all the remaining factors and normalize the final factor
+         ensure( newFactors.size(), "unexpected error: no remaining factors!" );
          Factor f = newFactors[ 0 ];
-         for ( size_t n = 1; n < newFactors.size(); ++n )
+         for ( size_t factor = 1; factor < newFactors.size(); ++factor )
          {
-            f = f * newFactors[ n ];
+            f = f * newFactors[ factor ];
          }
 
-         VectorI domainToMarginalize( 1 );
-         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
-         {
-            domainToMarginalize[ 0 ] = *it;
-            f = f.marginalization( domainToMarginalize );
-         }
-
-         // we need to normalize the potential as with evidence it may not be anymore
          f.normalize();
          return f;
+      }
+
+
+   private:
+      static bool isDomainInScope( const Factor& f, ui32 domainVariable )
+      {
+         return std::binary_search( f.getDomain().begin(),
+                                    f.getDomain().end(),
+                                    domainVariable );
+      }
+
+      static void getFactorsInScope( const std::vector<Factor>& factors,
+                                    ui32 domainVariable,
+                                    std::vector<ui32>& indexFactorsInScope_out,
+                                    std::vector<ui32>& indexFactorsNotInScope_out )
+      {
+         indexFactorsInScope_out.clear();
+
+         for ( size_t factor = 0; factor < factors.size(); ++factor )
+         {
+            if ( isDomainInScope( factors[ factor ], domainVariable ) )
+            {
+               indexFactorsInScope_out.push_back( factor );
+            } else {
+               indexFactorsNotInScope_out.push_back( factor );
+            }
+         }
       }
    };
 }
