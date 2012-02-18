@@ -1,4 +1,6 @@
 v0.16
+-added basic bayesian network (gaussian and table potentials)
+-added bayesian inference algorithms (naive, variable elimination)
 -added gaussian moment and canonical representation and associated operations
 -added matrix utilities
 -added RBF deformable transformation
