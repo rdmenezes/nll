@@ -60,9 +60,9 @@ namespace core
    /**
     @brief Utility to import a matlab Matrix file (exported with dlmwrite) as a vector of vectors
     */
-   template <class Vectors>
-   Vectors readVectorFromMatlabAsColumn( const std::string& file )
+   inline std::vector< std::vector< double > > readVectorFromMatlabAsColumn( const std::string& file )
    {
+      typedef std::vector< std::vector< double > > Vectors;
       Vectors v;
 
       std::vector< std::vector< double > > vectors;
@@ -74,6 +74,8 @@ namespace core
       {
          std::string line;
          std::getline( f, line );
+         if ( line == "" )
+            break;
          std::vector<const char*> splits = core::split( line, ',' );
          
          std::vector<double> record( splits.size() );
@@ -83,7 +85,7 @@ namespace core
             vectors.push_back( record );
       }
 
-      typedef typename Vectors::value_type Vector;
+      typedef Vectors::value_type Vector;
 
       v = Vectors( vectors.size() );
       for ( ui32 n = 0; n < vectors.size(); ++n )

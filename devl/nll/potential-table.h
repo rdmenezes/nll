@@ -48,6 +48,13 @@ namespace algorithm
     and is stored at index = ( v3 * #DomainVar2 * #DomainVar1 +
                                v2 * #DomainVar1 +
                                v1 )
+
+    The table must always model p( a | b, c, ... x ) so that domain[ a ] = 0
+                                                             domain[ b ] = 1
+                                                             ...
+                                                             domain[ x ] = 26
+    The domain must also be ordered so that domain[ 0 ] < domain[ 1 ] < domain[ 2 ] ... meaning that in a graph,
+    the parent nodes must have a higher domain than the children.
     */
    class PotentialTable
    {
@@ -186,7 +193,7 @@ namespace algorithm
 
          std::vector<ui32> counts( domain.size() );
          ui32 currentIndex = 0;
-         // TODO: is there a more efficient way to do that?
+
          // Currently, a counter is used to backtrack the source index...
          for ( ui32 n = 0; n < table.size(); ++n )
          {
@@ -214,6 +221,50 @@ namespace algorithm
          }
 
          return PotentialTable( newTable, newDomain, newCardinality );
+      }
+
+      /**
+       @brief Given a fully observed dataset, find table parameters using maximum likelihood estimation
+       @param domainData the domain of the data stored in <fullyObservedData>
+       @param fullyObservedData the data observed. It is assumed each instance is iid.
+       */
+      void maximumLikelihoodEstimate( const VectorI& domainData, const std::vector<EvidenceValue>& fullyObservedData )
+      {
+         if ( _domain.size() == 0 )
+            return;
+
+         // first for efficiency, compute the evidence index related to this potential table domain
+         std::vector<ui32> domainMapper( _domain.size() );
+         for ( ui32 n = 0; n < _domain.size(); ++n )
+         {
+            VectorI::const_iterator it = std::find( domainData.begin(), domainData.end(), _domain[ n ] );
+            ensure( it != domainData.end(), "a domain in CPD can't be found in the fully observed data" );
+            domainMapper[ n ] = it - domainData.begin();
+         }
+
+         // reset the table;
+         for ( ui32 n = 0; n < _table.size(); ++n )
+         {
+            _table[ n ] = 0;
+         }
+
+         // do the counting
+         std::vector<ui32> strides;
+         computeStrides( strides );
+         EvidenceValue event( _domain.size() );
+         for ( size_t dataId = 0; dataId < fullyObservedData.size(); ++dataId )
+         {
+            const EvidenceValue& fullEvent = fullyObservedData[ dataId ];
+            for ( ui32 n = 0; n < _domain.size(); ++n )
+            {
+               event[ n ] = fullEvent[ domainMapper[ n ] ];
+            }
+            const ui32 index = getIndexFromEvent( strides, event );
+            ++_table[ index ];
+         }
+
+         // finally normalize and we are done
+         normalize();
       }
 
       void print( std::ostream& o ) const
@@ -254,21 +305,11 @@ namespace algorithm
          ensure( event.size() == _domain.size(), "all variables must be specified!" );
 
          // first compute the strides
-         std::vector<ui32> strides( _domain.size() );
-         ui32 stride = 1;
-         for ( ui32 n = 0; n < _domain.size(); ++n )
-         {
-            strides[ n ] = stride;
-            stride *= _cardinality[ n ];
-         }
+         std::vector<ui32> strides;
+         computeStrides( strides );
 
          // now compute the table index
-         ui32 index = 0;
-         for ( ui32 n = 0; n < _domain.size(); ++n )
-         {
-            index += event[ n ] * strides[ n ];
-         }
-
+         const ui32 index = getIndexFromEvent( strides, event );
          return _table[ index ];
       }
 
@@ -364,6 +405,38 @@ namespace algorithm
       }
 
    private:
+      /**
+       @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
+       */
+      template <class VectorT>
+      int getIndexFromEvent( const std::vector<ui32>& strides, const VectorT& evidenceValue )
+      {
+         int index = 0;
+         ensure( strides.size() == _domain.size(), "must be the same size!" );
+         ensure( evidenceValue.size() == _domain.size(), "must be the same size!" );
+
+         for ( ui32 i = 0; i < evidenceValue.size(); ++i )
+         {
+            index += evidenceValue[ i ] * strides[ i ];
+         }
+         return index;
+      }
+
+      /**
+       @brief Given the internal domain and domain's cardinality, computes for each domain variable its stride (i.e., each time a variable is increased by one,
+              the index in the table domain is updated by <stride>
+       */
+      void computeStrides( std::vector<ui32>& strides ) const
+      {
+         strides = std::vector<ui32>( _domain.size() );
+         ui32 stride = 1;
+         for ( ui32 n = 0; n < _domain.size(); ++n )
+         {
+            strides[ n ] = stride;
+            stride *= _cardinality[ n ];
+         }
+      }
+
       static bool isDomainSorted( const VectorI& domain )
       {
          if ( domain.size() == 0 )
@@ -389,7 +462,7 @@ namespace algorithm
 
       /**
        @brief compute P( X, E = e ), i.e. this is unormalized
-       @param pe_out if != 0, computes P(E) to easily compute P( X | E = e ) = P( X, E ) / P( E )
+       @param pe_out if != 0, computes and export P(E) to easily compute P( X | E = e ) = P( X, E ) / P( E )
        */
       PotentialTable conditioning( EvidenceValue::value_type evidence, ui32 varIndexToRemove, value_type* pe_out = 0 ) const
       {
@@ -421,14 +494,7 @@ namespace algorithm
                newTable[ indexDst++ ] = val;
             }
          }
-         ensure( pe > 0, "p(E = e) <= 0" );
-         
-         /*
-         // now just normalize
-         for ( ui32 index = 0; index < newSize; index++ )
-         {
-            newTable[ index ] /= pe;
-         }*/
+         ensure( pe >= 0, "p(E = e) <= 0" );
 
          if ( pe_out )
          {

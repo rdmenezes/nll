@@ -359,6 +359,8 @@
     <ClInclude Include="allocator-aligned.h" />
     <ClInclude Include="bayesian-inference-elimination-variable.h" />
     <ClInclude Include="bayesian-inference-naive.h" />
+    <ClInclude Include="bayesian-network-sampling.h" />
+    <ClInclude Include="bayesian-network-utils.h" />
     <ClInclude Include="bayesian-network.h" />
     <ClInclude Include="Buffer1D-basic-op.h" />
     <ClInclude Include="buffer1D.h" />

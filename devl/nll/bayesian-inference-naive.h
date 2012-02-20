@@ -54,61 +54,6 @@ namespace algorithm
       typedef BNetwork                                Bn;
       typedef typename Bn::Graph                      Graph;
 
-   private:
-      template <class Functor>
-      class BnVisitor : public core::GraphVisitorBfs<Graph>
-      {
-      public:
-         typedef typename Graph::const_vertex_iterator   const_vertex_iterator;
-
-      public:
-         BnVisitor( const Bn& bn, Functor& fun ) : _bn( bn ), _func( fun )
-         {}
-
-         void run()
-         {
-            visit( _bn.getNetwork() );
-         }
-
-      private:
-         virtual void discoverVertex( const const_vertex_iterator& it, const Graph& )
-         {
-            const Factor& f = _bn.getFactors()[ it ];
-            _func( f );
-         }
-
-      private:
-         // no copy allowed
-         BnVisitor& operator=( const BnVisitor& );
-         BnVisitor( const BnVisitor& );
-
-      private:
-         const Bn&   _bn;
-         Functor&    _func;
-      };
-
-      class GetFactorsFunctor
-      {
-      public:
-         void clear()
-         {
-            _factors.clear();
-         }
-
-         void operator()( const Factor& f )
-         {
-            _factors.push_back( &f );
-         }
-
-         const std::vector<const Factor*>& getFactors() const
-         {
-            return _factors;
-         }
-
-      private:
-         std::vector<const Factor*> _factors;
-      };
-
    public:
       /**
        @param bn the bayesian network
@@ -121,18 +66,17 @@ namespace algorithm
                   const EvidenceValue& evidenceValue,
                   const VectorI& domainOfInterest ) const
       {
-         GetFactorsFunctor functor;
-         BnVisitor<GetFactorsFunctor> visitorGetFactors( bn, functor );
-         visitorGetFactors.run();
+         std::vector<const Factor*> factors;
+         getFactors( bn, factors );
 
-         if ( functor.getFactors().size() == 0 )
+         if ( !factors.size() )
             return Factor();
 
          std::set<ui32> varEliminationOrder;
-         for ( size_t n = 0; n < functor.getFactors().size(); ++n )
+         for ( size_t n = 0; n < factors.size(); ++n )
          {
-            std::for_each( functor.getFactors()[ n ]->getDomain().begin(),
-                           functor.getFactors()[ n ]->getDomain().end(),
+            std::for_each( factors[ n ]->getDomain().begin(),
+                           factors[ n ]->getDomain().end(),
                            [&]( ui32 v )
                            {
                               varEliminationOrder.insert( v );
@@ -155,10 +99,10 @@ namespace algorithm
          EvidenceValue evidenceValueMarg( 1 );
 
          std::vector<Factor> newFactors;
-         newFactors.reserve( functor.getFactors().size() );
-         for ( size_t n = 0; n < functor.getFactors().size(); ++n )
+         newFactors.reserve( factors.size() );
+         for ( size_t n = 0; n < factors.size(); ++n )
          {
-            newFactors.push_back( *functor.getFactors()[ n ] );
+            newFactors.push_back( *factors[ n ] );
 
             // check we have some evidence
             for ( ui32 evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )

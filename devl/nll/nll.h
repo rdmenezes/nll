@@ -373,10 +373,14 @@
 # include "integral-image-3d.h"
 # include "haar-features-3d.h"
 # include "registration-ct-ct-planar.h"
+
+// Bayesian network related files
 # include "potential-gaussian-moment.h"
 # include "potential-gaussian-canonical.h"
 # include "potential-table.h"
 # include "bayesian-network.h"
+# include "bayesian-network-utils.h"
+# include "bayesian-network-sampling.h"
 # include "bayesian-inference-naive.h"
 # include "bayesian-inference-elimination-variable.h"
 

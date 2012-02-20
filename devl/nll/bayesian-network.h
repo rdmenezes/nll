@@ -89,6 +89,11 @@ namespace algorithm
          return _factors;
       }
 
+      NodeFactorMapper& getFactors()
+      {
+         return _factors;
+      }
+
       const NodeNameMapper& getNames() const
       {
          return _names;
