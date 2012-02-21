@@ -359,6 +359,7 @@
     <ClInclude Include="allocator-aligned.h" />
     <ClInclude Include="bayesian-inference-elimination-variable.h" />
     <ClInclude Include="bayesian-inference-naive.h" />
+    <ClInclude Include="bayesian-network-ml-param-estimation.h" />
     <ClInclude Include="bayesian-network-sampling.h" />
     <ClInclude Include="bayesian-network-utils.h" />
     <ClInclude Include="bayesian-network.h" />

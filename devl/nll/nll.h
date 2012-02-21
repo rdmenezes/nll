@@ -380,6 +380,7 @@
 # include "potential-table.h"
 # include "bayesian-network.h"
 # include "bayesian-network-utils.h"
+# include "bayesian-network-ml-param-estimation.h"
 # include "bayesian-network-sampling.h"
 # include "bayesian-inference-naive.h"
 # include "bayesian-inference-elimination-variable.h"

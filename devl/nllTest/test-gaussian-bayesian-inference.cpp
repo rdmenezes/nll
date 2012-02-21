@@ -12,40 +12,6 @@ namespace nll
 {
 namespace algorithm
 {
-   template <class BayesianNetworkT>
-   class BayesianNetworkMaximumLikelihoodParameterEstimation
-   {
-   public:
-      typedef BayesianNetworkT                     Network;
-      typedef typename BayesianNetworkT::Factor    Factor;
-      typedef typename Factor::EvidenceValue       EvidenceValue;
-      
-      /**
-       @brief Computes the ML estimates of the BN network given <fullyObservedData>, a fully observed dataset
-       */
-      void compute( const std::vector<EvidenceValue>& fullyObservedData )
-      {
-         ensure( 0, "This method is not implemented for this kind of network", Network& outMlEstimation );
-      }
-   };
-
-   template <>
-   class BayesianNetworkMaximumLikelihoodParameterEstimation< BayesianNetwork< PotentialTable > >
-   {
-   public:
-      typedef BayesianNetwork< PotentialTable >   Network;
-      typedef Network::Factor                     Factor;
-      typedef Factor::EvidenceValue               EvidenceValue;
-      
-      /**
-       @brief Computes the ML estimates of the BN network given <fullyObservedData>, a fully observed dataset
-       */
-      void compute( const std::vector<EvidenceValue>& fullyObservedData, Network& outMlEstimation )
-      {
-         std::vector<Factor*> factors;
-         getFactors( outMlEstimation, factors );
-      }
-   };
 }
 }
 
@@ -205,7 +171,7 @@ public:
       typedef algorithm::BayesianNetwork<algorithm::PotentialTable> BayesianNetwork;
 
       // check against BNT results
-      std::vector< std::vector< double > > file1 = core::readVectorFromMatlabAsColumn("c:/tmp/f.txt");
+      std::vector< std::vector< double > > file1 = core::readVectorFromMatlabAsColumn( NLL_TEST_PATH "data/bnt/bnt_samples_sprinkler.txt");
 
       // reorganize the data
       std::vector< BayesianNetwork::Factor::EvidenceValue > samples;
@@ -223,8 +189,66 @@ public:
       // do some ML estimation
       std::auto_ptr<BayesianNetwork> bnet = buildSprinklerNet();
       algorithm::BayesianNetworkMaximumLikelihoodParameterEstimation<BayesianNetwork> mlEstimator;
-      mlEstimator.compute( samples, *bnet );
-      std::cout << "a" << std::endl;
+      mlEstimator.compute( core::make_buffer1D<ui32>( 3, 2, 1, 0 ), samples, *bnet );
+
+      std::vector<const BayesianNetwork::Factor*> factors;
+      algorithm::getFactors( *bnet, factors );
+      for ( ui32 n = 0; n < factors.size(); ++n )
+      {
+         factors[ n ]->print( std::cout );
+      }
+
+      // compare against BNT
+      TESTER_ASSERT( factors.size() == 4 );
+      TESTER_ASSERT( factors[ 0 ]->getDomain().size() == 1 );
+      TESTER_ASSERT( factors[ 0 ]->getDomain()[ 0 ] == (int)CLOUDY );
+      TESTER_ASSERT( factors[ 0 ]->getTable().size() == 2 );
+      TESTER_ASSERT( core::equal( factors[ 0 ]->getTable()[ 0 ], 0.46, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 0 ]->getTable()[ 1 ], 0.53, 0.01 ) );
+
+      TESTER_ASSERT( factors[ 1 ]->getDomain().size() == 2 );
+      TESTER_ASSERT( factors[ 1 ]->getDomain()[ 0 ] == (int)SPRINKLER );
+      TESTER_ASSERT( factors[ 1 ]->getDomain()[ 1 ] == (int)CLOUDY );
+      TESTER_ASSERT( factors[ 1 ]->getTable().size() == 4 );
+      TESTER_ASSERT( core::equal( factors[ 1 ]->getTable()[ 0 ], 0.5, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 1 ]->getTable()[ 1 ], 0.5, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 1 ]->getTable()[ 2 ], 0.9375, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 1 ]->getTable()[ 3 ], 0.0625, 0.01 ) );
+
+      TESTER_ASSERT( factors[ 2 ]->getDomain().size() == 2 );
+      TESTER_ASSERT( factors[ 2 ]->getDomain()[ 0 ] == (int)RAIN );
+      TESTER_ASSERT( factors[ 2 ]->getDomain()[ 1 ] == (int)CLOUDY );
+      TESTER_ASSERT( factors[ 2 ]->getTable().size() == 4 );
+      TESTER_ASSERT( core::equal( factors[ 2 ]->getTable()[ 0 ], 0.71, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 2 ]->getTable()[ 1 ], 0.28, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 2 ]->getTable()[ 2 ], 0.18, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 2 ]->getTable()[ 3 ], 0.81, 0.01 ) );
+
+      TESTER_ASSERT( factors[ 3 ]->getDomain().size() == 3 );
+      TESTER_ASSERT( factors[ 3 ]->getDomain()[ 0 ] == (int)WETGRASS );
+      TESTER_ASSERT( factors[ 3 ]->getDomain()[ 1 ] == (int)RAIN );
+      TESTER_ASSERT( factors[ 3 ]->getDomain()[ 2 ] == (int)SPRINKLER );
+      TESTER_ASSERT( factors[ 3 ]->getTable().size() == 8 );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 0 ], 1.0, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 1 ], 0.0, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 2 ], 0.076, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 3 ], 0.923, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 4 ], 0.25, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 5 ], 0.75, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 6 ], 0.0, 0.01 ) );
+      TESTER_ASSERT( core::equal( factors[ 3 ]->getTable()[ 7 ], 1.0, 0.01 ) );
+   }
+
+   void testBnPotentialSampling()
+   {
+      typedef algorithm::BayesianNetwork<algorithm::PotentialTable> BayesianNetwork;
+      std::auto_ptr<BayesianNetwork> bnet = buildSprinklerNet();
+
+      typedef algorithm::BayesianNetworkSampling<BayesianNetwork> Sampler;
+      Sampler bnSampler;
+      std::vector<Sampler::EvidenceValue> samples;
+      Sampler::VectorI domainOutput;
+      bnSampler.compute( *bnet, 3000, samples, domainOutput );
    }
 };
 
@@ -232,5 +256,6 @@ public:
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
 TESTER_TEST( testPotentialTableMlParametersEstimation );
 TESTER_TEST( testBasicInfPotentialTable );
+TESTER_TEST( testBnPotentialSampling );
 TESTER_TEST_SUITE_END();
 #endif

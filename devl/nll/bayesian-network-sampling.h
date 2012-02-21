@@ -45,8 +45,12 @@ namespace algorithm
    public:
       typedef typename Network::Factor          Factor;
       typedef typename Factor::EvidenceValue    EvidenceValue;
+      typedef PotentialTable::VectorI           VectorI;
 
-      void compute( const Network& bayesianNetwork, std::vector<EvidenceValue>& outSamples, ui32 nbSamples ) const
+      /**
+       @brief given a bayesian network, generate iid samples
+       */
+      void compute( const Network& bayesianNetwork, ui32 nbSamples, std::vector<EvidenceValue>& outSamples, VectorI& outDomain ) const
       {
          ensure( 0, "NOT IMPLEMENTED FOR THE TYPE OF NETWORK" );
       }
@@ -62,10 +66,74 @@ namespace algorithm
       typedef BayesianNetwork<PotentialTable>   Network;
       typedef Network::Factor                   Factor;
       typedef Factor::EvidenceValue             EvidenceValue;
+      typedef PotentialTable::VectorI           VectorI;
 
-      void compute( const Network& bayesianNetwork, std::vector<EvidenceValue>& outSamples, ui32 nbSamples ) const
+      /**
+       @brief given a bayesian network, generate iid samples
+       */
+      void compute( const Network& bayesianNetwork, ui32 nbSamples, std::vector<EvidenceValue>& outSamples, VectorI& outDomain ) const
       {
+         ui32 maxDomain = 0;
+         outSamples.clear();
 
+         // first retrieve all the factors and build some indexes
+         std::vector<const Factor*> factors;
+         getFactors( bayesianNetwork, factors );
+         std::set<ui32> mainDomain;
+         std::set<ui32> fullDomain;
+         for ( size_t n = 0; n < factors.size(); ++n )
+         {
+            const Factor& f = *factors[ n ];
+            ensure( f.getDomain().size(), "there is no domain for this factor?" );
+            maxDomain = std::max( maxDomain, f.getDomain()[ f.getDomain().size() - 1 ] );
+
+            const ui32 currentDomain = f.getDomain()[ 0 ];
+            mainDomain.insert( currentDomain );
+
+            fullDomain.insert( f.getDomain().begin(), f.getDomain().end() );
+         }
+         ensure( fullDomain == mainDomain, "undeclared variables" );
+
+         // index the factors by their main domain
+         std::vector<const Factor*> factorsIndexedByDomain( maxDomain + 1 );    // here we store the table in an array according to domain[0] of each factor
+         for ( size_t n = 0; n < factors.size(); ++n )
+         {
+            const Factor& f = *factors[ n ];
+            const ui32 currentDomain = f.getDomain()[ 0 ];
+            ensure( factorsIndexedByDomain[ currentDomain ] == 0, "there are several factors with the same main domain - hugh?" );
+            factorsIndexedByDomain[ currentDomain ] = &f;
+         }
+
+         // map domain to the final domain array indexes
+         std::vector<ui32> domainToFinalDomain( maxDomain + 1 );
+         ui32 index = 0;
+         for ( std::set<ui32>::const_iterator it = mainDomain.begin(); it != mainDomain.end(); ++it, ++index )
+         {
+            domainToFinalDomain[ *it ] = index;
+         }
+
+         // finally create the iid samples
+         for ( ui32 sampleid = 0; sampleid < nbSamples; ++sampleid )
+         {
+            EvidenceValue sample( static_cast<ui32>( mainDomain.size() ) );
+
+            // what we need to do is to always know the state of the parent variables. Due to the order property we simply
+            // need to sample in reverse order of the domain
+            for ( std::set<ui32>::const_reverse_iterator it = mainDomain.rbegin(); it != mainDomain.rend(); ++it )
+            {
+               // given the parent factors evidence, generate an evidence for the current domain
+               const Factor& f = *factorsIndexedByDomain[ *it ];
+               EvidenceValue evidence( f.getDomain().size() );
+               for ( ui32 n = 0; n < evidence.size(); ++n )
+               {
+                  evidence[ n ] = sample[ domainToFinalDomain[ f.getDomain()[ n + 1 ] ] ];
+               }
+               f.sample( evidence );
+               sample[ domainToFinalDomain[ *it ] ] = evidence[ 0 ];
+            }
+
+            outSamples.push_back( sample );
+         }
       }
    };
 

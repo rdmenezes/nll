@@ -53,8 +53,12 @@ namespace algorithm
                                                              domain[ b ] = 1
                                                              ...
                                                              domain[ x ] = 26
+    (this is used in normalization and <BayesianNetworkSampling>)
+
     The domain must also be ordered so that domain[ 0 ] < domain[ 1 ] < domain[ 2 ] ... meaning that in a graph,
     the parent nodes must have a higher domain than the children.
+
+    (this is used in <BayesianNetworkSampling> to help with predecessors, and helpful for performance e.g., domain merge)
     */
    class PotentialTable
    {
@@ -224,6 +228,32 @@ namespace algorithm
       }
 
       /**
+       @brief This method will sample the value 'domain[0]' wich we call main domain given the other evidence of the other variables
+       @param inout_evidenceWithoutMainDomain the evidence. If inout_evidenceWithoutMainDomain[ 0 ] != 0, it will be discarded. Only
+              inout_evidenceWithoutMainDomain[ 0 ] will be updated
+       @TODO relatively inefficient with repeated <computeStrides> calls and pbs copies...
+       */
+      void sample( EvidenceValue& inout_evidenceWithoutMainDomain ) const
+      {
+         ensure( _domain.size(), "no domain, can't do sampling!" );
+         inout_evidenceWithoutMainDomain[ 0 ] = 0; // remove main domain if it was set
+
+         // get the index in the table. As the main domain is alwyas domain[0], the probabilities we are interested in are contiguous and of size cardinality[0]
+         // now given this set of probabilities, randomly sample a value
+         std::vector<ui32> strides;
+         computeStrides( strides );
+
+         core::Buffer1D<float> pbs( _cardinality[ 0 ] );
+         const ui32 baseIndex = getIndexFromEvent( strides, inout_evidenceWithoutMainDomain );
+         for ( ui32 i = 0; i < _cardinality[ 0 ]; ++i )
+         {
+            pbs[ i ] = _table[ baseIndex + i ];
+         }
+         core::Buffer1D<ui32> samples = core::sampling( pbs, 1 );
+         inout_evidenceWithoutMainDomain[ 0 ] = samples[ 0 ];  // export the sampled main domain
+      }
+
+      /**
        @brief Given a fully observed dataset, find table parameters using maximum likelihood estimation
        @param domainData the domain of the data stored in <fullyObservedData>
        @param fullyObservedData the data observed. It is assumed each instance is iid.
@@ -332,7 +362,7 @@ namespace algorithm
       }
 
       /**
-       @brief Normalize the potential so that it represents a PDF i.e. integral(-inf,+inf)p(x) = 1
+       @brief Normalize the potential so that it represents a PDF i.e. integral(-inf,+inf)p(x | Z) = 1, with x = domain[ 0 ], Z = rest of the domain
 
        This is valid only if there is an associated domain, else no normalization is done
        */
@@ -341,18 +371,26 @@ namespace algorithm
          if ( _domain.size() )
          {
             // if there is no domain, we don't want to normalize even if the table is not empty!
-            value_type sum = 0;
-            for ( ui32 n = 0; n < _table.size(); ++n )
+            // here we want that sum_x p(x | Y ) = 1, so we need to normalize the domain[ 0 ] by summing all its categories probabilities and normalize
+            const ui32 nbCategories = _cardinality[ 0 ];
+            for ( ui32 index = 0; index < _table.size(); index += nbCategories )
             {
-               sum += _table[ n ];
-            }
-            for ( ui32 n = 0; n < _table.size(); ++n )
-            {
-               _table[ n ] /= sum;
+               value_type sum = 0;
+               for ( ui32 n = index; n < index + nbCategories; ++n ) // we don't need to check the bounds: we know the table's size is multiple of cardinality[ 0 ]
+               {
+                  sum += _table[ n ];
+               }
+               for ( ui32 n = index; n < index + nbCategories; ++n )
+               {
+                  _table[ n ] /= sum;
+               }
             }
          }
       }
 
+      /**
+       @brief Combine the two table potentials
+       */
       PotentialTable operator*( const PotentialTable& g2 ) const
       {
          // no more computations, the other one is empty!
@@ -409,7 +447,7 @@ namespace algorithm
        @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
        */
       template <class VectorT>
-      int getIndexFromEvent( const std::vector<ui32>& strides, const VectorT& evidenceValue )
+      int getIndexFromEvent( const std::vector<ui32>& strides, const VectorT& evidenceValue ) const
       {
          int index = 0;
          ensure( strides.size() == _domain.size(), "must be the same size!" );
