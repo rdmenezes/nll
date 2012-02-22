@@ -107,9 +107,12 @@ namespace algorithm
          // map domain to the final domain array indexes
          std::vector<ui32> domainToFinalDomain( maxDomain + 1 );
          ui32 index = 0;
+         outDomain = VectorI( mainDomain.size() );
          for ( std::set<ui32>::const_iterator it = mainDomain.begin(); it != mainDomain.end(); ++it, ++index )
          {
-            domainToFinalDomain[ *it ] = index;
+            const ui32 domainId = *it;
+            domainToFinalDomain[ domainId ] = index;
+            outDomain[ index ] = domainId;
          }
 
          // finally create the iid samples
@@ -122,12 +125,17 @@ namespace algorithm
             for ( std::set<ui32>::const_reverse_iterator it = mainDomain.rbegin(); it != mainDomain.rend(); ++it )
             {
                // given the parent factors evidence, generate an evidence for the current domain
-               const Factor& f = *factorsIndexedByDomain[ *it ];
+               // the evidence's domain must be the same as the factor!
+               const ui32 mainDomainId = *it;
+               const Factor& f = *factorsIndexedByDomain[ mainDomainId ];
                EvidenceValue evidence( f.getDomain().size() );
                for ( ui32 n = 0; n < evidence.size(); ++n )
                {
-                  evidence[ n ] = sample[ domainToFinalDomain[ f.getDomain()[ n + 1 ] ] ];
+                  const ui32 domainId = f.getDomain()[ n ];
+                  const ui32 domainIdInSample = domainToFinalDomain[ domainId ];
+                  evidence[ n ] = sample[ domainIdInSample ];
                }
+
                f.sample( evidence );
                sample[ domainToFinalDomain[ *it ] ] = evidence[ 0 ];
             }

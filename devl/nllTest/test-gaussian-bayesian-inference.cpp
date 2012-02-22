@@ -22,7 +22,7 @@ public:
    enum DomainVariable
    {
       // the order is important for efficiency reason, however for practicality this is not the best. So use PotentialTable::reorderTable
-      WETGRASS,
+      WETGRASS = 50,
       RAIN,
       SPRINKLER,
       CLOUDY
@@ -189,7 +189,7 @@ public:
       // do some ML estimation
       std::auto_ptr<BayesianNetwork> bnet = buildSprinklerNet();
       algorithm::BayesianNetworkMaximumLikelihoodParameterEstimation<BayesianNetwork> mlEstimator;
-      mlEstimator.compute( core::make_buffer1D<ui32>( 3, 2, 1, 0 ), samples, *bnet );
+      mlEstimator.compute( core::make_buffer1D<ui32>( (int)CLOUDY, (int)SPRINKLER, (int)RAIN, (int)WETGRASS ), samples, *bnet );
 
       std::vector<const BayesianNetwork::Factor*> factors;
       algorithm::getFactors( *bnet, factors );
@@ -241,6 +241,7 @@ public:
 
    void testBnPotentialSampling()
    {
+      srand( 100 );
       typedef algorithm::BayesianNetwork<algorithm::PotentialTable> BayesianNetwork;
       std::auto_ptr<BayesianNetwork> bnet = buildSprinklerNet();
 
@@ -248,7 +249,33 @@ public:
       Sampler bnSampler;
       std::vector<Sampler::EvidenceValue> samples;
       Sampler::VectorI domainOutput;
-      bnSampler.compute( *bnet, 3000, samples, domainOutput );
+      bnSampler.compute( *bnet, 10000, samples, domainOutput );
+
+      // now reestimate the BN and compare to true values
+      algorithm::BayesianNetworkMaximumLikelihoodParameterEstimation<BayesianNetwork> mlEstimator;
+      mlEstimator.compute( domainOutput, samples, *bnet );
+
+      std::vector<const BayesianNetwork::Factor*> factorsFound;
+      algorithm::getFactors( *bnet, factorsFound );
+      for ( ui32 n = 0; n < factorsFound.size(); ++n )
+      {
+         factorsFound[ n ]->print( std::cout );
+      }
+
+      std::auto_ptr<BayesianNetwork> bnetRef = buildSprinklerNet();
+      std::vector<const BayesianNetwork::Factor*> factorsRef;
+      algorithm::getFactors( *bnetRef, factorsRef );
+
+      const double EPSILON = 1e-2;
+      for ( ui32 n = 0; n < factorsRef.size(); ++n )
+      {
+         for ( ui32 nn = 0; nn < factorsRef[ n ]->getTable().size(); ++nn )
+         {
+            TESTER_ASSERT( core::equal( factorsRef[ n ]->getTable()[ nn ],
+                                        factorsFound[ n ]->getTable()[ nn ],
+                                        EPSILON ) );
+         }
+      }
    }
 };
 

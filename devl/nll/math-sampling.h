@@ -71,9 +71,9 @@ namespace core
          double point = static_cast<double>( rand() ) / RAND_MAX;
          size_t nn = 0;
          // we don't need to test the end of the buffer as it is not possible to reach it!
-         for ( ; point >= sd[ nn ]; ++nn )
+         for ( ; point >= sd[ nn + 1 ]; ++nn )
             ;
-         points[ n ] = static_cast<ui32>( nn - 1 );
+         points[ n ] = static_cast<ui32>( nn );
          assert( points[ n ] < p.size() );
       }
       return points;

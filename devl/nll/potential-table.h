@@ -380,9 +380,13 @@ namespace algorithm
                {
                   sum += _table[ n ];
                }
-               for ( ui32 n = index; n < index + nbCategories; ++n )
+               if ( sum >= std::numeric_limits<value_type>::epsilon() )
                {
-                  _table[ n ] /= sum;
+                  // handle the case where we don't have any counts: just set the proba to 0...
+                  for ( ui32 n = index; n < index + nbCategories; ++n )
+                  {
+                     _table[ n ] /= sum;
+                  }
                }
             }
          }
