@@ -192,7 +192,7 @@ namespace algorithm
             f = f * newFactors[ factor ];
          }
 
-         f.normalize();
+         f.normalizeFull();
          return f;
       }
 

@@ -134,7 +134,7 @@ namespace algorithm
          }
 
          // we need to normalize the potential as with evidence it may not be anymore
-         f.normalize();
+         f.normalizeFull();
          return f;
       }
    };

@@ -118,6 +118,18 @@ namespace algorithm
          _cardinality = cardinality;
          _table = table;
 
+         /*
+         // check we have a correctly formated table! (i.e., at least sum(p(x|p)) = 1)
+         for ( ui32 n = 0; n < table.size(); n += cardinality[ 0 ] )
+         {
+            value_type sum = 0;
+            for ( ui32 nn = 0; nn < cardinality[ 0 ]; ++nn )
+            {
+               sum += table[ n + nn ];
+            }
+            ensure( fabs( sum - 1 ) < 1e-2, "sum_x(x|p(x)) == 1 for a correct table!" );
+         }*/
+
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
       }
 
@@ -387,6 +399,29 @@ namespace algorithm
                   {
                      _table[ n ] /= sum;
                   }
+               }
+            }
+         }
+      }
+
+      /**
+       @brief Normalize the table so that each entry is a probability (and not just domain[0] as in <normalize>)
+       */
+      void normalizeFull()
+      {
+         if ( _domain.size() )
+         {
+            value_type sum = 0;
+            for ( ui32 index = 0; index < _table.size(); ++index )
+            {
+               sum += _table[ index ];
+            }
+
+            if ( sum > 1e-5 )
+            {
+               for ( ui32 index = 0; index < _table.size(); ++index )
+               {
+                  _table[ index ] /= sum;
                }
             }
          }

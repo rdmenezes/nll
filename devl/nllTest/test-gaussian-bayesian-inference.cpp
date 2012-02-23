@@ -96,6 +96,71 @@ public:
       return bnet;
    }
 
+   static std::auto_ptr<BayesianNetwork> buildSprinklerNet2()
+   {
+      std::auto_ptr<BayesianNetwork> bnet( new BayesianNetwork() );
+
+      //
+      // cloudy
+      //
+      Factor::VectorI domainCloudyTable( 1 );
+      domainCloudyTable[ 0 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalityCloudy( 1 );
+      cardinalityCloudy[ 0 ] = 3;
+      Factor cloudy( core::make_buffer1D<double>( 0.2, 0.5, 0.3 ), domainCloudyTable, cardinalityCloudy );
+
+      //
+      // sprinkler
+      //
+      Factor::VectorI domainSprinklerTable( 2 );
+      domainSprinklerTable[ 0 ] = (int)SPRINKLER;
+      domainSprinklerTable[ 1 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalitySprinkler( 2 );
+      cardinalitySprinkler[ 0 ] = 2;
+      cardinalitySprinkler[ 1 ] = 3;
+      // note: the table is encoded by domain table order starting by FF then FT, TF, TT and so on for more domain...
+      Factor sprinkler( core::make_buffer1D<double>( 0.5, 0.5, 0.7, 0.3, 0.9, 0.1 ), domainSprinklerTable, cardinalitySprinkler );
+
+      //
+      // Rain
+      //
+      Factor::VectorI domainRainTable( 2 );
+      domainRainTable[ 0 ] = (int)RAIN;
+      domainRainTable[ 1 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalityRain( 2 );
+      cardinalityRain[ 0 ] = 2;
+      cardinalityRain[ 1 ] = 3;
+      Factor rain( core::make_buffer1D<double>( 0.8, 0.2, 0.4, 0.6, 0.2, 0.8 ), domainRainTable, cardinalityRain );
+
+      //
+      // Wet
+      //
+      Factor::VectorI domainWetTable( 3 );
+      domainWetTable[ 0 ] = (int)WETGRASS;
+      domainWetTable[ 1 ] = (int)RAIN;
+      domainWetTable[ 2 ] = (int)SPRINKLER;
+      Factor::VectorI  cardinalityWet( 3 );
+      cardinalityWet[ 0 ] = 2;
+      cardinalityWet[ 1 ] = 2;
+      cardinalityWet[ 2 ] = 2;
+      Factor wet( core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99 ), domainWetTable, cardinalityWet );
+
+      //
+      // create network
+      //
+      BayesianNetwork::NodeDescritor cloudyNode    = bnet->addNode( "CLOUDY",     cloudy );
+      BayesianNetwork::NodeDescritor wetNode       = bnet->addNode( "WET",        wet );
+      BayesianNetwork::NodeDescritor sprinklerNode = bnet->addNode( "SPRINKLER",  sprinkler );
+      BayesianNetwork::NodeDescritor rainNode      = bnet->addNode( "RAIN",       rain );
+
+      bnet->addLink( cloudyNode, sprinklerNode );
+      bnet->addLink( cloudyNode, rainNode );
+      bnet->addLink( sprinklerNode, wetNode );
+      bnet->addLink( rainNode, wetNode );
+
+      return bnet;
+   }
+
    template <class InferenceAlgo>
    void testBasicInfPotentialTableImpl()
    {
@@ -160,10 +225,84 @@ public:
       TESTER_ASSERT( core::equal( query7.getTable()[ 1 ], 0.5758, 1e-2 ) );
    }
 
+   template <class InferenceAlgo>
+   void testBasicInfPotentialTableImpl2()
+   {
+      // see example from BNT http://bnt.googlecode.com/svn/trunk/docs/usage.html
+      
+
+      std::auto_ptr<BayesianNetwork> bnet = buildSprinklerNet2();
+
+     
+      //
+      // inference test. Checked against Matlab BNT
+      //
+      {
+         InferenceAlgo inference;
+         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+         TESTER_ASSERT( query.getDomain().size() == 1 );
+         TESTER_ASSERT( query.getDomain()[ 0 ] == SPRINKLER );
+         TESTER_ASSERT( query.getTable().size() == 2 );
+         TESTER_ASSERT( core::equal( query.getTable()[ 0 ], 0.6032, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 1 ], 0.3968, 1e-2 ) );
+      }
+
+      {
+         InferenceAlgo inference;
+         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)CLOUDY ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)WETGRASS ) );
+         TESTER_ASSERT( query.getDomain().size() == 1 );
+         TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
+         TESTER_ASSERT( query.getTable().size() == 2 );
+         TESTER_ASSERT( core::equal( query.getTable()[ 0 ], 0.3358, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 1 ], 0.6642, 1e-2 ) );
+      }
+
+      {
+         InferenceAlgo inference;
+         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)CLOUDY ), core::make_buffer1D<ui32>( 2 ), core::make_buffer1D<ui32>( (int)WETGRASS ) );
+         TESTER_ASSERT( query.getDomain().size() == 1 );
+         TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
+         TESTER_ASSERT( query.getTable().size() == 2 );
+         TESTER_ASSERT( core::equal( query.getTable()[ 0 ], 0.2548, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 1 ], 0.7452, 1e-2 ) );
+      }
+      
+      
+      {
+         InferenceAlgo inference;
+         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)CLOUDY ), core::make_buffer1D<ui32>( 2 ), core::make_buffer1D<ui32>( (int)WETGRASS, (int)SPRINKLER ) );
+         TESTER_ASSERT( query.getDomain().size() == 2 );
+         TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
+         TESTER_ASSERT( query.getDomain()[ 1 ] == SPRINKLER );
+         TESTER_ASSERT( query.getTable().size() == 4 );
+         TESTER_ASSERT( core::equal( query.getTable()[ 0 ], 0.2520, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 1 ], 0.6480, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 2 ], 0.0028, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 3 ], 0.0972, 1e-2 ) );
+      }
+
+      {
+         InferenceAlgo inference;
+         Factor query = inference.run( *bnet, core::Buffer1D<ui32>(), core::Buffer1D<ui32>(), core::make_buffer1D<ui32>( (int)WETGRASS, (int)SPRINKLER ) );
+         TESTER_ASSERT( query.getDomain().size() == 2 );
+         TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
+         TESTER_ASSERT( query.getDomain()[ 1 ] == SPRINKLER );
+         TESTER_ASSERT( query.getTable().size() == 4 );
+         TESTER_ASSERT( core::equal( query.getTable()[ 0 ], 0.3186, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 1 ], 0.4014, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 2 ], 0.0159, 1e-2 ) );
+         TESTER_ASSERT( core::equal( query.getTable()[ 3 ], 0.2641, 1e-2 ) );
+      }
+   }
+
    void testBasicInfPotentialTable()
    {
+      
       testBasicInfPotentialTableImpl<algorithm::BayesianInferenceVariableElimination<algorithm::BayesianNetwork<algorithm::PotentialTable>>>();
       testBasicInfPotentialTableImpl<algorithm::BayesianInferenceNaive<algorithm::BayesianNetwork<algorithm::PotentialTable>>>();
+      
+      testBasicInfPotentialTableImpl2<algorithm::BayesianInferenceVariableElimination<algorithm::BayesianNetwork<algorithm::PotentialTable>>>();
+      testBasicInfPotentialTableImpl2<algorithm::BayesianInferenceNaive<algorithm::BayesianNetwork<algorithm::PotentialTable>>>();
    }
 
    void testPotentialTableMlParametersEstimation()
