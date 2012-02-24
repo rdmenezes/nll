@@ -1,0 +1,669 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{f1346945-4f0a-4f46-b188-19711b6063cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="core">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
+    </Filter>
+    <Filter Include="algorithm-api">
+      <UniqueIdentifier>{4f825c0a-6591-464a-8690-f6c8dd71d1ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm-impl">
+      <UniqueIdentifier>{0a762f0f-14a1-4b74-a26a-facb41548b6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="debug">
+      <UniqueIdentifier>{e49cde47-12e3-42d2-b8c1-d3840b085538}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="utility">
+      <UniqueIdentifier>{0163dbd0-4717-48fa-afa7-469be9a524a0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="imaging">
+      <UniqueIdentifier>{38d14002-a5a6-4e5b-9202-10f35723013e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="transform">
+      <UniqueIdentifier>{09e2dae3-06ae-47f1-9781-fa0aa592bc64}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm-regs">
+      <UniqueIdentifier>{c9e77334-8f2f-4a83-8ddb-ab914cb7084d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="algorithm-bayes">
+      <UniqueIdentifier>{00753981-a6ca-4c72-8be2-438617281d25}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="nll.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="configuration.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="math-floor.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="math.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
+    <ClCompile Include="optimizer-harmony-search-memory.cpp">
+      <Filter>algorithm-api</Filter>
+    </ClCompile>
+    <ClCompile Include="optimizer-harmony-search.cpp">
+      <Filter>algorithm-api</Filter>
+    </ClCompile>
+    <ClCompile Include="optimizer-parameters.cpp">
+      <Filter>algorithm-api</Filter>
+    </ClCompile>
+    <ClCompile Include="svm-linear.cpp">
+      <Filter>algorithm-impl</Filter>
+    </ClCompile>
+    <ClCompile Include="svm.cpp">
+      <Filter>algorithm-impl</Filter>
+    </ClCompile>
+    <ClCompile Include="potential-gaussian-canonical.cpp">
+      <Filter>algorithm-bayes</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="allocator-aligned.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="Buffer1D-basic-op.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="buffer1D.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="configuration.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="context.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="converter.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="database-input-adapter.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="database-manipulation.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="database.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="ensure.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="generic-operations.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="geometry.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="graph-adjency-list.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="graph-algorithms.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="graph-traits.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="graph-visitor.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="id-maker.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-binary-transformation.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-converter.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-convolution.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-distance-transform.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-interpolator.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-io.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-mask.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-morphology.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-resample.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-snr.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-spatial-resampling.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-spatial-transformation-mapper-ddf.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-spatial-transformation-mapper.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-spatial.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-threshold.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-transformation.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image-utility.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="image.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="index-mapper.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="io.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="log.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-correlation.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-distribution-gaussian.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-distribution-logistic.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-distribution-multinormal.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-distribution-uniform.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-floor.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-gram-schmidt-ortho.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-kurtosis.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-noise-awgn.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-quaternion.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-sampling.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math-statistical-independence.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="math.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-affine-decomposition.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-affine-transformation.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-basic-operations.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-basic.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-cholesky.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-converter.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-covariance.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-custom.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-decomposition.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-pseudo-inverse.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-sort.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix-svd.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="sequence-converter.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="singleton.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="static-assert.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="static-vector.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="stdafx.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="timer.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="transformation-ddf-2d.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="transformation-rbf.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="type-traits-inherited.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="type-traits-memory.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="type-traits.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="unreachable.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="utility-matlab.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="utility-pure.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="utility.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-adaboost.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-base.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-discriminant.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-gmm.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-mlp.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-naive-bayes.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-nearest-neighbor.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-rbf.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-svm-linear.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier-svm.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="classifier.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-combiner.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-selection-best-first.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-selection-genetic-algorithm.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-selection-pearson.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-selection-relieff.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-selection.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation-discriminant.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation-ica.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation-kernel-pca.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation-lle.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation-normalization.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation-pca.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="feature-transformation.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="labelize.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="metric.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-client.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-genetic-algorithm.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-grid-search.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-harmony-search-memory.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-harmony-search.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-parameters.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-powell.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="region-growing.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="regression-mlp.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="regression-svm-nu.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="regression.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="stopping-condition.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
+    <ClInclude Include="bracketing.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="brent.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="gabor-filter.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="gabor.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="genetic-algorithm.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="gmm.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="histogram-fitting.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="hmm-continuous.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="hmm.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="ica.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="kd-tree.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel-functions.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel-pca-preimage-mds.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="kernel-pca.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="kmeans.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="locally-linear-embedding.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="lsdbc.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="markov-chain.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="mlp.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="naive-bayes.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="normalization.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="pca.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="powell.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="quadratic-discriminant.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="ransac.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="rbf-network.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="relief.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="sammon-projection.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="svm-linear.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="svm.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="debug-decompose.h">
+      <Filter>debug</Filter>
+    </ClInclude>
+    <ClInclude Include="debug-io.h">
+      <Filter>debug</Filter>
+    </ClInclude>
+    <ClInclude Include="mask-exporter.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="statistics.h">
+      <Filter>utility</Filter>
+    </ClInclude>
+    <ClInclude Include="lut.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="maximum-intensity-projection.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="multiplanar-reconstruction.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="slice-blending.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="slice-resampling.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="slice.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="transformation.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-barycentre.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-interpolator.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-io-bin.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-io-mf2.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-io-txt.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-resampling.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-spatial.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-transformation-mapper.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="volume.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="estimator-affine2D-transformation.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="haar-features-3d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="haar-features.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="integral-image-3d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="point-based-registration-2d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="pyramid-hessian-2d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-ct-ct-planar.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="surf-2d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="potential-gaussian-canonical.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="potential-gaussian-moment.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="potential-table.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="nll.h" />
+    <ClInclude Include="collection-wrapper.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="data-compression-count.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-discretizer.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-io-mf3.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="estimator-affine-transformation.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="histogram.h">
+      <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="bayesian-network.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="bayesian-inference-naive.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-distance-transform.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
+    <ClInclude Include="bayesian-inference-elimination-variable.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="bayesian-network-sampling.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="bayesian-network-utils.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="bayesian-network-ml-param-estimation.h">
+      <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="nll.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="nll.dox" />
+    <None Include="todo.txt" />
+  </ItemGroup>
+</Project>

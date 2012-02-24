@@ -10,6 +10,7 @@ v0.16
 -added utilities to compose/decompose affine matrices in rotation, scale, shear components
 -added graph classes and basic algorithms
 -added 2D transformation estimators (similarity isotropic/anisotropic, isometry)
+-added 3D distance transform
 
 v0.15
 -added locally linear embedding for feature selection & data structure display

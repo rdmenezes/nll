@@ -63,6 +63,12 @@ namespace algorithm
          };
          typedef std::vector< Match >  Matches;
 
+         /**
+          @param nbPairsToBeConsidered During the nearest neighbour search, we select the <nbPairsToBeConsidered> neighbours
+          */
+         FeatureMatcher( ui32 nbPairsToBeConsidered = 1 ) : _nbPairsToBeConsidered( nbPairsToBeConsidered )
+         {}
+
          template <class Points>
          void findMatch( const Points& points1, const Points& points2, Matches& matches ) const
          {
@@ -82,11 +88,14 @@ namespace algorithm
 
                for ( ui32 n = 0; n < points1.size(); ++n )
                {
-                  typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], 1 );
+                  typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], _nbPairsToBeConsidered );
                   if ( list.size() )
                   {
-                     const float d = list.begin()->dist;
-                     matches.push_back( Match( n, list.begin()->id, d ) );
+                     for (typename KdTree::NearestNeighborList::const_iterator i = list.begin(); i != list.end(); ++i)
+                     {
+                        const float d = i->dist;
+                        matches.push_back( Match( n, i->id, d ) );
+                     }
                   }
                }
             } else {
@@ -95,17 +104,23 @@ namespace algorithm
 
                for ( ui32 n = 0; n < points2.size(); ++n )
                {
-                  typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points2[ n ], 1 );
+                  typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points2[ n ], _nbPairsToBeConsidered );
                   if ( list.size() )
                   {
-                     const float d = list.begin()->dist;
-                     matches.push_back( Match( list.begin()->id, n, d ) );
+                     for (typename KdTree::NearestNeighborList::const_iterator i = list.begin(); i != list.end(); ++i)
+                     {
+                        const float d = i->dist;
+                        matches.push_back( Match( i->id, n, d ) );
+                     }
                   }
                }
             }
 
             std::sort( matches.begin(), matches.end() );
          }
+
+      private:
+         ui32  _nbPairsToBeConsidered;
       };
 
       class SimilarityIsotropicTransformationEstimatorRansac
