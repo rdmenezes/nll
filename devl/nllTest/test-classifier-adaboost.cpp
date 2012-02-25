@@ -12,7 +12,7 @@ public:
    {
       srand( 2 );
       typedef Buffer1D<double>   Point;
-      typedef ClassifierAdaboostM1<Point, ClassifierMlp >  Boosting;
+      typedef ClassifierAdaboost<Point, ClassifierMlp >  Boosting;
 
       FactoryClassifierMlp<Point> factory;
 

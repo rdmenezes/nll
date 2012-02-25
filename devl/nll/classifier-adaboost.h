@@ -62,12 +62,17 @@ namespace algorithm
 
 
    /**
-    @brief Adaboost.M1 implementation for binary classification
-    @note see http://en.wikipedia.org/wiki/AdaBoost for implementation details
+    @brief basic Adaboost implementation for binary classification only
+
+    This version of the algorithm is using resampling of the training data instead of the original version
+    (i.e., a specific weak learner using the Dt distribution must be used to weight the learner)
+
+    @note see http://www.site.uottawa.ca/~stan/csi5387/boost-tut-ppr.pdf for implementation details
+          see http://www.face-rec.org/algorithms/Boosting-Ensemble/decision-theoretic_generalization.pdf for full proof of the algorihm
     @param WeakClassifier it must be an instance of <code>Classifier</code>
     */
    template <class T, template <typename> class WeakClassifier>
-   class ClassifierAdaboostM1 : public Classifier<T>
+   class ClassifierAdaboost : public Classifier<T>
    {
       typedef WeakClassifier<T>        BaseWeakLearner;
       typedef Classifier<T>            Base;
@@ -110,11 +115,11 @@ namespace algorithm
        @param nbWeakLearner the number of weak learner that will be created for the strong classifier
        @param learningSubsetRate the size of learning database for each weak classifier
        */
-      ClassifierAdaboostM1( const Factory& factory, ui32 nbWeakLearner, f64 learningSubsetRate = 0.3 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
+      ClassifierAdaboost( const Factory& factory, ui32 nbWeakLearner, f64 learningSubsetRate = 0.3 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
       {
       }
 
-      ~ClassifierAdaboostM1()
+      ~ClassifierAdaboost()
       {
          for ( ui32 n = 0; n < _weakClassifiers.size(); ++n )
             delete _weakClassifiers[ n ].classifier;
@@ -122,7 +127,7 @@ namespace algorithm
 
       virtual Base* deepCopy() const
       {
-         ClassifierAdaboostM1* c = new ClassifierAdaboostM1( _factory, _nbWeakLearner, _learningSubsetRate );
+         ClassifierAdaboost* c = new ClassifierAdaboost( _factory, _nbWeakLearner, _learningSubsetRate );
          c->_crossValidationBin = this->_crossValidationBin;
          c->_learningSubsetRate = this->_learningSubsetRate;
          for ( ui32 n = 0; n < (ui32)_weakClassifiers.size(); ++n )
@@ -164,10 +169,16 @@ namespace algorithm
          for ( ui32 n = 0; n < _weakClassifiers.size(); ++n )
          {
             Class t = _weakClassifiers[ n ].classifier->test( p );
-            ensure( t < 2, "TODO: handle k-class" );
+            ensure( t < 2, "Adaboost handles only binary decision problems" );
             prob[ t ] += _weakClassifiers[ n ].alpha;
          }
-         return prob[ 0 ] < prob[ 1 ];
+
+         if ( prob[ 0 ] < prob[ 1 ] )
+         {
+            return 1;
+         } else {
+            return 0;
+         }
       }
 
       /**
@@ -179,9 +190,9 @@ namespace algorithm
        */
       virtual void learn( const Database& dat, const nll::core::Buffer1D<nll::f64>& parameters )
       {
-         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "ClassifierAdaboostM1::learn()" );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "ClassifierAdaboost::learn()" );
          ui32 nbClass = core::getNumberOfClass( dat );
-         ensure(  nbClass == 2, "Adaboost M1 is only for binary classification problem" );
+         ensure(  nbClass == 2, "basic Adaboost is only for binary classification problem" );
 
          // get the LEARNING sample only
          Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
@@ -197,13 +208,17 @@ namespace algorithm
             // generate a distribution
             Database subset;
 
-            // TODO: problem if sampling doesn't sample all the classes?
-            core::Buffer1D<ui32> samplingIndexes = core::sampling( distribution, learningSubsetSize );
-            for ( ui32 nn = 0; nn < learningSubsetSize; ++nn )
+            ui32 nbClassesSampled = 0;
+            core::Buffer1D<ui32> samplingIndexes;
+            while ( nbClassesSampled != 2 ) // handle the case where the sampling doesn't have the two classes
             {
-               subset.add( learning[ samplingIndexes[ nn ] ] );
+               samplingIndexes = core::sampling( distribution, learningSubsetSize );
+               for ( ui32 nn = 0; nn < learningSubsetSize; ++nn )
+               {
+                  subset.add( learning[ samplingIndexes[ nn ] ] );
+               }
+               nbClassesSampled = core::getNumberOfClass( subset );
             }
-            ensure( core::getNumberOfClass( subset ) == 2, "the sampling did not sample all the classes..." );
 
             // generate a weak classifier and test
             BaseWeakLearner* weak = _factory.create();
@@ -226,7 +241,7 @@ namespace algorithm
 
             if ( eps < 0.5 )
             {
-               double alpha_t = 0.5 * log( ( 1.0 - eps ) / ( eps + 1e-4 ) ) / log( 10.0 );
+               double alpha_t = 0.5 * std::log( ( 1.0 - eps ) / ( eps + 1e-4 ) );
 
                // update the distribution
                for ( ui32 nn = 0; nn < samplingIndexes.size(); ++nn )
@@ -239,13 +254,8 @@ namespace algorithm
                   }
                }
 
-               double sum = 0;
-               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
-               {
-                  sum += distribution[ nn ];
-               }
-
                // renormalize the distribution
+               const double sum = std::accumulate( distribution.begin(), distribution.end(), 0.0 );
                ensure( sum > 0, "must be > 0" );
                for ( ui32 nn = 0; nn < distribution.size(); ++nn )
                {
@@ -255,15 +265,15 @@ namespace algorithm
                _weakClassifiers.push_back( WeakClassifierTest( weak, alpha_t ) );
             } else {
                core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "weak classifier's error is too large, reduced to=" + core::val2str( n ) );
-               break;
+               continue;
             }
          }
       }
 
    private:
          // copy disabled
-         ClassifierAdaboostM1& operator=( const ClassifierAdaboostM1& );
-         ClassifierAdaboostM1( const ClassifierAdaboostM1& );
+         ClassifierAdaboost& operator=( const ClassifierAdaboost& );
+         ClassifierAdaboost( const ClassifierAdaboost& );
 
    private:
       const Factory&                   _factory;

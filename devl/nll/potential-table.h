@@ -259,7 +259,7 @@ namespace algorithm
          const ui32 baseIndex = getIndexFromEvent( strides, inout_evidenceWithoutMainDomain );
          for ( ui32 i = 0; i < _cardinality[ 0 ]; ++i )
          {
-            pbs[ i ] = _table[ baseIndex + i ];
+            pbs[ i ] = (float)_table[ baseIndex + i ];
          }
          core::Buffer1D<ui32> samples = core::sampling( pbs, 1 );
          inout_evidenceWithoutMainDomain[ 0 ] = samples[ 0 ];  // export the sampled main domain
