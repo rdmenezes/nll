@@ -113,10 +113,11 @@ namespace core
          typedef typename Data::const_iterator  const_iterator;
 
          ensure( min <= max, "error ordering min/max" );
+         ensure( nbBins >= 1, "we need at least one bin!" );
 
          _min = static_cast<double>( min );
          _max = static_cast<double>( max );
-         _binInterval = ( static_cast<double>( max - min ) ) / nbBins;
+         _binInterval = ( static_cast<double>( max - min ) ) / ( nbBins - 1 );
          _counts.resize( nbBins );
          const int indexMax = static_cast<int>( nbBins ) - 1;
 

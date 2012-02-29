@@ -36,6 +36,9 @@
     <Filter Include="algorithm-bayes">
       <UniqueIdentifier>{00753981-a6ca-4c72-8be2-438617281d25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="algorithm-boosting">
+      <UniqueIdentifier>{357bbe78-6dfa-4a79-9449-962cf240f2be}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nll.cpp">
@@ -655,6 +658,12 @@
     </ClInclude>
     <ClInclude Include="bayesian-network-ml-param-estimation.h">
       <Filter>algorithm-bayes</Filter>
+    </ClInclude>
+    <ClInclude Include="boosting-stump.h">
+      <Filter>algorithm-boosting</Filter>
+    </ClInclude>
+    <ClInclude Include="boosting-weak-classifier.h">
+      <Filter>algorithm-boosting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -137,7 +137,7 @@ namespace imaging
       LookUpTransform( const TMapper& mapper, float minIntensity, float maxIntensity ) : _mapper( mapper ), _min( minIntensity ), _max( maxIntensity ), _interval( maxIntensity - minIntensity )
       {
          ensure( _interval > 0, "must be >0" );
-         _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
+         _ratio = static_cast<float>( _mapper.getSize() - 1 ) / _interval;
       }
 
       /**
@@ -251,7 +251,7 @@ namespace imaging
          _min = static_cast<float>( min + ( index - inc1 ) * range );
          _max = static_cast<float>( min + ( index + inc2 ) * range );
          _interval = _max - _min;
-         _ratio = static_cast<float>( _mapper.getSize() ) / _interval;
+         _ratio = static_cast<float>( _mapper.getSize() - 1 ) / _interval;
 
          {
             std::stringstream ss;

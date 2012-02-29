@@ -363,6 +363,8 @@
     <ClInclude Include="bayesian-network-sampling.h" />
     <ClInclude Include="bayesian-network-utils.h" />
     <ClInclude Include="bayesian-network.h" />
+    <ClInclude Include="boosting-stump.h" />
+    <ClInclude Include="boosting-weak-classifier.h" />
     <ClInclude Include="Buffer1D-basic-op.h" />
     <ClInclude Include="buffer1D.h" />
     <ClInclude Include="configuration.h" />

@@ -79,6 +79,9 @@
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
 //#define NLL_NOT_MULTITHREADED
 
+// if defined, extra checks will be performed to check preconditions/postconditions
+#define NLL_SECURE
+
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
 #endif
@@ -384,6 +387,10 @@
 # include "bayesian-network-sampling.h"
 # include "bayesian-inference-naive.h"
 # include "bayesian-inference-elimination-variable.h"
+
+// Boosting
+# include "boosting-weak-classifier.h"
+# include "boosting-stump.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

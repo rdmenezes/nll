@@ -12,6 +12,31 @@ namespace nll
 {
 namespace algorithm
 {
+   class NLL_API PotentialLinearGaussian
+   {
+   public:
+      typedef double                      value_type;
+      typedef core::Matrix<value_type>    Matrix;
+      typedef core::Buffer1D<value_type>  Vector;
+      typedef core::Buffer1D<ui32>        VectorI;
+
+   public:
+      /**
+       @param m mean
+       @param c covariance
+       @param id naming of the variable
+       @param alpha if alpha not set, ensure that integral -inf/+inf p(x)dx = 1 (it represents a PDF)
+       */
+      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& id ) : _mean( m ),
+         _cov( c ), _id( id )
+      {
+      }
+
+   private:
+      Vector      _mean;
+      Matrix      _cov;
+      VectorI     _id;
+   };
 }
 }
 
@@ -28,8 +53,10 @@ public:
       CLOUDY
    };
 
-   typedef algorithm::PotentialTable            Factor;
-   typedef algorithm::BayesianNetwork<Factor>   BayesianNetwork;
+   typedef algorithm::PotentialTable               Factor;
+   typedef algorithm::BayesianNetwork<Factor>      BayesianNetwork;
+   typedef algorithm::PotentialGaussianCanonical   Factorg;
+   typedef algorithm::BayesianNetwork<Factorg>     BayesianNetworkg;
 
    static std::auto_ptr<BayesianNetwork> buildSprinklerNet()
    {
@@ -416,12 +443,108 @@ public:
          }
       }
    }
+
+
+   static std::auto_ptr<BayesianNetworkg> buildGaussianBn1()
+   {
+      typedef algorithm::PotentialGaussianMoment FactorMoment;
+      std::auto_ptr<BayesianNetworkg> bnet( new BayesianNetworkg() );
+
+      //
+      // cloudy
+      //
+      FactorMoment::VectorI domainC( 1 );
+      domainC[ 0 ] = (int)CLOUDY;
+      FactorMoment::Vector meanC( 1 );
+      meanC[ 0 ] = 15;
+      FactorMoment::Matrix covC( 1, 1 );
+      covC( 0, 0 ) = 0.5;
+      FactorMoment cF( meanC, covC, domainC );
+
+
+      FactorMoment::VectorI domainR( 1 );
+      domainR[ 0 ] = (int)RAIN;
+      FactorMoment::Vector meanR( 1 );
+      meanR[ 0 ] = 50;
+      FactorMoment::Matrix covR( 1, 1 );
+      covR( 0, 0 ) = 0.008;
+      FactorMoment rF( meanR, covR, domainR );
+
+      FactorMoment::VectorI domainS( 3 );
+      domainS[ 0 ] = (int)SPRINKLER;
+      domainS[ 1 ] = (int)CLOUDY;
+      domainS[ 2 ] = (int)RAIN;
+      FactorMoment::Vector meanS( 1 );
+      meanR[ 0 ] = 30;
+      FactorMoment::Matrix covS( 1, 1 );
+      covR( 0, 0 ) = 3;
+      FactorMoment rS( meanS, covS, domainS );
+
+      /*
+      //
+      // sprinkler
+      //
+      Factor::VectorI domainSprinklerTable( 2 );
+      domainSprinklerTable[ 0 ] = (int)SPRINKLER;
+      domainSprinklerTable[ 1 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalitySprinkler( 2 );
+      cardinalitySprinkler[ 0 ] = 2;
+      cardinalitySprinkler[ 1 ] = 3;
+      // note: the table is encoded by domain table order starting by FF then FT, TF, TT and so on for more domain...
+      Factor sprinkler( core::make_buffer1D<double>( 0.5, 0.5, 0.7, 0.3, 0.9, 0.1 ), domainSprinklerTable, cardinalitySprinkler );
+
+      //
+      // Rain
+      //
+      Factor::VectorI domainRainTable( 2 );
+      domainRainTable[ 0 ] = (int)RAIN;
+      domainRainTable[ 1 ] = (int)CLOUDY;
+      Factor::VectorI  cardinalityRain( 2 );
+      cardinalityRain[ 0 ] = 2;
+      cardinalityRain[ 1 ] = 3;
+      Factor rain( core::make_buffer1D<double>( 0.8, 0.2, 0.4, 0.6, 0.2, 0.8 ), domainRainTable, cardinalityRain );
+
+      //
+      // Wet
+      //
+      Factor::VectorI domainWetTable( 3 );
+      domainWetTable[ 0 ] = (int)WETGRASS;
+      domainWetTable[ 1 ] = (int)RAIN;
+      domainWetTable[ 2 ] = (int)SPRINKLER;
+      Factor::VectorI  cardinalityWet( 3 );
+      cardinalityWet[ 0 ] = 2;
+      cardinalityWet[ 1 ] = 2;
+      cardinalityWet[ 2 ] = 2;
+      Factor wet( core::make_buffer1D<double>( 1, 0, 0.1, 0.9, 0.1, 0.9, 0.01, 0.99 ), domainWetTable, cardinalityWet );
+
+      //
+      // create network
+      //
+      BayesianNetwork::NodeDescritor cloudyNode    = bnet->addNode( "CLOUDY",     cloudy );
+      BayesianNetwork::NodeDescritor wetNode       = bnet->addNode( "WET",        wet );
+      BayesianNetwork::NodeDescritor sprinklerNode = bnet->addNode( "SPRINKLER",  sprinkler );
+      BayesianNetwork::NodeDescritor rainNode      = bnet->addNode( "RAIN",       rain );
+
+      bnet->addLink( cloudyNode, sprinklerNode );
+      bnet->addLink( cloudyNode, rainNode );
+      bnet->addLink( sprinklerNode, wetNode );
+      bnet->addLink( rainNode, wetNode );
+      */
+      return bnet;
+   }
+
+   void testInferenceGaussianBn()
+   {
+      std::auto_ptr<BayesianNetworkg> bnet = buildGaussianBn1();
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
+TESTER_TEST( testInferenceGaussianBn );
+/*
 TESTER_TEST( testPotentialTableMlParametersEstimation );
 TESTER_TEST( testBasicInfPotentialTable );
-TESTER_TEST( testBnPotentialSampling );
+TESTER_TEST( testBnPotentialSampling );*/
 TESTER_TEST_SUITE_END();
 #endif
