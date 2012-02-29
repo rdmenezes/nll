@@ -258,16 +258,20 @@ public:
 # ifdef DEBUG_BUFFER1D
       std::cout << "copy buffer1D" << std::endl;
 # endif
-      // unref with the current allocator
-      unref();
 
-      _allocator = cpy._allocator;
-      _cpt = cpy._cpt;
-      _buffer = cpy._buffer;
-      _size = cpy.size();
-      _ownsBuffer = cpy._ownsBuffer;
+      if ( cpy._buffer != _buffer )
+      {
+         // unref with the current allocator
+         unref();
 
-      ref();
+         _allocator = cpy._allocator;
+         _cpt = cpy._cpt;
+         _buffer = cpy._buffer;
+         _size = cpy.size();
+         _ownsBuffer = cpy._ownsBuffer;
+
+         ref();
+      }
    }
 
    /**

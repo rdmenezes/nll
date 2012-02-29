@@ -40,7 +40,9 @@ namespace algorithm
     @ingroup algorithm
     @brief Weak classifier using simple thresholding attribut to compute the class
 
-    It will scan each feature and each value of the feature to compute the best feature and threshold. The time complexity of algorithm is linear in number of samples
+    It will scan each feature and each value of the feature to compute the best feature and threshold.
+    
+    The time complexity of algorithm is linear in the number of samples
 
     The classifier handles only binary decision problems
 

@@ -45,7 +45,6 @@ namespace algorithm
 
     @note see http://www.site.uottawa.ca/~stan/csi5387/boost-tut-ppr.pdf for implementation details
           see http://www.face-rec.org/algorithms/Boosting-Ensemble/decision-theoretic_generalization.pdf for full proof of the algorihm
-    @param WeakClassifier it must be an instance of <code>Classifier</code>
     */
    template <class Database>
    class AdaboostBasic
@@ -87,7 +86,7 @@ namespace algorithm
          for ( ui32 n = 0; n < nbWeakClassifiers; ++n )
          {
             // generate a weak classifier and test
-            std::shared_ptr<WeakClassifier<Database>> weak = factory.create();
+            std::shared_ptr<WeakClassifierT> weak = factory.create();
             weak->learn( learning, distribution );
 
             std::vector<Class> res( learning.size() );
