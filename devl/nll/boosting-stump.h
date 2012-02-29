@@ -43,6 +43,7 @@ namespace algorithm
     It will scan each feature and each value of the feature to compute the best feature and threshold. The time complexity of algorithm is linear in number of samples
 
     The classifier handles only binary decision problems
+
     */
    template <class DatabaseT>
    class WeakClassifierStump : public WeakClassifier<DatabaseT>
@@ -50,6 +51,8 @@ namespace algorithm
    public:
       /**
        @pram nbBinsRatio the number of bins used to compute the data's histogram, in proportion of the number of samples
+       @note Beware of the <nbBinsRatio> as this is depending on the number of samples in the database. If the number of samples
+             is very low, the histogram will be rough and not distinguish between two cases close to each other...
        */
       WeakClassifierStump( value_type nbBinsRatio ) : _nbBinsRatio( nbBinsRatio )
       {}
@@ -224,7 +227,7 @@ namespace algorithm
    public:
       typedef typename WeakClassifierStump<DatabaseT>::value_type value_type;
 
-      StumpFactory( value_type nbBinsRatio = (value_type)0.5 ) : _nbBinsRatio( nbBinsRatio )
+      StumpFactory( value_type nbBinsRatio = (value_type)1.0 ) : _nbBinsRatio( nbBinsRatio )
       {}
 
       std::shared_ptr<WeakClassifierStump<DatabaseT>> create() const
