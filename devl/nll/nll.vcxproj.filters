@@ -665,6 +665,9 @@
     <ClInclude Include="boosting-weak-classifier.h">
       <Filter>algorithm-boosting</Filter>
     </ClInclude>
+    <ClInclude Include="boosting-adaboost-basic.h">
+      <Filter>algorithm-boosting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

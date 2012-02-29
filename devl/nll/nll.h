@@ -391,6 +391,7 @@
 // Boosting
 # include "boosting-weak-classifier.h"
 # include "boosting-stump.h"
+# include "boosting-adaboost-basic.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"

@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Weak classifier using simple thresholding attribut to compute the class
 
     It will scan each feature and each value of the feature to compute the best feature and threshold. The time complexity of algorithm is linear in number of samples
@@ -110,9 +111,9 @@ namespace algorithm
       {
          if ( _isInfReturningZeroClass )
          {
-            return input[ _featureId ] < _threshold;
+            return input[ _featureId ] >= _threshold;
          } else {
-            return input[ _featureId ] > _threshold;
+            return input[ _featureId ] < _threshold;
          }
       }
 
@@ -174,7 +175,6 @@ namespace algorithm
                                    ui32& outBestBin, value_type& outMaxError, bool& isInfClassZero )
       {
          outMaxError = 10;
-         const value_type pbZero = std::accumulate( binsZero.begin(), binsZero.end(), 0.0f );
          const value_type pbOne = std::accumulate( binsOne.begin(), binsOne.end(), 0.0f );
 
          // then compute the cumulative distribution
@@ -212,6 +212,28 @@ namespace algorithm
       value_type     _threshold;
       bool           _isInfReturningZeroClass;     // means that if feature < threshold, the class is 0, else 1
       value_type     _nbBinsRatio;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief Stump factory
+    */
+   template <class DatabaseT>
+   class StumpFactory
+   {
+   public:
+      typedef typename WeakClassifierStump<DatabaseT>::value_type value_type;
+
+      StumpFactory( value_type nbBinsRatio = (value_type)0.5 ) : _nbBinsRatio( nbBinsRatio )
+      {}
+
+      std::shared_ptr<WeakClassifierStump<DatabaseT>> create() const
+      {
+         return std::shared_ptr<WeakClassifierStump<DatabaseT>>( new WeakClassifierStump<DatabaseT>( _nbBinsRatio ) );
+      }
+
+   private:
+      value_type _nbBinsRatio;
    };
 }
 }
