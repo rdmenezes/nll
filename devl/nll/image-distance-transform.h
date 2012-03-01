@@ -161,6 +161,7 @@ namespace core
    }
 
    /**
+    @param i if i(x) > 0, the voxel x will be used as a source
     return the distance transform of a greyscale image using a norm-2 metric. The complexity ofthe algorithm
            is O(n*2), n the number of pixels.
     */
@@ -172,7 +173,7 @@ namespace core
       Image<double, Mapper> buf2( i.sizex(), i.sizey(), 1, false );
       for ( ui32 y = 0; y < i.sizey(); ++y )
          for ( ui32 x = 0; x < i.sizex(); ++x )
-            buf1( x, y, 0 ) = i( x, y, 0 );
+            buf1( x, y, 0 ) = ( i( x, y, 0 ) > 0 ) ? 0 : std::numeric_limits<double>::max();
 
       for ( ui32 y = 0; y < i.sizey(); ++y )
       {

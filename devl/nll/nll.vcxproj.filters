@@ -508,9 +508,6 @@
     <ClInclude Include="quadratic-discriminant.h">
       <Filter>algorithm-impl</Filter>
     </ClInclude>
-    <ClInclude Include="ransac.h">
-      <Filter>algorithm-impl</Filter>
-    </ClInclude>
     <ClInclude Include="rbf-network.h">
       <Filter>algorithm-impl</Filter>
     </ClInclude>
@@ -667,6 +664,9 @@
     </ClInclude>
     <ClInclude Include="boosting-adaboost-basic.h">
       <Filter>algorithm-boosting</Filter>
+    </ClInclude>
+    <ClInclude Include="ransac.h">
+      <Filter>algorithm-regs</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

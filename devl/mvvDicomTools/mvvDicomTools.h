@@ -5,6 +5,7 @@
 
 #ifdef _MSC_VER
 
+#pragma comment(lib, "dcmimgle.lib")
 #pragma comment(lib, "dcmnet.lib")
 #pragma comment(lib, "dcmdata.lib")
 #pragma comment(lib, "oflog.lib")

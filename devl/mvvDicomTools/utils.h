@@ -14,6 +14,8 @@ using namespace boost::filesystem;
 using namespace mvv::platform;
 using namespace mvv::parser;
 
+// TODO this is a quick fix for <RegistrationImpl> project: the tool to export DICOM volumes inverts y axis, if the DICOM is not reading for this particular
+// the flag should be disabled!
 #define ORIENTATION_FOR_MATLAB_COMPABILITY
 
 namespace mvv
@@ -812,7 +814,8 @@ namespace mvv
                typename Volume::DirectionalIterator iter = volume->getIterator( 0, y, z );
                for ( ui32 x = 0; x < size[ 0 ]; ++x )
                {
-                  *iter = ( (float)ptr.get()[ x + y * size[ 0 ] ] ) * slope + intercept;
+                  const float val = ( (float)ptr.get()[ x + y * size[ 0 ] ] ) * slope + intercept;
+                  *iter = val;
                   ++iter;
                }
             }

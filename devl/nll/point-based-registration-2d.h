@@ -708,6 +708,10 @@ namespace algorithm
                          maxErrorInPixel, minimumInliers );
       }
 
+      /**
+       @note sourcePoints for each source point, find the closest target point and run ransac on it. Additionally,
+             the points will be can be weighted using the targetPoints' weights
+       */
       Matrix compute( const algorithm::SpeededUpRobustFeatures::Points& sourcePoints,
                       const algorithm::SpeededUpRobustFeatures::Points& targetPoints,
                       const core::vector2i& minBoundingBoxSource = core::vector2i(),
@@ -758,8 +762,19 @@ namespace algorithm
          Factory estimatorFactory( points1, points2 );
          Ransac ransac( estimatorFactory );
 
+         core::Buffer1D<float> weights( matchesTrimmed.size() );
+         for ( ui32 n = 0; n < static_cast<ui32>( weights.size() ); ++n )
+         {
+            ui32 indexTarget = matchesTrimmed[ n ].index2;
+            weights[ n ] = points2[ indexTarget ].weight;
+         }
+
          core::Timer ransacOptimTimer;
-         typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed, RansacTransformationEstimator::minimumNumberOfPointsForEstimation(), RansacTransformationEstimator::minimumNumberOfSubsets(), maxErrorInPixel * maxErrorInPixel );
+         typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed,
+                                                                                RansacTransformationEstimator::minimumNumberOfPointsForEstimation(),
+                                                                                RansacTransformationEstimator::minimumNumberOfSubsets(),
+                                                                                maxErrorInPixel * maxErrorInPixel,
+                                                                                weights );
          if ( ransac.getNbInliers() <= minimumInliers )
          {
             throw std::runtime_error( "Error: inliers are too small" );

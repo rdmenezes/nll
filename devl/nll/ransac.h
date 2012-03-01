@@ -97,12 +97,15 @@ namespace algorithm
               number of points from which the model can be computed (e.g., for a line estimator =2, 3)
        @param numberOfSubset the number of sets that will be tested. This must be increased exponentially with the ratio of outliers
        @param maxError the maximum error a test point to have to be considered an inlier, specified in %
+       @param weights if weights.size() == 0, no weighting is done, else one-one matching between weight and point
+              This will be used in RANSAC where it will maximize the sum of the weighted inliers and not anymore the number of inliers
        */
       template <class Points>
-      Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError )
+      Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError, const core::Buffer1D<float>& weights )
       {
          enum Value{ value = core::Equal<typename Points::value_type, Point>::value };
          STATIC_ASSERT( value ); // "the points must be identitcal"
+         ensure( weights.size() == 0 || weights.size() == points.size(), "Weights must be empty or have the same dimension as the points" );
 
          {
             std::stringstream ss;
@@ -179,9 +182,11 @@ namespace algorithm
          Points inliers;
          inliers.reserve( bestSubset.size() );
          const ui32 nbInliers = static_cast<ui32>( bestSubset.size() );
+         float weightedInliers = 0; // here we are ttributing weights on the inliers, by default it will be set to one
          for ( ui32 n = 0; n < nbInliers; ++n )
          {
             inliers.push_back( points[ bestSubset[ n ] ] );
+            weightedInliers += weights.size() ? weights[ bestSubset[ n ] ] : 1;
          }
          std::auto_ptr<Estimator> estimator = _estimatorFactory.create();
 
@@ -202,12 +207,12 @@ namespace algorithm
             estimator->getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-         _nbInliers = static_cast<ui32>( inliers.size() );
+         _nbInliers = weightedInliers; //static_cast<ui32>( inliers.size() );
          _inlierId = bestSubset;
          return estimator->getModel();
       }
 
-      ui32 getNbInliers() const
+      float getNbInliers() const
       {
          return _nbInliers;
       }
@@ -219,7 +224,7 @@ namespace algorithm
 
    private:
       EstimatorFactory  _estimatorFactory;
-      ui32              _nbInliers;
+      float             _nbInliers;
       std::vector<ui32> _inlierId;
    };
 

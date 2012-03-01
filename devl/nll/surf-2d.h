@@ -67,7 +67,7 @@ namespace algorithm
       {
          //typedef core::Buffer1D<value_type> Features;
          typedef std::vector<value_type> Features;
-         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 64 )
+         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 64 ), weight( 1 )
          {}
 
          Point()
@@ -77,6 +77,7 @@ namespace algorithm
          value_type                 orientation;
          core::vector2i             position;
          ui32                       scale;
+         float                      weight;        // this will be used to weight the points in the <AffineRegistrationPointBased2d>. By default the algorithm will set it to 1, but a third party could change this value to give more weight to specific points
 
          void write( std::ostream& o ) const
          {
@@ -85,6 +86,7 @@ namespace algorithm
             core::write<value_type>( orientation, o );
             position.write( o );
             core::write<ui32>( scale, o );
+            core::write<float>( weight, o );
          }
 
          void read( std::istream& i )
@@ -94,6 +96,7 @@ namespace algorithm
             core::read<value_type>( orientation, i );
             position.read( i );
             core::read<ui32>( scale, i );
+            core::read<float>( weight, i );
          }
       };
 
