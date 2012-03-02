@@ -78,7 +78,7 @@ namespace algorithm
 
 
          // compute first the min/max for each feature
-         const ui32 nbFeatures = databaseTraining[ 0 ].input.size();
+         const ui32 nbFeatures = static_cast<ui32>( databaseTraining[ 0 ].input.size() );
          std::vector<value_type> minFeatureValue( nbFeatures, std::numeric_limits<value_type>::max() );
          std::vector<value_type> maxFeatureValue( nbFeatures, std::numeric_limits<value_type>::min() );
          for ( ui32 n = 0; n < nbSamples; ++n )

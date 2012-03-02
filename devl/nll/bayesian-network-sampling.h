@@ -107,7 +107,7 @@ namespace algorithm
          // map domain to the final domain array indexes
          std::vector<ui32> domainToFinalDomain( maxDomain + 1 );
          ui32 index = 0;
-         outDomain = VectorI( mainDomain.size() );
+         outDomain = VectorI( static_cast<ui32>( mainDomain.size() ) );
          for ( std::set<ui32>::const_iterator it = mainDomain.begin(); it != mainDomain.end(); ++it, ++index )
          {
             const ui32 domainId = *it;

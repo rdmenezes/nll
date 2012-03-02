@@ -47,7 +47,7 @@ namespace algorithm
 	      feature_node* node= new feature_node[size + 1];
 	      for (ui32 n = 0; n < size; ++n)
 	      {
-		      node[n].index = n + 1;
+		      node[n].index = n + 1;     // indexes start at 1!!!
 		      node[n].value = vec[n];
 	      }
 	      node[size].index = -1;
@@ -209,7 +209,7 @@ namespace algorithm
             pb[ n ] /= sum;
 
          probability = pb;
-		   return static_cast<ui32>( res - 1 );
+		   return static_cast<ui32>( res );
       }
 
       /**
@@ -242,7 +242,7 @@ namespace algorithm
 
 		   int* y = new int[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
-			   y[ n ] = static_cast<int>( dat[ learningIndex[ n ] ].output ) + 1;
+			   y[ n ] = static_cast<int>( dat[ learningIndex[ n ] ].output );
 
 		   Point* inputs = new Point[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
@@ -252,14 +252,21 @@ namespace algorithm
 
 		   problem pb;
 		   pb.l = static_cast<ui32>( learningIndex.size() );
-         pb.n = _inputSize;
+         pb.n = _inputSize + 1;
 
 		   pb.y = y;
 		   pb.x = x;
 
+         /*
+         pb.W = new double[ pb.l ];
+         for ( ui32 n = 0; n < pb.l; ++n )
+         {
+            pb.W[ n ] = 1;
+         }*/
+
 		   parameter param;
 		   param.solver_type = _solver;
-         param.eps = 1e-3;
+         param.eps = 0.01;
          param.C = C;
 
          core::Buffer1D<int> labels( _nbClasses );
@@ -296,6 +303,7 @@ namespace algorithm
          _vector = x;
          _vectorSize = static_cast<ui32>( learningIndex.size() );
 		   delete [] y;
+       //  delete [] pb.W;
 	   }
 
    private:

@@ -281,7 +281,7 @@ namespace algorithm
          {
             VectorI::const_iterator it = std::find( domainData.begin(), domainData.end(), _domain[ n ] );
             ensure( it != domainData.end(), "a domain in CPD can't be found in the fully observed data" );
-            domainMapper[ n ] = it - domainData.begin();
+            domainMapper[ n ] = static_cast<ui32>( it - domainData.begin() );
          }
 
          // reset the table;

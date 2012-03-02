@@ -120,6 +120,7 @@ namespace algorithm
          double                  bestError = -1000;
          Model                   bestModel;
          std::vector<ui32>       bestSubset;      // just save a reference, faster than copy the actual point...
+         float                   bestWeight = 0;
 
          const ui32 nbPoint = static_cast<ui32>( points.size() );
 
@@ -148,7 +149,7 @@ namespace algorithm
             {
                estimator->estimate( initialSubset );  // the estimator may throw, we don't want to cancel all computations just because one failed...
                double meanError = 0;
-
+               float weightedInliers = 0;
                {
                   for ( ui32 nn = 0; nn < nbPoint; ++nn )
                   {
@@ -158,18 +159,20 @@ namespace algorithm
                      {
                         currentSubset.push_back( nn );
                         meanError += err;
+                        weightedInliers += weights.size() ? weights[ nn ] : 1;
                      }
                   }
                }
                meanError /= currentSubset.size();
 
                {
-                  if ( currentSubset.size() > bestSubset.size() )
+                  if ( weightedInliers > bestWeight )
                   {
                      // save the model as it agrees with more points
                      bestModel = estimator->getModel();
                      bestSubset = currentSubset;
                      bestError = meanError;
+                     bestWeight = weightedInliers;
                   }
                }
             } catch (...)
@@ -182,11 +185,9 @@ namespace algorithm
          Points inliers;
          inliers.reserve( bestSubset.size() );
          const ui32 nbInliers = static_cast<ui32>( bestSubset.size() );
-         float weightedInliers = 0; // here we are ttributing weights on the inliers, by default it will be set to one
          for ( ui32 n = 0; n < nbInliers; ++n )
          {
             inliers.push_back( points[ bestSubset[ n ] ] );
-            weightedInliers += weights.size() ? weights[ bestSubset[ n ] ] : 1;
          }
          std::auto_ptr<Estimator> estimator = _estimatorFactory.create();
 
@@ -201,14 +202,14 @@ namespace algorithm
          {
             std::stringstream ss;
             ss << " best subset:" << std::endl <<
-                  "  weighted inliers=" << weightedInliers << std::endl <<
+                  "  weighted inliers=" << bestWeight << std::endl <<
                   "  inlier size=" << inliers.size() << std::endl <<
                   "  inlier error=" << bestError << std::endl;
 
             estimator->getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-         _nbInliers = weightedInliers; //static_cast<ui32>( inliers.size() );
+         _nbInliers = static_cast<ui32>( inliers.size() );
          _inlierId = bestSubset;
          return estimator->getModel();
       }
