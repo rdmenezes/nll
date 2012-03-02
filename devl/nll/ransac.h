@@ -201,6 +201,7 @@ namespace algorithm
          {
             std::stringstream ss;
             ss << " best subset:" << std::endl <<
+                  "  weighted inliers=" << weightedInliers << std::endl <<
                   "  inlier size=" << inliers.size() << std::endl <<
                   "  inlier error=" << bestError << std::endl;
 
