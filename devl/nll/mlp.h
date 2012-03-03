@@ -312,9 +312,10 @@ namespace algorithm
       /**
        @brief Evaluate grad = -dE^p/s_k
               See http://www.learnartificialneuralnetworks.com/backpropagation.html for implementation details
+       @param weight the weight of the current sample must be in [0..1]
        */
       template <class Vector>
-      void _computeGrad( const Vector& output )
+      void _computeGrad( const Vector& output, double weight )
       {
          FunctionSimpleDifferenciable f;
 
@@ -323,7 +324,7 @@ namespace algorithm
          for ( ui32 n = 0; n < _layersDesc[ lastLayer ]; ++n )
          {
             _layers[ lastLayer ][ n ].grad = ( output[ n ] - _layers[ lastLayer ][ n ].y ) * 
-                                             f.evaluateDerivative( _layers[ lastLayer ][ n ].s );
+                                             f.evaluateDerivative( _layers[ lastLayer ][ n ].s ) * weight;
          }
 
          // other layers
@@ -399,9 +400,10 @@ namespace algorithm
        @param weightDecayRate if not 0, the weight of the network will add a penalty, thus it will try to minize them.
               It could be an alternative to early stopping. If too big, the newtork won't learn, too small, it won't do anything.
        @param reportTimeIntervalInSec specifies the interval in seconds between each logging of the state of the neural network
+       @param weights the weights given to each sample in the database, must be in range [0..1]. By default a weight to 1 is given to all samples
        */
       template <class Point, class Point2>
-      Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2 )
+      Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2, const core::Buffer1D<double> weights_ = core::Buffer1D<double>() )
       {
          ui32 nbIter = 0;
          _createNetwork();
@@ -409,6 +411,13 @@ namespace algorithm
          double errorT;
          double errorL;
          double errorV;
+
+         ensure( weights_.size() == 0 || weights_.size() == database.size(), "must be empty or each sample must have an associated weight" );
+         core::Buffer1D<double> weights( database.size() );
+         for ( ui32 n = 0; n < weights.size(); ++n )
+         {
+            weights[ n ] = ( weights_.size() == 0 ) ? 1 : weights_[ n ];
+         }
 
          core::Timer timer;
          do
@@ -425,7 +434,7 @@ namespace algorithm
                {
                case Sample::LEARNING:
                   _propagate( database[ n ].input );
-                  _computeGrad( database[ n ].output );
+                  _computeGrad( database[ n ].output, weights[ n ] );
                   _updateWeights( learningRate, momentum, weightDecayRate );
                   errorL += _errorPattern( database[ n ].output );
                   break;
