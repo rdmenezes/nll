@@ -252,17 +252,17 @@ namespace algorithm
 
 		   problem pb;
 		   pb.l = static_cast<ui32>( learningIndex.size() );
-         pb.n = _inputSize + 1;
+         pb.n = _inputSize + 1;     // the last index, as the index start at 1, it is inputsize + 1
 
 		   pb.y = y;
 		   pb.x = x;
 
-         /*
+         
          pb.W = new double[ pb.l ];
          for ( ui32 n = 0; n < pb.l; ++n )
          {
             pb.W[ n ] = 1;
-         }*/
+         }
 
 		   parameter param;
 		   param.solver_type = _solver;
@@ -303,7 +303,7 @@ namespace algorithm
          _vector = x;
          _vectorSize = static_cast<ui32>( learningIndex.size() );
 		   delete [] y;
-       //  delete [] pb.W;
+         delete [] pb.W;
 	   }
 
    private:

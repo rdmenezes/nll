@@ -77,9 +77,9 @@ namespace tutorial
    };
 
    TESTER_TEST_SUITE( TestSpamDatabase );
-   //TESTER_TEST( testSvm );
+   TESTER_TEST( testSvm );
    TESTER_TEST( testDisplay );
-   //TESTER_TEST( testSvmLinear );
+   TESTER_TEST( testSvmLinear );
    TESTER_TEST_SUITE_END();
 }
 }
