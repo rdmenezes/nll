@@ -668,6 +668,9 @@
     <ClInclude Include="ransac.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
+    <ClInclude Include="math-cumulative-gaussian-function.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

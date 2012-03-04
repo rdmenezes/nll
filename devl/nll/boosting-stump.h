@@ -42,7 +42,8 @@ namespace algorithm
 
     It will scan each feature and each value of the feature to compute the best feature and threshold.
     
-    The time complexity of algorithm is linear in the number of samples
+    The time complexity of algorithm is linear in the number of samples. To compute the best threshold, an histogram of
+    the data is created, then each bin is linearly checked.
 
     The classifier handles only binary decision problems
 

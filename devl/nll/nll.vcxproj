@@ -408,6 +408,7 @@
     <ClInclude Include="log.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="math-correlation.h" />
+    <ClInclude Include="math-cumulative-gaussian-function.h" />
     <ClInclude Include="math-distribution-gaussian.h" />
     <ClInclude Include="math-distribution-logistic.h" />
     <ClInclude Include="math-distribution-multinormal.h" />
