@@ -103,6 +103,12 @@ namespace core
       temp ^= ( temp >> 1 );
       return temp;
    }
+
+   template <class T>
+   T log2( T v )
+   {
+      return std::log( v ) / std::log( static_cast<T>( 2 ) );
+   }
 }
 }
 

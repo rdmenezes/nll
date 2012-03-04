@@ -390,6 +390,72 @@ namespace core
    {
       enum {value = true};
    };
+
+      template <class T>
+   struct IsIntegral
+   {
+      enum {value = false};
+   };
+
+   template <>
+   struct IsIntegral<char>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<unsigned char>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<short>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<unsigned short>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<int>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<unsigned int>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<long>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<unsigned long>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<long long>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsIntegral<unsigned long long>
+   {
+      enum {value = true};
+   };
 }
 }
 

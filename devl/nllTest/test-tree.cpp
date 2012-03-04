@@ -8,7 +8,108 @@ namespace nll
 {
 namespace algorithm
 {
-   
+   /**
+    @brief Computes entropy for building trees
+    @see www.cs.cmu.edu/~guestrin/Class/10701-S06/Handouts/recitations/recitation-decision_trees-adaboost-02-09-2006.ppt
+         Information Gain,Decision Trees and Boosting, 10-701 ML recitation 9 Feb 2006
+    */
+   class Entropy
+   {
+   public:
+      /**
+       @brief computes the entropy of a vector of integrals
+       @param v a set of integers
+       */
+      template <class Vector>
+      double computeEntropy( const Vector& v ) const
+      {
+         typedef typename Vector::value_type value_type;
+
+         STATIC_ASSERT( core::IsIntegral<value_type>::value ); // this implementation only works for integral type
+
+         value_type min = std::numeric_limits<value_type>::max();
+         value_type max = std::numeric_limits<value_type>::min();
+         for ( ui32 n = 0; n < v.size(); ++n )
+         {
+            min = std::min( min, v[ n ] );
+            max = std::max( max, v[ n ] );
+         }
+
+         const ui32 range = static_cast<ui32>( max - min ) + 1;
+         std::vector<ui32> counts( range );
+         for ( ui32 n = 0; n < v.size(); ++n )
+         {
+            ui32 c = static_cast<ui32>( v[ n ] - min );
+            ++counts[ c ];
+         }
+
+         double entropy = 0;
+         for ( size_t n = 0; n < counts.size(); ++n )
+         {
+            if ( counts[ n ] )
+            {
+               const double p = static_cast<double>( counts[ n ] ) / v.size();
+               entropy -= p * core::log2( p );
+            }
+         }
+
+         return entropy;
+      }
+
+      /**
+       @brief Computes the conditional entropy H(y|x=c)
+       @note values contained by x and y must be as close to zero as possible!
+       */
+      template <class Vector1, class Vector2>
+      double computeConditionalEntropy( const Vector1& x, typename Vector1::value_type c, const Vector2& y ) const
+      {
+         typedef typename Vector1::value_type value_type1;
+         typedef typename Vector2::value_type value_type2;
+
+         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
+         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         ensure( x.size() == y.size(), "must be the same size" );
+
+         value_type1 min = std::numeric_limits<value_type1>::max();
+         value_type1 max = std::numeric_limits<value_type1>::min();
+         value_type2 maxy = std::numeric_limits<value_type2>::min();
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            min = std::min( min, x[ n ] );
+            max = std::max( max, x[ n ] );
+            maxy = std::max( maxy, y[ n ] );
+         }
+
+         const ui32 range = static_cast<ui32>( max - min ) + 1;
+         std::vector<ui32> counts( range );
+         ui32 yes = 0;
+         ui32 no = 0;
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            ui32 i = static_cast<ui32>( x[ n ] - min );
+            ++counts[ i ];
+         }
+
+         std::vector< std::vector< value_type2 > > cond( max + 1 );
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            ui32 i = static_cast<ui32>( x[ n ] - min );
+            cond[ i ].push_back( y[ n ] );
+         }
+
+         double entropy = 0;
+         for ( size_t n = 0; n < cond.size(); ++n )
+         {
+            if ( counts[ n ] )
+            {
+               const double e = computeEntropy( cond[ n ] );
+               entropy += static_cast<double>( counts[ n ] ) / x.size() * e;
+            }
+         }
+
+         return entropy;
+      }
+   };
 
    /**
     @brief Implementation of split points in decision tree
@@ -84,6 +185,51 @@ namespace algorithm
    private:
       ui32  _nbSplits;
    };
+
+   /**
+    @brief Implementation of split points in decision tree
+    @see http://research.microsoft.com/pubs/65569/splits.pdf
+          "Effcient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
+    */
+   template <class DatabaseT>
+   class SplittingCriteriaUniformApproximation : SplittingCriteria<DatabaseT>
+   {
+   public:
+      SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits
+      {
+      }
+
+      /**
+       @brief Compute the splitting points for the considered feature
+       @param dat the database to operate on
+       @param featureId the feature considered
+       @param outSplits the computed splits
+       */
+      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits )
+      {
+         outSplits.clear();
+
+         // here we fit a gaussian on the considered data
+         value_type max = std::numeric_limits<value_type>::min();
+         value_type min = std::numeric_limits<value_type>::max();
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            min = std::min( min, dat[ n ].input[ featureId ] );
+            max = std::max( max, dat[ n ].input[ featureId ] );
+         }
+
+         // now get all the splits
+         outSplits.reserve( _nbSplits );
+         for ( ui32 n = 0; n < _nbSplits; ++n )
+         {
+            const value_type split = min + n * ( max - min ) / ( _nbSplits + 1 );
+            outSplits.push_back( split );
+         }
+      }
+
+   private:
+      ui32  _nbSplits;
+   };
 }
 }
 
@@ -117,10 +263,29 @@ public:
    void testSplittingGaussian()
    {
    }
+
+   void testEntropy()
+   {
+      algorithm::Entropy entropy;
+
+      {
+         std::vector<int> v = core::make_vector<int>( 1, 1, 0, 1, 0 );
+         const double e = entropy.computeEntropy( v );
+         TESTER_ASSERT( core::equal<double>( e, 0.971, 0.001 ) );
+      }
+
+      {
+         std::vector<int> x = core::make_vector<int>( 0, 1, 2, 0, 0, 2, 1, 0 );
+         std::vector<int> y = core::make_vector<int>( 1, 0, 1, 0, 0, 1, 0, 1 );
+         const double e = entropy.computeConditionalEntropy( x, 1, y );
+         TESTER_ASSERT( core::equal<double>( e, 0.5, 0.001 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTree);
+TESTER_TEST(testEntropy);
 TESTER_TEST(testErf);
 TESTER_TEST_SUITE_END();
 #endif

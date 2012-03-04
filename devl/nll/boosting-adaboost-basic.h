@@ -108,7 +108,7 @@ namespace algorithm
 
             if ( eps < 0.5 )
             {
-               value_type alpha_t = static_cast<value_type>( 0.5 * std::log( ( 1.0 - eps ) / ( eps + 1e-4 ) ) );
+               value_type alpha_t = static_cast<value_type>( 0.5 * core::log2( ( 1.0 - eps ) / ( eps + 1e-4 ) ) );
 
                // update the distribution
                for ( ui32 nn = 0; nn < distribution.size(); ++nn )
