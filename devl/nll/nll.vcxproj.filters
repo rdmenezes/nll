@@ -674,6 +674,9 @@
     <ClInclude Include="boosting-weak-classifier-mlp.h">
       <Filter>algorithm-boosting</Filter>
     </ClInclude>
+    <ClInclude Include="perceptron-margin.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

@@ -8,6 +8,68 @@ namespace nll
 {
 namespace algorithm
 {
+   template <class DatabaseT>
+   class WeakClassifierMarginPerceptron : public WeakClassifier<DatabaseT>
+   {
+
+   public:
+      typedef DatabaseT    Database;
+      typedef float        value_type;
+      typedef typename Database::Sample::Input  Point;
+
+      WeakClassifierMarginPerceptron( ui32 nbCycles, value_type learningRate, value_type margin ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
+      {
+      }
+
+      /**
+       @brief Learn the weighted database.
+       @param database it is assumed all data in <code>database</code> are training data.
+       @param weights the weights associated to each data sample. It is assumed sum(weights) = 1
+       */
+      virtual value_type learn( const Database& dat, const core::Buffer1D<value_type> weights )
+      {
+         _classifier.learn( dat, _nbCycles, _learningRate, _margin, weights );
+         return -1;  // not handled
+      }
+
+      virtual ui32 test( const Point& input ) const
+      {
+         _classifier.test( input );
+      }
+
+   private:
+      ui32                          _nbCycles;
+      value_type                    _learningRate;
+      value_type                    _margin;
+      algorithm::MarginPerceptron   _classifier;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief Perceptron factory
+    */
+   template <class DatabaseT>
+   class WeakClassifierMarginPerceptronFactory
+   {
+   public:
+      typedef WeakClassifierMarginPerceptron<DatabaseT>  Classifier;
+      typedef typename Classifier::value_type            value_type;
+
+      WeakClassifierMarginPerceptronFactory( ui32 nbCycles, value_type learningRate, value_type margin ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
+      {
+      }
+
+      std::shared_ptr<Classifier> create() const
+      {
+         return std::shared_ptr<Classifier>( new Classifier( _nbCycles, _learningRate, _margin ) );
+      }
+
+   private:
+      ui32                          _nbCycles;
+      value_type                    _learningRate;
+      value_type                    _margin;
+   };
+
    /**
     @brief Doesn't to be working well...
     */
@@ -86,7 +148,7 @@ namespace algorithm
 			   return 0;
          _params->_nbClasses = getNumberOfClass( dat );
 
-         _params->_inputSize = dat[ 0 ].input.size();
+         _params->_inputSize = static_cast<ui32>( dat[ 0 ].input.size() );
 		   std::vector<ui32> learningIndex;
 		   for (ui32 n = 0; n < dat.size(); ++n)
             if ( dat[ n ].type == Database::Sample::LEARNING )
@@ -100,7 +162,7 @@ namespace algorithm
 		   Point* inputs = new Point[ learningIndex.size() ];
 		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
 			   inputs[ n ] = dat[ learningIndex[ n ] ].input;
-         feature_node** x = implementation::build_svmlinear_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), dat[ 0 ].input.size() );
+         feature_node** x = implementation::build_svmlinear_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), static_cast<ui32>( dat[ 0 ].input.size() ) );
 		   delete [] inputs;
 
 		   problem pb;
@@ -112,7 +174,7 @@ namespace algorithm
 		   pb.x = x;
          
          pb.W = new double[ pb.l ];
-         for ( ui32 n = 0; n < pb.l; ++n )
+         for ( int n = 0; n < pb.l; ++n )
          {
             pb.W[ n ] = static_cast<double>( weights[ n ] );
          }
@@ -202,7 +264,7 @@ namespace algorithm
 
    /**
     @ingroup algorithm
-    @brief Stump factory
+    @brief Linear SVM factory
     */
    template <class DatabaseT>
    class WeakClassifierLinearSvmFactory
@@ -368,9 +430,9 @@ public:
       Database dat;
       for ( ui32 n = 0; n < nbPoints; ++n )
       {
-         const double x = core::generateGaussianDistributionStddev( mean, var );
-         const double y = core::generateGaussianDistributionStddev( mean, var );
-         const double d = sqrt( x * x + y * y );
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float d = sqrt( x * x + y * y );
          dat.add( Database::Sample( core::make_vector<float>( x, y ), d < 1, Database::Sample::LEARNING ) );
       }
 
@@ -395,12 +457,12 @@ public:
 
       Database dat;
       ui32 nbClassOne = 0;
-      double max = 0;
+      float max = 0;
       for ( ui32 n = 0; n < nbPoints; ++n )
       {
-         const double x = core::generateGaussianDistributionStddev( mean, var );
-         const double y = core::generateGaussianDistributionStddev( mean, var );
-         const ui32 d = sqrt( x * x + y * y ) < 0.6;
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const ui32 d = sqrt( x * x + y * y ) < 0.6f;
          dat.add( Database::Sample( core::make_vector<float>( x, y ), d, Database::Sample::LEARNING ) );
 
          max = std::max( fabs( x ), max );
@@ -446,9 +508,9 @@ public:
       Database dat;
       for ( ui32 n = 0; n < nbPoints; ++n )
       {
-         const double x = core::generateGaussianDistributionStddev( mean, var );
-         const double y = core::generateGaussianDistributionStddev( mean, var );
-         const double d = sqrt( x * x + y * y );
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float d = sqrt( x * x + y * y );
          dat.add( Database::Sample( core::make_vector<float>( x, y ), d < 1, Database::Sample::LEARNING ) );
       }
 
@@ -458,6 +520,25 @@ public:
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
       TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
+   }
+
+   void testPerceptron()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::MarginPerceptron Classifier;
+
+      Database dat;
+      dat.add( Database::Sample( core::make_vector<float>( -11000 ), 1, Database::Sample::LEARNING ) );
+      dat.add( Database::Sample( core::make_vector<float>( -10 ), 0, Database::Sample::LEARNING ) );
+      dat.add( Database::Sample( core::make_vector<float>( 11 ), 1, Database::Sample::LEARNING ) );
+      dat.add( Database::Sample( core::make_vector<float>( 12 ), 1, Database::Sample::LEARNING ) );
+
+      Classifier classifier;
+      classifier.learn( dat, 1000, 0.5, 1 );
+      const double error = getTrainingError( dat, classifier );
+      std::cout << "error=" << error << std::endl;
+
+      TESTER_ASSERT( error <= 0.25 );
    }
 
 private:
@@ -472,8 +553,8 @@ private:
       return w;
    }
 
-   template <class Database>
-   float getTrainingError( const Database& dat, algorithm::AdaboostBasic<Database>& c )
+   template <class Database, class Classifier>
+   float getTrainingError( const Database& dat, const Classifier& c )
    {
       ui32 nbErrors = 0;
       Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
@@ -522,7 +603,7 @@ private:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestBoosting);
-
+/*
 TESTER_TEST(testStumpInf1);
 TESTER_TEST(testStumpInf2);
 TESTER_TEST(testStumpInf3);
@@ -530,6 +611,9 @@ TESTER_TEST(testStumpSup1);
 TESTER_TEST(testBoosting1);
 TESTER_TEST(testBoosting2);
 TESTER_TEST(testBoostingMlp);
+*/
+TESTER_TEST(testPerceptron);
+
 //TESTER_TEST(testBoostingLinearSvm);
 TESTER_TEST_SUITE_END();
 #endif

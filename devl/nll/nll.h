@@ -377,6 +377,7 @@
 # include "integral-image-3d.h"
 # include "haar-features-3d.h"
 # include "registration-ct-ct-planar.h"
+# include "perceptron-margin.h"
 
 // Bayesian network related files
 # include "potential-gaussian-moment.h"
