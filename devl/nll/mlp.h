@@ -65,7 +65,7 @@ namespace algorithm
       /**
        @return true if given these errors, the training can be stopped
        */
-      virtual bool stop( double errorTraining, double errorValidation, double errorTest ) const = 0;
+      virtual bool stop( ui32 nbCycles, double errorTraining, double errorValidation, double errorTest ) const = 0;
 
       virtual ~StopConditionMlp()
       {}
@@ -86,7 +86,7 @@ namespace algorithm
          _errorTest = minTest;
       }
 
-      virtual bool stop( double errorTraining, double errorValidation, double errorTest ) const
+      virtual bool stop( ui32 /*nbCycles*/, double errorTraining, double errorValidation, double errorTest ) const
       {
          double time = _timer.getCurrentTime();
          return errorTraining < _errorTraining     ||
@@ -101,6 +101,27 @@ namespace algorithm
       double _errorTest;
       double _maxTime;
       core::Timer _timer;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief stop condition if enough cycles
+    */
+   class StopConditionMlpCycleThreshold : public StopConditionMlp
+   {
+   public:
+      StopConditionMlpCycleThreshold( ui32 nbCycles )
+      {
+         _nbCycles = nbCycles;
+      }
+
+      virtual bool stop( ui32 nbCycles, double /*errorTraining*/, double /*errorValidation*/, double /*errorTest*/ ) const
+      {
+         return nbCycles >= _nbCycles;
+      }
+
+   private:
+      ui32 _nbCycles;
    };
 
    /**
@@ -403,7 +424,7 @@ namespace algorithm
        @param weights the weights given to each sample in the database, must be in range [0..1]. By default a weight to 1 is given to all samples
        */
       template <class Point, class Point2>
-      Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2, const core::Buffer1D<double> weights_ = core::Buffer1D<double>() )
+      Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2, const core::Buffer1D<float> weights_ = core::Buffer1D<float>() )
       {
          ui32 nbIter = 0;
          _createNetwork();
@@ -462,7 +483,7 @@ namespace algorithm
             }
 
             ++nbIter;
-         } while ( !stop.stop( errorL, errorV, errorT ) );
+         } while ( !stop.stop( nbIter, errorL, errorV, errorT ) );
 
          // log end of state
          {

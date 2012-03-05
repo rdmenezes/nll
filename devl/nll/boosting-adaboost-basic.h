@@ -82,7 +82,12 @@ namespace algorithm
          Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
 
          // train the classifiers
-         std::vector<value_type>  distribution( learning.size(), 1.0f / learning.size() );
+         core::Buffer1D<value_type>  distribution( learning.size(), false );
+         for ( ui32 n = 0; n < learning.size(); ++n )
+         {
+            distribution[ n ] = 1.0f / learning.size();
+         }
+
          for ( ui32 n = 0; n < nbWeakClassifiers; ++n )
          {
             // generate a weak classifier and test
@@ -122,7 +127,12 @@ namespace algorithm
                }
 
                // renormalize the distribution
-               const value_type sum = std::accumulate( distribution.begin(), distribution.end(), (value_type)0.0 );
+               value_type sum = 0;
+               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               {
+                  sum += distribution[ nn ];
+               }
+
                ensure( sum > 0, "must be > 0" );
                for ( ui32 nn = 0; nn < distribution.size(); ++nn )
                {

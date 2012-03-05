@@ -52,7 +52,7 @@ namespace algorithm
        @param database it is assumed all data in <code>database</code> are training data. It must contain exactly two classes
        @param weights the weights associated to each data sample. It is assumed sum(weights) = 1
        */
-      virtual value_type learn( const Database& database, const std::vector<value_type>& weights ) = 0;
+      virtual value_type learn( const Database& database, const core::Buffer1D<value_type> weights ) = 0;
       virtual ui32 test( const typename Database::Sample::Input& input ) const = 0;
 
       virtual ~WeakClassifier()

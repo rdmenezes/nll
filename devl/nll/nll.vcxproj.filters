@@ -656,12 +656,6 @@
     <ClInclude Include="bayesian-network-ml-param-estimation.h">
       <Filter>algorithm-bayes</Filter>
     </ClInclude>
-    <ClInclude Include="boosting-stump.h">
-      <Filter>algorithm-boosting</Filter>
-    </ClInclude>
-    <ClInclude Include="boosting-weak-classifier.h">
-      <Filter>algorithm-boosting</Filter>
-    </ClInclude>
     <ClInclude Include="boosting-adaboost-basic.h">
       <Filter>algorithm-boosting</Filter>
     </ClInclude>
@@ -670,6 +664,15 @@
     </ClInclude>
     <ClInclude Include="math-cumulative-gaussian-function.h">
       <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="boosting-weak-classifier-stump.h">
+      <Filter>algorithm-boosting</Filter>
+    </ClInclude>
+    <ClInclude Include="boosting-weak-classifier.h">
+      <Filter>algorithm-boosting</Filter>
+    </ClInclude>
+    <ClInclude Include="boosting-weak-classifier-mlp.h">
+      <Filter>algorithm-boosting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

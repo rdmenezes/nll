@@ -65,18 +65,13 @@ namespace algorithm
        @param database it is assumed all data in <code>database</code> are training data
        @param weights the weights associated to each data sample
        */
-      virtual value_type learn( const Database& databaseTraining, const std::vector<value_type>& weights )
+      virtual value_type learn( const Database& databaseTraining, const core::Buffer1D<value_type> weights )
       {
          const ui32 nbSamples = databaseTraining.size();
          if ( nbSamples == 0 )
          {
             return static_cast<value_type>( 1 );
          }
-
-         #ifdef NLL_SECURE
-         ensure( core::equal<value_type>( std::accumulate( weights.begin(), weights.end(), (value_type)0 ), (value_type)1, (value_type)1e-4 ), "sum_x weights[x] == 1 is not valid!" );
-         #endif
-
 
          // compute first the min/max for each feature
          const ui32 nbFeatures = static_cast<ui32>( databaseTraining[ 0 ].input.size() );
@@ -144,7 +139,7 @@ namespace algorithm
    private:
       // compute the best stump given a feature ID and a database and min/max value for this feature
       void _computeBestThreshold( const Database& database,
-                                  const std::vector<value_type>& weights,
+                                  const core::Buffer1D<value_type> weights,
                                   ui32 feature,
                                   value_type minFeatureValue,
                                   value_type maxFeatureValue,

@@ -391,7 +391,8 @@
 
 // Boosting
 # include "boosting-weak-classifier.h"
-# include "boosting-stump.h"
+# include "boosting-weak-classifier-stump.h"
+# include "boosting-weak-classifier-mlp.h"
 # include "boosting-adaboost-basic.h"
 
 /// @defgroup utility
