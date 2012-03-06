@@ -71,12 +71,22 @@ namespace algorithm
 
          // extract the weights
          core::Buffer1D<value_type> sampleWeights( learning.size() );
+         value_type maxW = -1;
          for ( ui32 n = 0, id = 0; n < _dat.size(); ++n )
          {
             if ( _dat[ n ].type == Database::Sample::LEARNING )
             {
-               sampleWeights[ id++ ] = _sampleWeights.size() ? _sampleWeights[ n ] : 1;
+               sampleWeights[ id ] = _sampleWeights.size() ? _sampleWeights[ n ] : 1;
+               maxW = std::max( maxW, sampleWeights[ id ] );
+               ++id;
             }
+         }
+
+         // resample the weights so that maxweight = 1, we do that so that the learningRate doesn't depend on the data
+         const value_type factor = 1 / maxW;
+         for ( ui32 n = 0; n < sampleWeights.size(); ++n )
+         {
+            sampleWeights[ n ] *= factor;
          }
 
 
@@ -93,19 +103,22 @@ namespace algorithm
          value_type wnorm = 1;  // wnorm is the norm of the current w
          for ( ui32 n = 0; n < nbCycles; ++n )
          {
-            // get the dot product
+            // test and update the separating plane
             for ( ui32 s = 0; s < nbSamples; ++s )
             {
+               // compute <xi, w> / || xi ||
                value_type dot = 0;
                for ( ui32 i = 0; i < inputSize; ++i )
                {
-                  dot += _w[ i ] * learning[ s ].input[ i ] * datnorm[ i ];
+                  dot += _w[ i ] * learning[ s ].input[ i ];
                }
                dot += 1 * _w[ inputSize ];   // extra unit
+               dot *= datnorm[ s ];
+             //  dot /= wnorm;
 
-               // get the margin
+               // test if within the margin or wrong classification
                ui32 classId;
-               const value_type marginVal = margin / 2 * dot / wnorm;
+               const value_type marginVal = margin / 2;
                if ( dot > marginVal )
                {
                   classId = 1;   // positive
@@ -120,19 +133,38 @@ namespace algorithm
                const bool needToUpdate = classId != learning[ s ].output;
                if ( needToUpdate )
                {
-                  const value_type sampleWeight = sampleWeights[ s ];
-                  const value_type signUpdate = ( learning[ s ].output == 1 ) ? sampleWeight * learningRate : -sampleWeight * learningRate;
+                  const value_type signUpdate = ( learning[ s ].output == 1 ) ? 1 : -1;
+                  const value_type updateFactor = signUpdate * sampleWeights[ s ] * learningRate;
                   wnorm = 0;
                   for ( ui32 i = 0; i < inputSize; ++i )
                   {
-                     _w[ i ] += signUpdate * learning[ s ].input[ i ] * datnorm[ i ];
+                     _w[ i ] += updateFactor * learning[ s ].input[ i ] * datnorm[ s ];
                      wnorm += _w[ i ];
                   }
-                  _w[ inputSize ] += signUpdate * 1;        // extra unit
+                  _w[ inputSize ] += updateFactor * 1;        // extra unit
                   wnorm += core::sqr( _w[ inputSize ] );    // precompute wnorm as it is less likely we need a class update...
                   wnorm = std::sqrt( wnorm );
+                  if ( wnorm < 1e-5 )
+                     wnorm = 1;
+                  /*
+                  // renormalize w
+                  for ( ui32 i = 0; i < inputSize + 1; ++i )
+                  {
+                     _w[ i ] /= wnorm;
+                  }*/
                }
             }
+         }
+
+         {
+            std::stringstream ss;
+            ss << "perceptron learning result=" << std::endl;
+            for ( ui32 i = 0; i < inputSize + 1; ++i )
+            {
+               ss << _w[ i ] << " ";
+            }
+
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
       }
 

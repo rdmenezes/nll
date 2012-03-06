@@ -34,7 +34,7 @@ namespace algorithm
 
       virtual ui32 test( const Point& input ) const
       {
-         _classifier.test( input );
+         return _classifier.test( input );
       }
 
    private:
@@ -541,6 +541,115 @@ public:
       TESTER_ASSERT( error <= 0.25 );
    }
 
+   void testPerceptron2()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::AdaboostBasic<Database>      Adaboost;
+      typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
+
+
+      const ui32 nbPoints = 200;
+      const double mean = 20;
+      const double var = 10;
+
+      const double mean2x = 0;
+      const double mean2y = 20;
+      const double var2 = 10;
+
+      Database dat;
+      ui32 nbOne = 0;
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         {
+            const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+            const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+            dat.add( Database::Sample( core::make_vector<float>( x, y ), 0, Database::Sample::LEARNING ) );
+         }
+
+         {
+            const float x = (float)core::generateGaussianDistributionStddev( mean2x, var2 );
+            const float y = (float)core::generateGaussianDistributionStddev( mean2y, var2 );
+            dat.add( Database::Sample( core::make_vector<float>( x, y ), 1, Database::Sample::LEARNING ) );
+            ++nbOne;
+         }
+
+         /*
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const bool d = sqrt( (x-mean) * (x-mean) + (y-mean) * (y-mean) ) < 12;
+         if ( d ) ++nbOne;
+         dat.add( Database::Sample( core::make_vector<float>( x, y ), d, Database::Sample::LEARNING ) );
+         */
+      }
+
+      std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
+
+      Adaboost classifier; 
+      Factory factory( 1000, 1, 100 );
+      classifier.learn( dat, 10, factory );
+
+      core::Image<ui8> out;
+      print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ 3 ].classifier, dat, out );
+      core::writeBmp( out, "c:/tmp/decision.bmp" );
+
+      std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
+   }
+
+   void testPerceptron3()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::AdaboostBasic<Database>      Adaboost;
+      typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
+
+      srand( 2 );
+      for ( ui32 iter = 0; iter < 50; )
+      {
+         const ui32 nbPoints = 200;
+         const double mean = core::generateUniformDistribution( -60, 60 );
+         const double var = 10;
+
+         const double mean2x = core::generateUniformDistribution( -60, 60 );
+         const double mean2y = core::generateUniformDistribution( -60, 60 );
+         const double var2 = 10;
+
+         if ( std::sqrt( core::sqr( mean - mean2x ) + core::sqr( mean - mean2y ) ) < 25 )
+            continue;
+
+         Database dat;
+         ui32 nbOne = 0;
+         for ( ui32 n = 0; n < nbPoints; ++n )
+         {
+            {
+               const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+               const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+               dat.add( Database::Sample( core::make_vector<float>( x, y ), 0, Database::Sample::LEARNING ) );
+            }
+
+            {
+               const float x = (float)core::generateGaussianDistributionStddev( mean2x, var2 );
+               const float y = (float)core::generateGaussianDistributionStddev( mean2y, var2 );
+               dat.add( Database::Sample( core::make_vector<float>( x, y ), 1, Database::Sample::LEARNING ) );
+               ++nbOne;
+            }
+         }
+
+         std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
+         algorithm::MarginPerceptron classifier;
+         classifier.learn( dat, 1000, 1, 20 );
+
+         core::Image<ui8> out;
+         print( core::vector2i( -100, -100 ), core::vector2i( 100, 100 ), classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision" + core::val2str( iter ) + ".bmp" );
+
+
+         std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
+         TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.15 );
+
+         ++iter;
+      }
+   }
+
 private:
    template <class Database>
    static core::Buffer1D<float> makeWeights( const Database& dat )
@@ -599,6 +708,52 @@ private:
          }
       }
    }
+
+   template <class Classifier, class Database>
+   static void print( const core::vector2i& min, const core::vector2i& max, const Classifier& c, const Database& dat, core::Image<ui8>& out )
+   {
+      ui32 sx = max[ 0 ] - min[ 0 ];
+      ui32 sy = max[ 1 ] - min[ 1 ];
+      out = core::Image<ui8>( sx, sy, 3 );
+
+      ui8 red[] = {255, 0, 0};
+      ui8 green[] = {0, 255, 0};
+      for ( int y = 0; y < sy; ++y )
+      {
+         for ( int x = 0; x < sx; ++x )
+         {
+            std::vector<float> p( 2 );
+            p[ 0 ] = min[ 0 ] + x;
+            p[ 1 ] = min[ 1 ] + y;
+
+            ui32 cc = c.test( p );
+            ui8* color = ( cc == 1 ) ? green : red;
+
+            out( x, y, 0 ) = color[ 0 ];
+            out( x, y, 1 ) = color[ 1 ];
+            out( x, y, 2 ) = color[ 2 ];
+         }
+      }
+
+      for ( ui32 n = 0; n < dat.size(); ++n )
+      {
+         int px = dat[ n ].input[ 0 ] - min[ 0 ];
+         int py = dat[ n ].input[ 1 ] - min[ 1 ];
+
+         if ( px < 0 || px >= out.sizex() ||
+              py < 0 || py >= out.sizey() )
+         {
+            std::cout << "skipeed=" << px << " " << py << std::endl;
+            continue;
+         }
+
+         ui8* color = dat[ n ].output == 1 ? green : red;
+
+         out( px, py, 0 ) = color[ 0 ] * 0.8;
+         out( px, py, 1 ) = color[ 1 ] * 0.8;
+         out( px, py, 2 ) = color[ 2 ] * 0.8;
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -611,9 +766,10 @@ TESTER_TEST(testStumpSup1);
 TESTER_TEST(testBoosting1);
 TESTER_TEST(testBoosting2);
 TESTER_TEST(testBoostingMlp);
-*/
+TESTER_TEST(testPerceptron3);
 TESTER_TEST(testPerceptron);
-
+*/
+TESTER_TEST(testPerceptron2);
 //TESTER_TEST(testBoostingLinearSvm);
 TESTER_TEST_SUITE_END();
 #endif

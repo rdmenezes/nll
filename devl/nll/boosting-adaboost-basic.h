@@ -171,7 +171,7 @@ namespace algorithm
          }
       }
 
-   private:
+   public:
       struct WeakClassifierTest
       {
          WeakClassifierTest( std::shared_ptr<WeakClassifierT> c, value_type a ) : classifier( c ), alpha( a )
@@ -180,6 +180,12 @@ namespace algorithm
          value_type                        alpha;
          std::shared_ptr<WeakClassifierT>  classifier;
       };
+
+      const std::vector<WeakClassifierTest>& getClassifiers() const
+      {
+         return _classifiers;
+      }
+
 
    private:
       std::vector<WeakClassifierTest> _classifiers;
