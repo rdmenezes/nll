@@ -106,7 +106,7 @@ namespace algorithm
          // now train the algo
          ui32 inputSize = static_cast<ui32>( learning[ 0 ].input.size() );
          _w = std::vector<value_type>( inputSize );
-         _bias = 0; //core::generateUniformDistribution( -10, 10 );
+         _bias = 0; // the bias can just be seen as another entry in <_w> with the corresponding new x_j alway equal to 1
          value_type wnorm = 1;
          for ( ui32 n = 0; n < nbCycles; ++n )
          {
@@ -122,7 +122,7 @@ namespace algorithm
                   dot += _w[ i ] * learning[ s ].input[ i ];
                }
                dot *= datnorm[ s ] / wnorm;
-               dot -= _bias * datnorm[ s ]  / wnorm;
+               dot += _bias * datnorm[ s ]  / wnorm;
 
 
                // test if within the margin or wrong classification
@@ -149,7 +149,7 @@ namespace algorithm
                   {
                      _w[ i ] += updateFactor * learning[ s ].input[ i ];
                   }
-                  _bias -= updateFactor * 1;
+                  _bias += updateFactor * 1;
                   wnorm = getWeightNorm();
                   ++nbUpdates;
                }
@@ -168,6 +168,9 @@ namespace algorithm
                bestW = _w;
                bestBias = _bias;
             }
+
+            if ( nbUpdates == 0 )
+               break;
          }
 
          _w = bestW;
@@ -206,7 +209,7 @@ namespace algorithm
          {
             dot += _w[ i ] * v[ i ];
          }
-         dot -= _bias;
+         dot += _bias;
 
          return dot > 0 ? 1 : 0;
       }

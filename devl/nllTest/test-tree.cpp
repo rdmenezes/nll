@@ -8,6 +8,10 @@ namespace nll
 {
 namespace algorithm
 {
+   class AttributSplitter
+   {
+   };
+
    /**
     @brief Computes entropy for building trees
     @see www.cs.cmu.edu/~guestrin/Class/10701-S06/Handouts/recitations/recitation-decision_trees-adaboost-02-09-2006.ppt
@@ -21,7 +25,7 @@ namespace algorithm
        @param v a set of integers
        */
       template <class Vector>
-      double computeEntropy( const Vector& v ) const
+      double compute( const Vector& v ) const
       {
          typedef typename Vector::value_type value_type;
 
@@ -57,11 +61,13 @@ namespace algorithm
       }
 
       /**
-       @brief Computes the conditional entropy H(y|x=c)
+       @brief Computes the conditional entropy H(y|x)
        @note values contained by x and y must be as close to zero as possible!
+
+       H(Y|X) = sum_i p(X=vi) H(Y|X=vi)
        */
       template <class Vector1, class Vector2>
-      double computeConditionalEntropy( const Vector1& x, typename Vector1::value_type c, const Vector2& y ) const
+      double compute( const Vector1& x, const Vector2& y ) const
       {
          typedef typename Vector1::value_type value_type1;
          typedef typename Vector2::value_type value_type2;
@@ -91,6 +97,12 @@ namespace algorithm
          }
 
          std::vector< std::vector< value_type2 > > cond( max + 1 );
+         /*
+         for ( size_t n = 0; n < cond.size(); ++n )
+         {
+            cond.reserve( counts[ n ] );
+         }*/
+
          for ( ui32 n = 0; n < x.size(); ++n )
          {
             ui32 i = static_cast<ui32>( x[ n ] - min );
@@ -100,15 +112,50 @@ namespace algorithm
          double entropy = 0;
          for ( size_t n = 0; n < cond.size(); ++n )
          {
-            if ( counts[ n ] )
+            if ( cond[ n ].size() && counts[ n ] )
             {
-               const double e = computeEntropy( cond[ n ] );
+               const double e = compute( cond[ n ] );
                entropy += static_cast<double>( counts[ n ] ) / x.size() * e;
             }
          }
 
          return entropy;
       }
+   };
+
+   /**
+    @brief Computes information gain on an integral input/output
+    */
+   class InformationGain
+   {
+   public:
+      /**
+       @brief Compute the information gain IG(y|x) = E(y) - E(y|x)
+
+       It can be seen as the amount of information saved by knowing x when transmiting y
+       */
+      template <class Vector1, class Vector2>
+      double compute( const Vector1& x, const Vector2& y ) const
+      {
+         Entropy entropy;
+         return entropy.compute( y ) - entropy.compute( x, y );
+      }
+   };
+
+   template <class DatabaseInput, class SplittingCriteria>
+   class NodeContinuousSingleSplit
+   {
+   public:
+      typedef typename DatabaseInput::Sample::Input::value_type value_type;
+
+      NodeContinuousSingleSplit() : _direction( 1 ), _thresold( std::numeric_limits<value_type>::min() )
+      {}
+
+   private:
+      ui32        _featureId;    // the feature we are splitting
+      value_type  _thresold;     // the threshold used
+      int         _direction;    // the direction pointed 1: value > _thresold ? class = 1 : class = 0
+                                 //                       0: value > _thresold ? class = 0 : class = 1
    };
 
    /**
@@ -137,7 +184,7 @@ namespace algorithm
    /**
     @brief Implementation of split points in decision tree
     @see http://research.microsoft.com/pubs/65569/splits.pdf
-          "Effcient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
+          "Efficient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
     */
    template <class DatabaseT>
    class SplittingCriteriaGaussianApproximation : SplittingCriteria<DatabaseT>
@@ -270,15 +317,112 @@ public:
 
       {
          std::vector<int> v = core::make_vector<int>( 1, 1, 0, 1, 0 );
-         const double e = entropy.computeEntropy( v );
+         const double e = entropy.compute( v );
          TESTER_ASSERT( core::equal<double>( e, 0.971, 0.001 ) );
       }
 
       {
          std::vector<int> x = core::make_vector<int>( 0, 1, 2, 0, 0, 2, 1, 0 );
          std::vector<int> y = core::make_vector<int>( 1, 0, 1, 0, 0, 1, 0, 1 );
-         const double e = entropy.computeConditionalEntropy( x, 1, y );
+         const double e = entropy.compute( x, y );
          TESTER_ASSERT( core::equal<double>( e, 0.5, 0.001 ) );
+      }
+   }
+
+   void testTree()
+   {
+      enum Outlook
+      {
+         SUNNY,
+         OVERCAST,
+         RAIN
+      };
+
+      enum Temperature
+      {
+         HOT,
+         MILD,
+         COOL
+      };
+
+      enum Humidity
+      {
+         HIGH,
+         NORMAL
+      };
+
+      enum WIND
+      {
+         WEAK,
+         STRONG
+      };
+
+      enum PLAY
+      {
+         NO,
+         YES
+      };
+
+      std::vector< std::vector<ui32> > days;
+      /*
+      days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    WEAK ) );      // 1
+      days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    STRONG ) );    // 2
+      days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  HIGH,    WEAK ) );      // 3
+      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
+      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
+      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
+      days.push_back( core::make_vector<ui32>( OVERCAST, COOL, NORMAL,  STRONG ) );    // 7
+      days.push_back( core::make_vector<ui32>( SUNNY,    MILD, HIGH,    WEAK) );       // 8
+      days.push_back( core::make_vector<ui32>( SUNNY,    COOL, NORMAL,  WEAK) );       // 9
+      days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
+      days.push_back( core::make_vector<ui32>( SUNNY,    MILD, NORMAL,  STRONG) );     // 11
+      days.push_back( core::make_vector<ui32>( OVERCAST, MILD, HIGH,    STRONG) );     // 12
+      days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  NORMAL,  WEAK) );       // 13
+      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
+      */
+
+      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
+      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
+      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
+      days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
+      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
+
+      std::vector< ui32 > y( 5 );
+      y[ 0 ] = 1;
+      y[ 1 ] = 1;
+      y[ 2 ] = 0;
+      y[ 3 ] = 1;
+      y[ 4 ] = 0;
+      
+      /*
+      std::vector< ui32 > y( 14 );
+      y[ 0 ] = 0;
+      y[ 1 ] = 0;
+      y[ 2 ] = 1;
+      y[ 3 ] = 1;
+      y[ 4 ] = 1;
+      y[ 5 ] = 0;
+      y[ 6 ] = 1;
+      y[ 7 ] = 0;
+      y[ 8 ] = 1;
+      y[ 9 ] = 1;
+      y[ 10 ] = 1;
+      y[ 11 ] = 1;
+      y[ 12 ] = 1;
+      y[ 13 ] = 0;
+      */
+
+
+      for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
+      {
+         std::vector<ui32> x;
+         for ( ui32 d = 0; d < days.size(); ++d )
+         {
+            x.push_back( days[ d ][ n ] );
+         }
+         algorithm::InformationGain gain;
+         const double g = gain.compute( x, y );
+         std::cout << "gain[" << n << "]=" << g << std::endl;
       }
    }
 };
@@ -286,6 +430,7 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTree);
 TESTER_TEST(testEntropy);
-TESTER_TEST(testErf);
+/*TESTER_TEST(testErf);*/
+TESTER_TEST(testTree)
 TESTER_TEST_SUITE_END();
 #endif
