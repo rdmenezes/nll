@@ -543,6 +543,7 @@ public:
 
    void testPerceptron2()
    {
+      srand( 1 );
       typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
@@ -572,21 +573,13 @@ public:
             dat.add( Database::Sample( core::make_vector<float>( x, y ), 1, Database::Sample::LEARNING ) );
             ++nbOne;
          }
-
-         /*
-         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
-         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
-         const bool d = sqrt( (x-mean) * (x-mean) + (y-mean) * (y-mean) ) < 12;
-         if ( d ) ++nbOne;
-         dat.add( Database::Sample( core::make_vector<float>( x, y ), d, Database::Sample::LEARNING ) );
-         */
       }
 
       std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
 
       Adaboost classifier; 
-      Factory factory( 1000, 0.5, 0.1 );
-      classifier.learn( dat, 10, factory );
+      Factory factory( 10, 0.1, 0.1 );
+      classifier.learn( dat, 100, factory );
 
       core::Image<ui8> out;
       for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
@@ -596,7 +589,7 @@ public:
       }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.17 );
    }
 
    void testPerceptron3()
@@ -605,9 +598,10 @@ public:
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
 
-      srand( 2 );
+      srand( 3 );
       for ( ui32 iter = 0; iter < 50; )
       {
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "testPerceptron3, iter=" + core::val2str( iter ) );
          const ui32 nbPoints = 200;
          const double mean = core::generateUniformDistribution( -60, 60 );
          const double var = 10;
@@ -639,7 +633,7 @@ public:
 
          std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
          algorithm::MarginPerceptron classifier;
-         classifier.learn( dat, 1000, 1, 20 );
+         classifier.learn( dat, 1000, 1, 0 );
 
          core::Image<ui8> out;
          print( core::vector2i( -100, -100 ), core::vector2i( 100, 100 ), classifier, dat, out );
@@ -647,10 +641,149 @@ public:
 
 
          std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-         TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.15 );
+         TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.1 );
 
          ++iter;
       }
+   }
+
+   void testBoostingLinearSvm2()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::AdaboostBasic<Database>         Adaboost;
+      typedef algorithm::WeakClassifierLinearSvmFactory<Database>   Factory;
+
+
+      const ui32 nbPoints = 200;
+      const double mean = 10;
+      const double var = 5;
+      const double d = 6;
+
+
+      Database dat;
+      ui32 nbOne = 0;
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const bool isInside = std::sqrt( core::sqr( x - mean ) + core::sqr( y - mean ) ) < d;
+         dat.add( Database::Sample( core::make_vector<float>( x, y ), isInside ? 1 : 0, Database::Sample::LEARNING ) );
+         if ( isInside ) ++nbOne;
+      }
+
+      std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
+
+      Adaboost classifier; 
+      Factory factory( 1 );
+      classifier.learn( dat, 100, factory );
+
+      core::Image<ui8> out;
+      for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
+      {
+         print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ n ].classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision-stum4-" + core::val2str( n ) + ".bmp" );
+      }
+
+      print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), classifier, dat, out );
+      core::writeBmp( out, "c:/tmp/decision-stum4-single-" + core::val2str( 0 ) + ".bmp" );
+      std::cout << "ErrorSingle="  << getTrainingError( dat, classifier ) << std::endl;
+
+      std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
+   }
+
+   void testStumpInf4()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::AdaboostBasic<Database>         Adaboost;
+      typedef algorithm::StumpFactory<Database>   Factory;
+
+
+      const ui32 nbPoints = 200;
+      const double mean = 10;
+      const double var = 5;
+      const double d = 7;
+
+
+      Database dat;
+      ui32 nbOne = 0;
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const bool isInside = std::sqrt( core::sqr( x - mean ) + core::sqr( y - mean ) ) < d;
+         dat.add( Database::Sample( core::make_vector<float>( x, y ), isInside ? 1 : 0, Database::Sample::LEARNING ) );
+         if ( isInside ) ++nbOne;
+      }
+
+      std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
+
+      Adaboost classifier; 
+      Factory factory( 1000 );
+      classifier.learn( dat, 100, factory );
+
+      core::Image<ui8> out;
+      for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
+      {
+         print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ n ].classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision-stum4-" + core::val2str( n ) + ".bmp" );
+      }
+
+      print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), classifier, dat, out );
+      core::writeBmp( out, "c:/tmp/decision-stum4-single-" + core::val2str( 0 ) + ".bmp" );
+      std::cout << "ErrorSingle="  << getTrainingError( dat, classifier ) << std::endl;
+
+      std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
+   }
+
+   void testPerceptron4()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::AdaboostBasic<Database>      Adaboost;
+      typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
+
+
+      const ui32 nbPoints = 200;
+      const double mean = 20;
+      const double var = 10;
+      const double d = 12;
+
+
+      Database dat;
+      ui32 nbOne = 0;
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const bool isInside = std::sqrt( core::sqr( x - mean ) + core::sqr( y - mean ) ) < d;
+         dat.add( Database::Sample( core::make_vector<float>( x, y ), isInside ? 1 : 0, Database::Sample::LEARNING ) );
+         if ( isInside ) ++nbOne;
+      }
+
+      std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
+
+      Adaboost classifier; 
+      Factory factory( 1000, 0.1, 0.0 );
+      classifier.learn( dat, 10, factory );
+
+      core::Image<ui8> out;
+      for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
+      {
+         print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ n ].classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision4-" + core::val2str( n ) + ".bmp" );
+      }
+
+      {
+         algorithm::MarginPerceptron classifier;
+         classifier.learn( dat, 100, 0.1, 0.01 );
+         print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision4-single-" + core::val2str( 0 ) + ".bmp" );
+         std::cout << "ErrorSingle="  << getTrainingError( dat, classifier ) << std::endl;
+      }
+
+      std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
    }
 
 private:
@@ -769,11 +902,13 @@ TESTER_TEST(testStumpSup1);
 TESTER_TEST(testBoosting1);
 TESTER_TEST(testBoosting2);
 TESTER_TEST(testBoostingMlp);
-*/
-//TESTER_TEST(testPerceptron3);
-//TESTER_TEST(testPerceptron);
-
+TESTER_TEST(testStumpInf4);
+TESTER_TEST(testPerceptron3);
+TESTER_TEST(testPerceptron);
 TESTER_TEST(testPerceptron2);
+*/
+//TESTER_TEST(testPerceptron4);
 //TESTER_TEST(testBoostingLinearSvm);
+TESTER_TEST(testBoostingLinearSvm2);
 TESTER_TEST_SUITE_END();
 #endif

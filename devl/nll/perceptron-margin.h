@@ -53,7 +53,7 @@ namespace algorithm
       /**
        @brief Train the classifier
        @param learningRate the speed of each update
-       @param margin the margin where a positive/negative sample will update the classification plane. If margin == 0, same output as the original perceptron
+       @param margin the margin where a positive/negative sample will update the classification plane. it must be in domain [0..1]. If margin == 0, same output as the original perceptron
        @param _sampleWeights the weight of each sample. Must be in [0..1]
        */
       template <class Database>
@@ -97,30 +97,38 @@ namespace algorithm
             datnorm[ n ] = 1.0 / getNorm( learning[ n ].input );
          }
 
+         ui32 bestNumberOfUpdates = std::numeric_limits<ui32>::max();
+         std::vector<value_type> bestW;
+         value_type bestBias;
+
+         const ui32 nbCyclesUpdate = nbCycles / 10;
+
          // now train the algo
          ui32 inputSize = static_cast<ui32>( learning[ 0 ].input.size() );
-         _w = std::vector<value_type>( inputSize + 1 ); // here we are simulating the threshold by adding extra unit x[inputSize] always set to 1
-         value_type wnorm = 1;  // wnorm is the norm of the current w
+         _w = std::vector<value_type>( inputSize );
+         _bias = 0; //core::generateUniformDistribution( -10, 10 );
+         value_type wnorm = 1;
          for ( ui32 n = 0; n < nbCycles; ++n )
          {
+            ui32 nbUpdates = 0;
+
             // test and update the separating plane
             for ( ui32 s = 0; s < nbSamples; ++s )
             {
-               // compute <xi, w> / || xi ||
+               // compute <xi, w> / (|| xi || * ||w||)   // we normalize w and x so that the margin is constant i.e. in domain [0..1]
                value_type dot = 0;
                for ( ui32 i = 0; i < inputSize; ++i )
                {
                   dot += _w[ i ] * learning[ s ].input[ i ];
                }
-               dot += 1 * _w[ inputSize ];   // extra unit
-               //dot /= wnorm;
-               dot *= datnorm[ s ];
+               dot *= datnorm[ s ] / wnorm;
+               dot -= _bias * datnorm[ s ]  / wnorm;
 
 
                // test if within the margin or wrong classification
                ui32 classId;
                const value_type marginVal = margin / 2;
-               if ( dot > marginVal )
+               if ( dot > + marginVal )
                {
                   classId = 1;   // positive
                } else if ( dot < - marginVal )
@@ -135,26 +143,53 @@ namespace algorithm
                if ( needToUpdate )
                {
                   const value_type signUpdate = ( learning[ s ].output == 1 ) ? 1 : -1;
-                  const value_type updateFactor = signUpdate * sampleWeights[ s ] * learningRate;
+                  const value_type updateFactor = signUpdate * sampleWeights[ s ] * learningRate * datnorm[ s  ];
+                  wnorm = 0;
                   for ( ui32 i = 0; i < inputSize; ++i )
                   {
-                     _w[ i ] += updateFactor * learning[ s ].input[ i ] * datnorm[ s ];
+                     _w[ i ] += updateFactor * learning[ s ].input[ i ];
                   }
-                  _w[ inputSize ] += updateFactor * 1;        // extra unit
-                  wnorm = getNorm( _w );
-                  if ( wnorm < 1e-5 )
-                     wnorm = 1;
+                  _bias -= updateFactor * 1;
+                  wnorm = getWeightNorm();
+                  ++nbUpdates;
                }
             }
+
+            if ( n % nbCyclesUpdate == 0 )
+            {
+               std::stringstream ss;
+               ss << " perceptron cycle=" << n << " nbUpdatesThisCycle=" << nbUpdates;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+
+            if ( nbUpdates < bestNumberOfUpdates )
+            {
+               bestNumberOfUpdates = nbUpdates;
+               bestW = _w;
+               bestBias = _bias;
+            }
          }
+
+         _w = bestW;
+         _bias = bestBias;
+
+         // renormalize decision plane
+         wnorm = getWeightNorm();
+         for ( ui32 i = 0; i < inputSize; ++i )
+         {
+            _w[ i ] /= wnorm;
+         }
+         _bias /= wnorm;
 
          {
             std::stringstream ss;
             ss << "perceptron learning result=" << std::endl;
-            for ( ui32 i = 0; i < inputSize + 1; ++i )
+            for ( ui32 i = 0; i < inputSize; ++i )
             {
                ss << _w[ i ] << " ";
             }
+
+            ss << std::endl << "bias=" << _bias;
 
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
@@ -164,21 +199,21 @@ namespace algorithm
       ui32 test( const Vector& v ) const
       {
          ui32 inputSize = static_cast<ui32>( v.size() );
-         ensure( inputSize + 1 == _w.size(), "wrong size!" );
+         ensure( inputSize == _w.size(), "wrong size!" );
 
          value_type dot = 0;
          for ( ui32 i = 0; i < inputSize; ++i )
          {
             dot += _w[ i ] * v[ i ];
          }
-         dot += 1 * _w[ inputSize ];
+         dot -= _bias;
 
          return dot > 0 ? 1 : 0;
       }
 
    private:
       template <class Vector>
-      value_type getNorm( const Vector& v )
+      static value_type getNorm( const Vector& v )
       {
          const ui32 size = static_cast<ui32>( v.size() );
          value_type norm = 0;
@@ -189,8 +224,21 @@ namespace algorithm
          return std::sqrt( norm );
       }
 
+      value_type getWeightNorm() const
+      {
+         value_type wnorm = 0;
+         for ( size_t i = 0; i < _w.size(); ++i )
+         {
+            wnorm += core::sqr( _w[ i ] );
+         }
+         wnorm += core::sqr( _bias );
+         wnorm = sqrt( wnorm );
+         return wnorm;
+      }
+
    private:
       std::vector<value_type> _w;
+      value_type              _bias;
    };
 }
 }
