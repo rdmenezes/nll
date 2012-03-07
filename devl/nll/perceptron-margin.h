@@ -94,7 +94,7 @@ namespace algorithm
          std::vector<value_type> datnorm( learning.size() );
          for ( ui32 n = 0; n < nbSamples; ++n )
          {
-            datnorm[ n ] = 1 / getNorm( learning[ n ].input );
+            datnorm[ n ] = 1.0 / getNorm( learning[ n ].input );
          }
 
          // now train the algo
@@ -113,8 +113,9 @@ namespace algorithm
                   dot += _w[ i ] * learning[ s ].input[ i ];
                }
                dot += 1 * _w[ inputSize ];   // extra unit
+               //dot /= wnorm;
                dot *= datnorm[ s ];
-             //  dot /= wnorm;
+
 
                // test if within the margin or wrong classification
                ui32 classId;
@@ -135,23 +136,14 @@ namespace algorithm
                {
                   const value_type signUpdate = ( learning[ s ].output == 1 ) ? 1 : -1;
                   const value_type updateFactor = signUpdate * sampleWeights[ s ] * learningRate;
-                  wnorm = 0;
                   for ( ui32 i = 0; i < inputSize; ++i )
                   {
                      _w[ i ] += updateFactor * learning[ s ].input[ i ] * datnorm[ s ];
-                     wnorm += _w[ i ];
                   }
                   _w[ inputSize ] += updateFactor * 1;        // extra unit
-                  wnorm += core::sqr( _w[ inputSize ] );    // precompute wnorm as it is less likely we need a class update...
-                  wnorm = std::sqrt( wnorm );
+                  wnorm = getNorm( _w );
                   if ( wnorm < 1e-5 )
                      wnorm = 1;
-                  /*
-                  // renormalize w
-                  for ( ui32 i = 0; i < inputSize + 1; ++i )
-                  {
-                     _w[ i ] /= wnorm;
-                  }*/
                }
             }
          }

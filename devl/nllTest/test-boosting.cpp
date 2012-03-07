@@ -585,12 +585,15 @@ public:
       std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
 
       Adaboost classifier; 
-      Factory factory( 1000, 1, 100 );
+      Factory factory( 1000, 0.5, 0.1 );
       classifier.learn( dat, 10, factory );
 
       core::Image<ui8> out;
-      print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ 3 ].classifier, dat, out );
-      core::writeBmp( out, "c:/tmp/decision.bmp" );
+      for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
+      {
+         print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ n ].classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision2-" + core::val2str( n ) + ".bmp" );
+      }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
       TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
@@ -766,9 +769,10 @@ TESTER_TEST(testStumpSup1);
 TESTER_TEST(testBoosting1);
 TESTER_TEST(testBoosting2);
 TESTER_TEST(testBoostingMlp);
-TESTER_TEST(testPerceptron3);
-TESTER_TEST(testPerceptron);
 */
+//TESTER_TEST(testPerceptron3);
+//TESTER_TEST(testPerceptron);
+
 TESTER_TEST(testPerceptron2);
 //TESTER_TEST(testBoostingLinearSvm);
 TESTER_TEST_SUITE_END();
