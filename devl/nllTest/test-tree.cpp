@@ -62,7 +62,7 @@ namespace algorithm
 
       /**
        @brief Computes the conditional entropy H(y|x)
-       @note values contained by x and y must be as close to zero as possible!
+       @note values contained by x and y must be as close to zero as possible! (else arrays with extra padding are created)
 
        H(Y|X) = sum_i p(X=vi) H(Y|X=vi)
        */
@@ -76,43 +76,37 @@ namespace algorithm
          STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
          ensure( x.size() == y.size(), "must be the same size" );
 
-         value_type1 min = std::numeric_limits<value_type1>::max();
          value_type1 max = std::numeric_limits<value_type1>::min();
-         value_type2 maxy = std::numeric_limits<value_type2>::min();
          for ( ui32 n = 0; n < x.size(); ++n )
          {
-            min = std::min( min, x[ n ] );
             max = std::max( max, x[ n ] );
-            maxy = std::max( maxy, y[ n ] );
          }
 
-         const ui32 range = static_cast<ui32>( max - min ) + 1;
-         std::vector<ui32> counts( range );
+         std::vector<ui32> counts( max + 1 );
          ui32 yes = 0;
          ui32 no = 0;
          for ( ui32 n = 0; n < x.size(); ++n )
          {
-            ui32 i = static_cast<ui32>( x[ n ] - min );
+            ui32 i = static_cast<ui32>( x[ n ] );
             ++counts[ i ];
          }
 
          std::vector< std::vector< value_type2 > > cond( max + 1 );
-         /*
          for ( size_t n = 0; n < cond.size(); ++n )
          {
-            cond.reserve( counts[ n ] );
-         }*/
+            cond[ n ].reserve( counts[ n ] );
+         }
 
          for ( ui32 n = 0; n < x.size(); ++n )
          {
-            ui32 i = static_cast<ui32>( x[ n ] - min );
+            ui32 i = static_cast<ui32>( x[ n ] );
             cond[ i ].push_back( y[ n ] );
          }
 
          double entropy = 0;
          for ( size_t n = 0; n < cond.size(); ++n )
          {
-            if ( cond[ n ].size() && counts[ n ] )
+            if ( counts[ n ] )
             {
                const double e = compute( cond[ n ] );
                entropy += static_cast<double>( counts[ n ] ) / x.size() * e;
