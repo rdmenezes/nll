@@ -85,7 +85,7 @@ namespace algorithm
 
          _classifier.createNetwork( _layerDescriptor );
          Classifier::Result result = _classifier.learn( datLearn, *_stopCondition, _learningRate, _momentum, _weightDecayRate, _reportTimeIntervalInSec, reweighted );
-         return result.testerror;
+         return (value_type)result.testerror;
       }
 
       virtual ui32 test( const Point& input ) const

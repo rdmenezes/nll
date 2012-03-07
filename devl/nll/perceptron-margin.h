@@ -94,12 +94,12 @@ namespace algorithm
          std::vector<value_type> datnorm( learning.size() );
          for ( ui32 n = 0; n < nbSamples; ++n )
          {
-            datnorm[ n ] = 1.0 / getNorm( learning[ n ].input );
+            datnorm[ n ] = (value_type)1.0 / getNorm( learning[ n ].input );
          }
 
          ui32 bestNumberOfUpdates = std::numeric_limits<ui32>::max();
          std::vector<value_type> bestW;
-         value_type bestBias;
+         value_type bestBias = 0;
 
          const ui32 nbCyclesUpdate = nbCycles / 10;
 
@@ -142,7 +142,7 @@ namespace algorithm
                const bool needToUpdate = classId != learning[ s ].output;
                if ( needToUpdate )
                {
-                  const value_type signUpdate = ( learning[ s ].output == 1 ) ? 1 : -1;
+                  const value_type signUpdate = ( learning[ s ].output == 1 ) ? (value_type)1 : (value_type)-1;
                   const value_type updateFactor = signUpdate * sampleWeights[ s ] * learningRate * datnorm[ s  ];
                   wnorm = 0;
                   for ( ui32 i = 0; i < inputSize; ++i )
