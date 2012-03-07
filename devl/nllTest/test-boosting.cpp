@@ -721,7 +721,7 @@ public:
       }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.17 );
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.17 ); // perceptron implementation works well, but it seems not combined with adaboost as it is not increasing the accuracy...
    }
 
 private:
@@ -833,7 +833,7 @@ private:
 #ifndef DONT_RUN_TEST
 
 TESTER_TEST_SUITE(TestBoosting);
-/*TESTER_TEST(testStumpInf1);
+TESTER_TEST(testStumpInf1);
 TESTER_TEST(testStumpInf2);
 TESTER_TEST(testStumpInf3);
 TESTER_TEST(testStumpSup1);
@@ -844,8 +844,9 @@ TESTER_TEST(testStumpInf4);
 TESTER_TEST(testPerceptron3);
 TESTER_TEST(testPerceptron);
 TESTER_TEST(testPerceptron2);
-*/
 TESTER_TEST(testPerceptron4);
+
+// not working.. samples need to be in range [0..1], but still...
 //TESTER_TEST(testBoostingLinearSvm);
 //TESTER_TEST(testBoostingLinearSvm2);
 TESTER_TEST_SUITE_END();
