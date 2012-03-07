@@ -394,6 +394,7 @@
 # include "boosting-weak-classifier.h"
 # include "boosting-weak-classifier-stump.h"
 # include "boosting-weak-classifier-mlp.h"
+# include "boosting-weak-classifier-perceptron.h"
 # include "boosting-adaboost-basic.h"
 
 /// @defgroup utility

@@ -8,68 +8,6 @@ namespace nll
 {
 namespace algorithm
 {
-   template <class DatabaseT>
-   class WeakClassifierMarginPerceptron : public WeakClassifier<DatabaseT>
-   {
-
-   public:
-      typedef DatabaseT    Database;
-      typedef float        value_type;
-      typedef typename Database::Sample::Input  Point;
-
-      WeakClassifierMarginPerceptron( ui32 nbCycles, value_type learningRate, value_type margin ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
-      {
-      }
-
-      /**
-       @brief Learn the weighted database.
-       @param database it is assumed all data in <code>database</code> are training data.
-       @param weights the weights associated to each data sample. It is assumed sum(weights) = 1
-       */
-      virtual value_type learn( const Database& dat, const core::Buffer1D<value_type> weights )
-      {
-         _classifier.learn( dat, _nbCycles, _learningRate, _margin, weights );
-         return -1;  // not handled
-      }
-
-      virtual ui32 test( const Point& input ) const
-      {
-         return _classifier.test( input );
-      }
-
-   private:
-      ui32                          _nbCycles;
-      value_type                    _learningRate;
-      value_type                    _margin;
-      algorithm::MarginPerceptron   _classifier;
-   };
-
-   /**
-    @ingroup algorithm
-    @brief Perceptron factory
-    */
-   template <class DatabaseT>
-   class WeakClassifierMarginPerceptronFactory
-   {
-   public:
-      typedef WeakClassifierMarginPerceptron<DatabaseT>  Classifier;
-      typedef typename Classifier::value_type            value_type;
-
-      WeakClassifierMarginPerceptronFactory( ui32 nbCycles, value_type learningRate, value_type margin ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
-      {
-      }
-
-      std::shared_ptr<Classifier> create() const
-      {
-         return std::shared_ptr<Classifier>( new Classifier( _nbCycles, _learningRate, _margin ) );
-      }
-
-   private:
-      ui32                          _nbCycles;
-      value_type                    _learningRate;
-      value_type                    _margin;
-   };
-
    /**
     @brief Doesn't to be working well...
     */
@@ -747,7 +685,7 @@ public:
       const ui32 nbPoints = 200;
       const double mean = 20;
       const double var = 10;
-      const double d = 12;
+      const double d = 18;
 
 
       Database dat;
@@ -764,7 +702,7 @@ public:
       std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
 
       Adaboost classifier; 
-      Factory factory( 1000, 0.1, 0.0 );
+      Factory factory( 1000, 0.1, 0 );
       classifier.learn( dat, 10, factory );
 
       core::Image<ui8> out;
@@ -783,7 +721,7 @@ public:
       }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0 );
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.17 );
    }
 
 private:
@@ -893,9 +831,9 @@ private:
 };
 
 #ifndef DONT_RUN_TEST
+
 TESTER_TEST_SUITE(TestBoosting);
-/*
-TESTER_TEST(testStumpInf1);
+/*TESTER_TEST(testStumpInf1);
 TESTER_TEST(testStumpInf2);
 TESTER_TEST(testStumpInf3);
 TESTER_TEST(testStumpSup1);
@@ -907,8 +845,8 @@ TESTER_TEST(testPerceptron3);
 TESTER_TEST(testPerceptron);
 TESTER_TEST(testPerceptron2);
 */
-//TESTER_TEST(testPerceptron4);
+TESTER_TEST(testPerceptron4);
 //TESTER_TEST(testBoostingLinearSvm);
-TESTER_TEST(testBoostingLinearSvm2);
+//TESTER_TEST(testBoostingLinearSvm2);
 TESTER_TEST_SUITE_END();
 #endif

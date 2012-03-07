@@ -677,6 +677,9 @@
     <ClInclude Include="perceptron-margin.h">
       <Filter>algorithm-impl</Filter>
     </ClInclude>
+    <ClInclude Include="boosting-weak-classifier-perceptron.h">
+      <Filter>algorithm-boosting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">
