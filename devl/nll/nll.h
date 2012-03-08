@@ -397,6 +397,9 @@
 # include "boosting-weak-classifier-perceptron.h"
 # include "boosting-adaboost-basic.h"
 
+// Trees
+# include "tree-continuous-splitting-criteria.h"
+
 /// @defgroup utility
 # include "mask-exporter.h"
 # include "statistics.h"

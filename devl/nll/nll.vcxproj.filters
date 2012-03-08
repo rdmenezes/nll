@@ -39,6 +39,9 @@
     <Filter Include="algorithm-boosting">
       <UniqueIdentifier>{357bbe78-6dfa-4a79-9449-962cf240f2be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="algorithm-tree">
+      <UniqueIdentifier>{c4bdd27f-e747-47e0-81ab-d6b52f319a05}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nll.cpp">
@@ -679,6 +682,9 @@
     </ClInclude>
     <ClInclude Include="boosting-weak-classifier-perceptron.h">
       <Filter>algorithm-boosting</Filter>
+    </ClInclude>
+    <ClInclude Include="tree-continuous-splitting-criteria.h">
+      <Filter>algorithm-tree</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

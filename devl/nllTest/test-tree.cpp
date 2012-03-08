@@ -136,147 +136,272 @@ namespace algorithm
       }
    };
 
-   template <class DatabaseInput, class SplittingCriteria>
-   class NodeContinuousSingleSplit
+   /**
+    @brief Generic factory with no parameters
+    */
+   template <class Metric>
+   class FactoryGeneric
    {
    public:
-      typedef typename DatabaseInput::Sample::Input::value_type value_type;
+      typedef Metric value_type;
 
-      NodeContinuousSingleSplit() : _direction( 1 ), _thresold( std::numeric_limits<value_type>::min() )
+      static Metric create()
+      {
+         return Metric;
+      }
+   };
+
+
+   /**
+    @brief Defines how a node should be splitted
+    */
+   template <class Database>
+   class TreeNodeSplit
+   {
+   public:
+      typedef typename Database::Sample::Input::value_type  value_type;
+      typedef typename Database::Sample::Input              Point;
+
+   public:
+      virtual void compute( const Database& dat, std::vector<Database>& split_out ) = 0;
+      virtual ui32 test( const Point& p ) const = 0;
+
+      virtual ~TreeNodeSplit()
+      {}
+   };
+
+   /**
+    @brief Create discrete node decision split
+    */
+   template <class Database, class Metric>
+   class TreeNodeSplitDiscrete : public TreeNodeSplit<Database>
+   {
+      typedef std::map<ui32, ui32>  AttributMapper;
+
+   public:
+      virtual void compute( const Database& dat, std::vector<Database>& split_out )
+      {
+         if ( dat.size() == 0 )
+            return;
+         const ui32 nbFeatures = dat[ 0 ].input.size();
+
+         std::vector<ui32> y( dat.size() );
+         std::vector<ui32> x( dat.size() );
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            y[ n ] = dat[ n ].output;
+         }
+
+         // find the best feature
+         double bestSplitMetric = std::numeric_limits<double>::min();
+         for ( ui32 feature = 0; feature < nbFeatures; ++feature )
+         {
+            Metric metric;
+
+            for ( ui32 n = 0; n < dat.size(); ++n )
+            {
+               x[ n ] = static_cast<ui32>( dat[ n ].input[ feature ] );
+            }
+
+            const double splitMetric = metric.compute( x, y );
+            if ( splitMetric > bestSplitMetric )
+            {
+               bestSplitMetric = splitMetric;
+               _featureId = feature;
+            }
+         }
+
+         // here we are generating a mapper feature value -> bin id
+         ui32 id = 0;
+         AttributMapper attributMapper;
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            const ui32 featureValue = static_cast<ui32>( dat[ n ].input[ _featureId ] );
+            AttributMapper::const_iterator it = attributMapper.find( dat[ n ].input[ featureValue ] );
+            if ( it == attributMapper.end() )
+            {
+               attributMapper[ featureValue ] = id++;
+            }
+         }
+
+         _attributMapper = attributMapper;
+
+         // finally route the samples according to the split rule
+         split_out = std::vector<Database>( _attributMapper.size() );
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            const ui32 branch = test( dat[ n ].input );
+            split_out[ branch ].add( dat[ n ] );
+         }
+      }
+
+      virtual ui32 test( const Point& p ) const
+      {
+         const ui32 featureValue = static_cast<ui32>( dat[ n ].input[ _featureId ] );
+         AttributMapper::const_iterator it = _attributMapper.find( dat[ n ].input[ featureValue ] );
+         ensure( it != _attributMapper.end(), "this feature value was never encountered during training! Can't classify" );
+         return it->second;
+      }
+
+   private:
+      ui32                 _featureId;          // the feature we are splitting
+      AttributMapper       _attributMapper;     // map a feature ID to a bin
+   };
+
+   /**
+    @brief Decision node for continuous attributs. A single split will be produced
+
+    @param ContinuousSplittingCriteria the splitting criteria to be used for the continuous attributs
+    @param Metric the metric to be used to select the best split, the higher, the better
+    */
+   template <class Database, class Metric, class SplittingCriteria>
+   class TreeNodeSplitContinuousSingle : public TreeNodeSplit<Database>
+   {
+   public:
+      typedef TreeNodeSplit<Database>                       Base;
+
+      TreeNodeSplitContinuousSingle() : _thresold( std::numeric_limits<value_type>::min() ), _featureId( (ui32)-1 )
       {}
 
-   private:
-      ui32        _featureId;    // the feature we are splitting
-      value_type  _thresold;     // the threshold used
-      int         _direction;    // the direction pointed 1: value > _thresold ? class = 1 : class = 0
-                                 //                       0: value > _thresold ? class = 0 : class = 1
-   };
-
-   /**
-    @brief Implementation of split points in decision tree
-    */
-   template <class DatabaseT>
-   class SplittingCriteria
-   {
-   public:
-      typedef DatabaseT Database;
-      typedef typename Database::Sample::Input::value_type     value_type;
-
-   public:
-      virtual ~SplittingCriteria()
-      {}
-
       /**
-       @brief Compute the splitting points for the considered feature
-       @param dat the database to operate on
-       @param featureId the feature considered
-       @param outSplits the computed splits
+       @brief Compute the best split
+       @param dat the database to use
+       @param 
        */
-      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits ) = 0;
-   };
-
-   /**
-    @brief Implementation of split points in decision tree
-    @see http://research.microsoft.com/pubs/65569/splits.pdf
-          "Efficient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
-    */
-   template <class DatabaseT>
-   class SplittingCriteriaGaussianApproximation : SplittingCriteria<DatabaseT>
-   {
-   public:
-      SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits
+      void compute( const Database& dat, std::vector<Database>& split_out )
       {
-      }
+         if ( dat.size() == 0 )
+            return;
+         const ui32 nbFeatures = dat[ 0 ].input.size();
 
-      /**
-       @brief Compute the splitting points for the considered feature
-       @param dat the database to operate on
-       @param featureId the feature considered
-       @param outSplits the computed splits
-       */
-      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits )
-      {
-         outSplits.clear();
-
-         // here we fit a gaussian on the considered data
-         value_type accumMean = 0;
+         std::vector<ui32> y( dat.size() );
+         std::vector<ui32> x( dat.size() );
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
-            accumMean += dat[ n ].input[ featureId ];
+            y[ n ] = dat[ n ].output;
          }
-         accumMean /= dat.size();
 
-         value_type accumStddev = 0;
+         // select the best feature
+         double bestSplitMetric = std::numeric_limits<double>::min();
+         for ( ui32 feature = 0; feature < nbFeatures; ++feature )
+         {
+            Metric metric;
+            SplittingCriteria splitter;
+
+            std::vector<value_type> splits;
+            splitter.computeSplits( dat, feature, splits );
+
+            // then select the best split
+            for ( size_t split = 0; split < splits.size(); ++split )
+            {
+               for ( ui32 n = 0; n < dat.size(); ++n )
+               {
+                  x[ n ] = dat[ n ].input[ feature ] >= splits[ split ];
+               }
+
+               // check the split quality
+               const double splitMetric = metric.compute( x, y );
+               if ( splitMetric > bestSplitMetric )
+               {
+                  bestSplitMetric = splitMetric;
+                  _featureId = feature;
+                  _thresold = splits[ split ];
+               }
+            }
+         }
+
+         // finally route the samples according to the split
+         split_out = std::vector<Database>( 2 );
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
-            accumStddev += core::sqr( dat[ n ].input[ featureId ] - accumMean );
+            const ui32 branch = test( dat[ n ].input );
+            split_out[ branch ].add( dat[ n ] );
          }
-         accumStddev = sqrt( accumStddev / dat.size() );
-
-         // now get all the splits
-         outSplits.reserve( _nbSplits );
-         for ( ui32 n = 0; n < _nbSplits; ++n )
-         {
-            const value_type split = accumMean + accumStddev *
-               static_cast<value_type>( core::CumulativeGaussianFunction::erfinv_lut( n / ( _nbSplits + 1 ) ) );
-            outSplits.push_back( split );
-         }
-      }
-
-   private:
-      ui32  _nbSplits;
-   };
-
-   /**
-    @brief Implementation of split points in decision tree
-    @see http://research.microsoft.com/pubs/65569/splits.pdf
-          "Effcient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
-    */
-   template <class DatabaseT>
-   class SplittingCriteriaUniformApproximation : SplittingCriteria<DatabaseT>
-   {
-   public:
-      SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits
-      {
       }
 
       /**
-       @brief Compute the splitting points for the considered feature
-       @param dat the database to operate on
-       @param featureId the feature considered
-       @param outSplits the computed splits
+       @brief return the branch to be taken
        */
-      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits )
+      ui32 test( const Point& p ) const
       {
-         outSplits.clear();
-
-         // here we fit a gaussian on the considered data
-         value_type max = std::numeric_limits<value_type>::min();
-         value_type min = std::numeric_limits<value_type>::max();
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            min = std::min( min, dat[ n ].input[ featureId ] );
-            max = std::max( max, dat[ n ].input[ featureId ] );
-         }
-
-         // now get all the splits
-         outSplits.reserve( _nbSplits );
-         for ( ui32 n = 0; n < _nbSplits; ++n )
-         {
-            const value_type split = min + n * ( max - min ) / ( _nbSplits + 1 );
-            outSplits.push_back( split );
-         }
+         return dat[ n ].input[ _featureId ] >= _thresold;
       }
 
    private:
-      ui32  _nbSplits;
+      ui32                 _featureId;    // the feature we are splitting
+      value_type           _thresold;     // the threshold used
    };
+
+   
 }
 }
 
 class TestTree
 {
 public:
+   class Problem1
+   {
+   public:
+      enum Outlook
+      {
+         SUNNY,
+         OVERCAST,
+         RAIN
+      };
+
+      enum Temperature
+      {
+         HOT,
+         MILD,
+         COOL
+      };
+
+      enum Humidity
+      {
+         HIGH,
+         NORMAL
+      };
+
+      enum WIND
+      {
+         WEAK,
+         STRONG
+      };
+
+      std::vector< std::vector<ui32> > create1() const
+      {
+         std::vector< std::vector<ui32> > days;
+         days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    WEAK ) );      // 1
+         days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    STRONG ) );    // 2
+         days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  HIGH,    WEAK ) );      // 3
+         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
+         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
+         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
+         days.push_back( core::make_vector<ui32>( OVERCAST, COOL, NORMAL,  STRONG ) );    // 7
+         days.push_back( core::make_vector<ui32>( SUNNY,    MILD, HIGH,    WEAK) );       // 8
+         days.push_back( core::make_vector<ui32>( SUNNY,    COOL, NORMAL,  WEAK) );       // 9
+         days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
+         days.push_back( core::make_vector<ui32>( SUNNY,    MILD, NORMAL,  STRONG) );     // 11
+         days.push_back( core::make_vector<ui32>( OVERCAST, MILD, HIGH,    STRONG) );     // 12
+         days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  NORMAL,  WEAK) );       // 13
+         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
+
+         return days;
+      }
+
+      std::vector< std::vector<ui32> > create2() const
+      {
+         std::vector< std::vector<ui32> > days;
+         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
+         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
+         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
+         days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
+         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
+
+         return days;
+      }
+   };
+
    void testErf()
    {
       TESTER_ASSERT( core::equal<double>( core::CumulativeGaussianFunction::erf_lut( 0 ), 0, 1e-4 ) );
@@ -325,98 +450,65 @@ public:
 
    void testTree()
    {
-      enum Outlook
+      Problem1 pb1;
+
       {
-         SUNNY,
-         OVERCAST,
-         RAIN
-      };
+         std::vector< std::vector<ui32> > days = pb1.create1();
 
-      enum Temperature
-      {
-         HOT,
-         MILD,
-         COOL
-      };
+         std::vector< ui32 > y( 14 );
+         y[ 0 ] = 0;
+         y[ 1 ] = 0;
+         y[ 2 ] = 1;
+         y[ 3 ] = 1;
+         y[ 4 ] = 1;
+         y[ 5 ] = 0;
+         y[ 6 ] = 1;
+         y[ 7 ] = 0;
+         y[ 8 ] = 1;
+         y[ 9 ] = 1;
+         y[ 10 ] = 1;
+         y[ 11 ] = 1;
+         y[ 12 ] = 1;
+         y[ 13 ] = 0;
 
-      enum Humidity
-      {
-         HIGH,
-         NORMAL
-      };
-
-      enum WIND
-      {
-         WEAK,
-         STRONG
-      };
-
-      enum PLAY
-      {
-         NO,
-         YES
-      };
-
-      std::vector< std::vector<ui32> > days;
-      /*
-      days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    WEAK ) );      // 1
-      days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    STRONG ) );    // 2
-      days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  HIGH,    WEAK ) );      // 3
-      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
-      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
-      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
-      days.push_back( core::make_vector<ui32>( OVERCAST, COOL, NORMAL,  STRONG ) );    // 7
-      days.push_back( core::make_vector<ui32>( SUNNY,    MILD, HIGH,    WEAK) );       // 8
-      days.push_back( core::make_vector<ui32>( SUNNY,    COOL, NORMAL,  WEAK) );       // 9
-      days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
-      days.push_back( core::make_vector<ui32>( SUNNY,    MILD, NORMAL,  STRONG) );     // 11
-      days.push_back( core::make_vector<ui32>( OVERCAST, MILD, HIGH,    STRONG) );     // 12
-      days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  NORMAL,  WEAK) );       // 13
-      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
-      */
-
-      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
-      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
-      days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
-      days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
-      days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
-
-      std::vector< ui32 > y( 5 );
-      y[ 0 ] = 1;
-      y[ 1 ] = 1;
-      y[ 2 ] = 0;
-      y[ 3 ] = 1;
-      y[ 4 ] = 0;
-      
-      /*
-      std::vector< ui32 > y( 14 );
-      y[ 0 ] = 0;
-      y[ 1 ] = 0;
-      y[ 2 ] = 1;
-      y[ 3 ] = 1;
-      y[ 4 ] = 1;
-      y[ 5 ] = 0;
-      y[ 6 ] = 1;
-      y[ 7 ] = 0;
-      y[ 8 ] = 1;
-      y[ 9 ] = 1;
-      y[ 10 ] = 1;
-      y[ 11 ] = 1;
-      y[ 12 ] = 1;
-      y[ 13 ] = 0;
-      */
-
-
-      for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
-      {
-         std::vector<ui32> x;
-         for ( ui32 d = 0; d < days.size(); ++d )
+         std::vector<double> ref = core::make_vector<double>( 0.24675, 0.0292226, 0.151836, 0.048127 );
+         for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
          {
-            x.push_back( days[ d ][ n ] );
+            std::vector<ui32> x;
+            for ( ui32 d = 0; d < days.size(); ++d )
+            {
+               x.push_back( days[ d ][ n ] );
+            }
+            algorithm::InformationGain gain;
+            const double g = gain.compute( x, y );
+            std::cout << "gain[" << n << "]=" << g << std::endl;
+            TESTER_ASSERT( core::equal( g, ref[ n ], 1e-4 ) );
          }
-         algorithm::InformationGain gain;
-         const double g = gain.compute( x, y );
-         std::cout << "gain[" << n << "]=" << g << std::endl;
+      }
+
+      {
+         std::vector< std::vector<ui32> > days = pb1.create2();
+
+         std::vector< ui32 > y( 5 );
+         y[ 0 ] = 1;
+         y[ 1 ] = 1;
+         y[ 2 ] = 0;
+         y[ 3 ] = 1;
+         y[ 4 ] = 0;
+
+         std::vector<double> ref = core::make_vector<double>( 0, 0.0199731, 0.0199731, 0.970951 );
+         for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
+         {
+            std::vector<ui32> x;
+            for ( ui32 d = 0; d < days.size(); ++d )
+            {
+               x.push_back( days[ d ][ n ] );
+            }
+            algorithm::InformationGain gain;
+            const double g = gain.compute( x, y );
+            std::cout << "gain[" << n << "]=" << g << std::endl;
+            TESTER_ASSERT( core::equal( g, ref[ n ], 1e-4 ) );
+         }
       }
    }
 };
@@ -424,7 +516,7 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTree);
 TESTER_TEST(testEntropy);
-/*TESTER_TEST(testErf);*/
+TESTER_TEST(testErf);
 TESTER_TEST(testTree)
 TESTER_TEST_SUITE_END();
 #endif

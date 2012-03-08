@@ -445,6 +445,7 @@
     <ClInclude Include="timer.h" />
     <ClInclude Include="transformation-ddf-2d.h" />
     <ClInclude Include="transformation-rbf.h" />
+    <ClInclude Include="tree-continuous-splitting-criteria.h" />
     <ClInclude Include="type-traits-inherited.h" />
     <ClInclude Include="type-traits-memory.h" />
     <ClInclude Include="type-traits.h" />
