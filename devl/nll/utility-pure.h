@@ -55,6 +55,22 @@ namespace core
 {
    /**
     @ingroup core
+    @brief Generic factory generator with no parameters
+    */
+   template <class Metric>
+   class FactoryGeneric
+   {
+   public:
+      typedef Metric value_type;
+
+      static Metric create()
+      {
+         return Metric;
+      }
+   };
+
+   /**
+    @ingroup core
     @brief calculate an absolute value. Work around for Visual and ambiguous case...
     */
    inline double absolute( double val )

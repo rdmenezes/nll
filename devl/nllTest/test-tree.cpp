@@ -8,329 +8,10 @@ namespace nll
 {
 namespace algorithm
 {
-   class AttributSplitter
-   {
-   };
-
-   /**
-    @brief Computes entropy for building trees
-    @see www.cs.cmu.edu/~guestrin/Class/10701-S06/Handouts/recitations/recitation-decision_trees-adaboost-02-09-2006.ppt
-         Information Gain,Decision Trees and Boosting, 10-701 ML recitation 9 Feb 2006
-    */
-   class Entropy
-   {
-   public:
-      /**
-       @brief computes the entropy of a vector of integrals
-       @param v a set of integers
-       */
-      template <class Vector>
-      double compute( const Vector& v ) const
-      {
-         typedef typename Vector::value_type value_type;
-
-         STATIC_ASSERT( core::IsIntegral<value_type>::value ); // this implementation only works for integral type
-
-         value_type min = std::numeric_limits<value_type>::max();
-         value_type max = std::numeric_limits<value_type>::min();
-         for ( ui32 n = 0; n < v.size(); ++n )
-         {
-            min = std::min( min, v[ n ] );
-            max = std::max( max, v[ n ] );
-         }
-
-         const ui32 range = static_cast<ui32>( max - min ) + 1;
-         std::vector<ui32> counts( range );
-         for ( ui32 n = 0; n < v.size(); ++n )
-         {
-            ui32 c = static_cast<ui32>( v[ n ] - min );
-            ++counts[ c ];
-         }
-
-         double entropy = 0;
-         for ( size_t n = 0; n < counts.size(); ++n )
-         {
-            if ( counts[ n ] )
-            {
-               const double p = static_cast<double>( counts[ n ] ) / v.size();
-               entropy -= p * core::log2( p );
-            }
-         }
-
-         return entropy;
-      }
-
-      /**
-       @brief Computes the conditional entropy H(y|x)
-       @note values contained by x and y must be as close to zero as possible! (else arrays with extra padding are created)
-
-       H(Y|X) = sum_i p(X=vi) H(Y|X=vi)
-       */
-      template <class Vector1, class Vector2>
-      double compute( const Vector1& x, const Vector2& y ) const
-      {
-         typedef typename Vector1::value_type value_type1;
-         typedef typename Vector2::value_type value_type2;
-
-         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
-         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
-         ensure( x.size() == y.size(), "must be the same size" );
-
-         value_type1 max = std::numeric_limits<value_type1>::min();
-         for ( ui32 n = 0; n < x.size(); ++n )
-         {
-            max = std::max( max, x[ n ] );
-         }
-
-         std::vector<ui32> counts( max + 1 );
-         ui32 yes = 0;
-         ui32 no = 0;
-         for ( ui32 n = 0; n < x.size(); ++n )
-         {
-            ui32 i = static_cast<ui32>( x[ n ] );
-            ++counts[ i ];
-         }
-
-         std::vector< std::vector< value_type2 > > cond( max + 1 );
-         for ( size_t n = 0; n < cond.size(); ++n )
-         {
-            cond[ n ].reserve( counts[ n ] );
-         }
-
-         for ( ui32 n = 0; n < x.size(); ++n )
-         {
-            ui32 i = static_cast<ui32>( x[ n ] );
-            cond[ i ].push_back( y[ n ] );
-         }
-
-         double entropy = 0;
-         for ( size_t n = 0; n < cond.size(); ++n )
-         {
-            if ( counts[ n ] )
-            {
-               const double e = compute( cond[ n ] );
-               entropy += static_cast<double>( counts[ n ] ) / x.size() * e;
-            }
-         }
-
-         return entropy;
-      }
-   };
-
-   /**
-    @brief Computes information gain on an integral input/output
-    */
-   class InformationGain
-   {
-   public:
-      /**
-       @brief Compute the information gain IG(y|x) = E(y) - E(y|x)
-
-       It can be seen as the amount of information saved by knowing x when transmiting y
-       */
-      template <class Vector1, class Vector2>
-      double compute( const Vector1& x, const Vector2& y ) const
-      {
-         Entropy entropy;
-         return entropy.compute( y ) - entropy.compute( x, y );
-      }
-   };
-
-   /**
-    @brief Generic factory with no parameters
-    */
-   template <class Metric>
-   class FactoryGeneric
-   {
-   public:
-      typedef Metric value_type;
-
-      static Metric create()
-      {
-         return Metric;
-      }
-   };
+   
 
 
-   /**
-    @brief Defines how a node should be splitted
-    */
-   template <class Database>
-   class TreeNodeSplit
-   {
-   public:
-      typedef typename Database::Sample::Input::value_type  value_type;
-      typedef typename Database::Sample::Input              Point;
-
-   public:
-      virtual void compute( const Database& dat, std::vector<Database>& split_out ) = 0;
-      virtual ui32 test( const Point& p ) const = 0;
-
-      virtual ~TreeNodeSplit()
-      {}
-   };
-
-   /**
-    @brief Create discrete node decision split
-    */
-   template <class Database, class Metric>
-   class TreeNodeSplitDiscrete : public TreeNodeSplit<Database>
-   {
-      typedef std::map<ui32, ui32>  AttributMapper;
-
-   public:
-      virtual void compute( const Database& dat, std::vector<Database>& split_out )
-      {
-         if ( dat.size() == 0 )
-            return;
-         const ui32 nbFeatures = dat[ 0 ].input.size();
-
-         std::vector<ui32> y( dat.size() );
-         std::vector<ui32> x( dat.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            y[ n ] = dat[ n ].output;
-         }
-
-         // find the best feature
-         double bestSplitMetric = std::numeric_limits<double>::min();
-         for ( ui32 feature = 0; feature < nbFeatures; ++feature )
-         {
-            Metric metric;
-
-            for ( ui32 n = 0; n < dat.size(); ++n )
-            {
-               x[ n ] = static_cast<ui32>( dat[ n ].input[ feature ] );
-            }
-
-            const double splitMetric = metric.compute( x, y );
-            if ( splitMetric > bestSplitMetric )
-            {
-               bestSplitMetric = splitMetric;
-               _featureId = feature;
-            }
-         }
-
-         // here we are generating a mapper feature value -> bin id
-         ui32 id = 0;
-         AttributMapper attributMapper;
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            const ui32 featureValue = static_cast<ui32>( dat[ n ].input[ _featureId ] );
-            AttributMapper::const_iterator it = attributMapper.find( dat[ n ].input[ featureValue ] );
-            if ( it == attributMapper.end() )
-            {
-               attributMapper[ featureValue ] = id++;
-            }
-         }
-
-         _attributMapper = attributMapper;
-
-         // finally route the samples according to the split rule
-         split_out = std::vector<Database>( _attributMapper.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            const ui32 branch = test( dat[ n ].input );
-            split_out[ branch ].add( dat[ n ] );
-         }
-      }
-
-      virtual ui32 test( const Point& p ) const
-      {
-         const ui32 featureValue = static_cast<ui32>( dat[ n ].input[ _featureId ] );
-         AttributMapper::const_iterator it = _attributMapper.find( dat[ n ].input[ featureValue ] );
-         ensure( it != _attributMapper.end(), "this feature value was never encountered during training! Can't classify" );
-         return it->second;
-      }
-
-   private:
-      ui32                 _featureId;          // the feature we are splitting
-      AttributMapper       _attributMapper;     // map a feature ID to a bin
-   };
-
-   /**
-    @brief Decision node for continuous attributs. A single split will be produced
-
-    @param ContinuousSplittingCriteria the splitting criteria to be used for the continuous attributs
-    @param Metric the metric to be used to select the best split, the higher, the better
-    */
-   template <class Database, class Metric, class SplittingCriteria>
-   class TreeNodeSplitContinuousSingle : public TreeNodeSplit<Database>
-   {
-   public:
-      typedef TreeNodeSplit<Database>                       Base;
-
-      TreeNodeSplitContinuousSingle() : _thresold( std::numeric_limits<value_type>::min() ), _featureId( (ui32)-1 )
-      {}
-
-      /**
-       @brief Compute the best split
-       @param dat the database to use
-       @param 
-       */
-      void compute( const Database& dat, std::vector<Database>& split_out )
-      {
-         if ( dat.size() == 0 )
-            return;
-         const ui32 nbFeatures = dat[ 0 ].input.size();
-
-         std::vector<ui32> y( dat.size() );
-         std::vector<ui32> x( dat.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            y[ n ] = dat[ n ].output;
-         }
-
-         // select the best feature
-         double bestSplitMetric = std::numeric_limits<double>::min();
-         for ( ui32 feature = 0; feature < nbFeatures; ++feature )
-         {
-            Metric metric;
-            SplittingCriteria splitter;
-
-            std::vector<value_type> splits;
-            splitter.computeSplits( dat, feature, splits );
-
-            // then select the best split
-            for ( size_t split = 0; split < splits.size(); ++split )
-            {
-               for ( ui32 n = 0; n < dat.size(); ++n )
-               {
-                  x[ n ] = dat[ n ].input[ feature ] >= splits[ split ];
-               }
-
-               // check the split quality
-               const double splitMetric = metric.compute( x, y );
-               if ( splitMetric > bestSplitMetric )
-               {
-                  bestSplitMetric = splitMetric;
-                  _featureId = feature;
-                  _thresold = splits[ split ];
-               }
-            }
-         }
-
-         // finally route the samples according to the split
-         split_out = std::vector<Database>( 2 );
-         for ( ui32 n = 0; n < dat.size(); ++n )
-         {
-            const ui32 branch = test( dat[ n ].input );
-            split_out[ branch ].add( dat[ n ] );
-         }
-      }
-
-      /**
-       @brief return the branch to be taken
-       */
-      ui32 test( const Point& p ) const
-      {
-         return dat[ n ].input[ _featureId ] >= _thresold;
-      }
-
-   private:
-      ui32                 _featureId;    // the feature we are splitting
-      value_type           _thresold;     // the threshold used
-   };
+   
 
    
 }
@@ -342,6 +23,8 @@ public:
    class Problem1
    {
    public:
+      typedef core::Database<core::ClassificationSample<std::vector<ui32>, ui32>> Database;
+
       enum Outlook
       {
          SUNNY,
@@ -368,7 +51,7 @@ public:
          STRONG
       };
 
-      std::vector< std::vector<ui32> > create1() const
+      std::vector< std::vector<ui32> > create1( std::vector<ui32>& yout ) const
       {
          std::vector< std::vector<ui32> > days;
          days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    WEAK ) );      // 1
@@ -386,10 +69,45 @@ public:
          days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  NORMAL,  WEAK) );       // 13
          days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
 
+         std::vector< ui32 > y( 14 );
+         y[ 0 ] = 0;
+         y[ 1 ] = 0;
+         y[ 2 ] = 1;
+         y[ 3 ] = 1;
+         y[ 4 ] = 1;
+         y[ 5 ] = 0;
+         y[ 6 ] = 1;
+         y[ 7 ] = 0;
+         y[ 8 ] = 1;
+         y[ 9 ] = 1;
+         y[ 10 ] = 1;
+         y[ 11 ] = 1;
+         y[ 12 ] = 1;
+         y[ 13 ] = 0;
+         yout = y;
+
          return days;
       }
 
-      std::vector< std::vector<ui32> > create2() const
+      Database createDatabase1() const
+      {
+         std::vector<ui32> y;
+         std::vector< std::vector<ui32> > x = create1( y );
+         return createDatabase( x, y );
+      }
+
+      Database createDatabase( const std::vector< std::vector<ui32> >& x, std::vector<ui32>& y ) const
+      {
+         Database dat;
+         for ( size_t n = 0; n < x.size(); ++n )
+         {
+            dat.add( Database::Sample( x[ n ], y[ n ], Database::Sample::LEARNING ) );
+         }
+
+         return dat;
+      }
+
+      std::vector< std::vector<ui32> > create2( std::vector<ui32>& yout ) const
       {
          std::vector< std::vector<ui32> > days;
          days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
@@ -398,7 +116,22 @@ public:
          days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
          days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
 
+         std::vector< ui32 > y( 5 );
+         y[ 0 ] = 1;
+         y[ 1 ] = 1;
+         y[ 2 ] = 0;
+         y[ 3 ] = 1;
+         y[ 4 ] = 0;
+
+         yout = y;
          return days;
+      }
+
+      Database createDatabase2() const
+      {
+         std::vector<ui32> y;
+         std::vector< std::vector<ui32> > x = create2( y );
+         return createDatabase( x, y );
       }
    };
 
@@ -453,23 +186,9 @@ public:
       Problem1 pb1;
 
       {
-         std::vector< std::vector<ui32> > days = pb1.create1();
+         std::vector<ui32> y;
+         std::vector< std::vector<ui32> > days = pb1.create1( y );
 
-         std::vector< ui32 > y( 14 );
-         y[ 0 ] = 0;
-         y[ 1 ] = 0;
-         y[ 2 ] = 1;
-         y[ 3 ] = 1;
-         y[ 4 ] = 1;
-         y[ 5 ] = 0;
-         y[ 6 ] = 1;
-         y[ 7 ] = 0;
-         y[ 8 ] = 1;
-         y[ 9 ] = 1;
-         y[ 10 ] = 1;
-         y[ 11 ] = 1;
-         y[ 12 ] = 1;
-         y[ 13 ] = 0;
 
          std::vector<double> ref = core::make_vector<double>( 0.24675, 0.0292226, 0.151836, 0.048127 );
          for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
@@ -487,14 +206,8 @@ public:
       }
 
       {
-         std::vector< std::vector<ui32> > days = pb1.create2();
-
-         std::vector< ui32 > y( 5 );
-         y[ 0 ] = 1;
-         y[ 1 ] = 1;
-         y[ 2 ] = 0;
-         y[ 3 ] = 1;
-         y[ 4 ] = 0;
+         std::vector<ui32> y;
+         std::vector< std::vector<ui32> > days = pb1.create2( y );
 
          std::vector<double> ref = core::make_vector<double>( 0, 0.0199731, 0.0199731, 0.970951 );
          for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
@@ -511,12 +224,71 @@ public:
          }
       }
    }
+
+   void testSplitNodeDiscrete()
+   {
+      typedef Problem1::Database Database;
+      algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGain> d;
+
+      Problem1 pb1;
+      Database dat = pb1.createDatabase1();
+
+      std::vector<Database> dats;
+      d.compute( dat, dats );
+      TESTER_ASSERT( d.getFeatureSplit() == 0 );
+
+      int size = 0;
+      std::for_each( dats.begin(), dats.end(), [&]( const Database& d ){ size += d.size(); } );
+
+      TESTER_ASSERT( dats.size() == 3 );
+      TESTER_ASSERT( size == dat.size() );
+      for ( size_t n = 0; n < dats.size(); ++n )
+      {
+         for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
+         {
+            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == n );
+         }
+      }
+   }
+
+   void testSplitNodeDiscrete2()
+   {
+      typedef Problem1::Database Database;
+      algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGain> d;
+
+      Problem1 pb2;
+      Database dat = pb2.createDatabase2();
+
+      std::vector<Database> dats;
+      d.compute( dat, dats );
+      TESTER_ASSERT( d.getFeatureSplit() == 3 );
+
+      int size = 0;
+      std::for_each( dats.begin(), dats.end(), [&]( const Database& d ){ size += d.size(); } );
+
+      TESTER_ASSERT( dats.size() == 2 );
+      TESTER_ASSERT( size == dat.size() );
+      for ( size_t n = 0; n < dats.size(); ++n )
+      {
+         for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
+         {
+            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == n );
+         }
+      }
+   }
+
+   void testSplitNodeContinuous()
+   {
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTree);
 TESTER_TEST(testEntropy);
 TESTER_TEST(testErf);
-TESTER_TEST(testTree)
+TESTER_TEST(testTree);
+TESTER_TEST(testSplitNodeDiscrete);
+TESTER_TEST(testSplitNodeDiscrete2);
+TESTER_TEST(testSplitNodeContinuous);
 TESTER_TEST_SUITE_END();
 #endif

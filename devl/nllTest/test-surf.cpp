@@ -396,7 +396,8 @@ public:
          Ransac ransac( estimatorFactory );
 
          core::Timer ransacOptimTimer;
-         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01 );
+         core::Buffer1D<float> weights;
+         SurfEstimator::Model model = ransac.estimate( matchesTrimmed, 5, 50000, 0.01, weights );
          std::cout << "ransac optim time=" << ransacOptimTimer.getCurrentTime() << std::endl;
          model.print( std::cout );
 

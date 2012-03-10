@@ -131,7 +131,9 @@ namespace core
       typedef std::vector<SampleType>  Container;
 
    public:
-      typedef SampleType               Sample;
+      typedef SampleType                           Sample;
+      typedef typename Container::iterator         iterator;
+      typedef typename Container::const_iterator   const_iterator;
 
    public:
       /**
@@ -221,6 +223,27 @@ namespace core
        @brief return size of the database.
        */
       inline ui32 size() const { return static_cast<ui32> ( _container.size() ); }
+
+      // iterators...
+      iterator begin()
+      {
+         return _container.begin();
+      }
+
+      const_iterator begin() const
+      {
+         return _container.begin();
+      }
+
+      iterator end()
+      {
+         return _container.end();
+      }
+
+      const_iterator end() const
+      {
+         return _container.end();
+      }
 
    protected:
       Container   _container;

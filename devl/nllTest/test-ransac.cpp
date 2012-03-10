@@ -94,7 +94,8 @@ public:
          }
          algorithm::Ransac< algorithm::LineEstimator<Point> > estimator;
          core::Timer timer;
-         algorithm::LineEstimator<Point>::Model model = estimator.estimate( pointsTfm, 3, 500, 1e-3 );
+         core::Buffer1D<float> weights;
+         algorithm::LineEstimator<Point>::Model model = estimator.estimate( pointsTfm, 3, 500, 1e-3, weights );
          time += timer.getCurrentTime();
          printModel<Point>( i, model );
 

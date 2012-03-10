@@ -241,7 +241,7 @@ namespace algorithm
 
             if ( eps < 0.5 )
             {
-               double alpha_t = 0.5 * std::log( ( 1.0 - eps ) / ( eps + 1e-4 ) );
+               double alpha_t = 0.5 * core::log2( ( 1.0 - eps ) / ( eps + 1e-4 ) );
 
                // update the distribution
                for ( ui32 nn = 0; nn < samplingIndexes.size(); ++nn )

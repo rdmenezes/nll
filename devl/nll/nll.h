@@ -399,6 +399,8 @@
 
 // Trees
 # include "tree-continuous-splitting-criteria.h"
+# include "information-measure.h"
+# include "tree-node-split.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"
