@@ -2870,7 +2870,7 @@ namespace algorithm
 		   free(param->weight);
    }
 
-   const char *check_parameter(const problem *prob, const parameter *param)
+   const char *check_parameter(const problem *, const parameter *param)
    {
 	   if(param->eps <= 0)
 		   return "eps <= 0";

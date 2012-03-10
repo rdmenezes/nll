@@ -237,7 +237,7 @@ public:
       d.compute( dat, dats );
       TESTER_ASSERT( d.getFeatureSplit() == 0 );
 
-      int size = 0;
+      size_t size = 0;
       std::for_each( dats.begin(), dats.end(), [&]( const Database& d ){ size += d.size(); } );
 
       TESTER_ASSERT( dats.size() == 3 );
@@ -263,7 +263,7 @@ public:
       d.compute( dat, dats );
       TESTER_ASSERT( d.getFeatureSplit() == 3 );
 
-      int size = 0;
+      size_t size = 0;
       std::for_each( dats.begin(), dats.end(), [&]( const Database& d ){ size += d.size(); } );
 
       TESTER_ASSERT( dats.size() == 2 );
@@ -277,8 +277,118 @@ public:
       }
    }
 
+   class Problem2
+   {
+   public:
+      typedef core::Database< core::ClassificationSample< std::vector< double >, ui32 > > Database;
+
+      Database create1() const
+      {
+         Database d;
+
+         d.add( Database::Sample( core::make_vector<double>( 0.1 ), 0, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0.5 ), 0, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0.8 ), 0, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 1.1 ), 1, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 2.1 ), 1, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 5.1 ), 1, Database::Sample::LEARNING )  );
+
+         return d;
+      }
+
+
+      Database create2() const
+      {
+         Database d;
+
+         d.add( Database::Sample( core::make_vector<double>( 0, 100.1 ), 0, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0.1, 100.5 ), 0, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0.1, 100.8 ), 0, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0.1, 101.1 ), 1, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0, 102.1 ), 1, Database::Sample::LEARNING )  );
+         d.add( Database::Sample( core::make_vector<double>( 0.1, 105.1 ), 1, Database::Sample::LEARNING )  );
+
+         return d;
+      }
+   };
+
    void testSplitNodeContinuous()
    {
+      Problem2 pb2;
+      Problem2::Database dat = pb2.create1();
+
+      typedef algorithm::SplittingCriteriaUniformApproximation<Problem2::Database> SplittingCriteria;
+      typedef core::FactoryGeneric<SplittingCriteria> SplittingCriteriaFactory;
+      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGain, SplittingCriteriaFactory> NodeSplit;
+
+      std::vector<Problem2::Database> dats;
+      SplittingCriteriaFactory f;
+      NodeSplit n1( f );
+      n1.compute( dat, dats );
+
+      TESTER_ASSERT( dats.size() == 2 );
+      TESTER_ASSERT( n1.getFeatureSplit() == 0 );
+      TESTER_ASSERT( core::equal( n1.getSplitThreshold(), 1.0, 0.01 ) );
+
+      for ( size_t n = 0; n < dats.size(); ++n )
+      {
+         for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
+         {
+            TESTER_ASSERT( dats[ n ][ nn ].output == n );
+         }
+      }
+   }
+
+   void testSplitNodeContinuous2()
+   {
+      Problem2 pb2;
+      Problem2::Database dat = pb2.create1();
+
+      typedef algorithm::SplittingCriteriaGaussianApproximation<Problem2::Database> SplittingCriteria;
+      typedef core::FactoryGeneric<SplittingCriteria> SplittingCriteriaFactory;
+      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGain, SplittingCriteriaFactory> NodeSplit;
+
+      std::vector<Problem2::Database> dats;
+      SplittingCriteriaFactory f;
+      NodeSplit n1( f );
+      n1.compute( dat, dats );
+
+      TESTER_ASSERT( dats.size() == 2 );
+      TESTER_ASSERT( n1.getFeatureSplit() == 0 );
+
+      for ( size_t n = 0; n < dats.size(); ++n )
+      {
+         for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
+         {
+            TESTER_ASSERT( dats[ n ][ nn ].output == n );
+         }
+      }
+   }
+
+   void testSplitNodeContinuous3()
+   {
+      Problem2 pb2;
+      Problem2::Database dat = pb2.create2();
+
+      typedef algorithm::SplittingCriteriaGaussianApproximation<Problem2::Database> SplittingCriteria;
+      typedef core::FactoryGeneric<SplittingCriteria> SplittingCriteriaFactory;
+      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGain, SplittingCriteriaFactory> NodeSplit;
+
+      std::vector<Problem2::Database> dats;
+      SplittingCriteriaFactory f;
+      NodeSplit n1( f );
+      n1.compute( dat, dats );
+
+      TESTER_ASSERT( dats.size() == 2 );
+      TESTER_ASSERT( n1.getFeatureSplit() == 1 );
+
+      for ( size_t n = 0; n < dats.size(); ++n )
+      {
+         for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
+         {
+            TESTER_ASSERT( dats[ n ][ nn ].output == n );
+         }
+      }
    }
 };
 
@@ -290,5 +400,7 @@ TESTER_TEST(testTree);
 TESTER_TEST(testSplitNodeDiscrete);
 TESTER_TEST(testSplitNodeDiscrete2);
 TESTER_TEST(testSplitNodeContinuous);
+TESTER_TEST(testSplitNodeContinuous2);
+TESTER_TEST(testSplitNodeContinuous3);
 TESTER_TEST_SUITE_END();
 #endif

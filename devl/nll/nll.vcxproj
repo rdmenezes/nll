@@ -406,6 +406,7 @@
     <ClInclude Include="image-utility.h" />
     <ClInclude Include="image.h" />
     <ClInclude Include="index-mapper.h" />
+    <ClInclude Include="information-measure.h" />
     <ClInclude Include="io.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="logger.h" />
@@ -446,6 +447,7 @@
     <ClInclude Include="transformation-ddf-2d.h" />
     <ClInclude Include="transformation-rbf.h" />
     <ClInclude Include="tree-continuous-splitting-criteria.h" />
+    <ClInclude Include="tree-node-split.h" />
     <ClInclude Include="type-traits-inherited.h" />
     <ClInclude Include="type-traits-memory.h" />
     <ClInclude Include="type-traits.h" />

@@ -151,13 +151,14 @@ namespace algorithm
     @param ContinuousSplittingCriteria the splitting criteria to be used for the continuous attributs
     @param Metric the metric to be used to select the best split, the higher, the better
     */
-   template <class Database, class Metric, class SplittingCriteria>
+   template <class Database, class Metric, class SplittingCriteriaFactory>
    class TreeNodeSplitContinuousSingle : public TreeNodeSplit<Database>
    {
    public:
+      typedef typename SplittingCriteriaFactory::value_type SplittingCriteria;
       typedef TreeNodeSplit<Database>                       Base;
 
-      TreeNodeSplitContinuousSingle() : _thresold( std::numeric_limits<value_type>::min() ), _featureId( (ui32)-1 )
+      TreeNodeSplitContinuousSingle( const SplittingCriteriaFactory& scriteria ) : _splittingCriteriaFactory( scriteria ), _thresold( std::numeric_limits<value_type>::min() ), _featureId( (ui32)-1 )
       {}
 
       /**
@@ -178,15 +179,16 @@ namespace algorithm
             y[ n ] = dat[ n ].output;
          }
 
+         SplittingCriteria scriteria = _splittingCriteriaFactory.create();
+
          // select the best feature
          double bestSplitMetric = std::numeric_limits<double>::min();
          for ( ui32 feature = 0; feature < nbFeatures; ++feature )
          {
             Metric metric;
-            SplittingCriteria splitter;
 
             std::vector<value_type> splits;
-            splitter.computeSplits( dat, feature, splits );
+            scriteria.computeSplits( dat, feature, splits );
 
             // then select the best split
             for ( size_t split = 0; split < splits.size(); ++split )
@@ -221,7 +223,7 @@ namespace algorithm
        */
       ui32 test( const Point& p ) const
       {
-         return dat[ n ].input[ _featureId ] >= _thresold;
+         return p[ _featureId ] >= _thresold;
       }
 
       ui32 getFeatureSplit() const
@@ -235,8 +237,9 @@ namespace algorithm
       }
 
    private:
-      ui32                 _featureId;    // the feature we are splitting
-      value_type           _thresold;     // the threshold used
+      SplittingCriteriaFactory      _splittingCriteriaFactory;    // criteria to be used for the splits
+      ui32                          _featureId;    // the feature we are splitting
+      value_type                    _thresold;     // the threshold used
    };
 }
 }

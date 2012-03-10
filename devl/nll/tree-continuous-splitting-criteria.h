@@ -68,7 +68,7 @@ namespace algorithm
    class SplittingCriteriaGaussianApproximation : ContinuousSplittingCriteria<DatabaseT>
    {
    public:
-      SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits
+      SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
       {
       }
 
@@ -101,8 +101,10 @@ namespace algorithm
          outSplits.reserve( _nbSplits );
          for ( ui32 n = 0; n < _nbSplits; ++n )
          {
-            const value_type split = accumMean + accumStddev *
-               static_cast<value_type>( core::CumulativeGaussianFunction::erfinv_lut( n / ( _nbSplits + 1 ) ) );
+            // split ratio from [-1, 1] domain
+            const value_type splitRatio = 2 * static_cast<value_type>( n ) / ( _nbSplits + 1 ) - 1;
+            const value_type ratio = static_cast<value_type>( core::CumulativeGaussianFunction::erfinv_lut( splitRatio ) );
+            const value_type split = accumMean + accumStddev * ratio;
             outSplits.push_back( split );
          }
       }
@@ -120,7 +122,7 @@ namespace algorithm
    class SplittingCriteriaUniformApproximation : ContinuousSplittingCriteria<DatabaseT>
    {
    public:
-      SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits
+      SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
       {
       }
 

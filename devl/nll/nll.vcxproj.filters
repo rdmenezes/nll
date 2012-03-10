@@ -686,6 +686,12 @@
     <ClInclude Include="tree-continuous-splitting-criteria.h">
       <Filter>algorithm-tree</Filter>
     </ClInclude>
+    <ClInclude Include="information-measure.h">
+      <Filter>algorithm-tree</Filter>
+    </ClInclude>
+    <ClInclude Include="tree-node-split.h">
+      <Filter>algorithm-tree</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

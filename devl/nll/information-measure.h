@@ -107,8 +107,6 @@ namespace algorithm
          }
 
          std::vector<ui32> counts( max + 1 );
-         ui32 yes = 0;
-         ui32 no = 0;
          for ( ui32 n = 0; n < x.size(); ++n )
          {
             ui32 i = static_cast<ui32>( x[ n ] );

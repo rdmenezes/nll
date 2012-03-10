@@ -57,15 +57,15 @@ namespace core
     @ingroup core
     @brief Generic factory generator with no parameters
     */
-   template <class Metric>
+   template <class Object>
    class FactoryGeneric
    {
    public:
-      typedef Metric value_type;
+      typedef Object value_type;
 
-      static Metric create()
+      static value_type create()
       {
-         return Metric;
+         return value_type();
       }
    };
 
