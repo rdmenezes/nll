@@ -77,6 +77,9 @@
     <ClCompile Include="potential-gaussian-canonical.cpp">
       <Filter>algorithm-bayes</Filter>
     </ClCompile>
+    <ClCompile Include="indent.cpp">
+      <Filter>core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="allocator-aligned.h">
@@ -691,6 +694,9 @@
     </ClInclude>
     <ClInclude Include="tree-node-split.h">
       <Filter>algorithm-tree</Filter>
+    </ClInclude>
+    <ClInclude Include="indent.h">
+      <Filter>core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

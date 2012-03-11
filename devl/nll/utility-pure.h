@@ -54,6 +54,19 @@ namespace nll
 namespace core
 {
    /**
+    @brief Inherit from this class to make explicitly a class not copyiable
+    */
+   struct NonCopyable
+   {
+      NonCopyable()
+      {}
+
+   private:
+      NonCopyable & operator=(const NonCopyable&);
+      NonCopyable(const NonCopyable&);
+   };
+
+   /**
     @ingroup core
     @brief Generic factory generator with no parameters
     */

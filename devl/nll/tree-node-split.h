@@ -49,6 +49,7 @@ namespace algorithm
    public:
       virtual void compute( const Database& dat, std::vector<Database>& split_out ) = 0;
       virtual ui32 test( const Point& p ) const = 0;
+      virtual void print( std::ostream& o ) const = 0;
 
       virtual ~TreeNodeSplit()
       {}
@@ -80,7 +81,7 @@ namespace algorithm
          }
 
          // find the best feature
-         double bestSplitMetric = std::numeric_limits<double>::min();
+         double bestSplitMetric = -1e10;
          for ( ui32 feature = 0; feature < nbFeatures; ++feature )
          {
             Metric metric;
@@ -133,6 +134,11 @@ namespace algorithm
       ui32 getFeatureSplit() const
       {
          return _featureId;
+      }
+
+      virtual void print( std::ostream& o ) const
+      {
+         o << "feature split=" << _featureId;
       }
 
    private:
@@ -234,6 +240,11 @@ namespace algorithm
       value_type getSplitThreshold() const
       {
          return _thresold;
+      }
+
+      virtual void print( std::ostream& o ) const
+      {
+         o << "feature split=" << _featureId << " threshold=" << _thresold;
       }
 
    private:

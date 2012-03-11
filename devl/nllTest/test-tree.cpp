@@ -20,7 +20,7 @@ namespace algorithm
       typedef typename Database::Sample::Output             Class;
       typedef TreeNodeSplit<Database>                       NodeSplit;
 
-      struct LevelData
+      struct LevelData : public core::NonCopyable
       {
          LevelData( ui32 d, const Database&   dd ) : depth( d ), data( dd )
          {}
@@ -73,26 +73,46 @@ namespace algorithm
          return _nodes[ nodeId ].test( p );
       }
 
+      void print( std::ostream& o ) const
+      {
+         if ( _nodes.size() )
+         {
+            o << "non-leaf node:";
+            _split->print( o );
+            o << core::incendl;
+            for ( size_t n = 0; n < _nodes.size(); ++n )
+            {
+               _nodes[ n ].print( o );
+               if ( ( n + 1 ) != _nodes.size() )
+                  o << core::iendl;
+            }
+            o << core::decindent;
+         } else {
+            o << "leaf node,  class=" << _nodeClass; // << core::iendl;
+         }
+      }
+
    private:
       template <class NodeFactory>
       void _compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
       {
          LevelData ld( level, dat );
-         const bool continueGrowth = growingStrategy.continueGrowth( dat );
+         const bool continueGrowth = growingStrategy.continueGrowth( ld );
 
          if ( !continueGrowth )
          {
             _nodeClass = growingStrategy.getNodeClass( dat );
+            return;
          }
 
          std::vector<Database> dats;
-         _split = std::shared_ptr<NodeSplit>( new NodeSplit( nodeFactory.create() ) );
+         _split = std::shared_ptr<NodeSplit>( new NodeFactory::value_type( nodeFactory.create() ) );
          _split->compute( dat, dats );
 
          _nodes = std::vector<DecisionTree>( dats.size() );
          for ( size_t n = 0; n < dats.size(); ++n )
          {
-            _nodes->_compute( dats[ n ], nodeFactory, growingStrategy, level + 1 );
+            _nodes[ n ]._compute( dats[ n ], nodeFactory, growingStrategy, level + 1 );
          }
       }
 
@@ -121,7 +141,19 @@ namespace algorithm
        */
       virtual bool continueGrowth( const LevelData& data ) const
       {
-         return data.depth <= _maxDepth;
+         ensure( data.data.size(), "hugh!? empty!" );
+
+         // first ensure the node is not pure
+         Class c = data.data[ 0 ].output;
+         for ( ui32 n = 1; n < data.data.size(); ++n )
+         {
+            if ( c != data.data[ n ].output )
+            {
+               // the node is impure, check we are below the allowed depth
+               return data.depth <= _maxDepth;
+            }
+         }
+         return false;  // node is pure! can't get better now...
       }
 
       /**
@@ -129,16 +161,23 @@ namespace algorithm
        */
       virtual Class getNodeClass( const Database& dat ) const
       {
-         ui32 nbClasses = core::getNumberOfClass( dat );
-         std::vector<ui32> counts( nbClasses );
+         // get the max class to be able to count the classes
+         ui32 max = 0;
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            max = std::max<ui32>( dat[ n ].output, max );
+         }
 
+         // count the classes
+         std::vector<ui32> counts( max + 1 );
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
             ++counts[ dat[ n ].output ];
          }
 
+         // return the max count class
          std::vector<ui32>::const_iterator it = std::max_element( counts.begin(), counts.end() );
-         return static_cast<Class>( it - counts.end() );
+         return static_cast<Class>( it - counts.begin() );
       }
 
    private:
@@ -527,6 +566,27 @@ public:
       Problem1::Database dat = pb1.createDatabase1();
 
       algorithm::DecisionTree<Problem1::Database> dt;
+
+      typedef Problem1::Database Database;
+      typedef core::FactoryGeneric<algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGain>> NodeFactory;
+      dt.compute( dat, NodeFactory(), algorithm::GrowingStrategyFixedDepth<Database>() );
+
+      std::cout << std::endl;
+
+      std::stringstream ss2;
+      dt.print( ss2 );
+
+      std::stringstream ss;
+      ss << "non-leaf node:feature split=0"  << core::incendl <<
+             "non-leaf node:feature split=2" << core::incendl <<
+              "leaf node,  class=0"          << core::iendl <<
+              "leaf node,  class=1"          << core::decendl <<
+             "leaf node,  class=1"           << core::iendl <<
+             "non-leaf node:feature split=3" << core::incendl <<
+              "leaf node,  class=1"          << core::iendl <<
+              "leaf node,  class=0";
+
+      TESTER_ASSERT( ss.str() == ss2.str() );
    }
 };
 
@@ -540,5 +600,6 @@ TESTER_TEST(testSplitNodeDiscrete2);
 TESTER_TEST(testSplitNodeContinuous);
 TESTER_TEST(testSplitNodeContinuous2);
 TESTER_TEST(testSplitNodeContinuous3);
+TESTER_TEST(testDecisionTree);
 TESTER_TEST_SUITE_END();
 #endif

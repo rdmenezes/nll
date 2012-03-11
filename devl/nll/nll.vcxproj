@@ -343,6 +343,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="indent.cpp" />
     <ClCompile Include="nll.cpp" />
     <ClCompile Include="stdafx.cpp" />
     <ClCompile Include="configuration.cpp" />
@@ -405,6 +406,7 @@
     <ClInclude Include="image-transformation.h" />
     <ClInclude Include="image-utility.h" />
     <ClInclude Include="image.h" />
+    <ClInclude Include="indent.h" />
     <ClInclude Include="index-mapper.h" />
     <ClInclude Include="information-measure.h" />
     <ClInclude Include="io.h" />
