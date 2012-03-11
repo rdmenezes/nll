@@ -8,12 +8,142 @@ namespace nll
 {
 namespace algorithm
 {
-   
+   /**
+    @brief Generic decision tree
+    */
+   template <class Database>
+   class DecisionTree
+   {
+   public:
+      typedef typename Database::Sample::Input::value_type  value_type;
+      typedef typename Database::Sample::Input              Point;
+      typedef typename Database::Sample::Output             Class;
+      typedef TreeNodeSplit<Database>                       NodeSplit;
 
+      struct LevelData
+      {
+         LevelData( ui32 d, const Database&   dd ) : depth( d ), data( dd )
+         {}
 
-   
+         ui32              depth;
+         const Database&   data;
+      };
 
-   
+      /**
+       @brief Control the growing strategy of a tree
+       */
+      class GrowingStrategy
+      {
+      public:
+         /**
+          @brief returns true if the tree should continue growing
+          */
+         virtual bool continueGrowth( const LevelData& data ) const = 0;
+
+         /**
+          @brief returns the class of a current node
+          */
+         virtual Class getNodeClass( const Database& dat ) const = 0;
+      };
+
+      /**
+       @brief grow a tree out of a database
+       @param dat input database
+       @param nodeFactory the factory that will create each decision node
+       @param growingStrategy the strategy that will control how the tree is growing
+       */
+      template <class NodeFactory>
+      void compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy )
+      {
+         _compute( dat, nodeFactory, growingStrategy, 0 );
+      }
+
+      /**
+       @brief get the class of this point
+       */
+      ui32 test( const Point& p ) const
+      {
+         if ( _nodes.size() == 0 )
+         {
+            // we are at the leaf...
+            return _nodeClass;
+         }
+
+         ui32 nodeId = _split->test( p );
+         return _nodes[ nodeId ].test( p );
+      }
+
+   private:
+      template <class NodeFactory>
+      void _compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
+      {
+         LevelData ld( level, dat );
+         const bool continueGrowth = growingStrategy.continueGrowth( dat );
+
+         if ( !continueGrowth )
+         {
+            _nodeClass = growingStrategy.getNodeClass( dat );
+         }
+
+         std::vector<Database> dats;
+         _split = std::shared_ptr<NodeSplit>( new NodeSplit( nodeFactory.create() ) );
+         _split->compute( dat, dats );
+
+         _nodes = std::vector<DecisionTree>( dats.size() );
+         for ( size_t n = 0; n < dats.size(); ++n )
+         {
+            _nodes->_compute( dats[ n ], nodeFactory, growingStrategy, level + 1 );
+         }
+      }
+
+   private:
+      std::vector<DecisionTree>     _nodes;           // the nodes at n+1 level
+      std::shared_ptr<NodeSplit>    _split;           // the decision split
+      Class                         _nodeClass;       // if this node is a leaf, return this class
+   };
+
+   /**
+    @brief Grow a fixed depth tree
+    */
+   template <class Database>
+   class GrowingStrategyFixedDepth : public DecisionTree<Database>::GrowingStrategy
+   {
+   public:
+      typedef typename DecisionTree<Database>::LevelData LevelData;
+      typedef typename DecisionTree<Database>::Class     Class;
+
+   public:
+      GrowingStrategyFixedDepth( ui32 maxDepth = std::numeric_limits<ui32>::max() ) : _maxDepth( maxDepth )
+      {}
+
+      /**
+       @brief returns true if the tree should continue growing
+       */
+      virtual bool continueGrowth( const LevelData& data ) const
+      {
+         return data.depth <= _maxDepth;
+      }
+
+      /**
+       @brief returns the class of a current node
+       */
+      virtual Class getNodeClass( const Database& dat ) const
+      {
+         ui32 nbClasses = core::getNumberOfClass( dat );
+         std::vector<ui32> counts( nbClasses );
+
+         for ( ui32 n = 0; n < dat.size(); ++n )
+         {
+            ++counts[ dat[ n ].output ];
+         }
+
+         std::vector<ui32>::const_iterator it = std::max_element( counts.begin(), counts.end() );
+         return static_cast<Class>( it - counts.end() );
+      }
+
+   private:
+      ui32  _maxDepth;
+   };
 }
 }
 
@@ -389,6 +519,14 @@ public:
             TESTER_ASSERT( dats[ n ][ nn ].output == n );
          }
       }
+   }
+
+   void testDecisionTree()
+   {
+      Problem1 pb1;
+      Problem1::Database dat = pb1.createDatabase1();
+
+      algorithm::DecisionTree<Problem1::Database> dt;
    }
 };
 
