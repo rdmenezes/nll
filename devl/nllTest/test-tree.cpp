@@ -9,6 +9,109 @@ namespace nll
 namespace algorithm
 {
    /**
+    @brief Computes entropy for building trees
+    @see www.seas.harvard.edu/courses/cs181/docs/lecture4-notes.pdf
+         CS181 Lecture 4 | Committees and Boosting, Avi Pfeer; Revised by David Parkes, Feb 1, 2011
+    */
+   class WeightedEntropy
+   {
+   public:
+      /**
+       @brief computes the entropy of a vector of integrals
+       @param v a set of integers
+       */
+      template <class Vector>
+      double compute( const Vector& v ) const
+      {
+         typedef typename Vector::value_type value_type;
+
+         STATIC_ASSERT( core::IsIntegral<value_type>::value ); // this implementation only works for integral type
+
+         value_type min = std::numeric_limits<value_type>::max();
+         value_type max = std::numeric_limits<value_type>::min();
+         for ( ui32 n = 0; n < v.size(); ++n )
+         {
+            min = std::min( min, v[ n ] );
+            max = std::max( max, v[ n ] );
+         }
+
+         const ui32 range = static_cast<ui32>( max - min ) + 1;
+         std::vector<ui32> counts( range );
+         for ( ui32 n = 0; n < v.size(); ++n )
+         {
+            ui32 c = static_cast<ui32>( v[ n ] - min );
+            ++counts[ c ];
+         }
+
+         double entropy = 0;
+         for ( size_t n = 0; n < counts.size(); ++n )
+         {
+            if ( counts[ n ] )
+            {
+               const double p = static_cast<double>( counts[ n ] ) / v.size();
+               entropy -= p * core::log2( p );
+            }
+         }
+
+         return entropy;
+      }
+
+      /**
+       @brief Computes the conditional entropy H(y|x)
+       @note values contained by x and y must be as close to zero as possible! (else arrays with extra padding are created)
+
+       H(Y|X) = sum_i p(X=vi) H(Y|X=vi)
+       */
+      template <class Vector1, class Vector2>
+      double compute( const Vector1& x, const Vector2& y ) const
+      {
+         typedef typename Vector1::value_type value_type1;
+         typedef typename Vector2::value_type value_type2;
+
+         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
+         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         ensure( x.size() == y.size(), "must be the same size" );
+
+         value_type1 max = std::numeric_limits<value_type1>::min();
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            max = std::max( max, x[ n ] );
+         }
+
+         std::vector<ui32> counts( max + 1 );
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            ui32 i = static_cast<ui32>( x[ n ] );
+            ++counts[ i ];
+         }
+
+         std::vector< std::vector< value_type2 > > cond( max + 1 );
+         for ( size_t n = 0; n < cond.size(); ++n )
+         {
+            cond[ n ].reserve( counts[ n ] );
+         }
+
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            ui32 i = static_cast<ui32>( x[ n ] );
+            cond[ i ].push_back( y[ n ] );
+         }
+
+         double entropy = 0;
+         for ( size_t n = 0; n < cond.size(); ++n )
+         {
+            if ( counts[ n ] )
+            {
+               const double e = compute( cond[ n ] );
+               entropy += static_cast<double>( counts[ n ] ) / x.size() * e;
+            }
+         }
+
+         return entropy;
+      }
+   };
+
+   /**
     @brief Generic decision tree
     */
    template <class Database>
@@ -51,11 +154,22 @@ namespace algorithm
        @param dat input database
        @param nodeFactory the factory that will create each decision node
        @param growingStrategy the strategy that will control how the tree is growing
+       @param weights a weights attributed to each sample. sum(weights) == 1
        */
       template <class NodeFactory>
-      void compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy )
+      void compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, const core::Buffer1D<float> weights = core::Buffer1D<float>() )
       {
-         _compute( dat, nodeFactory, growingStrategy, 0 );
+         ensure( weights.size() == dat.size() || weights.size() == 0, "weights must have the same size as database or empty" );
+
+         #ifdef NLL_SECURE
+         if ( weights.size() )
+         {
+            const float sumw = std::accumulate( weights.begin(), weights.end(), 0.0f );
+            ensure( core::equal( sumw, 1.0f, 0.01f ), "sum of weights must be 1" );
+         }
+         #endif
+
+         _compute( dat, weights, nodeFactory, growingStrategy, 0 );
       }
 
       /**
@@ -88,13 +202,13 @@ namespace algorithm
             }
             o << core::decindent;
          } else {
-            o << "leaf node,  class=" << _nodeClass; // << core::iendl;
+            o << "leaf node,  class=" << _nodeClass;
          }
       }
 
    private:
       template <class NodeFactory>
-      void _compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
+      void _compute( const Database& dat, const core::Buffer1D<float>& weights, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
       {
          LevelData ld( level, dat );
          const bool continueGrowth = growingStrategy.continueGrowth( ld );
@@ -112,7 +226,7 @@ namespace algorithm
          _nodes = std::vector<DecisionTree>( dats.size() );
          for ( size_t n = 0; n < dats.size(); ++n )
          {
-            _nodes[ n ]._compute( dats[ n ], nodeFactory, growingStrategy, level + 1 );
+            _nodes[ n ]._compute( dats[ n ], weights, nodeFactory, growingStrategy, level + 1 );
          }
       }
 
