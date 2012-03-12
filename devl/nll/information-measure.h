@@ -140,6 +140,128 @@ namespace algorithm
    };
 
    /**
+    @brief Computes entropy for building trees
+    @see www.seas.harvard.edu/courses/cs181/docs/lecture4-notes.pdf
+         CS181 Lecture 4 | Committees and Boosting, Avi Pfeer; Revised by David Parkes, Feb 1, 2011
+    */
+   class EntropyWeighted
+   {
+   public:
+      /**
+       @brief computes the entropy of a vector of integrals
+
+       Instead of just counting the number of classes as in entroy, we simply sum their probability given by weights
+       @param v a set of integers
+       @param weights the weights. Note that the on all instances must sum to 1 (not necessarily for this function though)
+       */
+      template <class Vector, class Vector2>
+      double compute( const Vector& v, const Vector2& weights ) const
+      {
+         typedef typename Vector::value_type value_type;
+         typedef typename Vector2::value_type value_type_weights;
+
+         STATIC_ASSERT( core::IsIntegral<value_type>::value ); // this implementation only works for integral type
+         ensure( v.size() == weights.size(), "weights vector doesn't match" );
+
+         value_type min = std::numeric_limits<value_type>::max();
+         value_type max = std::numeric_limits<value_type>::min();
+         for ( ui32 n = 0; n < v.size(); ++n )
+         {
+            min = std::min( min, v[ n ] );
+            max = std::max( max, v[ n ] );
+         }
+
+         const ui32 range = static_cast<ui32>( max - min ) + 1;
+         std::vector<value_type_weights> counts( range );
+         value_type_weights totalWeights = 0;
+         for ( ui32 n = 0; n < v.size(); ++n )
+         {
+            ui32 c = static_cast<ui32>( v[ n ] - min );
+            counts[ c ] += weights[ n ];
+            totalWeights += weights[ n ];
+         }
+
+         #ifdef NLL_SECURE
+         ensure( totalWeights > 0, "error, sum weights must be > 0" );
+         #endif
+
+         double entropy = 0;
+         for ( size_t n = 0; n < counts.size(); ++n )
+         {
+            if ( counts[ n ] )
+            {
+               const double p = static_cast<double>( counts[ n ] ) / totalWeights;
+               entropy -= p * core::log2( p );
+            }
+         }
+
+         return entropy;
+      }
+
+      /**
+       @brief Computes the conditional entropy H(y|x)
+       @param x the attribut values
+       @param y the class values
+       @param weights the weights. Note that the on all instances must sum to 1 (not necessarily for this function though)
+       @note values contained by x and y must be as close to zero as possible! (else arrays with extra padding are created)
+
+       H(Y|X) = sum_i p(X=vi) H(Y|X=vi)
+       */
+      template <class Vector1, class Vector2, class Vector3>
+      double compute( const Vector1& x, const Vector2& y, const Vector3& weights ) const
+      {
+         typedef typename Vector1::value_type value_type1;
+         typedef typename Vector2::value_type value_type2;
+         typedef typename Vector3::value_type value_type_weights;
+
+         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
+         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         ensure( x.size() == y.size(), "must be the same size" );
+         ensure( weights.size() == x.size(), "weights doesn't match" );
+
+         value_type1 max = std::numeric_limits<value_type1>::min();
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            max = std::max( max, x[ n ] );
+         }
+
+         std::vector<value_type_weights> counts( max + 1 );
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            ui32 i = static_cast<ui32>( x[ n ] );
+            counts[ i ] += weights[ n ];
+         }
+
+         std::vector< std::vector< value_type_weights > > condw( max + 1 );
+         std::vector< std::vector< value_type2 > > cond( max + 1 );
+         for ( size_t n = 0; n < cond.size(); ++n )
+         {
+            cond[ n ].reserve( x.size() / 2 );
+            condw[ n ].reserve( x.size() / 2 );
+         }
+
+         for ( ui32 n = 0; n < x.size(); ++n )
+         {
+            ui32 i = static_cast<ui32>( x[ n ] );
+            cond[ i ].push_back( y[ n ] );
+            condw[ i ].push_back( weights[ n ] );
+         }
+
+         double entropy = 0;
+         for ( size_t n = 0; n < cond.size(); ++n )
+         {
+            if ( counts[ n ] )
+            {
+               const double e = compute( cond[ n ], condw[ n ] );
+               entropy += static_cast<double>( counts[ n ] ) * e;
+            }
+         }
+
+         return entropy;
+      }
+   };
+
+   /**
     @brief Computes information gain on an integral input/output
     @see http://en.wikipedia.org/wiki/Information_gain_in_decision_trees
     */
@@ -156,6 +278,29 @@ namespace algorithm
       {
          Entropy entropy;
          return entropy.compute( y ) - entropy.compute( x, y );
+      }
+   };
+
+   /**
+    @brief Computes information gain on an integral input/output
+    @see http://en.wikipedia.org/wiki/Information_gain_in_decision_trees
+    */
+   class InformationGainWeighted
+   {
+   public:
+      /**
+       @brief Compute the information gain IG(y|x) = E(y) - E(y|x)
+       @param x the attribut values
+       @param y the class values
+       @param weights the weights. Note that the on all instances must sum to 1 (not necessarily for this function though)
+
+       It can be seen as the amount of information saved by knowing x when transmiting y
+       */
+      template <class Vector1, class Vector2, class Vector3>
+      double compute( const Vector1& x, const Vector2& y, const Vector3& weights ) const
+      {
+         EntropyWeighted entropy;
+         return entropy.compute( y, weights ) - entropy.compute( x, y, weights );
       }
    };
 }

@@ -9,109 +9,6 @@ namespace nll
 namespace algorithm
 {
    /**
-    @brief Computes entropy for building trees
-    @see www.seas.harvard.edu/courses/cs181/docs/lecture4-notes.pdf
-         CS181 Lecture 4 | Committees and Boosting, Avi Pfeer; Revised by David Parkes, Feb 1, 2011
-    */
-   class WeightedEntropy
-   {
-   public:
-      /**
-       @brief computes the entropy of a vector of integrals
-       @param v a set of integers
-       */
-      template <class Vector>
-      double compute( const Vector& v ) const
-      {
-         typedef typename Vector::value_type value_type;
-
-         STATIC_ASSERT( core::IsIntegral<value_type>::value ); // this implementation only works for integral type
-
-         value_type min = std::numeric_limits<value_type>::max();
-         value_type max = std::numeric_limits<value_type>::min();
-         for ( ui32 n = 0; n < v.size(); ++n )
-         {
-            min = std::min( min, v[ n ] );
-            max = std::max( max, v[ n ] );
-         }
-
-         const ui32 range = static_cast<ui32>( max - min ) + 1;
-         std::vector<ui32> counts( range );
-         for ( ui32 n = 0; n < v.size(); ++n )
-         {
-            ui32 c = static_cast<ui32>( v[ n ] - min );
-            ++counts[ c ];
-         }
-
-         double entropy = 0;
-         for ( size_t n = 0; n < counts.size(); ++n )
-         {
-            if ( counts[ n ] )
-            {
-               const double p = static_cast<double>( counts[ n ] ) / v.size();
-               entropy -= p * core::log2( p );
-            }
-         }
-
-         return entropy;
-      }
-
-      /**
-       @brief Computes the conditional entropy H(y|x)
-       @note values contained by x and y must be as close to zero as possible! (else arrays with extra padding are created)
-
-       H(Y|X) = sum_i p(X=vi) H(Y|X=vi)
-       */
-      template <class Vector1, class Vector2>
-      double compute( const Vector1& x, const Vector2& y ) const
-      {
-         typedef typename Vector1::value_type value_type1;
-         typedef typename Vector2::value_type value_type2;
-
-         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
-         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
-         ensure( x.size() == y.size(), "must be the same size" );
-
-         value_type1 max = std::numeric_limits<value_type1>::min();
-         for ( ui32 n = 0; n < x.size(); ++n )
-         {
-            max = std::max( max, x[ n ] );
-         }
-
-         std::vector<ui32> counts( max + 1 );
-         for ( ui32 n = 0; n < x.size(); ++n )
-         {
-            ui32 i = static_cast<ui32>( x[ n ] );
-            ++counts[ i ];
-         }
-
-         std::vector< std::vector< value_type2 > > cond( max + 1 );
-         for ( size_t n = 0; n < cond.size(); ++n )
-         {
-            cond[ n ].reserve( counts[ n ] );
-         }
-
-         for ( ui32 n = 0; n < x.size(); ++n )
-         {
-            ui32 i = static_cast<ui32>( x[ n ] );
-            cond[ i ].push_back( y[ n ] );
-         }
-
-         double entropy = 0;
-         for ( size_t n = 0; n < cond.size(); ++n )
-         {
-            if ( counts[ n ] )
-            {
-               const double e = compute( cond[ n ] );
-               entropy += static_cast<double>( counts[ n ] ) / x.size() * e;
-            }
-         }
-
-         return entropy;
-      }
-   };
-
-   /**
     @brief Generic decision tree
     */
    template <class Database>
@@ -169,7 +66,19 @@ namespace algorithm
          }
          #endif
 
-         _compute( dat, weights, nodeFactory, growingStrategy, 0 );
+         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+
+         std::vector<float> w;
+         if ( weights.size() == 0 )
+         {
+            // if we don't have weights, just weight the samples equally
+            const float wval = 1.0f / learning.size();
+            w = std::vector<float>( learning.size(), wval );
+         } else {
+             w = std::vector<float>( weights.begin(), weights.end() );
+         }
+
+         _compute( learning, w, nodeFactory, growingStrategy, 0 );
       }
 
       /**
@@ -208,7 +117,7 @@ namespace algorithm
 
    private:
       template <class NodeFactory>
-      void _compute( const Database& dat, const core::Buffer1D<float>& weights, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
+      void _compute( const Database& dat, const std::vector<float>& weights, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
       {
          LevelData ld( level, dat );
          const bool continueGrowth = growingStrategy.continueGrowth( ld );
@@ -221,12 +130,13 @@ namespace algorithm
 
          std::vector<Database> dats;
          _split = std::shared_ptr<NodeSplit>( new NodeFactory::value_type( nodeFactory.create() ) );
-         _split->compute( dat, dats );
+         std::vector< std::vector< float > > weightsOut;
+         _split->compute( dat, weights, dats, weightsOut );
 
          _nodes = std::vector<DecisionTree>( dats.size() );
          for ( size_t n = 0; n < dats.size(); ++n )
          {
-            _nodes[ n ]._compute( dats[ n ], weights, nodeFactory, growingStrategy, level + 1 );
+            _nodes[ n ]._compute( dats[ n ], weightsOut[ n ], nodeFactory, growingStrategy, level + 1 );
          }
       }
 
@@ -464,6 +374,26 @@ public:
       }
    }
 
+   void testEntropyWeighted()
+   {
+      algorithm::EntropyWeighted entropy;
+
+      {
+         std::vector<int> v = core::make_vector<int>( 1, 1, 0, 1, 0 );
+         std::vector<double> w( v.size(), 1.0 / v.size() );
+         const double e = entropy.compute( v, w );
+         TESTER_ASSERT( core::equal<double>( e, 0.971, 0.001 ) );
+      }
+
+      {
+         std::vector<int> x = core::make_vector<int>( 0, 1, 2, 0, 0, 2, 1, 0 );
+         std::vector<int> y = core::make_vector<int>( 1, 0, 1, 0, 0, 1, 0, 1 );
+         std::vector<double> w( x.size(), 1.0 / x.size() );
+         const double e = entropy.compute( x, y, w );
+         TESTER_ASSERT( core::equal<double>( e, 0.5, 0.001 ) );
+      }
+   }
+
    void testTree()
    {
       Problem1 pb1;
@@ -511,14 +441,17 @@ public:
    void testSplitNodeDiscrete()
    {
       typedef Problem1::Database Database;
-      algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGain> d;
+      algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGainWeighted> d;
 
       Problem1 pb1;
       Database dat = pb1.createDatabase1();
 
       std::vector<Database> dats;
-      d.compute( dat, dats );
+      std::vector<float> w( dat.size(), 1.0f / dat.size() );
+      std::vector<std::vector<float>> wout;
+      d.compute( dat, w, dats, wout );
       TESTER_ASSERT( d.getFeatureSplit() == 0 );
+      TESTER_ASSERT( wout.size() == dats.size() );
 
       size_t size = 0;
       std::for_each( dats.begin(), dats.end(), [&]( const Database& d ){ size += d.size(); } );
@@ -529,7 +462,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == n );
+            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == (ui32)n );
          }
       }
    }
@@ -537,14 +470,17 @@ public:
    void testSplitNodeDiscrete2()
    {
       typedef Problem1::Database Database;
-      algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGain> d;
+      algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGainWeighted> d;
 
       Problem1 pb2;
       Database dat = pb2.createDatabase2();
 
       std::vector<Database> dats;
-      d.compute( dat, dats );
+      std::vector<float> w( dat.size(), 1.0f / dat.size() );
+      std::vector<std::vector<float>> wout;
+      d.compute( dat, w, dats, wout );
       TESTER_ASSERT( d.getFeatureSplit() == 3 );
+      TESTER_ASSERT( wout.size() == dats.size() );
 
       size_t size = 0;
       std::for_each( dats.begin(), dats.end(), [&]( const Database& d ){ size += d.size(); } );
@@ -555,7 +491,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == n );
+            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == (ui32)n );
          }
       }
    }
@@ -602,13 +538,16 @@ public:
 
       typedef algorithm::SplittingCriteriaUniformApproximation<Problem2::Database> SplittingCriteria;
       typedef core::FactoryGeneric<SplittingCriteria> SplittingCriteriaFactory;
-      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGain, SplittingCriteriaFactory> NodeSplit;
+      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGainWeighted, SplittingCriteriaFactory> NodeSplit;
 
       std::vector<Problem2::Database> dats;
       SplittingCriteriaFactory f;
       NodeSplit n1( f );
-      n1.compute( dat, dats );
+      std::vector<float> w( dat.size(), 1.0f / dat.size() );
+      std::vector<std::vector<float>> wout;
+      n1.compute( dat, w, dats, wout );
 
+      TESTER_ASSERT( wout.size() == dats.size() );
       TESTER_ASSERT( dats.size() == 2 );
       TESTER_ASSERT( n1.getFeatureSplit() == 0 );
       TESTER_ASSERT( core::equal( n1.getSplitThreshold(), 1.0, 0.01 ) );
@@ -617,7 +556,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].output == n );
+            TESTER_ASSERT( dats[ n ][ nn ].output == (ui32)n );
          }
       }
    }
@@ -629,13 +568,16 @@ public:
 
       typedef algorithm::SplittingCriteriaGaussianApproximation<Problem2::Database> SplittingCriteria;
       typedef core::FactoryGeneric<SplittingCriteria> SplittingCriteriaFactory;
-      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGain, SplittingCriteriaFactory> NodeSplit;
+      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGainWeighted, SplittingCriteriaFactory> NodeSplit;
 
       std::vector<Problem2::Database> dats;
       SplittingCriteriaFactory f;
       NodeSplit n1( f );
-      n1.compute( dat, dats );
+      std::vector<float> w( dat.size(), 1.0f / dat.size() );
+      std::vector<std::vector<float>> wout;
+      n1.compute( dat, w, dats, wout );
 
+      TESTER_ASSERT( wout.size() == dats.size() );
       TESTER_ASSERT( dats.size() == 2 );
       TESTER_ASSERT( n1.getFeatureSplit() == 0 );
 
@@ -643,7 +585,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].output == n );
+            TESTER_ASSERT( dats[ n ][ nn ].output == (ui32)n );
          }
       }
    }
@@ -655,12 +597,15 @@ public:
 
       typedef algorithm::SplittingCriteriaGaussianApproximation<Problem2::Database> SplittingCriteria;
       typedef core::FactoryGeneric<SplittingCriteria> SplittingCriteriaFactory;
-      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGain, SplittingCriteriaFactory> NodeSplit;
+      typedef algorithm::TreeNodeSplitContinuousSingle<Problem2::Database, algorithm::InformationGainWeighted, SplittingCriteriaFactory> NodeSplit;
 
       std::vector<Problem2::Database> dats;
       SplittingCriteriaFactory f;
       NodeSplit n1( f );
-      n1.compute( dat, dats );
+      std::vector<float> w( dat.size(), 1.0f / dat.size() );
+      std::vector<std::vector<float>> wout;
+      n1.compute( dat, w, dats, wout );
+      TESTER_ASSERT( dats.size() == wout.size() );
 
       TESTER_ASSERT( dats.size() == 2 );
       TESTER_ASSERT( n1.getFeatureSplit() == 1 );
@@ -669,7 +614,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].output == n );
+            TESTER_ASSERT( dats[ n ][ nn ].output == (ui32)n );
          }
       }
    }
@@ -682,7 +627,7 @@ public:
       algorithm::DecisionTree<Problem1::Database> dt;
 
       typedef Problem1::Database Database;
-      typedef core::FactoryGeneric<algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGain>> NodeFactory;
+      typedef core::FactoryGeneric<algorithm::TreeNodeSplitDiscrete<Database, algorithm::InformationGainWeighted>> NodeFactory;
       dt.compute( dat, NodeFactory(), algorithm::GrowingStrategyFixedDepth<Database>() );
 
       std::cout << std::endl;
@@ -707,6 +652,7 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTree);
 TESTER_TEST(testEntropy);
+TESTER_TEST(testEntropyWeighted);
 TESTER_TEST(testErf);
 TESTER_TEST(testTree);
 TESTER_TEST(testSplitNodeDiscrete);

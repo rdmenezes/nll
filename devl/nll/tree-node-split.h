@@ -47,7 +47,10 @@ namespace algorithm
       typedef typename Database::Sample::Input              Point;
 
    public:
-      virtual void compute( const Database& dat, std::vector<Database>& split_out ) = 0;
+      /**
+       @param weights the weights given to each sample. it must sum to 1
+       */
+      virtual void compute( const Database& dat, const std::vector<float>& weights, std::vector<Database>& split_out, std::vector< std::vector<float> >& weights_out ) = 0;
       virtual ui32 test( const Point& p ) const = 0;
       virtual void print( std::ostream& o ) const = 0;
 
@@ -67,11 +70,13 @@ namespace algorithm
       typedef std::map<ui32, ui32>  AttributMapper;
 
    public:
-      virtual void compute( const Database& dat, std::vector<Database>& split_out )
+      virtual void compute( const Database& dat, const std::vector<float>& weights, std::vector<Database>& split_out, std::vector< std::vector<float> >& weights_out )
       {
          if ( dat.size() == 0 )
             return;
-         const ui32 nbFeatures = dat[ 0 ].input.size();
+         const ui32 nbFeatures = static_cast<ui32>( dat[ 0 ].input.size() );
+
+         ensure( dat.size() == weights.size(), "weights don't match" );
 
          std::vector<ui32> y( dat.size() );
          std::vector<ui32> x( dat.size() );
@@ -91,7 +96,7 @@ namespace algorithm
                x[ n ] = static_cast<ui32>( dat[ n ].input[ feature ] );
             }
 
-            const double splitMetric = metric.compute( x, y );
+            const double splitMetric = metric.compute( x, y, weights );
             if ( splitMetric > bestSplitMetric )
             {
                bestSplitMetric = splitMetric;
@@ -116,10 +121,12 @@ namespace algorithm
 
          // finally route the samples according to the split rule
          split_out = std::vector<Database>( _attributMapper.size() );
+         weights_out = std::vector< std::vector< float > >( _attributMapper.size() );
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
             const ui32 branch = test( dat[ n ].input );
             split_out[ branch ].add( dat[ n ] );
+            weights_out[ branch ].push_back( weights[ n ] );
          }
       }
 
@@ -172,11 +179,13 @@ namespace algorithm
        @param dat the database to use
        @param 
        */
-      void compute( const Database& dat, std::vector<Database>& split_out )
+      void compute( const Database& dat, const std::vector<float>& weights, std::vector<Database>& split_out, std::vector< std::vector<float> >& weights_out )
       {
          if ( dat.size() == 0 )
             return;
-         const ui32 nbFeatures = dat[ 0 ].input.size();
+         const ui32 nbFeatures = static_cast<ui32>( dat[ 0 ].input.size() );
+
+         ensure( dat.size() == weights.size(), "weights don't match" );
 
          std::vector<ui32> y( dat.size() );
          std::vector<ui32> x( dat.size() );
@@ -205,7 +214,7 @@ namespace algorithm
                }
 
                // check the split quality
-               const double splitMetric = metric.compute( x, y );
+               const double splitMetric = metric.compute( x, y, weights );
                if ( splitMetric > bestSplitMetric )
                {
                   bestSplitMetric = splitMetric;
@@ -217,10 +226,12 @@ namespace algorithm
 
          // finally route the samples according to the split
          split_out = std::vector<Database>( 2 );
+         weights_out = std::vector< std::vector< float > >( 2 );
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
             const ui32 branch = test( dat[ n ].input );
             split_out[ branch ].add( dat[ n ] );
+            weights_out[ branch ].push_back( weights[ n ] );
          }
       }
 
