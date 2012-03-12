@@ -114,7 +114,7 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|Win32'">$(SolutionDir)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|Win32'">$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|Win32'">false</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|x64'">$(SolutionDir)\$(Configuration)\$(Platform)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|x64'">$(SolutionDir)\Release\$(Platform)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|x64'">$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='ReleaseFull|x64'">false</LinkIncremental>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">$(SolutionDir)\$(Configuration)\$(Platform)\</OutDir>
