@@ -432,6 +432,57 @@ public:
       TESTER_ASSERT( e <= 0.07 );
    }
 
+   void testDecisionTree()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::AdaboostBasic<Database>   Adaboost;
+      typedef algorithm::WeakClassifierDecisionTreeFactory<Database>    Factory;
+
+      srand(10);
+      const ui32 nbPoints = 200;
+      const double mean = 20;
+      const double var = 10;
+      const double d = 12;
+
+      Database dat;
+      ui32 nbClassOne = 0;
+      float max = 0;
+      for ( ui32 n = 0; n < nbPoints; ++n )
+      {
+         const float x = (float)core::generateGaussianDistributionStddev( mean, var );
+         const float y = (float)core::generateGaussianDistributionStddev( mean, var );
+         const bool isInside = std::sqrt( core::sqr( x - mean ) + core::sqr( y - mean ) ) < d;
+         dat.add( Database::Sample( core::make_vector<float>( x, y ), isInside, Database::Sample::LEARNING ) );
+
+         max = std::max( fabs( x ), max );
+         max = std::max( fabs( y ), max );
+         if ( isInside )
+         {
+            ++nbClassOne;
+         }
+      }
+
+      std::cout << "One=" << nbClassOne << " other=" << dat.size() - nbClassOne << std::endl;
+
+      Adaboost classifier;
+      Factory factory( 3, 10 );
+      classifier.learn( dat, 10, factory );
+
+      core::Image<ui8> out;
+      for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
+      {
+         print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), *classifier.getClassifiers()[ n ].classifier, dat, out );
+         core::writeBmp( out, "c:/tmp/decision-tree-" + core::val2str( n ) + ".bmp" );
+      }
+
+      print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), classifier, dat, out );
+      core::writeBmp( out, "c:/tmp/decision-tree-single-" + core::val2str( 0 ) + ".bmp" );
+
+      const double e = getTrainingError( dat, classifier );
+      std::cout << "Error=" << e << std::endl;
+      TESTER_ASSERT( e <= 0.026 );
+   }
+
    void testBoostingLinearSvm()
    {
       typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
@@ -845,6 +896,7 @@ TESTER_TEST(testPerceptron3);
 TESTER_TEST(testPerceptron);
 TESTER_TEST(testPerceptron2);
 TESTER_TEST(testPerceptron4);
+TESTER_TEST(testDecisionTree);
 
 // not working.. samples need to be in range [0..1], but still...
 //TESTER_TEST(testBoostingLinearSvm);

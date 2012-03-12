@@ -41,20 +41,41 @@ namespace algorithm
     @brief Decision tree classifiers, designed to be used with <code>Adaboost</code>
     */
    template <class DatabaseT>
-   class WeakClassifierDecisionTree
+   class WeakClassifierDecisionTree : public WeakClassifier<DatabaseT>
    {
    private:
-      typedef algorithm::TreeNodeSplitDiscrete<DatabaseT, algorithm::InformationGainWeighted> DecisionNode;
-      typedef algorithm::GrowingStrategyFixedDepth<DatabaseT>                                 GrowingStrategy;
+      typedef SplittingCriteriaGaussianApproximation<DatabaseT> SplittingCriteria;
+
+      struct SplittingCriteriaFactory
+      {
+      public:
+         typedef SplittingCriteria value_type;
+
+         SplittingCriteriaFactory( ui32 nbSplits ) : _nbSplits( nbSplits )
+         {}
+
+         value_type create() const
+         {
+            return value_type( _nbSplits );
+         }
+
+      private:
+         ui32  _nbSplits;
+      };
+
+      typedef algorithm::TreeNodeSplitContinuousSingle<DatabaseT, algorithm::InformationGainWeighted, SplittingCriteriaFactory> DecisionNode;
+      typedef algorithm::GrowingStrategyFixedDepth<DatabaseT>                                         GrowingStrategy;
 
       struct DecisionNodeFactory
       {
+         typedef DecisionNode    value_type;
+
          DecisionNodeFactory( ui32 nbSplits ) : _nbSplits( nbSplits )
          {}
 
-         DecisionNode create() const
+         value_type create() const
          {
-            return DecisionNode( _nbSplits );
+            return value_type( SplittingCriteriaFactory( _nbSplits ) );
          }
 
       private:
@@ -76,14 +97,15 @@ namespace algorithm
        */
       virtual value_type learn( const Database& database, const core::Buffer1D<value_type> weights )
       {
-         DecisionNodeFactory nodeFactory;
+         DecisionNodeFactory nodeFactory( _nbSplits );
          GrowingStrategy growingStrategy( _maxDepth );
          _classifier.compute( database, nodeFactory, growingStrategy, weights );
+         return -1;  // not handled
       }
 
       virtual ui32 test( const typename Database::Sample::Input& input ) const
       {
-         _classifier.test( input );
+         return _classifier.test( input );
       }
 
       virtual ~WeakClassifierDecisionTree()
@@ -93,6 +115,29 @@ namespace algorithm
       Classifier     _classifier;
       ui32           _maxDepth;
       ui32           _nbSplits;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief Stump factory
+    */
+   template <class DatabaseT>
+   class WeakClassifierDecisionTreeFactory
+   {
+   public:
+      typedef WeakClassifierDecisionTree<DatabaseT>      value_type;
+
+      WeakClassifierDecisionTreeFactory( ui32 maxDepth = 4, ui32 nbSplits = 10 ) : _maxDepth( maxDepth ), _nbSplits( nbSplits )
+      {}
+
+      std::shared_ptr<value_type> create() const
+      {
+         return std::shared_ptr<value_type>( new value_type( _maxDepth, _nbSplits ) );
+      }
+
+   private:
+      ui32  _maxDepth;
+      ui32  _nbSplits;
    };
 }
 }

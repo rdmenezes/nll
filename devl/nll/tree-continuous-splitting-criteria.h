@@ -65,7 +65,7 @@ namespace algorithm
           "Efficient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
     */
    template <class DatabaseT>
-   class SplittingCriteriaGaussianApproximation : ContinuousSplittingCriteria<DatabaseT>
+   class SplittingCriteriaGaussianApproximation : public ContinuousSplittingCriteria<DatabaseT>
    {
    public:
       SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
@@ -119,7 +119,7 @@ namespace algorithm
           "Effcient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
     */
    template <class DatabaseT>
-   class SplittingCriteriaUniformApproximation : ContinuousSplittingCriteria<DatabaseT>
+   class SplittingCriteriaUniformApproximation : public ContinuousSplittingCriteria<DatabaseT>
    {
    public:
       SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
