@@ -605,7 +605,7 @@ namespace algorithm
       public:
          typedef SimilarityNonIsotropicTransformationEstimatorRansac Estimator;
          SurfEstimatorSimilarityNonIsotropicFactory( const SpeededUpRobustFeatures::Points& p1, const SpeededUpRobustFeatures::Points& p2,
-                                                 double minimumScale = 0.5, double maximumScale = 1.5 ) : _p1( &p1 ), _p2( &p2 ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+                                                 double minimumScale = 0.4, double maximumScale = 2 ) : _p1( &p1 ), _p2( &p2 ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
          {}
 
          std::auto_ptr<Estimator> create() const

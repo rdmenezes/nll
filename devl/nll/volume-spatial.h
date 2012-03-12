@@ -84,8 +84,9 @@ namespace imaging
                      const Matrix& pst,
                      T background = 0,
                      bool zero = true,
-                     std::auto_ptr<core::Context> context = std::auto_ptr<core::Context>() ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _pst( pst ), _context( context )
+                     std::shared_ptr<core::Context> context = std::shared_ptr<core::Context>() ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _context( context )
       {
+         _pst.clone( pst );
          _constructVolume();
       }
 
@@ -362,7 +363,7 @@ namespace imaging
       core::vector3f _spacing;
       Matrix         _invertedPst;
 
-      std::auto_ptr<core::Context>  _context;   // can hold specific information such as the original DICOM tags...
+      std::shared_ptr<core::Context>  _context;   // can hold specific information such as the original DICOM tags...
    };
 }
 }
