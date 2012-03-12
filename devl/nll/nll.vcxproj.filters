@@ -698,6 +698,12 @@
     <ClInclude Include="indent.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="decision-tree.h">
+      <Filter>algorithm-tree</Filter>
+    </ClInclude>
+    <ClInclude Include="boosting-weak-classifier-decision-tree.h">
+      <Filter>algorithm-boosting</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

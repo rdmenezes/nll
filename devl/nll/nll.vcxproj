@@ -365,12 +365,14 @@
     <ClInclude Include="bayesian-network-utils.h" />
     <ClInclude Include="bayesian-network.h" />
     <ClInclude Include="boosting-adaboost-basic.h" />
+    <ClInclude Include="boosting-weak-classifier-decision-tree.h" />
     <ClInclude Include="boosting-weak-classifier-mlp.h" />
     <ClInclude Include="boosting-weak-classifier-perceptron.h" />
     <ClInclude Include="boosting-weak-classifier-stump.h" />
     <ClInclude Include="boosting-weak-classifier.h" />
     <ClInclude Include="Buffer1D-basic-op.h" />
     <ClInclude Include="buffer1D.h" />
+    <ClInclude Include="decision-tree.h" />
     <ClInclude Include="configuration.h" />
     <ClInclude Include="context.h" />
     <ClInclude Include="converter.h" />

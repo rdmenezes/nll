@@ -380,6 +380,12 @@
 # include "registration-ct-ct-planar.h"
 # include "perceptron-margin.h"
 
+// Trees
+# include "tree-continuous-splitting-criteria.h"
+# include "information-measure.h"
+# include "tree-node-split.h"
+# include "decision-tree.h"
+
 // Bayesian network related files
 # include "potential-gaussian-moment.h"
 # include "potential-gaussian-canonical.h"
@@ -396,12 +402,9 @@
 # include "boosting-weak-classifier-stump.h"
 # include "boosting-weak-classifier-mlp.h"
 # include "boosting-weak-classifier-perceptron.h"
+# include "boosting-weak-classifier-decision-tree.h"
 # include "boosting-adaboost-basic.h"
 
-// Trees
-# include "tree-continuous-splitting-criteria.h"
-# include "information-measure.h"
-# include "tree-node-split.h"
 
 /// @defgroup utility
 # include "mask-exporter.h"
