@@ -432,6 +432,67 @@ public:
       TESTER_ASSERT( e <= 0.07 );
    }
 
+   void testDecisionTree2()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::WeakClassifierDecisionTreeFactory<Database>    Factory;
+      typedef Factory::value_type Classifier;
+      
+      {
+         Database dat;
+
+         dat.add( Database::Sample( core::make_vector<float>( 0, 0 ), 1, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, 1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, 2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, -1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, -2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, 0 ), 0, Database::Sample::LEARNING ) );
+
+         core::Buffer1D<float> ws = makeWeights( dat );
+
+         Classifier c( 1 );
+         c.learn( dat, ws );
+
+         const Classifier::Classifier& cc = c.getTree();
+         TESTER_ASSERT( cc.getNodes().size() == 2 );
+
+         const Classifier::Classifier& cc1 = c.getTree().getNodes()[ 0 ];
+         const Classifier::Classifier& cc2 = c.getTree().getNodes()[ 0 ];
+         TESTER_ASSERT( cc1.getNodes().size() == 0 );
+         TESTER_ASSERT( cc2.getNodes().size() == 0 );
+         const float error = getTrainingError( dat, c );
+         TESTER_ASSERT( core::equal( error, 1.0f / 6, 0.001f ) ); // without weight, we just classify everything as 0, so we expect to have only one error
+      }
+
+
+      {
+         // do the same as before, but with the weight this time!
+         Database dat;
+
+         dat.add( Database::Sample( core::make_vector<float>( 0, 0 ), 1, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, 1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, 2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, -1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, -2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, 0 ), 0, Database::Sample::LEARNING ) );
+
+         core::Buffer1D<float> ws = core::make_buffer1D<float>( 10, 1, 1, 1, 1, 1 );
+
+         Classifier c( 1 );
+         c.learn( dat, ws );
+
+         const Classifier::Classifier& cc = c.getTree();
+         TESTER_ASSERT( cc.getNodes().size() == 2 );
+
+         const Classifier::Classifier& cc1 = c.getTree().getNodes()[ 0 ];
+         const Classifier::Classifier& cc2 = c.getTree().getNodes()[ 0 ];
+         TESTER_ASSERT( cc1.getNodes().size() == 0 );
+         TESTER_ASSERT( cc2.getNodes().size() == 0 );
+         const float error = getTrainingError( dat, c );
+         TESTER_ASSERT( core::equal( error, 3.0f / 6, 0.001f ) ); // without weight, we just classify everything as 0, so we expect to have only one error
+      }
+   }
+
    void testDecisionTree()
    {
       typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
@@ -459,8 +520,8 @@ public:
       std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
 
       Adaboost classifier; 
-      Factory factory( 3, 50 );
-      classifier.learn( dat, 10, factory );
+      Factory factory( 2, 15 );
+      classifier.learn( dat, 30, factory );
 
       core::Image<ui8> out;
       for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
@@ -474,7 +535,7 @@ public:
       std::cout << "ErrorSingle="  << getTrainingError( dat, classifier ) << std::endl;
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.026 );
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.0 );
    }
 
    void testBoostingLinearSvm()
@@ -788,7 +849,8 @@ private:
       Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
       for ( ui32 n = 0; n < learning.size(); ++n )
       {
-         if ( c.test( learning[ n ].input ) != learning[ n ].output )
+         const ui32 cc = c.test( learning[ n ].input );
+         if ( cc != learning[ n ].output )
             ++nbErrors;
       }
 
@@ -878,7 +940,6 @@ private:
 #ifndef DONT_RUN_TEST
 
 TESTER_TEST_SUITE(TestBoosting);
-/*
 TESTER_TEST(testStumpInf1);
 TESTER_TEST(testStumpInf2);
 TESTER_TEST(testStumpInf3);
@@ -891,9 +952,9 @@ TESTER_TEST(testPerceptron3);
 TESTER_TEST(testPerceptron);
 TESTER_TEST(testPerceptron2);
 TESTER_TEST(testPerceptron4);
-*/
-//TESTER_TEST(testStumpInf4);
+TESTER_TEST(testStumpInf4);
 TESTER_TEST(testDecisionTree);
+TESTER_TEST(testDecisionTree2);
 
 // not working.. samples need to be in range [0..1], but still...
 //TESTER_TEST(testBoostingLinearSvm);

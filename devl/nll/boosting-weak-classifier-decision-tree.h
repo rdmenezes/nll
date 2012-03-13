@@ -44,7 +44,8 @@ namespace algorithm
    class WeakClassifierDecisionTree : public WeakClassifier<DatabaseT>
    {
    private:
-      typedef SplittingCriteriaUniformApproximation<DatabaseT> SplittingCriteria;
+      //typedef SplittingCriteriaUniformApproximation<DatabaseT> SplittingCriteria;
+      typedef SplittingCriteriaGaussianApproximation<DatabaseT> SplittingCriteria;
 
       struct SplittingCriteriaFactory
       {
@@ -111,6 +112,14 @@ namespace algorithm
 
       virtual ~WeakClassifierDecisionTree()
       {}
+
+      /**
+       @brief Exposes the internals, mostly for test purposes...
+       */
+      const Classifier& getTree() const
+      {
+         return _classifier;
+      }
 
    private:
       Classifier     _classifier;

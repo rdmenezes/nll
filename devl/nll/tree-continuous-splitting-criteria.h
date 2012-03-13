@@ -70,6 +70,7 @@ namespace algorithm
    public:
       SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
       {
+         ensure( _nbSplits > 2, "not enough splits" );
       }
 
       /**
@@ -102,7 +103,7 @@ namespace algorithm
          for ( ui32 n = 0; n < _nbSplits; ++n )
          {
             // split ratio from [-1, 1] domain
-            const value_type splitRatio = 2 * static_cast<value_type>( n ) / ( _nbSplits + 1 ) - 1;
+            const value_type splitRatio = 2 * static_cast<value_type>( n ) / ( _nbSplits - 1 ) - 1;
             const value_type ratio = static_cast<value_type>( core::CumulativeGaussianFunction::erfinv_lut( splitRatio ) );
             const value_type split = accumMean + accumStddev * ratio;
             outSplits.push_back( split );
@@ -145,11 +146,13 @@ namespace algorithm
             max = std::max( max, dat[ n ].input[ featureId ] );
          }
 
+         const value_type interval = ( max - min ) / _nbSplits;
+
          // now get all the splits
          outSplits.reserve( _nbSplits );
          for ( ui32 n = 0; n < _nbSplits; ++n )
          {
-            const value_type split = min + n * ( max - min ) / ( _nbSplits + 1 );
+            const value_type split = min + n * ( max - min ) / ( _nbSplits ) - 0.5 * interval;
             outSplits.push_back( split );
          }
       }

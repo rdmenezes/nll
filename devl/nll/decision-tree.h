@@ -72,7 +72,7 @@ namespace algorithm
          /**
           @brief returns the class of a current node
           */
-         virtual Class getNodeClass( const Database& dat ) const = 0;
+         virtual Class getNodeClass( const Database& dat, const std::vector<float>& weights ) const = 0;
       };
 
       /**
@@ -135,6 +135,25 @@ namespace algorithm
          }
       }
 
+      const std::vector<DecisionTree>& getNodes() const
+      {
+         return _nodes;
+      }
+
+      const std::shared_ptr<NodeSplit>& getSplits() const
+      {
+         return _split;
+      }
+
+      /**
+       @brief Only valid when getNodes().size() == 0
+       */
+      Class getNodeClass() const
+      {
+         return _nodeClass;
+      }
+
+
    private:
       // recursively grow the tree on the sub nodes
       template <class NodeFactory>
@@ -145,7 +164,7 @@ namespace algorithm
 
          if ( !continueGrowth )
          {
-            _nodeClass = growingStrategy.getNodeClass( dat );
+            _nodeClass = growingStrategy.getNodeClass( dat, weights );
             return;
          }
 
@@ -204,7 +223,7 @@ namespace algorithm
       /**
        @brief returns the class of a current node
        */
-      virtual Class getNodeClass( const Database& dat ) const
+      virtual Class getNodeClass( const Database& dat, const std::vector<float>& weights ) const
       {
          // get the max class to be able to count the classes
          ui32 max = 0;
@@ -214,14 +233,15 @@ namespace algorithm
          }
 
          // count the classes
-         std::vector<ui32> counts( max + 1 );
+         std::vector<float> counts( max + 1 );
          for ( ui32 n = 0; n < dat.size(); ++n )
          {
-            ++counts[ dat[ n ].output ];
+            const float w = weights[ n ];
+            counts[ dat[ n ].output ] += w;
          }
 
          // return the max count class
-         std::vector<ui32>::const_iterator it = std::max_element( counts.begin(), counts.end() );
+         std::vector<float>::const_iterator it = std::max_element( counts.begin(), counts.end() );
          return static_cast<Class>( it - counts.begin() );
       }
 
