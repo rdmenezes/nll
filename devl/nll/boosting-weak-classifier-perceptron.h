@@ -69,10 +69,10 @@ namespace algorithm
       }
 
    private:
-      ui32                          _nbCycles;
-      value_type                    _learningRate;
-      value_type                    _margin;
-      algorithm::MarginPerceptron   _classifier;
+      ui32                                _nbCycles;
+      value_type                          _learningRate;
+      value_type                          _margin;
+      algorithm::MarginPocketPerceptron   _classifier;
    };
 
    /**
@@ -83,22 +83,22 @@ namespace algorithm
    class WeakClassifierMarginPerceptronFactory
    {
    public:
-      typedef WeakClassifierMarginPerceptron<DatabaseT>  Classifier;
-      typedef typename Classifier::value_type            value_type;
+      typedef WeakClassifierMarginPerceptron<DatabaseT>  value_type;
+      typedef typename value_type::value_type            value_type_float;
 
-      WeakClassifierMarginPerceptronFactory( ui32 nbCycles, value_type learningRate, value_type margin = 0 ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
+      WeakClassifierMarginPerceptronFactory( ui32 nbCycles, value_type_float learningRate, value_type_float margin = 0 ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
       {
       }
 
-      std::shared_ptr<Classifier> create() const
+      std::shared_ptr<value_type> create() const
       {
-         return std::shared_ptr<Classifier>( new Classifier( _nbCycles, _learningRate, _margin ) );
+         return std::shared_ptr<value_type>( new value_type( _nbCycles, _learningRate, _margin ) );
       }
 
    private:
       ui32                          _nbCycles;
-      value_type                    _learningRate;
-      value_type                    _margin;
+      value_type_float              _learningRate;
+      value_type_float              _margin;
    };
 }
 }

@@ -493,6 +493,55 @@ public:
       }
    }
 
+
+   void testPerceptronWeights()
+   {
+      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>    Factory;
+      typedef Factory::value_type Classifier;
+      
+      
+      {
+         Database dat;
+
+         dat.add( Database::Sample( core::make_vector<float>( 0, 0 ), 1, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, 1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, 2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, -1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 0, -2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, 0 ), 0, Database::Sample::LEARNING ) );
+
+         core::Buffer1D<float> ws = makeWeights( dat );
+
+         Classifier c( 10, 1, 0 );
+         c.learn( dat, ws );
+
+         const float error = getTrainingError( dat, c );
+         TESTER_ASSERT( core::equal( error, 1.0f / 6, 0.001f ) ); // without weight, we just classify everything as 0, so we expect to have only one error
+      }
+
+
+      {
+         // do the same as before, but with the weight this time!
+         Database dat;
+
+         dat.add( Database::Sample( core::make_vector<float>( 1, 0 ), 1, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, 1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, 2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, -1 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 1, -2 ), 0, Database::Sample::LEARNING ) );
+         dat.add( Database::Sample( core::make_vector<float>( 2, 0 ), 0, Database::Sample::LEARNING ) );
+
+         core::Buffer1D<float> ws = core::make_buffer1D<float>( 10, 1, 1, 1, 1, 1 );
+
+         Classifier c( 10, 1, 0 );
+         c.learn( dat, ws );
+
+         const float error = getTrainingError( dat, c );
+         TESTER_ASSERT( core::equal( error, 2.0f / 6, 0.001f ) ); // without weight, we just classify everything as 0, so we expect to have only one error
+      }
+   }
+
    void testDecisionTree()
    {
       typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
@@ -791,7 +840,7 @@ public:
       const ui32 nbPoints = 200;
       const double mean = 20;
       const double var = 10;
-      const double d = 18;
+      const double d = 10;
 
 
       Database dat;
@@ -808,8 +857,8 @@ public:
       std::cout << "class distrib: 1=" << nbOne << " -1=" << (dat.size() - nbOne ) << std::endl;
 
       Adaboost classifier; 
-      Factory factory( 1000, 0.1, 0 );
-      classifier.learn( dat, 10, factory );
+      Factory factory( 100, 1, 0 );
+      classifier.learn( dat, 30, factory );
 
       core::Image<ui8> out;
       for ( size_t n = 0; n < classifier.getClassifiers().size(); ++n )
@@ -819,15 +868,13 @@ public:
       }
 
       {
-         algorithm::MarginPerceptron classifier;
-         classifier.learn( dat, 100, 0.1, 0.01 );
          print( core::vector2i( -50, -50 ), core::vector2i( 50, 50 ), classifier, dat, out );
          core::writeBmp( out, "c:/tmp/decision4-single-" + core::val2str( 0 ) + ".bmp" );
          std::cout << "ErrorSingle="  << getTrainingError( dat, classifier ) << std::endl;
       }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.17 ); // perceptron implementation works well, but it seems not combined with adaboost as it is not increasing the accuracy...
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.006 ); // perceptron implementation works well, but it seems not combined with adaboost as it is not increasing the accuracy...
    }
 
 private:
@@ -951,10 +998,12 @@ TESTER_TEST(testStumpInf4);
 TESTER_TEST(testPerceptron3);
 TESTER_TEST(testPerceptron);
 TESTER_TEST(testPerceptron2);
-TESTER_TEST(testPerceptron4);
+
 TESTER_TEST(testStumpInf4);
 TESTER_TEST(testDecisionTree);
 TESTER_TEST(testDecisionTree2);
+TESTER_TEST(testPerceptronWeights);
+TESTER_TEST(testPerceptron4);
 
 // not working.. samples need to be in range [0..1], but still...
 //TESTER_TEST(testBoostingLinearSvm);
