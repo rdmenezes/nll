@@ -44,7 +44,7 @@ namespace algorithm
    class WeakClassifierDecisionTree : public WeakClassifier<DatabaseT>
    {
    private:
-      typedef SplittingCriteriaGaussianApproximation<DatabaseT> SplittingCriteria;
+      typedef SplittingCriteriaUniformApproximation<DatabaseT> SplittingCriteria;
 
       struct SplittingCriteriaFactory
       {
@@ -63,8 +63,9 @@ namespace algorithm
          ui32  _nbSplits;
       };
 
-      typedef algorithm::TreeNodeSplitContinuousSingle<DatabaseT, algorithm::InformationGainWeighted, SplittingCriteriaFactory> DecisionNode;
-      typedef algorithm::GrowingStrategyFixedDepth<DatabaseT>                                         GrowingStrategy;
+      typedef algorithm::InformationGainWeighted   Metric;
+      typedef algorithm::TreeNodeSplitContinuousSingle<DatabaseT, Metric, SplittingCriteriaFactory> DecisionNode;
+      typedef algorithm::GrowingStrategyFixedDepth<DatabaseT>                                       GrowingStrategy;
 
       struct DecisionNodeFactory
       {

@@ -48,7 +48,7 @@ namespace algorithm
 
    public:
       /**
-       @param weights the weights given to each sample. it must sum to 1
+       @param weights the weights given to each sample
        */
       virtual void compute( const Database& dat, const std::vector<float>& weights, std::vector<Database>& split_out, std::vector< std::vector<float> >& weights_out ) = 0;
       virtual ui32 test( const Point& p ) const = 0;

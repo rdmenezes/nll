@@ -80,21 +80,12 @@ namespace algorithm
        @param dat input database
        @param nodeFactory the factory that will create each decision node
        @param growingStrategy the strategy that will control how the tree is growing
-       @param weights a weights attributed to each sample. sum(weights) == 1
+       @param weights a weights attributed to each sample. It can be empty.
        */
       template <class NodeFactory>
       void compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, const core::Buffer1D<float> weights = core::Buffer1D<float>() )
       {
          ensure( weights.size() == dat.size() || weights.size() == 0, "weights must have the same size as database or empty" );
-
-         #ifdef NLL_SECURE
-         if ( weights.size() )
-         {
-            const float sumw = std::accumulate( weights.begin(), weights.end(), 0.0f );
-            ensure( core::equal( sumw, 1.0f, 0.01f ), "sum of weights must be 1" );
-         }
-         #endif
-
          Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
 
          std::vector<float> w;
@@ -204,7 +195,7 @@ namespace algorithm
             if ( c != data.data[ n ].output )
             {
                // the node is impure, check we are below the allowed depth
-               return data.depth <= _maxDepth;
+               return data.depth < _maxDepth;
             }
          }
          return false;  // node is pure! can't get better now...

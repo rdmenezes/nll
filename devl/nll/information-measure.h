@@ -172,13 +172,14 @@ namespace algorithm
          }
 
          const ui32 range = static_cast<ui32>( max - min ) + 1;
-         std::vector<value_type_weights> counts( range );
-         value_type_weights totalWeights = 0;
+         std::vector<double> counts( range );
+         double totalWeights = 0;
          for ( ui32 n = 0; n < v.size(); ++n )
          {
+            const double w = static_cast<double>( weights[ n ] );
             ui32 c = static_cast<ui32>( v[ n ] - min );
-            counts[ c ] += weights[ n ];
-            totalWeights += weights[ n ];
+            counts[ c ] += w;
+            totalWeights += w;
          }
 
          #ifdef NLL_SECURE
@@ -188,9 +189,9 @@ namespace algorithm
          double entropy = 0;
          for ( size_t n = 0; n < counts.size(); ++n )
          {
-            if ( counts[ n ] )
+            if ( counts[ n ] > 0 )
             {
-               const double p = static_cast<double>( counts[ n ] ) / totalWeights;
+               const double p = counts[ n ] / totalWeights;
                entropy -= p * core::log2( p );
             }
          }
@@ -225,11 +226,14 @@ namespace algorithm
             max = std::max( max, x[ n ] );
          }
 
-         std::vector<value_type_weights> counts( max + 1 );
+         double totalWeights = 0;
+         std::vector<double> counts( max + 1 );
          for ( ui32 n = 0; n < x.size(); ++n )
          {
+            const double w = static_cast<double>( weights[ n ] );
             ui32 i = static_cast<ui32>( x[ n ] );
-            counts[ i ] += weights[ n ];
+            counts[ i ] += w;
+            totalWeights += w;
          }
 
          std::vector< std::vector< value_type_weights > > condw( max + 1 );
@@ -253,7 +257,7 @@ namespace algorithm
             if ( counts[ n ] )
             {
                const double e = compute( cond[ n ], condw[ n ] );
-               entropy += static_cast<double>( counts[ n ] ) * e;
+               entropy += counts[ n ] / totalWeights * e;
             }
          }
 
