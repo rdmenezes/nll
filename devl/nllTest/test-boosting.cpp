@@ -832,6 +832,7 @@ public:
 
    void testPerceptron4()
    {
+      srand( 0 );
       typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
