@@ -210,6 +210,18 @@ namespace core
                      v[ 0 ] * m( 2, 0 ) + v[ 1 ] * m( 2, 1 ) + v[ 2 ] * m( 2, 2 ) + m( 2, 3 ) );
    }
 
+   /**
+    @ingroup core
+    @brief Transform a 2-vector with an affine 3x3 transformation matrix, computing Mv', with v' = [ v[ x, y ], 1 ]
+    */
+   template <class T, class Mapper, class Allocator, class Vector>
+   Vector transf3( const core::Matrix<T, Mapper, Allocator>& m, const Vector& v )
+   {
+      assert( m.sizex() == 3 && m.sizey() == 3 );
+      return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + m( 0, 2 ),
+                     v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + m( 1, 2 ) );
+   }
+
 
    /**
     @ingroup core

@@ -662,10 +662,11 @@ namespace algorithm
     @note this class is just an example and will likely need a lot of customization by the user to fit
           the given registration problem
     */
-   template <class FactoryT = impl::SurfEstimatorSimilarityIsotropicFactory, class FeatureMatcher = impl::FeatureMatcher>
+   template <class FactoryT = impl::SurfEstimatorSimilarityIsotropicFactory, class FeatureMatcherT = impl::FeatureMatcher>
    class AffineRegistrationPointBased2d
    {
    public:
+      typedef FeatureMatcherT                                  FeatureMatcher;
       typedef typename FactoryT::Estimator                     RansacTransformationEstimator;
       typedef FactoryT                                         Factory;
       typedef core::Matrix<double>                             Matrix;
@@ -754,7 +755,7 @@ namespace algorithm
          {
             throw std::runtime_error( "No match found" );
          }
-         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 1000, (ui32)matches.size() - 1 ) );
+         FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 1000, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::Ransac<RansacTransformationEstimator, Factory> Ransac;
