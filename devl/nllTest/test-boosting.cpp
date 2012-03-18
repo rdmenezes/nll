@@ -875,7 +875,7 @@ public:
       }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.006 ); // perceptron implementation works well, but it seems not combined with adaboost as it is not increasing the accuracy...
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.006 ); 
    }
 
 private:
@@ -986,7 +986,6 @@ private:
 };
 
 #ifndef DONT_RUN_TEST
-
 TESTER_TEST_SUITE(TestBoosting);
 TESTER_TEST(testStumpInf1);
 TESTER_TEST(testStumpInf2);

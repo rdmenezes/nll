@@ -300,6 +300,9 @@
  - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
+# include "function.h"
+# include "gradient-descent.h"
+# include "linear-regression.h"
 # include "bracketing.h"
 # include "brent.h"
 # include "powell.h"

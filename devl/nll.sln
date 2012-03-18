@@ -12,6 +12,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tester", "tester\tester.vcxproj", "{7F2576E1-EA39-410D-AB31-7D50DD9029AA}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tutorial", "tutorial\tutorial.vcxproj", "{F1885B35-439E-4129-9EB5-5704660C406A}"
+	ProjectSection(ProjectDependencies) = postProject
+		{859D4214-0EA1-499F-B20D-2DA6C0DC5AFE} = {859D4214-0EA1-499F-B20D-2DA6C0DC5AFE}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "mvvLauncher", "mvvLauncher\mvvLauncher.vcxproj", "{D6D7B97F-DB6F-48CE-BDAB-E3A98BC158C4}"
 	ProjectSection(ProjectDependencies) = postProject

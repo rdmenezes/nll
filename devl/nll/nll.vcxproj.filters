@@ -42,6 +42,9 @@
     <Filter Include="algorithm-tree">
       <UniqueIdentifier>{c4bdd27f-e747-47e0-81ab-d6b52f319a05}</UniqueIdentifier>
     </Filter>
+    <Filter Include="algorithm-optimization">
+      <UniqueIdentifier>{9c5ed6b1-381f-4caa-ad99-76ff51094a7d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nll.cpp">
@@ -703,6 +706,15 @@
     </ClInclude>
     <ClInclude Include="boosting-weak-classifier-decision-tree.h">
       <Filter>algorithm-boosting</Filter>
+    </ClInclude>
+    <ClInclude Include="function.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="gradient-descent.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="linear-regression.h">
+      <Filter>algorithm-impl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

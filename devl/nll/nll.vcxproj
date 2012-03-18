@@ -382,8 +382,10 @@
     <ClInclude Include="database.h" />
     <ClInclude Include="ensure.h" />
     <ClInclude Include="estimator-affine-transformation.h" />
+    <ClInclude Include="function.h" />
     <ClInclude Include="generic-operations.h" />
     <ClInclude Include="geometry.h" />
+    <ClInclude Include="gradient-descent.h" />
     <ClInclude Include="graph-adjency-list.h" />
     <ClInclude Include="graph-algorithms.h" />
     <ClInclude Include="graph-traits.h" />
@@ -412,6 +414,7 @@
     <ClInclude Include="index-mapper.h" />
     <ClInclude Include="information-measure.h" />
     <ClInclude Include="io.h" />
+    <ClInclude Include="linear-regression.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="math-correlation.h" />

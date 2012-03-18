@@ -11,10 +11,12 @@ v0.16
 -added graph classes and basic algorithms
 -added 2D transformation estimators (similarity isotropic/anisotropic, isometry)
 -added 3D distance transform
--added boosting algorithms
 -improved 2D point based registration
 -added weighted learning for linear SVM & neural network
 -improved ransac with weighted error
+-added new versions of adaboost
+-added weak learners (neural nets, perceptron, stumps, decision trees)
+-added generic decision trees (discrete and continuous)
 
 v0.15
 -added locally linear embedding for feature selection & data structure display
