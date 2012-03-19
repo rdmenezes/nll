@@ -49,54 +49,50 @@ namespace algorithm
    class ObjectiveFunction : public core::NonCopyable
    {
    public:
-      typedef typename Database::Sample::Input::value_type value_type;
-      typedef typename Database::Sample::Input  Point;
-      typedef typename Database::Sample::Output Output;
+      typedef typename Database::Sample::Input::value_type  value_type;
+      typedef typename Database::Sample::Input              Point;
+      typedef typename Database::Sample::Output             Output;
+      typedef typename Database::Sample                     Sample;
 
-      ObjectiveFunction( const Database& learningDatabase ) : _learningDatabase( learningDatabase )
+      ObjectiveFunction()
       {}
-
-      /**
-       @brief compute the cost function, by default it computes sum_i(evaluate(theta, i)) / 2
-       */
-      virtual double computeCostFunction( const core::Buffer1D<double>& theta ) const = 0;
-
-      /**
-       @brief Given our model <theta>, Compute the gradient of the sample at index <sampleIndex>
-       */
-      virtual core::Buffer1D<double> computeGradient( const core::Buffer1D<double>& theta, ui32 sampleIndex ) const = 0;
 
       virtual ~ObjectiveFunction()
       {}
 
-      const Database& getDatabase() const
-      {
-         return _learningDatabase;
-      }
+      /**
+       @brief compute the cost function (i.e. for all the samples)
+       */
+      virtual double computeCostFunction( const core::Buffer1D<double>& theta, const Database& dat, const std::vector<double>& weights ) const = 0;
 
-   protected:
-      const Database&      _learningDatabase;
+      /**
+       @brief Given our model <theta>, Compute the gradient of a specific sample
+       */
+      virtual core::Buffer1D<double> computeGradient( const core::Buffer1D<double>& theta, const Sample& sample, double weight ) const = 0;
    };
 
    /**
     @brief Optimization algorithm for <Function>
     */
    template <class Database>
-   class FunctionOptimization
+   class FunctionOptimizer
    {
    public:
       typedef typename Database::Sample::Input  Point;
 
       /**
        @brief Optimize the <function>
+       @param learningDatabase the learning database only!
        @param initialParameters the initial starting point
        @param nbIterations the number of iterations
        */
-      virtual core::Buffer1D<double> compute( const ObjectiveFunction<Database>& function,
+      virtual core::Buffer1D<double> compute( const Database& learningDatabase,
+                                              const std::vector<double>& weights,
+                                              const ObjectiveFunction<Database>& function,
                                               const core::Buffer1D<double>& initialParameters,
                                               ui32 nbIterations ) const = 0;
 
-      virtual ~FunctionOptimization()
+      virtual ~FunctionOptimizer()
       {}
    };
 }

@@ -42,26 +42,35 @@ namespace algorithm
     The model is updated when all the samples have been analysed
     */
    template <class Database>
-   class FunctionOptimizationGradientDescentBatch : public FunctionOptimization<Database>
+   class FunctionOptimizationGradientDescentBatch : public FunctionOptimizer<Database>
    {
    public:
       FunctionOptimizationGradientDescentBatch( double learningRate ) : _learningRate( learningRate )
       {}
 
-      virtual core::Buffer1D<double> compute( const ObjectiveFunction<Database>& function,
+      virtual core::Buffer1D<double> compute( const Database& datLearning,
+                                              const std::vector<double>& weights,
+                                              const ObjectiveFunction<Database>& function,
                                               const core::Buffer1D<double>& initialParameters,
                                               ui32 nbIterations ) const
       {
-         const Database& dat = function.getDatabase();
+         #ifdef NLL_SECURE
+         for ( ui32 n = 0; n < datLearning.size(); ++n )
+         {
+            ensure( datLearning[ n ].type == Database::Sample::LEARNING, "only learning database allowed!" );
+         }
+         #endif
+
+         ensure( weights.size() == datLearning.size(), "size mismatch" );
 
          core::Buffer1D<double> model;
          model.clone( initialParameters );
          for ( ui32 n = 0; n < nbIterations; ++n )
          {
             core::Buffer1D<double> gradientMean( model.size() );
-            for ( ui32 s = 0; s < dat.size(); ++s )
+            for ( ui32 s = 0; s < datLearning.size(); ++s )
             {
-               core::Buffer1D<double> gradient = function.computeGradient( model, s );
+               core::Buffer1D<double> gradient = function.computeGradient( model, datLearning[ s ], weights[ s ] );
                for ( ui32 m = 0; m < gradient.size(); ++m )
                {
                   gradientMean[ m ] -= gradient[ m ];
@@ -70,7 +79,7 @@ namespace algorithm
 
             for ( ui32 m = 0; m < gradientMean.size(); ++m )
             {
-               model[ m ] += _learningRate * gradientMean[ m ];
+               model[ m ] += _learningRate * gradientMean[ m ] / datLearning.size();
             }
          }
 
@@ -88,28 +97,37 @@ namespace algorithm
     much faster than the regular gradient descent
     */
    template <class Database>
-   class FunctionOptimizationGradientDescentStochastic : public FunctionOptimization<Database>
+   class FunctionOptimizationGradientDescentStochastic : public FunctionOptimizer<Database>
    {
    public:
       FunctionOptimizationGradientDescentStochastic( double learningRate ) : _learningRate( learningRate )
       {}
 
-      virtual core::Buffer1D<double> compute( const ObjectiveFunction<Database>& function,
+      virtual core::Buffer1D<double> compute( const Database& datLearning,
+                                              const std::vector<double>& weights,
+                                              const ObjectiveFunction<Database>& function,
                                               const core::Buffer1D<double>& initialParameters,
                                               ui32 nbIterations ) const
       {
-         const Database& dat = function.getDatabase();
+         #ifdef NLL_SECURE
+         for ( ui32 n = 0; n < datLearning.size(); ++n )
+         {
+            ensure( datLearning[ n ].type == Database::Sample::LEARNING, "only learning database allowed!" );
+         }
+         #endif
+
+         ensure( weights.size() == datLearning.size(), "size mismatch" );
 
          core::Buffer1D<double> model;
          model.clone( initialParameters );
          for ( ui32 n = 0; n < nbIterations; ++n )
          {
-            for ( ui32 s = 0; s < dat.size(); ++s )
+            for ( ui32 s = 0; s < datLearning.size(); ++s )
             {
-               core::Buffer1D<double> gradient = function.computeGradient( model, s );
+               core::Buffer1D<double> gradient = function.computeGradient( model, datLearning[ s ], weights[ s ] );
                for ( ui32 m = 0; m < gradient.size(); ++m )
                {
-                  model[ m ] -= _learningRate * gradient[ m ];
+                  model[ m ] -= _learningRate * gradient[ m ] / datLearning.size();
                }
             }
          }

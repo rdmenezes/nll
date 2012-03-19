@@ -52,21 +52,21 @@ namespace algorithm
          typedef typename Database::Sample::Input Point;
 
       public:
-         FunctionRegression( const Database& learningDatabase, const std::vector<float>& weights ) : ObjectiveFunction( learningDatabase ), _weights( weights )
+         FunctionRegression()
          {}
 
          /**
             @brief Given our model <theta>, Compute the gradient
             */
-         virtual core::Buffer1D<double> computeGradient( const core::Buffer1D<double>& theta, ui32 index ) const
+         virtual core::Buffer1D<double> computeGradient( const core::Buffer1D<double>& theta, const Sample& sample, double weight ) const
          {
             core::Buffer1D<double> g( theta.size() );
-            const ui32 nbInput = _learningDatabase[ 0 ].input.size();
+            const ui32 nbInput = sample.input.size();
 
-            const double error = test( theta, _learningDatabase[ index ].input ) - _learningDatabase[ index ].output;
-            const double gradient = _weights[ index ] * error / _learningDatabase.size();
+            const double error = test( theta, sample.input ) - sample.output;
+            const double gradient = weight * error;
 
-            const Point& p = _learningDatabase[ index ].input;
+            const Point& p = sample.input;
             for ( ui32 n = 0; n < nbInput; ++n )
             {
                g[ n ] = gradient * p[ n ];
@@ -76,12 +76,12 @@ namespace algorithm
             return g;
          }
 
-         virtual double computeCostFunction( const core::Buffer1D<double>& theta ) const
+         virtual double computeCostFunction( const core::Buffer1D<double>& theta, const Database& dat, const std::vector<double>& weights ) const
          {
             double accum = 0;
             for ( ui32 n = 0; n < theta.size(); ++n )
             {
-               accum += core::sqr( test( theta, _learningDatabase[ n ].input ) - _learningDatabase[ n ].output );
+               accum += weights[ n ] * core::sqr( test( theta, dat[ n ].input ) - dat[ n ].output );
             }
             return accum / 2;
          }
@@ -98,9 +98,6 @@ namespace algorithm
             }
             return accum + theta[ p.size() ];
          }
-
-      private:
-         const std::vector<float>&        _weights;
       };
 
    public:
@@ -115,17 +112,17 @@ namespace algorithm
          }
 
          // extract the weights
-         std::vector<float> weights;
+         std::vector<double> weights;
          if ( _weights.size() == 0 )
          {
-            weights = std::vector<float>( learning.size(), 1.0f );
+            weights = std::vector<double>( learning.size(), 1 );
          } else {
             weights.reserve( learning.size() );
             for ( ui32 n = 0; n < dat.size(); ++n )
             {
                if ( dat[ n ].type == Database::Sample::LEARNING )
                {
-                  weights.push_back( _weights[ n ] );
+                  weights.push_back( static_cast<double>( _weights[ n ] ) );
                }
             }
          }
@@ -134,8 +131,8 @@ namespace algorithm
          typedef FunctionOptimizationGradientDescentStochastic<Database>   Optimizer;
          Optimizer optimizer( learningRate );
          _w = Vector( learning[ 0 ].input.size() + 1 );
-         FunctionRegression<Database> function( learning, weights );
-         _w = optimizer.compute( function, _w, nbIteration );
+         FunctionRegression<Database> function;
+         _w = optimizer.compute( learning, weights, function, _w, nbIteration );
       }
 
       template <class Point>

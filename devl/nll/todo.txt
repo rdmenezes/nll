@@ -8,8 +8,8 @@
    [DONE] nearest neighbour
    [DONE] linear
    cubic spline
-- ImageMapper
-- TransformationMapper
+- [DONE] ImageMapper
+- [DONE] TransformationMapper
 - [DONE] extract with mask
 - [DONE] SVD
 - [DONE] label
@@ -25,7 +25,7 @@
    [DONE] buffer
 - spatial transformation (used by transformation mapper)
 - find edge filter
-- histogram
+- [DONE] histogram
 - segmentation
 	- watershed
 	   [ref=http://bigwww.epfl.ch/demo/jwatershed/index.html]
@@ -45,7 +45,7 @@
 - curve fitting, linear square
 - distribution generator
    [DONE] gaussian
-   multinormal
+   [DONE] multinormal
    ...
 - distribution testing
 - optimizer
@@ -62,18 +62,18 @@
 - Z score (dataset normalization)
 - model selection
 - bspline
-- matrix operation for rigid transformation
+- [DONE] matrix operation for rigid transformation
 - machine learning
    [DONE] GMM
    [DONE] MLP
    [DONE] SVM
    [DONE] kNN
    [DONE] Boosting
-   Decision Stumps
-   HMM
+   [DONE] Decision Stumps
+   [DONE] HMM
    CART
    Random Forest
-   AdaBoost
+   [DONE] AdaBoost
    Restricted Boltzmann machines
       - Non linear Feature transformation/selection
       - Classification
@@ -82,7 +82,7 @@
 - feature transformation
    [DONE] PCA (simple)
    PCA robust, ftp://ftp.win.ua.ac.be/pub/preprints/05/Robpca05.pdf
-   LDA
+   [DONE] LDA
    Clustering creation feature
 - feature selection
    - fisher discriminant ratio FDR
@@ -102,7 +102,8 @@
 - Registration
 	Rigid
 	Optical flow
-- kernel image matcher
+	[DONE] Point based
+- [DONE] kernel image matcher
 - graph
    BGL adaptors?
    directed/undirected
@@ -115,22 +116,12 @@
 
 [ TODO ]
 - fix logger bug (static->created several times?)
-- fix interpolation bug : 0.5 pixel off
-- check LEARNING/TESTING/VALIDATION... (preprocessing-*)
-- recode adaboost using weights instead of sampling...
-
-[ CURRENT TASK : CIVODLU ]
-- Restricted Boltzmann machine investigation
-- rethink about the extensibility of the preprocessing select
-
 
 [ REFACTORING ]
 - add stl iterators to:
-	Buffer
-	Matrix
-	Image
-	Database
 	StaticVector
+- use the Function/FunctionOptimizer on Neural network/RBF adn any other gradient descent based optimization to enable better optimizer in the future
+- complete implementation of trees (e.g., pruning) and improve speed for infromation measure
 	
 	
 [ INFO ]
@@ -146,4 +137,4 @@
        
 [ feature extraction]
 - Zernike Moments
-- SURF: ftp://ftp.vision.ee.ethz.ch/publications/articles/eth_biwi_00517.pdf
+- [DONE] SURF: ftp://ftp.vision.ee.ethz.ch/publications/articles/eth_biwi_00517.pdf
