@@ -4,9 +4,12 @@
 # include "core.h"
 # include <mvvScript/function-runnable.h>
 # include <mvvScript/compiler-helper.h>
+# include <mvvPlatform/context-global.h>
+
+#undef min
+#undef max
 
 using namespace mvv::parser;
-using namespace mvv;
 
 class FunctionImageConstructor : public FunctionRunnable
 {
@@ -240,10 +243,10 @@ public:
 template <class Image>
 inline void inverColor( Image& m )
 {
-   const ui32 nbc = m.getNbComponents();
-   for ( ui32 y = 0; y < m.sizey(); ++y )
-      for ( ui32 x = 0; x < m.sizex(); ++x )
-         for ( ui32 c = 0; c < nbc / 2; ++c )
+   const mvv::ui32 nbc = m.getNbComponents();
+   for ( mvv::ui32 y = 0; y < m.sizey(); ++y )
+      for ( mvv::ui32 x = 0; x < m.sizex(); ++x )
+         for ( mvv::ui32 c = 0; c < nbc / 2; ++c )
             std::swap( m( x, y, c ), m( x, y, nbc - 1 - c ) );
 }
 
@@ -297,13 +300,13 @@ public:
       }
 
       nll::core::vector2ui min( v3.intval, v4.intval );
-      nll::core::vector2ui max( std::min<ui32>( v3.intval + src.sizex(), dst.sizex() ),
-                                std::min<ui32>( v4.intval + src.sizey(), dst.sizey() ) );
-      for ( ui32 y = min[ 1 ]; y < max[ 1 ]; ++y )
+      nll::core::vector2ui max( std::min<mvv::ui32>( v3.intval + src.sizex(), dst.sizex() ),
+                                std::min<mvv::ui32>( v4.intval + src.sizey(), dst.sizey() ) );
+      for ( mvv::ui32 y = min[ 1 ]; y < max[ 1 ]; ++y )
       {
-         for ( ui32 x = min[ 0 ]; x < max[ 0 ]; ++x )
+         for ( mvv::ui32 x = min[ 0 ]; x < max[ 0 ]; ++x )
          {
-            for ( ui32 c = 0; c < dst.getNbComponents(); ++c )
+            for ( mvv::ui32 c = 0; c < dst.getNbComponents(); ++c )
             {
                dst( x, y, c ) = src( x - min[ 0 ], y - min[ 1 ], c );
             }
@@ -754,9 +757,9 @@ public:
          throw std::runtime_error( "min must be bottom-left max cropping point" );
       }
 
-      nll::core::vector3uc colorc( static_cast<ui8>( color[ 0 ] ),
-                                   static_cast<ui8>( color[ 1 ] ),
-                                   static_cast<ui8>( color[ 2 ] ) );
+      nll::core::vector3uc colorc( static_cast<nll::ui8>( color[ 0 ] ),
+                                   static_cast<nll::ui8>( color[ 1 ] ),
+                                   static_cast<nll::ui8>( color[ 2 ] ) );
       for ( int y = p1[ 1 ]; y <= p2[ 1 ]; ++y )
       {
          Pointee::value_type::DirectionalIterator it = image.getIterator( p1[ 0 ], y, 0 );
@@ -781,7 +784,7 @@ public:
    typedef FunctionImageConstructor::Pointee Pointee;
 
 public:
-   FunctionImageDrawText( const AstDeclFun* fun, Context& context ) : FunctionRunnable( fun ), _context( context )
+   FunctionImageDrawText( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
    {
    }
 
@@ -819,9 +822,9 @@ public:
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
       Pointee::value_type& image = p->getValue();
 
-      nll::core::vector3uc colorc( static_cast<ui8>( color[ 0 ] ),
-                                   static_cast<ui8>( color[ 1 ] ),
-                                   static_cast<ui8>( color[ 2 ] ) );
+      nll::core::vector3uc colorc( static_cast<mvv::ui8>( color[ 0 ] ),
+                                   static_cast<mvv::ui8>( color[ 1 ] ),
+                                   static_cast<mvv::ui8>( color[ 2 ] ) );
       
 
       global->commonFont.setColor( colorc );
@@ -839,7 +842,7 @@ public:
    }
 
 private:
-   Context& _context;
+   mvv::platform::Context& _context;
 };
 
 
@@ -889,9 +892,9 @@ public:
          throw std::runtime_error( "out of bound image cropping" );
       }
 
-      nll::core::vector3uc colorc( static_cast<ui8>( color[ 0 ] ),
-                                   static_cast<ui8>( color[ 1 ] ),
-                                   static_cast<ui8>( color[ 2 ] ) );
+      nll::core::vector3uc colorc( static_cast<mvv::ui8>( color[ 0 ] ),
+                                   static_cast<mvv::ui8>( color[ 1 ] ),
+                                   static_cast<mvv::ui8>( color[ 2 ] ) );
       
       bresham( image, p1, p2, colorc );
 
