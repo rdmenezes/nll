@@ -426,10 +426,16 @@ public:
       TESTER_ASSERT( core::equal( gc2.getG(), 0.4783, 1e-3 ) );
    }
 
+   void testSmallNode()
+   {
+
+   }
+
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianTransformation);
+/*
 TESTER_TEST(testConversionBasic);
 TESTER_TEST(testConversion);
 TESTER_TEST(testMarginalization1);
@@ -437,6 +443,6 @@ TESTER_TEST(testMarginalization);
 TESTER_TEST(testMul1);
 TESTER_TEST(testConditioning);
 TESTER_TEST(testConditioning2);
-TESTER_TEST(testConditioning3);
+TESTER_TEST(testConditioning3);*/
 TESTER_TEST_SUITE_END();
 #endif

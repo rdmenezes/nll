@@ -49,6 +49,9 @@ namespace algorithm
     @see "A Technique for Painless Derivation of Kalman Filtering Recursions", Ali Taylan Cemgil [1]
          http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.20.3377
 
+    The domain must be ordered so that domain[ 0 ] < domain[ 1 ] < domain[ 2 ] ... meaning that in a graph,
+    the parent nodes must have a higher domain than the children.
+
     p(x) = alpha * exp( -0.5 * (x - m)^t * cov^-1 * (x - m) )
 
     with alpha = 1 / ( (2Pi)^(n/2) * |cov|^(1/2) ) in case of normalized gaussian
