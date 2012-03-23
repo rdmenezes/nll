@@ -70,7 +70,13 @@ namespace platform
             std::cout << "pane image not resampled..." << std::endl;
          } else {
             imageResampled.clone( image.getValue() );
-            nll::core::rescaleBilinear( imageResampled, _size[ 0 ], _size[ 1 ] );
+
+            const double ratiox = (double)_size[ 0 ] / imageResampled.sizex();
+            const double ratioy = (double)_size[ 1 ] / imageResampled.sizey();
+            const double minRatio = std::min( ratiox, ratioy );
+            const ui32 sx = (ui32)( imageResampled.sizex() * minRatio );
+            const ui32 sy = (ui32)( imageResampled.sizey() * minRatio );
+            nll::core::rescaleBilinear( imageResampled, sx, sy );
             toDisplay = &imageResampled;
             std::cout << "pane image resampled..." << std::endl;
          }
@@ -95,6 +101,17 @@ namespace platform
                oy.addy();
             }
          } else {
+            for ( ui32 yy = 0; yy < toDisplay->sizey(); ++yy )
+            {
+               for ( ui32 xx = 0; xx < toDisplay->sizex(); ++xx )
+               {
+                  screen( _origin[ 0 ] + xx, _origin[ 1 ] + yy, 0 ) = (*toDisplay)( xx, yy, 0 );
+                  screen( _origin[ 0 ] + xx, _origin[ 1 ] + yy, 1 ) = (*toDisplay)( xx, yy, 1 );
+                  screen( _origin[ 0 ] + xx, _origin[ 1 ] + yy, 2 ) = (*toDisplay)( xx, yy, 2 );
+               }
+            }
+
+            /*
             for ( ui32 yy = 0; yy < _size[ 1 ]; ++yy )
             {
                Image::DirectionalIterator lo = oy;
@@ -110,7 +127,7 @@ namespace platform
                }
                oy.addy();
                iy.addy();
-            }
+            }*/
          }
       }
 
