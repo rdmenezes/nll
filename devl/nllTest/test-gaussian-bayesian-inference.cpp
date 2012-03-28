@@ -133,12 +133,10 @@ namespace algorithm
          Vector h( static_cast<ui32>( ids.size() ) );
          for ( size_t n = 0; n < _dependencies.size(); ++n )
          {
-            //h[ _dependencies.size() - n - 1 ] = - _dependencies[ n ].weight * sinv[ 0 ] * _mean[ 0 ];
-            //w[ _dependencies.size() - n - 1 ] = _dependencies[ n ].weight;
-            h[ n ] = - _dependencies[ n ].weight * sinv[ 0 ] * _mean[ 0 ];
+            h[ n + 1 ] = - _dependencies[ n ].weight * sinv[ 0 ] * _mean[ 0 ];
             w[ n ] = _dependencies[ n ].weight;
          }
-         h[ w.size() ] = sinv[ 0 ] * _mean[ 0 ];
+         h[ 0 ] = sinv[ 0 ] * _mean[ 0 ];
 
          Matrix ksub = Matrix( w, w.size(), 1 ) * sinv * Matrix( w, 1, w.size() );
          Matrix k( ids.size(), ids.size() );
@@ -146,15 +144,14 @@ namespace algorithm
          {
             for ( ui32 ny = 0; ny < ksub.sizey(); ++ny )
             {
-               k( ny, nx ) = ksub( ny, nx );
+               k( ny + 1, nx + 1 ) = ksub( ny, nx );
             }
-            //k( nx, w.size() ) = -w[ _dependencies.size() - nx - 1 ] * sinv[ 0 ];
-            //k( w.size(), nx ) = -sinv[ 0 ] * w[ _dependencies.size() - nx - 1 ];
 
-            k( nx, w.size() ) = -w[ nx ] * sinv[ 0 ];
-            k( w.size(), nx ) = -sinv[ 0 ] * w[ nx ];
+            const value_type v = -w[ nx ] * sinv[ 0 ];
+            k( nx + 1, 0 ) = v;
+            k( 0, nx + 1 ) = v;
          }
-         k( ksub.sizex(), ksub.sizex() ) = sinv[ 0 ];
+         k( 0, 0 ) = sinv[ 0 ];
 
          VectorI idsi( ids.size() );
          std::copy( ids.begin(), ids.end(), idsi.begin() );
@@ -766,10 +763,29 @@ public:
 
       algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
       algorithm::PotentialGaussianCanonical pots = potS.toGaussianCanonical();
-      algorithm::PotentialGaussianCanonical potc = potS.toGaussianCanonical();
-      potc.print( std::cout );
+      algorithm::PotentialGaussianCanonical potc = potC.toGaussianCanonical();
 
-      (potr * pots * potc).print( std::cout );
+      algorithm::PotentialGaussianMoment result = (potr * potc * pots).toGaussianMoment();
+
+      // validated against matlab
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ S ], 145 ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ C ], 15 ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ R ], 50 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, S ), 3.9, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, R ), 0.1, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( C, C ), 0.5, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, R ), 0.2, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, S ), 0.2, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, C ), 0.5, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( C, S ), 0.5, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, C ), 0, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( C, R ), 0, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getAlpha(), 1, 1e-6 ) );
    }
 };
 

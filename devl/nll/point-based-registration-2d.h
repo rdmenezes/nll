@@ -672,7 +672,8 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
                       ui32 maxErrorInPixel = 15,
                       ui32 minimumInliers = 20,
-                      ui32 nbRansacIterations = 25000 )
+                      ui32 nbRansacIterations = 25000,
+                      ui32 nbMaxRansacPairs = 1000 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
          {
@@ -692,7 +693,7 @@ namespace algorithm
          algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( target );
          return compute( points1, points2, minBoundingBoxSource, maxBoundingBoxSource,
                                            minBoundingBoxTarget, maxBoundingBoxTarget,
-                         maxErrorInPixel, minimumInliers, nbRansacIterations );
+                         maxErrorInPixel, minimumInliers, nbRansacIterations, nbMaxRansacPairs );
       }
 
       /**
@@ -707,7 +708,8 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
                       ui32 maxErrorInPixel = 15,
                       ui32 minimumInliers = 20,
-                      ui32 nbRansacIterations = 25000 )
+                      ui32 nbRansacIterations = 25000,
+                      ui32 nbMaxRansacPairs = 1000 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
          {
@@ -742,7 +744,7 @@ namespace algorithm
          {
             throw std::runtime_error( "No match found" );
          }
-         FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 1000, (ui32)matches.size() - 1 ) );
+         FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( nbMaxRansacPairs, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::Ransac<RansacTransformationEstimator, Factory> Ransac;
