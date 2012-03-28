@@ -68,7 +68,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 0;
+   int index                        = 40;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -77,16 +77,23 @@ class VolumeSwitchReg
    VolumeContainer volumes          = NULL;
    RegistrationMr registrator		   = NULL;
    int groundtruth	= 0; 
+   ImageHolder holderx = NULL;
+   ImageHolder holdery = NULL;
+   ImageHolder holderz = NULL;
 
    AffineRegistration tfmGroundTruth;
    AffineRegistration tfmReg;
 
-   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, RegistrationMr reg )
+   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, RegistrationMr reg, ImageHolder hx, ImageHolder hy, ImageHolder hz )
    {
       lut1 = l1;
       lut2 = l2;
       volumes = vs;
-	   registrator = reg;
+	  registrator = reg;
+
+	  holderx = hx;
+	  holdery = hy;
+	  holderz = hz;
 
       //displayed1 = readDicomVolume( list[ 6 ] );
    }
@@ -118,7 +125,7 @@ class VolumeSwitchReg
 	  groundtruth = 0;
 
 	  string name = registrator.getTestMrVolume( index );
-	  //name = "MR-345";
+	  //name = "MR-181";
 
       string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
       string volname = base + name;
@@ -135,6 +142,10 @@ class VolumeSwitchReg
 	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_MR", name ) );
 	  displayed1 = registrator.templates[id];
 
+	  holderx.set(registrator.getDebugX());
+	  holdery.set(registrator.getDebugY());
+	  holderz.set(registrator.getDebugZ());
+
       volumes.add( displayed2, lut1, 1.0, tfmReg );
       volumes.add( displayed1, lut2, 1.0 );
    }
@@ -142,6 +153,11 @@ class VolumeSwitchReg
 
 class InsentisySwitchReg
 {
+   float LUT_MIN_TARGET = 0.0;
+   float LUT_MAX_TARGET = 500.0;
+   float LUT_MIN_TEMPLATE = 32000.0;
+   float LUT_MAX_TEMPLATE = 55000.0;
+
    int state = 1;
    VolumeSwitchReg switch = NULL;
    InsentisySwitchReg( VolumeSwitchReg sw )
@@ -154,15 +170,27 @@ class InsentisySwitchReg
       //VolumeContainer& volumes = switch.volumes;
       if ( state == 0 )
       {
+		switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(100));
+		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255, 255, 255));
+		//switch.volumes.setIntensity( switch.displayed1, 0.5 );
+        //switch.volumes.setIntensity( switch.displayed2, 1.0 );
+	  /*
          switch.volumes.setIntensity( switch.displayed2, 1.0 );
          switch.volumes.setIntensity( switch.displayed1, 0.3 );
          switch.volumes.setLut( switch.displayed1, switch.lut2 );
          switch.volumes.setLut( switch.displayed2, switch.lut1 );
+		 */
       } else {
+	    switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255, 255, 255));
+		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(100));
+		//switch.volumes.setIntensity( switch.displayed2, 0.5 );
+        //switch.volumes.setIntensity( switch.displayed1, 1.0 );
+	  /*
          switch.volumes.setIntensity( switch.displayed1, 1.0 );
          switch.volumes.setIntensity( switch.displayed2, 0.3 );
          switch.volumes.setLut( switch.displayed1, switch.lut1 );
          switch.volumes.setLut( switch.displayed2, switch.lut2 );
+		 */
       }
       state = 1 - state;
    }
@@ -195,8 +223,8 @@ class LutSwitchReg
 
 
 Lut ctLut1( 0.0, 500.0 );
-//Lut ctLut2( 35000.0, 45000.0, Vector3i( 255, 0, 0 ) );
-Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) ); 
+Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
+//Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) ); 
 
 
 DisplayRegionDetection detection( annotations );
@@ -205,14 +233,17 @@ RegistrationMr registrator( "c:/tmp/templates.bin" );
 
 KeyboardCallback callbacks;
 
+ImageHolder holderx;
+ImageHolder holdery;
+ImageHolder holderz;
 
-VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrator );
+VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrator, holderx, holdery, holderz );
 callbacks.addShortcut( switch.next, "F3" );
 
-/*
+
 InsentisySwitchReg switchIntensity( switch );
 callbacks.addShortcut( switchIntensity.run, "F1" );
-
+/*
 LutSwitchReg switchLut( switch );
 callbacks.addShortcut( switchLut.run, "F2" );
 */
@@ -249,8 +280,16 @@ Layout l2( segment2 );
 Layout l3( segment3 );
 Layout l6( Console() );
 
+
+Layout imx( holderx );
+Layout imy( holdery );
+Layout imz( holderz );
+
 Layout layoutDisplay1( horizontal, Layout(horizontal, l1, l2, 0.51), l3, 0.66 );
-Layout layout = Layout(vertical, l6, layoutDisplay1, 0.05);
+Layout layoutDisplay2( horizontal, Layout(horizontal, imx, imy, 0.51), imz, 0.66 );
+
+
+Layout layout = Layout(vertical, l6, Layout(vertical, layoutDisplay1, layoutDisplay2, 0.79), 0.05);
 
 ImageHolder holder;
 Layout layout1 = layout;

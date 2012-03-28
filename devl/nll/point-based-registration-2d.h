@@ -191,11 +191,6 @@ namespace algorithm
             return 2;
          }
 
-         static ui32 minimumNumberOfSubsets()
-         {
-            return 15000;
-         }
-
          struct Model
          {
             Model() : tfm( core::identityMatrix< core::Matrix<double> >( 3 ) )
@@ -346,11 +341,6 @@ namespace algorithm
             return 3;
          }
 
-         static ui32 minimumNumberOfSubsets()
-         {
-            return 25000;
-         }
-
          struct Model
          {
             Model() : tfm( core::identityMatrix< core::Matrix<double> >( 3 ) )
@@ -499,11 +489,6 @@ namespace algorithm
          static ui32 minimumNumberOfPointsForEstimation()
          {
             return 4;
-         }
-
-         static ui32 minimumNumberOfSubsets()
-         {
-            return 150000;
          }
 
          struct Model
@@ -686,7 +671,8 @@ namespace algorithm
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
                       ui32 maxErrorInPixel = 15,
-                      ui32 minimumInliers = 20 )
+                      ui32 minimumInliers = 20,
+                      ui32 nbRansacIterations = 25000 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
          {
@@ -706,7 +692,7 @@ namespace algorithm
          algorithm::SpeededUpRobustFeatures::Points points2 = surf.computesFeatures( target );
          return compute( points1, points2, minBoundingBoxSource, maxBoundingBoxSource,
                                            minBoundingBoxTarget, maxBoundingBoxTarget,
-                         maxErrorInPixel, minimumInliers );
+                         maxErrorInPixel, minimumInliers, nbRansacIterations );
       }
 
       /**
@@ -720,7 +706,8 @@ namespace algorithm
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
                       ui32 maxErrorInPixel = 15,
-                      ui32 minimumInliers = 20 )
+                      ui32 minimumInliers = 20,
+                      ui32 nbRansacIterations = 25000 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
          {
@@ -773,7 +760,7 @@ namespace algorithm
          core::Timer ransacOptimTimer;
          typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed,
                                                                                 RansacTransformationEstimator::minimumNumberOfPointsForEstimation(),
-                                                                                RansacTransformationEstimator::minimumNumberOfSubsets(),
+                                                                                nbRansacIterations,
                                                                                 maxErrorInPixel * maxErrorInPixel,
                                                                                 weights );
          if ( ransac.getNbInliers() <= minimumInliers )
