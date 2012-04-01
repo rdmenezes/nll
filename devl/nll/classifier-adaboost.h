@@ -125,7 +125,7 @@ namespace algorithm
             delete _weakClassifiers[ n ].classifier;
       }
 
-      virtual Base* deepCopy() const
+      virtual ClassifierAdaboost* deepCopy() const
       {
          ClassifierAdaboost* c = new ClassifierAdaboost( _factory, _nbWeakLearner, _learningSubsetRate );
          c->_crossValidationBin = this->_crossValidationBin;

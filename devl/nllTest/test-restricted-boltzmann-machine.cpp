@@ -50,7 +50,7 @@ namespace algorithm
          Vector index( points.size() );
          for ( ui32 n = 0; n < points.size(); ++n )
             index[ n ] = n / nbBatches;
-         core::randomize( index, 0.8 );
+         core::shuffleFisherYates( index );
          for ( ui32 n = 0; n < points.size(); ++n )
             batchList[ index[ n ] ].push_back( n );
 

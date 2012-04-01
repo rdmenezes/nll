@@ -76,7 +76,7 @@ namespace algorithm
       ClassifierNaiveBayes() : Base( buildParameters() )
       {}
 
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierNaiveBayes* deepCopy() const
       {
          ClassifierNaiveBayes* c = new ClassifierNaiveBayes();
          c->_nb = _nb;

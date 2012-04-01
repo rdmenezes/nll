@@ -40,7 +40,7 @@ namespace core
 {
    /**
     @ingroup core
-    @brief Sampling of a set of points according to a probability for being sampled.
+    @brief Sampling of a set of points with replacement according to a probability for being sampled.
     @param p the probabilities to be used. It <b>must</b> sums to 1
     @param nbSampledPoints the number of points to generate.
     @return the index of the selected points
@@ -77,6 +77,62 @@ namespace core
          assert( points[ n ] < p.size() );
       }
       return points;
+   }
+
+   /**
+    @brief Fisher-Yates shuffling algorithm. Randomize a list of elements
+
+    Complexity: time is o(N), N = number of elements
+                space o(1), in place
+    @see http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    @param v the vector to be shuffled
+    @param nbSamplesToShuffle the number of samples to generate. if nbSamples != -1, only the first <nbSamples> elements
+           of v are valid (i.e., after, they are not shuffled!)
+    */
+   template <class Vector>
+   void shuffleFisherYates( Vector& v, int nbSamplesToShuffle = -1 )
+   {
+      const ui32 nbSamples = ( nbSamplesToShuffle == -1 ) ? v.size() : static_cast<ui32>( nbSamplesToShuffle );
+      const ui32 originalVectorSize = static_cast<ui32>( v.size() );
+
+      // then for each pass <i>, generate an index in <i..originalVectorSize-i>, swap the elements
+      for ( ui32 n = 0; n < nbSamples; ++n )
+      {
+         const ui32 i = originalVectorSize - n - 1;
+         const ui32 index = ( i == 0 ) ? 0 : ( rand() % ( originalVectorSize - n - 1 ) );
+         std::swap( v[ i ], v[ index ] ); // discard the index by moving it at the end of the list
+      }
+   }
+
+   /**
+    @brief Sampling without replacement of a vector.
+    @see http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
+    
+    Assuming that initially all samples have equal probability to be selected. The Fisher-Yates method is used
+    to generate the sampling.
+
+    Time and space complexity is o(N) in the number of elements <originalVectorSize>
+
+    @param originalVectorSize the size of the vector we want to sample
+    @param nbSamples the number of samples to generate
+    @return the index of the of vector
+    */
+   inline Buffer1D<ui32> samplingWithoutReplacement( ui32 originalVectorSize, ui32 nbSamples )
+   {
+      ensure( nbSamples <= originalVectorSize, "nbSamples must be < originalVectorSize" );
+
+      // initialize the list index
+      std::vector<ui32> indexes( originalVectorSize );
+      for ( ui32 n = 0; n < originalVectorSize; ++n )
+      {
+         indexes[ n ] = n;
+      }
+
+      // shuffle the list and copy the first <nbSamples> elements to the results
+      Buffer1D<ui32> result( nbSamples, false );
+      shuffleFisherYates( indexes, nbSamples );
+      std::copy( indexes.begin(), indexes.begin() + nbSamples, result.begin() );
+      return result;
    }
 }
 }

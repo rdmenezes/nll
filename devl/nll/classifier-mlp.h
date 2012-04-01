@@ -88,7 +88,7 @@ namespace algorithm
       ClassifierMlp( double weightDecay = 0 ) : Base( buildParameters() ), _weightDecay( weightDecay )
       {}
 
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierMlp* deepCopy() const
       {
          ClassifierMlp* c = new ClassifierMlp();
          c->_pmc = _pmc;

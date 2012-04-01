@@ -76,7 +76,7 @@ namespace algorithm
       ClassifierDiscriminant() : Base( buildParameters() )
       {}
 
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierDiscriminant* deepCopy() const
       {
          ClassifierDiscriminant* c = new ClassifierDiscriminant();
          c->_qda = _qda;

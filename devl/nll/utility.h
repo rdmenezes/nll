@@ -532,40 +532,15 @@ namespace core
 
     For example generateUniqueList( 4, 7 ) could generate the list [ 5, 4, 6, 7 ]
     */
-   inline std::vector<ui32> generateUniqueList( ui32 start, ui32 end, float permutationRate = 0.2 )
+   inline std::vector<ui32> generateUniqueList( ui32 start, ui32 end )
    {
       assert( start <= end );
       ui32 size = end - start + 1;
       std::vector<ui32> list( end - start + 1 );
       for ( ui32 n = 0; n < size; ++n )
          list[ n ] = n + start;
-
-      ui32 nbPermutations = static_cast<ui32>( permutationRate * size + 1 );
-      for ( ui32 n = 0; n < nbPermutations; ++n )
-      {
-         ui32 n1 = rand() % size;
-         ui32 n2 = rand() % size;
-         std::swap( list[ n1 ], list[ n2 ] );
-      }
-
+      core::shuffleFisherYates( list );
       return list;
-   }
-
-   /**
-    @brief Randomize a vector of values using random permutations
-    */
-   template <class Vector>
-   void randomize( Vector& list, float permutationRate = 0.2f )
-   {
-      ui32 size = static_cast<ui32>( list.size() );
-      ui32 nbPermutations = static_cast<ui32>( size * permutationRate ) + 1;
-
-      for ( ui32 n = 0; n < nbPermutations; ++n )
-      {
-         ui32 n1 = rand() % size;
-         ui32 n2 = rand() % size;
-         std::swap( list[ n1 ], list[ n2 ] );
-      }
    }
 
    template <class T>

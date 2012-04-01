@@ -151,9 +151,9 @@ namespace algorithm
       /**
        @todo implement deepcopy
        */
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierSvmLinear* deepCopy() const
       {
-         ClassifierSvmLinear<Point>* c = new ClassifierSvmLinear();
+         ClassifierSvmLinear* c = new ClassifierSvmLinear();
          c->_model = 0;
          c->_solver = _solver;
          c->_inputSize = _inputSize;

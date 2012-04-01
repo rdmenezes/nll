@@ -75,6 +75,8 @@ namespace core
    {
       assert( min <= max );
       const int interval = max - min;
+      if ( interval == 0 )
+         return min;
       return ( rand() % interval ) + min;
    }
 }

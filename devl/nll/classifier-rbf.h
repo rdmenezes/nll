@@ -84,7 +84,7 @@ namespace algorithm
       ClassifierRbf(  ) : Base( buildParameters() )
       {}
 
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierRbf* deepCopy() const
       {
          ClassifierRbf* c = new ClassifierRbf();
          c->_rbf = _rbf;

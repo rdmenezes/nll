@@ -96,7 +96,7 @@ namespace algorithm
             delete _adapter;
       }
 
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierNearestNeighbor* deepCopy() const
       {
          ClassifierNearestNeighbor<Point, Metric>* classifier = new ClassifierNearestNeighbor<Point, Metric>( _metric );
          classifier->_k = _k;

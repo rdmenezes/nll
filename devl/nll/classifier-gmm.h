@@ -80,7 +80,7 @@ namespace algorithm
    public:
       ClassifierGmm() : Base( buildParameters() )
       {}
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierGmm* deepCopy() const
       {
          ClassifierGmm* cgmm = new ClassifierGmm();
          cgmm->_gmms = Gmms( _gmms.size() );
