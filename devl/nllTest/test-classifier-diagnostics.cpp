@@ -16,7 +16,13 @@ namespace algorithm
    public:
       struct Result
       {
-         ui32     nbSamples;
+         Result()
+         {}
+
+         Result( double nbS, double errTrain, double errTest ) : nbSamplesRatio( nbS ), errorTraining( errTrain ), errorTesting( errTest )
+         {}
+
+         ui32     nbSamplesRatio;
          double   errorTraining;
          double   errorTesting;
       };
@@ -29,6 +35,8 @@ namespace algorithm
       Results evaluate( const Classifier& csource, const core::Buffer1D<double>& params, const Database& dat ) const
       {
          Results results;
+         results.reserve( _granularity );
+
          Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
          Database testing = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::TESTING ), (ui32) Database::Sample::TESTING );
          ensure( learning.size() != 0, "no learning!" );
@@ -44,7 +52,10 @@ namespace algorithm
             Database learningDatSampled = sample( learning, ( nbLearningSample > 1 ) ? nbLearningSample : 1 );
             Database testingDatSampled = sample( testing, ( nbTestingSample > 1 ) ? nbTestingSample : 1 );
 
-            //->
+            classifier->learn( learningDatSampled, params );
+            typename Classifier::Result resultsLearning = classifier->test( learningDatSampled );
+            typename Classifier::Result resultsTesting = classifier->test( testingDatSampled );
+            results.push_back( Result( 1.0 / _granularity * n, resultsLearning.learningError, resultsTesting.testingError ) );
          }
 
          return results;
