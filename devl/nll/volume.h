@@ -628,6 +628,14 @@ namespace imaging
          }
       }
 
+      /**
+       @brief Return the internal storage
+       */
+      const VoxelBuffer& getStorage() const
+      {
+         return _buffer;
+      }
+
    protected:
       /**
        @brief return the value at the point (x, y, z)

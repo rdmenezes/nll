@@ -1,22 +1,24 @@
 v0.16
--added bayesian network (gaussian and table potentials)
+-added bayesian network (linear gaussian and table potentials)
 -added bayesian inference algorithms (naive, variable elimination)
 -added ML likelihood parameter estimation for bayesian network
 -added gaussian moment and canonical representation and associated operations
 -added matrix utilities
 -added RBF deformable transformation
 -added 2D DDF transformation & associated resampling
--multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
+-added multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
 -added utilities to compose/decompose affine matrices in rotation, scale, shear components
 -added graph classes and basic algorithms
 -added 2D transformation estimators (similarity isotropic/anisotropic, isometry)
 -added 3D distance transform
--improved 2D point based registration
 -added weighted learning for linear SVM & neural network
+-added perceptron and variants
+-added sampling without replacement & shuffling
 -improved ransac with weighted error
+-improved 2D point based registration
 -added new versions of adaboost
 -added weak learners (neural nets, perceptron, stumps, decision trees)
--added generic decision trees (discrete and continuous)
+-added generic weighted decision trees (discrete and continuous)
 
 v0.15
 -added locally linear embedding for feature selection & data structure display

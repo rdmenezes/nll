@@ -112,6 +112,7 @@ struct TestClassifierDiagnostics
          ui32 nbCases = (ui32)core::generateUniformDistributioni( 1, 10 );
          ui32 nbSamples = (ui32)core::generateUniformDistributioni( 1, nbCases );
          core::Buffer1D<ui32> samples = core::samplingWithoutReplacement( nbCases, nbSamples );
+         TESTER_ASSERT( samples.size() == nbSamples );
 
          std::set<ui32> indexes;
          for ( ui32 n = 0; n < samples.size(); ++n )

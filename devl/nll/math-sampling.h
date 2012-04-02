@@ -115,7 +115,7 @@ namespace core
 
     @param originalVectorSize the size of the vector we want to sample
     @param nbSamples the number of samples to generate
-    @return the index of the of vector
+    @return the element indexes of the original vector
     */
    inline Buffer1D<ui32> samplingWithoutReplacement( ui32 originalVectorSize, ui32 nbSamples )
    {
