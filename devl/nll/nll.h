@@ -82,6 +82,10 @@
 // if defined, extra checks will be performed to check preconditions/postconditions
 #define NLL_SECURE
 
+// if defined, use LIBFFTW3 as the implementation of the FFT
+// note that if this flag is used, you must comply with the FFTW3 licensing terms
+#define NLL_USE_LIBFFTW3
+
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
 #endif
@@ -300,6 +304,7 @@
  - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
+# include "fft.h"
 # include "function.h"
 # include "gradient-descent.h"
 # include "linear-regression.h"

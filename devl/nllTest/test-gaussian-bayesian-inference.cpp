@@ -133,13 +133,14 @@ namespace algorithm
          Vector h( static_cast<ui32>( ids.size() ) );
          for ( size_t n = 0; n < _dependencies.size(); ++n )
          {
-            h[ n + 1 ] = - _dependencies[ n ].weight * sinv[ 0 ] * _mean[ 0 ];
-            w[ n ] = _dependencies[ n ].weight;
+            const ui32 nui = static_cast<ui32>( n );
+            h[ nui + 1 ] = - _dependencies[ nui ].weight * sinv[ 0 ] * _mean[ 0 ];
+            w[ nui ] = _dependencies[ nui ].weight;
          }
          h[ 0 ] = sinv[ 0 ] * _mean[ 0 ];
 
          Matrix ksub = Matrix( w, w.size(), 1 ) * sinv * Matrix( w, 1, w.size() );
-         Matrix k( ids.size(), ids.size() );
+         Matrix k( (ui32)ids.size(), (ui32)ids.size() );
          for ( ui32 nx = 0; nx < ksub.sizex(); ++nx )
          {
             for ( ui32 ny = 0; ny < ksub.sizey(); ++ny )
@@ -153,7 +154,7 @@ namespace algorithm
          }
          k( 0, 0 ) = sinv[ 0 ];
 
-         VectorI idsi( ids.size() );
+         VectorI idsi( static_cast<ui32>( ids.size() ) );
          std::copy( ids.begin(), ids.end(), idsi.begin() );
          return PotentialGaussianCanonical( h, k, g, idsi );
       }
@@ -196,7 +197,7 @@ namespace algorithm
                const ui32 pointerIndex = pointer[ n ];
                if ( pointerIndex < lists[ n ]->size() )
                {
-                  const int id = static_cast<int>( (*lists[ n ])[ pointerIndex ] );
+                  const ui32 id = static_cast<ui32>( (*lists[ n ])[ pointerIndex ] );
                   if ( id < min && id != lastMin )
                   {
                      minIndex = n;
@@ -220,6 +221,32 @@ namespace algorithm
       Matrix      _cov;
       VectorI     _ids;
       std::vector<Dependency>  _dependencies;
+   };
+
+   /**
+    @brief Traits to instanciate a Bayesian potential
+
+    In the general case, instanciating a potential is not required. However for Linear Gaussian potential for example, each node must be transformed
+    as a Gaussian canonical potential with all the operations associated with potentials
+    */
+   template <>
+   struct TraitsInstanciateBayesianPotential<PotentialLinearGaussian>
+   {
+      typedef PotentialGaussianCanonical PotentialInstanciationType;
+
+      static PotentialInstanciationType create( const PotentialLinearGaussian& potential )
+      {
+         // default behaviour: just copy the potential
+         return potential.toGaussianCanonical();
+      }
+   };
+}
+
+namespace core
+{
+   template <class Function>
+   struct FunctorCreator
+   {
    };
 }
 }
@@ -528,10 +555,10 @@ public:
       for ( size_t id = 0; id < file1.size(); ++id )
       {
          std::vector< double >& sample = file1[ id ];
-         BayesianNetwork::Factor::EvidenceValue newSample( file1.size() );
+         BayesianNetwork::Factor::EvidenceValue newSample( (ui32)file1.size() );
          for ( size_t n = 0; n < sample.size(); ++n )
          {
-            newSample[ n ] = static_cast<ui32>( sample[ n ] - 1 );
+            newSample[ (ui32)n ] = static_cast<ui32>( sample[ (ui32)n ] - 1 );
          }
          samples.push_back( newSample );
       }
@@ -793,9 +820,9 @@ public:
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
 TESTER_TEST( testLinearGaussian1 );
 //TESTER_TEST( testInferenceGaussianBn );
-/*
+
 TESTER_TEST( testPotentialTableMlParametersEstimation );
 TESTER_TEST( testBasicInfPotentialTable );
-TESTER_TEST( testBnPotentialSampling );*/
+TESTER_TEST( testBnPotentialSampling );
 TESTER_TEST_SUITE_END();
 #endif

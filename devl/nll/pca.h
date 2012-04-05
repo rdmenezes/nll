@@ -218,46 +218,70 @@ namespace algorithm
       }
 
       /**
-       @brief Compute the PCA on the given set of points.
+       @brief Computes PCA, decide the number of eigen vectors retain by the retained variance
        */
-      bool compute( const Points& points, ui32 nbVectors )
+      bool computeByVarianceRetained( const Points& points, double varianceToRetain )
       {
          if ( !points.size() )
             return false;
-         ui32 size = static_cast<ui32>( points[ 0 ].size() );
-         _nbVectors = nbVectors;
+         const ui32 size = static_cast<ui32>( points[ 0 ].size() );
+
+         const bool success = _computeEigenVectors( points );
+         if ( !success )
+            return false;
+
+         // now compute the number of eigen vectors to retain the specified variance
+         double eivSum = 0;
+         for ( ui32 n = 0; n < _eigenValues.size(); ++n )
+         {
+            eivSum += _eigenValues[ n ];
+         }
+
+         double eivSumTmp = 0;
+         for ( ui32 n = 0; n < _eigenValues.size(); ++n )
+         {
+            eivSumTmp += _eigenValues[ n ];
+            if ( eivSumTmp / eivSum >= varianceToRetain )
+            {
+               _nbVectors = n;   // guaranty to be set
+               break;
+            }
+         }
 
          std::stringstream ss;
          ss << "PCA, nb of components=" << _nbVectors;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
 
-         core::Matrix<double> p( static_cast<ui32>( points.size() ), size );
-         for ( ui32 n = 0; n < points.size(); ++n )
-         {
-            assert( points[ n ].size() == size );
-            for ( ui32 nn = 0; nn < size; ++nn )
-               p( n, nn ) = points[ n ][ nn ];
-         }
+         // set the transformation
+         _projection = _makeProjection();
 
-         // compute the mean
-         _mean = core::Matrix<double>( core::meanRow( p, 0, p.sizey() - 1 ) );
+         std::stringstream sss;
+         sss << " PCA projection=";
+         _projection.print( sss );
+         sss << " PCA mean=";
+         _mean.print( sss );
 
-         core::Matrix<double> cov = core::covariance( p, 0, p.sizey() - 1 );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
+         return true;
+      }
 
-         core::Buffer1D<double> eigenValues;
-         bool res = core::svdcmp( cov, eigenValues, _eigenVectors );
-         _eigenValues = core::Matrix<double>( eigenValues, eigenValues.size(), 1 );
+      /**
+       @brief Compute the PCA on the given set of points.
+       */
+      bool compute( const Points& points, ui32 nbVectors )
+      {
+         _nbVectors = nbVectors;
+         if ( !points.size() )
+            return false;
+         const ui32 size = static_cast<ui32>( points[ 0 ].size() );
 
-         // SVD failed
-         if ( !res )
+         const bool success = _computeEigenVectors( points );
+         if ( !success )
             return false;
 
-         // sort the eigen values by decreasing order
-         Pairs sort;
-         for ( ui32 n = 0; n < eigenValues.size(); ++n )
-            sort.push_back( Pair( eigenValues[ n ], n ) );
-         std::sort( sort.rbegin(), sort.rend() );
-         _pairs = sort;
+         std::stringstream ss;
+         ss << "PCA, nb of components=" << _nbVectors;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
 
          // set the transformation
          _projection = _makeProjection();
@@ -318,6 +342,41 @@ namespace algorithm
       }
 
    private:
+      bool _computeEigenVectors( const Points& points )
+      {
+         if ( !points.size() )
+            return false;
+         ui32 size = static_cast<ui32>( points[ 0 ].size() );
+
+         core::Matrix<double> p( static_cast<ui32>( points.size() ), size );
+         for ( ui32 n = 0; n < points.size(); ++n )
+         {
+            assert( points[ n ].size() == size );
+            for ( ui32 nn = 0; nn < size; ++nn )
+               p( n, nn ) = points[ n ][ nn ];
+         }
+
+         // compute the mean
+         _mean = core::Matrix<double>( core::meanRow( p, 0, p.sizey() - 1 ) );
+
+         core::Matrix<double> cov = core::covariance( p, 0, p.sizey() - 1 );
+
+         core::Buffer1D<double> eigenValues;
+         bool res = core::svdcmp( cov, eigenValues, _eigenVectors );
+         _eigenValues = core::Matrix<double>( eigenValues, eigenValues.size(), 1 );
+
+         // SVD failed
+         if ( !res )
+            return false;
+
+         // sort the eigen values by decreasing order
+         Pairs sort;
+         for ( ui32 n = 0; n < eigenValues.size(); ++n )
+            sort.push_back( Pair( eigenValues[ n ], n ) );
+         std::sort( sort.rbegin(), sort.rend() );
+         _pairs = sort;
+      }
+
       core::Matrix<double> _makeProjection() const
       {
          ensure( _eigenVectors.sizex(), "error" );

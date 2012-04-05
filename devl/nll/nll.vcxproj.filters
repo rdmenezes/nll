@@ -83,6 +83,9 @@
     <ClCompile Include="indent.cpp">
       <Filter>core</Filter>
     </ClCompile>
+    <ClCompile Include="fft.cpp">
+      <Filter>algorithm-impl</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="allocator-aligned.h">
@@ -714,6 +717,9 @@
       <Filter>algorithm-optimization</Filter>
     </ClInclude>
     <ClInclude Include="linear-regression.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
+    <ClInclude Include="fft.h">
       <Filter>algorithm-impl</Filter>
     </ClInclude>
   </ItemGroup>

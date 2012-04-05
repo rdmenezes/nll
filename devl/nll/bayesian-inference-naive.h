@@ -37,11 +37,31 @@ namespace nll
 namespace algorithm
 {
    /**
+    @brief Traits to instanciate a Bayesian potential
+
+    In the general case, instanciating a potential is not required. However for Linear Gaussian potential for example, each node must be transformed
+    as a Gaussian canonical potential with all the operations associated with potentials
+    */
+   template <class Potential>
+   struct TraitsInstanciateBayesianPotential
+   {
+      typedef Potential PotentialInstanciationType;
+
+      static PotentialInstanciationType create( const Potential& potential )
+      {
+         // default behaviour: just copy the potential
+         return potential;
+      }
+   };
+
+   /**
     @brief computes p(U-E-Q | E=e) with U all variables, Q query variables, E observed variables (evidence)
     @param BNetwork the bayesian network type
 
     This is the simplest implementation on the exact inference on BN, this should only be used for debug only as this method is extremly inefficient.
     It is creating the full enumeration without using at all the independence property of the factors
+
+    Internally the potentials will be initilized with the traits <TraitsInstanciateBayesianPotential::create>
     */
    template <class BNetwork>
    class BayesianInferenceNaive
@@ -54,6 +74,9 @@ namespace algorithm
       typedef BNetwork                                Bn;
       typedef typename Bn::Graph                      Graph;
 
+      typedef TraitsInstanciateBayesianPotential<Factor>             FactorCreator;
+      typedef typename FactorCreator::PotentialInstanciationType     FactorCreatorType;
+
    public:
       /**
        @param bn the bayesian network
@@ -61,22 +84,30 @@ namespace algorithm
        @param evidenceValue the value of the evidence
        @param domainOfInterest the domain we want to get the likelihood
        */
-      Factor run( const BayesianNetwork<Factor>& bn, 
-                  const VectorI& evidenceDomain,
-                  const EvidenceValue& evidenceValue,
-                  const VectorI& domainOfInterest ) const
+      FactorCreatorType run( const BayesianNetwork<Factor>& bn, 
+                             const VectorI& evidenceDomain,
+                             const EvidenceValue& evidenceValue,
+                             const VectorI& domainOfInterest ) const
       {
-         std::vector<const Factor*> factors;
-         getFactors( bn, factors );
+         std::vector<const Factor*> _factors;
+         getFactors( bn, _factors );
+
+         std::vector<FactorCreatorType> factors;
+         factors.reserve( _factors.size() );
+         for ( size_t n = 0; n < _factors.size(); ++n )
+         {
+            factors.push_back( FactorCreator::create( *_factors[ n ] ) );
+         }
+
 
          if ( !factors.size() )
-            return Factor();
+            return FactorCreatorType();
 
          std::set<ui32> varEliminationOrder;
          for ( size_t n = 0; n < factors.size(); ++n )
          {
-            std::for_each( factors[ n ]->getDomain().begin(),
-                           factors[ n ]->getDomain().end(),
+            std::for_each( factors[ n ].getDomain().begin(),
+                           factors[ n ].getDomain().end(),
                            [&]( ui32 v )
                            {
                               varEliminationOrder.insert( v );
@@ -98,11 +129,11 @@ namespace algorithm
          VectorI evidenceDomainMarg( 1 );
          EvidenceValue evidenceValueMarg( 1 );
 
-         std::vector<Factor> newFactors;
+         std::vector<FactorCreatorType> newFactors;
          newFactors.reserve( factors.size() );
          for ( size_t n = 0; n < factors.size(); ++n )
          {
-            newFactors.push_back( *factors[ n ] );
+            newFactors.push_back( factors[ n ] );
 
             // check we have some evidence
             for ( ui32 evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
@@ -120,7 +151,7 @@ namespace algorithm
          }
 
          // finally create the big potential and marginalize out everything
-         Factor f = newFactors[ 0 ];
+         FactorCreatorType f = newFactors[ 0 ];
          for ( size_t n = 1; n < newFactors.size(); ++n )
          {
             f = f * newFactors[ n ];

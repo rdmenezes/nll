@@ -52,23 +52,33 @@ namespace algorithm
       typedef BNetwork                                Bn;
       typedef typename Bn::Graph                      Graph;
 
+      typedef TraitsInstanciateBayesianPotential<Factor>             FactorCreator;
+      typedef typename FactorCreator::PotentialInstanciationType     FactorCreatorType;
+
    public:
-      Factor run( const BayesianNetwork<Factor>& bn, 
-            const VectorI& evidenceDomain,
-            const EvidenceValue& evidenceValue,
-            const VectorI& domainOfInterest ) const
+      FactorCreatorType run( const BayesianNetwork<Factor>& bn, 
+                             const VectorI& evidenceDomain,
+                             const EvidenceValue& evidenceValue,
+                             const VectorI& domainOfInterest ) const
       {
-         std::vector<const Factor*> factors;
-         getFactors( bn, factors );
+         std::vector<const Factor*> _factors;
+         getFactors( bn, _factors );
+
+         std::vector<FactorCreatorType> factors;
+         factors.reserve( _factors.size() );
+         for ( size_t n = 0; n < _factors.size(); ++n )
+         {
+            factors.push_back( FactorCreator::create( *_factors[ n ] ) );
+         }
 
          if ( !factors.size() )
-            return Factor();
+            return FactorCreatorType();
 
          std::set<ui32> varEliminationOrder;
          for ( size_t n = 0; n < factors.size(); ++n )
          {
-            std::for_each( factors[ n ]->getDomain().begin(),
-                           factors[ n ]->getDomain().end(),
+            std::for_each( factors[ n ].getDomain().begin(),
+                           factors[ n ].getDomain().end(),
                            [&]( ui32 v )
                            {
                               varEliminationOrder.insert( v );
@@ -93,17 +103,24 @@ namespace algorithm
        @param domainOfInterest the domain we want to get the likelihood
        @param variableEliminationOrder the variable elimination order
        */
-      Factor run( const BayesianNetwork<Factor>& bn, 
-                  const VectorI& evidenceDomain,
-                  const EvidenceValue& evidenceValue,
-                  const VectorI& domainOfInterest,
-                  const std::vector<ui32>& variableEliminationOrder ) const
+      FactorCreatorType run( const BayesianNetwork<Factor>& bn, 
+                             const VectorI& evidenceDomain,
+                             const EvidenceValue& evidenceValue,
+                             const VectorI& domainOfInterest,
+                             const std::vector<ui32>& variableEliminationOrder ) const
       {
-         std::vector<const Factor*> factors;
-         getFactors( bn, factors );
+         std::vector<const Factor*> _factors;
+         getFactors( bn, _factors );
+
+         std::vector<FactorCreatorType> factors;
+         factors.reserve( _factors.size() );
+         for ( size_t n = 0; n < _factors.size(); ++n )
+         {
+            factors.push_back( FactorCreator::create( *_factors[ n ] ) );
+         }
 
          if ( !factors.size() )
-            return Factor();
+            return FactorCreatorType();
 
          std::vector<ui32> varEliminationOrder = variableEliminationOrder;
 
@@ -132,11 +149,11 @@ namespace algorithm
          VectorI evidenceDomainMarg( 1 );
          EvidenceValue evidenceValueMarg( 1 );
 
-         std::vector<Factor> newFactors;
+         std::vector<FactorCreatorType> newFactors;
          newFactors.reserve( factors.size() );
          for ( size_t n = 0; n < factors.size(); ++n )
          {
-            newFactors.push_back( *factors[ n ] );
+            newFactors.push_back( factors[ n ] );
 
             // check we have some evidence
             for ( ui32 evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
@@ -163,14 +180,14 @@ namespace algorithm
             if ( factorsInScope.size() )
             {
                // just save the unused factors
-               std::vector<Factor> tmpFactors;
+               std::vector<FactorCreatorType> tmpFactors;
                for ( size_t n = 0; n < factorsNotInScope.size(); ++n )
                {
                   tmpFactors.push_back( newFactors[ factorsNotInScope[ n ] ] );
                }
 
                // create a big factor with all factors involved with this domain and marginalize it
-               Factor f = newFactors[ factorsInScope[ 0 ] ];
+               FactorCreatorType f = newFactors[ factorsInScope[ 0 ] ];
                for ( size_t n = 1; n < factorsInScope.size(); ++n )
                {
                   f = f * newFactors[ factorsInScope[ n ] ];
@@ -186,7 +203,7 @@ namespace algorithm
 
          // ... and combines all the remaining factors and normalize the final factor
          ensure( newFactors.size(), "unexpected error: no remaining factors!" );
-         Factor f = newFactors[ 0 ];
+         FactorCreatorType f = newFactors[ 0 ];
          for ( size_t factor = 1; factor < newFactors.size(); ++factor )
          {
             f = f * newFactors[ factor ];
@@ -198,14 +215,14 @@ namespace algorithm
 
 
    private:
-      static bool isDomainInScope( const Factor& f, ui32 domainVariable )
+      static bool isDomainInScope( const FactorCreatorType& f, ui32 domainVariable )
       {
          return std::binary_search( f.getDomain().begin(),
                                     f.getDomain().end(),
                                     domainVariable );
       }
 
-      static void getFactorsInScope( const std::vector<Factor>& factors,
+      static void getFactorsInScope( const std::vector<FactorCreatorType>& factors,
                                     ui32 domainVariable,
                                     std::vector<ui32>& indexFactorsInScope_out,
                                     std::vector<ui32>& indexFactorsNotInScope_out )

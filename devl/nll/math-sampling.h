@@ -92,7 +92,7 @@ namespace core
    template <class Vector>
    void shuffleFisherYates( Vector& v, int nbSamplesToShuffle = -1 )
    {
-      const ui32 nbSamples = ( nbSamplesToShuffle == -1 ) ? v.size() : static_cast<ui32>( nbSamplesToShuffle );
+      const ui32 nbSamples = ( nbSamplesToShuffle == -1 ) ? static_cast<ui32>( v.size() ) : static_cast<ui32>( nbSamplesToShuffle );
       const ui32 originalVectorSize = static_cast<ui32>( v.size() );
 
       // then for each pass <i>, generate an index in <i..originalVectorSize-i>, swap the elements
