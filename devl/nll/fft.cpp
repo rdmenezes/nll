@@ -63,7 +63,7 @@ namespace algorithm
       outReal = core::Buffer1D<double>( sizeOut );
       for ( ui32 n = 0; n < sizeOut; ++n )
       {
-         outReal[ n ] = out[ n ] / sizeOut;
+         outReal[ n ] = out[ n ];
       }
 
       fftw_destroy_plan( plan_backward );

@@ -1,14 +1,199 @@
 #include <nll/nll.h>
 #include <tester/register.h>
+#include <functional>
+#include <complex>
 
 using namespace nll;
 
 namespace nll
 {
+   namespace core
+   {
+      /**
+       @brief Compute a 1D convolution
+
+       Note that the behaviour on the data sides (i.e., +/- convolution.size() / 2) is to do an average of the
+       kernel that fits inside the data.
+
+       Complexity in time is o(NM) in processing and o(M+N) in size, with N = data size and M = convolution kernel size
+
+       We are assuming the data has at least the size of the kernel.
+       */
+      template <class T>
+      core::Buffer1D<T> convolve( const core::Buffer1D<T>& data, const core::Buffer1D<T>& convolution )
+      {
+         #ifdef NLL_SECURE
+         {
+            const T accum = std::accumulate( convolution.begin(), convolution.end(), static_cast<T>( 0 ) );
+            ensure( core::equal<T>( accum, 1, 1e-5 ), "the sum of convolution coef must sum to 1" );
+         }
+         #endif
+
+         ensure( convolution.size() % 2 == 1, "convolution size must be odd" );
+         ensure( convolution.size() > data.size(), "data size must be > kernel size!" ); // if this is not true, data will not be useful anyway
+
+         core::Buffer1D<T> convolved( data.size(), false );
+
+         // compute the "regular" sequence, i.e. in domain [kernelSize/2..dataSize-kernelSize/2]
+         const ui32 halfKernelSize = convolution.size() / 2;
+         const ui32 lastRegularIndex = data.size() - halfKernelSize;
+         for ( ui32 n = halfKernelSize; n < lastRegularIndex; ++n )
+         {
+            T accum = 0;
+            for ( ui32 nn = 0; nn < convolution.size(); ++nn )
+            {
+               accum += data[ n - halfKernelSize ] * convolution[ nn ];
+            }
+
+            convolved[ n ] = accum;
+         }
+
+         // compute the normalization factor for part of the kernel fitting in.
+         core::Buffer1D<double> maxRegularizationLeft( halfKernelSize, false );
+         core::Buffer1D<double> maxRegularizationRight( halfKernelSize, false );
+
+         // assuming half the kernel always fit in the data
+         {
+            // accum holds the total kernel weight that fits in
+            T accum = std::accumulate( convolution.begin() + halfKernelSize + 1, convolution.end(), (T)0.0 ); // we have at least half the filter
+            for ( ui32 n = 0; n < halfKernelSize; ++n )
+            {
+               accum += convolution[ halfKernelSize - n ]; 
+               maxRegularizationLeft[ n ] = 1.0 / accum;
+            }
+         }
+
+         {
+            // accum holds the total kernel weight that fits in
+            T accum = std::accumulate( convolution.begin(), convolution.begin() + halfKernelSize - 1, (T)0.0 ); // we have at least half the filter
+            for ( ui32 n = 0; n < halfKernelSize; ++n )
+            {
+               accum += convolution[ halfKernelSize + n ]; 
+               maxRegularizationRight[ n ] = 1.0 / accum;
+            }
+         }
+
+         // now take care of the sides, they will be more noisy as we are only using part of the kernel...
+         for ( ui32 n = 0; n < halfKernelSize; ++n )
+         {
+            // left side
+            {
+               T accum = 0;
+               for ( ui32 nn = halfKernelSize - n; nn < convolution.size(); ++nn )
+               {
+                  accum += convolution[ nn ] * data[ n ];
+               }
+               convolved[ n ] = accum * maxRegularizationLeft[ n ]; // here we normalize by the weighted kernel fitting in
+            }
+
+            // right side
+            {
+               const ui32 indexRight = data.size() - n - 1; // corresponding index in the data
+               T accum = 0;
+               for ( int nn = halfKernelSize + n; nn >= 0; --nn )
+               {
+                  accum += convolution[ nn ] * data[ indexRight ];
+               }
+               convolved[ indexRight ] = accum * maxRegularizationLeft[ n ]; // here we normalize by the weighted kernel fitting in
+            }
+         }
+         return convolved;
+      }
+   }
+
    namespace algorithm
    {
       /**
-       @brief The period of a quasi periodic 2D time series
+       @brief Hanning window
+
+       Useful for DFT/FFT purposes, such as in spectral analysis. The DFT/FFT contains an implicit periodic asumption. 
+       The non periodic signal will become periodic when applied the window. 
+       */
+      class HanningWindow : public std::function<double(double)>
+      {
+      public:
+         typedef double value_type;
+
+         value_type operator()( value_type v ) const
+         {
+            #ifdef NLL_SECURE
+            ensure( v >= 0 && v <= 1.0, "wrong domain!" );
+            #endif
+
+            return 0.5 * ( 1.0 - std::cos( 2 * core::PI * v ) );
+         }
+      };
+
+      /**
+       @brief Create the periodogram of a 1D time serie
+       @see http://www.stat.tamu.edu/~jnewton/stat626/topics/topics/topic4.pdf
+            http://www.ltrr.arizona.edu/~dmeko/notes_6.pdf
+
+       f(w) = 1/N * |sum_t=1-N(x(t)*exp(2*pi*i*(t-1)*w))|^2, w in [0..0.5]
+       f(w) = f( 1 - w )
+
+       Raw spectrum of a time serie suffers from the spectral bias and (the variance at a given frequency does not decrease as
+       the number of samples used in the computation increases) and variance problems.
+
+       The spectral bias problem arises from a sharp truncation of the sequence, and can be reduced by first multiplying the
+       finite sequence by a window function which truncates the sequence gradually rather than abruptly.
+
+       The variance problem is reduced but smoothing the periodogram
+
+       Smoothness, stability and resolution of the data must be considered when choosing the smoothing kernel and
+       window function. This is problem dependent.
+       */
+      class Periodogram
+      {
+      public:
+         typedef double                                  value_type;
+         typedef std::function<value_type(value_type)>   Function1D;
+
+         /**
+          @brief Compute the raw and smoothed periodogram
+          @param timeSerie the time serie we are analysing
+          @param smoothingKernel the kernel used to smooth the periodogram. Can be empty if no smoothing required
+          @param funcWindow the window to use to reduce the sharp truncation effect
+          */
+         core::Buffer1D<value_type> compute( const core::Buffer1D<value_type>& timeSerie, const core::Buffer1D<value_type>& smoothingKernel, const Function1D& funcWindow )
+         {
+            // get the mean
+            const value_type mean = std::accumulate( timeSerie.begin(), timeSerie.end(), (value_type)0.0 ) / timeSerie.size();
+
+            // multiply by a window to reduce the spectral bias (see http://en.wikipedia.org/wiki/Periodogram)
+            core::Buffer1D<value_type> data( timeSerie.size(), false );
+            for ( ui32 n = 0; n < data.size(); ++n )
+            {
+               data[ n ] = ( timeSerie[ n ] - mean ) * funcWindow( static_cast<value_type>( n ) / timeSerie.size() );
+            }
+
+            // get the DFT coefficients
+            Fft1D fft;
+            core::Buffer1D<value_type> fftOutput;
+            fft.forward( data, data.size(), fftOutput );
+            ensure( fftOutput.size() % 2 == 0, "must be pair! we have real and imaginary parts" );
+            ensure( fftOutput.size() / 2 == data.size() / 2, "WRONG!!!" );
+
+            // compute the raw periodogram from the DFT coefficients
+            core::Buffer1D<value_type> basicPeriodogram( data.size() / 2 );
+            for ( ui32 n = 0; n < basicPeriodogram.size(); ++n )
+            {
+               ui32 index = n * 2;
+               basicPeriodogram[ n ] = ( core::sqr( fftOutput[ index ] ) + core::sqr( fftOutput[ index + 1 ] ) ) / timeSerie.size();
+            }
+
+            // smooth the DFT coefficients, we are done!
+            if ( smoothingKernel.size() )
+            {
+               return core::convolve( basicPeriodogram, smoothingKernel );
+            } else {
+               return basicPeriodogram;
+            }
+         }
+      };
+
+      /**
+       @brief Determine the period of a quasi periodic time serie
        @note Direct implementation of "Visual Quasi-Periodicity", 2008 E. Pogalin, A.W.M. Smeulders A.H.C. Thean
        */
       class VisualQuasiPeriodicityAnalysis
@@ -52,8 +237,7 @@ namespace nll
                ensure( projection.size() == response.sizey(), "wrong size" );
             }
 
-            // now do FFT analysis
-            //http://people.sc.fsu.edu/~jburkardt/c_src/fftw3/fftw3_prb.c
+            // now do spectrum analysis
          }
       };
    }
@@ -63,7 +247,31 @@ struct TestVisualQuasiPeriodicityAnalysis
 {
    void test()
    {
-      
+      double i[] =
+      {
+          0.2779,
+         -1.3602,
+         -0.6691,
+         -0.2785,
+          2.6159,
+          0.6840,
+          1.7780,
+         -0.1281,
+         -0.3308,
+          0.0706,
+         -1.0704,
+          0.6990,
+         -0.7002,
+         -1.9162,
+          0.3282
+      };
+
+      core::Buffer1D<double> smoothingKernel;   // empty
+      core::Buffer1D<double> series( i, core::getStaticBufferSize( i ), false );
+      algorithm::Periodogram periodogram;
+      algorithm::HanningWindow windowFunc;
+      core::Buffer1D<double> vals = periodogram.compute( series, smoothingKernel, windowFunc );
+
    }
 
    void testBasic1DRealFFT()
@@ -253,7 +461,7 @@ struct TestVisualQuasiPeriodicityAnalysis
       TESTER_ASSERT( sizei == output.size() );
       for ( ui32 n = 0; n < sizei; ++n )
       {
-         TESTER_ASSERT( core::equal<double>( output[ n ], i[ n ], 1e-5 ) );
+         TESTER_ASSERT( core::equal<double>( output[ n ] / input.size(), i[ n ], 1e-5 ) );
       }
    }
 };

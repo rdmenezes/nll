@@ -61,7 +61,7 @@ namespace core
     @brief extract a specified channel of an image.
     */
    template <class type, class mapper, class allocator>
-	inline Image<type, mapper, allocator> extractChannel(const Image<type, mapper, allocator>& img, ui32 channel)
+	Image<type, mapper, allocator> extractChannel(const Image<type, mapper, allocator>& img, ui32 channel)
 	{
 		assert(channel < img.getNbComponents());
 		assert(img.getBuf());
@@ -126,7 +126,7 @@ namespace core
     @brief add a specified border (in pixels) of an image.
     */
    template <class type, class mapper, class allocator>
-	inline void addBorder(Image<type, mapper, allocator>& image, ui32 borderx, ui32 bordery)
+	Image<type, mapper, allocator> addBorder( const Image<type, mapper, allocator>& image, ui32 borderx, ui32 bordery )
 	{
 		Image<type, mapper, allocator> tmp(image.sizex() + borderx * 2, image.sizey() + bordery * 2, image.getNbComponents(), true, image.getAllocator());
 		for (ui32 y = 0; y < image.sizey(); ++y)
@@ -137,7 +137,7 @@ namespace core
 				for (ui32 c = 0; c < image.getNbComponents(); ++c)
 					t1[c] = t2[c];
 			}
-		image = tmp;
+		return tmp;
 	}
 
 	
@@ -146,7 +146,7 @@ namespace core
     @brief remove a specified border (in pixels) of an image.
     */
 	template <class type, class mapper, class allocator>
-	inline void subBorder(Image<type, mapper, allocator>& image, ui32 borderx, ui32 bordery)
+	Image<type, mapper, allocator> subBorder( const Image<type, mapper, allocator>& image, ui32 borderx, ui32 bordery )
 	{
 		Image<type, mapper, allocator> tmp(image.sizex() - borderx * 2, image.sizey() - bordery * 2, image.getNbComponents(), false, image.getAllocator());
 		for (ui32 y = 0; y < tmp.sizey(); ++y)
@@ -157,7 +157,7 @@ namespace core
 				for (ui32 c = 0; c < tmp.getNbComponents(); ++c)
 					t1[c] = t2[c];
 			}
-		image = tmp;
+		return tmp;
 	}
 
    /**
@@ -165,7 +165,7 @@ namespace core
     @brief invert the components of an image.
     */
 	template <class type, class mapper, class allocator>
-	inline void changeRGBtoBGR(Image<type, mapper, allocator>& image)
+	void changeRGBtoBGR(Image<type, mapper, allocator>& image)
 	{
 		for (ui32 y = 0; y < image.sizey(); ++y)
 			for (ui32 x = 0; x < image.sizex(); ++x)
@@ -181,7 +181,7 @@ namespace core
     @brief y-inverse an image.
     */
 	template <class type, class mapper, class allocator>
-	inline void inversey(Image<type, mapper, allocator>& image)
+	void inversey(Image<type, mapper, allocator>& image)
 	{
 		for (ui32 y = 0; y < image.sizey() / 2; ++y)
 			for (ui32 x = 0; x < image.sizex(); ++x)
@@ -198,7 +198,7 @@ namespace core
     @brief extract a subpart of an image.
     */
 	template <class type, class mapper, class allocator>
-	inline void extract(Image<type, mapper, allocator>& img, ui32 x1, ui32 y1, ui32 x2, ui32 y2)
+	void extract(Image<type, mapper, allocator>& img, ui32 x1, ui32 y1, ui32 x2, ui32 y2)
 	{
 		assert(x1 <= x2 && x2 < img.sizex() &&
 			    y1 <= y2 && y2 < img.sizey());

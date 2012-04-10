@@ -70,9 +70,11 @@ namespace core
    /**
     @ingroup core
     @brief convolve an image
+
+    Note tha the border convolution.size() / 2 will be removed
    */
 	template <class type, class mapper, class allocator, class Convolution>
-	void convolve(Image<type, mapper, allocator>& img, const Convolution& convolution)
+	Image<type, mapper, allocator> convolve( const Image<type, mapper, allocator>& img, const Convolution& convolution )
 	{
 		i32 midx = convolution.sizex() / 2;
 		i32 midy = convolution.sizey() / 2;
@@ -94,7 +96,7 @@ namespace core
 					tmp(x, y, c) = static_cast<type> (tt);
 				}
 			}
-		img = tmp;
+		return tmp;
 	}
 
    /**
@@ -102,11 +104,13 @@ namespace core
     @brief convolve an image adding a null border of the size of the convolution
    */
 	template <class type, class mapper, class allocator, class Convolution>
-	void convolveBorder(Image<type, mapper, allocator>& img, const Convolution& convolution)
+	Image<type, mapper, allocator> convolveBorder( const Image<type, mapper, allocator>& img, const Convolution& convolution )
 	{
-		addBorder(img, convolution.sizex(), convolution.sizey());
-		convolve(img, convolution);
-		subBorder(img, convolution.sizex(), convolution.sizey());
+      Image<type, mapper, allocator> i;
+		i = addBorder(img, convolution.sizex(), convolution.sizey() );
+		i = convolve( i, convolution );
+		i = subBorder( i, convolution.sizex(), convolution.sizey() );
+      return i;
 	}
 }
 }

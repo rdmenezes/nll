@@ -511,7 +511,7 @@ public:
       TESTER_ASSERT( i4.equal(0, i3.sizey() - 1, image::black()) );
 
       nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator() );
-      nll::core::convolve(i4, nll::core::buildGaussian());
+      i4 = nll::core::convolve(i4, nll::core::buildGaussian());
       TESTER_ASSERT( i4(1, 1, 0) > 30 );
       TESTER_ASSERT( (int)i4(2, 1, 0) > 20 );
       nll::core::writeBmp(i4, NLL_TEST_PATH "data/tmp.bmp");
@@ -802,7 +802,7 @@ public:
       nll::core::Image<nll::ui8> im1;
       nll::core::readBmp(im1, NLL_TEST_PATH "data/image/test-image1.bmp", Image::Allocator());
       nll::core::decolor(im1);
-      nll::core::convolveBorder(im1, gabors[1]);
+      im1 = nll::core::convolveBorder(im1, gabors[1]);
       nll::core::extend(im1, 3);
       nll::core::writeBmp(im1, NLL_TEST_PATH "data/tmp-img.bmp");
 
@@ -882,9 +882,9 @@ public:
       nll::core::Image<nll::ui8> ii3 = nll::core::transform(ii1, ii2, nll::core::BinaryAdd<nll::ui8>());
 
       nll::core::transformUnaryFast(ii3, nll::core::TransformationRotation(-0.3f, nll::core::vector2f(0, 0)));
-      nll::core::convolve(ii3, nll::core::buildGaussian());
+      ii3 = nll::core::convolve(ii3, nll::core::buildGaussian());
       nll::core::rescaleFast(ii3, 512, 512);
-      nll::core::convolve(ii3, nll::core::buildGaussian());
+      ii3 = nll::core::convolve(ii3, nll::core::buildGaussian());
       nll::core::writeBmp(ii3, NLL_TEST_PATH "data/test5.bmp");
 
       nll::core::Image<nll::ui8> ii4(NLL_TEST_PATH "data/image/test-image3.bmp");
