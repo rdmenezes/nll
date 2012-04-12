@@ -191,6 +191,7 @@
 # include "id-maker.h"
 # include "static-vector.h"
 # include "buffer1D.h"
+# include "buffer1D-convolve.h"
 # include "Buffer1D-basic-op.h"
 # include "math.h"
 # include "matrix.h"

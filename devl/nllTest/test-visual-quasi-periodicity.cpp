@@ -7,99 +7,6 @@ using namespace nll;
 
 namespace nll
 {
-   namespace core
-   {
-      /**
-       @brief Compute a 1D convolution
-
-       Note that the behaviour on the data sides (i.e., +/- convolution.size() / 2) is to do an average of the
-       kernel that fits inside the data.
-
-       Complexity in time is o(NM) in processing and o(M+N) in size, with N = data size and M = convolution kernel size
-
-       We are assuming the data has at least the size of the kernel.
-       */
-      template <class T>
-      core::Buffer1D<T> convolve( const core::Buffer1D<T>& data, const core::Buffer1D<T>& convolution )
-      {
-         #ifdef NLL_SECURE
-         {
-            const T accum = std::accumulate( convolution.begin(), convolution.end(), static_cast<T>( 0 ) );
-            ensure( core::equal<T>( accum, 1, 1e-5 ), "the sum of convolution coef must sum to 1" );
-         }
-         #endif
-
-         ensure( convolution.size() % 2 == 1, "convolution size must be odd" );
-         ensure( convolution.size() > data.size(), "data size must be > kernel size!" ); // if this is not true, data will not be useful anyway
-
-         core::Buffer1D<T> convolved( data.size(), false );
-
-         // compute the "regular" sequence, i.e. in domain [kernelSize/2..dataSize-kernelSize/2]
-         const ui32 halfKernelSize = convolution.size() / 2;
-         const ui32 lastRegularIndex = data.size() - halfKernelSize;
-         for ( ui32 n = halfKernelSize; n < lastRegularIndex; ++n )
-         {
-            T accum = 0;
-            for ( ui32 nn = 0; nn < convolution.size(); ++nn )
-            {
-               accum += data[ n - halfKernelSize ] * convolution[ nn ];
-            }
-
-            convolved[ n ] = accum;
-         }
-
-         // compute the normalization factor for part of the kernel fitting in.
-         core::Buffer1D<double> maxRegularizationLeft( halfKernelSize, false );
-         core::Buffer1D<double> maxRegularizationRight( halfKernelSize, false );
-
-         // assuming half the kernel always fit in the data
-         {
-            // accum holds the total kernel weight that fits in
-            T accum = std::accumulate( convolution.begin() + halfKernelSize + 1, convolution.end(), (T)0.0 ); // we have at least half the filter
-            for ( ui32 n = 0; n < halfKernelSize; ++n )
-            {
-               accum += convolution[ halfKernelSize - n ]; 
-               maxRegularizationLeft[ n ] = 1.0 / accum;
-            }
-         }
-
-         {
-            // accum holds the total kernel weight that fits in
-            T accum = std::accumulate( convolution.begin(), convolution.begin() + halfKernelSize - 1, (T)0.0 ); // we have at least half the filter
-            for ( ui32 n = 0; n < halfKernelSize; ++n )
-            {
-               accum += convolution[ halfKernelSize + n ]; 
-               maxRegularizationRight[ n ] = 1.0 / accum;
-            }
-         }
-
-         // now take care of the sides, they will be more noisy as we are only using part of the kernel...
-         for ( ui32 n = 0; n < halfKernelSize; ++n )
-         {
-            // left side
-            {
-               T accum = 0;
-               for ( ui32 nn = halfKernelSize - n; nn < convolution.size(); ++nn )
-               {
-                  accum += convolution[ nn ] * data[ n ];
-               }
-               convolved[ n ] = accum * maxRegularizationLeft[ n ]; // here we normalize by the weighted kernel fitting in
-            }
-
-            // right side
-            {
-               const ui32 indexRight = data.size() - n - 1; // corresponding index in the data
-               T accum = 0;
-               for ( int nn = halfKernelSize + n; nn >= 0; --nn )
-               {
-                  accum += convolution[ nn ] * data[ indexRight ];
-               }
-               convolved[ indexRight ] = accum * maxRegularizationLeft[ n ]; // here we normalize by the weighted kernel fitting in
-            }
-         }
-         return convolved;
-      }
-   }
 
    namespace algorithm
    {
@@ -155,8 +62,9 @@ namespace nll
           @param smoothingKernel the kernel used to smooth the periodogram. Can be empty if no smoothing required
           @param funcWindow the window to use to reduce the sharp truncation effect
           */
-         core::Buffer1D<value_type> compute( const core::Buffer1D<value_type>& timeSerie, const core::Buffer1D<value_type>& smoothingKernel, const Function1D& funcWindow )
+         core::Buffer1D<value_type> compute( const core::Buffer1D<value_type>& timeSerie, const core::Buffer1D<value_type>& smoothingKernel, Function1D& funcWindow )
          {
+            std::cout << "F=" << funcWindow(0.4) << std::endl;
             // get the mean
             const value_type mean = std::accumulate( timeSerie.begin(), timeSerie.end(), (value_type)0.0 ) / timeSerie.size();
 
@@ -245,35 +153,6 @@ namespace nll
 
 struct TestVisualQuasiPeriodicityAnalysis
 {
-   void test()
-   {
-      double i[] =
-      {
-          0.2779,
-         -1.3602,
-         -0.6691,
-         -0.2785,
-          2.6159,
-          0.6840,
-          1.7780,
-         -0.1281,
-         -0.3308,
-          0.0706,
-         -1.0704,
-          0.6990,
-         -0.7002,
-         -1.9162,
-          0.3282
-      };
-
-      core::Buffer1D<double> smoothingKernel;   // empty
-      core::Buffer1D<double> series( i, core::getStaticBufferSize( i ), false );
-      algorithm::Periodogram periodogram;
-      algorithm::HanningWindow windowFunc;
-      core::Buffer1D<double> vals = periodogram.compute( series, smoothingKernel, windowFunc );
-
-   }
-
    void testBasic1DRealFFT()
    {
       //
@@ -464,11 +343,123 @@ struct TestVisualQuasiPeriodicityAnalysis
          TESTER_ASSERT( core::equal<double>( output[ n ] / input.size(), i[ n ], 1e-5 ) );
       }
    }
+
+   void testConvolution1d_a()
+   {
+      const core::Buffer1D<double> data = core::make_buffer1D<double>( 1, 8, 3, -2, 6 );
+      const core::Buffer1D<double> kernel = core::make_buffer1D<double>( 0.1, 0.5, 0.4 );
+
+      const core::Buffer1D<double> convolution = core::convolve( data, kernel );
+      convolution.print( std::cout );
+
+      const ui32 half = kernel.size() / 2;
+      for ( ui32 n = half; n < data.size() - half; ++n )
+      {
+         const double val = data[ n - 1 ] * kernel[ 0 ] +
+                            data[ n     ] * kernel[ 1 ] +
+                            data[ n + 1 ] * kernel[ 2 ];
+         TESTER_ASSERT( core::equal<double>(val, convolution[ n ], 1e-6) );
+      }
+
+      {
+         const double val = ( data[ 0 ] * kernel[ 1 ] + data[ 1 ] * kernel[ 2 ] ) / ( kernel[ 1 ] + kernel[ 2 ] );
+         TESTER_ASSERT( core::equal<double>( convolution[ 0 ], val ) );
+      }
+
+      {
+         const double val = ( data[ 4 ] * kernel[ 1 ] + data[ 3 ] * kernel[ 0 ] ) / ( kernel[ 1 ] + kernel[ 0 ] );
+         TESTER_ASSERT( core::equal<double>( convolution[ 4 ], val ) );
+      }
+   }
+
+   void testConvolution1d_b()
+   {
+      const core::Buffer1D<double> data = core::make_buffer1D<double>( 1, 8, 3, -2, 6, 2.5 );
+      const core::Buffer1D<double> kernel = core::make_buffer1D<double>( 0.1, 0.2, 0.4, 0.13, 0.17 );
+
+      const core::Buffer1D<double> convolution = core::convolve( data, kernel );
+      convolution.print( std::cout );
+
+      const ui32 half = kernel.size() / 2;
+      for ( ui32 n = half; n < data.size() - half; ++n )
+      {
+         const double val = data[ n - 2 ] * kernel[ 0 ] +
+                            data[ n - 1 ] * kernel[ 1 ] +
+                            data[ n + 0 ] * kernel[ 2 ] +
+                            data[ n + 1 ] * kernel[ 3 ] +
+                            data[ n + 2 ] * kernel[ 4 ];
+
+         TESTER_ASSERT( core::equal<double>(val, convolution[ n ], 1e-6) );
+      }
+
+      {
+         const double up = ( data[ 0 ] * kernel[ 2 ] + data[ 1 ] * kernel[ 3 ] + data[ 2 ] * kernel[ 4 ] );
+         const double down = ( kernel[ 2 ] + kernel[ 3 ] + kernel[ 4 ] );
+         const double val = up / down;
+         TESTER_ASSERT( core::equal<double>( convolution[ 0 ], val, 1e-6 ) );
+      }
+
+      {
+         const double up = ( data[ 0 ] * kernel[ 1 ] + data[ 1 ] * kernel[ 2 ] + data[ 2 ] * kernel[ 3 ] + data[ 3 ] * kernel[ 4 ] );
+         const double down = ( kernel[ 1 ] + kernel[ 2 ] + kernel[ 3 ] + kernel[ 4 ] );
+         const double val = up / down;
+         TESTER_ASSERT( core::equal<double>( convolution[ 1 ], val, 1e-6 ) );
+      }
+
+      {
+         const double up = ( data[ 5 ] * kernel[ 2 ] + data[ 4 ] * kernel[ 1 ] + data[ 3 ] * kernel[ 0 ] );
+         const double down = ( kernel[ 2 ] + kernel[ 1 ] + kernel[ 0 ] );
+         const double val = up / down;
+         TESTER_ASSERT( core::equal<double>( convolution[ 5 ], val, 1e-6 ) );
+      }
+
+      {
+         const double up = ( data[ 5 ] * kernel[ 3 ] + data[ 4 ] * kernel[ 2 ] + data[ 3 ] * kernel[ 1 ] + data[ 2 ] * kernel[ 0 ] );
+         const double down = ( kernel[ 3 ] + kernel[ 2 ] + kernel[ 1 ] + kernel[ 0 ] );
+         const double val = up / down;
+         TESTER_ASSERT( core::equal<double>( convolution[ 4 ], val, 1e-6 ) );
+      }
+   }
+
+   void testPeriodogram()
+   {
+      double i[] =
+      {
+          0.2779,
+         -1.3602,
+         -0.6691,
+         -0.2785,
+          2.6159,
+          0.6840,
+          1.7780,
+         -0.1281,
+         -0.3308,
+          0.0706,
+         -1.0704,
+          0.6990,
+         -0.7002,
+         -1.9162,
+          0.3282
+      };
+
+      core::Buffer1D<double> smoothingKernel;   // empty
+      core::Buffer1D<double> series( i, core::getStaticBufferSize( i ), false );
+      algorithm::Periodogram periodogram;
+      algorithm::HanningWindow windowFunc;
+
+
+      double t = fn( 0.9 );
+      std::cout << "FUNC=" << t << std::endl;
+      core::Buffer1D<double> vals = periodogram.compute( series, smoothingKernel, windowFunc );
+      vals.print( std::cout );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVisualQuasiPeriodicityAnalysis);
- TESTER_TEST(test);
- TESTER_TEST(testBasic1DRealFFT);
+ /*TESTER_TEST(testBasic1DRealFFT);
+ TESTER_TEST(testConvolution1d_a);
+ TESTER_TEST(testConvolution1d_b);*/
+ TESTER_TEST(testPeriodogram);
 TESTER_TEST_SUITE_END();
 #endif

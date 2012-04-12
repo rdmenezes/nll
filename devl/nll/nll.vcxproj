@@ -372,6 +372,7 @@
     <ClInclude Include="boosting-weak-classifier-stump.h" />
     <ClInclude Include="boosting-weak-classifier.h" />
     <ClInclude Include="Buffer1D-basic-op.h" />
+    <ClInclude Include="Buffer1D-convolve.h" />
     <ClInclude Include="buffer1D.h" />
     <ClInclude Include="decision-tree.h" />
     <ClInclude Include="configuration.h" />
