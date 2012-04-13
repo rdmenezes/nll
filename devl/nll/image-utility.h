@@ -133,7 +133,7 @@ namespace core
 			for (ui32 x = 0; x < image.sizex(); ++x)
 			{
 				type* t1 = tmp.point(x + borderx, y + bordery);
-				type* t2 = image.point(x, y);
+				const type* t2 = image.point(x, y);
 				for (ui32 c = 0; c < image.getNbComponents(); ++c)
 					t1[c] = t2[c];
 			}
@@ -153,7 +153,7 @@ namespace core
 			for (ui32 x = 0; x < tmp.sizex(); ++x)
 			{
 				type* t1 = tmp.point(x, y);
-				type* t2 = image.point(x + borderx, y + bordery);
+				const type* t2 = image.point(x + borderx, y + bordery);
 				for (ui32 c = 0; c < tmp.getNbComponents(); ++c)
 					t1[c] = t2[c];
 			}

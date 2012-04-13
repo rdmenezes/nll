@@ -447,6 +447,8 @@ struct TestVisualQuasiPeriodicityAnalysis
       algorithm::Periodogram periodogram;
       algorithm::HanningWindow windowFunc;
 
+      const std::function<double(double)> fn;
+      //fn = windowFunc;
 
       double t = fn( 0.9 );
       std::cout << "FUNC=" << t << std::endl;

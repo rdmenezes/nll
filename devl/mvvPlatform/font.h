@@ -422,9 +422,9 @@ namespace platform
                   ensure( transparentColor == nll::core::vector3uc( 0, 0, 0 ), "only handled for transparentColor=(0, 0, 0)" );
                   ui32 x1, x2;
                   nll::core::cropVertical( c, 0, 0, &x1, &x2 );
-                  nll::core::addBorder( c, 1, 0 );
+                  c = nll::core::addBorder( c, 1, 0 );
                   nll::core::extract( mask, x1, 0, x2, c.sizey() - 1 );
-                  nll::core::addBorder( mask, 1, 0 );
+                  mask = nll::core::addBorder( mask, 1, 0 );
                }
 
                reference[ charactersMapping[ x + y * layout[ 0 ] ] ] = ImageSet( c, mask );

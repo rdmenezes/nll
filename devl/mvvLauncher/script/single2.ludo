@@ -125,7 +125,7 @@ class VolumeSwitchReg
 	  groundtruth = 0;
 
 	  string name = registrator.getTestMrVolume( index );
-	  //name = "MR-181";
+	  name = "MR-258";
 
       string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
       string volname = base + name;
@@ -229,7 +229,8 @@ Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
 
 DisplayRegionDetection detection( annotations );
 AnnotationCreator annotationCreator( annotations, pointer );
-RegistrationMr registrator( "c:/tmp/templates.bin" );
+RegistrationMr registrator( "c:/tmp/templates.bin",
+                            "c:/tmp/templatesPt.bin"  );
 
 KeyboardCallback callbacks;
 
