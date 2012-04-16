@@ -11,12 +11,30 @@ namespace nll
    namespace algorithm
    {
       /**
+       @brief Defines a square window, which keep the data intact within interval [0..1], set it to 0 otherwise
+       */
+      class SquareWindow
+      {
+      public:
+         typedef double value_type;
+
+         value_type operator()( value_type v ) const
+         {
+            #ifdef NLL_SECURE
+            ensure( v >= 0 && v <= 1.0, "wrong domain!" );
+            #endif
+
+            return ( v >= 0 && v <= 1 ) ? v : 0;
+         }
+      };
+
+      /**
        @brief Hanning window
 
        Useful for DFT/FFT purposes, such as in spectral analysis. The DFT/FFT contains an implicit periodic asumption. 
        The non periodic signal will become periodic when applied the window. 
        */
-      class HanningWindow : public std::function<double(double)>
+      class HanningWindow
       {
       public:
          typedef double value_type;
@@ -54,17 +72,19 @@ namespace nll
       {
       public:
          typedef double                                  value_type;
-         typedef std::function<value_type(value_type)>   Function1D;
 
          /**
           @brief Compute the raw and smoothed periodogram
           @param timeSerie the time serie we are analysing
           @param smoothingKernel the kernel used to smooth the periodogram. Can be empty if no smoothing required
           @param funcWindow the window to use to reduce the sharp truncation effect
+          @return the periodogram
+
+          Example: if it returns [0 0 0 1 0] -> it means there is a spike of 1 at index = 4. This means the period is ( 3 / 4 ) / 2 * PI
           */
+         template <class Function1D>
          core::Buffer1D<value_type> compute( const core::Buffer1D<value_type>& timeSerie, const core::Buffer1D<value_type>& smoothingKernel, Function1D& funcWindow )
          {
-            std::cout << "F=" << funcWindow(0.4) << std::endl;
             // get the mean
             const value_type mean = std::accumulate( timeSerie.begin(), timeSerie.end(), (value_type)0.0 ) / timeSerie.size();
 
@@ -80,10 +100,10 @@ namespace nll
             core::Buffer1D<value_type> fftOutput;
             fft.forward( data, data.size(), fftOutput );
             ensure( fftOutput.size() % 2 == 0, "must be pair! we have real and imaginary parts" );
-            ensure( fftOutput.size() / 2 == data.size() / 2, "WRONG!!!" );
+            //ensure( fftOutput.size() / 2 == data.size() / 2, "WRONG!!!" );
 
             // compute the raw periodogram from the DFT coefficients
-            core::Buffer1D<value_type> basicPeriodogram( data.size() / 2 );
+            core::Buffer1D<value_type> basicPeriodogram( fftOutput.size() / 2 );
             for ( ui32 n = 0; n < basicPeriodogram.size(); ++n )
             {
                ui32 index = n * 2;
@@ -447,13 +467,33 @@ struct TestVisualQuasiPeriodicityAnalysis
       algorithm::Periodogram periodogram;
       algorithm::HanningWindow windowFunc;
 
-      const std::function<double(double)> fn;
-      //fn = windowFunc;
-
-      double t = fn( 0.9 );
-      std::cout << "FUNC=" << t << std::endl;
       core::Buffer1D<double> vals = periodogram.compute( series, smoothingKernel, windowFunc );
       vals.print( std::cout );
+   }
+
+   // test the periodogram against a known periodic function
+   void testPeriodogramPeriodicFunction1()
+   {
+      srand(0);
+      for ( ui32 iter = 0; iter < 100; ++iter )
+      {
+         const double period =  core::generateUniformDistribution( 0.1, 0.5 );
+         const double mean = core::generateUniformDistribution( -0.5, 2.5 );
+         const ui32 nbData = core::generateUniformDistributioni( 100, 150 );
+
+         core::Buffer1D<double> data( nbData );
+         for ( ui32 n = 0; n < nbData; ++n )
+         {
+            data[ n ] = std::cos( 2 * core::PI * n * period ) + mean;
+         }
+
+         algorithm::Periodogram periodogram;
+         const core::Buffer1D<double> p = periodogram.compute( data, core::Buffer1D<double>(), algorithm::SquareWindow() );
+
+         size_t maxIndex = std::max_element( p.begin(), p.end() ) - p.begin();
+         const double periodFound = maxIndex / ( 2.0 * p.size() );
+         TESTER_ASSERT( fabs( periodFound - period ) < 0.05 );
+      }
    }
 };
 
@@ -462,6 +502,8 @@ TESTER_TEST_SUITE(TestVisualQuasiPeriodicityAnalysis);
  /*TESTER_TEST(testBasic1DRealFFT);
  TESTER_TEST(testConvolution1d_a);
  TESTER_TEST(testConvolution1d_b);*/
- TESTER_TEST(testPeriodogram);
+
+ //TESTER_TEST(testPeriodogram);
+TESTER_TEST(testPeriodogramPeriodicFunction1);
 TESTER_TEST_SUITE_END();
 #endif

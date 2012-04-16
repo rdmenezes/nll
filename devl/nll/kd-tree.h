@@ -147,6 +147,14 @@ namespace algorithm
 		   for (typename NearestNeighborList::const_iterator i = nns.begin(); i != nns.end(); ++i)
 			   o << "(" << i->id << ", " << i->dist << ") ";
 	   }
+
+   private:
+      struct   _Query
+      {
+         NearestNeighborList nearest;
+         f32                 minDistFound;
+      };
+
    public:
       /**
        @brief default Distance so we can put it in Vectors. Use setDistance() if it needs additional parameters
@@ -184,8 +192,6 @@ namespace algorithm
          _tmpMin = cpy._tmpMin;
          _tmpMax = cpy._tmpMax;
          _points = cpy._points;
-         _minDistFound = cpy._minDistFound;
-         _minDistIndex = cpy._minDistIndex;
          _nearest = cpy._nearest;
          _pointSize = cpy._pointSize;
          if ( cpy._root )
@@ -225,9 +231,9 @@ namespace algorithm
 	   NearestNeighborList findNearestNeighbor(const Point& point, ui32 k) const
 	   {
          ensure( k, "k must be > 1" );
-		   _nearest.clear();
-		   _findNearestNeighbor(_root, point, k);
-		   return _nearest;
+         _Query query;
+		   _findNearestNeighbor(query, _root, point, k);
+		   return query.nearest;
 	   }
 
       /**
@@ -272,26 +278,26 @@ namespace algorithm
 		   }
 	   }
 
-      void _findNearestNeighbor(const _KdTree* p, const Point& point, ui32 k) const
+      void _findNearestNeighbor(_Query& query, const _KdTree* p, const Point& point, ui32 k) const
 	   {
 		   if (p->bucket)
 		   {
 			   for (ui32 n = p->lopt; n <= p->hipt; ++n)
 			   {
 				   f32 dist = _distance.distance((*_points)[_perm[n]], point );
-				   if (_nearest.size() < k)
+				   if (query.nearest.size() < k)
 				   {
-					   _nearest.insert(NearestNeighbor(_perm[n], dist));
-					   _minDistFound = _nearest.rbegin()->dist;
+					   query.nearest.insert(NearestNeighbor(_perm[n], dist));
+					   query.minDistFound = query.nearest.rbegin()->dist;
 				   }
 				   else 
 				   {
-					   f32 minDistFound = _nearest.rbegin()->dist;
+					   f32 minDistFound = query.nearest.rbegin()->dist;
 					   if (dist < minDistFound)
 					   {
-						   _nearest.erase(--_nearest.end());
-						   _nearest.insert(NearestNeighbor(_perm[n], dist));
-						   _minDistFound = _nearest.rbegin()->dist;
+						   query.nearest.erase(--query.nearest.end());
+						   query.nearest.insert(NearestNeighbor(_perm[n], dist));
+						   query.minDistFound = query.nearest.rbegin()->dist;
 					   }
 				   }
 			   }
@@ -300,22 +306,22 @@ namespace algorithm
 			   f32 target_val = point[ p->cut_dim ];
 			   if (target_val <= val)
 			   {
-				   _findNearestNeighbor(p->l, point, k);
-				   if (_nearest.size() < k)
-					   _findNearestNeighbor(p->h, point, k);
+				   _findNearestNeighbor(query, p->l, point, k);
+				   if (query.nearest.size() < k)
+					   _findNearestNeighbor(query, p->h, point, k);
 				   else
 				   {
-					   if (target_val + _minDistFound > val)
-						   _findNearestNeighbor(p->h, point, k);
+					   if (target_val + query.minDistFound > val)
+						   _findNearestNeighbor(query, p->h, point, k);
 				   }
 			   } else {
-				   _findNearestNeighbor(p->h, point, k);
-				   if (_nearest.size() < k)
-					   _findNearestNeighbor(p->l, point, k);
+				   _findNearestNeighbor(query, p->h, point, k);
+				   if (query.nearest.size() < k)
+					   _findNearestNeighbor(query, p->l, point, k);
 				   else
 				   {
-					   if (target_val - _minDistFound < val)
-						   _findNearestNeighbor(p->l, point, k);
+					   if (target_val - query.minDistFound < val)
+						   _findNearestNeighbor(query, p->l, point, k);
 				   }
 			   }
 		   }
@@ -431,9 +437,6 @@ namespace algorithm
       std::vector<f32>     _tmpMin;
       std::vector<f32>     _tmpMax;
 	   const Points*	      _points;
-	   mutable f32				_minDistFound;
-	   mutable ui32			_minDistIndex;
-	   mutable NearestNeighborList  _nearest;
       ui32                 _pointSize;
       Distance             _distance;
    };

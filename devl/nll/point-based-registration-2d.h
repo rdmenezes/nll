@@ -76,41 +76,57 @@ namespace algorithm
             typedef algorithm::KdTree< Point, MetricEuclidian<Point>, 5, Points >  KdTree;
             matches.clear();
 
-            if ( points1.size() == 0 )
+            if ( points1.size() <= 1 + _nbPairsToBeConsidered || 
+                 points2.size() <= 1 + _nbPairsToBeConsidered )
                return;
             const ui32 nbFeatures = (ui32)points1[ 0 ].size();
 
             // find a match from the smaller set to the bigger one
             if ( points2.size() > points1.size() )
             {
+               matches.resize( points1.size() * _nbPairsToBeConsidered );
+
                KdTree tree;
                tree.build( points2, nbFeatures );
 
-               for ( ui32 n = 0; n < points1.size(); ++n )
+               #ifndef NLL_NOT_MULTITHREADED
+               # pragma omp parallel for
+               #endif
+               for ( int n = 0; n < (int)points1.size(); ++n )
                {
                   typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points1[ n ], _nbPairsToBeConsidered );
                   if ( list.size() )
                   {
-                     for (typename KdTree::NearestNeighborList::const_iterator i = list.begin(); i != list.end(); ++i)
+                     size_t nn = 0;
+                     for (typename KdTree::NearestNeighborList::const_iterator i = list.begin(); i != list.end(); ++i, ++nn)
                      {
                         const float d = i->dist;
-                        matches.push_back( Match( n, i->id, d ) );
+                        const size_t index = n * _nbPairsToBeConsidered + nn;
+                        matches[ index ] = Match( n, i->id, d );
                      }
                   }
                }
             } else {
+
+               matches.resize( points2.size() * _nbPairsToBeConsidered );
+
                KdTree tree;
                tree.build( points1, nbFeatures );
 
-               for ( ui32 n = 0; n < points2.size(); ++n )
+               #ifndef NLL_NOT_MULTITHREADED
+               # pragma omp parallel for
+               #endif
+               for ( int n = 0; n < (int)points2.size(); ++n )
                {
                   typename KdTree::NearestNeighborList list = tree.findNearestNeighbor( points2[ n ], _nbPairsToBeConsidered );
                   if ( list.size() )
                   {
-                     for (typename KdTree::NearestNeighborList::const_iterator i = list.begin(); i != list.end(); ++i)
+                     size_t nn = 0;
+                     for (typename KdTree::NearestNeighborList::const_iterator i = list.begin(); i != list.end(); ++i, ++nn)
                      {
                         const float d = i->dist;
-                        matches.push_back( Match( i->id, n, d ) );
+                        const size_t index = n * _nbPairsToBeConsidered + nn;
+                        matches[ index ] = Match( i->id, n, d );
                      }
                   }
                }
@@ -711,6 +727,7 @@ namespace algorithm
                       ui32 nbRansacIterations = 25000,
                       ui32 nbMaxRansacPairs = 1000 )
       {
+         nll::core::Timer timerFull;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
          {
             std::stringstream ss;
@@ -721,9 +738,6 @@ namespace algorithm
             ss << " surfNumberOfOctaves=" << _surfNumberOfOctaves << " surfNumberOfIntervals=" << _surfNumberOfIntervals << " surfThreshold=" << _surfThreshold;
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-
-         nll::core::Timer timer;
-         algorithm::SpeededUpRobustFeatures surf( _surfNumberOfOctaves, _surfNumberOfIntervals, 2, _surfThreshold );
 
          algorithm::SpeededUpRobustFeatures::Points points1 = sourcePoints;
          _originalPoints1 = points1;
@@ -736,8 +750,10 @@ namespace algorithm
          algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p1Wrapper( points1 );
          algorithm::SpeededUpRobustFeatures::PointsFeatureWrapper p2Wrapper( points2 );
 
+         nll::core::Timer timerMatcher;
          typename FeatureMatcher::Matches matches;
          _matcher.findMatch( p1Wrapper, p2Wrapper, matches );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "point matching time=" + core::val2str( timerMatcher.getCurrentTime() ) );
 
          // take only the best subset...
          if ( matches.size() == 0 )
@@ -782,6 +798,7 @@ namespace algorithm
             _inliers.push_back( std::make_pair( p1, p2 ) );
          }
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "2D registration successful..." );
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "2D registration total time=" + core::val2str( timerFull.getCurrentTime() ) );
          return model.tfm;
       }
 
