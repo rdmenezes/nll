@@ -125,7 +125,7 @@ class VolumeSwitchReg
 	  groundtruth = 0;
 
 	  string name = registrator.getTestMrVolume( index );
-	  name = "MR-258";
+	  name = "MR-364";
 
       string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
       string volname = base + name;
@@ -138,7 +138,10 @@ class VolumeSwitchReg
       
 	  int id = 0;
 	  AffineRegistration tfm;
-      tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
+      //tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
+	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
+	  tfmReg = AffineRegistration( t );
+
 	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_MR", name ) );
 	  displayed1 = registrator.templates[id];
 
@@ -170,27 +173,17 @@ class InsentisySwitchReg
       //VolumeContainer& volumes = switch.volumes;
       if ( state == 0 )
       {
-		switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(100));
+		switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255));
 		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255, 255, 255));
-		//switch.volumes.setIntensity( switch.displayed1, 0.5 );
-        //switch.volumes.setIntensity( switch.displayed2, 1.0 );
-	  /*
-         switch.volumes.setIntensity( switch.displayed2, 1.0 );
-         switch.volumes.setIntensity( switch.displayed1, 0.3 );
-         switch.volumes.setLut( switch.displayed1, switch.lut2 );
-         switch.volumes.setLut( switch.displayed2, switch.lut1 );
-		 */
+		switch.lut1.detectRange( switch.displayed2, 0.3 );
+		switch.volumes.setIntensity( switch.displayed2, 0.3 );
+		switch.volumes.setIntensity( switch.displayed1, 0.7 );
       } else {
 	    switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255, 255, 255));
-		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(100));
-		//switch.volumes.setIntensity( switch.displayed2, 0.5 );
-        //switch.volumes.setIntensity( switch.displayed1, 1.0 );
-	  /*
-         switch.volumes.setIntensity( switch.displayed1, 1.0 );
-         switch.volumes.setIntensity( switch.displayed2, 0.3 );
-         switch.volumes.setLut( switch.displayed1, switch.lut1 );
-         switch.volumes.setLut( switch.displayed2, switch.lut2 );
-		 */
+		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255));
+		switch.lut1.detectRange( switch.displayed2, 0.3 );
+		switch.volumes.setIntensity( switch.displayed2, 0.7 );
+		switch.volumes.setIntensity( switch.displayed1, 0.3 );
       }
       state = 1 - state;
    }
