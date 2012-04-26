@@ -11,7 +11,26 @@ namespace nll
    {
       /**
        @brief PCA algorithm with the assumption that the dimentionality of a sample is much higher than the number of samples
+
+       Given a set of samples of size M, A = [s_0..s_M]
+
+       pca computes the eigen vectors/values such that C = 1 / M sum_i( s_i * s_t')
+                                                         = 1 / M * A * A'
+       Given an eigen vector/value pair (v_i, va_i),
+       we have AA' * v_i = va_i * v_i
+
+       now consider the covariance A'A instead:
+                       A' * A * u_i = ua_i * u_i
+                   A * A' * A * u_i = ua_i * A * u_i
+
+       => we can see that A * u_i is an eigen vector of A * A', solving the problem efficiently in the size of M instead of the dimentionality
+          of a sample
+
        @see http://en.wikipedia.org/wiki/Eigenface
+       @see http://www.face-rec.org/algorithms/PCA/jcn.pdf
+            Eigen faces for recognition, 1991
+            Matthew Turk and Alex Pentland
+            Vision and Modeling Group, The Media Laboratory
        */
       template <class T>
       class PcaSparseSimple
