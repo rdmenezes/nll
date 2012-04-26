@@ -7,117 +7,15 @@ using namespace nll;
 
 namespace nll
 {
-
    namespace algorithm
    {
       /**
-       @brief Defines a square window, which keep the data intact within interval [0..1], set it to 0 otherwise
+       @brief PCA algorithm with the assumption that the dimentionality of a sample is much higher than the number of samples
+       @see http://en.wikipedia.org/wiki/Eigenface
        */
-      class SquareWindow
+      template <class T>
+      class PcaSparseSimple
       {
-      public:
-         typedef double value_type;
-
-         value_type operator()( value_type v ) const
-         {
-            #ifdef NLL_SECURE
-            ensure( v >= 0 && v <= 1.0, "wrong domain!" );
-            #endif
-
-            return ( v >= 0 && v <= 1 ) ? v : 0;
-         }
-      };
-
-      /**
-       @brief Hanning window
-
-       Useful for DFT/FFT purposes, such as in spectral analysis. The DFT/FFT contains an implicit periodic asumption. 
-       The non periodic signal will become periodic when applied the window. 
-       */
-      class HanningWindow
-      {
-      public:
-         typedef double value_type;
-
-         value_type operator()( value_type v ) const
-         {
-            #ifdef NLL_SECURE
-            ensure( v >= 0 && v <= 1.0, "wrong domain!" );
-            #endif
-
-            return 0.5 * ( 1.0 - std::cos( 2 * core::PI * v ) );
-         }
-      };
-
-      /**
-       @brief Create the periodogram of a 1D time serie
-       @see http://www.stat.tamu.edu/~jnewton/stat626/topics/topics/topic4.pdf
-            http://www.ltrr.arizona.edu/~dmeko/notes_6.pdf
-
-       f(w) = 1/N * |sum_t=1-N(x(t)*exp(2*pi*i*(t-1)*w))|^2, w in [0..0.5]
-       f(w) = f( 1 - w )
-
-       Raw spectrum of a time serie suffers from the spectral bias and (the variance at a given frequency does not decrease as
-       the number of samples used in the computation increases) and variance problems.
-
-       The spectral bias problem arises from a sharp truncation of the sequence, and can be reduced by first multiplying the
-       finite sequence by a window function which truncates the sequence gradually rather than abruptly.
-
-       The variance problem is reduced but smoothing the periodogram
-
-       Smoothness, stability and resolution of the data must be considered when choosing the smoothing kernel and
-       window function. This is problem dependent.
-       */
-      class Periodogram
-      {
-      public:
-         typedef double                                  value_type;
-
-         /**
-          @brief Compute the raw and smoothed periodogram
-          @param timeSerie the time serie we are analysing
-          @param smoothingKernel the kernel used to smooth the periodogram. Can be empty if no smoothing required
-          @param funcWindow the window to use to reduce the sharp truncation effect
-          @return the periodogram
-
-          Example: if it returns [0 0 0 1 0] -> it means there is a spike of 1 at index = 4. This means the period is ( 3 / 4 ) / 2 * PI
-          */
-         template <class Function1D>
-         core::Buffer1D<value_type> compute( const core::Buffer1D<value_type>& timeSerie, const core::Buffer1D<value_type>& smoothingKernel, Function1D& funcWindow )
-         {
-            // get the mean
-            const value_type mean = std::accumulate( timeSerie.begin(), timeSerie.end(), (value_type)0.0 ) / timeSerie.size();
-
-            // multiply by a window to reduce the spectral bias (see http://en.wikipedia.org/wiki/Periodogram)
-            core::Buffer1D<value_type> data( timeSerie.size(), false );
-            for ( ui32 n = 0; n < data.size(); ++n )
-            {
-               data[ n ] = ( timeSerie[ n ] - mean ) * funcWindow( static_cast<value_type>( n ) / timeSerie.size() );
-            }
-
-            // get the DFT coefficients
-            Fft1D fft;
-            core::Buffer1D<value_type> fftOutput;
-            fft.forward( data, data.size(), fftOutput );
-            ensure( fftOutput.size() % 2 == 0, "must be pair! we have real and imaginary parts" );
-            //ensure( fftOutput.size() / 2 == data.size() / 2, "WRONG!!!" );
-
-            // compute the raw periodogram from the DFT coefficients
-            core::Buffer1D<value_type> basicPeriodogram( fftOutput.size() / 2 );
-            for ( ui32 n = 0; n < basicPeriodogram.size(); ++n )
-            {
-               ui32 index = n * 2;
-               basicPeriodogram[ n ] = ( core::sqr( fftOutput[ index ] ) + core::sqr( fftOutput[ index + 1 ] ) ) / timeSerie.size();
-            }
-
-            // smooth the DFT coefficients, we are done!
-            if ( smoothingKernel.size() )
-            {
-               return core::convolve( basicPeriodogram, smoothingKernel );
-            } else {
-               return basicPeriodogram;
-            }
-         }
       };
 
       /**
@@ -127,8 +25,9 @@ namespace nll
       class VisualQuasiPeriodicityAnalysis
       {
       public:
-         typedef core::Image<float>    Image;
-         typedef std::vector<Image>    Images;
+         typedef float                                                   value_type;
+         typedef core::Image<value_type>                                 Image;
+         typedef std::vector<Image>                                      Images;
          typedef core::Matrix<double, core::IndexMapperRowMajorFlat2D>   Matrix;
 
          /**
@@ -158,14 +57,54 @@ namespace nll
             
             // simply project each frame on the retained orthogonal basis, this will give us the reponse of a frame for each basis over time
             const ui32 nbBasis = pca.getNbVectors();
-            Matrix response( nbBasis, nbFrames );
+
+            /*
+            // --- DEBUG
+            for ( ui32 n = 0; n < nbBasis; ++n )
+            {
+               const core::Matrix<double>& eiv = pca.getProjection();
+               core::Image<ui8> img( sx, sy, 1 );
+               for ( ui32 y = 0; y < sy; ++y )
+               {
+                  for ( ui32 x = 0; x < sx; ++x )
+                  {
+                     img( x, y, 0 ) = static_cast<ui8>( NLL_BOUND( eiv( n, x + y * sx ) * 127 + 127, 0, 255 ) );
+                  }
+               }
+               core::extend( img, 3 );
+               core::writeBmp( img, "c:/tmp/eiv-" + core::val2str( n ) + ".bmp" );
+            }
+            // --- DEBUG
+            */
+
+            // each column represent a projection of one image on all eigen vectors retained
+            std::vector<core::Buffer1D<double>> responses( pca.getNbVectors() );
+            for ( ui32 n = 0; n < pca.getNbVectors(); ++n )
+            {
+               responses[ n ] = core::Buffer1D<double>( nbFrames, false );
+            }
+
             for ( ui32 n = 0; n < frames.size(); ++n )
             {
                core::Buffer1D<float> projection = pca.process( core::Buffer1D<float>( frames[ n ] ) );
-               ensure( projection.size() == response.sizey(), "wrong size" );
+               assert( projection.size() == pca.getNbVectors(), "wrong size" );
+               for ( ui32 nn = 0; nn < projection.size(); ++nn )
+               {
+                  responses[ nn ][ n ] = projection[ nn ];
+               }
             }
 
             // now do spectrum analysis
+            std::vector<core::Buffer1D<double>> periodogramResponses( pca.getNbVectors() );
+            for ( ui32 n = 0; n < pca.getNbVectors(); ++n )
+            {
+               Periodogram periodogram;
+               HanningWindow window;
+               periodogramResponses[ n ] = periodogram.compute( responses[ n ], core::make_buffer1D<double>( 0.2, 0.6, 0.2 ), window );
+            }
+            
+            responses[ 0 ].print( std::cout );
+            periodogramResponses[ 0 ].print( std::cout );
          }
       };
    }
@@ -488,22 +427,123 @@ struct TestVisualQuasiPeriodicityAnalysis
          }
 
          algorithm::Periodogram periodogram;
-         const core::Buffer1D<double> p = periodogram.compute( data, core::Buffer1D<double>(), algorithm::SquareWindow() );
+         algorithm::SquareWindow window;
+         const core::Buffer1D<double> p = periodogram.compute( data, core::Buffer1D<double>(), window );
 
          size_t maxIndex = std::max_element( p.begin(), p.end() ) - p.begin();
          const double periodFound = maxIndex / ( 2.0 * p.size() );
          TESTER_ASSERT( fabs( periodFound - period ) < 0.05 );
       }
    }
+
+   // test the periodogram against a known periodic function
+   void testPeriodogramPeriodicFunction2()
+   {
+      srand(0);
+      for ( ui32 iter = 0; iter < 100; ++iter )
+      {
+         const double period =  core::generateUniformDistribution( 0.1, 0.3 );
+         const double period2 =  core::generateUniformDistribution( 0.35, 0.5 );
+         const double mean = core::generateUniformDistribution( -0.5, 2.5 );
+         const ui32 nbData = core::generateUniformDistributioni( 100, 150 );
+
+         core::Buffer1D<double> data( nbData );
+         for ( ui32 n = 0; n < nbData; ++n )
+         {
+            const double noise = core::generateGaussianDistribution(0, 0.5 );
+            data[ n ] = std::cos( 2 * core::PI * n * period ) + mean + std::cos( 2 * core::PI * n * period2 ) + noise;
+         }
+
+         algorithm::Periodogram periodogram;
+         algorithm::HanningWindow window;
+         core::Buffer1D<double> p = periodogram.compute( data, core::make_buffer1D<double>( 0.1, 0.8, 0.1 ), window );
+
+         size_t maxIndex = std::max_element( p.begin(), p.end() ) - p.begin();
+         if ( maxIndex >= 1 )
+            p[ (ui32)maxIndex - 1 ] = 0;
+         p[ (ui32)maxIndex ] = 0;
+         if ( maxIndex + 1 < p.size() )
+            p[ (ui32)maxIndex + 1 ] = 0;
+         size_t maxIndex2 = std::max_element( p.begin(), p.end() ) - p.begin();
+
+         double periodFound = maxIndex / ( 2.0 * p.size() );
+         double periodFound2 = maxIndex2 / ( 2.0 * p.size() );
+         if ( periodFound2 < periodFound )
+         {
+            std::swap( periodFound, periodFound2 );
+         }
+
+         std::cout << "TRUTH p1=" << period << " p2=" << period2 << std::endl;
+         std::cout << "maxIndex=" << maxIndex << " period=" << periodFound << std::endl;
+         std::cout << "maxIndex2=" << maxIndex2 << " period2=" << periodFound2 << std::endl;
+         TESTER_ASSERT( fabs( periodFound - period ) < 0.05 );
+         TESTER_ASSERT( fabs( periodFound2 - period2 ) < 0.05 );
+      }
+   }
+
+   void testPeriodicityAnalysis()
+   {
+      // create a noisy rectangle increasing/decreasing
+      const ui32 nbFrames = 30;
+      const ui32 nbPeriods = 3;
+      const ui32 sx = 48 / 2;
+      const ui32 sy = 32 / 2;
+      const float ssx = 40 / 2;
+      const float ssy = 26 / 2;
+      const float minRatio = 0.6f;
+      const float noiseLevel = 30;
+      const float shapeVal = 200;
+
+
+      const ui32 imageCenterx = sx / 2;
+      const ui32 imageCentery = sy / 2;
+      const ui32 nbFramesPerPeriod = nbFrames / nbPeriods;
+
+      // generate the sequence
+      std::vector<core::Image<float>> frames;
+      for ( ui32 n = 0; n < nbFrames; ++n )
+      {
+         const ui32 cycleFrame = n % nbFramesPerPeriod;
+         const float ratioFrame = fabs( cycleFrame - nbFramesPerPeriod / 2.0 ) / ( nbFramesPerPeriod / 2 );
+         const float rationShape = ( 1 - minRatio ) * ratioFrame + minRatio;
+
+         const ui32 sizeShapex = ssx * rationShape;
+         const ui32 sizeShapey = ssy * rationShape;
+
+         core::Image<float> frame( sx, sy, 1 );
+         for ( ui32 y = imageCentery - sizeShapey / 2; y < imageCentery + sizeShapey / 2;  ++y )
+         {
+            for ( ui32 x = imageCenterx - sizeShapex / 2; x < imageCenterx + sizeShapex / 2;  ++x )
+            {
+               const float val = shapeVal + core::generateUniformDistribution( -noiseLevel, noiseLevel );
+               frame.point( x, y )[ 0 ] = val / 255;
+            }
+         }
+         frames.push_back( frame );
+
+         core::Image<ui8> save;
+         save.import( frame );
+         core::extend( save, 3 );
+         core::writeBmp( save, "c:/tmp/save-" + core::val2str( n ) + ".bmp" );
+      }
+
+      // do the analysis
+      algorithm::VisualQuasiPeriodicityAnalysis periodicity;
+      periodicity.analyse( frames, 1.0 / 30.0 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVisualQuasiPeriodicityAnalysis);
- /*TESTER_TEST(testBasic1DRealFFT);
+/*
+ TESTER_TEST(testBasic1DRealFFT);
  TESTER_TEST(testConvolution1d_a);
- TESTER_TEST(testConvolution1d_b);*/
+ TESTER_TEST(testConvolution1d_b);
+ TESTER_TEST(testPeriodogram);
+ TESTER_TEST(testPeriodogramPeriodicFunction1);
+ TESTER_TEST(testPeriodogramPeriodicFunction2);
+ */
 
- //TESTER_TEST(testPeriodogram);
-TESTER_TEST(testPeriodogramPeriodicFunction1);
+ TESTER_TEST(testPeriodicityAnalysis);
 TESTER_TEST_SUITE_END();
 #endif

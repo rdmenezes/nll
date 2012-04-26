@@ -133,6 +133,8 @@ namespace algorithm
 
       /**
        @brief Return the eigen vectors. They are arranged by column (each column is an eigen vector)
+
+       @note the eigen vectors are not sorted by importance, use <getPairs()> to get the order
        */
       const core::Matrix<double>& getEigenVectors() const
       {
@@ -141,6 +143,8 @@ namespace algorithm
 
       /**
        @brief Return the eigen values
+
+       @note the eigen vectors are not sorted by importance, use <getPairs()> to get the order
        */
       const core::Matrix<double>& getEigenValues() const
       {
@@ -149,6 +153,9 @@ namespace algorithm
 
       /**
        @brief Return the current projection
+       @note sorted from highest to lowest eigen value
+
+       Each row is an eigen vector
        */
       const core::Matrix<double>& getProjection() const
       {
@@ -224,7 +231,6 @@ namespace algorithm
       {
          if ( !points.size() )
             return false;
-         const ui32 size = static_cast<ui32>( points[ 0 ].size() );
 
          const bool success = _computeEigenVectors( points );
          if ( !success )
@@ -234,16 +240,19 @@ namespace algorithm
          double eivSum = 0;
          for ( ui32 n = 0; n < _eigenValues.size(); ++n )
          {
-            eivSum += _eigenValues[ n ];
+            eivSum += fabs( _eigenValues[ n ] );
          }
 
          double eivSumTmp = 0;
+         _nbVectors = 1; // at least 1 component
          for ( ui32 n = 0; n < _eigenValues.size(); ++n )
          {
-            eivSumTmp += _eigenValues[ n ];
-            if ( eivSumTmp / eivSum >= varianceToRetain )
+            const ui32 eivIndex = _pairs[ n ].second;
+            eivSumTmp += _eigenValues[ eivIndex ];
+            const double ratio = eivSumTmp / eivSum;
+            if ( ratio >= varianceToRetain )
             {
-               _nbVectors = n;   // guaranty to be set
+               _nbVectors = n + 1;
                break;
             }
          }
@@ -309,7 +318,7 @@ namespace algorithm
          core::Matrix<double> r = core::mul( _projection, p );
          Point2 result( r.size() );
          for ( ui32 n = 0; n < r.size(); ++n )
-            result[ n ] = r[ n ];
+            result[ n ] = static_cast<typename Point2::value_type>( r[ n ] );
          return result;
       }
 
@@ -393,9 +402,9 @@ namespace algorithm
    private:
       ui32                    _nbVectors;
       core::Matrix<double>    _mean;
-      core::Matrix<double>    _eigenVectors;
-      core::Matrix<double>    _eigenValues;
-      core::Matrix<double>    _projection;
+      core::Matrix<double>    _eigenVectors; // Not sorted! use <_pairs>
+      core::Matrix<double>    _eigenValues;  // Not sorted! use <_pairs> // 1 eigen vector = 1 column
+      core::Matrix<double>    _projection;   // 1 eigen vector = 1 row
       Pairs                   _pairs;
    };
 }

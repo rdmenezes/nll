@@ -306,6 +306,7 @@
    the developped framework.
  */
 # include "fft.h"
+# include "periodogram.h"
 # include "function.h"
 # include "gradient-descent.h"
 # include "linear-regression.h"

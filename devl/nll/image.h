@@ -338,6 +338,19 @@ namespace core
          nll::core::readBmp( *this, file, alloc );
       }
 
+
+      template <class Type>
+      void import( const Image<Type>& cpy )
+      {
+         // we are importing from an image with the same mapper, so we can safely iterate in order the pixel data
+         *this = Image( cpy.sizex(), cpy.sizey(), cpy.getNbComponents() );
+         for ( ui32 n = 0; n < cpy.size(); ++n )
+         {
+            const Type val = cpy[ n ];
+            _buffer[ n ] = static_cast<T>( val );
+         }
+      }
+
       /**
        @brief return the position of the pixel (x, y, c) in the buffer
        */

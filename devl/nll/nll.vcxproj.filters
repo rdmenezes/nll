@@ -45,6 +45,9 @@
     <Filter Include="algorithm-optimization">
       <UniqueIdentifier>{9c5ed6b1-381f-4caa-ad99-76ff51094a7d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="algorithm-time">
+      <UniqueIdentifier>{ab5f89ab-6718-4f8b-81bc-25998e1fc49e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nll.cpp">
@@ -724,6 +727,9 @@
     </ClInclude>
     <ClInclude Include="Buffer1D-convolve.h">
       <Filter>core</Filter>
+    </ClInclude>
+    <ClInclude Include="periodogram.h">
+      <Filter>algorithm-time</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
