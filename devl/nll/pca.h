@@ -240,7 +240,8 @@ namespace algorithm
          double eivSum = 0;
          for ( ui32 n = 0; n < _eigenValues.size(); ++n )
          {
-            eivSum += fabs( _eigenValues[ n ] );
+            if ( _eigenValues[ n ] > 0 )
+               eivSum += fabs( _eigenValues[ n ] );
          }
 
          double eivSumTmp = 0;
