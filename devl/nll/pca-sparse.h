@@ -198,7 +198,7 @@ namespace algorithm
       /**
        @brief Return the mean vector (ie when <code>compute</code>)
        */
-      const core::Matrix<double>& getMean() const
+      const Matrix& getMean() const
       {
          return _mean;
       }
@@ -208,7 +208,7 @@ namespace algorithm
 
        @note the eigen vectors are not sorted by importance, use <getPairs()> to get the order
        */
-      const core::Matrix<double>& getEigenVectors() const
+      const Matrix& getEigenVectors() const
       {
          return _eigenVectors;
       }
@@ -218,7 +218,7 @@ namespace algorithm
 
        @note the eigen vectors are not sorted by importance, use <getPairs()> to get the order
        */
-      const core::Matrix<double>& getEigenValues() const
+      const Vector& getEigenValues() const
       {
          return _eigenValues;
       }
@@ -229,7 +229,7 @@ namespace algorithm
 
        Each row is an eigen vector
        */
-      const core::Matrix<double>& getProjection() const
+      const Matrix& getProjection() const
       {
          return _projection;
       }
@@ -434,3 +434,5 @@ namespace algorithm
    };
 }
 }
+
+#endif

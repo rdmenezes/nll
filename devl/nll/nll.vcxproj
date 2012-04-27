@@ -447,6 +447,7 @@
     <ClInclude Include="matrix-sort.h" />
     <ClInclude Include="matrix-svd.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="pca-sparse.h" />
     <ClInclude Include="perceptron-margin.h" />
     <ClInclude Include="periodogram.h" />
     <ClInclude Include="sequence-converter.h" />

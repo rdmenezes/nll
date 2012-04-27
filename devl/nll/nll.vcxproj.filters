@@ -731,6 +731,9 @@
     <ClInclude Include="periodogram.h">
       <Filter>algorithm-time</Filter>
     </ClInclude>
+    <ClInclude Include="pca-sparse.h">
+      <Filter>algorithm-impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

@@ -316,6 +316,7 @@
 # include "mlp.h"
 # include "normalization.h"
 # include "pca.h"
+# include "pca-sparse.h"
 # include "estimator-affine2D-transformation.h"
 # include "estimator-affine-transformation.h"
 # include "ransac.h"
