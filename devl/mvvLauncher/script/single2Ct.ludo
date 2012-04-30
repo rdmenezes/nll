@@ -1,36 +1,8 @@
 import "core"
 import "siemens"
 import "mvvDicomTools"
-
 include "helper1"
-//include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/mrRegistrationData"
-/*
-string base = "C:/Users/Civo/Desktop/nll/RegistrationImpl/data/mr/";
-//string base = "C:/Users/Civo/Desktop/nll/RegistrationImpl/data/mrOldConversion/";
 
-string registrationVolumes[] =
-{
-	base + "MR2-281/",
-	base + "MR2-282/",
-	base + "MR2-283/",
-	base + "MR2-284/",
-	base + "MR2-285/",
-	base + "MR2-286/",
-	base + "MR2-287/",
-	base + "MR2-288/",
-	base + "MR2-289/",
-	base + "MR2-295/",
-	base + "MR2-298/",
-	base + "MR2-300/",
-	base + "MR4-290/",
-	base + "MR4-291/",
-	base + "MR4-292/",
-	base + "MR4-293/",
-	base + "MR4-294/",
-	base + "MR4-296/",
-	base + "MR4-297/",
-	base + "MR12-299/"
-};*/
 
 
 /**
@@ -68,7 +40,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 0;
+   int index                        = 40;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -95,7 +67,7 @@ class VolumeSwitchReg
 	  holdery = hy;
 	  holderz = hz;
 
-      //displayed1 = readDicomVolume( list[ 6 ] );
+      displayed1 = readDicomVolume( "C:/CT_REG_DATA/template_CT/" );
    }
 
    void next()
@@ -124,26 +96,29 @@ class VolumeSwitchReg
 	  volumes.clear();
 	  groundtruth = 0;
 
-	  string name = registrator.getTestMrVolume( index );
-	  //name = "MR-339";
+	  //string name = registrator.getTestMrVolume( index );
+	  string name = registrator.getTestCtVolume( index );
+	  //name = "CT-9";
 
-      string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
+      //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
+	  //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/pt/";
+     string base = "C:/CT_REG_DATA/";
       string volname = base + name;
 
 
       print( "----------------=" + volname );
       displayed2 = readDicomVolume( volname );
 
-      lut1.detectRange( displayed2, 0.5 );
+      //lut1.detectRange( displayed2, 0.5 );
       
 	  int id = 0;
 	  AffineRegistration tfm;
-      //tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
-	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
-	  tfmReg = AffineRegistration( t );
+      //tfmReg = registrator.affinePlanarRegistrationPt( displayed2, id );
 
-	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_MR", name ) );
-	  displayed1 = registrator.templates[id];
+	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_CT", name );
+	  tfmReg = AffineRegistration( t );
+	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_CT", name ) );
+	  //displayed1 = registrator.templates[id];
 
 	  holderx.set(registrator.getDebugX());
 	  holdery.set(registrator.getDebugY());
@@ -157,7 +132,7 @@ class VolumeSwitchReg
 class InsentisySwitchReg
 {
    float LUT_MIN_TARGET = 0.0;
-   float LUT_MAX_TARGET = 500.0;
+   float LUT_MAX_TARGET = 2000.0;
    float LUT_MIN_TEMPLATE = 32000.0;
    float LUT_MAX_TEMPLATE = 55000.0;
 
@@ -173,17 +148,26 @@ class InsentisySwitchReg
       //VolumeContainer& volumes = switch.volumes;
       if ( state == 0 )
       {
-		switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255));
-		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255, 255, 255));
-		switch.lut1.detectRange( switch.displayed2, 0.3 );
-		switch.volumes.setIntensity( switch.displayed2, 0.3 );
-		switch.volumes.setIntensity( switch.displayed1, 0.7 );
+		//switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(100));
+		//switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255, 255, 255));
+		//switch.volumes.setIntensity( switch.displayed1, 0.5 );
+        //switch.volumes.setIntensity( switch.displayed2, 1.0 );
+	  
+         switch.volumes.setIntensity( switch.displayed2, 1.0 );
+         switch.volumes.setIntensity( switch.displayed1, 0.3 );
+         //switch.volumes.setLut( switch.displayed1, switch.lut2 );
+         //switch.volumes.setLut( switch.displayed2, switch.lut1 );
+		 
       } else {
-	    switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255, 255, 255));
-		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255));
-		switch.lut1.detectRange( switch.displayed2, 0.3 );
-		switch.volumes.setIntensity( switch.displayed2, 0.7 );
-		switch.volumes.setIntensity( switch.displayed1, 0.3 );
+	    //switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255, 255, 255));
+		//switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(100));
+		//switch.volumes.setIntensity( switch.displayed2, 0.5 );
+        //switch.volumes.setIntensity( switch.displayed1, 1.0 );
+	  
+         switch.volumes.setIntensity( switch.displayed1, 1.0 );
+         switch.volumes.setIntensity( switch.displayed2, 0.3 );
+         //switch.volumes.setLut( switch.displayed1, switch.lut1 );
+         //switch.volumes.setLut( switch.displayed2, switch.lut2 );
       }
       state = 1 - state;
    }
@@ -215,8 +199,8 @@ class LutSwitchReg
 
 
 
-Lut ctLut1( 0.0, 500.0 );
-Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
+Lut ctLut1( -10.0, 100.0 );
+Lut ctLut2( -10.0, 100.0, Vector3i( 255, 0, 0 ) );
 //Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) ); 
 
 
