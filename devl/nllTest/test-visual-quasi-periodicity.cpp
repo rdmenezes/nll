@@ -1,3 +1,4 @@
+
 #include <nll/nll.h>
 #include <tester/register.h>
 #include <functional>
@@ -26,8 +27,10 @@ namespace nll
          /**
           @brief Analyze a set of frames to find its degree of periodicity and its period
           @param frames must be greyscale frames. The frames must be cropped and centred on the region of interest
+          @param frameFrequencyHertz the frame frequency expressed in hertz
+          @param varianceToRetain the variance to retain during the PCA step
           */
-         void analyse( const Images& frames, double frameDuration, double varianceToRetain = 0.75 )
+         void analyse( const Images& frames, double frameFrequencyHertz, double varianceToRetain = 0.75 )
          {
             // sanity checks
             ensure( frameDuration > 0, "incorrect frame time" );
@@ -123,6 +126,10 @@ namespace nll
 
             std::cout << "---- weighted spectrum" << std::endl;
             weightedSpectrum.print( std::cout );
+
+            // see http://electronics.stackexchange.com/questions/12407/what-is-the-relation-between-fft-length-and-frequency-resolution
+            // for the bin resolution
+            const double frequencyResolution = static_cast<double>( frameFrequencyHertz ) / frames.size();
 
             // find the harmonics
          }
@@ -430,7 +437,6 @@ struct TestVisualQuasiPeriodicityAnalysis
       vals.print( std::cout );
    }
 
-   // test the periodogram against a known periodic function
    void testPeriodogramPeriodicFunction1()
    {
       srand(0);
@@ -540,12 +546,12 @@ struct TestVisualQuasiPeriodicityAnalysis
             }
          }
          frames.push_back( frame );
-         /*
+         
          core::Image<ui8> save;
          save.import( frame );
          core::extend( save, 3 );
          core::writeBmp( save, "c:/tmp/save-" + core::val2str( n ) + ".bmp" );
-         */
+         
       }
 
       return frames;
@@ -655,12 +661,13 @@ TESTER_TEST_SUITE(TestVisualQuasiPeriodicityAnalysis);
  TESTER_TEST(testConvolution1d_a);
  TESTER_TEST(testConvolution1d_b);
  TESTER_TEST(testPeriodogram);
- TESTER_TEST(testPeriodogramPeriodicFunction1);
+
  TESTER_TEST(testPeriodogramPeriodicFunction2);
  TESTER_TEST(testPcaSparse);
  TESTER_TEST(testPcaSparse2);
- TESTER_TEST(testPcaSparseReal);
  */
+ //TESTER_TEST(testPcaSparseReal);
+ //TESTER_TEST(testPeriodogramPeriodicFunction1);
 
  TESTER_TEST(testPeriodicityAnalysis);
 TESTER_TEST_SUITE_END();

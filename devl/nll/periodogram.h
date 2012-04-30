@@ -106,7 +106,7 @@ namespace algorithm
          @param funcWindow the window to use to reduce the sharp truncation effect
          @return the periodogram
 
-         Example: if it returns [0 0 0 1 0] -> it means there is a spike of 1 at index = 4. This means the period is ( 3 / 4 ) / 2 * PI
+         Example: if it returns [0 0 0 1 0] -> it means there is a spike of 1 at index = 3. This means the period in hertz is 3 / ( 2 * 4 ) = 0.375 hz, ie. the pattern repeats every 2.66 samples
          */
       template <class Function1D>
       core::Buffer1D<value_type> compute( const core::Buffer1D<value_type>& timeSerie, const core::Buffer1D<value_type>& smoothingKernel, Function1D& funcWindow )
