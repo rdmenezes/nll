@@ -109,6 +109,36 @@ namespace core
    {
       return std::log( v ) / std::log( static_cast<T>( 2 ) );
    }
+
+   /**
+    @param small a small factor
+    @param big a bigger number than small
+    @param tolerance a number, expressed in <big> unit
+    */
+   template <class T>
+   bool isMultipleOf( T small, T big, T tolerance )
+   {
+      STATIC_ASSERT( std::numeric_limits<T>::is_signed );
+
+      const double usmall = fabs( small );
+      const double ubig = fabs( big );
+
+      #ifdef NLL_SECURE
+      ensure( usmall <= ubig, "small > big" );
+      #endif
+
+      const double ratio = ubig / usmall;
+      const int ratioi = static_cast<int>( ratio );
+      const double diff = ratio - ratioi;
+      if ( diff > 0.5 )
+      {
+         const double reminder = ( 1 - diff ) * usmall;
+         return reminder < tolerance;
+      } else {
+         const double reminder = diff * usmall;
+         return reminder < tolerance;
+      }
+   }
 }
 }
 

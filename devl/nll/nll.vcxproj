@@ -450,6 +450,7 @@
     <ClInclude Include="pca-sparse.h" />
     <ClInclude Include="perceptron-margin.h" />
     <ClInclude Include="periodogram.h" />
+    <ClInclude Include="quasi-periodicity-analysis.h" />
     <ClInclude Include="sequence-converter.h" />
     <ClInclude Include="singleton.h" />
     <ClInclude Include="static-assert.h" />
