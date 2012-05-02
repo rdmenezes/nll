@@ -300,7 +300,7 @@ namespace algorithm
       bool _computeEigenVectors( const Points& points )
       {
          const ui32 nbPoints = static_cast<ui32>( points.size() );
-         const ui32 dimensionality = points[ 0 ].size();
+         const ui32 dimensionality = static_cast<ui32>( points[ 0 ].size() );
 
          #ifdef NLL_SECURE
          for ( ui32 n = 1; n < points.size(); ++n )
@@ -365,7 +365,7 @@ namespace algorithm
 
          // now we just want to use the eigen values that are > than a specific threshold
          ui32 nbEigens = 0;
-         for ( size_t n = 0; n < _pairs.size(); ++n )
+         for ( ui32 n = 0; n < (ui32)_pairs.size(); ++n )
          {
             nbEigens = n;
             if ( sort[ n ].first < 0.1 )

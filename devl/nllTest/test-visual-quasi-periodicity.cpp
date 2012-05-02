@@ -8,6 +8,29 @@ using namespace nll;
 
 namespace nll
 {
+   namespace core
+   {
+      /**
+       @param small a small factor
+       @param big a bigger number than small
+       @param tolerance a number, expressed in <big> unit
+       */
+      template <class T>
+      inline bool isMultipleOf( T small, T big, T tolerance )
+      {
+         STATIC_ASSERT( std::numeric_limits<T>::is_signed );
+
+         #ifdef NLL_SECURE
+         ensure( small <= big, "small > big" );
+         #endif
+
+         double usmall = fabs( small );
+         double ubig = fabs( big );
+         const double reminder = ubig - usmall * static_cast<int>( ubig / usmall );
+         return reminder < tolerance;
+      }
+   }
+
    namespace algorithm
    {
       
@@ -25,20 +48,50 @@ namespace nll
          typedef core::Matrix<double, core::IndexMapperRowMajorFlat2D>   Matrix;
 
          /**
+          @brief Result summarizing the main steps of the algorithm that could be reused...
+          */
+         struct Result
+         {
+            Result()
+            {
+               periodicityStrength = 0;
+               fundamentalFrequency = -1;
+            }
+
+            double                              periodicityStrength;
+            double                              fundamentalFrequency;
+            core::Buffer1D<double>              weightedSpectrum;
+            algorithm::PcaSparseSimple<Images>  pcaDecomposition;
+         };
+
+      public:
+         /**
           @brief Analyze a set of frames to find its degree of periodicity and its period
           @param frames must be greyscale frames. The frames must be cropped and centred on the region of interest
           @param frameFrequencyHertz the frame frequency expressed in hertz
           @param varianceToRetain the variance to retain during the PCA step
           */
-         void analyse( const Images& frames, double frameFrequencyHertz, double varianceToRetain = 0.75 )
+         Result analyse( const Images& frames, double frameFrequencyHertz, double varianceToRetain = 0.75 )
          {
             // sanity checks
-            ensure( frameDuration > 0, "incorrect frame time" );
             if ( frames.size() == 0 )
-               return;
+               return Result();
             const ui32 sx = frames[ 0 ].sizex();
             const ui32 sy = frames[ 0 ].sizey();
             const ui32 nbFrames = static_cast<ui32>( frames.size() );
+
+            {
+               std::stringstream ss;
+               ss << "started VisualQuasiPeriodicityAnalysis::analyse..." << std::endl
+                  << "nbFrames=" << frames.size() << std::endl
+                  << "sizex=" << sx << std::endl
+                  << "sizey=" << sy << std::endl
+                  << "frameFrequencyHertz=" << frameFrequencyHertz << std::endl
+                  << "varianceToRetain=" << varianceToRetain;
+
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+
             for ( ui32 n = 0; n < nbFrames; ++n )
             {
                ensure( sx == frames[ n ].sizex(), "wrong size" );
@@ -54,27 +107,7 @@ namespace nll
             
             // simply project each frame on the retained orthogonal basis, this will give us the reponse of a frame for each basis over time
             const ui32 nbBasis = pca.getNbVectors();
-
-            ((core::Buffer1D<double>)pca.getProjection()).print( std::cout );
-
-            
-            // --- DEBUG
-            for ( ui32 n = 0; n < nbBasis; ++n )
-            {
-               const core::Matrix<double>& eiv = pca.getProjection();
-               core::Image<ui8> img( sx, sy, 1 );
-               for ( ui32 y = 0; y < sy; ++y )
-               {
-                  for ( ui32 x = 0; x < sx; ++x )
-                  {
-                     img( x, y, 0 ) = static_cast<ui8>( NLL_BOUND( eiv( n, x + y * sx ) * 127 + 127, 0, 255 ) );
-                  }
-               }
-               core::extend( img, 3 );
-               core::writeBmp( img, "c:/tmp/eiv-" + core::val2str( n ) + ".bmp" );
-            }
-            // --- DEBUG
-            
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "PCA eigen vectors retained=" + core::val2str( nbBasis ) );
 
             // each column represent a projection of one image on all eigen vectors retained
             std::vector<core::Buffer1D<double>> responses( pca.getNbVectors() );
@@ -103,20 +136,17 @@ namespace nll
             {
                Periodogram periodogram;
                HanningWindow window;
-               periodogramResponses[ n ] = periodogram.compute( responses[ n ], core::make_buffer1D<double>( 0.2, 0.6, 0.2 ), window );
-
-               std::cout << "----periodogram response" << std::endl;
-               periodogramResponses[ n ].print( std::cout );
+               periodogramResponses[ n ] = periodogram.compute( responses[ n ], core::make_buffer1D<double>( 0.1, 0.2, 0.4, 0.2, 0.1 ), window );
             }
 
             // compute the weighted spectrum
             ensure( periodogramResponses.size(), "No component!" );
             const ui32 spectrumSize = periodogramResponses[ 0 ].size();
             core::Buffer1D<double> weightedSpectrum( spectrumSize, false );
-            for ( size_t n = 0; n < spectrumSize; ++n )
+            for ( ui32 n = 0; n < spectrumSize; ++n )
             {
                double sum = 0;
-               for ( size_t id = 0; id < periodogramResponses.size(); ++id )
+               for ( ui32 id = 0; id < periodogramResponses.size(); ++id )
                {
                   const double weight = pca.getEigenValues()[ pca.getPairs()[ id ].second ] / sumVariance;
                   sum += weight * periodogramResponses[ id ][ n ];
@@ -124,14 +154,179 @@ namespace nll
                weightedSpectrum[ n ] = sum;
             }
 
-            std::cout << "---- weighted spectrum" << std::endl;
-            weightedSpectrum.print( std::cout );
+            {
+               std::stringstream ss;
+               ss << "weighted spectrum=" << std::endl;
+               weightedSpectrum.print( ss );
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
 
+            double fundamentalFrequency = -1;
+            double periodicityStrength = 0;
+            _findFundamentalFrequency( (ui32)frames.size(), weightedSpectrum, frameFrequencyHertz, fundamentalFrequency, periodicityStrength );
+
+            {
+               std::stringstream ss;
+               ss << "fundamentalFrequency=" << fundamentalFrequency << std::endl
+                  << "periodicityStrength=" << periodicityStrength;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+
+            Result result;
+            result.fundamentalFrequency = fundamentalFrequency;
+            result.periodicityStrength = periodicityStrength;
+            result.weightedSpectrum = weightedSpectrum;
+            result.pcaDecomposition = pca;
+            return result;
+         }
+
+      private:
+         // here we are assuming the weightedSpectrum is smooth enough so that we can take the local minima to fin the frequency peaks
+         static void _findFundamentalFrequency( ui32 nbData, const core::Buffer1D<double>& weightedSpectrum, double frameFrequencyHertz, double& fundamentalFrequency_out, double& periodicityStrength_out )
+         {
             // see http://electronics.stackexchange.com/questions/12407/what-is-the-relation-between-fft-length-and-frequency-resolution
             // for the bin resolution
-            const double frequencyResolution = static_cast<double>( frameFrequencyHertz ) / frames.size();
+            const double frequencyResolution = static_cast<double>( frameFrequencyHertz ) / ( nbData );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "frequency resolution=" + core::val2str( frequencyResolution ) );
 
-            // find the harmonics
+            // find all the peaks
+            std::vector<ui32> peaks;
+            for ( ui32 n = 0; n < weightedSpectrum.size(); ++n )
+            {
+               const double frequency = static_cast<double>( n ) / ( nbData );
+               if ( frequency < frequencyResolution )
+               {
+                  continue; 
+               }
+
+               const double valn = weightedSpectrum[ n ];
+               if ( valn > 0.1 && n > 0 && n + 1 < weightedSpectrum.size() )
+               {
+                  if ( valn > weightedSpectrum[ n - 1 ] && valn > weightedSpectrum[ n + 1 ] )
+                  {
+                     peaks.push_back( n );
+                  }
+               }
+            }
+
+            // computes the peak's left and right support. A peak support is the index until when a peak reaches zero
+            // in practice, we use a threhold low enough
+            std::vector<ui32> leftSupport( peaks.size() );
+            std::vector<ui32> rightSupport( peaks.size() );
+            for ( ui32 n = 0; n < peaks.size(); ++n )
+            {
+               const double zero = 0.05 * peaks[ n ];
+               ui32 index = 0;
+               for ( index = peaks[ n ] - 1; index != 0; --index )
+               {
+                  if ( weightedSpectrum[ index ] <= zero )
+                     break;
+               }
+               leftSupport[ n ] = index;
+               if ( n > 0 && index < peaks[ n - 1 ] )
+               {
+                  // extra check: we can't be 2 peaks apart..
+                  leftSupport[ n ] = peaks[ n - 1 ] + 1;
+               }
+
+               for ( index = peaks[ n ] + 1; index < weightedSpectrum.size(); ++index )
+               {
+                  if ( weightedSpectrum[ index ] <= zero )
+                     break;
+               }
+               rightSupport[ n ] = std::min<ui32>( index, weightedSpectrum.size() - 1 );
+               if ( n + 1 < peaks.size() && rightSupport[ n ] > peaks[ n + 1 ] )
+               {
+                  rightSupport[ n ] = peaks[ n + 1 ] - 1;
+               }
+            }
+
+
+            // check support consistency: the right suppost may be found interleaved with the left support of the next peak,
+            // so jzust split the support at the middle
+            for ( ui32 n = 0; n < peaks.size() - 1; ++n )
+            {
+               ui32& right = rightSupport[ n ];
+               ui32& left = leftSupport[ n + 1 ];
+               if ( right > left )
+               {
+                  const ui32 middle = ( right + left ) / 2;
+                  right = middle;
+                  left = middle;
+               }
+            }
+
+            // computes the energy of each peak
+            std::vector<double> peakEnergy( peaks.size() );
+            for ( ui32 n = 0; n < peaks.size(); ++n )
+            {
+               const double e = std::accumulate( weightedSpectrum.begin() + leftSupport[ n ], weightedSpectrum.begin() + rightSupport[ n ] + 1, 0.0 );
+               peakEnergy[ n ] = e;
+            }
+
+            {
+               std::stringstream ss;
+               ss << "nbPeaks=" << peaks.size() << std::endl;
+               for ( ui32 n = 0; n < peaks.size(); ++n )
+               {
+                  const double peakFrequency = static_cast<double>( peaks[ n ] ) / ( nbData );
+                  ss << "peak[ " << n << " ]=" << peaks[ n ] << " peakEnergy=" << peakEnergy[ n ] << " peakFrequency=" << peakFrequency << " leftSupport=" << leftSupport[ n ] << " rightSupport=" << rightSupport[ n ] << std::endl;
+               }
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+
+            // finally computes the (fundamental, harmonics) frequency maximizing the spectrum energy.
+            // the fundamental must be of higher ernergy and its harmonics must be a multiple of the fundamental frequency
+            // as several fundamental frequencies exist, we take the one that maximizes the spectrum energy
+            // the tolerance used to match the harmonics is the frequency resolution fs / N
+            double bestEnergy = 0;
+            std::vector<double> bestFrequencyMatches;
+            for ( ui32 n = 0; n < peaks.size(); ++n )
+            {
+               std::vector<double> frequencyMatches;
+               double energy = peakEnergy[ n ];
+               const double fundamentalFrequency = static_cast<double>( peaks[ n ] ) / ( nbData );
+               frequencyMatches.push_back( fundamentalFrequency );
+               for ( ui32 harmonic = n + 1; harmonic < peaks.size(); ++harmonic )
+               {
+                  const double harmonicFrequency = static_cast<double>( peaks[ harmonic ] ) / ( nbData );
+                  const bool isMatching = core::isMultipleOf( fundamentalFrequency, harmonicFrequency, frequencyResolution );
+                  if ( isMatching )
+                  {
+                     energy += peakEnergy[ harmonic ];
+                     frequencyMatches.push_back( harmonicFrequency );
+                  }
+               }
+
+               if ( energy > bestEnergy )
+               {
+                  bestEnergy = energy;
+                  bestFrequencyMatches = frequencyMatches;
+               }
+
+               {
+                  std::stringstream ss;
+                  ss << "matched peaks: total energy=" << energy << std::endl;
+                  for ( ui32 n = 0; n < frequencyMatches.size(); ++n )
+                  {
+                     ss << " peak frequency=" << frequencyMatches[ n ] << std::endl;
+                  }
+                  core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+               }
+            }
+
+            if ( bestFrequencyMatches.size() )
+            {
+               fundamentalFrequency_out = bestFrequencyMatches[ 0 ];
+               periodicityStrength_out = bestEnergy / std::accumulate( weightedSpectrum.begin(), weightedSpectrum.end(), 0.0 );
+
+               // sometimes we take the left and right support of different peak to be the same value (however they should be very small!)
+               // consequently we can sometimes be slightly over 1 in periodicity, so we perform extra check to "nomrlaize"
+               periodicityStrength_out = std::min<double>( 1, periodicityStrength_out );
+            } else {
+               fundamentalFrequency_out = -1;
+               periodicityStrength_out = 0;
+            }
          }
       };
    }
@@ -507,11 +702,9 @@ struct TestVisualQuasiPeriodicityAnalysis
       }
    }
 
-   std::vector<core::Image<float>> createFrames()
+   std::vector<core::Image<float>> createFrames( ui32 nbFrames = 30, ui32 nbPeriods = 3 )
    {
       // create a noisy rectangle increasing/decreasing
-      const ui32 nbFrames = 30;
-      const ui32 nbPeriods = 3;
       const ui32 sx = 48 / 2;
       const ui32 sy = 32 / 2;
       const float ssx = 40 / 2;
@@ -559,12 +752,47 @@ struct TestVisualQuasiPeriodicityAnalysis
 
    void testPeriodicityAnalysis()
    {
-      std::vector<core::Image<float>> frames = createFrames();
+      for ( ui32 n = 0; n < 100; ++n )
+      {
+         srand(n);
+         //srand(29);
+         std::cout << "iter=" << n <<std::endl;
+         // setup
+         const ui32 nbFrames = core::generateUniformDistributioni( 50, 150 );
+         const ui32 nbPeriods = core::generateUniformDistributioni( 3, 10 );
+         const std::vector<core::Image<float>> frames = createFrames( nbFrames, nbPeriods );
+         const double expectedFrequency = 1 / ( static_cast<double>( nbFrames ) / nbPeriods );
 
-      // do the analysis
-      algorithm::VisualQuasiPeriodicityAnalysis periodicity;
-      periodicity.analyse( frames, 1.0 / 30.0 );
+         // do the analysis
+         algorithm::VisualQuasiPeriodicityAnalysis periodicity;
+         algorithm::VisualQuasiPeriodicityAnalysis::Result result = periodicity.analyse( frames, 1.0 / 30.0 );
+         std::cout << "fundamentalFrequency=" << result.fundamentalFrequency << " expected=" << expectedFrequency << std::endl;
+         std::cout << "periodicity=" << result.periodicityStrength << std::endl;
 
+         TESTER_ASSERT( fabs( expectedFrequency - result.fundamentalFrequency ) < 0.02 );
+         TESTER_ASSERT( result.periodicityStrength > 0.8 );
+
+         //break;
+                     /*
+            // --- DEBUG
+            ((core::Buffer1D<double>)pca.getProjection()).print( std::cout );
+            for ( ui32 n = 0; n < nbBasis; ++n )
+            {
+               const core::Matrix<double>& eiv = pca.getProjection();
+               core::Image<ui8> img( sx, sy, 1 );
+               for ( ui32 y = 0; y < sy; ++y )
+               {
+                  for ( ui32 x = 0; x < sx; ++x )
+                  {
+                     img( x, y, 0 ) = static_cast<ui8>( NLL_BOUND( eiv( n, x + y * sx ) * 127 + 127, 0, 255 ) );
+                  }
+               }
+               core::extend( img, 3 );
+               core::writeBmp( img, "c:/tmp/eiv-" + core::val2str( n ) + ".bmp" );
+            }
+            // --- DEBUG
+            */
+      }
    }
 
    void testPcaSparse()
@@ -665,10 +893,10 @@ TESTER_TEST_SUITE(TestVisualQuasiPeriodicityAnalysis);
  TESTER_TEST(testPeriodogramPeriodicFunction2);
  TESTER_TEST(testPcaSparse);
  TESTER_TEST(testPcaSparse2);
- */
- //TESTER_TEST(testPcaSparseReal);
- //TESTER_TEST(testPeriodogramPeriodicFunction1);
 
+ TESTER_TEST(testPcaSparseReal);
+ TESTER_TEST(testPeriodogramPeriodicFunction1);
+ */
  TESTER_TEST(testPeriodicityAnalysis);
 TESTER_TEST_SUITE_END();
 #endif
