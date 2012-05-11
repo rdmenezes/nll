@@ -35,6 +35,10 @@
 // if defined, SURF will use a global angle detection mecanism which seems more efficient/robust
 #define NLL_SURF_USE_FEATURE_ANGLE_UPGRADE
 
+#define NLL_SURF_2D_NB_AREA_PER_FEATURE         4.0
+#define NLL_SURF_2D_NB_AREA_PER_FEATURE_SIZE    20.0
+#define NLL_SURF_2D_NB_SUBAREA_PER_AREA         5.0
+
 namespace nll
 {
 namespace algorithm
@@ -67,7 +71,7 @@ namespace algorithm
       {
          //typedef core::Buffer1D<value_type> Features;
          typedef std::vector<value_type> Features;
-         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( 64 ), weight( 1 )
+         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( (ui32)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) ), weight( 1 )
          {}
 
          Point()
@@ -321,91 +325,85 @@ namespace algorithm
          }
          return points;
       }
-
+      
       void _computeFeatures( const IntegralImage& image, Points& points ) const
       {
          int nbPoints = static_cast<ui32>( points.size() );
+         const value_type area_size = NLL_SURF_2D_NB_AREA_PER_FEATURE_SIZE / NLL_SURF_2D_NB_AREA_PER_FEATURE;
+         const value_type area_pos_min = - NLL_SURF_2D_NB_AREA_PER_FEATURE / 2 * area_size;
+         const value_type area_pos_max =   NLL_SURF_2D_NB_AREA_PER_FEATURE / 2 * area_size;
+         const value_type area_pos_center =   area_pos_min + area_size / 2;
+         const value_type dd5x5 = (area_size / NLL_SURF_2D_NB_SUBAREA_PER_AREA);
 
          #ifndef NLL_NOT_MULTITHREADED
          # pragma omp parallel for
          #endif
          for ( int n = 0; n < nbPoints; ++n )
          {
-            int y, x, sample_x, sample_y, count=0;
-            int i = 0, ix = 0, j = 0, jx = 0, xs = 0, ys = 0;
-            value_type dx, dy, mdx, mdy, co, si;
-            value_type gauss_s1 = 0, gauss_s2 = 0;
-            value_type rrx = 0, rry = 0, len = 0;
-            value_type cx = -0.5, cy = 0; //Subregion centers for the 4x4 gaussian weighting
             Point& point = points[ n ];
 
             // this constant is to find the gaussian's sigma
             // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
-            float scale = (float)core::round( scaleFactor * point.scale );
+            value_type scale = core::round( scaleFactor * point.scale );
 
-            x = core::round( point.position[ 0 ] );
-            y = core::round( point.position[ 1 ] );
+            const value_type x = point.position[ 0 ];
+            const value_type y = point.position[ 1 ];
 
-            co = (float)cos( point.orientation);
-            si = (float)sin( point.orientation);
+            const value_type co = cos( point.orientation);
+            const value_type si = sin( point.orientation);
 
-            i = -8;
+            const int size = (int)core::sqr( 2 * scale );
 
-            //Calculate descriptor for this interest point
-            while( i < 12 )
+            ui32 count = 0;
+            value_type len = 0;
+
+            // (i, j) the bottom left corners of the 4x4 area, in the unrotated space
+            // (cx, cy) the centers of the 4x4 area, in the unrotated space
+            value_type cy = area_pos_center;
+            for ( value_type j = area_pos_min; j < area_pos_max; j += area_size, cy += area_size )
             {
-               j = -8;
-               i = i-4;
-
-               cx += 1.f;
-               cy = -0.5f;
-
-               while( j < 12 ) 
+               value_type cx = area_pos_center;
+               for ( value_type i = area_pos_min; i < area_pos_max; i += area_size, cx += area_size )
                {
-                  dx = dy = mdx = mdy = 0;
-                  cy += 1;
+                  // the feature for each 4x4 region
+                  value_type dx = 0;
+                  value_type dy = 0;
+                  value_type mdx = 0;
+                  value_type mdy = 0;
 
-                  j = j - 4;
-
-                  ix = i + 5;
-                  jx = j + 5;
-
-                  xs = core::round( x + ( -jx * scale * si + ix * scale * co ) );
-                  ys = core::round( y + (  jx * scale * co + ix * scale * si ) );
-
-                  for ( int k = i; k < i + 9; ++k ) 
+                  // now compute the 5x5 points for each 4x4 region
+                  for ( value_type dj = j; dj < j + area_size; dj += dd5x5 )
                   {
-                     for ( int l = j; l < j + 9; ++l ) 
+                     for ( value_type di = i; di < i + area_size; di += dd5x5 )
                      {
-                        //Get coords of sample point on the rotated axis
-                        sample_x = core::round( x + ( -l * scale * si + k * scale * co ) );
-                        sample_y = core::round( y + (  l * scale * co + k * scale * si ) );
+                        // center on the rotated axis
+                        const int sample_x = core::round( x + ( di * scale * co - dj * scale * si ) );
+                        const int sample_y = core::round( y + ( di * scale * si + dj * scale * co ) );
 
                         //Get the gaussian weighted x and y responses
-                        gauss_s1 = gaussian( xs - sample_x, ys - sample_y, 2.5 * scale );
+                        const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
 
                         core::vector2ui bl( core::round( sample_x - scale ),
                                             core::round( sample_y - scale ) );
                         core::vector2ui tr( core::round( sample_x + scale ),
                                             core::round( sample_y + scale ) );
-                        int size = ( tr[ 0 ] - bl[ 0 ] ) * ( tr[ 1 ] - bl[ 1 ] );
 
                         if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                         {
-                           const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                           const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
                                                                                     image,
                                                                                     bl,
                                                                                     tr ) / size;
-                           const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                           const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
                                                                                     image,
                                                                                     bl,
                                                                                     tr ) / size;
 
                            //Get the gaussian weighted x and y responses on rotated axis
-                           rrx = gauss_s1 * ( -rx * si + ry * co );
-                           rry = gauss_s1 * (  rx * co + ry * si );
+                           const value_type rrx = gauss_s1 * ( rx * co - ry * si );
+                           const value_type rry = gauss_s1 * ( rx * si + ry * co );
 
                            dx += rrx;
                            dy += rry;
@@ -416,29 +414,25 @@ namespace algorithm
                   }
 
                   //Add the values to the descriptor vector
-                  gauss_s2 = gaussian( (int)cx - 2, (int)cy - 2, 1.5 );
-
+                  const value_type gauss_s2 = gaussian( cx, cy, 3.3 * scale );
                   point.features[ count++ ] = dx * gauss_s2;
                   point.features[ count++ ] = dy * gauss_s2;
                   point.features[ count++ ] = mdx * gauss_s2;
                   point.features[ count++ ] = mdy * gauss_s2;
 
                   len += ( dx * dx + dy * dy + mdx * mdx + mdy * mdy ) * gauss_s2 * gauss_s2;
-
-                  j += 9;
                }
-               i += 9;
             }
 
             //Convert to Unit Vector
-            len = sqrt( len ) + 1e-7;
+            len = (sqrt( len ) + 1e-7);
             for( ui32 i = 0; i < point.features.size(); ++i )
                point.features[ i ] /= len;
          }
       }
 
       // sig = standard deviation
-      static value_type gaussian(int x, int y, value_type sig)
+      static value_type gaussian(value_type x, value_type y, value_type sig)
       {
          return ( 1.0 / ( 2.0 * core::PI * sig * sig ) ) * std::exp( -( x * x + y * y ) / ( 2.0 * sig * sig ) );
       }

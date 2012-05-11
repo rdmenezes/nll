@@ -7,27 +7,95 @@
 
 using namespace nll;
 
+#define NLL_SURF_3D_NB_AREA_PER_FEATURE         4.0
+#define NLL_SURF_3D_NB_AREA_PER_FEATURE_SIZE    20.0
+#define NLL_SURF_3D_NB_SUBAREA_PER_AREA         5.0
+
 namespace nll
 {
 namespace core
 {
    /**
-    @brief Mapping from three-dimensional Cartesian coordinates to spherical coordinates
-           with theta and phi in [-pi, pi]
+    @brief represent a 3D rotation
     */
-   template <class T, class TOUT>
-   void carthesianToSphericalCoordinate( T x, T y, T z, TOUT& r_out, TOUT& theta_out, TOUT& phi_out )
+   class Rotation3D
    {
-      if ( fabs( x ) < std::numeric_limits<T>::epsilon() )
+   public:
+      Rotation3D( double phi, double theta, double psi )
       {
-         x = std::numeric_limits<double>::epsilon();
-      }
-      const double partialSum = x * x + y * y;
+         const double ch = std::cos(phi);
+         const double sh = std::sin(phi);
+         const double ca = std::cos(theta);
+         const double sa = std::sin(theta);
+         const double cb = std::cos(psi);
+         const double sb = std::sin(psi);
 
-      theta_out = static_cast<TOUT>( std::atan2( y, x ) );
-      phi_out = static_cast<TOUT>( std::atan2( z, std::sqrt( partialSum ) + std::numeric_limits<double>::epsilon() ) );
-      r_out = static_cast<TOUT>( std::sqrt( partialSum + z * z ) );
-   }
+         _rotation = core::Matrix<double>( 4, 4 );
+
+         _rotation( 0, 0 ) = ch * ca;
+         _rotation( 0, 1 ) = sh*sb - ch*sa*cb;
+         _rotation( 0, 2 ) = ch*sa*sb + sh*cb;
+         _rotation( 1, 0 ) = sa;
+         _rotation( 1, 1 ) = ca*cb;
+         _rotation( 1, 2 ) = -ca*sb;
+         _rotation( 2, 0 ) = -sh*ca;
+         _rotation( 2, 1 ) = sh*sa*cb + ch*sb;
+         _rotation( 2, 2 ) = -sh*sa*sb + ch*cb;
+
+         _rotation( 3, 3 ) = 1;
+      }
+
+      core::vector3d transform( const core::vector3d& p ) const
+      {
+         return core::transf4( _rotation, p );
+      }
+
+   private:
+      static core::Matrix<double> _phiAngle( double phi )
+      {
+         const double ci = std::cos( phi );
+         const double si = std::sin( phi );
+         core::Matrix<double> m( 4, 4 );
+         m( 0, 0 ) = ci;
+         m( 1, 0 ) = -si;
+         m( 0, 1 ) = si;
+         m( 1, 1 ) = ci;
+         m( 2, 2 ) = 1;
+         m( 3, 3 ) = 1;
+         return m;
+      }
+
+      static core::Matrix<double> _thetaAngle( double theta )
+      {
+         const double ci = std::cos( theta );
+         const double si = std::sin( theta );
+         core::Matrix<double> m( 4, 4 );
+         m( 1, 1 ) = ci;
+         m( 2, 1 ) = -si;
+         m( 1, 2 ) = si;
+         m( 2, 2 ) = ci;
+         m( 0, 0 ) = 1;
+         m( 3, 3 ) = 1;
+         return m;
+      }
+
+      static core::Matrix<double> _psiAngle( double psi )
+      {
+         const double ci = std::cos( psi );
+         const double si = std::sin( psi );
+         core::Matrix<double> m( 4, 4 );
+         m( 0, 0 ) = ci;
+         m( 1, 0 ) = -si;
+         m( 0, 1 ) = si;
+         m( 1, 1 ) = ci;
+         m( 2, 2 ) = 1;
+         m( 3, 3 ) = 1;
+         return m;
+      }
+
+   private:
+      core::Matrix<double> _rotation;
+   };
 }
 namespace algorithm
 {
@@ -45,7 +113,7 @@ namespace algorithm
    class FastHessianDetPyramid3d
    {
    public:
-      typedef float                       value_type; // float as we don't need that much accuracy, we will save a lot of space like this...
+      typedef double                      value_type; // float as we don't need that much accuracy, we will save a lot of space like this...
       typedef imaging::Volume<value_type> Volume;
       typedef core::Matrix<value_type>    Matrix;
 
@@ -379,7 +447,7 @@ namespace algorithm
     */
    class SpeededUpRobustFeatures3d
    {
-      typedef float                             value_type;
+      typedef double                            value_type;
       typedef FastHessianDetPyramid3d::Volume   Volume;
       typedef core::Matrix<value_type>          Matrix;
 
@@ -397,7 +465,7 @@ namespace algorithm
       struct Point
       {
          typedef core::Buffer1D<value_type> Features;
-         Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( 4 * ( 4 * 4 * 4 ) )
+         Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( static_cast<int>( 4 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) )
          {}
 
          Point()
@@ -495,6 +563,119 @@ namespace algorithm
       }
 
    private:
+      // sig = standard deviation
+      static value_type gaussian(value_type x, value_type y, value_type z, value_type sig)
+      {
+         return ( 1.0 / ( 2.0 * core::PI * sig * sig ) ) * std::exp( -( x * x + y * y + z * z ) / ( 2.0 * sig * sig ) );
+      }
+
+
+
+      void _computeFeatures( const IntegralImage& image, Points& points ) const
+      {
+         int nbPoints = static_cast<ui32>( points.size() );
+         const f32 area_size = NLL_SURF_3D_NB_AREA_PER_FEATURE_SIZE / NLL_SURF_3D_NB_AREA_PER_FEATURE;
+         const f32 area_pos_min = - NLL_SURF_3D_NB_AREA_PER_FEATURE / 2 * area_size;
+         const f32 area_pos_max =   NLL_SURF_3D_NB_AREA_PER_FEATURE / 2 * area_size;
+         const f32 area_pos_center =   area_pos_min + area_size / 2;
+         const f32 dd5x5 = (float)(area_size / NLL_SURF_3D_NB_SUBAREA_PER_AREA);
+         /*
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
+         for ( int n = 0; n < nbPoints; ++n )
+         {
+            Point& point = points[ n ];
+
+            // this constant is to find the gaussian's sigma
+            // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
+            // so for a filter of size X, sigma = 1.2 / 9 * X
+            static const value_type scaleFactor = 1.2 / 9;
+            value_type scale = core::round( scaleFactor * point.scale );
+
+            const value_type x = point.position[ 0 ];
+            const value_type y = point.position[ 1 ];
+
+            const value_type co = cos( point.orientation);
+            const value_type si = sin( point.orientation);
+
+            const int size = (int)core::sqr( 2 * scale );
+
+            ui32 count = 0;
+            value_type len = 0;
+
+            // (i, j) the bottom left corners of the 4x4 area, in the unrotated space
+            // (cx, cy) the centers of the 4x4 area, in the unrotated space
+            value_type cy = area_pos_center;
+            for ( value_type j = area_pos_min; j < area_pos_max; j += area_size, cy += area_size )
+            {
+               value_type cx = area_pos_center;
+               for ( value_type i = area_pos_min; i < area_pos_max; i += area_size, cx += area_size )
+               {
+                  // the feature for each 4x4 region
+                  value_type dx = 0;
+                  value_type dy = 0;
+                  value_type mdx = 0;
+                  value_type mdy = 0;
+
+                  // now compute the 5x5 points for each 4x4 region
+                  for ( value_type dj = j; dj < j + area_size; dj += dd5x5 )
+                  {
+                     for ( value_type di = i; di < i + area_size; di += dd5x5 )
+                     {
+                        // center on the rotated axis
+                        const int sample_x = core::round( x + ( di * scale * co - dj * scale * si ) );
+                        const int sample_y = core::round( y + ( di * scale * si + dj * scale * co ) );
+
+                        //Get the gaussian weighted x and y responses
+                        const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
+
+                        core::vector2ui bl( core::round( sample_x - scale ),
+                                            core::round( sample_y - scale ) );
+                        core::vector2ui tr( core::round( sample_x + scale ),
+                                            core::round( sample_y + scale ) );
+
+                        if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
+                        {
+                           const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                    image,
+                                                                                    bl,
+                                                                                    tr ) / size;
+                           const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                    image,
+                                                                                    bl,
+                                                                                    tr ) / size;
+
+                           //Get the gaussian weighted x and y responses on rotated axis
+                           const value_type rrx = gauss_s1 * ( -rx * si + ry * co );
+                           const value_type rry = gauss_s1 * (  rx * co + ry * si );
+
+                           dx += rrx;
+                           dy += rry;
+                           mdx += fabs( rrx );
+                           mdy += fabs( rry );
+                        }
+                     }
+                  }
+
+                  //Add the values to the descriptor vector
+                  const value_type gauss_s2 = gaussian( cx, cy, 3.3 * scale );
+                  point.features[ count++ ] = dx * gauss_s2;
+                  point.features[ count++ ] = dy * gauss_s2;
+                  point.features[ count++ ] = mdx * gauss_s2;
+                  point.features[ count++ ] = mdy * gauss_s2;
+
+                  len += ( dx * dx + dy * dy + mdx * mdx + mdy * mdy ) * gauss_s2 * gauss_s2;
+               }
+            }
+
+            //Convert to Unit Vector
+            len = (sqrt( len ) + 1e-7);
+            for( ui32 i = 0; i < point.features.size(); ++i )
+               point.features[ i ] /= len;
+         }*/
+      }
+
       /**
        @brief assign a repeable orientation for each point       
 
@@ -651,7 +832,7 @@ namespace algorithm
                dy /= nbLocalPoints;
                dz /= nbLocalPoints;
             }
-            float norm;
+            double norm;
             core::carthesianToSphericalCoordinate( dx, dy, dz, norm, points[ n ].orientation1, points[ n ].orientation2 );
          }
       }
@@ -800,9 +981,10 @@ public:
       TESTER_ASSERT( loaded );
 
       std::cout << "runing surf..." << std::endl;
-      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.0000042 );
+      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.00001 );
 
       algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesPoints( volume );
+      std::cout << "nbPoints=" << points.size() << std::endl;
       std::ofstream f( "c:/tmp/points.txt" );
       for ( ui32 n = 0; n < points.size(); ++n )
       {
@@ -812,11 +994,133 @@ public:
          f << point[ 0 ] << " " << point[ 1 ] << " " << point[ 2 ] << " " << ( points[ n ].scale * volume.getSpacing()[ 0 ] ) << std::endl;
       }
    }
+
+   void testCarthesianToSphericalCoordinate()
+   {
+      // checked against matlab cart2sph(x,y,z)
+      {
+         core::vector3d pos( 3, 0, 0 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 3, 1e-8 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 0, 1e-8 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 0, 1e-8 ) );
+      }
+
+      {
+         core::vector3d pos( 1, 1, 0 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 1.4142, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 0.7854, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], 0, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( 0, 0, 1 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 1, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 0, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], 1.5708, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( 10, 20, 15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 1.1071, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( -10, 20, 15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 2.0344, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( -10, -20, 15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], -2.0344, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( 10, -20, 15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], -1.1071, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( 10, 20, -15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 1.1071, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( -10, 20, -15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], 2.0344, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( -10, -20, -15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], -2.0344, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
+      }
+
+      {
+         core::vector3d pos( 10, -20, -15 );
+         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 1 ], -1.1071, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
+      }
+   }
+
+   void testRotation3d()
+   {
+      /*
+      {
+         core::Rotation3D rot( 0, 0 );
+         core::vector3d p = rot.transform( core::vector3d( 1, 2, 3 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 0 ], 1, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 1 ], 2, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 2 ], 3, 1e-4 ) );
+      }
+
+      {
+         core::Rotation3D rot( 0.4636, 0, 0 );
+         core::vector3d p = rot.transform( core::vector3d( 2.2361, 0, 0 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 0 ], 2, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 1 ], 1, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 2 ], 0, 1e-4 ) );
+      }*/
+
+      {
+         core::Rotation3D rot( -0.7854, 0, 0 );
+         core::vector3d p = rot.transform( core::vector3d( 1, 0, 0 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 0 ], 2, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 1 ], 1, 1e-4 ) );
+         TESTER_ASSERT( core::equal<double>( p[ 2 ], 0, 1e-4 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf3D);
 //TESTER_TEST(simpleTest);
 //TESTER_TEST(testSurf3d);
+//TESTER_TEST(testCarthesianToSphericalCoordinate);
+TESTER_TEST(testRotation3d);
 TESTER_TEST_SUITE_END();
 #endif

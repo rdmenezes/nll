@@ -261,6 +261,8 @@ public:
    {
       const std::string path = "data/feature/sq1.bmp";
       
+      double meanOrientationRepeatability = 0;
+      double meanSimilarity = 0;
 
       for ( ui32 n = 0; n < 100; ++n )
       {
@@ -317,7 +319,15 @@ public:
 
          TESTER_ASSERT( repatablePointRatio > 0.5 );
          TESTER_ASSERT( repeatbleOrientationRatio >= 0.55 );
+
+         meanOrientationRepeatability += repeatbleOrientationRatio;
+         meanSimilarity += repatablePointRatio;
       }
+
+      meanOrientationRepeatability /= 100;
+      meanSimilarity /= 100;
+      std::cout << "MEAN meanOrientationRepeatability=" << meanOrientationRepeatability << std::endl;
+      std::cout << "MEAN repeatability=" << meanSimilarity << std::endl;
    }
 
    void testRegistration()
@@ -348,7 +358,7 @@ public:
          core::decolor( image );
          core::decolor( image2 );
 
-         algorithm::SpeededUpRobustFeatures surf( 5, 6, 2, 0.00011 );
+         algorithm::SpeededUpRobustFeatures surf( 5, 6, 2, 0.000011 );
 
          nll::core::Timer timer;
          algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
@@ -837,9 +847,10 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf);
-TESTER_TEST(testBasic);
-TESTER_TEST(testRepeatability);
-TESTER_TEST(testRegistration);   // check the slices are registered
+//TESTER_TEST(testBasic);
+//TESTER_TEST(testRepeatability);
+//TESTER_TEST(testRegistration);   // check the slices are registered
+TESTER_TEST(testRegistration2);   // test full registration
 
 // UTILITY FUNCTIONS
 //TESTER_TEST(testRegistrationVolume);

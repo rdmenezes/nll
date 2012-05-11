@@ -198,6 +198,55 @@ namespace core
       outTranslation = vector2f( (f32)m( 0, 2 ), (f32)m( 1, 2 ) );
       outAngle = getAngle( (f32)m( 0, 0 ), (f32)m( 1, 0 ) );
    }
+
+   /**
+    @brief Mapping from three-dimensional Cartesian coordinates to spherical coordinates
+           with theta and phi in [-pi, pi]
+    @param x the position in x in cartesian coordinate
+    @param y the position in x in cartesian coordinate
+    @param z the position in x in cartesian coordinate
+    @param r_out the radial coordinate in spherical space
+    @param theta_out the azimuthal coordinate in spherical space
+    @param phi_out the polar coordinate in spherical space
+    @see http://mathworld.wolfram.com/SphericalCoordinates.html
+         http://en.wikipedia.org/wiki/List_of_common_coordinate_transformations
+    */
+   template <class TOUT>
+   void carthesianToSphericalCoordinate( double x, double y, double z, TOUT& r_out, TOUT& theta_out, TOUT& phi_out )
+   {
+      if ( fabs( x ) < std::numeric_limits<double>::epsilon() )
+      {
+         x = std::numeric_limits<double>::epsilon();
+      }
+      const double sum2 = x * x + y * y;
+      const double dist = std::sqrt( sum2 + z * z );
+      const double dist2 = std::sqrt( sum2 );
+      if ( dist <= 1e-10 )
+      {
+         r_out     = 0;
+         theta_out = 0;
+         phi_out   = 0;
+      } else {
+         r_out     = static_cast<TOUT>( dist );
+         theta_out = static_cast<TOUT>( std::atan2( y, x ) );
+         phi_out   = static_cast<TOUT>( std::atan2( z, dist2 ) );
+      }
+   }
+
+   /**
+    @brief Mapping from three-dimensional Cartesian coordinates to spherical coordinates
+           with theta and phi in [-pi, pi]
+
+    @param cartesianCoordinate [x, y, z]
+    @return (radial, azimuthal, polar) or (r, phi, theta)
+    */
+   inline core::vector3d carthesianToSphericalCoordinate( const core::vector3d& cartesianCoordinate )
+   {
+      core::vector3d result;
+      carthesianToSphericalCoordinate( cartesianCoordinate[ 0 ], cartesianCoordinate[ 1 ], cartesianCoordinate[ 2 ],
+                                       result[ 0 ], result[ 1 ], result[ 2 ] );
+      return result;
+   }
 }
 }
 
