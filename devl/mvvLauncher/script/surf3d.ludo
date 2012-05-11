@@ -1,0 +1,117 @@
+import "core"
+import "siemens"
+import "mvvDicomTools"
+
+include "helper1"
+
+/**
+ @note the following variables must have been defined:
+       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
+       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
+
+ @note the following variables may be defined (if not default values apply)
+       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
+       - "historyExportLocation" of type "string", defines where the command history is imported/exported
+ */
+
+//
+// configuration constants
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+/// saves the last XXX commands typed by the user, these will be imported next sessions
+int      sizeHistoryExport            = 500;
+
+/// defines the export/import location
+string   historyExportLocation        = "c:/Temp/command_history.txt";
+
+//
+// -----------------------------------------------------------------------------------------------------------------
+
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+ToolAnnotations         annotations;
+ToolManipulators        manipultors;
+ManipulatorPointer      pointer;
+
+VolumeContainer         volumes;
+
+
+Lut ctLut1( -100.0, 600.0 );
+
+
+KeyboardCallback callbacks;
+
+
+ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
+manipultors.add( pointer );
+
+float factor = 1.5;
+Segment segment1( volumes, Vector3f( factor, 0.0, 0.0 ), Vector3f( 0.0, -factor, 0.0 ) );
+segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
+segment1.setTool( annotations );
+//segment1.setInterpolator( typename Segment::Nearest() );
+
+Segment segment2( volumes, Vector3f( 0.0, factor, 0.0 ), Vector3f( 0.0, 0.0, factor ) );
+segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
+segment2.setTool( annotations );
+//segment2.setInterpolator( typename Segment::Nearest() );
+
+Segment segment3( volumes, Vector3f( factor, 0.0, 0.0 ), Vector3f( 0.0, 0.0, factor ) );
+segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
+segment3.setTool( annotations );
+//segment3.setInterpolator( typename Segment::Nearest() );
+
+
+Layout::Vertical vertical;
+Layout::Horizontal horizontal;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout l3( segment3 );
+Layout l6( Console() );
+
+
+Layout layoutDisplay1( horizontal, Layout(horizontal, l1, l2, 0.51), l3, 0.66 );
+
+
+Layout layout = layoutDisplay1;
+
+ImageHolder holder;
+Layout layout1 = layout;
+Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
+
+
+VolumeID ct1 = readVolumeMF2("../../nllTest/data/medical/ct.mf2");
+volumes.add(ct1, ctLut1, 0.5);
+
+
+void printPoints(ToolAnnotations annotations, string file)
+{
+   IFStream f(file);
+   assert(f.good());
+   while (1)
+   {
+      float x = 0.0;
+	  float y = 0.0;
+	  float z = 0.0;
+	  float scale = 0.0;
+	  f.read(x);
+	  f.read(y);
+	  f.read(z);
+	  f.read(scale);
+	  if (f.eof() == 1)
+	  {
+	     break;
+	  }
+
+	  annotations.add(Vector3f(x, y, z), "", Vector3i(255), scale);
+
+	  println( "point=" + toString(x) + " " + toString(y) + " " + toString(z) );
+	  //break;
+   }
+}
+
+printPoints( annotations, "c:/tmp/points.txt" );

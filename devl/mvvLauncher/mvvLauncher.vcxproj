@@ -350,6 +350,7 @@
     <None Include="script\single3.ludo">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="script\surf3d.ludo" />
     <None Include="todo.txt" />
   </ItemGroup>
   <ItemGroup>

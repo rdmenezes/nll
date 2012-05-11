@@ -126,7 +126,7 @@ class VolumeSwitchReg
 
 	  //string name = registrator.getTestMrVolume( index );
 	  string name = registrator.getTestPtVolume( index );
-	  //name = "PT-50";
+	  name = "PT-185";
 
       //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
 	  string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/pt/";
