@@ -16,7 +16,7 @@ public:
       for ( int n = 0; n < 100; ++n )
       {
          nll::core::vector3f p( (float)(rand()%100), (float)(rand()%100), (float)(rand()%100) );
-         TESTER_ASSERT( affine1.transformDeformableOnly( p ) == p );
+         TESTER_ASSERT( affine1.transformDeformableOnly( p ).norm2() < 1e-5 );
          TESTER_ASSERT( affine1.transform( p ) == ( p + t ) );
 
          nll::imaging::Transformation* c = affine1.clone();
