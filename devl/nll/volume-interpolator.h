@@ -46,7 +46,8 @@ namespace imaging
    class InterpolatorNearestNeighbour
    {
    public:
-      typedef Volume   VolumeType;
+      typedef Volume                            VolumeType;
+      typedef typename VolumeType::value_type   value_type;
 
    public:
       /**
@@ -76,7 +77,7 @@ namespace imaging
       /**
        @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume. (0,0) is the center of the voxel.
        */
-      typename VolumeType::value_type operator()( const float* pos ) const
+      value_type operator()( const float* pos ) const
       {
          const int ix = core::floor( pos[ 0 ] + 0.5f );
          const int iy = core::floor( pos[ 1 ] + 0.5f );
@@ -100,17 +101,17 @@ namespace imaging
 
     See http://en.wikipedia.org/wiki/Trilinear_interpolation for equations
 
-    @note On a VolumeSpatial<float>, it is optimized using SSE2 instructions
+    @note if VolumeT::value_type is a vector type, it must implement operator *, +
     */
-   template <class Volume>
+   template <class VolumeT>
    class InterpolatorTriLinearDummy
    {
    public:
-      typedef Volume   VolumeType;
+      typedef typename VolumeT::value_type   value_type;
+      typedef VolumeT                        VolumeType;
 
-      // if the volume is a floating point type, the interpolation is the same type
-      // else a float
-      typedef typename core::If<typename Volume::value_type, float, core::IsFloatingType<typename Volume::value_type>::value >::type value_type;
+      // if value_type::value_type is a floating value, simply take this type, else default to "float"
+      typedef typename core::If<typename value_type, float, core::IsFloatingType<typename value_type>::value >::type value_type_floating;
 
    public:
       /**
@@ -136,9 +137,6 @@ namespace imaging
        */
       InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v )
       {
-         iix = -1000;
-         iiy = -1000;
-         iiz = -1000;
       }
 
       /**
@@ -152,18 +150,17 @@ namespace imaging
          const int iz = core::floor( pos[ 2 ] );
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         const typename Volume::value_type background = _volume->getBackgroundValue();
          if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
               iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
               iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
          {
-            return background;
+            return _volume->getBackgroundValue();;
          }
 
 
-         const value_type dx = fabs( pos[ 0 ] - ix );
-         const value_type dy = fabs( pos[ 1 ] - iy );
-         const value_type dz = fabs( pos[ 2 ] - iz );
+         const value_type_floating dx = fabs( pos[ 0 ] - ix );
+         const value_type_floating dy = fabs( pos[ 1 ] - iy );
+         const value_type_floating dz = fabs( pos[ 2 ] - iz );
 
          // Often in the same neighbourhood, we are using the same voxel, but at a slightly different
          // position, so we are caching the previous result, and reuse it if necessary
@@ -208,7 +205,6 @@ namespace imaging
       mutable value_type v000;
       mutable value_type v001, v010, v011, v100, v110, v101, v111;
       mutable int iix, iiy, iiz;
-      mutable unsigned int _currentRoundingMode;
    };
 
 

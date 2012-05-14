@@ -39,10 +39,7 @@ namespace imaging
    /**
     @ingroup imaging
     @brief This object defines a transformation from source to target geometry
-    @note The spiriit is when displaying an object, this always takes place in source space, so we need
-          to define a transformation from source->target so that it is very easy & fast to display... Internally,
-          we could have inverted the transformation, however it might be a complex operation (i.e. like deformable
-          deformation).
+    @note Object representing a transformation. This is usually defined from source to target space (the target being the moved object)
     */
    class Transformation
    {
@@ -59,12 +56,12 @@ namespace imaging
       }
 
       /**
-       @brief transform a point defined in source geometry to the new target
+       @brief transform a point defined in MM to the new point in MM
        */
       virtual nll::core::vector3f transform( const nll::core::vector3f& p ) const = 0;
 
       /**
-       @brief transform a point defined in source, returns the deformable displacement at this point
+       @brief returns the deformable displacement at this position in MM
        */
       virtual nll::core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const = 0;
 
@@ -159,7 +156,7 @@ namespace imaging
       }
 
       /**
-       @brief transform a point defined in source, returns the deformable displacement at this point
+       @brief returns the deformable displacement at this position in MM
        */
       virtual nll::core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const
       {
@@ -167,7 +164,7 @@ namespace imaging
       }
 
       /**
-       @brief transform a point defined in source geometry to the new target
+       @brief transform a point defined in MM to the new point in MM
        */
       virtual nll::core::vector3f transform( const nll::core::vector3f& p ) const
       {
