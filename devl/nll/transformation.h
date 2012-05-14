@@ -58,12 +58,12 @@ namespace imaging
       /**
        @brief transform a point defined in MM to the new point in MM
        */
-      virtual nll::core::vector3f transform( const nll::core::vector3f& p ) const = 0;
+      virtual core::vector3f transform( const core::vector3f& p ) const = 0;
 
       /**
        @brief returns the deformable displacement at this position in MM
        */
-      virtual nll::core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const = 0;
+      virtual core::vector3f transformDeformableOnly( const core::vector3f& p ) const = 0;
 
       /**
        @brief get the affine part of the transformation
@@ -158,15 +158,15 @@ namespace imaging
       /**
        @brief returns the deformable displacement at this position in MM
        */
-      virtual nll::core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const
+      virtual core::vector3f transformDeformableOnly( const core::vector3f& p ) const
       {
-         return p;
+         return core::vector3f();
       }
 
       /**
        @brief transform a point defined in MM to the new point in MM
        */
-      virtual nll::core::vector3f transform( const nll::core::vector3f& p ) const
+      virtual core::vector3f transform( const core::vector3f& p ) const
       {
          return core::transf4( _affine, p );
       }
