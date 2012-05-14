@@ -32,13 +32,6 @@
 #ifndef NLL_UTILITY_PURE_H_
 # define NLL_UTILITY_PURE_H_
 
-# include <limits>
-# include <string>
-# include <vector>
-# include <sstream>
-# include <cstring>
-# include "types.h"
-
 # ifdef NLL_BOUND
 #  undef NLL_BOUND
 # endif

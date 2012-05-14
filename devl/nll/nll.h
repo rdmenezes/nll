@@ -160,6 +160,11 @@
 # include <vector>
 # include <queue>
 # include <numeric>
+# include <string>
+# include <limits>
+# include <iostream>
+# include <sstream>
+# include <cstring>
 
 /**
  @defgroup core

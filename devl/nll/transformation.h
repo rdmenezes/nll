@@ -38,7 +38,7 @@ namespace imaging
 {
    /**
     @ingroup imaging
-    @brief This object defines a transformation from source to target geometry
+    @brief This object defines a transformation, mapping a point in MM to another point also in MM
     @note Object representing a transformation. This is usually defined from source to target space (the target being the moved object)
     */
    class Transformation
