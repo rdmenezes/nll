@@ -120,6 +120,41 @@ namespace core
       return rot;
    }
 
+   /**
+    @brief
+    */
+   template <class type, class mapper, class allocator>
+   bool isScalingTranslationMatrixOnly( const Matrix<type, mapper, allocator>& m, type tolerance = (type)1e-5 )
+   {
+      ensure( ( m.sizex() == 4 && m.sizey() == 4 ) ||
+              ( m.sizex() == 3 && m.sizey() == 3 ) , "must be a 4x4 or 3x3 matrix" );
+
+      // check the affine transform
+      const ui32 sizeAffine = m.sizex();
+      for ( ui32 y = 0; y < sizeAffine; ++y )
+      {
+         for ( ui32 x = 0; x < sizeAffine; ++x )
+         {
+            if ( x != y && fabs( m( y, x ) ) > tolerance )
+            {
+               return false;
+            }
+         }
+      }
+
+      // check the last row
+      for ( ui32 n = 0; n < sizeAffine; ++n )
+      {
+         if ( fabs( m( y, x ) ) > tolerance )
+         {
+            return false
+         }
+      }
+      
+      // check the last element
+      return fabs( m( sizeAffine, sizeAffine ) - 1 ) <= tolerance;
+   }
+
 
    /**
     @brief Assuming a 4x4 transformation matrix defined as

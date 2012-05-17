@@ -165,10 +165,10 @@ namespace core
     @param shearingVector is an unmormalized vector where Sn(2) = theta * Sn (1) (see http://mathworld.wolfram.com/RodriguesRotationFormula.html)
     */
    template <class T>
-   core::Matrix<T> createTransformationAffine3D( StaticVector<T, 3>& translationVector,
-                                                 StaticVector<T, 3>& rotationVector,
-                                                 StaticVector<T, 3>& shearingVector,
-                                                 StaticVector<T, 3>& scalingVector )
+   core::Matrix<T> createTransformationAffine3D( const StaticVector<T, 3>& translationVector,
+                                                 const StaticVector<T, 3>& rotationVector,
+                                                 const StaticVector<T, 3>& shearingVector,
+                                                 const StaticVector<T, 3>& scalingVector )
    {
       core::Matrix<T> scale( 3, 3 );
       scale( 0, 0 ) = scalingVector[ 0 ];

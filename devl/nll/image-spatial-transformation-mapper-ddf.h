@@ -140,6 +140,8 @@ namespace core
          core::vector2f originInTarget    = geom2.positionToIndex( resampled.getOrigin() );
          core::vector2f originInTargetDdf = geom2ddf.positionToIndex( resampled.getOrigin() );
 
+         const TransformationHelper transformationHelper( target.getInvertedPst() );
+
          procOrig.start();
        
          #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
@@ -159,6 +161,7 @@ namespace core
             {
                // compute the displacement and add it to the target index
                core::vector2f displacement = ddfTfm.getDeformableDisplacementOnlyIndex( linePosSrcDdf );
+               transformationHelper.transform( displacement ); // transform the displacement in MM into a corresponding displacement in index in the target space
                displacement[ 0 ] += linePosSrc[ 0 ];
                displacement[ 1 ] += linePosSrc[ 1 ];
 
@@ -183,6 +186,53 @@ namespace core
          return Vector( v[ 0 ] * m( 0, 0 ) + v[ 1 ] * m( 0, 1 ) + m( 0, 2 ),
                         v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + m( 1, 2 ) );
       }
+
+      /**
+       @brief Helper class that determine how the deformable displacement should be handled
+
+       In the case of targetPstInv is a scaling and/or translation matrix only (no rotation/shearing) computations can be significantly simplified
+
+       We use it in this context:
+       - we have a target index mapped (i.e., without the DDF, the resampled volume at this position would use this target index)
+       - we have a deformable displacement in MM that we need to translate the target index
+       -> i.e., we need to transform this displacement in MM into the corresponding index displacement
+       */
+      class TransformationHelper
+      {
+      public:
+         TransformationHelper( const Matrix& targetPstInv ) : _targetPstInv( targetPstInv )
+         {
+            // remove the translation part as this has already been taken care of...
+            _targetPstInv.clone( targetPstInv );
+            for ( ui32 n = 0; n + 1 < targetPstInv.sizey(); ++n )
+            {
+               _targetPstInv( n, targetPstInv.sizex() - 1 ) = 0;
+            }
+
+            _scaling = core::getSpacing3x3( targetPstInv );
+         }
+
+         void transform( core::vector2f& displacementMm ) const
+         {
+            // we have the deformable displacement in MM
+            // what is the corresponding displacement in index in the target?
+
+            // if the target PST has no rotation/shearing, easy, just apply the spacing
+            // else, apply the affine part of the transformation (we don't care about the translation, it is already in the displacement)
+            if ( _isMatrixScalingTranslationOnly )
+            {
+               displacementMm[ 0 ] *= _scaling[ 0 ];
+               displacementMm[ 1 ] *= _scaling[ 1 ];
+            } else {
+               displacementMm = core::transf3( _targetPstInv, displacementMm );
+            }
+         }
+
+      private:
+         Matrix         _targetPstInv;
+         bool           _isMatrixScalingTranslationOnly;
+         core::vector2f _scaling;
+      };
    };
 }
 }

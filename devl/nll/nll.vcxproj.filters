@@ -737,6 +737,9 @@
     <ClInclude Include="volume-discretizer.h">
       <Filter>imaging</Filter>
     </ClInclude>
+    <ClInclude Include="transformation-ddf.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">
