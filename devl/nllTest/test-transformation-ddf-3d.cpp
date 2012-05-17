@@ -11,6 +11,13 @@ namespace imaging
     @ingroup imaging
     @brief Defines a dense Deformable field transformation
 
+    We can see the transformation as follow:
+    - start from a point in MM = pa
+    - transform <pa> using the affine component = pm
+    - transform <pm> in index using the DDF PST = pi
+    - interpolate the DDF at <pi> to get the deformable displacement = pd
+    - return pm + pd
+
     Internally, the Ddf stores an affine transformation and a PST for the displacement field.
     The DDF PST is used to position the DDF grid, while the affine transformation is moving this grid
 
@@ -33,8 +40,8 @@ namespace imaging
          core::StaticVector<float, 3> initVal;
          _ddf = Ddf( ddfSize, ddfPst, initVal );
          _source2target.import( source2target );
-         _source2targetInv.import( source2target );
 
+         _source2targetInv.import( source2target );
          const bool success = core::inverse( _source2targetInv );
          ensure( success, "non affine tfm" );
       }
@@ -70,7 +77,7 @@ namespace imaging
       }
 
       /**
-       @brief transform a point defined in MM, returns the deformable displacement at this point in MM
+       @brief transform a point defined in MM, returns the deformable displacement at this position in MM
        */
       virtual core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const
       {
@@ -99,8 +106,7 @@ namespace imaging
 
        @note internally, we will create a DDF with size + 1 as the trilinear interpolator will not behave correctly at the volume boundary
        */
-      template <class T1, class T2>
-      static TransformationDenseDeformableField create( const core::Matrix<T1>& source2TargetTfm, const core::Matrix<T2>& targetPst, const core::vector3f& targetSizeMm, const core::vector3ui ddfSize )
+      static TransformationDenseDeformableField create( const core::Matrix<float>& source2TargetTfm, const core::Matrix<float>& targetPst, const core::vector3f& targetSizeMm, const core::vector3ui ddfSize )
       {
          typedef Ddf::Matrix  Matrix;
 

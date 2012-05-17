@@ -105,10 +105,16 @@ namespace imaging
       /**
        @brief Map a resampled coordinate system to a target transformed coordinate system
        @param target the <target> volume transformed by inverse of <tfm>
-       @param tfm a <target> to <resampled> affine transformation, the transformation is defined as source->target
+       @param tfm a <source> to <target> affine transformation, consequently, the target volume will be moved by the inverse of <tfm>
        @param resampled the volume to map the coordinate from
 
-       Basically, for each voxel of the resampled, it finds the corresponding voxel in the transformed target volume.
+       The transformation can be seen as follow:
+	    - compute invert(tfm) so we have a target->source transform
+	    - compose the invert(tfm) * TargetPst so we have a index->MM transform (2) (i.e., as we don't have the "source space", so we equivalently move the target by inv(affine))
+	    - compute the resampled origin in the space (2)
+	    - finally compute the vector director using (2) and the resampled PST
+       Then for each voxel in resampled space, find its equivalent index in the target volume.
+
        it will call Processor( const DirectionalIterator& resampledPosition, const float* targetPosition )
        */
       template <class Processor, class T, class Storage>
@@ -123,39 +129,27 @@ namespace imaging
             return;
          }
 
-         // compute the transformation target voxel -> resampled voxel
-         Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * resampled.getPst();
-         core::vector3f dx( transformation( 0, 0 ),
-                            transformation( 1, 0 ),
-                            transformation( 2, 0 ) );
-         core::vector3f dy( transformation( 0, 1 ),
-                            transformation( 1, 1 ),
-                            transformation( 2, 1 ) );
-         core::vector3f dz( transformation( 0, 2 ),
-                            transformation( 1, 2 ),
-                            transformation( 2, 2 ) );
+         // (1) compute the transformation index target->position MM with affine target->source TFM applied
+         core::Matrix<float> targetOriginTfm = tfm.getInvertedAffineMatrix() * target.getPst();
 
-         // compute the target origin with the tfm applied
-         core::Matrix<float> targetOriginTfm;
-         targetOriginTfm.clone( tfm.getAffineMatrix() );
-         core::inverse( targetOriginTfm );
-         targetOriginTfm = targetOriginTfm * target.getPst();
-         core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
+         // compute the origin of the resampled in the geometric space (1)
+         const bool success = core::inverse( targetOriginTfm );
+         ensure( success, "not affine!" );
+         const core::vector3f originInTarget = core::transf4( targetOriginTfm, resampled.getOrigin() );
 
-         // create the transformation representing this displacement and compute the resampled origin in this
-         // coordinate system
-         Matrix g( 4, 4 );
-         for ( ui32 y = 0; y < 3; ++y )
-            for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = targetOriginTfm(y, x);
-         g( 3, 3 ) = 1;
-         g( 0, 3 ) = targetOrigin2[ 0 ];
-         g( 1, 3 ) = targetOrigin2[ 1 ];
-         g( 2, 3 ) = targetOrigin2[ 2 ];
+         // finally get the axis direction resampled voxel -> target voxel
+         const core::Matrix<float> orientation = targetOriginTfm * resampled.getPst();
+         const core::vector3f dx( orientation( 0, 0 ),
+                                  orientation( 1, 0 ),
+                                  orientation( 2, 0 ) );
+         const core::vector3f dy( orientation( 0, 1 ),
+                                  orientation( 1, 1 ),
+                                  orientation( 2, 1 ) );
+         const core::vector3f dz( orientation( 0, 2 ),
+                                  orientation( 1, 2 ),
+                                  orientation( 2, 2 ) );
 
-         core::VolumeGeometry geom2( g );
-         core::vector3f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
-         core::vector3f slicePosSrc = originInTarget;
+         // now fast resampling loop
          const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
          procOrig.start();
 
@@ -186,7 +180,6 @@ namespace imaging
                for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
                {
                   proc.process( voxelIt, voxelPosSrc );
-                  //*voxelIt = interpolator( voxelPosSrc );
 
                   voxelPosSrc[ 0 ] += dx[ 0 ];
                   voxelPosSrc[ 1 ] += dx[ 1 ];
@@ -225,11 +218,18 @@ namespace imaging
    public:
       /**
        @brief Map a resampled coordinate system to a target transformed coordinate system
-       @param target the <target> volume transformed by <tfm>
-       @param tfm a <target> to <resampled> affine transformation
+       @param target the <target> volume transformed by inverse of <tfm>
+       @param tfm a <source> to <target> affine transformation, consequently, the target volume will be moved by the inverse of <tfm>
        @param resampled the volume to map the coordinate from
 
-       Exactly the same version, except that it will call the Processor::process with position index instead of iterator
+       The transformation can be seen as follow:
+	    - compute invert(tfm) so we have a target->source transform
+	    - compose the invert(tfm) * TargetPst so we have a index->MM transform (2) (i.e., as we don't have the "source space", so we equivalently move the target by inv(affine))
+	    - compute the resampled origin in the space (2)
+	    - finally compute the vector director using (2) and the resampled PST
+       Then for each voxel in resampled space, find its equivalent index in the target volume.
+
+       it will call Processor( const DirectionalIterator& resampledPosition, const float* targetPosition )
        */
       template <class Processor, class T, class Storage>
       void run( Processor& procOrig, const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled ) const
@@ -240,42 +240,30 @@ namespace imaging
          if ( !target.getSize()[ 0 ] || !target.getSize()[ 1 ] || !target.getSize()[ 2 ] ||
               !resampled.getSize()[ 0 ] || !resampled.getSize()[ 1 ] || !resampled.getSize()[ 2 ] )
          {
-            throw std::runtime_error( "invalid volume" );
+            return;
          }
 
-         // compute the transformation target voxel -> resampled voxel
-         Matrix transformation = target.getInvertedPst() * tfm.getAffineMatrix() * resampled.getPst();
-         core::vector3f dx( transformation( 0, 0 ),
-                            transformation( 1, 0 ),
-                            transformation( 2, 0 ) );
-         core::vector3f dy( transformation( 0, 1 ),
-                            transformation( 1, 1 ),
-                            transformation( 2, 1 ) );
-         core::vector3f dz( transformation( 0, 2 ),
-                            transformation( 1, 2 ),
-                            transformation( 2, 2 ) );
+         // (1) compute the transformation index target->position MM with affine target->source TFM applied
+         core::Matrix<float> targetOriginTfm = tfm.getInvertedAffineMatrix() * target.getPst();
 
-         // compute the target origin with the tfm applied
-         core::Matrix<float> targetOriginTfm;
-         targetOriginTfm.clone( tfm.getAffineMatrix() );
-         core::inverse( targetOriginTfm );
-         targetOriginTfm = targetOriginTfm * target.getPst();
-         core::vector3f targetOrigin2 = transf4( targetOriginTfm, core::vector3f( 0, 0, 0 ) );
+         // compute the origin of the resampled in the geometric space (1)
+         const bool success = core::inverse( targetOriginTfm );
+         ensure( success, "not affine!" );
+         const core::vector3f originInTarget = core::transf4( targetOriginTfm, resampled.getOrigin() );
 
-         // create the transformation representing this displacement and compute the resampled origin in this
-         // coordinate system
-         Matrix g( 4, 4 );
-         for ( ui32 y = 0; y < 3; ++y )
-            for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = targetOriginTfm(y, x);
-         g( 3, 3 ) = 1;
-         g( 0, 3 ) = targetOrigin2[ 0 ];
-         g( 1, 3 ) = targetOrigin2[ 1 ];
-         g( 2, 3 ) = targetOrigin2[ 2 ];
+         // finally get the axis direction resampled voxel -> target voxel
+         const core::Matrix<float> orientation = targetOriginTfm * resampled.getPst();
+         const core::vector3f dx( orientation( 0, 0 ),
+                                  orientation( 1, 0 ),
+                                  orientation( 2, 0 ) );
+         const core::vector3f dy( orientation( 0, 1 ),
+                                  orientation( 1, 1 ),
+                                  orientation( 2, 1 ) );
+         const core::vector3f dz( orientation( 0, 2 ),
+                                  orientation( 1, 2 ),
+                                  orientation( 2, 2 ) );
 
-         core::VolumeGeometry geom2( g );
-         core::vector3f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
-         core::vector3f slicePosSrc = originInTarget;
+         // now fast resampling loop
          const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
          procOrig.start();
 

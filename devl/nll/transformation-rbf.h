@@ -111,13 +111,15 @@ namespace core
    /**
     @brief model a deformable transformation using RBF functions as parameters.
 
+    The class is designed to support 2D/3D transformations.
+
     There are two components:
     - affine transformation, which basically move the DDF grid in source space to the target space
     - Rbfs, specifying a deformable transformation. They are specified in MM and are spread on the
       source image (so there is no PST associated with the RBFs).
 
     The value of the displacement at point <x> is computed as follow:
-    displacement = sum_i( Rbf::compute( A^-1 * x - mean_i ) * RbfValue_i  // we use A^-1 to reduce computational load and is equivalent to x - A * mean_i
+    displacement = sum_i( Rbf::compute( Affine * x - mean_i ) * RbfValue_i
     */
    template <class RbfT = RbfGaussian>
    class DeformableTransformationRadialBasis
@@ -140,7 +142,8 @@ namespace core
        @brief Construct a RBF transform based on RBFs and PST
        @param affineTfm acts as a PST, i.e., localize the transformation in MM
 
-       Typically the RBFs will be spread on the source image. Each RBF will have its position in MM
+       Typically the RBFs will be spread on the source image. Each RBF will have its position in MM.
+       These RBF position in MM will be transformed by the affineTfm beforehand.
        */
       DeformableTransformationRadialBasis( const Matrix& affineTfm, const Rbfs& g ) : _affine( affineTfm ), _rbfs( g )
       {
@@ -191,37 +194,52 @@ namespace core
       }
 
       /**
-       @brief return the displacement given a point in target space (after all transformation applied and in MM)
-              This is usually the normal way of computing the displacement.
+       @brief return the total displacement given a point in MM
+       
+       Internally, we get the point p in MM, apply the affine transformation. At this position, compute the RBF displacement.
+       The final displacement is the sum of the affine transformation and deformable transformation
        */
       template <class VectorT>
       Vector getDisplacement( const VectorT& pInMm ) const
       {
-         // compute pInMm * affine^-1
+         const ui32 nbDim = _affine.sizex() - 1;
+         assert( nbDim == pInMm.size() );
+
          Vector p( pInMm.size() + 1 );
          for ( ui32 n = 0; n < pInMm.size(); ++n )
          {
             p[ n ] = static_cast<value_type>( pInMm );
          }
          p[ pInMm.size() ] = 1;
-         p = _invAffine * Matrix( p, p.size(), 1 );
 
-         return _getDisplacement( p );
+         // affine transform
+         p = getAffineTfm() * Matrix( p, p.size(), 1 );
+
+         // ddf displacement
+         const Vector ddfPos = _getDisplacement( p );
+
+         // finally sum the two
+         Vector finalPos( nbDim );
+         for ( ui32 n = 0; n < nbDim; ++n )
+         {
+            finalPos[ n ] = p[ n ] + ddfPos[ n ];
+         }
+         return finalPos;
       }
 
       /**
-       @brief return the displacement given a point in source space (i.e., by not applying the affine transformation)
+       @brief return the displacement given a point in source space in MM (i.e., the affine TFM is not applied)
        */
       template <class VectorT>
-      Vector getDisplacementInSourceSpace( const VectorT& pInSrc ) const
+      Vector getDeformableDisplacementOnly( const VectorT& pInSrc ) const
       {
-         return _getDisplacement( pInSrc );
+         return _getDeformableDisplacement( pInSrc );
       }
 
    private:
       // here pinv is in the space of the RBF
       template <class VectorT>
-      Vector _getDisplacement( const VectorT& pinv ) const
+      Vector _getDeformableDisplacement( const VectorT& pinv ) const
       {
          // finally computes the displacement
          const ui32 nbDim = _affine.sizex() - 1;

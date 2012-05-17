@@ -359,23 +359,30 @@ struct TestDeformable2D
       DdfTransform::Matrix pst = core::identityMatrix<DdfTransform::Matrix>( 3 );
       pst( 0, 2 ) = 10;
       pst( 1, 2 ) = 20;
-      DdfTransform ddf( core::vector2ui( 30, 60 ), pst, core::vector2ui( 15, 30 ), rbfTfm );
+      DdfTransform ddf( core::vector2ui( 55, 100 ), pst, core::vector2ui( 30, 40 ), rbfTfm );
 
-      // query in source space in MM the RBF origin, we must find the exact value, the other RBF is too far to influence the result
-      core::vector2f d = ddf.getDisplacement( core::vector2f( 20, 40 ) );
-      TESTER_ASSERT( core::equal<float>( d[ 0 ], 1 ) );
-      TESTER_ASSERT( core::equal<float>( d[ 1 ], 2 ) );
+      // query in source space in MM the RBF origin, we must find the exact value, the other RBF is too far to influence the result // minus interpolation error...
+      {
+         core::vector2f d = ddf.getDisplacement( core::vector2f( 20, 40 ) );
+         TESTER_ASSERT( core::equal<float>( d[ 0 ], 20 + 1, 1e-1 ) );
+         TESTER_ASSERT( core::equal<float>( d[ 1 ], 40 + 2, 1e-1 ) );
+      }
+
+      {
+         core::vector2f d = ddf.getDisplacement( core::vector2f( 30, 70 ) );
+         TESTER_ASSERT( core::equal<float>( d[ 0 ], 30 + 2, 1e-1 ) );
+         TESTER_ASSERT( core::equal<float>( d[ 1 ], 70 + 4, 1e-1 ) );
+      }
 
       // now check a point in between
+      ddf.getStorage().getPst().print( std::cout );
       core::vector2f p2( 25, 60 );
-      float v1 = rbf1.eval( p2 );
-      float v2 = rbf2.eval( p2 );
-      core::vector2f expectedDef( v1 * 1 + v2 * 2, v1 * 2 + v2 * 4 );
-      d = ddf.getDisplacement( p2 );
+      core::Buffer1D<float> expectedDisplacement = rbfTfm.getDeformableDisplacementOnly( p2 );
+      core::vector2f d = ddf.getDisplacement( p2 ) - p2;
 
       // the error is due to the interpolation...
-      TESTER_ASSERT( core::equal<float>( d[ 0 ], expectedDef[ 0 ], (float)1e-4 ) );
-      TESTER_ASSERT( core::equal<float>( d[ 1 ], expectedDef[ 1 ], (float)1e-4 ) );
+      TESTER_ASSERT( core::equal<float>( d[ 0 ], expectedDisplacement[ 0 ], (float)1e-2 ) );
+      TESTER_ASSERT( core::equal<float>( d[ 1 ], expectedDisplacement[ 1 ], (float)1e-2 ) );
    }
 
    void testDdfResampling()

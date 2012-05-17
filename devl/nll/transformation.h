@@ -61,7 +61,7 @@ namespace imaging
       virtual core::vector3f transform( const core::vector3f& p ) const = 0;
 
       /**
-       @brief returns the deformable displacement at this position in MM
+       @brief returns the deformable displacement in MM at this position in MM
        */
       virtual core::vector3f transformDeformableOnly( const core::vector3f& p ) const = 0;
 
@@ -91,22 +91,24 @@ namespace imaging
    public:
       /**
        @brief init with an affine matrix.
-       @param init a 4x4 matrix. It defines the rotation, translation and spacing which transforms
-                  volume coordinate system into the patient coordinate system.
-                  <p>
-                  The matrix should be mapped like this:
-                  [ r1 r2 r3 ox ]
-                  [ r4 r5 r6 oy ]
-                  [ r7 r8 r9 oz ]
-                  [ 0  0  0  1  ]
-                  <p>
-                  With R the rotation matrix, and O the image origin in mm, S the image size
-                  <p>
-                  The origin is defined as the vector from the world origin to the voxel (0, 0, 0) of the volume,
-                  distance in minimeter
-                  <p>
-                  The spacing is extracted from the matrix: s_x = sqrt( r1^2 + r4^2 + r7^2 ) and so on
-                  for s_y and s_z spacing.
+       @param init a 4x4 matrix.
+                  
+              If no shearing component, it defines the rotation, translation and spacing which transforms
+              volume coordinate system into the patient coordinate system.
+              <p>
+              The matrix should be mapped like this:
+              [ r1 r2 r3 ox ]
+              [ r4 r5 r6 oy ]
+              [ r7 r8 r9 oz ]
+              [ 0  0  0  1  ]
+              <p>
+              With R the rotation matrix, and O the image origin in mm, S the image size
+              <p>
+              The origin is defined as the vector from the world origin to the voxel (0, 0, 0) of the volume,
+              distance in minimeter
+              <p>
+              The spacing is extracted from the matrix: s_x = sqrt( r1^2 + r4^2 + r7^2 ) and so on
+              for s_y and s_z spacing.
        */
       template <class T>
       TransformationAffine( const core::Matrix<T>& init ) : _affine( 4, 4, false )
@@ -156,15 +158,15 @@ namespace imaging
       }
 
       /**
-       @brief returns the deformable displacement at this position in MM
+       @brief returns the deformable displacement in MM at this position in MM
        */
-      virtual core::vector3f transformDeformableOnly( const core::vector3f& p ) const
+      virtual core::vector3f transformDeformableOnly( const core::vector3f& ) const
       {
          return core::vector3f();
       }
 
       /**
-       @brief transform a point defined in MM to the new point in MM
+       @brief transform a point defined in MM to a new point in MM
        */
       virtual core::vector3f transform( const core::vector3f& p ) const
       {

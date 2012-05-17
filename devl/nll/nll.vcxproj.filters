@@ -638,9 +638,6 @@
     <ClInclude Include="data-compression-count.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="volume-discretizer.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="volume-io-mf3.h">
       <Filter>imaging</Filter>
     </ClInclude>
@@ -736,6 +733,9 @@
     </ClInclude>
     <ClInclude Include="quasi-periodicity-analysis.h">
       <Filter>algorithm-time</Filter>
+    </ClInclude>
+    <ClInclude Include="volume-discretizer.h">
+      <Filter>imaging</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

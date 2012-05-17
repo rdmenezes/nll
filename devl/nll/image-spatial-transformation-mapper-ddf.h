@@ -37,9 +37,18 @@ namespace nll
 namespace core
 {
     /**
-    @brief Efficient mapping of the target pixels to source voxels using a DDF as transformation
+    @brief Efficient mapping of the resampled (usually 'source') pixels to target voxels using a DDF as transformation
 
-    For each pixel of the target, apply the tfm on the source volume and find the corresponding source pixel
+    The transformation can be seen as follow:
+
+    For the affine part:
+    - compute invert(tfm) so we have a target->source transform
+    - compose the invert(tfm) * TargetPst so we have a index->MM transform (2) (i.e., as we don't have the "source space", so we equivalently move the target by inv(affine))
+    - compute the resampled origin in the space (2)
+    - finally compute the vector director using (2) and the resampled PST
+
+    Similarly for the deformable part, except that we retrieve a deformable
+    displacement in the DDF that we add to the affine displacement
 
     CAUTION: Internally, the mapper will use different threads. So for maximal efficiency, new processors
     will be instanciated for each line from the initial processor. Typically the start/end methods will be called
@@ -67,6 +76,8 @@ namespace core
 
        The deformable case is slighly more complex than the affine case as we need to retrieve a displacement
        in the DDF to add to the lookup target index
+
+       @TODO BUG: the DDF returns a displacement in MM!!! So we can't add it directly to the target index lookup
        */
       template <class Processor, class T, class Mapper, class Alloc>
       void run( Processor& procOrig, const ImageSpatial<T, Mapper, Alloc>& target,
@@ -147,7 +158,7 @@ namespace core
             for ( ui32 x = 0; x < resampled.sizex(); ++x )
             {
                // compute the displacement and add it to the target index
-               core::vector2f displacement = ddfTfm.getDisplacementSource( linePosSrcDdf );
+               core::vector2f displacement = ddfTfm.getDeformableDisplacementOnlyIndex( linePosSrcDdf );
                displacement[ 0 ] += linePosSrc[ 0 ];
                displacement[ 1 ] += linePosSrc[ 1 ];
 

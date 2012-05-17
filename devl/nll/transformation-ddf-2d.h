@@ -37,13 +37,20 @@ namespace nll
 namespace core
 {
    /**
-    @brief Map a source image to a target image using a DDF and affine transform
+    @brief Map a source image to a target image using a DDF and an affine transform
 
-    The DDF is mapping the source image (and with its own geometry and size) and will be applied
-    source->target affine transformation
+    The DDF mapping is defined by the DDF's PST and an affine transformation. The transformation
+    can be understood as follow:
+    - we start by a point in MM, e.g., in source space
+    - we apply the affine tfm
+    - we compute the corresponding index in the DDF
+    - the final transformation if the affine displacement + DDF displacement
 
+    Note: in the image mapper, we don't have this "source" space, just a target volume. So we
+    equivalently move the DDF by inv(affine).
+	
     Internally, we are using a <Storage> image to store the displacement field. This field
-    has its own affine matrix.
+    has its own affine matrix defining its geometric space.
     */
    class DeformableTransformationDenseDisplacementField2d
    {
@@ -94,7 +101,7 @@ namespace core
       {
          // here we are approximating a RBF transformation by a fixed DDF
          // first we compute the DDF PST so that we are mapping the same source geometry
-         // the affine part of the DDF is the same as the RBF
+         // the affine part of the DDF is the same as the RBF (so we can discard it in the computations as they would be relatively at the same position)
          // it remains the RBF deformation to compute. The RBF are defined MM in the source geometry
          // so we simply need to convert the Index DDF to MM and get the RBF value
 
@@ -122,7 +129,7 @@ namespace core
             for ( ui32 x = 0; x < _storage.sizex(); ++x )
             {
                value_type* p = _storage.point( x, y );
-               Vector d = rbfTfm.getDisplacementInSourceSpace( startLine );
+               Vector d = rbfTfm.getDeformableDisplacementOnly( startLine );
                p[ 0 ] = d[ 0 ];
                p[ 1 ] = d[ 1 ];
 
@@ -137,10 +144,20 @@ namespace core
 
       /**
        @brief Return the displacement at a specified point expressed in the source space in MM (ie. before applying the affine transformation)
+
+       The steps are:
+       - source point in MM p
+       - apply affine TFM (i.e., the DDF is really moved by <affineTfm>, not to be confused with the image mapper where the DDF is moved by inv(tfm) as this time there is no "source", just a target)
+       - get the corresponding index in the DDF
+       - return the interpolated value at this index
+
+       @note this is not very efficiently computed...
        */
       template <class VectorT>
       core::vector2f getDisplacement( const VectorT& psource ) const
       {
+         assert( psource.size() == 2 );
+
          // compute p in target space
          Vector v( 3 );
          for ( ui32 n = 0; n < 2; ++n )
@@ -149,17 +166,21 @@ namespace core
          }
          v[ 2 ] = 1;
 
-         Vector vsrc = getInvertedPst() * Matrix( v, v.size(), 1 );
+         // point in MM -> transform it to target space -> get its index in the DDF
+         const Matrix posInMM = getAffineTfm() * Matrix( v, v.size(), 1 );
+         const Vector indexInDDf = getInvertedPst() * posInMM;
+         getInvertedPst().print( std::cout );
+         const core::vector2f ddfDisplacement = getDeformableDisplacementOnlyIndex( indexInDDf );
 
          // now interpolate
-         return getDisplacementSource( vsrc );
+         return core::vector2f( posInMM[ 0 ], posInMM[ 1 ] ) + ddfDisplacement;
       }
 
       /**
-       @brief Compute the displacement in index space directly
+       @brief Compute the displacement in index space directly (this will returns the deformable displacement at the specified index only)
        */
       template <class VectorT>
-      core::vector2f getDisplacementSource( const VectorT& index ) const
+      core::vector2f getDeformableDisplacementOnlyIndex( const VectorT& index ) const
       {
          // now interpolate
          core::vector2f out;
