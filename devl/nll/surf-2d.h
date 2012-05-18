@@ -74,7 +74,7 @@ namespace algorithm
          Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( (ui32)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) ), weight( 1 )
          {}
 
-         Point()
+         Point() : features( (ui32)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) )   
          {}
 
          Features                   features;
@@ -214,14 +214,13 @@ namespace algorithm
        @note features and orientation will be assigned for each point
        */
       template <class T, class Mapper, class Alloc>
-      Points computesFeatures( const core::Image<T, Mapper, Alloc>& i, Points& points )
+      void computesFeatures( const core::Image<T, Mapper, Alloc>& i, Points& points )
       {
          IntegralImage integral;
          integral.process( i );
 
          _computeAngle( integral, points );
          _computeFeatures( integral, points );
-         return points;
       }
 
    private:

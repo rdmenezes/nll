@@ -62,21 +62,25 @@ namespace core
 	public:
       /**
        @param angle angle in radian
+       @param translation the translation applied after the rotation
+       @param rotationCenter the center of the rotation
        */
-		TransformationRotation(f32 angle, vector2f vector) : _dx(-vector[0]), _dy(-vector[1]), _cosa(cos(-angle)), _sina(sin(-angle)){}
+		TransformationRotation(f32 angle, vector2f translation, vector2f rotationCenter = vector2f()) : _dx(-translation[0]), _dy(-translation[1]), _cosa(cos(-angle)), _sina(sin(-angle)), _rotationCenter( rotationCenter ){}
 		vector2f operator()(vector2f point) const 
 		{
-			return vector2f
-				   (
-						(point[0] * _cosa - point[1] * _sina + _dx),
-						(point[0] * _sina + point[1] * _cosa + _dy)
-				   );
+         const float x = point[ 0 ] - _rotationCenter[ 0 ];
+         const float y = point[ 1 ] - _rotationCenter[ 1 ];
+
+			return vector2f( (x * _cosa - y * _sina + _dx),
+						        (x * _sina + y * _cosa + _dy) );
 		}
 	private:
 		f32		_dx;
 		f32		_dy;
 		f32		_cosa;
 		f32		_sina;
+
+      core::vector2f _rotationCenter;
 	};
 
    /**
