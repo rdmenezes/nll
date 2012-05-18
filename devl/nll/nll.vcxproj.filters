@@ -740,6 +740,9 @@
     <ClInclude Include="transformation-ddf.h">
       <Filter>imaging</Filter>
     </ClInclude>
+    <ClInclude Include="pyramid-hessian-3d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

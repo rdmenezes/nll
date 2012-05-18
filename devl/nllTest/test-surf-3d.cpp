@@ -13,427 +13,9 @@ using namespace nll;
 
 namespace nll
 {
-namespace core
-{
-   /**
-    @brief represent a 3D rotation
-    */
-   class Rotation3D
-   {
-   public:
-      Rotation3D( double phi, double theta, double psi )
-      {
-         const double ch = std::cos(phi);
-         const double sh = std::sin(phi);
-         const double ca = std::cos(theta);
-         const double sa = std::sin(theta);
-         const double cb = std::cos(psi);
-         const double sb = std::sin(psi);
-
-         _rotation = core::Matrix<double>( 4, 4 );
-
-         _rotation( 0, 0 ) = ch * ca;
-         _rotation( 0, 1 ) = sh*sb - ch*sa*cb;
-         _rotation( 0, 2 ) = ch*sa*sb + sh*cb;
-         _rotation( 1, 0 ) = sa;
-         _rotation( 1, 1 ) = ca*cb;
-         _rotation( 1, 2 ) = -ca*sb;
-         _rotation( 2, 0 ) = -sh*ca;
-         _rotation( 2, 1 ) = sh*sa*cb + ch*sb;
-         _rotation( 2, 2 ) = -sh*sa*sb + ch*cb;
-
-         _rotation( 3, 3 ) = 1;
-      }
-
-      core::vector3d transform( const core::vector3d& p ) const
-      {
-         return core::transf4( _rotation, p );
-      }
-
-   private:
-      static core::Matrix<double> _phiAngle( double phi )
-      {
-         const double ci = std::cos( phi );
-         const double si = std::sin( phi );
-         core::Matrix<double> m( 4, 4 );
-         m( 0, 0 ) = ci;
-         m( 1, 0 ) = -si;
-         m( 0, 1 ) = si;
-         m( 1, 1 ) = ci;
-         m( 2, 2 ) = 1;
-         m( 3, 3 ) = 1;
-         return m;
-      }
-
-      static core::Matrix<double> _thetaAngle( double theta )
-      {
-         const double ci = std::cos( theta );
-         const double si = std::sin( theta );
-         core::Matrix<double> m( 4, 4 );
-         m( 1, 1 ) = ci;
-         m( 2, 1 ) = -si;
-         m( 1, 2 ) = si;
-         m( 2, 2 ) = ci;
-         m( 0, 0 ) = 1;
-         m( 3, 3 ) = 1;
-         return m;
-      }
-
-      static core::Matrix<double> _psiAngle( double psi )
-      {
-         const double ci = std::cos( psi );
-         const double si = std::sin( psi );
-         core::Matrix<double> m( 4, 4 );
-         m( 0, 0 ) = ci;
-         m( 1, 0 ) = -si;
-         m( 0, 1 ) = si;
-         m( 1, 1 ) = ci;
-         m( 2, 2 ) = 1;
-         m( 3, 3 ) = 1;
-         return m;
-      }
-
-   private:
-      core::Matrix<double> _rotation;
-   };
-}
 namespace algorithm
 {
-   /**
-    @brief Hold a stack of the hessian determinant using a crude approximation of a gaussian in 2D
-           for each point,           | Lxx Lxy Lxz |   | a b c |
-                           H(x, o) = | Lyx Lyy Lyz | = | d e f |
-                                     | Lzx Lzy Lzz |   | g h i |
-
-                           det(H)= Lxx * | Lyy Lyx | - Lyy * | Lxx Lxz | + Lzz * | Lxx Lxy |
-                                         | Lzy Lzz |         | Lzx Lzz |         | Lyx Lyy |
-                                 = a(ei - 0.81hf) - e(bi - 0.81hc) + i(ae - 0.81bd)
-           note the normalization factor 0.9^2 comes from the gaussian approximation of the gaussian derivatives
-    */
-   class FastHessianDetPyramid3d
-   {
-   public:
-      typedef double                      value_type; // float as we don't need that much accuracy, we will save a lot of space like this...
-      typedef imaging::Volume<value_type> Volume;
-      typedef core::Matrix<value_type>    Matrix;
-
-   public:
-      /**
-       @brief Construct and computes the hessian determinant pyramid
-       @param i the image,
-       @param scales the size of each level of the pyramid (in pixel), must be in increasing order
-       @param displacements the step between two filter evaluation for this particular level
-       */
-      template <class VolumeT>
-      void construct( const VolumeT& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
-      {
-         ensure( displacements.size() == scales.size(), "must be the same size" );
-
-         _pyramidDetHessian.clear();
-         _scales = scales;
-         _displacements = displacements;
-
-         const ui32 sizex = i.size()[ 0 ];
-         const ui32 sizey = i.size()[ 1 ];
-         const ui32 sizez = i.size()[ 2 ];
-
-         const value_type max = (value_type)std::max( abs( *std::max_element( i.begin(), i.end() ) ),
-                                                      abs( *std::min_element( i.begin(), i.end() ) ) );
-
-         // construct an integral image
-         IntegralImage3d image;
-         image.process( i );
-         _integralImage = image;
-
-         for ( size_t n = 0; n < scales.size(); ++n )
-         {
-            core::Timer scaleTimer;
-            ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
-            ensure( scales[ n ] >= 9, "minimal size" );
-
-            const ui32 step = displacements[ n ];
-
-            const int sizeFilterz = scales[ n ];
-            const int sizeFilterx = scales[ n ];
-            const int sizeFiltery = scales[ n ];
-            const double sizeFilter = sizeFilterx * sizeFiltery * sizeFilterz * max; // we normalize by the filter size and maximum value
-
-            const int halfx = sizeFilterx / 2;
-            const int halfy = sizeFiltery / 2;
-            const int halfz = sizeFilterz / 2;
-
-            // the total size must take into account the step size and filter size (it must be fully inside the image to be computed)
-            const int resx = ( (int)i.size()[ 0 ] ) / (int)step;
-            const int resy = ( (int)i.size()[ 1 ] ) / (int)step;
-            const int resz = ( (int)i.size()[ 2 ] ) / (int)step;
-
-            //std::cout << "scale=" << n << " size=" << resx << " " << resy << " " << resz << std::endl;
-
-            if ( resx <= 0 || resy <= 0 || resz <= 0 )
-               break;   // the scale is too big!
-            Volume detHessian( resx, resy, resz );
-
-            #ifndef NLL_NOT_MULTITHREADED
-            # pragma omp parallel for
-            #endif
-            for ( int z = 0; z < resz; ++z )
-            {
-               for ( int y = 0; y < resy; ++y )
-               {
-                  for ( int x = 0; x < resx; ++x )
-                  {
-                     const core::vector3ui bl( x * step, y * step, z * step );
-                     const core::vector3ui tr( bl[ 0 ] + sizeFilterx - 1, bl[ 1 ] + sizeFiltery - 1, bl[ 2 ] + sizeFilterz - 1 );
-                     if ( tr[ 0 ] < sizex && tr[ 1 ] < sizey && tr[ 2 ] < sizez )
-                     {
-                        const double dxx = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DX,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dyy = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DY,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dzz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DZ,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dxy = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DXY,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dxz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DXZ,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dyz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DYZ,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double val = dxx * ( dyy * dzz - 0.81 * dyz * dyz ) -
-                                           dyy * ( dxy * dzz - 0.81 * dyz * dxz ) +
-                                           dzz * ( dxx * dyy - 0.81 * dxy * dxy );
-                        detHessian( x, y, z ) = static_cast<value_type>( val );
-                     }
-                  }
-               }
-            }
-            std::cout << "Time scale=" << scaleTimer.getCurrentTime() << std::endl;
-            _pyramidDetHessian.push_back( detHessian );
-         }
-      }
-
-      // computes the index in mapDest the closest from (xRef, yRef, mapDest)
-      void indexInMap( ui32 xRef, ui32 yRef, ui32 zRef, ui32 mapRef, ui32 mapDest, int& outx, int& outy, int& outz ) const
-      {
-         if ( mapRef == mapDest )
-         {
-            outx = xRef;
-            outy = yRef;
-            outz = zRef;
-         } else {
-            // map a point at a given scale to the image space
-            const int x = xRef * _displacements[ mapRef ];
-            const int y = yRef * _displacements[ mapRef ];
-            const int z = zRef * _displacements[ mapRef ];
-
-            // convert the image space coordinate to the other scale space
-            outx = ( x ) / (int)_displacements[ mapDest ];
-            outy = ( y ) / (int)_displacements[ mapDest ];
-            outz = ( z ) / (int)_displacements[ mapDest ];
-         }
-      }
-
-      /**
-       @brief Computes the gradient of the hessian at position (x, y, z, map)
-              using finite difference
-       */
-      core::vector4d getHessianGradient( ui32 x, ui32 y, ui32 z, ui32 map ) const
-      {
-         // check the bounds, it cannot be on the border as the gradient is not
-         // defined here
-         assert( x > 0 && y > 0 && z > 0 && map > 0 &&
-                 map < _scales.size() - 1 &&
-                 x < _pyramidDetHessian[ map ].size()[ 0 ] - 1 &&
-                 y < _pyramidDetHessian[ map ].size()[ 1 ] - 1 &&
-                 z < _pyramidDetHessian[ map ].size()[ 2 ] - 1 );
-
-         int xminus, yminus, zminus;
-         indexInMap( x, y, z, map, map - 1, xminus, yminus, zminus );  // we need to look up the closed index in a map that has different dimensions
-
-         int xplus, yplus, zplus;
-         indexInMap( x, y, z, map, map + 1, xplus, yplus, zplus ); // we need to look up the closed index in a map that has different dimensions
-
-         const Volume& current = _pyramidDetHessian[ map ];
-         return core::vector4d( ( current( x + 1, y, z ) - current( x - 1, y, z ) ) / 2,
-                                ( current( x, y + 1, z ) - current( x, y - 1, z ) ) / 2,
-                                ( current( x, y, z + 1 ) - current( x, y, z - 1 ) ) / 2,
-                                ( _pyramidDetHessian[ map + 1 ]( xplus,  yplus,  zplus ) -
-                                  _pyramidDetHessian[ map - 1 ]( xminus, yminus, zplus ) ) / 2 );
-      }
-
-      /**
-       @brief returns true if all value around the projection (xRef, yRef, mapRef) on mapDest are smaller
-       */
-      bool isDetHessianMax( value_type val, ui32 xRef, ui32 yRef, ui32 zRef, ui32 mapRef, ui32 mapDest ) const
-      {
-         int x, y, z;
-
-         // if it is outside, then skip it
-         indexInMap( xRef, yRef, zRef, mapRef, mapDest, x, y, z );
-         if ( mapDest >= _pyramidDetHessian.size() )
-            return false;
-         const Volume& m = _pyramidDetHessian[ mapDest ];
-         if ( x < 1 || y < 1 || z < 1 || x + 1 >= (int)m.size()[ 0 ] || y + 1 >= (int)m.size()[ 1 ] || z + 1 >= (int)m.size()[ 2 ] )
-            return false;
-
-         return 
-                // current slice
-                val >= m( x + 0, y + 0, z ) &&
-                val >= m( x + 1, y + 0, z ) &&
-                val >= m( x - 1, y + 0, z ) &&
-                val >= m( x + 0, y + 1, z ) &&
-                val >= m( x + 1, y + 1, z ) &&
-                val >= m( x - 1, y + 1, z ) &&
-                val >= m( x + 0, y - 1, z ) &&
-                val >= m( x + 1, y - 1, z ) &&
-                val >= m( x - 1, y - 1, z ) &&
-
-                // direct z neighbours
-                val >= m( x, y, z - 1 ) &&
-                val >= m( x, y, z + 1 ) &&
-
-                // upper and lower rest of the slices
-                val >= m( x + 0, y + 0, z + 1 ) &&
-                val >= m( x + 1, y + 0, z + 1 ) &&
-                val >= m( x - 1, y + 0, z + 1 ) &&
-                val >= m( x + 0, y + 1, z + 1 ) &&
-                val >= m( x + 1, y + 1, z + 1 ) &&
-                val >= m( x - 1, y + 1, z + 1 ) &&
-                val >= m( x + 0, y - 1, z + 1 ) &&
-                val >= m( x + 1, y - 1, z + 1 ) &&
-                val >= m( x - 1, y - 1, z + 1 ) &&
-
-                val >= m( x + 0, y + 0, z - 1 ) &&
-                val >= m( x + 1, y + 0, z - 1 ) &&
-                val >= m( x - 1, y + 0, z - 1 ) &&
-                val >= m( x + 0, y + 1, z - 1 ) &&
-                val >= m( x + 1, y + 1, z - 1 ) &&
-                val >= m( x - 1, y + 1, z - 1 ) &&
-                val >= m( x + 0, y - 1, z - 1 ) &&
-                val >= m( x + 1, y - 1, z - 1 ) &&
-                val >= m( x - 1, y - 1, z - 1 );
-      }
-
-      /**
-       @brief Computes the hessian of the hessian at position (x, y, z, map)
-              using finite difference
-       */
-      Matrix getHessianHessian( ui32 x, ui32 y, ui32 z, ui32 map ) const
-      {
-         // check the bounds, it cannot be on the border as the gradient is not
-         // defined here
-         assert( x > 0 && y > 0 && z > 0 && map > 0 &&
-                 map < _scales.size() - 1 &&
-                 x < _pyramidDetHessian[ map ].size()[ 0 ] &&
-                 y < _pyramidDetHessian[ map ].size()[ 1 ] &&
-                 z < _pyramidDetHessian[ map ].size()[ 2 ] );
-
-         const Volume& mc = _pyramidDetHessian[ map ];
-         const Volume& mm = _pyramidDetHessian[ map - 1 ];
-         const Volume& mp = _pyramidDetHessian[ map + 1 ];
-         const value_type val = mc( x, y, z );
-
-         int xm, ym, zm;
-         indexInMap( x, y, z, map, map - 1, xm, ym, zm );  // we need to look up the closed index in a map that has different dimensions
-
-         // check the bounds, it cannot be on the border as the gradient is not
-         // defined here
-         assert( xm > 0 && ym > 0 && zm > 0 &&
-                 xm < (int)_pyramidDetHessian[ map - 1 ].size()[ 0 ] - 1 &&
-                 ym < (int)_pyramidDetHessian[ map - 1 ].size()[ 1 ] - 1 &&
-                 zm < (int)_pyramidDetHessian[ map - 1 ].size()[ 2 ] - 1 );
-
-         int xp, yp, zp;
-         indexInMap( x, y, z, map, map + 1, xp, yp, zp ); // we need to look up the closed index in a map that has different dimensions
-
-         // check the bounds, it cannot be on the border as the gradient is not
-         // defined here
-         assert( xp > 0 && yp > 0 && zp > 0 &&
-                 xp < (int)_pyramidDetHessian[ map + 1 ].size()[ 0 ] - 1 &&
-                 yp < (int)_pyramidDetHessian[ map + 1 ].size()[ 1 ] - 1 && 
-                 zp < (int)_pyramidDetHessian[ map + 1 ].size()[ 2 ] - 1 );
-
-         //
-         // TODO CHECK
-         //
-
-         //std::cout << "check=" << x << " " << y << " " << z << " " << " toMP=" << xp << " " << yp << " " << zp << " sizeM=" << mp.size() << std::endl;
-         const value_type dxx = mc( x + 1, y, z ) + mc( x - 1, y, z ) - 2 * val;
-         const value_type dyy = mc( x, y + 1, z ) + mc( x, y - 1, z ) - 2 * val;
-         const value_type dzz = mc( x, y, z + 1 ) + mc( x, y, z - 1 ) - 2 * val;
-         const value_type dss = mp( xp, yp, zp )   + mm( xm, ym, zm ) - 2 * val;
-
-         const value_type dxy = ( mc( x + 1, y + 1, z ) + mc( x - 1, y - 1, z ) -
-                                  mc( x + 1, y - 1, z ) - mc( x - 1, y + 1, z ) ) / 4;
-         const value_type dxz = ( mc( x + 1, y, z + 1 ) + mc( x - 1, y, z - 1 ) -
-                                  mc( x + 1, y, z - 1 ) - mc( x - 1, y, z + 1 ) ) / 4;
-         const value_type dyz = ( mc( x, y + 1, z + 1 ) + mc( x, y - 1, z + 1 ) -
-                                  mc( x, y - 1, z + 1 ) - mc( x, y + 1, z + 1 ) ) / 4;
-
-         const value_type dxs = ( mp( xp + 1, yp, zp ) + mm( xm - 1, ym, zm ) -
-                                  mm( xm + 1, ym, zm ) - mp( xp - 1, yp, zp ) ) / 4;
-         const value_type dys = ( mp( xp, yp + 1, zp ) + mm( xm, ym - 1, zm ) -
-                                  mm( xm, ym + 1, zm ) - mp( xp, yp - 1, zp ) ) / 4;
-         const value_type dzs = ( mp( xp, yp, zp + 1 ) + mm( xm, ym, zm - 1 ) -
-                                  mm( xm, ym, zm + 1 ) - mp( xp, yp, zp - 1 ) ) / 4;
-
-         // returns the hessian matrix defined as:
-         //     | dxx dxy dxz dxs |
-         // H = | dyx dyy dyz dys |
-         //     | dzx dzy dzz dzs |
-         //     | dsx dsy dsz dss |
-         Matrix hs( 4, 4 );
-         
-         hs( 0, 0 ) = dxx;
-         hs( 0, 1 ) = dxy;
-         hs( 0, 2 ) = dxz;
-         hs( 0, 3 ) = dxs;
-
-         hs( 1, 0 ) = dxy;
-         hs( 1, 1 ) = dyy;
-         hs( 1, 2 ) = dyz;
-         hs( 1, 3 ) = dys;
-
-         hs( 2, 0 ) = dxz;
-         hs( 2, 1 ) = dyz;
-         hs( 2, 2 ) = dzz;
-         hs( 2, 3 ) = dzs;
-
-         hs( 3, 0 ) = dxs;
-         hs( 3, 1 ) = dys;
-         hs( 3, 2 ) = dzs;
-         hs( 3, 3 ) = dss;
-
-         return hs;
-      }
-
-      const std::vector<Volume>& getPyramidDetHessian() const
-      {
-         return _pyramidDetHessian;
-      }
-
-      const IntegralImage3d& getIntegralImage() const
-      {
-         return _integralImage;
-      }
-
-   private:
-      std::vector<Volume>  _pyramidDetHessian;
-      std::vector<ui32>    _scales;
-      std::vector<ui32>    _displacements;
-      IntegralImage3d      _integralImage;
-   };
+   
 
    /**
     @brief Implementation of the Speeded Up Robust Features or SURF algorithm for 3 dimentional data
@@ -465,10 +47,10 @@ namespace algorithm
       struct Point
       {
          typedef core::Buffer1D<value_type> Features;
-         Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( static_cast<int>( 4 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) )
+         Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( static_cast<int>( 6 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) )
          {}
 
-         Point()
+         Point() : features( static_cast<int>( 6 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) )
          {}
 
          Features                   features;
@@ -562,6 +144,31 @@ namespace algorithm
          return points;
       }
 
+      /**
+       @brief Compute the SURF features
+       */
+      template <class Volume>
+      Points computesFeatures( const Volume& i )
+      {
+         std::stringstream ss;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "SURF3D feature detection started..." );
+
+         FastHessianDetPyramid3d pyramid;
+         Points points = _computesPoints( i, pyramid );
+         ss << "Number of points detected=" << points.size() << std::endl;
+
+         core::Timer timeOrientation;
+         _computeAngle( pyramid.getIntegralImage(), points );
+         ss << "Orientation time=" << timeOrientation.getCurrentTime() << std::endl;
+
+         core::Timer timeFeeatures;
+         _computeFeatures( pyramid.getIntegralImage(), points );
+         ss << "Features time=" << timeFeeatures.getCurrentTime();
+
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         return points;
+      }
+
    private:
       // sig = standard deviation
       static value_type gaussian(value_type x, value_type y, value_type z, value_type sig)
@@ -569,9 +176,7 @@ namespace algorithm
          return ( 1.0 / ( 2.0 * core::PI * sig * sig ) ) * std::exp( -( x * x + y * y + z * z ) / ( 2.0 * sig * sig ) );
       }
 
-
-
-      void _computeFeatures( const IntegralImage& image, Points& points ) const
+      void _computeFeatures( const IntegralImage3d& image, Points& points ) const
       {
          int nbPoints = static_cast<ui32>( points.size() );
          const f32 area_size = NLL_SURF_3D_NB_AREA_PER_FEATURE_SIZE / NLL_SURF_3D_NB_AREA_PER_FEATURE;
@@ -579,13 +184,14 @@ namespace algorithm
          const f32 area_pos_max =   NLL_SURF_3D_NB_AREA_PER_FEATURE / 2 * area_size;
          const f32 area_pos_center =   area_pos_min + area_size / 2;
          const f32 dd5x5 = (float)(area_size / NLL_SURF_3D_NB_SUBAREA_PER_AREA);
-         /*
+         
          #ifndef NLL_NOT_MULTITHREADED
          # pragma omp parallel for
          #endif
          for ( int n = 0; n < nbPoints; ++n )
          {
             Point& point = points[ n ];
+            RotationFromSpherical rotation( point.orientation1, point.orientation2 );
 
             // this constant is to find the gaussian's sigma
             // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
@@ -595,77 +201,104 @@ namespace algorithm
 
             const value_type x = point.position[ 0 ];
             const value_type y = point.position[ 1 ];
-
-            const value_type co = cos( point.orientation);
-            const value_type si = sin( point.orientation);
+            const value_type z = point.position[ 1 ];
 
             const int size = (int)core::sqr( 2 * scale );
 
             ui32 count = 0;
             value_type len = 0;
 
-            // (i, j) the bottom left corners of the 4x4 area, in the unrotated space
-            // (cx, cy) the centers of the 4x4 area, in the unrotated space
-            value_type cy = area_pos_center;
-            for ( value_type j = area_pos_min; j < area_pos_max; j += area_size, cy += area_size )
+            // (i, j, k) the bottom left corners of the 4x4 area, in the unrotated space
+            // (cx, cy, ck) the centers of the 4x4 area, in the unrotated space
+            value_type cz = area_pos_center;
+            for ( value_type k = area_pos_min; k < area_pos_max; k += area_size, cz += area_size )
             {
-               value_type cx = area_pos_center;
-               for ( value_type i = area_pos_min; i < area_pos_max; i += area_size, cx += area_size )
+               value_type cy = area_pos_center;
+               for ( value_type j = area_pos_min; j < area_pos_max; j += area_size, cy += area_size )
                {
-                  // the feature for each 4x4 region
-                  value_type dx = 0;
-                  value_type dy = 0;
-                  value_type mdx = 0;
-                  value_type mdy = 0;
-
-                  // now compute the 5x5 points for each 4x4 region
-                  for ( value_type dj = j; dj < j + area_size; dj += dd5x5 )
+                  value_type cx = area_pos_center;
+                  for ( value_type i = area_pos_min; i < area_pos_max; i += area_size, cx += area_size )
                   {
-                     for ( value_type di = i; di < i + area_size; di += dd5x5 )
+                     // the feature for each 4x4 region
+                     value_type dx = 0;
+                     value_type dy = 0;
+                     value_type dz = 0;
+                     value_type mdx = 0;
+                     value_type mdy = 0;
+                     value_type mdz = 0;
+
+                     // now compute the 5x5 points for each 4x4 region
+                     for ( value_type dk = k; dk < k + area_size; dk += dd5x5 )
                      {
-                        // center on the rotated axis
-                        const int sample_x = core::round( x + ( di * scale * co - dj * scale * si ) );
-                        const int sample_y = core::round( y + ( di * scale * si + dj * scale * co ) );
-
-                        //Get the gaussian weighted x and y responses
-                        const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
-
-                        core::vector2ui bl( core::round( sample_x - scale ),
-                                            core::round( sample_y - scale ) );
-                        core::vector2ui tr( core::round( sample_x + scale ),
-                                            core::round( sample_y + scale ) );
-
-                        if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
+                        for ( value_type dj = j; dj < j + area_size; dj += dd5x5 )
                         {
-                           const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                    image,
-                                                                                    bl,
-                                                                                    tr ) / size;
-                           const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                    image,
-                                                                                    bl,
-                                                                                    tr ) / size;
+                           for ( value_type di = i; di < i + area_size; di += dd5x5 )
+                           {
+                              // center on the rotated axis
+                              const core::vector3d gridpoint = rotation.transform( core::vector3d( di * scale, dj * scale, dk * scale ) );
+                              const int sample_x = core::round( gridpoint[ 0 ] );
+                              const int sample_y = core::round( gridpoint[ 1 ] );
+                              const int sample_z = core::round( gridpoint[ 2 ] );
+                              if ( sample_x < scale ||
+                                   sample_y < scale ||
+                                   sample_z < scale )
+                              {
+                                 // out of bounds
+                                 continue;
+                              }
 
-                           //Get the gaussian weighted x and y responses on rotated axis
-                           const value_type rrx = gauss_s1 * ( -rx * si + ry * co );
-                           const value_type rry = gauss_s1 * (  rx * co + ry * si );
+                              //Get the gaussian weighted x and y responses
+                              const value_type gauss_s1 = gaussian( di - cx, dj - cy, dk - cz, 2.5 * scale );
 
-                           dx += rrx;
-                           dy += rry;
-                           mdx += fabs( rrx );
-                           mdy += fabs( rry );
+                              core::vector3ui bl( core::round( sample_x - scale ),
+                                                  core::round( sample_y - scale ),
+                                                  core::round( sample_z - scale ) );
+                              core::vector3ui tr( core::round( sample_x + scale ),
+                                                  core::round( sample_y + scale ),
+                                                  core::round( sample_z + scale ));
+
+                              if ( tr[ 0 ] < image.size()[ 0 ] && 
+                                   tr[ 1 ] < image.size()[ 1 ] &&
+                                   tr[ 2 ] < image.size()[ 2 ] )
+                              {
+                                 const value_type ry = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DY,
+                                                                                          image,
+                                                                                          bl,
+                                                                                          tr ) / size;
+                                 const value_type rx = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DX,
+                                                                                          image,
+                                                                                          bl,
+                                                                                          tr ) / size;
+                                 const value_type rz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DZ,
+                                                                                          image,
+                                                                                          bl,
+                                                                                          tr ) / size;
+
+                                 //Get the gaussian weighted x and y responses on rotated axis
+                                 const core::StaticVector<value_type, 3> f = rotation.transform( core::vector3d( rx, ry, rz ) ) * gauss_s1;
+
+                                 dx += f[ 0 ];
+                                 dy += f[ 1 ];
+                                 dz += f[ 2 ];
+                                 mdx += fabs( f[ 0 ] );
+                                 mdy += fabs( f[ 1 ] );
+                                 mdz += fabs( f[ 2 ] );
+                              }
+                           }
                         }
                      }
+
+                     //Add the values to the descriptor vector
+                     const value_type gauss_s2 = gaussian( cx, cy, cz, 3.3 * scale );
+                     point.features[ count++ ] = dx * gauss_s2;
+                     point.features[ count++ ] = dy * gauss_s2;
+                     point.features[ count++ ] = dz * gauss_s2;
+                     point.features[ count++ ] = mdx * gauss_s2;
+                     point.features[ count++ ] = mdy * gauss_s2;
+                     point.features[ count++ ] = mdz * gauss_s2;
+
+                     len += ( dx * dx + dy * dy + dz * dz + mdx * mdx + mdy * mdy + mdz * mdz ) * gauss_s2 * gauss_s2;
                   }
-
-                  //Add the values to the descriptor vector
-                  const value_type gauss_s2 = gaussian( cx, cy, 3.3 * scale );
-                  point.features[ count++ ] = dx * gauss_s2;
-                  point.features[ count++ ] = dy * gauss_s2;
-                  point.features[ count++ ] = mdx * gauss_s2;
-                  point.features[ count++ ] = mdy * gauss_s2;
-
-                  len += ( dx * dx + dy * dy + mdx * mdx + mdy * mdy ) * gauss_s2 * gauss_s2;
                }
             }
 
@@ -673,7 +306,7 @@ namespace algorithm
             len = (sqrt( len ) + 1e-7);
             for( ui32 i = 0; i < point.features.size(); ++i )
                point.features[ i ] /= len;
-         }*/
+         }
       }
 
       /**
@@ -833,7 +466,7 @@ namespace algorithm
                dz /= nbLocalPoints;
             }
             double norm;
-            core::carthesianToSphericalCoordinate( dx, dy, dz, norm, points[ n ].orientation1, points[ n ].orientation2 );
+            core::cartesianToSphericalCoordinate( dx, dy, dz, norm, points[ n ].orientation1, points[ n ].orientation2 );
          }
       }
 
@@ -947,6 +580,55 @@ namespace algorithm
          return points;
       }
 
+   public:
+      /**
+       @brief Given spherical angles, compute the equivalent transformation matrix
+
+       This is just a helper class, public just for the test...
+       */
+      class RotationFromSpherical
+      {
+      public:
+         typedef double                      value_type;
+         typedef core::Matrix<value_type>    Matrix;
+
+      public:
+         RotationFromSpherical( value_type phi, value_type theta )
+         {
+            //
+            // TODO: very ugly hack... replace it with a direct computation
+            // here we are simply creating a mapping (source points -> transformed points) and estimate the transformation from the point's mapping
+            //
+            algorithm::EstimatorTransformSimilarityIsometric estimator;
+            std::vector<core::vector3d> source;
+            std::vector<core::vector3d> target;
+
+            source.push_back( core::vector3d( 1, 0, 0 ) );
+            source.push_back( core::vector3d( 2, 0, 0 ) );
+         
+            std::for_each( source.begin(), source.end(), [&]( const core::vector3d& val )
+            {
+               core::vector3d spherical = core::cartesianToSphericalCoordinate( val );
+               spherical[ 1 ] += phi;
+               spherical[ 2 ] += theta;
+               target.push_back( core::sphericalToCartesianCoordinate( spherical ) );
+            });
+
+            _rotation = estimator.compute( source, target );
+         }
+
+         /**
+          @brief transform a point p into a new point
+          */
+         core::vector3d transform( const core::vector3d& p ) const
+         {
+            return core::transf4( _rotation, p );
+         }
+
+      private:
+         Matrix _rotation;
+      };
+
    private:
       std::vector<ui32> _filterSizes;
       std::vector<ui32> _filterSteps;
@@ -958,18 +640,6 @@ namespace algorithm
 class TestSurf3D
 {
 public:
-   /**
-    */
-   void simpleTest()
-   {
-      std::vector<ui32> scales = core::make_vector<ui32>( 9, 15, 21 );
-      std::vector<ui32> steps = core::make_vector<ui32>( 2, 2, 2 );
-      imaging::Volume<float> volume( 512, 512, 300 );
-
-      algorithm::FastHessianDetPyramid3d pyramid;
-      pyramid.construct( volume, scales, steps );
-   }
-
    void testSurf3d()
    {
       const std::string volname = NLL_TEST_PATH "data/medical/ct.mf2";
@@ -981,9 +651,9 @@ public:
       TESTER_ASSERT( loaded );
 
       std::cout << "runing surf..." << std::endl;
-      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.00001 );
+      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.000005 );
 
-      algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesPoints( volume );
+      algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesFeatures( volume );
       std::cout << "nbPoints=" << points.size() << std::endl;
       std::ofstream f( "c:/tmp/points.txt" );
       for ( ui32 n = 0; n < points.size(); ++n )
@@ -993,14 +663,16 @@ public:
                                                                               points[ n ].position[ 2 ] ) );
          f << point[ 0 ] << " " << point[ 1 ] << " " << point[ 2 ] << " " << ( points[ n ].scale * volume.getSpacing()[ 0 ] ) << std::endl;
       }
+
+      TESTER_ASSERT( points.size() > 1000 );
    }
 
-   void testCarthesianToSphericalCoordinate()
+   void testcartesianToSphericalCoordinate()
    {
       // checked against matlab cart2sph(x,y,z)
       {
          core::vector3d pos( 3, 0, 0 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 3, 1e-8 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 0, 1e-8 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 0, 1e-8 ) );
@@ -1008,7 +680,7 @@ public:
 
       {
          core::vector3d pos( 1, 1, 0 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 1.4142, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 0.7854, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], 0, 1e-4 ) );
@@ -1016,7 +688,7 @@ public:
 
       {
          core::vector3d pos( 0, 0, 1 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 1, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 0, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], 1.5708, 1e-4 ) );
@@ -1024,7 +696,7 @@ public:
 
       {
          core::vector3d pos( 10, 20, 15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 1.1071, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
@@ -1032,7 +704,7 @@ public:
 
       {
          core::vector3d pos( -10, 20, 15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 2.0344, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
@@ -1040,7 +712,7 @@ public:
 
       {
          core::vector3d pos( -10, -20, 15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], -2.0344, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
@@ -1048,7 +720,7 @@ public:
 
       {
          core::vector3d pos( 10, -20, 15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], -1.1071, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], 0.5909, 1e-4 ) );
@@ -1056,7 +728,7 @@ public:
 
       {
          core::vector3d pos( 10, 20, -15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 1.1071, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
@@ -1064,7 +736,7 @@ public:
 
       {
          core::vector3d pos( -10, 20, -15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], 2.0344, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
@@ -1072,7 +744,7 @@ public:
 
       {
          core::vector3d pos( -10, -20, -15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], -2.0344, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
@@ -1080,47 +752,48 @@ public:
 
       {
          core::vector3d pos( 10, -20, -15 );
-         core::vector3d result = core::carthesianToSphericalCoordinate( pos );
+         core::vector3d result = core::cartesianToSphericalCoordinate( pos );
          TESTER_ASSERT( core::equal<double>( result[ 0 ], 26.9258 , 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 1 ], -1.1071, 1e-4 ) );
          TESTER_ASSERT( core::equal<double>( result[ 2 ], -0.5909, 1e-4 ) );
+      }
+
+      // test identity
+      for ( ui32 n = 0; n < 100; ++n )
+      {
+         const core::vector3d p( core::generateUniformDistribution( -100, 100 ),
+                                 core::generateUniformDistribution( -100, 100 ),
+                                 core::generateUniformDistribution( -100, 100 ) );
+
+         const core::vector3d spherical = core::cartesianToSphericalCoordinate( p );
+         const core::vector3d back = core::sphericalToCartesianCoordinate( spherical );
+
+         const double norm = ( back - p ).norm2();
+         TESTER_ASSERT( norm < 1e-3 );
       }
    }
 
    void testRotation3d()
    {
-      /*
+      for ( ui32 n = 0; n < 100; ++n )
       {
-         core::Rotation3D rot( 0, 0 );
-         core::vector3d p = rot.transform( core::vector3d( 1, 2, 3 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 0 ], 1, 1e-4 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 1 ], 2, 1e-4 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 2 ], 3, 1e-4 ) );
-      }
+         const double a1 = core::generateUniformDistribution( -core::PI, core::PI );
+         const double a2 = core::generateUniformDistribution( -core::PI, core::PI );
 
-      {
-         core::Rotation3D rot( 0.4636, 0, 0 );
-         core::vector3d p = rot.transform( core::vector3d( 2.2361, 0, 0 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 0 ], 2, 1e-4 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 1 ], 1, 1e-4 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 2 ], 0, 1e-4 ) );
-      }*/
+         const core::vector3d p( 1, 0, 0 );
+         const core::vector3d expectedp = core::sphericalToCartesianCoordinate( core::vector3d( 1, a1, a2 ) );
 
-      {
-         core::Rotation3D rot( -0.7854, 0, 0 );
-         core::vector3d p = rot.transform( core::vector3d( 1, 0, 0 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 0 ], 2, 1e-4 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 1 ], 1, 1e-4 ) );
-         TESTER_ASSERT( core::equal<double>( p[ 2 ], 0, 1e-4 ) );
+         algorithm::SpeededUpRobustFeatures3d::RotationFromSpherical rot( a1, a2 );
+         const core::vector3d r = rot.transform( p );
+         TESTER_ASSERT( (expectedp - r).norm2() < 1e-3 );
       }
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf3D);
-//TESTER_TEST(simpleTest);
-//TESTER_TEST(testSurf3d);
-//TESTER_TEST(testCarthesianToSphericalCoordinate);
+TESTER_TEST(testSurf3d);
+TESTER_TEST(testcartesianToSphericalCoordinate);
 TESTER_TEST(testRotation3d);
 TESTER_TEST_SUITE_END();
 #endif

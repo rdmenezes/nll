@@ -247,7 +247,7 @@ namespace core
          http://en.wikipedia.org/wiki/List_of_common_coordinate_transformations
     */
    template <class TOUT>
-   void carthesianToSphericalCoordinate( double x, double y, double z, TOUT& r_out, TOUT& theta_out, TOUT& phi_out )
+   void cartesianToSphericalCoordinate( double x, double y, double z, TOUT& r_out, TOUT& theta_out, TOUT& phi_out )
    {
       if ( fabs( x ) < std::numeric_limits<double>::epsilon() )
       {
@@ -275,11 +275,39 @@ namespace core
     @param cartesianCoordinate [x, y, z]
     @return (radial, azimuthal, polar) or (r, phi, theta)
     */
-   inline core::vector3d carthesianToSphericalCoordinate( const core::vector3d& cartesianCoordinate )
+   inline core::vector3d cartesianToSphericalCoordinate( const core::vector3d& cartesianCoordinate )
    {
       core::vector3d result;
-      carthesianToSphericalCoordinate( cartesianCoordinate[ 0 ], cartesianCoordinate[ 1 ], cartesianCoordinate[ 2 ],
+      cartesianToSphericalCoordinate( cartesianCoordinate[ 0 ], cartesianCoordinate[ 1 ], cartesianCoordinate[ 2 ],
                                        result[ 0 ], result[ 1 ], result[ 2 ] );
+      return result;
+   }
+
+   /**
+    @brief Convert from spherical coordinates to cartesian coordinates
+    @see http://www.mathworks.de/help/techdoc/ref/sph2cart.html
+    */
+   template <class TOUT>
+   void sphericalToCartesianCoordinate( double r, double theta, double phi, TOUT& x_out, TOUT& y_out, TOUT& z_out )
+   {
+      const double cost = cos( theta );
+      const double sint = sin( theta );
+      const double cosp = cos( phi );
+      const double sinp = sin( phi );
+
+      x_out = static_cast<TOUT>( r * cosp * cost );
+      y_out = static_cast<TOUT>( r * cosp * sint );
+      z_out = static_cast<TOUT>( r * sinp );
+   }
+
+   /**
+    @brief Convert from spherical coordinates to cartesian coordinates
+    */
+   inline core::vector3d sphericalToCartesianCoordinate( const core::vector3d& polarCoordinate )
+   {
+      core::vector3d result;
+      sphericalToCartesianCoordinate( polarCoordinate[ 0 ], polarCoordinate[ 1 ], polarCoordinate[ 2 ],
+                                      result[ 0 ], result[ 1 ], result[ 2 ] );
       return result;
    }
 }

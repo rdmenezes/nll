@@ -2,6 +2,9 @@
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nll", "nll\nll.vcxproj", "{859D4214-0EA1-499F-B20D-2DA6C0DC5AFE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{EA3DCC95-2423-4EA0-A508-7A427B4C0594} = {EA3DCC95-2423-4EA0-A508-7A427B4C0594}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nllTest", "nllTest\nllTest.vcxproj", "{6B95ACCD-74E5-480D-A26B-FF01CFB16FDF}"
 	ProjectSection(ProjectDependencies) = postProject

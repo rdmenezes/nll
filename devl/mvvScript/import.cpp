@@ -1,7 +1,10 @@
 #include "import.h"
 #include <windows.h>
 
+#include <vector>
+#include <nll/types.h>
 #include <nll/utility-pure.h>
+#include <sstream>
 
 
 namespace mvv

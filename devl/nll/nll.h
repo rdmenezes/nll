@@ -77,7 +77,7 @@
 // #define NLL_DISABLE_SSE_SUPPORT
 
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
-#define NLL_NOT_MULTITHREADED
+//#define NLL_NOT_MULTITHREADED
 
 // if defined, extra checks will be performed to check preconditions/postconditions
 #define NLL_SECURE
@@ -395,6 +395,7 @@
 # include "point-based-registration-2d.h"
 # include "integral-image-3d.h"
 # include "haar-features-3d.h"
+# include "pyramid-hessian-3d.h"
 # include "registration-ct-ct-planar.h"
 # include "perceptron-margin.h"
 

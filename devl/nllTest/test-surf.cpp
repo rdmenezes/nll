@@ -843,14 +843,153 @@ public:
          ++n;
       }
    }
+
+   // take a source image, take random points within the image
+   // then do the same for the same target image but rotated
+   // check the 2 features are similar despite the rotation
+   void testRepeatabilityAngle()
+   {
+      const std::string path = "data/feature/sq1.bmp";
+      
+      double meanErrorAngle = 0;
+      const ui32 nbCases = 10;
+
+
+      for ( ui32 n = 0; n < nbCases; ++n )
+      {
+         // init
+         core::Image<ui8> image( NLL_TEST_PATH + path );
+         image = core::addBorder( image, 200, 50 );
+
+         core::Image<ui8> image2;
+         image2.clone( image );
+
+         //core::TransformationRotation tfm( 0, core::vector2f( 40, 0 ) );
+         const double angle = core::generateUniformDistribution( -0.8, 0.8 );
+         const double dx = core::generateUniformDistribution( 0, 40 );
+         core::TransformationRotation tfm( angle, core::vector2f( -(int)image2.sizex() / 2, -(int)image2.sizey() / 2 ), core::vector2f( (int)image2.sizex() / 2, (int)image2.sizey() / 2 ) );
+         core::TransformationRotation tfm2( -angle, core::vector2f( -(int)image2.sizex() / 2, -(int)image2.sizey() / 2 ), core::vector2f( (int)image2.sizex() / 2, (int)image2.sizey() / 2 ) );
+         core::transformUnaryFast( image2, tfm );
+         /*
+         image = core::addBorder( image, 40, 40 );
+         image2 = core::addBorder( image2, 40, 40 );
+         */
+         core::Image<ui8> oi1;
+         oi1.clone( image );
+         core::Image<ui8> oi2;
+         oi2.clone( image2 );
+
+         core::Image<ui8> output2;
+         output2.clone( image2 );
+
+         TESTER_ASSERT( image.sizex() );
+         core::decolor( image );
+         core::decolor( image2 );
+
+         algorithm::SpeededUpRobustFeatures surf( 5, 6, 2, 0.0011 );
+         algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
+
+         std::vector<ui32> index;
+         std::vector<core::vector3ui> sourcePoint;
+         std::vector<core::vector3ui> targetPoint;
+         for ( ui32 n = 0; n < points1.size(); ++n )
+         {
+          //  if ( oi1( points1[ n ].position[ 0 ], points1[ n ].position[ 1 ], 0 ) > 100 )
+            {
+               core::vector2f t = tfm2( core::vector2f( points1[ n ].position[ 0 ],
+                                                       points1[ n ].position[ 1 ] ) );
+
+               if ( t[ 0 ] >= 0 && t[ 0 ] < oi2.sizex() &&
+                    t[ 1 ] >= 0 && t[ 1 ] < oi2.sizey() )
+               {
+                  sourcePoint.push_back( core::vector3ui( points1[ n ].position[ 0 ], points1[ n ].position[ 1 ], points1[ n ].scale ) );
+                  targetPoint.push_back( core::vector3ui( t[ 0 ], t[ 1 ], points1[ n ].scale ) );
+                  index.push_back( n );
+               }
+            }
+         }
+
+         for ( ui32 n = 0; n < sourcePoint.size(); ++n )
+         {
+            oi1( sourcePoint[ n ][ 0 ], sourcePoint[ n ][ 1 ], 2 ) = 255;
+            oi1( sourcePoint[ n ][ 0 ], sourcePoint[ n ][ 1 ], 1 ) = 0;
+            oi1( sourcePoint[ n ][ 0 ], sourcePoint[ n ][ 1 ], 0 ) = 0;
+
+            oi2( targetPoint[ n ][ 0 ], targetPoint[ n ][ 1 ], 2 ) = 255;
+            oi2( targetPoint[ n ][ 0 ], targetPoint[ n ][ 1 ], 1 ) = 0;
+            oi2( targetPoint[ n ][ 0 ], targetPoint
+               [ n ][ 1 ], 0 ) = 0;
+         }
+
+         // compute the corresponding points, we must find similar values in features, and shifted angle...
+         algorithm::SpeededUpRobustFeatures::Points transformed = createFrom( targetPoint );
+         surf.computesFeatures( image, transformed );
+
+         float errorAngle = 0;
+         ui32 nbAngles = 0;
+         for ( ui32 n = 0; n < transformed.size(); ++n )
+         {
+            if ( !core::equal<float>( transformed[ n ].orientation, 0, 1e-3 ) )
+            {
+               // normalize the angles
+               float found = transformed[ n ].orientation;
+               float expected = points1[ index[ n ] ].orientation + angle;
+               if ( found - expected > core::PIf )
+               {
+                  found -= 2 * core::PIf;
+               }
+
+               if ( expected - found > core::PIf )
+               {
+                  expected -= 2 * core::PIf;
+               }
+
+               errorAngle += fabs( found - expected );
+               ++nbAngles;
+               std::cout << "angle=" << found << " expected=" << expected << std::endl;
+            }
+         }
+         errorAngle /= nbAngles;
+         meanErrorAngle += errorAngle;
+
+         std::cout << "Angle error=" << errorAngle << std::endl;
+
+
+         printPoints( oi2, transformed );
+         printPoints( oi1, points1 );
+
+         core::writeBmp( oi1, NLL_TEST_PATH "data/oi1-" + core::val2str( n ) + ".bmp" );
+         core::writeBmp( oi2, NLL_TEST_PATH "data/oi2-" + core::val2str( n ) + ".bmp" );
+      }
+
+      meanErrorAngle /= nbCases;
+
+      std::cout << "Angle mean error=" << meanErrorAngle << std::endl;
+      TESTER_ASSERT( meanErrorAngle < 1.25 );
+   }
+
+   algorithm::SpeededUpRobustFeatures::Points createFrom( const std::vector<core::vector3ui>& points )
+   {
+      algorithm::SpeededUpRobustFeatures::Points newPoints;
+      std::for_each( points.begin(), points.end(), [&](const core::vector3ui& pos)
+      {
+         algorithm::SpeededUpRobustFeatures::Point p;
+         p.position[ 0 ] = pos[ 0 ];
+         p.position[ 1 ] = pos[ 1 ];
+         p.scale         = pos[ 2 ];
+         newPoints.push_back( p );
+      });
+
+      return newPoints;
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf);
-//TESTER_TEST(testBasic);
-//TESTER_TEST(testRepeatability);
-//TESTER_TEST(testRegistration);   // check the slices are registered
+TESTER_TEST(testBasic);
+TESTER_TEST(testRepeatability);
 TESTER_TEST(testRegistration2);   // test full registration
+TESTER_TEST(testRepeatabilityAngle);
 
 // UTILITY FUNCTIONS
 //TESTER_TEST(testRegistrationVolume);
@@ -864,5 +1003,6 @@ TESTER_TEST(testRegistration2);   // test full registration
 //TESTER_TEST(testRegistration);    // test volume
 //TESTER_TEST(testRegistration2);   // test volume
 //TESTER_TEST(testResampling);      // test resampling
+//TESTER_TEST(testRegistration);   // check the slices are registered
 TESTER_TEST_SUITE_END();
 #endif

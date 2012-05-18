@@ -9,6 +9,7 @@ class TestTransformationDdf3d
 public:
    void testSimpleMapping()
    {
+      srand( 0 );
       typedef core::Matrix<float>   Matrix;
       Matrix pst = core::createTransformationAffine3D( core::vector3f( 10, 5, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 1, 1, 1 ) );
       Matrix tfm = core::createTransformationAffine3D( core::vector3f( 1, 0, 0 ), core::vector3f( core::PI / 2, 0, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 1, 1, 1 ) );

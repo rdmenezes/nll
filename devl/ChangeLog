@@ -4,11 +4,11 @@ v0.16
 -added ML likelihood parameter estimation for bayesian network
 -added gaussian moment and canonical representation and associated operations
 -added matrix utilities
--added RBF deformable transformation
--added 2D DDF transformation & associated resampling
 -added multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
 -added utilities to compose/decompose affine matrices in rotation, scale, shear components
 -added graph classes and basic algorithms
+-added RBF deformable transformation
+-added 2D/3D DDF transformation & associated resampling
 -added 2D transformation estimators (similarity isotropic/anisotropic, isometry)
 -added 3D distance transform
 -added weighted learning for linear SVM & neural network
@@ -19,6 +19,10 @@ v0.16
 -added new versions of adaboost
 -added weak learners (neural nets, perceptron, stumps, decision trees)
 -added generic weighted decision trees (discrete and continuous)
+-added sparse PCA
+-added quasi periodicity analysis
+-added periodogram
+-revisited 2D/3D transforms (resampling, MPR, mappers)
 
 v0.15
 -added locally linear embedding for feature selection & data structure display

@@ -138,9 +138,9 @@ class VolumeSwitchReg
       
 	  int id = 0;
 	  AffineRegistration tfm;
-      //tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
-	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
-	  tfmReg = AffineRegistration( t );
+      tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
+	  //Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
+	  //tfmReg = AffineRegistration( t );
 
 	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_MR", name ) );
 	  displayed1 = registrator.templates[id];
