@@ -199,16 +199,19 @@ namespace core
          return _storage.sizey();
       }
 
+      // return the source->target affine transformation
       const Matrix& getAffineTfm() const
       {
          return _affine;
       }
 
+      // return the PST of the DDF
       const Matrix& getPst() const
       {
          return _storage.getPst();
       }
 
+      // return the target->source affine transformation
       const Matrix& getAffineInvTfm() const
       {
          return _invAffine;

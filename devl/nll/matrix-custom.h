@@ -222,7 +222,6 @@ namespace core
                      v[ 0 ] * m( 1, 0 ) + v[ 1 ] * m( 1, 1 ) + m( 1, 2 ) );
    }
 
-
    /**
     @ingroup core
     @brief Create a rotation matrix on the x-axis
