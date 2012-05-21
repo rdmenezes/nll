@@ -127,6 +127,15 @@ namespace imaging
       }
 
       /**
+       @brief same as <transformDeformableOnly> but with an index in the DDF index directly
+       */
+      core::vector3f transformDeformableOnlyIndex( const nll::core::vector3f& pIndex ) const
+      {
+         DdfInterpolator interpolator( _ddf );
+         return interpolator( pIndex.getBuf() );
+      }
+
+      /**
        @brief transform a point defined in source geometry in MM to the new target in MM
        */
       virtual core::vector3f transform( const nll::core::vector3f& p ) const

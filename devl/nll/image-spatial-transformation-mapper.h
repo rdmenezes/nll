@@ -113,37 +113,27 @@ namespace core
             return; // nothing to do
          }
 
+         Matrix invTfm;
+         invTfm.clone( tfm );
+         const bool success0 = core::inverse( invTfm );
+         ensure( success0, "not affine tfm!" );
+
          ensure( target.getNbComponents() == resampled.getNbComponents(), "must have the same number of dimensions" );
 
-         // compute the transformation target voxel -> resampled voxel
-         Matrix transformation = target.getInvertedPst() * tfm * resampled.getPst();
-         
-         core::vector2f dx( transformation( 0, 0 ),
-                            transformation( 1, 0 ) );
-         core::vector2f dy( transformation( 0, 1 ),
-                            transformation( 1, 1 ) );
-         
-         // compute the target origin with the tfm applied
-         core::Matrix<float> targetOriginTfm;
-         targetOriginTfm.clone( tfm );
-         core::inverse( targetOriginTfm );
-         targetOriginTfm = targetOriginTfm * target.getPst();
-         core::vector2f targetOrigin2 = transf2d4( targetOriginTfm, core::vector2f( 0, 0 ) );
-         
-         // create the transformation representing this displacement and compute the resampled origin in this
-         // coordinate system
-         Matrix g( 3, 3 );
-         for ( ui32 y = 0; y < 2; ++y )
-            for ( ui32 x = 0; x < 2; ++x )
-               g( y, x ) = targetOriginTfm(y, x);
-         g( 2, 2 ) = 1;
-         g( 0, 2 ) = targetOrigin2[ 0 ];
-         g( 1, 2 ) = targetOrigin2[ 1 ];
+         // (1) compute the transformation index target->position MM with affine target->source TFM applied
+         core::Matrix<float> targetOriginTfm = invTfm * target.getPst();
 
-         core::VolumeGeometry2d geom2( g );
-         core::vector2f originInTarget = geom2.positionToIndex( resampled.getOrigin() );
-         core::vector2f slicePosSrc = originInTarget;
+         // compute the origin of the resampled in the geometric space (1)
+         const bool success = core::inverse( targetOriginTfm );
+         ensure( success, "not affine!" );
+         const core::vector2f originInTarget = transf2d4( targetOriginTfm, resampled.getOrigin() );
 
+         // finally get the axis direction resampled voxel -> target voxel
+         const core::Matrix<float> orientation = targetOriginTfm * resampled.getPst();
+         const core::vector2f dx( orientation( 0, 0 ),
+                                  orientation( 1, 0 ) );
+         const core::vector2f dy( orientation( 0, 1 ),
+                                  orientation( 1, 1 ) );
          procOrig.start();
        
          #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)

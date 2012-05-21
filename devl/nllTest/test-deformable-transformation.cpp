@@ -449,6 +449,81 @@ struct TestDeformable2D
       std::cout << "Time resampling=" << t1.getCurrentTime() << std::endl;
       core::writeBmp( resampled, NLL_TEST_PATH "data/resampled.bmp" );
    }
+
+   // regression tests.. doesn't mean the values are true here!
+   void testImageMapper()
+   {
+      typedef core::Matrix<double> Matrix;
+      typedef core::Matrix<float> Matrixf;
+      typedef core::ImageSpatial<double> Image;
+      typedef core::InterpolatorLinear2D<double, Image::IndexMapper, Image::Allocator> Interpolator;
+
+      srand( 0 );
+      Matrix pstTarget = core::createTransformationAffine2D(0.1,
+                                                            core::vector2d( 0.95, 1.05 ),
+                                                            core::vector2d( -3, 1 ) );
+      Matrix pstResampled = core::createTransformationAffine2D(-0.05,
+                                                            core::vector2d( 1.04, 1.03 ),
+                                                            core::vector2d( 1, 2 ) );
+      Matrix affineTfm = core::createTransformationAffine2D(-0.15,
+                                                            core::vector2d( 0.90, 0.92 ),
+                                                            core::vector2d( 1, 1.1 ) );
+
+      Matrixf pstTargetf;
+      pstTargetf.import( pstTarget );
+
+      Matrixf pstResampledf;
+      pstResampledf.import( pstResampled );
+
+      Matrixf affineTfmf;
+      affineTfmf.import( affineTfm );
+
+      Image resampled( 256, 512, 1, pstResampledf );
+      Image target( 256, 512, 1, pstTargetf );
+
+      for ( Image::iterator it = target.begin(); it != target.end(); ++it )
+      {
+         *it = core::generateUniformDistribution( 100, 500 );
+      }      
+
+      core::ImageTransformationProcessorResampler<Image, Interpolator> resampler( target, resampled );
+      core::ImageTransformationMapper mapper;
+      mapper.run( resampler, target, affineTfmf, resampled );
+
+      std::cout << resampled( 0, 0, 0 ) << std::endl;
+      std::cout << resampled( 8, 0, 0 ) << std::endl;
+      std::cout << resampled( 0, 9, 0 ) << std::endl;
+      std::cout << resampled( 0, 3, 0 ) << std::endl;
+      std::cout << resampled( 12, 30, 0 ) << std::endl;
+      std::cout << resampled( 150, 80, 0 ) << std::endl;
+
+      // these values were computed using this library and are for regression tests only (it is assumed correct...)
+      {
+         const float v = resampled( 0, 0, 0 );
+         TESTER_ASSERT( core::equal<float>( v, 224.195, 1e-2 ) );
+      }
+
+      {
+         const float v = resampled( 8, 0, 0 );
+         TESTER_ASSERT( core::equal<float>( v, 0, 1e-2 ) );
+      }
+      {
+         const float v = resampled( 0, 9, 0 );
+         TESTER_ASSERT( core::equal<float>( v, 259.206, 1e-2 ) );
+      }
+      {
+         const float v = resampled( 0, 3, 0 );
+         TESTER_ASSERT( core::equal<float>( v, 321.13, 1e-2 ) );
+      }
+      {
+         const float v = resampled( 12, 30, 0 );
+         TESTER_ASSERT( core::equal<float>( v, 220.669, 1e-2 ) );
+      }
+      {
+         const float v = resampled( 150, 80, 0 );
+         TESTER_ASSERT( core::equal<float>( v, 413.67, 1e-2 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -462,5 +537,6 @@ TESTER_TEST_SUITE(TestDeformable2D);
  TESTER_TEST(testDdfTansform);
  TESTER_TEST(testDdfResampling);
  TESTER_TEST(testDdfResamplingEx);
+ TESTER_TEST(testImageMapper);
 TESTER_TEST_SUITE_END();
 #endif

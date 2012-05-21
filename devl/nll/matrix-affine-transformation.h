@@ -121,7 +121,7 @@ namespace core
    }
 
    /**
-    @brief
+    @brief Return true if the 3x3 or 4x4 transformation has only a scaling and/or translation component
     */
    template <class type, class mapper, class allocator>
    bool isScalingTranslationMatrixOnly( const Matrix<type, mapper, allocator>& m, type tolerance = (type)1e-5 )
@@ -130,7 +130,7 @@ namespace core
               ( m.sizex() == 3 && m.sizey() == 3 ) , "must be a 4x4 or 3x3 matrix" );
 
       // check the affine transform
-      const ui32 sizeAffine = m.sizex();
+      const ui32 sizeAffine = m.sizex() - 1;
       for ( ui32 y = 0; y < sizeAffine; ++y )
       {
          for ( ui32 x = 0; x < sizeAffine; ++x )
@@ -145,9 +145,9 @@ namespace core
       // check the last row
       for ( ui32 n = 0; n < sizeAffine; ++n )
       {
-         if ( fabs( m( y, x ) ) > tolerance )
+         if ( fabs( m( sizeAffine, n ) ) > tolerance )
          {
-            return false
+            return false;
          }
       }
       

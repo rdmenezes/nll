@@ -562,6 +562,7 @@
     <ClInclude Include="volume-io-txt.h" />
     <ClInclude Include="volume-resampling.h" />
     <ClInclude Include="volume-spatial.h" />
+    <ClInclude Include="volume-transformation-mapper-ddf.h" />
     <ClInclude Include="volume-transformation-mapper.h" />
     <ClInclude Include="volume.h" />
     <ClInclude Include="estimator-affine2D-transformation.h" />

@@ -200,7 +200,7 @@ namespace core
       class TransformationHelper
       {
       public:
-         TransformationHelper( const Matrix& targetPstInv ) : _targetPstInv( targetPstInv )
+         TransformationHelper( const Matrix& targetPstInv ) : _targetPstInv( targetPstInv ), _isMatrixScalingTranslationOnly( core::isScalingTranslationMatrixOnly( targetPstInv ) )
          {
             // remove the translation part as this has already been taken care of...
             _targetPstInv.clone( targetPstInv );

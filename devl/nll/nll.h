@@ -289,6 +289,7 @@
 # include "volume-transformation-mapper.h"
 # include "volume-resampling.h"
 # include "transformation-ddf.h"
+# include "volume-transformation-mapper-ddf.h"
 # include "slice.h"
 # include "slice-blending.h"
 # include "slice-resampling.h"

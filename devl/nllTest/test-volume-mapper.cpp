@@ -35,9 +35,11 @@ public:
          *it = core::generateUniformDistribution( 100, 500 );
       }      
 
+      core::Timer timer;
       imaging::VolumeTransformationProcessorResampler<Volume, Interpolator> resampler( target, resampled );
       imaging::VolumeTransformationMapper mapper;
       mapper.run( resampler, target, affineTfm, resampled );
+      std::cout << "Time affine resampling 256*512*300=" << timer.getCurrentTime() << std::endl;
 
       std::cout << resampled( 0, 0, 0 ) << std::endl;
       std::cout << resampled( 8, 0, 0 ) << std::endl;

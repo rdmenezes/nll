@@ -96,46 +96,22 @@ namespace imaging
       {
          const double isCenter = isSliceCenter ? 1 : 0;
 
-         // compute the rotation & scaling of the transformation tfm( pst( volume ) )
-         // we inverse the resulting transformation: we actually fit the axis on the transformed volume!
-         Transformation::Matrix transformationRot = ( tfm2.getInvertedAffineMatrix() * _volume.getPst() );
-         core::inverse( transformationRot );
+         // (1) compute the transformation index target->position MM with affine target->source TFM applied
+         core::Matrix<float> targetOriginTfm = tfm2.getInvertedAffineMatrix() * _volume.getPst();
 
-         // rotate & scale the axis of the MPR
-         core::vector3f dx = core::mul4Rot( transformationRot, slice.getAxisX() );
-         dx[ 0 ] = dx[ 0 ] * slice.getSpacing()[ 0 ];
-         dx[ 1 ] = dx[ 1 ] * slice.getSpacing()[ 0 ];
-         dx[ 2 ] = dx[ 2 ] * slice.getSpacing()[ 0 ];
+         // compute the origin of the resampled in the geometric space (1)
+         const bool success = core::inverse( targetOriginTfm );
+         ensure( success, "not affine!" );
+         const core::vector3f originInTarget = core::transf4( targetOriginTfm, slice.getOrigin() );
 
-         core::vector3f dy = core::mul4Rot( transformationRot, slice.getAxisY() );
-         dy[ 0 ] = dy[ 0 ] * slice.getSpacing()[ 1 ];
-         dy[ 1 ] = dy[ 1 ] * slice.getSpacing()[ 1 ];
-         dy[ 2 ] = dy[ 2 ] * slice.getSpacing()[ 1 ];
-
-         // compute the origin target within this transormation to build
-         // a geometric space of the transformed volume
-         core::Matrix<float> volumeToWorld = tfm2.getInvertedAffineMatrix() * _volume.getPst();
-         core::vector3f targetOrigin = transf4( volumeToWorld, core::vector3f( 0, 0, 0 ) );
-
-         // create the transformation representing this displacement and compute the source origin in this
-         // coordinate system
-         core::Matrix<float> g( 4, 4 );
-         for ( ui32 y = 0; y < 3; ++y )
-            for ( ui32 x = 0; x < 3; ++x )
-               g( y, x ) = volumeToWorld(y, x);
-         g( 3, 3 ) = 1;
-         g( 0, 3 ) = targetOrigin[ 0 ];
-         g( 1, 3 ) = targetOrigin[ 1 ];
-         g( 2, 3 ) = targetOrigin[ 2 ];
-
-         // compute the origin of the slice within the geometric space of the transformed volume
-         core::VolumeGeometry geom2( g );
-         core::vector3f index = geom2.positionToIndex( slice.getOrigin() );
+         // finally get the axis: rotate & scale the axis of the MPR
+         const core::vector3f dx = core::mul4Rot( targetOriginTfm, slice.getAxisX() ) * slice.getSpacing()[ 0 ];
+         const core::vector3f dy = core::mul4Rot( targetOriginTfm, slice.getAxisY() ) * slice.getSpacing()[ 1 ];
 
          // if isCenter == true, the slice geometric space (0,0) is the center and not the bottom left point of the slice
-         float startx = (float)( index[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
-         float starty = (float)( index[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
-         float startz = (float)( index[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
+         float startx = (float)( originInTarget[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
+         float starty = (float)( originInTarget[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
+         float startz = (float)( originInTarget[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
 
          // set up the interpolator
          // if SSE is not supported, use the default interpolator
