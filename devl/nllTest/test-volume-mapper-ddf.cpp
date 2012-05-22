@@ -46,6 +46,8 @@ public:
                              target.size()[ 2 ] * target.getSpacing()[ 0 ] );
       imaging::TransformationDenseDeformableField ddf = imaging::TransformationDenseDeformableField::create( affineTfm, pstTarget, sizeMm, ddfSize );
 
+      ddf.getGradient( core::vector3f() );
+
       for ( Volume::iterator it = target.begin(); it != target.end(); ++it )
       {
          *it = core::generateUniformDistribution( 100, 500 );
@@ -91,6 +93,8 @@ public:
          TESTER_ASSERT( core::equal<float>( v, 249.932, 1e-2 ) );
       }
    }
+
+
 };
 
 #ifndef DONT_RUN_TEST
