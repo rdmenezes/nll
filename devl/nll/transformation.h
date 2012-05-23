@@ -74,11 +74,6 @@ namespace imaging
        @brief clone the transformation
        */
       virtual Transformation* clone() const = 0;
-
-   protected:
-      // copy disabled
-      //Transformation& operator=( const Transformation );
-      Transformation( const Transformation& );
    };
 
 

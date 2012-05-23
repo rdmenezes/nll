@@ -129,7 +129,7 @@ namespace core
             for ( ui32 x = 0; x < _storage.sizex(); ++x )
             {
                value_type* p = _storage.point( x, y );
-               Vector d = rbfTfm.getDeformableDisplacementOnly( startLine );
+               Vector d = rbfTfm.getRawDeformableDisplacementOnly( startLine );
                p[ 0 ] = d[ 0 ];
                p[ 1 ] = d[ 1 ];
 
@@ -143,13 +143,13 @@ namespace core
       }
 
       /**
-       @brief Return the displacement at a specified point expressed in the source space in MM (ie. before applying the affine transformation)
+       @brief Return the displacement at a specified point expressed in MM (ie. before applying the affine transformation)
 
        The steps are:
        - source point in MM p
-       - apply affine TFM (i.e., the DDF is really moved by <affineTfm>, not to be confused with the image mapper where the DDF is moved by inv(tfm) as this time there is no "source", just a target)
+       - apply affine TFM (i.e., the DDF is really moved by <affineTfm>)
        - get the corresponding index in the DDF
-       - return the interpolated value at this index
+       - return the interpolated value at this index, which is a displacement in MM
 
        @note this is not very efficiently computed...
        */
@@ -169,10 +169,9 @@ namespace core
          // point in MM -> transform it to target space -> get its index in the DDF
          const Matrix posInMM = getAffineTfm() * Matrix( v, v.size(), 1 );
          const Vector indexInDDf = getInvertedPst() * posInMM;
-         getInvertedPst().print( std::cout );
-         const core::vector2f ddfDisplacement = getDeformableDisplacementOnlyIndex( indexInDDf );
 
          // now interpolate
+         const core::vector2f ddfDisplacement = getDeformableDisplacementOnlyIndex( indexInDDf );
          return core::vector2f( posInMM[ 0 ], posInMM[ 1 ] ) + ddfDisplacement;
       }
 

@@ -94,11 +94,97 @@ public:
       }
    }
 
+   void testDdfConversionFromRbf()
+   {
+      Matrix pstTarget = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 1, 1, 1 ) );
+      Matrix affineTfm = core::createTransformationAffine3D(core::vector3f(10, 20, 30 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 1, 1, 1 ) );
+      Volume target( core::vector3ui( 256, 128, 64 ), pstTarget );
 
+      // DDF set up
+      Matrix tfm = core::createTransformationAffine3D( core::vector3f( 1, 0, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 1, 1, 1 ) );
+      core::vector3ui ddfSize( 130, 135, 100 );
+      core::vector3f sizeMm( target.size()[ 0 ] * target.getSpacing()[ 0 ],
+                             target.size()[ 1 ] * target.getSpacing()[ 0 ],
+                             target.size()[ 2 ] * target.getSpacing()[ 0 ] );
+
+      typedef core::DeformableTransformationRadialBasis<> RbfTransform;
+
+      std::vector<RbfTransform::Rbf> rbfs;
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( -5, -7, -3 ),
+                                         core::make_buffer1D<float>( 128, 64, 32 ),
+                                         core::make_buffer1D<float>( 30, 30, 30 ) ) );
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 4, 8, 2 ),
+                                         core::make_buffer1D<float>( 0, 0, 0 ),
+                                         core::make_buffer1D<float>( 30, 30, 30 ) ) );
+      
+      RbfTransform tfmRbf( affineTfm, rbfs );
+
+      imaging::TransformationDenseDeformableField ddf = imaging::TransformationDenseDeformableField::create( tfmRbf, pstTarget, sizeMm, ddfSize );
+
+      {
+         const core::vector3f p( 3, 8, -1 );
+         const core::vector3f pExpected = core::transf4( affineTfm, p );
+         const core::vector3f pResult = ddf.transformAffineOnly( p );
+         TESTER_ASSERT( (pExpected - pResult).norm2() < 1e-5 );
+      }
+
+      {
+         core::vector3f p( -10 - 0 + 0,
+                           -20 - 0 + 0,
+                           -30 - 0 + 0 );
+
+         const core::vector3f fp = ddf.transformDeformableOnly( p );
+         TESTER_ASSERT( (fp - core::vector3f(4, 8, 2)).norm2() < 1e-3 );
+      }
+
+      // now test against expected value
+      {
+         core::vector3f p( -10 - 0 + 128,
+                           -20 - 0 + 64,
+                           -30 - 0 + 32 );
+
+         const core::vector3f fp = ddf.transformDeformableOnly( p );
+         TESTER_ASSERT( (fp - core::vector3f(-5, -7, -3)).norm2() < 1e-1 );
+      }
+
+      // now randomly test points
+      for ( ui32 n = 0; n < 5000; ++n )
+      {
+         const core::vector3f p( core::generateUniformDistribution( 0, 2560 ) / 10,
+                                 core::generateUniformDistribution( 0, 1280 ) / 10,
+                                 core::generateUniformDistribution( 0, 640 ) / 10 );
+         const core::vector3f pInDdfMm = core::transf4( affineTfm, p );
+         if ( pInDdfMm[ 0 ] > 0 && pInDdfMm[ 1 ] > 0 && pInDdfMm[ 2 ] > 0 &&
+              pInDdfMm[ 0 ] <256 && pInDdfMm[ 1 ] <128 && pInDdfMm[ 2 ] < 64 )
+         {
+            // forward
+            const core::Buffer1D<float> def = tfmRbf.getRawDeformableDisplacementOnly( pInDdfMm );
+            const core::vector3f forwardExpected( pInDdfMm[ 0 ] + def[ 0 ],
+                                                  pInDdfMm[ 1 ] + def[ 1 ],
+                                                  pInDdfMm[ 2 ] + def[ 2 ] );
+            const core::vector3f forward = ddf.transform( p );
+            const double err = (forward - forwardExpected).norm2();
+            TESTER_ASSERT( err < 1e-1 );
+
+            bool converged = false;
+            const core::vector3f backward = ddf.getInverseTransform( forward, 1000, &converged );
+            ensure( converged, "oups!" );
+            const double err2 = (backward - p).norm2();
+            TESTER_ASSERT( err2 < 1e-1 );
+         }
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformationMapperDdf3D);
 TESTER_TEST(testSimpleAffineMappingOnly);
+TESTER_TEST(testDdfConversionFromRbf);
 TESTER_TEST_SUITE_END();
 #endif

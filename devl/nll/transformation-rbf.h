@@ -58,6 +58,9 @@ namespace core
                    const Vector& variance ) : _value( value ), _mean( mean ), _variance( variance )
       {}
 
+      /**
+       @brief Return the weight at this position of the RBF
+       */
       template <class Vector>
       value_type eval( const Vector& pos ) const
       {
@@ -215,8 +218,8 @@ namespace core
          // affine transform
          p = getAffineTfm() * Matrix( p, p.size(), 1 );
 
-         // ddf displacement
-         const Vector ddfPos = _getDisplacement( p );
+         // RBF displacement
+         const Vector ddfPos = _getDeformableDisplacement( p );
 
          // finally sum the two
          Vector finalPos( nbDim );
@@ -228,16 +231,17 @@ namespace core
       }
 
       /**
-       @brief return the displacement given a point in source space in MM (i.e., the affine TFM is not applied)
+       @brief return the displacement given a point in RBF space in MM
+              the affine TFM is NOT APPLIED (we are in MM in the RBF space already)
        */
       template <class VectorT>
-      Vector getDeformableDisplacementOnly( const VectorT& pInSrc ) const
+      Vector getRawDeformableDisplacementOnly( const VectorT& pInSrc ) const
       {
          return _getDeformableDisplacement( pInSrc );
       }
 
    private:
-      // here pinv is in the space of the RBF
+      // here pinv is in the space of the RBF in MM (i.e., the affine TFM is already applied)
       template <class VectorT>
       Vector _getDeformableDisplacement( const VectorT& pinv ) const
       {

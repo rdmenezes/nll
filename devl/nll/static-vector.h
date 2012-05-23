@@ -289,8 +289,8 @@ namespace core
       {
          o << "static vector, size = " << SIZE << std::endl;
          for ( int n = 0; n < SIZE; ++n )
-            std::cout << _buffer[ n ] << " ";
-         std::cout << std::endl;
+            o << _buffer[ n ] << " ";
+         o << std::endl;
       }
 
       bool write( std::ostream& f ) const

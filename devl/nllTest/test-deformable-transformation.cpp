@@ -377,7 +377,7 @@ struct TestDeformable2D
       // now check a point in between
       ddf.getStorage().getPst().print( std::cout );
       core::vector2f p2( 25, 60 );
-      core::Buffer1D<float> expectedDisplacement = rbfTfm.getDeformableDisplacementOnly( p2 );
+      core::Buffer1D<float> expectedDisplacement = rbfTfm.getRawDeformableDisplacementOnly( p2 );
       core::vector2f d = ddf.getDisplacement( p2 ) - p2;
 
       // the error is due to the interpolation...

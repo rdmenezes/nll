@@ -73,6 +73,12 @@ namespace imaging
          _source2targetInv.import( source2target );
          const bool success = core::inverse( _source2targetInv );
          ensure( success, "non affine tfm" );
+
+         // fast index/MM pre-computations
+         _ddfIndexToMM = _source2targetInv * ddfPst;
+         _mmToDdfIndex.clone( _ddfIndexToMM );
+         const bool success2 = core::inverse( _mmToDdfIndex );
+         ensure( success2, "non affine tfm" );
       }
 
       /**
@@ -118,14 +124,18 @@ namespace imaging
 
       /**
        @brief transform a point defined in MM, returns the deformable displacement at this position in MM
+       @note Internally, we need to apply the affine TFM
        */
       virtual core::vector3f transformDeformableOnly( const nll::core::vector3f& p ) const
       {
-         const core::vector3f index = core::transf4( _ddf.getInvertedPst(), p );
+         const core::vector3f index = core::transf4( _mmToDdfIndex, p );
          DdfInterpolator interpolator( _ddf );
          return interpolator( index.getBuf() );
       }
 
+      /**
+       @brief transform a point defined in MM, the input point is transformed by the affine transformation only
+       */
       core::vector3f transformAffineOnly( const nll::core::vector3f& p ) const
       {
          return core::transf4( _source2target, p );
@@ -146,7 +156,8 @@ namespace imaging
       virtual core::vector3f transform( const nll::core::vector3f& p ) const
       {
          const core::vector3f paffine = core::transf4( _source2target, p );
-         const core::vector3f def = transformDeformableOnly( paffine );
+         const core::vector3f indexDdf = _ddf.positionToIndex( paffine );
+         const core::vector3f def = transformDeformableOnlyIndex( indexDdf );
          return core::vector3f( paffine[ 0 ] + def[ 0 ],
                                 paffine[ 1 ] + def[ 1 ],
                                 paffine[ 2 ] + def[ 2 ] );
@@ -175,39 +186,39 @@ namespace imaging
       }
 
       /**
-       @brief Return a 3x3 matrix, the gradient of the DDF at this point <index>
-       @param index the index in the DDF space, or <x> in the comments
-       @param fIndex if not null, the DDF value at index will be returned
+       @brief Return a 3x3 matrix, the gradient of the DDF at this point <x> in MM. First column is dx, second dy...
+       @param x the positionin MM
+       @param pfx if not null, the DDF value at x
+       @param scale the finite difference distance
+
+       The gradient is computed using finite difference
        */
-      Matrix getGradient( const core::vector3f& index, core::vector3f* fIndex = 0 ) const
+      Matrix getGradient( const core::vector3f& x, core::vector3f* pfx = 0, float scale = 0.1f ) const
       {
-         DdfInterpolator interpolator( _ddf );
-         core::vector3f fx = interpolator( index.getBuf() );
-         if ( fIndex )
+         core::vector3f fx = transform( x );
+         if ( pfx )
          {
-            *fIndex = fx;
+            *pfx = fx;
          }
 
-         const float scale = 0.1f;  // the scale to compute the gradient at
-
-         // compute the gradient  in each direction
+         // compute the gradient  in each direction using finite difference
          // e.g., dx = ( f( x + scale * ( 1, 0, 0 ) ) - fx ) / scale
-         const core::vector3f dx = ( interpolator( core::vector3f( index[ 0 ] + scale,
-                                                                   index[ 1 ],
-                                                                   index[ 2 ] ).getBuf() ) - fx ) / scale;
-         const core::vector3f dy = ( interpolator( core::vector3f( index[ 0 ],
-                                                                   index[ 1 ] + scale,
-                                                                   index[ 2 ] ).getBuf() ) - fx ) / scale;
-         const core::vector3f dz = ( interpolator( core::vector3f( index[ 0 ],
-                                                                   index[ 1 ],
-                                                                   index[ 2 ] + scale ).getBuf() ) - fx ) / scale;
+         const core::vector3f dx = ( transform( core::vector3f( x[ 0 ] + scale,
+                                                                x[ 1 ],
+                                                                x[ 2 ] ) ) - fx ) / scale;
+         const core::vector3f dy = ( transform( core::vector3f( x[ 0 ],
+                                                                x[ 1 ] + scale,
+                                                                x[ 2 ] ) ) - fx ) / scale;
+         const core::vector3f dz = ( transform( core::vector3f( x[ 0 ],
+                                                                x[ 1 ],
+                                                                x[ 2 ] + scale ) ) - fx ) / scale;
 
          Matrix grad( 3, 3 );
          for ( ui32 n = 0; n < 3; ++n )
          {
             grad( n, 0 ) = dx[ n ];
-            grad( n, 0 ) = dy[ n ];
-            grad( n, 0 ) = dz[ n ];
+            grad( n, 1 ) = dy[ n ];
+            grad( n, 2 ) = dz[ n ];
          }
 
          return grad;
@@ -215,17 +226,21 @@ namespace imaging
 
       /**
        @brief Given an point in MM, find the inverse
+       @param v a point in MM
+       @param converged_out if no null, true will be returned if the algorithm converged
+       @note we want to find x such that transform( x ) = v;
        */
-      core::vector3f getInverseTransform( const core::vector3f& v, bool* converged = 0 ) const
+      core::vector3f getInverseTransform( const core::vector3f& v, ui32 maxIter = 1000, bool* converged_out = 0 ) const
       {
-         core::vector3f x = transformAffineOnly( v );
+         // v = f(x) => if we don't have deformable displacement, then x = affine^-1 * v
+         // which is our best initial guess
+         core::vector3f x = core::transf4( _source2targetInv, v );
          core::vector3f fx;
 
-         const float epsilon = 0.1;
+         const float epsilon = 0.1f;
          const float epsilon2 = core::sqr( epsilon );
-         const int maxIter = 1000;
-         ui32 iter = 0;
 
+         ui32 iter = 0;
          core::vector3f d( 1, 1, 1 );
          while ( d.dot( d ) >= epsilon2 &&  iter < maxIter )
          {
@@ -237,14 +252,16 @@ namespace imaging
             core::inverse( gradinv );
             d = fx - v;
 
-            Matrix update = gradinv * d;
-            x = x - update;
+            Matrix update = gradinv * Matrix( core::Buffer1D<float>( d.getBuf(), 3, false ), 3, 1 );
+            x[ 0 ] -= update[ 0 ];
+            x[ 1 ] -= update[ 1 ];
+            x[ 2 ] -= update[ 2 ];
             ++iter;
          }
 
-         if ( converged )
+         if ( converged_out )
          {
-            *converged = iter < maxIter;
+            *converged_out = iter < maxIter;
          }
 
          return x;
@@ -272,18 +289,19 @@ namespace imaging
          // so we simply need to convert the Index DDF to MM and get the RBF value
 
          // compute the transformation DDF index->Source MM
-         const core::vector3f dx( targetPst( 0, 0 ),
-                                  targetPst( 1, 0 ),
-                                  targetPst( 2, 0 ) );
-         const core::vector3f dy( targetPst( 0, 1 ),
-                                  targetPst( 1, 1 ),
-                                  targetPst( 2, 1 ) );
-         const core::vector3f dz( targetPst( 0, 2 ),
-                                  targetPst( 1, 2 ),
-                                  targetPst( 2, 2 ) );
-         core::vector3f start(  targetPst( 0, 3 ),
-                                targetPst( 1, 3 ),
-                                targetPst( 2, 3 ) );
+         const Matrix& ddfPst = ddf.getStorage().getPst();
+         const core::vector3f dx( ddfPst( 0, 0 ),
+                                  ddfPst( 1, 0 ),
+                                  ddfPst( 2, 0 ) );
+         const core::vector3f dy( ddfPst( 0, 1 ),
+                                  ddfPst( 1, 1 ),
+                                  ddfPst( 2, 1 ) );
+         const core::vector3f dz( ddfPst( 0, 2 ),
+                                  ddfPst( 1, 2 ),
+                                  ddfPst( 2, 2 ) );
+         core::vector3f start(  ddfPst( 0, 3 ),
+                                ddfPst( 1, 3 ),
+                                ddfPst( 2, 3 ) );
 
          // finally iterate on all voxels and compute the displacement vector
          #if !defined(NLL_NOT_MULTITHREADED)
@@ -303,7 +321,7 @@ namespace imaging
                for ( ui32 x = 0; x < ddfSize[ 0 ]; ++x )
                {
                   // assign the DDF to the RBF displacement
-                  core::Buffer1D<float> d = rbfTfm.getDeformableDisplacementOnly( core::Buffer1D<float>( mmPosSrc.getBuf(), 3, false ) );
+                  core::Buffer1D<float> d = rbfTfm.getRawDeformableDisplacementOnly( core::Buffer1D<float>( mmPosSrc.getBuf(), 3, false ) );
                   (*voxelIt)[ 0 ] = d[ 0 ];
                   (*voxelIt)[ 1 ] = d[ 1 ];
                   (*voxelIt)[ 2 ] = d[ 2 ];
@@ -315,12 +333,18 @@ namespace imaging
                lineIt.addy();
             }
          }
+
+         return ddf;
       }
 
    protected:
       Ddf         _ddf;
       Matrix      _source2target;
       Matrix      _source2targetInv;
+
+      // compose the DDF PST and affine TFM
+      Matrix      _ddfIndexToMM;
+      Matrix      _mmToDdfIndex;
    };
 }
 }
