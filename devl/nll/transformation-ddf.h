@@ -237,7 +237,7 @@ namespace imaging
          core::vector3f x = core::transf4( _source2targetInv, v );
          core::vector3f fx;
 
-         const float epsilon = 0.1f;
+         const float epsilon = 0.01f;
          const float epsilon2 = core::sqr( epsilon );
 
          ui32 iter = 0;
