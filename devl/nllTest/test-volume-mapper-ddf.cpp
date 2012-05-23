@@ -7,7 +7,34 @@ namespace nll
 {
 namespace imaging
 {
-   
+   /**
+    @brief Dense deformable field grid overlay
+    */
+   class OverlayGrid
+   {
+   public:
+      /**
+       @param slice the slice in source space
+       @param ddf the DDF to visualize
+
+       @note Internally, we construct the overlay
+       */
+      template <class T>
+      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const gridSize = core::vector2ui( 32, 32 ) )
+      {
+         for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
+         {
+            // start a new line from scratch
+            core::vector3f startLineMm = slice.getOrigin() + slice.getAxisY() * y;
+            for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+            {
+
+               startLineMm += slice.getAxisX();
+            }
+         }
+         //core::vector3f start 
+      }
+   };
 }
 }
 
