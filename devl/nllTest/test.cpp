@@ -1235,11 +1235,11 @@ public:
       // compute the min distance
       nll::core::Image<int> i( 10, 10, 1 );
       for ( unsigned n = 0; n < i.size(); ++n )
-         i[ n ] = 10000;
+         i[ n ] = 0;
 
-      i( 9, 0, 0 ) = 0;
-      i( 5, 0, 0 ) = 0;
-      i( 0, 0, 0 ) = 0;
+      i( 9, 0, 0 ) = 1;
+      i( 5, 0, 0 ) = 1;
+      i( 0, 0, 0 ) = 1;
       nll::core::Image<double> dt = nll::core::distanceTransform( i );
       dt.print( std::cout );
       TESTER_ASSERT( dt( 1, 0, 0 ) == 1 );

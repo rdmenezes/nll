@@ -125,7 +125,7 @@ public:
       }
 
       {
-         const float* v1 = lut.transform( 10 );
+         const float* v1 = lut.transform( 11 );
          TESTER_ASSERT( fabs( v1[ 0 ] - ( 10.0 / 100 * 256 ) ) < 1e-6 );
          TESTER_ASSERT( fabs( v1[ 1 ] - ( 10.0 / 100 * 256 ) ) < 1e-6 );
          TESTER_ASSERT( fabs( v1[ 2 ] - ( 10.0 / 100 * 256 ) ) < 1e-6 );

@@ -385,6 +385,7 @@ namespace algorithm
             sort.push_back( Pair( eigenValues[ n ], n ) );
          std::sort( sort.rbegin(), sort.rend() );
          _pairs = sort;
+         return true;
       }
 
       core::Matrix<double> _makeProjection() const

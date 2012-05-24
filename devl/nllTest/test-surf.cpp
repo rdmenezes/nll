@@ -444,7 +444,7 @@ public:
          core::decolor( image );
          core::decolor( image2 );
 
-         algorithm::AffineRegistrationPointBased2d<> registration;
+         algorithm::AffineRegistrationPointBased2d<> registration( 5, 6, 0.000001 );
          core::Matrix<double> regTfm = registration.compute( image, image2 );
 
          
@@ -700,7 +700,7 @@ public:
       Volume ct2;
       bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + "source.mf2", ct1 );
           loaded &= nll::imaging::loadSimpleFlatFile( inputDir + "target.mf2", ct2 );
-      TESTER_ASSERT( loaded, "cannot load volume" );
+      TESTER_ASSERT( loaded );
       std::cout << "volumes loaded..." << std::endl;
 
       algorithm::AffineRegistrationCT3d<> ctRegistration;
@@ -755,7 +755,7 @@ public:
       Volume ct2;
       bool loaded = nll::imaging::loadSimpleFlatFile( "\\\\ox4705vc/RegTestData/Random/case1.mf2", ct1 );
           loaded &= nll::imaging::loadSimpleFlatFile( "\\\\ox4705vc/RegTestData/Random/case13.mf2", ct2 );
-      TESTER_ASSERT( loaded, "cannot load volume" );
+      TESTER_ASSERT( loaded );
       std::cout << "volumes loaded..." << std::endl;
 
       typedef algorithm::AffineRegistrationCT3d<algorithm::impl::SurfEstimatorAffineFactory> Registration;
@@ -988,8 +988,8 @@ public:
 TESTER_TEST_SUITE(TestSurf);
 TESTER_TEST(testBasic);
 TESTER_TEST(testRepeatability);
-TESTER_TEST(testRegistration2);   // test full registration
 TESTER_TEST(testRepeatabilityAngle);
+TESTER_TEST(testRegistration2);   // test full registration
 
 // UTILITY FUNCTIONS
 //TESTER_TEST(testRegistrationVolume);

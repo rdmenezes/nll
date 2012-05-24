@@ -123,7 +123,7 @@ namespace algorithm
          ImageOutput output( i.sizex(), i.sizey(), static_cast<ui32>( _gabors.size() ) );
          for ( ui32 n = 0; n < _gabors.size(); ++n )
          {
-            Image conv = core::convolveBorder( conv, _gabors[ n ] );
+            Image conv = core::convolveBorder( i, _gabors[ n ] );
             for ( ui32 ny = 0; ny < i.sizey(); ++ny )
                for ( ui32 nx = 0; nx < i.sizex(); ++nx )
                   output( nx, ny, n ) = conv( nx, ny, 0 );

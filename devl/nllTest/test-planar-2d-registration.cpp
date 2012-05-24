@@ -290,7 +290,7 @@ public:
       core::extend( src, 3 );
       core::writeBmp( src, NLL_TEST_PATH "data/test-resampling-image1-source-tfm.bmp" );
 
-      TESTER_ASSERT( error < 81 ); // Error too big, registration is wrong!
+      TESTER_ASSERT( error < 100 ); // Error too big, registration is wrong!
    }
 
    void debugRegistration()

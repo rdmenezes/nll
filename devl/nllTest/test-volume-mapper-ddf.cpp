@@ -20,7 +20,7 @@ namespace imaging
        @note Internally, we construct the overlay
        */
       template <class T>
-      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const gridSize = core::vector2ui( 32, 32 ) )
+      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 32, 32 ) )
       {
          for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
          {
@@ -118,6 +118,7 @@ public:
 
    void testDdfConversionFromRbf()
    {
+      srand( 1 );
       Matrix pstTarget = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
                                                             core::vector3f( 0, 0, 0 ),
                                                             core::vector3f( 0, 0, 0 ),
@@ -192,11 +193,11 @@ public:
                                                   pInDdfMm[ 2 ] + def[ 2 ] );
             const core::vector3f forward = ddf.transform( p );
             const double err = (forward - forwardExpected).norm2();
-            TESTER_ASSERT( err < 1e-1 );
+            TESTER_ASSERT( err < 1.5e-1 );
 
             bool converged = false;
             const core::vector3f backward = ddf.getInverseTransform( forward, 1000, &converged );
-            ensure( converged, "oups!" );
+            ensure( converged, "didn't converged!!!" );
             const double err2 = (backward - p).norm2();
             if ( err2 >= 1.1e-1 )
             {

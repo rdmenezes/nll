@@ -36,7 +36,7 @@ public:
       tfm( 0, 2 ) = 20;
 
       ImageNormalc i;
-      core::readBmp( i, NLL_TEST_PATH "data/feature/i2.bmp" );
+      core::readBmp( i, NLL_TEST_PATH "data/feature/sf.bmp" );
       Imagec i1( i, pst1 );
       Imagec i2( i.sizex(), i.sizey(), 3, pst2 );
       ImageNormalc ib( i.sizex(), i.sizey(), 3 );
@@ -44,7 +44,6 @@ public:
       core::Timer t1;
       core::resampleNearest( i1, tfm, i2 );
       std::cout << "Time=" << t1.getCurrentTime() << std::endl;
-      //core::writeBmp( i2, "c:/tmp/i1.bmp" );
    }
 };
 

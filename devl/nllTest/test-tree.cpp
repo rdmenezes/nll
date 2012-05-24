@@ -352,7 +352,7 @@ public:
       TESTER_ASSERT( wout.size() == dats.size() );
       TESTER_ASSERT( dats.size() == 2 );
       TESTER_ASSERT( n1.getFeatureSplit() == 0 );
-      TESTER_ASSERT( core::equal( n1.getSplitThreshold(), 1.0, 0.01 ) );
+      TESTER_ASSERT( core::equal( n1.getSplitThreshold(), 0.85, 0.01 ) );
 
       for ( size_t n = 0; n < dats.size(); ++n )
       {

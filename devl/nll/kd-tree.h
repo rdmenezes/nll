@@ -192,7 +192,6 @@ namespace algorithm
          _tmpMin = cpy._tmpMin;
          _tmpMax = cpy._tmpMax;
          _points = cpy._points;
-         _nearest = cpy._nearest;
          _pointSize = cpy._pointSize;
          if ( cpy._root )
             _root = cpy._root->clone();
