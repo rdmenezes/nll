@@ -86,7 +86,6 @@ namespace algorithm
          void write( std::ostream& o ) const
          {
             core::write<Features>( features, o );
-            //features.write( o );
             core::write<value_type>( orientation, o );
             position.write( o );
             core::write<ui32>( scale, o );
@@ -96,7 +95,6 @@ namespace algorithm
          void read( std::istream& i )
          {
             core::read<Features>( features, i );
-            //features.read( i );
             core::read<value_type>( orientation, i );
             position.read( i );
             core::read<ui32>( scale, i );
@@ -114,7 +112,6 @@ namespace algorithm
       {
       public:
          typedef std::vector<SpeededUpRobustFeatures::value_type>  value_type;
-         //typedef core::Buffer1D<SpeededUpRobustFeatures::value_type>  value_type;
 
       public:
          PointsFeatureWrapper( const Points& points ) : _points( points )
@@ -124,12 +121,7 @@ namespace algorithm
          {
             return static_cast<ui32>( _points.size() );
          }
-/*
-         core::Buffer1D<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n )
-         {
-            return _points[ n ].features;
-         }
-*/
+
          const std::vector<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
          {
             return _points[ n ].features;

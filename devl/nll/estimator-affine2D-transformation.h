@@ -374,7 +374,7 @@ namespace algorithm
           The transformation is defined as T = RS, R = rotation, S = [ s1 0
                                                                        0  s2 ]
 
-    @see Direct implementation of Least-squares estimation of anisotropic similarity transformations from corresponding 2D point sets
+    @see Direct implementation of "Least-squares estimation of anisotropic similarity transformations from corresponding 2D point sets"
          Carsten Steger
     */
    class EstimatorAffineSimilarityNonIsotropic2d

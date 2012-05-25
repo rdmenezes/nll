@@ -457,6 +457,7 @@
     <ClInclude Include="static-assert.h" />
     <ClInclude Include="static-vector.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="surf-3d.h" />
     <ClInclude Include="timer.h" />
     <ClInclude Include="transformation-ddf-2d.h" />
     <ClInclude Include="transformation-ddf.h" />

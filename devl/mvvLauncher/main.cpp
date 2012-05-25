@@ -380,8 +380,8 @@ int main( int argc, char** argv )
       int sizey = 2048;
 
       int nbThreads = 12; //8;
-      //std::string mainScript = "../../mvvLauncher/script/single2";
-      std::string mainScript = "../../mvvLauncher/script/surf3d";
+      std::string mainScript = "../../mvvLauncher/script/single2";
+      //std::string mainScript = "../../mvvLauncher/script/surf3d";
       std::string font = "../../nllTest/data/font/bitmapfont1_24";
       bool nowindow = false;
       std::vector<std::string> argvParam;

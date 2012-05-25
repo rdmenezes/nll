@@ -746,6 +746,9 @@
     <ClInclude Include="volume-transformation-mapper-ddf.h">
       <Filter>imaging</Filter>
     </ClInclude>
+    <ClInclude Include="surf-3d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

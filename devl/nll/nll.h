@@ -397,6 +397,7 @@
 # include "integral-image-3d.h"
 # include "haar-features-3d.h"
 # include "pyramid-hessian-3d.h"
+# include "surf-3d.h"
 # include "registration-ct-ct-planar.h"
 # include "perceptron-margin.h"
 
