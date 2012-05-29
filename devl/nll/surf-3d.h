@@ -35,9 +35,9 @@
 // if defined, SURF will use a global angle detection mecanism which seems more efficient/robust
 #define NLL_SURF_USE_FEATURE_ANGLE_UPGRADE
 
-#define NLL_SURF_3D_NB_AREA_PER_FEATURE         4.0
-#define NLL_SURF_3D_NB_AREA_PER_FEATURE_SIZE    20.0
-#define NLL_SURF_3D_NB_SUBAREA_PER_AREA         5.0
+#define NLL_SURF_3D_NB_AREA_PER_FEATURE         4.0f
+#define NLL_SURF_3D_NB_AREA_PER_FEATURE_SIZE    20.0f
+#define NLL_SURF_3D_NB_SUBAREA_PER_AREA         5.0f
 
 namespace nll
 {
@@ -224,10 +224,6 @@ namespace algorithm
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
             value_type scale = core::round( scaleFactor * point.scale );
-
-            const value_type x = point.position[ 0 ];
-            const value_type y = point.position[ 1 ];
-            const value_type z = point.position[ 1 ];
 
             const int size = (int)core::sqr( 2 * scale );
 

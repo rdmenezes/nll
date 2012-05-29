@@ -9,6 +9,9 @@ namespace imaging
 {
    /**
     @brief Dense deformable field grid overlay
+
+	This helper class is used to visualize the DDF deformations. We are basically drawing a regular grid in target space and find the corresponding points
+	in source space
     */
    class OverlayGrid
    {
@@ -17,22 +20,98 @@ namespace imaging
        @param slice the slice in source space
        @param ddf the DDF to visualize
 
-       @note Internally, we construct the overlay
+       @note The slice is defined in source space, transform it using the affine transformation so we have the bounds, then compute a regular grid within the bounds.
+	          For each point of the grid, find its inverse, which will be in source space. Finally connect the points.
+
+            To draw the grid, we actully do it in 2 passes:
+            - all vertical lines
+            - then all horizontal ones
        */
       template <class T>
-      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 32, 32 ) )
+      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 8, 8 ) )
       {
+         ensure( slice.size()[ 0 ] > 0 && slice.size()[ 1 ] > 0, "must not be empty" );
+
+         // grid in MM in source
+         const core::vector3f bottomLeft  = slice.sliceToWorldCoordinate( core::vector2f( 0,                      0 ) );
+         const core::vector3f bottomRight = slice.sliceToWorldCoordinate( core::vector2f( slice.size()[ 0 ] - 1,  0 ) );
+         const core::vector3f topLeft     = slice.sliceToWorldCoordinate( core::vector2f( 0,                      slice.size()[ 1 ] - 1 ) );
+         const core::vector3f topRight    = slice.sliceToWorldCoordinate( core::vector2f( slice.size()[ 0 ] - 1,  slice.size()[ 1 ] - 1 ) );
+
+         // grid in MM in target
+         const core::vector3f bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), bottomLeft );
+         const core::vector3f bottomRightTarget = core::transf4( ddf.getAffineMatrix(), bottomRight );
+         const core::vector3f topLeftTarget     = core::transf4( ddf.getAffineMatrix(), topLeft );
+         const core::vector3f topRightTarget    = core::transf4( ddf.getAffineMatrix(), topRight );
+
+         // vector director in target
+         const core::vector3f dx = ( bottomRightTarget - bottomLeftTarget ) / gridSize[ 0 ];
+         const core::vector3f dy = ( topLeftTarget     - bottomLeftTarget ) / gridSize[ 1 ];
+
+         // draw the vertical and horizontal lines
+         for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+         {
+            const core::vector3f ddx = dx * x;
+            _drawLine( slice, gridColor, ddf, bottomLeft + ddx, topLeft + ddx, dy, gridSize[ 1 ] );
+         }
+
          for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
          {
-            // start a new line from scratch
-            core::vector3f startLineMm = slice.getOrigin() + slice.getAxisY() * y;
-            for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
-            {
-
-               startLineMm += slice.getAxisX();
-            }
+            const core::vector3f ddy = dy * y;
+            _drawLine( slice, gridColor, ddf, bottomLeft + ddy, bottomRight + ddy, dx, gridSize[ 0 ] );
          }
-         //core::vector3f start 
+      }
+
+   private:
+      template <class T>
+      static void _drawLine( Slice<T>& slice,
+                             T* gridColor,
+                             const TransformationDenseDeformableField& ddf,
+                             const core::vector3f& first,
+                             const core::vector3f& last,
+                             const core::vector3f& direction,
+                             ui32 nbSteps )
+      {
+         bool converged = false;
+         core::vector3f previousMm = ddf.getInverseTransform( first, 1000, &converged );
+         if ( !converged )
+         {
+            core::LoggerNll::write( core::LoggerNll::ERROR, "OverlayGrid::getSlice::_drawLine: ddf::getInverseTransform failed!" );
+            return;
+         }
+
+         const core::vector2f previousIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( previousMm ) );
+         core::vector2i previousIndex( core::round( previousIndexf[ 0 ] ), core::round( previousIndexf[ 1 ] ) );
+         if ( previousIndex[ 0 ] < 0 || previousIndex[ 1 ] < 0 || previousIndex[ 0 ] >= slice.size()[ 0 ] || previousIndex[ 1 ] >= slice.size()[ 1 ] )
+         {
+            // TODO: change this: we know the first should always be inside!!
+            return;
+         }
+
+         for ( ui32 step = 0; step < nbSteps; ++step )
+         {
+            const core::vector3f point = first + direction * step;      // point in target
+            core::vector3f currentMm = ddf.getInverseTransform( point, 1000, &converged );  // corresponding point in source
+            if ( !converged )
+            {
+               core::LoggerNll::write( core::LoggerNll::ERROR, "OverlayGrid::getSlice::_drawLine: ddf::getInverseTransform failed!" );
+               return;
+            }
+
+            // we need to project the point in 3D due to the DDF displacement on the slice
+            const core::vector2f currentIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( currentMm ) );
+            const core::vector2i currentIndex( core::round( currentIndexf[ 0 ] ), core::round( currentIndexf[ 1 ] ) );
+            if ( currentIndex[ 0 ] >= 0 && currentIndex[ 1 ] >= 0 && currentIndex[ 0 ] < slice.size()[ 0 ] && currentIndex[ 1 ] < slice.size()[ 1 ] )
+            {
+               core::bresham( slice.getStorage(), previousIndex, currentIndex, gridColor );
+            } else {
+               // point is not contained within the slice
+               // TODO: we need to intercept at the last position within the slice
+               return;
+            }
+
+            previousIndex = currentIndex;
+         }
       }
    };
 }
@@ -208,11 +287,74 @@ public:
          }
       }
    }
+
+   void testGridOverlay()
+   {
+      srand( 1 );
+      Matrix pstTarget = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 1, 1, 1 ) );
+      Matrix affineTfm = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 1, 1, 1 ) );
+      Volume target( core::vector3ui( 256, 256, 64 ), pstTarget );
+
+      // DDF set up: first, create a RBF, then import a DDF from RBF.
+      core::vector3ui ddfSize( 32, 32, 32 );
+      core::vector3f sizeMm( target.size()[ 0 ] * target.getSpacing()[ 0 ],
+                             target.size()[ 1 ] * target.getSpacing()[ 0 ],
+                             target.size()[ 2 ] * target.getSpacing()[ 0 ] );
+
+      typedef core::DeformableTransformationRadialBasis<> RbfTransform;
+
+      std::vector<RbfTransform::Rbf> rbfs;
+      
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( -5, -30, -3 ),
+                                         core::make_buffer1D<float>( 128, 64, 0 ),
+                                         core::make_buffer1D<float>( 120, 120, 120 ) ) );
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 4, 8, 2 ),
+                                         core::make_buffer1D<float>( 0, 0, 0 ),
+                                         core::make_buffer1D<float>( 60, 60, 60 ) ) );
+      
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 0, 0, 0 ),
+                                         core::make_buffer1D<float>( 0, 0, 0 ),
+                                         core::make_buffer1D<float>( 60, 60, 60 ) ) );
+      RbfTransform tfmRbf( affineTfm, rbfs );
+      imaging::TransformationDenseDeformableField ddf = imaging::TransformationDenseDeformableField::create( tfmRbf, pstTarget, sizeMm, ddfSize );
+
+      std::cout << ddf.getStorage()( 16, 8, 0 );
+      std::cout << ddf.getStorage()( 17, 8, 0 );
+      std::cout << ddf.getStorage()( 15, 8, 0 );
+
+      std::cout << ddf.getStorage()( 16, 8, 0 );
+      std::cout << ddf.getStorage()( 16, 7, 0 );
+      std::cout << ddf.getStorage()( 16, 9, 0 );
+
+      std::cout << ddf.getInverseTransform( core::vector3f( 127.5, 63.75, 0 ) );
+
+      // now get the orverlay and export it
+      imaging::OverlayGrid overlayGrid;
+
+      imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
+                                 core::vector3f( 1, 0, 0 ),
+                                 core::vector3f( 0, 1, 0 ),
+                                 target.getOrigin(),
+                                 core::vector2f( 1, 1 ) );
+      core::vector3uc color( 255, 0, 0 );
+      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 50, 50 ) );
+
+      core::writeBmp( slice.getStorage(), "c:/tmp/ddfOverlay.bmp" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformationMapperDdf3D);
+
 TESTER_TEST(testSimpleAffineMappingOnly);
 TESTER_TEST(testDdfConversionFromRbf);
+
+//TESTER_TEST(testGridOverlay);
 TESTER_TEST_SUITE_END();
 #endif

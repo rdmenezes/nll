@@ -86,6 +86,22 @@ namespace imaging
       }
 
       /**
+       @brief Create a slice from an external storage
+       @param axisx the x axis of the slice
+       @param axisy the y axis of the slice
+       @param origin the origin (vector (0, 0, 0) in world coordinate to the center of the slice in mm)
+       @param spacing of the pixels in mm
+       */
+      Slice( Storage& storage,
+             const core::vector3f& axisx,
+             const core::vector3f& axisy,
+             const core::vector3f& origin,
+             const core::vector2f& spacing ) : _storage( storage )
+      {
+         setGeometry( axisx, axisy, origin, spacing );
+      }
+
+      /**
        @brief set a new slice geometry
        */
       void setGeometry( const core::vector3f& axisx,
@@ -272,6 +288,18 @@ namespace imaging
       }
 
       bool contains( const core::vector2f pos ) const
+      {
+         const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
+         const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
+         if ( pos[ 0 ] - 1 <= -sx ||
+              pos[ 0 ] + 1 >= sx ||
+              pos[ 1 ] - 1 <= -sy ||
+              pos[ 1 ] + 1 >= sy )
+           return false;
+         return true; 
+      }
+
+      bool contains( const core::vector2i pos ) const
       {
          const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
          const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;

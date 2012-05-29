@@ -250,7 +250,7 @@ namespace imaging
             // n+1    n           n              n     0
             Matrix gradinv = getGradient( x, &fx );
             core::inverse( gradinv );
-            d = fx - v;
+            d = ( fx - v ) * 0.9f;
 
             Matrix update = gradinv * Matrix( core::Buffer1D<float>( d.getBuf(), 3, false ), 3, 1 );
             x[ 0 ] -= update[ 0 ];
