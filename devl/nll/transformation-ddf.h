@@ -193,7 +193,7 @@ namespace imaging
 
        The gradient is computed using finite difference
        */
-      Matrix getGradient( const core::vector3f& x, core::vector3f* pfx = 0, float scale = 0.1f ) const
+      Matrix getGradient( const core::vector3f& x, core::vector3f* pfx = 0, float s = 0.1f ) const
       {
          core::vector3f fx = transform( x );
          if ( pfx )
@@ -203,16 +203,16 @@ namespace imaging
 
          // compute the gradient  in each direction using finite difference
          // e.g., dx = ( f( x + scale * ( 1, 0, 0 ) ) - fx ) / scale
-         const core::vector3f dx = ( transform( core::vector3f( x[ 0 ] + scale,
-                                                                x[ 1 ],
-                                                                x[ 2 ] ) ) - fx ) / scale;
-         const core::vector3f dy = ( transform( core::vector3f( x[ 0 ],
-                                                                x[ 1 ] + scale,
-                                                                x[ 2 ] ) ) - fx ) / scale;
-         const core::vector3f dz = ( transform( core::vector3f( x[ 0 ],
-                                                                x[ 1 ],
-                                                                x[ 2 ] + scale ) ) - fx ) / scale;
+         const core::vector3f dx = ( transform( core::vector3f( x[ 0 ] + s, x[ 1 ],     x[ 2 ] ) )     - fx ) / s;
+         const core::vector3f dy = ( transform( core::vector3f( x[ 0 ],     x[ 1 ] + s, x[ 2 ] ) )     - fx ) / s;
+         const core::vector3f dz = ( transform( core::vector3f( x[ 0 ],     x[ 1 ],     x[ 2 ] + s ) ) - fx ) / s;
 
+         // @see http://en.wikipedia.org/wiki/Partial_derivative
+         // grad(f(a)) = (df/dx, df/dy, df/dz)
+         //            = d/dx * i + d/dy * j + d/dz * k, with (i, j, k) the basis vectors in 3D
+         //              | d/dx[0]  d/dy[0]  d/dz[0] |
+         //            = | d/dx[1]  d/dy[1]  d/dz[1] |
+         //              | d/dx[2]  d/dy[2]  d/dz[2] |
          Matrix grad( 3, 3 );
          for ( ui32 n = 0; n < 3; ++n )
          {
@@ -222,49 +222,6 @@ namespace imaging
          }
 
          return grad;
-      }
-
-      /**
-       @brief Given an point in MM, find the inverse
-       @param v a point in MM
-       @param converged_out if no null, true will be returned if the algorithm converged
-       @note we want to find x such that transform( x ) = v;
-       */
-      core::vector3f getInverseTransform( const core::vector3f& v, ui32 maxIter = 1000, bool* converged_out = 0 ) const
-      {
-         // v = f(x) => if we don't have deformable displacement, then x = affine^-1 * v
-         // which is our best initial guess
-         core::vector3f x = core::transf4( _source2targetInv, v );
-         core::vector3f fx;
-
-         const float epsilon = 0.01f;
-         const float epsilon2 = core::sqr( epsilon );
-
-         ui32 iter = 0;
-         core::vector3f d( 1, 1, 1 );
-         while ( d.dot( d ) >= epsilon2 &&  iter < maxIter )
-         {
-            // a gradient descent to look for x such that f(x) = x0 (point)
-            //                        (-1)
-            // x    = x  - grad(f(x ))      . (f(x ) - x )
-            // n+1    n           n              n     0
-            Matrix gradinv = getGradient( x, &fx );
-            core::inverse( gradinv );
-            d = ( fx - v ) * 0.9f;
-
-            Matrix update = gradinv * Matrix( core::Buffer1D<float>( d.getBuf(), 3, false ), 3, 1 );
-            x[ 0 ] -= update[ 0 ];
-            x[ 1 ] -= update[ 1 ];
-            x[ 2 ] -= update[ 2 ];
-            ++iter;
-         }
-
-         if ( converged_out )
-         {
-            *converged_out = iter < maxIter;
-         }
-
-         return x;
       }
 
 
@@ -335,6 +292,133 @@ namespace imaging
          }
 
          return ddf;
+      }
+
+      core::vector3f getInverseTransform( const core::vector3f& v, ui32 maxIter = 100, bool* converged_out = 0 ) const
+      {
+	      bool converged = false;
+
+	      // first try the fast algo
+	      core::vector3f p = getInverseTransform_newton( v, maxIter, &converged );
+
+	      // the fast algo failed, so restart with the slow gradient descent but safer
+	      if ( !converged )
+	      {
+		      p = getInverseTransform_gradientDescent( v, maxIter * 10, &converged );
+	      }
+
+	      if ( converged_out )
+	      {
+		      *converged_out = converged;
+	      }
+	      return p;
+      }
+
+	 //private:
+	  /**
+       @brief Given an point in MM, find the inverse
+       @param v a point in MM
+       @param converged_out if no null, true will be returned if the algorithm converged
+       @note we want to find x such that transform( x ) = v;
+
+	   For the optimisation process:
+	   - lets have a point x in source space, we want to find x such that f(x) = v
+	   - for the optimasation, we define d(x) = 0.5 * || f(x) - v ||^2, we try to find d(x) = 0 using gradient descent
+	   - d(x)/dx = 0.5 * ( f(x) - v )^2 / dx
+	             = f(x)/dx * ( f(x) - v )
+	   - we start with x0 = affineInv(v) which is the most first reasonable estimate
+	   - then x_n+1 = x_n - alpha * d(x)/dx
+	   - continue until ||f(x) - v || > epsilon
+       */
+      core::vector3f getInverseTransform_gradientDescent( const core::vector3f& v, ui32 maxIter = 500, bool* converged_out = 0, float alpha = 0.1 ) const
+      {
+         // v = f(x) => if we don't have deformable displacement, then x = affine^-1 * v
+         // which is our best initial guess
+         core::vector3f x = core::transf4( _source2targetInv, v );
+         core::vector3f fx = v;
+
+         const float epsilon = 0.1f;
+         const float epsilon2 = core::sqr( epsilon );
+
+         ui32 iter = 0;
+		   float lastError = 1e4;
+         core::vector3f d( 1, 1, 1 );
+         while ( 1 )
+         {
+            std::cout << "iter=" << iter << " pos=" << x;
+            Matrix grad = getGradient( x, &fx );
+            d = ( fx - v );
+
+            grad.print( std::cout );
+
+			   const float error = d.dot( d );
+			   if ( error < epsilon2 ||  iter >= maxIter )
+				   break;
+			   if ( lastError < error && alpha > 0.01 )
+			   {
+				   // no improvement last iteration, the step was probably too big...
+				   alpha /= 2;
+			   }
+			   lastError = error;
+            const Matrix update = grad * Matrix( core::Buffer1D<float>( d.getBuf(), 3, false ), 3, 1 );
+            x[ 0 ] -= update[ 0 ] * alpha;
+            x[ 1 ] -= update[ 1 ] * alpha;
+            x[ 2 ] -= update[ 2 ] * alpha;
+            ++iter;
+         }
+
+         if ( converged_out )
+         {
+            *converged_out = iter < maxIter;
+         }
+
+         if ( iter >= maxIter )
+         {
+            std::cout << "error=" << lastError << std::endl;
+         }
+         return x;
+      }
+
+	  core::vector3f getInverseTransform_newton( const core::vector3f& v, ui32 maxIter = 50, bool* converged_out = 0 ) const
+      {
+         // v = f(x) => if we don't have deformable displacement, then x = affine^-1 * v
+         // which is our best initial guess
+         core::vector3f x = core::transf4( _source2targetInv, v );
+         core::vector3f fx = v;
+
+         const float epsilon = 0.01f;
+         const float epsilon2 = core::sqr( epsilon );
+
+         ui32 iter = 0;
+         core::vector3f d( 1, 1, 1 );
+         while ( 1 )
+         {
+            //look for x such that f(x) = x0 (point)
+            //                        (-1)
+            // x    = x  - grad(f(x ))      . (f(x ) - x )
+            // n+1    n           n              n     0
+            Matrix gradinv = getGradient( x, &fx );
+            const bool success = core::inverse( gradinv );
+            ensure( success, "non invertible!" );
+            d = ( fx - v );
+
+			   const float error = d.dot( d );
+			   if ( error < epsilon2 ||  iter >= maxIter )
+				   break;
+
+            Matrix update = gradinv * Matrix( core::Buffer1D<float>( d.getBuf(), 3, false ), 3, 1 );
+            x[ 0 ] -= update[ 0 ];
+            x[ 1 ] -= update[ 1 ];
+            x[ 2 ] -= update[ 2 ];
+            ++iter;
+         }
+
+         if ( converged_out )
+         {
+            *converged_out = iter < maxIter;
+         }
+
+         return x;
       }
 
    protected:

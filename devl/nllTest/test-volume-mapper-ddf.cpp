@@ -7,6 +7,130 @@ namespace nll
 {
 namespace imaging
 {
+   class OverlayPrinterDdf
+   {
+   public:
+      void getSlice( Slice<ui8>& slice, const core::vector3uc& color, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 16, 16 ) )
+      {
+         ensure( slice.size()[ 2 ] == 3, "must be a rgb slice" );
+         typedef TransformationDenseDeformableField::Matrix Matrix;
+
+         // grid in MM in source
+         const core::vector3f bottomLeft  = slice.sliceToWorldCoordinate( core::vector2f( 0,                             0 ) );
+         const core::vector3f bottomRight = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  0 ) );
+         const core::vector3f topLeft     = slice.sliceToWorldCoordinate( core::vector2f( 0,                             (float)slice.size()[ 1 ] - 1 ) );
+         const core::vector3f topRight    = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  (float)slice.size()[ 1 ] - 1 ) );
+
+         // grid in MM in target
+         const core::vector3f bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), bottomLeft );
+         const core::vector3f bottomRightTarget = core::transf4( ddf.getAffineMatrix(), bottomRight );
+         const core::vector3f topLeftTarget     = core::transf4( ddf.getAffineMatrix(), topLeft );
+         const core::vector3f topRightTarget    = core::transf4( ddf.getAffineMatrix(), topRight );
+
+         // vector director in target
+         const core::vector3f dx = ( bottomRightTarget - bottomLeftTarget ) / (float)gridSize[ 0 ];
+         const core::vector3f dy = ( topLeftTarget     - bottomLeftTarget ) / (float)gridSize[ 1 ];
+
+         const float dxIndex = static_cast<float>( slice.size()[ 0 ] ) / gridSize[ 0 ];
+         const float dyIndex = static_cast<float>( slice.size()[ 1 ] ) / gridSize[ 1 ];
+
+         core::GeometryPlane plane( core::vector3f( 0, 0, 0 ), slice.getAxisX() * slice.getSpacing()[ 0 ], slice.getAxisY() * slice.getSpacing()[ 1 ] ); // set up a plane a (0, 0, 0) with the same orientation as the slice
+         for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
+         {
+            const int yi = static_cast<int>( dyIndex * y );
+            const core::vector3f dyMm = dy * (float)y + bottomLeftTarget;
+            for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+            {
+               const int displayRand = ( rand() % 5 ) - 2;
+               core::vector3uc color( rand() % 255, rand() % 255, rand() % 255 );
+               const int xi = static_cast<int>( dxIndex * x );
+               const core::vector3f dxMm = dyMm + dx * (float)x;
+
+               // get the DDF deformation
+               const core::vector3f indexInDdf = core::transf4( ddf.getStorage().getInvertedPst(), dxMm );
+               const core::vector3f gradv = ddf.transformDeformableOnlyIndex( indexInDdf );
+                                           
+               // then project it on the plane to have a 2D vector
+               const core::vector3f gradvProj = plane.getOrthogonalProjection( gradv );         // get a 3D point in MM on the plane
+               const core::vector2f gradvProj2d = plane.worldToPlaneCoordinate( gradvProj );    // get a 2D index in the slice space
+
+               // finally draw the vector
+               const core::vector2i start( xi + displayRand, yi );
+               const core::vector2i end( core::round( start[ 0 ] + gradvProj2d[ 0 ] ) + displayRand,
+                                         core::round( start[ 1 ] + gradvProj2d[ 1 ] ) );
+               core::bresham( slice.getStorage(), start, end, color );
+
+               if ( start[ 0 ] >= 0 && start[ 0 ] < (int)slice.size()[ 0 ] &&
+                    start[ 1 ] >= 0 && start[ 1 ] < (int)slice.size()[ 1 ] )
+               {
+                  ui8* p = slice.getStorage().point( start[ 0 ], start[ 1 ] );
+                  p[ 0 ] = 0;
+                  p[ 1 ] = 0;
+                  p[ 2 ] = 255;
+               }
+            }
+         }
+      }
+   };
+
+   class OverlayPrinterGradient
+   {
+   public:
+      void getSlice( Slice<ui8>& slice, const core::vector3uc& color, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 16, 16 ) )
+      {
+         ensure( slice.size()[ 2 ] == 3, "must be a rgb slice" );
+         typedef TransformationDenseDeformableField::Matrix Matrix;
+
+         // grid in MM in source
+         const core::vector3f bottomLeft  = slice.sliceToWorldCoordinate( core::vector2f( 0,                             0 ) );
+         const core::vector3f bottomRight = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  0 ) );
+         const core::vector3f topLeft     = slice.sliceToWorldCoordinate( core::vector2f( 0,                             (float)slice.size()[ 1 ] - 1 ) );
+         const core::vector3f topRight    = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  (float)slice.size()[ 1 ] - 1 ) );
+
+         // vector director in source
+         const core::vector3f dx = ( bottomRight - bottomLeft ) / (float)gridSize[ 0 ];
+         const core::vector3f dy = ( topLeft     - bottomLeft ) / (float)gridSize[ 1 ];
+
+         const float dxIndex = static_cast<float>( slice.size()[ 0 ] ) / (float)gridSize[ 0 ];
+         const float dyIndex = static_cast<float>( slice.size()[ 1 ] ) / (float)gridSize[ 1 ];
+
+         core::GeometryPlane plane( core::vector3f( 0, 0, 0 ), slice.getAxisX() * slice.getSpacing()[ 0 ], slice.getAxisY() * slice.getSpacing()[ 1 ] ); // set up a plane a (0, 0, 0) with the same orientation as the slice
+         Matrix id( 3, 1 );
+         id[ 0 ] = 1;
+         id[ 1 ] = 1;
+         id[ 2 ] = 1;
+         for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
+         {
+            const int yi = static_cast<int>( dyIndex * y );
+            const core::vector3f dyMm = dy * (float)y + slice.getOrigin();
+            for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+            {
+               const int xi = static_cast<int>( dxIndex * x );
+               const core::vector3f dxMm = dyMm + dx * (float)x;
+
+               // get the 3D gradient vector
+               const Matrix grad = ddf.getGradient( dxMm );
+               const core::vector3f gradv = core::vector3f( (grad * id).getBuf() );
+                                           
+               // then project it on the plane to have a 2D vector
+               const core::vector3f gradvProj = plane.getOrthogonalProjection( gradv );         // get a 3D point in MM on the plane
+               const core::vector2f gradvProj2d = plane.worldToPlaneCoordinate( gradvProj );    // get a 2D index in the slice space
+
+               // finally draw the vector
+               const core::vector2i start( xi, yi );
+               const core::vector2i end( core::round( start[ 0 ] + gradvProj2d[ 0 ] ),
+                                         core::round( start[ 1 ] + gradvProj2d[ 1 ] ) );
+               core::bresham( slice.getStorage(), start, end, color );
+
+               ui8* p = slice.getStorage().point( start[ 0 ], start[ 1 ] );
+               p[ 0 ] = 0;
+               p[ 1 ] = 0;
+               p[ 2 ] = 255;
+            }
+         }
+      }
+   };
+
    /**
     @brief Dense deformable field grid overlay
 
@@ -33,10 +157,10 @@ namespace imaging
          ensure( slice.size()[ 0 ] > 0 && slice.size()[ 1 ] > 0, "must not be empty" );
 
          // grid in MM in source
-         const core::vector3f bottomLeft  = slice.sliceToWorldCoordinate( core::vector2f( 0,                      0 ) );
-         const core::vector3f bottomRight = slice.sliceToWorldCoordinate( core::vector2f( slice.size()[ 0 ] - 1,  0 ) );
-         const core::vector3f topLeft     = slice.sliceToWorldCoordinate( core::vector2f( 0,                      slice.size()[ 1 ] - 1 ) );
-         const core::vector3f topRight    = slice.sliceToWorldCoordinate( core::vector2f( slice.size()[ 0 ] - 1,  slice.size()[ 1 ] - 1 ) );
+         const core::vector3f bottomLeft  = slice.sliceToWorldCoordinate( core::vector2f( 0,                             0 ) );
+         const core::vector3f bottomRight = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  0 ) );
+         const core::vector3f topLeft     = slice.sliceToWorldCoordinate( core::vector2f( 0,                             (float)slice.size()[ 1 ] - 1 ) );
+         const core::vector3f topRight    = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  (float)slice.size()[ 1 ] - 1 ) );
 
          // grid in MM in target
          const core::vector3f bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), bottomLeft );
@@ -45,20 +169,20 @@ namespace imaging
          const core::vector3f topRightTarget    = core::transf4( ddf.getAffineMatrix(), topRight );
 
          // vector director in target
-         const core::vector3f dx = ( bottomRightTarget - bottomLeftTarget ) / gridSize[ 0 ];
-         const core::vector3f dy = ( topLeftTarget     - bottomLeftTarget ) / gridSize[ 1 ];
+         const core::vector3f dx = ( bottomRightTarget - bottomLeftTarget ) / (float)gridSize[ 0 ];
+         const core::vector3f dy = ( topLeftTarget     - bottomLeftTarget ) / (float)gridSize[ 1 ];
 
          // draw the vertical and horizontal lines
          for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
          {
-            const core::vector3f ddx = dx * x;
-            _drawLine( slice, gridColor, ddf, bottomLeft + ddx, topLeft + ddx, dy, gridSize[ 1 ] );
+            const core::vector3f ddx = dx * (float)x;
+            _drawLine( slice, gridColor, ddf, bottomLeft + ddx, dy, gridSize[ 1 ] );
          }
-
+         
          for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
          {
-            const core::vector3f ddy = dy * y;
-            _drawLine( slice, gridColor, ddf, bottomLeft + ddy, bottomRight + ddy, dx, gridSize[ 0 ] );
+            const core::vector3f ddy = dy * (float)y;
+            _drawLine( slice, gridColor, ddf, bottomLeft + ddy, dx, gridSize[ 0 ] );
          }
       }
 
@@ -68,21 +192,21 @@ namespace imaging
                              T* gridColor,
                              const TransformationDenseDeformableField& ddf,
                              const core::vector3f& first,
-                             const core::vector3f& last,
                              const core::vector3f& direction,
                              ui32 nbSteps )
       {
          bool converged = false;
-         core::vector3f previousMm = ddf.getInverseTransform( first, 1000, &converged );
+         core::vector3f previousMm = ddf.getInverseTransform_gradientDescent( first, 1000, &converged );
          if ( !converged )
          {
+            std::cout << "Error begining!" << std::endl;
             core::LoggerNll::write( core::LoggerNll::ERROR, "OverlayGrid::getSlice::_drawLine: ddf::getInverseTransform failed!" );
             return;
          }
 
          const core::vector2f previousIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( previousMm ) );
          core::vector2i previousIndex( core::round( previousIndexf[ 0 ] ), core::round( previousIndexf[ 1 ] ) );
-         if ( previousIndex[ 0 ] < 0 || previousIndex[ 1 ] < 0 || previousIndex[ 0 ] >= slice.size()[ 0 ] || previousIndex[ 1 ] >= slice.size()[ 1 ] )
+         if ( previousIndex[ 0 ] < 0 || previousIndex[ 1 ] < 0 || previousIndex[ 0 ] >= (int)slice.size()[ 0 ] || previousIndex[ 1 ] >= (int)slice.size()[ 1 ] )
          {
             // TODO: change this: we know the first should always be inside!!
             return;
@@ -90,20 +214,24 @@ namespace imaging
 
          for ( ui32 step = 0; step < nbSteps; ++step )
          {
-            const core::vector3f point = first + direction * step;      // point in target
-            core::vector3f currentMm = ddf.getInverseTransform( point, 1000, &converged );  // corresponding point in source
-            if ( !converged )
+            core::vector3uc colorTmp( rand() % 255, rand() % 255, rand() % 255 );
+            const core::vector3f point = first + direction * (float)step;      // point in target
+            //core::vector3f currentMm = ddf.getInverseTransform_newton( point, 10000, &converged );  // corresponding point in source
+            core::vector3f currentMm = ddf.getInverseTransform( point, 100, &converged );
+            //core::vector3f currentMm = ddf.getInverseTransform_gradientDescent( point, 1000, &converged );  // corresponding point in source
+          /*  if ( !converged )
             {
+               std::cout << "not converged=" << point;
                core::LoggerNll::write( core::LoggerNll::ERROR, "OverlayGrid::getSlice::_drawLine: ddf::getInverseTransform failed!" );
                return;
-            }
+            }*/
 
             // we need to project the point in 3D due to the DDF displacement on the slice
             const core::vector2f currentIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( currentMm ) );
             const core::vector2i currentIndex( core::round( currentIndexf[ 0 ] ), core::round( currentIndexf[ 1 ] ) );
-            if ( currentIndex[ 0 ] >= 0 && currentIndex[ 1 ] >= 0 && currentIndex[ 0 ] < slice.size()[ 0 ] && currentIndex[ 1 ] < slice.size()[ 1 ] )
+            if ( currentIndex[ 0 ] >= 0 && currentIndex[ 1 ] >= 0 && currentIndex[ 0 ] < (int)slice.size()[ 0 ] && currentIndex[ 1 ] < (int)slice.size()[ 1 ] )
             {
-               core::bresham( slice.getStorage(), previousIndex, currentIndex, gridColor );
+               core::bresham( slice.getStorage(), previousIndex, currentIndex, /*gridColor*/ colorTmp );
             } else {
                // point is not contained within the slice
                // TODO: we need to intercept at the last position within the slice
@@ -156,7 +284,7 @@ public:
 
       for ( Volume::iterator it = target.begin(); it != target.end(); ++it )
       {
-         *it = core::generateUniformDistribution( 100, 500 );
+         *it = core::generateUniformDistributionf( 100, 500 );
       }      
 
       core::Timer timer;
@@ -256,11 +384,11 @@ public:
       }
 
       // now randomly test points
-      for ( ui32 n = 0; n < 50000; ++n )
+      for ( ui32 n = 0; n < 500000; ++n )
       {
-         const core::vector3f p( core::generateUniformDistribution( -100, 2560 - 100 ) / 10,
-                                 core::generateUniformDistribution( -200, 1280 - 200 ) / 10,
-                                 core::generateUniformDistribution( -300, 640 - 300 ) / 10 );
+         const core::vector3f p( core::generateUniformDistributionf( -100, 2560 - 100 ) / 10,
+                                 core::generateUniformDistributionf( -200, 1280 - 200 ) / 10,
+                                 core::generateUniformDistributionf( -300, 640 - 300 ) / 10 );
          const core::vector3f pInDdfMm = core::transf4( affineTfm, p );
          if ( pInDdfMm[ 0 ] > 0 && pInDdfMm[ 1 ] > 0 && pInDdfMm[ 2 ] > 0 &&
               pInDdfMm[ 0 ] <256 && pInDdfMm[ 1 ] <128 && pInDdfMm[ 2 ] < 64 )
@@ -272,18 +400,24 @@ public:
                                                   pInDdfMm[ 2 ] + def[ 2 ] );
             const core::vector3f forward = ddf.transform( p );
             const double err = (forward - forwardExpected).norm2();
-            TESTER_ASSERT( err < 1.5e-1 );
+			if ( err >= 1.5e-1 )
+			{
+				std::cout << "ERROR=" << err << " iter=" << n << std::endl;
+			}
+            TESTER_ASSERT( err < 0.2 );
 
             bool converged = false;
             const core::vector3f backward = ddf.getInverseTransform( forward, 1000, &converged );
-            ensure( converged, "didn't converged!!!" );
-            const double err2 = (backward - p).norm2();
-            if ( err2 >= 1.1e-1 )
+			   //const core::vector3f backward = ddf.getInverseTransform_experimental( forward, 1000, &converged );
+            //const double err2 = (backward - p).norm2();
+			   const double err2 = (ddf.transform(backward) - forward).norm2();
+            if ( err2 >= 0.5 || !converged )
             {
-               std::cout << "error=" << err2 << std::endl;
+               std::cout << "error=" << err2 << "iter="<< n << std::endl;
                std::cout << backward  << p;
             }
-            TESTER_ASSERT( err2 <= 1.1e-1 );
+			   ensure( converged, "didn't converged!!!" );
+            TESTER_ASSERT( err2 <= 0.5 );
          }
       }
    }
@@ -302,7 +436,7 @@ public:
       Volume target( core::vector3ui( 256, 256, 64 ), pstTarget );
 
       // DDF set up: first, create a RBF, then import a DDF from RBF.
-      core::vector3ui ddfSize( 32, 32, 32 );
+      core::vector3ui ddfSize( 64, 64, 64 );
       core::vector3f sizeMm( target.size()[ 0 ] * target.getSpacing()[ 0 ],
                              target.size()[ 1 ] * target.getSpacing()[ 0 ],
                              target.size()[ 2 ] * target.getSpacing()[ 0 ] );
@@ -311,40 +445,87 @@ public:
 
       std::vector<RbfTransform::Rbf> rbfs;
       
-      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( -5, -30, -3 ),
-                                         core::make_buffer1D<float>( 128, 64, 0 ),
-                                         core::make_buffer1D<float>( 120, 120, 120 ) ) );
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 0, 20, 0 ),
+                                         core::make_buffer1D<float>( 128, 64, 20 ),
+                                         core::make_buffer1D<float>( 400, 400, 400 ) ) );
       rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 4, 8, 2 ),
                                          core::make_buffer1D<float>( 0, 0, 0 ),
                                          core::make_buffer1D<float>( 60, 60, 60 ) ) );
-      
-      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 0, 0, 0 ),
-                                         core::make_buffer1D<float>( 0, 0, 0 ),
-                                         core::make_buffer1D<float>( 60, 60, 60 ) ) );
+
       RbfTransform tfmRbf( affineTfm, rbfs );
       imaging::TransformationDenseDeformableField ddf = imaging::TransformationDenseDeformableField::create( tfmRbf, pstTarget, sizeMm, ddfSize );
 
-      std::cout << ddf.getStorage()( 16, 8, 0 );
-      std::cout << ddf.getStorage()( 17, 8, 0 );
-      std::cout << ddf.getStorage()( 15, 8, 0 );
+      /*
+      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 64, 20 ) ).print(std::cout);
+      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 74, 20 ) ).print(std::cout);
+      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 84, 20 ) ).print(std::cout);
+      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 94, 20 ) ).print(std::cout);
+      */
 
-      std::cout << ddf.getStorage()( 16, 8, 0 );
-      std::cout << ddf.getStorage()( 16, 7, 0 );
-      std::cout << ddf.getStorage()( 16, 9, 0 );
+      bool converged = false;
+      core::vector3f pp( 128, 63.90, 20);
+      core::vector3f pinv = ddf.getInverseTransform_gradientDescent( pp, 10, &converged );
+      std::cout << pinv;
 
-      std::cout << ddf.getInverseTransform( core::vector3f( 127.5, 63.75, 0 ) );
+      return;
 
+      const float error = ( ddf.transform( pinv ) - pp ).norm2();
+      std::cout << "converged=" << converged << std::endl;
+      std::cout << "ERROR=" << error << std::endl;
+      
       // now get the orverlay and export it
       imaging::OverlayGrid overlayGrid;
+      imaging::OverlayPrinterGradient gradientPrinter;
+      imaging::OverlayPrinterDdf ddfPrinter;
 
+      
+      // 
+      /*
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
-                                 target.getOrigin(),
+                                 core::vector3f( 128 + 0.1, 64, 20 ),
+                                 core::vector2f( 0.25 / 2, 0.25 / 2 ) );
+      */
+      
+      imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
+                                 core::vector3f( 1, 0, 0 ),
+                                 core::vector3f( 0, 1, 0 ),
+                                 core::vector3f( 128 - 32, 64 - 32, 20 ),
+                                 core::vector2f( 0.25, 0.25 ) );
+                               
+      // zoomed version on the RBG
+      /*
+      imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
+                                 core::vector3f( 1, 0, 0 ),
+                                 core::vector3f( 0, 1, 0 ),
+                                 core::vector3f( 128 - 16, 64 - 16, 20 ),
+                                 core::vector2f( 0.25 / 2, 0.25 / 2 ) );
+        */               
+                                 
+                /*
+      imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
+                                 core::vector3f( 1, 0, 0 ),
+                                 core::vector3f( 0, 1, 0 ),
+                                 core::vector3f( 0, 0, 20 ),
                                  core::vector2f( 1, 1 ) );
-      core::vector3uc color( 255, 0, 0 );
-      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 50, 50 ) );
+                  */               
+      std::fill( slice.getStorage().begin(), slice.getStorage().end(), 127 );
+                             
+                                 
+      core::vector3uc color( 255, 255, 255 );
+      core::Timer t1;
+      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 25, 25 ) );
+      //gradientPrinter.getSlice( slice, color, ddf, core::vector2ui( 16, 16 ) );
+      //ddfPrinter.getSlice( slice, color, ddf, core::vector2ui( 8, 8 ) );
+      std::cout << "TIMER=" << t1.getCurrentTime() << std::endl;
 
+      core::vector2f v = slice.worldToSliceCoordinate( core::vector3f( 128, 64, 20 ) );
+      ui8* p = slice.getStorage().point( v[ 0 ],
+                                         v[ 1 ] );
+      p[ 0 ] = 255;
+      p[ 1 ] = 0;
+      p[ 2 ] = 0;
       core::writeBmp( slice.getStorage(), "c:/tmp/ddfOverlay.bmp" );
    }
 };
@@ -352,9 +533,9 @@ public:
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformationMapperDdf3D);
 
-TESTER_TEST(testSimpleAffineMappingOnly);
-TESTER_TEST(testDdfConversionFromRbf);
+//TESTER_TEST(testSimpleAffineMappingOnly);
+//TESTER_TEST(testDdfConversionFromRbf);
 
-//TESTER_TEST(testGridOverlay);
+TESTER_TEST(testGridOverlay);
 TESTER_TEST_SUITE_END();
 #endif

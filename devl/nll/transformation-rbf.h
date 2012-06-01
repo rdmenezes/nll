@@ -123,6 +123,9 @@ namespace core
 
     The value of the displacement at point <x> is computed as follow:
     displacement = sum_i( Rbf::compute( Affine * x - mean_i ) * RbfValue_i
+
+    @note To create an invertible transformation from RBF, the RBF vector must be much less inferior than
+          the variance!!
     */
    template <class RbfT = RbfGaussian>
    class DeformableTransformationRadialBasis

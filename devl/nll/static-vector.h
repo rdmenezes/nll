@@ -407,6 +407,13 @@ namespace core
    public:
       typedef StaticVector<f32, 3> BaseClass;
 
+      vector3f( const f32* buf )
+      {
+         at( 0 ) = buf[ 0 ];
+         at( 1 ) = buf[ 1 ];
+         at( 2 ) = buf[ 2 ];
+      }
+
       vector3f( const BaseClass& b ) : BaseClass( b )
       {
       }
