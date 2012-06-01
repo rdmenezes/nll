@@ -1,5 +1,6 @@
 #include <nll/nll.h>
 #include <tester/register.h>
+#include "config.h"
 
 using namespace nll;
 
@@ -41,7 +42,7 @@ namespace imaging
             const core::vector3f dyMm = dy * (float)y + bottomLeftTarget;
             for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
             {
-               const int displayRand = ( rand() % 5 ) - 2;
+               const int displayRand = 0;
                core::vector3uc color( rand() % 255, rand() % 255, rand() % 255 );
                const int xi = static_cast<int>( dxIndex * x );
                const core::vector3f dxMm = dyMm + dx * (float)x;
@@ -445,8 +446,11 @@ public:
 
       std::vector<RbfTransform::Rbf> rbfs;
       
-      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 0, 20, 0 ),
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 1, 20, 0 ),
                                          core::make_buffer1D<float>( 128, 64, 20 ),
+                                         core::make_buffer1D<float>( 400, 400, 400 ) ) );
+      rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( -20, 0, 0 ),
+                                         core::make_buffer1D<float>( 64, 64, 20 ),
                                          core::make_buffer1D<float>( 400, 400, 400 ) ) );
       rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 4, 8, 2 ),
                                          core::make_buffer1D<float>( 0, 0, 0 ),
@@ -454,24 +458,6 @@ public:
 
       RbfTransform tfmRbf( affineTfm, rbfs );
       imaging::TransformationDenseDeformableField ddf = imaging::TransformationDenseDeformableField::create( tfmRbf, pstTarget, sizeMm, ddfSize );
-
-      /*
-      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 64, 20 ) ).print(std::cout);
-      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 74, 20 ) ).print(std::cout);
-      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 84, 20 ) ).print(std::cout);
-      tfmRbf.getRawDeformableDisplacementOnly( core::make_buffer1D<float>( 128, 94, 20 ) ).print(std::cout);
-      */
-
-      bool converged = false;
-      core::vector3f pp( 128, 63.90, 20);
-      core::vector3f pinv = ddf.getInverseTransform_gradientDescent( pp, 10, &converged );
-      std::cout << pinv;
-
-      return;
-
-      const float error = ( ddf.transform( pinv ) - pp ).norm2();
-      std::cout << "converged=" << converged << std::endl;
-      std::cout << "ERROR=" << error << std::endl;
       
       // now get the orverlay and export it
       imaging::OverlayGrid overlayGrid;
@@ -487,13 +473,13 @@ public:
                                  core::vector3f( 128 + 0.1, 64, 20 ),
                                  core::vector2f( 0.25 / 2, 0.25 / 2 ) );
       */
-      
+      /*
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
                                  core::vector3f( 128 - 32, 64 - 32, 20 ),
                                  core::vector2f( 0.25, 0.25 ) );
-                               
+        */                       
       // zoomed version on the RBG
       /*
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
@@ -503,30 +489,36 @@ public:
                                  core::vector2f( 0.25 / 2, 0.25 / 2 ) );
         */               
                                  
-                /*
+                
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
                                  core::vector3f( 0, 0, 20 ),
                                  core::vector2f( 1, 1 ) );
-                  */               
+      imaging::Slice<ui8> sliceGradient; sliceGradient.import( slice );
+      imaging::Slice<ui8> sliceDdf; sliceDdf.import( slice );
+                                 
       std::fill( slice.getStorage().begin(), slice.getStorage().end(), 127 );
                              
                                  
       core::vector3uc color( 255, 255, 255 );
       core::Timer t1;
-      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 25, 25 ) );
-      //gradientPrinter.getSlice( slice, color, ddf, core::vector2ui( 16, 16 ) );
-      //ddfPrinter.getSlice( slice, color, ddf, core::vector2ui( 8, 8 ) );
+      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 50, 50 ) );
+      gradientPrinter.getSlice( sliceGradient, color, ddf, core::vector2ui( 32, 32 ) );
+      ddfPrinter.getSlice( sliceDdf, color, ddf, core::vector2ui( 32, 32 ) );
       std::cout << "TIMER=" << t1.getCurrentTime() << std::endl;
 
+      // print the RBF[0] center
       core::vector2f v = slice.worldToSliceCoordinate( core::vector3f( 128, 64, 20 ) );
       ui8* p = slice.getStorage().point( v[ 0 ],
                                          v[ 1 ] );
       p[ 0 ] = 255;
       p[ 1 ] = 0;
       p[ 2 ] = 0;
-      core::writeBmp( slice.getStorage(), "c:/tmp/ddfOverlay.bmp" );
+
+      core::writeBmp( slice.getStorage(), NLL_TEST_PATH "data/ddfTfmOverlay.bmp" );
+      core::writeBmp( sliceGradient.getStorage(), NLL_TEST_PATH "data/ddfTfmOverlayGradient.bmp" );
+      core::writeBmp( sliceDdf.getStorage(), NLL_TEST_PATH "data/ddfTfmOverlayDdf.bmp" );
    }
 };
 

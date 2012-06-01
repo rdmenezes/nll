@@ -67,6 +67,15 @@ namespace imaging
       }
 
       /**
+       @brief Deep copy of the input slice
+       */
+      void import( const Slice& s )
+      {
+         setGeometry( s.getAxisX(), s.getAxisY(), s.getOrigin(), s.getSpacing() );
+         _storage.import( s.getStorage() );
+      }
+
+      /**
        @brief Construct a slice. The storage is allocated but not initialized.
 
        @param size the number of voxels. The third component indicates the dimenstionality of the value.

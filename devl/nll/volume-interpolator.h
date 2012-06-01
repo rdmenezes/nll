@@ -119,7 +119,7 @@ namespace imaging
        */
       void startInterpolation()
       {
-         // nothing to do
+         iix = -1;
       }
 
       /**
@@ -136,8 +136,7 @@ namespace imaging
        v must remain valid until the end of the calls to the interpolator
        */
       InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v )
-      {
-      }
+      {}
 
       /**
        @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
@@ -156,7 +155,6 @@ namespace imaging
          {
             return _volume->getBackgroundValue();;
          }
-
 
          const value_type_floating dx = fabs( pos[ 0 ] - ix );
          const value_type_floating dy = fabs( pos[ 1 ] - iy );
@@ -232,7 +230,7 @@ namespace imaging
        */
       void startInterpolation()
       {
-         // nothing to do
+         _interpolator.startInterpolation();
       }
 
       /**
@@ -240,7 +238,7 @@ namespace imaging
        */
       void endInterpolation()
       {
-         // nothing to do
+         _interpolator.endInterpolation();
       }
 
       /**
@@ -278,6 +276,14 @@ namespace imaging
 
    public:
       /**
+       @brief Construct an interpolator for the volume v. 
+
+       v must remain valid until the end of the calls to the interpolator
+       */
+      InterpolatorTriLinear( const VolumeType& v ) : _volume( &v )
+      {}
+
+      /**
        @brief This method must be called before any interpolation is made
        */
       void startInterpolation()
@@ -287,6 +293,7 @@ namespace imaging
             _currentRoundingMode = _MM_GET_ROUNDING_MODE();
             _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
          }
+         iix = -1;
       }
 
       /**
@@ -301,18 +308,6 @@ namespace imaging
       }
 
       /**
-       @brief Construct an interpolator for the volume v. 
-
-       v must remain valid until the end of the calls to the interpolator
-       */
-      InterpolatorTriLinear( const VolumeType& v ) : _volume( &v )
-      {
-         iix = -1000;
-         iiy = -1000;
-         iiz = -1000;
-      }
-
-      /**
        @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
        */
       value_type operator()( const float* pos ) const
@@ -324,8 +319,6 @@ namespace imaging
 
          // retrieve the result from register to memory
          _mm_store_si128( (__m128i*)result, floored );
-
-
 
          const int ix = result[ 0 ];
          const int iy = result[ 1 ];

@@ -147,7 +147,10 @@ namespace imaging
       core::vector3f transformDeformableOnlyIndex( const nll::core::vector3f& pIndex ) const
       {
          DdfInterpolator interpolator( _ddf );
-         return interpolator( pIndex.getBuf() );
+         interpolator.startInterpolation();
+         const core::vector3f res = interpolator( pIndex.getBuf() );
+         interpolator.endInterpolation();
+         return res;
       }
 
       /**
@@ -206,6 +209,7 @@ namespace imaging
          const core::vector3f dx = ( transform( core::vector3f( x[ 0 ] + s, x[ 1 ],     x[ 2 ] ) )     - fx ) / s;
          const core::vector3f dy = ( transform( core::vector3f( x[ 0 ],     x[ 1 ] + s, x[ 2 ] ) )     - fx ) / s;
          const core::vector3f dz = ( transform( core::vector3f( x[ 0 ],     x[ 1 ],     x[ 2 ] + s ) ) - fx ) / s;
+
 
          // @see http://en.wikipedia.org/wiki/Partial_derivative
          // grad(f(a)) = (df/dx, df/dy, df/dz)
@@ -343,13 +347,10 @@ namespace imaging
          ui32 iter = 0;
 		   float lastError = 1e4;
          core::vector3f d( 1, 1, 1 );
-         while ( 1 )
+         for ( ;; ++iter )
          {
-            std::cout << "iter=" << iter << " pos=" << x;
             Matrix grad = getGradient( x, &fx );
             d = ( fx - v );
-
-            grad.print( std::cout );
 
 			   const float error = d.dot( d );
 			   if ( error < epsilon2 ||  iter >= maxIter )
@@ -364,17 +365,11 @@ namespace imaging
             x[ 0 ] -= update[ 0 ] * alpha;
             x[ 1 ] -= update[ 1 ] * alpha;
             x[ 2 ] -= update[ 2 ] * alpha;
-            ++iter;
          }
 
          if ( converged_out )
          {
             *converged_out = iter < maxIter;
-         }
-
-         if ( iter >= maxIter )
-         {
-            std::cout << "error=" << lastError << std::endl;
          }
          return x;
       }
@@ -391,7 +386,7 @@ namespace imaging
 
          ui32 iter = 0;
          core::vector3f d( 1, 1, 1 );
-         while ( 1 )
+         for ( ;; ++iter )
          {
             //look for x such that f(x) = x0 (point)
             //                        (-1)
@@ -410,14 +405,12 @@ namespace imaging
             x[ 0 ] -= update[ 0 ];
             x[ 1 ] -= update[ 1 ];
             x[ 2 ] -= update[ 2 ];
-            ++iter;
          }
 
          if ( converged_out )
          {
             *converged_out = iter < maxIter;
          }
-
          return x;
       }
 
