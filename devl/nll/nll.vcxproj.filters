@@ -749,6 +749,9 @@
     <ClInclude Include="surf-3d.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
+    <ClInclude Include="point-based-registration-3d.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

@@ -398,6 +398,7 @@
 # include "haar-features-3d.h"
 # include "pyramid-hessian-3d.h"
 # include "surf-3d.h"
+# include "point-based-registration-3d.h"
 # include "registration-ct-ct-planar.h"
 # include "perceptron-margin.h"
 

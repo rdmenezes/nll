@@ -3,6 +3,248 @@
 
 using namespace nll::core;
 
+namespace nll
+{
+namespace core
+{
+   /**
+    @brief represents a simple segment in 2D and basic operations
+
+    internally, a line is represented by y = _a * x + _b
+    */
+   class GeometrySegment2d
+   {
+   public:
+      GeometrySegment2d()
+      {}
+
+      GeometrySegment2d( const core::vector2f& p1, const core::vector2f& p2 )
+      {
+         setGeometry( p1, p2 );
+      }
+
+      const core::vector2f& getP1() const
+      {
+         return _p1;
+      }
+
+      const core::vector2f& getP2() const
+      {
+         return _p2;
+      }
+
+      float getA() const
+      {
+         return _a;
+      }
+
+      float getB() const
+      {
+         return _b;
+      }
+
+      void setGeometry( const core::vector2f& p1, const core::vector2f& p2 )
+      {
+         _p1 = p1;
+         _p2 = p2;
+         _dirP1P2 = _p2 - _p1;
+         _dirP1P2normSquared = _dirP1P2.dot( _dirP1P2 );
+
+         float dx = p1[ 0 ] - p2[ 0 ];
+         if ( core::equal( dx, 0.0f ) )
+         {
+            // we are in trouble here...
+            dx = 1e-6f;
+         }
+
+         _a = ( p1[ 1 ] - p2[ 1 ] ) / dx;
+         _b = p1[ 1 ] - _a * p1[ 0 ];
+      }
+
+      bool contains( const core::vector2f& point, const float epsilon = 1e-4 ) const
+      {
+         // check we are at least on the line so check y == ax + b
+         float foundy = _a * point[ 0 ] + _b;
+         if ( fabs( foundy - point[ 1 ] ) >= epsilon )
+         {
+            return false;
+         }
+
+         // then check we are within the bounds
+         const core::vector2f dstart = point - _p1;
+         const float dstartn = dstart.dot( dstart );
+         if ( fabs( dstartn ) > _dirP1P2normSquared )
+         {
+            return false;  // it is too far from p1!!
+         }
+
+         const core::vector2f dend = point - _p2;
+         const float dendn = dend.dot( dend );
+         if ( fabs( dendn ) > _dirP1P2normSquared )
+         {
+            return false;  // it is too far from p1!!
+         }
+
+         // it does contain it!
+         return true;
+      }
+
+      /**
+       @brief Returns one intersection between the segments if possible
+       */
+      core::vector2f getIntersection( const GeometrySegment2d& segment, bool* found = 0 ) const
+      {
+         const float diffa = _a - segment._a;
+         const float diffb = _b - segment._b;
+         if ( core::equal( diffa, 0.0f ) )
+         {
+            if ( core::equal( diffb, 0.0f ) )
+            {
+               if ( found )
+               {
+                  *found = true;
+               }
+
+               // the lines are the identical, so any point on one will intersect on the other
+               return _p1;
+            }
+         } else {
+            if ( found )
+            {
+               *found = false;
+            }
+
+            // the lines are parallel, there is no solution
+            return core::vector2f();
+         }
+
+         // here we know the lines will intersect, so find this intersection
+         const float x = - diffb / diffa;
+         const core::vector2f point( x, _a * x + _b );
+
+         // now check this intersection is on the segment
+         if ( found )
+         {
+            *found = contains( point ) && segment.contains( point );
+         }
+
+         return point;
+      }
+
+   private:
+      core::vector2f    _p1;
+      core::vector2f    _p2;
+      core::vector2f    _dirP1P2;
+      float             _dirP1P2normSquared;
+
+      // line representation y = ax + b
+      float _a;
+      float _b;
+   };
+
+   /**
+    @brief Represent a simple 2D box and the most common associated operations
+    */
+   class GeometryBox2d
+   {
+   public:
+      GeometryBox2d()
+      {}
+
+      GeometryBox2d( const core::vector2f& position, const core::vector2f& size )
+      {
+         setGeometry( position, size );
+      }
+
+      void setGeometry( const core::vector2f& position, const core::vector2f& size )
+      {
+         _cornerMin = position;
+         _size = size;
+         _cornerMax = position + size;
+
+         // update the segments representing the box
+         _bottom.setGeometry( _cornerMin, core::vector2f( _cornerMax[ 0 ], _cornerMin[ 1 ] ) );
+         _top.setGeometry( core::vector2f( _cornerMin[ 0 ], _cornerMax[ 1 ] ), _cornerMax );
+         _right.setGeometry( core::vector2f( _cornerMax[ 0 ], _cornerMin[ 0 ] ), _cornerMax );
+         _left.setGeometry( _cornerMin, core::vector2f( _cornerMin[ 0 ], _cornerMax[ 1 ] ) );
+      }
+
+      bool contains( const core::vector2f& position ) const
+      {
+         return position[ 0 ] >= _cornerMin[ 0 ] &&
+                position[ 1 ] >= _cornerMin[ 1 ] &&
+                position[ 0 ] <= _cornerMax[ 0 ] &&
+                position[ 1 ] <= _cornerMax[ 1 ];
+      }
+
+      const core::vector2f& getMinCorner() const
+      {
+         return _cornerMin;
+      }
+
+      const core::vector2f& getMaxCorner() const
+      {
+         return _cornerMax;
+      }
+
+      const core::vector2f& size() const
+      {
+         return _size;
+      }
+
+      /**
+       @brief Imagine a segment defined by [p1, p2] such that one point is insed the box, the other is outside.
+              This returns the intersection of the segment with the box
+       */
+      core::vector2f getIntersection( const GeometrySegment2d& segment ) const
+      {
+         bool isP1Inside = contains( segment.getP1() );
+         bool isP2Inside = contains( segment.getP2() );
+         ensure( (int)isP1Inside + (int)isP2Inside == 1, "precondition: one of the points must be inside, the other outside the box" );
+
+         bool intersection = false;
+
+         {
+            const core::vector2f p = _bottom.getIntersection( segment, &intersection );
+            if ( intersection )
+               return p;
+         }
+
+         {
+            const core::vector2f p = _left.getIntersection( segment, &intersection );
+            if ( intersection )
+               return p;
+         }
+
+         {
+            const core::vector2f p = _right.getIntersection( segment, &intersection );
+            if ( intersection )
+               return p;
+         }
+
+         {
+            const core::vector2f p = _top.getIntersection( segment, &intersection );
+            if ( intersection )
+               return p;
+         }
+
+         ensure( 0, "No intersection" );
+      }
+
+   private:
+      core::vector2f _cornerMin;
+      core::vector2f _cornerMax;
+
+      // tmp variables to speed up computations
+      core::vector2f _size;
+      GeometrySegment2d _bottom;
+      GeometrySegment2d _top;
+      GeometrySegment2d _left;
+      GeometrySegment2d _right;
+   };
+}
+}
+
 class TestGeometry
 {
 public:
@@ -193,10 +435,29 @@ public:
       TESTER_ASSERT( !box1.contains( nll::core::vector3f( 5, 5, 50 ) ) );
       TESTER_ASSERT( !box1.contains( nll::core::vector3f( 50, 5, 5 ) ) );
    }
+
+   void testSegment()
+   {
+      for ( int n = 0; n < 1000; ++n )
+      {
+         vector2f p1( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+         vector2f p2( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+         if ( equal( p1[ 1], p2[ 1 ] ) )
+            continue;
+
+         // test the internals
+         GeometrySegment2d s1( p1, p2 );
+         TESTER_ASSERT( equal( s1.getA(), ( p2[ 1 ] - p1[ 1 ] ) / ( p2[ 0 ] - p1[ 0 ] ), 1e-3f ) );
+         TESTER_ASSERT( equal( s1.getB(), p1[ 1 ] - s1.getA() * p1[ 0 ] ), 1e-3f );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGeometry);
+
 TESTER_TEST(testColinearity);
 TESTER_TEST(testPlaneContains);
 TESTER_TEST(testPlaneIntersection);
@@ -204,6 +465,8 @@ TESTER_TEST(testNormalConstructor);
 TESTER_TEST(testBoxIntersectionSimple);
 TESTER_TEST(testBoxContainsSimple);
 TESTER_TEST(testPlaneCoordinates);
+
+TESTER_TEST(testSegment);
 TESTER_TEST_SUITE_END();
 #endif
 
