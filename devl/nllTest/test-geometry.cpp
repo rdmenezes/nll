@@ -43,6 +43,11 @@ namespace core
          return _b;
       }
 
+      bool isVertical() const
+      {
+         return _isVertical;
+      }
+
       void setGeometry( const core::vector2f& p1, const core::vector2f& p2 )
       {
          _p1 = p1;
@@ -51,10 +56,13 @@ namespace core
          _dirP1P2normSquared = _dirP1P2.dot( _dirP1P2 );
 
          float dx = p1[ 0 ] - p2[ 0 ];
-         if ( core::equal( dx, 0.0f ) )
+         if ( core::equal( dx, 0.0f, 1e-6f ) )
          {
             // we are in trouble here...
-            dx = 1e-6f;
+            dx = std::numeric_limits<float>::epsilon();
+            _isVertical = true;
+         } else {
+            _isVertical = false;
          }
 
          _a = ( p1[ 1 ] - p2[ 1 ] ) / dx;
@@ -64,10 +72,19 @@ namespace core
       bool contains( const core::vector2f& point, const float epsilon = 1e-4 ) const
       {
          // check we are at least on the line so check y == ax + b
-         float foundy = _a * point[ 0 ] + _b;
-         if ( fabs( foundy - point[ 1 ] ) >= epsilon )
+         if ( isVertical() )
          {
-            return false;
+            // if vertical, special case
+            if ( !equal<float>( point[ 0 ], _p1[ 0 ], epsilon ) )
+            {
+               return false;
+            }
+         } else {
+            const float foundy = _a * point[ 0 ] + _b;
+            if ( fabs( foundy - point[ 1 ] ) >= epsilon )
+            {
+               return false;
+            }
          }
 
          // then check we are within the bounds
@@ -82,7 +99,7 @@ namespace core
          const float dendn = dend.dot( dend );
          if ( fabs( dendn ) > _dirP1P2normSquared )
          {
-            return false;  // it is too far from p1!!
+            return false;  // it is too far from p2!!
          }
 
          // it does contain it!
@@ -108,7 +125,7 @@ namespace core
                // the lines are the identical, so any point on one will intersect on the other
                return _p1;
             }
-         } else {
+
             if ( found )
             {
                *found = false;
@@ -120,7 +137,13 @@ namespace core
 
          // here we know the lines will intersect, so find this intersection
          const float x = - diffb / diffa;
-         const core::vector2f point( x, _a * x + _b );
+         core::vector2f point( x, _a * x + _b );
+         if ( isVertical() )
+         {
+            // if vertical, then use the other segment to compute the intersection...
+            point[ 0 ] = _p1[ 0 ];
+            point[ 1 ] = segment.getA() * point[ 0 ] + segment.getB();
+         }
 
          // now check this intersection is on the segment
          if ( found )
@@ -140,6 +163,7 @@ namespace core
       // line representation y = ax + b
       float _a;
       float _b;
+      bool _isVertical;
    };
 
    /**
@@ -193,7 +217,7 @@ namespace core
       }
 
       /**
-       @brief Imagine a segment defined by [p1, p2] such that one point is insed the box, the other is outside.
+       @brief Imagine a segment defined by [p1, p2] such that one point is inside the box, the other is outside.
               This returns the intersection of the segment with the box
        */
       core::vector2f getIntersection( const GeometrySegment2d& segment ) const
@@ -228,6 +252,7 @@ namespace core
                return p;
          }
 
+         // should be unreachable...
          ensure( 0, "No intersection" );
       }
 
@@ -451,6 +476,83 @@ public:
          GeometrySegment2d s1( p1, p2 );
          TESTER_ASSERT( equal( s1.getA(), ( p2[ 1 ] - p1[ 1 ] ) / ( p2[ 0 ] - p1[ 0 ] ), 1e-3f ) );
          TESTER_ASSERT( equal( s1.getB(), p1[ 1 ] - s1.getA() * p1[ 0 ] ), 1e-3f );
+
+         // test contains or not...
+         const float x = generateUniformDistributionf( -100, 100 );
+         const float y = s1.getA() * x + s1.getB();
+         const float d1 = ( p1 - vector2f( x, y ) ).norm2();
+         const float d2 = ( p2 - vector2f( x, y ) ).norm2();
+         const float length = ( p1 - p2 ).norm2();
+         const bool expectedInside = d1 < length && d2 < length;
+         ensure( s1.contains( vector2f( x, y ) ) == expectedInside, "arg!" );
+
+         // this one will never contain it..
+         const vector2f normal( -1, s1.getA() );
+         const vector2f p( x + normal[ 0 ], y + normal[ 1 ] );
+         ensure( !s1.contains( p ), "arg!" );
+      }
+   }
+
+   void testSegmentIntersection()
+   {
+      for ( int n = 0; n < 1000; ++n )
+      {
+         vector2f p1( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+         vector2f p2( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+
+         vector2f p1a( generateUniformDistributionf( -100, 100 ), 
+                       generateUniformDistributionf( -100, 100 ) );
+         vector2f p2a( generateUniformDistributionf( -100, 100 ), 
+                       generateUniformDistributionf( -100, 100 ) );
+
+         GeometrySegment2d s1( p1, p2 );
+         GeometrySegment2d s2( p1a, p2a );
+
+         bool good;
+         const vector2f i = s1.getIntersection( s2, &good );
+
+         const bool expectedIntersection = s1.contains( i ) && s2.contains( i );
+         ensure( good == expectedIntersection, "arg!" );
+      }
+   }
+
+   void testBox()
+   {
+      for ( int n = 0; n < 1000; ++n )
+      {
+         vector2f p1( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+         vector2f size( generateUniformDistributionf( -100, 100 ), 
+                        generateUniformDistributionf( -100, 100 ) );
+         GeometryBox2d box( p1, size );
+
+
+         vector2f p( generateUniformDistributionf( -100, 100 ), 
+                     generateUniformDistributionf( -100, 100 ) );
+         const bool expectedInside = p[ 0 ] >= p1[ 0 ] &&
+                                     p[ 1 ] >= p1[ 1 ] &&
+                                     p[ 0 ] <= p1[ 0 ] + size[ 0 ] &&
+                                     p[ 1 ] <= p1[ 1 ] + size[ 1 ];
+         ensure( expectedInside == box.contains( p ), "arg!" );
+      }
+   }
+
+   void testBoxIntersection()
+   {
+      const vector2f pos( 1, 2 );
+      const vector2f size( 4, 5 );
+      const GeometryBox2d box( pos, size );
+
+      {
+         const vector2f p1( 0, 3 );
+         const vector2f p2( 2, 3.5 );
+         GeometrySegment2d segment( p1, p2 );
+
+         const vector2f i = box.getIntersection( segment );
+         ensure( equal<float>( i[ 0 ], 1 ), "arg!" );
+         ensure( equal<float>( i[ 1 ], 3.25 ), "arg!" );
       }
    }
 };
@@ -467,6 +569,9 @@ TESTER_TEST(testBoxContainsSimple);
 TESTER_TEST(testPlaneCoordinates);
 
 TESTER_TEST(testSegment);
+TESTER_TEST(testSegmentIntersection);
+TESTER_TEST(testBox);
+TESTER_TEST(testBoxIntersection);
 TESTER_TEST_SUITE_END();
 #endif
 
