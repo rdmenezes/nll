@@ -251,8 +251,8 @@ public:
          GeometrySegment2d s1( p1, p2 );
          GeometrySegment2d s2( p1a, p2a );
 
-         bool good;
-         const vector2f i = s1.getIntersection( s2, &good );
+         vector2f i;
+         const bool good = s1.getIntersection( s2, i );
 
          const bool expectedIntersection = s1.contains( i ) && s2.contains( i );
          ensure( good == expectedIntersection, "arg!" );
@@ -291,7 +291,9 @@ public:
          const vector2f p2( 2, 3.5 );
          GeometrySegment2d segment( p1, p2 );
 
-         const vector2f i = box.getIntersection( segment );
+         vector2f i;
+         const bool intersection = box.getIntersection( segment, i );
+         ensure( intersection, "bad!" );
          ensure( equal<float>( i[ 0 ], 1 ), "arg!" );
          ensure( equal<float>( i[ 1 ], 3.25 ), "arg!" );
       }
@@ -301,7 +303,9 @@ public:
          const vector2f p2( 8, 4 );
          GeometrySegment2d segment( p1, p2 );
 
-         const vector2f i = box.getIntersection( segment );
+         vector2f i;
+         const bool intersection = box.getIntersection( segment, i );
+         ensure( intersection, "bad!" );
          ensure( equal<float>( i[ 0 ], 5 ), "arg!" );
          ensure( equal<float>( i[ 1 ], 4 ), "arg!" );
       }
@@ -311,7 +315,9 @@ public:
          const vector2f p2( 3, 4 );
          GeometrySegment2d segment( p1, p2 );
 
-         const vector2f i = box.getIntersection( segment );
+         vector2f i;
+         const bool intersection = box.getIntersection( segment, i );
+         ensure( intersection, "bad!" );
          ensure( equal<float>( i[ 0 ], 3 ), "arg!" );
          ensure( equal<float>( i[ 1 ], 2 ), "arg!" );
       }
@@ -321,7 +327,9 @@ public:
          const vector2f p2( 3, 4 );
          GeometrySegment2d segment( p1, p2 );
 
-         const vector2f i = box.getIntersection( segment );
+         vector2f i;
+         const bool intersection = box.getIntersection( segment, i );
+         ensure( intersection, "bad!" );
          ensure( equal<float>( i[ 0 ], 3 ), "arg!" );
          ensure( equal<float>( i[ 1 ], 7 ), "arg!" );
       }

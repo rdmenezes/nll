@@ -905,7 +905,7 @@ namespace core
       /**
        @brief Returns one intersection between the segments if possible
        */
-      core::vector2f getIntersection( const GeometrySegment2d& segment, bool* found = 0 ) const
+      bool getIntersection( const GeometrySegment2d& segment, core::vector2f& intersection ) const
       {
          const float diffa = _a - segment._a;
          const float diffb = _b - segment._b;
@@ -913,41 +913,27 @@ namespace core
          {
             if ( core::equal( diffb, 0.0f ) )
             {
-               if ( found )
-               {
-                  *found = true;
-               }
-
                // the lines are the identical, so any point on one will intersect on the other
-               return _p1;
-            }
-
-            if ( found )
-            {
-               *found = false;
+               intersection = _p1;
+               return true;
             }
 
             // the lines are parallel, there is no solution
-            return core::vector2f();
+            return false;
          }
 
          // here we know the lines will intersect, so find this intersection
          const float x = - diffb / diffa;
-         core::vector2f point( x, _a * x + _b );
+         intersection[ 0 ] = x;
+         intersection[ 1 ] = _a * x + _b;
          if ( isVertical() )
          {
             // if vertical, then use the other segment to compute the intersection...
-            point[ 0 ] = _p1[ 0 ];
-            point[ 1 ] = segment.getA() * point[ 0 ] + segment.getB();
+            intersection[ 0 ] = _p1[ 0 ];
+            intersection[ 1 ] = segment.getA() * intersection[ 0 ] + segment.getB();
          }
 
-         // now check this intersection is on the segment
-         if ( found )
-         {
-            *found = contains( point ) && segment.contains( point );
-         }
-
-         return point;
+         return contains( intersection ) && segment.contains( intersection );
       }
 
    private:
@@ -1016,40 +1002,17 @@ namespace core
        @brief Imagine a segment defined by [p1, p2] such that one point is inside the box, the other is outside.
               This returns the intersection of the segment with the box
        */
-      core::vector2f getIntersection( const GeometrySegment2d& segment ) const
+      bool getIntersection( const GeometrySegment2d& segment, core::vector2f& intersection_out ) const
       {
          bool isP1Inside = contains( segment.getP1() );
          bool isP2Inside = contains( segment.getP2() );
          ensure( (int)isP1Inside + (int)isP2Inside == 1, "precondition: one of the points must be inside, the other outside the box" );
 
-         bool intersection = false;
-
-         {
-            const core::vector2f p = _bottom.getIntersection( segment, &intersection );
-            if ( intersection )
-               return p;
-         }
-
-         {
-            const core::vector2f p = _left.getIntersection( segment, &intersection );
-            if ( intersection )
-               return p;
-         }
-
-         {
-            const core::vector2f p = _right.getIntersection( segment, &intersection );
-            if ( intersection )
-               return p;
-         }
-
-         {
-            const core::vector2f p = _top.getIntersection( segment, &intersection );
-            if ( intersection )
-               return p;
-         }
-
-         // should be unreachable...
-         ensure( 0, "No intersection" );
+         const bool p = _bottom.getIntersection( segment, intersection_out ) ||
+                        _top.getIntersection(    segment, intersection_out ) ||
+                        _left.getIntersection(   segment, intersection_out ) ||
+                        _right.getIntersection(  segment, intersection_out );
+         return p;
       }
 
    private:
