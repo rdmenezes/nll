@@ -37,6 +37,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief Computes the barycentre of the volume, using this specific LUT
     */
    template <class Volume, class Lut>

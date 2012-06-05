@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Define a quaternion class. Internally stored as (w, i, j, k)
     @note this class does not handle quaternion with scaling components i.e. it will
           only be used to compute rotations

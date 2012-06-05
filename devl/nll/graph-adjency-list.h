@@ -47,6 +47,7 @@ namespace core
    {};
 
    /**
+    @ingroup core
     @brief Wrapper on the different possible storage classes <MapperVector> <MapperList> <MapperSet>
 
     The <Mapper> must define the types:
@@ -86,6 +87,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief Mapper implemented in terms of std::set
 
     N = nb elements
@@ -212,6 +214,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief Create a mapper with a contiguous vector implementation
 
     Note: there are two mecanism to access data via:
@@ -479,6 +482,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief Graph with adjacency list implementation
 
     It is assuming the UID generation for the Edges and Vertexes are compact (i.e. there is no holes,

@@ -752,6 +752,9 @@
     <ClInclude Include="point-based-registration-3d.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
+    <ClInclude Include="ddf-overlay.h">
+      <Filter>imaging</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Defines how a node should be splitted
     */
    template <class Database>
@@ -59,6 +60,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Create discrete node decision split
 
     For discrete values, we simply need to decide which feature will be used to split
@@ -154,6 +156,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Decision node for continuous attributs. A single split will be produced
 
     For continues values, it is a bit more complicated. The common information measure such

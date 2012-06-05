@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /*
+    @ingroup core
     * compute a rotation matrix given a rotation vector using Rodrigues'
     * formula
     *

@@ -37,6 +37,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief Efficiently iterate on all resampled voxels and compute the corresponding position in the transformed
            target volume
 

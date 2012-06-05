@@ -302,6 +302,7 @@
 # include "volume-discretizer.h"
 # include "volume-io-mf3.h"
 # include "volume-distance-transform.h"
+# include "ddf-overlay.h"
 
 /**
  @defgroup algorithm

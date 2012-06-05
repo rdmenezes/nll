@@ -41,6 +41,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Represent a multivariate gaussian in its canonical form
     @see "A Technique for Painless Derivation of Kalman Filtering Recursions", Ali Taylan Cemgil [1]
          http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.20.3377

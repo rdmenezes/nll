@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Compute the cumulative error gaussian function and inverse cumulative error gaussian function
     @see http://en.wikipedia.org/wiki/Error_function
     */
@@ -109,6 +110,7 @@ namespace core
       }
 
       /**
+       @ingroup core
        @brief implementation of approximate erf, the maximum error is 5*10^-4
        @see http://en.wikipedia.org/wiki/Error_function, "Approximation with elementary functions"
        */
@@ -129,7 +131,8 @@ namespace core
       }
 
       /**
-       @brief extremly fast inplementation of erfinv using look up table, also quite inaccurate. Use only if accuracy
+       @ingroup core
+       @brief extremly fast implementation of erfinv using look up table, also quite inaccurate. Use only if accuracy
               is not a problem
        */
       static double erfinv_lut( double x )

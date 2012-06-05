@@ -105,6 +105,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Sampling without replacement of a vector.
     @see http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
     

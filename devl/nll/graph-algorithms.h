@@ -95,6 +95,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Find the roots 
     */
    template <class Graph>
@@ -114,6 +115,7 @@ namespace core
    namespace impl
    {
       /**
+       @ingroup core
        @brief Vertex evaluator used in the dijkstra algorithm to set the visit priority
        */
       template <class Graph, class MapperValueType>
@@ -138,6 +140,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Dijkstra algorithm
     @see http://en.wikipedia.org/wiki/Dijkstra's_algorithm
 

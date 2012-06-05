@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Function for optimization problem
 
     Lets define a function f(x; theta), a function using x and parameterized by theta
@@ -72,6 +73,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Optimization algorithm for <Function>
     */
    template <class Database>

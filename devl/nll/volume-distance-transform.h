@@ -39,8 +39,9 @@ namespace imaging
    namespace impl
    {
       /**
-      @given a specific position (row, slices) it maps the column as a buffer
-      */
+       @ingroup imaging
+       @given a specific position (row, slices) it maps the column as a buffer
+       */
       template <class T, class VolumeMemoryBufferType>
       class AbstractColumnBufferImage
       {
@@ -139,6 +140,7 @@ namespace imaging
    }
 
    /**
+    @ingroup imaging
     @brief Compute the distance transform of the volume.
     @param img the masked image. For all voxel img(x, y, z) > 0, we will consider it as a source voxel
     */

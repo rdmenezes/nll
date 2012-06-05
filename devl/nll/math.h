@@ -104,6 +104,10 @@ namespace core
       return temp;
    }
 
+   /**
+    @ingroup core
+    @brief compute the log base 2
+    */
    template <class T>
    T log2( T v )
    {
@@ -111,6 +115,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @param small a small factor
     @param big a bigger number than small
     @param tolerance a number, expressed in <big> unit

@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Model a bayesian network with by a single type of factor <FactorT>
 
     U = all the model's variables

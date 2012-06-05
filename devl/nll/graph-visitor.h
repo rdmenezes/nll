@@ -36,6 +36,10 @@ namespace nll
 {
 namespace core
 {
+   /**
+    @ingroup core
+    @brief Breadth First Search visitor
+    */
    template <class GraphT>
    class GraphVisitorBfs
    {
@@ -127,6 +131,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief Breadth First Search visitor, using a priotity queue to sort the breadth vertex
     */
    template <class GraphT, class VertexEvaluator>
@@ -232,6 +237,10 @@ namespace core
       bool              _mustAbort;
    };
 
+   /**
+    @ingroup core
+    @brief Depth First Search visitor
+    */
    template <class GraphT>
    class GraphVisitorDfs
    {

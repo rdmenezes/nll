@@ -37,6 +37,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief Outline of a basic processor, just for illustration as it doesn't do anything
     */
    template <class Volume>
@@ -84,6 +85,7 @@ namespace imaging
    };
 
    /**
+    @ingroup imaging
     @brief Efficiently iterate on all resampled voxels and compute the corresponding position in the transformed
            target volume
 
@@ -196,6 +198,7 @@ namespace imaging
    };
 
    /**
+    @ingroup imaging
     @brief Efficiently iterate on all resampled voxels and compute the corresponding position in the transformed
            target volume
 

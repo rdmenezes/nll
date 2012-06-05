@@ -37,6 +37,7 @@ namespace nll
 namespace imaging
 {
    /**
+    @ingroup imaging
     @brief Rescale slope and intercept values
     */
    struct Rsi
@@ -64,6 +65,7 @@ namespace imaging
    };
 
    /**
+    @ingroup imaging
     @brief This class will discretize a volume, typically of floating values to a <integer, RSI> representation
 
     volume( x, y, z ) is almost equal to volumeOut( x, y, z ) * rsi[ z ].slope + rsi[ z ].intercept

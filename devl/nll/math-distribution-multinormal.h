@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief generate normal multivariate distribution samples
            according to http://en.wikipedia.org/wiki/Multivariate_normal_distribution
     */

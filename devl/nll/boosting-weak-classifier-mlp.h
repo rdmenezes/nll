@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Train a Multi-layered perceptron suitable for boosting
     @note the network must not be too strong! Else boosting will not improve and classifier may overfit
     */
@@ -107,6 +108,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @param Weak classifier MLP factory
     */
    template <class DatabaseT>

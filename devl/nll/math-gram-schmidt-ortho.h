@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Traits for inner product
     */
    class TraitInnerProductDot

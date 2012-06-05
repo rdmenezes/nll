@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Create a 2D transformation matrix, given a rotation, scaling and translation parameters
     @param roation the rotation angle from the x-axis in radian
 
@@ -67,6 +68,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Returns the rotation contained in a 4x4 affine transformation
     @note the matrix must not contain shearing components to be valid
     */
@@ -95,6 +97,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Assuming a 4x4 transformation matrix defined as
                  | Rx Ry Rz Tx |
            Tfm = | Rx Ry Rz Ty |
@@ -121,6 +124,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Return true if the 3x3 or 4x4 transformation has only a scaling and/or translation component
     */
    template <class type, class mapper, class allocator>
@@ -157,6 +161,7 @@ namespace core
 
 
    /**
+    @ingroup core
     @brief Assuming a 4x4 transformation matrix defined as
                  | 1 0 0 Tx |
            Tfm = | 0 1 0 Ty |
@@ -175,6 +180,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Assuming a 4x4 transformation matrix defined as
                  | sx   0  0 |
            Tfm = | 0 sy 0  0 |
@@ -193,6 +199,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Returns the spacing of a 4x4 homogeneous transformation matrix
     */
    template <class type, class mapper, class allocator>
@@ -210,6 +217,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Returns the spacing of a 3x3 homogeneous transformation matrix
     */
    template <class type, class mapper, class allocator>
@@ -225,7 +233,11 @@ namespace core
       return spacing;
    }
 
-   // assuming a 2D affine matrix with no shearing
+   /**
+    @ingroup core
+    @brief Get the spacing/translation/rotation of a similarity matrix
+    @note assuming a 2D affine matrix with no shearing
+    */
    template <class type, class mapper, class allocator>
    void getMatrixProperties3x3( const Matrix<type, mapper, allocator>& m, vector2f& outSpacing, float& outAngle, vector2f& outTranslation )
    {
@@ -235,6 +247,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Mapping from three-dimensional Cartesian coordinates to spherical coordinates
            with theta and phi in [-pi, pi]
     @param x the position in x in cartesian coordinate
@@ -269,6 +282,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Mapping from three-dimensional Cartesian coordinates to spherical coordinates
            with theta and phi in [-pi, pi]
 
@@ -284,6 +298,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Convert from spherical coordinates to cartesian coordinates
     @see http://www.mathworks.de/help/techdoc/ref/sph2cart.html
     */
@@ -301,6 +316,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Convert from spherical coordinates to cartesian coordinates
     */
    inline core::vector3d sphericalToCartesianCoordinate( const core::vector3d& polarCoordinate )

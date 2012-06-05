@@ -329,7 +329,7 @@ namespace imaging
 	      return p;
       }
 
-	 //private:
+	 private:
 	  /**
        @brief Given an point in MM, find the inverse
        @param v a point in MM

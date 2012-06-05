@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Factory for creating the estimator with no parameter
     */
    template <class Estimator>

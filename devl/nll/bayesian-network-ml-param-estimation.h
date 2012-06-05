@@ -36,6 +36,10 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @ingroup algorithm
+    @brief Computes the ML estimates of the BN network given <fullyObservedData>, a fully observed dataset
+    */
    template <class BayesianNetworkT>
    class BayesianNetworkMaximumLikelihoodParameterEstimation
    {

@@ -528,6 +528,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Generate a unique list of identifier of size start - end + 1.
 
     For example generateUniqueList( 4, 7 ) could generate the list [ 5, 4, 6, 7 ]

@@ -39,6 +39,7 @@ namespace core
    namespace impl
    {
       /**
+       @ingroup core
        @brief 1D distance transform. It has to be run several times for multidimentionnal distance transform.
               We assume that in the pass of this algorithm (i.e. the first time this algorithm is run on a volume)
               buf[ n ] == 0 (meaning we have the voxel n on) or buf[ n ] == -inf (meaning voxel n is off).

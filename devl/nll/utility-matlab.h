@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Utility to export a vector of vectors as a matlab Matrix file
     */
    template <class Vectors>
@@ -58,6 +59,7 @@ namespace core
    }
 
    /**
+    @ingroup core
     @brief Utility to import a matlab Matrix file (exported with dlmwrite) as a vector of vectors
     */
    inline std::vector< std::vector< double > > readVectorFromMatlabAsColumn( const std::string& file )

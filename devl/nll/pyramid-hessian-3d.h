@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Hold a stack of the hessian determinant using a crude approximation of a gaussian in 2D
            for each point,           | Lxx Lxy Lxz |   | a b c |
                            H(x, o) = | Lyx Lyy Lyz | = | d e f |

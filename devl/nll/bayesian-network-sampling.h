@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Generates samples from the network
     */
    template <class Network>
@@ -57,6 +58,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Specialization for potential tables
     */
    template <>

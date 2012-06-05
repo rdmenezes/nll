@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief weighted Margin perceptron
     */
    template <class DatabaseT>

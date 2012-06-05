@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief computes p(U-E-Q | E=e) with U all variables, Q query variables, E observed variables (evidence)
 
     Computes exact inference given a graph, query variables and evidence

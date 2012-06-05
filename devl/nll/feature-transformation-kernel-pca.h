@@ -37,7 +37,8 @@ namespace nll
 namespace algorithm
 {
    /**
-    Non linear feature transformation using a kernel PCA algorithm.
+    @ingroup algorithm
+    @brief Non linear feature transformation using a kernel PCA algorithm.
     */
    template <class Point, class Kernel>
    class FeatureTransformationKernelPca : public FeatureTransformation<Point>

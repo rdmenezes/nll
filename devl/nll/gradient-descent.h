@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Optimize the function using gradient descent in batch mode
 
     The model is updated when all the samples have been analysed
@@ -91,6 +92,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Optimize the function using gradient descent in stochastic mode
 
     Everytime a sample is presented, the model is updated. Usually more noisy, but conerge

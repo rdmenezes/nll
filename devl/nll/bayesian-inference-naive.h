@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Traits to instanciate a Bayesian potential
 
     In the general case, instanciating a potential is not required. However for Linear Gaussian potential for example, each node must be transformed
@@ -55,6 +56,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief computes p(U-E-Q | E=e) with U all variables, Q query variables, E observed variables (evidence)
     @param BNetwork the bayesian network type
 

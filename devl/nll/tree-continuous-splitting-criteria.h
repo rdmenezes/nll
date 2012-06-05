@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Implementation of split points in decision tree
     */
    template <class DatabaseT>
@@ -60,6 +61,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Implementation of split points in decision tree
     @see http://research.microsoft.com/pubs/65569/splits.pdf
           "Efficient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite
@@ -115,6 +117,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Implementation of split points in decision tree
     @see http://research.microsoft.com/pubs/65569/splits.pdf
           "Effcient Determination of Dynamic Split Points in a Decision Tree", D. Chickering, C. Meek, R. Rounthwaite

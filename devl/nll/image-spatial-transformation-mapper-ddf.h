@@ -36,7 +36,8 @@ namespace nll
 {
 namespace core
 {
-    /**
+   /**
+    @ingroup core
     @brief Efficient mapping of the resampled (usually 'source') pixels to target voxels using a DDF as transformation
 
     The transformation can be seen as follow:

@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Trait defining if a graph is directed or undirected
     */
    template <class T>

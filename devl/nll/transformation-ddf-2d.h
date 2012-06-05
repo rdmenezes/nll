@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Map a source image to a target image using a DDF and an affine transform
 
     The DDF mapping is defined by the DDF's PST and an affine transformation. The transformation

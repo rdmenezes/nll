@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup core
     @brief Data compressor based on counting similar value, efficient for data having long contiguous sequence of the same value
 
     1 byte for the chunk ID (Similar/Enumerate)
@@ -75,6 +76,7 @@ namespace algorithm
       };
 
       /**
+       @ingroup core
        @brief encode a chunk composed of the same values
        */
       template <class T>
@@ -121,6 +123,7 @@ namespace algorithm
       };
 
       /**
+       @ingroup core
        @brief Enumerate on the values
        */
       template <class T>

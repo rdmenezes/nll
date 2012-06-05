@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Defines a Gaussian RBF parametrized by a value, variance and mean.
 
     val = exp( - sum( || x_i - mean_i ||^2 / ( 2 * var_i ) ) )
@@ -112,6 +113,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief model a deformable transformation using RBF functions as parameters.
 
     The class is designed to support 2D/3D transformations.

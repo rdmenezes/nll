@@ -37,12 +37,14 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @note for all 2D/3D estimators, they must estimate as best as they can the transformation, especially when they are facing errors
           or transformation given contraints can't be enforced. If this is the case, the <getLastResult> will return ERROR an error fflag, but also
           a matrix letting the user decide if even if the constraint is not enforced, the result may be somehow valid...
     */
 
    /**
+    @ingroup algorithm
     @brief Affine 2D transformation estimation using DLT
 
       Estimates non isotropic affine transformations
@@ -228,6 +230,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Find the exact solution for the isometry mapping (i.e., this find the exact solution by using only the minimal number of points to find the transformation)
     
     Uses exactly 2 pairs of points A and B to find the transformation T such that B = T(A), with T = | R(theta) 0 translation |
@@ -298,6 +301,7 @@ namespace algorithm
 
 
    /**
+    @ingroup algorithm
     @brief Find the exact solution for the similarity mapping (i.e., this find the exact solution by using only the minimal number of points to find the transformation)
     
     Uses exactly 2 pairs of points A and B to find the transformation T such that B = T(A), with T = | scale * R(theta) 0 translation |
@@ -368,6 +372,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Compute a non isotropic similarity transformation on a set of points using least square estimation
 
     @note the algorithm computes the transformation from source to target. Note that the solution is not symetric! (you find another solution if target->source)

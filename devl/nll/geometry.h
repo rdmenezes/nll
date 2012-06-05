@@ -804,6 +804,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief represents a simple segment in 2D and basic operations
 
     internally, a line is represented by y = _a * x + _b
@@ -903,6 +904,7 @@ namespace core
       }
 
       /**
+       @ingroup core
        @brief get the orthogonal projection of <p> on the line defined by the segment
        */
       core::vector2f getOrthogonalProjection( const core::vector2f& p ) const
@@ -973,6 +975,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief Represent a simple 2D box and the most common associated operations
     */
    class GeometryBox2d

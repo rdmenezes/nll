@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Class allowing histogramming of any data, provided std::min/max, std::numeric_limits<>::max/min and access operators are provided
     */
    template < class CountsStore = std::vector<ui32> >

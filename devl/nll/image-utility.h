@@ -518,6 +518,11 @@ namespace core
       i = ii;
    }
 
+   /**
+    @ingroup core
+    @brief Bresham algorithm to draw efficiently lines in 2D
+    @see http://en.wikipedia.org/wiki/Bresenham's_line_algorithm
+    */
    template <class Image, class Color>
    void bresham( Image& i, const vector2i a1, const vector2i a2, Color color )
    {

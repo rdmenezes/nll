@@ -47,6 +47,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Inherit from this class to make explicitly a class not copyiable
     */
    struct NonCopyable

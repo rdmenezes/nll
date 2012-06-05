@@ -44,6 +44,7 @@ namespace nll
 namespace algorithm
 {
 	/**
+    @ingroup algorithm
     @brief Implementation of the Speeded Up Robust Features or SURF algorithm for 3 dimentional data
 
            Feature detector which intend to be robust to scaling, illumination and rotation

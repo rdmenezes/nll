@@ -37,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Outline of a basic processor, just for illustration as it doesn't do anything
 
     CAUTION: all processor must be threadsafe! Typically, for each line, a new processor will
@@ -74,6 +75,7 @@ namespace core
    };
 
    /**
+    @ingroup core
     @brief Efficient mapping of the target pixels to source voxels
 
     For each pixel of the target, apply the tfm on the source volume and find the corresponding source pixel

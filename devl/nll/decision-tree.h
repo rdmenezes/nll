@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Generic decision tree
     */
    template <class Database>
@@ -187,6 +188,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Grow a fixed depth tree
     */
    template <class Database>

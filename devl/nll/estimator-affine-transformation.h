@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @note for all 2D/3D estimators, they must estimate as best as they can the transformation, especially when they are facing errors
           or transformation given contraints can't be enforced. If this is the case, the <getLastResult> will ERROR an error, but also
           a matrix letting the user decide if even if the constraint is not enforced, the result may be somehow valid...

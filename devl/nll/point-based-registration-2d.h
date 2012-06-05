@@ -39,6 +39,7 @@ namespace algorithm
    namespace impl
    {
       /**
+       @ingroup algorithm
        @brief Find match in two sets of points using a simple kd-tree
        */
       class FeatureMatcher

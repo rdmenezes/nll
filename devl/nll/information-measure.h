@@ -37,6 +37,7 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
     @brief Computes entropy for building trees
     @see www.cs.cmu.edu/~guestrin/Class/10701-S06/Handouts/recitations/recitation-decision_trees-adaboost-02-09-2006.ppt
          Information Gain,Decision Trees and Boosting, 10-701 ML recitation 9 Feb 2006
@@ -140,6 +141,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Computes entropy for building trees
     @see www.seas.harvard.edu/courses/cs181/docs/lecture4-notes.pdf
          CS181 Lecture 4 | Committees and Boosting, Avi Pfeer; Revised by David Parkes, Feb 1, 2011
@@ -266,6 +268,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Computes information gain on an integral input/output
     @see http://en.wikipedia.org/wiki/Information_gain_in_decision_trees
     */
@@ -286,6 +289,7 @@ namespace algorithm
    };
 
    /**
+    @ingroup algorithm
     @brief Computes information gain on an integral input/output
     @see http://en.wikipedia.org/wiki/Information_gain_in_decision_trees
     */

@@ -157,6 +157,7 @@ namespace algorithm
    }
 
    /**
+    @ingroup algorithm
     @brief Returns a pointer for each factor belonging to a bayesian network
     */
    template <class Factor>
@@ -174,6 +175,7 @@ namespace algorithm
    }
 
    /**
+    @ingroup algorithm
     @brief Returns a pointer for each factor belonging to a bayesian network
     */
    template <class Factor>
