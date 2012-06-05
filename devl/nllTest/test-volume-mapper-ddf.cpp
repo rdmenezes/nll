@@ -148,7 +148,7 @@ namespace imaging
        @note The slice is defined in source space, transform it using the affine transformation so we have the bounds, then compute a regular grid within the bounds.
 	          For each point of the grid, find its inverse, which will be in source space. Finally connect the points.
 
-            To draw the grid, we actully do it in 2 passes:
+            To draw the grid, we actually do it in 2 passes:
             - all vertical lines
             - then all horizontal ones
        */
@@ -172,28 +172,31 @@ namespace imaging
          // now, because of the deformation, the grid may not be fully visible, so we are finding
          // the corners back in source. If these points are extending the grid in source space,
          // then extend the grid. Finally, transform the extended source grid in target space...
-         const core::vector3f bottomLeft2  = slice.getOrthogonalProjection( ddf.getInverseTransform( bottomLeftTarget ) );
-         const core::vector3f bottomRight2 = slice.getOrthogonalProjection( ddf.getInverseTransform( bottomRight ) );
-         const core::vector3f topLeft2     = slice.getOrthogonalProjection( ddf.getInverseTransform( topLeft ) );
-         const core::vector3f topRight2    = slice.getOrthogonalProjection( ddf.getInverseTransform( topRight ) );
+         const core::vector3f bottomLeft2  = slice.getOrthogonalProjection( ddf.getInverseTransform( bottomLeftTarget - ddf.transformDeformableOnlyNoTfm( bottomLeftTarget ) ) );
+         const core::vector3f bottomRight2 = slice.getOrthogonalProjection( ddf.getInverseTransform( bottomRight - ddf.transformDeformableOnlyNoTfm( bottomRight ) ) );
+         const core::vector3f topLeft2     = slice.getOrthogonalProjection( ddf.getInverseTransform( topLeft - ddf.transformDeformableOnlyNoTfm( topLeft ) ) );
+         const core::vector3f topRight2    = slice.getOrthogonalProjection( ddf.getInverseTransform( topRight - ddf.transformDeformableOnlyNoTfm( topRight ) ) );
 
          // now we are in slice index, which is very simple to determine if the grid needs to be extended...
          const core::vector2f bottomLeft2Index  = slice.worldToSliceCoordinate( bottomLeft2 );
          const core::vector2f bottomRight2Index = slice.worldToSliceCoordinate( bottomRight2 );
          const core::vector2f topLeft2Index     = slice.worldToSliceCoordinate( topLeft2 );
          const core::vector2f topRight2Index    = slice.worldToSliceCoordinate( topRight2 );
+         
 
-         
-         //core::vector2f min( -100, -100 );
-         //core::vector2f max( slice.size()[ 0 ] + 100, slice.size()[ 1 ] + 100 );
-         
+         // default grid range
          core::vector2f min( 0, 0 );
          core::vector2f max( slice.size()[ 0 ], slice.size()[ 1 ] );
 
+         // extend the range if needed
          _minMaxGridIndex( min, max, bottomLeft2Index );
          _minMaxGridIndex( min, max, bottomRight2Index );
          _minMaxGridIndex( min, max, topLeft2Index );
          _minMaxGridIndex( min, max, topRight2Index );
+
+         // add extra padding just to be sure
+         min -= core::vector2f( 10, 10 );
+         max += core::vector2f( 10, 10 );
 
          // export the min/max: they will be our grid 
          bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( min ) );
@@ -246,7 +249,6 @@ namespace imaging
          {
             std::cout << "Error begining!" << std::endl;
             core::LoggerNll::write( core::LoggerNll::ERROR, "OverlayGrid::getSlice::_drawLine: ddf::getInverseTransform failed!" );
-            return;
          }
 
          core::GeometryBox2d box( core::vector2f( 0, 0 ),
@@ -278,12 +280,12 @@ namespace imaging
             } else if ( isCurrentInside && !isPreviousInside )
             {
                core::vector2f intersection;
-               box.getIntersection( core::GeometrySegment2d( currentIndexf, previousIndexf ), intersection, 0.01 );
+               box.getIntersection( core::GeometrySegment2d( currentIndexf, previousIndexf ), intersection, 0.1 );
                core::bresham( slice.getStorage(), core::vector2i( intersection[ 0 ], intersection[ 1 ] ), currentIndex, gridColor );
             } else if ( !isCurrentInside && isPreviousInside )
             {
                core::vector2f intersection;
-               box.getIntersection( core::GeometrySegment2d( currentIndexf, previousIndexf ), intersection, 0.01 );
+               box.getIntersection( core::GeometrySegment2d( currentIndexf, previousIndexf ), intersection, 0.1 );
                core::bresham( slice.getStorage(),
                               core::vector2i( core::round( intersection[ 0 ] ),
                                               core::round( intersection[ 1 ] ) ),
@@ -392,7 +394,7 @@ public:
 
       // DDF set up
       Matrix tfm = core::createTransformationAffine3D( core::vector3f( 1, 0, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 0, 0, 0 ), core::vector3f( 1, 1, 1 ) );
-      core::vector3ui ddfSize( 130, 135, 100 );
+      core::vector3ui ddfSize( 100, 100, 100 );
       core::vector3f sizeMm( target.size()[ 0 ] * target.getSpacing()[ 0 ],
                              target.size()[ 1 ] * target.getSpacing()[ 0 ],
                              target.size()[ 2 ] * target.getSpacing()[ 0 ] );
@@ -402,10 +404,10 @@ public:
       std::vector<RbfTransform::Rbf> rbfs;
       rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( -5, -7, -3 ),
                                          core::make_buffer1D<float>( 128, 64, 32 ),
-                                         core::make_buffer1D<float>( 30, 30, 30 ) ) );
+                                         core::make_buffer1D<float>( 160, 160, 160 ) ) );
       rbfs.push_back( RbfTransform::Rbf( core::make_buffer1D<float>( 4, 8, 2 ),
                                          core::make_buffer1D<float>( 0, 0, 0 ),
-                                         core::make_buffer1D<float>( 60, 60, 60 ) ) );
+                                         core::make_buffer1D<float>( 160, 160, 160 ) ) );
       
       RbfTransform tfmRbf( affineTfm, rbfs );
 
@@ -438,7 +440,7 @@ public:
       }
 
       // now randomly test points
-      for ( ui32 n = 0; n < 500000; ++n )
+      for ( ui32 n = 0; n < 200000; ++n )
       {
          const core::vector3f p( core::generateUniformDistributionf( -100, 2560 - 100 ) / 10,
                                  core::generateUniformDistributionf( -200, 1280 - 200 ) / 10,
@@ -454,11 +456,11 @@ public:
                                                   pInDdfMm[ 2 ] + def[ 2 ] );
             const core::vector3f forward = ddf.transform( p );
             const double err = (forward - forwardExpected).norm2();
-			if ( err >= 1.5e-1 )
-			{
-				std::cout << "ERROR=" << err << " iter=" << n << std::endl;
-			}
-            TESTER_ASSERT( err < 0.2 );
+			   if ( err >= 0.4 )
+			   {
+				   std::cout << "ERROR=" << err << " iter=" << n << std::endl;
+			   }
+            TESTER_ASSERT( err < 0.4 );
 
             bool converged = false;
             const core::vector3f backward = ddf.getInverseTransform( forward, 1000, &converged );
@@ -534,24 +536,26 @@ public:
                                  core::vector2f( 0.25, 0.25 ) );
         */                       
       // zoomed version on the RBG
-      
+      /*
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
                                  core::vector3f( 128 - 16, 64 - 16, 20 ),
                                  core::vector2f( 0.25 / 2, 0.25 / 2 ) );
-                       
+        */               
                                  
-       /*         
+               
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
                                  core::vector3f( 0, 0, 20 ),
-                                 core::vector2f( 1, 1 ) );*/
+                                 core::vector2f( 1, 1 ) );
       imaging::Slice<ui8> sliceGradient; sliceGradient.import( slice );
       imaging::Slice<ui8> sliceDdf; sliceDdf.import( slice );
                                  
       std::fill( slice.getStorage().begin(), slice.getStorage().end(), 127 );
+      std::fill( sliceGradient.getStorage().begin(), sliceGradient.getStorage().end(), 127 );
+      std::fill( sliceDdf.getStorage().begin(), sliceDdf.getStorage().end(), 127 );
                              
                                  
       core::vector3uc color( 255, 255, 255 );
@@ -572,14 +576,23 @@ public:
       core::writeBmp( slice.getStorage(), NLL_TEST_PATH "data/ddfTfmOverlay.bmp" );
       core::writeBmp( sliceGradient.getStorage(), NLL_TEST_PATH "data/ddfTfmOverlayGradient.bmp" );
       core::writeBmp( sliceDdf.getStorage(), NLL_TEST_PATH "data/ddfTfmOverlayDdf.bmp" );
+
+      // now use regression testing...
+      core::Image<ui8> sliceRef( NLL_TEST_PATH "data/ddf/ddfTfmOverlay.bmp" );
+      core::Image<ui8> sliceGradientRef( NLL_TEST_PATH "data/ddf/ddfTfmOverlayGradient.bmp" );
+      core::Image<ui8> sliceDdfRef( NLL_TEST_PATH "data/ddf/ddfTfmOverlayDdf.bmp" );
+
+      TESTER_ASSERT( sliceRef == slice.getStorage() );
+      TESTER_ASSERT( sliceGradientRef == sliceGradient.getStorage() );
+      TESTER_ASSERT( sliceDdfRef == sliceDdf.getStorage() );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformationMapperDdf3D);
 
-//TESTER_TEST(testSimpleAffineMappingOnly);
-//TESTER_TEST(testDdfConversionFromRbf);
+TESTER_TEST(testSimpleAffineMappingOnly);
+TESTER_TEST(testDdfConversionFromRbf);
 
 TESTER_TEST(testGridOverlay);
 TESTER_TEST_SUITE_END();

@@ -134,6 +134,17 @@ namespace imaging
       }
 
       /**
+       @brief transform a point defined in MM, returns the deformable displacement at this position in MM
+       @note Internally, we DON'T apply the affine TFM
+       */
+      virtual core::vector3f transformDeformableOnlyNoTfm( const nll::core::vector3f& p ) const
+      {
+         const core::vector3f index = _ddf.positionToIndex( p );
+         DdfInterpolator interpolator( _ddf );
+         return interpolator( index.getBuf() );
+      }
+
+      /**
        @brief transform a point defined in MM, the input point is transformed by the affine transformation only
        */
       core::vector3f transformAffineOnly( const nll::core::vector3f& p ) const
