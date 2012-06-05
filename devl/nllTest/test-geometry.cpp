@@ -204,7 +204,7 @@ public:
 
    void testSegment()
    {
-      for ( int n = 0; n < 1000; ++n )
+      for ( int n = 0; n < 10000; ++n )
       {
          vector2f p1( generateUniformDistributionf( -100, 100 ), 
                       generateUniformDistributionf( -100, 100 ) );
@@ -234,9 +234,32 @@ public:
       }
    }
 
+   void testSegmentProjection()
+   {
+      srand( 0 );
+      for ( int n = 0; n < 10000; ++n )
+      {
+         vector2f p1( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+         vector2f p2( generateUniformDistributionf( -100, 100 ), 
+                      generateUniformDistributionf( -100, 100 ) );
+         vector2f p1a( generateUniformDistributionf( -100, 100 ), 
+                       generateUniformDistributionf( -100, 100 ) );
+
+         GeometrySegment2d s1( p1, p2 );
+
+         const vector2f proj = s1.getOrthogonalProjection( p1a );
+         const float d1 = ( proj - p1 ).norm2();
+         const float d2 = ( proj - p1a ).norm2();
+         const float dh = ( p1 - p1a ).norm2();
+         const float tolerance = 0.001 * sqr( dh );
+         ensure( equal<float>( sqr( dh ), sqr( d1 ) + sqr( d2 ), tolerance ), "square triangle dh^2 = d1^2 + d2^2" );
+      }
+   }
+
    void testSegmentIntersection()
    {
-      for ( int n = 0; n < 1000; ++n )
+      for ( int n = 0; n < 10000; ++n )
       {
          vector2f p1( generateUniformDistributionf( -100, 100 ), 
                       generateUniformDistributionf( -100, 100 ) );
@@ -261,7 +284,7 @@ public:
 
    void testBox()
    {
-      for ( int n = 0; n < 1000; ++n )
+      for ( int n = 0; n < 10000; ++n )
       {
          vector2f p1( generateUniformDistributionf( -100, 100 ), 
                       generateUniformDistributionf( -100, 100 ) );
@@ -346,6 +369,7 @@ TESTER_TEST(testBoxIntersectionSimple);
 TESTER_TEST(testBoxContainsSimple);
 TESTER_TEST(testPlaneCoordinates);
 TESTER_TEST(testSegment);
+TESTER_TEST(testSegmentProjection);
 TESTER_TEST(testSegmentIntersection);
 TESTER_TEST(testBox);
 TESTER_TEST(testBoxIntersection);

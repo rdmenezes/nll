@@ -164,11 +164,43 @@ namespace imaging
          const core::vector3f topRight    = slice.sliceToWorldCoordinate( core::vector2f( (float)slice.size()[ 0 ] - 1,  (float)slice.size()[ 1 ] - 1 ) );
 
          // grid in MM in target
-         const core::vector3f bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), bottomLeft );
-         const core::vector3f bottomRightTarget = core::transf4( ddf.getAffineMatrix(), bottomRight );
-         const core::vector3f topLeftTarget     = core::transf4( ddf.getAffineMatrix(), topLeft );
-         const core::vector3f topRightTarget    = core::transf4( ddf.getAffineMatrix(), topRight );
+         core::vector3f bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), bottomLeft );
+         core::vector3f bottomRightTarget = core::transf4( ddf.getAffineMatrix(), bottomRight );
+         core::vector3f topLeftTarget     = core::transf4( ddf.getAffineMatrix(), topLeft );
+         core::vector3f topRightTarget    = core::transf4( ddf.getAffineMatrix(), topRight );
 
+         // now, because of the deformation, the grid may not be fully visible, so we are finding
+         // the corners back in source. If these points are extending the grid in source space,
+         // then extend the grid. Finally, transform the extended source grid in target space...
+         const core::vector3f bottomLeft2  = slice.getOrthogonalProjection( ddf.getInverseTransform( bottomLeftTarget ) );
+         const core::vector3f bottomRight2 = slice.getOrthogonalProjection( ddf.getInverseTransform( bottomRight ) );
+         const core::vector3f topLeft2     = slice.getOrthogonalProjection( ddf.getInverseTransform( topLeft ) );
+         const core::vector3f topRight2    = slice.getOrthogonalProjection( ddf.getInverseTransform( topRight ) );
+
+         // now we are in slice index, which is very simple to determine if the grid needs to be extended...
+         const core::vector2f bottomLeft2Index  = slice.worldToSliceCoordinate( bottomLeft2 );
+         const core::vector2f bottomRight2Index = slice.worldToSliceCoordinate( bottomRight2 );
+         const core::vector2f topLeft2Index     = slice.worldToSliceCoordinate( topLeft2 );
+         const core::vector2f topRight2Index    = slice.worldToSliceCoordinate( topRight2 );
+
+         
+         //core::vector2f min( -100, -100 );
+         //core::vector2f max( slice.size()[ 0 ] + 100, slice.size()[ 1 ] + 100 );
+         
+         core::vector2f min( 0, 0 );
+         core::vector2f max( slice.size()[ 0 ], slice.size()[ 1 ] );
+
+         _minMaxGridIndex( min, max, bottomLeft2Index );
+         _minMaxGridIndex( min, max, bottomRight2Index );
+         _minMaxGridIndex( min, max, topLeft2Index );
+         _minMaxGridIndex( min, max, topRight2Index );
+
+         // export the min/max: they will be our grid 
+         bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( min ) );
+         topRightTarget    = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( max ) );
+         bottomRightTarget = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( core::vector2f( max[ 0 ], min[ 1 ] ) ) );
+         topLeftTarget     = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( core::vector2f( min[ 0 ], max[ 1 ] ) ) );
+         
          // vector director in target
          const core::vector3f dx = ( bottomRightTarget - bottomLeftTarget ) / (float)gridSize[ 0 ];
          const core::vector3f dy = ( topLeftTarget     - bottomLeftTarget ) / (float)gridSize[ 1 ];
@@ -179,7 +211,7 @@ namespace imaging
             const core::vector3f ddx = dx * (float)x;
             _drawLine( slice, gridColor, ddf, bottomLeft + ddx, dy, gridSize[ 1 ] );
          }
-         
+
          for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
          {
             const core::vector3f ddy = dy * (float)y;
@@ -188,6 +220,16 @@ namespace imaging
       }
 
    private:
+      // given a point, a segment and the current min/max position on this segment, check if we need to extend
+      // the grid so that this point is contained within min/max
+      void _minMaxGridIndex( core::vector2f& min, core::vector2f& max, const core::vector2f& point )
+      {
+         min[ 0 ] = std::min( min[ 0 ], point[ 0 ] );
+         min[ 1 ] = std::min( min[ 1 ], point[ 1 ] );
+         max[ 0 ] = std::max( max[ 0 ], point[ 0 ] );
+         max[ 1 ] = std::max( max[ 1 ], point[ 1 ] );
+      }
+
       template <class T>
       static void _drawLine( Slice<T>& slice,
                              T* gridColor,
@@ -196,8 +238,10 @@ namespace imaging
                              const core::vector3f& direction,
                              ui32 nbSteps )
       {
+         const core::vector2f half( slice.size()[ 0 ] / 2,
+                                    slice.size()[ 1 ] / 2 );
          bool converged = false;
-         core::vector3f previousMm = ddf.getInverseTransform_gradientDescent( first, 1000, &converged );
+         core::vector3f previousMm = ddf.getInverseTransform( first, 100, &converged );
          if ( !converged )
          {
             std::cout << "Error begining!" << std::endl;
@@ -205,41 +249,50 @@ namespace imaging
             return;
          }
 
-         const core::vector2f previousIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( previousMm ) );
-         core::vector2i previousIndex( core::round( previousIndexf[ 0 ] ), core::round( previousIndexf[ 1 ] ) );
-         if ( previousIndex[ 0 ] < 0 || previousIndex[ 1 ] < 0 || previousIndex[ 0 ] >= (int)slice.size()[ 0 ] || previousIndex[ 1 ] >= (int)slice.size()[ 1 ] )
-         {
-            // TODO: change this: we know the first should always be inside!!
-            return;
-         }
+         core::GeometryBox2d box( core::vector2f( 0, 0 ),
+                                  core::vector2f( slice.size()[ 0 ] - 1,
+                                                  slice.size()[ 1 ] - 1 ) );
 
-         for ( ui32 step = 0; step < nbSteps; ++step )
+         core::vector2f previousIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( previousMm ) ) /* + half */;
+         core::vector2i previousIndex( core::round( previousIndexf[ 0 ] ), core::round( previousIndexf[ 1 ] ) );
+         bool isPreviousInside = box.contains( core::vector2f( previousIndexf ) );
+         for ( ui32 step = 1; step < nbSteps; ++step )
          {
-            core::vector3uc colorTmp( rand() % 255, rand() % 255, rand() % 255 );
             const core::vector3f point = first + direction * (float)step;      // point in target
-            //core::vector3f currentMm = ddf.getInverseTransform_newton( point, 10000, &converged );  // corresponding point in source
             core::vector3f currentMm = ddf.getInverseTransform( point, 100, &converged );
-            //core::vector3f currentMm = ddf.getInverseTransform_gradientDescent( point, 1000, &converged );  // corresponding point in source
-          /*  if ( !converged )
+            if ( !converged )
             {
                std::cout << "not converged=" << point;
                core::LoggerNll::write( core::LoggerNll::ERROR, "OverlayGrid::getSlice::_drawLine: ddf::getInverseTransform failed!" );
-               return;
-            }*/
+            }
 
             // we need to project the point in 3D due to the DDF displacement on the slice
-            const core::vector2f currentIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( currentMm ) );
+            const core::vector2f currentIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( currentMm ) ) /* + half*/;
             const core::vector2i currentIndex( core::round( currentIndexf[ 0 ] ), core::round( currentIndexf[ 1 ] ) );
-            if ( currentIndex[ 0 ] >= 0 && currentIndex[ 1 ] >= 0 && currentIndex[ 0 ] < (int)slice.size()[ 0 ] && currentIndex[ 1 ] < (int)slice.size()[ 1 ] )
+            const bool isCurrentInside = box.contains( currentIndexf );
+            
+            if ( isCurrentInside && isPreviousInside )
             {
-               core::bresham( slice.getStorage(), previousIndex, currentIndex, /*gridColor*/ colorTmp );
-            } else {
-               // point is not contained within the slice
-               // TODO: we need to intercept at the last position within the slice
-               return;
+               // both points are inside so simply draw the line
+               core::bresham( slice.getStorage(), previousIndex, currentIndex, gridColor );
+            } else if ( isCurrentInside && !isPreviousInside )
+            {
+               core::vector2f intersection;
+               box.getIntersection( core::GeometrySegment2d( currentIndexf, previousIndexf ), intersection, 0.01 );
+               core::bresham( slice.getStorage(), core::vector2i( intersection[ 0 ], intersection[ 1 ] ), currentIndex, gridColor );
+            } else if ( !isCurrentInside && isPreviousInside )
+            {
+               core::vector2f intersection;
+               box.getIntersection( core::GeometrySegment2d( currentIndexf, previousIndexf ), intersection, 0.01 );
+               core::bresham( slice.getStorage(),
+                              core::vector2i( core::round( intersection[ 0 ] ),
+                                              core::round( intersection[ 1 ] ) ),
+                              previousIndex, gridColor );
             }
 
             previousIndex = currentIndex;
+            previousIndexf = currentIndexf;
+            isPreviousInside = isCurrentInside;
          }
       }
    };
@@ -481,20 +534,20 @@ public:
                                  core::vector2f( 0.25, 0.25 ) );
         */                       
       // zoomed version on the RBG
-      /*
+      
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
                                  core::vector3f( 128 - 16, 64 - 16, 20 ),
                                  core::vector2f( 0.25 / 2, 0.25 / 2 ) );
-        */               
+                       
                                  
-                
+       /*         
       imaging::Slice<ui8> slice( core::vector3ui( target.size()[ 0 ], target.size()[ 1 ], 3 ),
                                  core::vector3f( 1, 0, 0 ),
                                  core::vector3f( 0, 1, 0 ),
                                  core::vector3f( 0, 0, 20 ),
-                                 core::vector2f( 1, 1 ) );
+                                 core::vector2f( 1, 1 ) );*/
       imaging::Slice<ui8> sliceGradient; sliceGradient.import( slice );
       imaging::Slice<ui8> sliceDdf; sliceDdf.import( slice );
                                  
@@ -503,9 +556,9 @@ public:
                                  
       core::vector3uc color( 255, 255, 255 );
       core::Timer t1;
-      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 50, 50 ) );
-      gradientPrinter.getSlice( sliceGradient, color, ddf, core::vector2ui( 32, 32 ) );
-      ddfPrinter.getSlice( sliceDdf, color, ddf, core::vector2ui( 32, 32 ) );
+      overlayGrid.getSlice( slice, color.getBuf(), ddf, core::vector2ui( 20, 20 ) );
+      gradientPrinter.getSlice( sliceGradient, color, ddf, core::vector2ui( 16, 16 ) );
+      ddfPrinter.getSlice( sliceDdf, color, ddf, core::vector2ui( 16, 16 ) );
       std::cout << "TIMER=" << t1.getCurrentTime() << std::endl;
 
       // print the RBF[0] center

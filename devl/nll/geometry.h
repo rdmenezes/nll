@@ -865,7 +865,7 @@ namespace core
          _b = p1[ 1 ] - _a * p1[ 0 ];
       }
 
-      bool contains( const core::vector2f& point, const float epsilon = 1e-4 ) const
+      bool contains( const core::vector2f& point, const float epsilon = 1e-2 ) const
       {
          // check we are at least on the line so check y == ax + b
          if ( isVertical() )
@@ -903,9 +903,33 @@ namespace core
       }
 
       /**
-       @brief Returns one intersection between the segments if possible
+       @brief get the orthogonal projection of <p> on the line defined by the segment
        */
-      bool getIntersection( const GeometrySegment2d& segment, core::vector2f& intersection ) const
+      core::vector2f getOrthogonalProjection( const core::vector2f& p ) const
+      {
+         // compute the normal of the line
+         core::vector2f normal( -_a, 1 );
+         if ( isVertical() )
+         {
+            normal[ 0 ] = 1;
+            normal[ 1 ] = 0;
+         }
+
+         const core::vector2f p2 = p + normal;
+         GeometrySegment2d segment( p, p2 );
+         
+         core::vector2f projection;
+         getIntersection( segment, projection ); // we always have a solution but maybe not on the segment only!
+         return projection;
+      }
+
+      /**
+       @brief Returns one intersection between the segments if possible
+       @note that if getA() are different on <this> and <segment> there will be an intersection
+             So in case we are interested in the line intersection and not segment, we can still
+             use <getIntersection> to compute it despite returning <false>
+       */
+      bool getIntersection( const GeometrySegment2d& segment, core::vector2f& intersection, float epsilon = 1e-2f ) const
       {
          const float diffa = _a - segment._a;
          const float diffb = _b - segment._b;
@@ -933,7 +957,7 @@ namespace core
             intersection[ 1 ] = segment.getA() * intersection[ 0 ] + segment.getB();
          }
 
-         return contains( intersection ) && segment.contains( intersection );
+         return contains( intersection, epsilon ) && segment.contains( intersection, epsilon );
       }
 
    private:
@@ -1002,16 +1026,16 @@ namespace core
        @brief Imagine a segment defined by [p1, p2] such that one point is inside the box, the other is outside.
               This returns the intersection of the segment with the box
        */
-      bool getIntersection( const GeometrySegment2d& segment, core::vector2f& intersection_out ) const
+      bool getIntersection( const GeometrySegment2d& segment, core::vector2f& intersection_out, float epsilon = 1e-2f ) const
       {
          bool isP1Inside = contains( segment.getP1() );
          bool isP2Inside = contains( segment.getP2() );
          ensure( (int)isP1Inside + (int)isP2Inside == 1, "precondition: one of the points must be inside, the other outside the box" );
 
-         const bool p = _bottom.getIntersection( segment, intersection_out ) ||
-                        _top.getIntersection(    segment, intersection_out ) ||
-                        _left.getIntersection(   segment, intersection_out ) ||
-                        _right.getIntersection(  segment, intersection_out );
+         const bool p = _bottom.getIntersection( segment, intersection_out, epsilon ) ||
+                        _top.getIntersection(    segment, intersection_out, epsilon ) ||
+                        _left.getIntersection(   segment, intersection_out, epsilon ) ||
+                        _right.getIntersection(  segment, intersection_out, epsilon );
          return p;
       }
 
