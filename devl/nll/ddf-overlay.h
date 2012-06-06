@@ -43,6 +43,17 @@ namespace imaging
    class OverlayPrinterDdf
    {
    public:
+      /**
+       @brief Visualize the deformable displacement at the slice level
+
+       @note The slice is defined in source space. The DDF affine transformation (source->target) is applied on it, giving a slice in
+             target space. Then a grid is created and the deformable displacement is interpolated at each point of the grid. Finally,
+             the DDF displacement (which is 3D displacement) is projected on the slice (as it is not necessarily on it).
+
+       @param slice the slice defined in source space. The affine TFM defined by the DDF(source->target) will be applied
+                    the 3D displacement will be printed on the slice
+       @param gridSize the grid definition
+       */
       void getSlice( Slice<ui8>& slice, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 16, 16 ) )
       {
          ensure( slice.size()[ 2 ] == 3, "must be a rgb slice" );
@@ -113,6 +124,17 @@ namespace imaging
    class OverlayPrinterGradient
    {
    public:
+      /**
+       @brief Visualize the gradient of the deformable displacement at the slice level
+
+       @note The slice is defined in source space. The DDF affine transformation (source->target) is applied on it, giving a slice in
+             target space. Then a grid is created and the deformable displacement is interpolated at each point of the grid. Finally,
+             the gradient of the DDF displacement (which is 3D displacement) is projected on the slice (as it is not necessarily on it).
+
+       @param slice the slice defined in source space. The affine TFM defined by the DDF(source->target) will be applied
+                    the 3D displacement will be printed on the slice
+       @param gridSize the grid definition
+       */
       void getSlice( Slice<ui8>& slice, const core::vector3uc& color, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 16, 16 ) )
       {
          ensure( slice.size()[ 2 ] == 3, "must be a rgb slice" );
@@ -182,12 +204,17 @@ namespace imaging
        @param slice the slice in source space
        @param ddf the DDF to visualize
 
-       @note The slice is defined in source space, transform it using the affine transformation so we have the bounds, then compute a regular grid within the bounds.
+       @note The slice is defined in source space. It is then transformed using the affine transformation. We then compute a regular grid within the bounds in target space.
 	          For each point of the grid, find its inverse, which will be in source space. Finally connect the points.
 
-            To draw the grid, we actually do it in 2 passes:
-            - all vertical lines
-            - then all horizontal ones
+             With this grid we are interested in how the grid is deformed target->source space and this is why we are computing the DDF inverse (as opposed to just create
+             a grid in source and deform it using the DDF as this would be the inverse transform).
+
+             The DDF MUST be invertible!
+
+             To draw the grid, we actually do it in 2 passes:
+             - all vertical lines
+             - then all horizontal ones
        */
       template <class T>
       void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 8, 8 ) )
