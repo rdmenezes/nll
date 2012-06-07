@@ -36,6 +36,60 @@ namespace nll
 {
 namespace imaging
 {
+   namespace impl
+   {
+      /**
+       @brief Helper class that determine how the deformable displacement should be handled
+
+       In the case of targetPstInv is a scaling and/or translation matrix only (no rotation/shearing) computations can be significantly simplified
+
+       We use it in this context:
+       - we have a target index mapped (i.e., without the DDF, the resampled volume at this position would use this target index)
+       - we have a deformable displacement in MM that we need to translate the target index
+       -> i.e., we need to transform this displacement in MM into the corresponding index displacement
+       */
+      class TransformationHelper
+      {
+      public:
+         typedef core::Matrix<f32>  Matrix;
+
+         TransformationHelper( const Matrix& targetPstInv ) : _targetPstInv( targetPstInv ), _isMatrixScalingTranslationOnly( core::isScalingTranslationMatrixOnly( targetPstInv ) )
+         {
+
+            // remove the translation part as this has already been taken care of...
+            _targetPstInv.clone( targetPstInv );
+            for ( ui32 n = 0; n + 1 < targetPstInv.sizey(); ++n )
+            {
+               _targetPstInv( n, targetPstInv.sizex() - 1 ) = 0;
+            }
+
+            _scaling = core::getSpacing4x4( targetPstInv );
+         }
+
+         void transform( core::vector3f& displacementMm ) const
+         {
+            // we have the deformable displacement in MM
+            // what is the corresponding displacement in index in the target?
+
+            // if the target PST has no rotation/shearing, easy, just apply the spacing
+            // else, apply the affine part of the transformation (we don't care about the translation, it is already in the displacement)
+            if ( _isMatrixScalingTranslationOnly )
+            {
+               displacementMm[ 0 ] *= _scaling[ 0 ];
+               displacementMm[ 1 ] *= _scaling[ 1 ];
+               displacementMm[ 2 ] *= _scaling[ 2 ];
+            } else {
+               displacementMm = core::transf4( _targetPstInv, displacementMm );
+            }
+         }
+
+      private:
+         Matrix         _targetPstInv;
+         bool           _isMatrixScalingTranslationOnly;
+         core::vector3f _scaling;
+      };
+   }
+
    /**
     @ingroup imaging
     @brief Defines a dense Deformable field transformation

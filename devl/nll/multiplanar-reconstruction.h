@@ -84,6 +84,28 @@ namespace imaging
       }
 
       /**
+       @brief Given a transformation, dispatch the MPR computation to the correct method
+       */
+      void getSlice( Slice& slice, const Transformation& tfm, bool isSliceCenter = true ) const
+      {
+         const TransformationAffine* tfmAffine = dynamic_cast<const TransformationAffine*>( &tfm );
+         if ( tfmAffine )
+         {
+            getSlice( slice, *tfmAffine, isSliceCenter );
+            return;
+         }
+
+         const TransformationDenseDeformableField* tfmDdf = dynamic_cast<const TransformationDenseDeformableField*>( &tfm );
+         if ( tfmDdf )
+         {
+            getSlice( slice, *tfmDdf, isSliceCenter );
+            return;
+         }
+
+         ensure( 0, "the transformation type is not hanled!" );
+      }
+
+      /**
        @brief Compute the slice according to a position and 2 vectors and a size factor.
               The volume's spacing is used to compute the correct MPR.
        @param slice the slice to be filled, defined in source space
@@ -92,26 +114,23 @@ namespace imaging
        @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
              source->target, and <_volume> playing as the target volume
        */
-      void getSlice( Slice& slice, const TransformationAffine& tfm2, bool isSliceCenter = true ) const
+      void getSlice( Slice& slice, const TransformationAffine& tfm, bool isSliceCenter = true ) const
       {
-         const double isCenter = isSliceCenter ? 1 : 0;
+         const float isCenter = isSliceCenter ? 1 : 0;
 
-         // (1) compute the transformation index target->position MM with affine target->source TFM applied
-         core::Matrix<float> targetOriginTfm = tfm2.getInvertedAffineMatrix() * _volume.getPst();
-
-         // compute the origin of the resampled in the geometric space (1)
-         const bool success = core::inverse( targetOriginTfm );
-         ensure( success, "not affine!" );
-         const core::vector3f originInTarget = core::transf4( targetOriginTfm, slice.getOrigin() );
+         // (1) compute the transformation index source position MM->target index with affine target->source TFM applied
+         const core::Matrix<float> srcMmTargetIndex = _volume.getInvertedPst() * tfm.getAffineMatrix();
+         const core::vector3f originInTarget = core::transf4( srcMmTargetIndex, slice.getOrigin() );
 
          // finally get the axis: rotate & scale the axis of the MPR
-         const core::vector3f dx = core::mul4Rot( targetOriginTfm, slice.getAxisX() ) * slice.getSpacing()[ 0 ];
-         const core::vector3f dy = core::mul4Rot( targetOriginTfm, slice.getAxisY() ) * slice.getSpacing()[ 1 ];
+         const core::vector3f dx = core::mul4Rot( srcMmTargetIndex, slice.getAxisX() ) * slice.getSpacing()[ 0 ];
+         const core::vector3f dy = core::mul4Rot( srcMmTargetIndex, slice.getAxisY() ) * slice.getSpacing()[ 1 ];
 
          // if isCenter == true, the slice geometric space (0,0) is the center and not the bottom left point of the slice
-         float startx = (float)( originInTarget[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
-         float starty = (float)( originInTarget[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
-         float startz = (float)( originInTarget[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
+         const float startx = (float)( originInTarget[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
+         const float starty = (float)( originInTarget[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
+         const float startz = (float)( originInTarget[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
+         const core::vector3f start( startx, starty, startz );
 
          // set up the interpolator
          // if SSE is not supported, use the default interpolator
@@ -119,16 +138,66 @@ namespace imaging
          {
             typedef InterpolatorTriLinearDummy< Volume > InterpolatorNoSSE;
             InterpolatorNoSSE interpolator( _volume );
-            _fill<InterpolatorNoSSE>( startx, starty, startz, dx, dy, interpolator, slice );
+            _fill<InterpolatorNoSSE>( start, dx, dy, interpolator, slice );
          } else {
             Interpolator interpolator( _volume );
-            _fill<Interpolator>( startx, starty, startz, dx, dy, interpolator, slice );
+            _fill<Interpolator>( start, dx, dy, interpolator, slice );
+         }
+      }
+
+      /**
+       @brief Compute the slice according to a position and 2 vectors and a size factor.
+              The volume's spacing is used to compute the correct MPR.
+       @param slice the slice to be filled, defined in source space
+       @param tfm a DDF transform composed of a DDF and an affine that transform source->target, assuming we have a target volume. Internally, if will invert
+              the tfm and apply it to the <_volume>
+       @note Typical use case is, we have a source and target volumes, with a registration matrix tfm
+             source->target, and <_volume> playing as the target volume
+       */
+      void getSlice( Slice& slice, const TransformationDenseDeformableField& tfm, bool isSliceCenter = true ) const
+      {
+         const float isCenter = isSliceCenter ? 1 : 0;
+
+         // (1) compute the transformation index source position MM->target index with affine target->source TFM applied
+         const core::Matrix<float> srcMmTargetIndex    = _volume.getInvertedPst() * tfm.getAffineMatrix();
+         const core::Matrix<float> srcMmTargetIndexDdf = tfm.getInvertedPst() * tfm.getAffineMatrix();
+         const core::vector3f originInTarget    = core::transf4( srcMmTargetIndex, slice.getOrigin() );
+         const core::vector3f originInTargetDdf = core::transf4( srcMmTargetIndexDdf, slice.getOrigin() );
+
+         // finally get the axis: rotate & scale the axis of the MPR
+         const core::vector3f dx = core::mul4Rot( srcMmTargetIndex, slice.getAxisX() ) * slice.getSpacing()[ 0 ];
+         const core::vector3f dy = core::mul4Rot( srcMmTargetIndex, slice.getAxisY() ) * slice.getSpacing()[ 1 ];
+         const core::vector3f dxDdf = core::mul4Rot( srcMmTargetIndexDdf, slice.getAxisX() ) * slice.getSpacing()[ 0 ];
+         const core::vector3f dyDdf = core::mul4Rot( srcMmTargetIndexDdf, slice.getAxisY() ) * slice.getSpacing()[ 1 ];
+
+         // if isCenter == true, the slice geometric space (0,0) is the center and not the bottom left point of the slice
+         const float startx = (float)( originInTarget[ 0 ] - isCenter * ( slice.size()[ 0 ] * dx[ 0 ] / 2 + slice.size()[ 1 ] * dy[ 0 ] / 2 ) );
+         const float starty = (float)( originInTarget[ 1 ] - isCenter * ( slice.size()[ 0 ] * dx[ 1 ] / 2 + slice.size()[ 1 ] * dy[ 1 ] / 2 ) );
+         const float startz = (float)( originInTarget[ 2 ] - isCenter * ( slice.size()[ 0 ] * dx[ 2 ] / 2 + slice.size()[ 1 ] * dy[ 2 ] / 2 ) );
+
+         const float startxDdf = (float)( originInTargetDdf[ 0 ] - isCenter * ( slice.size()[ 0 ] * dxDdf[ 0 ] / 2 + slice.size()[ 1 ] * dyDdf[ 0 ] / 2 ) );
+         const float startyDdf = (float)( originInTargetDdf[ 1 ] - isCenter * ( slice.size()[ 0 ] * dxDdf[ 1 ] / 2 + slice.size()[ 1 ] * dyDdf[ 1 ] / 2 ) );
+         const float startzDdf = (float)( originInTargetDdf[ 2 ] - isCenter * ( slice.size()[ 0 ] * dxDdf[ 2 ] / 2 + slice.size()[ 1 ] * dyDdf[ 2 ] / 2 ) );
+
+         const core::vector3f start( startx, starty, startz );
+         const core::vector3f startDdf( startxDdf, startyDdf, startzDdf );
+
+         // set up the interpolator
+         // if SSE is not supported, use the default interpolator
+         if ( core::Equal<Interpolator, InterpolatorTriLinear< VolumeSpatial<float> > >::value && !core::Configuration::instance().isSupportedSSE2() )
+         {
+            typedef InterpolatorTriLinearDummy< Volume > InterpolatorNoSSE;
+            InterpolatorNoSSE interpolator( _volume );
+            _fill<InterpolatorNoSSE>( tfm, start, startDdf, dx, dxDdf, dy, dyDdf, interpolator, slice );
+         } else {
+            Interpolator interpolator( _volume );
+            _fill<Interpolator>( tfm, start, startDdf, dx, dxDdf, dy, dyDdf, interpolator, slice );
          }
       }
 
    protected:
       template <class Interpolator>
-      void _fill( float startx, float starty, float startz, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
+      void _fill( const core::vector3f& start, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
          #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          # pragma omp parallel for
@@ -137,9 +206,9 @@ namespace imaging
          {
             NLL_ALIGN_16 float pos[ 4 ] =
             {
-               startx + dy[ 0 ] * y,
-               starty + dy[ 1 ] * y,
-               startz + dy[ 2 ] * y,
+               start[ 0 ] + dy[ 0 ] * y,
+               start[ 1 ] + dy[ 1 ] * y,
+               start[ 2 ] + dy[ 2 ] * y,
                0
             };
 
@@ -153,6 +222,48 @@ namespace imaging
                pos[ 0 ] += dx[ 0 ];
                pos[ 1 ] += dx[ 1 ];
                pos[ 2 ] += dx[ 2 ];
+               it.addx();
+            }
+
+            interpolatorCp.endInterpolation();
+         }
+      }
+
+      template <class Interpolator>
+      void _fillDdf( const TransformationDenseDeformableField& tfm, const core::vector3f& start, const core::vector3f& startDdf, const core::vector3f& ddf, const core::vector3f& dx, const core::vector3f& dxDdf, const core::vector3f& dy, const core::vector3f& dyDdf, Interpolator& interpolator, Slice& slice ) const
+      {
+         const impl::TransformationHelper transformationHelper( _volume.getInvertedPst() );
+
+         #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
+         # pragma omp parallel for
+         #endif
+         for ( int y = 0; y < (int)slice.size()[ 1 ]; ++y )
+         {
+            core::vector3f pos = start + dy * y;
+            core::vector3f posDdf = startDdf + dyDdf * y;
+
+            Interpolator interpolatorCp = interpolator;
+            interpolatorCp.startInterpolation();
+
+            typename Slice::DirectionalIterator it = slice.getIterator( 0, y );
+            for ( ui32 x = 0; x < slice.size()[ 0 ]; ++x )
+            {
+               posDdf += dxDdf;
+
+               // get the displacement in MM space. We need to convert it as an index in the target volume
+               core::vector3f displacement = tfm.transformDeformableOnlyIndex( posDdf );  // displacement in MM
+               transformationHelper.transform( displacement ); // translate the displacement in MM into the corresponding target index
+
+               const NLL_ALIGN_16 float posWithDdf[ 4 ] =
+               {
+                  pos[ 0 ] + displacement[ 0 ],
+                  pos[ 1 ] + displacement[ 1 ],
+                  pos[ 2 ] + displacement[ 2 ],
+                  0
+               };
+
+               *it = interpolatorCp( posWithDdf );
+               pos += dx;
                it.addx();
             }
 

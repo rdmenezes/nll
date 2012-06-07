@@ -337,6 +337,7 @@
     <ClInclude Include="init.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="script\basic.ludo" />
     <None Include="script\helper1.ludo" />
     <None Include="script\single.ludo">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

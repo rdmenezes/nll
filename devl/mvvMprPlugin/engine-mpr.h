@@ -413,13 +413,13 @@ namespace platform
             
             if ( sliceInfos.size() )
             {
-               Sliceuc result( nll::core::vector3ui( sliceInfos[ 0 ].slice.size()[ 0 ],
-                                                     sliceInfos[ 0 ].slice.size()[ 1 ],
+               Sliceuc result( nll::core::vector3ui( sliceInfos[ 0 ].slice->size()[ 0 ],
+                                                     sliceInfos[ 0 ].slice->size()[ 1 ],
                                            3 ),
-                               sliceInfos[ 0 ].slice.getAxisX(),
-                               sliceInfos[ 0 ].slice.getAxisY(),
-                               sliceInfos[ 0 ].slice.getOrigin(),
-                               sliceInfos[ 0 ].slice.getSpacing() );
+                               sliceInfos[ 0 ].slice->getAxisX(),
+                               sliceInfos[ 0 ].slice->getAxisY(),
+                               sliceInfos[ 0 ].slice->getOrigin(),
+                               sliceInfos[ 0 ].slice->getSpacing() );
 
                nll::imaging::blendDummy( sliceInfos, result );
 

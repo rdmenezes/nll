@@ -52,7 +52,7 @@ namespace imaging
    {
       typedef imaging::Slice<InputType>      Slice;
 
-      BlendSliceInfo( Slice& s, float bf, Lut& l ) : slice( s ), blendFactor( bf ), lut( l )
+      BlendSliceInfo( const Slice& s, float bf, const Lut& l ) : slice( &s ), blendFactor( bf ), lut( &l )
       {}
 
       BlendSliceInfo& operator=( const BlendSliceInfo& rhs )
@@ -63,9 +63,9 @@ namespace imaging
          return *this;
       }
 
-      Slice&                  slice;
+      const Slice*            slice;
       float                   blendFactor;
-      Lut&                    lut;
+      const Lut*              lut;
    };
 
    /**
@@ -77,7 +77,7 @@ namespace imaging
    {
       typedef  BlendSliceInfo<Lut, f32>      Base;
 
-      BlendSliceInfof( typename Base::Slice& s, float bf, Lut& l ) : Base( s, bf, l )
+      BlendSliceInfof( const typename Base::Slice& s, float bf, const Lut& l ) : Base( s, bf, l )
       {}
    };
 
@@ -105,14 +105,14 @@ namespace imaging
       if ( !sliceInfos.size() )
          return;
       ensure( out.getNbComponents() == 3, "error must be RGB image" );
-      ensure( out.size() == 3 * sliceInfos[ 0 ].slice.size(), "error must be the same size and RGB image" );
+      ensure( out.size() == 3 * sliceInfos[ 0 ].slice->size(), "error must be the same size and RGB image" );
       const int isApplicable = core::Equal<f32, typename Lut::value_type>::value;
       ensure( isApplicable, "should only be run with float LUT" );
 
       std::vector< InputIterator > inputIterators( sliceInfos.size() );
       for ( size_t n = 0; n < sliceInfos.size(); ++n )
       {
-         inputIterators[ n ] = sliceInfos[ n ].slice.begin();
+         inputIterators[ n ] = sliceInfos[ n ].slice->begin();
       }
 
       // cache the lut address & values in an array // else strange code is generated with VS2005SP1
@@ -120,7 +120,7 @@ namespace imaging
       std::vector<__m128> blendFactors( sliceInfos.size() );
       for ( ui32 n = 0; n < sliceInfos.size(); ++n )
       {
-         luts[ n ] = &sliceInfos[ n ].lut;
+         luts[ n ] = sliceInfos[ n ].lut;
          blendFactors[ n ] = _mm_set_ps1( sliceInfos[ n ].blendFactor );
       }
 
@@ -171,28 +171,20 @@ namespace imaging
       std::vector< InputIterator > inputIterators( sliceInfos.size() );
       for ( ui32 n = 0; n < sliceInfos.size(); ++n )
       {
-         luts[ n ] = &sliceInfos[ n ].lut;
+         luts[ n ] = sliceInfos[ n ].lut;
          blendFactors[ n ] = sliceInfos[ n ].blendFactor;
-         inputIterators[ n ] = sliceInfos[ n ].slice.begin();
+         inputIterators[ n ] = sliceInfos[ n ].slice->begin();
 
          // check the slices are correctly used
 
          // same scaling
-         assert( core::equal<float>( sliceInfos[ n ].slice.getSpacing()[ 0 ], out.getSpacing()[ 0 ] ) );
-         assert( core::equal<float>( sliceInfos[ n ].slice.getSpacing()[ 1 ], out.getSpacing()[ 1 ] ) );
+         assert( core::equal<float>( sliceInfos[ n ].slice->getSpacing()[ 0 ], out.getSpacing()[ 0 ] ) );
+         assert( core::equal<float>( sliceInfos[ n ].slice->getSpacing()[ 1 ], out.getSpacing()[ 1 ] ) );
 
          // same plane
-         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 0 ], out.getNormal()[ 0 ], 1e-4f ) );
-         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 1 ], out.getNormal()[ 1 ], 1e-4f ) );
-         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
-         
-         // transform slice coordinate to output coordinate
-         //core::vector3f offset = sliceInfos[ n ].slice.getOrigin() - out.getOrigin();
-
-         // check minmax is in the output slice
-         //core::vector3f min = sliceInfos[ n ].slice.getOrigin() - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
-         //core::vector3f max = sliceInfos[ n ].slice.getOrigin() + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] / 2 + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ] / 2;
-         //assert( out.contains( min ) && out.contains( max ) );
+         assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 0 ], out.getNormal()[ 0 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 1 ], out.getNormal()[ 1 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
       }
 
       const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
@@ -243,28 +235,28 @@ namespace imaging
       std::vector< InputIterator > inputIteratorsStartLine;
       for ( ui32 n = 0; n < sliceInfos.size(); ++n )
       {
-         luts[ n ] = &sliceInfos[ n ].lut;
+         luts[ n ] = sliceInfos[ n ].lut;
          blendFactors[ n ] = sliceInfos[ n ].blendFactor;
-         inputIterators.push_back( sliceInfos[ n ].slice.getIterator( xmin, ymin ) );
+         inputIterators.push_back( sliceInfos[ n ].slice->getIterator( xmin, ymin ) );
          inputIteratorsStartLine.push_back( inputIterators[ n ] );
 
          // check the slices are correctly used
 
          // same scaling
-         assert( core::equal<float>( sliceInfos[ n ].slice.getSpacing()[ 0 ], out.getSpacing()[ 0 ] ) );
-         assert( core::equal<float>( sliceInfos[ n ].slice.getSpacing()[ 1 ], out.getSpacing()[ 1 ] ) );
+         assert( core::equal<float>( sliceInfos[ n ].slice->getSpacing()[ 0 ], out.getSpacing()[ 0 ] ) );
+         assert( core::equal<float>( sliceInfos[ n ].slice->getSpacing()[ 1 ], out.getSpacing()[ 1 ] ) );
 
          // same plane
-         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 0 ], out.getNormal()[ 0 ], 1e-4f ) );
-         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 1 ], out.getNormal()[ 1 ], 1e-4f ) );
-         assert( core::equal( sliceInfos[ n ].slice.getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 0 ], out.getNormal()[ 0 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 1 ], out.getNormal()[ 1 ], 1e-4f ) );
+         assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
          
          // transform slice coordinate to output coordinate
-         core::vector3f offset = sliceInfos[ n ].slice.getOrigin() - out.getOrigin();
+         core::vector3f offset = sliceInfos[ n ].slice->getOrigin() - out.getOrigin();
 
          // check minmax is in the output slice
-         core::vector3f min = offset - sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] - sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ];
-         core::vector3f max = offset + sliceInfos[ n ].slice.getAxisX() * out.getSpacing()[ 0 ] + sliceInfos[ n ].slice.getAxisY() * out.getSpacing()[ 1 ];
+         core::vector3f min = offset - sliceInfos[ n ].slice->getAxisX() * out.getSpacing()[ 0 ] - sliceInfos[ n ].slice->getAxisY() * out.getSpacing()[ 1 ];
+         core::vector3f max = offset + sliceInfos[ n ].slice->getAxisX() * out.getSpacing()[ 0 ] + sliceInfos[ n ].slice->getAxisY() * out.getSpacing()[ 1 ];
          assert( out.contains( min ) && out.contains( max ) );
       }
 

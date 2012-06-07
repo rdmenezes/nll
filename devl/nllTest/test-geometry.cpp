@@ -229,7 +229,7 @@ public:
 
          // this one will never contain it..
          const vector2f normal( -1, s1.getA() );
-         const vector2f p( x + normal[ 0 ], y + normal[ 1 ] );
+         const vector2f p( x + normal[ 0 ] * 10, y + normal[ 1 ] * 10 );
          ensure( !s1.contains( p ), "arg!" );
       }
    }

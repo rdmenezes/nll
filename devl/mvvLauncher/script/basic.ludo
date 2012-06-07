@@ -1,0 +1,104 @@
+import "core"
+import "siemens"
+
+include "helper1"
+
+/**
+ @note the following variables must have been defined:
+       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
+       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
+
+ @note the following variables may be defined (if not default values apply)
+       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
+       - "historyExportLocation" of type "string", defines where the command history is imported/exported
+ */
+
+//
+// configuration constants
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+/// saves the last XXX commands typed by the user, these will be imported next sessions
+int      sizeHistoryExport            = 500;
+
+/// defines the export/import location
+string   historyExportLocation        = "c:/Temp/command_history.txt";
+
+//
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+ToolAnnotations         annotations;
+ToolManipulators        manipultors;
+ManipulatorPointer pointer;
+
+VolumeContainer         volumes;
+
+VolumeID pet = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
+VolumeID ct = readVolumeMF2Asynchronous("../../nllTest/data/medical/ct.mf2");
+
+Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
+Lut petLutWhite( 4000.0, 20000.0, Vector3i( 255, 255, 255 ) );
+petLutWhite.setColor(0, 100, 100, 100);
+Lut ctLut( -250.0, 250.0 );
+
+/*
+DisplayRegionDetection detection( annotations );
+AnnotationCreator annotationCreator( annotations, pointer );
+VolumeSwitch switch( ctLut, volumes, volumeList, detection );
+*/
+
+KeyboardCallback callbacks;
+//callbacks.addShortcut( annotationCreator.run, "F1" );
+//callbacks.addShortcut( switch.next, "F3" );
+
+AffineRegistration petReg;
+AffineRegistration ctReg;
+
+volumes.add( ct, ctLut, 0.5, ctReg );
+volumes.add( pet, petLut, 0.5, petReg );
+
+ToolAnnotations::AnnotationID a1 = annotations.add(Vector3f(52.0, - 159.0, 1327.0), "Left Ventricle", Vector3i(0, 255, 255));
+
+Mip mip1( pet, petLutWhite );
+mip1.setTool( toolPointerMip );
+mip1.setTool( annotations );
+
+ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
+manipultors.add( manipulator1 );
+manipultors.add( ManipulatorPoint( Vector3f(10.0, 0.0, 0.0) ) );
+manipultors.add( ManipulatorPoint( Vector3f(20.0, 0.0, 0.0) ) );
+manipultors.add( pointer );
+
+Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
+segment1.setTool( annotations );
+
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
+segment2.setTool( annotations );
+
+Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
+segment3.setTool( annotations );
+
+
+Layout::Vertical vertical;
+Layout::Horizontal horizontal;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout l3( segment3 );
+Layout l6( Console() );
+Layout l4( mip1 );
+
+Layout layoutDisplay( vertical, Layout(horizontal, l1, l2, 0.51), Layout(horizontal, l3, l4, 0.51), 0.51 );
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.05);
+
+ImageHolder holder;
+Layout layout1 = layout;
+Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);

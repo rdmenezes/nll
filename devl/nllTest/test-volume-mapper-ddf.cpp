@@ -18,6 +18,9 @@ class TestTransformationMapperDdf3D
    typedef core::Matrix<float>            Matrix;
    typedef imaging::VolumeSpatial<float>  Volume;
    typedef imaging::InterpolatorTriLinear<Volume>  Interpolator;
+   typedef imaging::Mpr<Volume, Interpolator>      Mpr;
+   typedef imaging::Slice<float>                   Slicef;
+   typedef imaging::Slice<ui8>                     Slicec;
 
 public:
    // here just take the test of the affine mapping TestVolumeMapper::testSimpleMapping(), and check we still have the same result with a DDF
@@ -297,6 +300,37 @@ public:
       TESTER_ASSERT( sliceGradientRef == sliceGradient.getStorage() );
       TESTER_ASSERT( sliceDdfRef == sliceDdf.getStorage() );
    }
+
+   Slicec getRgbSlice( const imaging::LookUpTransformWindowingRGB& lut, const Slicef& slice )
+   {
+      core::vector3ui sizeRgb( slice.size()[ 0 ], slice.size()[ 1 ], 3 );
+      Slicec sliceRgb( sizeRgb, slice.getAxisX(), slice.getAxisY(), slice.getOrigin(), slice.getSpacing() );
+      std::vector< imaging::BlendSliceInfof<imaging::LookUpTransformWindowingRGB> > sliceInfos;
+      sliceInfos.push_back( imaging::BlendSliceInfof<imaging::LookUpTransformWindowingRGB>( slice, 0.9, lut ) );
+      imaging::blendDummy( sliceInfos, sliceRgb );
+      return sliceRgb;
+   }
+
+
+
+   void testDdfMpr()
+   {
+      Volume target;
+      imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/pet-NAC.mf2", target );
+
+      const core::vector3f targetCenter = target.indexToPosition( core::vector3f( target.size()[ 0 ] / 2, target.size()[ 1 ] / 2, target.size()[ 2 ] / 2 ) );
+
+      imaging::LookUpTransformWindowingRGB lut( 500, 10000, 255 );
+      lut.createGreyscale();
+
+      Mpr mpr( target );
+      Slicef slice( core::vector3ui( 256, 256, 1 ), core::vector3f( 1, 0, 0 ), core::vector3f( 0, 1, 0 ), targetCenter, core::vector2f( 1, 1 ) );
+      mpr.getSlice( slice );
+
+      core::vector3ui sizeRgb;
+      Slicec sliceRgb = getRgbSlice( lut, slice );
+      core::writeBmp( sliceRgb.getStorage(), "c:/tmp2/mpr.bmp" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -304,5 +338,6 @@ TESTER_TEST_SUITE(TestTransformationMapperDdf3D);
 TESTER_TEST(testSimpleAffineMappingOnly);
 TESTER_TEST(testDdfConversionFromRbf);
 TESTER_TEST(testGridOverlay);
+TESTER_TEST(testDdfMpr);
 TESTER_TEST_SUITE_END();
 #endif

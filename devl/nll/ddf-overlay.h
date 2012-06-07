@@ -215,9 +215,13 @@ namespace imaging
              To draw the grid, we actually do it in 2 passes:
              - all vertical lines
              - then all horizontal ones
+
+       @extraPadding extra padding for the grid (so we are adding <extraPadding> DDF indexes in the min/max grid)
+                     If we are big displacements at some point, we will see the grid border and this is why we are adding extra padding
+                     To solve this problem, we could have tested more points on the grid border (currently, we test just the corners)
        */
       template <class T>
-      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 8, 8 ) )
+      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 8, 8 ), ui32 extraPadding = 10 )
       {
          ensure( slice.size()[ 0 ] > 0 && slice.size()[ 1 ] > 0, "must not be empty" );
 
@@ -259,8 +263,8 @@ namespace imaging
          _minMaxGridIndex( min, max, topRight2Index );
 
          // add extra padding just to be sure
-         min -= core::vector2f( 10, 10 );
-         max += core::vector2f( 10, 10 );
+         min -= core::vector2f( extraPadding, extraPadding );
+         max += core::vector2f( extraPadding, extraPadding );
 
          // export the min/max: they will be our grid 
          bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( min ) );
@@ -289,7 +293,7 @@ namespace imaging
    private:
       // given a point, a segment and the current min/max position on this segment, check if we need to extend
       // the grid so that this point is contained within min/max
-      void _minMaxGridIndex( core::vector2f& min, core::vector2f& max, const core::vector2f& point )
+      void _minMaxGridIndex( core::vector2f& min, core::vector2f& max, const core::vector2f& point ) const
       {
          min[ 0 ] = std::min( min[ 0 ], point[ 0 ] );
          min[ 1 ] = std::min( min[ 1 ], point[ 1 ] );
