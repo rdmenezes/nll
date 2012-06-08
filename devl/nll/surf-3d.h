@@ -74,10 +74,10 @@ namespace algorithm
       struct Point
       {
          typedef core::Buffer1D<value_type> Features;
-         Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( static_cast<int>( 6 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) )
+         Point( core::vector3i p, ui32 s ) : position( p ), scale( s ), features( static_cast<int>( 6 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) ), weight( 1 )
          {}
 
-         Point() : features( static_cast<int>( 6 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) )
+         Point() : features( static_cast<int>( 6 * ( NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE * NLL_SURF_3D_NB_AREA_PER_FEATURE ) ) ), weight( 1 )
          {}
 
          Features                   features;
@@ -85,6 +85,35 @@ namespace algorithm
          value_type                 orientation2;     // drz
          core::vector3i             position;
          ui32                       scale;
+         float                      weight;        // this will be used to weight the points in the <AffineRegistrationPointBased2d>. By default the algorithm will set it to 1, but a third party could change this value to give more weight to specific points
+
+         void write( std::ostream& o ) const
+         {
+            core::write<Features>( features, o );
+            core::write<value_type>( orientation1, o );
+            core::write<value_type>( orientation2, o );
+            position.write( o );
+            core::write<ui32>( scale, o );
+            core::write<float>( weight, o );
+         }
+
+         void read( std::istream& i )
+         {
+            core::read<Features>( features, i );
+            core::read<value_type>( orientation1, i );
+            core::read<value_type>( orientation2, i );
+            position.read( i );
+            core::read<ui32>( scale, i );
+            core::read<float>( weight, i );
+         }
+
+         void print( std::ostream& o ) const
+         {
+            o << "position=" << position[ 0 ] << " " << position[ 1 ] << " " << position[ 2 ] << std::endl;
+            o << "angle=" << orientation1 << " " << orientation2 << std::endl;
+            o << "scale=" << scale << std::endl;
+            features.print( o );
+         }
       };
 
       typedef core::Buffer1D<Point> Points;
@@ -98,17 +127,12 @@ namespace algorithm
          typedef core::Buffer1D<SpeededUpRobustFeatures3d::value_type>  value_type;
 
       public:
-         PointsFeatureWrapper( Points& points ) : _points( points )
+         PointsFeatureWrapper( const Points& points ) : _points( points )
          {}
 
          ui32 size() const
          {
             return _points.size();
-         }
-
-         core::Buffer1D<SpeededUpRobustFeatures3d::value_type>& operator[]( ui32 n )
-         {
-            return _points[ n ].features;
          }
 
          const core::Buffer1D<SpeededUpRobustFeatures3d::value_type>& operator[]( ui32 n ) const
@@ -121,7 +145,7 @@ namespace algorithm
          PointsFeatureWrapper& operator=( const PointsFeatureWrapper& );
 
       private:
-         Points& _points;
+         const Points& _points;
       };
 
 
@@ -196,11 +220,28 @@ namespace algorithm
          return points;
       }
 
+      /**
+       @brief Given a list of points (position + scale), compute the features (orientation + feature)
+       */
+      template <class Volume>
+      void computeFeatures( const Volume& i, Points& points )
+      {
+         FastHessianDetPyramid3d pyramid;
+         pyramid.construct( i, _filterSizes, _filterSteps );
+
+         _computeAngle( pyramid.getIntegralImage(), points );
+         _computeFeatures( pyramid.getIntegralImage(), points );
+      }
+
    private:
       // sig = standard deviation
       static value_type gaussian(value_type x, value_type y, value_type z, value_type sig)
       {
-         return ( 1.0 / ( 2.0 * core::PI * sig * sig ) ) * std::exp( -( x * x + y * y + z * z ) / ( 2.0 * sig * sig ) );
+         // TODO check different values here...
+
+         // get rid of the normalization constant: we don't need it! We just want to give more importance to the points
+         // in the center for the robustness, not shift the results toward zero which will cause numerical problems
+         return std::exp( -( x * x + y * y + z * z ) / ( 2.0 * sig * sig ) );
       }
 
       void _computeFeatures( const IntegralImage3d& image, Points& points ) const
@@ -225,6 +266,8 @@ namespace algorithm
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
             value_type scale = core::round( scaleFactor * point.scale );
+            if ( scale < 1 )
+               scale = 1;  // this is the minimum possible scale
 
             const int size = (int)core::sqr( 2 * scale );
 
@@ -271,10 +314,11 @@ namespace algorithm
                               }
 
                               //Get the gaussian weighted x and y responses
-                              const value_type gauss_s1 = gaussian( di - cx, dj - cy, dk - cz, 2.5 * scale );
+                              const value_type gauss_s1 = gaussian( di - cx, dj - cy, dk - cz, scale );
 
                               core::vector3ui bl( core::round( sample_x - scale ),
                                                   core::round( sample_y - scale ),
+
                                                   core::round( sample_z - scale ) );
                               core::vector3ui tr( core::round( sample_x + scale ),
                                                   core::round( sample_y + scale ),
@@ -563,10 +607,19 @@ namespace algorithm
                               // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                               const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
+                              // TODO PUT IT BACK AFTER DEBUG. Seems to get wrong results with it
+                              /*
                               int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] );
                               int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] );
                               int pz    = core::round( ( z    - interpolatedPoint[ 2 ] ) * _filterSteps[ filter ] );
                               int scale = core::round( size   - interpolatedPoint[ 3 ]   * filterStep );
+                              */
+                              int px    = core::round( x );
+                              int py    = core::round( y );
+                              int pz    = core::round( z );
+                              int scale = core::round( size );
+                              if ( scale <= 0 )
+                                 continue;   // should not happen, but just in case!
 
                               #ifndef NLL_NOT_MULTITHREADED
                               ui32 threadId = omp_get_thread_num();

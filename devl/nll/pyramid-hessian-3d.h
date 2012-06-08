@@ -142,9 +142,10 @@ namespace algorithm
                                                                               image,
                                                                               bl,
                                                                               tr ) / sizeFilter;
-                        const double val = dxx * ( dyy * dzz - 0.81 * dyz * dyz ) -
-                                           dyy * ( dxy * dzz - 0.81 * dyz * dxz ) +
-                                           dzz * ( dxx * dyy - 0.81 * dxy * dxy );
+                        // TODO: check!!! -> froebnius norm for discrete gaussian
+                        const double val = dxx * ( dyy * dzz - dyz * dyz ) -
+                                           dyy * ( dxy * dzz - dyz * dxz ) +
+                                           dzz * ( dxx * dyy - dxy * dxy );
                         detHessian( x, y, z ) = static_cast<value_type>( val );
                      }
                   }

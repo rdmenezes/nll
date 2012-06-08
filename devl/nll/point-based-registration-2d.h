@@ -757,10 +757,7 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "point matching time=" + core::val2str( timerMatcher.getCurrentTime() ) );
 
          // take only the best subset...
-         if ( matches.size() == 0 )
-         {
-            throw std::runtime_error( "No match found" );
-         }
+         ensure( matches.size(), "No match found!" );
          FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( nbMaxRansacPairs, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
@@ -782,10 +779,8 @@ namespace algorithm
                                                                                 nbRansacIterations,
                                                                                 maxErrorInPixel * maxErrorInPixel,
                                                                                 weights );
-         if ( ransac.getNbInliers() <= minimumInliers )
-         {
-            throw std::runtime_error( "Error: inliers are too small" );
-         }
+
+         ensure( ransac.getNbInliers() > minimumInliers, "Error: inliers are too small" );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "RANSAC optimization time=" + nll::core::val2str( ransacOptimTimer.getCurrentTime() ) );
 
          _inliers.clear();

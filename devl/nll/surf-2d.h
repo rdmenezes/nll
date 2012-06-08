@@ -284,6 +284,8 @@ namespace algorithm
                            int px    = core::round( ( x    - interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] );
                            int py    = core::round( ( y    - interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] );
                            int scale = core::round( size   - interpolatedPoint[ 2 ]   * filterStep );
+                           if ( scale <= 0 )
+                              continue;   // should not happen, but just in case!
 
                            #ifndef NLL_NOT_MULTITHREADED
                            ui32 threadId = omp_get_thread_num();

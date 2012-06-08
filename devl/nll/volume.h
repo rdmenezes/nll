@@ -636,6 +636,14 @@ namespace imaging
          return _buffer;
       }
 
+      /**
+       @brief Return the internal storage
+       */
+      VoxelBuffer& getStorage()
+      {
+         return _buffer;
+      }
+
    protected:
       /**
        @brief return the value at the point (x, y, z)

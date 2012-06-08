@@ -316,7 +316,8 @@ public:
    void testDdfMpr()
    {
       Volume target;
-      imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/pet-NAC.mf2", target );
+      const bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/pet-NAC.mf2", target );
+      ensure( loaded, "Error!" );
 
       const core::vector3f targetCenter = target.indexToPosition( core::vector3f( target.size()[ 0 ] / 2, target.size()[ 1 ] / 2, target.size()[ 2 ] / 2 ) );
 
