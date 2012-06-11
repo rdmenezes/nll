@@ -41,7 +41,8 @@ namespace algorithm
            for each point, H(x, o) =| Lxx Lxy |
                                     | Lxy Lyy |
                            det(H)= Lxx*Lyy-(0.9 * Lxy)^2
-           note the normalization factor 0.9 comes from the gaussian approximation
+           
+    @note the area used to compute Lxx Lxy... are different and must be normalized, e.g., using the frobenius norm L=3
     */
    class FastHessianDetPyramid2d
    {
@@ -114,7 +115,12 @@ namespace algorithm
                                                                            image,
                                                                            bl,
                                                                            tr ) / sizeFilter;
-                     detHessian( y, x ) = dxx * dyy - core::sqr( 0.9 * dxy );
+
+                     // here we normalize the dxy, as the area used for the filters are diffent than dxx or dyy
+                     // using the frobenius norm (see http://mathworld.wolfram.com/FrobeniusNorm.html)
+                     // i.e., CTE = sqrt( 4 * 9 ) / sqrt( 2*9 + 3*7 + 2*3 ) = 0.89
+                     static const double NORMALIZATION = 0.9;
+                     detHessian( y, x ) = dxx * dyy - core::sqr( NORMALIZATION * dxy );
                   } else {
                      detHessian( y, x ) = 0;
                   }

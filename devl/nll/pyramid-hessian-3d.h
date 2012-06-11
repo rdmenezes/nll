@@ -43,10 +43,9 @@ namespace algorithm
                            H(x, o) = | Lyx Lyy Lyz | = | d e f |
                                      | Lzx Lzy Lzz |   | g h i |
 
-                           det(H)= Lxx * | Lyy Lyx | - Lyy * | Lxx Lxz | + Lzz * | Lxx Lxy |
+                           det(H)= Lxx * | Lyy Lyz | - Lyy * | Lxx Lxz | + Lzz * | Lxx Lxy |
                                          | Lzy Lzz |         | Lzx Lzz |         | Lyx Lyy |
-                                 = a(ei - 0.81hf) - e(bi - 0.81hc) + i(ae - 0.81bd)
-           note the normalization factor 0.9^2 comes from the gaussian approximation of the gaussian derivatives
+    @note the area used to compute Lxx Lxy... are different and must be normalized, e.g., using the frobenius norm L=3
     */
    class FastHessianDetPyramid3d
    {
@@ -142,15 +141,20 @@ namespace algorithm
                                                                               image,
                                                                               bl,
                                                                               tr ) / sizeFilter;
-                        // TODO: check!!! -> froebnius norm for discrete gaussian
-                        const double val = dxx * ( dyy * dzz - dyz * dyz ) -
-                                           dyy * ( dxy * dzz - dyz * dxz ) +
-                                           dzz * ( dxx * dyy - dxy * dxy );
+                        
+                        // the dxx/dxy filters have a different area, so normalize it with the frobenius norm, L=3
+                        // f = (9^3-4*9^2)^1/3 / (9^3-9*(2*9+3*7+2*3)^1/3 = 0.928
+                        // see http://mathworld.wolfram.com/FrobeniusNorm.html
+                        static const double NORMALIZATION = 0.928 * 0.928;
+                        const double val = dxx * ( dyy * dzz - NORMALIZATION * dyz * dyz ) -
+                                           dyy * ( dxx * dzz - NORMALIZATION * dxz * dxz ) +
+                                           dzz * ( dxx * dyy - NORMALIZATION * dxy * dxy );
                         detHessian( x, y, z ) = static_cast<value_type>( val );
                      }
                   }
                }
             }
+
             std::cout << "Time scale=" << scaleTimer.getCurrentTime() << std::endl;
             _pyramidDetHessian.push_back( detHessian );
          }
