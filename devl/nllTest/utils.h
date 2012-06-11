@@ -13,6 +13,18 @@ namespace test
       typedef imaging::InterpolatorTriLinear<Volume>  Interpolator;
       typedef imaging::Slice<float>          Slicef;
 
+      typedef imaging::TransformationDenseDeformableField Ddf;
+      typedef core::DeformableTransformationRadialBasis<> RbfTransform;
+      typedef std::vector<RbfTransform::Rbf> Rbfs;
+      typedef RbfTransform::Rbf Rbf;
+
+      static Ddf createDdf( const Matrix& affineTfm, const Matrix& pstTarget, const Rbfs& rbfs, const core::vector3ui ddfSize, const core::vector3f ddfSizeMm )
+      {
+         RbfTransform tfmRbf( affineTfm, rbfs );
+         Ddf ddf = imaging::TransformationDenseDeformableField::create( tfmRbf, pstTarget, ddfSizeMm, ddfSize );
+         return ddf;
+      }
+
       static void Average( Volume& v, const int kernelSize = 5 )
       {
          const int kernelSizeHalf = kernelSize / 2;

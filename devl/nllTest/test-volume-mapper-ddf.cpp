@@ -1,6 +1,7 @@
 #include <nll/nll.h>
 #include <tester/register.h>
 #include "config.h"
+#include "utils.h"
 
 using namespace nll;
 
@@ -332,13 +333,103 @@ public:
       Slicec sliceRgb = getRgbSlice( lut, slice );
       core::writeBmp( sliceRgb.getStorage(), "c:/tmp2/mpr.bmp" );
    }
+
+   void testRandomDdfMapping()
+   {
+      // setup the volumes
+      Matrix pstTarget = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 1, 1, 1 ) );
+      Matrix affineTfm = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 0, 0, 0 ),
+                                                            core::vector3f( 1, 1, 1 ) );
+      Matrix pstResampled = core::createTransformationAffine3D(core::vector3f( 0, 0, 0 ),
+                                                               core::vector3f( 0, 0, 0 ),
+                                                               core::vector3f( 0, 0, 0 ),
+                                                               core::vector3f( 1, 1, 1 ) );
+      Volume target( core::vector3ui( 64, 64, 64 ), pstTarget );
+
+      for ( Volume::iterator it = target.begin(); it != target.end(); ++it )
+      {
+         *it = core::generateUniformDistribution( 100, 500 );
+      }      
+      test::VolumeUtils::Average( target );   // we need to have a smooth volume, else the interpolation error will be big as it is only bilinear interpolation
+
+      Volume resampled( core::vector3ui( 64, 64, 64 ), pstResampled );
+      imaging::VolumeTransformationProcessorResampler<Volume, Interpolator> resampler( target, resampled );
+      imaging::VolumeTransformationMapper mapper;
+      mapper.run( resampler, target, affineTfm, resampled );
+
+      // setup the ddf
+      core::vector3ui ddfSize( 32, 32, 32 );
+      core::vector3f sizeMm( target.size()[ 0 ] * target.getSpacing()[ 0 ],
+                             target.size()[ 1 ] * target.getSpacing()[ 1 ],
+                             target.size()[ 2 ] * target.getSpacing()[ 2 ] );
+
+      test::VolumeUtils::Rbfs rbfs;
+      rbfs.push_back( test::VolumeUtils::RbfTransform::Rbf( core::make_buffer1D<float>( 20, 5, 0 ),
+                                         core::make_buffer1D<float>( 32, 32, 32 ),
+                                         core::make_buffer1D<float>( 400, 400, 400 ) ) );
+
+      test::VolumeUtils::Ddf tfm = test::VolumeUtils::createDdf( affineTfm, pstTarget, rbfs, ddfSize, sizeMm );
+
+      Interpolator interpolator( target );
+      interpolator.startInterpolation();
+      float meanError = 0;
+      ui32 nbCases = 0;
+      for ( ui32 n = 0; n < 500; ++n )
+      {
+         static const int border = 5;
+         core::vector3f indexInResampled( ( border + rand() ) % ( resampled.size()[ 0 ] - 2 * border ),
+                                          ( border + rand() ) % ( resampled.size()[ 1 ] - 2 * border ),
+                                          ( border + rand() ) % ( resampled.size()[ 2 ] - 2 * border ) );
+         const core::vector3f pointInMm = resampled.indexToPosition( indexInResampled );
+         const core::vector3f pointInMmTfm = tfm.transform( pointInMm );
+         const core::vector3f indexInTarget = target.positionToIndex( pointInMmTfm );
+
+         if ( indexInTarget[ 0 ] < border || indexInTarget[ 1 ] < border || indexInTarget[ 2 ] < border ||
+               indexInTarget[ 0 ] + border >= resampled.size()[ 0 ] || indexInTarget[ 1 ] + border >= resampled.size()[ 1 ] || indexInTarget[ 2 ] + border >= resampled.size()[ 2 ] )
+         {
+            // on the border, the interpolator is not accurate, so avoid the comparison...
+            continue;
+         }
+
+         ++nbCases;
+
+         NLL_ALIGN_16 const float buf4[] = { indexInTarget[ 0 ], indexInTarget[ 1 ], indexInTarget[ 2 ], 0 };
+         const float expectedValue = interpolator( buf4 );
+         const float valueFound = resampled( indexInResampled[ 0 ], indexInResampled[ 1 ], indexInResampled[ 2 ] );
+         meanError += fabs( expectedValue - valueFound );
+
+         /*
+         std::cout << "indexInTarget=" << indexInTarget;
+         std::cout << "position=" << indexInResampled;
+         std::cout << "expectedValue=" << expectedValue << std::endl;
+         std::cout << "valueFound=" << valueFound << std::endl;
+         */
+            
+         TESTER_ASSERT( core::equal<float>( valueFound, expectedValue, 30 ) );
+      }
+      interpolator.endInterpolation();
+
+      meanError /= nbCases;
+      std::cout << "meanError=" << meanError << std::endl;
+      TESTER_ASSERT( meanError < 3 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestTransformationMapperDdf3D);
+
+/*
 TESTER_TEST(testSimpleAffineMappingOnly);
 TESTER_TEST(testDdfConversionFromRbf);
 TESTER_TEST(testGridOverlay);
 TESTER_TEST(testDdfMpr);
+*/
+
+TESTER_TEST(testRandomDdfMapping);
 TESTER_TEST_SUITE_END();
 #endif
