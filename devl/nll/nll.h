@@ -165,6 +165,7 @@
 # include <iostream>
 # include <sstream>
 # include <cstring>
+# include <typeinfo>
 
 /**
  @defgroup core
@@ -195,6 +196,9 @@
 # include "unreachable.h"
 # include "id-maker.h"
 # include "static-vector.h"
+# include "type-traits.h"
+# include "type-traits-inherited.h"
+# include "type-traits-memory.h"
 # include "buffer1D.h"
 # include "buffer1D-convolve.h"
 # include "Buffer1D-basic-op.h"
@@ -221,12 +225,8 @@
 # include "matrix-custom.h"
 # include "matrix-cholesky.h"
 # include "matrix-pseudo-inverse.h"
-# include "matrix-affine-transformation.h"
 # include "matrix-affine-decomposition.h"
 # include "math-distribution-multinormal.h"
-# include "type-traits.h"
-# include "type-traits-inherited.h"
-# include "type-traits-memory.h"
 # include "io.h"
 # include "image.h"
 # include "image-interpolator.h"
@@ -242,6 +242,7 @@
 # include "image-mask.h"
 # include "image-morphology.h"
 # include "geometry.h"
+# include "matrix-affine-transformation.h"
 # include "image-distance-transform.h"
 # include "image-spatial.h"
 # include "transformation-rbf.h"

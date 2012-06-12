@@ -42,10 +42,13 @@ namespace core
       class _ComputeGraphRoots : public GraphVisitorDfs<Graph>
       {
       public:
-         typedef typename Graph::VertexMapper<unsigned>              VertexMapper;
-         typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperIts;
-         typedef typename Graph::VertexDescriptor                    VertexDescriptor;
-         typedef typename Graph::EdgeDescriptor                      EdgeDescriptor;
+         typedef GraphVisitorDfs<Graph> Base;
+         typedef typename Base::const_vertex_iterator                         const_vertex_iterator;
+         typedef typename Base::const_edge_iterator                           const_edge_iterator;
+         typedef typename Graph::template VertexMapper<unsigned>              VertexMapper;
+         typedef typename Graph::template VertexMapper<const_vertex_iterator> VertexMapperIts;
+         typedef typename Graph::VertexDescriptor                             VertexDescriptor;
+         typedef typename Graph::EdgeDescriptor                               EdgeDescriptor;
 
          _ComputeGraphRoots( VertexMapper& emapper,
                              VertexMapperIts& itmapper ) :  _emapper( emapper ), _itmapper( itmapper )
@@ -76,7 +79,7 @@ namespace core
          std::vector<const_vertex_iterator> getRoots() const
          {
             std::vector<const_vertex_iterator> roots;
-            for ( VertexMapper::const_iterator it = _emapper.begin(); it != _emapper.end(); ++it )
+            for ( typename VertexMapper::const_iterator it = _emapper.begin(); it != _emapper.end(); ++it )
             {
                if ( *it == 0 )
                {
@@ -104,8 +107,8 @@ namespace core
    {
       typedef impl::_ComputeGraphRoots<Graph>   RootFinder;
 
-      RootFinder::VertexMapper vmapper( g );
-      RootFinder::VertexMapperIts itsmapper( g, g.end() );
+      typename RootFinder::VertexMapper vmapper( g );
+      typename RootFinder::VertexMapperIts itsmapper( g, g.end() );
 
       RootFinder rootFinder( vmapper, itsmapper );
       rootFinder.visit( g );
@@ -122,8 +125,8 @@ namespace core
       class DijkstraVertexEvaluator
       {
       public:
-         typedef typename Graph::VertexMapper<MapperValueType>       VertexMapper;
-         typedef typename Graph::const_vertex_iterator               const_vertex_iterator;
+         typedef typename Graph::template VertexMapper<MapperValueType>    VertexMapper;
+         typedef typename Graph::const_vertex_iterator                     const_vertex_iterator;
 
       public:
          DijkstraVertexEvaluator( const VertexMapper& vertexMapper ) : _vertexMapper( vertexMapper )
@@ -150,9 +153,12 @@ namespace core
    class Dijkstra : public GraphVisitorBfsPriority<Graph, impl::DijkstraVertexEvaluator<Graph, MapperValueType> >
    {
    public:
-      typedef typename Graph::VertexMapper<const_vertex_iterator> VertexMapperBacktrack;
-      typedef typename Graph::VertexMapper<MapperValueType>       VertexMapper;
-      typedef typename Graph::EdgeMapper<MapperValueType>         EdgeMapper;
+      typedef GraphVisitorBfsPriority<Graph, impl::DijkstraVertexEvaluator<Graph, MapperValueType> > Base;
+      typedef typename Base::const_vertex_iterator                         const_vertex_iterator;
+      typedef typename Base::const_edge_iterator                           const_edge_iterator;
+      typedef typename Graph::template VertexMapper<const_vertex_iterator> VertexMapperBacktrack;
+      typedef typename Graph::template VertexMapper<MapperValueType>       VertexMapper;
+      typedef typename Graph::template EdgeMapper<MapperValueType>         EdgeMapper;
 
       Dijkstra( EdgeMapper& distanceMap,
                 const const_vertex_iterator& begin ) :  _distanceMap( distanceMap ), _begin( begin ), _current( begin ), _g( 0 )
@@ -192,7 +198,7 @@ namespace core
          (*_vertexDistance)[ _begin ] = 0;
 
          impl::DijkstraVertexEvaluator<Graph, MapperValueType> eval( *_vertexDistance );
-         GraphVisitorBfsPriority::visit( g, eval );
+         Base::visit( g, eval );
       }
 
       std::vector<const_vertex_iterator> getPathTo( const const_vertex_iterator& end )

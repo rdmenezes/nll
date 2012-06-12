@@ -122,7 +122,7 @@ namespace core
       // we can directly hold an iterator as they are not invalidated by insertion/deletion
       class Descriptor
       {
-         friend Mapper;
+         friend class Mapper;
 
       public:
          Descriptor( iterator it ) : _it( it ), _uid( (*it).getUid() )
@@ -253,8 +253,8 @@ namespace core
       class const_iterator;
       class iterator
       {
-         friend const_iterator;
-         friend Mapper;
+         friend class const_iterator;
+         friend class Mapper;
 
       public:
          explicit iterator( iteratorImpl it ) : _it( it )
@@ -294,7 +294,7 @@ namespace core
 
       class const_iterator
       {
-		  friend Mapper;
+		  friend class Mapper;
 
       public:
          const_iterator( const_iteratorImpl it ) : _it( it )
@@ -340,7 +340,7 @@ namespace core
       // lightweight descriptor pointing to a DataStorage
       class Descriptor
       {
-         friend Mapper;
+         friend class Mapper;
 
       public:
          Uid getUid() const
@@ -556,7 +556,7 @@ namespace core
        */
       class DataMapperInterface
       {
-         friend GraphAdgencyList;
+         friend class GraphAdgencyList;
 
       public:
          virtual ~DataMapperInterface()
@@ -577,7 +577,7 @@ namespace core
    public:
       class Edge
       {
-         friend GraphAdgencyList;
+         friend class GraphAdgencyList;
 
          Edge( Uid uid, const typename Vertexs::Descriptor& source, const typename Vertexs::Descriptor& destination ) : _uid( uid ), src( source ), dst( destination )
          {}
@@ -611,7 +611,7 @@ namespace core
 
       class Vertex
       {
-         friend GraphAdgencyList;
+         friend class GraphAdgencyList;
 
          Vertex( Uid uid ) : _uid( uid )
          {}
@@ -656,7 +656,7 @@ namespace core
 
       class EdgeDescriptor
       {
-         friend GraphAdgencyList;
+         friend class GraphAdgencyList;
 
       public:
          EdgeDescriptor( const VertexDescriptor& src, const EdgeDescriptorImpl& d ) : _src( src ), _desc( d )
@@ -684,7 +684,7 @@ namespace core
       void unregisterObserver( DataMapperInterface* i ) const
       {
          // it is in one of the set...
-         DataMapperInterfaces::iterator it = std::find( _vertexsObserver.begin(), _vertexsObserver.end(), i );
+         typename DataMapperInterfaces::iterator it = std::find( _vertexsObserver.begin(), _vertexsObserver.end(), i );
          if ( it != _vertexsObserver.end() )
          {
             _vertexsObserver.erase( it );
@@ -797,9 +797,9 @@ namespace core
       public:
          using Base::operator[];
 
-         VertexMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, g.size(), val )
+         VertexMapper( const GraphAdgencyList& g, const T val = T() ) : Base( g, g.size(), val )
          {
-            _g->registerVertexObserver( this );
+            this->_g->registerVertexObserver( this );
          }
 
          const T& operator[]( const VertexDescriptor& desc ) const
@@ -823,7 +823,7 @@ namespace core
          T& operator[]( const const_vertex_iterator& it )
          {
 
-            return _storage[ (*it).getUid() ];
+            return this->_storage[ (*it).getUid() ];
          }
 
 		 /*
@@ -837,7 +837,7 @@ namespace core
          const T& operator[]( const const_vertex_iterator& it ) const
          {
 
-            return _storage[ (*it).getUid() ];
+            return this->_storage[ (*it).getUid() ];
          }
 
          /*
@@ -851,10 +851,10 @@ namespace core
          {
             // if the UID is >= _storage.size it means the UID the compactness assumption is wrong,
             // or it is the wrong container
-            assert( uid <= _storage.size() );
-            if ( uid == _storage.size() )
+            assert( uid <= this->_storage.size() );
+            if ( uid == this->_storage.size() )
             {
-               _storage.push_back( _default );
+               this->_storage.push_back( this->_default );
             }
          }
       };
@@ -870,9 +870,9 @@ namespace core
       public:
          using Base::operator[];
 
-         EdgeMapper( const GraphAdgencyList& g, const T val = T() ) : DataMapper( g, g.getNbEdges(), val )
+         EdgeMapper( const GraphAdgencyList& g, const T val = T() ) : Base( g, g.getNbEdges(), val )
          {
-            _g->registerEdgeObserver( this );
+            this->_g->registerEdgeObserver( this );
          }
 
          const T& operator[]( const EdgeDescriptor& desc ) const
@@ -896,7 +896,7 @@ namespace core
          T& operator[]( const const_edge_iterator& it )
          {
 
-            return _storage[ (*it).getUid() ];
+            return this->_storage[ (*it).getUid() ];
          }
 		 /*
          const T& operator[]( const edge_iterator& it ) const
@@ -909,7 +909,7 @@ namespace core
          const T& operator[]( const const_edge_iterator& it ) const
          {
 
-            return _storage[ (*it).getUid() ];
+            return this->_storage[ (*it).getUid() ];
          }
 
          /*
@@ -923,10 +923,10 @@ namespace core
          {
             // if the UID is >= _storage.size it means the UID the compactness assumption is wrong,
             // or it is the wrong container
-            assert( uid <= _storage.size() );
-            if ( uid == _storage.size() )
+            assert( uid <= this->_storage.size() );
+            if ( uid == this->_storage.size() )
             {
-               _storage.push_back( _default );
+               this->_storage.push_back( this->_default );
             }
          }
       };
@@ -938,12 +938,12 @@ namespace core
       ~GraphAdgencyList()
       {
          // we need to unregister the observers so that it doesn't cause problems if the graph is destroyed first...
-         for ( DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
+         for ( typename DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
          {
             (*it)->setUnobserved();
          }
 
-         for ( DataMapperInterfaces::iterator it = _edgesObserver.begin(); it != _edgesObserver.end(); ++it )
+         for ( typename DataMapperInterfaces::iterator it = _edgesObserver.begin(); it != _edgesObserver.end(); ++it )
          {
             (*it)->setUnobserved();
          }
@@ -968,7 +968,7 @@ namespace core
          }
 
          // notify oberservers
-         for ( DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
+         for ( typename DataMapperInterfaces::iterator it = _vertexsObserver.begin(); it != _vertexsObserver.end(); ++it )
          {
             (*it)->add( uid );
          }
@@ -1067,14 +1067,14 @@ namespace core
          }
 
          // notify the observers
-         for ( DataMapperInterfaces::iterator it = _edgesObserver.begin(); it != _edgesObserver.end(); ++it )
+         for ( typename DataMapperInterfaces::iterator it = _edgesObserver.begin(); it != _edgesObserver.end(); ++it )
          {
             (*it)->add( uid );
          }
 
          // finally add a new edge
          vertex_iterator ita = _vertexs.getIterator( src );
-		 Vertex& itav = const_cast<Vertex&>( *ita );
+		   Vertex& itav = const_cast<Vertex&>( *ita );
          return EdgeDescriptor( src, itav._edges.insert( Edge( uid, src, dst ) ) );
       }
 

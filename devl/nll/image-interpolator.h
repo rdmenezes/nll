@@ -103,7 +103,9 @@ namespace core
    class InterpolatorLinear2D : public Interpolator2D<T, Mapper, Alloc>
    {
    public:
-      typedef Interpolator2D<T, Mapper, Alloc>   Base;
+      typedef Interpolator2D<T, Mapper, Alloc>  Base;
+      typedef typename Base::value_type         value_type;
+
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
       value_type interpolate( value_type x, value_type y, ui32 c ) const
       {
@@ -200,6 +202,8 @@ namespace core
    {
    public:
       typedef Interpolator2D<T, Mapper, Alloc>   Base;
+      typedef typename Base::value_type          value_type;
+
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
       value_type interpolate( value_type x, value_type y, ui32 c ) const
       {

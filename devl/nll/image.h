@@ -347,7 +347,7 @@ namespace core
          for ( ui32 n = 0; n < cpy.size(); ++n )
          {
             const Type val = cpy[ n ];
-            _buffer[ n ] = static_cast<T>( val );
+            this->_buffer[ n ] = static_cast<T>( val );
          }
       }
 

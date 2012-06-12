@@ -80,7 +80,8 @@ namespace core
 
       virtual void visit( const Graph& g )
       {
-         typename GraphT::VertexMapper<char> vertexDiscovered( g, 0 );
+         typedef typename Graph::template VertexMapper<char> Mapper;
+         Mapper vertexDiscovered( g, 0 );
          std::vector<const_vertex_iterator> its;
          start( g );
          if ( g.size() )
@@ -187,7 +188,8 @@ namespace core
 
       virtual void visit( const Graph& g, const VertexEvaluator& eval )
       {
-         typename GraphT::VertexMapper<char> vertexDiscovered( g, 0 );
+         typedef typename Graph::template VertexMapper<char> Mapper;
+         Mapper vertexDiscovered( g, 0 );
          std::priority_queue<Pair> its;
          start( g );
          if ( g.size() )
@@ -278,7 +280,8 @@ namespace core
 
       virtual void visit( const Graph& g )
       {
-         typename GraphT::VertexMapper<char> vertexDiscovered( g, 0 );
+         typedef typename GraphT::template VertexMapper<char> Mapper;
+         Mapper vertexDiscovered( g, 0 );
          std::list<const_vertex_iterator> its;
          std::list< std::pair<const_edge_iterator, const_edge_iterator> > eits;
 

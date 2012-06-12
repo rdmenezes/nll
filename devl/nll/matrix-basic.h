@@ -220,7 +220,7 @@ namespace core
     @brief Computes quickly v^t * m * v
     */
    template <class T, class IndexMapper2D, class AllocatorT, class Vector>
-   typename T fastDoubleMultiplication( const Vector& v, const Matrix<T, IndexMapper2D, AllocatorT>& m )
+   T fastDoubleMultiplication( const Vector& v, const Matrix<T, IndexMapper2D, AllocatorT>& m )
    {
       typedef T value_type;
 

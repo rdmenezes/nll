@@ -204,7 +204,7 @@ namespace algorithm
 
          void clear()
          {
-            for ( Storage::iterator it = _chunks.begin(); it != _chunks.end(); ++it )
+            for ( typename Storage::iterator it = _chunks.begin(); it != _chunks.end(); ++it )
             {
                delete *it;
             }
@@ -215,7 +215,7 @@ namespace algorithm
          {
             const size_t nbChunks = _chunks.size();
             core::write<size_t>( nbChunks, stream );
-            for ( Storage::const_iterator it = _chunks.begin(); it != _chunks.end(); ++it )
+            for ( typename Storage::const_iterator it = _chunks.begin(); it != _chunks.end(); ++it )
             {
                (*it)->write( stream );
             }
@@ -252,7 +252,7 @@ namespace algorithm
 
          void decode( T* buf ) const
          {
-            for ( Storage::const_iterator it = _chunks.begin(); it != _chunks.end(); ++it )
+            for ( typename Storage::const_iterator it = _chunks.begin(); it != _chunks.end(); ++it )
             {
                (*it)->decode( buf );
                buf += (*it)->numberOfValuesRepresented();
@@ -262,7 +262,7 @@ namespace algorithm
          size_t dataSize() const
          {
             size_t s = 0;
-            for ( Storage::const_iterator it = _chunks.begin(); it != _chunks.end(); ++it )
+            for ( typename Storage::const_iterator it = _chunks.begin(); it != _chunks.end(); ++it )
             {
                s += (*it)->numberOfValuesRepresented();
             }
