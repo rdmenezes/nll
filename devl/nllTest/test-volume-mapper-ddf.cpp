@@ -371,7 +371,6 @@ public:
                                 target.size()[ 2 ] * target.getSpacing()[ 2 ] );
 
          test::VolumeUtils::Rbfs rbfs;
-      
          rbfs.push_back( test::VolumeUtils::RbfTransform::Rbf( core::make_buffer1D<float>( core::generateUniformDistributionf( -15, 15), core::generateUniformDistributionf( -15, 15), core::generateUniformDistributionf( -15, 15) ),
                                             core::make_buffer1D<float>( core::generateUniformDistributionf( 16, 48 ), 32, 32 ),
                                             core::make_buffer1D<float>( 410, 430, 380 ) ) );
@@ -427,6 +426,91 @@ public:
 
       std::cout << "testing DDF mapping: Success! ";
    }
+
+   void testRandomMprDdf()
+   {
+      srand( 1 );
+      std::cout << "Test MPR DDF: ";
+      for ( ui32 nn = 0; nn < 20; ++nn )
+      {
+         std::cout << "#";
+
+         // setup the volume
+         
+         Matrix pstTarget = core::createTransformationAffine3D(core::vector3f( core::generateUniformDistributionf( -1, 1), core::generateUniformDistributionf( -1, 1), core::generateUniformDistributionf( -1, 1) ),
+                                                               core::vector3f( core::generateUniformDistributionf( -0.1, 0.1), 0, 0 ),
+                                                               core::vector3f( 0, 0, 0 ),
+                                                               core::vector3f( core::generateUniformDistributionf( 0.9, 1.1), 1, 1 ) );
+         Matrix affineTfm = core::createTransformationAffine3D(core::vector3f(core::generateUniformDistributionf( -1, 1), core::generateUniformDistributionf( -1, 1), -1.1 ),
+                                                               core::vector3f( 0, 0, core::generateUniformDistributionf( -0.1, 0.1) ),
+                                                               core::vector3f( 0, 0, 0 ),
+                                                               core::vector3f( 1, core::generateUniformDistributionf( 0.9, 1.1), core::generateUniformDistributionf( 1, 1.1) ) );
+         Volume target( core::vector3ui( 64, 67, 70 ), pstTarget );
+
+         // setup the ddf
+         core::vector3ui ddfSize( 30, 32, 36 );
+         core::vector3f sizeMm( target.size()[ 0 ] * target.getSpacing()[ 0 ],
+                                target.size()[ 1 ] * target.getSpacing()[ 1 ],
+                                target.size()[ 2 ] * target.getSpacing()[ 2 ] );
+
+         test::VolumeUtils::Rbfs rbfs;
+         rbfs.push_back( test::VolumeUtils::RbfTransform::Rbf( core::make_buffer1D<float>( core::generateUniformDistributionf( -15, 15), core::generateUniformDistributionf( -15, 15), core::generateUniformDistributionf( -15, 15) ),
+                                            core::make_buffer1D<float>( core::generateUniformDistributionf( 16, 48 ), 32, 32 ),
+                                            core::make_buffer1D<float>( 410, 430, 380 ) ) );
+         test::VolumeUtils::Ddf tfm = test::VolumeUtils::createDdf( affineTfm, pstTarget, rbfs, ddfSize, sizeMm );
+
+         for ( Volume::iterator it = target.begin(); it != target.end(); ++it )
+         {
+            *it = core::generateUniformDistribution( 100, 500 );
+         }      
+         test::VolumeUtils::Average( target );   // we need to have a smooth volume, else the interpolation error will be big as it is only bilinear interpolation
+
+         // setup the MPR
+         Slicef slice( core::vector3ui( 64, 68, 1 ),
+                       core::vector3f( 1, core::generateUniformDistributionf( 0, 0.1 ), core::generateUniformDistributionf( 0, 0.1 ) ),
+                       core::vector3f( core::generateUniformDistributionf( 0, 0.1 ), 1, core::generateUniformDistributionf( 0, 0.1 ) ),
+                       core::vector3f( 0, 1, core::generateUniformDistribution( 20, 50 ) ),
+                       core::vector2f( core::generateUniformDistributionf( 0.9, 1.1), core::generateUniformDistributionf( 0.9, 1.1) ) );
+         imaging::Mpr<Volume, Interpolator> mpr( target );
+         mpr.getSlice( slice, tfm, false );
+
+         // now compare
+         Interpolator interpolator( target );
+         interpolator.startInterpolation();
+         float meanError = 0;
+         ui32 nbCases = 0;
+         for ( ui32 n = 0; n < 500; ++n )
+         {
+            static const int border = 8;
+            core::vector2f indexInResampled( ( border + rand() ) % ( slice.size()[ 0 ] - 2 * border ),
+                                             ( border + rand() ) % ( slice.size()[ 1 ] - 2 * border ) );
+            const core::vector3f pointInMm = slice.sliceToWorldCoordinate( indexInResampled );
+            const core::vector3f pointInMmTfm = tfm.transform( pointInMm );
+            const core::vector3f indexInTarget = target.positionToIndex( pointInMmTfm );
+
+            if ( indexInTarget[ 0 ] < border || indexInTarget[ 1 ] < border || indexInTarget[ 2 ] < border ||
+                 indexInTarget[ 0 ] + border >= target.size()[ 0 ] || indexInTarget[ 1 ] + border >= target.size()[ 1 ] || indexInTarget[ 2 ] + border >= target.size()[ 2 ] )
+            {
+               // on the border, the interpolator is not accurate, so avoid the comparison...
+               continue;
+            }
+
+            ++nbCases;
+
+            NLL_ALIGN_16 const float buf4[] = { indexInTarget[ 0 ], indexInTarget[ 1 ], indexInTarget[ 2 ], 0 };
+            const float valueFound = slice( indexInResampled[ 0 ], indexInResampled[ 1 ], 0 );
+            const float expectedValue = interpolator( buf4 );
+            meanError += fabs( expectedValue - valueFound );
+
+            TESTER_ASSERT( core::equal<float>( valueFound, expectedValue, 0.1 ) );
+         }
+         interpolator.endInterpolation();
+
+         meanError /= nbCases;
+         std::cout << "meanError=" << meanError << std::endl;
+         TESTER_ASSERT( meanError < 0.01 );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -436,5 +520,6 @@ TESTER_TEST(testDdfConversionFromRbf);
 TESTER_TEST(testGridOverlay);
 TESTER_TEST(testDdfMpr);
 TESTER_TEST(testRandomDdfMapping);
+TESTER_TEST(testRandomMprDdf);
 TESTER_TEST_SUITE_END();
 #endif

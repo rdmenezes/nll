@@ -160,7 +160,7 @@ namespace imaging
 
          // (1) compute the transformation index source position MM->target index with affine target->source TFM applied
          const core::Matrix<float> srcMmTargetIndex    = _volume.getInvertedPst() * tfm.getAffineMatrix();
-         const core::Matrix<float> srcMmTargetIndexDdf = tfm.getInvertedPst() * tfm.getAffineMatrix();
+         const core::Matrix<float> srcMmTargetIndexDdf = tfm.getStorage().getInvertedPst() * tfm.getAffineMatrix();
          const core::vector3f originInTarget    = core::transf4( srcMmTargetIndex, slice.getOrigin() );
          const core::vector3f originInTargetDdf = core::transf4( srcMmTargetIndexDdf, slice.getOrigin() );
 
@@ -188,10 +188,10 @@ namespace imaging
          {
             typedef InterpolatorTriLinearDummy< Volume > InterpolatorNoSSE;
             InterpolatorNoSSE interpolator( _volume );
-            _fill<InterpolatorNoSSE>( tfm, start, startDdf, dx, dxDdf, dy, dyDdf, interpolator, slice );
+            _fillDdf<InterpolatorNoSSE>( tfm, start, startDdf, dx, dxDdf, dy, dyDdf, interpolator, slice );
          } else {
             Interpolator interpolator( _volume );
-            _fill<Interpolator>( tfm, start, startDdf, dx, dxDdf, dy, dyDdf, interpolator, slice );
+            _fillDdf<Interpolator>( tfm, start, startDdf, dx, dxDdf, dy, dyDdf, interpolator, slice );
          }
       }
 
@@ -230,7 +230,7 @@ namespace imaging
       }
 
       template <class Interpolator>
-      void _fillDdf( const TransformationDenseDeformableField& tfm, const core::vector3f& start, const core::vector3f& startDdf, const core::vector3f& ddf, const core::vector3f& dx, const core::vector3f& dxDdf, const core::vector3f& dy, const core::vector3f& dyDdf, Interpolator& interpolator, Slice& slice ) const
+      void _fillDdf( const TransformationDenseDeformableField& tfm, const core::vector3f& start, const core::vector3f& startDdf, const core::vector3f& dx, const core::vector3f& dxDdf, const core::vector3f& dy, const core::vector3f& dyDdf, const Interpolator& interpolator, Slice& slice ) const
       {
          const impl::TransformationHelper transformationHelper( _volume.getInvertedPst() );
 
@@ -248,8 +248,6 @@ namespace imaging
             typename Slice::DirectionalIterator it = slice.getIterator( 0, y );
             for ( ui32 x = 0; x < slice.size()[ 0 ]; ++x )
             {
-               posDdf += dxDdf;
-
                // get the displacement in MM space. We need to convert it as an index in the target volume
                core::vector3f displacement = tfm.transformDeformableOnlyIndex( posDdf );  // displacement in MM
                transformationHelper.transform( displacement ); // translate the displacement in MM into the corresponding target index
@@ -264,6 +262,7 @@ namespace imaging
 
                *it = interpolatorCp( posWithDdf );
                pos += dx;
+               posDdf += dxDdf;
                it.addx();
             }
 
