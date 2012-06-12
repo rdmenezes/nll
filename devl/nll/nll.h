@@ -164,8 +164,8 @@
 # include <limits>
 # include <iostream>
 # include <sstream>
-# include <cstring>
 # include <typeinfo>
+# include <utility>
 
 /**
  @defgroup core

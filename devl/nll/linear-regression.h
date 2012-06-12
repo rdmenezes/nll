@@ -50,6 +50,7 @@ namespace algorithm
       class FunctionRegression : public ObjectiveFunction<Database>
       {
          typedef typename Database::Sample::Input Point;
+         typedef typename Database::Sample        Sample;
 
       public:
          FunctionRegression()

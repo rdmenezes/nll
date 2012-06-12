@@ -95,7 +95,7 @@ namespace algorithm
                // Can't find any reference on this. Needs to be tested.
                max = std::max( max, pearson );
             }
-            score[ n ] = std::make_pair<f64, ui32>( max, n );
+            score[ n ] = std::pair<f64, ui32>( max, n );
          }
 
          for ( ui32 n = 0; n < nbFeatures; ++n )

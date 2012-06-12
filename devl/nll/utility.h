@@ -32,11 +32,7 @@
 #ifndef NLL_UTILITY_H_
 # define NLL_UTILITY_H_
 
-# include <vector>
-# include <limits>
-# include <sstream>
-# include <cstring>
-# include "type-traits.h"
+#include <cstring>
 
 #pragma warning( push )
 #pragma warning( disable:4996 ) // strdup deprecated
@@ -45,6 +41,18 @@ namespace nll
 {
 namespace core
 {
+   // provide our own strdup for GCC cygwin as described here:
+   // http://stackoverflow.com/questions/5573775/strdup-error-on-g-with-c0x
+   char* _strdup(const char *str)
+   {
+      size_t len = std::strlen( str );
+      char *x = (char*)std::malloc( len + 1 );
+      if( !x )
+         return NULL;
+      std::memcpy( x, str, len + 1 );
+      return x;
+   }
+
    /**
     @ingroup core
     @brief helper function for making a std::vector out of a set of values
@@ -467,7 +475,7 @@ namespace core
    */
    inline Buffer1D<i8> make_buffer1D_from_string( const std::string& str )
    {
-      Buffer1D<i8> buf( strdup( str.c_str() ), static_cast<ui32> ( str.size() ), true );
+      Buffer1D<i8> buf( _strdup( str.c_str() ), static_cast<ui32> ( str.size() ), true );
       return buf;
    }
 

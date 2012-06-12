@@ -111,7 +111,7 @@ namespace imaging
       typedef VolumeT                        VolumeType;
 
       // if value_type::value_type is a floating value, simply take this type, else default to "float"
-      typedef typename core::If<typename value_type, float, core::IsFloatingType<typename value_type>::value >::type value_type_floating;
+      typedef typename core::If<value_type, float, core::IsFloatingType<value_type>::value >::type value_type_floating;
 
    public:
       /**

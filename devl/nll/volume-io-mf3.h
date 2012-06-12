@@ -119,7 +119,7 @@ namespace imaging
          std::vector<Rsi> rsi;
          core::read< std::vector<Rsi> >( rsi, file );
          
-         Volume::Matrix pst;
+         typename Volume::Matrix pst;
          pst.read( file );
 
          
