@@ -135,6 +135,8 @@ namespace imaging
             Processor proc = procOrig;
             proc.startSlice( z );
 
+            NLL_ALIGN_16 float position[ 4 ];
+
             typename VolumeType::DirectionalIterator  lineIt = resampled.getIterator( 0, 0, z );
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
@@ -147,29 +149,22 @@ namespace imaging
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
                core::vector3f voxelPosSrcDdf = linePosSrcDdf;
-               NLL_ALIGN_16 float voxelPosSrc[ 4 ] =
-               { 
-                  linePosSrc[ 0 ],
-                  linePosSrc[ 1 ],
-                  linePosSrc[ 2 ],
-                  0
-               };
-
+               core::vector3f voxelPosSrc = linePosSrc;
                for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
                {
                   core::vector3f displacement = tfm.transformDeformableOnlyIndex( voxelPosSrcDdf ); // this is the displacement in MM
                   transformationHelper.transform( displacement ); // translate the displacement in MM into the corresponding target index
-                  displacement += voxelPosSrc;  // the total displacement in index = displacement_affine + displacement_ddf
 
-                  proc.process( voxelIt, voxelPosSrc );
+                  position[ 0 ] = displacement[ 0 ] + voxelPosSrc[ 0 ];
+                  position[ 1 ] = displacement[ 1 ] + voxelPosSrc[ 1 ];
+                  position[ 2 ] = displacement[ 2 ] + voxelPosSrc[ 2 ];
+                  proc.process( voxelIt, position );
 
-                  voxelPosSrc[ 0 ] += dx[ 0 ];
-                  voxelPosSrc[ 1 ] += dx[ 1 ];
-                  voxelPosSrc[ 2 ] += dx[ 2 ];
+                  voxelPosSrc += dx;
                   voxelPosSrcDdf += dxDdf;
-
                   voxelIt.addx();
                }
+               linePosSrcDdf += dyDdf;
                linePosSrc += dy;
                lineIt.addy();
             }

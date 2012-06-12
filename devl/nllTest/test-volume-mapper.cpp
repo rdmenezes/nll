@@ -70,11 +70,11 @@ public:
       }
       {
          const float v = resampled( 12, 30, 40 );
-         TESTER_ASSERT( core::equal<float>( v, 336.272, 1e-2 ) );
+         TESTER_ASSERT( core::equal<float>( v, 336.237, 1e-2 ) );
       }
       {
          const float v = resampled( 150, 80, 50 );
-         TESTER_ASSERT( core::equal<float>( v, 249.932, 1e-2 ) );
+         TESTER_ASSERT( core::equal<float>( v, 212.882, 1e-2 ) );
       }
    }
 
@@ -98,14 +98,18 @@ public:
                                                                core::vector3f( 0, 0, 0 ),
                                                                core::vector3f( 1, core::generateUniformDistributionf( 0.9, 1.1), core::generateUniformDistributionf( 1, 1.1) ) );
 
-         Volume resampled( core::vector3ui( 256, 276, 300 ), pstResampled );
-         Volume target( core::vector3ui( 256, 276, 300 ), pstTarget );
+         Volume resampled( core::vector3ui( 80, 85, 75 ), pstResampled );
+         Volume target( core::vector3ui( 75, 80, 85 ), pstTarget );
 
          for ( Volume::iterator it = target.begin(); it != target.end(); ++it )
          {
             *it = core::generateUniformDistribution( 100, 500 );
          }      
          test::VolumeUtils::Average( target );   // we need to have a smooth volume, else the interpolation error will be big as it is only bilinear interpolation
+
+         const core::vector3f pointInMm = resampled.indexToPosition( core::vector3f( 52, 67, 21 ) );
+         const core::vector3f pointInMmTfm = core::transf4( affineTfm, pointInMm );
+         const core::vector3f indexInTarget = target.positionToIndex( pointInMmTfm );
 
          core::Timer timer;
          imaging::VolumeTransformationProcessorResampler<Volume, Interpolator> resampler( target, resampled );
@@ -116,6 +120,7 @@ public:
          interpolator.startInterpolation();
          float meanError = 0;
          ui32 nbCases = 0;
+
          for ( ui32 n = 0; n < 500; ++n )
          {
             static const int border = 5;
@@ -140,20 +145,13 @@ public:
             const float valueFound = resampled( indexInResampled[ 0 ], indexInResampled[ 1 ], indexInResampled[ 2 ] );
             meanError += fabs( expectedValue - valueFound );
 
-            /*
-            std::cout << "indexInTarget=" << indexInTarget;
-            std::cout << "position=" << indexInResampled;
-            std::cout << "expectedValue=" << expectedValue << std::endl;
-            std::cout << "valueFound=" << valueFound << std::endl;
-            */
-            
-            TESTER_ASSERT( core::equal<float>( valueFound, expectedValue, 30 ) );
+            TESTER_ASSERT( core::equal<float>( valueFound, expectedValue, 1 ) );
          }
          interpolator.endInterpolation();
 
          meanError /= nbCases;
          std::cout << "meanError=" << meanError << std::endl;
-         TESTER_ASSERT( meanError < 3 );
+         TESTER_ASSERT( meanError < 0.1 );
       }
 
       std::cout << " done!" << std::endl;

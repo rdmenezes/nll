@@ -502,7 +502,7 @@ public:
                                      core::generateUniformDistribution( -30, 30 ),
                                      core::generateUniformDistribution( -30, 30 ) );
                                      */
-         core::vector3f translation( 29, 0, 0 );
+         core::vector3f translation( 29.1, 0, 0 );
          core::vector3f scaling( 1, 1, 1 );
          core::vector3f rotation( 0, 0, 0 );
          const core::Matrix<float> tfmMatrixExpected = core::createTranslation4x4( translation ) *
@@ -545,7 +545,7 @@ public:
          }
 
          // get the points in the target and create the corresponding points in the targetResampled
-         algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.0001 );
+         algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.00001 );
          algorithm::SpeededUpRobustFeatures3d::Points sourcePoints = surf.computesFeatures( target );
 
          std::cout << "nbPoints=" << sourcePoints.size() << std::endl;

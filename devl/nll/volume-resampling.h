@@ -5,10 +5,10 @@
  * Copyright (c) 2009-2012, Ludovic Sibille
  * All rights reserved.
  *
- * Redistribution and use in source and binary forms, with or without
+ * Redistribution and use in target and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  * 
- *     * Redistributions of source code must retain the above copyright
+ *     * Redistributions of target code must retain the above copyright
  *       notice, this list of conditions and the following disclaimer.
  *     * Redistributions in binary form must reproduce the above copyright
  *       notice, this list of conditions and the following disclaimer in the
@@ -49,83 +49,98 @@ namespace imaging
       typedef InterpolatorT Interpolator;
 
    public:
-      VolumeTransformationProcessorResampler( const Volume& source, Volume& target ) : _source( &source ), _target( &target ), _interpolator( source )
+      VolumeTransformationProcessorResampler( const Volume& target, Volume& resampled ) : _target( &target ), _resampled( &resampled ), _interpolator( target )
       {}
 
       // called as soon as the volume mapper started the mapping process
       void start()
       {
-         _interpolator.startInterpolation();
+         // do not start interpolation here! When multithreaded, we want the processor's thread to be in the correct rounding mode (see <code>InterpolatorTriLinear</code>)
       }
 
       void startSlice( ui32 )
       {
+         // for some reason the interpolation start/end must be done each slice due to accuracy problems...
+         _interpolator.startInterpolation();
       }
 
       // called as soon as the volume mapper ended the mapping process
       void end()
       {
-         _interpolator.endInterpolation();
+         // do not end interpolation here! When multithreaded, we want the processor's thread to be in the correct rounding mode (see <code>InterpolatorTriLinear</code>)
       }
 
       void endSlice( ui32 )
       {
+         // for some reason the interpolation start/end must be done each slice due to accuracy problems...
+         _interpolator.endInterpolation();
       }
 
-      // called everytime a new voxel in the target volume is reached
-      // sourcePosition is guaranteed to be aligned on 16 bytes and to contain 4 values: [x, y, z, 0]
-      void process( DirectionalIterator& it, const float* sourcePosition )
+      // called everytime a new voxel in the resampled volume is reached
+      // targetPosition is guaranteed to be aligned on 16 bytes and to contain 4 values: [x, y, z, 0]
+      void process( DirectionalIterator& it, const float* targetPosition )
       {
-         *it = _interpolator( sourcePosition );
+         *it = _interpolator( targetPosition );
       }
 
-      // called everytime a new voxel in the target volume is reached
-      // sourcePosition is guaranteed to be aligned on 16 bytes and to contain 4 values: [x, y, z, 0]
-      void process( const core::vector3ui& targetPosition, const float* sourcePosition )
+      // called everytime a new voxel in the resampled volume is reached
+      // targetPosition is guaranteed to be aligned on 16 bytes and to contain 4 values: [x, y, z, 0]
+      void process( const core::vector3ui& resampledPosition, const float* targetPosition )
       {
-         (*_target)( targetPosition[ 0 ], targetPosition[ 1 ], targetPosition[ 2 ] ) = _interpolator( sourcePosition );
+         (*_resampled)( resampledPosition[ 0 ], resampledPosition[ 1 ], resampledPosition[ 2 ] ) = _interpolator( targetPosition );
       }
 
    private:
-      const Volume*     _source;
-      Volume*           _target;
+      const Volume*     _target;
+      Volume*           _resampled;
       Interpolator      _interpolator;
    };
 
    template <class T, class Storage>
-   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& target )
+   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled )
    {
       typedef VolumeSpatial<T, Storage> VolumeT;
       typedef InterpolatorNearestNeighbour<VolumeT>  Interpolator;
 
-      VolumeTransformationProcessorResampler<VolumeT, Interpolator> procResample( source, target );
+      VolumeTransformationProcessorResampler<VolumeT, Interpolator> procResample( target, resampled );
       VolumeTransformationMapper mapper;
-      mapper.run( procResample, source, tfm, target );
+      mapper.run( procResample, target, tfm, resampled );
    }
 
    template <class T, class Storage>
-   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& source, VolumeSpatial<T, Storage>& target )
+   void resampleVolumeNearestNeighbour( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& resampled )
    {
       TransformationAffine tfm;
-      resampleVolumeNearestNeighbour( source, tfm, target );
+      resampleVolumeNearestNeighbour( target, tfm, resampled );
    }
 
    template <class T, class Storage>
-   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& source, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& target )
+   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled )
    {
       typedef VolumeSpatial<T, Storage> VolumeT;
       typedef InterpolatorTriLinear<VolumeT>  Interpolator;
 
-      VolumeTransformationProcessorResampler<VolumeT, Interpolator> procResample( source, target );
+      VolumeTransformationProcessorResampler<VolumeT, Interpolator> procResample( target, resampled );
       VolumeTransformationMapper mapper;
-      mapper.run( procResample, source, tfm, target );
+      mapper.run( procResample, target, tfm, resampled );
    }
 
    template <class T, class Storage>
-   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& source, VolumeSpatial<T, Storage>& target )
+   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& target, const TransformationDenseDeformableField& tfm, VolumeSpatial<T, Storage>& resampled )
+   {
+      typedef VolumeSpatial<T, Storage> VolumeT;
+      typedef InterpolatorTriLinear<VolumeT>  Interpolator;
+
+      VolumeTransformationProcessorResampler<VolumeT, Interpolator> procResample( target, resampled );
+      VolumeTransformationMapperDdf mapper;
+      mapper.run( procResample, target, tfm, resampled );
+   }
+
+   template <class T, class Storage>
+   void resampleVolumeTrilinear( const VolumeSpatial<T, Storage>& target, VolumeSpatial<T, Storage>& resampled )
    {
       TransformationAffine tfm;
-      resampleVolumeTrilinear( source, tfm, target );
+      resampleVolumeTrilinear( target, tfm, resampled );
    }
 }
 }
