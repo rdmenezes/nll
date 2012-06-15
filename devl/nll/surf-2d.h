@@ -243,13 +243,13 @@ namespace algorithm
 
          timePyramid.start();
 
+         ensure( pyramid.getPyramidDetHessian().size() > 1, "too small!" );
+         const ui32 nbFilters = pyramid.getPyramidDetHessian().size() - 1; // we don't want the last filter, it will never be "maximal"
          for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
          {
-            if ( pyramid.getPyramidDetHessian().size() <= filter )
-               break; // the filter was not used in the pyramid...
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
-            const int sizex = static_cast<int>( f.sizex() );
-            const int sizey = static_cast<int>( f.sizey() );
+            const int sizex = static_cast<int>( f.sizex() ) - 1;
+            const int sizey = static_cast<int>( f.sizey() ) - 1;
 
             #ifndef NLL_NOT_MULTITHREADED
             # pragma omp parallel for reduction(+ : nbPoints)
@@ -340,13 +340,13 @@ namespace algorithm
             // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
             // so for a filter of size X, sigma = 1.2 / 9 * X
             static const value_type scaleFactor = 1.2 / 9;
-            value_type scale = core::round( scaleFactor * point.scale );
+            const value_type scale = core::round( scaleFactor * point.scale );
 
             const value_type x = point.position[ 0 ];
             const value_type y = point.position[ 1 ];
 
-            const value_type co = cos( point.orientation);
-            const value_type si = sin( point.orientation);
+            const Rotate rotate( point.orientation );
+            const Rotate rotateInv( -point.orientation );
 
             const int size = (int)core::sqr( 2 * scale );
 
@@ -373,8 +373,9 @@ namespace algorithm
                      for ( value_type di = i; di < i + area_size; di += dd5x5 )
                      {
                         // center on the rotated axis
-                        const int sample_x = core::round( x + ( di * scale * co - dj * scale * si ) );
-                        const int sample_y = core::round( y + ( di * scale * si + dj * scale * co ) );
+                        const core::vector2d pointInRtotatedGrid = rotate.transform( core::vector2d( di * scale, dj * scale ) );
+                        const int sample_x = core::round( x + pointInRtotatedGrid[ 0 ] );
+                        const int sample_y = core::round( y + pointInRtotatedGrid[ 1 ] );
 
                         //Get the gaussian weighted x and y responses
                         const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
@@ -386,18 +387,19 @@ namespace algorithm
 
                         if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                         {
-                           const value_type rx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                    image,
-                                                                                    bl,
-                                                                                    tr ) / size;
-                           const value_type ry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                    image,
-                                                                                    bl,
-                                                                                    tr ) / size;
+                           const value_type dry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
+                                                                                     image,
+                                                                                     bl,
+                                                                                     tr ) / size;
+                           const value_type drx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
+                                                                                     image,
+                                                                                     bl,
+                                                                                     tr ) / size;
 
-                           //Get the gaussian weighted x and y responses on rotated axis
-                           const value_type rrx = gauss_s1 * ( rx * co - ry * si );
-                           const value_type rry = gauss_s1 * ( rx * si + ry * co );
+                           //Get the gaussian weighted x and y responses on the unrotated axis
+                           const core::vector2d rotatedInvFeature = rotateInv.transform( core::vector2d( drx, dry ) );
+                           const value_type rrx = gauss_s1 * rotatedInvFeature[ 0 ];
+                           const value_type rry = gauss_s1 * rotatedInvFeature[ 1 ];
 
                            dx += rrx;
                            dy += rry;
@@ -586,6 +588,23 @@ namespace algorithm
             return angle <= max && angle >= min;
          }
       }
+
+      class Rotate : public core::NonCopyable
+      {
+      public:
+         Rotate( double angleRad ) : _cosx( std::cos( angleRad ) ), _sinx( std::sin( angleRad ) )
+         {}
+
+         core::vector2d transform( const core::vector2d& p ) const
+         {
+            return core::vector2d( _cosx * p[ 0 ] - _sinx * p[ 1 ],
+                                   _sinx * p[ 0 ] + _cosx * p[ 1 ] );
+         }
+
+      private:
+         const double   _cosx;
+         const double   _sinx;
+      };
 
    private:
       std::vector<ui32> _filterSizes;

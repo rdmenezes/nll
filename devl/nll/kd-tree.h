@@ -425,7 +425,7 @@ namespace algorithm
 				   index = dim;
 			   }
 		   }
-		   assert(index != -1); // "error index"
+         ensure( index != -1, "something wrong here!" );
 		   return index;
 	   }
 
