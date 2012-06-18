@@ -249,7 +249,7 @@ namespace algorithm
          timePyramid.start();
 
          ensure( pyramid.getPyramidDetHessian().size() > 1, "too small!" );
-         const ui32 nbFilters = pyramid.getPyramidDetHessian().size() - 1; // we don't want the last filter, it will never be "maximal"
+         const ui32 nbFilters = static_cast<ui32>( pyramid.getPyramidDetHessian().size() ) - 1; // we don't want the last filter, it will never be "maximal"
          for ( ui32 filter = 1; filter < nbFilters; ++filter )
          {
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
@@ -286,7 +286,7 @@ namespace algorithm
                            // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                            const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
-                           const core::vector2f index = pyramid.getPositionPyramid2Integral( x + interpolatedPoint[ 0 ], y + interpolatedPoint[ 1 ], filter );
+                           const core::vector2f index = pyramid.getPositionPyramid2Integral( x + (float)interpolatedPoint[ 0 ], y + (float)interpolatedPoint[ 1 ], filter );
 
                            int px    = core::round( index[ 0 ] );
                            int py    = core::round( index[ 1 ] );

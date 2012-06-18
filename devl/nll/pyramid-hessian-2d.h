@@ -48,6 +48,9 @@ namespace algorithm
                  (xp, yp, map) are in pyramid space
 
     Use double as the hessian will often be close to the float's epsilon.
+
+    Internally we are discarding scale / 2 i.e., when in pyramid, (0, 0, s) corresponds to a filter that fits totally inside the integral image, e.g., the top left corner
+    of the filter is set to (0,0). It means that when retrieving the actual coordinate from , we need to add 
     */
    class FastHessianDetPyramid2d
    {
@@ -56,25 +59,6 @@ namespace algorithm
       typedef core::Matrix<value_type> Matrix;
 
    public:
-      /**
-       @brief Given an index in the pyramid, retrieve the corresponding index in the original image
-              (i.e., the one the pyramid is built from)
-       */
-      core::vector2f getPositionPyramid2Integral( f32 x, f32 y, ui32 map ) const
-      {
-         return core::vector2f( x * _displacements[ map ],
-                                y * _displacements[ map ] );
-      }
-
-      /**
-       @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
-       */
-      core::vector2f getPositionIntegral2Pyramid( f32 xp, f32 yp, ui32 map ) const
-      {
-         return core::vector2f( ( xp ) / _displacements[ map ],
-                                ( yp ) / _displacements[ map ] );
-      }
-
       /**
        @brief Construct and computes the hessian determinant pyramid
        @param i the image,
@@ -117,9 +101,9 @@ namespace algorithm
             i32 resy = ( (i32)i.sizey() ) / step;
 
             // here we want the last (resx, resy) to fully fit inside so that we don't have 
-            while ( getPositionPyramid2Integral( resx, 0, n )[ 0 ] + _scales[ n ] >=  (i32)i.sizex() )
+            while ( (int)_getPositionPyramid2IntegralNoShift( resx, 0, n )[ 0 ] + _scales[ n ] >  (i32)i.sizex() )
                --resx;
-            while ( getPositionPyramid2Integral( 0, resy, n )[ 1 ] + _scales[ n ] >=  (i32)i.sizey() )
+            while ( (int)_getPositionPyramid2IntegralNoShift( 0, resy, n )[ 1 ] + _scales[ n ] >  (i32)i.sizey() )
                --resy;
             if ( resx <= 0 || resy <= 0 )
                break;   // the scale is too big!
@@ -135,12 +119,10 @@ namespace algorithm
             {
                for ( int xp = 0; xp < resx; ++xp )
                {
-                  // Note: we are not adding the 1/2 scale as we should theorically
-                  // do, but this seems to degrade the results (it is producing less points)
-                  // maybe because between 2 scales, it is always maximal (but this causes
-                  // half a scale shift..)
-                  const core::vector2f center = getPositionPyramid2Integral( xp, yp, n );
-                  core::vector2ui bl( center[ 0 ], center[ 1 ] );
+                  // Note: (0,0) in the pyramid represents the filter whose top left corner is (0,0)
+                  // (i.e., we don't need any shift by scale/2 here)
+                  const core::vector2f center = _getPositionPyramid2IntegralNoShift( (float)xp, (float)yp, n );
+                  core::vector2ui bl( (float)center[ 0 ], (float)center[ 1 ] );
                   core::vector2ui tr( bl[ 0 ] + scales[ n ] - 1, bl[ 1 ] + scales[ n ] - 1 );
                   if ( tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                   {
@@ -268,8 +250,8 @@ namespace algorithm
             outyp = ypRef;
          } else {
             // map a point at a given scale to the image space
-            const core::vector2f posInIntegral = getPositionPyramid2Integral( (float)xpRef, (float)ypRef, mapRef );
-            const core::vector2f indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
+            const core::vector2f posInIntegral = _getPositionPyramid2IntegralNoShift( (float)xpRef, (float)ypRef, mapRef );
+            const core::vector2f indexInOtherLevel = _getPositionIntegral2PyramidNoShift( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
             
             // convert the image space coordinate to the other scale space
             outxp = static_cast<i32>( core::round( indexInOtherLevel[ 0 ] ) );
@@ -311,6 +293,48 @@ namespace algorithm
       const IntegralImage& getIntegralImage() const
       {
          return _integralImage;
+      }
+
+      /**
+       @brief Given an index in the pyramid, retrieve the corresponding index in the original image
+              (i.e., the one the pyramid is built from)
+       @note This is just the user facing API. Internally we want to use <code>_getPositionPyramid2IntegralNoShift</code>
+       */
+      core::vector2f getPositionPyramid2Integral( f32 x, f32 y, ui32 map ) const
+      {
+         return core::vector2f( x * _displacements[ map ] + _halfScales[ map ],
+                                y * _displacements[ map ] + _halfScales[ map ] );
+      }
+
+      /**
+       @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
+       @note This is just the user facing API. Internally we want to use <code>_getPositionIntegral2PyramidNoShift</code>
+       */
+      core::vector2f getPositionIntegral2Pyramid( f32 xp, f32 yp, ui32 map ) const
+      {
+         return core::vector2f( ( xp - _halfScales[ map ] ) / _displacements[ map ],
+                                ( yp - _halfScales[ map ] ) / _displacements[ map ] );
+      }
+
+   private:
+      /**
+       @brief Given an index in the pyramid, retrieve the corresponding index in the original image
+              (i.e., the one the pyramid is built from) WITHOUT shift by scale / 2
+       */
+      core::vector2f _getPositionPyramid2IntegralNoShift( f32 x, f32 y, ui32 map ) const
+      {
+         return core::vector2f( x * _displacements[ map ],
+                                y * _displacements[ map ] );
+      }
+
+      /**
+       @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
+              WITHOUT shift by scale / 2
+       */
+      core::vector2f _getPositionIntegral2PyramidNoShift( f32 xp, f32 yp, ui32 map ) const
+      {
+         return core::vector2f( ( xp ) / _displacements[ map ],
+                                ( yp ) / _displacements[ map ] );
       }
 
    private:
