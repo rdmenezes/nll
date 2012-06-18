@@ -250,7 +250,7 @@ namespace algorithm
 
          ensure( pyramid.getPyramidDetHessian().size() > 1, "too small!" );
          const ui32 nbFilters = pyramid.getPyramidDetHessian().size() - 1; // we don't want the last filter, it will never be "maximal"
-         for ( ui32 filter = 1; filter < _filterSizes.size() - 1 ; ++filter )
+         for ( ui32 filter = 1; filter < nbFilters; ++filter )
          {
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
             const int sizex = static_cast<int>( f.sizex() ) - 1;
