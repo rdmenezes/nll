@@ -220,6 +220,11 @@ namespace algorithm
       template <class T, class Mapper, class Alloc>
       Points _computesPoints( const core::Image<T, Mapper, Alloc>& i, FastHessianDetPyramid2d& pyramid )
       {
+         // this constant is to find the gaussian's sigma
+         // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
+         // so for a filter of size X, sigma = 1.2 / 9 * X
+         static const value_type scaleFactor = 1.2 / 9;
+
          ui32 nbPoints = 0;
 
          // each thread can work independently, so allocate an array og points that are not shared
@@ -281,9 +286,9 @@ namespace algorithm
                            // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                            const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
-                           int px    = core::round( ( x    + interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] );
-                           int py    = core::round( ( y    + interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] );
-                           int scale = core::round( size   + interpolatedPoint[ 2 ]   * filterStep );
+                           int px    = core::round( ( x      + interpolatedPoint[ 0 ] ) * _filterSteps[ filter ] );
+                           int py    = core::round( ( y      + interpolatedPoint[ 1 ] ) * _filterSteps[ filter ] );
+                           int scale = core::round( ( size   + interpolatedPoint[ 2 ]   * filterStep ) * scaleFactor );
                            if ( scale <= 0 )
                               continue;   // should not happen, but just in case!
 
@@ -336,11 +341,7 @@ namespace algorithm
          {
             Point& point = points[ n ];
 
-            // this constant is to find the gaussian's sigma
-            // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
-            // so for a filter of size X, sigma = 1.2 / 9 * X
-            static const value_type scaleFactor = 1.2 / 9;
-            const value_type scale = core::round( scaleFactor * point.scale );
+            const value_type scale = point.scale;
 
             const value_type x = point.position[ 0 ];
             const value_type y = point.position[ 1 ];
@@ -456,10 +457,6 @@ namespace algorithm
          };
          static const int id[] = { 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6 };
 
-         // this constant is to find the gaussian's sigma
-         // we know that a filter 9*9 corresponds to a gaussian's sigma = 1.2
-         // so for a filter of size X, sigma = 1.2 / 9 * X
-         static const value_type scaleFactor = 1.2 / 9;
          const int nbPoints = static_cast<int>( points.size() );
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -468,7 +465,7 @@ namespace algorithm
          for ( int n = 0; n < nbPoints; ++n )
          {
             const Point& point = points[ n ];
-            const int scale = core::round( scaleFactor * point.scale );
+            const int scale = point.scale;
 
             std::vector<LocalPoint> localPoints;
             localPoints.reserve( 109 );
