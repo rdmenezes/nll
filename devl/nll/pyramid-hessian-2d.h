@@ -62,8 +62,8 @@ namespace algorithm
        */
       core::vector2f getPositionPyramid2Integral( f32 x, f32 y, ui32 map ) const
       {
-         return core::vector2f( x * _displacements[ map ] /* + _halfScales[ map ] */,
-                                y * _displacements[ map ] /* + _halfScales[ map ] */ );
+         return core::vector2f( x * _displacements[ map ],
+                                y * _displacements[ map ] );
       }
 
       /**
@@ -71,8 +71,8 @@ namespace algorithm
        */
       core::vector2f getPositionIntegral2Pyramid( f32 xp, f32 yp, ui32 map ) const
       {
-         return core::vector2f( ( xp /* - _halfScales[ map ] */ ) / _displacements[ map ],
-                                ( yp /* - _halfScales[ map ] */ ) / _displacements[ map ] );
+         return core::vector2f( ( xp ) / _displacements[ map ],
+                                ( yp ) / _displacements[ map ] );
       }
 
       /**
@@ -135,9 +135,12 @@ namespace algorithm
             {
                for ( int xp = 0; xp < resx; ++xp )
                {
+                  // Note: we are not adding the 1/2 scale as we should theorically
+                  // do, but this seems to degrade the results (it is producing less points)
+                  // maybe because between 2 scales, it is always maximal (but this causes
+                  // half a scale shift..)
                   const core::vector2f center = getPositionPyramid2Integral( xp, yp, n );
-                  //core::vector2ui bl( center[ 0 ] - scales[ n ] / 2, center[ 1 ] - scales[ n ] / 2 );
-                  core::vector2ui bl( center[ 0 ], center[ 1 ] ); // TODO: SURF works better without the scale offset. Strange...
+                  core::vector2ui bl( center[ 0 ], center[ 1 ] );
                   core::vector2ui tr( bl[ 0 ] + scales[ n ] - 1, bl[ 1 ] + scales[ n ] - 1 );
                   if ( tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                   {
@@ -257,7 +260,7 @@ namespace algorithm
       }
 
       // computes the index in mapDest the closest from (xRef, yRef, mapDest)
-      void indexInMap( f32 xpRef, f32 ypRef, ui32 mapRef, ui32 mapDest, i32& outxp, i32& outyp ) const
+      void indexInMap( i32 xpRef, i32 ypRef, ui32 mapRef, ui32 mapDest, i32& outxp, i32& outyp ) const
       {
          if ( mapRef == mapDest )
          {
@@ -265,12 +268,12 @@ namespace algorithm
             outyp = ypRef;
          } else {
             // map a point at a given scale to the image space
-            const core::vector2f posInIntegral = getPositionPyramid2Integral( xpRef, ypRef, mapRef );
+            const core::vector2f posInIntegral = getPositionPyramid2Integral( (float)xpRef, (float)ypRef, mapRef );
             const core::vector2f indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
             
             // convert the image space coordinate to the other scale space
-            outxp = indexInOtherLevel[ 0 ];
-            outyp = indexInOtherLevel[ 1 ];
+            outxp = static_cast<i32>( core::round( indexInOtherLevel[ 0 ] ) );
+            outyp = static_cast<i32>( core::round( indexInOtherLevel[ 1 ] ) );
          }
       }
 
