@@ -60,18 +60,18 @@ namespace algorithm
        @brief Given an index in the pyramid, retrieve the corresponding index in the original image
               (i.e., the one the pyramid is built from)
        */
-      core::vector2i getPositionPyramid2Integral( i32 x, i32 y, ui32 map ) const
+      core::vector2f getPositionPyramid2Integral( f32 x, f32 y, ui32 map ) const
       {
-         return core::vector2i( x * _displacements[ map ] /* + _halfScales[ map ] */,
+         return core::vector2f( x * _displacements[ map ] /* + _halfScales[ map ] */,
                                 y * _displacements[ map ] /* + _halfScales[ map ] */ );
       }
 
       /**
        @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
        */
-      core::vector2i getPositionIntegral2Pyramid( i32 xp, i32 yp, ui32 map ) const
+      core::vector2f getPositionIntegral2Pyramid( f32 xp, f32 yp, ui32 map ) const
       {
-         return core::vector2i( ( xp /* - _halfScales[ map ] */ ) / _displacements[ map ],
+         return core::vector2f( ( xp /* - _halfScales[ map ] */ ) / _displacements[ map ],
                                 ( yp /* - _halfScales[ map ] */ ) / _displacements[ map ] );
       }
 
@@ -135,7 +135,7 @@ namespace algorithm
             {
                for ( int xp = 0; xp < resx; ++xp )
                {
-                  const core::vector2i center = getPositionPyramid2Integral( xp, yp, n );
+                  const core::vector2f center = getPositionPyramid2Integral( xp, yp, n );
                   //core::vector2ui bl( center[ 0 ] - scales[ n ] / 2, center[ 1 ] - scales[ n ] / 2 );
                   core::vector2ui bl( center[ 0 ], center[ 1 ] ); // TODO: SURF works better without the scale offset. Strange...
                   core::vector2ui tr( bl[ 0 ] + scales[ n ] - 1, bl[ 1 ] + scales[ n ] - 1 );
@@ -257,7 +257,7 @@ namespace algorithm
       }
 
       // computes the index in mapDest the closest from (xRef, yRef, mapDest)
-      void indexInMap( i32 xpRef, i32 ypRef, ui32 mapRef, ui32 mapDest, i32& outxp, i32& outyp ) const
+      void indexInMap( f32 xpRef, f32 ypRef, ui32 mapRef, ui32 mapDest, i32& outxp, i32& outyp ) const
       {
          if ( mapRef == mapDest )
          {
@@ -265,8 +265,8 @@ namespace algorithm
             outyp = ypRef;
          } else {
             // map a point at a given scale to the image space
-            const core::vector2i posInIntegral = getPositionPyramid2Integral( xpRef, ypRef, mapRef );
-            const core::vector2i indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
+            const core::vector2f posInIntegral = getPositionPyramid2Integral( xpRef, ypRef, mapRef );
+            const core::vector2f indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
             
             // convert the image space coordinate to the other scale space
             outxp = indexInOtherLevel[ 0 ];
