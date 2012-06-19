@@ -34,7 +34,7 @@ public:
       i(9, 3, 0) = 1;
       i(9, 4, 0) = 1;
 
-      readBmp(i, NLL_TEST_PATH "data/image/test-image2.bmp");
+      readBmp(i, NLL_TEST_PATH "data/image/test-image2.bmp", nll::core::Image<nll::ui8>::Allocator());
 
       nll::core::Timer t1;
       //Labelize::DifferentPixel different( 1 );

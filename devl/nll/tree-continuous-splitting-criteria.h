@@ -70,6 +70,11 @@ namespace algorithm
    class SplittingCriteriaGaussianApproximation : public ContinuousSplittingCriteria<DatabaseT>
    {
    public:
+      typedef ContinuousSplittingCriteria<DatabaseT>  Base;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::value_type               value_type;
+
+   public:
       SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
       {
          ensure( _nbSplits > 2, "not enough splits" );
@@ -126,6 +131,10 @@ namespace algorithm
    class SplittingCriteriaUniformApproximation : public ContinuousSplittingCriteria<DatabaseT>
    {
    public:
+      typedef ContinuousSplittingCriteria<DatabaseT>  Base;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::value_type               value_type;
+
       SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
       {
       }

@@ -69,7 +69,10 @@ namespace algorithm
    template <class Database, class Metric>
    class TreeNodeSplitDiscrete : public TreeNodeSplit<Database>
    {
-      typedef std::map<ui32, ui32>  AttributMapper;
+      typedef std::map<ui32, ui32>        AttributMapper;
+      typedef TreeNodeSplit<Database>     Base;
+      typedef typename Base::Point        Point;
+      typedef typename Base::value_type   value_type;
 
    public:
       virtual void compute( const Database& dat, const std::vector<float>& weights, std::vector<Database>& split_out, std::vector< std::vector<float> >& weights_out )
@@ -173,6 +176,8 @@ namespace algorithm
    public:
       typedef typename SplittingCriteriaFactory::value_type SplittingCriteria;
       typedef TreeNodeSplit<Database>                       Base;
+      typedef typename Base::Point                          Point;
+      typedef typename Base::value_type                     value_type;
 
       TreeNodeSplitContinuousSingle( const SplittingCriteriaFactory& scriteria ) : _splittingCriteriaFactory( scriteria ), _thresold( std::numeric_limits<value_type>::min() ), _featureId( (ui32)-1 )
       {}

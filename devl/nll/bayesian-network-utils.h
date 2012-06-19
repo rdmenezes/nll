@@ -164,8 +164,8 @@ namespace algorithm
    void getFactors( const BayesianNetwork<Factor>& bnet, std::vector<const Factor*>& factors_out )
    {
       typedef BayesianNetwork<Factor> Network;
-      typedef impl::UtilsHolder<Network>::GetConstFactorsFunctor Functor;
-      typedef impl::UtilsHolder<Network>::ConstBnVisitor<Functor> Visitor;
+      typedef typename impl::UtilsHolder<Network>::GetConstFactorsFunctor Functor;
+      typedef typename impl::UtilsHolder<Network>::template ConstBnVisitor<Functor> Visitor;
 
       Functor factorFunctor;
       Visitor visitorGetFactors( bnet, factorFunctor );
@@ -182,8 +182,8 @@ namespace algorithm
    void getFactors( BayesianNetwork<Factor>& bnet, std::vector<Factor*>& factors_out )
    {
       typedef BayesianNetwork<Factor> Network;
-      typedef impl::UtilsHolder<Network>::GetFactorsFunctor Functor;
-      typedef impl::UtilsHolder<Network>::BnVisitor<Functor> Visitor;
+      typedef typename impl::UtilsHolder<Network>::GetFactorsFunctor Functor;
+      typedef typename impl::UtilsHolder<Network>::template BnVisitor<Functor> Visitor;
 
       Functor factorFunctor;
       Visitor visitorGetFactors( bnet, factorFunctor );

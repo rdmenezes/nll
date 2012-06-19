@@ -14,6 +14,8 @@ namespace algorithm
    template <class DatabaseT>
    class WeakClassifierLinearSvm : public WeakClassifier<DatabaseT>
    {
+      typedef WeakClassifier<DatabaseT>   Base;
+
       struct SvmParams
       {
          SvmParams()
@@ -45,7 +47,7 @@ namespace algorithm
          ui32           _nbClasses;
          ui32           _createProbabilityModel;
          bool           _balanceData;
-         double         _C;
+         double         _c;
       };
 
    public:
@@ -70,15 +72,15 @@ namespace algorithm
          _params->_nbClasses = 0;
          _params->_createProbabilityModel = createProbabilityModel;
          _params->_balanceData = balanceDataLabel;
-         _params->_C = C;
+         _params->_c = C;
       }
 
       /**
        @brief Learn the weighted database.
        @param database it is assumed all data in <code>database</code> are training data.
-       @param weights the weights associated to each data sample. It is assumed sum(weights) = 1
+       @param fweights the weights associated to each data sample. It is assumed sum(weights) = 1
        */
-      virtual value_type learn( const Database& dat, const core::Buffer1D<value_type> weights )
+      virtual value_type learn( const Database& dat, const core::Buffer1D<value_type> fweights )
       {
          _params->destroy();
 
@@ -114,13 +116,13 @@ namespace algorithm
          pb.W = new double[ pb.l ];
          for ( int n = 0; n < pb.l; ++n )
          {
-            pb.W[ n ] = static_cast<double>( weights[ n ] );
+            pb.W[ n ] = static_cast<double>( fweights[ n ] );
          }
 
 		   parameter param;
 		   param.solver_type = _params->_solver;
          param.eps = 0.01;
-         param.C = _params->_C;
+         param.C = _params->_c;
 
          core::Buffer1D<int> labels( _params->_nbClasses );
          core::Buffer1D<double> weights( _params->_nbClasses );
@@ -211,16 +213,16 @@ namespace algorithm
       typedef WeakClassifierLinearSvm<DatabaseT> LinearSvm;
       typedef typename LinearSvm::SolverType     SolverType;
 
-      WeakClassifierLinearSvmFactory( double C, SolverType solver = LinearSvm::L2R_LR, bool createProbabilityModel = true, bool balanceDataLabel = false ) : _C( C ), _solver( solver ), _createProbabilityModel( createProbabilityModel ), _balanceDataLabel( balanceDataLabel )
+      WeakClassifierLinearSvmFactory( double C, SolverType solver = LinearSvm::L2R_LR, bool createProbabilityModel = true, bool balanceDataLabel = false ) : _c( C ), _solver( solver ), _createProbabilityModel( createProbabilityModel ), _balanceDataLabel( balanceDataLabel )
       {}
 
       std::shared_ptr<LinearSvm> create() const
       {
-         return std::shared_ptr<LinearSvm>( new LinearSvm( _C, _solver, _createProbabilityModel, _balanceDataLabel ) );
+         return std::shared_ptr<LinearSvm>( new LinearSvm( _c, _solver, _createProbabilityModel, _balanceDataLabel ) );
       }
 
    private:
-      double      _C;
+      double      _c;
       SolverType  _solver;
       bool        _createProbabilityModel;
       bool        _balanceDataLabel;
@@ -403,8 +405,8 @@ public:
          const ui32 d = sqrt( x * x + y * y ) < 0.6f;
          dat.add( Database::Sample( core::make_vector<float>( x, y ), d, Database::Sample::LEARNING ) );
 
-         max = std::max( fabs( x ), max );
-         max = std::max( fabs( y ), max );
+         max = std::max<float>( fabs( x ), max );
+         max = std::max<float>( fabs( y ), max );
          if ( d )
          {
             ++nbClassOne;

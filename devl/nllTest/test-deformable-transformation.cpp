@@ -436,7 +436,9 @@ struct TestDeformable2D
       // setup the images
       core::Image<ui8> sourceImage;
       DdfTransform::Matrix pst = core::identityMatrix<DdfTransform::Matrix>( 3 );
-      core::readBmp( sourceImage, NLL_TEST_PATH "data/image/test-image3.bmp" );
+      const std::string file = NLL_TEST_PATH "data/image/test-image3.bmp";
+      typedef core::Image<ui8>::Allocator Alloc;
+      core::readBmp( sourceImage, file, Alloc() );
       ImageSpatial1 target( sourceImage, pst );
       ImageSpatial1 resampled( sourceImage.sizex(), sourceImage.sizey(), 3, pst );
 

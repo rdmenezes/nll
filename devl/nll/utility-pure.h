@@ -167,7 +167,7 @@ namespace core
          if ( str[ n ] == separator )
          {
             str[ n ] = 0;
-            if ( strlen( &str[ last ] ) )
+            if ( std::strlen( &str[ last ] ) )
                s.push_back( &str[ last ] );
             last = n + 1;
          }

@@ -67,7 +67,7 @@ namespace algorithm
          {
             core::Buffer1D<value_type> out( nbClasses );
             out[ dat[ n ].output ] = 1;
-            datLearn.add( DatLearn::Sample( dat[ n ].input, out, (DatLearn::Sample::Type)dat[ n ].type ) );
+            datLearn.add( typename DatLearn::Sample( dat[ n ].input, out, (typename DatLearn::Sample::Type)dat[ n ].type ) );
          }
 
 

@@ -97,8 +97,14 @@ namespace algorithm
          typedef typename Vector1::value_type value_type1;
          typedef typename Vector2::value_type value_type2;
 
-         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
-         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         {
+            STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
+         }
+
+         {
+            STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         }
+
          ensure( x.size() == y.size(), "must be the same size" );
 
          value_type1 max = std::numeric_limits<value_type1>::min();
@@ -217,8 +223,13 @@ namespace algorithm
          typedef typename Vector2::value_type value_type2;
          typedef typename Vector3::value_type value_type_weights;
 
-         STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
-         STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         {
+            STATIC_ASSERT( core::IsIntegral<value_type1>::value ); // this implementation only works for integral type
+         }
+
+         {
+            STATIC_ASSERT( core::IsIntegral<value_type2>::value ); // this implementation only works for integral type
+         }
          ensure( x.size() == y.size(), "must be the same size" );
          ensure( weights.size() == x.size(), "weights doesn't match" );
 

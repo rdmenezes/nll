@@ -48,6 +48,7 @@ namespace algorithm
       typedef typename Database::Sample::Input              Point;
       typedef typename Database::Sample::Output             Class;
       typedef TreeNodeSplit<Database>                       NodeSplit;
+      typedef std::shared_ptr<NodeSplit>                    NodeSplitPtr;
 
       struct LevelData : public core::NonCopyable
       {
@@ -141,7 +142,7 @@ namespace algorithm
          return _nodes;
       }
 
-      const std::shared_ptr<NodeSplit>& getSplits() const
+      const NodeSplitPtr& getSplits() const
       {
          return _split;
       }
@@ -170,7 +171,7 @@ namespace algorithm
          }
 
          std::vector<Database> dats;
-         _split = std::shared_ptr<NodeSplit>( new NodeFactory::value_type( nodeFactory.create() ) );
+         _split = NodeSplitPtr( new typename NodeFactory::value_type( nodeFactory.create() ) );
          std::vector< std::vector< float > > weightsOut;
          _split->compute( dat, weights, dats, weightsOut );
 
@@ -183,7 +184,7 @@ namespace algorithm
 
    private:
       std::vector<DecisionTree>     _nodes;           // the nodes at n+1 level
-      std::shared_ptr<NodeSplit>    _split;           // the decision split
+      NodeSplitPtr                  _split;           // the decision split
       Class                         _nodeClass;       // if this node is a leaf, return this class
    };
 

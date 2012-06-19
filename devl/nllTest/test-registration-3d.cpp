@@ -261,7 +261,7 @@ namespace algorithm
 
          // take only the best subset...
          ensure( matches.size(), "No match found!" );
-         FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( nbMaxRansacPairs, (ui32)matches.size() - 1 ) );
+         typename FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( nbMaxRansacPairs, (ui32)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::Ransac<RansacTransformationEstimator, TransformationEstimatorFactory> Ransac;
@@ -291,8 +291,9 @@ namespace algorithm
          _debug.inliers.clear();
          for ( size_t n = 0; n < ransac.getInliers().size(); ++n )
          {
-            const FeatureMatcher::Matches::value_type& match = matchesTrimmed[ ransac.getInliers()[ n ] ];
-            _debug.inliers.push_back( std::make_pair<Point, Point>( sourcePoints[ match.index1 ], targetPoints[ match.index2 ] ) );
+            typedef typename Points::value_type PointM;
+            const typename FeatureMatcher::Matches::value_type& match = matchesTrimmed[ ransac.getInliers()[ n ] ];
+            _debug.inliers.push_back( std::pair<PointM, PointM>( sourcePoints[ match.index1 ], targetPoints[ match.index2 ] ) );
          }
          _debug.matches = matchesTrimmed;
          _debug.nbSourcePoints = sourcePoints.size();

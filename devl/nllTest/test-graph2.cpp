@@ -23,11 +23,12 @@ class TestGraph2
    class ConstVisitorDfsPrint : public GraphVisitorDfs<Graph>
    {
    public:
-      typedef typename Graph::EdgeMapper<std::string>    EdgeMapper;
-      typedef typename Graph::VertexMapper<int>          VertexMapper;
-      typedef typename Graph::VertexDescriptor           VertexDescriptor;
-      typedef typename Graph::EdgeDescriptor             EdgeDescriptor;
-
+      typedef typename Graph::template EdgeMapper<std::string>    EdgeMapper;
+      typedef typename Graph::template VertexMapper<int>          VertexMapper;
+      typedef typename Graph::VertexDescriptor                    VertexDescriptor;
+      typedef typename Graph::EdgeDescriptor                      EdgeDescriptor;
+      typedef typename Graph::const_vertex_iterator               const_vertex_iterator;
+      typedef typename Graph::const_edge_iterator                 const_edge_iterator;
 
       ConstVisitorDfsPrint( const VertexMapper& v, const EdgeMapper& e ) : _v( v ), _e( e )
       {}
@@ -66,10 +67,12 @@ class TestGraph2
    class ConstVisitorBfsPrint : public GraphVisitorBfs<Graph>
    {
    public:
-      typedef typename Graph::EdgeMapper<std::string>    EdgeMapper;
-      typedef typename Graph::VertexMapper<int>          VertexMapper;
+      typedef typename Graph::template EdgeMapper<std::string>    EdgeMapper;
+      typedef typename Graph::template VertexMapper<int>          VertexMapper;
       typedef typename Graph::VertexDescriptor           VertexDescriptor;
       typedef typename Graph::EdgeDescriptor             EdgeDescriptor;
+      typedef typename Graph::const_vertex_iterator      const_vertex_iterator;
+      typedef typename Graph::const_edge_iterator        const_edge_iterator;
 
 
       ConstVisitorBfsPrint( const VertexMapper& v, const EdgeMapper& e ) : _v( v ), _e( e )
@@ -133,8 +136,12 @@ public:
    template <class MapperType>
    void testImpl()
    {
-      typedef DataUq<int> DataUq1;
-      typedef Mapper<DataUq1, MapperType> Mapper1;
+      typedef DataUq<int>                                      DataUq1;
+      typedef Mapper<DataUq1, MapperType>                      Mapper1;
+      typedef typename Mapper<DataUq1, MapperType>::Descriptor Descriptor;
+      typedef typename Mapper1::iterator                       iterator;
+      typedef typename Mapper1::const_iterator                 const_iterator;
+
       Mapper1  mapper1;
 
       const Mapper1&  mapper2 = mapper1;
@@ -145,11 +152,11 @@ public:
       };
 
       DataUq1 da1( dav[ 0 ] );
-      Mapper1::Descriptor d1 = mapper1.insert( da1 );
+      Descriptor d1 = mapper1.insert( da1 );
       DataUq1 da2( dav[ 1 ] );
-      Mapper1::Descriptor d2 = mapper1.insert( da2 );
+      Descriptor d2 = mapper1.insert( da2 );
       DataUq1 da3( dav[ 2 ] );
-      Mapper1::Descriptor d3 = mapper1.insert( da3 );
+      Descriptor d3 = mapper1.insert( da3 );
 
       TESTER_ASSERT( ( da1 == mapper1.getData( d1 ) ) );
       TESTER_ASSERT( ( da2 == mapper1.getData( d2 ) ) );
@@ -159,32 +166,32 @@ public:
       TESTER_ASSERT( ( da2 == mapper2.getData( d2 ) ) );
       TESTER_ASSERT( ( da3 == mapper2.getData( d3 ) ) );
 
-      Mapper1::iterator it1 = mapper1.find( d1 );
-      Mapper1::const_iterator cit1( it1 );
-      TESTER_ASSERT( !( Mapper1::const_iterator(it1) != cit1 ) );
+      iterator it1 = mapper1.find( d1 );
+      const_iterator cit1( it1 );
+      TESTER_ASSERT( !( const_iterator(it1) != cit1 ) );
 
-      Mapper1::const_iterator it1b = mapper2.find( d1 );
-      TESTER_ASSERT( !( Mapper1::const_iterator(it1b) != cit1 ) );
+      const_iterator it1b = mapper2.find( d1 );
+      TESTER_ASSERT( !( const_iterator(it1b) != cit1 ) );
 
-      Mapper1::const_iterator it2 = mapper1.find( d2 );
-      Mapper1::const_iterator it3 = mapper1.find( d3 );
+      const_iterator it2 = mapper1.find( d2 );
+      const_iterator it3 = mapper1.find( d3 );
 
       TESTER_ASSERT( ( da1 == *it1 ) );
       TESTER_ASSERT( ( da2 == *it2 ) );
       TESTER_ASSERT( ( da3 == *it3 ) );
 
-      Mapper1::const_iterator cit2 = mapper1.getIterator( d2 );
+      const_iterator cit2 = mapper1.getIterator( d2 );
       TESTER_ASSERT( ( da2 == *cit2 ) );
 
       int id = 1;
-      for ( Mapper1::const_iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
+      for ( const_iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
       {
          int res = (*it)._v;
          TESTER_ASSERT( res == id );
       }
 
       id = 1;
-      for ( Mapper1::iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
+      for ( iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
       {
          int res = (*it)._v;
          TESTER_ASSERT( res == id );
@@ -192,7 +199,7 @@ public:
 
       mapper1.erase( it1 );
       id = 2;
-      for ( Mapper1::iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
+      for ( iterator it = mapper1.begin(); it != mapper1.end(); ++it, ++id )
       {
          int res = (*it)._v;
          TESTER_ASSERT( res == id );
@@ -226,15 +233,15 @@ public:
       typedef GraphAdgencyList<VertexType, EdgeType>   Graph1;
       {
          Graph1 g;
-         Graph1::VertexDescriptor v1 = g.addVertex();
-         Graph1::VertexDescriptor v2 = g.addVertex();
-         Graph1::VertexDescriptor v3 = g.addVertex();
-         Graph1::VertexDescriptor v4 = g.addVertex();
-         Graph1::VertexDescriptor v5 = g.addVertex();
-         Graph1::VertexDescriptor v6 = g.addVertex();
+         typename Graph1::VertexDescriptor v1 = g.addVertex();
+         typename Graph1::VertexDescriptor v2 = g.addVertex();
+         typename Graph1::VertexDescriptor v3 = g.addVertex();
+         typename Graph1::VertexDescriptor v4 = g.addVertex();
+         typename Graph1::VertexDescriptor v5 = g.addVertex();
+         typename Graph1::VertexDescriptor v6 = g.addVertex();
 
-         Graph1::EdgeDescriptor e1 = g.addEdge( v1, v2 );
-         Graph1::EdgeDescriptor e2 = g.addEdge( v1, v5 );
+         typename Graph1::EdgeDescriptor e1 = g.addEdge( v1, v2 );
+         typename Graph1::EdgeDescriptor e2 = g.addEdge( v1, v5 );
          g.addEdge( v1, v3 );
          g.addEdge( v2, v3 );
          g.addEdge( v2, v4 );
@@ -243,25 +250,25 @@ public:
          g.addEdge( v4, v1 );
          g.addEdge( v1, v4 );
 
-         for ( Graph1::const_vertex_iterator v = g.begin(); v != g.end(); ++v )
+         for ( typename Graph1::const_vertex_iterator v = g.begin(); v != g.end(); ++v )
          {
-            for ( Graph1::const_edge_iterator e = (*v).begin(); e != (*v).end(); ++e )
+            for ( typename Graph1::const_edge_iterator e = (*v).begin(); e != (*v).end(); ++e )
             {
                std::cout << "AA" << std::endl;
             }
          }
 
-         Graph1::VertexMapper<int> intmap( g, -1 );
+         typename Graph1::template VertexMapper<int> intmap( g, -1 );
          TESTER_ASSERT( intmap[ v1 ] == -1 );
          std::cout << "DATA=" << intmap[ v1 ] << std::endl;
          intmap[ v3 ] = 2;
          TESTER_ASSERT( intmap[ v3 ] == 2 );
 
          Graph1* g2 = new Graph1();
-         Graph1::VertexMapper<int> intmap2( *g2, -2 );
-         Graph1::VertexDescriptor v1b = g2->addVertex();
-         Graph1::VertexDescriptor v2b = g2->addVertex();
-         Graph1::VertexDescriptor v3b = g2->addVertex();
+         typename Graph1::template VertexMapper<int> intmap2( *g2, -2 );
+         typename Graph1::VertexDescriptor v1b = g2->addVertex();
+         typename Graph1::VertexDescriptor v2b = g2->addVertex();
+         typename Graph1::VertexDescriptor v3b = g2->addVertex();
          delete g2;
 
          TESTER_ASSERT( intmap2[ v1b ] == -2 );
@@ -272,15 +279,15 @@ public:
 		 Graph1::vertex_iterator vvv = g.begin();
 		 Graph1::Vertex& vertex = *vvv;
 		 Graph1::edge_iterator vite = vertex.begin();*/
-         Graph1::edge_iterator ie1n = g.erase( (*g.begin()).begin() );
+         typename Graph1::edge_iterator ie1n = g.erase( (*g.begin()).begin() );
          TESTER_ASSERT( (*ie1n).getUid() == 1 );
 
-         Graph1::edge_iterator ie2n = g.erase( (*g.begin()).begin() );
+         typename Graph1::edge_iterator ie2n = g.erase( (*g.begin()).begin() );
          TESTER_ASSERT( (*ie2n).getUid() == 2 );
 
-         Graph1::EdgeDescriptor e1b = g.addEdge( v1, v2 );
-         Graph1::EdgeDescriptor e2b = g.addEdge( v1, v5 );
-         Graph1::edge_iterator ie2b = g.getIterator( e2b );
+         typename Graph1::EdgeDescriptor e1b = g.addEdge( v1, v2 );
+         typename Graph1::EdgeDescriptor e2b = g.addEdge( v1, v5 );
+         typename Graph1::edge_iterator ie2b = g.getIterator( e2b );
 
          // test the const method
          const Graph1& gc = g;
@@ -289,26 +296,26 @@ public:
          g.getIterator( v3 );
          gc.getIterator( v3 );
 
-         Graph1::edge_iterator ie1bn = g.erase( e1b );
+         typename Graph1::edge_iterator ie1bn = g.erase( e1b );
       }
 
       {
          Graph1 g3;
          //const Graph1& g3c = g3;
 
-         Graph1::VertexDescriptor v1 = g3.addVertex();
-         Graph1::VertexDescriptor v2 = g3.addVertex();
-         Graph1::VertexDescriptor v3 = g3.addVertex();
-         Graph1::VertexDescriptor v4 = g3.addVertex();
+         typename Graph1::VertexDescriptor v1 = g3.addVertex();
+         typename Graph1::VertexDescriptor v2 = g3.addVertex();
+         typename Graph1::VertexDescriptor v3 = g3.addVertex();
+         typename Graph1::VertexDescriptor v4 = g3.addVertex();
 
-         Graph1::VertexMapper<int> mv( g3, -2 );
-         Graph1::EdgeMapper<int>   me( g3, -1 );
+         typename Graph1::template VertexMapper<int> mv( g3, -2 );
+         typename Graph1::template EdgeMapper<int>   me( g3, -1 );
 
-         Graph1::EdgeDescriptor e1 = g3.addEdge( v1, v2 );
-         Graph1::EdgeDescriptor e2 = g3.addEdge( v1, v3 );
-         Graph1::EdgeDescriptor e3 = g3.addEdge( v1, v4 );
-         Graph1::EdgeDescriptor e4 = g3.addEdge( v2, v4 );
-         Graph1::EdgeDescriptor e5 = g3.addEdge( v3, v4 );
+         typename Graph1::EdgeDescriptor e1 = g3.addEdge( v1, v2 );
+         typename Graph1::EdgeDescriptor e2 = g3.addEdge( v1, v3 );
+         typename Graph1::EdgeDescriptor e3 = g3.addEdge( v1, v4 );
+         typename Graph1::EdgeDescriptor e4 = g3.addEdge( v2, v4 );
+         typename Graph1::EdgeDescriptor e5 = g3.addEdge( v3, v4 );
 
          mv[ v1 ] = 1;
          mv[ v2 ] = 2;
@@ -321,10 +328,10 @@ public:
          me[ e4 ] = 4;
          me[ e5 ] = 5;
 
-         Graph1::vertex_iterator iv1 = g3.begin();
-         Graph1::vertex_iterator iv1c = iv1;
-         Graph1::const_edge_iterator ie1 = (*iv1).begin();
-         Graph1::const_edge_iterator ie1c = ie1;
+         typename Graph1::vertex_iterator iv1 = g3.begin();
+         typename Graph1::vertex_iterator iv1c = iv1;
+         typename Graph1::const_edge_iterator ie1 = (*iv1).begin();
+         typename Graph1::const_edge_iterator ie1c = ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 1 );
          ++ie1;
          TESTER_ASSERT( me[ g3.getDescriptor( ie1 ) ] == 2 );
@@ -357,19 +364,19 @@ public:
       {
          Graph1 g3;
 
-         Graph1::VertexDescriptor v1 = g3.addVertex();
-         Graph1::VertexDescriptor v2 = g3.addVertex();
-         Graph1::VertexDescriptor v3 = g3.addVertex();
-         Graph1::VertexDescriptor v4 = g3.addVertex();
+         typename Graph1::VertexDescriptor v1 = g3.addVertex();
+         typename Graph1::VertexDescriptor v2 = g3.addVertex();
+         typename Graph1::VertexDescriptor v3 = g3.addVertex();
+         typename Graph1::VertexDescriptor v4 = g3.addVertex();
 
-         Graph1::VertexMapper<int> mv( g3, -2 );
-         Graph1::EdgeMapper<int>   me( g3, -1 );
+         typename Graph1::template VertexMapper<int> mv( g3, -2 );
+         typename Graph1::template EdgeMapper<int>   me( g3, -1 );
 
-         Graph1::EdgeDescriptor e1 = g3.addEdge( v1, v2 );
-         Graph1::EdgeDescriptor e2 = g3.addEdge( v1, v3 );
-         Graph1::EdgeDescriptor e3 = g3.addEdge( v1, v4 );
-         Graph1::EdgeDescriptor e4 = g3.addEdge( v2, v4 );
-         Graph1::EdgeDescriptor e5 = g3.addEdge( v3, v4 );
+         typename Graph1::EdgeDescriptor e1 = g3.addEdge( v1, v2 );
+         typename Graph1::EdgeDescriptor e2 = g3.addEdge( v1, v3 );
+         typename Graph1::EdgeDescriptor e3 = g3.addEdge( v1, v4 );
+         typename Graph1::EdgeDescriptor e4 = g3.addEdge( v2, v4 );
+         typename Graph1::EdgeDescriptor e5 = g3.addEdge( v3, v4 );
 
          mv[ v1 ] = 1;
          mv[ v2 ] = 2;
@@ -382,9 +389,9 @@ public:
          me[ e4 ] = 4;
          me[ e5 ] = 5;
 
-         Graph1::vertex_iterator iv1 = g3.getIteratorSafe( v1 );
+         typename Graph1::vertex_iterator iv1 = g3.getIteratorSafe( v1 );
          iv1 = g3.erase( iv1 );
-         Graph1::VertexDescriptor iv1d = g3.getDescriptor( iv1 );
+         typename Graph1::VertexDescriptor iv1d = g3.getDescriptor( iv1 );
          TESTER_ASSERT( mv[ iv1d ] == 2 );
          TESTER_ASSERT( g3.size() == 3 );
 
@@ -392,8 +399,8 @@ public:
          iv1 = g3.getIteratorSafe( v4 );
          iv1 = g3.erase( iv1 );
 
-         Graph1::vertex_iterator iv2 = g3.getIteratorSafe( v2 );
-         Graph1::vertex_iterator iv3 = g3.getIteratorSafe( v3 );
+         typename Graph1::vertex_iterator iv2 = g3.getIteratorSafe( v2 );
+         typename Graph1::vertex_iterator iv3 = g3.getIteratorSafe( v3 );
          TESTER_ASSERT( (*iv2).size() == 0 );
          TESTER_ASSERT( (*iv3).size() == 0 );
 
@@ -433,15 +440,15 @@ public:
       nll::core::Timer time;
       Graph1 g;
 
-      Graph1::VertexMapper<int>         mv( g );
-      Graph1::EdgeMapper<std::string>   me( g );
+      typename Graph1::template VertexMapper<int>         mv( g );
+      typename Graph1::template EdgeMapper<std::string>   me( g );
 
-      Graph1::VertexDescriptor n1 = g.addVertex();
-      Graph1::VertexDescriptor n2 = g.addVertex();
-      Graph1::VertexDescriptor n3 = g.addVertex();
-      Graph1::VertexDescriptor n4 = g.addVertex();
-      Graph1::VertexDescriptor n5 = g.addVertex();
-      Graph1::VertexDescriptor n6 = g.addVertex();
+      typename Graph1::VertexDescriptor n1 = g.addVertex();
+      typename Graph1::VertexDescriptor n2 = g.addVertex();
+      typename Graph1::VertexDescriptor n3 = g.addVertex();
+      typename Graph1::VertexDescriptor n4 = g.addVertex();
+      typename Graph1::VertexDescriptor n5 = g.addVertex();
+      typename Graph1::VertexDescriptor n6 = g.addVertex();
 
       mv[ n1 ] = 1;
       mv[ n2 ] = 2;
@@ -450,13 +457,13 @@ public:
       mv[ n5 ] = 5;
       mv[ n6 ] = 6;
 
-      Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
-      Graph1::EdgeDescriptor e2 = g.addEdge( n2, n3 );
-      Graph1::EdgeDescriptor e3 = g.addEdge( n2, n4 );
-      Graph1::EdgeDescriptor e4 = g.addEdge( n4, n5 );
-      Graph1::EdgeDescriptor e5 = g.addEdge( n4, n6 );
-      Graph1::EdgeDescriptor e6 = g.addEdge( n4, n1 );
-      Graph1::EdgeDescriptor e7 = g.addEdge( n1, n4 );
+      typename Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
+      typename Graph1::EdgeDescriptor e2 = g.addEdge( n2, n3 );
+      typename Graph1::EdgeDescriptor e3 = g.addEdge( n2, n4 );
+      typename Graph1::EdgeDescriptor e4 = g.addEdge( n4, n5 );
+      typename Graph1::EdgeDescriptor e5 = g.addEdge( n4, n6 );
+      typename Graph1::EdgeDescriptor e6 = g.addEdge( n4, n1 );
+      typename Graph1::EdgeDescriptor e7 = g.addEdge( n1, n4 );
 
       me[ e1 ] = "a";
       me[ e2 ] = "b";
@@ -519,24 +526,24 @@ public:
       nll::core::Timer time;
       Graph1 g;
 
-      Graph1::VertexDescriptor n1 = g.addVertex();
-      Graph1::VertexDescriptor n2 = g.addVertex();
-      Graph1::VertexDescriptor n3 = g.addVertex();
-      Graph1::VertexDescriptor n4 = g.addVertex();
-      Graph1::VertexDescriptor n5 = g.addVertex();
-      Graph1::VertexDescriptor n6 = g.addVertex();
+      typename Graph1::VertexDescriptor n1 = g.addVertex();
+      typename Graph1::VertexDescriptor n2 = g.addVertex();
+      typename Graph1::VertexDescriptor n3 = g.addVertex();
+      typename Graph1::VertexDescriptor n4 = g.addVertex();
+      typename Graph1::VertexDescriptor n5 = g.addVertex();
+      typename Graph1::VertexDescriptor n6 = g.addVertex();
 
-      Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
-      Graph1::EdgeDescriptor e2 = g.addEdge( n2, n3 );
-      Graph1::EdgeDescriptor e3 = g.addEdge( n2, n4 );
-      Graph1::EdgeDescriptor e4 = g.addEdge( n4, n5 );
-      Graph1::EdgeDescriptor e5 = g.addEdge( n6, n4 );
-      Graph1::EdgeDescriptor e7 = g.addEdge( n1, n4 );
+      typename Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
+      typename Graph1::EdgeDescriptor e2 = g.addEdge( n2, n3 );
+      typename Graph1::EdgeDescriptor e3 = g.addEdge( n2, n4 );
+      typename Graph1::EdgeDescriptor e4 = g.addEdge( n4, n5 );
+      typename Graph1::EdgeDescriptor e5 = g.addEdge( n6, n4 );
+      typename Graph1::EdgeDescriptor e7 = g.addEdge( n1, n4 );
 
-      std::vector<Graph1::const_vertex_iterator> roots = getGraphRoots( g );
+      std::vector<typename Graph1::const_vertex_iterator> roots = getGraphRoots( g );
       TESTER_ASSERT( roots.size() == 2 );
-      TESTER_ASSERT( Graph1::const_vertex_iterator( g.getIterator( n1 ) ) == roots[ 0 ] );
-      TESTER_ASSERT( Graph1::const_vertex_iterator( g.getIterator( n6 ) ) == roots[ 1 ] );
+      TESTER_ASSERT( typename Graph1::const_vertex_iterator( g.getIterator( n1 ) ) == roots[ 0 ] );
+      TESTER_ASSERT( typename Graph1::const_vertex_iterator( g.getIterator( n6 ) ) == roots[ 1 ] );
    }
 
    void testDijkstraVV()
@@ -557,24 +564,24 @@ public:
       nll::core::Timer time;
       Graph1 g;
 
-      Graph1::VertexDescriptor n1 = g.addVertex();
-      Graph1::VertexDescriptor n2 = g.addVertex();
-      Graph1::VertexDescriptor n3 = g.addVertex();
-      Graph1::VertexDescriptor n4 = g.addVertex();
-      Graph1::VertexDescriptor n5 = g.addVertex();
-      Graph1::VertexDescriptor n6 = g.addVertex();
+      typename Graph1::VertexDescriptor n1 = g.addVertex();
+      typename Graph1::VertexDescriptor n2 = g.addVertex();
+      typename Graph1::VertexDescriptor n3 = g.addVertex();
+      typename Graph1::VertexDescriptor n4 = g.addVertex();
+      typename Graph1::VertexDescriptor n5 = g.addVertex();
+      typename Graph1::VertexDescriptor n6 = g.addVertex();
 
-      Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
-      Graph1::EdgeDescriptor e2 = g.addEdge( n1, n3 );
-      Graph1::EdgeDescriptor e3 = g.addEdge( n1, n6 );
-      Graph1::EdgeDescriptor e4 = g.addEdge( n2, n3 );
-      Graph1::EdgeDescriptor e5 = g.addEdge( n2, n4 );
-      Graph1::EdgeDescriptor e6 = g.addEdge( n3, n4 );
-      Graph1::EdgeDescriptor e7 = g.addEdge( n4, n5 );
-      Graph1::EdgeDescriptor e8 = g.addEdge( n6, n5 );
-      Graph1::EdgeDescriptor e9 = g.addEdge( n3, n6 );
+      typename Graph1::EdgeDescriptor e1 = g.addEdge( n1, n2 );
+      typename Graph1::EdgeDescriptor e2 = g.addEdge( n1, n3 );
+      typename Graph1::EdgeDescriptor e3 = g.addEdge( n1, n6 );
+      typename Graph1::EdgeDescriptor e4 = g.addEdge( n2, n3 );
+      typename Graph1::EdgeDescriptor e5 = g.addEdge( n2, n4 );
+      typename Graph1::EdgeDescriptor e6 = g.addEdge( n3, n4 );
+      typename Graph1::EdgeDescriptor e7 = g.addEdge( n4, n5 );
+      typename Graph1::EdgeDescriptor e8 = g.addEdge( n6, n5 );
+      typename Graph1::EdgeDescriptor e9 = g.addEdge( n3, n6 );
 
-      Graph1::EdgeMapper<double> emapper( g );
+      typename Graph1::template EdgeMapper<double> emapper( g );
       emapper[ e1 ] = 7;
       emapper[ e2 ] = 9;
       emapper[ e3 ] = 14;
@@ -587,7 +594,7 @@ public:
 
       Dijkstra<Graph1, double> dijkstra( emapper, g.getIterator(n1) );
       dijkstra.visit( g );
-      std::vector<Graph1::const_vertex_iterator> path1 = dijkstra.getPathTo( n5 );
+      std::vector<typename Graph1::const_vertex_iterator> path1 = dijkstra.getPathTo( n5 );
       TESTER_ASSERT( path1.size() == 4 );
       TESTER_ASSERT( path1[ 0 ] == g.getIterator(n1) );
       TESTER_ASSERT( path1[ 1 ] == g.getIterator(n3) );

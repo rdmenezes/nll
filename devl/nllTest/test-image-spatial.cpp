@@ -36,7 +36,7 @@ public:
       tfm( 0, 2 ) = 20;
 
       ImageNormalc i;
-      core::readBmp( i, NLL_TEST_PATH "data/feature/sf.bmp" );
+      core::readBmp( i, NLL_TEST_PATH "data/feature/sf.bmp", ImageNormalc::Allocator() );
       Imagec i1( i, pst1 );
       Imagec i2( i.sizex(), i.sizey(), 3, pst2 );
       ImageNormalc ib( i.sizex(), i.sizey(), 3 );

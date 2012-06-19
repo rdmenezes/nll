@@ -52,6 +52,10 @@ namespace algorithm
    class WeakClassifierStump : public WeakClassifier<DatabaseT>
    {
    public:
+      typedef WeakClassifier<DatabaseT>   Base;
+      typedef typename Base::value_type   value_type;
+      typedef typename Base::Database     Database;
+
       /**
        @pram nbBinsRatio the number of bins used to compute the data's histogram, in proportion of the number of samples
        @note Beware of the <nbBinsRatio> as this is depending on the number of samples in the database. If the number of samples
@@ -79,7 +83,7 @@ namespace algorithm
          std::vector<value_type> maxFeatureValue( nbFeatures, std::numeric_limits<value_type>::min() );
          for ( ui32 n = 0; n < nbSamples; ++n )
          {
-            const Database::Sample& sample = databaseTraining[ n ];
+            const typename Database::Sample& sample = databaseTraining[ n ];
             for ( ui32 f = 0; f < nbFeatures; ++f )
             {
                ensure( sample.input.size() == nbFeatures, "all inputs must have exactly the same size" );

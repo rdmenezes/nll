@@ -1,6 +1,6 @@
 #include "nll.h"
 
-#ifdef NLL_USE_LIBFFTW3
+#ifndef NLL_DONT_USE_LIBFFTW3
 
 // bind to FFTW3 implementation
 # include <fftw/fftw3.h>
