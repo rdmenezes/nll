@@ -126,17 +126,18 @@ namespace algorithm
 
       /**
        @brief returns the sum of the pixels contained in a rectangle
+       @note the coordinate are inclusive
        */
-      value_type getSum( const core::vector2ui& bottomLeft,
-                         const core::vector2ui& topRight ) const
+      value_type getSum( const core::vector2i& bottomLeft,
+                         const core::vector2i& topRight ) const
       {
          value_type val1;
          value_type val2;
          value_type val3;
          value_type val4;
 
-         core::vector2ui bl( bottomLeft[ 0 ] - 1, bottomLeft[ 1 ] - 1 );
-         if ( bl[ 0 ] >= sizex() || bl[ 1 ] >= sizex() )
+         core::vector2i bl( bottomLeft[ 0 ] - 1, bottomLeft[ 1 ] - 1 ); // shift by (-1, -1)
+         if ( bl[ 0 ] < 0 || bl[ 1 ] < 0 )
          {
             // specific case for a bottom left index == 0
             val1 = operator()( bl[ 0 ], bl[ 1 ] );
@@ -188,333 +189,197 @@ namespace algorithm
       Storage     _img;
    };
 
-
    /**
-    @ingroup algorithm
-    @brief Computes 2D Haar features on an image
+    @brief Box filters approximating gaussian derivatives
+
+    VERTICAL, HORIZONTAL for the first derivatives
+    VERTICAL_TRIPLE, HORIZONTAL_TRIPLE, CHECKER for the second derivatives
     */
    class HaarFeatures2d
    {
    public:
-      /**
-       @brief encode a feature.
-       @param bf the bottom left coordinate, it must be in [0..1][0..1] intervals. (i.e. for scaling)
-       @param tr the top right coordinate, it must be in [0..1][0..1] intervals. (i.e. for scaling)
-       */
-      struct Feature
+      enum Direction
       {
-         enum Direction
-         {
-            VERTICAL,
-            HORIZONTAL,
-            VERTICAL_TRIPLE,
-            HORIZONTAL_TRIPLE,
-            CHECKER,
-            NONE
-         };
-
-         Feature() : _direction( NONE )
-         {
-         }
-
-         /**
-          @brief Construct the feature
-          */
-         Feature( Direction dir, const core::vector2d& bf, const core::vector2d& tr ) : _direction( dir )
-         {
-            assert( bf[ 0 ] >= 0 && bf[ 0 ] <= 1 &&
-                    bf[ 1 ] >= 0 && bf[ 1 ] <= 1 &&
-                    tr[ 0 ] >= 0 && tr[ 0 ] <= 1 &&
-                    tr[ 1 ] >= 0 && tr[ 1 ] <= 1 ); // must be in [0..1]
-            assert( bf[ 0 ] <= tr[ 0 ] && bf[ 1 ] <= tr[ 1 ] ); // check precedence
-
-            double dx = static_cast<double>( tr[ 0 ] - bf[ 0 ] );
-            double dy = static_cast<double>( tr[ 1 ] - bf[ 1 ] );
-
-            _size = core::vector2d( dx, dy );
-            _centre = core::vector2d( ( tr[ 0 ] + bf[ 0 ] ) / ( 2 ),
-                                      ( tr[ 1 ] + bf[ 1 ] ) / ( 2 ) );
-         }
-
-         Feature( Direction dir, const IntegralImage& i, const core::vector2ui& bf, const core::vector2ui& tr ) : _direction( dir )
-         {
-            ensure( bf[ 0 ] < tr[ 0 ] && bf[ 1 ] < tr[ 1 ], "bad corner" );
-            ensure( tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey(), "outside image" );
-
-            double dx = static_cast<double>( tr[ 0 ] - bf[ 0 ] );
-            double dy = static_cast<double>( tr[ 1 ] - bf[ 1 ] );
-
-            _size = core::vector2d( dx / i.sizex(), dy / i.sizey() );
-            _centre = core::vector2d( ( tr[ 0 ] + bf[ 0 ] ) / ( 2.0 * i.sizex() ),
-                                      ( tr[ 1 ] + bf[ 1 ] ) / ( 2.0 * i.sizey() ) );
-         }
-
-         Direction getDirection() const
-         {
-            return _direction;
-         }
-
-         const core::vector2d& getCentre() const
-         {
-            return _centre;
-         }
-
-         // note that by size it is meant the ratio size!
-         const core::vector2d& getSize() const
-         {
-            return _size;
-         }
-
-         /**
-          @brief Given an image and a feature (self), returns the actual bottom left & top right coordinates
-          */
-         void getPosition( const IntegralImage& i, double scale, core::vector2ui& bl, core::vector2ui& tr ) const
-         {
-            i32 sx = core::round( i.sizex() * scale * _size[ 0 ] );
-            i32 sy = core::round( i.sizey() * scale * _size[ 1 ] );
-
-            // we must use features that are centred
-            if ( sx % 2 == 0 )
-               ++sx;
-            if ( sy % 2 == 0 )
-               ++sy;
-
-            const i32 halfx = sx / 2;
-            const i32 halfy = sy / 2;
-
-            const i32 cx = static_cast<i32>( i.sizex() * _centre[ 0 ] * scale );
-            const i32 cy = static_cast<i32>( i.sizey() * _centre[ 1 ] * scale );
-
-            bl[ 0 ] = std::max<int>( 0, cx - halfx );
-            bl[ 1 ] = std::max<int>( 0, cy - halfy );
-
-            tr[ 0 ] = std::min<int>( (int)i.sizex() - 1, cx + halfx );
-            tr[ 1 ] = std::min<int>( (int)i.sizey() - 1, cy + halfy );
-         }
-
-         static double getValue( Direction direction, const IntegralImage& i, const core::vector2ui& bl, const core::vector2ui& tr )
-         {
-            const int x1 = bl[ 0 ];
-            const int x2 = tr[ 0 ];
-
-            const int y1 = bl[ 1 ];
-            const int y2 = tr[ 1 ];
-
-            double sump;
-            double sumd;
-            int tmp1, tmp2;
-            ui32 mid;
-            ui32 mid1, mid2, d;
-            int border;
-
-            switch ( direction )
-            {
-            case HORIZONTAL:
-               mid = ( x1 + x2 ) / 2;
-               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( mid, y2 ) );
-               sumd = i.getSum( core::vector2ui( mid, y1 ), core::vector2ui( x2, y2 ) );
-               return static_cast<double>( sump - sumd );
-
-            case VERTICAL:
-               mid = ( y1 + y2 ) / 2;
-               sump = i.getSum( core::vector2ui( x1, y1 ), core::vector2ui( x2, mid ) );
-               sumd = i.getSum( core::vector2ui( x1, mid ), core::vector2ui( x2, y2 ) );
-               return static_cast<double>( sump - sumd );
-
-            case VERTICAL_TRIPLE:
-               //ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
-               //
-               // note that we remove the border so that a filter of size 9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 2
-               // b+++b
-               // b---b
-               // b+++b
-               //
-               d = ( y2 - y1 + 1 ) / 3;
-               mid1 = y1 + 1 * d;
-               mid2 = y1 + 2 * d;
-               border = ( ( x2 - x1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
-
-               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
-               tmp1 = x1 + border;
-               tmp2 = x2 - border;
-               sump = i.getSum( core::vector2ui( tmp1, y1 ),   core::vector2ui( tmp2, y2 ) );
-               sumd = i.getSum( core::vector2ui( tmp1, mid1 ), core::vector2ui( tmp2, mid2 - 1 ) );
-               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
-
-            case HORIZONTAL_TRIPLE:
-               //ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
-               //
-               // note that we remove the border so that a filter of size 9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 2
-               // bbb
-               // +-+
-               // +-+
-               // +-+
-               // bbb
-               d = ( x2 - x1 + 1 ) / 3;
-               mid1 = x1 + 1 * d;
-               mid2 = x1 + 2 * d;
-               border = ( ( y2 - y1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
-
-               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
-               tmp1 = y1 + border;
-               tmp2 = y2 - border;
-               sump = i.getSum( core::vector2ui( x1,   tmp1 ), core::vector2ui( x2,       tmp2 ) );
-               sumd = i.getSum( core::vector2ui( mid1, tmp1 ), core::vector2ui( mid2 - 1, tmp2 ) );
-               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
-
-            case CHECKER:
-               //ensure( y2 - y1 + 1 == x2 - x1 + 1, "the filter must be square" );
-               //
-               // note that we remove the border so that a filter of size 9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 1
-               // b b b b b
-               // b + b - b
-               // b - b + b
-               // b b b b b
-               //
-               d = ( x2 - x1 + 1 ) / 3;
-               mid1 = ( x2 + x1 ) / 2;
-               mid2 = ( y2 + y1 ) / 2;
-               border = ( ( x2 - x1 + 1 ) - ( 2 * d + 1 ) ) / 2;
-
-               sump = i.getSum( core::vector2ui( x1 + border,   y1 + border ), core::vector2ui( mid1 - 1, mid2 - 1 ) ) +
-                      i.getSum( core::vector2ui( mid1 + 1, mid2 + 1 ),         core::vector2ui( x2 - border, y2 - border ) );
-               sumd = i.getSum( core::vector2ui( mid1 + 1,   y1 + border ),    core::vector2ui( x2 - border, mid2 - 1 ) ) +
-                      i.getSum( core::vector2ui( x1 + border, mid2 + 1 ),      core::vector2ui( mid1 - 1, y2 - border ) );
-               return static_cast<double>( sump - sumd );
-
-
-            case NONE:
-            default:
-               ensure( 0, "not handled type" );
-            }
-         }
-
-         IntegralImage::value_type getValue( const IntegralImage& i, double scale ) const
-         {
-            core::vector2ui bl;
-            core::vector2ui tr;
-            getPosition( i, scale, bl, tr );
-            return getValue( _direction, i, bl, tr );
-         }
-
-         void write( std::ostream& f ) const
-         {
-            ensure( f.good(), "file not open correctly" );
-            core::write<ui32>( static_cast<ui32>( _direction ), f );
-            core::write<f64> ( _centre[ 0 ], f );
-            core::write<f64> ( _centre[ 1 ], f );
-            core::write<f64> ( _size[ 0 ], f );
-            core::write<f64> ( _size[ 1 ], f );
-         }
-
-         void read( std::istream& f )
-         {
-            ui32 direction;
-
-            core::read<ui32>( direction, f );
-            core::read<f64> ( _centre[ 0 ], f );
-            core::read<f64> ( _centre[ 1 ], f );
-            core::read<f64> ( _size[ 0 ], f );
-            core::read<f64> ( _size[ 1 ], f );
-            _direction = static_cast<Direction>( direction );
-         }
-
-      private:
-         // we need to store the centre/size and not bl,tr so that the scale is easily handled
-         Direction         _direction;
-         core::vector2d    _centre;
-         core::vector2d    _size;
+         VERTICAL,
+         HORIZONTAL,
+         VERTICAL_TRIPLE,
+         HORIZONTAL_TRIPLE,
+         CHECKER,
+         NONE
       };
-      typedef std::vector<Feature>           Features;
 
-   public:
-      typedef double                         internal_type;
-      typedef core::Buffer1D<internal_type>  Buffer;
-
-   public:
-      void clear()
+      static double getValue( const Direction direction, const IntegralImage& i, const core::vector2i& position, const int lobeSize )
       {
-         _features.clear();
-      }
-
-      void add( const Feature& f )
-      {
-         _features.push_back( f );
-      }
-
-      void write( const std::string& f ) const
-      {
-         std::ofstream file( f.c_str(), std::ios::binary );
-         ensure( file.good(), "can't open the file" );
-         write( file );
-      }
-
-      void write( std::ostream& f ) const
-      {
-         ensure( f.good(), "file not open correctly" );
-         core::write<ui32>( static_cast<ui32>( _features.size() ), f );
-         for ( ui32 n = 0; n < static_cast<ui32>( _features.size() ); ++n )
+         //
+         // Note: all drawings are inverted in Y as the (0, 0) of our images is bottom left!
+         //
+         if ( direction == VERTICAL_TRIPLE )
          {
-            _features[ n ].write( f );
+            // computes:
+            // X 0 0 0 0 0 0 0 0     X = (0, 0)
+            // 0 0 0 0 0 0 0 0 0
+            // p p p n n n p p p 
+            // p p p n n n p p p
+            // p p p n n n p p p
+            // p p p n n n p p p
+            // p p p n n n p p p
+            // 0 0 0 0 0 0 0 0 0
+            // 0 0 0 0 0 0 0 0 0
+            //       <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const int halfLobe = lobeSize / 2;
+            const int halfx = lobeSize + halfLobe;
+            const int halfy = ( 2 * lobeSize - 1 ) / 2;
+
+            const core::vector2i min( position[ 0 ] - halfx, position[ 1 ] - halfy );
+            const core::vector2i max( position[ 0 ] + halfx, position[ 1 ] + halfy );
+
+            const core::vector2i subMin( position[ 0 ] - halfLobe, position[ 1 ] - halfy );
+            const core::vector2i subMax( position[ 0 ] + halfLobe, position[ 1 ] + halfy );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
          }
-      }
 
-      void read( const std::string& f )
-      {
-         std::ifstream file( f.c_str(), std::ios::binary );
-         ensure( file.good(), "can't open the file" );
-         read( file );
-      }
-
-      void read( std::istream& f )
-      {
-         ensure( f.good(), "file not open correctly" );
-
-         ui32 size = 0;
-         core::read<ui32>( size, f );
-         _features = Features( size );
-         for ( ui32 n = 0; n < size; ++n )
+         if ( direction == HORIZONTAL_TRIPLE )
          {
-            _features[ n ].read( f );
-         }
-      }
+            // computes:
+            // X 0 p p p p p 0 0     X = (0, 0)
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+            // 0 0 n n n n n 0 0  -
+            // 0 0 n n n n n 0 0  |  lobeSize
+            // 0 0 n n n n n 0 0  -
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
 
-      /**
-       @brief computes the Haar features on an integral image
-       @param scale the scale applied to the features
-       */
-      Buffer process( const IntegralImage& i, double scale = 1.0 ) const
-      {
-         Buffer buffer( static_cast<ui32>( _features.size() ), false );
-         for ( ui32 n = 0; n < buffer.size(); ++n )
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const int halfLobe = lobeSize / 2;
+            const int halfy = lobeSize + halfLobe;
+            const int halfx = ( 2 * lobeSize - 1 ) / 2;
+
+            const core::vector2i min( position[ 0 ] - halfx, position[ 1 ] - halfy );
+            const core::vector2i max( position[ 0 ] + halfx, position[ 1 ] + halfy );
+
+            const core::vector2i subMin( position[ 0 ] - halfx, position[ 1 ] - halfLobe );
+            const core::vector2i subMax( position[ 0 ] + halfx, position[ 1 ] + halfLobe );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
+         }
+
+         if ( direction == VERTICAL )
          {
-            buffer[ n ] = _features[ n ].getValue( i, scale );   
+            // computes:
+            // X n n n 0 p p p p     X = (0, 0)
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // n n n n 0 p p p p
+            // <===============> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( lobeSize % 2 == 1, "must be a odd" );
+            #endif
+
+            const int half = lobeSize / 2;
+
+            const core::vector2i min( position[ 0 ] - half, position[ 1 ] - half );
+            const core::vector2i max( position[ 0 ] - 1,    position[ 1 ] + half );
+
+            const core::vector2i subMin( position[ 0 ] + 1,    position[ 1 ] - half );
+            const core::vector2i subMax( position[ 0 ] + half, position[ 1 ] + half );
+
+            const double sumd = i.getSum( min, max );
+            const double sump = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - sumd );
          }
-         return buffer;
-      }
 
-      template <class T, class Mapper, class Alloc>
-      Buffer process( const core::Image<T, Mapper, Alloc>& i, double scale = 1.0 ) const
-      {
-         IntegralImage integral;
-         integral.process( i );
-         return process( integral, scale );
-      }
+         if ( direction == HORIZONTAL )
+         {
+            // computes:
+            // X n n n n n n n n     X = (0, 0)
+            // n n n n n n n n n 
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // 0 0 0 0 0 0 0 0 0
+            // p p p p p p p p p
+            // p p p p p p p p p
+            // p p p p p p p p p
+            // p p p p p p p p p
+            // <===============> lobeSize
 
-   private:
-      Features    _features;
+            #ifdef NLL_SECURE
+            ensure( lobeSize % 2 == 1, "must be a odd" );
+            #endif
+
+            const int half = lobeSize / 2;
+
+
+            const core::vector2i min( position[ 0 ] - half, position[ 1 ] - half );
+            const core::vector2i max( position[ 0 ] + half, position[ 1 ] - 1 );
+
+            const core::vector2i subMin( position[ 0 ] - half, position[ 1 ] + 1 );
+            const core::vector2i subMax( position[ 0 ] + half, position[ 1 ] + half );
+
+            const double sumd = i.getSum( min, max );
+            const double sump = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - sumd );
+         }
+
+         if ( direction == CHECKER )
+         {
+            // computes:
+            // X 0 0 0 0 0 0 0 0    X = (0, 0)
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 0 0 0 0 0 0 0 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 0 0 0 0 0 0 0 0
+            //           <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const core::vector2i min1( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize );
+            const core::vector2i max1( position[ 0 ] - 1,        position[ 1 ] - 1 );
+
+            const core::vector2i min2( position[ 0 ] + 1,        position[ 1 ] - lobeSize );
+            const core::vector2i max2( position[ 0 ] + lobeSize, position[ 1 ] - 1 );
+
+            const core::vector2i min3( position[ 0 ] - lobeSize, position[ 1 ] + 1 );
+            const core::vector2i max3( position[ 0 ] - 1,        position[ 1 ] + lobeSize );
+
+            const core::vector2i min4( position[ 0 ] + 1,        position[ 1 ] + 1 );
+            const core::vector2i max4( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize );
+
+            const double sum1 = i.getSum( min1, max1 );
+            const double sum2 = i.getSum( min2, max2 );
+            const double sum3 = i.getSum( min3, max3 );
+            const double sum4 = i.getSum( min4, max4 );
+            return static_cast<double>( sum2 + sum3 - sum1 - sum4 ); // optim: 2 area computation only + weighting
+         }
+
+         ensure( 0, "not handled haar feature" );
+      }
    };
 }
 }

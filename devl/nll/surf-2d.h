@@ -387,17 +387,18 @@ namespace algorithm
                                             core::round( sample_y - scale ) );
                         core::vector2ui tr( core::round( sample_x + scale ),
                                             core::round( sample_y + scale ) );
+                        const core::vector2i center( sample_x, sample_y );
 
                         if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                         {
-                           const value_type dry = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                     image,
-                                                                                     bl,
-                                                                                     tr ) / size;
-                           const value_type drx = HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                     image,
-                                                                                     bl,
-                                                                                     tr ) / size;
+                           const value_type dry = HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL,
+                                                                            image,
+                                                                            center,
+                                                                            2 * scale + 1 ) / size;
+                           const value_type drx = HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL,
+                                                                            image,
+                                                                            center,
+                                                                            2 * scale + 1 ) / size;
 
                            //Get the gaussian weighted x and y responses on the unrotated axis
                            const core::vector2d rotatedInvFeature = rotateInv.transform( core::vector2d( drx, dry ) );
@@ -481,18 +482,20 @@ namespace algorithm
                      const value_type gauss = gauss25[ id[ u + 6 ] ][ id[ v + 6 ] ];
                      const int x = point.position[ 0 ] + u * scale;
                      const int y = point.position[ 1 ] + v * scale;
-                     const core::vector2ui bl( x - 2 * scale, y - 2 * scale );
+                     const core::vector2i center( x, y );
+
+                     const core::vector2ui bl( x - 2 * scale, y - 2 * scale ); // TODO REMOVE
                      const core::vector2ui tr( x + 2 * scale, y + 2 * scale );
                      if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
                      {
-                        const value_type dy = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::VERTICAL,
-                                                                                           i,
-                                                                                           bl,
-                                                                                           tr );
-                        const value_type dx = - gauss * HaarFeatures2d::Feature::getValue( HaarFeatures2d::Feature::HORIZONTAL,
-                                                                                           i,
-                                                                                           bl,
-                                                                                           tr );
+                        const value_type dy = gauss * HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL,
+                                                                                i,
+                                                                                center,
+                                                                                4 * scale + 1 );
+                        const value_type dx = gauss * HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL,
+                                                                                i,
+                                                                                center,
+                                                                                4 * scale + 1 );
                         const value_type angle = core::getAngle( dx, dy );
                         localPoints.push_back( LocalPoint( angle, dx, dy ) );
                      }
