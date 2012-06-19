@@ -245,7 +245,7 @@ public:
       TESTER_ASSERT( image.sizex() );
       core::decolor( image );
 
-      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.005 );
+      algorithm::SpeededUpRobustFeatures surf( 5, 4, 2, 0.001 );
 
       nll::core::Timer timer;
       algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
@@ -254,7 +254,7 @@ public:
       std::cout << "nbPOints=" << points1.size() << std::endl;
 
       printPoints( output, points1 );
-      core::writeBmp( output, "pointsSurf.bmp" );
+      core::writeBmp( output, NLL_TEST_PATH "data/pointsSurf.bmp" );
    }
 
    void testRepeatability()

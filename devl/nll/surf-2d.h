@@ -377,18 +377,16 @@ namespace algorithm
                      {
                         // center on the rotated axis
                         const core::vector2d pointInRtotatedGrid = rotate.transform( core::vector2d( di * scale, dj * scale ) );
-                        const int sample_x = core::round( x + pointInRtotatedGrid[ 0 ] );
-                        const int sample_y = core::round( y + pointInRtotatedGrid[ 1 ] );
+                        const core::vector2i center( x + pointInRtotatedGrid[ 0 ],
+                                                     y + pointInRtotatedGrid[ 1 ] );
 
                         //Get the gaussian weighted x and y responses
                         const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
 
-                        core::vector2ui bl( core::round( sample_x - scale ),
-                                            core::round( sample_y - scale ) );
-                        core::vector2ui tr( core::round( sample_x + scale ),
-                                            core::round( sample_y + scale ) );
-                        const core::vector2i center( sample_x, sample_y );
-
+                        core::vector2ui bl( center[ 0 ] - scale,
+                                            center[ 1 ] - scale );
+                        core::vector2ui tr( center[ 0 ] + scale,
+                                            center[ 1 ] + scale );
                         if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                         {
                            const value_type dry = HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL,
@@ -484,7 +482,7 @@ namespace algorithm
                      const int y = point.position[ 1 ] + v * scale;
                      const core::vector2i center( x, y );
 
-                     const core::vector2ui bl( x - 2 * scale, y - 2 * scale ); // TODO REMOVE
+                     const core::vector2ui bl( x - 2 * scale, y - 2 * scale );
                      const core::vector2ui tr( x + 2 * scale, y + 2 * scale );
                      if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
                      {
