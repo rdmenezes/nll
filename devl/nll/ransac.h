@@ -125,6 +125,9 @@ namespace algorithm
 
          const ui32 nbPoint = static_cast<ui32>( points.size() );
 
+         //#ifndef NLL_NOT_MULTITHREADED
+         //# pragma omp parallel for
+         //#endif
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
             std::auto_ptr<Estimator> estimator;
@@ -151,29 +154,35 @@ namespace algorithm
                estimator->estimate( initialSubset );  // the estimator may throw, we don't want to cancel all computations just because one failed...
                double meanError = 0;
                float weightedInliers = 0;
+               for ( ui32 nn = 0; nn < nbPoint; ++nn )
                {
-                  for ( ui32 nn = 0; nn < nbPoint; ++nn )
+                  // compute the subset of inliers
+                  const double err = estimator->error( points[ nn ] );
+                  if ( err < maxError )
                   {
-                     // compute the subset of inliers
-                     const double err = estimator->error( points[ nn ] );
-                     if ( err < maxError )
-                     {
-                        currentSubset.push_back( nn );
-                        meanError += err;
-                        weightedInliers += weights.size() ? weights[ nn ] : 1;
-                     }
+                     currentSubset.push_back( nn );
+                     meanError += err;
+                     weightedInliers += weights.size() ? weights[ nn ] : 1;
                   }
                }
+
                meanError /= currentSubset.size();
 
+               if ( weightedInliers > bestWeight )
                {
-                  if ( weightedInliers > bestWeight )
+                  //#ifndef NLL_NOT_MULTITHREADED
+                  //# pragma omp critical
+                  //#endif
                   {
-                     // save the model as it agrees with more points
-                     bestModel = estimator->getModel();
-                     bestSubset = currentSubset;
-                     bestError = meanError;
-                     bestWeight = weightedInliers;
+                     //if ( weightedInliers > bestWeight )    // double locking mecanism, the first one is unsafe,
+                     //                                       // filtering most of them, second one is safe, but slower
+                     {
+                        // save the model as it agrees with more points
+                        bestModel = estimator->getModel();
+                        bestSubset = currentSubset;
+                        bestError = meanError;
+                        bestWeight = weightedInliers;
+                     }
                   }
                }
             } catch (...)
