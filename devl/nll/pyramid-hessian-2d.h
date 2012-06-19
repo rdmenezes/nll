@@ -101,9 +101,9 @@ namespace algorithm
             i32 resy = ( (i32)i.sizey() ) / step;
 
             // here we want the last (resx, resy) to fully fit inside so that we don't have 
-            while ( (int)_getPositionPyramid2IntegralNoShift( resx, 0, n )[ 0 ] + _scales[ n ] >  (i32)i.sizex() )
+            while ( (int)_getPositionPyramid2IntegralNoShift( (f32)resx, 0, n )[ 0 ] + _scales[ n ] >  (i32)i.sizex() )
                --resx;
-            while ( (int)_getPositionPyramid2IntegralNoShift( 0, resy, n )[ 1 ] + _scales[ n ] >  (i32)i.sizey() )
+            while ( (int)_getPositionPyramid2IntegralNoShift( 0, (f32)resy, n )[ 1 ] + _scales[ n ] >  (i32)i.sizey() )
                --resy;
             if ( resx <= 0 || resy <= 0 )
                break;   // the scale is too big!
@@ -121,25 +121,25 @@ namespace algorithm
                {
                   // Note: (0,0) in the pyramid represents the filter whose top left corner is (0,0)
                   // (i.e., we don't need any shift by scale/2 here)
-                  const core::vector2f centerf = getPositionPyramid2Integral( xp, yp, n );
-                  const core::vector2i center( centerf[ 0 ], centerf[ 1 ] );
+                  const core::vector2f centerf = getPositionPyramid2Integral( static_cast<f32>( xp ), static_cast<f32>( yp ), n );
+                  const core::vector2i center( static_cast<int>( centerf[ 0 ] ), static_cast<int>(centerf[ 1 ] ) );
 
                   core::vector2ui bl( center[ 0 ], center[ 1 ] );
                   core::vector2ui tr( bl[ 0 ] + scales[ n ] - 1, bl[ 1 ] + scales[ n ] - 1 );
                   if ( tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
                   {
-                     const double dxx = HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL_TRIPLE,
-                                                                  image,
-                                                                  center,
-                                                                  lobeSize ) / areaNormalization;
-                     const double dyy = HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL_TRIPLE,
-                                                                  image,
-                                                                  center,
-                                                                  lobeSize ) / areaNormalization;
-                     const double dxy = HaarFeatures2d::getValue( HaarFeatures2d::CHECKER,
-                                                                  image,
-                                                                  center,
-                                                                  lobeSize ) / areaNormalization;
+                     const value_type dxx = HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL_TRIPLE,
+                                                                      image,
+                                                                      center,
+                                                                      lobeSize ) / areaNormalization;
+                     const value_type dyy = HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL_TRIPLE,
+                                                                      image,
+                                                                      center,
+                                                                      lobeSize ) / areaNormalization;
+                     const value_type dxy = HaarFeatures2d::getValue( HaarFeatures2d::CHECKER,
+                                                                      image,
+                                                                      center,
+                                                                      lobeSize ) / areaNormalization;
 
                      // here we normalize the dxy, as the area used for the filters are diffent than dxx or dyy
                      // using the frobenius norm (see http://mathworld.wolfram.com/FrobeniusNorm.html)
@@ -252,7 +252,7 @@ namespace algorithm
             outyp = ypRef;
          } else {
             // map a point at a given scale to the image space
-            const core::vector2f posInIntegral = _getPositionPyramid2IntegralNoShift( (float)xpRef, (float)ypRef, mapRef );
+            const core::vector2f posInIntegral = _getPositionPyramid2IntegralNoShift( (f32)xpRef, (f32)ypRef, mapRef );
             const core::vector2f indexInOtherLevel = _getPositionIntegral2PyramidNoShift( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
             
             // convert the image space coordinate to the other scale space

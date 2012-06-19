@@ -210,12 +210,12 @@ namespace algorithm
             estimator->getModel().print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-         _nbInliers = static_cast<ui32>( inliers.size() );
+         _nbInliers = static_cast<f32>( inliers.size() );
          _inlierId = bestSubset;
          return estimator->getModel();
       }
 
-      float getNbInliers() const
+      f32 getNbInliers() const
       {
          return _nbInliers;
       }
@@ -227,7 +227,7 @@ namespace algorithm
 
    private:
       EstimatorFactory  _estimatorFactory;
-      float             _nbInliers;
+      f32               _nbInliers;
       std::vector<ui32> _inlierId;
    };
 

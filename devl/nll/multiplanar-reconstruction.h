@@ -116,7 +116,7 @@ namespace imaging
        */
       void getSlice( Slice& slice, const TransformationAffine& tfm, bool isSliceCenter = true ) const
       {
-         const float isCenter = isSliceCenter ? 1 : 0;
+         const float isCenter = isSliceCenter ? 1.0f : 0.0f;
 
          // (1) compute the transformation index source position MM->target index with affine target->source TFM applied
          const core::Matrix<float> srcMmTargetIndex = _volume.getInvertedPst() * tfm.getAffineMatrix();

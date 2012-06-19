@@ -43,7 +43,7 @@ namespace core
 {
    // provide our own strdup for GCC cygwin as described here:
    // http://stackoverflow.com/questions/5573775/strdup-error-on-g-with-c0x
-   char* _strdup(const char *str)
+   inline char* _strdup(const char *str)
    {
       size_t len = std::strlen( str );
       char *x = (char*)std::malloc( len + 1 );

@@ -766,7 +766,7 @@ namespace algorithm
          Factory estimatorFactory( points1, points2 );
          Ransac ransac( estimatorFactory );
 
-         core::Buffer1D<float> weights( matchesTrimmed.size() );
+         core::Buffer1D<float> weights( static_cast<ui32>( matchesTrimmed.size() ) );
          for ( ui32 n = 0; n < static_cast<ui32>( weights.size() ); ++n )
          {
             ui32 indexTarget = matchesTrimmed[ n ].index2;
@@ -784,7 +784,7 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "RANSAC optimization time=" + nll::core::val2str( ransacOptimTimer.getCurrentTime() ) );
 
          _inliers.clear();
-         _inliers.reserve( ransac.getNbInliers() );
+         _inliers.reserve( static_cast<size_t>( ransac.getNbInliers() ) );
          const std::vector<ui32>& inliers = ransac.getInliers();
          for ( ui32 n = 0; n < (ui32)inliers.size(); ++n )
          {

@@ -377,26 +377,28 @@ namespace algorithm
                      {
                         // center on the rotated axis
                         const core::vector2d pointInRtotatedGrid = rotate.transform( core::vector2d( di * scale, dj * scale ) );
-                        const core::vector2i center( x + pointInRtotatedGrid[ 0 ],
-                                                     y + pointInRtotatedGrid[ 1 ] );
+                        const core::vector2i center( static_cast<int>( x + pointInRtotatedGrid[ 0 ] ),
+                                                     static_cast<int>( y + pointInRtotatedGrid[ 1 ] ) );
 
                         //Get the gaussian weighted x and y responses
                         const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
 
-                        core::vector2ui bl( center[ 0 ] - scale,
-                                            center[ 1 ] - scale );
-                        core::vector2ui tr( center[ 0 ] + scale,
-                                            center[ 1 ] + scale );
-                        if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() )
+                        core::vector2i bl( static_cast<int>( center[ 0 ] - scale ),
+                                           static_cast<int>( center[ 1 ] - scale ) );
+                        core::vector2i tr( static_cast<int>( center[ 0 ] + scale ),
+                                           static_cast<int>( center[ 1 ] + scale ) );
+                        if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 &&
+                             tr[ 0 ] < static_cast<int>( image.sizex() ) &&
+                             tr[ 1 ] < static_cast<int>( image.sizey() ) )
                         {
                            const value_type dry = HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL,
                                                                             image,
                                                                             center,
-                                                                            2 * scale + 1 ) / size;
+                                                                            static_cast<int>( 2 * scale + 1 ) ) / size;
                            const value_type drx = HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL,
                                                                             image,
                                                                             center,
-                                                                            2 * scale + 1 ) / size;
+                                                                            static_cast<int>( 2 * scale + 1 ) ) / size;
 
                            //Get the gaussian weighted x and y responses on the unrotated axis
                            const core::vector2d rotatedInvFeature = rotateInv.transform( core::vector2d( drx, dry ) );
@@ -482,18 +484,20 @@ namespace algorithm
                      const int y = point.position[ 1 ] + v * scale;
                      const core::vector2i center( x, y );
 
-                     const core::vector2ui bl( x - 2 * scale, y - 2 * scale );
-                     const core::vector2ui tr( x + 2 * scale, y + 2 * scale );
-                     if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 && tr[ 0 ] < i.sizex() && tr[ 1 ] < i.sizey() )
+                     const core::vector2i bl( x - 2 * scale, y - 2 * scale );
+                     const core::vector2i tr( x + 2 * scale, y + 2 * scale );
+                     if ( bl[ 0 ] >= 0 && bl[ 1 ] >= 0 &&
+                          tr[ 0 ] < static_cast<int>( i.sizex() ) &&
+                          tr[ 1 ] < static_cast<int>( i.sizey() ) )
                      {
                         const value_type dy = gauss * HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL,
                                                                                 i,
                                                                                 center,
-                                                                                4 * scale + 1 );
+                                                                                static_cast<int>( 4 * scale + 1 ) );
                         const value_type dx = gauss * HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL,
                                                                                 i,
                                                                                 center,
-                                                                                4 * scale + 1 );
+                                                                                static_cast<int>( 4 * scale + 1 ) );
                         const value_type angle = core::getAngle( dx, dy );
                         localPoints.push_back( LocalPoint( angle, dx, dy ) );
                      }
