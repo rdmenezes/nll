@@ -446,20 +446,6 @@ namespace algorithm
        */
       static void _computeAngle( const IntegralImage& i, Points& points )
       {
-         // preprocessed gaussian of size 2.5
-         // we need to weight the response so that it is more tolerant to the noise. Indeed, the further
-         // away from the centre, the more likely it is to be noisier
-         static const value_type gauss25 [7][7] = {
-            0.019231049672332,   0.017752496310703,   0.013964608201480,   0.009360756812486,   0.005346949135776,   0.002602639554342,   0.001079530412408,
-            0.017752496310703,   0.016387619533578,   0.012890958101671,   0.008641067628156,   0.004935856150533,   0.002402539116366,   0.000996532170115,
-            0.013964608201480,   0.012890958101671,   0.010140386798616,   0.006797304545668,   0.003882681966226,   0.001889904206236,   0.000783899969462,
-            0.009360756812486,   0.008641067628156,   0.006797304545668,   0.004556369495970,   0.002602639554342,   0.001266840674527,   0.000525463863617,
-            0.005346949135776,   0.004935856150533,   0.003882681966226,   0.002602639554342,   0.001486651303372,   0.000723630875742,   0.000300149721623,
-            0.002602639554342,   0.002402539116366,   0.001889904206236,   0.001266840674527,   0.000723630875742,   0.000352228961250,   0.000146098554126,
-            0.001079530412408,   0.000996532170115,   0.000783899969462,   0.000525463863617,   0.000300149721623,   0.000146098554126,   0.000060599183673
-         };
-         static const int id[] = { 6, 5, 4, 3, 2, 1, 0, 1, 2, 3, 4, 5, 6 };
-
          const int nbPoints = static_cast<int>( points.size() );
 
          #ifndef NLL_NOT_MULTITHREADED
@@ -479,7 +465,9 @@ namespace algorithm
                {
                   if ( u * u + v * v < 36 )
                   {
-                     const value_type gauss = gauss25[ id[ u + 6 ] ][ id[ v + 6 ] ];
+                     // we need to weight the response so that it is more tolerant to the noise. Indeed, the further
+                     // away from the centre, the more likely it is to be noisier
+                     const value_type gauss = gaussian( u, v, 2.5 );
                      const int x = point.position[ 0 ] + u * scale;
                      const int y = point.position[ 1 ] + v * scale;
                      const core::vector2i center( x, y );
