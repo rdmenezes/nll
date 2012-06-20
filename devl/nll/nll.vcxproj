@@ -431,6 +431,7 @@
     <ClInclude Include="math-gram-schmidt-ortho.h" />
     <ClInclude Include="math-kurtosis.h" />
     <ClInclude Include="math-noise-awgn.h" />
+    <ClInclude Include="math-pdf-gaussian.h" />
     <ClInclude Include="math-quaternion.h" />
     <ClInclude Include="math-sampling.h" />
     <ClInclude Include="math-statistical-independence.h" />

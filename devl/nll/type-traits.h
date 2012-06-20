@@ -456,6 +456,24 @@ namespace core
    {
       enum {value = true};
    };
+
+   template <class T>
+   struct IsFloating
+   {
+      enum {value = false};
+   };
+
+   template <>
+   struct IsFloating<f32>
+   {
+      enum {value = true};
+   };
+
+   template <>
+   struct IsFloating<f64>
+   {
+      enum {value = true};
+   };
 }
 }
 

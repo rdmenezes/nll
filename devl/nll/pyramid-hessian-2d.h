@@ -335,8 +335,8 @@ namespace algorithm
        */
       core::vector2f _getPositionIntegral2PyramidNoShift( f32 xp, f32 yp, ui32 map ) const
       {
-         return core::vector2f( ( xp ) / _displacements[ map ],
-                                ( yp ) / _displacements[ map ] );
+         return core::vector2f( xp / _displacements[ map ],
+                                yp / _displacements[ map ] );
       }
 
    private:

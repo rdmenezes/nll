@@ -431,10 +431,21 @@ namespace algorithm
          }
       }
 
-      // sig = standard deviation
-      static value_type gaussian(value_type x, value_type y, value_type sig)
+      /**
+       @brief compute the gaussian PDF
+       @see http://en.wikipedia.org/wiki/Multivariate_normal_distribution
+         we have gaussian PDF = (2*pi)^-k/2 * |cov|^-0.5 * e( -0.5 * (X-u)^t * cov^-1 * (X-u) )
+         here we have u = 0, cov = | stddev 0      |, X = | x |
+                                   | 0      stddev |      | y |
+       */
+      static value_type gaussian(value_type x, value_type y, value_type stddev)
       {
-         return ( 1.0 / ( 2.0 * core::PI * sig * sig ) ) * std::exp( -( x * x + y * y ) / ( 2.0 * sig * sig ) );
+         static const value_type cte = 1.0 / ( 2.0 * core::PI );
+
+         assert( stddev > 0 );
+         const double covnormsqrt = stddev;
+         const double expval = std::exp( - ( x * x + y * y ) / ( 2 * stddev * stddev ) );
+         return cte * covnormsqrt * expval;
       }
 
       /**

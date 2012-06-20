@@ -1,8 +1,4 @@
 v0.16
--added bayesian network (linear gaussian and table potentials)
--added bayesian inference algorithms (naive, variable elimination)
--added ML likelihood parameter estimation for bayesian network
--added gaussian moment and canonical representation and associated operations
 -added matrix utilities
 -added multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
 -added utilities to compose/decompose affine matrices in rotation, scale, shear components
@@ -14,6 +10,11 @@ v0.16
 -added weighted learning for linear SVM & neural network
 -added perceptron and variants
 -added sampling without replacement & shuffling
+-added gaussian moment and canonical representation and associated operations
+-added bayesian network (linear gaussian(note:partial implementation) and table potentials)
+-added bayesian inference algorithms (naive, variable elimination)
+-added ML likelihood parameter estimation for bayesian network
+-added normal probability density function
 -improved ransac with weighted error
 -improved 2D point based registration
 -added new versions of adaboost

@@ -755,6 +755,9 @@
     <ClInclude Include="ddf-overlay.h">
       <Filter>imaging</Filter>
     </ClInclude>
+    <ClInclude Include="math-pdf-gaussian.h">
+      <Filter>core</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">
