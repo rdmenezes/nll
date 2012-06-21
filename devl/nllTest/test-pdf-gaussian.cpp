@@ -228,10 +228,71 @@ public:
 
       TESTER_ASSERT( nbTests > 500 );
    }
+
+   void testGaussianPdf1d()
+   {
+      for ( ui32 n = 0; n < 1000; ++n )
+      {
+         const double x = core::generateUniformDistribution( -10, 10 );
+
+         const double mean = core::generateUniformDistribution( -10, 10 );
+         const double variance = core::generateUniformDistribution( 0.1, 3 );
+         const double stddev = sqrt( variance );
+
+         // expected value
+         const double expected = 1 / (sqrt( 2 * core::PI ) * stddev) * std::exp( - core::sqr( x - mean) / ( 2 * stddev * stddev ) );
+
+         // set up PDF
+         Matrix cov( 1, 1 );
+         cov( 0, 0 ) = stddev * stddev;
+         Vector meanV( 1 );
+         meanV[ 0 ] = mean;
+         Pdf pdf( cov, meanV );
+         const double result = pdf.eval( core::make_buffer1D<double>( x ) );
+
+         bool isEqual = core::equal( result, expected, 1e-10 );
+         if (!isEqual)
+         {
+            std::cout << "Error step=" << n << ", found=" << result << " expected=" << expected << std::endl;
+         }
+         TESTER_ASSERT( isEqual );
+      }
+   }
+
+   void testGaussianSampling()
+   {
+      srand( 0 );
+      for ( ui32 nn = 0; nn < 100; ++nn )
+      {
+         const double mean = core::generateUniformDistribution( -100, 100 );
+         const double variance = core::generateUniformDistribution( 0.1, 4 );
+
+         std::vector<double> vals;
+         vals.reserve( 100000 );
+         for ( ui32 n = 0; n < 100000; ++n )
+         {
+            vals.push_back( core::generateGaussianDistribution( mean, variance ) );
+         }
+
+         // now compute the mean/variance from the sampling
+         const double foundMean = std::accumulate( vals.begin(), vals.end(), 0.0 ) / vals.size();
+         double accum = 0;
+         for ( size_t n = 0; n < vals.size(); ++n )
+         {
+            accum += core::sqr( vals[ n ] - mean );
+         }
+         const double foundVariance = accum / vals.size();
+         std::cout << "mean=" << mean << "|" << foundMean << " var=" << variance << "|" << foundVariance << std::endl;
+         TESTER_ASSERT( core::equal( mean, foundMean, 0.1 ) );
+         TESTER_ASSERT( core::equal( variance, foundVariance, 0.1 ) );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianPdf);
+TESTER_TEST(testGaussianSampling);
+TESTER_TEST(testGaussianPdf1d);
 TESTER_TEST(testCovFullFullMean);
 TESTER_TEST(testCovFullNoMean);
 TESTER_TEST(testCovNoFullFullMean);

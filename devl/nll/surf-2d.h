@@ -56,6 +56,7 @@ namespace algorithm
    {
       typedef double                     value_type;
       typedef core::Matrix<value_type>   Matrix;
+      typedef core::ProbabilityDistributionFunctionGaussian<value_type> GaussianPdf;
 
       struct LocalPoint
       {
@@ -353,6 +354,16 @@ namespace algorithm
 
             const int size = (int)core::sqr( 2 * scale );
 
+            Matrix cov1( 2, 2 );
+            cov1( 0, 0 ) = core::sqr( 2.5 * scale * 2 );
+            cov1( 1, 1 ) = core::sqr( 2.5 * scale * 2  );
+            GaussianPdf gauss1( cov1, core::make_buffer1D<value_type>( 0, 0 ) );
+
+            Matrix cov2( 2, 2 );
+            cov2( 0, 0 ) = core::sqr( 3.3 * scale * 2  );
+            cov2( 1, 1 ) = core::sqr( 3.3 * scale * 2  );
+            GaussianPdf gauss2( cov2, core::make_buffer1D<value_type>( 0, 0 ) );
+
             ui32 count = 0;
             value_type len = 0;
 
@@ -381,7 +392,7 @@ namespace algorithm
                                                      static_cast<int>( y + pointInRtotatedGrid[ 1 ] ) );
 
                         //Get the gaussian weighted x and y responses
-                        const value_type gauss_s1 = gaussian( di - cx, dj - cy, 2.5 * scale );
+                        const value_type gauss_s1 = gauss1.eval( core::make_buffer1D<value_type>( di - cx, dj - cy ) );
 
                         core::vector2i bl( static_cast<int>( center[ 0 ] - scale ),
                                            static_cast<int>( center[ 1 ] - scale ) );
@@ -414,7 +425,7 @@ namespace algorithm
                   }
 
                   //Add the values to the descriptor vector
-                  const value_type gauss_s2 = gaussian( cx, cy, 3.3 * scale );
+                  const value_type gauss_s2 = gauss2.eval( core::make_buffer1D<value_type>( cx, cy ) );
                   point.features[ count++ ] = dx * gauss_s2;
                   point.features[ count++ ] = dy * gauss_s2;
                   point.features[ count++ ] = mdx * gauss_s2;
@@ -435,15 +446,16 @@ namespace algorithm
        @brief compute the gaussian PDF
        @see http://en.wikipedia.org/wiki/Multivariate_normal_distribution
          we have gaussian PDF = (2*pi)^-k/2 * |cov|^-0.5 * e( -0.5 * (X-u)^t * cov^-1 * (X-u) )
-         here we have u = 0, cov = | stddev 0      |, X = | x |
-                                   | 0      stddev |      | y |
+         here we have u = 0, cov = | stddev^2 0      |, X = | x |
+                                   | 0      stddev^2 |      | y |
        */
       static value_type gaussian(value_type x, value_type y, value_type stddev)
       {
          static const value_type cte = 1.0 / ( 2.0 * core::PI );
 
          assert( stddev > 0 );
-         const double covnormsqrt = stddev;
+         //const double covnormsqrt = 1.0 / stddev;
+         const double covnormsqrt = 1.0 / ( stddev * stddev );
          const double expval = std::exp( - ( x * x + y * y ) / ( 2 * stddev * stddev ) );
          return cte * covnormsqrt * expval;
       }

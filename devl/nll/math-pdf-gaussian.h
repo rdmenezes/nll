@@ -56,6 +56,11 @@ namespace core
       ProbabilityDistributionFunctionGaussian()
       {}
 
+      /**
+       @brief set the PDF parameters
+       @param covariance the covariance matrix of the distribution (note: variance = stddev^2)
+       @param mean the mean of the distribution
+       */
       ProbabilityDistributionFunctionGaussian( const Matrix& covariance, const Vector& mean )
       {
          set( covariance, mean );
@@ -63,6 +68,8 @@ namespace core
 
       /**
        @brief set the PDF parameters
+       @param covariance the covariance matrix of the distribution (note: variance = stddev^2)
+       @param mean the mean of the distribution
        */
       template <class MatrixT, class VectorT>
       void set( const MatrixT& covariance, const VectorT& mean )
