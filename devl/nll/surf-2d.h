@@ -443,24 +443,6 @@ namespace algorithm
       }
 
       /**
-       @brief compute the gaussian PDF
-       @see http://en.wikipedia.org/wiki/Multivariate_normal_distribution
-         we have gaussian PDF = (2*pi)^-k/2 * |cov|^-0.5 * e( -0.5 * (X-u)^t * cov^-1 * (X-u) )
-         here we have u = 0, cov = | stddev^2 0      |, X = | x |
-                                   | 0      stddev^2 |      | y |
-       */
-      static value_type gaussian(value_type x, value_type y, value_type stddev)
-      {
-         static const value_type cte = 1.0 / ( 2.0 * core::PI );
-
-         assert( stddev > 0 );
-         //const double covnormsqrt = 1.0 / stddev;
-         const double covnormsqrt = 1.0 / ( stddev * stddev );
-         const double expval = std::exp( - ( x * x + y * y ) / ( 2 * stddev * stddev ) );
-         return cte * covnormsqrt * expval;
-      }
-
-      /**
        @brief assign a repeable orientation for each point       
 
          The dominant orientation is determined for each SURF 
@@ -470,6 +452,11 @@ namespace algorithm
       static void _computeAngle( const IntegralImage& i, Points& points )
       {
          const int nbPoints = static_cast<int>( points.size() );
+
+         Matrix cov1( 2, 2 );
+         cov1( 0, 0 ) = core::sqr( 2.5 );
+         cov1( 1, 1 ) = core::sqr( 2.5 );
+         GaussianPdf gaussEval( cov1, core::make_buffer1D<value_type>( 0, 0 ) );
 
          #ifndef NLL_NOT_MULTITHREADED
          # pragma omp parallel for
@@ -490,7 +477,8 @@ namespace algorithm
                   {
                      // we need to weight the response so that it is more tolerant to the noise. Indeed, the further
                      // away from the centre, the more likely it is to be noisier
-                     const value_type gauss = gaussian( u, v, 2.5 );
+                     //const value_type gauss = gaussian( u, v, 2.5 );
+                     const value_type gauss = gaussEval.eval( core::make_buffer1D<value_type>( u, v ) );
                      const int x = point.position[ 0 ] + u * scale;
                      const int y = point.position[ 1 ] + v * scale;
                      const core::vector2i center( x, y );
@@ -624,7 +612,7 @@ namespace algorithm
    private:
       std::vector<ui32> _filterSizes;
       std::vector<ui32> _filterSteps;
-      value_type _threshold;
+      value_type        _threshold;
    };
 }
 }

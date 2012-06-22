@@ -48,9 +48,9 @@ namespace core
    class ProbabilityDistributionFunctionGaussian
    {
    public:
-      typedef T                  value_type;
-      typedef core::Buffer1D<T>  Vector;
-      typedef core::Matrix<T>    Matrix;
+      typedef T                        value_type;
+      typedef core::Buffer1D<T>        Vector;
+      typedef core::Matrix<T>          Matrix;
 
    public:
       ProbabilityDistributionFunctionGaussian()
@@ -111,10 +111,10 @@ namespace core
 
          _covInv.import( covariance );
          value_type det = 0;
-         const bool success = core::inverse( _covInv, &det );
+         const bool success = inverse( _covInv, &det );
          ensure( success && det > 0, "problem in covariance matrix" );
 
-         const value_type cte = std::pow( core::PI * 2.0, - static_cast<f64>( mean.size() ) / 2 );
+         const value_type cte = std::pow( PI * 2.0, - static_cast<f64>( mean.size() ) / 2 );
          _cte = cte / sqrt( det );
       }
 
