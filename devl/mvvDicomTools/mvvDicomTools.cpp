@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "read-dicom.h"
 #include "dicom-slice.h"
+#include "write-dicom.h"
 
 /*
 #if defined(_MSC_VER) && defined(_DEBUG)

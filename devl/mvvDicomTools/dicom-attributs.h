@@ -231,7 +231,7 @@ namespace mvv
          (*val.vals)[ 29 ].stringval = src.sopClassUid;
       }
 
-      static void exportTagsToDataset( DicomAttributs& val, DcmDataset& out )
+      static void exportTagsToDataset( const DicomAttributs& val, DcmDataset& out )
       {
          DicomWrapper wrapper( out );
          wrapper.setPatientName( val.patientName.c_str() );  

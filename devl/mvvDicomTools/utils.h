@@ -386,6 +386,33 @@ namespace mvv
          setUint16Array( DCM_PixelData, allocatedOutput, getRows() * getColumns() );
       }
 
+      void setBitsAllocated( ui16 bits )
+      {
+         setUnsignedShort( DCM_BitsAllocated, bits );
+      }
+
+      void setBitsStored( ui16 bits )
+      {
+         setUnsignedShort( DCM_BitsStored, bits );
+      }
+
+      void setHighBit( ui16 bits )
+      {
+         setUnsignedShort( DCM_HighBit, bits );
+      }
+
+      void setSamplesPerPixel( ui16 bits )
+      {
+         setUnsignedShort( DCM_SamplesPerPixel, bits );
+      }
+
+
+
+      void setPixelRepresentation( ui16 pixelRepresentation )
+      {
+         setUnsignedShort( DCM_PixelRepresentation, pixelRepresentation );
+      }
+
       const char* getFrameOfReference()
       {
          return getString( DCM_FrameOfReferenceUID );
@@ -465,6 +492,16 @@ namespace mvv
          OFCondition cond = _dataset.putAndInsertString( key, nll::core::val2str( v ).c_str() );
          if ( cond.bad() )
          {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
+      void setUnsignedShort( const DcmTagKey& key, ui16 v )
+      {
+         OFCondition cond = _dataset.putAndInsertUint16( key, v );
+         if ( cond.good() )
+         {
+         } else {
             error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
          }
       }
@@ -910,6 +947,8 @@ namespace mvv
       std::vector< DicomFiles >             _dicomBySeriesUid;      // each entry represents a SeriesInstanceUid
       std::vector< std::vector< size_t > >  _dicomByStudyUid;       // [ x ][ y ], [ x ] is a set of index representing the set of SeriesUid belonging to the same Study Uid
    };
+
+   
 }
 
 #endif
