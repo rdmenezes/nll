@@ -139,10 +139,8 @@ import int size( DicomSlice[] array );
 
 /**
  @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files
-
- TODO IMPLEMENT
  */
-//import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttributs attributs = NULL );
+import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttributs attributs = NULL );
 
 /**
  @brief Hold a DICOM slice

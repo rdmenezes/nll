@@ -114,5 +114,15 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionWriteDicomSlices( fn, e ) ) );
    }
 
+   {
+      Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
+      Type* ty2 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "DicomAttributs" ) ) ) );
+      ensure( ty && ty2, "can't find 'VolumeID' or 'DicomAttributs' in source" );
+
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "writeDicomVolume" ) ), nll::core::make_vector<const Type*>( ty, new TypeString( false ), ty2 ) );
+      ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionWriteDicomVolume( fn, context, e ) ) );
+   }
+
    std::cout << "mvvDicomTools.dll import functions done" << std::endl;
 }
