@@ -84,7 +84,7 @@ namespace imaging
                      const Matrix& pst,
                      T background = 0,
                      bool zero = true,
-                     std::shared_ptr<core::Context> context = std::shared_ptr<core::Context>() ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _context( context )
+                     std::shared_ptr<core::Context> context = std::shared_ptr<core::Context>( new core::Context() ) ) : Base( size[ 0 ], size[ 1 ], size[ 2 ], background, zero ), _context( context )
       {
          _pst.clone( pst );
          _constructVolume();
