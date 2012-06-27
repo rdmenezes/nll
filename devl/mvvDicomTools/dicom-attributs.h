@@ -59,11 +59,25 @@ namespace mvv
       float slope;               // 23 - [ 0028-1053] Rescale slope
       float intercept;           // 24 - [ 0028-1053] Rescale intercept
       std::string frameOfReference;   // 25 - [ 0020-0052 ] Frame of Reference UID
-      float extraSliceSpacing;   // 26 - Not a DICOM tag, extra info to write a DICOM volume
+      float extraSliceSpacing;   // 26 - Not a DICOM tag, extra info to write a DICOM volume // NOT USED
       nll::core::vector3f imageOrientationPatientX;  // 27 - [ 0020-0037 ] Image Orientation Patient, axis X
       nll::core::vector3f imageOrientationPatientY;  // 28 - [ 0020-0037 ] Image Orientation Patient, axis Y
       std::string sopInstanceUid;     // 29 - [ 0008, 0018 ] SOP Instance UID
       std::string sopClassUid;        // 30 - [ 0008, 0016 ] SOP Class UID
+
+      std::string photometricInterpretation; // 31 [0028, 0004] Photometric Interpretation
+      std::string acquisitionNumber;         // 32 [0020, 0012] Acquisition Number
+      std::string kvp;                       // 33 [0018, 0060] KVP
+      std::vector<std::string> imageType;    // 34 [0008, 0008] Image Type
+      std::string sliceThickness;            // 35 [0018, 0050] Slice Thickness
+      std::string manufacturer;              // 36 [0008, 0070] Manufacturer
+      std::string positionReferenceIndicator;// 37 [0020, 1040] Position Reference Indicator
+      std::string seriesNumber;              // 38 [0020, 0011] Series Number
+      std::string patientPosition;           // 39 [0018, 5100] Patient Position
+      std::string referringPhysician;        // 40 [0008, 0090] Referring Physician's Name
+      std::string accessionNumber;           // 41 [0008, 0050] Accession Number
+      std::string patientsBirthDate;         // 42 [0012, 0030] Patient's Birth Date
+      std::string rescaleType;               // 43 [0028, 1054] RescaleType
 
       /**
        @brief Returns the index of the tag <group, element> defined in <mvvDicomTools.ludo>, -1 if it is not handled
@@ -98,12 +112,26 @@ namespace mvv
             { 0x20, 0x0013 }, 
             { 0x28, 0x1053 },
             { 0x28, 0x1052 },
-            { 0x20, 0x0052 }, // 25
-            { 0, 0 },
+            { 0x20, 0x0052 }, // 25 // here we have removed the non DICOM tag, so will be index - 1
             { 0x20, 0x0037 },
             { 0x20, 0x0037 },
             { 0x08, 0x0018 },
             { 0x08, 0x0016 },
+
+            { 0x0028, 0x0004 }, // 30
+            { 0x0020, 0x0012 },
+            { 0x0018, 0x0060 },
+            { 0x0008, 0x0008 },
+            { 0x0018, 0x0050 },
+            { 0x0008, 0x0070 }, // 35
+            { 0x0020, 0x1040 },
+            { 0x0020, 0x0011 },
+            { 0x0018, 0x5100 },
+            { 0x0008, 0x0090 },
+            { 0x0008, 0x0050 }, // 40
+            { 0x0012, 0x0030 },
+            { 0x0028, 0x1054 },
+            { 0, 0 }                   // END TAG
          };
 
          static ui32 nbTags = nll::core::getStaticBufferSize( tags );
@@ -229,6 +257,53 @@ namespace mvv
 
          (*val.vals)[ 29 ].type = RuntimeValue::STRING;
          (*val.vals)[ 29 ].stringval = src.sopClassUid;
+
+         (*val.vals)[ 30 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 30 ].stringval = src.photometricInterpretation;
+
+         (*val.vals)[ 31 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 31 ].stringval = src.acquisitionNumber;
+
+         (*val.vals)[ 32 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 32 ].stringval = src.kvp;
+
+         (*val.vals)[ 33 ].type = RuntimeValue::TYPE;
+         if ( src.imageType.size() )
+         {
+            (*val.vals)[ 33 ].vals.getData().resize( src.imageType.size() );
+            for ( size_t n = 0; n < src.imageType.size(); ++n )
+            {
+               (*val.vals)[ 33 ].vals.getData()[ n ].type = RuntimeValue::STRING;
+               (*val.vals)[ 33 ].vals.getData()[ n ].stringval = src.imageType[ n ];
+            }
+         }
+
+         (*val.vals)[ 34 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 34 ].stringval = src.sliceThickness;
+
+         (*val.vals)[ 35 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 35 ].stringval = src.manufacturer;
+
+         (*val.vals)[ 36 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 36 ].stringval = src.positionReferenceIndicator;
+
+         (*val.vals)[ 37 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 37 ].stringval = src.seriesNumber;
+
+         (*val.vals)[ 38 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 38 ].stringval = src.patientPosition;
+
+         (*val.vals)[ 39 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 39 ].stringval = src.referringPhysician;
+
+         (*val.vals)[ 40 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 40 ].stringval = src.accessionNumber;
+
+         (*val.vals)[ 41 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 41 ].stringval = src.patientsBirthDate;
+
+         (*val.vals)[ 42 ].type = RuntimeValue::STRING;
+         (*val.vals)[ 42 ].stringval = src.rescaleType;
       }
 
       static void exportTagsToDataset( const DicomAttributs& val, DcmDataset& out )
@@ -262,6 +337,19 @@ namespace mvv
          wrapper.setImageOrientationPatient( val.imageOrientationPatientX, val.imageOrientationPatientY );
          wrapper.setSopInstanceUid( val.sopInstanceUid.c_str() );
          wrapper.setSopClassUid( val.sopClassUid.c_str() );
+         wrapper.setPhotometricInterpretation( val.photometricInterpretation.c_str() );
+         wrapper.setAcquisitionNumber( val.acquisitionNumber.c_str() );
+         wrapper.setKvp( val.kvp.c_str() );
+         wrapper.setImageType( val.imageType );
+         wrapper.setSliceThickness( val.sliceThickness.c_str() );
+         wrapper.setManufacturer( val.manufacturer.c_str() );
+         wrapper.setPositionReferenceIndicator( val.positionReferenceIndicator.c_str() );
+         wrapper.setSeriesNumber( val.seriesNumber.c_str() );
+         wrapper.setPatientPosition( val.patientPosition.c_str() );
+         wrapper.setReferringPhysician( val.referringPhysician.c_str() );
+         wrapper.setAccessionNumber( val.accessionNumber.c_str() );
+         wrapper.setPatientBirthDate( val.patientsBirthDate.c_str() );
+         wrapper.setRescaleType( val.rescaleType.c_str() );
       }
    };
 
@@ -303,6 +391,19 @@ namespace mvv
       wrapper.getImageOrientationPatient( attributs.imageOrientationPatientX, attributs.imageOrientationPatientY );
       attributs.sopInstanceUid = wrapper.getSopInstanceUid();
       attributs.sopClassUid = wrapper.getSopClassUid();
+      attributs.photometricInterpretation = wrapper.getPhotometricInterpretation();
+      attributs.acquisitionNumber = wrapper.getAcquisitionNumber();
+      attributs.kvp = wrapper.getKvp();
+      attributs.imageType = wrapper.getImageType();
+      attributs.sliceThickness = wrapper.getSliceThickness();
+      attributs.manufacturer = wrapper.getManufacturer();
+      attributs.positionReferenceIndicator = wrapper.getPositionReferenceIndicator();
+      attributs.seriesNumber = wrapper.getSeriesNumber();
+      attributs.patientPosition = wrapper.getPatientPosition();
+      attributs.referringPhysician = wrapper.getReferringPhysician();
+      attributs.accessionNumber = wrapper.getAccessionNumber();
+      attributs.patientsBirthDate = wrapper.getPatientBirthDate();
+      attributs.rescaleType = wrapper.getRescaleType();
       return attributs;
    }
 
@@ -339,6 +440,29 @@ namespace mvv
       getVector3fValues(            (*val.vals)[ 27 ], attributs.imageOrientationPatientY );
       attributs.sopInstanceUid =    (*val.vals)[ 28 ].stringval;
       attributs.sopClassUid =       (*val.vals)[ 29 ].stringval;
+
+      attributs.photometricInterpretation = (*val.vals)[ 30 ].stringval;
+      attributs.acquisitionNumber = (*val.vals)[ 31 ].stringval;
+      attributs.kvp = (*val.vals)[ 32 ].stringval;
+      if ( !(*val.vals)[ 33 ].vals.isEmpty() && (*val.vals)[ 33 ].vals.getData().size() )
+      {
+         std::vector<std::string> strs;
+         for ( size_t n = 0; n < (*val.vals)[ 33 ].vals.getData().size(); ++n )
+         {
+            strs.push_back( (*val.vals)[ 33 ].vals.getData()[ n ].stringval );
+         }
+         attributs.imageType = strs;
+      }
+
+      attributs.sliceThickness = (*val.vals)[ 34 ].stringval;
+      attributs.manufacturer = (*val.vals)[ 35 ].stringval;
+      attributs.positionReferenceIndicator = (*val.vals)[ 36 ].stringval;
+      attributs.seriesNumber = (*val.vals)[ 37 ].stringval;
+      attributs.patientPosition = (*val.vals)[ 38 ].stringval;
+      attributs.referringPhysician = (*val.vals)[ 39 ].stringval;
+      attributs.accessionNumber = (*val.vals)[ 40 ].stringval;
+      attributs.patientsBirthDate = (*val.vals)[ 41 ].stringval;
+      attributs.rescaleType = (*val.vals)[ 42 ].stringval;
       return attributs;
    }
 

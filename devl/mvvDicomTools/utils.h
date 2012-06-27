@@ -85,6 +85,138 @@ namespace mvv
          setString( DCM_PatientName, name );
       }
 
+      const char* getPhotometricInterpretation()
+      {
+         return getString( DCM_PhotometricInterpretation );
+      }
+
+      void setPhotometricInterpretation( const char* name )
+      {
+         setString( DCM_PhotometricInterpretation, name );
+      }
+
+      const char* getAcquisitionNumber()
+      {
+         return getString( DCM_AcquisitionNumber );
+      }
+
+      void setAcquisitionNumber( const char* name )
+      {
+         setString( DCM_AcquisitionNumber, name );
+      }
+
+      const char* getKvp()
+      {
+         return getString( DCM_KVP );
+      }
+
+      void setKvp( const char* name )
+      {
+         setString( DCM_KVP, name );
+      }
+
+      std::vector<std::string> getImageType()
+      {
+         std::vector<std::string> strs;
+         getStrings( DCM_ImageType, strs );
+         return strs;
+      }
+
+      void setImageType( const std::vector<std::string>& strings )
+      {
+         setStrings( DCM_ImageType, strings );
+      }
+
+      const char* getSliceThickness()
+      {
+         return getString( DCM_SliceThickness );
+      }
+
+      void setSliceThickness( const char* name )
+      {
+         setString( DCM_SliceThickness, name );
+      }
+
+      const char* getManufacturer()
+      {
+         return getString( DCM_Manufacturer );
+      }
+
+      void setManufacturer( const char* name )
+      {
+         setString( DCM_Manufacturer, name );
+      }
+
+      const char* getPositionReferenceIndicator()
+      {
+         return getString( DCM_PositionReferenceIndicator );
+      }
+
+      void setPositionReferenceIndicator( const char* name )
+      {
+         setString( DCM_PositionReferenceIndicator, name );
+      }
+
+      const char* getSeriesNumber()
+      {
+         return getString( DCM_SeriesNumber );
+      }
+
+      void setSeriesNumber( const char* name )
+      {
+         setString( DCM_SeriesNumber, name );
+      }
+
+      const char* getPatientPosition()
+      {
+         return getString( DCM_PatientPosition );
+      }
+
+      void setPatientPosition( const char* name )
+      {
+         setString( DCM_PatientPosition, name );
+      }
+
+      const char* getReferringPhysician()
+      {
+         return getString( DCM_ReferringPhysicianName );
+      }
+
+      void setReferringPhysician( const char* name )
+      {
+         setString( DCM_ReferringPhysicianName, name );
+      }
+
+      const char* getAccessionNumber()
+      {
+         return getString( DCM_AccessionNumber );
+      }
+
+      void setAccessionNumber( const char* name )
+      {
+         setString( DCM_AccessionNumber, name );
+      }
+
+      const char* getRescaleType()
+      {
+         return getString( DCM_RescaleType );
+      }
+
+      void setRescaleType( const char* name )
+      {
+         setString( DCM_RescaleType, name );
+      }
+
+      const char* getPatientBirthDate()
+      {
+         return getString( DCM_PatientBirthDate );
+      }
+
+      void setPatientBirthDate( const char* name )
+      {
+         setString( DCM_PatientBirthDate, name );
+      }
+
       const char* getPatientId()
       {
          return getString( DCM_PatientID );
@@ -123,7 +255,7 @@ namespace mvv
       void setPatientAge( float s )
       {
          // TODO: do the real conversion!!!
-         setString( DCM_PatientAge, "1Y" );
+         setString( DCM_PatientAge, "001Y" );
       }
 
       const char* getStudyDate()
@@ -546,6 +678,24 @@ namespace mvv
       {
 
          OFCondition cond = _dataset.putAndInsertString( key, nll::core::val2str( v ).c_str() );
+         if ( cond.bad() )
+         {
+            error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+         }
+      }
+
+      void setStrings( const DcmTagKey& key, const std::vector<std::string>& strings )
+      {
+         std::stringstream ss;
+         for ( size_t n = 0; n < strings.size(); ++n )
+         {
+            ss << strings[ n ];
+            if ( n + 1 < strings.size() )
+            {
+               ss << "\\";
+            }
+         }
+         OFCondition cond = _dataset.putAndInsertString( key, ss.str().c_str() );
          if ( cond.bad() )
          {
             error( "can't set tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );

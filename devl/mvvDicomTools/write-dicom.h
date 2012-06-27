@@ -25,6 +25,15 @@ namespace mvv
          tmpDcm.modality = "CT";
          tmpDcm.patientWeight = 0;
          tmpDcm.patientAge = 0;
+         tmpDcm.frameOfReference = "1.123.1234." + nll::core::val2str( rand() );
+
+         tmpDcm.imageType.push_back("DERIVED");
+         tmpDcm.imageType.push_back("PRIMARY");
+         tmpDcm.imageType.push_back("AXIAL");
+
+         tmpDcm.photometricInterpretation = "MONOCHROME2";
+         tmpDcm.rescaleType = "US";  // unspecified
+
          writeDicomVolume( volume, directory, tmpDcm );
       } else {
          writeDicomVolume( volume, directory, dicomTags->attributs );
@@ -65,13 +74,15 @@ namespace mvv
       for ( ui32 slice = 0; slice < volume.getSize()[ 2 ]; ++slice )
       {
          // write volume info
+         /*
 #ifdef ORIENTATION_FOR_MATLAB_COMPABILITY
          nll::core::vector3f position = nll::core::vector3f( volume.getOrigin()[ 0 ],
                                                             -volume.getOrigin()[ 1 ],
                                                              volume.getOrigin()[ 2 ] ) + dz * slice;
 #else
          nll::core::vector3f position = volume.getOrigin() + dz * slice;
-#endif
+#endif*/
+         nll::core::vector3f position = volume.getOrigin() + dz * slice;
          dicomWrapper.setImagePositionPatient( position );
          dicomWrapper.setImageOrientationPatient( dx, dy );
          dicomWrapper.setPixelSpacing( nll::core::vector2f( volume.getSpacing()[ 0 ], volume.getSpacing()[ 1 ] ) );
@@ -84,6 +95,9 @@ namespace mvv
          dicomWrapper.setBitsStored( 16 );
          dicomWrapper.setHighBit( 15 );
          dicomWrapper.setSamplesPerPixel( 1 );
+
+         // dataset.putAndInsertString( DCM_MediaStorageSOPClassUID, dicomWrapper.getSopClassUid() );
+         // dataset.putAndInsertString( DCM_MediaStorageSOPInstanceUID, dicomWrapper.getSopInstanceUid() );
 
          for ( ui32 y = 0; y < volume.getSize()[ 1 ]; ++y )
          {
