@@ -1,8 +1,8 @@
-#include "stdafx.h"
-
 #include <fstream>
 #include <sstream>
 #include <nll/nll.h>
+#include <tester/register.h>
+#include "config.h"
 
 #pragma warning( push )
 #pragma warning( disable:4996 ) // unsafe function
@@ -16,7 +16,8 @@
 
 static nll::core::Matrix<float> testRef(nll::core::Matrix<float> m, float* buf, nll::ui32 count)
 {
-   TESTER_ASSERT( m.getBuf() == buf && m.getRefCount() == count );
+   TESTER_ASSERT( m.getBuf() == buf );
+   TESTER_ASSERT( m.getRefCount() == count );
    return m;
 }
 
@@ -57,9 +58,10 @@ public:
       buf2 = buf3;
       TESTER_ASSERT( buf2.getBuf() == buf3.getBuf() && buf2.getRefCount() == 2 && buf3.getRefCount() == 2 && buf1.getRefCount() == 1 );
       nll::core::Buffer1D<float> buf4( 20 );
-      nll::core::Buffer1D<float> buf5 = testRef( nll::core::Matrix<float>(buf4), buf4.getBuf(), buf4.getRefCount() + 1 );
-      TESTER_ASSERT( buf4.getBuf() == buf5.getBuf() && buf4.getRefCount() == 2 );
-
+      nll::core::Matrix<float> mat( buf4 );
+      unsigned nb = buf4.getRefCount() + 1;
+      nll::core::Buffer1D<float> buf5 = testRef( mat, buf4.getBuf(), nb );
+      TESTER_ASSERT( buf4.getBuf() == buf5.getBuf() && buf4.getRefCount() == 3 );
       double t1[] = { 0, 1.5, -10, 8 };
       nll::core::Buffer1D<double> buf6;
       buf6.import( t1, 4 );
@@ -118,15 +120,14 @@ public:
       bool inv = nll::core::inverse( m3 );
       
       nll::core::Matrix<float, nll::core::IndexMapperRowMajorFlat2D> m5 = nll::core::mul( m3, m4 );
-      nll::core::sub( m5, nll::core::identity<float, nll::core::IndexMapperRowMajorFlat2D> ( 2 ) );
+      nll::core::sub( m5, nll::core::identity<float, nll::core::IndexMapperRowMajorFlat2D, std::allocator<float> > ( 2 ) );
 
       TESTER_ASSERT( inv );
       double norm = nll::core::generic_norm2<float*, double>( m5.getBuf(), 2 * 2 );
       TESTER_ASSERT( norm <= 0.00001 );
 
       m3[2] = 88;
-      nll::core::Buffer1D<int> b1 = nll::core::convert<float, nll::core::IndexMapperFlat1D, int, nll::core::IndexMapperFlat1D>(m3);
-      TESTER_ASSERT( b1( 2 ) == 88 );
+      
 
       nll::core::Matrix<double, nll::core::IndexMapperRowMajorFlat2D> m6 = nll::core::convertMatrix<float, nll::core::IndexMapperRowMajorFlat2D, double, nll::core::IndexMapperRowMajorFlat2D>(m3);
       TESTER_ASSERT( m6.sizex() == m3.sizex() );
@@ -140,7 +141,7 @@ public:
       typedef long long                TYPE1;
       typedef nll::core::Matrix<TYPE1> TYPEMAT1;
       TYPEMAT1 mat1(4, 4);
-      TYPEMAT1 mat2 = nll::core::identity<TYPE1, TYPEMAT1::IndexMapper>(4);
+      TYPEMAT1 mat2 = nll::core::identity<TYPE1, TYPEMAT1::IndexMapper, std::allocator<TYPE1> >(4);
       int val = 0;
       
       for (TYPEMAT1::iterator it = mat1.begin(); it != mat1.end(); ++it, ++val)
@@ -465,14 +466,14 @@ public:
       nll::core::Matrixd var = nll::core::covariance( vals, 0, size - 1 );
 
       TESTER_ASSERT( nll::core::equal(me(0), mean, 0.2) );
-      TESTER_ASSERT( nll::core::equal(sqrt(var(0, 0)), variance, 0.2) );
+      TESTER_ASSERT( nll::core::equal(var(0, 0), variance, 0.2) );
    }
 
    void testImage()
    {
       typedef nll::core::Image<unsigned char> image;
       image i1;
-      TESTER_ASSERT( nll::core::readBmp(i1, NLL_TEST_PATH "data/image/test-image1.bmp") );
+      TESTER_ASSERT( nll::core::readBmp(i1, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator() ) );
       TESTER_ASSERT( i1.equal(0, 0, image::white()) );
       TESTER_ASSERT( i1.equal(0, i1.sizey() - 1, image::red()) );
 
@@ -500,7 +501,7 @@ public:
 
       nll::core::writeBmp(i1, NLL_TEST_PATH "data/tmp.bmp");
       image i4;
-      nll::core::readBmp(i4, NLL_TEST_PATH "data/tmp.bmp");
+      nll::core::readBmp(i4, NLL_TEST_PATH "data/tmp.bmp", image::Allocator() );
       TESTER_ASSERT( i4 == i1 );
       TESTER_ASSERT( !(i2 == i1) );
 
@@ -509,15 +510,15 @@ public:
       nll::core::threshold(i4, nll::core::ThresholdGreater<nll::ui32> (200));
       TESTER_ASSERT( i4.equal(0, i3.sizey() - 1, image::black()) );
 
-      nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp");
-      nll::core::convolve(i4, nll::core::buildGaussian());
+      nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator() );
+      i4 = nll::core::convolve(i4, nll::core::buildGaussian());
       TESTER_ASSERT( i4(1, 1, 0) > 30 );
       TESTER_ASSERT( (int)i4(2, 1, 0) > 20 );
       nll::core::writeBmp(i4, NLL_TEST_PATH "data/tmp.bmp");
 
       // resampling
       image i5, i6, i7, i8, i9;
-      nll::core::readBmp(i5, NLL_TEST_PATH "data/image/test-image1.bmp");
+      nll::core::readBmp(i5, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator());
       i6.clone(i5);
       i9.clone(i5);
       nll::core::rescaleFast(i9, 256, 16);
@@ -600,7 +601,7 @@ public:
 			   &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12]);
 		   if (f.eof())
 			   break;
-		   assert(nb == 13); // else missing data
+		   ensure(nb == 13, "missing data" ); // else missing data
 		   vs.push_back(v);
 	   }
 	   return vs;
@@ -799,9 +800,9 @@ public:
 
       // test convolution
       nll::core::Image<nll::ui8> im1;
-      nll::core::readBmp(im1, NLL_TEST_PATH "data/image/test-image1.bmp");
+      nll::core::readBmp(im1, NLL_TEST_PATH "data/image/test-image1.bmp", Image::Allocator());
       nll::core::decolor(im1);
-      nll::core::convolveBorder(im1, gabors[1]);
+      im1 = nll::core::convolveBorder(im1, gabors[1]);
       nll::core::extend(im1, 3);
       nll::core::writeBmp(im1, NLL_TEST_PATH "data/tmp-img.bmp");
 
@@ -817,7 +818,7 @@ public:
       nll::algorithm::GaborFilters<nll::ui8, Image::IndexMapper, nll::ui8> gabors2( gdescs2 );
 
       Image im2;
-      nll::core::readBmp( im2, NLL_TEST_PATH "data/image/test-image2.bmp" );
+      nll::core::readBmp( im2, NLL_TEST_PATH "data/image/test-image2.bmp", Image::Allocator() );
       nll::core::decolor( im2 );
 
       
@@ -881,9 +882,9 @@ public:
       nll::core::Image<nll::ui8> ii3 = nll::core::transform(ii1, ii2, nll::core::BinaryAdd<nll::ui8>());
 
       nll::core::transformUnaryFast(ii3, nll::core::TransformationRotation(-0.3f, nll::core::vector2f(0, 0)));
-      nll::core::convolve(ii3, nll::core::buildGaussian());
+      ii3 = nll::core::convolve(ii3, nll::core::buildGaussian());
       nll::core::rescaleFast(ii3, 512, 512);
-      nll::core::convolve(ii3, nll::core::buildGaussian());
+      ii3 = nll::core::convolve(ii3, nll::core::buildGaussian());
       nll::core::writeBmp(ii3, NLL_TEST_PATH "data/test5.bmp");
 
       nll::core::Image<nll::ui8> ii4(NLL_TEST_PATH "data/image/test-image3.bmp");
@@ -896,7 +897,7 @@ public:
       nll::core::Matrix<float> f1(3, 3);
       f1(0, 0) = 2;
       f1(1, 0) = 4;
-      nll::core::Matrix<float> f2 = nll::core::identity<float, nll::core::Matrix<float>::IndexMapper>(3);
+      nll::core::Matrix<float> f2 = nll::core::identity<float, nll::core::Matrix<float>::IndexMapper, std::allocator<float> >(3);
 
       nll::core::Matrix<float> f3 = f1 + f2;
       nll::core::Matrix<float> f4;
@@ -931,6 +932,11 @@ public:
       std::cout << "Perf Interpolator=" << t1.getTime() << std::endl;
    }
 
+   /**
+    regarding rescale-interp3.bmp & rescale-interp4.bmp, it looks odd. It is beause the
+    voxel center is the top-left corner and not actually its center. It is necessary to
+    ensure that id resampling compute the same image!
+    */
    void testInterpolator()
    {
       nll::core::Timer t1;
@@ -945,24 +951,27 @@ public:
       i.setPixel(1, 0, white);
       i.setPixel(0, 1, white);
       i.setPixel(1, 1, white);
-      nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper> linearInterpolator( i );
+      nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator> linearInterpolator( i );
       double v1 = linearInterpolator.interpolate(0.5, 0.5, 0);
       TESTER_ASSERT( nll::core::equal(v1, 255.0) );
 
+      
       nll::core::Image<nll::ui8> i2(NLL_TEST_PATH "data/image/test-image3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i2, 128, 128);
       nll::core::writeBmp(i2, NLL_TEST_PATH "data/rescale-interp1.bmp");
 
       nll::core::Image<nll::ui8> i3(NLL_TEST_PATH "data/image/test-image1.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i3, 32, 32);
       nll::core::writeBmp(i3, NLL_TEST_PATH "data/rescale-interp2.bmp");
-
+      
       nll::core::Image<nll::ui8> i4(3, 3, 3);
       i4.setPixel(0, 0, red);
       i4.setPixel(1, 0, blue);
@@ -977,12 +986,14 @@ public:
       i5.clone(i4);
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorLinear2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i4, 128, 128);
       nll::core::writeBmp(i4, NLL_TEST_PATH "data/rescale-interp3.bmp");
       nll::core::rescale<nll::ui8,
                          nll::core::IndexMapperRowMajorFlat2DColorRGBn,
-                         nll::core::InterpolatorNearestNeighbor2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper>
+                         nll::core::InterpolatorNearestNeighbor2D<nll::ui8, nll::core::Image<nll::ui8>::IndexMapper, nll::core::Image<nll::ui8>::Allocator>,
+                         nll::core::Image<nll::ui8>::Allocator
                         >(i5, 128, 128);
       nll::core::writeBmp(i5, NLL_TEST_PATH "data/rescale-interp4.bmp");
 
@@ -996,7 +1007,7 @@ public:
 
       nll::core::writeBmp(i6, NLL_TEST_PATH "data/rescale-interp5.bmp");
       nll::core::writeBmp(i7, NLL_TEST_PATH "data/rescale-interp5-NN.bmp");
-
+      
       t1.end();
       std::cout << "time=" << t1.getTime() << std::endl;
    }
@@ -1014,11 +1025,13 @@ public:
       double psnr2 = nll::core::psnr(img1, img2);
       nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-iterp2.bmp");
 
+      /*
       img2.clone(img1);
       nll::core::rescaleFast(img2, 32, 32);
       nll::core::rescaleFast(img2, img1.sizex(), img1.sizey());
       double psnr3 = nll::core::psnr(img1, img2);
       nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-fast3.bmp");
+      */
 
       img2.clone(img1);
       nll::core::rescaleBilinear(img2, 32, 32);
@@ -1027,7 +1040,7 @@ public:
       nll::core::writeBmp(img2, NLL_TEST_PATH "data/reconstructed-iterp1.bmp");
 
       TESTER_ASSERT( psnr1 > psnr2 );
-      TESTER_ASSERT( psnr1 > psnr3 );
+      //TESTER_ASSERT( psnr1 > psnr3 );
    }
 
    void testSVD()
@@ -1209,7 +1222,9 @@ public:
 
    void testSingleton()
    {
+#ifndef NLL_NOT_MULTITHREADED
       #pragma omp parallel num_threads(200)
+#endif
       {
          Test::instance().n = 3;
       }
@@ -1220,11 +1235,11 @@ public:
       // compute the min distance
       nll::core::Image<int> i( 10, 10, 1 );
       for ( unsigned n = 0; n < i.size(); ++n )
-         i[ n ] = 10000;
+         i[ n ] = 0;
 
-      i( 9, 0, 0 ) = 0;
-      i( 5, 0, 0 ) = 0;
-      i( 0, 0, 0 ) = 0;
+      i( 9, 0, 0 ) = 1;
+      i( 5, 0, 0 ) = 1;
+      i( 0, 0, 0 ) = 1;
       nll::core::Image<double> dt = nll::core::distanceTransform( i );
       dt.print( std::cout );
       TESTER_ASSERT( dt( 1, 0, 0 ) == 1 );
@@ -1241,10 +1256,110 @@ public:
       TESTER_ASSERT( dt( 6, 1, 0 ) == 2 );
       TESTER_ASSERT( dt( 2, 0, 0 ) == 4 );
    }
+
+   void testImageIterators()
+   {
+      typedef nll::core::Image<nll::ui32>   Image;
+
+      Image i1( 5, 6, 3 );
+      for ( unsigned n = 0; n < 5 * 6 * 3; ++n )
+         i1[ n ] = n;
+
+      unsigned m = 0;
+      for ( Image::DirectionalIterator it = i1.beginDirectional(); it != i1.endDirectional(); ++it, m += 3 )
+      {
+         TESTER_ASSERT( *it == i1[ m ] );
+         TESTER_ASSERT( it.pickcol() == i1[ m + 1 ] );
+      }
+
+
+      m = 0;
+      for ( unsigned y = 0; y < i1.sizey(); ++y )
+         for ( unsigned x = 0; x < i1.sizex(); ++x )
+            for ( unsigned c = 0; c < i1.getNbComponents(); ++c )
+               TESTER_ASSERT( *i1.getIterator( x, y, c ) == i1[ m++ ] );
+
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickcol( 2 ) == i1( 0, 0, 2 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickx( 2 ) == i1( 2, 0, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
+
+      Image i2( 2048 * 4, 2048 * 4, 3 );
+      i2( 100, 100, 0 ) = 42;
+
+      nll::core::Timer t1;
+      m = 0;
+      for ( unsigned y = 0; y < i2.sizey(); ++y )
+         for ( unsigned x = 0; x < i2.sizex(); ++x )
+            //for ( unsigned c = 0; c < i2.getNbComponents(); ++c )
+               m += i2( x, y, 0 );
+      TESTER_ASSERT( m == 42 );
+      double time1t = t1.getCurrentTime();
+      std::cout << "time1=" << t1.getCurrentTime() << std::endl;
+
+      nll::core::Timer t2;      
+      m = 0;
+      for ( Image::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+         m += *it;
+      double time2t = t2.getCurrentTime();
+      std::cout << "time2=" << t2.getCurrentTime() << std::endl;
+      TESTER_ASSERT( m == 42 );
+      TESTER_ASSERT( time2t < time1t + 0.05 );  // the time taken can vary
+   }
+
+   void testConstImageIterators()
+   {
+      typedef nll::core::Image<nll::ui32>   Image;
+
+      Image i1( 5, 6, 3 );
+      for ( unsigned n = 0; n < 5 * 6 * 3; ++n )
+         i1[ n ] = n;
+
+      unsigned m = 0;
+      for ( Image::ConstDirectionalIterator it = i1.beginDirectional(); it != i1.endDirectional(); ++it, m += 3 )
+      {
+         TESTER_ASSERT( *it == i1[ m ] );
+         TESTER_ASSERT( it.pickcol() == i1[ m + 1 ] );
+      }
+
+
+      m = 0;
+      for ( unsigned y = 0; y < i1.sizey(); ++y )
+         for ( unsigned x = 0; x < i1.sizex(); ++x )
+            for ( unsigned c = 0; c < i1.getNbComponents(); ++c )
+               TESTER_ASSERT( *i1.getIterator( x, y, c ) == i1[ m++ ] );
+
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickcol( 2 ) == i1( 0, 0, 2 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).pickx( 2 ) == i1( 2, 0, 0 ) );
+      TESTER_ASSERT( i1.getIterator( 0, 0, 0 ).picky( 3 ) == i1( 0, 3, 0 ) );
+
+      Image i2( 2048 * 4, 2048 * 4, 3 );
+      i2( 100, 100, 0 ) = 42;
+
+      nll::core::Timer t1;
+      m = 0;
+      for ( unsigned y = 0; y < i2.sizey(); ++y )
+         for ( unsigned x = 0; x < i2.sizex(); ++x )
+            //for ( unsigned c = 0; c < i2.getNbComponents(); ++c )
+               m += i2( x, y, 0 );
+      TESTER_ASSERT( m == 42 );
+      double time1t = t1.getCurrentTime();
+      std::cout << "constt1=" << t1.getCurrentTime() << std::endl;
+
+      nll::core::Timer t2;      
+      m = 0;
+      for ( Image::ConstDirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+         m += *it;
+      double time2t = t2.getCurrentTime();
+      std::cout << "constt2=" << t2.getCurrentTime() << std::endl;
+      TESTER_ASSERT( m == 42 );
+      TESTER_ASSERT( time2t < time1t + 0.05 );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestnllCore);
+TESTER_TEST(testImageIterators);
+TESTER_TEST(testConstImageIterators);
 TESTER_TEST(testSampling);
 TESTER_TEST(testTraitsInheritence);
 TESTER_TEST(testBuffer1D);

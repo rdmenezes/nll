@@ -1,7 +1,7 @@
-#include "stdafx.h"
 #include <time.h>
 #include <iostream>
 #include <nll/nll.h>
+#include <tester/register.h>
 
 class TestOptimizerParameters
 {

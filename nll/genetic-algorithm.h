@@ -1,3 +1,34 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_GENETIC_ALGORITHM_H_
 # define NLL_GENETIC_ALGORITHM_H_
 
@@ -106,31 +137,32 @@ namespace algorithm
 		   for ( ui32 n = 0; n < genes.size(); ++n )
 		   {
 			   clock_t t = clock();
-			   pairs.push_back( Pair( _evaluator( genes[ n ] ), n ) );
+            double val = _evaluator( genes[ n ] );
+			   pairs.push_back( Pair( 1 / val, n ) );
 			   if ( _printEvaluation )
             {
-               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( pairs.rbegin()->first ) );
-				   //std::cout << "eval:" << n << " time=" << ( f32 )( clock() - t ) / CLOCKS_PER_SEC << " val=" << pairs.rbegin()->first;
-               //std::cout << " gene = " << n;
-               //for ( ui32 nn = 0; nn < genes[ n ].size(); ++nn )
-               //   std::cout << " " << genes[ n ][ nn ];
-               //std::cout << std::endl;
+               std::stringstream ss;
+               for ( ui32 nn = 0; nn < genes[ n ].size(); ++nn )
+                  ss << " " << genes[ n ][ nn ];
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( 1 / pairs.rbegin()->first ) + ss.str() );
             }
 		   }
 		   std::sort( pairs.rbegin(), pairs.rend() );
-		   Pairs::const_reverse_iterator it = pairs.rbegin();
+		   Pairs::const_iterator it = pairs.begin();
    		
 		   if ( _printEvaluation )
          {
             std::stringstream ss;
-            ss << "best = " << it->first;
+            ss << "best = " << 1 / it->first;
             for ( ui32 n = 0; n < genes[ it->second ].size(); ++n )
                ss << " " << genes[ it->second ][ n ];
             ss << std::endl;
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
    		
-		   for ( ui32 n = 0; n < nbGenesToSelect && n < genes.size(); ++n, ++it )
+         // copy from begin to nb genes
+         assert( pairs.size() );
+		   for ( ui32 n = 0; n < ( nbGenesToSelect ) && n < genes.size(); ++n, ++it )
 			   newGenes.push_back( genes[ it->second ] );
 		   return newGenes;
       }
@@ -169,7 +201,7 @@ namespace algorithm
 
    /**
     @ingroup algorithm
-    @brief Highly customizable genetic algorithm. The cost function will be <b>minimized</b>.
+    @brief Highly customizable genetic algorithm. The cost function will be <b>maximized</b>.
     
     All operations are implemented by the template parameters.
     Need Gene.size().
@@ -201,7 +233,7 @@ namespace algorithm
                       double mutationRate,
                       double selectionRate,
                       ui32 nbRounds,
-                      const Gene& seed = GeneGenerate() )
+                      const Gene seed = GeneGenerate() )
       {
          Genes genes;
          genes.push_back( seed );
@@ -213,17 +245,19 @@ namespace algorithm
          {
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "round=" + core::val2str( round ) );
             Genes newBreed = _select( genes, static_cast<ui32>( selectionRate * populationSize ) );
+            ui32 size = static_cast<ui32>( newBreed.size() );
+            ensure( newBreed.size(), "error: bad proportion" );
             while (newBreed.size() < populationSize)
 			   {
-				   ui32 n1 = static_cast<ui32>( rand() % newBreed.size() );
-				   ui32 n2 = static_cast<ui32>( rand() % newBreed.size() );
+				   ui32 n1 = static_cast<ui32>( rand() % size );
+				   ui32 n2 = static_cast<ui32>( rand() % size );
 				   newBreed.push_back( _recombinate( newBreed[ n1 ], newBreed[ n2 ], seed.size() ) );
 			   }
-            for (ui32 i = 1; i < newBreed.size(); ++i)
+            for (ui32 i = 2; i < newBreed.size(); ++i)
 			   {
 				   f32 n = (f32)(rand() % 1000);
 				   if (n <= mutationRate * 1000)
-					   _mutate(newBreed[i]);
+					   _mutate( newBreed[ i ] );
 			   }
 			   genes = newBreed;
             ++round;

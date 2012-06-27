@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include <tester/register.h>
 
 class TestPca
 {
@@ -39,8 +39,8 @@ public:
       Points points( 10 );
       for ( unsigned n = 0; n < points.size(); ++n )
          points[ n ] = nll::core::Buffer1D<double>( pointsRaw[ n ], 2, false );
-      Pca pca( 2 );
-      bool res = pca.compute( points );
+      Pca pca;
+      bool res = pca.compute( points, 2 );
       TESTER_ASSERT( res );
 
       nll::core::Matrix<double> transf = pca.getProjection();
@@ -59,6 +59,13 @@ public:
          tt[ 1 ] += pca.getMean()[ 1 ];
          TESTER_ASSERT( fabs( tt[ 0 ] - pointsRaw[ n ][ 0 ] ) < 0.05 );
          TESTER_ASSERT( fabs( tt[ 1 ] - pointsRaw[ n ][ 1 ] ) < 0.05 );
+
+         //transf.print( std::cout );
+         //pca.getEigenVectors().print( std::cout );
+
+         nll::core::Buffer1D<double> reconstructed = pca.reconstruct( p );
+         TESTER_ASSERT( fabs( tt[ 0 ] - reconstructed[ 0 ] ) < 1e-6 );
+         TESTER_ASSERT( fabs( tt[ 1 ] - reconstructed[ 1 ] ) < 1e-6 );
       }
    }
 
@@ -66,7 +73,8 @@ public:
    {
       typedef std::vector<double>                              Point;
       typedef nll::algorithm::FeatureTransformationPca<Point>  Pca;
-      typedef Pca::Database                                    Database;
+      typedef nll::algorithm::Classifier<Point>::Database      Database;
+      //typedef Pca::Database                                    Database;
 
       Database dat;
       dat.add( Database::Sample( nll::core::make_vector<double>( 0, 0 ), 0, Database::Sample::LEARNING ) );
@@ -88,16 +96,55 @@ public:
       pca_t2->read( "pca.bin" );
 
       nll::core::Matrix<double> mat = pca2.getProjection();
-      TESTER_ASSERT( nll::core::equal( mat( 0, 0 ), -1.0 ) );
-      TESTER_ASSERT( nll::core::equal( mat( 0, 1 ), 0.0 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 0, 0 ), -0.857493, 1e-6 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 0, 1 ), 0.514496, 1e-6 ) );
 
-      TESTER_ASSERT( nll::core::equal( mat( 1, 0 ), 0.0 ) );
-      TESTER_ASSERT( nll::core::equal( mat( 1, 1 ), -1.0 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 1, 0 ), -0.514496, 1e-6 ) );
+      TESTER_ASSERT( nll::core::equal( mat( 1, 1 ), -0.857493, 1e-6 ) );
+   }
+
+   void testPca2()
+   {
+      // construct data on a line, remove one componente, check we get a perfect reconstruction
+      double pointsRaw[][ 2 ] =
+      {
+         { 1, 0.1 },
+         { 2, 0.2 },
+         { 3, 0.3 }
+      };
+
+      double pointsTransformed[][ 2 ] =
+      {
+         { 1, 0 },
+         { 0, 0 },
+         { -1, 0 }
+      };
+      typedef std::vector<nll::core::Buffer1D<double> >  Points;
+      typedef nll::algorithm::PrincipalComponentAnalysis<Points>  Pca;
+
+      Points points( 3 );
+      for ( unsigned n = 0; n < points.size(); ++n )
+         points[ n ] = nll::core::Buffer1D<double>( pointsRaw[ n ], 2, false );
+      Pca pca;
+      bool res = pca.compute( points, 1 );
+      TESTER_ASSERT( res );
+
+      for ( unsigned n = 0; n < 3; ++n )
+      {
+         // test with the expected results
+         nll::core::Buffer1D<double> p = pca.process( points[ n ] );
+         TESTER_ASSERT( fabs( p[ 0 ] - pointsTransformed[ n ][ 0 ] ) < 0.05 );
+
+         nll::core::Buffer1D<double> reconstructed = pca.reconstruct( p );
+         TESTER_ASSERT( fabs( pointsRaw[n][ 0 ] - reconstructed[ 0 ] ) < 1e-6 );
+         TESTER_ASSERT( fabs( pointsRaw[n][ 1 ] - reconstructed[ 1 ] ) < 1e-6 );
+      }
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestPca);
+TESTER_TEST(testPca2);
 TESTER_TEST(testPca);
 TESTER_TEST(testPcaFeature);
 TESTER_TEST_SUITE_END();

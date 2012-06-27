@@ -1,8 +1,42 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_IMAGE_IO_H_
 # define NLL_IMAGE_IO_H_
 
 # include <iostream>
 # include "image.h"
+
+# pragma warning( push )
+# pragma warning( disable:4127 ) // conditional expression is constant
 
 namespace nll
 {
@@ -32,8 +66,8 @@ namespace core
     @ingroup core
     @brief write a BMP, image internal format is BGR
     */
-   template <class T, class Mapper>
-   bool writeBmp( const Image<T, Mapper>& i, std::ostream& f )
+   template <class T, class Mapper, class Alloc>
+   bool writeBmp( const Image<T, Mapper, Alloc>& i, std::ostream& f )
    {
       assert( IsNativeType<T>::value );
       ui32 size = i.sizex() * i.sizey() * i.getNbComponents() + 54;
@@ -78,8 +112,8 @@ namespace core
     @ingroup core
     @brief write a BMP, image internal format is BGR to a file.
     */
-   template <class T, class Mapper>
-   bool writeBmp( const Image<T, Mapper>& i, const std::string& file )
+   template <class T, class Mapper, class Alloc>
+   bool writeBmp( const Image<T, Mapper, Alloc>& i, const std::string& file )
    {
       std::ofstream f(file.c_str(), std::ios_base::binary);
       if (!f.is_open())
@@ -94,8 +128,8 @@ namespace core
     @ingroup core
     @brief read a BMP, image internal format is BGR
     */
-   template <class T, class Mapper>
-   bool readBmp( Image<T, Mapper>& out_i, std::istream& f )
+   template <class T, class Mapper, class Alloc>
+   bool readBmp( Image<T, Mapper, Alloc>& out_i, std::istream& f, Alloc alloc = Alloc() )
    {
       assert( IsNativeType<T>::value );
       ui32 sx = 0;
@@ -110,7 +144,7 @@ namespace core
 		if (!nbcomp || !sx || !sy)
 			return false;
 		f.seekg(54L, std::ios::beg);
-      Image<T, Mapper> image(sx, sy, nbcomp);
+      Image<T, Mapper, Alloc> image(sx, sy, nbcomp, false, alloc);
 
 		ui32 padding = sx % 4;
 		ui8 padding_tab[3];		
@@ -134,18 +168,20 @@ namespace core
     @ingroup core
     @brief read a BMP, image internal format is BGR from a file.
     */
-   template <class T, class Mapper>
-   bool readBmp( Image<T, Mapper>& out_i, const std::string& file )
+   template <class T, class Mapper, class Alloc>
+   bool readBmp( Image<T, Mapper, Alloc>& out_i, const std::string& file, Alloc alloc = Alloc() )
    {
       std::ifstream f(file.c_str(), std::ios_base::binary);
       if (!f.is_open())
       {
-         assert(0); // can't open file
+         ensure( 0, "can't read image:" + file ); // can't open file
          return false;
       }
-      return readBmp(out_i, f);
+      return readBmp(out_i, f, alloc);
    }
 }
 }
+
+# pragma warning( pop )
 
 #endif

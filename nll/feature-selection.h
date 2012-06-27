@@ -1,3 +1,34 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_FEATURE_SELECTION_H_
 # define NLL_FEATURE_SELECTION_H_
 
@@ -17,8 +48,6 @@ namespace algorithm
    {
    public:
       typedef FeatureTransformation<Point>   Base;
-      typedef Classifier<Point>              TClassifier;
-      typedef typename TClassifier::Database Database;
 
       // don't override these
       using Base::read;
@@ -37,11 +66,13 @@ namespace algorithm
    public:
       void read( std::istream& f )
       {
+         core::read<ui32>( _nbSelectedFeatures, f );
          this->_selectedFeatures.read( f );
       }
 
       void write( std::ostream& f ) const
       {
+         core::write<ui32>( _nbSelectedFeatures, f );
          this->_selectedFeatures.write( f );
       }
 
@@ -105,14 +136,16 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Actual base class for feature selection using a wrapper approach
+
+    The Classifier is directly used to mark the feature set, this can be real classifier, or regression
     */
-   template <class Point>
+   template <class Point, class ClassifierBase = ClassifierBase<Point, ui32> >
    class FeatureSelectionWrapper : public FeatureSelectionBase<Point>
    {
    public:
-      typedef FeatureSelectionBase<Point> Base;
-      typedef typename Base::TClassifier  Classifier;
-      typedef typename Base::Database     Database;
+      typedef FeatureSelectionBase<Point>       Base;
+      typedef ClassifierBase                    Classifier;
+      typedef typename ClassifierBase::Database Database;
 
       // don't override these
       using Base::process;
@@ -120,7 +153,11 @@ namespace algorithm
       using Base::write;
 
    public:
-      FeatureSelectionWrapper(){}
+      FeatureSelectionWrapper()
+      {
+         enum {RESULT = core::Equal<Point, typename ClassifierBase::Sample::Input>::value };
+         STATIC_ASSERT( RESULT ); // the input & database must match!
+      }
       virtual ~FeatureSelectionWrapper(){}
 
       FeatureSelectionWrapper( const core::Buffer1D<bool>& selectedFeatures ) : Base( selectedFeatures )
@@ -143,14 +180,15 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Actual base class for feature selection using a filter approach
+
+    The class information & input only are used to select the feature subset
     */
    template <class Point>
    class FeatureSelectionFilter : public FeatureSelectionBase<Point>
    {
    public:
-      typedef FeatureSelectionBase<Point> Base;
-      typedef typename Base::TClassifier  Classifier;
-      typedef typename Base::Database     Database;
+      typedef FeatureSelectionBase<Point>                      Base;
+      typedef typename Classifier<Point>::Database             Database;
 
       // don't override these
       using Base::process;

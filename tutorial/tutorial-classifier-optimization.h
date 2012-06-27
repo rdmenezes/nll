@@ -43,13 +43,13 @@ namespace tutorial
 
          // test that the solution we found is suitable on the test/learning database
          double error = c.evaluate( nll::core::make_buffer1D( params ), dat );
-         TESTER_ASSERT( nll::core::equal<double>( error, 0 ) );
+         TESTER_ASSERT( fabs( error ) < 0.037 );
          
          // learn the TEST and VALIDATION database with the optimized parameters, and test the classifier
          // on the TESTING database
          c.learnTrainingDatabase( dat, nll::core::make_buffer1D( params ) );
          Classifier::Result rr = c.test( dat );
-         TESTER_ASSERT( rr.testingError < 0.04 );
+         TESTER_ASSERT( fabs( rr.testingError ) < 0.018 );
       }
    };
 }

@@ -57,5 +57,54 @@ typename nll::algorithm::Classifier<T>::Database loadDatabaseSpect()
    return dat;
 }
 
+inline nll::algorithm::Classifier< nll::core::Buffer1D<double> >::Database createSwissRoll()
+{
+   typedef nll::algorithm::Classifier< nll::core::Buffer1D<double> >::Database Database;
+
+   Database dat;
+   std::ifstream f( NLL_TEST_PATH "data/manifolds/SwissRollSmall.txt" );
+   if ( !f.good() )
+      throw std::runtime_error( "cannot locate the dataset" );
+
+   while ( !f.eof() )
+   {
+      std::string line;
+      std::getline( f, line );
+
+      std::stringstream ss( line );
+      Database::Sample::Input i( 3 );
+
+      ss >> i[ 0 ] >> i[ 1 ] >> i[ 2 ];
+
+      dat.add( Database::Sample( i, 0, Database::Sample::LEARNING ) );
+   }
+
+   return dat;
+}
+
+inline nll::algorithm::Classifier< nll::core::Buffer1D<double> >::Database sampleSwissRoll()
+{
+   typedef nll::algorithm::Classifier< nll::core::Buffer1D<double> >::Database Database;
+
+   Database dat;
+   
+   const double max = 1.0;
+   const double step = 0.02;
+   const unsigned nbPoints = static_cast<unsigned>( max / step );
+
+
+   for ( unsigned n = 0; n < nbPoints; ++n )
+   {
+      const double tt0 = ( 1 + 2 * n * step ) * 3 * nll::core::PI / 2;
+      for ( unsigned nn = 0; nn < 50; ++nn )
+      {
+         Database::Sample s( nll::core::make_buffer1D<double>( tt0 * cos( tt0 ), nll::core::generateUniformDistribution( 0, 1 ) * 21, tt0 * sin( tt0 ) ), 0, Database::Sample::LEARNING );
+         dat.add( s );
+      }
+   }
+
+   return dat;
+}
+
 
 #endif

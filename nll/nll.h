@@ -1,5 +1,38 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_H
 #define NLL_H
+
+#pragma warning(disable:4996) // we don't care about this warning!
 
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
@@ -18,12 +51,49 @@
 #define NLL_API
 #endif
 
+// define this in debug mode to find memory leaks
+//#define NLL_FIND_MEMORY_LEAK
+
+#ifdef NLL_FIND_MEMORY_LEAK
+# ifdef _MSC_VER
+#  ifdef _DEBUG
+#   define _CRTDBG_MAP_ALLOC
+#   include <stdlib.h>
+#   include <crtdbg.h>
+#   define DEBUG_NEW     new(_NORMAL_BLOCK, __FILE__, __LINE__)
+#   define new           DEBUG_NEW
+#   define malloc(s)     _malloc_dbg(s, _NORMAL_BLOCK, __FILE__, __LINE__)
+#  else
+  NOT HANDLED!
+#  endif
+# else
+  NOT HANDLED!
+#endif
+#endif
+
+#define PLACEMENT_NEW   new
+
+// define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
+// #define NLL_DISABLE_SSE_SUPPORT
+
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
-// #define NLL_NOT_MULTITHREADED
+//#define NLL_NOT_MULTITHREADED
+
+// if defined, extra checks will be performed to check preconditions/postconditions
+#define NLL_SECURE
+
+// if defined, use LIBFFTW3 as the implementation of the FFT
+// note that if this flag is used, you must comply with the FFTW3 licensing terms
+//#define NLL_DONT_USE_LIBFFTW3
 
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
 #endif
+
+// define this constant to disable all multithreading in quick loops. This is a workaround for the problematic implementation
+// of OpenMP in VS2010 with spin lock.
+// See http://social.msdn.microsoft.com/Forums/en-AU/parallelcppnative/thread/528479c8-fb70-4b05-83ce-7a552fd49895
+#define NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS
 
 /**
  @mainpage Numerical Learning Library
@@ -33,12 +103,23 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.09
- @date 14th March 2009
+ @version 0.15
+ @date 30th May 2011
  */
 
-/// define the version of nll
-#define NLL_VERSION  "nll-0.09"
+/// define the version of nll as a string
+#define NLL_VERSION     "nll-0.16"
+
+/// define the version of nll as a plain number
+#define NLL_VERSION_ID  0x016
+
+
+
+#ifdef _MSC_VER
+# define NLL_ALIGN_16   __declspec(align(16))
+#else
+# define NLL_ALIGN_16   __attribute__((aligned(16)))
+#endif
 
 /**
  Concept: (for future integration with C++ 0x)
@@ -65,12 +146,27 @@
    - Allocator
          * allocate
          * deallocate
+         * rebind
    - matrix
  */
 
 # include <fstream>
 # include <stdexcept>
 # include <cstdlib>
+# include <memory>
+# include <map>
+# include <list>
+# include <stack>
+# include <vector>
+# include <queue>
+# include <numeric>
+# include <string>
+# include <limits>
+# include <iostream>
+# include <sstream>
+# include <typeinfo>
+# include <utility>
+# include <cstring>
 
 /**
  @defgroup core
@@ -84,25 +180,43 @@
  - databases
  - math
  */
+# include "indent.h"
 # include "singleton.h"
+# include "configuration.h"
 # include "types.h"
+# include "collection-wrapper.h"
 # include "utility-pure.h"
+# include "utility-matlab.h"
+# include "math-floor.h"
 # include "static-assert.h"
 # include "ensure.h"
+# include "histogram.h"
+# include "context.h"
 # include "log.h"
 # include "logger.h"
 # include "unreachable.h"
 # include "id-maker.h"
 # include "static-vector.h"
+# include "type-traits.h"
+# include "type-traits-inherited.h"
+# include "type-traits-memory.h"
 # include "buffer1D.h"
-# include "buffer1D-converter.h"
+# include "buffer1D-convolve.h"
+# include "Buffer1D-basic-op.h"
 # include "math.h"
 # include "matrix.h"
 # include "math-distribution-gaussian.h"
 # include "math-distribution-uniform.h"
+# include "math-distribution-logistic.h"
+# include "math-pdf-gaussian.h"
+# include "math-statistical-independence.h"
 # include "math-correlation.h"
 # include "math-sampling.h"
+# include "math-kurtosis.h"
 # include "math-quaternion.h"
+# include "math-gram-schmidt-ortho.h"
+# include "math-noise-awgn.h"
+# include "math-cumulative-gaussian-function.h"
 # include "matrix-basic-operations.h"
 # include "matrix-decomposition.h"
 # include "matrix-basic.h"
@@ -110,11 +224,11 @@
 # include "matrix-converter.h"
 # include "matrix-sort.h"
 # include "matrix-svd.h"
+# include "matrix-custom.h"
 # include "matrix-cholesky.h"
+# include "matrix-pseudo-inverse.h"
+# include "matrix-affine-decomposition.h"
 # include "math-distribution-multinormal.h"
-# include "type-traits.h"
-# include "type-traits-inherited.h"
-# include "type-traits-memory.h"
 # include "io.h"
 # include "image.h"
 # include "image-interpolator.h"
@@ -129,13 +243,69 @@
 # include "image-snr.h"
 # include "image-mask.h"
 # include "image-morphology.h"
+# include "geometry.h"
+# include "matrix-affine-transformation.h"
 # include "image-distance-transform.h"
+# include "image-spatial.h"
+# include "transformation-rbf.h"
+# include "transformation-ddf-2d.h"
+# include "image-spatial-transformation-mapper-ddf.h"
+# include "image-spatial-transformation-mapper.h"
+# include "image-spatial-resampling.h"
 # include "database.h"
 # include "database-manipulation.h"
 # include "database-input-adapter.h"
 # include "utility.h"
 # include "timer.h"
 # include "sequence-converter.h"
+# include "allocator-aligned.h"
+# include "converter.h"
+# include "graph-adjency-list.h"
+# include "graph-visitor.h"
+# include "graph-traits.h"
+# include "graph-algorithms.h"
+
+// must be included before...
+# include "metric.h"
+# include "kmeans.h"
+# include "gmm.h"
+# include "histogram-fitting.h"
+# include "data-compression-count.h"
+
+/**
+ @defgroup imaging
+
+ This group defines the main algorithms for imaging such as volumes, interpolation and
+ images.
+
+ Often the library will use the concept of source and target volumes associated with affine transformation
+ The "source" volume is a fixed volume, the "target" volume is the moving one. It is "moved" by an associated
+ transformation (see multiplanar reconstruction). This associated transformation is ALWAYS given in the form source->target
+ because this is how we display the volumes and it may not be possible to invert a transformation (or not efficiently, think
+ about deformable tfm).
+ */
+# include "lut.h"
+# include "transformation.h"
+# include "volume.h"
+# include "volume-spatial.h"
+# include "volume-interpolator.h"
+# include "volume-transformation-mapper.h"
+# include "transformation-ddf.h"
+# include "volume-transformation-mapper-ddf.h"
+# include "volume-resampling.h"
+# include "slice.h"
+# include "slice-blending.h"
+# include "slice-resampling.h"
+# include "multiplanar-reconstruction.h"
+# include "volume-io-mf2.h"
+# include "volume-io-bin.h"
+# include "volume-io-txt.h"
+# include "maximum-intensity-projection.h"
+# include "volume-barycentre.h"
+# include "volume-discretizer.h"
+# include "volume-io-mf3.h"
+# include "volume-distance-transform.h"
+# include "ddf-overlay.h"
 
 /**
  @defgroup algorithm
@@ -143,10 +313,28 @@
  This group defines the main algorithms of the library. They are mainly decomposed into
  2 sub groups:
  - generic algorithm group, that tries to keep the dependencies to a minimum.
- - feature algorithm group, where it tries to intregrate all the generic algorithms to
+ - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
+# include "fft.h"
+# include "periodogram.h"
+# include "function.h"
+# include "gradient-descent.h"
+# include "linear-regression.h"
+# include "bracketing.h"
+# include "brent.h"
+# include "powell.h"
+# include "mlp.h"
+# include "normalization.h"
 # include "pca.h"
+# include "pca-sparse.h"
+# include "quasi-periodicity-analysis.h"
+# include "estimator-affine2D-transformation.h"
+# include "estimator-affine-transformation.h"
+# include "ransac.h"
+# include "sammon-projection.h"
+# include "ica.h"
+# include "quadratic-discriminant.h"
 # include "stopping-condition.h"
 # include "metric.h"
 # include "genetic-algorithm.h"
@@ -157,59 +345,100 @@
 # include "optimizer-harmony-search.h"
 # include "optimizer-harmony-search-memory.h"
 # include "optimizer-grid-search.h"
+# include "optimizer-powell.h"
+# include "classifier-base.h"
 # include "classifier.h"
 # include "kmeans.h"
 # include "gmm.h"
+# include "histogram-fitting.h"
+# include "rbf-network.h"
 # include "svm.h"
+# include "svm-linear.h"
 # include "lsdbc.h"
 # include "kd-tree.h"
+# include "locally-linear-embedding.h"
 # include "gabor-filter.h"
 # include "gabor.h"
 # include "markov-chain.h"
 # include "hmm.h"
+# include "naive-bayes.h"
 # include "hmm-continuous.h"
+# include "kernel-functions.h"
+# include "kernel-pca.h"
+# include "kernel-pca-preimage-mds.h"
 # include "classifier-gmm.h"
 # include "classifier-mlp.h"
+# include "classifier-discriminant.h"
+# include "classifier-naive-bayes.h"
 # include "classifier-nearest-neighbor.h"
 # include "classifier-svm.h"
+# include "classifier-svm-linear.h"
 # include "classifier-adaboost.h"
+# include "classifier-rbf.h"
 # include "region-growing.h"
 # include "labelize.h"
 # include "relief.h"
 # include "feature-transformation.h"
 # include "feature-transformation-pca.h"
+# include "feature-transformation-ica.h"
+# include "feature-transformation-kernel-pca.h"
+# include "feature-transformation-normalization.h"
+# include "feature-transformation-discriminant.h"
+# include "feature-transformation-lle.h"
+# include "feature-combiner.h"
 # include "feature-selection.h"
 # include "feature-selection-genetic-algorithm.h"
 # include "feature-selection-best-first.h"
 # include "feature-selection-pearson.h"
 # include "feature-selection-relieff.h"
+# include "regression.h"
+# include "regression-mlp.h"
+# include "regression-svm-nu.h"
+# include "haar-features.h"
+# include "pyramid-hessian-2d.h"
+# include "surf-2d.h"
+# include "point-based-registration-2d.h"
+# include "integral-image-3d.h"
+# include "haar-features-3d.h"
+# include "pyramid-hessian-3d.h"
+# include "surf-3d.h"
+# include "point-based-registration-3d.h"
+# include "registration-ct-ct-planar.h"
+# include "perceptron-margin.h"
 
-/**
- @defgroup preprocessing
- This group is integrating the algorithm group to a higher level. It tries to add
- the workflow notion: the processing of the data must comply with a specific set of transformations
- to eventually feed the classifier's inputs.
- */
-# include "preprocessing-typelist.h"
-# include "preprocessing-typelist-operation.h"
-# include "preprocessing-typelist-concatenate.h"
-# include "preprocessing-classifier.h"
-# include "preprocessing-unit.h"
-# include "preprocessing-raw-select.h"
-# include "preprocessing-raw-normalize.h"
-# include "preprocessing-image-center.h"
-# include "preprocessing-image-place.h"
-# include "preprocessing-image-resample.h"
-# include "preprocessing-image-gabor.h"
-# include "preprocessing-bridge-image-vector.h"
+// Trees
+# include "tree-continuous-splitting-criteria.h"
+# include "information-measure.h"
+# include "tree-node-split.h"
+# include "decision-tree.h"
+
+// Bayesian network related files
+# include "potential-gaussian-moment.h"
+# include "potential-gaussian-canonical.h"
+# include "potential-table.h"
+# include "bayesian-network.h"
+# include "bayesian-network-utils.h"
+# include "bayesian-network-ml-param-estimation.h"
+# include "bayesian-network-sampling.h"
+# include "bayesian-inference-naive.h"
+# include "bayesian-inference-elimination-variable.h"
+
+// Boosting
+# include "boosting-weak-classifier.h"
+# include "boosting-weak-classifier-stump.h"
+# include "boosting-weak-classifier-mlp.h"
+# include "boosting-weak-classifier-perceptron.h"
+# include "boosting-weak-classifier-decision-tree.h"
+# include "boosting-adaboost-basic.h"
+
 
 /// @defgroup utility
 # include "mask-exporter.h"
+# include "statistics.h"
 
 /// @defgroup debug
 # include "debug-io.h"
 # include "debug-decompose.h"
 
-/// @defgroup tutorial
 
 #endif

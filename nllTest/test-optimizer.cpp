@@ -1,6 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
 #include <time.h>
+#include <tester/register.h>
 
 static nll::f64 eval(const nll::core::Buffer1D<nll::f64>& g)
 {

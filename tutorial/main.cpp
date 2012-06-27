@@ -9,5 +9,8 @@
 
 int main()
 {
+   std::ofstream f("nll.log");
+   f.close();
+
    return Register::instance().run();
 }

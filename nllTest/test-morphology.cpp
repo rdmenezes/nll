@@ -1,5 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include <tester/register.h>
+#include "config.h"
 
 class TestNllMorphology
 {

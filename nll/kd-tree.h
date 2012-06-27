@@ -1,3 +1,34 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_KD_TREE_H_
 # define NLL_KD_TREE_H_
 
@@ -25,8 +56,10 @@ namespace algorithm
       "f32 operator[](ui32) const"
 
     Distance needs to provide
-      double operator()( const Point& p1, const Point& p2 );
+      double distance( const Point& p1, const Point& p2 ) const;
       Distance( const Distance& d )
+
+      The distance must be of the form sum_i( coef_i * pow( x_i, coef2_i ) ), with coef_i >= 1
    
    	build o(n log n)
       NearestNeighbor o(log n) 
@@ -114,6 +147,14 @@ namespace algorithm
 		   for (typename NearestNeighborList::const_iterator i = nns.begin(); i != nns.end(); ++i)
 			   o << "(" << i->id << ", " << i->dist << ") ";
 	   }
+
+   private:
+      struct   _Query
+      {
+         NearestNeighborList nearest;
+         f32                 minDistFound;
+      };
+
    public:
       /**
        @brief default Distance so we can put it in Vectors. Use setDistance() if it needs additional parameters
@@ -151,9 +192,6 @@ namespace algorithm
          _tmpMin = cpy._tmpMin;
          _tmpMax = cpy._tmpMax;
          _points = cpy._points;
-         _minDistFound = cpy._minDistFound;
-         _minDistIndex = cpy._minDistIndex;
-         _nearest = cpy._nearest;
          _pointSize = cpy._pointSize;
          if ( cpy._root )
             _root = cpy._root->clone();
@@ -175,8 +213,8 @@ namespace algorithm
 		   _points = &points;
 		   ui32 size = points.size();
          _perm = std::vector<ui32>( size );
-         _tmpMin = std::vector<f32>( size );
-         _tmpMax = std::vector<f32>( size );
+         _tmpMin = std::vector<f32>( pointSize );
+         _tmpMax = std::vector<f32>( pointSize );
 		   for (ui32 n = 0; n < size; ++n)
 			   _perm[ n ] = n;
 		   _root = _build( 0, size - 1 );
@@ -192,9 +230,9 @@ namespace algorithm
 	   NearestNeighborList findNearestNeighbor(const Point& point, ui32 k) const
 	   {
          ensure( k, "k must be > 1" );
-		   _nearest.clear();
-		   _findNearestNeighbor(_root, point, k);
-		   return _nearest;
+         _Query query;
+		   _findNearestNeighbor(query, _root, point, k);
+		   return query.nearest;
 	   }
 
       /**
@@ -239,26 +277,26 @@ namespace algorithm
 		   }
 	   }
 
-      void _findNearestNeighbor(const _KdTree* p, const Point& point, ui32 k) const
+      void _findNearestNeighbor(_Query& query, const _KdTree* p, const Point& point, ui32 k) const
 	   {
 		   if (p->bucket)
 		   {
 			   for (ui32 n = p->lopt; n <= p->hipt; ++n)
 			   {
 				   f32 dist = _distance.distance((*_points)[_perm[n]], point );
-				   if (_nearest.size() < k)
+				   if (query.nearest.size() < k)
 				   {
-					   _nearest.insert(NearestNeighbor(_perm[n], dist));
-					   _minDistFound = _nearest.rbegin()->dist;
+					   query.nearest.insert(NearestNeighbor(_perm[n], dist));
+					   query.minDistFound = query.nearest.rbegin()->dist;
 				   }
 				   else 
 				   {
-					   f32 minDistFound = _nearest.rbegin()->dist;
+					   f32 minDistFound = query.nearest.rbegin()->dist;
 					   if (dist < minDistFound)
 					   {
-						   _nearest.erase(--_nearest.end());
-						   _nearest.insert(NearestNeighbor(_perm[n], dist));
-						   _minDistFound = _nearest.rbegin()->dist;
+						   query.nearest.erase(--query.nearest.end());
+						   query.nearest.insert(NearestNeighbor(_perm[n], dist));
+						   query.minDistFound = query.nearest.rbegin()->dist;
 					   }
 				   }
 			   }
@@ -267,22 +305,22 @@ namespace algorithm
 			   f32 target_val = point[ p->cut_dim ];
 			   if (target_val <= val)
 			   {
-				   _findNearestNeighbor(p->l, point, k);
-				   if (_nearest.size() < k)
-					   _findNearestNeighbor(p->h, point, k);
+				   _findNearestNeighbor(query, p->l, point, k);
+				   if (query.nearest.size() < k)
+					   _findNearestNeighbor(query, p->h, point, k);
 				   else
 				   {
-					   if (target_val + _minDistFound > val)
-						   _findNearestNeighbor(p->h, point, k);
+					   if (target_val + query.minDistFound > val)
+						   _findNearestNeighbor(query, p->h, point, k);
 				   }
 			   } else {
-				   _findNearestNeighbor(p->h, point, k);
-				   if (_nearest.size() < k)
-					   _findNearestNeighbor(p->l, point, k);
+				   _findNearestNeighbor(query, p->h, point, k);
+				   if (query.nearest.size() < k)
+					   _findNearestNeighbor(query, p->l, point, k);
 				   else
 				   {
-					   if (target_val - _minDistFound < val)
-						   _findNearestNeighbor(p->l, point, k);
+					   if (target_val - query.minDistFound < val)
+						   _findNearestNeighbor(query, p->l, point, k);
 				   }
 			   }
 		   }
@@ -387,7 +425,7 @@ namespace algorithm
 				   index = dim;
 			   }
 		   }
-		   assert(index != -1); // "error index"
+         ensure( index != -1, "something wrong here!" );
 		   return index;
 	   }
 
@@ -398,9 +436,6 @@ namespace algorithm
       std::vector<f32>     _tmpMin;
       std::vector<f32>     _tmpMax;
 	   const Points*	      _points;
-	   mutable f32				_minDistFound;
-	   mutable ui32			_minDistIndex;
-	   mutable NearestNeighborList  _nearest;
       ui32                 _pointSize;
       Distance             _distance;
    };

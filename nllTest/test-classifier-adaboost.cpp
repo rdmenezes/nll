@@ -1,32 +1,41 @@
-#include "stdafx.h"
-#include <nll/nll.h>
-#include <time.h>
+# include <nll/nll.h>
+#include "database-builder.h"
+#include <tester/register.h>
 
-class TestNllAlgorithmClassifierAdaboost
+using namespace nll::core;
+using namespace nll::algorithm;
+
+class TestBoosting
 {
 public:
-   void testAdaboostClassifier1()
+   void test1()
    {
-      typedef nll::core::Buffer1D<double>                               Point;
-      typedef nll::algorithm::ClassifierAdaboost<Point, nll::algorithm::ClassifierSvm>  ClassifierAdaboost;
-      typedef nll::algorithm::ClassifierSvm<Point>                      Base;
-      typedef nll::algorithm::Classifier<Point>                         Classifier;
+      srand( 2 );
+      typedef Buffer1D<double>   Point;
+      typedef ClassifierAdaboost<Point, ClassifierMlp >  Boosting;
 
-      srand( 0 );
-      Base* b = new Base();
-      Classifier* adaboost = new ClassifierAdaboost( b, 10, 0.5 );
+      FactoryClassifierMlp<Point> factory;
 
-      Classifier::Database dat = loadDatabaseSpect<Point>();
-      adaboost->learn( dat, nll::core::make_buffer1D<double>( 1, 1 ) );
+      Boosting boosting( factory, 20, 0.3 );
+      Boosting::Database dat = loadDatabaseSpect<Point>();
 
-      Classifier::Result r = adaboost->test( dat );
-      TESTER_ASSERT( r.testingError < 0.8 );
+      boosting.learn( dat, nll::core::make_buffer1D<double>( 4, 0.1, 1 ) );
+      Boosting::Result r = boosting.test( dat );
+      std::cout << "adaboost learning error=" << r.learningError << " test error=" << r.testingError <<std::endl;
+      TESTER_ASSERT( r.learningError < 0.3 );
+      TESTER_ASSERT( r.testingError < 0.3 );
+
+      boosting.write( "tmpboosting.bin" );
+      Boosting boosting2( factory, 0, 0 );
+      boosting2.read( "tmpboosting.bin" );
+      Boosting::Result r2 = boosting.test( dat );
+      TESTER_ASSERT( r.learningError == r2.learningError );
+      TESTER_ASSERT( r.testingError == r2.testingError );
    }
 };
 
-
 #ifndef DONT_RUN_TEST
-TESTER_TEST_SUITE(TestNllAlgorithmClassifierAdaboost);
- TESTER_TEST(testAdaboostClassifier1);
+TESTER_TEST_SUITE(TestBoosting);
+TESTER_TEST(test1);
 TESTER_TEST_SUITE_END();
 #endif

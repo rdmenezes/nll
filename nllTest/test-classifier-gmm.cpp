@@ -1,8 +1,9 @@
-#include "stdafx.h"
 #include <time.h>
 #include <iostream>
 #include <fstream>
 #include <nll/nll.h>
+#include <tester/register.h>
+#include "database-builder.h"
 
 # define GMM_TEST_PATH "../../nllTest/data/gmm/"
 
