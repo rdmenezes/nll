@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include <tester/register.h>
 #include <nll/nll.h>
 
 using namespace nll::algorithm;
@@ -11,7 +11,7 @@ public:
    void testHmm1()
    {
       //1245617666
-      unsigned seed = 1245794065;//time(0);
+      unsigned seed = 2;//time(0);
       //std::cout << "seed=" << seed << std::endl;
       srand( seed ); // set the seed since we need to know the exact paramters found by the algorithm
 
@@ -45,10 +45,10 @@ public:
 
       const Gaussian gaussians[] =
       {
-         {0,   0,   0.25},
-         {0.5, 2,   0.25},
-         {2,   0.5, 0.25},
-         {1, 0.25,   0.25}
+         {0,   0,   nll::core::sqr( 0.25 )},
+         {0.5, 2,   nll::core::sqr( 0.25 )},
+         {2,   0.5, nll::core::sqr( 0.25 )},
+         {1, 0.25,  nll::core::sqr( 0.25 )}
       };
 
       // generate observations by state
@@ -60,7 +60,7 @@ public:
             for ( unsigned nn = 0; nn < 35; ++nn )
             {
                double posx = nll::core::generateGaussianDistribution( gaussians[ n ].meanx, gaussians[ n ].variance );
-               double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance );
+               double posy = nll::core::generateGaussianDistribution( gaussians[ n ].meany, gaussians[ n ].variance);
                Observation p = nll::core::make_vector<double>( posx, posy );
 
                observations[ n ].push_back( p );
@@ -87,7 +87,7 @@ public:
             Observations obs( size );
             for ( unsigned nn = 0; nn < size; ++nn )
             {
-               const unsigned observationIndex = (unsigned)rand() % observations[ chain[ nn ] ].size();
+               const unsigned observationIndex = (unsigned)rand() % (unsigned)observations[ chain[ nn ] ].size();
                obs[ nn ] = observations[ chain[ nn ] ][ observationIndex ];
             }
             dataset[ n ] = obs;
@@ -112,7 +112,7 @@ public:
          for ( unsigned n = 0; n < sizeSeq; ++n )
          {
             chainConv[ n ] = chain[ n ];
-            const unsigned observationIndex = (unsigned)rand() % observations[ chain[ n ] ].size();
+            const unsigned observationIndex = (unsigned)rand() % (unsigned)observations[ chain[ n ] ].size();
             obs[ n ] = observations[ chain[ n ] ][ observationIndex ];
          }
 
@@ -120,6 +120,8 @@ public:
          std::vector<nll::ui32> chainOut;
          hmm.computeHiddenState( obs, chainOut );
          TESTER_ASSERT( chainOut == chainConv );
+
+         hmm.probability( obs );
 
          // test the sequence generation
          const unsigned nbChainsGeneration = 1000;

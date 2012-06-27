@@ -1,5 +1,6 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include <tester/register.h>
+#include "database-builder.h"
 
 class TestNllClassifierNearestNeighbor
 {
@@ -40,7 +41,6 @@ public:
       NN nearestLoading( NLL_TEST_PATH "data/nn.dat", &metric );
       resultLearning = nearestLearning.test( dat );
       TESTER_ASSERT( resultLearning.learningError <= 0 && resultLearning.testingError <= 0 );
-   
    }
 };
 

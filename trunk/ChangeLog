@@ -1,3 +1,93 @@
+v0.16
+-added matrix utilities
+-added multithreaded various imaging algorithms (resampling, transformation mapper, MPR)
+-added utilities to compose/decompose affine matrices in rotation, scale, shear components
+-added graph classes and basic algorithms
+-added RBF deformable transformation
+-added 2D/3D DDF transformation & associated resampling
+-added 2D transformation estimators (similarity isotropic/anisotropic, isometry)
+-added 3D distance transform
+-added weighted learning for linear SVM & neural network
+-added perceptron and variants
+-added sampling without replacement & shuffling
+-added gaussian moment and canonical representation and associated operations
+-added bayesian network (linear gaussian(note:partial implementation) and table potentials)
+-added bayesian inference algorithms (naive, variable elimination)
+-added ML likelihood parameter estimation for bayesian network
+-added normal probability density function
+-improved ransac with weighted error
+-improved 2D point based registration
+-added new versions of adaboost
+-added weak learners (neural nets, perceptron, stumps, decision trees)
+-added generic weighted decision trees (discrete and continuous)
+-added sparse PCA
+-added quasi periodicity analysis
+-added periodogram
+-revisited 2D/3D transforms (resampling, MPR, mappers)
+
+v0.15
+-added locally linear embedding for feature selection & data structure display
+-integrated LIBLINEAR for massive linear svm
+-added RANSAC parameter estimator
+-added SURF feature detection
+-added point based 2D registration (rigid, affine) & local registration
+-added 2D image resampler
+-added 3D integral image
+-added 3D Haar features
+-added linear least square based on SVD decomposition
+-added planar point based affine CT-CT registration algorithm
+-fixed minor bugs (multithreaded logging)
+-fixed 3D resampling problem with rotation. Added multithreading
+-fixed affine MPR transformation display
+
+v0.14
+-fixed kernel PCA implementation
+-added kernel RBF pre-image
+-added converters
+-added multi-threaded Sammon's projection
+-added additive white gaussian noise generator
+-added tutorials
+
+v0.13
+-added independent component analysis
+-added gram-schmidt orthogonalization
+-added kutosis
+-added logistic distribution
+-added Radial Basis Function neural network classifier
+-added naives bayes classifier
+-added quadratic discriminant classifier/feature transformation
+-added database concatenation
+-added basic vector operations on Buffer1D
+-minor algorithm refactoring/bugfix
+
+v0.12
+-optimization of the nll::imaging package to be suitable for realtime sofware rendering
+-added slices & associated operations (MPR reconstruction, blending, resampling)
+-added volume resampling
+-added new formats for volume serialization (text, binary)
+-added Allocator parameter for Matrix, Images & Buffer for specific allocators
+-added common operations on geometry (plane, box)
+-added affine transformation (volume resampling & MPR)
+-fixed adaboost classifier
+-added regression (MLP & SVR)
+-reduced dependencies between classifiers & feature processing
+-various interface improvements & bugfixes
+-Haar features & integral images
+
+v0.11
+-improved logging
+-added kernel PCA algorithm
+-added directional iterators for matrices, images and volumes
+-added powell & line search optimizers
+-support for volumes, lookup tables & multi-planar reconstruction
+-fixed bugs & improved unit tests
+-added tutorials & test databases
+
+v0.10
+-reimplementation of the multilayer neural network (added weight decay)
+-bug fixes
+-improved documentation & testing
+
 v0.09
 -bug fixes (small bias corrected in a sample generator)
 -added unit tests

@@ -1,0 +1,2 @@
+SwissRoll.txt contains a 3D swiss roll (2000 points * 3 features)
+SwissRollDepth.txt contains the depth of each in SwissRoll.txt following the swiss roll manifold

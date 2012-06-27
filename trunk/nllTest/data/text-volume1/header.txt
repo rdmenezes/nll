@@ -1,0 +1,19 @@
+origin:
+100 200 300
+spacing:
+8 8 8
+size:
+8 8 8
+rotation:
+1 0 0
+0 1 0
+0 0 1
+files:
+slice0.txt
+slice1.txt
+slice2.txt
+slice3.txt
+slice4.txt
+slice5.txt
+slice6.txt
+slice7.txt

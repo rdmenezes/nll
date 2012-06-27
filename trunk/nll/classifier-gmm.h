@@ -1,3 +1,34 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_CLASSIFIER_GMM_H_
 # define NLL_CLASSIFIER_GMM_H_
 
@@ -23,6 +54,12 @@ namespace algorithm
       typedef std::vector<TGmm>                             Gmms;
       typedef Classifier<Points>                            Base;
 
+      // for gcc...
+      typedef typename Base::Point                    Point;
+      typedef typename Base::Result                   Result;
+      typedef typename Base::Database                 Database;
+      typedef typename Base::Class                    Class;
+
    public:
       // don't override these
       using Base::read;
@@ -43,12 +80,13 @@ namespace algorithm
    public:
       ClassifierGmm() : Base( buildParameters() )
       {}
-      virtual typename Base::Classifier* deepCopy() const
+      virtual ClassifierGmm* deepCopy() const
       {
          ClassifierGmm* cgmm = new ClassifierGmm();
          cgmm->_gmms = Gmms( _gmms.size() );
          for ( ui32 n = 0; n < _gmms.size(); ++n )
             cgmm->_gmms[ n ].clone( _gmms[ n ] );
+         cgmm->_crossValidationBin = this->_crossValidationBin;
          return cgmm;
       }
 
@@ -70,7 +108,8 @@ namespace algorithm
             core::write<TGmm>( _gmms[ n ], o );
       }
 
-      virtual typename Base::Class test( const Points& p ) const
+
+      virtual Class test( const Points& p ) const
       {
          double likelihood_max = INT_MIN;
          ui32 class_max = INT_MAX;
@@ -86,6 +125,36 @@ namespace algorithm
          assert( ! core::equal<double>( likelihood_max, INT_MIN ) );
          return class_max;
       }
+
+      virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
+      {
+         probability = core::Buffer1D<double>( (ui32)_gmms.size() );
+
+         double likelihood_max = INT_MIN;
+         double sum = 0;
+         ui32 class_max = INT_MAX;
+         for ( ui32 n = 0; n < _gmms.size(); ++n )
+         {
+            double l = _gmms[ n ].likelihood( p );
+            if ( l > likelihood_max )
+            {
+               class_max = n;
+               likelihood_max = l;
+            }
+
+            probability[ n ] = exp( l );
+            sum += probability[ n ];
+         }
+
+         ensure( sum > 0, "probability error" );
+         for ( ui32 n = 0; n < _gmms.size(); ++n )
+            probability[ n ] /= sum;
+
+
+         assert( ! core::equal<double>( likelihood_max, INT_MIN ) );
+         return class_max;
+      }
+
       /**
        @param parameters parameters of the learning phase 
               - parameters[ 0 ] = nbGaussians

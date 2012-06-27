@@ -1,5 +1,5 @@
-#include "stdafx.h"
 #include <nll/nll.h>
+#include <tester/register.h>
 
 class TestNllFeatureSelection
 {
@@ -12,25 +12,26 @@ public:
    Database createDatabase() const
    {
       Classifier::Database dat;
-      for ( float nx = 0; nx <= 1; nx += 0.1f )
-         for ( float ny = 0; ny <= 1; ny += 0.1f )
+      for ( float nx = -0.5; nx <= 0.5; nx += 0.1f )
+         for ( float ny = -0.5; ny <= 0.5; ny += 0.1f )
          {
             nll::ui32 c;
-            if ( nx <= 0.5 && ny <= 0.5)
+            if ( nx <= 0 && ny <= 0)
                c = 0;
-            if ( nx > 0.5 && ny <= 0.5)
+            if ( nx > 0 && ny <= 0)
                c = 1;
-            if ( nx <= 0.5 && ny > 0.5)
+            if ( nx <= 0 && ny > 0)
                c = 2;
-            if ( nx > 0.5 && ny > 0.5)
+            if ( nx > 0 && ny > 0)
                c = 3;
-            nll::f32 r = ( (nll::f32)rand() ) / RAND_MAX;
+            nll::f32 r = ( (nll::f32)rand() ) / RAND_MAX - 0.5f;
             dat.add(Classifier::Database::Sample(nll::core::make_buffer1D<nll::f32>(nx, ny, r), c, Classifier::Database::Sample::LEARNING ));
             dat.add(Classifier::Database::Sample(nll::core::make_buffer1D<nll::f32>(nx, ny, r), c, Classifier::Database::Sample::TESTING ));
          }
       return dat;
    }
    
+   /*
    void testNllFeatureSelectionPreprocessingUnitBestFirst()
    {
       std::cout << "START" << std::endl;
@@ -69,10 +70,11 @@ public:
 
       Point presult = pipeline.process( p );
       TESTER_ASSERT( nll::core::equal<nll::f32>(presult[ 0 ], 1) && nll::core::equal<nll::f32>(presult[ 1 ], 2) );
-   }
+   }*/
 
    void testNllFeatureSelectionBestFirst()
    {
+      srand( 0 );
       Classifier::Database dat = createDatabase();
       Classifier* classifier = new CMlp();
       nll::core::Buffer1D<nll::f64> parameters = nll::core::make_buffer1D<nll::f64>(8, 0.5, 1.5);
@@ -84,6 +86,7 @@ public:
 
    void testNllFeatureSelection()
    {
+      srand(0);
       Classifier::Database dat = createDatabase();
       Classifier* classifier = new CMlp();
       nll::core::Buffer1D<nll::f64> parameters = nll::core::make_buffer1D<nll::f64>(8, 0.5, 1.5);
@@ -123,15 +126,10 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestNllFeatureSelection);
-# ifndef DONT_RUN_VERY_SLOW_TEST
-#  ifndef DONT_RUN_SLOW_TEST
-TESTER_TEST(testNllFeatureSelectionPreprocessingUnitBestFirst);
-TESTER_TEST(testNllFeatureSelectionBestFirst);
-TESTER_TEST(testNllFeatureSelection);
-#  endif
-# endif
 TESTER_TEST(testNllFeatureSelectionPearson);
 TESTER_TEST(testNllFeatureSelectionRelieff);
 TESTER_TEST(testNllRelieff);
+TESTER_TEST(testNllFeatureSelectionBestFirst);
+TESTER_TEST(testNllFeatureSelection);
 TESTER_TEST_SUITE_END();
 #endif

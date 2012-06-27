@@ -1,3 +1,34 @@
+/*
+ * Numerical learning library
+ * http://nll.googlecode.com/
+ *
+ * Copyright (c) 2009-2012, Ludovic Sibille
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * 
+ *     * Redistributions of source code must retain the above copyright
+ *       notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ *       notice, this list of conditions and the following disclaimer in the
+ *       documentation and/or other materials provided with the distribution.
+ *     * Neither the name of Ludovic Sibille nor the
+ *       names of its contributors may be used to endorse or promote products
+ *       derived from this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED BY LUDOVIC SIBILLE ``AS IS'' AND ANY
+ * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE REGENTS AND CONTRIBUTORS BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #ifndef NLL_MATH_QUATERNION_H_
 # define NLL_MATH_QUATERNION_H_
 
@@ -6,6 +37,7 @@ namespace nll
 namespace core
 {
    /**
+    @ingroup core
     @brief Define a quaternion class. Internally stored as (w, i, j, k)
     @note this class does not handle quaternion with scaling components i.e. it will
           only be used to compute rotations
@@ -16,8 +48,8 @@ namespace core
       /**
        @brief create a quaternion from a 3x3 <b>rotation</b> matrix only (not scaling/shearing)
        */
-      template <class Mapper, class T2>
-      Quaternion( const Matrix<T2, Mapper>& a )
+      template <class Mapper, class T2, class Allocator>
+      Quaternion( const Matrix<T2, Mapper, Allocator>& a )
       {
          ensure( a.sizex() == 3 && a.sizey() == 3, "error only 3x3 rotation matrix handled" );
          
@@ -68,8 +100,8 @@ namespace core
        @brief create a quaternion to an axis-angle representation.
        @param angle angle in radian
        */
-      template <class T, class Mapper>
-      Quaternion( const Buffer1D<T, Mapper>& axis, double angle )
+      template <class T, class Mapper, class Allocator>
+      Quaternion( const Buffer1D<T, Mapper, Allocator>& axis, double angle )
       {
          ensure( axis.size() == 3, "the axis must be a 3D coordinate" );
          _fromAngleAxis( angle, axis[ 0 ], axis[ 1 ], axis[ 2 ] );
@@ -89,10 +121,10 @@ namespace core
       /**
        @biref export the quaternion as a rotation matrix.
        */
-      template <class T, class Mapper>
-      void toMatrix( Matrix<T, Mapper>& out ) const
+      template <class T, class Mapper, class Allocator>
+      void toMatrix( Matrix<T, Mapper, Allocator>& out ) const
       {
-         out = Matrix<T, Mapper>( 3, 3 );
+         out = Matrix<T, Mapper, Allocator>( 3, 3 );
          double xx = _buffer[ 1 ] * _buffer[ 1 ];
          double xy = _buffer[ 1 ] * _buffer[ 2 ];
          double xz = _buffer[ 1 ] * _buffer[ 3 ];
