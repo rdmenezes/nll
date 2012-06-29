@@ -709,19 +709,19 @@ namespace mvv
          if ( result.empty() || !result.top() )
          {
             error( "missing or empty tag (hex):" + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
-         }
-
-         const ui32 size = result.top()->getVM();
-         strings = std::vector<std::string>( size );
-         for ( ui32 n = 0; n < size; ++n )
-         {
-            OFString str;
-            OFCondition cond = _dataset.findAndGetOFString( key, str, n );
-            if ( !cond.good() )
+         } else {
+            const ui32 size = result.top()->getVM();
+            strings = std::vector<std::string>( size );
+            for ( ui32 n = 0; n < size; ++n )
             {
-               error( "cannot access element (hex):" + nll::core::val2str( n ) + " of " + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+               OFString str;
+               OFCondition cond = _dataset.findAndGetOFString( key, str, n );
+               if ( !cond.good() )
+               {
+                  error( "cannot access element (hex):" + nll::core::val2str( n ) + " of " + nll::core::val2strHex( key.getGroup() ) + " " + nll::core::val2strHex( key.getElement() ) );
+               }
+               strings[ n ] = str.c_str();
             }
-            strings[ n ] = str.c_str();
          }
       }
 
