@@ -420,7 +420,7 @@ namespace platform
                if ( cropAlignX )
                {
                   ensure( transparentColor == nll::core::vector3uc( 0, 0, 0 ), "only handled for transparentColor=(0, 0, 0)" );
-                  ui32 x1, x2;
+                  size_t x1, x2;
                   nll::core::cropVertical( c, 0, 0, &x1, &x2 );
                   c = nll::core::addBorder( c, 1, 0 );
                   nll::core::extract( mask, x1, 0, x2, c.sizey() - 1 );
