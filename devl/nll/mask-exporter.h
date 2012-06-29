@@ -42,8 +42,8 @@ namespace utility
     */
    template <class T, class Mapper> void maskExport( const core::ImageMask& mask, core::Image<T, Mapper>& out )
    {
-      ui32 randColor[ 3 ];
-      ui32 randDev[ 3 ];
+      size_t randColor[ 3 ];
+      size_t randDev[ 3 ];
 
       randColor[ 0 ] = ( rand() + 1) % 256;
       randColor[ 1 ] = ( rand() + 1) % 256;
@@ -54,9 +54,9 @@ namespace utility
       randDev[ 2 ] = ( rand() + 1) % 256;
 
       core::Image<T, Mapper> i( mask.sizex(), mask.sizey(), 3 );
-      for ( ui32 y = 0; y < mask.sizey(); ++y )
-         for ( ui32 x = 0; x < mask.sizex(); ++x )
-            for ( ui32 c = 0; c < 3; ++c )
+      for ( size_t y = 0; y < mask.sizey(); ++y )
+         for ( size_t x = 0; x < mask.sizex(); ++x )
+            for ( size_t c = 0; c < 3; ++c )
                i( x, y, c ) = static_cast<T>( ( randColor[ c ] * mask( x, y, 0 ) + randDev[ c ] ) % 256 );
       out = i;
    }

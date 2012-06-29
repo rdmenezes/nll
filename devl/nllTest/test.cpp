@@ -14,7 +14,7 @@
  * @author 
  */
 
-static nll::core::Matrix<float> testRef(nll::core::Matrix<float> m, float* buf, nll::ui32 count)
+static nll::core::Matrix<float> testRef(nll::core::Matrix<float> m, float* buf, size_t count)
 {
    TESTER_ASSERT( m.getBuf() == buf );
    TESTER_ASSERT( m.getRefCount() == count );
@@ -212,7 +212,7 @@ public:
       d(1, 0) = 'a';
       d(2, 0) = 'l';
       d(3, 0) = 'b';
-      std::vector<nll::ui32> rang(4);
+      std::vector<size_t> rang(4);
       rang[0] = 2;
       rang[1] = 0;
       rang[2] = 3;
@@ -353,11 +353,11 @@ public:
          { return val; }
          virtual void learn( const Database& dat, const nll::core::Buffer1D<nll::f64>& )
          {
-            std::map<nll::ui32, nll::ui32> learning;
-            for ( nll::ui32 n = 0; n < dat.size(); ++n )
+            std::map<size_t, size_t> learning;
+            for ( size_t n = 0; n < dat.size(); ++n )
                if ( dat[ n ].type == Database::Sample::TESTING )
                   ++learning[ dat[ n ].output ];
-            for (std::map<nll::ui32, nll::ui32>::const_iterator it = learning.begin(); it != learning.end(); ++it)
+            for (std::map<size_t, size_t>::const_iterator it = learning.begin(); it != learning.end(); ++it)
             {
                TESTER_ASSERT( it->second >= 2 );
             }
@@ -376,13 +376,13 @@ public:
       srand( 0 );
       ClassifierTest2::Database dat1;
       
-      for ( nll::ui32 n = 0; n < 40; ++n )
+      for ( size_t n = 0; n < 40; ++n )
          dat1.add(ClassifierTest2::Database::Sample(0, 0, ClassifierTest2::Database::Sample::LEARNING));
-      for ( nll::ui32 n = 0; n < 40; ++n )
+      for ( size_t n = 0; n < 40; ++n )
          dat1.add(ClassifierTest2::Database::Sample(1, 1, ClassifierTest2::Database::Sample::LEARNING));
-      for ( nll::ui32 n = 0; n < 40; ++n )
+      for ( size_t n = 0; n < 40; ++n )
          dat1.add(ClassifierTest2::Database::Sample(2, 2, ClassifierTest2::Database::Sample::LEARNING));
-      for ( nll::ui32 n = 0; n < 40; ++n )
+      for ( size_t n = 0; n < 40; ++n )
          dat1.add(ClassifierTest2::Database::Sample(0, 1, ClassifierTest2::Database::Sample::TESTING));
 
       ClassifierTest2 c2( ClassifierTest::createParameters() );
@@ -393,7 +393,7 @@ public:
       TESTER_ASSERT( nll::core::absolute(r.testingError - (-1) ) < 0.001 );
       TESTER_ASSERT( nll::core::absolute(r.validationError - (-1)) < 0.001 );
 
-      for ( nll::ui32 n = 0; n < 20; ++n )
+      for ( size_t n = 0; n < 20; ++n )
          dat1.add(ClassifierTest2::Database::Sample(0, 2, ClassifierTest2::Database::Sample::VALIDATION));
       r = classifier2->test( dat1, lparameters, 6 );
       double err = r.learningError - 20.0 / 140;
@@ -479,14 +479,14 @@ public:
 
       image i2;
       i2.clone(i1);
-      nll::core::binarize(i2, nll::core::ThresholdGreater<nll::ui32> (200));
+      nll::core::binarize(i2, nll::core::ThresholdGreater<size_t> (200));
       TESTER_ASSERT( i2.equal(0, 0, image::white()) );
       TESTER_ASSERT( i2.equal(1, 0, image::white()) );
       TESTER_ASSERT( i2.equal(0, i1.sizey() - 1, image::black()) );
 
       image i3;
       i3.clone(i1);
-      nll::core::binarize(i3, nll::core::ThresholdGreater<nll::ui32> (80));
+      nll::core::binarize(i3, nll::core::ThresholdGreater<size_t> (80));
       TESTER_ASSERT( i3.equal(0, 0, image::white()) );
       TESTER_ASSERT( i3.equal(1, 0, image::white()) );
       TESTER_ASSERT( i3.equal(0, i3.sizey() - 1, image::white()) );
@@ -494,7 +494,7 @@ public:
       image i3a;
       i3a.clone(i1);
       nll::core::decolor(i3a);
-      nll::core::binarize(i3a, nll::core::ThresholdBetween<nll::ui32> (10, 200));
+      nll::core::binarize(i3a, nll::core::ThresholdBetween<size_t> (10, 200));
       nll::core::extend(i3a, 3);
       nll::core::writeBmp(i3a, NLL_TEST_PATH "data/thresholdtest.bmp");
 
@@ -505,9 +505,9 @@ public:
       TESTER_ASSERT( i4 == i1 );
       TESTER_ASSERT( !(i2 == i1) );
 
-      nll::core::threshold(i4, nll::core::ThresholdGreater<nll::ui32> (80));
+      nll::core::threshold(i4, nll::core::ThresholdGreater<size_t> (80));
       TESTER_ASSERT( i4.equal(0, i3.sizey() - 1, image::red()) );
-      nll::core::threshold(i4, nll::core::ThresholdGreater<nll::ui32> (200));
+      nll::core::threshold(i4, nll::core::ThresholdGreater<size_t> (200));
       TESTER_ASSERT( i4.equal(0, i3.sizey() - 1, image::black()) );
 
       nll::core::readBmp(i4, NLL_TEST_PATH "data/image/test-image1.bmp", image::Allocator() );
@@ -525,7 +525,7 @@ public:
       nll::core::writeBmp(i9, NLL_TEST_PATH "data/test4.bmp");
 
       nll::core::Image<float> flImage;
-      nll::core::Image<nll::ui32> uiImage;
+      nll::core::Image<size_t> uiImage;
       nll::core::Image<nll::i32> iImage;
       nll::core::convert(i5, flImage);
       nll::core::convert(i5, uiImage);
@@ -597,7 +597,7 @@ public:
 	   {
 		   GmmTestPoint v(13);
 		   getline(f, buf);
-		   nll::ui32 nb = sscanf(buf.c_str(), "%f %f %f %f %f %f %f %f %f %f %f %f %f", 
+		   size_t nb = sscanf(buf.c_str(), "%f %f %f %f %f %f %f %f %f %f %f %f %f", 
 			   &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12]);
 		   if (f.eof())
 			   break;
@@ -655,29 +655,29 @@ public:
 	      8
       };
 
-      const nll::ui32 size = nll::core::getStaticBufferSize(gmm_train);
+      const size_t size = nll::core::getStaticBufferSize(gmm_train);
 	   GmmTestPoints* ps = new GmmTestPoints[10];
-      for (nll::ui32 n = 0; n < 10; ++n)
+      for (size_t n = 0; n < 10; ++n)
 		   ps[n] = load(gmm_train[n]);
 
-      const nll::ui32 size2 = nll::core::getStaticBufferSize(gmm_sample);
+      const size_t size2 = nll::core::getStaticBufferSize(gmm_sample);
 	   GmmTestPoints* pss = new GmmTestPoints[10];
-	   for (nll::ui32 n = 0; n < 10; ++n)
+	   for (size_t n = 0; n < 10; ++n)
 		   pss[n] = load(gmm_sample[n]);
 
       nll::algorithm::Gmm* gmms[10];
-      for (nll::ui32 n = 0; n < size; ++n)
+      for (size_t n = 0; n < size; ++n)
 	   {
 		   std::cout << " build model:" << n << std::endl;
 		   gmms[n] = new nll::algorithm::Gmm();
 		   gmms[n]->em( ps[n], 12, 16, 5 );
 	   }
 
-      for (nll::ui32 n = 0; n < size2; ++n)
+      for (size_t n = 0; n < size2; ++n)
 	   {
 		   nll::f64 l = INT_MIN;
 		   nll::i32 choice = -1;
-         for (nll::ui32 nn = 0; nn < size; ++nn)
+         for (size_t nn = 0; nn < size; ++nn)
 		   {
 			   nll::f64 tmp = gmms[nn]->likelihood(pss[n]);
 			   std::cout << "[" << n << "]->" << nn << "=" << tmp << std::endl;
@@ -698,7 +698,7 @@ public:
 
    void testLogger()
    {
-      nll::ui32 id = nll::core::LoggerHandler::instance().createFileLogger(NLL_TEST_PATH "data/testLogger.txt");
+      size_t id = nll::core::LoggerHandler::instance().createFileLogger(NLL_TEST_PATH "data/testLogger.txt");
       nll::core::LoggerHandler::instance().getLogger(id).write("test1");
       nll::core::LoggerHandler::instance().getLogger(id).write("test2");
       nll::core::LoggerHandler::instance().getLogger(id).write("test3");
@@ -826,7 +826,7 @@ public:
       Image buf = gabors2.convolve( im2 );
       timer1.end();
       std::cout << "gabor=" << timer1.getCurrentTime() << std::endl;
-      for ( nll::ui32 n = 0; n < buf.getNbComponents(); ++n )
+      for ( size_t n = 0; n < buf.getNbComponents(); ++n )
       {
          Image cmp = nll::core::extractChannel( buf, n );
          nll::core::extend( cmp, 3 );
@@ -836,14 +836,14 @@ public:
 
    void testSequenceConverter()
    {
-      nll::ui32 t1[] = {1, 0, 2, 3, 4};
+      size_t t1[] = {1, 0, 2, 3, 4};
       std::vector<nll::ui8> t2;
-      for (nll::ui32 n = 0; n < nll::core::getStaticBufferSize(t1); ++n)
+      for (size_t n = 0; n < nll::core::getStaticBufferSize(t1); ++n)
          t2.push_back((nll::ui8)t1[n]);
-      nll::core::Buffer1D<nll::f32> v1 = nll::core::convert<nll::ui32*, nll::core::Buffer1D<nll::f32> >(t1, nll::core::getStaticBufferSize(t1));
+      nll::core::Buffer1D<nll::f32> v1 = nll::core::convert<size_t*, nll::core::Buffer1D<nll::f32> >(t1, nll::core::getStaticBufferSize(t1));
       nll::core::Buffer1D<nll::f32> v2;
       nll::core::Buffer1D<nll::ui8> v3;
-      nll::core::convert(t2, v2, (nll::ui32)t2.size());
+      nll::core::convert(t2, v2, (size_t)t2.size());
       TESTER_ASSERT( v1 == v2 );
       nll::core::convert(v2, v3, v2.size());
       TESTER_ASSERT( v1.equal( v3 ) );
@@ -1105,7 +1105,7 @@ public:
       d.add( Database::Sample( nll::core::make_buffer1D<double>( 3 ), 0, Database::Sample::VALIDATION ) );
       d.add( Database::Sample( nll::core::make_buffer1D<double>( 4 ), 0, Database::Sample::LEARNING ) );
 
-      Database dat_l = nll::core::filterDatabase( d, nll::core::make_vector<nll::ui32>( Database::Sample::LEARNING ), Database::Sample::TESTING );
+      Database dat_l = nll::core::filterDatabase( d, nll::core::make_vector<size_t>( Database::Sample::LEARNING ), Database::Sample::TESTING );
       TESTER_ASSERT( dat_l.size() == 2 );
       TESTER_ASSERT( dat_l[ 0 ].input[ 0 ] == 1 );
       TESTER_ASSERT( dat_l[ 1 ].input[ 0 ] == 4 );
@@ -1115,7 +1115,7 @@ public:
       TESTER_ASSERT( d[ 0 ].type == Database::Sample::LEARNING );
       TESTER_ASSERT( d[ 4 ].type == Database::Sample::LEARNING );
 
-      Database dat_t = nll::core::filterDatabase( d, nll::core::make_vector<nll::ui32>( Database::Sample::TESTING, Database::Sample::VALIDATION ), Database::Sample::VALIDATION );
+      Database dat_t = nll::core::filterDatabase( d, nll::core::make_vector<size_t>( Database::Sample::TESTING, Database::Sample::VALIDATION ), Database::Sample::VALIDATION );
       TESTER_ASSERT( dat_t.size() == 3 );
       TESTER_ASSERT( dat_t[ 0 ].input[ 0 ] == 2 );
       TESTER_ASSERT( dat_t[ 1 ].input[ 0 ] == 5 );
@@ -1174,7 +1174,7 @@ public:
    {
       srand( 1 );
       nll::core::Buffer1D<double> p = nll::core::make_buffer1D<double>( 0.1, 0.25, 0.25, 0.4 );
-      nll::core::Buffer1D<nll::ui32> indexes = nll::core::sampling( p, 10000 );
+      nll::core::Buffer1D<size_t> indexes = nll::core::sampling( p, 10000 );
 
       std::vector<unsigned> nb( p.size() );
       for ( unsigned n = 0; n < indexes.size(); ++n )
@@ -1206,7 +1206,7 @@ public:
                                0,
                                Database::Sample::LEARNING ) );
 
-      nll::core::DatabaseInputAdapterType<Database> adapter( d, nll::core::make_vector<nll::ui32>( 0, 2 ) );
+      nll::core::DatabaseInputAdapterType<Database> adapter( d, nll::core::make_vector<size_t>( 0, 2 ) );
       TESTER_ASSERT( adapter.size() == 3 );
       TESTER_ASSERT( adapter[ 0 ][ 0 ] == 1 );
       TESTER_ASSERT( adapter[ 1 ][ 0 ] == 2 );
@@ -1259,7 +1259,7 @@ public:
 
    void testImageIterators()
    {
-      typedef nll::core::Image<nll::ui32>   Image;
+      typedef nll::core::Image<size_t>   Image;
 
       Image i1( 5, 6, 3 );
       for ( unsigned n = 0; n < 5 * 6 * 3; ++n )
@@ -1298,7 +1298,8 @@ public:
 
       nll::core::Timer t2;      
       m = 0;
-      for ( Image::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+      Image::DirectionalIterator end = i2.endDirectional();
+      for ( Image::DirectionalIterator it = i2.beginDirectional(); it != end; ++it )
          m += *it;
       double time2t = t2.getCurrentTime();
       std::cout << "time2=" << t2.getCurrentTime() << std::endl;
@@ -1308,7 +1309,7 @@ public:
 
    void testConstImageIterators()
    {
-      typedef nll::core::Image<nll::ui32>   Image;
+      typedef nll::core::Image<size_t>   Image;
 
       Image i1( 5, 6, 3 );
       for ( unsigned n = 0; n < 5 * 6 * 3; ++n )
@@ -1347,7 +1348,8 @@ public:
 
       nll::core::Timer t2;      
       m = 0;
-      for ( Image::ConstDirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+      Image::DirectionalIterator end = i2.endDirectional();
+      for ( Image::ConstDirectionalIterator it = i2.beginDirectional(); it != end; ++it )
          m += *it;
       double time2t = t2.getCurrentTime();
       std::cout << "constt2=" << t2.getCurrentTime() << std::endl;

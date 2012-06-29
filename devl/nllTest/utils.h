@@ -29,11 +29,11 @@ namespace test
       {
          const int kernelSizeHalf = kernelSize / 2;
 
-         for ( int z = kernelSizeHalf; z + kernelSizeHalf < v.size()[ 2 ]; ++z )
+         for ( int z = kernelSizeHalf; z + kernelSizeHalf < v.sizez(); ++z )
          {
-            for ( int y = kernelSizeHalf; y + kernelSizeHalf < v.size()[ 1 ]; ++y )
+            for ( int y = kernelSizeHalf; y + kernelSizeHalf < v.sizey(); ++y )
             {
-               for ( int x = kernelSizeHalf; x + kernelSizeHalf < v.size()[ 0 ]; ++x )
+               for ( int x = kernelSizeHalf; x + kernelSizeHalf < v.sizex(); ++x )
                {
 
                   float sum = 0;

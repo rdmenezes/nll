@@ -45,14 +45,14 @@ namespace algorithm
     <code>add( mul( transpose( pca.getTransformation() ), pointTransformedbyPca ), pca.getMean() )</code>
 
     <code>Points</code> must provide:
-    - ui32 size() const;
-    - const Point& operator[]( ui32 n ) const;
+    - size_t size() const;
+    - const Point& operator[]( size_t n ) const;
     - typedef <code>value_type</code>
 
     <code>value_type</code> must provide:
     - construcor( size );
-    - operator[]( ui32 );
-    - ui32 size() const;
+    - operator[]( size_t );
+    - size_t size() const;
     - typedef <code>value_type</code>
     */
    template <class Points>
@@ -62,7 +62,7 @@ namespace algorithm
       typedef typename Points::value_type    Point;
 
    private:
-      typedef std::pair<double, ui32>        Pair;
+      typedef std::pair<double, size_t>        Pair;
       typedef std::vector<Pair>              Pairs;
 
    public:
@@ -98,9 +98,9 @@ namespace algorithm
 
          // create fake values for eigen values and pairs...
          _eigenValues = core::Matrix<double>( projection.sizey(), 1 );
-         for ( ui32 n = 0; n < projection.sizey(); ++n )
+         for ( size_t n = 0; n < projection.sizey(); ++n )
          {
-            _eigenValues( n, 0 ) = projection.sizey() - n;
+            _eigenValues( n, 0 ) = static_cast<double>( projection.sizey() - n );
             _pairs.push_back( Pair( _eigenValues( n, 0 ), n ) );
          }
       }
@@ -109,7 +109,7 @@ namespace algorithm
        @brief This should only be called after a successful <code>compute()</code> This method change the transformation
               Vector without recalculating a SVD.
        */
-      void setNbVectors( ui32 nbVectors )
+      void setNbVectors( size_t nbVectors )
       {
          _nbVectors = nbVectors;
          _projection = _makeProjection();
@@ -118,7 +118,7 @@ namespace algorithm
       /**
        @brief Return the number of eigen vectors for projection
        */
-      ui32 getNbVectors() const
+      size_t getNbVectors() const
       {
          return _nbVectors;
       }
@@ -172,19 +172,19 @@ namespace algorithm
        */
       void read( std::istream& i )
       {
-         core::read<ui32>( _nbVectors, i );
+         core::read<size_t>( _nbVectors, i );
          _mean.read( i );
          _eigenVectors.read( i );
          _eigenValues.read( i );
          _projection.read( i  );
-         ui32 psize = 0;
-         core::read<ui32>( psize, i );
-         for ( ui32 n = 0; n < psize; ++n )
+         size_t psize = 0;
+         core::read<size_t>( psize, i );
+         for ( size_t n = 0; n < psize; ++n )
          {
             double v1;
-            ui32 v2;
+            size_t v2;
             core::read<double>( v1, i );
-            core::read<ui32>( v2, i );
+            core::read<size_t>( v2, i );
             _pairs.push_back( Pair( v1, v2 ) );
          }
       }
@@ -202,17 +202,17 @@ namespace algorithm
        */
       void write( std::ostream& o ) const
       {
-         core::write<ui32>( _nbVectors, o );
+         core::write<size_t>( _nbVectors, o );
          _mean.write( o );
          _eigenVectors.write( o );
          _eigenValues.write( o );
          _projection.write( o  );
-         ui32 psize = static_cast<ui32>( _pairs.size() );
-         core::write<ui32>( psize, o );
-         for ( ui32 n = 0; n < psize; ++n )
+         size_t psize = static_cast<size_t>( _pairs.size() );
+         core::write<size_t>( psize, o );
+         for ( size_t n = 0; n < psize; ++n )
          {
             core::write<double>( _pairs[ n ].first, o );
-            core::write<ui32>( _pairs[ n ].second, o );
+            core::write<size_t>( _pairs[ n ].second, o );
          }
       }
 
@@ -238,7 +238,7 @@ namespace algorithm
 
          // now compute the number of eigen vectors to retain the specified variance
          double eivSum = 0;
-         for ( ui32 n = 0; n < _eigenValues.size(); ++n )
+         for ( size_t n = 0; n < _eigenValues.size(); ++n )
          {
             if ( _eigenValues[ n ] > 0 )
                eivSum += fabs( _eigenValues[ n ] );
@@ -246,9 +246,9 @@ namespace algorithm
 
          double eivSumTmp = 0;
          _nbVectors = 1; // at least 1 component
-         for ( ui32 n = 0; n < _eigenValues.size(); ++n )
+         for ( size_t n = 0; n < _eigenValues.size(); ++n )
          {
-            const ui32 eivIndex = _pairs[ n ].second;
+            const size_t eivIndex = _pairs[ n ].second;
             eivSumTmp += _eigenValues[ eivIndex ];
             const double ratio = eivSumTmp / eivSum;
             if ( ratio >= varianceToRetain )
@@ -278,12 +278,11 @@ namespace algorithm
       /**
        @brief Compute the PCA on the given set of points.
        */
-      bool compute( const Points& points, ui32 nbVectors )
+      bool compute( const Points& points, size_t nbVectors )
       {
          _nbVectors = nbVectors;
          if ( !points.size() )
             return false;
-         const ui32 size = static_cast<ui32>( points[ 0 ].size() );
 
          const bool success = _computeEigenVectors( points );
          if ( !success )
@@ -313,12 +312,12 @@ namespace algorithm
       Point2 process( const Point2& point ) const
       {
          ensure( _projection.size(), "Empty projection" );
-         core::Matrix<double> p( static_cast<ui32>( point.size() ), 1 );
-         for ( ui32 n = 0; n < p.size(); ++n )
+         core::Matrix<double> p( static_cast<size_t>( point.size() ), 1 );
+         for ( size_t n = 0; n < p.size(); ++n )
             p[ n ] = point[ n ] - _mean[ n ];
          core::Matrix<double> r = core::mul( _projection, p );
          Point2 result( r.size() );
-         for ( ui32 n = 0; n < r.size(); ++n )
+         for ( size_t n = 0; n < r.size(); ++n )
             result[ n ] = static_cast<typename Point2::value_type>( r[ n ] );
          return result;
       }
@@ -332,18 +331,18 @@ namespace algorithm
          assert( point.size() == _nbVectors );
          assert( _eigenVectors.size() );
 
-         const ui32 finalSize = _mean.size();
+         const size_t finalSize = _mean.size();
 
          Point2 reconstructed( finalSize );
-         for ( ui32 n = 0; n < _nbVectors; ++n )
+         for ( size_t n = 0; n < _nbVectors; ++n )
          {
-            for ( ui32 nn = 0; nn < finalSize; ++nn )
+            for ( size_t nn = 0; nn < finalSize; ++nn )
             {
                reconstructed[ nn ] += point[ n ] * _eigenVectors( nn, _pairs[ n ].second );  // eigen Vectors are in column
             }
          }
 
-         for ( ui32 nn = 0; nn < finalSize; ++nn )
+         for ( size_t nn = 0; nn < finalSize; ++nn )
          {
             reconstructed[ nn ] += _mean[ nn ];
          }
@@ -356,13 +355,13 @@ namespace algorithm
       {
          if ( !points.size() )
             return false;
-         ui32 size = static_cast<ui32>( points[ 0 ].size() );
+         size_t size = static_cast<size_t>( points[ 0 ].size() );
 
-         core::Matrix<double> p( static_cast<ui32>( points.size() ), size );
-         for ( ui32 n = 0; n < points.size(); ++n )
+         core::Matrix<double> p( static_cast<size_t>( points.size() ), size );
+         for ( size_t n = 0; n < points.size(); ++n )
          {
             assert( points[ n ].size() == size );
-            for ( ui32 nn = 0; nn < size; ++nn )
+            for ( size_t nn = 0; nn < size; ++nn )
                p( n, nn ) = points[ n ][ nn ];
          }
 
@@ -381,7 +380,7 @@ namespace algorithm
 
          // sort the eigen values by decreasing order
          Pairs sort;
-         for ( ui32 n = 0; n < eigenValues.size(); ++n )
+         for ( size_t n = 0; n < eigenValues.size(); ++n )
             sort.push_back( Pair( eigenValues[ n ], n ) );
          std::sort( sort.rbegin(), sort.rend() );
          _pairs = sort;
@@ -393,16 +392,16 @@ namespace algorithm
          ensure( _eigenVectors.sizex(), "error" );
          ensure( _nbVectors <= _eigenVectors.sizey(), "error" );
 
-         ui32 size = _eigenVectors.sizex();
+         size_t size = _eigenVectors.sizex();
          core::Matrix<double> t( _nbVectors, size );
-         for ( ui32 n = 0; n < _nbVectors; ++n )
-            for ( ui32 nn = 0; nn < size; ++nn )
+         for ( size_t n = 0; n < _nbVectors; ++n )
+            for ( size_t nn = 0; nn < size; ++nn )
                t( n, nn ) = _eigenVectors( nn, _pairs[ n ].second );  // select the highest first
          return t;
       }
 
    private:
-      ui32                    _nbVectors;
+      size_t                    _nbVectors;
       core::Matrix<double>    _mean;
       core::Matrix<double>    _eigenVectors; // Not sorted! use <_pairs>
       core::Matrix<double>    _eigenValues;  // Not sorted! use <_pairs> // 1 eigen vector = 1 column

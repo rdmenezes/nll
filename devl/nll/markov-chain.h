@@ -43,16 +43,16 @@ namespace algorithm
        @brief Compute the number of states in a list of list of observation
        */
       template <class StatesList>
-      ui32 getNumberOfStates( const StatesList& statesList )
+      size_t getNumberOfStates( const StatesList& statesList )
       {
          // empty list
          if ( !statesList.size() || !statesList[ 0 ].size() )
             return 0;
 
-         typedef std::map<ui32, ui32>  StatesMap;
+         typedef std::map<size_t, size_t>  StatesMap;
          StatesMap states;
-         for ( ui32 n = 0; n < statesList.size(); ++n )
-            for ( ui32 nn = 0; nn < statesList[ n ].size(); ++nn )
+         for ( size_t n = 0; n < statesList.size(); ++n )
+            for ( size_t nn = 0; nn < statesList[ n ].size(); ++nn )
                ++states[ statesList[ n ][ nn ] ];
 
          // check that the state list is a contiguous list of index starting from 0
@@ -101,11 +101,11 @@ namespace algorithm
          ensure( transitions.sizex() == transitions.sizey(), "must be a square matrix" );
          ensure( transitions.sizex() == pi.size(), "the number of state must match in the transition matrix and initial state distribution" );
          _transitions = Transitions( transitions.sizex(), transitions.sizey() );
-         for ( ui32 nx = 0; nx < transitions.sizex(); ++nx )
-            for ( ui32 ny = 0; ny < transitions.sizey(); ++ny )
+         for ( size_t nx = 0; nx < transitions.sizex(); ++nx )
+            for ( size_t ny = 0; ny < transitions.sizey(); ++ny )
                _transitions( nx, ny ) = static_cast<double>( transitions( nx, ny ) );
          _pi = Vectorf( pi.size() );
-         for ( ui32 n = 0; n < pi.size(); ++n )
+         for ( size_t n = 0; n < pi.size(); ++n )
             _pi[ n ] = static_cast<double>( pi[ n ] );
       }
 
@@ -135,35 +135,35 @@ namespace algorithm
       template <class SamplesList>
       void learn( const SamplesList& samplesList )
       {
-         const ui32 nbStates = impl::getNumberOfStates( samplesList );
+         const size_t nbStates = impl::getNumberOfStates( samplesList );
          if ( nbStates == 0 )
             return;
 
          // compute pi
          _pi = Vectorf( nbStates );
-         for ( ui32 n = 0; n < samplesList.size(); ++n )
+         for ( size_t n = 0; n < samplesList.size(); ++n )
          {
             ensure( samplesList[ n ].size(), "samples may not be empty" );
             ++_pi[ samplesList[ n ][ 0 ] ];
          }
-         for ( ui32 n = 0; n < nbStates; ++n )
+         for ( size_t n = 0; n < nbStates; ++n )
             _pi[ n ] /= static_cast<double>( samplesList.size() );
 
          // compute the transition matrix
          _transitions = Transitions( nbStates, nbStates );
-         for ( ui32 n = 0; n < samplesList.size(); ++n )
-            for ( ui32 nn = 0; nn < samplesList[ n ].size() - 1; ++nn )
+         for ( size_t n = 0; n < samplesList.size(); ++n )
+            for ( size_t nn = 0; nn < samplesList[ n ].size() - 1; ++nn )
             {
-               ui32 s1 = samplesList[ n ][ nn ];
-               ui32 s2 = samplesList[ n ][ nn + 1 ];
+               size_t s1 = samplesList[ n ][ nn ];
+               size_t s2 = samplesList[ n ][ nn + 1 ];
                ++_transitions( s1, s2 );
             }
-         for ( ui32 s1 = 0; s1 < nbStates; ++s1 )
+         for ( size_t s1 = 0; s1 < nbStates; ++s1 )
          {
             double norme = 0;
-            for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
+            for ( size_t s2 = 0; s2 < nbStates; ++s2 )
                norme += _transitions( s1, s2 );
-            for ( ui32 s2 = 0; s2 < nbStates; ++s2 )
+            for ( size_t s2 = 0; s2 < nbStates; ++s2 )
                _transitions( s1, s2 ) /= norme;
          }
       }
@@ -172,17 +172,17 @@ namespace algorithm
       /**
        @brief Generate samples using the defined markov chain
        */
-      core::Buffer1D<ui32> generateSequence( ui32 size ) const
+      core::Buffer1D<size_t> generateSequence( size_t size ) const
       {
-         const ui32 nbStates = _pi.size();
+         const size_t nbStates = _pi.size();
          ensure( nbStates, "init the markov chain first" );
-         core::Buffer1D<ui32> sequence( size );
+         core::Buffer1D<size_t> sequence( size );
 
          // find the initial state
          sequence[ 0 ] = core::sampling( _pi, 1 )[ 0 ];
 
          // create the chain
-         for ( ui32 n = 1; n < size; ++n )
+         for ( size_t n = 1; n < size; ++n )
          {
             std::vector<double> proba( nbStates );
             for ( unsigned nn = 0; nn < nbStates; ++nn )

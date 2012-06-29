@@ -62,13 +62,13 @@ namespace algorithm
    {
 	   typedef core::Matrix<type, IMapper> Convolution;
 
-	   Convolution conv( static_cast<ui32>( gabor.size ), static_cast<ui32>( gabor.size ) );
+	   Convolution conv( static_cast<size_t>( gabor.size ), static_cast<size_t>( gabor.size ) );
 
 	   f32 gamma = static_cast<f32>( gabor.size ) / 5.36f;
 	   f32 cost = cos( gabor.angle );
 	   f32 sint = sin( gabor.angle );
-	   for (ui32 ny = 0; ny < gabor.size; ++ny)
-		   for (ui32 nx = 0; nx < gabor.size; ++nx)
+	   for (size_t ny = 0; ny < gabor.size; ++ny)
+		   for (size_t nx = 0; nx < gabor.size; ++nx)
 		   {
 			   f32 xc = static_cast<f32>( nx ) - static_cast<f32>( gabor.size ) / 2;
 			   f32 yc = static_cast<f32>( ny ) - static_cast<f32>( gabor.size ) / 2;
@@ -90,7 +90,7 @@ namespace algorithm
 	   typedef core::Matrix<type, IMapper> Convolution;
 	   typedef std::vector<Convolution> Convolutions;
 	   Convolutions convs;
-	   for ( ui32 n = 0; n < descs.size(); ++n )
+	   for ( size_t n = 0; n < descs.size(); ++n )
 		   convs.push_back(cosineGaborFilters<type, IMapper>( descs[ n ] ) );
 	   return convs;
    }

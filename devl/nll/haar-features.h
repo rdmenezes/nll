@@ -83,7 +83,7 @@ namespace algorithm
          value_type previous_ii = s[ 0 ];
          it.addx();
          itSrc.addx();
-         for ( ui32 x = 1; x < image.sizex(); ++x )
+         for ( size_t x = 1; x < image.sizex(); ++x )
          {
             s[ x ] = *itSrc;
             *it = previous_ii + s[ x ];
@@ -95,7 +95,7 @@ namespace algorithm
 
 
          // computes the other rows
-         for ( ui32 y = 1; y < image.sizey(); ++y )
+         for ( size_t y = 1; y < image.sizey(); ++y )
          {
             // init
             it = _img.getIterator( 0, y, 0 );
@@ -112,7 +112,7 @@ namespace algorithm
             itSrc.addx();
 
             // main loop
-            for ( ui32 x = 1; x < image.sizex(); ++x )
+            for ( size_t x = 1; x < image.sizex(); ++x )
             {
                s[ x ] = s[ x ] + static_cast<value_type>( *itSrc );
                *it = previous_ii + s[ x ];
@@ -162,7 +162,7 @@ namespace algorithm
       /**
        @brief returns the value of the integral image at (x, y) = sum( image( x', y'))_{x' < x && y' < y}
        */
-      const value_type operator()( ui32 x, ui32 y ) const
+      const value_type operator()( size_t x, size_t y ) const
       {
          if ( x >= sizex() || y >= sizey() )
             return 0;
@@ -172,7 +172,7 @@ namespace algorithm
       /**
        @brief returns the size in x of the image
        */
-      ui32 sizex() const
+      size_t sizex() const
       {
          return _img.sizex();
       }
@@ -180,7 +180,7 @@ namespace algorithm
       /**
        @brief returns the size in y of the image
        */
-      ui32 sizey() const
+      size_t sizey() const
       {
          return _img.sizey();
       }

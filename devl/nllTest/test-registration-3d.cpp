@@ -31,12 +31,12 @@ namespace algorithm
             PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector3i& operator[]( ui32 index ) const
+            const core::vector3i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index1 ].position;
             }
@@ -57,12 +57,12 @@ namespace algorithm
             PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector3i& operator[]( ui32 index ) const
+            const core::vector3i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index2 ].position;
             }
@@ -85,7 +85,7 @@ namespace algorithm
          {
          }
 
-         static ui32 minimumNumberOfPointsForEstimation()
+         static size_t minimumNumberOfPointsForEstimation()
          {
             return 2;
          }
@@ -224,8 +224,8 @@ namespace algorithm
       {
          typename FeatureMatcher::Matches matches;
          PointPairs inliers;
-         ui32       nbSourcePoints;
-         ui32       nbTargetPoints;
+         size_t       nbSourcePoints;
+         size_t       nbTargetPoints;
       };
 
    public:
@@ -239,10 +239,10 @@ namespace algorithm
        */
       Matrix process( const Points& sourcePoints,
                       const Points& targetPoints,
-                      ui32 maxErrorInPixel = 20,
-                      ui32 minimumInliers = 20,
-                      ui32 nbRansacIterations = 35000,
-                      ui32 nbMaxRansacPairs = 1000 ) const
+                      size_t maxErrorInPixel = 20,
+                      size_t minimumInliers = 20,
+                      size_t nbRansacIterations = 35000,
+                      size_t nbMaxRansacPairs = 1000 ) const
       {
          nll::core::Timer timerFull;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting RegistrationCloudOfPoints3d..." );
@@ -261,7 +261,7 @@ namespace algorithm
 
          // take only the best subset...
          ensure( matches.size(), "No match found!" );
-         typename FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( nbMaxRansacPairs, (ui32)matches.size() - 1 ) );
+         typename FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<size_t>( nbMaxRansacPairs, (size_t)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::Ransac<RansacTransformationEstimator, TransformationEstimatorFactory> Ransac;
@@ -270,9 +270,9 @@ namespace algorithm
          Ransac ransac( estimatorFactory );
 
          core::Buffer1D<float> weights( matchesTrimmed.size() );
-         for ( ui32 n = 0; n < static_cast<ui32>( weights.size() ); ++n )
+         for ( size_t n = 0; n < static_cast<size_t>( weights.size() ); ++n )
          {
-            const ui32 indexTarget = matchesTrimmed[ n ].index2;
+            const size_t indexTarget = matchesTrimmed[ n ].index2;
             weights[ n ] = targetPoints[ indexTarget ].weight;
          }
 
@@ -384,7 +384,7 @@ public:
       imaging::resampleVolumeTrilinear( input, target );
       target.setOrigin( core::vector3f( 0, 0, 0 ) );
 
-      for ( ui32 n = 0; n < target.getStorage().size(); ++n )
+      for ( size_t n = 0; n < target.getStorage().size(); ++n )
       {
          float& value = target.getStorage()[ n ];
          value = lut.transform( value )[ 0 ];
@@ -417,7 +417,7 @@ public:
       lut.createGreyscale();
 
       srand( 1 );
-      for ( ui32 n = 0; n < 10; ++n )
+      for ( size_t n = 0; n < 10; ++n )
       {
          std::cout << "case="<< n << std::endl;
          /*
@@ -493,7 +493,7 @@ public:
       lut.createGreyscale();
 
       srand( 1 );
-      for ( ui32 n = 0; n < 10; ++n )
+      for ( size_t n = 0; n < 10; ++n )
       {
          std::cout << "case="<< n << std::endl;
 
@@ -552,7 +552,7 @@ public:
          std::cout << "nbPoints=" << sourcePoints.size() << std::endl;
 
          algorithm::SpeededUpRobustFeatures3d::Points targetPoints( sourcePoints.size() );
-         for ( ui32 n = 0; n < sourcePoints.size(); ++n )
+         for ( size_t n = 0; n < sourcePoints.size(); ++n )
          {
             algorithm::SpeededUpRobustFeatures3d::Point point;
             const core::vector3f input( sourcePoints[ n ].position[ 0 ],
@@ -587,8 +587,8 @@ public:
          const Matrix tfm = registrator.process( targetPoints, sourcePoints, 64 /* i.e. 4*4*4 voxels */, 20, 10000, 5000 );
 
          // check the matches
-         ui32 nbGoodMatches = 0;
-         ui32 nbZeroLength = 0;
+         size_t nbGoodMatches = 0;
+         size_t nbZeroLength = 0;
          for ( size_t n = 0; n < registrator.getDebugInfo().matches.size(); ++n )
          {
             if ( registrator.getDebugInfo().matches[ n ].index1 == registrator.getDebugInfo().matches[ n ].index2 )

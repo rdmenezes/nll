@@ -115,13 +115,13 @@ namespace algorithm
        @param nbWeakLearner the number of weak learner that will be created for the strong classifier
        @param learningSubsetRate the size of learning database for each weak classifier
        */
-      ClassifierAdaboost( const Factory& factory, ui32 nbWeakLearner, f64 learningSubsetRate = 0.3 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
+      ClassifierAdaboost( const Factory& factory, size_t nbWeakLearner, f64 learningSubsetRate = 0.3 ) : Base( buildParameters() ), _factory( factory ), _nbWeakLearner( nbWeakLearner ), _learningSubsetRate( learningSubsetRate )
       {
       }
 
       ~ClassifierAdaboost()
       {
-         for ( ui32 n = 0; n < _weakClassifiers.size(); ++n )
+         for ( size_t n = 0; n < _weakClassifiers.size(); ++n )
             delete _weakClassifiers[ n ].classifier;
       }
 
@@ -130,7 +130,7 @@ namespace algorithm
          ClassifierAdaboost* c = new ClassifierAdaboost( _factory, _nbWeakLearner, _learningSubsetRate );
          c->_crossValidationBin = this->_crossValidationBin;
          c->_learningSubsetRate = this->_learningSubsetRate;
-         for ( ui32 n = 0; n < (ui32)_weakClassifiers.size(); ++n )
+         for ( size_t n = 0; n < (size_t)_weakClassifiers.size(); ++n )
          {
             BaseWeakLearner* l = dynamic_cast<BaseWeakLearner*>( _weakClassifiers[ n ].classifier->deepCopy() );
             c->_weakClassifiers.push_back( WeakClassifierTest( l, _weakClassifiers[ n ].alpha ) );
@@ -140,9 +140,9 @@ namespace algorithm
 
       virtual void read( std::istream& o )
       {
-         ui32 size = 0;
-         core::read<ui32>( size, o );
-         for ( ui32 n = 0; n < size; ++n )
+         size_t size = 0;
+         core::read<size_t>( size, o );
+         for ( size_t n = 0; n < size; ++n )
          {
             f64 alpha = 0;
             core::read<f64>( alpha, o );
@@ -154,9 +154,9 @@ namespace algorithm
 
       virtual void write( std::ostream& o ) const
       {
-         ui32 size = static_cast<ui32>( _weakClassifiers.size() );
-         core::write<ui32>( size, o );
-         for ( ui32 n = 0; n < size; ++n )
+         size_t size = static_cast<size_t>( _weakClassifiers.size() );
+         core::write<size_t>( size, o );
+         for ( size_t n = 0; n < size; ++n )
          {
             core::write<f64>( _weakClassifiers[ n ].alpha, o );
             _weakClassifiers[ n ].classifier->write( o );
@@ -166,7 +166,7 @@ namespace algorithm
       virtual Class test( const T& p ) const
       {
          core::Buffer1D<double> prob( 2 );
-         for ( ui32 n = 0; n < _weakClassifiers.size(); ++n )
+         for ( size_t n = 0; n < _weakClassifiers.size(); ++n )
          {
             Class t = _weakClassifiers[ n ].classifier->test( p );
             ensure( t < 2, "Adaboost handles only binary decision problems" );
@@ -191,29 +191,29 @@ namespace algorithm
       virtual void learn( const Database& dat, const nll::core::Buffer1D<nll::f64>& parameters )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "ClassifierAdaboost::learn()" );
-         ui32 nbClass = core::getNumberOfClass( dat );
+         size_t nbClass = core::getNumberOfClass( dat );
          ensure(  nbClass == 2, "basic Adaboost is only for binary classification problem" );
 
          // get the LEARNING sample only
-         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+         Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
 
          // train the classifiers
          core::Buffer1D<double>  distribution( learning.size() );
-         for ( ui32 n = 0; n < learning.size(); ++n )
+         for ( size_t n = 0; n < learning.size(); ++n )
             distribution[ n ] = 1.0 / learning.size();
 
-         ui32 learningSubsetSize = static_cast<ui32>( _learningSubsetRate * learning.size() );
-         for ( ui32 n = 0; n < _nbWeakLearner; ++n )
+         size_t learningSubsetSize = static_cast<size_t>( _learningSubsetRate * learning.size() );
+         for ( size_t n = 0; n < _nbWeakLearner; ++n )
          {
             // generate a distribution
             Database subset;
 
-            ui32 nbClassesSampled = 0;
-            core::Buffer1D<ui32> samplingIndexes;
+            size_t nbClassesSampled = 0;
+            core::Buffer1D<size_t> samplingIndexes;
             while ( nbClassesSampled != 2 ) // handle the case where the sampling doesn't have the two classes
             {
                samplingIndexes = core::sampling( distribution, learningSubsetSize );
-               for ( ui32 nn = 0; nn < learningSubsetSize; ++nn )
+               for ( size_t nn = 0; nn < learningSubsetSize; ++nn )
                {
                   subset.add( learning[ samplingIndexes[ nn ] ] );
                }
@@ -226,7 +226,7 @@ namespace algorithm
 
             std::vector<Class> res( subset.size() );
             double eps = 0;
-            for ( ui32 nn = 0; nn < subset.size(); ++nn )
+            for ( size_t nn = 0; nn < subset.size(); ++nn )
             {
                res[ nn ] = weak->test( subset[ nn ].input );
                if ( res[ nn ] != subset[ nn ].output )
@@ -244,7 +244,7 @@ namespace algorithm
                double alpha_t = 0.5 * core::log2( ( 1.0 - eps ) / ( eps + 1e-4 ) );
 
                // update the distribution
-               for ( ui32 nn = 0; nn < samplingIndexes.size(); ++nn )
+               for ( size_t nn = 0; nn < samplingIndexes.size(); ++nn )
                {
                   if ( res[ nn ] != subset[ nn ].output )
                   {
@@ -257,7 +257,7 @@ namespace algorithm
                // renormalize the distribution
                const double sum = std::accumulate( distribution.begin(), distribution.end(), 0.0 );
                ensure( sum > 0, "must be > 0" );
-               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               for ( size_t nn = 0; nn < distribution.size(); ++nn )
                {
                   distribution[ nn ] /= sum;
                }
@@ -277,7 +277,7 @@ namespace algorithm
 
    private:
       const Factory&                   _factory;
-      ui32                             _nbWeakLearner;
+      size_t                             _nbWeakLearner;
       f64                              _learningSubsetRate;
       std::vector<WeakClassifierTest>  _weakClassifiers;
    };

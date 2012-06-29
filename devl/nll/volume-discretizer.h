@@ -76,22 +76,22 @@ namespace imaging
       template <class Volume, class DiscreteType>
       void discretize( const Volume& volume, VolumeMemoryBuffer<DiscreteType>& volumeOut, std::vector<Rsi>& rsiOut )
       {
-         volumeOut = VolumeMemoryBuffer<DiscreteType>( volume.getSize()[ 0 ], volume.getSize()[ 1 ], volume.getSize()[ 2 ], false );
+         volumeOut = VolumeMemoryBuffer<DiscreteType>( volume.sizex(), volume.sizey(), volume.sizez(), false );
          rsiOut.clear();
          rsiOut.reserve( volume.getSize()[ 2 ] );
 
          typedef typename Volume::ConstDirectionalIterator                      ConstIterator;
          typedef typename VolumeMemoryBuffer<DiscreteType>::DirectionalIterator Iterator;
          const double range = std::numeric_limits<DiscreteType>::max() - std::numeric_limits<DiscreteType>::min() + 1;
-         for ( ui32 z = 0; z < volume.getSize()[ 2 ]; ++z )
+         for ( size_t z = 0; z < volume.sizez(); ++z )
          {
             // get the min/max value
             double min = std::numeric_limits<double>::max();
             double max = std::numeric_limits<double>::min();
-            for ( ui32 y = 0; y < volume.getSize()[ 1 ]; ++y )
+            for ( size_t y = 0; y < volume.sizey(); ++y )
             {
                ConstIterator it = volume.getIterator( 0, y, z );
-               for ( ui32 x = 0; x < volume.getSize()[ 0 ]; ++x )
+               for ( size_t x = 0; x < volume.sizex(); ++x )
                {
                   min = std::min<double>( min, *it );
                   max = std::max<double>( max, *it );
@@ -105,11 +105,11 @@ namespace imaging
             const double slope = ( diff < 1e-8 ) ? 1.0 : diff / ( range - 1 );   // here we want max (-min as we care only about the range) value to be mapped to the last discrete value of <DiscreteType>
 
             // finally discretize them
-            for ( ui32 y = 0; y < volume.getSize()[ 1 ]; ++y )
+            for ( size_t y = 0; y < volume.sizey(); ++y )
             {
                Iterator outIt = volumeOut.getIterator( 0, y, z );
                ConstIterator it = volume.getIterator( 0, y, z );
-               for ( ui32 x = 0; x < volume.getSize()[ 0 ]; ++x )
+               for ( size_t x = 0; x < volume.sizex(); ++x )
                {
                   const typename Volume::value_type valOrig = *it;
                   const double valComputed = ( static_cast<double>( valOrig ) - intercept ) / slope;

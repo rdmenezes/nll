@@ -11,9 +11,9 @@ public:
    double dummySum( const core::Image<ui8>& i, const core::vector2i& min, const core::vector2i& max )
    {
       double sum = 0;
-      for ( ui32 ny = min[ 1 ]; ny <= max[ 1 ]; ++ny )
+      for ( size_t ny = min[ 1 ]; ny <= max[ 1 ]; ++ny )
       {
-         for ( ui32 nx = min[ 0 ]; nx <= max[ 0 ]; ++nx )
+         for ( size_t nx = min[ 0 ]; nx <= max[ 0 ]; ++nx )
          {
             sum += i( nx, ny, 0 );
          }
@@ -24,9 +24,9 @@ public:
 
    void set( core::Image<ui8>& i, const core::vector2i& min, const core::vector2i& max, ui8 val )
    {
-      for ( ui32 ny = min[ 1 ]; ny <= max[ 1 ]; ++ny )
+      for ( size_t ny = min[ 1 ]; ny <= max[ 1 ]; ++ny )
       {
-         for ( ui32 nx = min[ 0 ]; nx <= max[ 0 ]; ++nx )
+         for ( size_t nx = min[ 0 ]; nx <= max[ 0 ]; ++nx )
          {
             i( nx, ny, 0 ) = val;
          }
@@ -37,8 +37,8 @@ public:
    {
       // create a basic image
       Image<ui8> i( 50, 35, 1 );
-      for ( ui32 m = 0; m < i.sizey(); ++m )
-         for ( ui32 n = 0; n < i.sizex(); ++n )
+      for ( size_t m = 0; m < i.sizey(); ++m )
+         for ( size_t n = 0; n < i.sizex(); ++n )
             i( n, m, 0 ) = static_cast<ui8>( n + m * i.sizex() + 1 );
 
       // computes the Integral image
@@ -46,7 +46,7 @@ public:
       integral.process( i );
       
       srand( 0 );
-      for ( ui32 n = 0; n < 500; ++n )
+      for ( size_t n = 0; n < 500; ++n )
       {
          
          int x1 = rand() % i.sizex();
@@ -210,22 +210,22 @@ public:
 
    void testHessianPyramidBasic()
    {
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
-         const ui32 sizex = 32 + rand() % 32;
-         const ui32 sizey = 64 + rand() % 64;
+         const size_t sizex = 32 + rand() % 32;
+         const size_t sizey = 64 + rand() % 64;
          FastHessianDetPyramid2d pyramid;
          Image<ui8> i( sizex, sizey, 1 );
-         for ( ui32 n = 0; n < i.size(); ++n )
+         for ( size_t n = 0; n < i.size(); ++n )
          {
             i[ n ] = rand() % 256;
          }
 
-         std::vector<ui32> scales;
+         std::vector<size_t> scales;
          scales.push_back( 9 );
          scales.push_back( 15 );
          scales.push_back( 21 );
-         std::vector<ui32> displacements;
+         std::vector<size_t> displacements;
          displacements.push_back( 2 );
          displacements.push_back( 4 );
          displacements.push_back( 8 );
@@ -234,7 +234,7 @@ public:
 
          // test expected pyramid size
          TESTER_ASSERT( pyramid.getPyramidDetHessian().size() == displacements.size() );
-         for ( ui32 n = 0; n < displacements.size(); ++n )
+         for ( size_t n = 0; n < displacements.size(); ++n )
          {
             TESTER_ASSERT( pyramid.getPyramidDetHessian()[ n ].sizex() * displacements[ n ] + scales[ n ] / 2 < sizex );
             TESTER_ASSERT( pyramid.getPyramidDetHessian()[ n ].sizex() * displacements[ n ] + 2 * scales[ n ] >= sizex );
@@ -244,11 +244,11 @@ public:
          }
 
          // test coordinate system
-         for ( ui32 n = 0; n < pyramid.getPyramidDetHessian().size(); ++n )
+         for ( size_t n = 0; n < pyramid.getPyramidDetHessian().size(); ++n )
          {
-            for ( ui32 x = 0; x <  pyramid.getPyramidDetHessian()[ n ].sizex(); ++x )
+            for ( size_t x = 0; x <  pyramid.getPyramidDetHessian()[ n ].sizex(); ++x )
             {
-               for ( ui32 y = 0; y <  pyramid.getPyramidDetHessian()[ n ].sizey(); ++y )
+               for ( size_t y = 0; y <  pyramid.getPyramidDetHessian()[ n ].sizey(); ++y )
                {
                   core::vector2f pos = pyramid.getPositionPyramid2Integral( x, y, n );
                   core::vector2f index = pyramid.getPositionIntegral2Pyramid( pos[ 0 ], pos[ 1 ], n );

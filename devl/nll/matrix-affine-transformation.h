@@ -77,7 +77,7 @@ namespace core
    {
       ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
       StaticVector<type, 3> spacing;
-      for ( ui32 x = 0; x < 3; ++x )
+      for ( size_t x = 0; x < 3; ++x )
       {
          spacing[ x ] = std::sqrt( core::sqr( m( 0, x ) ) +
                                    core::sqr( m( 1, x ) ) +
@@ -85,9 +85,9 @@ namespace core
       }
 
       Matrix<type, mapper, allocator> rot( 4, 4 );
-      for ( ui32 y = 0; y < 3; ++y )
+      for ( size_t y = 0; y < 3; ++y )
       {
-         for ( ui32 x = 0; x < 3; ++x )
+         for ( size_t x = 0; x < 3; ++x )
          {
             rot( y, x ) = m( y, x ) / spacing[ x ];
          }
@@ -112,9 +112,9 @@ namespace core
       ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
 
       Matrix<type, mapper, allocator> rot( 4, 4 );
-      for ( ui32 y = 0; y < 3; ++y )
+      for ( size_t y = 0; y < 3; ++y )
       {
-         for ( ui32 x = 0; x < 3; ++x )
+         for ( size_t x = 0; x < 3; ++x )
          {
             rot( y, x ) = m( y, x );
          }
@@ -134,10 +134,10 @@ namespace core
               ( m.sizex() == 3 && m.sizey() == 3 ) , "must be a 4x4 or 3x3 matrix" );
 
       // check the affine transform
-      const ui32 sizeAffine = m.sizex() - 1;
-      for ( ui32 y = 0; y < sizeAffine; ++y )
+      const size_t sizeAffine = m.sizex() - 1;
+      for ( size_t y = 0; y < sizeAffine; ++y )
       {
-         for ( ui32 x = 0; x < sizeAffine; ++x )
+         for ( size_t x = 0; x < sizeAffine; ++x )
          {
             if ( x != y && fabs( m( y, x ) ) > tolerance )
             {
@@ -147,7 +147,7 @@ namespace core
       }
 
       // check the last row
-      for ( ui32 n = 0; n < sizeAffine; ++n )
+      for ( size_t n = 0; n < sizeAffine; ++n )
       {
          if ( fabs( m( sizeAffine, n ) ) > tolerance )
          {
@@ -207,7 +207,7 @@ namespace core
    {
       ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
       vector3f spacing;
-      for ( ui32 x = 0; x < 3; ++x )
+      for ( size_t x = 0; x < 3; ++x )
       {
          spacing[ x ] = std::sqrt( core::sqr( m( 0, x ) ) +
                                    core::sqr( m( 1, x ) ) +
@@ -225,7 +225,7 @@ namespace core
    {
       ensure( m.sizex() == 3 && m.sizey() == 3, "must be a 3x3 matrix" );
       vector2f spacing;
-      for ( ui32 x = 0; x < 2; ++x )
+      for ( size_t x = 0; x < 2; ++x )
       {
          spacing[ x ] = (f32)std::sqrt( core::sqr( m( 0, x ) ) +
                                         core::sqr( m( 1, x ) ) );

@@ -69,26 +69,26 @@ namespace algorithm
          core::Buffer1D<double> mapper = _mapper.propagate( normalized );
 
          Point final( mapper.size() );
-         for ( ui32 n = 0; n < final.size(); ++n )
+         for ( size_t n = 0; n < final.size(); ++n )
             final[ n ] = mapper[ n ];
          return final;
       }
 
       template <class Database>
-      bool compute( const Database& _dat, ui32 nbComponents, ui32 nbNeurons = 10, double learningRate = 0.5, double time = 10, ui32 nbNeightbours = 12 )
+      bool compute( const Database& _dat, size_t nbComponents, size_t nbNeurons = 10, double learningRate = 0.5, double time = 10, size_t nbNeightbours = 12 )
       {
          // take only the training & validation datasets
          typedef typename Database::Sample::Input  PointT;
          Database learningDat = core::filterDatabase( _dat,
-                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                                                                    Database::Sample::VALIDATION ),
+                                                      core::make_vector<size_t>( Database::Sample::LEARNING,
+                                                                                 Database::Sample::VALIDATION ),
                                                       Database::Sample::LEARNING );
          
          typedef core::ClassificationSample< PointT, PointT > Sample;
          typedef core::Database<Sample> TfmDatabase;
 
          TfmDatabase tfmDat;
-         for ( ui32 n = 0; n < learningDat.size(); ++n )
+         for ( size_t n = 0; n < learningDat.size(); ++n )
          {
             tfmDat.add( Sample( learningDat[ n ].input, PointT(), Sample::LEARNING ) );
          }
@@ -106,13 +106,13 @@ namespace algorithm
          std::vector<PointT> pointsTfm = lle.transform( points, nbComponents, nbNeightbours );
 
          // generate a mapping normalized points -> LLE coordinates
-         for ( ui32 n = 0; n < tfmDat.size(); ++n )
+         for ( size_t n = 0; n < tfmDat.size(); ++n )
          {
             tfmDat[ n ].output = pointsTfm[ n ];
          }
 
          StopConditionMlpThreshold stop( time );
-         Mapper mapper( core::make_vector<ui32>( _dat[ 0 ].input.size(), nbNeurons, nbComponents ) );
+         Mapper mapper( core::make_vector<size_t>( _dat[ 0 ].input.size(), nbNeurons, nbComponents ) );
          mapper.learn( tfmDat, stop, learningRate );
 
          _mapper = mapper;

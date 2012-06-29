@@ -19,7 +19,7 @@ public:
       Database dat = loadDatabaseSpect<Point>();
      
 
-      srand((nll::ui32)time(0));
+      srand((size_t)time(0));
       Mlp::BaseClassifier* mlp = new Mlp();
 
        nll::core::Buffer1D<nll::f64> optimizedParameters = nll::core::make_buffer1D<nll::f64>(5, 0.001, 2);

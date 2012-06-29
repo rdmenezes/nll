@@ -55,7 +55,7 @@ namespace core
       /**
        @brief Fake constructor tp encure compatibility with the dynamic one
        */
-      StaticVector( const ui32 size )
+      StaticVector( const size_t size )
       {
          assert( size == SIZE );
       }
@@ -98,7 +98,7 @@ namespace core
       /**
        @brief return the value at the specified index
        */
-      inline T at( const ui32 index ) const
+      inline T at( const size_t index ) const
       {
          assert( index < SIZE );
          return _buffer[ index ];
@@ -107,7 +107,7 @@ namespace core
       /**
        @brief return the value at the specified index
        */
-      inline T& at( const ui32 index )
+      inline T& at( const size_t index )
       {
          assert( index < SIZE );
          return _buffer[ index ];
@@ -116,7 +116,7 @@ namespace core
       /**
        @brief return the value at the specified index
        */
-      inline T operator[]( const ui32 index ) const
+      inline T operator[]( const size_t index ) const
       {
          return at( index );
       }
@@ -124,7 +124,7 @@ namespace core
       /**
        @brief return the value at the specified index
        */
-      inline T& operator[]( const ui32 index )
+      inline T& operator[]( const size_t index )
       {
          return at( index );
       }
@@ -132,7 +132,7 @@ namespace core
       /**
        @brief return the value at the specified index
        */
-      inline T operator()( const ui32 index ) const
+      inline T operator()( const size_t index ) const
       {
          return at( index );
       }
@@ -140,7 +140,7 @@ namespace core
       /**
        @brief return the value at the specified index
        */
-      inline T& operator()( const ui32 index )
+      inline T& operator()( const size_t index )
       {
          return at( index );
       }
@@ -269,7 +269,7 @@ namespace core
          return *this;
       }
 
-      ui32 size() const
+      size_t size() const
       {
          return SIZE;
       }
@@ -307,7 +307,7 @@ namespace core
 
       bool operator==( const StaticVector& r ) const
       {
-         for ( ui32 n = 0; n < SIZE; ++n )
+         for ( size_t n = 0; n < SIZE; ++n )
          {
             if ( !equal( _buffer[ n ], r[ n ] ) )
                return false;
@@ -346,9 +346,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector2ui : public StaticVector<ui32, 2>
+   class vector2ui : public StaticVector<size_t, 2>
    {
-      typedef StaticVector<ui32, 2> BaseClass;
+      typedef StaticVector<size_t, 2> BaseClass;
    public:
       vector2ui( )
       {
@@ -364,9 +364,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector3ui : public StaticVector<ui32, 3>
+   class vector3ui : public StaticVector<size_t, 3>
    {
-      typedef StaticVector<ui32, 3> BaseClass;
+      typedef StaticVector<size_t, 3> BaseClass;
    public:
       vector3ui( )
       {
@@ -549,7 +549,7 @@ namespace core
    template <class T, int SIZE>
    inline bool operator==( const StaticVector<T, SIZE>& l, const StaticVector<T, SIZE>& r )
    {
-      for ( ui32 n = 0; n < SIZE; ++n )
+      for ( size_t n = 0; n < SIZE; ++n )
       {
          if ( !equal( l[ n ], r[ n ] ) )
             return false;

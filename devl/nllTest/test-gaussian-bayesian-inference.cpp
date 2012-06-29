@@ -32,7 +32,7 @@ namespace algorithm
       typedef double                      value_type;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<ui32>        VectorI;
+      typedef core::Buffer1D<size_t>        VectorI;
 
    public:
       struct Dependency
@@ -79,10 +79,10 @@ namespace algorithm
          ensure( ids.size() == 1, "NOT TESTED" );
          ensure( dependencies.size() > 0, "use other constructor!" );
 
-         ui32 id = dependencies[ 0 ].potential->getIds()[ 0 ];
+         size_t id = dependencies[ 0 ].potential->getIds()[ 0 ];
          for ( size_t n = 1; n < dependencies.size(); ++n )
          {
-            ui32 curId = dependencies[ n ].potential->getIds()[ 0 ];
+            size_t curId = dependencies[ n ].potential->getIds()[ 0 ];
             ensure( id > curId, "the dependencies must be ordered from min->max id" );
          }
 
@@ -118,7 +118,7 @@ namespace algorithm
             idsptr[ n ] = &(_dependencies[ n ].potential->getIds());
          }
          idsptr[ _dependencies.size() ] = &_ids;
-         const std::vector<ui32> ids = mergeIds( idsptr );
+         const std::vector<size_t> ids = mergeIds( idsptr );
 
          // now just prepare the parameters of the canonical potential
          Matrix sinv;
@@ -129,21 +129,21 @@ namespace algorithm
          const value_type gaussCte = getGaussNorm( _cov );
          const value_type g = -0.5 * core::fastDoubleMultiplication( _mean, sinv ) + std::log( gaussCte );
 
-         Vector w( static_cast<ui32>( ids.size() ) - _ids.size() );
-         Vector h( static_cast<ui32>( ids.size() ) );
+         Vector w( static_cast<size_t>( ids.size() ) - _ids.size() );
+         Vector h( static_cast<size_t>( ids.size() ) );
          for ( size_t n = 0; n < _dependencies.size(); ++n )
          {
-            const ui32 nui = static_cast<ui32>( n );
+            const size_t nui = static_cast<size_t>( n );
             h[ nui + 1 ] = - _dependencies[ nui ].weight * sinv[ 0 ] * _mean[ 0 ];
             w[ nui ] = _dependencies[ nui ].weight;
          }
          h[ 0 ] = sinv[ 0 ] * _mean[ 0 ];
 
          Matrix ksub = Matrix( w, w.size(), 1 ) * sinv * Matrix( w, 1, w.size() );
-         Matrix k( (ui32)ids.size(), (ui32)ids.size() );
-         for ( ui32 nx = 0; nx < ksub.sizex(); ++nx )
+         Matrix k( (size_t)ids.size(), (size_t)ids.size() );
+         for ( size_t nx = 0; nx < ksub.sizex(); ++nx )
          {
-            for ( ui32 ny = 0; ny < ksub.sizey(); ++ny )
+            for ( size_t ny = 0; ny < ksub.sizey(); ++ny )
             {
                k( ny + 1, nx + 1 ) = ksub( ny, nx );
             }
@@ -154,7 +154,7 @@ namespace algorithm
          }
          k( 0, 0 ) = sinv[ 0 ];
 
-         VectorI idsi( static_cast<ui32>( ids.size() ) );
+         VectorI idsi( static_cast<size_t>( ids.size() ) );
          std::copy( ids.begin(), ids.end(), idsi.begin() );
          return PotentialGaussianCanonical( h, k, g, idsi );
       }
@@ -170,34 +170,34 @@ namespace algorithm
       /**
        @brief given a list if domains, build the merged domain
        */
-      static std::vector<ui32> mergeIds( const std::vector<const VectorI*>& lists )
+      static std::vector<size_t> mergeIds( const std::vector<const VectorI*>& lists )
       {
-         ui32 maxIds = 0;
-         for ( ui32 n = 0; n < lists.size(); ++n )
+         size_t maxIds = 0;
+         for ( size_t n = 0; n < lists.size(); ++n )
          {
             maxIds += lists[ n ]->size();
          }
 
          if ( maxIds == 0 )
-            return std::vector<ui32>();   // empty list
+            return std::vector<size_t>();   // empty list
 
-         std::vector<ui32> merged;
+         std::vector<size_t> merged;
          merged.reserve( maxIds );
-         std::vector<ui32> pointer( lists.size() );
+         std::vector<size_t> pointer( lists.size() );
 
 
          // the list are already sorted, so we can simply do a mergesort
          while (1)
          {
-            ui32 lastMin = std::numeric_limits<ui32>::max();
-            ui32 minIndex = 0;
-            ui32 min = std::numeric_limits<ui32>::max();  // we don't want duplicates...
-            for ( ui32 n = 0; n < lists.size(); ++n )
+            size_t lastMin = std::numeric_limits<size_t>::max();
+            size_t minIndex = 0;
+            size_t min = std::numeric_limits<size_t>::max();  // we don't want duplicates...
+            for ( size_t n = 0; n < lists.size(); ++n )
             {
-               const ui32 pointerIndex = pointer[ n ];
+               const size_t pointerIndex = pointer[ n ];
                if ( pointerIndex < lists[ n ]->size() )
                {
-                  const ui32 id = static_cast<ui32>( (*lists[ n ])[ pointerIndex ] );
+                  const size_t id = static_cast<size_t>( (*lists[ n ])[ pointerIndex ] );
                   if ( id < min && id != lastMin )
                   {
                      minIndex = n;
@@ -206,7 +206,7 @@ namespace algorithm
                }
             }
 
-            if ( min == std::numeric_limits<ui32>::max() || ( merged.size() && min == *merged.rbegin() ) )
+            if ( min == std::numeric_limits<size_t>::max() || ( merged.size() && min == *merged.rbegin() ) )
                break;   // no more min this iteration
             merged.push_back( min );
             ++pointer[ minIndex ];
@@ -413,49 +413,49 @@ public:
       //
 
       InferenceAlgo inference;
-      Factor query1 = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      Factor query1 = inference.run( *bnet, core::make_buffer1D<size_t>( (int)WETGRASS ), core::make_buffer1D<size_t>( 1 ), core::make_buffer1D<size_t>( (int)SPRINKLER ) );
       TESTER_ASSERT( query1.getDomain().size() == 1 );
       TESTER_ASSERT( query1.getDomain()[ 0 ] == SPRINKLER );
       TESTER_ASSERT( query1.getTable().size() == 2 );
       TESTER_ASSERT( core::equal( query1.getTable()[ 0 ], 0.5702, 1e-2 ) );
       TESTER_ASSERT( core::equal( query1.getTable()[ 1 ], 0.4298, 1e-2 ) );
 
-      Factor query2 = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 0 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      Factor query2 = inference.run( *bnet, core::make_buffer1D<size_t>( (int)WETGRASS ), core::make_buffer1D<size_t>( 0 ), core::make_buffer1D<size_t>( (int)SPRINKLER ) );
       TESTER_ASSERT( query2.getDomain().size() == 1 );
       TESTER_ASSERT( query2.getDomain()[ 0 ] == SPRINKLER );
       TESTER_ASSERT( query2.getTable().size() == 2 );
       TESTER_ASSERT( core::equal( query2.getTable()[ 0 ], 0.9379, 1e-2 ) );
       TESTER_ASSERT( core::equal( query2.getTable()[ 1 ], 0.0621, 1e-2 ) );
       
-      Factor query3 = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS, (int)CLOUDY ), core::make_buffer1D<ui32>( 1, 1 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      Factor query3 = inference.run( *bnet, core::make_buffer1D<size_t>( (int)WETGRASS, (int)CLOUDY ), core::make_buffer1D<size_t>( 1, 1 ), core::make_buffer1D<size_t>( (int)SPRINKLER ) );
       TESTER_ASSERT( query3.getDomain().size() == 1 );
       TESTER_ASSERT( query3.getDomain()[ 0 ] == SPRINKLER );
       TESTER_ASSERT( query3.getTable().size() == 2 );
       TESTER_ASSERT( core::equal( query3.getTable()[ 0 ], 0.8696, 1e-2 ) );
       TESTER_ASSERT( core::equal( query3.getTable()[ 1 ], 0.1304, 1e-2 ) );
 
-      Factor query4 = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS, (int)CLOUDY ), core::make_buffer1D<ui32>( 1, 0 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      Factor query4 = inference.run( *bnet, core::make_buffer1D<size_t>( (int)WETGRASS, (int)CLOUDY ), core::make_buffer1D<size_t>( 1, 0 ), core::make_buffer1D<size_t>( (int)SPRINKLER ) );
       TESTER_ASSERT( query4.getDomain().size() == 1 );
       TESTER_ASSERT( query4.getDomain()[ 0 ] == SPRINKLER );
       TESTER_ASSERT( query4.getTable().size() == 2 );
       TESTER_ASSERT( core::equal( query4.getTable()[ 0 ], 0.1639, 1e-2 ) );
       TESTER_ASSERT( core::equal( query4.getTable()[ 1 ], 0.8361, 1e-2 ) );
 
-      Factor query5 = inference.run( *bnet, core::Buffer1D<ui32>(), Buffer1D<ui32>(), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+      Factor query5 = inference.run( *bnet, core::Buffer1D<size_t>(), Buffer1D<size_t>(), core::make_buffer1D<size_t>( (int)SPRINKLER ) );
       TESTER_ASSERT( query5.getDomain().size() == 1 );
       TESTER_ASSERT( query5.getDomain()[ 0 ] == SPRINKLER );
       TESTER_ASSERT( query5.getTable().size() == 2 );
       TESTER_ASSERT( core::equal( query5.getTable()[ 0 ], 0.7, 1e-2 ) );
       TESTER_ASSERT( core::equal( query5.getTable()[ 1 ], 0.3, 1e-2 ) );
 
-      Factor query6 = inference.run( *bnet, core::Buffer1D<ui32>(), Buffer1D<ui32>(), core::make_buffer1D<ui32>( (int)CLOUDY ) );
+      Factor query6 = inference.run( *bnet, core::Buffer1D<size_t>(), Buffer1D<size_t>(), core::make_buffer1D<size_t>( (int)CLOUDY ) );
       TESTER_ASSERT( query6.getDomain().size() == 1 );
       TESTER_ASSERT( query6.getDomain()[ 0 ] == CLOUDY );
       TESTER_ASSERT( query6.getTable().size() == 2 );
       TESTER_ASSERT( core::equal( query6.getTable()[ 0 ], 0.5, 1e-2 ) );
       TESTER_ASSERT( core::equal( query6.getTable()[ 1 ], 0.5, 1e-2 ) );
 
-      Factor query7 = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)CLOUDY ) );
+      Factor query7 = inference.run( *bnet, core::make_buffer1D<size_t>( (int)WETGRASS ), core::make_buffer1D<size_t>( 1 ), core::make_buffer1D<size_t>( (int)CLOUDY ) );
       TESTER_ASSERT( query7.getDomain().size() == 1 );
       TESTER_ASSERT( query7.getDomain()[ 0 ] == CLOUDY );
       TESTER_ASSERT( query7.getTable().size() == 2 );
@@ -477,7 +477,7 @@ public:
       //
       {
          InferenceAlgo inference;
-         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)WETGRASS ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)SPRINKLER ) );
+         Factor query = inference.run( *bnet, core::make_buffer1D<size_t>( (int)WETGRASS ), core::make_buffer1D<size_t>( 1 ), core::make_buffer1D<size_t>( (int)SPRINKLER ) );
          TESTER_ASSERT( query.getDomain().size() == 1 );
          TESTER_ASSERT( query.getDomain()[ 0 ] == SPRINKLER );
          TESTER_ASSERT( query.getTable().size() == 2 );
@@ -487,7 +487,7 @@ public:
 
       {
          InferenceAlgo inference;
-         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)CLOUDY ), core::make_buffer1D<ui32>( 1 ), core::make_buffer1D<ui32>( (int)WETGRASS ) );
+         Factor query = inference.run( *bnet, core::make_buffer1D<size_t>( (int)CLOUDY ), core::make_buffer1D<size_t>( 1 ), core::make_buffer1D<size_t>( (int)WETGRASS ) );
          TESTER_ASSERT( query.getDomain().size() == 1 );
          TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
          TESTER_ASSERT( query.getTable().size() == 2 );
@@ -497,7 +497,7 @@ public:
 
       {
          InferenceAlgo inference;
-         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)CLOUDY ), core::make_buffer1D<ui32>( 2 ), core::make_buffer1D<ui32>( (int)WETGRASS ) );
+         Factor query = inference.run( *bnet, core::make_buffer1D<size_t>( (int)CLOUDY ), core::make_buffer1D<size_t>( 2 ), core::make_buffer1D<size_t>( (int)WETGRASS ) );
          TESTER_ASSERT( query.getDomain().size() == 1 );
          TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
          TESTER_ASSERT( query.getTable().size() == 2 );
@@ -508,7 +508,7 @@ public:
       
       {
          InferenceAlgo inference;
-         Factor query = inference.run( *bnet, core::make_buffer1D<ui32>( (int)CLOUDY ), core::make_buffer1D<ui32>( 2 ), core::make_buffer1D<ui32>( (int)WETGRASS, (int)SPRINKLER ) );
+         Factor query = inference.run( *bnet, core::make_buffer1D<size_t>( (int)CLOUDY ), core::make_buffer1D<size_t>( 2 ), core::make_buffer1D<size_t>( (int)WETGRASS, (int)SPRINKLER ) );
          TESTER_ASSERT( query.getDomain().size() == 2 );
          TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
          TESTER_ASSERT( query.getDomain()[ 1 ] == SPRINKLER );
@@ -521,7 +521,7 @@ public:
 
       {
          InferenceAlgo inference;
-         Factor query = inference.run( *bnet, core::Buffer1D<ui32>(), core::Buffer1D<ui32>(), core::make_buffer1D<ui32>( (int)WETGRASS, (int)SPRINKLER ) );
+         Factor query = inference.run( *bnet, core::Buffer1D<size_t>(), core::Buffer1D<size_t>(), core::make_buffer1D<size_t>( (int)WETGRASS, (int)SPRINKLER ) );
          TESTER_ASSERT( query.getDomain().size() == 2 );
          TESTER_ASSERT( query.getDomain()[ 0 ] == WETGRASS );
          TESTER_ASSERT( query.getDomain()[ 1 ] == SPRINKLER );
@@ -555,10 +555,10 @@ public:
       for ( size_t id = 0; id < file1.size(); ++id )
       {
          std::vector< double >& sample = file1[ id ];
-         BayesianNetwork::Factor::EvidenceValue newSample( (ui32)file1.size() );
+         BayesianNetwork::Factor::EvidenceValue newSample( (size_t)file1.size() );
          for ( size_t n = 0; n < sample.size(); ++n )
          {
-            newSample[ (ui32)n ] = static_cast<ui32>( sample[ (ui32)n ] - 1 );
+            newSample[ (size_t)n ] = static_cast<size_t>( sample[ (size_t)n ] - 1 );
          }
          samples.push_back( newSample );
       }
@@ -566,11 +566,11 @@ public:
       // do some ML estimation
       std::auto_ptr<BayesianNetwork> bnet = buildSprinklerNet();
       algorithm::BayesianNetworkMaximumLikelihoodParameterEstimation<BayesianNetwork> mlEstimator;
-      mlEstimator.compute( core::make_buffer1D<ui32>( (int)CLOUDY, (int)SPRINKLER, (int)RAIN, (int)WETGRASS ), samples, *bnet );
+      mlEstimator.compute( core::make_buffer1D<size_t>( (int)CLOUDY, (int)SPRINKLER, (int)RAIN, (int)WETGRASS ), samples, *bnet );
 
       std::vector<const BayesianNetwork::Factor*> factors;
       algorithm::getFactors( *bnet, factors );
-      for ( ui32 n = 0; n < factors.size(); ++n )
+      for ( size_t n = 0; n < factors.size(); ++n )
       {
          factors[ n ]->print( std::cout );
       }
@@ -634,7 +634,7 @@ public:
 
       std::vector<const BayesianNetwork::Factor*> factorsFound;
       algorithm::getFactors( *bnet, factorsFound );
-      for ( ui32 n = 0; n < factorsFound.size(); ++n )
+      for ( size_t n = 0; n < factorsFound.size(); ++n )
       {
          factorsFound[ n ]->print( std::cout );
       }
@@ -644,9 +644,9 @@ public:
       algorithm::getFactors( *bnetRef, factorsRef );
 
       const double EPSILON = 1e-2;
-      for ( ui32 n = 0; n < factorsRef.size(); ++n )
+      for ( size_t n = 0; n < factorsRef.size(); ++n )
       {
-         for ( ui32 nn = 0; nn < factorsRef[ n ]->getTable().size(); ++nn )
+         for ( size_t nn = 0; nn < factorsRef[ n ]->getTable().size(); ++nn )
          {
             TESTER_ASSERT( core::equal( factorsRef[ n ]->getTable()[ nn ],
                                         factorsFound[ n ]->getTable()[ nn ],
@@ -770,17 +770,17 @@ public:
 
       Potential::Vector meanR = core::make_buffer1D<double>( 50 );
       Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
-      Potential::VectorI idR = core::make_buffer1D<ui32>( (int)R );
+      Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
       Potential potR( meanR, covR, idR );
 
       Potential::Vector meanC = core::make_buffer1D<double>( 15 );
       Potential::Matrix covC( 1, 1 ); covC[ 0 ] = 0.5;
-      Potential::VectorI idC = core::make_buffer1D<ui32>( (int)C );
+      Potential::VectorI idC = core::make_buffer1D<size_t>( (int)C );
       Potential potC( meanC, covC, idC );
 
       Potential::Vector meanS = core::make_buffer1D<double>( 30 );
       Potential::Matrix covS( 1, 1 ); covS[ 0 ] = 3;
-      Potential::VectorI idS = core::make_buffer1D<ui32>( (int)S );
+      Potential::VectorI idS = core::make_buffer1D<size_t>( (int)S );
       Potential::Vector wS = core::make_buffer1D<double>( 1, 2 );
       
       std::vector<Potential::Dependency> dpsS;

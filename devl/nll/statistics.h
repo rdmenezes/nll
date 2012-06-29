@@ -89,7 +89,7 @@ namespace utility
 
          double               mean;
          double               stddev;
-         std::vector<ui32>    histogram;
+         std::vector<size_t>    histogram;
          WorstValues          worstValues;
          double               minValue;
          double               maxValue;
@@ -122,7 +122,7 @@ namespace utility
             o << " maxValue = " << attribut->second.maxValue << std::endl;
             o << " histogram = " << std::endl;
 
-            const std::vector<ui32>& histogram = attribut->second.histogram;
+            const std::vector<size_t>& histogram = attribut->second.histogram;
             const double binSize = attribut->second.binSize;
             for ( size_t n = 0; n < histogram.size(); ++n )
             {
@@ -143,7 +143,7 @@ namespace utility
          }
       }
 
-      AttributsStatistics computeStatistics( ui32 nbWorstValuesPerAttribut = 300 ) const
+      AttributsStatistics computeStatistics( size_t nbWorstValuesPerAttribut = 300 ) const
       {
          AttributsStatistics attributsStatistics;
          for ( Attributs::const_iterator attribut = _attributs.begin(); attribut != _attributs.end(); ++attribut )
@@ -193,11 +193,11 @@ namespace utility
 
             // compute the histogram
             const double binSize = attribut->binSize;
-            const ui32 nbBins = 1 + (ui32)std::ceil( ( maxValue - minValue ) / binSize );
-            std::vector<ui32> histogram( nbBins );
+            const size_t nbBins = 1 + (size_t)std::ceil( ( maxValue - minValue ) / binSize );
+            std::vector<size_t> histogram( nbBins );
             for ( size_t n = 0; n < values.size(); ++n )
             {
-               ui32 bin = (ui32)( ( values[ n ].value - minValue ) / binSize );
+               size_t bin = (size_t)( ( values[ n ].value - minValue ) / binSize );
                ++histogram[ bin ];
             }
             statistic.histogram = histogram;

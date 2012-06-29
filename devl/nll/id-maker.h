@@ -46,7 +46,7 @@ namespace core
       /**
        @brief generate a unique ID
        */
-      ui32 generateId()
+      size_t generateId()
       {
 # ifndef NLL_NOT_MULTITHREADED
          #pragma omp atomic
@@ -58,7 +58,7 @@ namespace core
       _IdMaker() : _id( 0 ){}
 
    private:
-      ui32     _id;
+      size_t     _id;
    };
 
    typedef Singleton<_IdMaker>   IdMaker;

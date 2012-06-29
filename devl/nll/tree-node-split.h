@@ -52,7 +52,7 @@ namespace algorithm
        @param weights the weights given to each sample
        */
       virtual void compute( const Database& dat, const std::vector<float>& weights, std::vector<Database>& split_out, std::vector< std::vector<float> >& weights_out ) = 0;
-      virtual ui32 test( const Point& p ) const = 0;
+      virtual size_t test( const Point& p ) const = 0;
       virtual void print( std::ostream& o ) const = 0;
 
       virtual ~TreeNodeSplit()
@@ -69,7 +69,7 @@ namespace algorithm
    template <class Database, class Metric>
    class TreeNodeSplitDiscrete : public TreeNodeSplit<Database>
    {
-      typedef std::map<ui32, ui32>        AttributMapper;
+      typedef std::map<size_t, size_t>        AttributMapper;
       typedef TreeNodeSplit<Database>     Base;
       typedef typename Base::Point        Point;
       typedef typename Base::value_type   value_type;
@@ -79,26 +79,26 @@ namespace algorithm
       {
          if ( dat.size() == 0 )
             return;
-         const ui32 nbFeatures = static_cast<ui32>( dat[ 0 ].input.size() );
+         const size_t nbFeatures = static_cast<size_t>( dat[ 0 ].input.size() );
 
          ensure( dat.size() == weights.size(), "weights don't match" );
 
-         std::vector<ui32> y( dat.size() );
-         std::vector<ui32> x( dat.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         std::vector<size_t> y( dat.size() );
+         std::vector<size_t> x( dat.size() );
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             y[ n ] = dat[ n ].output;
          }
 
          // find the best feature
          double bestSplitMetric = -1e10;
-         for ( ui32 feature = 0; feature < nbFeatures; ++feature )
+         for ( size_t feature = 0; feature < nbFeatures; ++feature )
          {
             Metric metric;
 
-            for ( ui32 n = 0; n < dat.size(); ++n )
+            for ( size_t n = 0; n < dat.size(); ++n )
             {
-               x[ n ] = static_cast<ui32>( dat[ n ].input[ feature ] );
+               x[ n ] = static_cast<size_t>( dat[ n ].input[ feature ] );
             }
 
             const double splitMetric = metric.compute( x, y, weights );
@@ -110,11 +110,11 @@ namespace algorithm
          }
 
          // here we are generating a mapper feature value -> bin id
-         ui32 id = 0;
+         size_t id = 0;
          AttributMapper attributMapper;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            const ui32 featureValue = static_cast<ui32>( dat[ n ].input[ _featureId ] );
+            const size_t featureValue = static_cast<size_t>( dat[ n ].input[ _featureId ] );
             AttributMapper::const_iterator it = attributMapper.find( featureValue );
             if ( it == attributMapper.end() )
             {
@@ -127,23 +127,23 @@ namespace algorithm
          // finally route the samples according to the split rule
          split_out = std::vector<Database>( _attributMapper.size() );
          weights_out = std::vector< std::vector< float > >( _attributMapper.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            const ui32 branch = test( dat[ n ].input );
+            const size_t branch = test( dat[ n ].input );
             split_out[ branch ].add( dat[ n ] );
             weights_out[ branch ].push_back( weights[ n ] );
          }
       }
 
-      virtual ui32 test( const Point& p ) const
+      virtual size_t test( const Point& p ) const
       {
-         const value_type featureValue = static_cast<ui32>( p[ _featureId ] );
+         const value_type featureValue = static_cast<size_t>( p[ _featureId ] );
          AttributMapper::const_iterator it = _attributMapper.find( featureValue );
          ensure( it != _attributMapper.end(), "this feature value was never encountered during training! Can't classify" );
          return it->second;
       }
 
-      ui32 getFeatureSplit() const
+      size_t getFeatureSplit() const
       {
          return _featureId;
       }
@@ -154,7 +154,7 @@ namespace algorithm
       }
 
    private:
-      ui32                 _featureId;          // the feature we are splitting
+      size_t                 _featureId;          // the feature we are splitting
       AttributMapper       _attributMapper;     // map a feature ID to a bin
    };
 
@@ -179,7 +179,7 @@ namespace algorithm
       typedef typename Base::Point                          Point;
       typedef typename Base::value_type                     value_type;
 
-      TreeNodeSplitContinuousSingle( const SplittingCriteriaFactory& scriteria ) : _splittingCriteriaFactory( scriteria ), _thresold( std::numeric_limits<value_type>::min() ), _featureId( (ui32)-1 )
+      TreeNodeSplitContinuousSingle( const SplittingCriteriaFactory& scriteria ) : _splittingCriteriaFactory( scriteria ), _thresold( std::numeric_limits<value_type>::min() ), _featureId( (size_t)-1 )
       {}
 
       /**
@@ -191,13 +191,13 @@ namespace algorithm
       {
          if ( dat.size() == 0 )
             return;
-         const ui32 nbFeatures = static_cast<ui32>( dat[ 0 ].input.size() );
+         const size_t nbFeatures = static_cast<size_t>( dat[ 0 ].input.size() );
 
          ensure( dat.size() == weights.size(), "weights don't match" );
 
-         std::vector<ui32> y( dat.size() );
-         std::vector<ui32> x( dat.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         std::vector<size_t> y( dat.size() );
+         std::vector<size_t> x( dat.size() );
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             y[ n ] = dat[ n ].output;
          }
@@ -206,7 +206,7 @@ namespace algorithm
 
          // select the best feature
          double bestSplitMetric = std::numeric_limits<double>::min();
-         for ( ui32 feature = 0; feature < nbFeatures; ++feature )
+         for ( size_t feature = 0; feature < nbFeatures; ++feature )
          {
             Metric metric;
 
@@ -216,7 +216,7 @@ namespace algorithm
             // then select the best split
             for ( size_t split = 0; split < splits.size(); ++split )
             {
-               for ( ui32 n = 0; n < dat.size(); ++n )
+               for ( size_t n = 0; n < dat.size(); ++n )
                {
                   x[ n ] = dat[ n ].input[ feature ] >= splits[ split ];
                }
@@ -235,9 +235,9 @@ namespace algorithm
          // finally route the samples according to the split
          split_out = std::vector<Database>( 2 );
          weights_out = std::vector< std::vector< float > >( 2 );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            const ui32 branch = test( dat[ n ].input );
+            const size_t branch = test( dat[ n ].input );
             split_out[ branch ].add( dat[ n ] );
             weights_out[ branch ].push_back( weights[ n ] );
          }
@@ -246,12 +246,12 @@ namespace algorithm
       /**
        @brief return the branch to be taken
        */
-      ui32 test( const Point& p ) const
+      size_t test( const Point& p ) const
       {
          return p[ _featureId ] >= _thresold;
       }
 
-      ui32 getFeatureSplit() const
+      size_t getFeatureSplit() const
       {
          return _featureId;
       }
@@ -268,7 +268,7 @@ namespace algorithm
 
    private:
       SplittingCriteriaFactory      _splittingCriteriaFactory;    // criteria to be used for the splits
-      ui32                          _featureId;    // the feature we are splitting
+      size_t                          _featureId;    // the feature we are splitting
       value_type                    _thresold;     // the threshold used
    };
 }

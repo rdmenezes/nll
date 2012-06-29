@@ -116,7 +116,7 @@ namespace algorithm
 
          // multiply by a window to reduce the spectral bias (see http://en.wikipedia.org/wiki/Periodogram)
          core::Buffer1D<value_type> data( timeSerie.size(), false );
-         for ( ui32 n = 0; n < data.size(); ++n )
+         for ( size_t n = 0; n < data.size(); ++n )
          {
             data[ n ] = ( timeSerie[ n ] - mean ) * funcWindow( static_cast<value_type>( n ) / timeSerie.size() );
          }
@@ -129,9 +129,9 @@ namespace algorithm
 
          // compute the raw periodogram from the DFT coefficients
          core::Buffer1D<value_type> basicPeriodogram( fftOutput.size() / 2 );
-         for ( ui32 n = 0; n < basicPeriodogram.size(); ++n )
+         for ( size_t n = 0; n < basicPeriodogram.size(); ++n )
          {
-            ui32 index = n * 2;
+            size_t index = n * 2;
             basicPeriodogram[ n ] = ( core::sqr( fftOutput[ index ] ) + core::sqr( fftOutput[ index + 1 ] ) ) / timeSerie.size();
          }
 

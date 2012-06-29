@@ -17,14 +17,14 @@ public:
    void testLinearRegression()
    {
       typedef core::Database<core::ClassificationSample<std::vector<float>, float>> Database;
-      for ( ui32 n = 0; n < 50; ++n )
+      for ( size_t n = 0; n < 50; ++n )
       {
          const float a = (float)core::generateUniformDistribution( -3, 3 );
          const float b = (float)core::generateUniformDistribution( -5, 5 );
          const double err = 4;
 
          Database dat;
-         for ( ui32 nn = 0; nn < 200; ++nn )
+         for ( size_t nn = 0; nn < 200; ++nn )
          {
             const float x = (float)core::generateUniformDistribution( -10, 10 );
             const float y = a * x + b + (float)core::generateGaussianDistribution( 0, err );
@@ -47,7 +47,7 @@ public:
    float error( const Classifier& c, const Database& dat )
    {
       float e = 0;
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
          const float out = (float)c.test( dat[ n ].input );
          const float out2 = dat[ n ].output ;

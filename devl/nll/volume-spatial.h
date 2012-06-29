@@ -165,7 +165,7 @@ namespace imaging
          assert( sp[ 0 ] > 0 && sp[ 1 ] > 0 && sp[ 2 ] > 0 );
 
          // normalize the PST
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( size_t n = 0; n < 3; ++n )
          {
             _pst( 0, n ) /= _spacing[ n ];
             _pst( 1, n ) /= _spacing[ n ];
@@ -173,7 +173,7 @@ namespace imaging
          }
 
          // apply the new scaling
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( size_t n = 0; n < 3; ++n )
          {
             _pst( 0, n ) *= sp[ n ];
             _pst( 1, n ) *= sp[ n ];
@@ -194,7 +194,7 @@ namespace imaging
       {
          Matrix m( 3, 3 );
          // normalize the PST
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( size_t n = 0; n < 3; ++n )
          {
             m( 0, n ) = _pst( 0, n ) / _spacing[ n ];
             m( 1, n ) = _pst( 1, n ) / _spacing[ n ];
@@ -212,7 +212,7 @@ namespace imaging
          assert( m.sizex() == 3 && m.sizey() == 3 );
 
          // normalize the PST
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( size_t n = 0; n < 3; ++n )
          {
             _pst( 0, n ) = m( 0, n ) * _spacing[ n ];
             _pst( 1, n ) = m( 1, n ) * _spacing[ n ];
@@ -230,6 +230,21 @@ namespace imaging
       const core::vector3ui& getSize() const
       {
          return Base::size();
+      }
+
+      const size_t sizex() const
+      {
+         return Base::sizex();
+      }
+
+      const size_t sizey() const
+      {
+         return Base::sizey();
+      }
+
+      const size_t sizez() const
+      {
+         return Base::sizez();
       }
 
       /**
@@ -307,7 +322,7 @@ namespace imaging
       {
          ensure( _pst.sizex() == 4 &&
                  _pst.sizey() == 4, "Invalid PST. Must be a 4x4 matrix" );
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( size_t n = 0; n < 3; ++n )
          {
             // the spacing can be extracted by computing the norm-2 of each column of a rotation matrix - see OpenGL ref
             _spacing[ n ] = sqrt( _pst( 0, n ) * _pst( 0, n ) +
@@ -351,8 +366,8 @@ namespace imaging
          pst( 1, 3 ) = origin[ 1 ];
          pst( 2, 3 ) = origin[ 2 ];
 
-         for ( ui32 ny = 0; ny < 3; ++ny )
-            for ( ui32 nx = 0; nx < 3; ++nx )
+         for ( size_t ny = 0; ny < 3; ++ny )
+            for ( size_t nx = 0; nx < 3; ++nx )
                pst( ny, nx ) = tmp( ny, nx );
          pst( 3, 3 ) = 1;
          return pst;

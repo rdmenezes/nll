@@ -124,9 +124,9 @@
 /**
  Concept: (for future integration with C++ 0x)
    - Point : requires
-         * T& operator[]( ui32 n );
-         * ui32 size() const;
-         * contructor( ui32 size );
+         * T& operator[]( size_t n );
+         * size_t size() const;
+         * contructor( size_t size );
          * typedef internal_point_type value_type;
    - Database: should be used as a template instead of the concrete type to allow different kind of database
    - IndexMapper1D

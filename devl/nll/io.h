@@ -86,9 +86,9 @@ namespace core
    {
       _write( const std::vector<T>& val, std::ostream& f )
       {
-         ui32 size = static_cast<ui32>( val.size() );
-         write<ui32>( size, f );
-         for ( ui32 n = 0; n < val.size(); ++n )
+         size_t size = static_cast<size_t>( val.size() );
+         write<size_t>( size, f );
+         for ( size_t n = 0; n < val.size(); ++n )
             write<T>( val[ n ], f );
       }
    };
@@ -125,11 +125,11 @@ namespace core
    {
       _read( std::vector<T>& val, std::istream& i )
       {
-         ui32 size = 0;
-         read<ui32>( size, i );
+         size_t size = 0;
+         read<size_t>( size, i );
          //assert( size );
          val = std::vector<T>( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             read<T>( val[ n ], i );
       }
    };
@@ -139,8 +139,8 @@ namespace core
    {
       _write( const std::string& val, std::ostream& f )
       {
-         ui32 size = static_cast<ui32>( val.size() );
-         write<ui32>( size, f );
+         size_t size = static_cast<size_t>( val.size() );
+         write<size_t>( size, f );
          f.write( val.c_str(), size );
       }
    };
@@ -150,8 +150,8 @@ namespace core
    {
       _read( std::string& val, std::istream& i )
       {
-         ui32 size = 0;
-         read<ui32>( size, i );
+         size_t size = 0;
+         read<size_t>( size, i );
          val = std::string( size, ' ' );
          i.read( &val[ 0 ], size );
       }

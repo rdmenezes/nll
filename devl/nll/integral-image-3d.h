@@ -55,12 +55,12 @@ namespace algorithm
       typedef imaging::Volume<value_type>    Storage;
 
    public:
-      value_type operator()( ui32 x, ui32 y, ui32 z ) const
+      value_type operator()( size_t x, size_t y, size_t z ) const
       {
          return _img( x, y, z );
       }
 
-      value_type& operator()( ui32 x, ui32 y, ui32 z )
+      value_type& operator()( size_t x, size_t y, size_t z )
       {
          return _img( x, y, z );
       }
@@ -82,9 +82,9 @@ namespace algorithm
          typedef typename Storage::DirectionalIterator IteratorImg;
 
          // first pass: compute the sum independently for all slices
-         const ui32 sizex = v.size()[ 0 ];
-         const ui32 sizey = v.size()[ 1 ];
-         const ui32 sizez = v.size()[ 2 ];
+         const size_t sizex = v.size()[ 0 ];
+         const size_t sizey = v.size()[ 1 ];
+         const size_t sizez = v.size()[ 2 ];
          _img = Storage( sizex, sizey, sizez, 0, false );
 
          std::vector<value_type> s( sizex );
@@ -100,7 +100,7 @@ namespace algorithm
             value_type previous_ii = s[ 0 ];
             it.addx();
             itSrc.addx();
-            for ( ui32 x = 1; x < sizex; ++x )
+            for ( size_t x = 1; x < sizex; ++x )
             {
                s[ x ] = *itSrc;
                *it = previous_ii + s[ x ];
@@ -111,7 +111,7 @@ namespace algorithm
             }
             
             // computes the other rows
-            for ( ui32 y = 1; y < sizey; ++y )
+            for ( size_t y = 1; y < sizey; ++y )
             {
                // init
                itSrc = v.getIterator( 0, y, z );
@@ -129,7 +129,7 @@ namespace algorithm
                itSrc.addx();
 
                // main loop
-               for ( ui32 x = 1; x < sizex; ++x )
+               for ( size_t x = 1; x < sizex; ++x )
                {
                   s[ x ] = s[ x ] + static_cast<value_type>( *itSrc );
                   *it = previous_ii + s[ x ];
@@ -142,16 +142,16 @@ namespace algorithm
          }
 
          // second pass: accumulate the values of the preceding slices
-         for ( ui32 z = 1; z < sizez; ++z )
+         for ( size_t z = 1; z < sizez; ++z )
          {
-            for ( ui32 y = 0; y < sizey; ++y )
+            for ( size_t y = 0; y < sizey; ++y )
             {
                IteratorImg itSrc = _img.getIterator( 0, y, z );
                IteratorImg itSrcPrev = _img.getIterator( 0, y, z - 1 );
 
                IteratorImg itSrcX = itSrc;
                IteratorImg itSrcPrevX = itSrcPrev;
-               for ( ui32 x = 0; x < sizex; ++x )
+               for ( size_t x = 0; x < sizex; ++x )
                {
                   *itSrcX += *itSrcPrevX;
                   itSrcX.addx();
@@ -187,7 +187,7 @@ namespace algorithm
          // special case if one of the index is 0, we nee to check everything...
          if ( bottomLeft[ 0 ] == 0 || bottomLeft[ 1 ] == 0 || bottomLeft[ 2 ] == 0 )
          {
-            // reset the wrong coordinate (will loop over ui32 max value)
+            // reset the wrong coordinate (will loop over size_t max value)
             value_type v111 = 0, v110 = 0, v101 = 0, v100 = 0, v011 = 0, v010 = 0, v001 = 0, v000 = 0;
 
             if ( bottomLeft[ 0 ] != 0 )

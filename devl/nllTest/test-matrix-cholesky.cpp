@@ -37,7 +37,7 @@ public:
          Matrix cov;
          cov.clone( gmm.getGaussians()[ 0 ].covariance );
 
-         nll::core::Buffer1D<nll::ui32> index;
+         nll::core::Buffer1D<size_t> index;
          bool success = nll::core::choleskyDecomposition( cov );
          TESTER_ASSERT( success );
 

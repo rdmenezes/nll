@@ -41,7 +41,7 @@ namespace algorithm
     @brief Normalize features of a sequence of points. Each feature is independantly normalized
            for (mean,variance)= (0,1)
 
-           A point must define operator[](ui32) and ui32 size() and constructible(size)
+           A point must define operator[](size_t) and size_t size() and constructible(size)
     */
    template <class Point>
    class Normalize
@@ -72,7 +72,7 @@ namespace algorithm
       /**
        Compute the mean and variance of every features.
 
-       Points must define const Point& operator[](ui32) and ui32 size() const
+       Points must define const Point& operator[](size_t) and size_t size() const
        */
       template <class Points>
       bool compute( const Points& points )
@@ -81,29 +81,29 @@ namespace algorithm
             return false;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "start compute normalization..." );
 
-         const ui32 nbFeatures = (ui32)points[ 0 ].size();
+         const size_t nbFeatures = (size_t)points[ 0 ].size();
          _mean = Vector( nbFeatures );
          _var = Vector( nbFeatures );
-         ui32 nbSamples = static_cast<ui32>( points.size() );
-         for ( ui32 n = 0; n < points.size(); ++n )
+         size_t nbSamples = static_cast<size_t>( points.size() );
+         for ( size_t n = 0; n < points.size(); ++n )
          {
-            for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+            for ( size_t nn = 0; nn < nbFeatures; ++nn )
                _mean[ nn ] += points[ n ][ nn ];
          }
 
-         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+         for ( size_t nn = 0; nn < nbFeatures; ++nn )
             _mean[ nn ] /= nbSamples;
 
-         for ( ui32 n = 0; n < points.size(); ++n )
+         for ( size_t n = 0; n < points.size(); ++n )
          {
-            for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+            for ( size_t nn = 0; nn < nbFeatures; ++nn )
             {
                double val = points[ n ][ nn ] - _mean[ nn ];
                _var[ nn ] += val * val;
             }
          }
 
-         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+         for ( size_t nn = 0; nn < nbFeatures; ++nn )
          {
             if ( fabs( _var[ nn ] ) < 1e-10 )
             {
@@ -119,7 +119,7 @@ namespace algorithm
          std::stringstream ss2;
          ss2 << " variance vector=";
 
-         for ( ui32 nn = 0; nn < nbFeatures; ++nn )
+         for ( size_t nn = 0; nn < nbFeatures; ++nn )
          {
             ss1 << _mean[ nn ] << " ";
             ss2 << _var[ nn ] << " ";
@@ -158,7 +158,7 @@ namespace algorithm
          ensure( p.size() == _var.size(), "error size" );
 
          Point res( p.size() );
-         for ( ui32 nn = 0; nn < p.size(); ++nn )
+         for ( size_t nn = 0; nn < p.size(); ++nn )
             res[ nn ] = ( p[ nn ] - _mean[ nn ] ) / _var[ nn ];
          return res;
       }
@@ -170,7 +170,7 @@ namespace algorithm
       {
          assert( p.size() == _mean.size() );
          Point r( _mean.size() );
-         for ( ui32 nn = 0; nn < p.size(); ++nn )
+         for ( size_t nn = 0; nn < p.size(); ++nn )
             r[ nn ] = p[ nn ] * _var[ nn ] + _mean[ nn ];
          return r;
       }

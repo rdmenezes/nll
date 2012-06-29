@@ -66,7 +66,7 @@ namespace core
          static void convert( const Input& input, std::vector<X>& output )
          {
             output = std::vector<X>( input.size() );
-            for ( ui32 n = 0; n < input.size(); ++n )
+            for ( size_t n = 0; n < input.size(); ++n )
                output[ n ] = static_cast<X>( input[ n ] );
          }
       };
@@ -76,8 +76,8 @@ namespace core
       {
          static void convert( const Input& input, Buffer1D<X>& output )
          {
-            output = Buffer1D<X>( static_cast<ui32>( input.size() ), false );
-            for ( ui32 n = 0; n < input.size(); ++n )
+            output = Buffer1D<X>( static_cast<size_t>( input.size() ), false );
+            for ( size_t n = 0; n < input.size(); ++n )
                output[ n ] = static_cast<X>( input[ n ] );
          }
       };

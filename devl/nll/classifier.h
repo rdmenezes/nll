@@ -54,7 +54,7 @@ namespace algorithm
     As template parameter, any class defining the methods size(), operator[], typedef value_type,
     and a constructor(size) need to be defined.
     */
-   template <class TPoint, class Output = ui32, class TSample = core::ClassificationSample<TPoint, Output> >
+   template <class TPoint, class Output = size_t, class TSample = core::ClassificationSample<TPoint, Output> >
    class Classifier : public ClassifierBase<TPoint, Output, TSample>
    {
    public:
@@ -103,17 +103,17 @@ namespace algorithm
        */
       virtual Result test( const Database& dat )
       {
-         std::map<ui32, ui32> cls;
-		   std::map<ui32, ui32> ncls;
-		   ui32 nbLearn = 0;
-         ui32 nbLearnError = 0;
-         ui32 nbValidation = 0;
-         ui32 nbValidationError = 0;
-		   ui32 nbError = 0;
-		   ui32 nbUnknown = 0;
-		   ui32 nbTest = 0;
+         std::map<size_t, size_t> cls;
+		   std::map<size_t, size_t> ncls;
+		   size_t nbLearn = 0;
+         size_t nbLearnError = 0;
+         size_t nbValidation = 0;
+         size_t nbValidationError = 0;
+		   size_t nbError = 0;
+		   size_t nbUnknown = 0;
+		   size_t nbTest = 0;
          std::stringstream o;
-		   for (ui32 n = 0; n < dat.size(); ++n)
+		   for (size_t n = 0; n < dat.size(); ++n)
 		   {
 			   cls[ dat[ n ].output ];	// create an empty entry if 0 error
             if ( dat[ n ].type == Database::Sample::LEARNING )
@@ -156,18 +156,18 @@ namespace algorithm
 		   }
 
 	      o << "error by class (testing):" << std::endl;
-	      for (std::map<ui32, ui32>::const_iterator it = cls.begin(); it != cls.end(); ++it)
+	      for (std::map<size_t, size_t>::const_iterator it = cls.begin(); it != cls.end(); ++it)
 	      {
 		         o << " class:" << it->first << " error:" << it->second << " rate:" << static_cast<double>( it->second ) / nbTest << std::endl;
 	      }
 
 	      o << "class by error (testing):" << std::endl;
-	      for (std::map<ui32, ui32>::const_iterator it = cls.begin(); it != cls.end(); ++it)
+	      for (std::map<size_t, size_t>::const_iterator it = cls.begin(); it != cls.end(); ++it)
 	      {
-		      std::map<ui32, ui32>::iterator res = ncls.find(it->first);
+		      std::map<size_t, size_t>::iterator res = ncls.find(it->first);
 		      if (res != ncls.end())
 		      {
-			      ui32 nbinclass = res->second;
+			      size_t nbinclass = res->second;
 			      o << " class:" << it->first << " error:" << it->second << " nbInClass:" << nbinclass << " rate:" << static_cast<double>(it->second) / nbinclass << std::endl;
 		      }
 	      }
@@ -187,35 +187,35 @@ namespace algorithm
 
    protected:
       // generate nbBins bins out of the database. Each bin is drawing the same distribution as database's class
-      virtual std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const
+      virtual std::vector<size_t> _setCrossFoldBin( const Database& dat, size_t nbBins ) const
       {
          // create statistics
-         ui32 nbClass = core::getNumberOfClass( dat );
+         size_t nbClass = core::getNumberOfClass( dat );
          ensure( nbClass >= 2, "useless to learn on less than 2 classes" );
          std::vector<double> nbSamplesPerClass( nbClass );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
             ++nbSamplesPerClass[ dat[ n ].output ];
 
          // compute the number of samples by class a bin must contain
-         std::vector< std::vector< ui32 > > remaining( nbBins - 1 );
-         for ( ui32 n = 0; n < nbBins - 1; ++n )
+         std::vector< std::vector< size_t > > remaining( nbBins - 1 );
+         for ( size_t n = 0; n < nbBins - 1; ++n )
          {
-            remaining[ n ] = std::vector< ui32 >( nbClass );
-            for ( ui32 nn = 0; nn < nbClass; ++nn )
-               remaining[ n ][ nn ] = (ui32)( nbSamplesPerClass[ nn ] / nbBins );
+            remaining[ n ] = std::vector< size_t >( nbClass );
+            for ( size_t nn = 0; nn < nbClass; ++nn )
+               remaining[ n ][ nn ] = (size_t)( nbSamplesPerClass[ nn ] / nbBins );
          }
             
          // because of the rounding, the last bin will have more samples than the others
          // only the (nbBins - 1) bins will be allocated, the last bin will have all the others
-         std::vector<ui32> binId( dat.size() );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         std::vector<size_t> binId( dat.size() );
+         for ( size_t n = 0; n < dat.size(); ++n )
             binId[ n ] = nbBins - 1;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            ui32 sclass = dat[ n ].output;
-            for ( ui32 nn = 0; nn < nbBins; ++nn )
+            size_t sclass = dat[ n ].output;
+            for ( size_t nn = 0; nn < nbBins; ++nn )
             {
-               ui32 bin = nn;
+               size_t bin = nn;
                if ( ( bin != nbBins - 1 ) && remaining[ bin ][ sclass ] )
                {
                   --remaining[ bin ][ sclass ];

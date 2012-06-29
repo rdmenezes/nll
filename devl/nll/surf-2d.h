@@ -73,16 +73,16 @@ namespace algorithm
       {
          //typedef core::Buffer1D<value_type> Features;
          typedef std::vector<value_type> Features;
-         Point( core::vector2i p, ui32 s ) : position( p ), scale( s ), features( (ui32)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) ), weight( 1 )
+         Point( core::vector2i p, size_t s ) : position( p ), scale( s ), features( (size_t)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) ), weight( 1 )
          {}
 
-         Point() : features( (ui32)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) )   
+         Point() : features( (size_t)(4 * NLL_SURF_2D_NB_AREA_PER_FEATURE * NLL_SURF_2D_NB_AREA_PER_FEATURE) )   
          {}
 
          Features                   features;
          value_type                 orientation;
          core::vector2i             position;
-         ui32                       scale;
+         size_t                       scale;
          float                      weight;        // this will be used to weight the points in the <AffineRegistrationPointBased2d>. By default the algorithm will set it to 1, but a third party could change this value to give more weight to specific points
 
          void write( std::ostream& o ) const
@@ -90,7 +90,7 @@ namespace algorithm
             core::write<Features>( features, o );
             core::write<value_type>( orientation, o );
             position.write( o );
-            core::write<ui32>( scale, o );
+            core::write<size_t>( scale, o );
             core::write<float>( weight, o );
          }
 
@@ -99,7 +99,7 @@ namespace algorithm
             core::read<Features>( features, i );
             core::read<value_type>( orientation, i );
             position.read( i );
-            core::read<ui32>( scale, i );
+            core::read<size_t>( scale, i );
             core::read<float>( weight, i );
          }
       };
@@ -119,12 +119,12 @@ namespace algorithm
          PointsFeatureWrapper( const Points& points ) : _points( points )
          {}
 
-         ui32 size() const
+         size_t size() const
          {
-            return static_cast<ui32>( _points.size() );
+            return static_cast<size_t>( _points.size() );
          }
 
-         const std::vector<SpeededUpRobustFeatures::value_type>& operator[]( ui32 n ) const
+         const std::vector<SpeededUpRobustFeatures::value_type>& operator[]( size_t n ) const
          {
             return _points[ n ].features;
          }
@@ -143,14 +143,14 @@ namespace algorithm
        @param intervals the number of intervals per octave This increase the filter linearly
        @param threshold the minimal threshold of the hessian. The lower, the more features (but less robust) will be detected
        */
-      SpeededUpRobustFeatures( ui32 octaves = 5, ui32 intervals = 4, ui32 init_step = 2, value_type threshold = 0.00012 ) : _threshold( threshold )
+      SpeededUpRobustFeatures( size_t octaves = 5, size_t intervals = 4, size_t init_step = 2, value_type threshold = 0.00012 ) : _threshold( threshold )
       {
-         ui32 step = init_step;
-         for ( ui32 o = 1; o <= octaves; ++o )
+         size_t step = init_step;
+         for ( size_t o = 1; o <= octaves; ++o )
          {
-            for ( ui32 i = 1; i <= intervals; ++i )
+            for ( size_t i = 1; i <= intervals; ++i )
             {
-               const ui32 filterSize = core::round( 3 * ( std::pow( 2.0, (int)o ) * i + 1 ) );
+               const size_t filterSize = core::round( 3 * ( std::pow( 2.0, (int)o ) * i + 1 ) );
                
                if ( _filterSizes.size() == 0 || *_filterSizes.rbegin() < filterSize )
                {
@@ -226,14 +226,14 @@ namespace algorithm
          // so for a filter of size X, sigma = 1.2 / 9 * X
          static const value_type scaleFactor = 1.2 / 9;
 
-         ui32 nbPoints = 0;
+         size_t nbPoints = 0;
 
          // each thread can work independently, so allocate an array og points that are not shared
          // between threads
          #ifndef NLL_NOT_MULTITHREADED
-            const ui32 maxNumberOfThread = omp_get_max_threads();
+            const size_t maxNumberOfThread = omp_get_max_threads();
          #else
-            const ui32 maxNumberOfThread = 1;
+            const size_t maxNumberOfThread = 1;
          #endif
          std::vector< std::vector<Point> > bins( maxNumberOfThread );
 
@@ -250,8 +250,8 @@ namespace algorithm
          timePyramid.start();
 
          ensure( pyramid.getPyramidDetHessian().size() > 1, "too small!" );
-         const ui32 nbFilters = static_cast<ui32>( pyramid.getPyramidDetHessian().size() ) - 1; // we don't want the last filter, it will never be "maximal"
-         for ( ui32 filter = 1; filter < nbFilters; ++filter )
+         const size_t nbFilters = static_cast<size_t>( pyramid.getPyramidDetHessian().size() ) - 1; // we don't want the last filter, it will never be "maximal"
+         for ( size_t filter = 1; filter < nbFilters; ++filter )
          {
             const Matrix& f = pyramid.getPyramidDetHessian()[ filter ];
             const int sizex = static_cast<int>( f.sizex() ) - 1;
@@ -283,7 +283,7 @@ namespace algorithm
                                          fabs( interpolatedPoint[ 1 ] ) < 0.5 &&
                                          fabs( interpolatedPoint[ 2 ] ) < 0.5 )
                         {
-                           const int size = _filterSizes[ filter ];
+                           const int size = static_cast<int>( _filterSizes[ filter ] );
                            // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                            const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
@@ -296,9 +296,9 @@ namespace algorithm
                               continue;   // should not happen, but just in case!
 
                            #ifndef NLL_NOT_MULTITHREADED
-                           ui32 threadId = omp_get_thread_num();
+                           size_t threadId = omp_get_thread_num();
                            #else
-                           ui32 threadId = 0;
+                           size_t threadId = 0;
                            #endif
                            bins[ threadId ].push_back( Point( core::vector2i( px, py ), scale ) );
 
@@ -317,7 +317,7 @@ namespace algorithm
          }
 
          Points points( nbPoints );
-         ui32 cur = 0;
+         size_t cur = 0;
          for ( size_t bin = 0; bin < bins.size(); ++bin )
          {
             for ( size_t p = 0; p < bins[ bin ].size(); ++p )
@@ -330,7 +330,7 @@ namespace algorithm
       
       void _computeFeatures( const IntegralImage& image, Points& points ) const
       {
-         int nbPoints = static_cast<ui32>( points.size() );
+         const int nbPoints = static_cast<int>( points.size() );
          const value_type area_size = NLL_SURF_2D_NB_AREA_PER_FEATURE_SIZE / NLL_SURF_2D_NB_AREA_PER_FEATURE;
          const value_type area_pos_min = - NLL_SURF_2D_NB_AREA_PER_FEATURE / 2 * area_size;
          const value_type area_pos_max =   NLL_SURF_2D_NB_AREA_PER_FEATURE / 2 * area_size;
@@ -344,7 +344,7 @@ namespace algorithm
          {
             Point& point = points[ n ];
 
-            const value_type scale = point.scale;
+            const value_type scale = static_cast<value_type>( point.scale );
 
             const value_type x = point.position[ 0 ];
             const value_type y = point.position[ 1 ];
@@ -364,7 +364,7 @@ namespace algorithm
             cov2( 1, 1 ) = core::sqr( 3.3 * scale * 2  );
             GaussianPdf gauss2( cov2, core::make_buffer1D<value_type>( 0, 0 ) );
 
-            ui32 count = 0;
+            size_t count = 0;
             value_type len = 0;
 
             // (i, j) the bottom left corners of the 4x4 area, in the unrotated space
@@ -437,7 +437,7 @@ namespace algorithm
 
             //Convert to Unit Vector
             len = (sqrt( len ) + 1e-7);
-            for( ui32 i = 0; i < point.features.size(); ++i )
+            for( size_t i = 0; i < point.features.size(); ++i )
                point.features[ i ] /= len;
          }
       }
@@ -464,7 +464,7 @@ namespace algorithm
          for ( int n = 0; n < nbPoints; ++n )
          {
             const Point& point = points[ n ];
-            const int scale = point.scale;
+            const int scale = static_cast<int>( point.scale );
 
             std::vector<LocalPoint> localPoints;
             localPoints.reserve( 109 );
@@ -533,7 +533,7 @@ namespace algorithm
             {
                double dx = 0;
                double dy = 0;
-               ui32 nbPoints = 0;
+               size_t nbPoints = 0;
             
 
                const double angleMax = ( angleMin > 2 * core::PI - window ) ? ( angleMin + window - 2 * core::PI ) : ( angleMin + window );
@@ -610,8 +610,8 @@ namespace algorithm
       };
 
    private:
-      std::vector<ui32> _filterSizes;
-      std::vector<ui32> _filterSteps;
+      std::vector<size_t> _filterSizes;
+      std::vector<size_t> _filterSteps;
       value_type        _threshold;
    };
 }

@@ -45,12 +45,12 @@ namespace core
    template <class T>
    struct BinaryAdd
    {
-      inline void operator()(const T* c1, const T* c2, T* out, ui32 comp ) const
+      inline void operator()(const T* c1, const T* c2, T* out, size_t comp ) const
       {
-         for ( ui32 n = 0; n < comp; ++n )
+         for ( size_t n = 0; n < comp; ++n )
          {
             f32 sum = static_cast<f32>( c1[ n ] ) + static_cast<f32>( c2[ n ] );
-            out[ n ] = (T)NLL_BOUND( sum, Bound<T>::min, Bound<T>::max );
+            out[ n ] = (T)NLL_BOUND( sum, std::numeric_limits<T>::min(), std::numeric_limits<T>::max() );
          }
       }
    };
@@ -62,12 +62,12 @@ namespace core
    template <class T>
    struct BinarySub
    {
-      inline void operator()(const T* c1, const T* c2, T* out, ui32 comp ) const
+      inline void operator()(const T* c1, const T* c2, T* out, size_t comp ) const
       {
-         for ( ui32 n = 0; n < comp; ++n )
+         for ( size_t n = 0; n < comp; ++n )
          {
             f32 sum = static_cast<f32>( c1[ n ] ) - static_cast<f32>( c2[ n ] );
-            out[ n ] = (T)NLL_BOUND( sum, Bound<T>::min, Bound<T>::max );
+            out[ n ] = (T)NLL_BOUND( sum, std::numeric_limits<T>::min(), std::numeric_limits<T>::max() );
          }
       }
    };
@@ -79,9 +79,9 @@ namespace core
    template <class T>
    struct BinaryMax
    {
-      inline void operator()(const T* c1, const T* c2, T* out, ui32 comp ) const
+      inline void operator()(const T* c1, const T* c2, T* out, size_t comp ) const
       {
-         for ( ui32 n = 0; n < comp; ++n )
+         for ( size_t n = 0; n < comp; ++n )
          {
             f32 sum = static_cast<f32>( c1[ n ] ) + static_cast<f32>( c2[ n ] );
             out[ n ] = std::max( c1[ n ], c2[ n ] );
@@ -96,9 +96,9 @@ namespace core
    template <class T>
    struct BinaryMin
    {
-      inline void operator()(const T* c1, const T* c2, T* out, ui32 comp ) const
+      inline void operator()(const T* c1, const T* c2, T* out, size_t comp ) const
       {
-         for ( ui32 n = 0; n < comp; ++n )
+         for ( size_t n = 0; n < comp; ++n )
          {
             f32 sum = static_cast<f32>( c1[ n ] ) + static_cast<f32>( c2[ n ] );
             out[ n ] = std::min( c1[ n ], c2[ n ] );
@@ -118,8 +118,8 @@ namespace core
       assert( img1.sizey() == img2.sizey() );
       assert( img1.getNbComponents() == img2.getNbComponents() );
 		Image<type, mapper, allocator> tmp( img1.sizex(), img1.sizey(), img1.getNbComponents(), false, alloc );
-		for ( ui32 y = 0; y < img1.sizey(); ++y )
-			for ( ui32 x = 0; x < img1.sizex(); ++x )
+		for ( size_t y = 0; y < img1.sizey(); ++y )
+			for ( size_t x = 0; x < img1.sizex(); ++x )
 			{
             const type* t1 = img1.point( x, y );
 			   const type* t2 = img2.point( x, y );

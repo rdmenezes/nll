@@ -62,12 +62,12 @@ namespace core
       core::Buffer1D<T> convolved( data.size(), false );
 
       // compute the "regular" sequence, i.e. in domain [kernelSize/2..dataSize-kernelSize/2]
-      const ui32 halfKernelSize = convolution.size() / 2;
-      const ui32 lastRegularIndex = data.size() - halfKernelSize;
-      for ( ui32 n = halfKernelSize; n < lastRegularIndex; ++n )
+      const size_t halfKernelSize = convolution.size() / 2;
+      const size_t lastRegularIndex = data.size() - halfKernelSize;
+      for ( size_t n = halfKernelSize; n < lastRegularIndex; ++n )
       {
          T accum = 0;
-         for ( ui32 nn = 0; nn < convolution.size(); ++nn )
+         for ( size_t nn = 0; nn < convolution.size(); ++nn )
          {
             accum += data[ n - halfKernelSize + nn ] * convolution[ nn ];
          }
@@ -83,7 +83,7 @@ namespace core
       {
          // accum holds the total kernel weight that fits in
          T accum = std::accumulate( convolution.begin() + halfKernelSize + 1, convolution.end(), (T)0.0 ); // we have at least half the filter
-         for ( ui32 n = 0; n < halfKernelSize; ++n )
+         for ( size_t n = 0; n < halfKernelSize; ++n )
          {
             accum += convolution[ halfKernelSize - n ]; 
             maxRegularizationLeft[ n ] = 1.0 / accum;
@@ -93,7 +93,7 @@ namespace core
       {
          // accum holds the total kernel weight that fits in
          T accum = std::accumulate( convolution.begin(), convolution.begin() + halfKernelSize, (T)0.0 ); // we have at least half the filter
-         for ( ui32 n = 0; n < halfKernelSize; ++n )
+         for ( size_t n = 0; n < halfKernelSize; ++n )
          {
             accum += convolution[ halfKernelSize + n ]; 
             maxRegularizationRight[ n ] = 1.0 / accum;
@@ -101,12 +101,12 @@ namespace core
       }
 
       // now take care of the sides, they will be more noisy as we are only using part of the kernel...
-      for ( ui32 n = 0; n < halfKernelSize; ++n )
+      for ( size_t n = 0; n < halfKernelSize; ++n )
       {
          // left side
          {
             T accum = 0;
-            for ( ui32 nn = 0; nn <= halfKernelSize + n; ++nn )
+            for ( size_t nn = 0; nn <= halfKernelSize + n; ++nn )
             {
                accum += convolution[ nn + halfKernelSize - n ] * data[ nn ];
             }
@@ -116,7 +116,7 @@ namespace core
          // right side
          {
             T accum = 0;
-            for ( ui32 nn = 0; nn <= halfKernelSize + n; ++nn )
+            for ( size_t nn = 0; nn <= halfKernelSize + n; ++nn )
             {
                accum += convolution[ n + halfKernelSize - nn ] * data[ data.size() - nn - 1 ];
             }

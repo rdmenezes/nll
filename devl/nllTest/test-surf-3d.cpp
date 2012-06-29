@@ -36,7 +36,7 @@ public:
       algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesFeatures( volume );
       std::cout << "nbPoints=" << points.size() << std::endl;
       std::ofstream f( "c:/tmp/points.txt" );
-      for ( ui32 n = 0; n < points.size(); ++n )
+      for ( size_t n = 0; n < points.size(); ++n )
       {
          const core::vector3f point = volume.indexToPosition( core::vector3f( points[ n ].position[ 0 ],
                                                                               points[ n ].position[ 1 ],
@@ -139,7 +139,7 @@ public:
       }
 
       // test identity
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
          const core::vector3d p( core::generateUniformDistribution( -100, 100 ),
                                  core::generateUniformDistribution( -100, 100 ),
@@ -155,7 +155,7 @@ public:
 
    void testRotation3d()
    {
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
          const double a1 = core::generateUniformDistribution( -core::PI, core::PI );
          const double a2 = core::generateUniformDistribution( -core::PI, core::PI );

@@ -44,14 +44,14 @@ namespace core
     @return a vector
     */
    template <class type, class mapper, class allocator>
-	inline Buffer1D<type> meanRow(const Matrix<type, mapper, allocator>& vec, ui32 start, ui32 end)
+	inline Buffer1D<type> meanRow(const Matrix<type, mapper, allocator>& vec, size_t start, size_t end)
 	{
 		assert(start < vec.sizey() && end < vec.sizey() && start <= end);
 		Buffer1D<type> mean(vec.sizex());
-		for (ui32 ny = start; ny <= end; ++ny)
-			for (ui32 nx = 0; nx < vec.sizex(); ++nx)
+		for (size_t ny = start; ny <= end; ++ny)
+			for (size_t nx = 0; nx < vec.sizex(); ++nx)
 				mean(nx) += vec(ny, nx);
-		generic_div_cte<type*>(mean.getBuf(), end - start + 1, vec.sizex());
+		generic_div_cte<type*>(mean.getBuf(), static_cast<double>( end - start + 1 ), vec.sizex() );
 		return mean;
 	}
 
@@ -61,14 +61,14 @@ namespace core
     @return a vector
     */
    template <class type, class mapper, class allocator>
-	inline Buffer1D<type> meanCol(const Matrix<type, mapper, allocator>& vec, ui32 start, ui32 end)
+	inline Buffer1D<type> meanCol(const Matrix<type, mapper, allocator>& vec, size_t start, size_t end)
 	{
 		assert(start < vec.sizex() && end < vec.sizex() && start <= end);
 		Buffer1D<type> mean(vec.sizey());
-		for (ui32 ny = 0; ny < vec.sizey(); ++ny)
-         for (ui32 nx = start; nx <= end; ++nx)
+		for (size_t ny = 0; ny < vec.sizey(); ++ny)
+         for (size_t nx = start; nx <= end; ++nx)
 				mean(ny) += vec(ny, nx);
-		generic_div_cte<type*>(mean.getBuf(), end - start + 1, vec.sizey());
+		generic_div_cte<type*>(mean.getBuf(), static_cast<double>( end - start + 1 ), vec.sizey());
 		return mean;
 	}
 
@@ -86,25 +86,25 @@ namespace core
     @note the matrix is symetric, so only compute upper triangular and copy the lower one
     */
    template <class type, class mapper, class allocator>
-	inline Matrix<type, mapper, allocator> covariance(const Matrix<type, mapper, allocator>& vec, ui32 start, ui32 end, Buffer1D<type>* exportedMean = 0)
+	inline Matrix<type, mapper, allocator> covariance(const Matrix<type, mapper, allocator>& vec, size_t start, size_t end, Buffer1D<type>* exportedMean = 0)
 	{
       assert( vec.sizey() );
 
 		Matrix<type, mapper, allocator> cov(vec.sizex(), vec.sizex());
 		Buffer1D<type> mean = meanRow(vec, start, end);
-		for (ui32 i = 0; i < vec.sizex(); ++i)
+		for (size_t i = 0; i < vec.sizex(); ++i)
       {
          // compute upper triangular
-			for (ui32 j = i; j < vec.sizex(); ++j)
+			for (size_t j = i; j < vec.sizex(); ++j)
 			{
 				type sum = 0;
-				for (ui32 k = start; k <= end; ++k)
+				for (size_t k = start; k <= end; ++k)
 					sum += (vec(k, i) - mean(i)) * (vec(k, j) - mean(j));
 				cov(i, j) = sum / (type)(end - start + 1 - 1);
 			}
 
          // copy lower triangular
-         for (ui32 j = 0; j < i; ++j)
+         for (size_t j = 0; j < i; ++j)
          {
             cov(i, j) = cov(j, i);
          }
@@ -130,19 +130,19 @@ namespace core
       assert( vec.sizey() );
 
 		Matrix<type, mapper, allocator> cov( vec.sizex(), vec.sizex() );
-		for ( ui32 i = 0; i < vec.sizex(); ++i )
+		for ( size_t i = 0; i < vec.sizex(); ++i )
       {
          // compute upper triangular
-			for ( ui32 j = i; j < vec.sizex(); ++j )
+			for ( size_t j = i; j < vec.sizex(); ++j )
 			{
 				type sum = 0;
-				for ( ui32 k = 0; k < vec.sizey(); ++k )
+				for ( size_t k = 0; k < vec.sizey(); ++k )
 					sum += vec( k, i ) * vec( k, j );
 				cov( i, j ) = sum / (type)( vec.sizey() );
 			}
 
          // copy lower triangular
-         for (ui32 j = 0; j < i; ++j)
+         for (size_t j = 0; j < i; ++j)
          {
             cov(i, j) = cov(j, i);
          }
@@ -168,17 +168,17 @@ namespace core
 	{
       if ( points.size() == 0 )
          return Output();
-      const ui32 nbFeatures = static_cast<ui32>( points[ 0 ].size() );
+      const size_t nbFeatures = static_cast<size_t>( points[ 0 ].size() );
       Output mean( nbFeatures );
 
-		for (ui32 ny = 0; ny < points.size(); ++ny)
+		for (size_t ny = 0; ny < points.size(); ++ny)
       {
-			for (ui32 nx = 0; nx < nbFeatures; ++nx)
+			for (size_t nx = 0; nx < nbFeatures; ++nx)
          {
 				mean[ nx ] += points[ ny ][ nx ];
          }
       }
-      for (ui32 nx = 0; nx < nbFeatures; ++nx)
+      for (size_t nx = 0; nx < nbFeatures; ++nx)
       {
          mean[ nx ] /= points.size();
       }
@@ -195,23 +195,23 @@ namespace core
       assert( points.size() );
       if ( points.size() == 0 )
          return Matrix<double>();
-      const ui32 nbFeatures = (ui32)points[ 0 ].size();
+      const size_t nbFeatures = (size_t)points[ 0 ].size();
 
 		Matrix<double> cov( nbFeatures, nbFeatures );
 		OutputMean mean = meanData<PointsRow, OutputMean>( points );
-		for (ui32 i = 0; i < nbFeatures; ++i)
+		for (size_t i = 0; i < nbFeatures; ++i)
       {
          // compute upper triangular
-			for (ui32 j = i; j < nbFeatures; ++j)
+			for (size_t j = i; j < nbFeatures; ++j)
 			{
 				double sum = 0;
-				for (ui32 k = 0; k < points.size(); ++k)
+				for (size_t k = 0; k < points.size(); ++k)
 					sum += ( points[ k ][ i ] - mean[ i ] ) * ( points[ k ][ j ] - mean[ j ] );
 				cov( i, j ) = sum / points.size();
 			}
 
          // copy lower triangular
-         for ( ui32 j = 0; j < i; ++j )
+         for ( size_t j = 0; j < i; ++j )
          {
             cov( i, j ) = cov( j, i );
          }
@@ -227,28 +227,28 @@ namespace core
     @note IMPORTANT it is assumed the mean of the indexed points is 0
     */
    template <class Points>
-   Matrix<double> covariance( const Points& points, const std::vector<ui32>& index )
+   Matrix<double> covariance( const Points& points, const std::vector<size_t>& index )
    {
       if ( index.size() == 0 || points.size() == 0 )
          return Matrix<double>();
-      const ui32 nbFeatures = points[ 0 ].size();
+      const size_t nbFeatures = points[ 0 ].size();
       Matrix<double> cov( nbFeatures, nbFeatures );
-		for (ui32 i = 0; i < nbFeatures; ++i)
+		for (size_t i = 0; i < nbFeatures; ++i)
       {
          // compute upper triangular
-			for (ui32 j = i; j < nbFeatures; ++j)
+			for (size_t j = i; j < nbFeatures; ++j)
 			{
 				double sum = 0;
-				for (ui32 k = 0; k < index.size(); ++k)
+				for (size_t k = 0; k < index.size(); ++k)
             {
-               const ui32 p = index[ k ];
+               const size_t p = index[ k ];
 					sum += ( points[ p ][ i ] ) * ( points[ p ][ j ] );
             }
 				cov( i, j ) = sum / index.size();
 			}
 
          // copy lower triangular
-         for ( ui32 j = 0; j < i; ++j )
+         for ( size_t j = 0; j < i; ++j )
          {
             cov( i, j ) = cov( j, i );
          }
@@ -269,8 +269,8 @@ namespace core
 
       // constants
       ensure( p1.size() == p2.size() && p2.size() > 0, "must be pair of points, not empty" );   
-      const ui32 nbPoints = static_cast<ui32>( p1.size() );
-      const ui32 nbDim = static_cast<ui32>( p1[ 0 ].size() );
+      const size_t nbPoints = static_cast<size_t>( p1.size() );
+      const size_t nbDim = static_cast<size_t>( p1[ 0 ].size() );
       ensure( p2[ 0 ].size() == nbDim, "must be the same dimension" );
 
       // processing
@@ -279,12 +279,12 @@ namespace core
 
       // compute the covariance
       Matrix cov( nbDim, nbDim, false );
-      for ( ui32 i = 0; i < nbDim; ++i )
+      for ( size_t i = 0; i < nbDim; ++i )
       {
-         for ( ui32 j = 0; j < nbDim; ++j )
+         for ( size_t j = 0; j < nbDim; ++j )
          {
             double accum = 0;
-            for ( ui32 k = 0; k < nbPoints; ++k )
+            for ( size_t k = 0; k < nbPoints; ++k )
             {
                accum += ( p1[ k ][ i ] - mean1[ i ] ) * ( p2[ k ][ j ] - mean2[ j ] );
             }

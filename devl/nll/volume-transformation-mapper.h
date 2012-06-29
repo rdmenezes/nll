@@ -56,11 +56,11 @@ namespace imaging
       {}
 
       // called for each slice
-      void startSlice( ui32 sliceId )
+      void startSlice( size_t sliceId )
       {}
 
       // called after each slice
-      void endSlice( ui32 sliceId )
+      void endSlice( size_t sliceId )
       {}
 
       // called as soon as the volume mapper ended the mapping process
@@ -167,7 +167,7 @@ namespace imaging
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
                                                         originInTarget[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
+            for ( size_t y = 0; y < resampled.sizey(); ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
@@ -179,7 +179,7 @@ namespace imaging
                   0
                };
 
-               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
+               for ( size_t x = 0; x < resampled.sizex(); ++x )
                {
                   proc.process( voxelIt, voxelPosSrc );
 
@@ -282,7 +282,7 @@ namespace imaging
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
                                                         originInTarget[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
+            for ( size_t y = 0; y < resampled.sizey(); ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
@@ -294,7 +294,7 @@ namespace imaging
                   0
                };
 
-               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
+               for ( size_t x = 0; x < resampled.sizex(); ++x )
                {
                   proc.process( core::vector3ui( x, y, z ), voxelPosSrc );
 

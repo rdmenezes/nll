@@ -229,11 +229,11 @@ namespace algorithm
        @note if dataRatioToUsePerCycle != 1 the algorithm doesn't converge...
        */
       template <class Points>
-      void compute( const Points& points, ui32 nbSource, double step = 0.1, ui32 runReorthogonalizationEveryXCycle = 1, double epsilon = 1e-6, ui32 maxNumOfCycles = 1000 )
+      void compute( const Points& points, size_t nbSource, double step = 0.1, size_t runReorthogonalizationEveryXCycle = 1, double epsilon = 1e-6, size_t maxNumOfCycles = 1000 )
       {
          if ( points.size() == 0 )
             return;
-         const ui32 nbDim = static_cast<ui32>( points[ 0 ].size() );
+         const size_t nbDim = static_cast<size_t>( points[ 0 ].size() );
          ensure( nbSource <= nbDim, "you can't have more source than signals" );
          _unmixingSignal.clear();
 
@@ -244,19 +244,19 @@ namespace algorithm
          std::vector<typename Points::value_type> normalizedPoints;
          _whitening( points, normalizedPoints );
 
-         const ui32 nbSamples = static_cast<ui32>( normalizedPoints.size() );
+         const size_t nbSamples = static_cast<size_t>( normalizedPoints.size() );
          if ( nbSamples == 0 )
             throw std::runtime_error( "no sample selected!" );
 
          Vectors unmixing;
          unmixing.reserve( nbSource );
-         for ( ui32 source = 0; source < nbSource; ++source )
+         for ( size_t source = 0; source < nbSource; ++source )
          {
             // init of the source, initialize a vector with random small values
             unmixing.push_back( _generateRandomVector( nbDim ) );
 
             // run the cycle
-            for ( ui32 cycle = 0; cycle < maxNumOfCycles; ++cycle )
+            for ( size_t cycle = 0; cycle < maxNumOfCycles; ++cycle )
             {
                Vector oldMixing;
                oldMixing.clone( unmixing[ source ] );
@@ -264,16 +264,16 @@ namespace algorithm
                std::vector<double> meanA( nbDim );
                double meanB = 0;
                double beta = 0;
-               for ( ui32 sample = 0; sample < nbSamples; ++sample )
+               for ( size_t sample = 0; sample < nbSamples; ++sample )
                {
                   // accum = w^t * x
                   double accum = 0;
-                  for ( ui32 nn = 0; nn < nbDim; ++nn )
+                  for ( size_t nn = 0; nn < nbDim; ++nn )
                      accum += unmixing[ source ][ nn ] * normalizedPoints[ sample ][ nn ];
 
                   const double gwx = _contrast.evaluate( accum );
                   const double gderivwx = _contrast.evaluateDerivative( accum );
-                  for ( ui32 nn = 0; nn < nbDim; ++nn )
+                  for ( size_t nn = 0; nn < nbDim; ++nn )
                   {
                      meanA[ nn ] += normalizedPoints[ sample ][ nn ] * gwx;
                   }
@@ -283,7 +283,7 @@ namespace algorithm
 
                // compute the mean value
                beta /= nbSamples;
-               for ( ui32 nn = 0; nn < nbDim; ++nn )
+               for ( size_t nn = 0; nn < nbDim; ++nn )
                {
                   meanA[ nn ] /= nbSamples;
                }
@@ -291,7 +291,7 @@ namespace algorithm
 
                // update the mixing matrix
                double norm = 0;
-               for ( ui32 nn = 0; nn < nbDim; ++nn )
+               for ( size_t nn = 0; nn < nbDim; ++nn )
                {
                   const double val = unmixing[ source ][ nn ] - step * ( meanA[ nn ] - beta * unmixing[ source ][ nn ] ) / ( meanB - beta );
                   //const double val = meanA[ nn ] - meanB * unmixing[ source ][ nn ];
@@ -303,7 +303,7 @@ namespace algorithm
                // normalize the source
                norm = sqrt( norm );
                ensure( norm, "null norm!" );
-               for ( ui32 nn = 0; nn < nbDim; ++nn )
+               for ( size_t nn = 0; nn < nbDim; ++nn )
                {
                   unmixing[ source ][ nn ] /= norm;
                }
@@ -329,7 +329,7 @@ namespace algorithm
          // rotate the unmixing matrix
          Vectors unmixingR;
          unmixingR.reserve( nbSource );
-         for ( ui32 source = 0; source < nbSource; ++source )
+         for ( size_t source = 0; source < nbSource; ++source )
          {
             Vector w = unmixing[ source ];
             w = Matrix( w, 1, w.size() ) * _pca.getProjection();
@@ -337,22 +337,22 @@ namespace algorithm
             unmixingR.push_back( w );
          }
 
-         for ( ui32 source = 0; source < nbSource; ++source )
+         for ( size_t source = 0; source < nbSource; ++source )
          {
             std::stringstream sss;
             sss << " umixing source tfm=" << source << " cycle=";
-            for ( ui32 dim = 0; dim < nbDim; ++dim )
+            for ( size_t dim = 0; dim < nbDim; ++dim )
             {
                sss << unmixing[ source ][ dim ] << " ";
             }
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sss.str() );
          }
 
-         for ( ui32 source = 0; source < nbSource; ++source )
+         for ( size_t source = 0; source < nbSource; ++source )
          {
             std::stringstream sss;
             sss << " umixing source tfm rot=" << source << " cycle=";
-            for ( ui32 dim = 0; dim < nbDim; ++dim )
+            for ( size_t dim = 0; dim < nbDim; ++dim )
             {
                sss << unmixingR[ source ][ dim ] << " ";
             }
@@ -370,18 +370,18 @@ namespace algorithm
       {
          assert( _unmixingSignal.size() /*&& _unmixingSignal[ 0 ].size() == p.size()*/ );
 
-         const ui32 nbSources = static_cast<ui32>( _unmixingSignal.size() );
-         Vector input( static_cast<ui32>( p.size() ) );
-         for ( ui32 n = 0; n < p.size(); ++n )
+         const size_t nbSources = static_cast<size_t>( _unmixingSignal.size() );
+         Vector input( static_cast<size_t>( p.size() ) );
+         for ( size_t n = 0; n < p.size(); ++n )
          {
             input[ n ] = p[ n ] - _pca.getMean()[ n ];
          }
 
          Point out( nbSources );
-         for ( ui32 src = 0; src < nbSources; ++src )
+         for ( size_t src = 0; src < nbSources; ++src )
          {
             Matrix proj( _unmixingSignal[ src ], 1, _unmixingSignal[ src ].size() );
-            Vector inputProj = proj * Matrix( input, (ui32)input.size(), 1 ) + proj * Matrix( _pca.getMean(), (ui32)p.size(), 1 );
+            Vector inputProj = proj * Matrix( input, (size_t)input.size(), 1 ) + proj * Matrix( _pca.getMean(), (size_t)p.size(), 1 );
             assert( inputProj.size() == 1 );
             out[ src ] = inputProj[ 0 ];
          }
@@ -430,15 +430,15 @@ namespace algorithm
 
          // rotate data
          PrincipalComponentAnalysis<Points> pca;
-         pca.compute( points, static_cast<ui32>( points[ 0 ].size() ) );
+         pca.compute( points, static_cast<size_t>( points[ 0 ].size() ) );
 
          Matrix mean = pca.getMean();
          Matrix transform( pca.getEigenValues().size(), mean.size() );
-         for ( ui32 y = 0; y < transform.sizex(); ++y )
+         for ( size_t y = 0; y < transform.sizex(); ++y )
          {
             ensure( fabs( pca.getEigenValues()[ pca.getPairs()[ y ].second ] ) >= 1e-12, "an eigen value is null! reduce the dimension" ); // TODO reduce the dimension automatically instead
             const double scaling = 1 / sqrt( pca.getEigenValues()[ pca.getPairs()[ y ].second ] );
-            for ( ui32 x = 0; x < transform.sizex(); ++x )
+            for ( size_t x = 0; x < transform.sizex(); ++x )
             {
                // we redimension the projection
                // each row in <transform> is a projection, from the higest EIV to the lowest
@@ -448,7 +448,7 @@ namespace algorithm
          
          _pca = PrincipalComponentAnalysis<Vectors>( mean, transform );
          PrincipalComponentAnalysis<Points> pcaTemp( mean, transform );
-         for ( ui32 n = 0; n < points.size(); ++n )
+         for ( size_t n = 0; n < points.size(); ++n )
          {
             out[ n ] = pcaTemp.process( points[ n ] );
          }
@@ -459,11 +459,11 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }
 
-      Vector _generateRandomVector( ui32 nbDim) const
+      Vector _generateRandomVector( size_t nbDim) const
       {
          Vector randomVector( nbDim );
          double accumRandom = 0;
-         for ( ui32 nn = 0; nn < nbDim; ++nn )
+         for ( size_t nn = 0; nn < nbDim; ++nn )
          {
             const double val = core::generateUniformDistribution( -0.1, 0.1 );
             accumRandom += val * val;

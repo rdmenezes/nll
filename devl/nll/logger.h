@@ -102,14 +102,14 @@ namespace core
        */
       ~_LoggerHandler()
       {
-         for ( ui32 n = 0; n < _loggers.size(); ++n )
+         for ( size_t n = 0; n < _loggers.size(); ++n )
             destroyLogger( n );
       }
 
       /**
        @brief destroy a specific logger
        */
-      void destroyLogger( const ui32 id )
+      void destroyLogger( const size_t id )
       {
 # ifndef NLL_NOT_MULTITHREADED
          #pragma omp critical
@@ -124,7 +124,7 @@ namespace core
       /**
        @brief retireve the instance of a specific logger
        */
-      LoggerBase& getLogger( const ui32 id )
+      LoggerBase& getLogger( const size_t id )
       {
          assert( id < _loggers.size() );
          return *_loggers[ id ];
@@ -135,16 +135,16 @@ namespace core
        @todo use a factory
        @return the id of the logger
        */
-      ui32 createFileLogger( const std::string& file )
+      size_t createFileLogger( const std::string& file )
       {
-         ui32 id = 0;
+         size_t id = 0;
 # ifndef NLL_NOT_MULTITHREADED
          #pragma omp critical
 # endif
          {
             LoggerBase* l = new LoggerFile( file );
             _loggers.push_back( l );
-            id = static_cast<ui32>( _loggers.size() - 1 );
+            id = static_cast<size_t>( _loggers.size() - 1 );
          }
          return id;
       }
@@ -196,12 +196,12 @@ namespace core
        */
       static LoggerBase& getLogger()
       {
-         static ui32 coreIdLogger = std::numeric_limits<ui32>::max();
-         if ( coreIdLogger == std::numeric_limits<ui32>::max() )
+         static size_t coreIdLogger = std::numeric_limits<size_t>::max();
+         if ( coreIdLogger == std::numeric_limits<size_t>::max() )
          {
             //#pragma omp critical
             {
-               if ( coreIdLogger == std::numeric_limits<ui32>::max() )
+               if ( coreIdLogger == std::numeric_limits<size_t>::max() )
                   coreIdLogger = LoggerHandler::instance().createFileLogger("nll.log");
             }
          }

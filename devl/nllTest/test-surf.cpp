@@ -52,12 +52,12 @@ public:
 
    void printPoints( core::Image<ui8>& output, algorithm::SpeededUpRobustFeatures::Points& points )
    {
-      for ( ui32 n = 0; n < points.size(); ++n )
+      for ( size_t n = 0; n < points.size(); ++n )
       {
-         ui32 px = points[ n ].position[ 0 ];
-         ui32 py = points[ n ].position[ 1 ];
-         ui32 scale = points[ n ].scale;
-         ui32 half = scale / 2;
+         size_t px = points[ n ].position[ 0 ];
+         size_t py = points[ n ].position[ 1 ];
+         size_t scale = points[ n ].scale;
+         size_t half = scale / 2;
 
          int dx = (int)(cos( points[ n ].orientation ) * half);
          int dy = (int)(sin( points[ n ].orientation ) * half);
@@ -79,17 +79,17 @@ public:
     @brief the similarity can be greater than 1 if the points are clustered with a distance < tolPixel
     */
    template <class Transformation>
-   std::vector< std::pair<ui32, ui32> > getRepeatablePointPosition( const algorithm::SpeededUpRobustFeatures::Points& p1,
+   std::vector< std::pair<size_t, size_t> > getRepeatablePointPosition( const algorithm::SpeededUpRobustFeatures::Points& p1,
                                                                     const algorithm::SpeededUpRobustFeatures::Points& p2,
                                                                     const Transformation& tfm,
                                                                     double tolPixel )
    {
-      std::vector< std::pair<ui32, ui32> > index;
+      std::vector< std::pair<size_t, size_t> > index;
       const double tolPixel2 = tolPixel * tolPixel;
 
-      for ( ui32 n1 = 0; n1 < (ui32)p1.size(); ++n1 )
+      for ( size_t n1 = 0; n1 < (size_t)p1.size(); ++n1 )
       {
-         for ( ui32 n2 = 0; n2 < (ui32)p2.size(); ++n2 )
+         for ( size_t n2 = 0; n2 < (size_t)p2.size(); ++n2 )
          {
             const algorithm::SpeededUpRobustFeatures::Point& t1 = p1[ n1 ];
             const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ n2 ];
@@ -111,20 +111,20 @@ public:
    }
 
    template <class Transformation>
-   std::vector< ui32 > getRepeatablePointOrientation( const std::vector< std::pair<ui32, ui32> >& match,
+   std::vector< size_t > getRepeatablePointOrientation( const std::vector< std::pair<size_t, size_t> >& match,
                                                       const algorithm::SpeededUpRobustFeatures::Points& p1,
                                                       const algorithm::SpeededUpRobustFeatures::Points& p2,
                                                       const Transformation& tfm,
                                                       double tol )
    {
 
-      std::vector< ui32 > matchOrientation;
-      for ( ui32 n = 0; n < (ui32)match.size(); ++n )
+      std::vector< size_t > matchOrientation;
+      for ( size_t n = 0; n < (size_t)match.size(); ++n )
       {
          const algorithm::SpeededUpRobustFeatures::Point& t1 = p1[ match[ n ].first ];
          const algorithm::SpeededUpRobustFeatures::Point& t2 = p2[ match[ n ].second ];
 
-         //const ui32 id2 = match[ n ].second;
+         //const size_t id2 = match[ n ].second;
          core::vector2f p( (f32)( 1000 * cos( t2.orientation ) ), 
                            (f32)( 1000 * sin( t2.orientation ) ) );
          core::vector2f pTfm = tfm( p );
@@ -146,9 +146,9 @@ public:
       output = core::Image<ui8>( i1.sizex() + i2.sizex(),
                                  std::max( i1.sizey(), i2.sizey() ),
                                  3 );
-      for ( ui32 y = 0; y < i1.sizey(); ++y )
+      for ( size_t y = 0; y < i1.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i1.sizex(); ++x )
+         for ( size_t x = 0; x < i1.sizex(); ++x )
          {
             output( x, y, 0 ) = i1( x, y, 0 );
             output( x, y, 1 ) = i1( x, y, 1 );
@@ -156,9 +156,9 @@ public:
          }
       }
 
-      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      for ( size_t y = 0; y < i2.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         for ( size_t x = 0; x < i2.sizex(); ++x )
          {
             output( x + i1.sizex(), y, 0 ) = i2( x, y, 0 );
             output( x + i1.sizex(), y, 1 ) = i2( x, y, 1 );
@@ -167,8 +167,8 @@ public:
       }
 
 
-      ui32 start = 0;
-      for ( ui32 n = 0; n < (ui32)matches.size(); ++n )
+      size_t start = 0;
+      for ( size_t n = 0; n < (size_t)matches.size(); ++n )
       {
          //std::cout << "d=" << matches[ n ].dist << std::endl;
          const algorithm::SpeededUpRobustFeatures::Point& f1 = p1[ matches[ n ].index1 ];
@@ -183,9 +183,9 @@ public:
       output = core::Image<ui8>( i1.sizex() + i2.sizex(),
                                  std::max( i1.sizey(), i2.sizey() ),
                                  3 );
-      for ( ui32 y = 0; y < i1.sizey(); ++y )
+      for ( size_t y = 0; y < i1.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i1.sizex(); ++x )
+         for ( size_t x = 0; x < i1.sizex(); ++x )
          {
             output( x, y, 0 ) = i1( x, y, 0 );
             output( x, y, 1 ) = i1( x, y, 1 );
@@ -193,9 +193,9 @@ public:
          }
       }
 
-      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      for ( size_t y = 0; y < i2.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         for ( size_t x = 0; x < i2.sizex(); ++x )
          {
             output( x + i1.sizex(), y, 0 ) = i2( x, y, 0 );
             output( x + i1.sizex(), y, 1 ) = i2( x, y, 1 );
@@ -204,8 +204,8 @@ public:
       }
 
 
-      ui32 start = 0;
-      for ( ui32 n = 0; n < (ui32)points.size(); ++n )
+      size_t start = 0;
+      for ( size_t n = 0; n < (size_t)points.size(); ++n )
       {
          const algorithm::SpeededUpRobustFeatures::Point& f1 = points[ n ].first;
          const algorithm::SpeededUpRobustFeatures::Point& f2 = points[ n ].second;
@@ -221,11 +221,11 @@ public:
       core::resampleNearestNeighbour( i1, output, tfm, black );
 
       double coef = 0.5;
-      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      for ( size_t y = 0; y < i2.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         for ( size_t x = 0; x < i2.sizex(); ++x )
          {
-            for ( ui32 c = 0; c < 3; ++c )
+            for ( size_t c = 0; c < 3; ++c )
             {
                const double val = ( (c==2) * i2( x, y, c ) * 2 + output( x, y, c ) );
                output( x, y, c ) = NLL_BOUND( val, 0, 255 );
@@ -264,7 +264,7 @@ public:
       double meanOrientationRepeatability = 0;
       double meanSimilarity = 0;
 
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
          // init
          core::Image<ui8> image( NLL_TEST_PATH + path );
@@ -309,11 +309,11 @@ public:
          std::cout << "nbPOints=" << points1.size() << std::endl;
          std::cout << "nbPOints=" << points2.size() << std::endl;
 
-         std::vector< std::pair<ui32, ui32> > repeatablePointIndex = getRepeatablePointPosition( points1, points2, tfm, 4);
+         std::vector< std::pair<size_t, size_t> > repeatablePointIndex = getRepeatablePointPosition( points1, points2, tfm, 4);
          const double repatablePointRatio = (double)repeatablePointIndex.size() / std::max( points1.size(), points2.size() );
          std::cout << "similarity=" << repatablePointRatio << std::endl;
 
-         std::vector< ui32 > orientation = getRepeatablePointOrientation( repeatablePointIndex, points1, points2, tfm, 0.3 );
+         std::vector< size_t > orientation = getRepeatablePointOrientation( repeatablePointIndex, points1, points2, tfm, 0.3 );
          const double repeatbleOrientationRatio = (double)orientation.size() / repeatablePointIndex.size();
          std::cout << "repeatable orientation=" << repeatbleOrientationRatio << std::endl;
 
@@ -334,7 +334,7 @@ public:
    {
       const std::string rootOut = NLL_TEST_PATH "data/";
 
-      for ( ui32 n = 0; n < core::getStaticBufferSize( pairs ) / 2; ++n )
+      for ( size_t n = 0; n < core::getStaticBufferSize( pairs ) / 2; ++n )
       {
          // init
          core::Image<ui8> image( NLL_TEST_PATH + pairs[ 2 * n + 0 ] );
@@ -391,7 +391,7 @@ public:
          core::writeBmp( output2, rootOut + "o2-" + core::val2str(n) + ".bmp" );
 
          // take only the best subset...
-         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( 150, (ui32)matches.size() - 1 ) );
+         algorithm::impl::FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<size_t>( 150, (size_t)matches.size() - 1 ) );
 
          core::Image<ui8> output3;
          composeMatch( output, output2, output3, points1, points2, matchesTrimmed );
@@ -421,7 +421,7 @@ public:
    {
       const std::string rootOut = NLL_TEST_PATH "data/";
 
-      for ( ui32 n = 0; n < core::getStaticBufferSize( pairs ) / 2; ++n )
+      for ( size_t n = 0; n < core::getStaticBufferSize( pairs ) / 2; ++n )
       {
          std::cout << "Registration=" << n << std::endl;
          // init
@@ -490,16 +490,16 @@ public:
                bool loaded = nll::imaging::loadSimpleFlatFile( inputDir + file, ct1 );
                if ( loaded )
                {
-                  ui32 normSizeY;
-                  ui32 normSizeX;
+                  size_t normSizeY;
+                  size_t normSizeX;
                   core::Image<ui8> py3 = algorithm::AffineRegistrationCT3d<>::projectImageZ( ct1, lut, normSizeY, normSizeX );
                   core::extend( py3, 3 );
                   int ymax = algorithm::AffineRegistrationCT3d<>::findTableY( py3 );
                   if ( ymax > 0 )
                   {
-                     for ( ui32 x = 0; x < py3.sizex(); ++x )
+                     for ( size_t x = 0; x < py3.sizex(); ++x )
                      {
-                        for ( ui32 y = ymax; y < py3.sizey(); ++y )
+                        for ( size_t y = ymax; y < py3.sizey(); ++y )
                         {
                            py3( x, y, 0 ) = 0;
                            py3( x, y, 1 ) = 0;
@@ -535,7 +535,7 @@ public:
    {
       const std::string outputDir = "c:/tmp/proj/";
       int n = 0;
-      for ( ui32 n = 0; n < 2004; ++n )
+      for ( size_t n = 0; n < 2004; ++n )
       {
          std::cout << "reg=" << n << std::endl;
          core::Image<ui8> py1;
@@ -560,8 +560,8 @@ public:
             core::Image<ui8> outputReg;
             //regTfm( 0 , 2 ) = 0;
             /*
-            for ( ui32 y = 0; y < 2; ++y )
-               for ( ui32 x = 0; x < 2; ++x )
+            for ( size_t y = 0; y < 2; ++y )
+               for ( size_t x = 0; x < 2; ++x )
                   regTfm( y, x ) = x == y;
                   */
             regTfm.print( std::cout );
@@ -821,18 +821,18 @@ public:
          Volume target;
          imaging::loadSimpleFlatFile( inDir + line2, target );
          
-         ui32 nbSlices = 50 + ( rand() % 10 );
-         ui32 position = target.size()[ 2 ] / 2;
+         size_t nbSlices = 50 + ( rand() % 10 );
+         size_t position = target.size()[ 2 ] / 2;
          Volume part( core::vector3ui( target.size()[ 0 ],
                                        target.size()[ 1 ],
                                        nbSlices ),
                       target.getPst() );
 
-         for ( ui32 z = 0; z < nbSlices; ++z )
+         for ( size_t z = 0; z < nbSlices; ++z )
          {
-            for ( ui32 x = 0; x < target.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < target.size()[ 0 ]; ++x )
             {
-               for ( ui32 y = 0; y < target.size()[ 1 ]; ++y )
+               for ( size_t y = 0; y < target.size()[ 1 ]; ++y )
                {
                   part( x, y, z ) = target( x, y, z + position );
                }
@@ -852,10 +852,10 @@ public:
       const std::string path = "data/feature/sq1.bmp";
       
       double meanErrorAngle = 0;
-      const ui32 nbCases = 10;
+      const size_t nbCases = 10;
 
 
-      for ( ui32 n = 0; n < nbCases; ++n )
+      for ( size_t n = 0; n < nbCases; ++n )
       {
          // init
          core::Image<ui8> image( NLL_TEST_PATH + path );
@@ -889,10 +889,10 @@ public:
          algorithm::SpeededUpRobustFeatures surf( 5, 6, 2, 0.0011 );
          algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
 
-         std::vector<ui32> index;
+         std::vector<size_t> index;
          std::vector<core::vector3ui> sourcePoint;
          std::vector<core::vector3ui> targetPoint;
-         for ( ui32 n = 0; n < points1.size(); ++n )
+         for ( size_t n = 0; n < points1.size(); ++n )
          {
           //  if ( oi1( points1[ n ].position[ 0 ], points1[ n ].position[ 1 ], 0 ) > 100 )
             {
@@ -909,7 +909,7 @@ public:
             }
          }
 
-         for ( ui32 n = 0; n < sourcePoint.size(); ++n )
+         for ( size_t n = 0; n < sourcePoint.size(); ++n )
          {
             oi1( sourcePoint[ n ][ 0 ], sourcePoint[ n ][ 1 ], 2 ) = 255;
             oi1( sourcePoint[ n ][ 0 ], sourcePoint[ n ][ 1 ], 1 ) = 0;
@@ -926,8 +926,8 @@ public:
          surf.computesFeatures( image, transformed );
 
          float errorAngle = 0;
-         ui32 nbAngles = 0;
-         for ( ui32 n = 0; n < transformed.size(); ++n )
+         size_t nbAngles = 0;
+         for ( size_t n = 0; n < transformed.size(); ++n )
          {
             if ( !core::equal<float>( transformed[ n ].orientation, 0, 1e-3 ) )
             {

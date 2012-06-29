@@ -46,23 +46,23 @@ namespace algorithm
       class ObservationsConstAdaptor
       {
       public:
-         typedef std::vector< std::vector< std::pair<ui32, ui32> > >     Map;
+         typedef std::vector< std::vector< std::pair<size_t, size_t> > >     Map;
          typedef typename ArrayArrayPair::value_type::value_type         value_type;
 
       public:
-         ObservationsConstAdaptor( const Map& map, const ArrayArrayPair& mapValues, ui32 state ) : _map( map ), _mapValues( mapValues ), _state( state )
+         ObservationsConstAdaptor( const Map& map, const ArrayArrayPair& mapValues, size_t state ) : _map( map ), _mapValues( mapValues ), _state( state )
          {
             // nothing to do
          }
 
-         ui32 size() const
+         size_t size() const
          {
-            return static_cast<ui32>( _map[ _state ].size() );
+            return static_cast<size_t>( _map[ _state ].size() );
          }
 
-         const value_type& operator[]( ui32 n ) const
+         const value_type& operator[]( size_t n ) const
          {
-            const std::pair<ui32, ui32> index = _map[ _state ][ n ];
+            const std::pair<size_t, size_t> index = _map[ _state ][ n ];
             return _mapValues[ index.first ][ index.second ];
          }
 
@@ -71,7 +71,7 @@ namespace algorithm
          ObservationsConstAdaptor& operator=( const ObservationsConstAdaptor& );
 
       private:
-         const ui32              _state;
+         const size_t              _state;
          const Map&              _map;
          const ArrayArrayPair&   _mapValues;
       };
@@ -83,27 +83,27 @@ namespace algorithm
        Compute the probability p( obersvations | model )
        */
       template <class EmissionMapper, class Vector, class Mat>
-      double forward( ui32 nbObservations, const Vector& prior, const Mat& transitions, const EmissionMapper& emission )
+      double forward( size_t nbObservations, const Vector& prior, const Mat& transitions, const EmissionMapper& emission )
       {
          typedef core::Matrix<double> Matrix;
 
          Matrix tt( prior.size(), nbObservations );
-         for ( ui32 n = 0; n < prior.size(); ++n )
+         for ( size_t n = 0; n < prior.size(); ++n )
             tt( n, 0 ) = prior[ n ] * emission( n, 0 );
 
-         for ( ui32 t = 1; t < nbObservations; ++t )
+         for ( size_t t = 1; t < nbObservations; ++t )
          {
-            for ( ui32 j = 0; j < prior.size(); ++j )
+            for ( size_t j = 0; j < prior.size(); ++j )
             {
                double sum = 0;
-               for ( ui32 i = 0; i < prior.size(); ++i )
+               for ( size_t i = 0; i < prior.size(); ++i )
                   sum += tt( i, t - 1 ) * transitions( i, j );
                tt( j, t ) = sum * emission( j, t );
             }
          }
 
          double sum = 0;
-         for ( ui32 i = 0; i < prior.size(); ++i )
+         for ( size_t i = 0; i < prior.size(); ++i )
             sum += tt( i, nbObservations - 1 );
          return sum;
       }
@@ -123,67 +123,67 @@ namespace algorithm
        @return p(oberservations, states|model)
        */
       template <class EmissionMapper, class Vector, class Mat>
-      double viterbi( ui32 nbObservations,
+      double viterbi( size_t nbObservations,
                       const Vector& input_prior,
                       const Mat& input_transitions,
                       const EmissionMapper& input_emissions,
-                      std::vector<ui32>& output_path,
-                      ui32& output_endState )
+                      std::vector<size_t>& output_path,
+                      size_t& output_endState )
       {
          typedef core::Matrix<double>  Matrix;
-	      Matrix tt( (ui32)input_prior.size(), (ui32)nbObservations );
-         core::Matrix<ui32> vv( (ui32)input_prior.size(), (ui32)nbObservations );
-	      ui32 nb_states = (ui32)input_prior.size();
+	      Matrix tt( (size_t)input_prior.size(), (size_t)nbObservations );
+         core::Matrix<size_t> vv( (size_t)input_prior.size(), (size_t)nbObservations );
+	      size_t nb_states = (size_t)input_prior.size();
 
-	      for (ui32 n = 0; n < nb_states; ++n)
+	      for (size_t n = 0; n < nb_states; ++n)
 	      {
 		      tt( n, 0 ) = input_prior[ n ] * input_emissions( n, 0 );
 		      vv( n, 0 ) = 0;
             //std::cout << "init s[" << n << "]=" << tt( n, 0 ) << " e=" << input_emissions( n, 0 ) << " prior=" << input_prior[ n ] << std::endl;
 	      }
 
-	      for ( ui32 t = 1; t < nbObservations; ++t )
+	      for ( size_t t = 1; t < nbObservations; ++t )
 	      {
-		      for (ui32 j = 0; j < nb_states; ++j)
+		      for (size_t j = 0; j < nb_states; ++j)
 		      {
 			      int index = -1;
 			      double max = -1;
-			      for ( ui32 i = 0; i < nb_states; ++i )
+			      for ( size_t i = 0; i < nb_states; ++i )
 				      if ( tt( i, t - 1 ) * input_transitions( i, j ) > max )
 				      {
-					      index = i;
+					      index = static_cast<int>( i );
 					      max = tt( i, t - 1 ) * input_transitions( i, j );
 				      }
 			      ensure( index != -1, "error" );
 
 			      tt( j, t ) = max * input_emissions( j, t );
-			      vv( j, t ) = index;
+			      vv( j, t ) = static_cast<size_t>( index );
 		      }
 	      }
 
 	      int index = -1;
 	      double max = -1;
-	      for ( ui32 i = 0; i < nb_states; ++i )
+	      for ( size_t i = 0; i < nb_states; ++i )
 		      if ( tt( i, nbObservations - 1 ) > max )
 		      {
 			      max = tt( i, nbObservations - 1 );
-			      index = i;
+			      index = static_cast<int>( i );
 		      }
 	      ensure(index != -1, "error");
 
-	      output_endState = index;
-	      ui32 cur_state = output_endState;
+	      output_endState = static_cast<size_t>( index );
+	      size_t cur_state = output_endState;
 
-	      std::vector<ui32> path;
+	      std::vector<size_t> path;
 	      path.push_back( cur_state );
-	      for ( i32 t = nbObservations - 2; t >= 0; --t )
+	      for ( i32 t = static_cast<i32>( nbObservations ) - 2; t >= 0; --t )
 	      {
 		      cur_state = vv( cur_state, t + 1 );
 		      path.push_back( cur_state );
 	      }
 
-         std::vector<ui32> seq;
-	      for ( std::vector<ui32>::reverse_iterator it = path.rbegin(); it != path.rend(); ++it )
+         std::vector<size_t> seq;
+	      for ( std::vector<size_t>::reverse_iterator it = path.rbegin(); it != path.rend(); ++it )
 		      seq.push_back( *it );
          output_path = seq;
          return max;

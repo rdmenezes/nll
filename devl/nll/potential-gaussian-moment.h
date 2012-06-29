@@ -67,7 +67,7 @@ namespace algorithm
       typedef double                      value_type;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<ui32>        VectorI;
+      typedef core::Buffer1D<size_t>        VectorI;
 
    public:
       /**
@@ -96,7 +96,7 @@ namespace algorithm
          {
             // generate the id
             _id = VectorI( m.size() );
-            for ( ui32 n = 0; n < _id.size(); ++n )
+            for ( size_t n = 0; n < _id.size(); ++n )
             {
                _id[ n ] = n;
             }
@@ -115,12 +115,12 @@ namespace algorithm
       PotentialGaussianMoment( const Points& points, const VectorI id = VectorI() ) : _isCovSync( false ), _id( id ), _isAlphaNormalized( true )
       {
          ensure( points.size(), "cannot do an estimation with no points" );
-         const ui32 nbDim = (ui32)points[ 0 ].size();
+         const size_t nbDim = (size_t)points[ 0 ].size();
          if ( id.size() == 0 )
          {
             // generate the id
             _id = VectorI( nbDim );
-            for ( ui32 n = 0; n < _id.size(); ++n )
+            for ( size_t n = 0; n < _id.size(); ++n )
             {
                _id[ n ] = n;
             }
@@ -227,7 +227,7 @@ namespace algorithm
        */
       PotentialGaussianMoment marginalization( const VectorI& varIndexToRemove ) const
       {
-         std::vector<ui32> ids, mids;
+         std::vector<size_t> ids, mids;
          computeIndexInstersection( varIndexToRemove, ids, mids );
          ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
          ensure( ids.size() > 0, "marginalization of a gaussian on all its variables is 1!" );
@@ -235,9 +235,9 @@ namespace algorithm
          Matrix xx;
          partitionMatrix( _cov, ids, xx );
 
-         Vector newMean( (ui32)ids.size() );
-         VectorI newId( (ui32)ids.size() );
-         for ( ui32 n = 0; n < ids.size(); ++n )
+         Vector newMean( (size_t)ids.size() );
+         VectorI newId( (size_t)ids.size() );
+         for ( size_t n = 0; n < ids.size(); ++n )
          {
             newMean[ n ] = _mean[ ids[ n ] ];
             newId[ n ] = _id[ ids[ n ] ];
@@ -255,23 +255,23 @@ namespace algorithm
       PotentialGaussianMoment conditioning( const Vector& vars, const VectorI& varsIndex ) const
       {
          // sort the data
-         std::vector<ui32> ids;
-         std::vector<ui32> mids;
+         std::vector<size_t> ids;
+         std::vector<size_t> mids;
          computeIndexInstersection( varsIndex, ids, mids );
 
          Matrix xx, yy, xy, yx;
          core::partitionMatrix( _cov, ids, mids, xx, yy, xy, yx );
 
-         Vector hx( (ui32)ids.size() );
+         Vector hx( (size_t)ids.size() );
          VectorI indexNew( hx.size() );
-         for ( ui32 n = 0; n < hx.size(); ++n )
+         for ( size_t n = 0; n < hx.size(); ++n )
          {
             hx[ n ] = _mean[ ids[ n ] ];
             indexNew[ n ] = _id[ ids[ n ] ];
          }
 
-         Vector hy( (ui32)mids.size() );
-         for ( ui32 n = 0; n < hy.size(); ++n )
+         Vector hy( (size_t)mids.size() );
+         for ( size_t n = 0; n < hy.size(); ++n )
          {
             hy[ n ] = _mean[ mids[ n ] ];
          }
@@ -302,8 +302,8 @@ namespace algorithm
       {
          if ( !v.size() )
             return true;
-         const ui32 s = v.size() - 1;
-         for ( ui32 n = 0; n < s; ++n )
+         const size_t s = v.size() - 1;
+         for ( size_t n = 0; n < s; ++n )
          {
             if ( v[ n ] >= v[ n + 1 ] )
                return false;
@@ -311,12 +311,12 @@ namespace algorithm
          return true;
       }
 
-      void computeIndexInstersection( const VectorI& varsIndex, std::vector<ui32>& ids, std::vector<ui32>& mids ) const
+      void computeIndexInstersection( const VectorI& varsIndex, std::vector<size_t>& ids, std::vector<size_t>& mids ) const
       {
          // first check the index is in correct order
          if ( varsIndex.size() > 1 )
          {
-            for ( ui32 n = 0; n < varsIndex.size() - 1; ++n )
+            for ( size_t n = 0; n < varsIndex.size() - 1; ++n )
             {
                ensure( varsIndex[ n ] < varsIndex[ n + 1 ], "the list must be sorted" );
             }
@@ -328,12 +328,12 @@ namespace algorithm
          ids.reserve( varsIndex.size() );
          mids.reserve( varsIndex.size() );
 
-         ui32 indexToCheck = 0;
-         const ui32 MAX = std::numeric_limits<ui32>::max();
-         for ( ui32 n = 0; n < _id.size(); ++n )
+         size_t indexToCheck = 0;
+         const size_t MAX = std::numeric_limits<size_t>::max();
+         for ( size_t n = 0; n < _id.size(); ++n )
          {
-            const ui32 mid = ( indexToCheck < varsIndex.size() ) ? varsIndex[ indexToCheck ] : MAX;
-            const ui32 id = _id[ n ];
+            const size_t mid = ( indexToCheck < varsIndex.size() ) ? varsIndex[ indexToCheck ] : MAX;
+            const size_t id = _id[ n ];
             if ( mid > id )
             {
                ids.push_back( n );
@@ -355,16 +355,16 @@ namespace algorithm
               => export XX
        */
       void partitionMatrix( const Matrix& src,
-                            const std::vector<ui32>& x,
+                            const std::vector<size_t>& x,
                             Matrix& xx ) const
       {
-         xx = Matrix( (ui32)x.size(), (ui32)x.size() );
-         for ( ui32 ny = 0; ny < xx.sizey(); ++ny )
+         xx = Matrix( (size_t)x.size(), (size_t)x.size() );
+         for ( size_t ny = 0; ny < xx.sizey(); ++ny )
          {
-            const ui32 idy = x[ ny ];
-            for ( ui32 nx = 0; nx < xx.sizex(); ++nx )
+            const size_t idy = x[ ny ];
+            for ( size_t nx = 0; nx < xx.sizex(); ++nx )
             {
-               const ui32 idx = x[ nx ];
+               const size_t idx = x[ nx ];
                xx( ny, nx ) = src( idy, idx );
             }
          }

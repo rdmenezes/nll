@@ -13,11 +13,11 @@ public:
 
       imaging::Volume<double> volume( 16, 32, 22 );
       volume.fill( 1 );
-      for ( ui32 z = 0; z < volume.size()[ 2 ]; ++z )
+      for ( size_t z = 0; z < volume.size()[ 2 ]; ++z )
       {
-         for ( ui32 y = 0; y < volume.size()[ 1 ]; ++y )
+         for ( size_t y = 0; y < volume.size()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < volume.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < volume.size()[ 0 ]; ++x )
             {
                volume( x, y, z ) = rand() % 100;
             }
@@ -28,18 +28,18 @@ public:
       core::Timer t1;
       integral.process( volume );
 
-      for ( ui32 z = 0; z < volume.size()[ 2 ]; ++z )
+      for ( size_t z = 0; z < volume.size()[ 2 ]; ++z )
       {
-         for ( ui32 y = 0; y < volume.size()[ 1 ]; ++y )
+         for ( size_t y = 0; y < volume.size()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < volume.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < volume.size()[ 0 ]; ++x )
             {
                double val = 0;
-               for ( ui32 za = 0; za <= z; ++za )
+               for ( size_t za = 0; za <= z; ++za )
                {
-                  for ( ui32 ya = 0; ya <= y; ++ya )
+                  for ( size_t ya = 0; ya <= y; ++ya )
                   {
-                     for ( ui32 xa = 0; xa <= x; ++xa )
+                     for ( size_t xa = 0; xa <= x; ++xa )
                         val += volume( xa, ya, za );
                   }
                }
@@ -58,11 +58,11 @@ public:
 
       imaging::Volume<double> volume( 16, 32, 22 );
       
-      for ( ui32 z = 0; z < volume.size()[ 2 ]; ++z )
+      for ( size_t z = 0; z < volume.size()[ 2 ]; ++z )
       {
-         for ( ui32 y = 0; y < volume.size()[ 1 ]; ++y )
+         for ( size_t y = 0; y < volume.size()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < volume.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < volume.size()[ 0 ]; ++x )
             {
                volume( x, y, z ) = rand() % 100;
             }
@@ -72,7 +72,7 @@ public:
       algorithm::IntegralImage3d integral;
       core::Timer t1;
       integral.process( volume );
-      for ( ui32 n = 0; n < 5000; ++n )
+      for ( size_t n = 0; n < 5000; ++n )
       {
          
          core::vector3ui bl( rand() % volume.size()[ 0 ],
@@ -82,18 +82,18 @@ public:
                              rand() % volume.size()[ 1 ],
                              rand() % volume.size()[ 2 ] );
                              
-         for ( ui32 c = 0; c < 3; ++c )
+         for ( size_t c = 0; c < 3; ++c )
          {
             if ( bl[ c ] > tr[ c ] )
                std::swap( bl[ c ], tr[ c ] );
          }
 
          double sum = 0;
-         for ( ui32 z = bl[ 2 ]; z <= tr[ 2 ]; ++z )
+         for ( size_t z = bl[ 2 ]; z <= tr[ 2 ]; ++z )
          {
-            for ( ui32 y = bl[ 1 ]; y <= tr[ 1 ]; ++y )
+            for ( size_t y = bl[ 1 ]; y <= tr[ 1 ]; ++y )
             {
-               for ( ui32 x = bl[ 0 ]; x <= tr[ 0 ]; ++x )
+               for ( size_t x = bl[ 0 ]; x <= tr[ 0 ]; ++x )
                {
                   sum += volume( x, y, z );
                }

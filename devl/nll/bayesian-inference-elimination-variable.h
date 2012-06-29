@@ -75,21 +75,21 @@ namespace algorithm
          if ( !factors.size() )
             return FactorCreatorType();
 
-         std::set<ui32> varEliminationOrder;
+         std::set<size_t> varEliminationOrder;
          for ( size_t n = 0; n < factors.size(); ++n )
          {
             std::for_each( factors[ n ].getDomain().begin(),
                            factors[ n ].getDomain().end(),
-                           [&]( ui32 v )
+                           [&]( size_t v )
                            {
                               varEliminationOrder.insert( v );
                            } );
          }
 
-         std::vector<ui32> eliminationOrder;
+         std::vector<size_t> eliminationOrder;
          eliminationOrder.reserve( varEliminationOrder.size() );
 
-         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         for ( std::set<size_t>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
          {
             eliminationOrder.push_back( *it );
          }
@@ -108,7 +108,7 @@ namespace algorithm
                              const VectorI& evidenceDomain,
                              const EvidenceValue& evidenceValue,
                              const VectorI& domainOfInterest,
-                             const std::vector<ui32>& variableEliminationOrder ) const
+                             const std::vector<size_t>& variableEliminationOrder ) const
       {
          std::vector<const Factor*> _factors;
          getFactors( bn, _factors );
@@ -123,12 +123,12 @@ namespace algorithm
          if ( !factors.size() )
             return FactorCreatorType();
 
-         std::vector<ui32> varEliminationOrder = variableEliminationOrder;
+         std::vector<size_t> varEliminationOrder = variableEliminationOrder;
 
          // discard the domain of interest and evidence
-         for ( ui32 n = 0; n < domainOfInterest.size(); ++n )
+         for ( size_t n = 0; n < domainOfInterest.size(); ++n )
          {
-            std::vector<ui32>::iterator it = std::find( varEliminationOrder.begin(), varEliminationOrder.end(), domainOfInterest[ n ] );
+            std::vector<size_t>::iterator it = std::find( varEliminationOrder.begin(), varEliminationOrder.end(), domainOfInterest[ n ] );
             if ( it != varEliminationOrder.end() )
             {
                varEliminationOrder.erase( it );
@@ -136,9 +136,9 @@ namespace algorithm
             assert( std::find( varEliminationOrder.begin(), varEliminationOrder.end(), domainOfInterest[ n ] ) == varEliminationOrder.end() );
          }
 
-         for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
+         for ( size_t n = 0; n < evidenceDomain.size(); ++n )
          {
-            std::vector<ui32>::iterator it = std::find( varEliminationOrder.begin(), varEliminationOrder.end(), evidenceDomain[ n ] );
+            std::vector<size_t>::iterator it = std::find( varEliminationOrder.begin(), varEliminationOrder.end(), evidenceDomain[ n ] );
             if ( it != varEliminationOrder.end() )
             {
                varEliminationOrder.erase( it );
@@ -157,7 +157,7 @@ namespace algorithm
             newFactors.push_back( factors[ n ] );
 
             // check we have some evidence
-            for ( ui32 evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
+            for ( size_t evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
             {
                bool isInPotential = std::binary_search( newFactors[ n ].getDomain().begin(),
                                                         newFactors[ n ].getDomain().end(),
@@ -172,10 +172,10 @@ namespace algorithm
          }
 
          // finally run the variable elimination algo
-         for ( std::vector<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         for ( std::vector<size_t>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
          {
-            std::vector<ui32> factorsInScope;
-            std::vector<ui32> factorsNotInScope;
+            std::vector<size_t> factorsInScope;
+            std::vector<size_t> factorsNotInScope;
             getFactorsInScope( newFactors, *it, factorsInScope, factorsNotInScope );
 
             if ( factorsInScope.size() )
@@ -216,7 +216,7 @@ namespace algorithm
 
 
    private:
-      static bool isDomainInScope( const FactorCreatorType& f, ui32 domainVariable )
+      static bool isDomainInScope( const FactorCreatorType& f, size_t domainVariable )
       {
          return std::binary_search( f.getDomain().begin(),
                                     f.getDomain().end(),
@@ -224,9 +224,9 @@ namespace algorithm
       }
 
       static void getFactorsInScope( const std::vector<FactorCreatorType>& factors,
-                                    ui32 domainVariable,
-                                    std::vector<ui32>& indexFactorsInScope_out,
-                                    std::vector<ui32>& indexFactorsNotInScope_out )
+                                    size_t domainVariable,
+                                    std::vector<size_t>& indexFactorsInScope_out,
+                                    std::vector<size_t>& indexFactorsNotInScope_out )
       {
          indexFactorsInScope_out.clear();
 
@@ -234,9 +234,9 @@ namespace algorithm
          {
             if ( isDomainInScope( factors[ factor ], domainVariable ) )
             {
-               indexFactorsInScope_out.push_back( static_cast<ui32>( factor ) );
+               indexFactorsInScope_out.push_back( static_cast<size_t>( factor ) );
             } else {
-               indexFactorsNotInScope_out.push_back( static_cast<ui32>( factor ) );
+               indexFactorsNotInScope_out.push_back( static_cast<size_t>( factor ) );
             }
          }
       }

@@ -62,7 +62,7 @@ namespace imaging
       class DirectionalIterator
       {
       public:
-         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( size_t index, T* buf, size_t sx, size_t sy, size_t sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
@@ -160,11 +160,11 @@ namespace imaging
          }
 
       protected:
-         ui32     _index;
+         size_t     _index;
          T*       _buf;
-         ui32     _sx;
-         ui32     _sy;
-         ui32     _sz;
+         size_t     _sx;
+         size_t     _sy;
+         size_t     _sz;
          Mapper   _mapper;
       };
 
@@ -176,7 +176,7 @@ namespace imaging
       class ConstDirectionalIterator : public DirectionalIterator
       {
       public:
-         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : 
+         ConstDirectionalIterator( size_t index, const T* buf, size_t sx, size_t sy, size_t sz, const Mapper& mapper ) : 
             DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
          {}
 
@@ -260,7 +260,7 @@ namespace imaging
       /**
        @brief Construct a volume of size (sz, sy, sz)
        */
-      VolumeMemoryBuffer( ui32 sx, ui32 sy, ui32 sz, bool zero = true ) : Base( sx * sy * sz, zero ), _mapper( IndexMapper( sx, sy, sz ) )
+      VolumeMemoryBuffer( size_t sx, size_t sy, size_t sz, bool zero = true ) : Base( sx * sy * sz, zero ), _mapper( IndexMapper( sx, sy, sz ) )
       {
          _bufferSize = sx * sy * sz;
          _size = core::vector3ui( sx, sy, sz );
@@ -277,12 +277,12 @@ namespace imaging
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline const T operator()( const ui32 x, const ui32 y, const ui32 z ) const { return at( x, y, z ); }
+      inline const T operator()( const size_t x, const size_t y, const size_t z ) const { return at( x, y, z ); }
 
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline T& operator()( const ui32 x, const ui32 y, const ui32 z ) { return at( x, y, z ); }
+      inline T& operator()( const size_t x, const size_t y, const size_t z ) { return at( x, y, z ); }
 
       /**
        @brief return an iterator
@@ -324,6 +324,21 @@ namespace imaging
          return _size;
       }
 
+      size_t sizex() const
+      {
+         return _size[ 0 ];
+      }
+
+      size_t sizey() const
+      {
+         return _size[ 1 ];
+      }
+
+      size_t sizez() const
+      {
+         return _size[ 2 ];
+      }
+
       /**
        @brief clone the buffer. The memory is fully copied and not shred with the source.
        */
@@ -361,6 +376,7 @@ namespace imaging
 
       /**
        @brief returns a const iterator on the last voxel + 1
+       @note this is a costly operation! it must be cahced
        */
       ConstDirectionalIterator endDirectional() const
       {
@@ -370,7 +386,7 @@ namespace imaging
       /**
        @brief returns an iterator on the specified voxel
        */
-      ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      ConstDirectionalIterator getIterator( size_t x, size_t y, size_t z ) const
       {
          return ConstDirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
@@ -385,6 +401,7 @@ namespace imaging
 
       /**
        @brief returns an iterator on the last voxel + 1
+       @note this is a costly operation! it must be cahced
        */
       DirectionalIterator endDirectional()
       {
@@ -394,7 +411,7 @@ namespace imaging
       /**
        @brief returns an iterator on the specified voxel
        */
-      DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
+      DirectionalIterator getIterator( size_t x, size_t y, size_t z )
       {
          return DirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _size[ 0 ], _size[ 1 ], _size[ 2 ], _mapper );
       }
@@ -403,7 +420,7 @@ namespace imaging
       /**
        @brief return the position of the pixel (x, y, z) in the buffer
        */
-      inline ui32 index( const ui32 x, const ui32 y, const ui32 z ) const
+      inline size_t index( const size_t x, const size_t y, const size_t z ) const
       {
          return _mapper.index( x, y, z );
       }
@@ -411,7 +428,7 @@ namespace imaging
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline const T at( const ui32 x, const ui32 y, const ui32 z ) const
+      inline const T at( const size_t x, const size_t y, const size_t z ) const
       {
          return this->_buffer[ index( x, y, z ) ];
       }
@@ -419,14 +436,14 @@ namespace imaging
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline T& at( const ui32 x, const ui32 y, const ui32 z )
+      inline T& at( const size_t x, const size_t y, const size_t z )
       {
          return this->_buffer[ index( x, y, z ) ];
       }
 
    protected:
       IndexMapper          _mapper;
-      ui32                 _bufferSize;
+      size_t                 _bufferSize;
       core::vector3ui      _size;
    };
 
@@ -462,7 +479,7 @@ namespace imaging
       /**
        @brief Create a volume of a fixed size
        */
-      Volume( ui32 sx, ui32 sy, ui32 sz, T background = 0, bool zero = true ) : _buffer( sx, sy, sz, zero ), _background( background )
+      Volume( size_t sx, size_t sy, size_t sz, T background = 0, bool zero = true ) : _buffer( sx, sy, sz, zero ), _background( background )
       {
       }
 
@@ -478,12 +495,12 @@ namespace imaging
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline const T operator()( const ui32 x, const ui32 y, const ui32 z ) const { return at( x, y, z ); }
+      inline const T operator()( const size_t x, const size_t y, const size_t z ) const { return at( x, y, z ); }
 
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline T& operator()( const ui32 x, const ui32 y, const ui32 z ) { return at( x, y, z ); }
+      inline T& operator()( const size_t x, const size_t y, const size_t z ) { return at( x, y, z ); }
 
       /**
        @return the size of the volume
@@ -493,20 +510,47 @@ namespace imaging
          return _buffer.getSize();
       }
 
+      /**
+       @brief Returns the size in x
+       @note to be prefered over <core::vector3ui& size> as it saves the construction of a 3-vector
+       */
+      size_t sizex() const
+      {
+         return _buffer.sizex();
+      }
+
+      /**
+       @brief Returns the size in y
+       @note to be prefered over <core::vector3ui& size> as it saves the construction of a 3-vector
+       */
+      size_t sizey() const
+      {
+         return _buffer.sizey();
+      }
+
+      /**
+       @brief Returns the size in z
+       @note to be prefered over <core::vector3ui& size> as it saves the construction of a 3-vector
+       */
+      size_t sizez() const
+      {
+         return _buffer.sizez();
+      }
+
       bool inside( double x, double y, double z ) const
       {
          return x >= 0 && y >= 0 && z >= 0 &&
-                x < _buffer.getSize()[ 0 ] &&
-                y < _buffer.getSize()[ 1 ] &&
-                z < _buffer.getSize()[ 2 ];
+                x < _buffer.sizex() &&
+                y < _buffer.sizey() &&
+                z < _buffer.sizex();
       }
 
       bool inside( int x, int y, int z ) const
       {
          return x >= 0 && y >= 0 && z >= 0 &&
-                x < static_cast<int>( _buffer.getSize()[ 0 ] ) &&
-                y < static_cast<int>( _buffer.getSize()[ 1 ] ) &&
-                z < static_cast<int>( _buffer.getSize()[ 2 ] );
+                x < static_cast<int>( _buffer.sizex() ) &&
+                y < static_cast<int>( _buffer.sizey() ) &&
+                z < static_cast<int>( _buffer.sizez() );
       }
 
       /**
@@ -579,6 +623,7 @@ namespace imaging
 
       /**
        @brief returns a const iterator on the last voxel + 1
+       @note this is a costly operation! it must be cahced
        */
       ConstDirectionalIterator endDirectional() const
       {
@@ -588,7 +633,7 @@ namespace imaging
       /**
        @brief returns an iterator on the specified voxel
        */
-      ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      ConstDirectionalIterator getIterator( size_t x, size_t y, size_t z ) const
       {
          return _buffer.getIterator( x, y, z );
       }
@@ -603,6 +648,7 @@ namespace imaging
 
       /**
        @brief returns an iterator on the last voxel + 1
+       @note this is a costly operation! it must be cahced
        */
       DirectionalIterator endDirectional()
       {
@@ -612,7 +658,7 @@ namespace imaging
       /**
        @brief returns an iterator on the specified voxel
        */
-      DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
+      DirectionalIterator getIterator( size_t x, size_t y, size_t z )
       {
          return _buffer.getIterator( x, y, z );
       }
@@ -648,7 +694,7 @@ namespace imaging
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline const T at( const ui32 x, const ui32 y, const ui32 z ) const
+      inline const T at( const size_t x, const size_t y, const size_t z ) const
       {
          return _buffer( x, y, z );
       }
@@ -656,7 +702,7 @@ namespace imaging
       /**
        @brief return the value at the point (x, y, z)
        */
-      inline T& at( const ui32 x, const ui32 y, const ui32 z )
+      inline T& at( const size_t x, const size_t y, const size_t z )
       {
          return _buffer( x, y, z );
       }

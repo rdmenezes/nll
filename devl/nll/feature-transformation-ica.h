@@ -78,11 +78,11 @@ namespace algorithm
        @return true if successful
        */
       template <class Database>
-      bool compute( const Database& _dat, ui32 nbComponents )
+      bool compute( const Database& _dat, size_t nbComponents )
       {
          Database learningDat = core::filterDatabase( _dat,
-                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                                                                    Database::Sample::VALIDATION ),
+                                                      core::make_vector<size_t>( Database::Sample::LEARNING,
+                                                                                 Database::Sample::VALIDATION ),
                                                       Database::Sample::LEARNING );
          core::DatabaseInputAdapterRead<Database> databaseAdapter( learningDat );
          _ica.compute( databaseAdapter, nbComponents, _step );

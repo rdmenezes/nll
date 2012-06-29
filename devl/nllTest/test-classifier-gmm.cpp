@@ -60,7 +60,7 @@ public:
 
    void testReadWriteVector()
    {
-      typedef std::vector<nll::ui32> TEST;
+      typedef std::vector<size_t> TEST;
       TEST test1(5);
       TEST test2;
       test1[ 0 ] = 0;
@@ -90,7 +90,7 @@ public:
 	   {
 		   Point v(13);
 		   getline(f, buf);
-		   nll::ui32 nb = sscanf(buf.c_str(), "%f %f %f %f %f %f %f %f %f %f %f %f %f", 
+		   size_t nb = sscanf(buf.c_str(), "%f %f %f %f %f %f %f %f %f %f %f %f %f", 
 			   &v[0], &v[1], &v[2], &v[3], &v[4], &v[5], &v[6], &v[7], &v[8], &v[9], &v[10], &v[11], &v[12]);
 		   if (f.eof())
 			   break;
@@ -107,12 +107,12 @@ public:
       CGmmTest cgmm;
       CGmmTest::Database dat;
 
-      for ( nll::ui32 n = 0; n < 10; ++n )
+      for ( size_t n = 0; n < 10; ++n )
       {
          Points ps = load(gmm_train[n]);
          dat.add(CGmmTest::Database::Sample(ps, n, CGmmTest::Database::Sample::LEARNING));
       }
-      for ( nll::ui32 n = 0; n < 10; ++n )
+      for ( size_t n = 0; n < 10; ++n )
       {
          Points ps = load(gmm_sample[n]);
          dat.add(CGmmTest::Database::Sample(ps, gmm_results[ n ], CGmmTest::Database::Sample::TESTING));

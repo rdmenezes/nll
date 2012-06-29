@@ -54,7 +54,7 @@ namespace core
       const T* bufSrc1 = src1.getBuf();
       const T* bufSrc2 = src2.getBuf();
 
-      for ( ui32 n = 0; n < src1.size(); ++n )
+      for ( size_t n = 0; n < src1.size(); ++n )
       {
          bufDst[ n ] = bufSrc1[ n ] + bufSrc2[ n ];
       }
@@ -76,7 +76,7 @@ namespace core
       const T* bufSrc2 = src2.getBuf();
 
       double accum = 0;
-      for ( ui32 n = 0; n < src1.size(); ++n )
+      for ( size_t n = 0; n < src1.size(); ++n )
       {
          accum += bufSrc1[ n ] * bufSrc2[ n ];
       }
@@ -90,7 +90,7 @@ namespace core
       assert( src1.size() == src2.size() );
 
       double accum = 0;
-      for ( ui32 n = 0; n < src1.size(); ++n )
+      for ( size_t n = 0; n < src1.size(); ++n )
       {
          accum += src1[ n ] * src2[ n ];
       }
@@ -115,7 +115,7 @@ namespace core
       const T* bufSrc1 = src1.getBuf();
       const T* bufSrc2 = src2.getBuf();
 
-      for ( ui32 n = 0; n < src1.size(); ++n )
+      for ( size_t n = 0; n < src1.size(); ++n )
       {
          bufDst[ n ] = bufSrc1[ n ] - bufSrc2[ n ];
       }

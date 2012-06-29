@@ -46,7 +46,7 @@ namespace algorithm
     @param tol the tolerance
     */
    template <class Point, class Functor>
-   double powell( Point& p, std::vector< core::Buffer1D<double> >& xi, double tol, const Functor& f, ui32 itMax = 200, bool* error = 0 )
+   double powell( Point& p, std::vector< core::Buffer1D<double> >& xi, double tol, const Functor& f, size_t itMax = 200, bool* error = 0 )
    {
       if ( error )
          *error = false;
@@ -55,7 +55,7 @@ namespace algorithm
       const int n = static_cast<int>( p.size() );
       int i, ibig, j;
       double del, fp, fptt, t;
-      ui32 iter;
+      size_t iter;
 
       Point pt( n );
       Point ptt( n );

@@ -39,16 +39,16 @@ namespace algorithm
    namespace impl
    {
       template <class Point, class Kernel>
-      std::vector< std::pair<double, ui32> > computeDistanceInputFromFeature( const core::Buffer1D<double>& buf, const Kernel& kernel )
+      std::vector< std::pair<double, size_t> > computeDistanceInputFromFeature( const core::Buffer1D<double>& buf, const Kernel& kernel )
       {
          throw std::runtime_error( "this must be implemented for each type of kernel" );
       }
 
       template <class Point>
-      std::vector< std::pair<double, ui32> > computeDistanceInputFromFeature( const core::Buffer1D<double>& df, const KernelRbf<Point>& kernel )
+      std::vector< std::pair<double, size_t> > computeDistanceInputFromFeature( const core::Buffer1D<double>& df, const KernelRbf<Point>& kernel )
       {
-         std::vector< std::pair<double, ui32> > d;
-         for ( ui32 n = 0; n < df.size(); ++n )
+         std::vector< std::pair<double, size_t> > d;
+         for ( size_t n = 0; n < df.size(); ++n )
          {
             // compute the distance in input space
             double di = - kernel.getVar() * log( 1 - 0.5 * df[ n ] );
@@ -88,10 +88,10 @@ namespace algorithm
          const Kernel& kernel = kernelPca.getKernel();
 
          _bias = _computeBias( kernelPca );
-         _kernel = Matrix( (ui32)supports.size(), (ui32)supports.size() );
-         for ( ui32 nx = 0; nx < supports.size(); ++nx )
+         _kernel = Matrix( (size_t)supports.size(), (size_t)supports.size() );
+         for ( size_t nx = 0; nx < supports.size(); ++nx )
          {
-            for ( ui32 ny = 0; ny < supports.size(); ++ny )
+            for ( size_t ny = 0; ny < supports.size(); ++ny )
             {
                _kernel( ny, nx ) = kernel( supports[ nx ], supports[ ny ] );
             }
@@ -106,7 +106,7 @@ namespace algorithm
        direct implementation of http://cmp.felk.cvut.cz/cmp/software/stprtool/manual/kernels/preimage/list/rbfpreimg3.html
        */
       template <class Point2>
-      Point preimage( const Point2& feature, ui32 nbNeighbours = 7 ) const
+      Point preimage( const Point2& feature, size_t nbNeighbours = 7 ) const
       {
          const Kernel& kernel = _kernelPca.getKernel();
          const std::vector<Point>& supports = _kernelPca.getSupports();
@@ -115,30 +115,30 @@ namespace algorithm
 
          // compute the distance in input space by method 1
          Vector df = _computeDistance( _kernelPca, feature );  // ||feature, support||_2^2 distance in feature space
-         std::vector< std::pair<double, ui32> > d = impl::computeDistanceInputFromFeature( df, kernel );
+         std::vector< std::pair<double, size_t> > d = impl::computeDistanceInputFromFeature( df, kernel );
 
          // compute the neighbours
          std::sort( d.begin(), d.end() );
-         nbNeighbours = std::min<ui32>( nbNeighbours, (ui32)d.size() ); // if there is less than <nbNeighbours> then use only these ones
+         nbNeighbours = std::min<size_t>( nbNeighbours, (size_t)d.size() ); // if there is less than <nbNeighbours> then use only these ones
 
          // center the neighbours
-         const ui32 pointDim = static_cast<ui32>( supports[ 0 ].size() );
+         const size_t pointDim = static_cast<size_t>( supports[ 0 ].size() );
          Matrix centered( pointDim, nbNeighbours );
          Vector mean( pointDim );
-         for ( ui32 dim = 0; dim < pointDim; ++dim )
+         for ( size_t dim = 0; dim < pointDim; ++dim )
          {
             // center for each axis
             double sum = 0;
-            for ( ui32 n = 0; n < nbNeighbours; ++n )
+            for ( size_t n = 0; n < nbNeighbours; ++n )
             {
-               const ui32 id = d[ n ].second;
+               const size_t id = d[ n ].second;
                sum += supports[ id ][ dim ];
             }
             mean[ dim ] = sum / nbNeighbours;
-            for ( ui32 n = 0; n < nbNeighbours; ++n )
+            for ( size_t n = 0; n < nbNeighbours; ++n )
             {
-               const ui32 id = d[ n ].second;
-               for ( ui32 dim = 0; dim < pointDim; ++dim )
+               const size_t id = d[ n ].second;
+               for ( size_t dim = 0; dim < pointDim; ++dim )
                {
                   centered( dim, n ) = supports[ id ][ dim ] - mean[ dim ];
                }
@@ -155,10 +155,10 @@ namespace algorithm
          Matrix z = _getProjection( eiv, r );
 
          Vector d02( nbNeighbours );
-         for ( ui32 n = 0; n < z.sizex(); ++n )
+         for ( size_t n = 0; n < z.sizex(); ++n )
          {
             double sum = 0;
-            for ( ui32 y = 0; y < z.sizey(); ++y )
+            for ( size_t y = 0; y < z.sizey(); ++y )
             {
                sum += core::sqr( z( y, n ) );
             }
@@ -171,7 +171,7 @@ namespace algorithm
          // d02 = sum(Z.^2)';
          // z = -0.5*pinv(Z')*(d2-d02);
          // x = U*z + sum(X,2)/nn;
-         for ( ui32 n = 0; n < d02.size(); ++n )
+         for ( size_t n = 0; n < d02.size(); ++n )
          {
             d02[ n ] = - 0.5 * ( d[ n ].first - d02[ n ] );
          }
@@ -182,12 +182,12 @@ namespace algorithm
          Matrix sx = centered * z;
 
          Point p( sx.sizey() );
-         for ( ui32 y = 0; y < sx.sizey(); ++y )
+         for ( size_t y = 0; y < sx.sizey(); ++y )
          {
             double sum = 0;
-            for ( ui32 x = 0; x < nbNeighbours; ++x )
+            for ( size_t x = 0; x < nbNeighbours; ++x )
             {
-               const ui32 id = d[ x ].second;
+               const size_t id = d[ x ].second;
                sum += supports[ id ][ y ];
             }
             p[ y ] += sx( y, 0 ) + sum / nbNeighbours;
@@ -209,9 +209,9 @@ namespace algorithm
       static Matrix _getProjection( const Vector& eiv, const Matrix& eig )
       {
          Matrix proj( eiv.size(), eig.sizey() );
-         for ( ui32 y = 0; y < proj.sizey(); ++y )
+         for ( size_t y = 0; y < proj.sizey(); ++y )
          {
-            for ( ui32 x = 0; x < proj.sizex(); ++x )
+            for ( size_t x = 0; x < proj.sizex(); ++x )
             {
                proj( y, x ) = eiv[ y ] * eig( x, y );
             }
@@ -227,7 +227,7 @@ namespace algorithm
 
          // first project the <feature> on the alphas
          Vector kx( feature.size() );
-         for ( ui32 n = 0; n < kx.size(); ++n )
+         for ( size_t n = 0; n < kx.size(); ++n )
          {
            kx[ n ] = feature[ n ] - _bias[ n ];
          }
@@ -240,8 +240,8 @@ namespace algorithm
          Matrix const2 = projection * kalpha;
 
          // compute the distance in feature space between projection and all supports
-         Vector dist( (ui32)supports.size() );
-         for ( ui32 n = 0; n < dist.size(); ++n )
+         Vector dist( (size_t)supports.size() );
+         for ( size_t n = 0; n < dist.size(); ++n )
          {
             dist[ n ] = 1 + const2[ 0 ] - 2 * kalpha[ n ];
          }
@@ -256,11 +256,11 @@ namespace algorithm
          bias.clone( kernelPca.getBias() );
 
          double sum = 0;
-         for ( ui32 n = 0; n < bias.size(); ++n )
+         for ( size_t n = 0; n < bias.size(); ++n )
             sum += bias[ n ];
          sum /= bias.size();
 
-         for ( ui32 n = 0; n < bias.size(); ++n )
+         for ( size_t n = 0; n < bias.size(); ++n )
             bias[ n ] = sum - bias[ n ];
          Matrix b = Matrix( bias, 1, bias.size() ) * kernelPca.getEigenVectors();
          return b;

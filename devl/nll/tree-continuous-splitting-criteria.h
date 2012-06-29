@@ -57,7 +57,7 @@ namespace algorithm
        @param featureId the feature considered
        @param outSplits the computed splits
        */
-      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits ) = 0;
+      virtual void computeSplits( const Database& dat, size_t featureId, std::vector<value_type>& outSplits ) = 0;
    };
 
    /**
@@ -75,7 +75,7 @@ namespace algorithm
       typedef typename Base::value_type               value_type;
 
    public:
-      SplittingCriteriaGaussianApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
+      SplittingCriteriaGaussianApproximation( size_t nbSplits = 10 ) : _nbSplits( nbSplits )
       {
          ensure( _nbSplits > 2, "not enough splits" );
       }
@@ -86,20 +86,20 @@ namespace algorithm
        @param featureId the feature considered
        @param outSplits the computed splits
        */
-      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits )
+      virtual void computeSplits( const Database& dat, size_t featureId, std::vector<value_type>& outSplits )
       {
          outSplits.clear();
 
          // here we fit a gaussian on the considered data
          value_type accumMean = 0;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             accumMean += dat[ n ].input[ featureId ];
          }
          accumMean /= dat.size();
 
          value_type accumStddev = 0;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             accumStddev += core::sqr( dat[ n ].input[ featureId ] - accumMean );
          }
@@ -107,7 +107,7 @@ namespace algorithm
 
          // now get all the splits
          outSplits.reserve( _nbSplits );
-         for ( ui32 n = 0; n < _nbSplits; ++n )
+         for ( size_t n = 0; n < _nbSplits; ++n )
          {
             // split ratio from [-1, 1] domain
             const value_type splitRatio = 2 * static_cast<value_type>( n ) / ( _nbSplits - 1 ) - 1;
@@ -118,7 +118,7 @@ namespace algorithm
       }
 
    private:
-      ui32  _nbSplits;
+      size_t  _nbSplits;
    };
 
    /**
@@ -135,7 +135,7 @@ namespace algorithm
       typedef typename Base::Database                 Database;
       typedef typename Base::value_type               value_type;
 
-      SplittingCriteriaUniformApproximation( ui32 nbSplits = 10 ) : _nbSplits( nbSplits )
+      SplittingCriteriaUniformApproximation( size_t nbSplits = 10 ) : _nbSplits( nbSplits )
       {
       }
 
@@ -145,14 +145,14 @@ namespace algorithm
        @param featureId the feature considered
        @param outSplits the computed splits
        */
-      virtual void computeSplits( const Database& dat, ui32 featureId, std::vector<value_type>& outSplits )
+      virtual void computeSplits( const Database& dat, size_t featureId, std::vector<value_type>& outSplits )
       {
          outSplits.clear();
 
          // here we fit a gaussian on the considered data
          value_type max = std::numeric_limits<value_type>::min();
          value_type min = std::numeric_limits<value_type>::max();
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             min = std::min( min, dat[ n ].input[ featureId ] );
             max = std::max( max, dat[ n ].input[ featureId ] );
@@ -162,7 +162,7 @@ namespace algorithm
 
          // now get all the splits
          outSplits.reserve( _nbSplits );
-         for ( ui32 n = 0; n < _nbSplits; ++n )
+         for ( size_t n = 0; n < _nbSplits; ++n )
          {
             const value_type split = min + n * ( max - min ) / ( _nbSplits ) - 0.5 * interval;
             outSplits.push_back( split );
@@ -170,7 +170,7 @@ namespace algorithm
       }
 
    private:
-      ui32  _nbSplits;
+      size_t  _nbSplits;
    };
 }
 }

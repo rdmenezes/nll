@@ -134,7 +134,7 @@ namespace core
                                                            originInTargetDdf[ 1 ] + y * dyDdf[ 1 ] );
 
             typename ImageType::DirectionalIterator  voxelIt = lineIt;
-            for ( ui32 x = 0; x < resampled.sizex(); ++x )
+            for ( size_t x = 0; x < resampled.sizex(); ++x )
             {
                // compute the displacement and add it to the target index
                core::vector2f displacement = ddfTfm.getDeformableDisplacementOnlyIndex( linePosSrcDdf );
@@ -173,7 +173,7 @@ namespace core
          {
             // remove the translation part as this has already been taken care of...
             _targetPstInv.clone( targetPstInv );
-            for ( ui32 n = 0; n + 1 < targetPstInv.sizey(); ++n )
+            for ( size_t n = 0; n + 1 < targetPstInv.sizey(); ++n )
             {
                _targetPstInv( n, targetPstInv.sizex() - 1 ) = 0;
             }

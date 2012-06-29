@@ -6,7 +6,7 @@
 using namespace nll;
 
 template <class Classifier, class Database>
-core::Image<ui8> findBounds( const Classifier& classifier, const core::vector2d& min , const core::vector2d& max, const Database& dat, ui32 size )
+core::Image<ui8> findBounds( const Classifier& classifier, const core::vector2d& min , const core::vector2d& max, const Database& dat, size_t size )
 {
    ui8 colors[][3] =
    {
@@ -35,7 +35,7 @@ core::Image<ui8> findBounds( const Classifier& classifier, const core::vector2d&
          core::Buffer1D<double> buf( 2 );
          buf[ 0 ] = px;
          buf[ 1 ] = py;
-         ui32 c = classifier.test( buf );
+         size_t c = classifier.test( buf );
 
          ui8* p = i.point( x, y );
          assert( c < 8 );
@@ -45,14 +45,14 @@ core::Image<ui8> findBounds( const Classifier& classifier, const core::vector2d&
       }
    }
 
-   for ( ui32 n = 0; n < dat.size(); ++n )
+   for ( size_t n = 0; n < dat.size(); ++n )
    {
       if ( dat[ n ].input[ 0 ] >= min[ 0 ] && dat[ n ].input[ 0 ] < max[ 0 ] &&
            dat[ n ].input[ 1 ] >= min[ 1 ] && dat[ n ].input[ 1 ] < max[ 1 ] )
       {
-         ui32 c = dat[ n ].output;
-         unsigned x = static_cast<ui32>( ( dat[ n ].input[ 0 ] - min[ 0 ] ) / stepx );
-         unsigned y = static_cast<ui32>( ( dat[ n ].input[ 1 ] - min[ 1 ] ) / stepy );
+         size_t c = dat[ n ].output;
+         size_t x = static_cast<size_t>( ( dat[ n ].input[ 0 ] - min[ 0 ] ) / stepx );
+         size_t y = static_cast<size_t>( ( dat[ n ].input[ 1 ] - min[ 1 ] ) / stepy );
          ui8* p = i.point( x, y );
          p[ 0 ] = colors[ c ][ 0 ];
          p[ 1 ] = colors[ c ][ 1 ];

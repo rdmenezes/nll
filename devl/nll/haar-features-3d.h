@@ -74,20 +74,20 @@ namespace algorithm
 
          static double getValue( Direction direction, const IntegralImage3d& i, const core::vector3ui& bl, const core::vector3ui& tr )
          {
-            const int x1 = bl[ 0 ];
-            const int x2 = tr[ 0 ];
+            const int x1 = static_cast<int>( bl[ 0 ] );
+            const int x2 = static_cast<int>( tr[ 0 ] );
 
-            const int y1 = bl[ 1 ];
-            const int y2 = tr[ 1 ];
+            const int y1 = static_cast<int>( bl[ 1 ] );
+            const int y2 = static_cast<int>( tr[ 1 ] );
 
-            const int z1 = bl[ 2 ];
-            const int z2 = tr[ 2 ];
+            const int z1 = static_cast<int>( bl[ 2 ] );
+            const int z2 = static_cast<int>( tr[ 2 ] );
 
             double sump;
             double sumd;
             int tmp1, tmp2, tmp3, tmp4;
-            ui32 mid;
-            ui32 mid1, mid2, mid3, d;
+            int mid;
+            int mid1, mid2, mid3, d;
             int border;
 
             switch ( direction )

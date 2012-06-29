@@ -22,13 +22,13 @@ namespace algorithm
          Result( double nbS, double errTrain, double errTest ) : nbSamplesRatio( nbS ), errorTraining( errTrain ), errorTesting( errTest )
          {}
 
-         ui32     nbSamplesRatio;
+         size_t     nbSamplesRatio;
          double   errorTraining;
          double   errorTesting;
       };
       typedef std::vector<Result> Results;
 
-      ClassifierDiagnostics( ui32 granularity = 20 ) : _granularity( granularity )
+      ClassifierDiagnostics( size_t granularity = 20 ) : _granularity( granularity )
       {}
 
       template <class Classifier, class Database>
@@ -37,18 +37,18 @@ namespace algorithm
          Results results;
          results.reserve( _granularity );
 
-         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
-         Database testing = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::TESTING ), (ui32) Database::Sample::TESTING );
+         Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
+         Database testing = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::TESTING ), (size_t) Database::Sample::TESTING );
          ensure( learning.size() != 0, "no learning!" );
          ensure( testing.size() != 0, "no testing!" );
 
          const f32 stepTesting = testing.size() / _granularity;
          const f32 stepLearning = learning.size() / _granularity;
-         for ( ui32 n = 0; n < _granularity; ++n )
+         for ( size_t n = 0; n < _granularity; ++n )
          {
             std::shared_ptr<Classifier> classifier( csource.deepCopy() );
-            const ui32 nbLearningSample = static_cast<ui32>( n * stepLearning * learning.size() );
-            const ui32 nbTestingSample = static_cast<ui32>( n * stepTesting * testing.size() );
+            const size_t nbLearningSample = static_cast<size_t>( n * stepLearning * learning.size() );
+            const size_t nbTestingSample = static_cast<size_t>( n * stepTesting * testing.size() );
             Database learningDatSampled = sample( learning, ( nbLearningSample > 1 ) ? nbLearningSample : 1 );
             Database testingDatSampled = sample( testing, ( nbTestingSample > 1 ) ? nbTestingSample : 1 );
 
@@ -69,13 +69,13 @@ namespace algorithm
 
    private:
       template <class Database>
-      static Database sample( const Database& dat, ui32 nbSamples )
+      static Database sample( const Database& dat, size_t nbSamples )
       {
          Database resampled;
          const std::vector<float> pbSample( dat.size(), 1.0f / dat.size() );
-         const core::Buffer1D<ui32> samples = core::sampling( pbSample, nbSamples );   // TODO: here we are sampling with replacement, better do it without!
+         const core::Buffer1D<size_t> samples = core::sampling( pbSample, nbSamples );   // TODO: here we are sampling with replacement, better do it without!
          std::for_each( samples.begin(), samples.end(),
-            [&]( ui32 s )
+            [&]( size_t s )
             { 
                resampled.add( dat[ s ] );
             } );
@@ -83,7 +83,7 @@ namespace algorithm
       }
 
    private:
-      ui32     _granularity;
+      size_t     _granularity;
    };
 }
 }
@@ -107,17 +107,17 @@ struct TestClassifierDiagnostics
 
    void testResamplingWithoutReplacement()
    {
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
-         ui32 nbCases = (ui32)core::generateUniformDistributioni( 1, 10 );
-         ui32 nbSamples = (ui32)core::generateUniformDistributioni( 1, nbCases );
-         core::Buffer1D<ui32> samples = core::samplingWithoutReplacement( nbCases, nbSamples );
+         size_t nbCases = (size_t)core::generateUniformDistributioni( 1, 10 );
+         size_t nbSamples = (size_t)core::generateUniformDistributioni( 1, nbCases );
+         core::Buffer1D<size_t> samples = core::samplingWithoutReplacement( nbCases, nbSamples );
          TESTER_ASSERT( samples.size() == nbSamples );
 
-         std::set<ui32> indexes;
-         for ( ui32 n = 0; n < samples.size(); ++n )
+         std::set<size_t> indexes;
+         for ( size_t n = 0; n < samples.size(); ++n )
          {
-            std::set<ui32>::const_iterator it = indexes.find( samples[ n ] );
+            std::set<size_t>::const_iterator it = indexes.find( samples[ n ] );
             TESTER_ASSERT( it == indexes.end() );
             indexes.insert( samples[ n ] );
          }

@@ -70,8 +70,8 @@ namespace algorithm
       {
          ensure( points1.size() == points2.size() && points2.size() > 0, "must be pair of points, not empty" );
          
-         const ui32 nbPoints = static_cast<ui32>( points1.size() );
-         const ui32 nbDim = static_cast<ui32>( points1[ 0 ].size() );
+         const size_t nbPoints = static_cast<size_t>( points1.size() );
+         const size_t nbDim = static_cast<size_t>( points1[ 0 ].size() );
 
          Vector mean1;
          Vector mean2;
@@ -93,15 +93,15 @@ namespace algorithm
          if ( _scale <= 1e-20 )
          {
             double accum = 0;
-            for ( ui32 n = 0; n < nbPoints; ++n )
-               for ( ui32 k = 0; k < nbDim; ++k )
+            for ( size_t n = 0; n < nbPoints; ++n )
+               for ( size_t k = 0; k < nbDim; ++k )
                {
                   const double val = points1[ n ][ k ] - mean1[ k ];
                   accum += val * val;
                }
 
             double trace = 0;
-            for ( ui32 k = 0; k < nbDim - 1; ++k )
+            for ( size_t k = 0; k < nbDim - 1; ++k )
             {
                trace += eiv[ k ];
             }
@@ -126,9 +126,9 @@ namespace algorithm
          Matrix t = Matrix( mean2, nbDim, 1 ) - scale * rot * Matrix( mean1, nbDim, 1 );
 
          Matrix result( nbDim + 1, nbDim + 1 );
-         for ( ui32 y = 0; y < nbDim; ++y )
+         for ( size_t y = 0; y < nbDim; ++y )
          {
-            for ( ui32 x = 0; x < nbDim; ++x )
+            for ( size_t x = 0; x < nbDim; ++x )
             {
                result( y, x ) = rot( y, x ) * scale;
             }

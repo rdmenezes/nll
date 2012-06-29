@@ -7,7 +7,7 @@ using namespace nll;
 class TestRansac
 {
 public:
-   static void generateLine( ui32 size, double outlier, ui32 nbPoints, double stddev, std::vector< std::pair<ui32, ui32> >& points_out, double& model_a_out, double& model_b_out )
+   static void generateLine( size_t size, double outlier, size_t nbPoints, double stddev, std::vector< std::pair<size_t, size_t> >& points_out, double& model_a_out, double& model_b_out )
    {
       ensure( outlier >= 0 && outlier < 1, "bad arg" );
       points_out.clear();
@@ -20,8 +20,8 @@ public:
       model_b_out = core::generateUniformDistribution( size / 4, size / 2 );
 
       std::vector<double> pbs = core::make_vector<double>( outlier, 1 - outlier );
-      core::Buffer1D<ui32> pointsSampled = core::sampling( pbs, nbPoints );
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      core::Buffer1D<size_t> pointsSampled = core::sampling( pbs, nbPoints );
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          if ( pointsSampled[ n ] == 0 )
          {
@@ -42,11 +42,11 @@ public:
       }
    }
 
-   static void printPoints( core::Image<ui8>& i, const std::vector< std::pair<ui32, ui32> >& points )
+   static void printPoints( core::Image<ui8>& i, const std::vector< std::pair<size_t, size_t> >& points )
    {
-      for ( ui32 n = 0; n < points.size(); ++n )
+      for ( size_t n = 0; n < points.size(); ++n )
       {
-         const std::pair<ui32, ui32>& p = points[ n ];
+         const std::pair<size_t, size_t>& p = points[ n ];
          if ( p.first + 5 < i.sizex() && p.second +5 < i.sizey() &&
               p.first > 5 &&             p.second > 5 )
          {
@@ -71,24 +71,24 @@ public:
 
    void testRobustLineFitting()
    {
-      const ui32 size = 512;
+      const size_t size = 512;
       const double outliers = 0.5;
       typedef std::vector<double> Point;
       srand( 1 );
       double time = 0;
 
-      for ( ui32 n = 0; n < 40; ++n )
+      for ( size_t n = 0; n < 40; ++n )
       {
          std::cout << "case=" << n << std::endl;
          core::Image<ui8> i( size, size, 3 );
          double a, b;
-         std::vector< std::pair<ui32, ui32> > points;
+         std::vector< std::pair<size_t, size_t> > points;
 
          generateLine( size, outliers, 100, 8.5, points, a, b );
          printPoints( i, points );
 
          std::vector< Point > pointsTfm;
-         for ( ui32 nn = 0; nn < points.size(); ++nn )
+         for ( size_t nn = 0; nn < points.size(); ++nn )
          {
             pointsTfm.push_back( core::make_vector<double>( points[ nn ].first, points[ nn ].second ) );
          }

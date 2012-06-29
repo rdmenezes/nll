@@ -82,7 +82,7 @@ public:
    {
       srand( 6 );
       std::cout << "Test volume mapper: ";
-      for ( ui32 nn = 0; nn < 20; ++nn )
+      for ( size_t nn = 0; nn < 20; ++nn )
       {
          std::cout << "#";
          Matrix pstTarget = core::createTransformationAffine3D(core::vector3f( core::generateUniformDistributionf( -1, 1), core::generateUniformDistributionf( -1, 1), core::generateUniformDistributionf( -1, 1) ),
@@ -119,9 +119,9 @@ public:
          Interpolator interpolator( target );
          interpolator.startInterpolation();
          float meanError = 0;
-         ui32 nbCases = 0;
+         size_t nbCases = 0;
 
-         for ( ui32 n = 0; n < 500; ++n )
+         for ( size_t n = 0; n < 500; ++n )
          {
             static const int border = 5;
             core::vector3f indexInResampled( ( border + rand() ) % ( resampled.size()[ 0 ] - 2 * border ),
@@ -161,7 +161,7 @@ public:
    {
       srand( 1 );
       std::cout << "Test MPR: ";
-      for ( ui32 nn = 0; nn < 20; ++nn )
+      for ( size_t nn = 0; nn < 20; ++nn )
       {
          std::cout << "#";
 
@@ -197,8 +197,8 @@ public:
          Interpolator interpolator( target );
          interpolator.startInterpolation();
          float meanError = 0;
-         ui32 nbCases = 0;
-         for ( ui32 n = 0; n < 500; ++n )
+         size_t nbCases = 0;
+         for ( size_t n = 0; n < 500; ++n )
          {
             static const int border = 8;
             core::vector2f indexInResampled( ( border + rand() ) % ( slice.size()[ 0 ] - 2 * border ),

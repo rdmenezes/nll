@@ -79,7 +79,7 @@ namespace algorithm
       virtual f64 distance( const Point& p1, const Point& p2 ) const
       {
          assert( p1.size() == p2.size() );
-         return core::generic_norm2<Point, f64>( p1, p2, static_cast<ui32>( p1.size() ) );
+         return core::generic_norm2<Point, f64>( p1, p2, static_cast<size_t>( p1.size() ) );
       }
 
   //    virtual std::string name() const { return typeid( this ).name(); }
@@ -96,7 +96,7 @@ namespace algorithm
       {
          assert( p1.size() == p2.size() );
          f64 dist = 0;
-         for ( ui32 n = 0; n < p1.size(); ++n)
+         for ( size_t n = 0; n < p1.size(); ++n)
             dist += core::absolute( p1[ n ] - p2[ n ] );
          return dist;
       }

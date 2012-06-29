@@ -122,7 +122,7 @@ namespace core
        @brief Vertex evaluator used in the dijkstra algorithm to set the visit priority
        */
       template <class Graph, class MapperValueType>
-      class DijkstraVertexEvaluator
+      class DijkstraVertexEvaluator : public core::NonCopyable
       {
       public:
          typedef typename Graph::template VertexMapper<MapperValueType>    VertexMapper;

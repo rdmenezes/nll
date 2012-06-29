@@ -52,11 +52,11 @@ public:
       tfmf.import(srcToTarget);
       core::resampleLinear( tgtsp, tfmf, resampledsp );
       core::extend( resampledsp, 3 );
-      for ( ui32 ny = 0; ny < source.sizey(); ++ny )
+      for ( size_t ny = 0; ny < source.sizey(); ++ny )
       {
-         for ( ui32 nx = 0; nx < source.sizex(); ++nx )
+         for ( size_t nx = 0; nx < source.sizex(); ++nx )
          {
-            for ( ui32 c = 0; c < 2; ++c )
+            for ( size_t c = 0; c < 2; ++c )
             {
                resampledsp( nx, ny, c ) = (ui8)NLL_BOUND( source( nx, ny, 0 ) + ( c == 2 ) * resampledsp( nx, ny, c ), 0, 255);
             }
@@ -79,11 +79,11 @@ public:
       core::resampleNearest( targetSp, tfmd, resampled );
 
       output = resampled;
-      for ( ui32 y = 0; y < source.sizey(); ++y )
+      for ( size_t y = 0; y < source.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < source.sizex(); ++x )
+         for ( size_t x = 0; x < source.sizex(); ++x )
          {
-            for ( ui32 c = 0; c < 3; ++c )
+            for ( size_t c = 0; c < 3; ++c )
             {
                const double val = ( 2 * (c==2) * source( x, y, c )  + output( x, y, c ) );
                output( x, y, c ) = (ui8)NLL_BOUND( val, 0, 255 );
@@ -100,9 +100,9 @@ public:
       output = core::Image<ui8>( i1.sizex() + i2.sizex(),
                                  std::max( i1.sizey(), i2.sizey() ),
                                  3 );
-      for ( ui32 y = 0; y < i1.sizey(); ++y )
+      for ( size_t y = 0; y < i1.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i1.sizex(); ++x )
+         for ( size_t x = 0; x < i1.sizex(); ++x )
          {
             output( x, y, 0 ) = i1( x, y, 0 );
             output( x, y, 1 ) = i1( x, y, 1 );
@@ -110,9 +110,9 @@ public:
          }
       }
 
-      for ( ui32 y = 0; y < i2.sizey(); ++y )
+      for ( size_t y = 0; y < i2.sizey(); ++y )
       {
-         for ( ui32 x = 0; x < i2.sizex(); ++x )
+         for ( size_t x = 0; x < i2.sizex(); ++x )
          {
             output( x + i1.sizex(), y, 0 ) = i2( x, y, 0 );
             output( x + i1.sizex(), y, 1 ) = i2( x, y, 1 );
@@ -120,7 +120,7 @@ public:
          }
       }
 
-      for ( ui32 n = 0; n < (ui32)points.size(); ++n )
+      for ( size_t n = 0; n < (size_t)points.size(); ++n )
       {
          const algorithm::SpeededUpRobustFeatures::Point& f1 = points[ n ].first;
          const algorithm::SpeededUpRobustFeatures::Point& f2 = points[ n ].second;
@@ -130,10 +130,10 @@ public:
 
    static void printPointsSimple( core::Image<ui8>& output, const algorithm::SpeededUpRobustFeatures::Points& points )
    {
-      for ( ui32 n = 0; n < points.size(); ++n )
+      for ( size_t n = 0; n < points.size(); ++n )
       {
-         ui32 px = points[ n ].position[ 0 ];
-         ui32 py = points[ n ].position[ 1 ];
+         size_t px = points[ n ].position[ 0 ];
+         size_t py = points[ n ].position[ 1 ];
          if ( px < output.sizex() && py < output.sizey() )
          {
             output( px, py, 0 ) = 0;
@@ -174,9 +174,9 @@ public:
       core::Image<ui8> final( src.sizex() + tgt.sizex() + outputReg.sizex(),
                               std::max( src.sizey(), tgt.sizey() ),
                               3 );
-      for ( ui32 x = 0; x < composed.sizex(); ++x )
+      for ( size_t x = 0; x < composed.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < composed.sizey(); ++y )
+         for ( size_t y = 0; y < composed.sizey(); ++y )
          {
             final( x + outputReg.sizex(), y, 0 ) = composed( x, y, 0 );
             final( x + outputReg.sizex(), y, 1 ) = composed( x, y, 1 );
@@ -184,9 +184,9 @@ public:
          }
       }
 
-      for ( ui32 x = 0; x < outputReg.sizex(); ++x )
+      for ( size_t x = 0; x < outputReg.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < outputReg.sizey(); ++y )
+         for ( size_t y = 0; y < outputReg.sizey(); ++y )
          {
             final( x, y, 0 ) = outputReg( x, y, 0 );
             final( x, y, 1 ) = outputReg( x, y, 1 );
@@ -195,7 +195,7 @@ public:
       }
 
       // print the matched points
-      for ( ui32 n = 0; n < inliers.size(); ++n )
+      for ( size_t n = 0; n < inliers.size(); ++n )
       {
          const algorithm::SpeededUpRobustFeatures::Point& source = inliers[ n ].first;
          final( source.position[ 0 ], source.position[ 1 ], 0 ) = 255;
@@ -271,8 +271,8 @@ public:
       core::writeBmp( i, "c:/tmp/resampled.bmp" );
 
       double accumError = 0;
-      ui32 nb = 0;
-      for ( ui32 n = 0; n < resampled2.size(); ++n )
+      size_t nb = 0;
+      for ( size_t n = 0; n < resampled2.size(); ++n )
       {
          if ( resampled2[ n ] > 0 )
          {

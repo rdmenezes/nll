@@ -156,24 +156,24 @@ namespace algorithm
 		   if ( dat.size() == 0 )
 			   return;
          _inputSize = dat[ 0 ].input.size();
-		   std::vector<ui32> learningIndex;
-		   for (ui32 n = 0; n < dat.size(); ++n)
+		   std::vector<size_t> learningIndex;
+		   for (size_t n = 0; n < dat.size(); ++n)
             if ( dat[ n ].type == Base::Database::Sample::LEARNING )
 				   learningIndex.push_back(n);
 		   assert( learningIndex.size() ); // "no learning data in database"
 
 		   f64* y = new f64[ learningIndex.size() ];
-		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
+		   for ( size_t n = 0; n < learningIndex.size(); ++n )
 			   y[  n ] = dat[ learningIndex[ n ] ].output[ 0 ];
 
 		   Point* inputs = new Point[ learningIndex.size() ];
-		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
+		   for ( size_t n = 0; n < learningIndex.size(); ++n )
 			   inputs[ n ] = dat[ learningIndex[ n ] ].input;
-         svm_node** x = implementation::build_svm_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), dat[ 0 ].input.size() );
+         svm_node** x = implementation::build_svm_inputs_from_vectors( inputs, static_cast<size_t>( learningIndex.size() ), dat[ 0 ].input.size() );
 		   delete [] inputs;
 
 		   svm_problem pb;
-		   pb.l = static_cast<ui32>( learningIndex.size() );
+		   pb.l = static_cast<int>( learningIndex.size() );
 		   pb.y = y;
 		   pb.x = x;
 
@@ -203,7 +203,7 @@ namespace algorithm
 		   assert( _model ); // "error: model not trained"
 
          _vector = x;
-         _vectorSize = static_cast<ui32>( learningIndex.size() );
+         _vectorSize = static_cast<size_t>( learningIndex.size() );
 		   delete [] y;
 	   }
 
@@ -219,11 +219,11 @@ namespace algorithm
 
    private:
 	   svm_model*  _model;
-	   ui32        _kernelType;
-      ui32        _inputSize;
+	   size_t        _kernelType;
+      size_t        _inputSize;
 
       svm_node**  _vector;
-      ui32        _vectorSize;
+      size_t        _vectorSize;
    };
 }
 }

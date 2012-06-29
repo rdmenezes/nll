@@ -57,7 +57,7 @@ namespace algorithm
        @param nbFeatures select the best subset features from the initial feature set.
        @param k the number of neighbours considered
        */      
-      FeatureRank process( const Database& dat, ui32 steps = 1000, ui32 k = 10 )
+      FeatureRank process( const Database& dat, size_t steps = 1000, size_t k = 10 )
       {
          typedef core::Buffer1D<typename Database::Sample::Input>          Points;
          typedef KdTree<Point, MetricEuclidian<Point>, 5, Points>          KdTree;
@@ -65,34 +65,34 @@ namespace algorithm
          typedef core::Buffer1D<Inputs>                                    SortedSamples;
          assert( dat.size() );
 
-         const ui32 nbclass = core::getNumberOfClass( dat );
-         const ui32 nbFeatures = dat[ 0 ].input.size();
+         const size_t nbclass = core::getNumberOfClass( dat );
+         const size_t nbFeatures = dat[ 0 ].input.size();
          assert( nbFeatures );
 
          // sort instances by class, build a kd-tree for each class
-         core::Buffer1D< core::Buffer1D<ui32> > indexes( nbclass );
-         core::Buffer1D<ui32> nbSampleByClass( nbclass );
+         core::Buffer1D< core::Buffer1D<size_t> > indexes( nbclass );
+         core::Buffer1D<size_t> nbSampleByClass( nbclass );
          SortedSamples sortedSamples( nbclass, true );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
             ++nbSampleByClass[ dat[ n ].output ];
-         for ( ui32 n = 0; n < nbclass; ++n )
+         for ( size_t n = 0; n < nbclass; ++n )
             assert( nbSampleByClass[ n ] );
-         for ( ui32 n = 0; n < nbclass; ++n )
+         for ( size_t n = 0; n < nbclass; ++n )
          {
             sortedSamples[ n ] = Inputs( nbSampleByClass[ n ] );
-            indexes[ n ] = core::Buffer1D<ui32>( nbSampleByClass[ n ] );
+            indexes[ n ] = core::Buffer1D<size_t>( nbSampleByClass[ n ] );
          }
 
          // compute min and max for each feature
          core::Buffer1D<f64> minFeature( nbFeatures );
          core::Buffer1D<f64> maxFeature( nbFeatures );
-         for ( ui32 n = 0; n < nbFeatures; ++n )
+         for ( size_t n = 0; n < nbFeatures; ++n )
          {
             minFeature[ n ] = std::numeric_limits<f64>::max();
             minFeature[ n ] = std::numeric_limits<f64>::min();
          }
-         for ( ui32 n = 0; n < dat.size(); ++n )
-            for ( ui32 m = 0; m < nbFeatures; ++m )
+         for ( size_t n = 0; n < dat.size(); ++n )
+            for ( size_t m = 0; m < nbFeatures; ++m )
             {
                f64 val = dat[ n ].input[ m ];
                if ( minFeature[ m ] > val )
@@ -103,43 +103,43 @@ namespace algorithm
 
          // compute the probability to find a specific class
          core::Buffer1D<f64> probability( nbclass );
-         for ( ui32 n = 0; n < nbclass; ++n )
+         for ( size_t n = 0; n < nbclass; ++n )
             probability[ n ] = static_cast<f64>( nbSampleByClass[ n ] ) / dat.size();
 
          // build indexes and inverse
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            ui32 c = dat[ n ].output;
+            size_t c = dat[ n ].output;
             --nbSampleByClass[ c ];
             sortedSamples[ dat[ n ].output ][ nbSampleByClass[ c ] ] = dat[ n ].input;
             indexes[ c ][ nbSampleByClass[ c ] ] = n;  // build the inversed index: from the sorted samples, find the original index in the database
          }
          nbSampleByClass.unref(); // do not use it anymore
          std::vector<KdTree> kdtrees( nbclass ); // TODO here a bug if core::Buffer1D<KdTree> instead -> memset(0) wich destroy data of the STL containers
-         for ( ui32 n = 0; n < nbclass; ++n )
+         for ( size_t n = 0; n < nbclass; ++n )
             kdtrees[ n ].build( sortedSamples[ n ], nbFeatures );
          
          // run the relieff algorithm
          FeatureRank featureRank( nbFeatures );
          typename KdTree::NearestNeighborList* neighbours = new typename KdTree::NearestNeighborList[ nbclass ];
-         for ( ui32 n = 0; n < steps; ++n )
+         for ( size_t n = 0; n < steps; ++n )
          {
             // select a sample
-            ui32 c = rand() % nbclass; // TODO: check // probability is changed: instead of randomly choosing a sample, choose a class and then a sample from this class
-            ui32 instance = rand() % sortedSamples[ c ].size();
-            const ui32 indexOrig = indexes[ c ][ instance ];
+            size_t c = rand() % nbclass; // TODO: check // probability is changed: instead of randomly choosing a sample, choose a class and then a sample from this class
+            size_t instance = rand() % sortedSamples[ c ].size();
+            const size_t indexOrig = indexes[ c ][ instance ];
 
             // compute the class misses and hit
 
             // TODO CHECK INDEX!!
-            for ( ui32 nn = 0; nn < nbclass; ++nn )
+            for ( size_t nn = 0; nn < nbclass; ++nn )
                neighbours[ nn ] = kdtrees[ nn ].findNearestNeighbor( dat[ indexOrig ].input, k );
 
             // update the weight
-            for ( ui32 nn = 0; nn < nbFeatures; ++ nn )
+            for ( size_t nn = 0; nn < nbFeatures; ++ nn )
             {
                f64 pnc = 0;
-               for ( ui32 mm = 0; mm < nbclass; ++mm )
+               for ( size_t mm = 0; mm < nbclass; ++mm )
                {
                   f64 diff = 0;
                   for ( typename KdTree::NearestNeighborList::iterator it = neighbours[ mm ].begin(); it != neighbours[ mm ].end(); ++it )

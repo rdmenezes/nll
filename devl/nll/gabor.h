@@ -87,7 +87,7 @@ namespace algorithm
       /**
        @brief return the i th filter
        */
-      const Convolution& at( ui32 index )
+      const Convolution& at( size_t index )
       {
          return _gabors[ index ];
       }
@@ -95,15 +95,15 @@ namespace algorithm
       /**
        @brief return the number of filters
        */
-      ui32 size()
+      size_t size()
       {
-         return static_cast<ui32>( _gabors.size() );
+         return static_cast<size_t>( _gabors.size() );
       }
 
       /**
        @brief return the i th filter
        */
-      const Convolution& operator[]( ui32 index ){ return at( index ); }
+      const Convolution& operator[]( size_t index ){ return at( index ); }
 
       /**
        @brief return the set of filters
@@ -120,12 +120,12 @@ namespace algorithm
       {
          assert( _gabors.size() );
          assert( i.getNbComponents() == 1 );
-         ImageOutput output( i.sizex(), i.sizey(), static_cast<ui32>( _gabors.size() ) );
-         for ( ui32 n = 0; n < _gabors.size(); ++n )
+         ImageOutput output( i.sizex(), i.sizey(), static_cast<size_t>( _gabors.size() ) );
+         for ( size_t n = 0; n < _gabors.size(); ++n )
          {
             Image conv = core::convolveBorder( i, _gabors[ n ] );
-            for ( ui32 ny = 0; ny < i.sizey(); ++ny )
-               for ( ui32 nx = 0; nx < i.sizex(); ++nx )
+            for ( size_t ny = 0; ny < i.sizey(); ++ny )
+               for ( size_t nx = 0; nx < i.sizex(); ++nx )
                   output( nx, ny, n ) = conv( nx, ny, 0 );
          }
          return output;
@@ -144,9 +144,9 @@ namespace algorithm
        */
       void write( std::ostream& o ) const
       {
-         ui32 size = static_cast<ui32>( _gabors.size() );
-         core::write<ui32>( size, o );
-         for ( ui32 n = 0; n < size; ++n )
+         size_t size = static_cast<size_t>( _gabors.size() );
+         core::write<size_t>( size, o );
+         for ( size_t n = 0; n < size; ++n )
             _gabors[ n ].write( o );
       }
 
@@ -155,9 +155,9 @@ namespace algorithm
        */
       void read( std::istream& i )
       {
-         ui32 size = static_cast<ui32>( _gabors.size() );
-         core::read<ui32>( size, i );
-         for ( ui32 n = 0; n < size; ++n )
+         size_t size = static_cast<size_t>( _gabors.size() );
+         core::read<size_t>( size, i );
+         for ( size_t n = 0; n < size; ++n )
             _gabors[ n ].read( i );
       }
 

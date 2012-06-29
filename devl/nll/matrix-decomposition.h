@@ -56,7 +56,7 @@ namespace core
           Code from numerical recipes
     */
 	template <class type, class mapper, class allocator>
-	bool luDecomposition(Matrix<type, mapper, allocator>& a, Buffer1D<ui32>& perm, type& d)
+	bool luDecomposition(Matrix<type, mapper, allocator>& a, Buffer1D<size_t>& perm, type& d)
 	{
       ensure( a.sizex() == a.sizey(), "only square matrix" );
 		const type TINY=1.0e-20f;
@@ -64,9 +64,9 @@ namespace core
 		type big,dum,sum,temp;
 		bool error = false;
 
-		int n=a.nrows();
+		int n=static_cast<int>( a.nrows() );
 		Buffer1D<type> vv(n);
-		perm = Buffer1D<ui32>(n);
+		perm = Buffer1D<size_t>(n);
 		d=1.0;
 		for (i=0;i<n;i++) {
 			big=0.0;
@@ -121,14 +121,15 @@ namespace core
     Solve PAx = B, with A = LU
     */
 	template <class type, class mapper, class allocator>
-	bool luBackSubstitution(Matrix<type, mapper, allocator>& a, Buffer1D<ui32>& perm, Buffer1D<type>& b)
+	bool luBackSubstitution(Matrix<type, mapper, allocator>& a, Buffer1D<size_t>& perm, Buffer1D<type>& b)
 	{
 		bool error = false;
 		assert(b.size() == a.sizey()); // "bad dimention"
-		int i,ii=0,ip,j;
+		int i,ii=0,j;
+      size_t ip;
 		type sum;
 
-		int n=a.nrows();
+		int n=static_cast<int>( a.nrows() );
 		for (i=0;i<n;i++) {
 			ip=perm(i);
 			sum=b(ip);
@@ -161,7 +162,7 @@ namespace core
 		m.clone(a);
 
 		type d = 0;
-		Buffer1D<ui32> perm;
+		Buffer1D<size_t> perm;
 
 		if (!luDecomposition(m, perm, d))
 			return Matrix<type, mapper, allocator>();

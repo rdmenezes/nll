@@ -130,7 +130,7 @@ class TestAffineTransformationEstimator
 public:
    void testAffineIsotropic2D()
    {
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double angle = core::generateUniformDistribution( - core::PI, core::PI );
          const double dx = core::generateUniformDistribution( -100, 100 );
@@ -140,7 +140,7 @@ public:
 
          Points points1;
          Points points2;
-         for ( ui32 p = 0; p < 10; ++p )
+         for ( size_t p = 0; p < 10; ++p )
          {
             core::Matrix<double> point( 3, 1 );
             point[ 0 ] = core::generateUniformDistribution( -100, 100 );
@@ -155,7 +155,7 @@ public:
          algorithm::EstimatorTransformSimilarityIsometric estimator( 0, 0.1, 10 );
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
-         for ( ui32 p = 0; p < tfm.size(); ++p )
+         for ( size_t p = 0; p < tfm.size(); ++p )
          {
             TESTER_ASSERT( fabs( tfm[ p ] - tfmEstimated[ p ] ) < 1e-1 );
          }
@@ -164,7 +164,7 @@ public:
 
    void testAffineIsotropic3D()
    {
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double anglex = core::generateUniformDistribution( - core::PI, core::PI );
          const double angley = core::generateUniformDistribution( - core::PI, core::PI );
@@ -187,7 +187,7 @@ public:
 
          Points points1;
          Points points2;
-         for ( ui32 p = 0; p < 10; ++p )
+         for ( size_t p = 0; p < 10; ++p )
          {
             core::Matrix<double> point( 4, 1 );
             point[ 0 ] = core::generateUniformDistribution( -100, 100 );
@@ -203,7 +203,7 @@ public:
          algorithm::EstimatorTransformSimilarityIsometric estimator;
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
-         for ( ui32 p = 0; p < tfm.size(); ++p )
+         for ( size_t p = 0; p < tfm.size(); ++p )
          {
             TESTER_ASSERT( fabs( tfm[ p ] - tfmEstimated[ p ] ) < 1e-1 );
          }
@@ -213,7 +213,7 @@ public:
    void testAffineAnisotropic2D()
    {
       srand(12);
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double angle = core::generateUniformDistribution( - core::PI, core::PI );
          const double dx = core::generateUniformDistribution( -100, 100 );
@@ -224,7 +224,7 @@ public:
 
          Points points1;
          Points points2;
-         for ( ui32 p = 0; p < 3; ++p )
+         for ( size_t p = 0; p < 3; ++p )
          {
             core::Matrix<double> point( 3, 1 );
             point[ 0 ] = core::generateUniformDistribution( -100, 100 );
@@ -239,7 +239,7 @@ public:
          algorithm::EstimatorTransformAffine2dDlt estimator( 0, 999, 999 );
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
-         for ( ui32 p = 0; p < tfm.size(); ++p )
+         for ( size_t p = 0; p < tfm.size(); ++p )
          {
             TESTER_ASSERT( fabs( tfm[ p ] - tfmEstimated[ p ] ) < 1e-3 );
          }
@@ -250,7 +250,7 @@ public:
    void testDirectIsometry2D()
    {
       srand(12);
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double angle = core::generateUniformDistribution( - core::PI, core::PI );
          const double dx = core::generateUniformDistribution( -100, 100 );
@@ -261,7 +261,7 @@ public:
 
          Points points1;
          Points points2;
-         for ( ui32 p = 0; p < 2; ++p )
+         for ( size_t p = 0; p < 2; ++p )
          {
             core::Matrix<double> point( 3, 1 );
             point[ 0 ] = core::generateUniformDistribution( -100, 100 );
@@ -276,7 +276,7 @@ public:
          algorithm::AffineIsometry2dExact estimator;
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
-         for ( ui32 p = 0; p < tfm.size(); ++p )
+         for ( size_t p = 0; p < tfm.size(); ++p )
          {
             TESTER_ASSERT( fabs( tfm[ p ] - tfmEstimated[ p ] ) < 1e-3 );
          }
@@ -286,7 +286,7 @@ public:
    void testDirectSimilarity2D()
    {
       srand(12);
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double angle = core::generateUniformDistribution( - core::PI, core::PI );
          const double dx = core::generateUniformDistribution( -100, 100 );
@@ -297,7 +297,7 @@ public:
 
          Points points1;
          Points points2;
-         for ( ui32 p = 0; p < 2; ++p )
+         for ( size_t p = 0; p < 2; ++p )
          {
             core::Matrix<double> point( 3, 1 );
             point[ 0 ] = core::generateUniformDistribution( -100, 100 );
@@ -314,7 +314,7 @@ public:
 
          //tfm.print(std::cout);
          //tfmEstimated.print(std::cout);
-         for ( ui32 p = 0; p < tfm.size(); ++p )
+         for ( size_t p = 0; p < tfm.size(); ++p )
          {
             TESTER_ASSERT( fabs( tfm[ p ] - tfmEstimated[ p ] ) < 1e-3 );
          }
@@ -324,7 +324,7 @@ public:
    void testSimilarityAnisotropic2D()
    {
       srand(12);
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double angle = core::generateUniformDistribution( - core::PI / 2, core::PI / 2 );
          const double dx = core::generateUniformDistribution( -100, 100 );
@@ -335,7 +335,7 @@ public:
 
          Points points1;
          Points points2;
-         for ( ui32 p = 0; p < 3; ++p )
+         for ( size_t p = 0; p < 3; ++p )
          {
             core::Matrix<double> point( 3, 1 );
             point[ 0 ] = core::generateUniformDistribution( -100, 100 );
@@ -350,7 +350,7 @@ public:
          algorithm::EstimatorAffineSimilarityNonIsotropic2d estimator( 0, 1000 );
          core::Matrix<double> tfmEstimated = estimator.compute( points1, points2 );
 
-         for ( ui32 p = 0; p < tfm.size(); ++p )
+         for ( size_t p = 0; p < tfm.size(); ++p )
          {
             TESTER_ASSERT( fabs( tfm[ p ] - tfmEstimated[ p ] ) < 1e-3 );
          }

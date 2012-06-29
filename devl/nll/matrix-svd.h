@@ -81,7 +81,7 @@ namespace core
    {
 	   int jj,j,i;
 	   type s;
-	   ui32 singular_cnt = 0;
+	   size_t singular_cnt = 0;
 	   x = Buffer1D<type>(a.sizey());
 
 	   int m=a.sizex();
@@ -139,8 +139,8 @@ namespace core
 	   int i,its,j,jj,k,l = 0,nm = 0;
 	   type anorm,c,f,g,h,s,scale,x,y,z;
 
-	   int m=a.sizey();
-	   int n=a.sizex();
+	   int m=static_cast<int>( a.sizey() );
+	   int n=static_cast<int>( a.sizex() );
 	   Buffer1D<type> rv1(n);
 	   g=scale=anorm=0;
 	   w = Buffer1D<type>(n);
@@ -340,8 +340,8 @@ namespace core
       if ( !res )
          return false;
       
-      std::vector< std::pair< type, ui32 > > sorted;
-      for ( ui32 n = 0; n < w.size(); ++n )
+      std::vector< std::pair< type, size_t > > sorted;
+      for ( size_t n = 0; n < w.size(); ++n )
       {
          if ( w[ n ] > epsilon )
          {
@@ -350,29 +350,29 @@ namespace core
       }
 
       std::sort( sorted.rbegin(), sorted.rend() );
-      Matrix<type, mapper, allocator> us( cpa.sizey(), (ui32)sorted.size() );
-      for ( ui32 x = 0; x < us.sizex(); ++x )
+      Matrix<type, mapper, allocator> us( cpa.sizey(), (size_t)sorted.size() );
+      for ( size_t x = 0; x < us.sizex(); ++x )
       {
-         ui32 index = sorted[ x ].second;
-         for ( ui32 y = 0; y < us.sizey(); ++y )
+         size_t index = sorted[ x ].second;
+         for ( size_t y = 0; y < us.sizey(); ++y )
          {
             us( y, x ) = cpa( y, index );
          }
       }
       uOut = us;
 
-      Buffer1D<type> ws( (ui32)sorted.size() );
-      for ( ui32 n = 0; n < sorted.size(); ++n )
+      Buffer1D<type> ws( (size_t)sorted.size() );
+      for ( size_t n = 0; n < sorted.size(); ++n )
       {
          ws[ n ] = sorted[ n ].first;
       }
       wOut = ws;
 
-      Matrix<type, mapper, allocator> vs( v.sizey(), (ui32)sorted.size() );
-      for ( ui32 x = 0; x < us.sizex(); ++x )
+      Matrix<type, mapper, allocator> vs( v.sizey(), (size_t)sorted.size() );
+      for ( size_t x = 0; x < us.sizex(); ++x )
       {
-         ui32 index = sorted[ x ].second;
-         for ( ui32 y = 0; y < v.sizey(); ++y )
+         size_t index = sorted[ x ].second;
+         for ( size_t y = 0; y < v.sizey(); ++y )
          {
             vs( y, x ) = v( y, index );
          }
@@ -412,8 +412,8 @@ namespace core
       Matrix dt = b * u;
 
       // find the rank
-      ui32 rank = 0;
-      for ( ui32 n = 0; n < w.size(); ++n )
+      size_t rank = 0;
+      for ( size_t n = 0; n < w.size(); ++n )
       {
          if ( w[ n ] > std::numeric_limits<T>::epsilon() )
          {
@@ -428,7 +428,7 @@ namespace core
          throw std::runtime_error( "not enough eigen vectors" );
       }
 
-      for ( ui32 n = 0; n < w.size(); ++n )
+      for ( size_t n = 0; n < w.size(); ++n )
       {
          dt[ n ] /= w[ n ];
       }

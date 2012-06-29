@@ -43,7 +43,7 @@ void _loadFileSpect( const std::string& file, int type, typename nll::algorithm:
          i[ n ] = ( typename DatabaseT::Sample::Input::value_type)atof( vals[ n + 1 ] );
       classification = atof( vals[ 0 ] );
 
-      dat.add(typename DatabaseT::Sample(i, (nll::ui32)classification, static_cast<typename DatabaseT::Sample::Type>(type)));
+      dat.add(typename DatabaseT::Sample(i, (size_t)classification, static_cast<typename DatabaseT::Sample::Type>(type)));
    }
 }
 

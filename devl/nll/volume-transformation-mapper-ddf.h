@@ -144,13 +144,13 @@ namespace imaging
             core::vector3f linePosSrcDdf = core::vector3f( originInTargetDdf[ 0 ] + z * dzDdf[ 0 ],
                                                            originInTargetDdf[ 1 ] + z * dzDdf[ 1 ],
                                                            originInTargetDdf[ 2 ] + z * dzDdf[ 2 ] );
-            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
+            for ( size_t y = 0; y < resampled.sizey(); ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
                core::vector3f voxelPosSrcDdf = linePosSrcDdf;
                core::vector3f voxelPosSrc = linePosSrc;
-               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
+               for ( size_t x = 0; x < resampled.sizex(); ++x )
                {
                   core::vector3f displacement = tfm.transformDeformableOnlyIndex( voxelPosSrcDdf ); // this is the displacement in MM
                   transformationHelper.transform( displacement ); // translate the displacement in MM into the corresponding target index

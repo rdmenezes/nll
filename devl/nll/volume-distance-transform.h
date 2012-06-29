@@ -49,16 +49,16 @@ namespace imaging
          typedef T value_type;
          typedef Volume<T, VolumeMemoryBufferType> VolumeT;
 
-         AbstractColumnBufferImage( VolumeT& i, unsigned r, unsigned s ) : _img( i ), _row( r ), _slice( s )
+         AbstractColumnBufferImage( VolumeT& i, size_t r, size_t s ) : _img( i ), _row( r ), _slice( s )
          {
          }
 
-         T operator[]( unsigned n ) const
+         T operator[]( size_t n ) const
          {
             return _img( n, _row, _slice );
          }
 
-         T& operator[]( unsigned n )
+         T& operator[]( size_t n )
          {
             return _img( n, _row, _slice );
          }
@@ -68,8 +68,8 @@ namespace imaging
          AbstractColumnBufferImage operator=( const AbstractColumnBufferImage& );
 
          VolumeT&                      _img;
-         unsigned                      _row;
-         unsigned                      _slice;
+         size_t                        _row;
+         size_t                        _slice;
       };
 
       /**
@@ -82,16 +82,16 @@ namespace imaging
          typedef T value_type;
          typedef Volume<T, VolumeMemoryBufferType> VolumeT;
 
-         AbstractRowBufferImage( VolumeT& i, unsigned c, unsigned s ) : _img( i ), _col( c ), _slice( s )
+         AbstractRowBufferImage( VolumeT& i, size_t c, size_t s ) : _img( i ), _col( c ), _slice( s )
          {
          }
 
-         T operator[]( unsigned n ) const
+         T operator[]( size_t n ) const
          {
             return _img( _col, n, _slice );
          }
 
-         T& operator[]( unsigned n )
+         T& operator[]( size_t n )
          {
             return _img( _col, n, _slice );
          }
@@ -101,8 +101,8 @@ namespace imaging
          AbstractRowBufferImage operator=( const AbstractRowBufferImage& );
 
          VolumeT&                      _img;
-         unsigned                      _col;
-         unsigned                      _slice;
+         size_t                        _col;
+         size_t                        _slice;
       };
 
       /**
@@ -115,16 +115,16 @@ namespace imaging
          typedef T value_type;
          typedef Volume<T, VolumeMemoryBufferType> VolumeT;
 
-         AbstractSliceBufferImage( VolumeT& i, unsigned c, unsigned r ) : _img( i ), _col( c ), _row( r )
+         AbstractSliceBufferImage( VolumeT& i, size_t c, size_t r ) : _img( i ), _col( c ), _row( r )
          {
          }
 
-         T operator[]( unsigned n ) const
+         T operator[]( size_t n ) const
          {
             return _img( _col, _row, n );
          }
 
-         T& operator[]( unsigned n )
+         T& operator[]( size_t n )
          {
             return _img( _col, _row, n );
          }
@@ -134,8 +134,8 @@ namespace imaging
          AbstractSliceBufferImage operator=( const AbstractSliceBufferImage& );
 
          VolumeT&                      _img;
-         unsigned                      _col;
-         unsigned                      _row;
+         size_t                        _col;
+         size_t                        _row;
       };
    }
 

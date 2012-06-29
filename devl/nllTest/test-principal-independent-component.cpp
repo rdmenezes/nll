@@ -77,7 +77,7 @@ public:
    // ICA find W^-1, with component order or sign not relevant
    void _testBasic( pfunc f1, pfunc f2, double val )
    {
-      for ( ui32 nn = 0; nn < 1; ++nn )
+      for ( size_t nn = 0; nn < 1; ++nn )
       {
          algorithm::IndependentComponentAnalysis<> pci;
 
@@ -91,7 +91,7 @@ public:
          mixingSource( 1, 0 ) = 1 - val;
          mixingSource( 1, 1 ) = val;
 
-         const ui32 nbPoints = 301;
+         const size_t nbPoints = 301;
          Points origSignals( nbPoints );
          Points mixedSignals( nbPoints );
 
@@ -99,7 +99,7 @@ public:
          Matrix cmp2( nbPoints, 1 );
          Matrix cmp3( nbPoints, 1 );
          Matrix cmp4( nbPoints, 1 );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             const double val = n / 20.0;
             origSignals[ n ] = core::make_vector<double>( f1( val ), f2( val ) );
@@ -122,9 +122,9 @@ public:
          algorithm::IndependentComponentAnalysis<> pic;
          pci.compute( mixedSignals, 2 );
 
-         for ( ui32 n = 0; n < pci.getUnmixingMatrix().size(); ++n )
+         for ( size_t n = 0; n < pci.getUnmixingMatrix().size(); ++n )
          {
-            for ( ui32 nn = 0; nn < pci.getUnmixingMatrix()[ 0 ].size(); ++nn )
+            for ( size_t nn = 0; nn < pci.getUnmixingMatrix()[ 0 ].size(); ++nn )
             {
                std::cout << pci.getUnmixingMatrix()[ n ][ nn ] << " ";
             }
@@ -136,7 +136,7 @@ public:
 
          Points unmixedSignals( nbPoints );
          Points transformed;
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             transformed.push_back( pci.transform( mixedSignals[ n ] ) );
             unmixedSignals[ n ] = core::make_vector<double>( unmixingSource( 0, 0 ) * mixedSignals[ n ][ 0 ] + unmixingSource( 0, 1 ) * mixedSignals[ n ][ 1 ],
@@ -189,11 +189,11 @@ public:
    }
 
    template <class Points>
-   core::Image<ui8> displaySignal( const Points& points, const ui32 component, const ui32 nbPoints, const double maxy )
+   core::Image<ui8> displaySignal( const Points& points, const size_t component, const size_t nbPoints, const double maxy )
    {
       core::Image<ui8> i1( nbPoints, 50, 3 );
       const double dy = maxy / i1.sizey();
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const double y = points[ n ][ component ] / dy + i1.sizey() / 2;
          if ( y >= 0 && y < i1.sizey() )
@@ -220,7 +220,7 @@ public:
          if ( size % 10 == 0 )
             std::cout << "#";
          Matrix a( size, size, false );
-         for ( ui32 n = 0; n < a.size(); ++n )
+         for ( size_t n = 0; n < a.size(); ++n )
             a[ n ] = ( (double)( rand() % 100000 ) ) / 100 - 500;
 
          Matrix v;
@@ -230,12 +230,12 @@ public:
          core::svdcmp( aa, w, v );
 
          Matrix eiv( size, size );
-         for ( ui32 n = 0; n < (ui32)size; ++n )
+         for ( size_t n = 0; n < (size_t)size; ++n )
             eiv( n, n ) = w[ n ];
 
          core::transpose( v );
          Matrix aorig = (aa * eiv * v);
-         for ( ui32 n = 0; n < aorig.size(); ++n )
+         for ( size_t n = 0; n < aorig.size(); ++n )
             TESTER_ASSERT( fabs( aorig[ n ] - a[ n ] ) < 1e-8 );
       }
    }
@@ -246,7 +246,7 @@ public:
    // be inversed... but this is expected
    void testImage()
    {
-      const ui32 nbImages = 9;
+      const size_t nbImages = 9;
       srand( 10 );
       const std::string path = NLL_TEST_PATH "data/ica/";
 
@@ -254,12 +254,12 @@ public:
       std::vector<Image> images;
 
       // read the images
-      const ui32 index[ 9 ] =
+      const size_t index[ 9 ] =
       {
          1, 2, 3, 4, 5, 6, 7, 8, 9
       };
 
-      for ( ui32 n = 0; n < nbImages; ++n )
+      for ( size_t n = 0; n < nbImages; ++n )
       {
          images.push_back( path + "i" + core::val2str( index[ n ] ) + ".bmp" );
       }
@@ -271,26 +271,26 @@ public:
       typedef core::Matrix<double>  Matrix;
 
       // create the source data
-      const ui32 nbPoints = images[ 0 ].size();
+      const size_t nbPoints = images[ 0 ].size();
       Points points( nbPoints );
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          Point point( nbImages );
-         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         for ( size_t nn = 0; nn < nbImages; ++nn )
             point[ nn ] = images[ nn ][ n ];
          points[ n ] = point;
       }
 
       // create mixing matrix
       Matrix mixing( nbImages, nbImages );
-      for ( ui32 n = 0; n < nbImages; ++n )
+      for ( size_t n = 0; n < nbImages; ++n )
       {
-         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         for ( size_t nn = 0; nn < nbImages; ++nn )
             mixing( n, nn ) = 1.0/nbImages;
-         for ( ui32 nn = 0; nn < 200; ++nn )
+         for ( size_t nn = 0; nn < 200; ++nn )
          {
-            ui32 i1 = rand() % nbImages;
-            ui32 i2 = i1;
+            size_t i1 = rand() % nbImages;
+            size_t i2 = i1;
             while ( i1 == i2 )
                i2 = rand() % nbImages;
             double diff = core::generateUniformDistribution( 0.02, 0.08 );
@@ -307,13 +307,13 @@ public:
 
       // mix the data
       Points pointsMixed( nbPoints );
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          Point p( nbImages );
-         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         for ( size_t nn = 0; nn < nbImages; ++nn )
          {
             double sum = 0;
-            for ( ui32 nnn = 0; nnn < nbImages; ++nnn )
+            for ( size_t nnn = 0; nnn < nbImages; ++nnn )
             {
                sum += mixing( nn, nnn ) * images[ nnn ][ n ];
             }
@@ -327,10 +327,10 @@ public:
 
       // rebuild images
       //Points pointsMixed( nbPoints );
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          Point p = pci.transform( pointsMixed[ n ] );
-         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         for ( size_t nn = 0; nn < nbImages; ++nn )
          {
            // if ( n % 100  == 0 )
            // {
@@ -340,7 +340,7 @@ public:
          }
       }
 
-      for ( ui32 nn = 0; nn < nbImages; ++nn )
+      for ( size_t nn = 0; nn < nbImages; ++nn )
       {
          core::writeBmp( images[ nn ], NLL_TEST_PATH "data/ica-unmixed-" + core::val2str( nn ) + ".bmp" );
       }
@@ -351,15 +351,15 @@ public:
       Points pp = core::readVectorFromMatlabAsColumn<Points>( "c:/tmp/w.txt" );
 
       std::cout << "pp size=" << pp.size() << std::endl;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
-         for ( ui32 nn = 0; nn < nbImages; ++nn )
+         for ( size_t nn = 0; nn < nbImages; ++nn )
          {
             images[ nn ][ n ] = (ui8)NLL_BOUND( ( pp[n][ nn ] * 10 ) + 128, 0, 255 );
          }
       }
 
-      for ( ui32 nn = 0; nn < nbImages; ++nn )
+      for ( size_t nn = 0; nn < nbImages; ++nn )
       {
          core::writeBmp( images[ nn ], "c:/tmp/matlab-img" + core::val2str( nn ) + ".bmp" );
       }*/

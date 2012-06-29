@@ -71,20 +71,20 @@ namespace algorithm
        */
       virtual value_type learn( const Database& databaseTraining, const core::Buffer1D<value_type> weights )
       {
-         const ui32 nbSamples = databaseTraining.size();
+         const size_t nbSamples = databaseTraining.size();
          if ( nbSamples == 0 )
          {
             return static_cast<value_type>( 1 );
          }
 
          // compute first the min/max for each feature
-         const ui32 nbFeatures = static_cast<ui32>( databaseTraining[ 0 ].input.size() );
+         const size_t nbFeatures = static_cast<size_t>( databaseTraining[ 0 ].input.size() );
          std::vector<value_type> minFeatureValue( nbFeatures, std::numeric_limits<value_type>::max() );
          std::vector<value_type> maxFeatureValue( nbFeatures, std::numeric_limits<value_type>::min() );
-         for ( ui32 n = 0; n < nbSamples; ++n )
+         for ( size_t n = 0; n < nbSamples; ++n )
          {
             const typename Database::Sample& sample = databaseTraining[ n ];
-            for ( ui32 f = 0; f < nbFeatures; ++f )
+            for ( size_t f = 0; f < nbFeatures; ++f )
             {
                ensure( sample.input.size() == nbFeatures, "all inputs must have exactly the same size" );
                minFeatureValue[ f ] = std::min<value_type>( minFeatureValue[ f ], static_cast<value_type>( sample.input[ f ] ) );
@@ -93,7 +93,7 @@ namespace algorithm
          }
 
          value_type bestError = std::numeric_limits<value_type>::max();
-         for ( ui32 f = 0; f < nbFeatures; ++f )
+         for ( size_t f = 0; f < nbFeatures; ++f )
          {
             value_type error;
             value_type threshold;
@@ -112,7 +112,7 @@ namespace algorithm
          return bestError;
       }
 
-      virtual ui32 test( const typename Database::Sample::Input& input ) const
+      virtual size_t test( const typename Database::Sample::Input& input ) const
       {
          if ( _isInfReturningZeroClass )
          {
@@ -127,7 +127,7 @@ namespace algorithm
          return _threshold;
       }
 
-      ui32 getFeatureId() const
+      size_t getFeatureId() const
       {
          return _featureId;
       }
@@ -144,7 +144,7 @@ namespace algorithm
       // compute the best stump given a feature ID and a database and min/max value for this feature
       void _computeBestThreshold( const Database& database,
                                   const core::Buffer1D<value_type> weights,
-                                  ui32 feature,
+                                  size_t feature,
                                   value_type minFeatureValue,
                                   value_type maxFeatureValue,
                                   value_type& outError,
@@ -152,15 +152,15 @@ namespace algorithm
                                   bool&       outIsInfReturningZeroClass ) const
       {
          // first put the data into bin: this way we avoid to sort the data reducing the algorithmic complexity to o(n)
-         const ui32 nbSamples = database.size();
-         const ui32 nbBins = static_cast<ui32>( database.size() * _nbBinsRatio );
+         const size_t nbSamples = database.size();
+         const size_t nbBins = static_cast<size_t>( database.size() * _nbBinsRatio );
          value_type factor = ( nbBins - 1 ) / ( maxFeatureValue - minFeatureValue );   // factor mapping the 
 
          std::vector<value_type> binsZero( nbBins + 1 ); // +1 to help with the bound computation in <_computeBestBin>
          std::vector<value_type> binsOne( nbBins + 1 );
-         for ( ui32 n = 0; n < nbSamples; ++n )
+         for ( size_t n = 0; n < nbSamples; ++n )
          {
-            ui32 bin = static_cast<ui32>( ( database[ n ].input[ feature ] - minFeatureValue ) * factor );
+            size_t bin = static_cast<size_t>( ( database[ n ].input[ feature ] - minFeatureValue ) * factor );
             if ( database[ n ].output == 0 )
             {
                binsZero[ bin ] += weights[ n ];
@@ -170,14 +170,14 @@ namespace algorithm
          }
 
          // then compute the cumulative distribution
-         ui32 bestBin;                
+         size_t bestBin;                
          _computeBestBin( binsZero, binsOne, bestBin, outError, outIsInfReturningZeroClass );
          outThreshold = minFeatureValue + bestBin / factor;
       }
 
       // given weighted bins, compute the optimal threshold
       static void _computeBestBin( const std::vector<value_type>& binsZero, const std::vector<value_type>& binsOne,
-                                   ui32& outBestBin, value_type& outMaxError, bool& isInfClassZero )
+                                   size_t& outBestBin, value_type& outMaxError, bool& isInfClassZero )
       {
          outMaxError = 10;
          const value_type pbOne = std::accumulate( binsOne.begin(), binsOne.end(), 0.0f );
@@ -185,8 +185,8 @@ namespace algorithm
          // then compute the cumulative distribution
          value_type accumulateClassZero = 0;
          value_type accumulateClassOne = 0;
-         const ui32 nbBins = static_cast<ui32>( binsZero.size() );
-         for ( ui32 bin = 0; bin < nbBins; ++bin )
+         const size_t nbBins = static_cast<size_t>( binsZero.size() );
+         for ( size_t bin = 0; bin < nbBins; ++bin )
          {
             // now compute the probabilities
             const value_type pbClassRightInf = accumulateClassZero + ( pbOne - accumulateClassOne );
@@ -213,7 +213,7 @@ namespace algorithm
       }
 
    private:
-      ui32           _featureId;
+      size_t           _featureId;
       value_type     _threshold;
       bool           _isInfReturningZeroClass;     // means that if feature < threshold, the class is 0, else 1
       value_type     _nbBinsRatio;

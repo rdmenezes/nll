@@ -149,9 +149,9 @@ namespace imaging
          const int iz = core::floor( pos[ 2 ] );
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
+         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->sizex() ) ||
+              iy < 0 || iy + 1 >= static_cast<int>( _volume->sizey() ) ||
+              iz < 0 || iz + 1 >= static_cast<int>( _volume->sizez() ) )
          {
             return _volume->getBackgroundValue();;
          }
@@ -326,9 +326,9 @@ namespace imaging
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
          const float background = _volume->getBackgroundValue();
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
+         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->sizex() ) ||
+              iy < 0 || iy + 1 >= static_cast<int>( _volume->sizey() ) ||
+              iz < 0 || iz + 1 >= static_cast<int>( _volume->sizez() ) )
          {
             return background;
          }

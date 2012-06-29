@@ -55,10 +55,10 @@ namespace imaging
        @param components the number of components the mapper will store for each index
        @note one extra block is allocated to enable sse optimization more efficiently
        */
-      MapperLutColor( ui32 size, ui32 components ) : _size( size ), _components( components ), _container( ( size + 1 ) * components, true )
+      MapperLutColor( size_t size, size_t components ) : _size( size ), _components( components ), _container( ( size + 1 ) * components, true )
       {
          _index = VectorIndex( size + 1 );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
          {
             _index[ n ] = &_container[ n * components ];
          }
@@ -71,16 +71,16 @@ namespace imaging
        @param value a multidimentional value, that must have the same size than specified in constructor
               The value is copied.
        */
-      void set( ui32 index, const T* value )
+      void set( size_t index, const T* value )
       {
-         for ( ui32 n = 0; n < _components; ++n )
+         for ( size_t n = 0; n < _components; ++n )
             _index[ index ][ n ] = value[ n ];
       }
 
       /**
        @brief return a pointer on the multidimensional value pointed by index.
        */
-      const T* operator[]( ui32 index ) const
+      const T* operator[]( size_t index ) const
       {
          return _index[ index ];
       }
@@ -88,7 +88,7 @@ namespace imaging
       /**
        @brief returns the number of components of a point
        */
-      ui32 getNbComponents() const
+      size_t getNbComponents() const
       {
          return _components;
       }
@@ -96,14 +96,14 @@ namespace imaging
       /**
        @brief Returns the number of indexes that can be adressed
        */
-      ui32 getSize() const
+      size_t getSize() const
       {
          return _size;
       }
 
    private:
-      ui32        _size;
-      ui32        _components;
+      size_t        _size;
+      size_t        _components;
       Vector      _container;
       VectorIndex _index;
    };
@@ -120,7 +120,7 @@ namespace imaging
       const T* operator[](index) const
       getSize() const 
       getNbComponents() const
-      set( ui32 index, T* value )
+      set( size_t index, T* value )
     */
    template <class T, class TMapper>
    class LookUpTransform
@@ -144,7 +144,7 @@ namespace imaging
        @brief Automatically detect the range of the LUT so that <ratioSelection> % of the voxels are selected
        */
       template <class Volume>
-      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
+      void detectRange( const Volume& v, double ratioSelection, size_t nbBins = 256 )
       {
          {
             std::stringstream ss;
@@ -182,8 +182,8 @@ namespace imaging
          size_t nbVoxels = 0;
          for ( typename Volume::const_iterator it = v.begin(); it != v.end(); ++it )
          {
-            const ui32 bin = ( *it >= max ) ? ( nbBins - 1 ) : ( ( *it <= min ) ? ( 0 ) : ( static_cast<ui32>( ( *it - min ) / range ) ) );
-            //const ui32 bin = static_cast<ui32>( ( *it - min ) / range );
+            const size_t bin = ( *it >= max ) ? ( nbBins - 1 ) : ( ( *it <= min ) ? ( 0 ) : ( static_cast<size_t>( ( *it - min ) / range ) ) );
+            //const size_t bin = static_cast<size_t>( ( *it - min ) / range );
             ++bins[ bin ];
             ++nbVoxels;
          }
@@ -191,7 +191,7 @@ namespace imaging
          {
             std::stringstream ss;
             ss << " histogram:" << std::endl;
-            for ( ui32 n = 0; n < nbBins; ++n )
+            for ( size_t n = 0; n < nbBins; ++n )
             {
                ss << "  bin[" << n << "]=" << bins[ n ] << std::endl;
             }
@@ -205,14 +205,14 @@ namespace imaging
 
          double selectedVoxels = 0;
 
-         const ui32 nbGaussians = 2;
+         const size_t nbGaussians = 2;
          nll::algorithm::HistogramFitGaussian fitter;
          fitter.fit( bins, nbGaussians, 30, 1000 );
 
          {
             std::stringstream ss;
             ss << " gaussians found:" << std::endl;
-            for ( ui32 n = 0; n < nbGaussians; ++n )
+            for ( size_t n = 0; n < nbGaussians; ++n )
             {
                ss << "  mean" << n << " =" << fitter.getGaussians()[ n ].mean[ 1 ] << std::endl;
             }
@@ -220,7 +220,7 @@ namespace imaging
          }
 
          // always take the mean of the highest gaussian
-         ui32 gaussianIndex;
+         size_t gaussianIndex;
          if ( fitter.getGaussians()[ 1 ].mean[ 1 ] > fitter.getGaussians()[ 0 ].mean[ 1 ] )
          {
             gaussianIndex = 1;
@@ -270,19 +270,19 @@ namespace imaging
          return _mapper[ transformToIndex( value ) ];
       }
 
-      const T* operator[]( ui32 index ) const
+      const T* operator[]( size_t index ) const
       {
          ensure( index < _mapper.getSize(), "error out of bound" );
          return _mapper[ index ];
       }
 
-      ui32 transformToIndex( float value ) const
+      size_t transformToIndex( float value ) const
       {
          if ( value < _min )
             return 0;
          if ( value >= _max )
             return _mapper.getSize() - 1;
-         return (ui32)( ( value - _min ) * _ratio );
+         return (size_t)( ( value - _min ) * _ratio );
       }
 
       template <class InputIterator, class OutputIterator>
@@ -298,11 +298,8 @@ namespace imaging
 // additionally, this is not standard compliant (the specialized template should be outside class, which will force a full spacialization.. Mapper.. which we don't want...)
 #  ifndef NLL_DISABLE_SSE_SUPPORT
       template <>
-      void transformToIndex( float* first, float* last, ui32* output ) const
+      void transformToIndex( float* first, float* last, size_t* output ) const
       {
-         std::cout << "specialized" << std::endl;
-         size_t size = last - first;
-
 #  if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          // finally the multithreaded version doesn't not improve the time performance
          // usuall it is a very small fraction of time for blending a frame and it costs
@@ -312,10 +309,11 @@ namespace imaging
 #  endif
          {
 #  if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
+            size_t size = last - first;
             const int numberOfThreads = omp_get_num_threads();
 				const int threadNumber = omp_get_thread_num();
 
-            ui32* o = output + size * threadNumber / numberOfThreads;
+            size_t* o = output + size * threadNumber / numberOfThreads;
             const float* i = first  + size * threadNumber / numberOfThreads;
             const float* l = first  + size * ( threadNumber + 1 ) / numberOfThreads;
             std::cout << "thread=" << threadNumber << " size=" << l - i << std::endl;
@@ -341,7 +339,7 @@ namespace imaging
          }
       }
 
-      void transformSingleThreaded( const float* first, const float* last, ui32* output ) const
+      void transformSingleThreaded( const float* first, const float* last, size_t* output ) const
       {
          for ( ; first != last; ++first )
          {
@@ -351,7 +349,7 @@ namespace imaging
 # endif
 
 # ifndef NLL_DISABLE_SSE_SUPPORT
-      void transformSingleThreadedSSE( const float* first, const float* last, ui32* output ) const
+      void transformSingleThreadedSSE( const float* first, const float* last, size_t* output ) const
       {
          // manually transform the non 16bit aligned elements
          const float* p = first;
@@ -402,7 +400,7 @@ namespace imaging
       /**
        @brief Returns the number of mapper indexes
        */
-      ui32 getSize() const
+      size_t getSize() const
       {
          return _mapper.getSize();
       }
@@ -410,7 +408,7 @@ namespace imaging
       /**
        @brief Returns the number of components each value in the LUT has
        */
-      ui32 getNbComponents() const
+      size_t getNbComponents() const
       {
          return _mapper.getNbComponents();
       }
@@ -418,7 +416,7 @@ namespace imaging
       /**
        @brief Set a new value for the specified index. Internally, the value is copied.
        */
-      void set( ui32 index, const T* value )
+      void set( size_t index, const T* value )
       {
          _mapper.set( index, value );
       }
@@ -455,11 +453,11 @@ namespace imaging
       typedef LookUpTransform<value_type, MapperLutColor<value_type> > Lut;
 
    public:
-      LookUpTransformWindowingRGB( float minIntensity, float maxIntensity, ui32 size, ui32 nbComponents = 3 ) :
+      LookUpTransformWindowingRGB( float minIntensity, float maxIntensity, size_t size, size_t nbComponents = 3 ) :
          _lut( LutMapper( size, nbComponents ), minIntensity, maxIntensity )
       {}
 
-      void reset( float minIntensity, float maxIntensity, ui32 size, ui32 nbComponents = 3 )
+      void reset( float minIntensity, float maxIntensity, size_t size, size_t nbComponents = 3 )
       {
          _lut = Lut( LutMapper( size, nbComponents ), minIntensity, maxIntensity );
       }
@@ -483,7 +481,7 @@ namespace imaging
       /**
        @brief Do the same than <code>transform</code> but instead do it on a sequence and returns
               the index in the output iterator. In the case InputIterator=float* and
-              OutputIterator=ui32*, it will be optimized with SSE & multithreading
+              OutputIterator=size_t*, it will be optimized with SSE & multithreading
 
               On a dualcore-SSE, 10x increase compare to the default implementation
        */
@@ -493,22 +491,22 @@ namespace imaging
          _lut.transformToIndex( start, end, output );
       }
 
-      ui32 getSize() const
+      size_t getSize() const
       {
          return _lut.getSize();
       }
 
-      ui32 getNbComponents() const
+      size_t getNbComponents() const
       {
          return _lut.getNbComponents();
       }
 
-      void set( ui32 index, const value_type* value )
+      void set( size_t index, const value_type* value )
       {
          _lut.set( index, value );
       }
 
-      const value_type* get( ui32 index ) const
+      const value_type* get( size_t index ) const
       {
          return _lut[ index ];
       }
@@ -516,9 +514,9 @@ namespace imaging
       void createGreyscale()
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
-         for ( ui32 n = 0; n < _lut.getSize(); ++n )
+         for ( size_t n = 0; n < _lut.getSize(); ++n )
          {
-            for ( ui32 i = 0; i < _lut.getNbComponents(); ++i )
+            for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {
                vals[ i ] = static_cast<value_type>( 256.0 / _lut.getSize() * n );
             }
@@ -529,9 +527,9 @@ namespace imaging
       void createGreyscaleInverted()
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
-         for ( ui32 n = 0; n < _lut.getSize(); ++n )
+         for ( size_t n = 0; n < _lut.getSize(); ++n )
          {
-            for ( ui32 i = 0; i < _lut.getNbComponents(); ++i )
+            for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {
                vals[ i ] = static_cast<value_type>( 256.0 / _lut.getSize() * ( _lut.getSize() - n - 1 ) );
             }
@@ -540,7 +538,7 @@ namespace imaging
       }
 
       template <class Volume>
-      void detectRange( const Volume& v, double ratioSelection, ui32 nbBins = 256 )
+      void detectRange( const Volume& v, double ratioSelection, size_t nbBins = 256 )
       {
          _lut.detectRange( v, ratioSelection, nbBins );
       }
@@ -551,9 +549,9 @@ namespace imaging
       void createColorScale( const value_type* baseColor )
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
-         for ( ui32 n = 0; n < _lut.getSize(); ++n )
+         for ( size_t n = 0; n < _lut.getSize(); ++n )
          {
-            for ( ui32 i = 0; i < _lut.getNbComponents(); ++i )
+            for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {
                double ratio = (double)n / _lut.getSize();
                vals[ i ] = static_cast<value_type>( (  ( ratio ) * baseColor[ i ] + ( 1 - ratio ) * 255 ) / _lut.getSize() * n );

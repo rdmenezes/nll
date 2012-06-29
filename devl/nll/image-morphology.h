@@ -43,8 +43,8 @@ namespace core
    inline void dilate( ImageMask& mask )
    {
       ImageMask newMask( mask.sizex(), mask.sizey(), 1, true );
-      for ( ui32 ny = 1; ny + 1 < mask.sizey(); ++ny )
-         for ( ui32 nx = 1; nx + 1 < mask.sizex(); ++nx )
+      for ( size_t ny = 1; ny + 1 < mask.sizey(); ++ny )
+         for ( size_t nx = 1; nx + 1 < mask.sizex(); ++nx )
          {
             if ( mask( nx + 0, ny + 0, 0 ) ||
                  mask( nx + 1, ny + 0, 0 ) ||
@@ -63,8 +63,8 @@ namespace core
    inline void erode( ImageMask& mask )
    {
       ImageMask newMask( mask.sizex(), mask.sizey(), 1, true );
-      for ( ui32 ny = 1; ny + 1 < mask.sizey(); ++ny )
-         for ( ui32 nx = 1; nx + 1 < mask.sizex(); ++nx )
+      for ( size_t ny = 1; ny + 1 < mask.sizey(); ++ny )
+         for ( size_t nx = 1; nx + 1 < mask.sizex(); ++nx )
          {
             if ( mask( nx + 0, ny + 0, 0 ) &&
                  mask( nx + 1, ny + 0, 0 ) &&
@@ -84,9 +84,9 @@ namespace core
    void dilate( Image<T, Mapper, Allocator>& i )
    {
       Image<T, Mapper, Allocator> ni( i.sizex(), i.sizey(), i.getNbComponents(), true, i.getAllocator() );
-      for ( ui32 c = 0; c < i.getNbComponents(); ++c )
-         for ( ui32 ny = 1; ny + 1 < i.sizey(); ++ny )
-            for ( ui32 nx = 1; nx + 1 < i.sizex(); ++nx )
+      for ( size_t c = 0; c < i.getNbComponents(); ++c )
+         for ( size_t ny = 1; ny + 1 < i.sizey(); ++ny )
+            for ( size_t nx = 1; nx + 1 < i.sizex(); ++nx )
             {
                T max = i( nx + 0, ny + 0, c );
                if ( i( nx + 1, ny + 0, 0 ) >= max )
@@ -110,9 +110,9 @@ namespace core
    void erode( Image<T, Mapper, Allocator>& i )
    {
       Image<T, Mapper, Allocator> ni( i.sizex(), i.sizey(), i.getNbComponents(), true, i.getAllocator() );
-      for ( ui32 c = 0; c < i.getNbComponents(); ++c )
-         for ( ui32 ny = 1; ny + 1 < i.sizey(); ++ny )
-            for ( ui32 nx = 1; nx + 1 < i.sizex(); ++nx )
+      for ( size_t c = 0; c < i.getNbComponents(); ++c )
+         for ( size_t ny = 1; ny + 1 < i.sizey(); ++ny )
+            for ( size_t nx = 1; nx + 1 < i.sizex(); ++nx )
             {
                T min = i( nx + 0, ny + 0, c );
                if ( i( nx + 1, ny + 0, 0 ) <= min )
@@ -133,11 +133,11 @@ namespace core
     @brief morphology operation (greyscale or binary)
     */
    template <class T, class Mapper, class Allocator>
-   inline void opening( Image<T, Mapper, Allocator>& m, ui32 size )
+   inline void opening( Image<T, Mapper, Allocator>& m, size_t size )
    {
-      for ( ui32 n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          erode( m );
-      for ( ui32 n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dilate( m );
    }
 
@@ -146,11 +146,11 @@ namespace core
     @brief morphology operation (greyscale or binary)
     */
    template <class T, class Mapper, class Allocator>
-   inline void closing( Image<T, Mapper, Allocator>& m, ui32 size )
+   inline void closing( Image<T, Mapper, Allocator>& m, size_t size )
    {
-      for ( ui32 n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dilate( m );
-      for ( ui32 n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          erode( m );
    }
 }

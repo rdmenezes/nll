@@ -101,9 +101,9 @@ namespace core
             0.9999993,
          };
          static const double interval = 0.05;
-         static const ui32 size = 46;
+         static const size_t size = 46;
 
-         const ui32 index = core::round( x / interval );
+         const size_t index = core::round( x / interval );
          if ( index >= size )
             return 1;
          return table[ index ];
@@ -189,7 +189,7 @@ namespace core
             1.427709544,
             2.3268
          };
-         static const ui32 size = 47;
+         static const size_t size = 47;
          static const double interval = 0.043478261;
 
          if ( x <= -1 )
@@ -197,7 +197,7 @@ namespace core
          if ( x >= 1 )
             return table[ size - 1 ];
 
-         const ui32 index = core::round( ( x - ( -1.0 ) ) / interval );
+         const size_t index = core::round( ( x - ( -1.0 ) ) / interval );
          return table[ index ];
       }
    };

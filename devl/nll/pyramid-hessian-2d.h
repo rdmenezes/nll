@@ -66,20 +66,20 @@ namespace algorithm
        @param displacements the step between two filter evaluation for this particular level
        */
       template <class T, class Mapper, class Alloc>
-      void construct( const core::Image<T, Mapper, Alloc>& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
+      void construct( const core::Image<T, Mapper, Alloc>& i, const std::vector<size_t>& scales, const std::vector<size_t>& displacements )
       {
          ensure( displacements.size() == scales.size(), "must be the same size" );
 
-         const ui32 nbScales = (ui32)scales.size();
+         const size_t nbScales = (size_t)scales.size();
 
          _scales.clear();
          _displacements.clear();
          _halfScales.clear();
-         for ( ui32 n = 0; n < nbScales; ++n )
+         for ( size_t n = 0; n < nbScales; ++n )
          {
-            _halfScales.push_back( scales[ n ] / 2 );
-            _scales.push_back( scales[ n ] );
-            _displacements.push_back( displacements[ n ] );
+            _halfScales.push_back( static_cast<i32>( scales[ n ] / 2 ) );
+            _scales.push_back( static_cast<i32>( scales[ n ] ) );
+            _displacements.push_back( static_cast<i32>( displacements[ n ] ) );
          }
 
          const T max = (T)std::max( abs( *std::max_element( i.begin(), i.end() ) ),
@@ -89,12 +89,12 @@ namespace algorithm
          IntegralImage image;
          image.process( i );
          _integralImage = image;
-         for ( ui32 n = 0; n < nbScales; ++n )
+         for ( size_t n = 0; n < nbScales; ++n )
          {
             ensure( _scales[ n ] % 2 == 1, "scales must be odd numbers" );
             ensure( _scales[ n ] >= 9, "minimal size" );
 
-            const ui32 lobeSize = _scales[ n ] / 3;
+            const size_t lobeSize = _scales[ n ] / 3;
             const value_type areaNormalization = max * _scales[ n ] * _scales[ n ]; // we use <max> so that we are independent of the kind of data
             const i32 step = (i32)displacements[ n ];
             i32 resx = ( (i32)i.sizex() ) / step;
@@ -131,15 +131,15 @@ namespace algorithm
                      const value_type dxx = HaarFeatures2d::getValue( HaarFeatures2d::VERTICAL_TRIPLE,
                                                                       image,
                                                                       center,
-                                                                      lobeSize ) / areaNormalization;
+                                                                      static_cast<int>( lobeSize ) ) / areaNormalization;
                      const value_type dyy = HaarFeatures2d::getValue( HaarFeatures2d::HORIZONTAL_TRIPLE,
                                                                       image,
                                                                       center,
-                                                                      lobeSize ) / areaNormalization;
+                                                                      static_cast<int>( lobeSize ) ) / areaNormalization;
                      const value_type dxy = HaarFeatures2d::getValue( HaarFeatures2d::CHECKER,
                                                                       image,
                                                                       center,
-                                                                      lobeSize ) / areaNormalization;
+                                                                      static_cast<int>( lobeSize ) ) / areaNormalization;
 
                      // here we normalize the dxy, as the area used for the filters are diffent than dxx or dyy
                      // using the frobenius norm (see http://mathworld.wolfram.com/FrobeniusNorm.html)
@@ -159,7 +159,7 @@ namespace algorithm
        @brief Computes the gradient of the hessian at position (x, y, map)
               using finite difference
        */
-      core::vector3d getHessianGradient( i32 x, i32 y, ui32 map ) const
+      core::vector3d getHessianGradient( i32 x, i32 y, size_t map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -185,7 +185,7 @@ namespace algorithm
        @brief Computes the hessian of the hessian at position (x, y, map)
               using finite difference
        */
-      Matrix getHessianHessian( i32 x, i32 y, ui32 map ) const
+      Matrix getHessianHessian( i32 x, i32 y, size_t map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -244,7 +244,7 @@ namespace algorithm
       }
 
       // computes the index in mapDest the closest from (xRef, yRef, mapDest)
-      void indexInMap( i32 xpRef, i32 ypRef, ui32 mapRef, ui32 mapDest, i32& outxp, i32& outyp ) const
+      void indexInMap( i32 xpRef, i32 ypRef, size_t mapRef, size_t mapDest, i32& outxp, i32& outyp ) const
       {
          if ( mapRef == mapDest )
          {
@@ -264,7 +264,7 @@ namespace algorithm
       /**
        @brief returns true if all value around the projection (xRef, yRef, mapRef) on mapDest are smaller
        */
-      bool isDetHessianMax( value_type val, i32 xRef, i32 yRef, ui32 mapRef, ui32 mapDest ) const
+      bool isDetHessianMax( value_type val, i32 xRef, i32 yRef, size_t mapRef, size_t mapDest ) const
       {
          i32 x, y;
 
@@ -302,7 +302,7 @@ namespace algorithm
               (i.e., the one the pyramid is built from)
        @note This is just the user facing API. Internally we want to use <code>_getPositionPyramid2IntegralNoShift</code>
        */
-      core::vector2f getPositionPyramid2Integral( f32 x, f32 y, ui32 map ) const
+      core::vector2f getPositionPyramid2Integral( f32 x, f32 y, size_t map ) const
       {
          return core::vector2f( x * _displacements[ map ] + _halfScales[ map ],
                                 y * _displacements[ map ] + _halfScales[ map ] );
@@ -312,7 +312,7 @@ namespace algorithm
        @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
        @note This is just the user facing API. Internally we want to use <code>_getPositionIntegral2PyramidNoShift</code>
        */
-      core::vector2f getPositionIntegral2Pyramid( f32 xp, f32 yp, ui32 map ) const
+      core::vector2f getPositionIntegral2Pyramid( f32 xp, f32 yp, size_t map ) const
       {
          return core::vector2f( ( xp - _halfScales[ map ] ) / _displacements[ map ],
                                 ( yp - _halfScales[ map ] ) / _displacements[ map ] );
@@ -323,7 +323,7 @@ namespace algorithm
        @brief Given an index in the pyramid, retrieve the corresponding index in the original image
               (i.e., the one the pyramid is built from) WITHOUT shift by scale / 2
        */
-      core::vector2f _getPositionPyramid2IntegralNoShift( f32 x, f32 y, ui32 map ) const
+      core::vector2f _getPositionPyramid2IntegralNoShift( f32 x, f32 y, size_t map ) const
       {
          return core::vector2f( x * _displacements[ map ],
                                 y * _displacements[ map ] );
@@ -333,7 +333,7 @@ namespace algorithm
        @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
               WITHOUT shift by scale / 2
        */
-      core::vector2f _getPositionIntegral2PyramidNoShift( f32 xp, f32 yp, ui32 map ) const
+      core::vector2f _getPositionIntegral2PyramidNoShift( f32 xp, f32 yp, size_t map ) const
       {
          return core::vector2f( xp / _displacements[ map ],
                                 yp / _displacements[ map ] );

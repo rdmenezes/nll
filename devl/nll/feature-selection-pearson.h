@@ -62,7 +62,7 @@ namespace algorithm
       using Base::write;
 
    public:
-      FeatureSelectionFilterPearson( ui32 nbFeatures ) : _nbFeatures( nbFeatures )
+      FeatureSelectionFilterPearson( size_t nbFeatures ) : _nbFeatures( nbFeatures )
       {}
 
    protected:
@@ -74,31 +74,31 @@ namespace algorithm
       {
          assert( dat.size() );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "FeatureSelectionFilterPearson search started" );
-         ui32 nbFeatures = dat[ 0 ].input.size();
-         ui32 nbclass = core::getNumberOfClass( dat );
+         size_t nbFeatures = dat[ 0 ].input.size();
+         size_t nbclass = core::getNumberOfClass( dat );
 
-         std::vector<std::pair<f64, ui32> > score( nbFeatures );
-         for ( ui32 n = 0; n < nbFeatures; ++n )
+         std::vector<std::pair<f64, size_t> > score( nbFeatures );
+         for ( size_t n = 0; n < nbFeatures; ++n )
          {
             core::Buffer1D<f64> f( dat.size() );
-            for ( ui32 nn = 0; nn < dat.size(); ++nn )
+            for ( size_t nn = 0; nn < dat.size(); ++nn )
                f[ nn ] = dat[ nn ].input[ n ];
             core::Buffer1D<f64> c( dat.size() );
 
             f64 max = -1;
-            for ( ui32 nn = 0; nn < nbclass; ++nn )
+            for ( size_t nn = 0; nn < nbclass; ++nn )
             {
-               for ( ui32 i = 0; i < dat.size(); ++i )
+               for ( size_t i = 0; i < dat.size(); ++i )
                   c[ i ] = ( dat[ i ].output == nn );
                f64 pearson = nll::core::absolute( core::correlation( core::Matrix<f64>( f ), core::Matrix<f64>( c ) ) );
                // TODO : for a multiclass database is that correct (or add the correlation)?
                // Can't find any reference on this. Needs to be tested.
                max = std::max( max, pearson );
             }
-            score[ n ] = std::pair<f64, ui32>( max, n );
+            score[ n ] = std::pair<f64, size_t>( max, n );
          }
 
-         for ( ui32 n = 0; n < nbFeatures; ++n )
+         for ( size_t n = 0; n < nbFeatures; ++n )
          {
             std::stringstream log;
             log << "Feature[" << n << "]=" << score[ n ].first;
@@ -107,14 +107,14 @@ namespace algorithm
 
          core::Buffer1D<bool> result( nbFeatures );
          std::sort( score.rbegin(), score.rend() );
-         for ( ui32 n = 0; n < _nbFeatures; ++n )
+         for ( size_t n = 0; n < _nbFeatures; ++n )
             result[ score[ n ].second ] = true;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "FeatureSelectionFilterPearson search ended" );
          return result;
       }
 
    protected:
-      ui32 _nbFeatures;
+      size_t _nbFeatures;
    };
 }
 }

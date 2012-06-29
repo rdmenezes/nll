@@ -122,9 +122,9 @@ namespace algorithm
          Point result = _rbf.evaluate( p );
 
          double maxp = INT_MIN;
-         ui32 index = 0;
+         size_t index = 0;
          double sum = 1e-6;
-         for ( ui32 n = 0; n < (ui32)result.size(); ++n )
+         for ( size_t n = 0; n < (size_t)result.size(); ++n )
          {
             if ( result[ n ] > maxp )
             {
@@ -134,9 +134,9 @@ namespace algorithm
             sum += result[ n ];
          }
 
-         probability = core::Buffer1D<double>( (ui32)result.size() );
+         probability = core::Buffer1D<double>( (size_t)result.size() );
          ensure( sum > 0, "error: probability error" );
-         for ( ui32 n = 0; n < (ui32)result.size(); ++n )
+         for ( size_t n = 0; n < (size_t)result.size(); ++n )
          {
             probability[ n ] = result[ n ] / sum;
          }
@@ -157,7 +157,7 @@ namespace algorithm
          ensure( parameters.size() == this->_parametersPrototype.size(), "Incorrect parameters." );
          RbfDatabase pmcDat = _computePmcDatabase( dat );
          
-         _rbf.learn( pmcDat, (ui32)parameters[ 0 ], parameters[ 1 ], parameters[ 1 ], parameters[ 1 ], 0, parameters[ 2 ] );
+         _rbf.learn( pmcDat, (size_t)parameters[ 0 ], parameters[ 1 ], parameters[ 1 ], parameters[ 1 ], 0, parameters[ 2 ] );
       }
 
       const Rbf& getRbfImpl() const
@@ -170,8 +170,8 @@ namespace algorithm
       inline RbfDatabase _computePmcDatabase( const Database& dat )
       {
          RbfDatabase pmcDatabase;
-         ui32 nbOfclass = core::getNumberOfClass( dat );
-         for ( ui32 n = 0; n < dat.size(); ++n)
+         size_t nbOfclass = core::getNumberOfClass( dat );
+         for ( size_t n = 0; n < dat.size(); ++n)
          {
             typename RbfDatabase::Sample s;
             s.input = dat[ n ].input;

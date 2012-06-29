@@ -80,7 +80,7 @@ namespace algorithm
        @return false if any error occured
        */
       template <class Points>
-      bool compute( const Points& points, ui32 nbFeatures, const Kernel& kernel, double minEigenValueToSelect = 1e-4 )
+      bool compute( const Points& points, size_t nbFeatures, const Kernel& kernel, double minEigenValueToSelect = 1e-4 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "kernel PCA, learning started" );
          ensure( points.size(), "no point to compute" );
@@ -96,9 +96,9 @@ namespace algorithm
             return false;
          }
 
-         const ui32 size = static_cast<ui32>( points.size() );
+         const size_t size = static_cast<size_t>( points.size() );
          _points = std::vector<Point>( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
          {
             _points[ n ] = points[ n ];
          }
@@ -111,7 +111,7 @@ namespace algorithm
       template <class Point2>
       Vector transform( const Point2& p ) const
       {
-         const ui32 nbEigenVectors = _eig.sizex();
+         const size_t nbEigenVectors = _eig.sizex();
          ensure( nbEigenVectors && _eig.sizey(), "compute first the model parameters" );
          ensure( _points.size(), "no support vectors!" );
          ensure( p.size() == _points[ 0 ].size(), "point size error" );
@@ -122,8 +122,8 @@ namespace algorithm
          core::convert( p, t );
       
          double sumA = 0;
-         Vector kernel( static_cast<ui32>( _points.size() ) );
-         for ( ui32 n = 0; n < kernel.size(); ++n )
+         Vector kernel( static_cast<size_t>( _points.size() ) );
+         for ( size_t n = 0; n < kernel.size(); ++n )
          {
             kernel[ n ] = (*_kernel)( t, _points[ n ] );
             sumA += kernel[ n ];
@@ -131,10 +131,10 @@ namespace algorithm
          sumA /= kernel.size();
 
          Vector projected( nbEigenVectors );
-         for ( ui32 k = 0; k < nbEigenVectors; ++k )
+         for ( size_t k = 0; k < nbEigenVectors; ++k )
          {
             double sum = 0;
-            for ( ui32 i = 0; i < kernel.size(); ++i )
+            for ( size_t i = 0; i < kernel.size(); ++i )
             {
                sum += _eig( i, k ) * ( kernel[ i ] - sumA - _sumA[ i ] + _sumC );
             }
@@ -147,8 +147,8 @@ namespace algorithm
       {
          _eig.write( o );
 
-         core::write<ui32>( static_cast<ui32>( _points.size() ), o );
-         for ( ui32 n = 0; n < _points.size(); ++n )
+         core::write<size_t>( static_cast<size_t>( _points.size() ), o );
+         for ( size_t n = 0; n < _points.size(); ++n )
          {
             Vector p;
             core::convert( _points[ n ], p );
@@ -166,10 +166,10 @@ namespace algorithm
       {
          _eig.read( i );
 
-         ui32 nbPoints;
-         core::read<ui32>( nbPoints, i );
+         size_t nbPoints;
+         core::read<size_t>( nbPoints, i );
          _points = std::vector<Point>( nbPoints );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             Vector p;
             core::read<Vector>( p, i );
@@ -215,9 +215,9 @@ namespace algorithm
       Matrix _computeKernelMatrix( const Points& points, const Kernel& kernel )
       {
          // compute the not centered kernel matrix
-         Matrix kernelBase( static_cast<ui32>( points.size() ), static_cast<ui32>( points.size() ) );
-         for ( ui32 i = 0; i < points.size(); ++i )
-            for ( ui32 j = i; j < points.size(); ++j )
+         Matrix kernelBase( static_cast<size_t>( points.size() ), static_cast<size_t>( points.size() ) );
+         for ( size_t i = 0; i < points.size(); ++i )
+            for ( size_t j = i; j < points.size(); ++j )
             {
                kernelBase( i, j ) = kernel( points[ i ], points[ j ] );
                kernelBase( j, i ) = kernelBase( i, j );
@@ -235,18 +235,18 @@ namespace algorithm
 
 
          // precompute the sums
-         _sumA = Vector( static_cast<ui32>( points.size() ) );
+         _sumA = Vector( static_cast<size_t>( points.size() ) );
          _sumC = 0;
-         for ( ui32 m = 0; m < points.size() * points.size(); ++m )
+         for ( size_t m = 0; m < points.size() * points.size(); ++m )
             _sumC += kernelBase[ m ];
-         for ( ui32 i = 0; i < points.size(); ++i )
+         for ( size_t i = 0; i < points.size(); ++i )
          {
-            for ( ui32 m = 0; m < points.size(); ++m )
+            for ( size_t m = 0; m < points.size(); ++m )
                   _sumA[ i ] += kernelBase( m, i );
          }
          const double m1 = 1 / static_cast<double>( points.size() );
 
-         for ( ui32 i = 0; i < points.size(); ++i )
+         for ( size_t i = 0; i < points.size(); ++i )
          {
             _sumA[ i ] *= m1;
          }
@@ -254,9 +254,9 @@ namespace algorithm
 
          // center the kernel
          Matrix mkernel( kernelBase.sizey(), kernelBase.sizex() );
-         for ( ui32 i = 0; i < points.size(); ++i )
+         for ( size_t i = 0; i < points.size(); ++i )
          {
-            for ( ui32 j = i; j < points.size(); ++j )
+            for ( size_t j = i; j < points.size(); ++j )
             {               
                mkernel( i, j ) = kernelBase( i, j ) - _sumA[ j ] - _sumA[ i ] + _sumC;
                mkernel( j, i ) = mkernel( i, j );
@@ -287,9 +287,9 @@ namespace algorithm
        @note The centeredKernel matrix is not valid after the call of this function as the <code>svdcmp</code> will
        modify it
        */
-      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, ui32 nbFeatures, double minEigenValueToSelect )
+      bool _diagonalize( Matrix& centeredKernel, Matrix& outEigenVectors, size_t nbFeatures, double minEigenValueToSelect )
       {
-         const ui32 size = centeredKernel.sizex();
+         const size_t size = centeredKernel.sizex();
 
          // compute eigen values, eigen vectors
          Matrix eigenVectors;
@@ -308,16 +308,16 @@ namespace algorithm
             return false;
 
          // sort the eigen values from highest to lowest
-         typedef std::pair<double, ui32>  Pair;
+         typedef std::pair<double, size_t>  Pair;
          typedef std::vector<Pair>        Pairs;
          Pairs pairs( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             pairs[ n ] = std::make_pair( eigenValues[ n ], n );
          std::sort( pairs.rbegin(), pairs.rend() );
 
          // compute the number of eigen values according to the number of features & feature space dim
-         const ui32 initialNbFeatures = nbFeatures;
-         for ( ui32 n = 0; n < initialNbFeatures; ++n )
+         const size_t initialNbFeatures = nbFeatures;
+         for ( size_t n = 0; n < initialNbFeatures; ++n )
             if ( pairs[ n ].first >= minEigenValueToSelect )
             {
                // do nothing, the feature is selected
@@ -329,11 +329,11 @@ namespace algorithm
 
          // export the eigen vectors we are interested in
          outEigenVectors = Matrix( size, nbFeatures );
-         for ( ui32 n = 0; n < nbFeatures; ++n )
+         for ( size_t n = 0; n < nbFeatures; ++n )
          {
-            const ui32 index = pairs[ n ].second;
+            const size_t index = pairs[ n ].second;
             const double norm = sqrt( eigenValues[ index ] );
-            for ( ui32 nn = 0; nn < size; ++nn )
+            for ( size_t nn = 0; nn < size; ++nn )
                outEigenVectors( nn, n ) = eigenVectors( nn, index ) / norm;
          }
 

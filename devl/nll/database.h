@@ -159,9 +159,9 @@ namespace core
        */
       void write( std::ostream& o ) const
       {
-         ui32 size = static_cast<ui32> ( _container.size() );
-         nll::core::write<ui32>( size, o );
-         for (ui32 n = 0; n < size; ++n)
+         size_t size = static_cast<size_t> ( _container.size() );
+         nll::core::write<size_t>( size, o );
+         for (size_t n = 0; n < size; ++n)
             nll::core::write<SampleType>( _container[n], o );
       }
 
@@ -170,11 +170,11 @@ namespace core
        */
       void read( std::istream& i )
       {
-         ui32 size = 0;
-         nll::core::read<ui32>( size, i );
+         size_t size = 0;
+         nll::core::read<size_t>( size, i );
 
          _container = Container( size );
-         for (ui32 n = 0; n < size; ++n)
+         for (size_t n = 0; n < size; ++n)
             nll::core::read<SampleType>( _container[n], i );
       }
 
@@ -203,7 +203,7 @@ namespace core
       {
          if ( dat.size() != size() )
             return false;
-         for ( ui32 n = 0; n < size(); ++n )
+         for ( size_t n = 0; n < size(); ++n )
             if ( !( _container[ n ] == dat[ n ] ) )
                return false;
          return true;
@@ -212,17 +212,17 @@ namespace core
       /**
        @brief return the i th sample.
        */
-      inline const SampleType& operator[]( ui32 n ) const { return _container[ n ]; }
+      inline const SampleType& operator[]( size_t n ) const { return _container[ n ]; }
 
       /**
        @brief return the i th sample.
        */
-      inline SampleType& operator[]( ui32 n ) { return _container[ n ]; }
+      inline SampleType& operator[]( size_t n ) { return _container[ n ]; }
 
       /**
        @brief return size of the database.
        */
-      inline ui32 size() const { return static_cast<ui32> ( _container.size() ); }
+      inline size_t size() const { return static_cast<size_t> ( _container.size() ); }
 
       // iterators...
       iterator begin()

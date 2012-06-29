@@ -62,7 +62,7 @@ namespace algorithm
        @param displacements the step between two filter evaluation for this particular level
        */
       template <class VolumeT>
-      void construct( const VolumeT& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
+      void construct( const VolumeT& i, const std::vector<size_t>& scales, const std::vector<size_t>& displacements )
       {
          ensure( displacements.size() == scales.size(), "must be the same size" );
 
@@ -70,9 +70,9 @@ namespace algorithm
          _scales = scales;
          _displacements = displacements;
 
-         const ui32 sizex = i.size()[ 0 ];
-         const ui32 sizey = i.size()[ 1 ];
-         const ui32 sizez = i.size()[ 2 ];
+         const size_t sizex = i.size()[ 0 ];
+         const size_t sizey = i.size()[ 1 ];
+         const size_t sizez = i.size()[ 2 ];
 
          const value_type max = (value_type)std::max( abs( *std::max_element( i.begin(), i.end() ) ),
                                                       abs( *std::min_element( i.begin(), i.end() ) ) );
@@ -88,17 +88,17 @@ namespace algorithm
             ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
             ensure( scales[ n ] >= 9, "minimal size" );
 
-            const ui32 step = displacements[ n ];
+            const size_t step = displacements[ n ];
 
-            const int sizeFilterz = scales[ n ];
-            const int sizeFilterx = scales[ n ];
-            const int sizeFiltery = scales[ n ];
+            const int sizeFilterz = static_cast<int>( scales[ n ] );
+            const int sizeFilterx = static_cast<int>( scales[ n ] );
+            const int sizeFiltery = static_cast<int>( scales[ n ] );
             const double sizeFilter = sizeFilterx * sizeFiltery * sizeFilterz * max; // we normalize by the filter size and maximum value
 
             // the total size must take into account the step size and filter size (it must be fully inside the image to be computed)
-            const int resx = ( (int)i.size()[ 0 ] ) / (int)step;
-            const int resy = ( (int)i.size()[ 1 ] ) / (int)step;
-            const int resz = ( (int)i.size()[ 2 ] ) / (int)step;
+            const int resx = ( static_cast<int>( i.size()[ 0 ] ) ) / static_cast<int>( step );
+            const int resy = ( static_cast<int>( i.size()[ 1 ] ) ) / static_cast<int>( step );
+            const int resz = ( static_cast<int>( i.size()[ 2 ] ) ) / static_cast<int>( step );
 
             if ( resx <= 0 || resy <= 0 || resz <= 0 )
                break;   // the scale is too big!
@@ -161,23 +161,23 @@ namespace algorithm
       }
 
       // computes the index in mapDest the closest from (xRef, yRef, mapDest)
-      void indexInMap( ui32 xRef, ui32 yRef, ui32 zRef, ui32 mapRef, ui32 mapDest, int& outx, int& outy, int& outz ) const
+      void indexInMap( size_t xRef, size_t yRef, size_t zRef, size_t mapRef, size_t mapDest, int& outx, int& outy, int& outz ) const
       {
          if ( mapRef == mapDest )
          {
-            outx = xRef;
-            outy = yRef;
-            outz = zRef;
+            outx = static_cast<int>( xRef );
+            outy = static_cast<int>( yRef );
+            outz = static_cast<int>( zRef );
          } else {
             // map a point at a given scale to the image space
-            const int x = xRef * _displacements[ mapRef ];
-            const int y = yRef * _displacements[ mapRef ];
-            const int z = zRef * _displacements[ mapRef ];
+            const int x = static_cast<int>( xRef * _displacements[ mapRef ] );
+            const int y = static_cast<int>( yRef * _displacements[ mapRef ] );
+            const int z = static_cast<int>( zRef * _displacements[ mapRef ] );
 
             // convert the image space coordinate to the other scale space
-            outx = ( x ) / (int)_displacements[ mapDest ];
-            outy = ( y ) / (int)_displacements[ mapDest ];
-            outz = ( z ) / (int)_displacements[ mapDest ];
+            outx = ( x ) / static_cast<int>( _displacements[ mapDest ] );
+            outy = ( y ) / static_cast<int>( _displacements[ mapDest ] );
+            outz = ( z ) / static_cast<int>( _displacements[ mapDest ] );
          }
       }
 
@@ -185,7 +185,7 @@ namespace algorithm
        @brief Computes the gradient of the hessian at position (x, y, z, map)
               using finite difference
        */
-      core::vector4d getHessianGradient( ui32 x, ui32 y, ui32 z, ui32 map ) const
+      core::vector4d getHessianGradient( size_t x, size_t y, size_t z, size_t map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -212,7 +212,7 @@ namespace algorithm
       /**
        @brief returns true if all value around the projection (xRef, yRef, mapRef) on mapDest are smaller
        */
-      bool isDetHessianMax( value_type val, ui32 xRef, ui32 yRef, ui32 zRef, ui32 mapRef, ui32 mapDest ) const
+      bool isDetHessianMax( value_type val, size_t xRef, size_t yRef, size_t zRef, size_t mapRef, size_t mapDest ) const
       {
          int x, y, z;
 
@@ -266,7 +266,7 @@ namespace algorithm
        @brief Computes the hessian of the hessian at position (x, y, z, map)
               using finite difference
        */
-      Matrix getHessianHessian( ui32 x, ui32 y, ui32 z, ui32 map ) const
+      Matrix getHessianHessian( size_t x, size_t y, size_t z, size_t map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -363,8 +363,8 @@ namespace algorithm
 
    private:
       std::vector<Volume>  _pyramidDetHessian;
-      std::vector<ui32>    _scales;
-      std::vector<ui32>    _displacements;
+      std::vector<size_t>    _scales;
+      std::vector<size_t>    _displacements;
       IntegralImage3d      _integralImage;
    };
 }

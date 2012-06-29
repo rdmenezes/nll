@@ -115,10 +115,10 @@ namespace core
 	template <class type>
 	struct AgregatorSum
 	{
-		static typename BiggerType<type>::type op(type* buf, ui32 nbComp)
+		static typename BiggerType<type>::type op(type* buf, size_t nbComp)
 		{
 			typename BiggerType<type>::type tmp = 0;
-			for (ui32 n = 0; n < nbComp; ++n)
+			for (size_t n = 0; n < nbComp; ++n)
 				tmp += buf[n];
 			return static_cast<typename BiggerType<type>::type> (tmp / nbComp);
 		}
@@ -135,17 +135,17 @@ namespace core
 	void threshold_generic(Image<type, mapper, allocator>& image, const Threshold& thr, const type* background = Image<type, mapper, allocator>::black())
 	{
 		Image<type, mapper, allocator> tmp(image.sizex(), image.sizey(), image.getNbComponents(), false, image.getAllocator());
-		for (ui32 y = 0; y < image.sizey(); ++y)
-			for (ui32 x = 0; x < image.sizex(); ++x)
+		for (size_t y = 0; y < image.sizey(); ++y)
+			for (size_t x = 0; x < image.sizex(); ++x)
 			{
 				type* t1 = image.point(x, y);
 				type* t2 = tmp.point(x, y);
 				typename BiggerType<type>::type tt = Agregator::op(t1, image.getNbComponents());
 				if (thr(tt))
-					for (ui32 c = 0; c < image.getNbComponents(); ++c)
+					for (size_t c = 0; c < image.getNbComponents(); ++c)
 						t2[c] = t1[c];
 				else
-					for (ui32 c = 0; c < image.getNbComponents(); ++c)
+					for (size_t c = 0; c < image.getNbComponents(); ++c)
 						t2[c] = background[c];
 			}
 		image = tmp;
@@ -173,17 +173,17 @@ namespace core
 	void binarize_generic(Image<type, mapper, allocator>& image, const Threshold& thr, const type* background = Image<type, mapper, allocator>::black(), const type* foreground = Image<type, mapper, allocator>::white())
 	{
 		Image<type, mapper, allocator> tmp(image.sizex(), image.sizey(), image.getNbComponents(), false, image.getAllocator());
-		for (ui32 y = 0; y < image.sizey(); ++y)
-			for (ui32 x = 0; x < image.sizex(); ++x)
+		for (size_t y = 0; y < image.sizey(); ++y)
+			for (size_t x = 0; x < image.sizex(); ++x)
 			{
 				type* t1 = image.point(x, y);
 				type* t2 = tmp.point(x, y);
 				typename BiggerType<type>::type tt = Agregator::op(t1, image.getNbComponents());
 				if (thr(tt))
-					for (ui32 c = 0; c < image.getNbComponents(); ++c)
+					for (size_t c = 0; c < image.getNbComponents(); ++c)
 						t2[c] = foreground[c];
 				else
-					for (ui32 c = 0; c < image.getNbComponents(); ++c)
+					for (size_t c = 0; c < image.getNbComponents(); ++c)
 						t2[c] = background[c];
 			}
 		image = tmp;

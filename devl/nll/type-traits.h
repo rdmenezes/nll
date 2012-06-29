@@ -160,13 +160,17 @@ namespace core
       enum {value = true};
    };
 
-#ifdef WIN64
    template <>
-   struct _IsNativeType<size_t>
+   struct _IsNativeType<unsigned long long>
    {
       enum {value = true};
    };
-#endif
+
+   template <>
+   struct _IsNativeType<long long>
+   {
+      enum {value = true};
+   };
 
    /**
     @ingroup core
@@ -280,80 +284,6 @@ namespace core
 	   typedef i32	type;
       typedef i32	signed_type;
 	   enum {min = -32768, max = 32767, size = 65536};
-   };
-
-   /**
-    @ingroup core
-    @brief Determine the bounding values of a type. [ max is INT_MAX ]
-   */
-   template <class T>
-   struct Bound
-   {};
-
-   template <>
-   struct Bound<ui8>
-   {
-      enum {min = 0, max = 255};
-   };
-
-   template <>
-   struct Bound<i8>
-   {
-      enum {min = -128, max = 127};
-   };
-
-   template <>
-   struct Bound<ui16>
-   {
-      enum {min = 0, max = 65535};
-   };
-
-   template <>
-   struct Bound<i16>
-   {
-      enum {min = -32768, max = 32767};
-   };
-
-   template <>
-   struct Bound<i32>
-   {
-      enum {min = LONG_MIN, max = LONG_MAX};
-   };
-
-   template <>
-   struct Bound<ui32>
-   {
-      enum {min = 0, max = ULONG_MAX};
-   };
-
-   template <>
-   struct Bound<f32>
-   {
-      enum {min = LONG_MIN, max = LONG_MAX};
-   };
-
-   template <>
-   struct Bound<f64>
-   {
-      enum {min = LONG_MIN, max = LONG_MAX};
-   };
-
-   template <>
-   struct Bound<int>
-   {
-      enum {min = INT_MIN, max = INT_MAX};
-   };
-
-   template <>
-   struct Bound<unsigned int>
-   {
-      enum {min = 0, max = UINT_MAX};
-   };
-
-   template <>
-   struct Bound<bool>
-   {
-      enum {min = 0, max = 1};
    };
 
    template <class U, class V, bool COND>

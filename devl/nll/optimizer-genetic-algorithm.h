@@ -51,7 +51,7 @@ namespace algorithm
          void operator()( core::Buffer1D<double>& gene ) const
          {
             assert( gene.size() == _params.size() );
-            ui32 n = rand() % gene.size();
+            size_t n = rand() % gene.size();
             const ParameterOptimizer& param = _params[ n ];
             double newval = param.modify( gene[ n ] );
             newval = NLL_BOUND( newval, param.getMin(), param.getMax() );
@@ -73,8 +73,8 @@ namespace algorithm
          core::Buffer1D<double> operator()() const
          {
             assert( _params.size() );
-            core::Buffer1D<double> buf( static_cast<ui32>( _params.size() ) );
-            for ( ui32 n = 0; n < _params.size(); ++n )
+            core::Buffer1D<double> buf( static_cast<size_t>( _params.size() ) );
+            for ( size_t n = 0; n < _params.size(); ++n )
             {
                buf[ n ] = _params[ n ].generate();
             }
@@ -92,9 +92,9 @@ namespace algorithm
 
    public:
       OptimizerGeneticAlgorithm(
-         ui32  numberOfCycles,
-         ui32  populationSize = 100,
-         ui32  numberOfPeriods = 10,
+         size_t  numberOfCycles,
+         size_t  populationSize = 100,
+         size_t  numberOfPeriods = 10,
          f32   mutationRate = 0.3f,
          f32   selectRate = 0.5f
          ) : _numberOfCycles( numberOfCycles ), _populationSize( populationSize ), _numberOfPeriods( numberOfPeriods ), _mutationRate( mutationRate ), _selectRate( selectRate )
@@ -121,12 +121,12 @@ namespace algorithm
          Gene seed = generator();
          std::vector<Gene> solution = geneticAlgorithm.optimize( _populationSize, _mutationRate, _selectRate, _numberOfPeriods, seed );
          assert( solution.size() );
-         return core::convert<Gene, std::vector<double> > ( solution[ 0 ], static_cast<ui32>( seed.size() ) );
+         return core::convert<Gene, std::vector<double> > ( solution[ 0 ], static_cast<size_t>( seed.size() ) );
       }
    private:
-      ui32  _numberOfCycles;
-      ui32  _populationSize;
-      ui32  _numberOfPeriods;
+      size_t  _numberOfCycles;
+      size_t  _populationSize;
+      size_t  _numberOfPeriods;
       f32   _mutationRate;
       f32   _selectRate;
    };
