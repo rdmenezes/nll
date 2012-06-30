@@ -135,7 +135,9 @@ namespace imaging
 
        v must remain valid until the end of the calls to the interpolator
        */
-      InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v )
+      InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v ), _sizeCheck( static_cast<int>( v.sizex() ) - 1,
+                                                                                     static_cast<int>( v.sizey() ) - 1,
+                                                                                     static_cast<int>( v.sizez() ) - 1 )
       {}
 
       /**
@@ -149,9 +151,9 @@ namespace imaging
          const int iz = core::floor( pos[ 2 ] );
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->sizex() ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume->sizey() ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume->sizez() ) )
+         if ( ix < 0 || ix >= _sizeCheck[ 0 ] ||
+              iy < 0 || iy >= _sizeCheck[ 1 ] ||
+              iz < 0 || iz >= _sizeCheck[ 2 ] )
          {
             return _volume->getBackgroundValue();;
          }
@@ -198,7 +200,8 @@ namespace imaging
       }
 
    protected:
-      const VolumeType* _volume;
+      const VolumeType*       _volume;
+      core::vector3i          _sizeCheck;
 
       mutable value_type v000;
       mutable value_type v001, v010, v011, v100, v110, v101, v111;
@@ -280,7 +283,9 @@ namespace imaging
 
        v must remain valid until the end of the calls to the interpolator
        */
-      InterpolatorTriLinear( const VolumeType& v ) : _volume( &v )
+      InterpolatorTriLinear( const VolumeType& v ) : _volume( &v ), _sizeCheck( static_cast<int>( v.sizex() ) - 1,
+                                                                                static_cast<int>( v.sizey() ) - 1,
+                                                                                static_cast<int>( v.sizez() ) - 1 )
       {}
 
       /**
@@ -312,7 +317,7 @@ namespace imaging
        */
       value_type operator()( const float* pos ) const
       {
-         __declspec(align(16)) int result[ 4 ];
+         NLL_ALIGN_16 int result[ 4 ];
 
          // floor the value, beware of the flooring mode
          __m128i floored = _mm_cvtps_epi32( *( (__m128*)pos ) );
@@ -326,9 +331,9 @@ namespace imaging
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
          const float background = _volume->getBackgroundValue();
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->sizex() ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume->sizey() ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume->sizez() ) )
+         if ( ix < 0 || ix >= _sizeCheck[ 0 ] ||
+              iy < 0 || iy >= _sizeCheck[ 1 ] ||
+              iz < 0 || iz >= _sizeCheck[ 2 ] )
          {
             return background;
          }
@@ -376,7 +381,8 @@ namespace imaging
       }
 
    protected:
-      const VolumeType* _volume;
+      const VolumeType*       _volume;
+      core::vector3i          _sizeCheck;
 
       mutable value_type v000;
       mutable value_type v001, v010, v011, v100, v110, v101, v111;
