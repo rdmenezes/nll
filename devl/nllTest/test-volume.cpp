@@ -401,16 +401,13 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
-
-/*
-
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
  TESTER_TEST(testVolumeIterator);
  TESTER_TEST(testVolumeSpatial1);
- TESTER_TEST(testIndexToPos);*/
+ TESTER_TEST(testIndexToPos);
  TESTER_TEST(testMpr4);
  TESTER_TEST(testVolumeIterators);
- /*TESTER_TEST(testResampling2d);*/
+ TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
 #endif
