@@ -40,12 +40,12 @@ namespace core
 {
    inline int floor( double x )
    {
-      return static_cast<int>( x + 0.5 );
+      return static_cast<int>( x );
    }
 
    inline int floor( float x )
    {
-      return static_cast<int>( x + 0.5f );
+      return static_cast<int>( x );
    }
 
    inline unsigned int truncateu( double x )

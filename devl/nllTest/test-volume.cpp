@@ -212,8 +212,8 @@ public:
    {
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
       typedef nll::imaging::VolumeSpatial<float>           Volume;
-      typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
-      //typedef nll::imaging::InterpolatorTriLinearDummy<Volume>   Interpolator;
+      //typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
+      typedef nll::imaging::InterpolatorTriLinearDummy<Volume>   Interpolator;
       //typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
@@ -237,14 +237,14 @@ public:
          mprTime.end();
          std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
          slice( 1, 1, 0 ) = 1e6;
-         /*
+         
          nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
          for ( unsigned y = 0; y < bmp.sizey(); ++y )
             for ( unsigned x = 0; x < bmp.sizex(); ++x )
                bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 )*4 + 15000 ) / 200, 0, 255 );
          nll::core::extend( bmp, 3 );
          nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mpr-slice-" + nll::core::val2str( z ) + ".bmp" );
-         */
+         
       }
    }
 
