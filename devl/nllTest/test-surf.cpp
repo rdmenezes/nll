@@ -52,11 +52,13 @@ public:
 
    void printPoints( core::Image<ui8>& output, algorithm::SpeededUpRobustFeatures::Points& points )
    {
+      static const double scaleFactor = 1.2 / 9;
+
       for ( size_t n = 0; n < points.size(); ++n )
       {
          size_t px = points[ n ].position[ 0 ];
          size_t py = points[ n ].position[ 1 ];
-         size_t scale = points[ n ].scale;
+         size_t scale = points[ n ].scale / scaleFactor;
          size_t half = scale / 2;
 
          int dx = (int)(cos( points[ n ].orientation ) * half);
@@ -982,6 +984,88 @@ public:
 
       return newPoints;
    }
+
+   // brief create artificial data with expected location of the point supposed to have the best response
+   // we also know the best response scale which is sqrt(2) * circleSize * 2
+   //
+   // in these cases we are testing the position and the scale of the responses are clustered at the expected location,
+   // unfortunately we can't reliably test the angle as even if we move by 1 pixel, the angle will be very different as the shape is a circle!
+   void testPointLocation()
+   {
+      double averageErrorx = 0;
+      double averageErrory = 0;
+      double averageErrors = 0;
+      size_t nbSamples = 0;
+      const size_t imageSize = 512;
+      for ( ui32 n = 0; n < 100; ++n )
+      {
+         std::cout << "case=" << n << std::endl;
+
+         const size_t circleSize = 50 + core::generateUniformDistribution( -40, 40 );
+         const double centerx = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
+         const double centery = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
+         const double scale = circleSize * std::sqrt( 2.0 ) * 2;
+         std::cout << "ground truth=" << centerx << " " << centery << " " << scale << std::endl;
+         core::Image<ui8> image( imageSize, imageSize, 1 );
+         for ( size_t y = 0; y < image.sizey(); ++y )
+         {
+            for ( size_t x = 0; x < image.sizex(); ++x )
+            {
+               const double d = std::sqrt( core::sqr( (double)x - centerx ) +
+                                           core::sqr( (double)y - centery ) );
+               if ( d < circleSize )
+               {
+                  image( x, y, 0 ) = 200;
+               }
+            }
+         }
+
+         //core::bresham( image, core::vector2i( (int)centerx - (int)circleSize, (int)centery ),
+         //                      core::vector2i( (int)centerx + (int)circleSize, (int)centery ), core::vector3uc().getBuf() );
+
+         algorithm::SpeededUpRobustFeatures surf( 5, 6, 2, 0.075 );
+         algorithm::SpeededUpRobustFeatures::Points points1 = surf.computesFeatures( image );
+         std::cout << "nbPoints=" << points1.size() << std::endl;
+
+         if ( points1.size() )
+         {
+            static const double scaleFactor = 1.2 / 9;
+            std::cout << "found=" << points1[ 0 ].position[ 0 ] << " " << points1[ 0 ].position[ 1 ] << " " << points1[ 0 ].scale / scaleFactor << std::endl;
+
+            const double errorx = fabs( points1[ 0 ].position[ 0 ] - centerx ) / ( 2 * circleSize );
+            const double errory = fabs( points1[ 0 ].position[ 1 ] - centery ) / ( 2 * circleSize );
+            const double errors = fabs( ( points1[ 0 ].scale / scaleFactor ) /  scale );
+
+            ++nbSamples;
+            averageErrorx += errorx;
+            averageErrory += errory;
+            averageErrors += errors;
+            std::cout << "error=" << errorx << " " << errory << " " << errors << std::endl;
+
+            ensure( errorx < 0.15, "bad x" );
+            ensure( errory < 0.15, "bad y" );
+
+            ensure( errors > 0.9, "bad s" );
+            ensure( errors < 1.5, "bad s" );
+
+            core::extend( image, 3 );
+            printPoints( image, points1 );
+            core::writeBmp( image, NLL_TEST_PATH "data/" + core::val2str( n ) + ".bmp" );
+         }
+      }
+
+      averageErrorx /= nbSamples;
+      averageErrory /= nbSamples;
+      averageErrors /= nbSamples;
+
+      std::cout << "average error=" << averageErrorx << " " << averageErrory << " " << averageErrors << std::endl;
+      ensure( averageErrorx < 0.05, "bad x" );
+      ensure( averageErrory < 0.05, "bad y" );
+      ensure( fabs( averageErrors - std::sqrt( 2.0 ) ) < 0.3, "bad scale" );   // the perfect ratio is sqrt(2), see www.cs.unc.edu/~lazebnik/spring11/lec08_blob.pdf
+
+
+      //ensure( points1.size() == 1, "select the point with the highest response. Must be at the center of the circle" );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -990,6 +1074,7 @@ TESTER_TEST(testBasic);
 TESTER_TEST(testRepeatability);
 TESTER_TEST(testRepeatabilityAngle);
 TESTER_TEST(testRegistration2);   // test full registration
+TESTER_TEST(testPointLocation);
 
 // UTILITY FUNCTIONS
 //TESTER_TEST(testRegistrationVolume);

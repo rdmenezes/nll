@@ -280,16 +280,16 @@ namespace algorithm
 
          if ( direction == VERTICAL )
          {
-            // computes:
-            // X n n n 0 p p p p     X = (0, 0)
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
+            // copnutes:
+            // X p p p 0 n n n n     X = (0, 0)
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
             // <===============> lobeSize
 
             #ifdef NLL_SECURE
@@ -304,23 +304,23 @@ namespace algorithm
             const core::vector2i subMin( position[ 0 ] + 1,    position[ 1 ] - half );
             const core::vector2i subMax( position[ 0 ] + half, position[ 1 ] + half );
 
-            const double sumd = i.getSum( min, max );
-            const double sump = i.getSum( subMin, subMax );
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
             return static_cast<double>( sump - sumd );
          }
 
          if ( direction == HORIZONTAL )
          {
             // computes:
-            // X n n n n n n n n     X = (0, 0)
-            // n n n n n n n n n 
-            // n n n n n n n n n
-            // n n n n n n n n n
+            // X p p p p p p p p     X = (0, 0)
+            // p p p p p p p p p 
+            // p p p p p p p p p
+            // p p p p p p p p p
             // 0 0 0 0 0 0 0 0 0
-            // p p p p p p p p p
-            // p p p p p p p p p
-            // p p p p p p p p p
-            // p p p p p p p p p
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
             // <===============> lobeSize
 
             #ifdef NLL_SECURE
@@ -336,8 +336,8 @@ namespace algorithm
             const core::vector2i subMin( position[ 0 ] - half, position[ 1 ] + 1 );
             const core::vector2i subMax( position[ 0 ] + half, position[ 1 ] + half );
 
-            const double sumd = i.getSum( min, max );
-            const double sump = i.getSum( subMin, subMax );
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
             return static_cast<double>( sump - sumd );
          }
 

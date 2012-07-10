@@ -279,9 +279,9 @@ namespace algorithm
                         
                         const bool inverted = core::inverse3x3( hessianHessian );
                         core::StaticVector<double, 3> interpolatedPoint = core::mat3Mulv( hessianHessian, hessianGradient ) * -1;
-                        if ( inverted && fabs( interpolatedPoint[ 0 ] ) < 0.5 &&
+                        if ( inverted /* && fabs( interpolatedPoint[ 0 ] ) < 0.5 &&
                                          fabs( interpolatedPoint[ 1 ] ) < 0.5 &&
-                                         fabs( interpolatedPoint[ 2 ] ) < 0.5 )
+                                         fabs( interpolatedPoint[ 2 ] ) < 0.5 */ )
                         {
                            const int size = static_cast<int>( _filterSizes[ filter ] );
                            // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
@@ -292,8 +292,8 @@ namespace algorithm
                            int px    = core::round( index[ 0 ] );
                            int py    = core::round( index[ 1 ] );
                            int scale = core::round( ( size   + interpolatedPoint[ 2 ]   * filterStep ) * scaleFactor );
-                           if ( scale <= 0 )
-                              continue;   // should not happen, but just in case!
+                           if ( scale <= 0 || px < 0 || py < 0 || px >= i.sizex() || py >= i.sizey() )
+                              continue;  // again check the boundaries as we might be out!
 
                            #ifndef NLL_NOT_MULTITHREADED
                            size_t threadId = omp_get_thread_num();
