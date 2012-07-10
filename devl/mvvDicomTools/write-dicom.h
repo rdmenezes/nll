@@ -163,8 +163,7 @@ namespace mvv
          {
             writeDicomVolume( *vol, v1.stringval );
          } else {
-            DicomAttributs dcmAttributs;
-            DicomAttributs::exportTagsToRuntime( v2, dcmAttributs );
+            DicomAttributs dcmAttributs = createDicomAttributs( v2 );
             writeDicomVolume( *vol, v1.stringval, dcmAttributs );
          }
 

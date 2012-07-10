@@ -162,7 +162,8 @@ namespace mvv
       static void exportTagsToRuntime( RuntimeValue& val, const DicomAttributs& src )
       {
          //std::cout << "nbTagsCreated=" << DicomAttributs::getNumberOfHandledTags() << std::endl;
-         val.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( DicomAttributs::getNumberOfHandledTags() ) );
+         const ui32 nbTags = DicomAttributs::getNumberOfHandledTags();
+         val.vals = RuntimeValue::RefcountedValues( 0, 0, new RuntimeValues( nbTags ) );
          val.type = RuntimeValue::TYPE;
          
          (*val.vals)[ 0 ].type = RuntimeValue::STRING;
@@ -270,12 +271,13 @@ namespace mvv
          (*val.vals)[ 33 ].type = RuntimeValue::TYPE;
          if ( src.imageType.size() )
          {
-            (*val.vals)[ 33 ].vals.getData().resize( src.imageType.size() );
+            RuntimeValues* vals = new RuntimeValues( src.imageType.size() );
             for ( size_t n = 0; n < src.imageType.size(); ++n )
             {
-               (*val.vals)[ 33 ].vals.getData()[ n ].type = RuntimeValue::STRING;
-               (*val.vals)[ 33 ].vals.getData()[ n ].stringval = src.imageType[ n ];
+               (*vals)[ n ].type = RuntimeValue::STRING;
+               (*vals)[ n ].stringval = src.imageType[ n ];
             }
+            (*val.vals)[ 33 ].vals = RuntimeValue::RefcountedValues( 0, 0, vals, true );
          }
 
          (*val.vals)[ 34 ].type = RuntimeValue::STRING;
