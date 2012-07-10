@@ -797,6 +797,73 @@ private:
    mvv::platform::Context& _context;
 };
 
+class FunctionRunnableVolumeSetBackgroundValue : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeSetBackgroundValue( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+      volume->setBackgroundValue( v2.floatval );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context& _context;
+};
+
+class FunctionRunnableVolumeGetBackgroundValue : public FunctionRunnable
+{
+public:
+   FunctionRunnableVolumeGetBackgroundValue( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+
+      if ( v1.type != RuntimeValue::TYPE   )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 volume as arguments" );
+      }
+
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Volume* volume = reinterpret_cast<Volume*>( (*v1.vals)[ 0 ].ref );
+
+      RuntimeValue rt( RuntimeValue::CMP_FLOAT );
+      rt.floatval = volume->getBackgroundValue();
+      return rt;
+   }
+
+private:
+   mvv::platform::Context& _context;
+};
+
 class FunctionRunnableVolumeSetOrigin : public FunctionRunnable
 {
 public:

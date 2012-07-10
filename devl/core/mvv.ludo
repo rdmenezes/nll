@@ -327,6 +327,13 @@ class Volume
     @note the registration is not taken into account
     */
    import Vector3f positionToIndex( Vector3f position );
+
+   /**
+    @brief Specifies the background value of a volume. Especially useful when volumes are resampled
+	       as this value will be used
+    */
+   import float getBackgroundValue();
+   import void setBackgroundValue( float val );
 }
 
 /**
