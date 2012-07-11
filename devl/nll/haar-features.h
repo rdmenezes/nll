@@ -210,11 +210,15 @@ namespace algorithm
 
       static double getValue( const Direction direction, const IntegralImage& i, const core::vector2i& position, const int lobeSize )
       {
-         //
-         // Note: all drawings are inverted in Y as the (0, 0) of our images is bottom left!
-         //
+         // To simplify the following proofs, let's have a gaussian function defined
+         // as g(x, y) = exp( - ( x^2 + y^2 ) )
+
+
          if ( direction == VERTICAL_TRIPLE )
          {
+            // d g(x, y) / dx^2 = 4*x^2*e^(-x^2 - y^2) - 2*e^(-x^2 - y^2)
+            // we approximate this as below
+
             // computes:
             // X 0 0 0 0 0 0 0 0     X = (0, 0)
             // 0 0 0 0 0 0 0 0 0
@@ -248,6 +252,9 @@ namespace algorithm
 
          if ( direction == HORIZONTAL_TRIPLE )
          {
+            // d g(x, y) / dy^2 = 4*y^2*e^(-x^2 - y^2) - 2*e^(-x^2 - y^2)
+            // we approximate this as below
+
             // computes:
             // X 0 p p p p p 0 0     X = (0, 0)
             // 0 0 p p p p p 0 0
@@ -280,6 +287,9 @@ namespace algorithm
 
          if ( direction == VERTICAL )
          {
+            // d g(x, y) / dx = -2x * exp( - (x^2 + y^2) )
+            // we approximate this as below
+
             // copnutes:
             // X p p p 0 n n n n     X = (0, 0)
             // p p p p 0 n n n n
@@ -311,6 +321,9 @@ namespace algorithm
 
          if ( direction == HORIZONTAL )
          {
+            // d g(x, y) / dy = -2y * exp( - (x^2 + y^2) )
+            // we approximate this as below
+
             // computes:
             // X p p p p p p p p     X = (0, 0)
             // p p p p p p p p p 
@@ -343,15 +356,18 @@ namespace algorithm
 
          if ( direction == CHECKER )
          {
+            // d g(x, y) / dxy = 4*x*y*e^(-x^2 - y^2)
+            // we approximate this as below
+
             // computes:
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
-            // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
             // 0 0 0 0 0 0 0 0 0
-            // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize
 
@@ -375,7 +391,7 @@ namespace algorithm
             const double sum2 = i.getSum( min2, max2 );
             const double sum3 = i.getSum( min3, max3 );
             const double sum4 = i.getSum( min4, max4 );
-            return static_cast<double>( sum2 + sum3 - sum1 - sum4 ); // optim: 2 area computation only + weighting
+            return static_cast<double>( sum1 + sum4 - sum2 - sum3 ); // optim: 2 area computation only + weighting
          }
 
          ensure( 0, "not handled haar feature" );
