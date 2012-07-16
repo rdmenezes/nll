@@ -176,13 +176,38 @@ namespace algorithm
          return _img.size();
       }
 
+      size_t sizex() const
+      {
+         return _img.sizex();
+      }
+
+      size_t sizey() const
+      {
+         return _img.sizey();
+      }
+
+      size_t sizez() const
+      {
+         return _img.sizez();
+      }
+
       /**
        @brief Returns of the voxel bounded by <bottomLeft> and <topRight>. The bounds are _inclusive_
        */
-      value_type getSum( const core::vector3ui& bottomLeft,
-                         const core::vector3ui& topRight ) const
+      value_type getSum( const core::vector3i& bottomLeft,
+                         const core::vector3i& topRight ) const
       {
-         core::vector3ui bl( bottomLeft[ 0 ] - 1, bottomLeft[ 1 ] - 1, bottomLeft[ 2 ] - 1 );
+         // if bottomLeft == 0, we need to go through a special case...
+         core::vector3i bl( bottomLeft[ 0 ] - 1, bottomLeft[ 1 ] - 1, bottomLeft[ 2 ] - 1 );
+
+         #ifdef NLL_SECURE
+         for ( size_t n = 0; n < 3; ++n )
+         {
+            ensure( bottomLeft[ n ] <= topRight[ n ], "bound checking error" );
+            ensure( topRight[ n ] >= 0, "bound checking error" );
+            ensure( bottomLeft[ n ] < static_cast<int>( _img.size()[ n ] ), "bound checking error" );
+         }
+         #endif
 
          // special case if one of the index is 0, we nee to check everything...
          if ( bottomLeft[ 0 ] == 0 || bottomLeft[ 1 ] == 0 || bottomLeft[ 2 ] == 0 )

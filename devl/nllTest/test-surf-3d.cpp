@@ -168,12 +168,32 @@ public:
          TESTER_ASSERT( (expectedp - r).norm2() < 1e-3 );
       }
    }
+
+   void testRotation3dTfmId()
+   {
+      for ( size_t n = 0; n < 100; ++n )
+      {
+         const double a1 = core::generateUniformDistribution( -core::PI, core::PI );
+         const double a2 = core::generateUniformDistribution( -core::PI, core::PI );
+
+         core::vector3d p( core::generateUniformDistribution( -10, 10),
+                           core::generateUniformDistribution( -10, 10),
+                           core::generateUniformDistribution( -10, 10) );
+
+         algorithm::SpeededUpRobustFeatures3d::RotationFromSpherical rot( a1, a2 );
+         algorithm::SpeededUpRobustFeatures3d::RotationFromSpherical rotInv = rot.createInverse();
+         const core::vector3d pt = rot.transform( p );
+         const core::vector3d ptinv = rotInv.transform( pt );
+         TESTER_ASSERT( (ptinv - p).norm2() < 1e-3 );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf3D);
-TESTER_TEST(testSurf3d);
+/*TESTER_TEST(testSurf3d);*/
 TESTER_TEST(testcartesianToSphericalCoordinate);
 TESTER_TEST(testRotation3d);
+TESTER_TEST(testRotation3dTfmId);
 TESTER_TEST_SUITE_END();
 #endif

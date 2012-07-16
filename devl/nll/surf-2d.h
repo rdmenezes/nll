@@ -289,9 +289,9 @@ namespace algorithm
 
                            const core::vector2f index = pyramid.getPositionPyramid2Integral( x + (float)interpolatedPoint[ 0 ], y + (float)interpolatedPoint[ 1 ], filter );
 
-                           int px    = core::round( index[ 0 ] );
-                           int py    = core::round( index[ 1 ] );
-                           int scale = core::round( ( size   + interpolatedPoint[ 2 ]   * filterStep ) * scaleFactor );
+                           const int px    = core::round( index[ 0 ] );
+                           const int py    = core::round( index[ 1 ] );
+                           const int scale = core::round( ( size   + interpolatedPoint[ 2 ]   * filterStep ) * scaleFactor );
                            if ( scale <= 0 || px < 0 || py < 0 || px >= i.sizex() || py >= i.sizey() )
                               continue;  // again check the boundaries as we might be out!
 

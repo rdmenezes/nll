@@ -43,6 +43,10 @@ namespace algorithm
     @ingroup algorithm
     @brief Helper to compute 3D Haar features in the most common type
     */ 
+   /**
+    @ingroup algorithm
+    @brief Helper to compute 3D Haar features in the most common type
+    */ 
    class HaarFeatures3d
    {
    public:
@@ -51,262 +55,428 @@ namespace algorithm
        @param bf the bottom left coordinate, it must be in [0..1][0..1] intervals. (i.e. for scaling)
        @param tr the top right coordinate, it must be in [0..1][0..1] intervals. (i.e. for scaling)
        */
-      struct Feature
+      enum Direction
       {
-         enum Direction
-         {
-            HALFX,
-            HALFY,
-            HALFZ,
-            DY,
-            DX,
-            DZ,
-            DXY,
-            DXZ,
-            DYZ,
-            DXYZ,
-            NONE
-         };
-
-         Feature() : _direction( NONE )
-         {
-         }
-
-         static double getValue( Direction direction, const IntegralImage3d& i, const core::vector3ui& bl, const core::vector3ui& tr )
-         {
-            const int x1 = static_cast<int>( bl[ 0 ] );
-            const int x2 = static_cast<int>( tr[ 0 ] );
-
-            const int y1 = static_cast<int>( bl[ 1 ] );
-            const int y2 = static_cast<int>( tr[ 1 ] );
-
-            const int z1 = static_cast<int>( bl[ 2 ] );
-            const int z2 = static_cast<int>( tr[ 2 ] );
-
-            double sump;
-            double sumd;
-            int tmp1, tmp2, tmp3, tmp4;
-            int mid;
-            int mid1, mid2, mid3, d;
-            int border;
-
-            switch ( direction )
-            {
-            case HALFX:
-               mid = ( x1 + x2 ) / 2;
-               sump = i.getSum( core::vector3ui( x1, y1, z1 ),  core::vector3ui( mid, y2, z2 ) );
-               sumd = i.getSum( core::vector3ui( mid, y1, z1 ), core::vector3ui( x2, y2, z2 ) );
-               return static_cast<double>( sump - sumd );
-
-            case HALFY:
-               mid = ( y1 + y2 ) / 2;
-               sump = i.getSum( core::vector3ui( x1, y1, z1 ),  core::vector3ui( x2, mid, z2 ) );
-               sumd = i.getSum( core::vector3ui( x1, mid, z1 ), core::vector3ui( x2, y2, z2 ) );
-               return static_cast<double>( sump - sumd );
-
-            case HALFZ:
-               mid = ( z1 + z2 ) / 2;
-               sump = i.getSum( core::vector3ui( x1, y1, z1 ), core::vector3ui( x2, y1, mid ) );
-               sumd = i.getSum( core::vector3ui( x1, y1, mid), core::vector3ui( x2, y2, z2 ) );
-               return static_cast<double>( sump - sumd );
-               
-            case DY:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 2
-               // b+++b
-               // b---b
-               // b+++b
-               //
-               d = ( y2 - y1 + 1 ) / 3;
-               mid1 = y1 + 1 * d;
-               mid2 = y1 + 2 * d;
-               border = ( ( x2 - x1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
-
-               tmp1 = x1 + border;
-               tmp2 = x2 - border;
-               tmp3 = z1 + border;
-               tmp4 = z2 - border;
-               sump = i.getSum( core::vector3ui( tmp1, y1, tmp3 ),   core::vector3ui( tmp2, y2, tmp4 ) );
-               sumd = i.getSum( core::vector3ui( tmp1, mid1, tmp3 ), core::vector3ui( tmp2, mid2 - 1, tmp4 ) );
-               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
-               
-            case DX:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 2
-               // bbb
-               // +-+
-               // +-+
-               // +-+
-               // bbb
-               d = ( x2 - x1 + 1 ) / 3;
-               mid1 = x1 + 1 * d;
-               mid2 = x1 + 2 * d;
-               border = ( ( y2 - y1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
-
-               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
-               tmp1 = y1 + border;
-               tmp2 = y2 - border;
-               tmp3 = z1 + border;
-               tmp4 = z2 - border;
-               sump = i.getSum( core::vector3ui( x1,   tmp1, tmp3 ), core::vector3ui( x2,       tmp2, tmp4 ) );
-               sumd = i.getSum( core::vector3ui( mid1, tmp1, tmp3 ), core::vector3ui( mid2 - 1, tmp2, tmp4 ) );
-               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
-
-            case DZ:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 2
-               // bbb
-               // +-+
-               // +-+
-               // +-+
-               // bbb
-               d = ( z2 - z1 + 1 ) / 3;
-               mid1 = z1 + 1 * d;
-               mid2 = z1 + 2 * d;
-               border = ( ( y2 - y1 + 1 ) - ( 2 * d - 1 ) ) / 2; // actualFilterSize = 2 * d - 1, d = sizey / 3
-
-               //ensure( mid1 > 0 && mid2 > 0, "problem in feature position" );
-               tmp1 = y1 + border;
-               tmp2 = y2 - border;
-               tmp3 = x1 + border;
-               tmp4 = x2 - border;
-               sump = i.getSum( core::vector3ui( tmp3, tmp1, z1 ),   core::vector3ui( tmp4, tmp2, z2 ) );
-               sumd = i.getSum( core::vector3ui( tmp3, tmp1, mid1 ), core::vector3ui( tmp4, tmp2, mid2 - 1 ) );
-               return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
-
-            case DXY:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 1
-               // b b b b b
-               // b + b - b     in XY plane
-               // b - b + b
-               // b b b b b
-               //
-               d = ( x2 - x1 + 1 ) / 3;
-               mid1 = ( x2 + x1 ) / 2;
-               mid2 = ( y2 + y1 ) / 2;
-               border = ( ( x2 - x1 + 1 ) - ( 2 * d + 1 ) ) / 2;
-
-               sump = i.getSum( core::vector3ui( x1 + border,   y1 + border, z1 + border ), core::vector3ui( mid1 - 1,    mid2 - 1,    z2 - border ) ) +
-                      i.getSum( core::vector3ui( mid1 + 1, mid2 + 1,         z1 + border ), core::vector3ui( x2 - border, y2 - border, z2 - border ) );
-               sumd = i.getSum( core::vector3ui( mid1 + 1,   y1 + border,    z1 + border ), core::vector3ui( x2 - border, mid2 - 1,    z2 - border ) ) +
-                      i.getSum( core::vector3ui( x1 + border, mid2 + 1,      z1 + border ), core::vector3ui( mid1 - 1,    y2 - border, z2 - border ) );
-               return static_cast<double>( sump - sumd );
-
-            case DXZ:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 1
-               // b b b b b
-               // b + b - b  in XZ plane
-               // b - b + b
-               // b b b b b
-               //
-               d = ( x2 - x1 + 1 ) / 3;
-               mid1 = ( x2 + x1 ) / 2;
-               mid2 = ( z2 + z1 ) / 2;
-               border = ( ( x2 - x1 + 1 ) - ( 2 * d + 1 ) ) / 2;
-
-               sump = i.getSum( core::vector3ui( x1 + border,   y1 + border, z1 + border ), core::vector3ui( mid1 - 1,    y2 - border, mid2 - 1 ) ) +
-                      i.getSum( core::vector3ui( mid1 + 1,      y1 + border, mid2 + 1 ),    core::vector3ui( x2 - border, y2 - border, z2 - border ) );
-               sumd = i.getSum( core::vector3ui( mid1 + 1,      y1 + border, z1 + border ), core::vector3ui( x2 - border, y2 - border, mid2 - 1 ) ) +
-                      i.getSum( core::vector3ui( x1 + border,   y1 + border, mid2 + 1 ),    core::vector3ui( mid1 - 1,    y2 - border, z2 - border ) );
-               return static_cast<double>( sump - sumd );
-
-            case DYZ:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 1
-               // b b b b b
-               // b + b - b in XY plane
-               // b - b + b
-               // b b b b b
-               //
-               d = ( y2 - y1 + 1 ) / 3;
-               mid2 = ( y2 + y1 ) / 2;
-               mid1 = ( z2 + z1 ) / 2;
-               border = ( ( y2 - y1 + 1 ) - ( 2 * d + 1 ) ) / 2;
-
-               sump = i.getSum( core::vector3ui( x1 + border, y1 + border, z1 + border ), core::vector3ui( x2 - border, mid2 - 1,    mid1 - 1 ) ) +
-                      i.getSum( core::vector3ui( x1 + border, mid2 + 1,    mid1 + 1  ),   core::vector3ui( x2 - border, y2 - border, z2 - border ) );
-               sumd = i.getSum( core::vector3ui( x1 + border, y1 + border, mid1 + 1 ),    core::vector3ui( x2 - border, mid2 - 1,    z2 - border ) ) +
-                      i.getSum( core::vector3ui( x1 + border, mid2 + 1,    z1 + border ), core::vector3ui( x2 - border, y2 - border, mid1 - 1 ) );
-               return static_cast<double>( sump - sumd );
-
-            case DXYZ:
-               assert( y2 - y1 + 1 == x2 - x1 + 1 &&
-                       y2 - y1 + 1 == z2 - z1 + 1 ); //"the filter must be square"
-               //
-               // note that we remove the border so that a filter of size 9x9x9
-               // is a discrete approximation of a gaussian w = 1.2
-               // compute: b border weight = 0
-               //          + weight = 1
-               //          - weight = 1
-               // b b b b b
-               // b + b - b in XY plane until half z, after the positif and negative are swapped
-               // b - b + b
-               // b b b b b
-               //
-               d = ( x2 - x1 + 1 ) / 3;
-               mid1 = ( x2 + x1 ) / 2;
-               mid2 = ( y2 + y1 ) / 2;
-               mid3 = ( z2 + z1 ) / 2;
-               border = ( ( x2 - x1 + 1 ) - ( 2 * d + 1 ) ) / 2;
-
-               sump = i.getSum( core::vector3ui( x1 + border,   y1 + border, z1 + border ), core::vector3ui( mid1 - 1,    mid2 - 1,    mid3 - 1 ) ) +
-                      i.getSum( core::vector3ui( mid1 + 1, mid2 + 1,         z1 + border ), core::vector3ui( x2 - border, y2 - border, mid3 - 1 ) ) +
-                      i.getSum( core::vector3ui( mid1 + 1,   y1 + border,    mid3 + 1 ), core::vector3ui( x2 - border, mid2 - 1,    z2 - border ) ) +
-                      i.getSum( core::vector3ui( x1 + border, mid2 + 1,      mid3 + 1 ), core::vector3ui( mid1 - 1,    y2 - border, z2 - border ) );
-
-               sumd = i.getSum( core::vector3ui( mid1 + 1,   y1 + border,    z1 + border ), core::vector3ui( x2 - border, mid2 - 1,    mid3 - 1 ) ) +
-                      i.getSum( core::vector3ui( x1 + border, mid2 + 1,      z1 + border ), core::vector3ui( mid1 - 1,    y2 - border, mid3 - 1 ) ) +
-                      i.getSum( core::vector3ui( x1 + border,   y1 + border, mid3 + 1 ), core::vector3ui( mid1 - 1,    mid2 - 1,    z2 - border ) ) +
-                      i.getSum( core::vector3ui( mid1 + 1, mid2 + 1,         mid3 + 1 ), core::vector3ui( x2 - border, y2 - border, z2 - border ) );
-               return static_cast<double>( sump - sumd );
-
-            case NONE:
-            default:
-               ensure( 0, "not handled type" );
-            }
-         }
-
-      private:
-         Direction   _direction;
+         DX,
+         DY,
+         DZ,
+         D2X,
+         D2Y,
+         D2Z,
+         D2XY,
+         D2XZ,
+         D2YZ,
+         D3XYZ
       };
+
+      static double getValue( const Direction direction, const IntegralImage3d& i, const core::vector3i& position, const int lobeSize )
+      {
+         // To simplify the following proofs, let's have a gaussian function defined
+         // as g(x, y) = exp( - ( x^2 + y^2 + z^2 ) )
+
+
+         if ( direction == D2X )
+         {
+            // d g(x, y, z) / dx^2 = 4*x^2*e^(-x^2 - y^2 - z^2) - 2*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes: (XY) view
+            // X 0 0 0 0 0 0 0 0     X = (0, 0)
+            // 0 0 0 0 0 0 0 0 0
+            // p p p n n n p p p 
+            // p p p n n n p p p
+            // p p p n n n p p p
+            // p p p n n n p p p
+            // p p p n n n p p p
+            // 0 0 0 0 0 0 0 0 0
+            // 0 0 0 0 0 0 0 0 0
+            //       <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const int halfLobe = lobeSize / 2;
+            const int halfx = lobeSize + halfLobe;
+            const int halfy = ( 2 * lobeSize - 1 ) / 2;
+
+            const core::vector3i min( position[ 0 ] - halfx, position[ 1 ] - halfy, position[ 2 ] - halfy);
+            const core::vector3i max( position[ 0 ] + halfx, position[ 1 ] + halfy, position[ 2 ] + halfy );
+
+            const core::vector3i subMin( position[ 0 ] - halfLobe, position[ 1 ] - halfy, position[ 2 ] - halfy );
+            const core::vector3i subMax( position[ 0 ] + halfLobe, position[ 1 ] + halfy, position[ 2 ] + halfy );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
+         }
+
+
+         if ( direction == D2Y )
+         {
+            // d g(x, y, z) / dy^2 = 4*y^2*e^(-x^2 - y^2 - z^2) - 2*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes: (XY plane)
+            // X 0 p p p p p 0 0     X = (0, 0)
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+            // 0 0 n n n n n 0 0  -
+            // 0 0 n n n n n 0 0  |  lobeSize
+            // 0 0 n n n n n 0 0  -
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const int halfLobe = lobeSize / 2;
+            const int halfy = lobeSize + halfLobe;
+            const int halfx = ( 2 * lobeSize - 1 ) / 2;
+
+            const core::vector3i min( position[ 0 ] - halfx, position[ 1 ] - halfy, position[ 2 ] - halfx );
+            const core::vector3i max( position[ 0 ] + halfx, position[ 1 ] + halfy, position[ 2 ] + halfx );
+
+            const core::vector3i subMin( position[ 0 ] - halfx, position[ 1 ] - halfLobe, position[ 2 ] - halfx );
+            const core::vector3i subMax( position[ 0 ] + halfx, position[ 1 ] + halfLobe, position[ 2 ] + halfx );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
+         }
+
+         if ( direction == D2Z )
+         {
+            // d g(x, y, z) / dz^2 = 4*z^2*e^(-x^2 - y^2 - z^2) - 2*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes: (YZ plane) or (XZ)
+            // X 0 p p p p p 0 0     X = (0, 0)
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+            // 0 0 n n n n n 0 0  -
+            // 0 0 n n n n n 0 0  |  lobeSize
+            // 0 0 n n n n n 0 0  -
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+            // 0 0 p p p p p 0 0
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const int halfLobe = lobeSize / 2;
+            const int halfy = lobeSize + halfLobe;
+            const int halfx = ( 2 * lobeSize - 1 ) / 2;
+
+            const core::vector3i min( position[ 0 ] - halfx, position[ 1 ] - halfx, position[ 2 ] - halfy );
+            const core::vector3i max( position[ 0 ] + halfx, position[ 1 ] + halfx, position[ 2 ] + halfy );
+
+            const core::vector3i subMin( position[ 0 ] - halfx, position[ 1 ] - halfx, position[ 2 ] - halfLobe );
+            const core::vector3i subMax( position[ 0 ] + halfx, position[ 1 ] + halfx, position[ 2 ] + halfLobe );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - 3 * sumd ); // optim: 2 area computation only + weighting
+         }
+
+         if ( direction == DX )
+         {
+            // d g(x, y) / dx = -2*x*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // copnutes: (XY plane)
+            // X p p p 0 n n n n     X = (0, 0)
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // <===============> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( lobeSize % 2 == 1, "must be a odd" );
+            #endif
+
+            const int half = lobeSize / 2;
+
+            const core::vector3i min( position[ 0 ] - half, position[ 1 ] - half, position[ 2 ] - half );
+            const core::vector3i max( position[ 0 ] - 1,    position[ 1 ] + half, position[ 2 ] + half );
+
+            const core::vector3i subMin( position[ 0 ] + 1,    position[ 1 ] - half, position[ 2 ] - half );
+            const core::vector3i subMax( position[ 0 ] + half, position[ 1 ] + half, position[ 2 ] + half );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - sumd );
+         }
+
+         if ( direction == DY )
+         {
+            // d g(x, y) / dy = -2*y*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes: (XY plane)
+            // X p p p p p p p p     X = (0, 0)
+            // p p p p p p p p p 
+            // p p p p p p p p p
+            // p p p p p p p p p
+            // 0 0 0 0 0 0 0 0 0
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // <===============> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( lobeSize % 2 == 1, "must be a odd" );
+            #endif
+
+            const int half = lobeSize / 2;
+
+            const core::vector3i min( position[ 0 ] - half, position[ 1 ] - half, position[ 2 ] - half );
+            const core::vector3i max( position[ 0 ] + half, position[ 1 ] - 1,    position[ 2 ] + half );
+
+            const core::vector3i subMin( position[ 0 ] - half, position[ 1 ] + 1,    position[ 2 ] - half );
+            const core::vector3i subMax( position[ 0 ] + half, position[ 1 ] + half, position[ 2 ] + half );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - sumd );
+         }
+
+         if ( direction == DZ )
+         {
+            // d g(x, y) / dz = -2*z*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes: (XZ plane) or (YZ plane)
+            // X p p p p p p p p     X = (0, 0)
+            // p p p p p p p p p 
+            // p p p p p p p p p
+            // p p p p p p p p p
+            // 0 0 0 0 0 0 0 0 0
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // <===============> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( lobeSize % 2 == 1, "must be a odd" );
+            #endif
+
+            const int half = lobeSize / 2;
+
+            const core::vector3i min( position[ 0 ] - half, position[ 1 ] - half, position[ 2 ] - half );
+            const core::vector3i max( position[ 0 ] + half, position[ 1 ] + half, position[ 2 ] - 1 );
+
+            const core::vector3i subMin( position[ 0 ] - half, position[ 1 ] - half, position[ 2 ] + 1 );
+            const core::vector3i subMax( position[ 0 ] + half, position[ 1 ] + half, position[ 2 ] + half );
+
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
+            return static_cast<double>( sump - sumd );
+         }
+
+         if ( direction == D2XY )
+         {
+            // d g(x, y, z) / dxy = 4*x*y*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes:
+            // X 0 0 0 0 0 0 0 0    X = (0, 0)
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 0 0 0 0 0 0 0 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 0 0 0 0 0 0 0 0
+            //           <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const core::vector3i min1( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max1( position[ 0 ] - 1,        position[ 1 ] - 1,        position[ 2 ] + lobeSize );
+
+            const core::vector3i min2( position[ 0 ] + 1,        position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max2( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] + lobeSize );
+
+            const core::vector3i min3( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] - lobeSize );
+            const core::vector3i max3( position[ 0 ] - 1,        position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const core::vector3i min4( position[ 0 ] + 1,        position[ 1 ] + 1,        position[ 2 ] - lobeSize );
+            const core::vector3i max4( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const double sum1 = i.getSum( min1, max1 );
+            const double sum2 = i.getSum( min2, max2 );
+            const double sum3 = i.getSum( min3, max3 );
+            const double sum4 = i.getSum( min4, max4 );
+            return static_cast<double>( sum1 + sum4 - sum2 - sum3 ); // optim: 2 area computation only + weighting
+         }
+
+         if ( direction == D2XZ )
+         {
+            // d g(x, y, z) / dxz = 4*x*z*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes:
+            // X 0 0 0 0 0 0 0 0    X = (0, 0)
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 0 0 0 0 0 0 0 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 0 0 0 0 0 0 0 0
+            //           <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const core::vector3i min1( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max1( position[ 0 ] - 1,        position[ 1 ] + lobeSize, position[ 2 ] - 1 );
+
+            const core::vector3i min2( position[ 0 ] + 1,        position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max2( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] - 1 );
+
+            const core::vector3i min3( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] + 1 );
+            const core::vector3i max3( position[ 0 ] - 1,        position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const core::vector3i min4( position[ 0 ] + 1,        position[ 1 ] - lobeSize, position[ 2 ] + 1 );
+            const core::vector3i max4( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const double sum1 = i.getSum( min1, max1 );
+            const double sum2 = i.getSum( min2, max2 );
+            const double sum3 = i.getSum( min3, max3 );
+            const double sum4 = i.getSum( min4, max4 );
+            return static_cast<double>( sum1 + sum4 - sum2 - sum3 ); // optim: 2 area computation only + weighting
+         }
+        
+         if ( direction == D2YZ )
+         {
+            // d g(x, y, z) / dyz = 4*y*z*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes:
+            // X 0 0 0 0 0 0 0 0    X = (0, 0)
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 0 0 0 0 0 0 0 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 0 0 0 0 0 0 0 0
+            //           <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const core::vector3i min1( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max1( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] - 1 );
+
+            const core::vector3i min2( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] + 1 );
+            const core::vector3i max2( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] + lobeSize );
+
+            const core::vector3i min3( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] - lobeSize );
+            const core::vector3i max3( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] - 1 );
+
+            const core::vector3i min4( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] + 1 );
+            const core::vector3i max4( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const double sum1 = i.getSum( min1, max1 );
+            const double sum2 = i.getSum( min2, max2 );
+            const double sum3 = i.getSum( min3, max3 );
+            const double sum4 = i.getSum( min4, max4 );
+            return static_cast<double>( sum1 + sum4 - sum2 - sum3 ); // optim: 2 area computation only + weighting
+         }
+
+         if ( direction == D3XYZ )
+         {
+            // d g(x, y, z) / dxyz = -8*x*y*z*e^(-x^2 - y^2 - z^2)
+            // we approximate this as below
+
+            // computes:
+            // view (a) XY
+            // X 0 0 0 0 0 0 0 0    X = (0, 0)
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 0 0 0 0 0 0 0 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 0 0 0 0 0 0 0 0
+            //           <=+=> lobeSize
+
+            #ifdef NLL_SECURE
+            ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
+            #endif
+
+            const core::vector3i min1a( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max1a( position[ 0 ] - 1,        position[ 1 ] - 1,        position[ 2 ] - 1 );
+
+            const core::vector3i min2a( position[ 0 ] + 1,        position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
+            const core::vector3i max2a( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] - 1 );
+
+            const core::vector3i min3a( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] - lobeSize );
+            const core::vector3i max3a( position[ 0 ] - 1,        position[ 1 ] + lobeSize, position[ 2 ] - 1 );
+
+            const core::vector3i min4a( position[ 0 ] + 1,        position[ 1 ] + 1,        position[ 2 ] - lobeSize );
+            const core::vector3i max4a( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] - 1 );
+
+            // computes:
+            // view (b) XY
+            // X 0 0 0 0 0 0 0 0    X = (0, 0)
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 0 0 0 0 0 0 0 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 0 0 0 0 0 0 0 0
+            //           <=+=> lobeSize
+
+            const core::vector3i min1b( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] + 1 );
+            const core::vector3i max1b( position[ 0 ] - 1,        position[ 1 ] - 1,        position[ 2 ] + lobeSize );
+
+            const core::vector3i min2b( position[ 0 ] + 1,        position[ 1 ] - lobeSize, position[ 2 ] + 1 );
+            const core::vector3i max2b( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] + lobeSize );
+
+            const core::vector3i min3b( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] + 1 );
+            const core::vector3i max3b( position[ 0 ] - 1,        position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const core::vector3i min4b( position[ 0 ] + 1,        position[ 1 ] + 1,        position[ 2 ] + 1 );
+            const core::vector3i max4b( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+
+            const double sum1a = i.getSum( min1a, max1a );
+            const double sum2a = i.getSum( min2a, max2a );
+            const double sum3a = i.getSum( min3a, max3a );
+            const double sum4a = i.getSum( min4a, max4a );
+
+            const double sum1b = i.getSum( min1b, max1b );
+            const double sum2b = i.getSum( min2b, max2b );
+            const double sum3b = i.getSum( min3b, max3b );
+            const double sum4b = i.getSum( min4b, max4b );
+            return static_cast<double>( sum1a + sum4a - sum2a - sum3a - sum1b - sum4b + sum2b + sum3b );
+         }
+
+         throw std::runtime_error( "unknown 3D Haar feature type!");
+      }
    };
 }
 }

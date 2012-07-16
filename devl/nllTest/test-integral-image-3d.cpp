@@ -75,19 +75,22 @@ public:
       for ( size_t n = 0; n < 5000; ++n )
       {
          
-         core::vector3ui bl( rand() % volume.size()[ 0 ],
-                             rand() % volume.size()[ 1 ],
-                             rand() % volume.size()[ 2 ] );
-         core::vector3ui tr( rand() % volume.size()[ 0 ],
-                             rand() % volume.size()[ 1 ],
-                             rand() % volume.size()[ 2 ] );
-                             
+         core::vector3i bl( rand() % volume.size()[ 0 ],
+                            rand() % volume.size()[ 1 ],
+                            rand() % volume.size()[ 2 ] );
+         core::vector3i tr( rand() % volume.size()[ 0 ],
+                            rand() % volume.size()[ 1 ],
+                            rand() % volume.size()[ 2 ] );
+
          for ( size_t c = 0; c < 3; ++c )
          {
             if ( bl[ c ] > tr[ c ] )
                std::swap( bl[ c ], tr[ c ] );
          }
+         // here we can have index outside th 0-size bounds
+         const double sumFound = integral.getSum( bl, tr );
 
+         // dummy sum
          double sum = 0;
          for ( size_t z = bl[ 2 ]; z <= tr[ 2 ]; ++z )
          {
@@ -100,7 +103,6 @@ public:
             }
          }
 
-         const double sumFound = integral.getSum( bl, tr );
          TESTER_ASSERT( fabs( sumFound - sum ) < 1e-5 );
       }
    }
