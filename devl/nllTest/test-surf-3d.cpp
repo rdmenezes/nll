@@ -30,8 +30,13 @@ public:
       bool loaded = nll::imaging::loadSimpleFlatFile( volname, volume );
       TESTER_ASSERT( loaded );
 
+      imaging::LookUpTransformWindowingRGB lut( -100, 600, 256, 1 );
+      lut.createGreyscale();
+      for ( imaging::VolumeSpatial<float>::iterator it = volume.begin(); it != volume.end(); ++it )
+         *it = lut.transform( *it )[ 0 ];
+
       std::cout << "runing surf..." << std::endl;
-      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.000005 );
+      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.1 );
 
       algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesFeatures( volume );
       std::cout << "nbPoints=" << points.size() << std::endl;
@@ -44,7 +49,7 @@ public:
          f << point[ 0 ] << " " << point[ 1 ] << " " << point[ 2 ] << " " << ( points[ n ].scale * volume.getSpacing()[ 0 ] ) << std::endl;
       }
 
-      TESTER_ASSERT( points.size() > 1000 );
+      TESTER_ASSERT( points.size() > 500 );
    }
 
    void testcartesianToSphericalCoordinate()
@@ -187,13 +192,156 @@ public:
          TESTER_ASSERT( (ptinv - p).norm2() < 1e-3 );
       }
    }
+
+   // brief create artificial data with expected location of the point supposed to have the best response
+   // we also know the best response scale which is sqrt(2) * circleSize * 2
+   //
+   // in these cases we are testing the position and the scale of the responses are clustered at the expected location,
+   // unfortunately we can't reliably test the angle as even if we move by 1 pixel, the angle will be very different as the shape is a circle!
+   void testPointLocation()
+   {
+      double averageErrorx = 0;
+      double averageErrory = 0;
+      double averageErrorz = 0;
+      double averageErrors = 0;
+      size_t nbSamples = 0;
+      const size_t imageSize = 512;
+      for ( ui32 n = 0; n < 100; ++n )
+      {
+         std::cout << "case=" << n << std::endl;
+
+         const size_t circleSize = 50 + core::generateUniformDistribution( -40, 40 );
+         const double centerx = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
+         const double centery = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
+         const double centerz = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
+         const double scale = circleSize * std::sqrt( 2.0 ) * 2;
+         std::cout << "ground truth=" << centerx << " " << centery << " " << centerz << " " << scale << std::endl;
+         imaging::Volume<ui8> image( imageSize, imageSize, imageSize );
+         for ( size_t z = 0; z < image.sizez(); ++z )
+         {
+            for ( size_t y = 0; y < image.sizey(); ++y )
+            {
+               for ( size_t x = 0; x < image.sizex(); ++x )
+               {
+                  const double d = std::sqrt( core::sqr( (double)x - centerx ) +
+                                              core::sqr( (double)y - centery ) +
+                                              core::sqr( (double)z - centerz ) );
+                  if ( d < circleSize )
+                  {
+                     image( x, y, z ) = 200;
+                  }
+               }
+            }
+         }
+
+         //core::bresham( image, core::vector2i( (int)centerx - (int)circleSize, (int)centery ),
+         //                      core::vector2i( (int)centerx + (int)circleSize, (int)centery ), core::vector3uc().getBuf() );
+
+         algorithm::SpeededUpRobustFeatures3d surf( 5, 6, 2, 0.0000003 );
+         algorithm::SpeededUpRobustFeatures3d::Points points1 = surf.computesFeatures( image );
+         std::cout << "nbPoints=" << points1.size() << std::endl;
+
+         if ( points1.size() )
+         {
+            static const double scaleFactor = 1.2 / 9;
+            for ( size_t n = 0; n < points1.size(); ++n )
+            {
+               std::cout << "found=" << points1[ n ].position[ 0 ] << " " << points1[ n ].position[ 1 ] << " " << points1[ n ].position[ 2 ] << " " << points1[ n ].scale / scaleFactor << std::endl;
+            }
+
+            const double errorx = fabs( points1[ 0 ].position[ 0 ] - centerx ) / ( 2 * circleSize );
+            const double errory = fabs( points1[ 0 ].position[ 1 ] - centery ) / ( 2 * circleSize );
+            const double errorz = fabs( points1[ 0 ].position[ 2 ] - centerz ) / ( 2 * circleSize );
+            const double errors = fabs( ( points1[ 0 ].scale / scaleFactor ) /  scale );
+
+            ++nbSamples;
+            averageErrorx += errorx;
+            averageErrory += errory;
+            averageErrorz += errorz;
+            averageErrors += errors;
+            std::cout << "error=" << errorx << " " << errory << " " << errorz << " " << errors << std::endl;
+
+            core::Image<ui8> xyView = print_xy( image, core::vector3f( centerx, centery, centerz ), points1 );
+            core::writeBmp( xyView, NLL_TEST_PATH "data/" + core::val2str( n ) + "-xy.bmp" );
+
+            ensure( errorx < 0.15, "bad x" );
+            ensure( errory < 0.15, "bad y" );
+            ensure( errorz < 0.15, "bad z" );
+
+            ensure( errors > 0.9, "bad s" );
+            ensure( errors < 1.5, "bad s" );
+
+
+            
+
+            /*
+            core::extend( image, 3 );
+            printPoints( image, points1 );
+            core::writeBmp( image, NLL_TEST_PATH "data/" + core::val2str( n ) + ".bmp" );*/
+         }
+      }
+
+      averageErrorx /= nbSamples;
+      averageErrory /= nbSamples;
+      averageErrorz /= nbSamples;
+      averageErrors /= nbSamples;
+
+      std::cout << "average error=" << averageErrorx << " " << averageErrory << " " << averageErrorz << " " << averageErrors << std::endl;
+      ensure( averageErrorx < 0.05, "bad x" );
+      ensure( averageErrory < 0.05, "bad y" );
+      ensure( averageErrorz < 0.05, "bad z" );
+      ensure( fabs( averageErrors - std::sqrt( 2.0 ) ) < 0.3, "bad scale" );   // the perfect ratio is sqrt(2), see www.cs.unc.edu/~lazebnik/spring11/lec08_blob.pdf
+
+
+      //ensure( points1.size() == 1, "select the point with the highest response. Must be at the center of the circle" );
+   }
+
+   core::Image<ui8> print_xy( const imaging::Volume<ui8>& image, const core::vector3f& groundTruth, const algorithm::SpeededUpRobustFeatures3d::Points& points )
+   {
+      core::Image<ui8> i( image.sizex(), image.sizey(), 3, false );
+      for ( size_t y = 0; y < image.sizey(); ++y )
+      {
+         for ( size_t x = 0; x < image.sizex(); ++x )
+         {
+            i( x, y, 0 ) = image( x, y, groundTruth[ 2 ] );
+            i( x, y, 1 ) = image( x, y, groundTruth[ 2 ] );
+            i( x, y, 2 ) = image( x, y, groundTruth[ 2 ] );
+         }
+      }
+
+      static const double scaleFactor = 1.2 / 9;
+
+      for ( size_t n = 0; n < points.size(); ++n )
+      {
+         size_t px = points[ n ].position[ 0 ];
+         size_t py = points[ n ].position[ 1 ];
+         size_t scale = points[ n ].scale / scaleFactor;
+         size_t half = scale / 2;
+
+         int dx = (int)(cos( points[ n ].orientation1 ) * half);
+         int dy = (int)(sin( points[ n ].orientation1 ) * half);
+         if ( px > 5 &&
+              py > 5 &&
+              px + dx < i.sizex() - 1 &&
+              py + dy < i.sizey() - 1 &&
+              px + dx > 0 &&
+              py + dy > 0 )
+         {
+            core::bresham( i, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
+            core::bresham( i, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
+            core::bresham( i, core::vector2i( px, py ),     core::vector2i( px + dx, py + dy), core::vector3uc(0, 0, 255) );
+         }
+      }
+      return i;
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf3D);
-/*TESTER_TEST(testSurf3d);*/
+/*TESTER_TEST(testSurf3d);
 TESTER_TEST(testcartesianToSphericalCoordinate);
 TESTER_TEST(testRotation3d);
-TESTER_TEST(testRotation3dTfmId);
+TESTER_TEST(testRotation3dTfmId);*/
+TESTER_TEST(testPointLocation);
 TESTER_TEST_SUITE_END();
 #endif

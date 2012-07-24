@@ -51,6 +51,9 @@ namespace algorithm
     @ingroup algorithm
     @brief generic implementation of a kd-tree.
 
+    Implementation of "K-d trees for semidynamic point sets,
+    Jon Louis Bentley	AT&T Bell Laboratories, Murray Hill, NJ"
+
     "http://portal.acm.org/citation.cfm?doid=98524.98564"
     Point need to provide:
       "f32 operator[](size_t) const"

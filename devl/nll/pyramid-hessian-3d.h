@@ -92,7 +92,7 @@ namespace algorithm
             ensure( _scales[ n ] >= 9, "minimal size" );
 
             const size_t lobeSize = _scales[ n ] / 3;
-            const value_type areaNormalization = max * _scales[ n ] * _scales[ n ]; // we use <max> so that we are independent of the kind of data
+            const value_type areaNormalization = max * _scales[ n ] * _scales[ n ] * _scales[ n ]; // we use <max> so that we are independent of the kind of data
             const i32 step = (i32)displacements[ n ];
             i32 resx = ( (i32)i.sizex() ) / step;
             i32 resy = ( (i32)i.sizey() ) / step;
