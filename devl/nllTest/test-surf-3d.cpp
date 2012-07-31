@@ -206,11 +206,12 @@ public:
       double averageErrors = 0;
       size_t nbSamples = 0;
       const size_t imageSize = 512;
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( ui32 n = 0; n < 10; ++n )
       {
+         srand( n + 42 );
          std::cout << "case=" << n << std::endl;
 
-         const size_t circleSize = 50 + core::generateUniformDistribution( -40, 40 );
+         const size_t circleSize = 50 + core::generateUniformDistribution( -10, 40 );
          const double centerx = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
          const double centery = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
          const double centerz = (double)imageSize / 2 + core::generateUniformDistribution( -30, 30 );
@@ -234,12 +235,11 @@ public:
             }
          }
 
-         //core::bresham( image, core::vector2i( (int)centerx - (int)circleSize, (int)centery ),
-         //                      core::vector2i( (int)centerx + (int)circleSize, (int)centery ), core::vector3uc().getBuf() );
-
-         algorithm::SpeededUpRobustFeatures3d surf( 5, 6, 2, 0.0000003 );
+         algorithm::SpeededUpRobustFeatures3d surf( 5, 6, 2, 0.04 );
          algorithm::SpeededUpRobustFeatures3d::Points points1 = surf.computesFeatures( image );
          std::cout << "nbPoints=" << points1.size() << std::endl;
+
+         ensure( points1.size() == 1, "select the point with the highest response. Must be at the center of the circle" );
 
          if ( points1.size() )
          {
@@ -264,20 +264,15 @@ public:
             core::Image<ui8> xyView = print_xy( image, core::vector3f( centerx, centery, centerz ), points1 );
             core::writeBmp( xyView, NLL_TEST_PATH "data/" + core::val2str( n ) + "-xy.bmp" );
 
+            core::Image<ui8> xzView = print_xz( image, core::vector3f( centerx, centery, centerz ), points1 );
+            core::writeBmp( xzView, NLL_TEST_PATH "data/" + core::val2str( n ) + "-xz.bmp" );
+
             ensure( errorx < 0.15, "bad x" );
             ensure( errory < 0.15, "bad y" );
             ensure( errorz < 0.15, "bad z" );
 
             ensure( errors > 0.9, "bad s" );
-            ensure( errors < 1.5, "bad s" );
-
-
-            
-
-            /*
-            core::extend( image, 3 );
-            printPoints( image, points1 );
-            core::writeBmp( image, NLL_TEST_PATH "data/" + core::val2str( n ) + ".bmp" );*/
+            ensure( errors < 1.3, "bad s" );
          }
       }
 
@@ -290,10 +285,7 @@ public:
       ensure( averageErrorx < 0.05, "bad x" );
       ensure( averageErrory < 0.05, "bad y" );
       ensure( averageErrorz < 0.05, "bad z" );
-      ensure( fabs( averageErrors - std::sqrt( 2.0 ) ) < 0.3, "bad scale" );   // the perfect ratio is sqrt(2), see www.cs.unc.edu/~lazebnik/spring11/lec08_blob.pdf
-
-
-      //ensure( points1.size() == 1, "select the point with the highest response. Must be at the center of the circle" );
+      ensure( fabs( averageErrors - 1 ) < 0.15, "bad scale" );
    }
 
    core::Image<ui8> print_xy( const imaging::Volume<ui8>& image, const core::vector3f& groundTruth, const algorithm::SpeededUpRobustFeatures3d::Points& points )
@@ -313,6 +305,10 @@ public:
 
       for ( size_t n = 0; n < points.size(); ++n )
       {
+         srand( 2 * n + 50 );
+         ui8 v = rand() % 255;
+         core::vector3uc color( v, 255 - v, rand() % 255 );
+
          size_t px = points[ n ].position[ 0 ];
          size_t py = points[ n ].position[ 1 ];
          size_t scale = points[ n ].scale / scaleFactor;
@@ -329,7 +325,50 @@ public:
          {
             core::bresham( i, core::vector2i( px + 5, py ), core::vector2i( px - 5, py ),    core::vector3uc(255, 255, 255) );
             core::bresham( i, core::vector2i( px, py - 5 ), core::vector2i( px, py + 5 ),    core::vector3uc(255, 255, 255) );
-            core::bresham( i, core::vector2i( px, py ),     core::vector2i( px + dx, py + dy), core::vector3uc(0, 0, 255) );
+            core::bresham( i, core::vector2i( px, py ),     core::vector2i( px + dx, py + dy), color );
+         }
+      }
+      return i;
+   }
+
+   core::Image<ui8> print_xz( const imaging::Volume<ui8>& image, const core::vector3f& groundTruth, const algorithm::SpeededUpRobustFeatures3d::Points& points )
+   {
+      core::Image<ui8> i( image.sizex(), image.sizez(), 3, false );
+      for ( size_t z = 0; z < image.sizez(); ++z )
+      {
+         for ( size_t x = 0; x < image.sizex(); ++x )
+         {
+            i( x, z, 0 ) = image( x, groundTruth[ 1 ], z );
+            i( x, z, 1 ) = image( x, groundTruth[ 1 ], z );
+            i( x, z, 2 ) = image( x, groundTruth[ 1 ], z );
+         }
+      }
+
+      static const double scaleFactor = 1.2 / 9;
+
+      for ( size_t n = 0; n < points.size(); ++n )
+      {
+         srand( 2 * n + 50 );
+         ui8 v = rand() % 255;
+         core::vector3uc color( v, 255 - v, rand() % 255 );
+
+         size_t px = points[ n ].position[ 0 ];
+         size_t pz = points[ n ].position[ 2 ];
+         size_t scale = points[ n ].scale / scaleFactor;
+         size_t half = scale / 2;
+
+         int dx = (int)(cos( points[ n ].orientation1 ) * half);
+         int dz = (int)(sin( points[ n ].orientation1 ) * half);
+         if ( px > 5 &&
+              pz > 5 &&
+              px + dx < i.sizex() - 1 &&
+              pz + dz < i.sizey() - 1 &&
+              px + dx > 0 &&
+              pz + dz > 0 )
+         {
+            core::bresham( i, core::vector2i( px + 5, pz ), core::vector2i( px - 5, pz ),    core::vector3uc(255, 255, 255) );
+            core::bresham( i, core::vector2i( px, pz - 5 ), core::vector2i( px, pz + 5 ),    core::vector3uc(255, 255, 255) );
+            core::bresham( i, core::vector2i( px, pz ),     core::vector2i( px + dx, pz + dz), color );
          }
       }
       return i;

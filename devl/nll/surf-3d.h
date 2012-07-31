@@ -524,7 +524,7 @@ namespace algorithm
                      const value_type val = f( x, y, z );
                      if ( val > _threshold )
                      {
-                        bool isMax = pyramid.isDetHessianMax( val, x, y, z, filter, filter )     &&
+                        bool isMax = pyramid.isDetHessianMax( val, x, y, z, filter, filter ) &&
                                      pyramid.isDetHessianMax( val, x, y, z, filter, filter + 1 ) &&
                                      pyramid.isDetHessianMax( val, x, y, z, filter, filter - 1 );
                         if ( isMax )
@@ -536,20 +536,22 @@ namespace algorithm
                         
                            const bool inverted = core::inverse( hessianHessian );
                            core::StaticVector<double, 4> interpolatedPoint = core::mat4Mulv( hessianHessian, hessianGradient ) * -1;
-                           if ( inverted && fabs( interpolatedPoint[ 0 ] ) < 0.5 &&
+                           if ( inverted /*&& fabs( interpolatedPoint[ 0 ] ) < 0.5 &&
                                             fabs( interpolatedPoint[ 1 ] ) < 0.5 &&
-                                            fabs( interpolatedPoint[ 2 ] ) < 0.5 )
+                                            fabs( interpolatedPoint[ 2 ] ) < 0.5*/ )
                            {
                               const int size = static_cast<int>( _filterSizes[ filter ] );
                               // here we need to compute the step between the two scales (i.e., their difference in size and not the step as for the position)
                               const int filterStep = static_cast<int>( _filterSizes[ filter + 1 ] - _filterSizes[ filter ] );
 
+                              // get the actual point in 2D in the orginal space
                               const core::vector3f index = pyramid.getPositionPyramid2Integral( x + (float)interpolatedPoint[ 0 ], y + (float)interpolatedPoint[ 1 ], z + (float)interpolatedPoint[ 2 ], filter );
 
-                              const int px    = core::round( x + index[ 0 ] );
-                              const int py    = core::round( y + index[ 1 ] );
-                              const int pz    = core::round( z + index[ 2 ] );
+                              const int px = index[ 0 ];
+                              const int py = index[ 1 ];
+                              const int pz = index[ 2 ];
                               const int scale = core::round( ( size   + interpolatedPoint[ 3 ]   * filterStep ) * scaleFactor );
+
                               if ( scale <= 0 || px < 0 || py < 0 || pz < 0 || px >= i.sizex() || py >= i.sizey() || pz >= i.sizez() )
                                  continue;  // again check the boundaries as we might be out!
 

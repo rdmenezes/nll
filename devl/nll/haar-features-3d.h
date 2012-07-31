@@ -292,11 +292,11 @@ namespace algorithm
             // computes:
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
             // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
+            // 0 p 1 p 0 n 2 n 0
             // 0 p p p 0 n n n 0
             // 0 0 0 0 0 0 0 0 0
             // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 n 3 n 0 p 4 p 0
             // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize
@@ -332,11 +332,11 @@ namespace algorithm
             // computes:
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
             // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
+            // 0 p 1 p 0 n 2 n 0
             // 0 p p p 0 n n n 0
             // 0 0 0 0 0 0 0 0 0
             // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 n 3 n 0 p 4 p 0
             // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize
@@ -370,13 +370,14 @@ namespace algorithm
             // we approximate this as below
 
             // computes:
+            //      Y axis
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
             // 0 p p p 0 n n n 0
+            // 0 p 1 p 0 n 2 n 0
             // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
-            // 0 0 0 0 0 0 0 0 0
+            // 0 0 0 0 0 0 0 0 0       Z axis
             // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 n 3 n 0 p 4 p 0
             // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize
@@ -385,17 +386,17 @@ namespace algorithm
             ensure( ( lobeSize % 2 ) == 1, "must be a odd" );
             #endif
 
-            const core::vector3i min1( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] - lobeSize );
-            const core::vector3i max1( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] - 1 );
+            const core::vector3i min1( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize,   position[ 2 ] - lobeSize );
+            const core::vector3i max1( position[ 0 ] + lobeSize, position[ 1 ] - 1,          position[ 2 ] - 1 );
 
-            const core::vector3i min2( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize, position[ 2 ] + 1 );
-            const core::vector3i max2( position[ 0 ] + lobeSize, position[ 1 ] - 1,        position[ 2 ] + lobeSize );
+            const core::vector3i min2( position[ 0 ] - lobeSize, position[ 1 ] + 1,          position[ 2 ] - lobeSize );
+            const core::vector3i max2( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize,   position[ 2 ] - 1 );
 
-            const core::vector3i min3( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] - lobeSize );
-            const core::vector3i max3( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] - 1 );
+            const core::vector3i min3( position[ 0 ] - lobeSize, position[ 1 ] - lobeSize,   position[ 2 ] + 1 );
+            const core::vector3i max3( position[ 0 ] + lobeSize, position[ 1 ] - 1,          position[ 2 ] + lobeSize );
 
-            const core::vector3i min4( position[ 0 ] - lobeSize, position[ 1 ] + 1,        position[ 2 ] + 1 );
-            const core::vector3i max4( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize, position[ 2 ] + lobeSize );
+            const core::vector3i min4( position[ 0 ] - lobeSize, position[ 1 ] + 1,          position[ 2 ] + 1 );
+            const core::vector3i max4( position[ 0 ] + lobeSize, position[ 1 ] + lobeSize,   position[ 2 ] + lobeSize );
 
             const double sum1 = i.getSum( min1, max1 );
             const double sum2 = i.getSum( min2, max2 );
@@ -413,11 +414,11 @@ namespace algorithm
             // view (a) XY
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
             // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
+            // 0 p 1 p 0 n 2 n 0
             // 0 p p p 0 n n n 0
             // 0 0 0 0 0 0 0 0 0
             // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 n 3 n 0 p 4 p 0
             // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize
@@ -442,11 +443,11 @@ namespace algorithm
             // view (b) XY
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
             // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 n 1 n 0 p 2 p 0
             // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
+            // 0 p 3 p 0 n 4 n 0
             // 0 p p p 0 n n n 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize

@@ -43,8 +43,8 @@ namespace algorithm
                            H(x, o) = | Lyx Lyy Lyz | = | d e f |
                                      | Lzx Lzy Lzz |   | g h i |
 
-                           det(H)= Lxx * | Lyy Lyz | - Lyy * | Lxx Lxz | + Lzz * | Lxx Lxy |
-                                         | Lzy Lzz |         | Lzx Lzz |         | Lyx Lyy |
+                           det(H)= Lxx * | Lyy Lyz | - Lxy * | Lyx Lyz | + Lxz * | Lyx Lyy |
+                                         | Lzy Lzz |         | Lzx Lzz |         | Lzx Lzy |
     @note the area used to compute Lxx Lxy... are different and must be normalized, e.g., using the frobenius norm L=3
     */
    class FastHessianDetPyramid3d
@@ -121,14 +121,10 @@ namespace algorithm
                {
                   for ( int xp = 0; xp < resx; ++xp )
                   {
-                     // Note: (0,0) in the pyramid represents the filter whose top left corner is (0,0)
-                     // (i.e., we don't need any shift by scale/2 here)
+                     // get the coordinates in the original geometry
                      const core::vector3f centerf = getPositionPyramid2Integral( static_cast<f32>( xp ), static_cast<f32>( yp ), static_cast<f32>( zp ), n );
                      const core::vector3i center( static_cast<int>( centerf[ 0 ] ), static_cast<int>(centerf[ 1 ] ), static_cast<int>(centerf[ 2 ] ) );
 
-                     core::vector3ui bl( center[ 0 ], center[ 1 ], center[ 2 ] );
-                     core::vector3ui tr( bl[ 0 ] + _halfScales[ n ] - 1, bl[ 1 ] + _halfScales[ n ] - 1,  bl[ 2 ] + _halfScales[ n ] - 1 );
-                     if ( tr[ 0 ] < image.sizex() && tr[ 1 ] < image.sizey() && tr[ 2 ] < image.sizez() )
                      {
                         const double dxx = HaarFeatures3d::getValue( HaarFeatures3d::D2X,
                                                                      image,
@@ -158,10 +154,21 @@ namespace algorithm
                         // the dxx/dxy filters have a different area, so normalize it with the frobenius norm, L=3
                         // f = (9^3-4*9^2)^1/3 / (9^3-9*(2*9+3*7+2*3)^1/3 = 0.928
                         // see http://mathworld.wolfram.com/FrobeniusNorm.html
-                        static const double NORMALIZATION = 0.928 * 0.928;
-                        const double val = dxx * ( dyy * dzz - NORMALIZATION * dyz * dyz ) -
-                                           dyy * ( dxx * dzz - NORMALIZATION * dxz * dxz ) +
-                                           dzz * ( dxx * dyy - NORMALIZATION * dxy * dxy );
+                        // det(H)= Lxx * | Lyy Lyz | - Lxy * | Lyx Lyz | + Lxz * | Lyx Lyy |
+                        //               | Lzy Lzz |         | Lzx Lzz |         | Lzx Lzy |
+                        //
+                        static const double NORMALIZATION = 0.928;
+                        
+                        /*
+                        // true determinant, however we dond find the expected points...
+                        const double val =                 dxx *  (                                dyy * dzz - NORMALIZATION * NORMALIZATION * dyz * dyz ) -
+                                           NORMALIZATION * dxy * ( NORMALIZATION *                 dxy * dzz - NORMALIZATION * NORMALIZATION * dyz * dxz ) +
+                                           NORMALIZATION * dxz * ( NORMALIZATION * NORMALIZATION * dxy * dyz - NORMALIZATION                 * dyy * dxz );
+                                           */
+
+                        // here we want to find the blobs as this is used by SURF...
+                        // TODO: refactor so that we can extract the criteria to be used...
+                        const double val = dxx * dxx + dyy * dyy + dzz * dzz - core::sqr( NORMALIZATION * dxy ) - core::sqr( NORMALIZATION * dxz ) - core::sqr( NORMALIZATION * dxz );
                         detHessian( xp, yp, zp ) = static_cast<value_type>( val );
                      }
                   }
@@ -182,8 +189,14 @@ namespace algorithm
             outzp = zpRef;
          } else {
             // map a point at a given scale to the image space
+            /*
             const core::vector3f posInIntegral = _getPositionPyramid2IntegralNoShift( (f32)xpRef, (f32)ypRef, (f32)zpRef, mapRef );
             const core::vector3f indexInOtherLevel = _getPositionIntegral2PyramidNoShift( posInIntegral[ 0 ], posInIntegral[ 1 ], posInIntegral[ 2 ], mapDest );
+            */
+            
+            // TODO: Here difference with 2D version, however better scaling detection with this version...
+            const core::vector3f posInIntegral = getPositionPyramid2Integral( (f32)xpRef, (f32)ypRef, (f32)zpRef, mapRef );
+            const core::vector3f indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], posInIntegral[ 2 ], mapDest );
             
             // convert the image space coordinate to the other scale space
             outxp = static_cast<i32>( core::round( indexInOtherLevel[ 0 ] ) );
@@ -235,7 +248,8 @@ namespace algorithm
          if ( x < 1 || y < 1 || z < 1 || x + 1 >= (i32)m.size()[ 0 ] || y + 1 >= (i32)m.size()[ 1 ] || z + 1 >= (i32)m.size()[ 2 ] )
             return false;
 
-         return 
+         return
+                // TODO we just do it for one scale. ideally for +1 and -1 too
                 // current slice
                 val >= m( x + 0, y + 0, z ) &&
                 val >= m( x + 1, y + 0, z ) &&
@@ -375,7 +389,6 @@ namespace algorithm
       /**
        @brief Given an index in the pyramid, retrieve the corresponding index in the original image
               (i.e., the one the pyramid is built from)
-       @note This is just the user facing API. Internally we want to use <code>_getPositionPyramid2IntegralNoShift</code>
        */
       core::vector3f getPositionPyramid2Integral( f32 x, f32 y, f32 z, size_t map ) const
       {
@@ -386,7 +399,6 @@ namespace algorithm
 
       /**
        @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
-       @note This is just the user facing API. Internally we want to use <code>_getPositionIntegral2PyramidNoShift</code>
        */
       core::vector3f getPositionIntegral2Pyramid( f32 xp, f32 yp, f32 zp, size_t map ) const
       {
