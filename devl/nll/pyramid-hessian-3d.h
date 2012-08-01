@@ -249,7 +249,6 @@ namespace algorithm
             return false;
 
          return
-                // TODO we just do it for one scale. ideally for +1 and -1 too
                 // current slice
                 val >= m( x + 0, y + 0, z ) &&
                 val >= m( x + 1, y + 0, z ) &&

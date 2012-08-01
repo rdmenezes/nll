@@ -254,7 +254,12 @@ namespace algorithm
             // map a point at a given scale to the image space
             const core::vector2f posInIntegral = _getPositionPyramid2IntegralNoShift( (f32)xpRef, (f32)ypRef, mapRef );
             const core::vector2f indexInOtherLevel = _getPositionIntegral2PyramidNoShift( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
-            
+
+            /*
+            const core::vector2f posInIntegral = getPositionPyramid2Integral( (f32)xpRef, (f32)ypRef, mapRef );
+            const core::vector2f indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], mapDest );
+            */
+
             // convert the image space coordinate to the other scale space
             outxp = static_cast<i32>( core::round( indexInOtherLevel[ 0 ] ) );
             outyp = static_cast<i32>( core::round( indexInOtherLevel[ 1 ] ) );

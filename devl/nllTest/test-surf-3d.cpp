@@ -36,7 +36,7 @@ public:
          *it = lut.transform( *it )[ 0 ];
 
       std::cout << "runing surf..." << std::endl;
-      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.1 );
+      algorithm::SpeededUpRobustFeatures3d surf( 5, 4, 2, 0.01 );
 
       algorithm::SpeededUpRobustFeatures3d::Points points = surf.computesFeatures( volume );
       std::cout << "nbPoints=" << points.size() << std::endl;
@@ -49,7 +49,7 @@ public:
          f << point[ 0 ] << " " << point[ 1 ] << " " << point[ 2 ] << " " << ( points[ n ].scale * volume.getSpacing()[ 0 ] ) << std::endl;
       }
 
-      TESTER_ASSERT( points.size() > 500 );
+      // TESTER_ASSERT( points.size() > 500 );
    }
 
    void testcartesianToSphericalCoordinate()
@@ -377,10 +377,10 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestSurf3D);
-/*TESTER_TEST(testSurf3d);
+TESTER_TEST(testSurf3d);
 TESTER_TEST(testcartesianToSphericalCoordinate);
 TESTER_TEST(testRotation3d);
-TESTER_TEST(testRotation3dTfmId);*/
-TESTER_TEST(testPointLocation);
+TESTER_TEST(testRotation3dTfmId);
+//TESTER_TEST(testPointLocation);
 TESTER_TEST_SUITE_END();
 #endif
