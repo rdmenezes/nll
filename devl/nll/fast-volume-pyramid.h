@@ -36,6 +36,14 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @ingroup algorithm
+    @brief Construct a pyramid of volumes
+
+    Each new level of the pyramid has its size divided by two, with the level 0 begin the original volume.
+
+    To subsample a voxel, its 2^n x 2^n x 2^n neighboorhood is averaged, always starting from the original volume
+    */
    template <class T, class StorageBuffer = imaging::VolumeMemoryBuffer<T> >
    class VolumePyramid
    {
@@ -46,6 +54,11 @@ namespace algorithm
       typedef typename Matrix::value_type                MatrixType;
 
    public:
+      /**
+       @brief Construct the pyramid
+       @param volume the volume to use. Note that the level 0 is taking a reference on this volume
+       @param nbLevels the number of levels. Each level has size / 2 compared to the previous one
+       */
       void construct( const Volume& volume, size_t nbLevels )
       {
          IntegralImage3d volumeIntegral;

@@ -758,6 +758,9 @@
     <ClInclude Include="math-pdf-gaussian.h">
       <Filter>core</Filter>
     </ClInclude>
+    <ClInclude Include="fast-volume-pyramid.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

@@ -141,6 +141,46 @@ namespace imaging
       {}
 
       /**
+       @brief Compute the weights associated to this position on the 8 neighboring voxels
+       @param pos a vector encoded as (x, y, z, 0) specififying the position in voxel
+       @param weights assumed already allocated 8-vector storing the weights 0123 as (p, p+i, p+i+j, p+j)
+              and 4567 as (p+k, p+i+k, p+i+j+k, p+j+k) where (i,j,k) vector director (1,0,0) (0,1,0) (0,0,1)
+       */
+      void computeWeights( const float* pos, float* weights, int& ix, int& iy, int& iz )
+      {
+         ix = core::floor( pos[ 0 ] );
+         iy = core::floor( pos[ 1 ] );
+         iz = core::floor( pos[ 2 ] );
+
+         const value_type_floating dx = fabs( pos[ 0 ] - ix );
+         const value_type_floating dy = fabs( pos[ 1 ] - iy );
+         const value_type_floating dz = fabs( pos[ 2 ] - iz );
+
+         const value_type_floating dxdy = dx * dy;
+         const value_type_floating dydz = dy * dz;
+         /*
+         weights[7] = dxdy * dz;
+         weights[6] = dx * dz          - weights[ 7 ];
+         weights[5] = dxdy             - weights[ 7 ];
+         weights[3] = dydz             - weights[ 7 ];
+         weights[4] = dx - dxdy        - weights[ 6 ];
+         weights[2] = dz - dydz        - weights[ 6 ];
+         weights[1] = dy - dydz        - weights[ 5 ];
+         weights[0] = 1 -dy -dz + dydz - weights[ 4 ]; 
+         */
+
+         weights[6] = dxdy * dz;
+
+         weights[5] = dx * dz          - weights[ 6 ];
+         weights[2] = dxdy             - weights[ 6 ];
+         weights[7] = dydz             - weights[ 6 ];
+         weights[1] = dx - dxdy        - weights[ 5 ];
+         weights[4] = dz - dydz        - weights[ 5 ];
+         weights[3] = dy - dydz        - weights[ 2 ];
+         weights[0] = 1 -dy -dz + dydz - weights[ 1 ]; 
+      }
+
+      /**
        @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
        @note always align the pointer using NLL_ALIGN_16 in case SSE2 optim are used...
        */

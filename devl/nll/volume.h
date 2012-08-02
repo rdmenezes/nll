@@ -62,6 +62,8 @@ namespace imaging
       class DirectionalIterator
       {
       public:
+         typedef T   value_type;
+
          DirectionalIterator( size_t index, T* buf, size_t sx, size_t sy, size_t sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
@@ -176,6 +178,8 @@ namespace imaging
       class ConstDirectionalIterator : public DirectionalIterator
       {
       public:
+         typedef T   value_type;
+
          ConstDirectionalIterator( size_t index, const T* buf, size_t sx, size_t sy, size_t sz, const Mapper& mapper ) : 
             DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
          {}
