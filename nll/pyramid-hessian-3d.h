@@ -91,7 +91,7 @@ namespace algorithm
             ensure( _scales[ n ] % 2 == 1, "scales must be odd numbers" );
             ensure( _scales[ n ] >= 9, "minimal size" );
 
-            const size_t lobeSize = _scales[ n ] / 3;
+            const int lobeSize = _scales[ n ] / 3;
             const value_type areaNormalization = max * _scales[ n ] * _scales[ n ] * _scales[ n ]; // we use <max> so that we are independent of the kind of data
             const i32 step = (i32)displacements[ n ];
             i32 resx = ( (i32)i.sizex() ) / step;
@@ -168,7 +168,7 @@ namespace algorithm
 
                         // here we want to find the blobs as this is used by SURF...
                         // TODO: refactor so that we can extract the criteria to be used...
-                        const double val = dxx * dxx + dyy * dyy + dzz * dzz - core::sqr( NORMALIZATION * dxy ) - core::sqr( NORMALIZATION * dxz ) - core::sqr( NORMALIZATION * dxz );
+                        const double val = dxx * dxx + dyy * dyy + dzz * dzz - core::sqr( NORMALIZATION * dxy ) - core::sqr( NORMALIZATION * dxz ) - core::sqr( NORMALIZATION * dyz );
                         detHessian( xp, yp, zp ) = static_cast<value_type>( val );
                      }
                   }

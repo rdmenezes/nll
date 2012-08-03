@@ -17,6 +17,7 @@ v0.16
 -added normal probability density function
 -improved ransac with weighted error
 -improved 2D point based registration
+-added 3D point based registration
 -added new versions of adaboost
 -added weak learners (neural nets, perceptron, stumps, decision trees)
 -added generic weighted decision trees (discrete and continuous)
