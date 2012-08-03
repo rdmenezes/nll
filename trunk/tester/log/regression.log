@@ -12,6 +12,10 @@ nll.version=nll-0.09
 nll.machine=AMD64_3.4G
 nll.version=nll-0.09
 
+[nll.metadata.release.UNKNOWN]
+nll.machine=UNKNOWN
+nll.version=nll-0.16
+
 [nll.metadata.release.laptop2]
 nll.machine=laptop2
 nll.version=nll-0.09
@@ -92,6 +96,16 @@ nll.TutorialFeaturePca.featurePca=0.032
 nll.TutorialFeatureSelection.featureSelection=0.156
 nll.TutorialPartitionDatabase.partitionDatabase=0
 nll.TutorialPipeline.runPipeline=0.141
+
+[nll.testdata.release.UNKNOWN]
+nll.TestRegistration3d.testIdentity=1.24
+nll.TestRegistration3d.testSimpleTfm=199.495
+nll.TestRegistration3d.testSimpleTfmGivenPoints=210.418
+nll.TestSurf3D.testPointLocation=255.289
+nll.TestSurf3D.testRotation3d=0
+nll.TestSurf3D.testRotation3dTfmId=0.001
+nll.TestSurf3D.testSurf3d=12.871
+nll.TestSurf3D.testcartesianToSphericalCoordinate=0
 
 [nll.testdata.release.laptop2]
 nll.TestBufferAdaptor.testAdaptor1=0.001
