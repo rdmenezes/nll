@@ -376,13 +376,18 @@ int main( int argc, char** argv )
    { 
       std::cout << "current working directory=" << mvv::getWorkingDirectory() << std::endl;
 
-      int sizex = 4096;
-      int sizey = 4096;
+      int sizex = 1024;
+      int sizey = 400;
 
       int nbThreads = 12; //8;
-      std::string mainScript = "../../mvvLauncher/script/single2";
+      //std::string mainScript = "../../mvvLauncher/script/dicomExport";
+      //std::string mainScript = "../../mvvLauncher/script/single2";
+      //std::string mainScript = "../../mvvLauncher/script/single2Pt";
+      //std::string mainScript = "../../mvvLauncher/script/single2Ct";
+      std::string mainScript = "../../mvvLauncher/script/single2Fdg";
       //std::string mainScript = "../../mvvLauncher/script/basic";
       //std::string mainScript = "../../mvvLauncher/script/surf3d";
+
       std::string font = "../../nllTest/data/font/bitmapfont1_24";
       bool nowindow = false;
       std::vector<std::string> argvParam;

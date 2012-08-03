@@ -338,6 +338,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="script\basic.ludo" />
+    <None Include="script\dicomExport.ludo" />
     <None Include="script\helper1.ludo" />
     <None Include="script\single.ludo">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
@@ -347,6 +348,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </CustomBuild>
     <None Include="script\single2Ct.ludo" />
+    <None Include="script\single2Fdg.ludo" />
     <None Include="script\single2Pt.ludo" />
     <None Include="script\single3.ludo">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>

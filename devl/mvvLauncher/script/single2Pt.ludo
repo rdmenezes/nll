@@ -126,7 +126,7 @@ class VolumeSwitchReg
 
 	  //string name = registrator.getTestMrVolume( index );
 	  string name = registrator.getTestPtVolume( index );
-	  name = "PT-185";
+	  name = "PT-66";
 
       //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
 	  string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/pt/";
@@ -226,13 +226,11 @@ class LutSwitchReg
 
 
 
-Lut ctLut1( 0.0, 500.0 );
+Lut ctLut1( 0.0, 500.0, Vector3i( 0, 255, 0 ) );
 Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
 //Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) ); 
 
 
-DisplayRegionDetection detection( annotations );
-AnnotationCreator annotationCreator( annotations, pointer );
 RegistrationMr registrator( "c:/tmp/templates.bin",
                             "c:/tmp/templatesPt.bin"  );
 
@@ -294,7 +292,8 @@ Layout layoutDisplay1( horizontal, Layout(horizontal, l1, l2, 0.51), l3, 0.66 );
 Layout layoutDisplay2( horizontal, Layout(horizontal, imx, imy, 0.51), imz, 0.66 );
 
 
-Layout layout = Layout(vertical, l6, Layout(vertical, layoutDisplay1, layoutDisplay2, 0.79), 0.05);
+//Layout layout = Layout(vertical, l6, Layout(vertical, layoutDisplay1, layoutDisplay2, 0.79), 0.05);
+Layout layout = layoutDisplay1;
 
 ImageHolder holder;
 Layout layout1 = layout;

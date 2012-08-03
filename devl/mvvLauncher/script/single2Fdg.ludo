@@ -68,7 +68,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 20;
+   int index                        = 0;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -124,10 +124,13 @@ class VolumeSwitchReg
 	  volumes.clear();
 	  groundtruth = 0;
 
-	  string name = registrator.getTestMrVolume( index );
-	  name = "MR-6";
+	  //string name = registrator.getTestMrVolume( index );
+	  //string name = registrator.getTestPtVolume( index );
+	  string name = registrator.getTestFdgVolume( index );
+	  name = "FDG-40";
 
-      string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
+      //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
+	  string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/fdg/";
       string volname = base + name;
 
 
@@ -138,11 +141,11 @@ class VolumeSwitchReg
       
 	  int id = 0;
 	  AffineRegistration tfm;
-      //tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
-	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
-	  tfmReg = AffineRegistration( t );
+      //tfmReg = registrator.affinePlanarRegistrationPt( displayed2, id );
 
-	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_MR", name ) );
+	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_FDG", name );
+	  tfmReg = AffineRegistration( t );
+	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_FDG", name ) );
 	  displayed1 = registrator.templates[id];
 
 	  holderx.set(registrator.getDebugX());
@@ -157,7 +160,7 @@ class VolumeSwitchReg
 class InsentisySwitchReg
 {
    float LUT_MIN_TARGET = 0.0;
-   float LUT_MAX_TARGET = 500.0;
+   float LUT_MAX_TARGET = 2000.0;
    float LUT_MIN_TEMPLATE = 32000.0;
    float LUT_MAX_TEMPLATE = 55000.0;
 
@@ -173,17 +176,26 @@ class InsentisySwitchReg
       //VolumeContainer& volumes = switch.volumes;
       if ( state == 0 )
       {
-		switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255));
-		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255, 255, 255));
-		switch.lut1.detectRange( switch.displayed2, 0.3 );
-		switch.volumes.setIntensity( switch.displayed2, 0.3 );
-		switch.volumes.setIntensity( switch.displayed1, 0.7 );
+		//switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(100));
+		//switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255, 255, 255));
+		//switch.volumes.setIntensity( switch.displayed1, 0.5 );
+        //switch.volumes.setIntensity( switch.displayed2, 1.0 );
+	  
+         switch.volumes.setIntensity( switch.displayed2, 1.0 );
+         switch.volumes.setIntensity( switch.displayed1, 0.3 );
+         //switch.volumes.setLut( switch.displayed1, switch.lut2 );
+         //switch.volumes.setLut( switch.displayed2, switch.lut1 );
+		 
       } else {
-	    switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255, 255, 255));
-		switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(255));
-		switch.lut1.detectRange( switch.displayed2, 0.3 );
-		switch.volumes.setIntensity( switch.displayed2, 0.7 );
-		switch.volumes.setIntensity( switch.displayed1, 0.3 );
+	    //switch.lut1.set( LUT_MIN_TARGET, LUT_MAX_TARGET, Vector3i(255, 255, 255));
+		//switch.lut2.set( LUT_MIN_TEMPLATE, LUT_MAX_TEMPLATE, Vector3i(100));
+		//switch.volumes.setIntensity( switch.displayed2, 0.5 );
+        //switch.volumes.setIntensity( switch.displayed1, 1.0 );
+	  
+         switch.volumes.setIntensity( switch.displayed1, 1.0 );
+         switch.volumes.setIntensity( switch.displayed2, 0.3 );
+         //switch.volumes.setLut( switch.displayed1, switch.lut1 );
+         //switch.volumes.setLut( switch.displayed2, switch.lut2 );
       }
       state = 1 - state;
    }
@@ -282,11 +294,11 @@ Layout layoutDisplay2( horizontal, Layout(horizontal, imx, imy, 0.51), imz, 0.66
 
 
 //Layout layout = Layout(vertical, l6, Layout(vertical, layoutDisplay1, layoutDisplay2, 0.79), 0.05);
-Layout layout = layoutDisplay1; //Layout(horizontal, l1, l2, 0.51);
+Layout layout = layoutDisplay1;
 
 ImageHolder holder;
 Layout layout1 = layout;
-Layout layout2 = layoutDisplay1;
+Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 
 
 

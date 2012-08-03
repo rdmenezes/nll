@@ -37,8 +37,6 @@ ManipulatorPointer      pointer;
 VolumeContainer         volumes;
 
 
-Lut ctLut1( -100.0, 600.0 );
-
 
 KeyboardCallback callbacks;
 
@@ -83,8 +81,10 @@ ImageHolder holder;
 Layout layout1 = layout;
 Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
 
-
+Lut ctLut1( -100.0, 600.0 );
+//Lut ctLut1( -500.0, 3000.0 );
 VolumeID ct1 = readVolumeMF2("../../nllTest/data/medical/ct.mf2");
+//VolumeID ct1 = readVolumeMF2("c:/tmp/pyramid-3.mf2");
 volumes.add(ct1, ctLut1, 0.5);
 
 
