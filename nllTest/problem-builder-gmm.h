@@ -17,7 +17,7 @@ namespace nll
       typedef algorithm::Gmm::Matrix   Matrix;
 
    public:
-      typedef core::Database< core::ClassificationSample<core::Buffer1D<double>, ui32> > Database;
+      typedef core::Database< core::ClassificationSample<core::Buffer1D<double>, size_t> > Database;
 
    public:
       ProblemBuilderGmm()
