@@ -58,7 +58,7 @@ namespace algorithm
       typedef double                      value_type;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<ui32>        VectorI;
+      typedef core::Buffer1D<size_t>        VectorI;
 
    public:
       PotentialGaussianCanonical( const Vector& h, const Matrix& k, value_type g, const VectorI id = VectorI() )
@@ -72,7 +72,7 @@ namespace algorithm
          {
             // generate the id
             _id = VectorI( h.size() );
-            for ( ui32 n = 0; n < _id.size(); ++n )
+            for ( size_t n = 0; n < _id.size(); ++n )
             {
                _id[ n ] = n;
             }
@@ -150,23 +150,23 @@ namespace algorithm
       PotentialGaussianCanonical marginalization( const VectorI& varIndexToRemove ) const
       {
          // compute the remaining set
-         std::vector<ui32> ids;
-         std::vector<ui32> mids;
+         std::vector<size_t> ids;
+         std::vector<size_t> mids;
          computeIndexInstersection( varIndexToRemove, ids, mids );
          ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
          ensure( ids.size() > 0, "marginalization of a gaussian on all its variables is 1!" );
 
          // create the hx and hy subvectors
-         Matrix hx( (ui32)ids.size(), 1 );
+         Matrix hx( (size_t)ids.size(), 1 );
          VectorI indexNew( hx.size() );
-         for ( ui32 n = 0; n < hx.size(); ++n )
+         for ( size_t n = 0; n < hx.size(); ++n )
          {
             hx[ n ] = _h[ ids[ n ] ];
             indexNew[ n ] = _id[ ids[ n ] ];
          }
 
-         Matrix hy( (ui32)mids.size(), 1 );
-         for ( ui32 n = 0; n < hy.size(); ++n )
+         Matrix hy( (size_t)mids.size(), 1 );
+         for ( size_t n = 0; n < hy.size(); ++n )
          {
             hy[ n ] = _h[ mids[ n ] ];
          }
@@ -201,23 +201,23 @@ namespace algorithm
       PotentialGaussianCanonical conditioning( const Vector& vars, const VectorI& varsIndex ) const
       {
          // sort the data
-         std::vector<ui32> ids;
-         std::vector<ui32> mids;
+         std::vector<size_t> ids;
+         std::vector<size_t> mids;
          computeIndexInstersection( varsIndex, ids, mids );
 
          Matrix xx, yy, xy, yx;
          partitionMatrix( _k, ids, mids, xx, yy, xy, yx );
 
-         Vector hx( (ui32)ids.size() );
+         Vector hx( (size_t)ids.size() );
          VectorI indexNew( hx.size() );
-         for ( ui32 n = 0; n < hx.size(); ++n )
+         for ( size_t n = 0; n < hx.size(); ++n )
          {
             hx[ n ] = _h[ ids[ n ] ];
             indexNew[ n ] = _id[ ids[ n ] ];
          }
 
-         Vector hy( (ui32)mids.size() );
-         for ( ui32 n = 0; n < hy.size(); ++n )
+         Vector hy( (size_t)mids.size() );
+         for ( size_t n = 0; n < hy.size(); ++n )
          {
             hy[ n ] = _h[ mids[ n ] ];
          }
@@ -286,19 +286,19 @@ namespace algorithm
       PotentialGaussianCanonical opGeneric( const PotentialGaussianCanonical& g2, const Functor& op ) const
       {
          // compute the id intersection and new order
-         const ui32 s1 = _id.size();
-         const ui32 s2 = g2._id.size();
+         const size_t s1 = _id.size();
+         const size_t s2 = g2._id.size();
          const VectorI& v1 = _id;
          const VectorI& v2 = g2._id;
-         const ui32 MAX = std::numeric_limits<ui32>::max();
+         const size_t MAX = std::numeric_limits<size_t>::max();
          
          // we know the ids are ordered, which will make the comparison very simple
-         ui32 id1 = 0;
-         ui32 id2 = 0;
+         size_t id1 = 0;
+         size_t id2 = 0;
 
-         std::vector<ui32> index1;
-         std::vector<ui32> index2;
-         std::vector<ui32> ids;
+         std::vector<size_t> index1;
+         std::vector<size_t> index2;
+         std::vector<size_t> ids;
          index1.reserve( std::max( s1, s2 ) );
          index2.reserve( std::max( s1, s2 ) );
          ids.reserve( std::max( s1, s2 ) );
@@ -306,8 +306,8 @@ namespace algorithm
          {
             if ( id1 == s1 && id2 == s2 )
                break;
-            const ui32 val1 = ( id1 == s1 ) ? ( MAX - 2 ) : v1[ id1 ];
-            const ui32 val2 = ( id2 == s2 ) ? ( MAX - 1 ) : v2[ id2 ];
+            const size_t val1 = ( id1 == s1 ) ? ( MAX - 2 ) : v1[ id1 ];
+            const size_t val2 = ( id2 == s2 ) ? ( MAX - 1 ) : v2[ id2 ];
 
             if ( val1 == val2 )  // same, so just get the ID
             {
@@ -332,22 +332,22 @@ namespace algorithm
          }
 
          // finally extract the data
-         const ui32 newSize = static_cast<ui32>( index1.size() );
+         const size_t newSize = static_cast<size_t>( index1.size() );
          Vector h( newSize );
          Matrix k( newSize, newSize );
          VectorI mergedId( newSize );
-         for ( ui32 n = 0; n < newSize; ++n )
+         for ( size_t n = 0; n < newSize; ++n )
          {
             mergedId[ n ] = ids[ n ];
-            const ui32 id1 = index1[ n ];
-            const ui32 id2 = index2[ n ];
+            const size_t id1 = index1[ n ];
+            const size_t id2 = index2[ n ];
             if ( id1 != MAX )
             {
                h[ n ] = op( h[ n ], _h[ id1 ] );
 
-               for ( ui32 nn = 0; nn < newSize; ++nn )
+               for ( size_t nn = 0; nn < newSize; ++nn )
                {
-                  const ui32 id1b = index1[ nn ];
+                  const size_t id1b = index1[ nn ];
                   if ( id1b != MAX )
                   {
                      k( n, nn ) = _k( id1, id1b );
@@ -358,9 +358,9 @@ namespace algorithm
             {
                h[ n ] = op( h[ n ], g2._h[ id2 ] );
 
-               for ( ui32 nn = 0; nn < newSize; ++nn )
+               for ( size_t nn = 0; nn < newSize; ++nn )
                {
-                  const ui32 id2b = index2[ nn ];
+                  const size_t id2b = index2[ nn ];
                   if ( id2b != MAX )
                   {
                      k( n, nn ) = op( k( n, nn ), g2._k( id2, id2b ) );
@@ -372,12 +372,12 @@ namespace algorithm
          return PotentialGaussianCanonical( h, k, op( _g, g2._g ), mergedId );
       }
 
-      void computeIndexInstersection( const VectorI& varsIndex, std::vector<ui32>& ids, std::vector<ui32>& mids ) const
+      void computeIndexInstersection( const VectorI& varsIndex, std::vector<size_t>& ids, std::vector<size_t>& mids ) const
       {
          // first check the index is in correct order
          if ( varsIndex.size() > 1 )
          {
-            for ( ui32 n = 0; n < varsIndex.size() - 1; ++n )
+            for ( size_t n = 0; n < varsIndex.size() - 1; ++n )
             {
                ensure( varsIndex[ n ] < varsIndex[ n + 1 ], "the list must be sorted" );
             }
@@ -389,12 +389,12 @@ namespace algorithm
          ids.reserve( varsIndex.size() );
          mids.reserve( varsIndex.size() );
 
-         ui32 indexToCheck = 0;
-         const ui32 MAX = std::numeric_limits<ui32>::max();
-         for ( ui32 n = 0; n < _id.size(); ++n )
+         size_t indexToCheck = 0;
+         const size_t MAX = std::numeric_limits<size_t>::max();
+         for ( size_t n = 0; n < _id.size(); ++n )
          {
-            const ui32 mid = ( indexToCheck < varsIndex.size() ) ? varsIndex[ indexToCheck ] : MAX;
-            const ui32 id = _id[ n ];
+            const size_t mid = ( indexToCheck < varsIndex.size() ) ? varsIndex[ indexToCheck ] : MAX;
+            const size_t id = _id[ n ];
             if ( mid > id )
             {
                ids.push_back( n );
@@ -413,8 +413,8 @@ namespace algorithm
       {
          if ( !v.size() )
             return true;
-         const ui32 s = v.size() - 1;
-         for ( ui32 n = 0; n < s; ++n )
+         const size_t s = v.size() - 1;
+         for ( size_t n = 0; n < s; ++n )
          {
             if ( v[ n ] >= v[ n + 1 ] )
                return false;
@@ -426,9 +426,9 @@ namespace algorithm
       {
          if ( v1.size() != v2.size() )
             return false;
-         const ui32 s = v1.size();
+         const size_t s = v1.size();
 
-         for ( ui32 n = 0; n < s; ++n )
+         for ( size_t n = 0; n < s; ++n )
          {
             if ( v1[ n ] != v2[ n ] )
                return false;

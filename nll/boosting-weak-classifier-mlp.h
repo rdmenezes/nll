@@ -51,19 +51,19 @@ namespace algorithm
       typedef Mlp<FunctionSimpleDifferenciableSigmoid>   Classifier;
 
    public:
-      WeakClassifierMlp( const std::vector<ui32>& layerDescriptor, std::shared_ptr<StopConditionMlp> stopCondition, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2 ) :
+      WeakClassifierMlp( const std::vector<size_t>& layerDescriptor, std::shared_ptr<StopConditionMlp> stopCondition, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2 ) :
          _layerDescriptor( layerDescriptor ), _stopCondition( stopCondition ), _learningRate( learningRate ), _momentum( momentum ), _weightDecayRate( weightDecayRate ), _reportTimeIntervalInSec( reportTimeIntervalInSec )
       {}
 
       virtual value_type learn( const Database& dat, const core::Buffer1D<value_type> weights )
       {
-         ui32 nbClasses = getNumberOfClass( dat );
+         size_t nbClasses = getNumberOfClass( dat );
          ensure( dat.size() && dat[ 0 ].input.size() == _layerDescriptor[ 0 ], "the first layer must match the number of input features" );
          ensure( *_layerDescriptor.rbegin() == nbClasses, "the last layer must have the same number of outputs than classes" );
 
          typedef core::Database< core::ClassificationSample<Point, core::Buffer1D<value_type> > > DatLearn;
          DatLearn datLearn;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             core::Buffer1D<value_type> out( nbClasses );
             out[ dat[ n ].output ] = 1;
@@ -72,13 +72,13 @@ namespace algorithm
 
 
          value_type max = std::numeric_limits<value_type>::min();
-         for ( ui32 n = 0; n < weights.size(); ++n )        // we reweight the weights so that the learningRate is not dependent on the actual weights!!
+         for ( size_t n = 0; n < weights.size(); ++n )        // we reweight the weights so that the learningRate is not dependent on the actual weights!!
          {
             max = std::max( weights[ n ], max );
          }
          value_type coef = (value_type)1.0 / max;
          core::Buffer1D<value_type> reweighted( weights.size() );
-         for ( ui32 n = 0; n < weights.size(); ++n )
+         for ( size_t n = 0; n < weights.size(); ++n )
          {
             reweighted[ n ] = weights[ n ] * coef;
          }
@@ -89,16 +89,16 @@ namespace algorithm
          return (value_type)result.testerror;
       }
 
-      virtual ui32 test( const Point& input ) const
+      virtual size_t test( const Point& input ) const
       {
          const core::Buffer1D<double>& v = _classifier.propagate( input );
          core::Buffer1D<double>::const_iterator it = std::max_element( v.begin(), v.end() );
 
-         return static_cast<ui32>( it - v.begin() );
+         return static_cast<size_t>( it - v.begin() );
       }
 
    private:
-      std::vector<ui32>                   _layerDescriptor;
+      std::vector<size_t>                   _layerDescriptor;
       std::shared_ptr<StopConditionMlp>   _stopCondition;
       double                              _learningRate;
       double                              _momentum;
@@ -117,7 +117,7 @@ namespace algorithm
    public:
       typedef WeakClassifierMlp<DatabaseT>      Classifier;
 
-      WeakClassifierMlpFactory( const std::vector<ui32>& layerDescriptor, std::shared_ptr<StopConditionMlp> stopCondition, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2 ) :
+      WeakClassifierMlpFactory( const std::vector<size_t>& layerDescriptor, std::shared_ptr<StopConditionMlp> stopCondition, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2 ) :
          _layerDescriptor( layerDescriptor ), _stopCondition( stopCondition ), _learningRate( learningRate ), _momentum( momentum ), _weightDecayRate( weightDecayRate ), _reportTimeIntervalInSec( reportTimeIntervalInSec )
       {}
 
@@ -127,7 +127,7 @@ namespace algorithm
       }
 
    private:
-      std::vector<ui32>                   _layerDescriptor;
+      std::vector<size_t>                   _layerDescriptor;
       std::shared_ptr<StopConditionMlp>   _stopCondition;
       double                              _learningRate;
       double                              _momentum;

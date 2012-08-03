@@ -62,13 +62,13 @@ namespace algorithm
          virtual core::Buffer1D<double> computeGradient( const core::Buffer1D<double>& theta, const Sample& sample, double weight ) const
          {
             core::Buffer1D<double> g( theta.size() );
-            const ui32 nbInput = sample.input.size();
+            const size_t nbInput = static_cast<size_t>( sample.input.size() );
 
             const double error = test( theta, sample.input ) - sample.output;
             const double gradient = weight * error;
 
             const Point& p = sample.input;
-            for ( ui32 n = 0; n < nbInput; ++n )
+            for ( size_t n = 0; n < nbInput; ++n )
             {
                g[ n ] = gradient * p[ n ];
                g[ nbInput ] = gradient * 1;
@@ -80,7 +80,7 @@ namespace algorithm
          virtual double computeCostFunction( const core::Buffer1D<double>& theta, const Database& dat, const std::vector<double>& weights ) const
          {
             double accum = 0;
-            for ( ui32 n = 0; n < theta.size(); ++n )
+            for ( size_t n = 0; n < theta.size(); ++n )
             {
                accum += weights[ n ] * core::sqr( test( theta, dat[ n ].input ) - dat[ n ].output );
             }
@@ -93,7 +93,7 @@ namespace algorithm
             double accum = 0;
 
             ensure( p.size() + 1 == theta.size(), "wrong size!" );
-            for ( ui32 n = 0; n < p.size(); ++n )
+            for ( size_t n = 0; n < p.size(); ++n )
             {
                accum += p[ n ] * theta[ n ];
             }
@@ -103,10 +103,10 @@ namespace algorithm
 
    public:
       template <class Database>
-      void learn( const Database& dat, ui32 nbIteration, double learningRate = 0.01f, const core::Buffer1D<float> _weights = core::Buffer1D<float>() )
+      void learn( const Database& dat, size_t nbIteration, double learningRate = 0.01f, const core::Buffer1D<float> _weights = core::Buffer1D<float>() )
       {
          // filter the database
-         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+         Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
          if ( learning.size() == 0 )
          {
             return;
@@ -119,7 +119,7 @@ namespace algorithm
             weights = std::vector<double>( learning.size(), 1 );
          } else {
             weights.reserve( learning.size() );
-            for ( ui32 n = 0; n < dat.size(); ++n )
+            for ( size_t n = 0; n < dat.size(); ++n )
             {
                if ( dat[ n ].type == Database::Sample::LEARNING )
                {
@@ -131,7 +131,7 @@ namespace algorithm
          // run the gradient descent
          typedef FunctionOptimizationGradientDescentStochastic<Database>   Optimizer;
          Optimizer optimizer( learningRate );
-         _w = Vector( learning[ 0 ].input.size() + 1 );
+         _w = Vector( static_cast<size_t>( learning[ 0 ].input.size() + 1 ) );
          FunctionRegression<Database> function;
          _w = optimizer.compute( learning, weights, function, _w, nbIteration );
       }
@@ -140,10 +140,10 @@ namespace algorithm
       double test( const Point& point ) const
       {
          ensure( _w.size() && point.size() + 1 == _w.size(), "size don't match" );
-         const ui32 size = static_cast<ui32>( point.size() );
+         const size_t size = static_cast<size_t>( point.size() );
 
          double accum = 0;
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
          {
             accum += point[ n ] * _w[ n ];
          }

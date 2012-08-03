@@ -105,24 +105,24 @@ namespace algorithm
          if ( !factors.size() )
             return FactorCreatorType();
 
-         std::set<ui32> varEliminationOrder;
+         std::set<size_t> varEliminationOrder;
          for ( size_t n = 0; n < factors.size(); ++n )
          {
             std::for_each( factors[ n ].getDomain().begin(),
                            factors[ n ].getDomain().end(),
-                           [&]( ui32 v )
+                           [&]( size_t v )
                            {
                               varEliminationOrder.insert( v );
                            } );
          }
 
          // discard the domain of interest and evidence
-         for ( ui32 n = 0; n < domainOfInterest.size(); ++n )
+         for ( size_t n = 0; n < domainOfInterest.size(); ++n )
          {
             varEliminationOrder.erase( domainOfInterest[ n ] );
          }
 
-         for ( ui32 n = 0; n < evidenceDomain.size(); ++n )
+         for ( size_t n = 0; n < evidenceDomain.size(); ++n )
          {
             varEliminationOrder.erase( evidenceDomain[ n ] );
          }
@@ -138,7 +138,7 @@ namespace algorithm
             newFactors.push_back( factors[ n ] );
 
             // check we have some evidence
-            for ( ui32 evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
+            for ( size_t evidenceVar = 0; evidenceVar < evidenceDomain.size(); ++evidenceVar )
             {
                bool isInPotential = std::binary_search( newFactors[ n ].getDomain().begin(),
                                                         newFactors[ n ].getDomain().end(),
@@ -160,7 +160,7 @@ namespace algorithm
          }
 
          VectorI domainToMarginalize( 1 );
-         for ( std::set<ui32>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
+         for ( std::set<size_t>::const_iterator it = varEliminationOrder.begin(); it != varEliminationOrder.end(); ++it )
          {
             domainToMarginalize[ 0 ] = *it;
             f = f.marginalization( domainToMarginalize );

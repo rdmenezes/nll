@@ -18,7 +18,7 @@ public:
    class Problem1
    {
    public:
-      typedef core::Database<core::ClassificationSample<std::vector<ui32>, ui32>> Database;
+      typedef core::Database<core::ClassificationSample<std::vector<size_t>, size_t>> Database;
 
       enum Outlook
       {
@@ -46,25 +46,25 @@ public:
          STRONG
       };
 
-      std::vector< std::vector<ui32> > create1( std::vector<ui32>& yout ) const
+      std::vector< std::vector<size_t> > create1( std::vector<size_t>& yout ) const
       {
-         std::vector< std::vector<ui32> > days;
-         days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    WEAK ) );      // 1
-         days.push_back( core::make_vector<ui32>( SUNNY,    HOT,  HIGH,    STRONG ) );    // 2
-         days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  HIGH,    WEAK ) );      // 3
-         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
-         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
-         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
-         days.push_back( core::make_vector<ui32>( OVERCAST, COOL, NORMAL,  STRONG ) );    // 7
-         days.push_back( core::make_vector<ui32>( SUNNY,    MILD, HIGH,    WEAK) );       // 8
-         days.push_back( core::make_vector<ui32>( SUNNY,    COOL, NORMAL,  WEAK) );       // 9
-         days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
-         days.push_back( core::make_vector<ui32>( SUNNY,    MILD, NORMAL,  STRONG) );     // 11
-         days.push_back( core::make_vector<ui32>( OVERCAST, MILD, HIGH,    STRONG) );     // 12
-         days.push_back( core::make_vector<ui32>( OVERCAST, HOT,  NORMAL,  WEAK) );       // 13
-         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
+         std::vector< std::vector<size_t> > days;
+         days.push_back( core::make_vector<size_t>( SUNNY,    HOT,  HIGH,    WEAK ) );      // 1
+         days.push_back( core::make_vector<size_t>( SUNNY,    HOT,  HIGH,    STRONG ) );    // 2
+         days.push_back( core::make_vector<size_t>( OVERCAST, HOT,  HIGH,    WEAK ) );      // 3
+         days.push_back( core::make_vector<size_t>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
+         days.push_back( core::make_vector<size_t>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
+         days.push_back( core::make_vector<size_t>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
+         days.push_back( core::make_vector<size_t>( OVERCAST, COOL, NORMAL,  STRONG ) );    // 7
+         days.push_back( core::make_vector<size_t>( SUNNY,    MILD, HIGH,    WEAK) );       // 8
+         days.push_back( core::make_vector<size_t>( SUNNY,    COOL, NORMAL,  WEAK) );       // 9
+         days.push_back( core::make_vector<size_t>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
+         days.push_back( core::make_vector<size_t>( SUNNY,    MILD, NORMAL,  STRONG) );     // 11
+         days.push_back( core::make_vector<size_t>( OVERCAST, MILD, HIGH,    STRONG) );     // 12
+         days.push_back( core::make_vector<size_t>( OVERCAST, HOT,  NORMAL,  WEAK) );       // 13
+         days.push_back( core::make_vector<size_t>( RAIN,     MILD, HIGH,    STRONG) );     // 14
 
-         std::vector< ui32 > y( 14 );
+         std::vector< size_t > y( 14 );
          y[ 0 ] = 0;
          y[ 1 ] = 0;
          y[ 2 ] = 1;
@@ -86,12 +86,12 @@ public:
 
       Database createDatabase1() const
       {
-         std::vector<ui32> y;
-         std::vector< std::vector<ui32> > x = create1( y );
+         std::vector<size_t> y;
+         std::vector< std::vector<size_t> > x = create1( y );
          return createDatabase( x, y );
       }
 
-      Database createDatabase( const std::vector< std::vector<ui32> >& x, std::vector<ui32>& y ) const
+      Database createDatabase( const std::vector< std::vector<size_t> >& x, std::vector<size_t>& y ) const
       {
          Database dat;
          for ( size_t n = 0; n < x.size(); ++n )
@@ -102,16 +102,16 @@ public:
          return dat;
       }
 
-      std::vector< std::vector<ui32> > create2( std::vector<ui32>& yout ) const
+      std::vector< std::vector<size_t> > create2( std::vector<size_t>& yout ) const
       {
-         std::vector< std::vector<ui32> > days;
-         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
-         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
-         days.push_back( core::make_vector<ui32>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
-         days.push_back( core::make_vector<ui32>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
-         days.push_back( core::make_vector<ui32>( RAIN,     MILD, HIGH,    STRONG) );     // 14
+         std::vector< std::vector<size_t> > days;
+         days.push_back( core::make_vector<size_t>( RAIN,     MILD, HIGH,    WEAK ) );      // 4
+         days.push_back( core::make_vector<size_t>( RAIN,     COOL, NORMAL,  WEAK ) );      // 5
+         days.push_back( core::make_vector<size_t>( RAIN,     COOL, NORMAL,  STRONG ) );    // 6
+         days.push_back( core::make_vector<size_t>( RAIN,     MILD, NORMAL,  WEAK) );       // 10
+         days.push_back( core::make_vector<size_t>( RAIN,     MILD, HIGH,    STRONG) );     // 14
 
-         std::vector< ui32 > y( 5 );
+         std::vector< size_t > y( 5 );
          y[ 0 ] = 1;
          y[ 1 ] = 1;
          y[ 2 ] = 0;
@@ -124,8 +124,8 @@ public:
 
       Database createDatabase2() const
       {
-         std::vector<ui32> y;
-         std::vector< std::vector<ui32> > x = create2( y );
+         std::vector<size_t> y;
+         std::vector< std::vector<size_t> > x = create2( y );
          return createDatabase( x, y );
       }
    };
@@ -201,15 +201,15 @@ public:
       Problem1 pb1;
 
       {
-         std::vector<ui32> y;
-         std::vector< std::vector<ui32> > days = pb1.create1( y );
+         std::vector<size_t> y;
+         std::vector< std::vector<size_t> > days = pb1.create1( y );
 
 
          std::vector<double> ref = core::make_vector<double>( 0.24675, 0.0292226, 0.151836, 0.048127 );
-         for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
+         for ( size_t n = 0; n < days[ 0 ].size(); ++n )
          {
-            std::vector<ui32> x;
-            for ( ui32 d = 0; d < days.size(); ++d )
+            std::vector<size_t> x;
+            for ( size_t d = 0; d < days.size(); ++d )
             {
                x.push_back( days[ d ][ n ] );
             }
@@ -221,14 +221,14 @@ public:
       }
 
       {
-         std::vector<ui32> y;
-         std::vector< std::vector<ui32> > days = pb1.create2( y );
+         std::vector<size_t> y;
+         std::vector< std::vector<size_t> > days = pb1.create2( y );
 
          std::vector<double> ref = core::make_vector<double>( 0, 0.0199731, 0.0199731, 0.970951 );
-         for ( ui32 n = 0; n < days[ 0 ].size(); ++n )
+         for ( size_t n = 0; n < days[ 0 ].size(); ++n )
          {
-            std::vector<ui32> x;
-            for ( ui32 d = 0; d < days.size(); ++d )
+            std::vector<size_t> x;
+            for ( size_t d = 0; d < days.size(); ++d )
             {
                x.push_back( days[ d ][ n ] );
             }
@@ -264,7 +264,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == (ui32)n );
+            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == (size_t)n );
          }
       }
    }
@@ -293,7 +293,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == (ui32)n );
+            TESTER_ASSERT( dats[ n ][ nn ].input[ d.getFeatureSplit() ] == (size_t)n );
          }
       }
    }
@@ -301,7 +301,7 @@ public:
    class Problem2
    {
    public:
-      typedef core::Database< core::ClassificationSample< std::vector< double >, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector< double >, size_t > > Database;
 
       Database create1() const
       {
@@ -358,7 +358,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].output == (ui32)n );
+            TESTER_ASSERT( dats[ n ][ nn ].output == (size_t)n );
          }
       }
    }
@@ -387,7 +387,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].output == (ui32)n );
+            TESTER_ASSERT( dats[ n ][ nn ].output == (size_t)n );
          }
       }
    }
@@ -416,7 +416,7 @@ public:
       {
          for ( size_t nn = 0; nn < dats[ n ].size(); ++nn )
          {
-            TESTER_ASSERT( dats[ n ][ nn ].output == (ui32)n );
+            TESTER_ASSERT( dats[ n ][ nn ].output == (size_t)n );
          }
       }
    }

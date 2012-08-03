@@ -53,15 +53,15 @@ namespace algorithm
       typedef Different DifferentPixel;
       struct Component
       {
-         Component( ui32 px, ui32 py, ui32 s, ui32 i ) : posx( px ), posy( py ), size( s ), id( i ){}
+         Component( size_t px, size_t py, size_t s, size_t i ) : posx( px ), posy( py ), size( s ), id( i ){}
          /// position of the component
-		   ui32 posx;
+		   size_t posx;
          /// position of the component
-         ui32 posy;
+         size_t posy;
          /// size of the component
-		   ui32 size;
+		   size_t size;
          /// value in the ouput buffer of the component
-		   ui32 id;
+		   size_t id;
       };
       typedef std::vector<Component> Components;
 
@@ -79,7 +79,7 @@ namespace algorithm
 
    private:
       // point index id => those of the mask, not image
-      typedef std::pair<ui32, ui32>    Edge;
+      typedef std::pair<size_t, size_t>    Edge;
       typedef std::set<Edge>           Edges;
 
    public:
@@ -96,19 +96,19 @@ namespace algorithm
       {
          ComponentsInfo info;
          Edges edges;
-         ui32 indexId = 1;
+         size_t indexId = 1;
          core::ImageMask mask( img.sizex(), img.sizey(), 1 );
 
-         ui32 neighbourTest[ 2 ];
-         ui32 neighbourMaskTest[ 2 ];
-         ui32 neighbourMaskVal[ 2 ];
-         ui32 index;
-         for ( ui32 ny = 1; ny < img.sizey(); ++ny )
-            for ( ui32 nx = 1; nx < img.sizex(); ++nx )
+         size_t neighbourTest[ 2 ];
+         size_t neighbourMaskTest[ 2 ];
+         size_t neighbourMaskVal[ 2 ];
+         size_t index;
+         for ( size_t ny = 1; ny < img.sizey(); ++ny )
+            for ( size_t nx = 1; nx < img.sizex(); ++nx )
             {
-               ui32 neighbour = 0;
-               ui32 pos = img.index( nx, ny, 0 );
-               ui32 indexMask = mask.index( nx, ny, 0 );
+               size_t neighbour = 0;
+               size_t pos = img.index( nx, ny, 0 );
+               size_t indexMask = mask.index( nx, ny, 0 );
 
                index = img.index( nx - 1, ny, 0 );
                if ( _diff( &img[ index ], &img[ pos ] ) )
@@ -148,31 +148,31 @@ namespace algorithm
                } 
             }
 
-         core::Buffer1D<ui32> connectedComponent( indexId, false );
-         for ( ui32 n = 0; n < indexId; ++n )
+         core::Buffer1D<size_t> connectedComponent( indexId, false );
+         for ( size_t n = 0; n < indexId; ++n )
             connectedComponent[ n ] = n;
          core::Buffer1D<bool> runned( indexId );
-         for ( ui32 n = 0; n < indexId; ++n )
+         for ( size_t n = 0; n < indexId; ++n )
             _relabel( edges, connectedComponent, runned, n, n );
-         core::Buffer1D<ui32> sizeComponent( indexId );
+         core::Buffer1D<size_t> sizeComponent( indexId );
          core::Buffer1D<core::vector2i> posComponent( indexId );
          for ( core::ImageMask::iterator it = mask.begin(); it != mask.end(); ++it )
          {
-            ui32 val = connectedComponent[ *it ];
+            size_t val = connectedComponent[ *it ];
             *it = val;
          }
 
          if ( extendedInfo )
          {
-            for ( ui32 ny = 0; ny < mask.sizey(); ++ny )
-               for ( ui32 nx = 0; nx < mask.sizex(); ++nx )
+            for ( size_t ny = 0; ny < mask.sizey(); ++ny )
+               for ( size_t nx = 0; nx < mask.sizex(); ++nx )
                {
-                  ui32 val = connectedComponent[ mask( nx, ny, 0 ) ];
+                  size_t val = connectedComponent[ mask( nx, ny, 0 ) ];
                   ++sizeComponent[ val ];
                   if ( posComponent[ val ][ 0 ] == 0 && posComponent[ val ][ 1 ] == 0 )
-                     posComponent[ val ] = core::vector2i( nx, ny );
+                     posComponent[ val ] = core::vector2i( static_cast<int>( nx ), static_cast<int>( ny ) );
                }
-            for ( ui32 n = 0; n < indexId; ++n )
+            for ( size_t n = 0; n < indexId; ++n )
                if ( sizeComponent[ n ] )
                   info.components.push_back( Component( posComponent[ n ][ 0 ], posComponent[ n ][ 1 ], sizeComponent[ n ], n ) );
          }
@@ -183,7 +183,7 @@ namespace algorithm
       }
 
    private:
-      void _relabel( const Edges& edges, core::Buffer1D<ui32>& connectedComponent, core::Buffer1D<bool>& runned, ui32 generation, ui32 edge )
+      void _relabel( const Edges& edges, core::Buffer1D<size_t>& connectedComponent, core::Buffer1D<bool>& runned, size_t generation, size_t edge )
       {
          for ( Edges::const_iterator it = edges.begin(); it != edges.end(); ++it )
          {

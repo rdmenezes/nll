@@ -72,7 +72,7 @@ namespace algorithm
       {
          typedef f64*   Point;
 
-         MetricEuclidian( ui32 size ) : _size( size )
+         MetricEuclidian( size_t size ) : _size( size )
          {}
 
          double distance( const Point& p1, const Point& p2 )
@@ -81,7 +81,7 @@ namespace algorithm
          }
 
       private:
-         ui32 _size;
+         size_t _size;
       };
 
       /**
@@ -92,7 +92,7 @@ namespace algorithm
          typedef f64          value_type;
          typedef value_type*  Point;
 
-         static Point allocate( ui32 size )
+         static Point allocate( size_t size )
          {
             return new value_type[ size ];
          }
@@ -155,8 +155,8 @@ namespace algorithm
       {
          ensure( params.size(), "empty parameters" );
          _pointSize = params[ 0 ].mean.size();
-         _gaussians = Gaussians( (ui32)params.size() );
-         for ( ui32 n = 0; n < params.size(); ++n )
+         _gaussians = Gaussians( (size_t)params.size() );
+         for ( size_t n = 0; n < params.size(); ++n )
             _gaussians[ n ] = params[ n ];
       }
 
@@ -165,19 +165,19 @@ namespace algorithm
        @note out need not be allocated
        @note there is a serious overhead so it is advised to generate a lot of points from this call...
        */
-      void generate( ui32 nbPoints, std::vector< core::Buffer1D<double> >& out ) const
+      void generate( size_t nbPoints, std::vector< core::Buffer1D<double> >& out ) const
       {
          core::Buffer1D<double> pbs( _gaussians.size() );
          std::vector<core::NormalMultiVariateDistribution> normals;
-         for ( ui32 n = 0; n < pbs.size(); ++n )
+         for ( size_t n = 0; n < pbs.size(); ++n )
          {
             pbs[ n] = _gaussians[ n ].weight;
             normals.push_back( core::NormalMultiVariateDistribution( _gaussians[ n ].mean, _gaussians[ n ].covariance ) );
          }
-         core::Buffer1D<ui32> sampled = core::sampling( pbs, nbPoints );
+         core::Buffer1D<size_t> sampled = core::sampling( pbs, nbPoints );
          
          out = std::vector< core::Buffer1D<double> >( nbPoints );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             out[ n ] = normals[ sampled[ n ] ].generate();
          }
@@ -191,18 +191,18 @@ namespace algorithm
       ComputingType likelihood( const Points& points ) const
       {
          ensure( _pointSize, "error: bad init?" );
-         Matrix p( static_cast<ui32> ( points.size() ), _pointSize );
-         for ( ui32 y = 0; y < points.size(); ++y )
-            for ( ui32 x = 0; x < _pointSize; ++x )
+         Matrix p( static_cast<size_t> ( points.size() ), _pointSize );
+         for ( size_t y = 0; y < points.size(); ++y )
+            for ( size_t x = 0; x < _pointSize; ++x )
                p( y, x ) = points[ y ][ x ];
          Matrix density, norm_density;
          _expectation( p, density, norm_density );
 
          ComputingType l = 0;
-		   for ( ui32 i = 0; i < p.sizey(); ++i )
+		   for ( size_t i = 0; i < p.sizey(); ++i )
 		   {
 			   ComputingType l2 = 0;
-			   for ( ui32 k = 0; k < _gaussians.size(); ++k )
+			   for ( size_t k = 0; k < _gaussians.size(); ++k )
 				   l2 += _gaussians[ k ].weight * density( i, k );
 			   l += log( l2 );
 		   }
@@ -215,7 +215,7 @@ namespace algorithm
       void clone( const Gmm& gmm )
       {
          _gaussians = Gaussians( gmm._gaussians.size() );
-         for ( ui32 n = 0; n < gmm._gaussians.size(); ++n )
+         for ( size_t n = 0; n < gmm._gaussians.size(); ++n )
             _gaussians[ n ].clone( gmm._gaussians[ n ] );
       }
 
@@ -229,7 +229,7 @@ namespace algorithm
        Points requires operator[], size()
        */
       template <class Points>
-      void em( const Points& points, ui32 pointSize, ui32 nbGaussians, ui32 nbIter, ComputingType minDiffStop = 0.1 )
+      void em( const Points& points, size_t pointSize, size_t nbGaussians, size_t nbIter, ComputingType minDiffStop = 0.1 )
       {
          {
             std::stringstream ss;
@@ -242,9 +242,9 @@ namespace algorithm
          }
 
          _pointSize = pointSize;
-         Matrix p( static_cast<ui32> ( points.size() ), _pointSize );
-         for ( ui32 y = 0; y < points.size(); ++y )
-            for ( ui32 x = 0; x < _pointSize; ++x )
+         Matrix p( static_cast<size_t> ( points.size() ), _pointSize );
+         for ( size_t y = 0; y < points.size(); ++y )
+            for ( size_t x = 0; x < _pointSize; ++x )
                p( y, x ) = points[ y ][ x ];
          _gaussians = Gaussians( nbGaussians );
          _init( p, nbGaussians );
@@ -252,7 +252,7 @@ namespace algorithm
          {
             std::stringstream ss;
             ss << " KMeans initialization=" << std::endl;
-            for ( ui32 n = 0; n < nbGaussians; ++n )
+            for ( size_t n = 0; n < nbGaussians; ++n )
             {
                ss << " gaussian weight=" << _gaussians[ n ].weight << std::endl
                   << " mean:" << std::endl;
@@ -291,7 +291,7 @@ namespace algorithm
          // log the parameter's model
          std::stringstream ss;
          ss << "Gmm.em:" << nbGaussians << " gaussians" << std::endl;
-         for ( ui32 n = 0; n < nbGaussians; ++n )
+         for ( size_t n = 0; n < nbGaussians; ++n )
          {
             ss << "gaussian weight=" << _gaussians[ n ].weight << std::endl
                << "mean:" << std::endl;
@@ -307,7 +307,7 @@ namespace algorithm
        */
       void write( std::ostream& o ) const
       {
-         core::write<ui32>( _pointSize, o );
+         core::write<size_t>( _pointSize, o );
          core::write<Gaussians>( _gaussians, o );
       }
       
@@ -316,7 +316,7 @@ namespace algorithm
        */
       void read( std::istream& i )
       {
-         core::read<ui32>( _pointSize, i );
+         core::read<size_t>( _pointSize, i );
          core::read<Gaussians>( _gaussians, i );
       }
 
@@ -329,7 +329,7 @@ namespace algorithm
       }
 
    private:
-      void _init( Matrix& points, ui32 nbGaussians )
+      void _init( Matrix& points, size_t nbGaussians )
       {
          typedef Matrix::value_type*      KPoint;
          typedef MetricEuclidian          KMetric;
@@ -346,21 +346,21 @@ namespace algorithm
          KMeans kmeans( utility );
 
           KMeansUtility::Points kpoints( points.sizey() );
-         for ( ui32 n = 0; n < points.sizey(); ++n )
+         for ( size_t n = 0; n < points.sizey(); ++n )
             kpoints[ n ] = &points( n, 0 );
          KMeans::KMeansResult kres = kmeans( kpoints, nbGaussians );
 
-         std::vector<ui32> count( nbGaussians );
-         std::vector<ui32> rang( points.sizey() );
-         for ( ui32 n = 0; n < points.sizey(); ++n )
+         std::vector<size_t> count( nbGaussians );
+         std::vector<size_t> rang( points.sizey() );
+         for ( size_t n = 0; n < points.sizey(); ++n )
          {
             rang[ n ] = kres.first[ n ];
             ++count[ rang[ n ] ];
          }
          core::sortRow( points, rang );
-         ui32 index = 0;
+         size_t index = 0;
          _gaussians = Gaussians( nbGaussians );
-         for ( ui32 n = 0; n < nbGaussians; ++n )
+         for ( size_t n = 0; n < nbGaussians; ++n )
          {
             _gaussians[ n ].covariance = core::covariance( points, index, index + count[ n ] - 1, &_gaussians[ n ].mean );
             _gaussians[ n ].weight = static_cast<ComputingType>( count[ n ] ) / points.sizey();
@@ -368,7 +368,7 @@ namespace algorithm
          }
 
          // free the memory allocated for the kmean centroids
-         for ( ui32 n = 0; n < nbGaussians; ++n )
+         for ( size_t n = 0; n < nbGaussians; ++n )
             delete [] kres.second[ n ];
       }
 
@@ -376,11 +376,11 @@ namespace algorithm
       void _expectation( const Matrix& points, Matrix& out_density, Matrix& out_norm_density ) const
       {
          Matrix expectation( points.sizey(), _gaussians.size(), false );
-         for ( ui32 g = 0; g < _gaussians.size(); ++g )
+         for ( size_t g = 0; g < _gaussians.size(); ++g )
          {
             Matrix covInv( _pointSize, _pointSize );
             ComputingType det = 1.0;
-            for ( ui32 n = 0; n < _pointSize; ++n )
+            for ( size_t n = 0; n < _pointSize; ++n )
             {
                ComputingType val = _gaussians[ g ].covariance( n, n );
                assert( val );  // singular covariance
@@ -389,10 +389,10 @@ namespace algorithm
             }
             ComputingType normFactor =  1 / ( pow( 2 * core::PI, static_cast<f64>( _pointSize ) / 2 ) * sqrt( core::absolute( det ) ) );
 
-            for ( ui32 n = 0; n < points.sizey(); ++n )
+            for ( size_t n = 0; n < points.sizey(); ++n )
             {
                ComputingType sum = 0;
-               for ( ui32 f = 0; f < _pointSize; ++f )
+               for ( size_t f = 0; f < _pointSize; ++f )
                {
                   ComputingType pmean = points( n, f ) - _gaussians[ g ].mean[ f ];
                   sum += ( pmean * covInv( f, f ) * pmean );
@@ -404,11 +404,11 @@ namespace algorithm
          }
 
          Matrix norm_density( points.sizey(), _gaussians.size() );
-         for ( ui32 g = 0; g < _gaussians.size(); ++g )
-            for ( ui32 i = 0; i < points.sizey(); ++i )
+         for ( size_t g = 0; g < _gaussians.size(); ++g )
+            for ( size_t i = 0; i < points.sizey(); ++i )
             {
                ComputingType accum = 0;   
-               for ( ui32 k = 0; k < _gaussians.size(); ++k )
+               for ( size_t k = 0; k < _gaussians.size(); ++k )
                   accum += _gaussians[ k ].weight * expectation( i, k );
                //assert( accum );
                if ( fabs( accum ) <= 1e-8 )
@@ -423,19 +423,19 @@ namespace algorithm
 
       void _maximization( const Matrix& points, const Matrix& expectation )
       {
-         for ( ui32 g = 0; g < _gaussians.size(); ++g )
+         for ( size_t g = 0; g < _gaussians.size(); ++g )
          {
             // weight       
             ComputingType sum_p = 0;
-            for ( ui32 i = 0; i < points.sizey(); ++i )
+            for ( size_t i = 0; i < points.sizey(); ++i )
                sum_p += expectation( i, g );
             _gaussians[ g ].weight = sum_p / points.sizey();
             
             // mean 
             assert( sum_p );
             Vector mean( _pointSize );
-            for ( ui32 i = 0; i < points.sizey(); ++i )
-               for ( ui32 k = 0; k < _pointSize; ++k )
+            for ( size_t i = 0; i < points.sizey(); ++i )
+               for ( size_t k = 0; k < _pointSize; ++k )
                   mean[ k ] += expectation( i, g ) * points( i, k );
             core::generic_div_cte<ComputingType*> ( mean.getBuf(), sum_p, _pointSize );
             _gaussians[ g ].mean = mean;
@@ -443,9 +443,9 @@ namespace algorithm
             // cov // TODO : OPTIMIZE
             Matrix cov( _pointSize, _pointSize );
             Matrix v( _pointSize, 1, false );
-			   for ( ui32 i = 0; i < points.sizey(); ++i )
+			   for ( size_t i = 0; i < points.sizey(); ++i )
             {
-               for ( ui32 k2 = 0; k2 < _pointSize; ++k2 )
+               for ( size_t k2 = 0; k2 < _pointSize; ++k2 )
                   v( k2, 0 ) =  points( i, k2 ) - mean( k2 );
                Matrix v_trans( v.getBuf(), 1, _pointSize, false);
                Matrix mul = core::mul( v, v_trans );
@@ -460,10 +460,10 @@ namespace algorithm
       ComputingType _likelihood( const Matrix& points, const Matrix& expectation )
       {
          ComputingType l = 0;
-		   for ( ui32 i = 0; i < points.sizey(); ++i )
+		   for ( size_t i = 0; i < points.sizey(); ++i )
 		   {
 			   ComputingType l2 = 0;
-			   for ( ui32 k = 0; k < _gaussians.size(); ++k )
+			   for ( size_t k = 0; k < _gaussians.size(); ++k )
 				   l2 += _gaussians[ k ].weight * expectation( i, k );
 			   l += log( l2 );
 		   }
@@ -472,7 +472,7 @@ namespace algorithm
 
 
    private:
-      ui32                 _pointSize;
+      size_t                 _pointSize;
       Gaussians            _gaussians;
    };
 }

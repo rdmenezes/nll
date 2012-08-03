@@ -88,37 +88,37 @@ namespace algorithm
        */
       virtual Result test( const Database& dat )
       {
-		   ui32 nbLearn = 0;
-         ui32 nbValidation = 0;
+		   size_t nbLearn = 0;
+         size_t nbValidation = 0;
 
          float nbValidationError = 0;
          float nbLearnError = 0;
 		   float nbError = 0;
 
-		   ui32 nbTest = 0;
+		   size_t nbTest = 0;
          std::stringstream o;
-		   for (ui32 n = 0; n < dat.size(); ++n)
+		   for (size_t n = 0; n < dat.size(); ++n)
 		   {
             if ( dat[ n ].type == Database::Sample::LEARNING )
 			   {
 				   ++nbLearn;
                Output result = test( dat[n].input );
                ensure( result.size() == dat[ n ].output.size(), "error: size doesn't match" );
-               nbLearnError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<ui32>( result.size() ) );
+               nbLearnError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<size_t>( result.size() ) );
 			   } 
             if ( dat[ n ].type == Database::Sample::VALIDATION )
 			   {
 				   ++nbValidation;
                Output result = test( dat[n].input );
                ensure( result.size() == dat[ n ].output.size(), "error: size doesn't match" );
-               nbValidationError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<ui32>( result.size() ) );
+               nbValidationError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<size_t>( result.size() ) );
 			   } 
             if ( dat[ n ].type == Database::Sample::TESTING )
             {
 				   ++nbTest;
 				   Output result = test( dat[n].input );
                ensure( result.size() == dat[ n ].output.size(), "error: size doesn't match" );
-               nbError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<ui32>( result.size() ) );
+               nbError += core::generic_norm2<Output, float>( result, dat[ n ].output, static_cast<size_t>( result.size() ) );
 			   }
 		   }
 
@@ -138,13 +138,13 @@ namespace algorithm
       }
 
    protected:
-      virtual std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const
+      virtual std::vector<size_t> _setCrossFoldBin( const Database& dat, size_t nbBins ) const
       {
-         std::vector<ui32> bins( dat.size() );
-         ui32 reminder = dat.size() % nbBins;
+         std::vector<size_t> bins( dat.size() );
+         size_t reminder = dat.size() % nbBins;
 
          // create the bit count, floor the counts, then add 1 to the first size % nbBins sample
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
             bins[ n ] = n / dat.size() + ( n < reminder );
 
          // randomize the list

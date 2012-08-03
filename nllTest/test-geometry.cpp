@@ -204,6 +204,7 @@ public:
 
    void testSegment()
    {
+      srand(0);
       for ( int n = 0; n < 10000; ++n )
       {
          vector2f p1( generateUniformDistributionf( -100, 100 ), 
@@ -224,13 +225,17 @@ public:
          const float d1 = ( p1 - vector2f( x, y ) ).norm2();
          const float d2 = ( p2 - vector2f( x, y ) ).norm2();
          const float length = ( p1 - p2 ).norm2();
-         const bool expectedInside = d1 < length && d2 < length;
-         ensure( s1.contains( vector2f( x, y ) ) == expectedInside, "arg!" );
+         const bool expectedInside = d1 <= length && d2 <= length;
+         if ( s1.contains( vector2f( x, y ), 1e-3 ) != expectedInside )
+         {
+            std::cout << "x=" << x << " y=" << y << " expectedInside=" << expectedInside << s1.getP1() << s1.getP2();
+         }
+         ensure( s1.contains( vector2f( x, y ),  1e-3 ) == expectedInside, "arg1!" );
 
          // this one will never contain it..
          const vector2f normal( -1, s1.getA() );
          const vector2f p( x + normal[ 0 ] * 10, y + normal[ 1 ] * 10 );
-         ensure( !s1.contains( p ), "arg!" );
+         ensure( !s1.contains( p, 0.001 ), "arg2!" );
       }
    }
 

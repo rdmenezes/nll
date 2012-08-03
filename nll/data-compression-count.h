@@ -143,7 +143,7 @@ namespace algorithm
             core::write<ui8>( chunkId, f );
 
             core::write<ChunkSizeType>( size, f );
-            for ( ui32 n = 0; n < size; ++n )
+            for ( size_t n = 0; n < size; ++n )
             {
                core::write<T>( values.get()[ n ], f );
             }
@@ -153,7 +153,7 @@ namespace algorithm
          {
             core::read<ChunkSizeType>( size, f );
             std::auto_ptr<T> ptr( new T[ size ] );
-            for ( ui32 n = 0; n < size; ++n )
+            for ( size_t n = 0; n < size; ++n )
             {
                core::read<T>( ptr.get()[ n ], f );
             }

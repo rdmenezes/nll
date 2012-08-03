@@ -59,20 +59,20 @@ namespace algorithm
 	   class PointDist
 	   {
 	   public:
-		   PointDist(ui32 pointId, const Metric& m ) : id(pointId), metric( m ){}
+		   PointDist(size_t pointId, const Metric& m ) : id(pointId), metric( m ){}
 		   bool operator<(const PointDist& p) const
 		   {
 			   return metric((*MeasureDistSet::set_points)[MeasureDistSet::set_index], (*MeasureDistSet::set_points)[id])
 				   <  metric((*MeasureDistSet::set_points)[MeasureDistSet::set_index], (*MeasureDistSet::set_points)[p.id]);				
 		   }
-		   ui32          id;
+		   size_t          id;
          const Metric& metric;
 	   };
 	   typedef std::multiset<PointDist>	PointDistSet;
 
    public:
 	   static const Points*	set_points;
-	   static ui32				set_index;
+	   static size_t				set_index;
 
 	   PointDistSet			set;
    };
@@ -85,7 +85,7 @@ namespace algorithm
    template <	class Point,
 			      class Metric,
 			      class Points >
-   ui32 MeasureDistSet<Point, Metric, Points>::set_index = 0;
+   size_t MeasureDistSet<Point, Metric, Points>::set_index = 0;
 
 
    /**
@@ -95,8 +95,8 @@ namespace algorithm
      LSDBC : Locally Scaled Density Based Clustering
     "http://www.denizyuret.com/pub/icannga07/LSDBC-icannga07.pdf"
 
-    Point : must define a method "static ui32 size()" that returns the number of components of the Point
-                                   "f32 operator[](ui32 indice) const" returns the n-th component of Point
+    Point : must define a method "static size_t size()" that returns the number of components of the Point
+                                   "f32 operator[](size_t indice) const" returns the n-th component of Point
 
     Metric : must define a "static f32	distance(const Point&, const Point&)" : returns the distance
 			     between 2 <Point>
@@ -108,9 +108,9 @@ namespace algorithm
    public:
 	   struct	CPoint
 	   {
-		   CPoint(const Point& p, ui32 cluster, f32 eps) : point(p), clusterId(cluster), epsilon(eps){}
+		   CPoint(const Point& p, size_t cluster, f32 eps) : point(p), clusterId(cluster), epsilon(eps){}
 		   Point	point;
-		   ui32	clusterId;		// if (clusterId == 0) : UNCLASSIFIED
+		   size_t	clusterId;		// if (clusterId == 0) : UNCLASSIFIED
 		   f32   epsilon;
 
 		   bool operator<(const CPoint& p) const{return epsilon < p.epsilon;}
@@ -129,14 +129,14 @@ namespace algorithm
 	    @param	alpha	the boundary of the current cluster expansion based on its density
       */
 	   template <class Points>
-	   const CPoints compute(const Points& points, ui32 k, f32 alpha)
+	   const CPoints compute(const Points& points, size_t k, f32 alpha)
 	   {
 		   // init : calculate neighboring and distance map
 		   CPoints	cpoints;
 		   if (points.size() < 1)
 			   return cpoints;
    		
-		   const ui32 size = points[ 0 ].size();
+		   const size_t size = points[ 0 ].size();
 
 		   typedef KdTree<Point, Metric, 5, Points>			KdTreeInstance;
 		   typedef MeasureDistSet<Point, Metric, Points>	MeasureDistSet;
@@ -148,7 +148,7 @@ namespace algorithm
 		   MeasureDistSet::set_points = &points;
    		
 		   // rebuild points
-		   for (ui32 n = 0; n < points.size(); ++n)
+		   for (size_t n = 0; n < points.size(); ++n)
 		   {
 			   MeasureDistSet::set_index = n;
 			   typename KdTreeInstance::NearestNeighborList list = kdTree.findNearestNeighborList_topDwon(n, k);
@@ -168,16 +168,16 @@ namespace algorithm
 		   //std::cout << "Time knn:" << (f32)(clock() - t) / CLOCKS_PER_SEC << std::endl;
 
 		   // sort points on epsilon value	
-		   typedef std::pair<f32, ui32> Pair;
+		   typedef std::pair<f32, size_t> Pair;
 		   typedef std::vector<Pair> Pairs;
 		   Pairs pairs;
-		   for (ui32 n = 0; n < points.size(); ++n)
+		   for (size_t n = 0; n < points.size(); ++n)
 			   pairs.push_back(Pair(cpoints[n].epsilon, n));
 		   std::sort(pairs.begin(), pairs.end());
 
 		   // clusterize
-		   ui32 clusterId = CLUSTER_UNCLASSIFIED;
-		   for (ui32 n = 0; n < cpoints.size(); ++n)
+		   size_t clusterId = CLUSTER_UNCLASSIFIED;
+		   for (size_t n = 0; n < cpoints.size(); ++n)
 		   {
 			   if (cpoints[pairs[n].second].clusterId == CLUSTER_UNCLASSIFIED && 1) // FIXME : what means localMax(p) ?
 				   _expandCluster<MeasureDistSet, MeasureDistSets>(pairs[n].second, cpoints, results_kdtree, ++clusterId, alpha, size);
@@ -187,7 +187,7 @@ namespace algorithm
 
    private:
 	   template <class MeasureDistSet, class MeasureDistSets>
-	   void _expandCluster(ui32 point, CPoints& points, MeasureDistSets& neigbors, ui32 clusterId, f32 alpha, ui32 n)
+	   void _expandCluster(size_t point, CPoints& points, MeasureDistSets& neigbors, size_t clusterId, f32 alpha, size_t n)
 	   {
 		   points[point].clusterId = clusterId;
 		   MeasureDistSet neigbor = neigbors[point];
@@ -203,7 +203,7 @@ namespace algorithm
 		   while (neigbor.set.size())
 		   {
 			   typename MeasureDistSet::PointDistSet::iterator cur = neigbor.set.begin();
-			   ui32 id = cur->id;
+			   size_t id = cur->id;
 			   if (points[id].epsilon <= points[point].epsilon * pow(2, alpha / static_cast<f32>(n)))
 			   {
 				   MeasureDistSet neigbor2 = neigbors[id];
@@ -222,7 +222,7 @@ namespace algorithm
 	   static void print(const CPoints& points, std::ostream& o)
 	   {
 		   o << "lsdbc:" << std::endl;
-		   ui32 n = 0;
+		   size_t n = 0;
 		   for (typename CPoints::const_iterator it = points.begin(); it != points.end(); ++it, ++n)
 			   o << "\tpoint[" << n << "] = " << points[n].clusterId << std::endl;
 	   }

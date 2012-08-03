@@ -47,7 +47,7 @@ namespace algorithm
     only suitable for low dimensionality
     greedy search
     */
-   template <class Point, class TClassifier = ClassifierBase<Point, ui32> >
+   template <class Point, class TClassifier = ClassifierBase<Point, size_t> >
    class FeatureSelectionBestFirst : public FeatureSelectionWrapper<Point, TClassifier>
    {
    public:
@@ -61,7 +61,7 @@ namespace algorithm
       using Base::write;
 
    public:
-      FeatureSelectionBestFirst( ui32 maxFeatures = LONG_MAX ) : _maxFeatures( maxFeatures )
+      FeatureSelectionBestFirst( size_t maxFeatures = LONG_MAX ) : _maxFeatures( maxFeatures )
       {}
 
       FeatureSelectionBestFirst( const core::Buffer1D<bool>& selectedFeatures ) : Base( selectedFeatures )
@@ -73,17 +73,17 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "BestFirst search started" );
          if ( ! dat.size() )
             return core::Buffer1D<bool>();
-         const ui32 nbFeatures = dat[ 0 ].input.size();
+         const size_t nbFeatures = dat[ 0 ].input.size();
          core::Buffer1D<bool> selectedFeatures( nbFeatures );
          core::Buffer1D<bool> bestSelectedFeatures;
          double bestSelectedFeaturesRate = LONG_MAX;
 
-         ui32 nbSelectedFeatures = 0;
+         size_t nbSelectedFeatures = 0;
          while ( nbSelectedFeatures < _maxFeatures && nbSelectedFeatures < nbFeatures )
          {
             double best = LONG_MAX;
-            ui32 index = 0;
-            for ( ui32 n = 0; n < nbFeatures; ++n )
+            size_t index = 0;
+            for ( size_t n = 0; n < nbFeatures; ++n )
             {
                if ( !selectedFeatures[ n ] )
                {
@@ -128,7 +128,7 @@ namespace algorithm
       }
 
    private:
-      ui32 _maxFeatures;
+      size_t _maxFeatures;
    };
 }
 }

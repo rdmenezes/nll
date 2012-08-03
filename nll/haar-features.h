@@ -83,7 +83,7 @@ namespace algorithm
          value_type previous_ii = s[ 0 ];
          it.addx();
          itSrc.addx();
-         for ( ui32 x = 1; x < image.sizex(); ++x )
+         for ( size_t x = 1; x < image.sizex(); ++x )
          {
             s[ x ] = *itSrc;
             *it = previous_ii + s[ x ];
@@ -95,7 +95,7 @@ namespace algorithm
 
 
          // computes the other rows
-         for ( ui32 y = 1; y < image.sizey(); ++y )
+         for ( size_t y = 1; y < image.sizey(); ++y )
          {
             // init
             it = _img.getIterator( 0, y, 0 );
@@ -112,7 +112,7 @@ namespace algorithm
             itSrc.addx();
 
             // main loop
-            for ( ui32 x = 1; x < image.sizex(); ++x )
+            for ( size_t x = 1; x < image.sizex(); ++x )
             {
                s[ x ] = s[ x ] + static_cast<value_type>( *itSrc );
                *it = previous_ii + s[ x ];
@@ -162,7 +162,7 @@ namespace algorithm
       /**
        @brief returns the value of the integral image at (x, y) = sum( image( x', y'))_{x' < x && y' < y}
        */
-      const value_type operator()( ui32 x, ui32 y ) const
+      const value_type operator()( size_t x, size_t y ) const
       {
          if ( x >= sizex() || y >= sizey() )
             return 0;
@@ -172,7 +172,7 @@ namespace algorithm
       /**
        @brief returns the size in x of the image
        */
-      ui32 sizex() const
+      size_t sizex() const
       {
          return _img.sizex();
       }
@@ -180,7 +180,7 @@ namespace algorithm
       /**
        @brief returns the size in y of the image
        */
-      ui32 sizey() const
+      size_t sizey() const
       {
          return _img.sizey();
       }
@@ -210,11 +210,15 @@ namespace algorithm
 
       static double getValue( const Direction direction, const IntegralImage& i, const core::vector2i& position, const int lobeSize )
       {
-         //
-         // Note: all drawings are inverted in Y as the (0, 0) of our images is bottom left!
-         //
+         // To simplify the following proofs, let's have a gaussian function defined
+         // as g(x, y) = exp( - ( x^2 + y^2 ) )
+
+
          if ( direction == VERTICAL_TRIPLE )
          {
+            // d g(x, y) / dx^2 = 4*x^2*e^(-x^2 - y^2) - 2*e^(-x^2 - y^2)
+            // we approximate this as below
+
             // computes:
             // X 0 0 0 0 0 0 0 0     X = (0, 0)
             // 0 0 0 0 0 0 0 0 0
@@ -248,6 +252,9 @@ namespace algorithm
 
          if ( direction == HORIZONTAL_TRIPLE )
          {
+            // d g(x, y) / dy^2 = 4*y^2*e^(-x^2 - y^2) - 2*e^(-x^2 - y^2)
+            // we approximate this as below
+
             // computes:
             // X 0 p p p p p 0 0     X = (0, 0)
             // 0 0 p p p p p 0 0
@@ -280,16 +287,19 @@ namespace algorithm
 
          if ( direction == VERTICAL )
          {
-            // computes:
-            // X n n n 0 p p p p     X = (0, 0)
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
-            // n n n n 0 p p p p
+            // d g(x, y) / dx = -2x * exp( - (x^2 + y^2) )
+            // we approximate this as below
+
+            // copnutes:
+            // X p p p 0 n n n n     X = (0, 0)
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
+            // p p p p 0 n n n n
             // <===============> lobeSize
 
             #ifdef NLL_SECURE
@@ -304,23 +314,26 @@ namespace algorithm
             const core::vector2i subMin( position[ 0 ] + 1,    position[ 1 ] - half );
             const core::vector2i subMax( position[ 0 ] + half, position[ 1 ] + half );
 
-            const double sumd = i.getSum( min, max );
-            const double sump = i.getSum( subMin, subMax );
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
             return static_cast<double>( sump - sumd );
          }
 
          if ( direction == HORIZONTAL )
          {
+            // d g(x, y) / dy = -2y * exp( - (x^2 + y^2) )
+            // we approximate this as below
+
             // computes:
-            // X n n n n n n n n     X = (0, 0)
-            // n n n n n n n n n 
-            // n n n n n n n n n
-            // n n n n n n n n n
+            // X p p p p p p p p     X = (0, 0)
+            // p p p p p p p p p 
+            // p p p p p p p p p
+            // p p p p p p p p p
             // 0 0 0 0 0 0 0 0 0
-            // p p p p p p p p p
-            // p p p p p p p p p
-            // p p p p p p p p p
-            // p p p p p p p p p
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
+            // n n n n n n n n n
             // <===============> lobeSize
 
             #ifdef NLL_SECURE
@@ -336,22 +349,25 @@ namespace algorithm
             const core::vector2i subMin( position[ 0 ] - half, position[ 1 ] + 1 );
             const core::vector2i subMax( position[ 0 ] + half, position[ 1 ] + half );
 
-            const double sumd = i.getSum( min, max );
-            const double sump = i.getSum( subMin, subMax );
+            const double sump = i.getSum( min, max );
+            const double sumd = i.getSum( subMin, subMax );
             return static_cast<double>( sump - sumd );
          }
 
          if ( direction == CHECKER )
          {
+            // d g(x, y) / dxy = 4*x*y*e^(-x^2 - y^2)
+            // we approximate this as below
+
             // computes:
             // X 0 0 0 0 0 0 0 0    X = (0, 0)
-            // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
-            // 0 n n n 0 p p p 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
+            // 0 p p p 0 n n n 0
             // 0 0 0 0 0 0 0 0 0
-            // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
-            // 0 p p p 0 n n n 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
+            // 0 n n n 0 p p p 0
             // 0 0 0 0 0 0 0 0 0
             //           <=+=> lobeSize
 
@@ -375,7 +391,7 @@ namespace algorithm
             const double sum2 = i.getSum( min2, max2 );
             const double sum3 = i.getSum( min3, max3 );
             const double sum4 = i.getSum( min4, max4 );
-            return static_cast<double>( sum2 + sum3 - sum1 - sum4 ); // optim: 2 area computation only + weighting
+            return static_cast<double>( sum1 + sum4 - sum2 - sum3 ); // optim: 2 area computation only + weighting
          }
 
          ensure( 0, "not handled haar feature" );

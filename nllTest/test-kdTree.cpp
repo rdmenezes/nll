@@ -7,24 +7,24 @@ typedef std::vector< std::vector<double> >   Points;
 
 using namespace nll;
 
-Points generate( ui32 nbDim, ui32 size )
+Points generate( size_t nbDim, size_t size )
 {
    Points points;
-   for ( ui32 n = 0; n < size; ++n )
+   for ( size_t n = 0; n < size; ++n )
    {
       Point p( nbDim );
-      for ( ui32 nn = 0; nn < nbDim; ++nn )
+      for ( size_t nn = 0; nn < nbDim; ++nn )
          p[ nn ] = core::generateUniformDistribution( -100, 100 );
       points.push_back( p );
    }
    return points;
 }
 
-ui32 closerDummy( const Point& p, const Points& points, const algorithm::Metric<Point>& metric )
+size_t closerDummy( const Point& p, const Points& points, const algorithm::Metric<Point>& metric )
 {
    double minDist = 100000;
-   ui32 index = 0;
-   for ( ui32 n = 0; n < points.size(); ++n )
+   size_t index = 0;
+   for ( size_t n = 0; n < points.size(); ++n )
    {
       double dist = metric.distance( p, points[ n ] );
       if ( dist < minDist )
@@ -43,7 +43,7 @@ public:
    {
       assert( p1.size() == p2.size() );
       f64 dist = 0;
-      for ( ui32 n = 0; n < p1.size(); ++n)
+      for ( size_t n = 0; n < p1.size(); ++n)
          dist +=  ( n * 0.1 + 1  ) * pow( core::absolute( (double)p1[ n ] - p2[ n ] ), (double)n + 1 );
       return dist;
    }
@@ -58,7 +58,7 @@ public:
    void testMetric1()
    {
       srand( 0 );
-      const ui32 nbDim = 4;
+      const size_t nbDim = 4;
       Points points = generate( nbDim, 10000 );
       typedef MetricUser1 Metric;
 
@@ -68,7 +68,7 @@ public:
       KdTree tree( metric );
       tree.build( points, nbDim );
 
-      for ( ui32 n = 0; n < 400; ++n )
+      for ( size_t n = 0; n < 400; ++n )
       {
          // generate a random point
          Point p = generate( nbDim, 1 )[ 0 ];
@@ -80,7 +80,7 @@ public:
    void testMetric2()
    {
       srand( 0 );
-      const ui32 nbDim = 4;
+      const size_t nbDim = 4;
       Points points = generate( nbDim, 10000 );
       typedef algorithm::MetricManhattan<Point> Metric;
 
@@ -90,7 +90,7 @@ public:
       KdTree tree( metric );
       tree.build( points, nbDim );
 
-      for ( ui32 n = 0; n < 400; ++n )
+      for ( size_t n = 0; n < 400; ++n )
       {
          // generate a random point
          Point p = generate( nbDim, 1 )[ 0 ];

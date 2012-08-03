@@ -117,7 +117,7 @@ namespace imaging
                {
                   const core::vector3f directionIntersection = intersection2 - intersection1;
                   float d = static_cast<float>( directionIntersection.norm2() ) / dirNorm;
-                  const float max = _getMaxValue( intersection1, ( dir.dot( directionIntersection ) > 0 ) ? dir : dirOppose, static_cast<ui32>( std::ceil( d ) ), interpolator );
+                  const float max = _getMaxValue( intersection1, ( dir.dot( directionIntersection ) > 0 ) ? dir : dirOppose, static_cast<size_t>( std::ceil( d ) ), interpolator );
                   *itPixels = max;
                } else {
                   *itPixels = background;
@@ -142,7 +142,7 @@ namespace imaging
     @param spacingy the spacing y of the created slice
     */
    template <class VolumeInterpolator>
-   Slice<value_type> getAutoOrientedMip( float anglexRadian, ui32 sizex, ui32 sizey, f32 spacingx, f32 spacingy )
+   Slice<value_type> getAutoOrientedMip( float anglexRadian, size_t sizex, size_t sizey, f32 spacingx, f32 spacingy )
    {
       const core::vector3f centerVolumeIndex = core::vector3f( static_cast<float>( _volume.getSize()[ 0 ] ) / 2,
                                                                static_cast<float>( _volume.getSize()[ 1 ] ) / 2,
@@ -153,7 +153,7 @@ namespace imaging
       core::matrix4x4RotationZ( tfm, anglexRadian );
 
       // we need to remove the scaling...
-      for ( ui32 t = 0; t < 4; ++t )
+      for ( size_t t = 0; t < 4; ++t )
       {
          float dd = sqrt( core::sqr( tfm( 0, t ) ) + core::sqr( tfm( 1, t ) ) + core::sqr( tfm( 2, t ) ) );
          tfm( 0, t ) /= dd;
@@ -189,7 +189,7 @@ namespace imaging
 
    private:
       template <class VolumeInterpolator>
-      value_type _getMaxValue( const core::vector3f& start, const core::vector3f& dir, ui32 nbSteps, const VolumeInterpolator& interpolator )
+      value_type _getMaxValue( const core::vector3f& start, const core::vector3f& dir, size_t nbSteps, const VolumeInterpolator& interpolator )
       {
          NLL_ALIGN_16 float pos[ 4 ] =
          {
@@ -197,7 +197,7 @@ namespace imaging
          };
 
          value_type max = _volume.getBackgroundValue();
-         for ( ui32 n = 0; n < nbSteps; ++n )
+         for ( size_t n = 0; n < nbSteps; ++n )
          {
             value_type val = interpolator( pos );
             max = std::max( max, val );

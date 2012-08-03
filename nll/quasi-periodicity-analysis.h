@@ -80,8 +80,8 @@ namespace algorithm
          // sanity checks
          if ( frames.size() == 0 )
             return Result();
-         const ui32 frameSize = frames[ 0 ].size();
-         const ui32 nbFrames = static_cast<ui32>( frames.size() );
+         const size_t frameSize = frames[ 0 ].size();
+         const size_t nbFrames = static_cast<size_t>( frames.size() );
 
          {
             std::stringstream ss;
@@ -94,7 +94,7 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         for ( ui32 n = 0; n < nbFrames; ++n )
+         for ( size_t n = 0; n < nbFrames; ++n )
          {
             ensure( frameSize == frames[ n ].size(), "wrong size" );
          }
@@ -106,23 +106,23 @@ namespace algorithm
          ensure( success, "PCA decomposition failed!" );
             
          // simply project each frame on the retained orthogonal basis, this will give us the reponse of a frame for each basis over time
-         const ui32 nbBasis = pca.getNbVectors();
+         const size_t nbBasis = pca.getNbVectors();
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "PCA eigen vectors retained=" + core::val2str( nbBasis ) );
 
          // each column represent a projection of one image on all eigen vectors retained
          std::vector<core::Buffer1D<double>> responses( pca.getNbVectors() );
          double sumVariance = 0;
-         for ( ui32 n = 0; n < pca.getNbVectors(); ++n )
+         for ( size_t n = 0; n < pca.getNbVectors(); ++n )
          {
             responses[ n ] = core::Buffer1D<double>( nbFrames, false );
             sumVariance += fabs( pca.getEigenValues()[ pca.getPairs()[ n ].second ] );
          }
 
-         for ( ui32 n = 0; n < frames.size(); ++n )
+         for ( size_t n = 0; n < frames.size(); ++n )
          {
             core::Buffer1D<float> projection = pca.process( core::Buffer1D<float>( frames[ n ] ) );
             assert( projection.size() == pca.getNbVectors() ); // "wrong size"
-            for ( ui32 nn = 0; nn < projection.size(); ++nn )
+            for ( size_t nn = 0; nn < projection.size(); ++nn )
             {
                responses[ nn ][ n ] = projection[ nn ];
             }
@@ -132,7 +132,7 @@ namespace algorithm
          // now do spectrum analysis
          //
          std::vector<core::Buffer1D<double>> periodogramResponses( pca.getNbVectors() );
-         for ( ui32 n = 0; n < pca.getNbVectors(); ++n )
+         for ( size_t n = 0; n < pca.getNbVectors(); ++n )
          {
             Periodogram periodogram;
             HanningWindow window;
@@ -141,12 +141,12 @@ namespace algorithm
 
          // compute the weighted spectrum
          ensure( periodogramResponses.size(), "No component!" );
-         const ui32 spectrumSize = periodogramResponses[ 0 ].size();
+         const size_t spectrumSize = periodogramResponses[ 0 ].size();
          core::Buffer1D<double> weightedSpectrum( spectrumSize, false );
-         for ( ui32 n = 0; n < spectrumSize; ++n )
+         for ( size_t n = 0; n < spectrumSize; ++n )
          {
             double sum = 0;
-            for ( ui32 id = 0; id < periodogramResponses.size(); ++id )
+            for ( size_t id = 0; id < periodogramResponses.size(); ++id )
             {
                const double weight = pca.getEigenValues()[ pca.getPairs()[ id ].second ] / sumVariance;
                sum += weight * periodogramResponses[ id ][ n ];
@@ -163,7 +163,7 @@ namespace algorithm
 
          double fundamentalFrequency = -1;
          double periodicityStrength = 0;
-         _findFundamentalFrequency( (ui32)frames.size(), weightedSpectrum, frequencyResolution, fundamentalFrequency, periodicityStrength );
+         _findFundamentalFrequency( (size_t)frames.size(), weightedSpectrum, frequencyResolution, fundamentalFrequency, periodicityStrength );
 
          {
             std::stringstream ss;
@@ -182,11 +182,11 @@ namespace algorithm
 
    private:
       // here we are assuming the weightedSpectrum is smooth enough so that we can take the local minima to fin the frequency peaks
-      static void _findFundamentalFrequency( ui32 nbData, const core::Buffer1D<double>& weightedSpectrum, double frequencyResolution, double& fundamentalFrequency_out, double& periodicityStrength_out )
+      static void _findFundamentalFrequency( size_t nbData, const core::Buffer1D<double>& weightedSpectrum, double frequencyResolution, double& fundamentalFrequency_out, double& periodicityStrength_out )
       {
          // find all the peaks
-         std::vector<ui32> peaks;
-         for ( ui32 n = 0; n < weightedSpectrum.size(); ++n )
+         std::vector<size_t> peaks;
+         for ( size_t n = 0; n < weightedSpectrum.size(); ++n )
          {
             const double frequency = static_cast<double>( n ) / ( nbData );
             if ( frequency < frequencyResolution )
@@ -206,12 +206,12 @@ namespace algorithm
 
          // computes the peak's left and right support. A peak support is the index until when a peak reaches zero
          // in practice, we use a threhold low enough
-         std::vector<ui32> leftSupport( peaks.size() );
-         std::vector<ui32> rightSupport( peaks.size() );
-         for ( ui32 n = 0; n < peaks.size(); ++n )
+         std::vector<size_t> leftSupport( peaks.size() );
+         std::vector<size_t> rightSupport( peaks.size() );
+         for ( size_t n = 0; n < peaks.size(); ++n )
          {
             const double zero = 0.05 * peaks[ n ];
-            ui32 index = 0;
+            size_t index = 0;
             for ( index = peaks[ n ] - 1; index != 0; --index )
             {
                if ( weightedSpectrum[ index ] <= zero )
@@ -229,7 +229,7 @@ namespace algorithm
                if ( weightedSpectrum[ index ] <= zero )
                   break;
             }
-            rightSupport[ n ] = std::min<ui32>( index, weightedSpectrum.size() - 1 );
+            rightSupport[ n ] = std::min<size_t>( index, weightedSpectrum.size() - 1 );
             if ( n + 1 < peaks.size() && rightSupport[ n ] > peaks[ n + 1 ] )
             {
                rightSupport[ n ] = peaks[ n + 1 ] - 1;
@@ -241,11 +241,11 @@ namespace algorithm
          // so jzust split the support at the middle
          for ( int n = 0; n < (int)peaks.size() - 1; ++n )
          {
-            ui32& right = rightSupport[ n ];
-            ui32& left = leftSupport[ n + 1 ];
+            size_t& right = rightSupport[ n ];
+            size_t& left = leftSupport[ n + 1 ];
             if ( right > left )
             {
-               const ui32 middle = ( right + left ) / 2;
+               const size_t middle = ( right + left ) / 2;
                right = middle;
                left = middle;
             }
@@ -253,7 +253,7 @@ namespace algorithm
 
          // computes the energy of each peak
          std::vector<double> peakEnergy( peaks.size() );
-         for ( ui32 n = 0; n < peaks.size(); ++n )
+         for ( size_t n = 0; n < peaks.size(); ++n )
          {
             const double e = std::accumulate( weightedSpectrum.begin() + leftSupport[ n ], weightedSpectrum.begin() + rightSupport[ n ] + 1, 0.0 );
             peakEnergy[ n ] = e;
@@ -264,7 +264,7 @@ namespace algorithm
          {
             std::stringstream ss;
             ss << "nbPeaks=" << peaks.size() << " spectrumTotalEnergy=" << totalEnergy << std::endl;
-            for ( ui32 n = 0; n < peaks.size(); ++n )
+            for ( size_t n = 0; n < peaks.size(); ++n )
             {
                const double peakFrequency = static_cast<double>( peaks[ n ] ) / ( nbData );
                ss << "peak[ " << n << " ]=" << peaks[ n ] << " peakEnergy=" << peakEnergy[ n ] << " peakFrequency=" << peakFrequency << " leftSupport=" << leftSupport[ n ] << " rightSupport=" << rightSupport[ n ] << std::endl;
@@ -278,13 +278,13 @@ namespace algorithm
          // the tolerance used to match the harmonics is the frequency resolution fs / N
          double bestEnergy = 0;
          std::vector<double> bestFrequencyMatches;
-         for ( ui32 n = 0; n < peaks.size(); ++n )
+         for ( size_t n = 0; n < peaks.size(); ++n )
          {
             std::vector<double> frequencyMatches;
             double energy = peakEnergy[ n ];
             const double fundamentalFrequency = static_cast<double>( peaks[ n ] ) / ( nbData );
             frequencyMatches.push_back( fundamentalFrequency );
-            for ( ui32 harmonic = n + 1; harmonic < peaks.size(); ++harmonic )
+            for ( size_t harmonic = n + 1; harmonic < peaks.size(); ++harmonic )
             {
                const double harmonicFrequency = static_cast<double>( peaks[ harmonic ] ) / ( nbData );
                const bool isMatching = core::isMultipleOf( fundamentalFrequency, harmonicFrequency, frequencyResolution );
@@ -304,7 +304,7 @@ namespace algorithm
             {
                std::stringstream ss;
                ss << "matched peaks: total energy=" << energy << std::endl;
-               for ( ui32 n = 0; n < frequencyMatches.size(); ++n )
+               for ( size_t n = 0; n < frequencyMatches.size(); ++n )
                {
                   ss << " peak frequency=" << frequencyMatches[ n ] << std::endl;
                }

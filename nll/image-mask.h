@@ -40,7 +40,7 @@ namespace core
     @ingroup core
     @brief define a mask as an image of 32bits with 1 dimension.
     */
-   typedef Image<ui32, IndexMapperRowMajorFlat2DColorRGBnMask>  ImageMask;
+   typedef Image<size_t, IndexMapperRowMajorFlat2DColorRGBnMask>  ImageMask;
 
    /**
     @ingroup core
@@ -52,11 +52,11 @@ namespace core
    ImageMask createMask( const Image<T, Mapper, Allocator>& i )
    {
       ImageMask mask( i.sizex(), i.sizey(), 1, false );
-      for ( ui32 ny = 0; ny < i.sizey(); ++ny )
-         for ( ui32 nx = 0; nx < i.sizex(); ++nx )
+      for ( size_t ny = 0; ny < i.sizey(); ++ny )
+         for ( size_t nx = 0; nx < i.sizex(); ++nx )
          {
             bool flagVal = false;
-            for ( ui32 nc = 0; nc < i.getNbComponents(); ++nc )
+            for ( size_t nc = 0; nc < i.getNbComponents(); ++nc )
                if ( i( nx, ny, nc ) )
                {
                   flagVal = true;
@@ -78,18 +78,18 @@ namespace core
    {
       assert( mask.getNbComponents() == 1 && img.sizex() == mask.sizex() && img.sizey() == mask.sizey() );
       Image<T, Mapper, Allocator> img2( img.sizex(), img.sizey(), img.getNbComponents(), true, alloc );
-      for ( ui32 ny = 0; ny < img.sizey(); ++ny )
-         for ( ui32 nx = 0; nx < img.sizex(); ++nx )
+      for ( size_t ny = 0; ny < img.sizey(); ++ny )
+         for ( size_t nx = 0; nx < img.sizex(); ++nx )
          {
-            ui32 index = img2.index( nx, ny, 0 );
+            size_t index = img2.index( nx, ny, 0 );
             T* dst = img2.getBuf() + index;
             if ( mask( nx, ny, 0 ) )
             {
                const T* src = img.getBuf() + index;
-               for ( ui32 c = 0; c < img.getNbComponents(); ++c )
+               for ( size_t c = 0; c < img.getNbComponents(); ++c )
                   dst[ c ] = src[ c ];
             } else {
-               for ( ui32 c = 0; c < img.getNbComponents(); ++c )
+               for ( size_t c = 0; c < img.getNbComponents(); ++c )
                   dst[ c ] = background[ c ];
             }
          }
@@ -103,22 +103,22 @@ namespace core
     If mask(x, y) == id then the pixel (x, y) has the same value than the original, else replaced by backrgound
     */
    template <class T, class Mapper, class Allocator>
-   Image<T, Mapper, Allocator> extract( const Image<T, Mapper, Allocator>& img, const ImageMask& mask, ui32 id, const T* background = Image<T, Mapper>::black(), Allocator alloc = Allocator() )
+   Image<T, Mapper, Allocator> extract( const Image<T, Mapper, Allocator>& img, const ImageMask& mask, size_t id, const T* background = Image<T, Mapper>::black(), Allocator alloc = Allocator() )
    {
       assert( mask.getNbComponents() == 1 && img.sizex() == mask.sizex() && img.sizey() == mask.sizey() );
       Image<T, Mapper, Allocator> img2( img.sizex(), img.sizey(), img.getNbComponents(), true, alloc );
-      for ( ui32 ny = 0; ny < img.sizey(); ++ny )
-         for ( ui32 nx = 0; nx < img.sizex(); ++nx )
+      for ( size_t ny = 0; ny < img.sizey(); ++ny )
+         for ( size_t nx = 0; nx < img.sizex(); ++nx )
          {
-            ui32 index = img2.index( nx, ny, 0 );
+            size_t index = img2.index( nx, ny, 0 );
             T* dst = img2.getBuf() + index;
             if ( mask( nx, ny, 0 ) == id )
             {
                const T* src = img.getBuf() + index;
-               for ( ui32 c = 0; c < img.getNbComponents(); ++c )
+               for ( size_t c = 0; c < img.getNbComponents(); ++c )
                   dst[ c ] = src[ c ];
             } else {
-               for ( ui32 c = 0; c < img.getNbComponents(); ++c )
+               for ( size_t c = 0; c < img.getNbComponents(); ++c )
                   dst[ c ] = background[ c ];
             }
          }

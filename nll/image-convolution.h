@@ -49,7 +49,7 @@ namespace core
 	{
 		Convolutionf convolution(3, 3);
 		
-		for (ui32 n = 0; n < 9; ++n)
+		for (size_t n = 0; n < 9; ++n)
 			convolution[n] = 1.0f / 9.0f;
 		return convolution;
 	}
@@ -62,7 +62,7 @@ namespace core
 	{
 		Convolutionf convolution(35, 35);
 		
-		for (ui32 n = 0; n < 35*35; ++n)
+		for (size_t n = 0; n < 35*35; ++n)
 			convolution[n] = 1.0f / (35*35);
 		return convolution;
 	}
@@ -76,23 +76,23 @@ namespace core
 	template <class type, class mapper, class allocator, class Convolution>
 	Image<type, mapper, allocator> convolve( const Image<type, mapper, allocator>& img, const Convolution& convolution )
 	{
-		i32 midx = convolution.sizex() / 2;
-		i32 midy = convolution.sizey() / 2;
+		i32 midx = static_cast<i32>( convolution.sizex() ) / 2;
+		i32 midy = static_cast<i32>( convolution.sizey() ) / 2;
 	
 		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false, img.getAllocator());
 
-		for (ui32 y = midy; y < img.sizey() - midy; ++y)
-			for (ui32 x = midx; x < img.sizex() - midx; ++x)
+		for (size_t y = midy; y < img.sizey() - midy; ++y)
+			for (size_t x = midx; x < img.sizex() - midx; ++x)
 			{
-				for (ui32 c = 0; c < img.getNbComponents(); ++c)
+				for (size_t c = 0; c < img.getNbComponents(); ++c)
 				{
 					f64 tt = 0;
-					ui32 ddx = x - midx;
-					ui32 ddy = y - midy;
-					for (ui32 dy = 0; dy < convolution.sizey(); ++dy)
-						for (ui32 dx = 0; dx < convolution.sizex(); ++dx)
+					size_t ddx = x - midx;
+					size_t ddy = y - midy;
+					for (size_t dy = 0; dy < convolution.sizey(); ++dy)
+						for (size_t dx = 0; dx < convolution.sizex(); ++dx)
 							tt += convolution(dx, dy) * img(ddx + dx , ddy + dy, c);
-               tt = NLL_BOUND(tt, (type)Bound<type>::min, (type)Bound<type>::max);
+               tt = NLL_BOUND(tt, std::numeric_limits<type>::min(), std::numeric_limits<type>::max());
 					tmp(x, y, c) = static_cast<type> (tt);
 				}
 			}

@@ -110,7 +110,7 @@ public:
       typedef std::vector<Point>    Points;
 
       Points pointsT;
-      for ( ui32 n = 0; n < core::getStaticBufferSize( points ); ++n )
+      for ( size_t n = 0; n < core::getStaticBufferSize( points ); ++n )
          pointsT.push_back( core::make_vector<double>( points[ n ][ 0 ], points[ n ][ 1 ] ) );
 
       algorithm::LocallyLinearEmbedding lle;
@@ -132,7 +132,7 @@ public:
       algorithm::LocallyLinearEmbedding lle;
       std::vector<Point> ps = lle.transform( inputs, 2, 4 );
 
-      for ( ui32 n = 0; n < ps.size(); ++n )
+      for ( size_t n = 0; n < ps.size(); ++n )
       {
          std::cout << "p=" << ps[ n ][ 0 ] << " " << ps[ n ][ 1 ] << std::endl;
          std::cout << "expected=" << resultDiff[ n ][ 0 ] << " " << resultDiff[ n ][ 1 ] << std::endl;

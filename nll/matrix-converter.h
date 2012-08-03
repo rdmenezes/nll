@@ -48,8 +48,8 @@ namespace core
    Matrix<To, Mappero> convertMatrix( const Matrix<Ti, Mapperi>& i )
    {
       Matrix<To, Mappero> o( i.sizey(), i.sizex(), false );
-      for ( ui32 nx = 0; nx < i.sizex(); ++nx )
-         for ( ui32 ny = 0; ny < i.sizey(); ++ny )
+      for ( size_t nx = 0; nx < i.sizex(); ++nx )
+         for ( size_t ny = 0; ny < i.sizey(); ++ny )
             o( ny, nx ) = static_cast<To> ( i( ny, nx ) );
       return o;
    }

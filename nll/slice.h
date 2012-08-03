@@ -178,7 +178,7 @@ namespace imaging
        @param y a pixel y coordinate
        @param col a pixel col coordinate
        */
-      value_type operator()( ui32 x, ui32 y, ui32 col ) const
+      value_type operator()( size_t x, size_t y, size_t col ) const
       {
          return _storage( x, y, col );
       }
@@ -189,7 +189,7 @@ namespace imaging
        @param y a pixel y coordinate
        @param col a pixel col coordinate
        */
-      value_type& operator()( ui32 x, ui32 y, ui32 col )
+      value_type& operator()( size_t x, size_t y, size_t col )
       {
          return _storage( x, y, col );
       }
@@ -197,7 +197,7 @@ namespace imaging
       /**
        @brief Returns a directional iterator on this position
        */
-      DirectionalIterator getIterator( ui32 x, ui32 y )
+      DirectionalIterator getIterator( size_t x, size_t y )
       {
          return _storage.getIterator( x, y, 0 );
       }
@@ -205,7 +205,7 @@ namespace imaging
       /**
        @brief Returns a directional iterator on this position
        */
-      ConstDirectionalIterator getIterator( ui32 x, ui32 y ) const
+      ConstDirectionalIterator getIterator( size_t x, size_t y ) const
       {
          return _storage.getIterator( x, y, 0 );
       }
@@ -244,10 +244,26 @@ namespace imaging
 
       /**
        @brief Returns the size of the slice
+       @note in some loops, it might be better to call sizex..z
        */
       const core::vector3ui size() const
       {
          return core::vector3ui( _storage.sizex(), _storage.sizey(), _storage.getNbComponents() );
+      }
+
+      const size_t sizex() const
+      {
+         return _storage.sizex();
+      }
+
+      const size_t sizey() const
+      {
+         return _storage.sizey();
+      }
+
+      const size_t sizez() const
+      {
+         return _storage.sizez();
       }
 
       /**
@@ -280,8 +296,8 @@ namespace imaging
          try
          {
             core::vector2f slicePos = worldToSliceCoordinate( pos );
-            const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
-            const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
+            const float sx = static_cast<float>( this->sizex() ) / 2;
+            const float sy = static_cast<float>( this->sizey() ) / 2;
             if ( slicePos[ 0 ] - 1 <= -sx ||
                  slicePos[ 0 ] + 1 >= sx ||
                  slicePos[ 1 ] - 1 <= -sy ||
@@ -298,8 +314,8 @@ namespace imaging
 
       bool contains( const core::vector2f pos ) const
       {
-         const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
-         const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
+         const float sx = static_cast<float>( this->sizex() ) / 2;
+         const float sy = static_cast<float>( this->sizey() ) / 2;
          if ( pos[ 0 ] - 1 <= -sx ||
               pos[ 0 ] + 1 >= sx ||
               pos[ 1 ] - 1 <= -sy ||
@@ -310,8 +326,8 @@ namespace imaging
 
       bool contains( const core::vector2i pos ) const
       {
-         const float sx = static_cast<float>( this->size()[ 0 ] ) / 2;
-         const float sy = static_cast<float>( this->size()[ 1 ] ) / 2;
+         const float sx = static_cast<float>( this->sizex() ) / 2;
+         const float sy = static_cast<float>( this->sizey() ) / 2;
          if ( pos[ 0 ] - 1 <= -sx ||
               pos[ 0 ] + 1 >= sx ||
               pos[ 1 ] - 1 <= -sy ||

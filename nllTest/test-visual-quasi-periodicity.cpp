@@ -119,7 +119,7 @@ struct TestVisualQuasiPeriodicityAnalysis
          0.406827
       };
 
-      const ui32 sizei = core::getStaticBufferSize( i );
+      const size_t sizei = core::getStaticBufferSize( i );
 
       const double ii[]=
       {
@@ -176,7 +176,7 @@ struct TestVisualQuasiPeriodicityAnalysis
          0.452682,	0
       };
 
-      const ui32 sizeii = core::getStaticBufferSize( ii );
+      const size_t sizeii = core::getStaticBufferSize( ii );
 
 
       core::Buffer1D<double> input( (double*)i, sizei, false );
@@ -186,7 +186,7 @@ struct TestVisualQuasiPeriodicityAnalysis
       fft.forward( input, input.size(), output );
 
       TESTER_ASSERT( sizeii == output.size() );
-      for ( ui32 n = 0; n < sizeii; ++n )
+      for ( size_t n = 0; n < sizeii; ++n )
       {
          TESTER_ASSERT( core::equal<double>( output[ n ], ii[ n ], 1e-5 ) );
       }
@@ -194,7 +194,7 @@ struct TestVisualQuasiPeriodicityAnalysis
       core::Buffer1D<double> input2( (double*)ii, sizeii, false );
       fft.backward( input2, input2.size(), output );
       TESTER_ASSERT( sizei == output.size() );
-      for ( ui32 n = 0; n < sizei; ++n )
+      for ( size_t n = 0; n < sizei; ++n )
       {
          TESTER_ASSERT( core::equal<double>( output[ n ] / input.size(), i[ n ], 1e-5 ) );
       }
@@ -208,8 +208,8 @@ struct TestVisualQuasiPeriodicityAnalysis
       const core::Buffer1D<double> convolution = core::convolve( data, kernel );
       convolution.print( std::cout );
 
-      const ui32 half = kernel.size() / 2;
-      for ( ui32 n = half; n < data.size() - half; ++n )
+      const size_t half = kernel.size() / 2;
+      for ( size_t n = half; n < data.size() - half; ++n )
       {
          const double val = data[ n - 1 ] * kernel[ 0 ] +
                             data[ n     ] * kernel[ 1 ] +
@@ -236,8 +236,8 @@ struct TestVisualQuasiPeriodicityAnalysis
       const core::Buffer1D<double> convolution = core::convolve( data, kernel );
       convolution.print( std::cout );
 
-      const ui32 half = kernel.size() / 2;
-      for ( ui32 n = half; n < data.size() - half; ++n )
+      const size_t half = kernel.size() / 2;
+      for ( size_t n = half; n < data.size() - half; ++n )
       {
          const double val = data[ n - 2 ] * kernel[ 0 ] +
                             data[ n - 1 ] * kernel[ 1 ] +
@@ -310,14 +310,14 @@ struct TestVisualQuasiPeriodicityAnalysis
    void testPeriodogramPeriodicFunction1()
    {
       srand(0);
-      for ( ui32 iter = 0; iter < 100; ++iter )
+      for ( size_t iter = 0; iter < 100; ++iter )
       {
          const double period =  core::generateUniformDistribution( 0.1, 0.5 );
          const double mean = core::generateUniformDistribution( -0.5, 2.5 );
-         const ui32 nbData = core::generateUniformDistributioni( 100, 150 );
+         const size_t nbData = core::generateUniformDistributioni( 100, 150 );
 
          core::Buffer1D<double> data( nbData );
-         for ( ui32 n = 0; n < nbData; ++n )
+         for ( size_t n = 0; n < nbData; ++n )
          {
             data[ n ] = std::cos( 2 * core::PI * n * period ) + mean;
          }
@@ -336,15 +336,15 @@ struct TestVisualQuasiPeriodicityAnalysis
    void testPeriodogramPeriodicFunction2()
    {
       srand(0);
-      for ( ui32 iter = 0; iter < 100; ++iter )
+      for ( size_t iter = 0; iter < 100; ++iter )
       {
          const double period =  core::generateUniformDistribution( 0.1, 0.3 );
          const double period2 =  core::generateUniformDistribution( 0.35, 0.5 );
          const double mean = core::generateUniformDistribution( -0.5, 2.5 );
-         const ui32 nbData = core::generateUniformDistributioni( 100, 150 );
+         const size_t nbData = core::generateUniformDistributioni( 100, 150 );
 
          core::Buffer1D<double> data( nbData );
-         for ( ui32 n = 0; n < nbData; ++n )
+         for ( size_t n = 0; n < nbData; ++n )
          {
             const double noise = core::generateGaussianDistribution(0, 0.5 );
             data[ n ] = std::cos( 2 * core::PI * n * period ) + mean + std::cos( 2 * core::PI * n * period2 ) + noise;
@@ -356,10 +356,10 @@ struct TestVisualQuasiPeriodicityAnalysis
 
          size_t maxIndex = std::max_element( p.begin(), p.end() ) - p.begin();
          if ( maxIndex >= 1 )
-            p[ (ui32)maxIndex - 1 ] = 0;
-         p[ (ui32)maxIndex ] = 0;
+            p[ (size_t)maxIndex - 1 ] = 0;
+         p[ (size_t)maxIndex ] = 0;
          if ( maxIndex + 1 < p.size() )
-            p[ (ui32)maxIndex + 1 ] = 0;
+            p[ (size_t)maxIndex + 1 ] = 0;
          size_t maxIndex2 = std::max_element( p.begin(), p.end() ) - p.begin();
 
          double periodFound = maxIndex / ( 2.0 * p.size() );
@@ -377,11 +377,11 @@ struct TestVisualQuasiPeriodicityAnalysis
       }
    }
 
-   std::vector<core::Image<float>> createFrames( ui32 nbFrames = 30, ui32 nbPeriods = 3 )
+   std::vector<core::Image<float>> createFrames( size_t nbFrames = 30, size_t nbPeriods = 3 )
    {
       // create a noisy rectangle increasing/decreasing
-      const ui32 sx = 48 / 2;
-      const ui32 sy = 32 / 2;
+      const size_t sx = 48 / 2;
+      const size_t sy = 32 / 2;
       const float ssx = 40 / 2;
       const float ssy = 26 / 2;
       const float minRatio = 0.6f;
@@ -389,25 +389,25 @@ struct TestVisualQuasiPeriodicityAnalysis
       const float shapeVal = 200;
 
 
-      const ui32 imageCenterx = sx / 2;
-      const ui32 imageCentery = sy / 2;
-      const ui32 nbFramesPerPeriod = nbFrames / nbPeriods;
+      const size_t imageCenterx = sx / 2;
+      const size_t imageCentery = sy / 2;
+      const size_t nbFramesPerPeriod = nbFrames / nbPeriods;
 
       // generate the sequence
       std::vector<core::Image<float>> frames;
-      for ( ui32 n = 0; n < nbFrames; ++n )
+      for ( size_t n = 0; n < nbFrames; ++n )
       {
-         const ui32 cycleFrame = n % nbFramesPerPeriod;
+         const size_t cycleFrame = n % nbFramesPerPeriod;
          const float ratioFrame = fabs( cycleFrame - nbFramesPerPeriod / 2.0 ) / ( nbFramesPerPeriod / 2 );
          const float rationShape = ( 1 - minRatio ) * ratioFrame + minRatio;
 
-         const ui32 sizeShapex = ssx * rationShape;
-         const ui32 sizeShapey = ssy * rationShape;
+         const size_t sizeShapex = ssx * rationShape;
+         const size_t sizeShapey = ssy * rationShape;
 
          core::Image<float> frame( sx, sy, 1 );
-         for ( ui32 y = imageCentery - sizeShapey / 2; y < imageCentery + sizeShapey / 2;  ++y )
+         for ( size_t y = imageCentery - sizeShapey / 2; y < imageCentery + sizeShapey / 2;  ++y )
          {
-            for ( ui32 x = imageCenterx - sizeShapex / 2; x < imageCenterx + sizeShapex / 2;  ++x )
+            for ( size_t x = imageCenterx - sizeShapex / 2; x < imageCenterx + sizeShapex / 2;  ++x )
             {
                const float val = shapeVal + core::generateUniformDistribution( -noiseLevel, noiseLevel );
                frame.point( x, y )[ 0 ] = val / 255;
@@ -429,14 +429,14 @@ struct TestVisualQuasiPeriodicityAnalysis
    {
       typedef std::vector<core::Image<float>>   Frames;
       typedef algorithm::QuasiPeriodicityAnalysis<Frames> Algorithm;
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
          srand(n);
          //srand(29);
          std::cout << "iter=" << n <<std::endl;
          // setup
-         const ui32 nbFrames = core::generateUniformDistributioni( 50, 150 );
-         const ui32 nbPeriods = core::generateUniformDistributioni( 3, 10 );
+         const size_t nbFrames = core::generateUniformDistributioni( 50, 150 );
+         const size_t nbPeriods = core::generateUniformDistributioni( 3, 10 );
          const std::vector<core::Image<float>> frames = createFrames( nbFrames, nbPeriods );
          const double expectedFrequency = 1 / ( static_cast<double>( nbFrames ) / nbPeriods );
 
@@ -453,13 +453,13 @@ struct TestVisualQuasiPeriodicityAnalysis
                      /*
             // --- DEBUG
             ((core::Buffer1D<double>)pca.getProjection()).print( std::cout );
-            for ( ui32 n = 0; n < nbBasis; ++n )
+            for ( size_t n = 0; n < nbBasis; ++n )
             {
                const core::Matrix<double>& eiv = pca.getProjection();
                core::Image<ui8> img( sx, sy, 1 );
-               for ( ui32 y = 0; y < sy; ++y )
+               for ( size_t y = 0; y < sy; ++y )
                {
-                  for ( ui32 x = 0; x < sx; ++x )
+                  for ( size_t x = 0; x < sx; ++x )
                   {
                      img( x, y, 0 ) = static_cast<ui8>( NLL_BOUND( eiv( n, x + y * sx ) * 127 + 127, 0, 255 ) );
                   }
@@ -552,7 +552,7 @@ struct TestVisualQuasiPeriodicityAnalysis
 
       Pca::Matrix m = pca.getProjection() - pca2.getProjection();
       m.print( std::cout );
-      for ( ui32 n = 0; n < m.size(); ++n )
+      for ( size_t n = 0; n < m.size(); ++n )
       {
          ensure( fabs( m[ n ] ) < 1e-6, "It must be equal" );
       }

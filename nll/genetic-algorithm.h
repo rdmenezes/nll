@@ -55,7 +55,7 @@ namespace algorithm
       typedef std::vector<Gene>     Genes;
 
    public:
-      GeneticAlgorithmStopMaxIteration( const ui32 maxIteration ) : _maxIteration( maxIteration ), _iter( 0 ){}
+      GeneticAlgorithmStopMaxIteration( const size_t maxIteration ) : _maxIteration( maxIteration ), _iter( 0 ){}
       bool operator()( const Genes& ) const
       {
          if ( !_iter++ )
@@ -64,8 +64,8 @@ namespace algorithm
       }
 
    private:
-      mutable ui32 _iter;
-      ui32 _maxIteration;
+      mutable size_t _iter;
+      size_t _maxIteration;
    };
 
    /**
@@ -80,9 +80,9 @@ namespace algorithm
    public:
       void operator()( Gene& mutate ) const
       {
-         ui32 s	= sizeof (Gene);
+         size_t s	= sizeof (Gene);
          ui8  n	= rand() % 8;
-         ui32 ss	= rand() % s;
+         size_t ss	= rand() % s;
          ui8	 nb = 1 << n;
          char* p = (char*)(&mutate);
          p[ss] = p[ss] ^ nb;
@@ -105,7 +105,7 @@ namespace algorithm
    public:
       void operator()( Gene& mutate ) const
       {
-         ui32 g = rand() % mutate.size();
+         size_t g = rand() % mutate.size();
          mutate[ g ] = mutate[ g ] + ( rand() % 3 ) - 2;
       }
    };
@@ -126,15 +126,15 @@ namespace algorithm
 
    public:
       GeneticAlgorithmSelectElitism( const GeneEvaluator& evaluator, bool printEvaluation = true ) : _evaluator( evaluator ), _printEvaluation( printEvaluation ){}
-      Genes operator()( const Genes& genes, ui32 nbGenesToSelect ) const
+      Genes operator()( const Genes& genes, size_t nbGenesToSelect ) const
 	   {
-		   typedef std::pair<f64, ui32>	Pair;
+		   typedef std::pair<f64, size_t>	Pair;
 		   typedef std::vector<Pair>		Pairs;
 
 		   Genes newGenes;
 		   Pairs pairs;
 
-		   for ( ui32 n = 0; n < genes.size(); ++n )
+		   for ( size_t n = 0; n < genes.size(); ++n )
 		   {
 			   clock_t t = clock();
             double val = _evaluator( genes[ n ] );
@@ -142,7 +142,7 @@ namespace algorithm
 			   if ( _printEvaluation )
             {
                std::stringstream ss;
-               for ( ui32 nn = 0; nn < genes[ n ].size(); ++nn )
+               for ( size_t nn = 0; nn < genes[ n ].size(); ++nn )
                   ss << " " << genes[ n ][ nn ];
                core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "eval=" + core::val2str( n ) + " time=" + core::val2str( ( f32 )( clock() - t ) / CLOCKS_PER_SEC) + " val=" + core::val2str( 1 / pairs.rbegin()->first ) + ss.str() );
             }
@@ -154,7 +154,7 @@ namespace algorithm
          {
             std::stringstream ss;
             ss << "best = " << 1 / it->first;
-            for ( ui32 n = 0; n < genes[ it->second ].size(); ++n )
+            for ( size_t n = 0; n < genes[ it->second ].size(); ++n )
                ss << " " << genes[ it->second ][ n ];
             ss << std::endl;
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
@@ -162,7 +162,7 @@ namespace algorithm
    		
          // copy from begin to nb genes
          assert( pairs.size() );
-		   for ( ui32 n = 0; n < ( nbGenesToSelect ) && n < genes.size(); ++n, ++it )
+		   for ( size_t n = 0; n < ( nbGenesToSelect ) && n < genes.size(); ++n, ++it )
 			   newGenes.push_back( genes[ it->second ] );
 		   return newGenes;
       }
@@ -182,18 +182,18 @@ namespace algorithm
    class GeneticAlgorithmRecombinate2Splits
    {
    public:
-      Gene operator()( const Gene& g1, const Gene& g2, ui32 size ) const
+      Gene operator()( const Gene& g1, const Gene& g2, size_t size ) const
       {
-         ui32 r1 = rand() % size;
-	      ui32 r2 = rand() % size;
+         size_t r1 = rand() % size;
+	      size_t r2 = rand() % size;
 	      if ( r1 > r2 )
 		      std::swap( r1, r2 );
 	      Gene g( size );
-         for ( ui32 n = 0; n < r1; ++n )
+         for ( size_t n = 0; n < r1; ++n )
             g[ n ] = g1[ n ];
-	      for ( ui32 n = r1; n <= r2; ++n )
+	      for ( size_t n = r1; n <= r2; ++n )
 		      g[ n ] = g2[ n ];
-         for ( ui32 n = r2 + 1; n < size; ++n )
+         for ( size_t n = r2 + 1; n < size; ++n )
 		      g[ n ] = g1[ n ];
 	      return g;
       }
@@ -229,31 +229,31 @@ namespace algorithm
                         ) : _generator( generator ), _evaluator( evaluator ), _stop( stop ), _recombinate( recombinate ), _select( select ), _mutate( mutate )
       {}
 
-      Genes optimize( ui32 populationSize,
+      Genes optimize( size_t populationSize,
                       double mutationRate,
                       double selectionRate,
-                      ui32 nbRounds,
+                      size_t nbRounds,
                       const Gene seed = GeneGenerate() )
       {
          Genes genes;
          genes.push_back( seed );
-         for ( ui32 n = 0; n < populationSize; ++n )
+         for ( size_t n = 0; n < populationSize; ++n )
 			   genes.push_back( _generator() );
-         ui32 round = 0;
+         size_t round = 0;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "Genetic Algorithm New Instance (remaining=" + core::val2str( nbRounds ) + ")" );
          while ( _stop( genes ) )
          {
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "round=" + core::val2str( round ) );
-            Genes newBreed = _select( genes, static_cast<ui32>( selectionRate * populationSize ) );
-            ui32 size = static_cast<ui32>( newBreed.size() );
+            Genes newBreed = _select( genes, static_cast<size_t>( selectionRate * populationSize ) );
+            size_t size = static_cast<size_t>( newBreed.size() );
             ensure( newBreed.size(), "error: bad proportion" );
             while (newBreed.size() < populationSize)
 			   {
-				   ui32 n1 = static_cast<ui32>( rand() % size );
-				   ui32 n2 = static_cast<ui32>( rand() % size );
+				   size_t n1 = static_cast<size_t>( rand() % size );
+				   size_t n2 = static_cast<size_t>( rand() % size );
 				   newBreed.push_back( _recombinate( newBreed[ n1 ], newBreed[ n2 ], seed.size() ) );
 			   }
-            for (ui32 i = 2; i < newBreed.size(); ++i)
+            for (size_t i = 2; i < newBreed.size(); ++i)
 			   {
 				   f32 n = (f32)(rand() % 1000);
 				   if (n <= mutationRate * 1000)
@@ -300,10 +300,10 @@ namespace algorithm
                                              GeneticAlgorithmStop&               stop,
                                              GeneticAlgorithmRecombinate&        recombinate,
                                              GeneticAlgorithmMutate&             mutate,
-                                             ui32                                populationSize = 100,
+                                             size_t                                populationSize = 100,
                                              f64                                 mutationRate   = 0.3,
                                              f64                                 selectionRate  = 0.5,
-                                             ui32                                nbRounds       = 1
+                                             size_t                                nbRounds       = 1
                                            )
   {
      GeneticAlgorithm<Gene, GeneGenerate, GeneEvaluator, GeneticAlgorithmSelect, GeneticAlgorithmStop, GeneticAlgorithmRecombinate, GeneticAlgorithmMutate> geneticAlgorithm( generator, evaluator, select, stop, recombinate, mutate );
@@ -324,11 +324,11 @@ namespace algorithm
                                              GeneGenerate&                       generator,
                                              GeneEvaluator&                      evaluator,
                                              GeneMutate&                         mutator,
-                                             ui32                                nbCycle,
-                                             ui32                                populationSize = 100,
+                                             size_t                                nbCycle,
+                                             size_t                                populationSize = 100,
                                              f64                                 mutationRate   = 0.3,
                                              f64                                 selectionRate  = 0.5,
-                                             ui32                                nbRounds       = 1
+                                             size_t                                nbRounds       = 1
                                            )
   {
       GeneticAlgorithmSelectElitism<Gene, GeneEvaluator> selector( evaluator, true );
@@ -349,11 +349,11 @@ namespace algorithm
                                              const Gene&                         seed,
                                              GeneGenerate&                       generator,
                                              GeneEvaluator&                      evaluator,
-                                             ui32                                nbCycle,
-                                             ui32                                populationSize = 100,
+                                             size_t                                nbCycle,
+                                             size_t                                populationSize = 100,
                                              f64                                 mutationRate   = 0.3,
                                              f64                                 selectionRate  = 0.5,
-                                             ui32                                nbRounds       = 1
+                                             size_t                                nbRounds       = 1
                                            )
   {
       GeneticAlgorithmSelectElitism<Gene, GeneEvaluator> selector( evaluator, true );

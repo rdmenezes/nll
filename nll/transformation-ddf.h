@@ -58,7 +58,7 @@ namespace imaging
 
             // remove the translation part as this has already been taken care of...
             _targetPstInv.clone( targetPstInv );
-            for ( ui32 n = 0; n + 1 < targetPstInv.sizey(); ++n )
+            for ( size_t n = 0; n + 1 < targetPstInv.sizey(); ++n )
             {
                _targetPstInv( n, targetPstInv.sizex() - 1 ) = 0;
             }
@@ -283,7 +283,7 @@ namespace imaging
          //            = | d/dx[1]  d/dy[1]  d/dz[1] |
          //              | d/dx[2]  d/dy[2]  d/dz[2] |
          Matrix grad( 3, 3 );
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( size_t n = 0; n < 3; ++n )
          {
             grad( n, 0 ) = dx[ n ];
             grad( n, 1 ) = dy[ n ];
@@ -339,12 +339,12 @@ namespace imaging
             core::vector3f linePosSrc = core::vector3f( start[ 0 ] + z * dz[ 0 ],
                                                         start[ 1 ] + z * dz[ 1 ],
                                                         start[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < ddfSize[ 1 ]; ++y )
+            for ( size_t y = 0; y < ddfSize[ 1 ]; ++y )
             {
                Ddf::DirectionalIterator  voxelIt = lineIt;
                
                core::vector3f mmPosSrc = linePosSrc;
-               for ( ui32 x = 0; x < ddfSize[ 0 ]; ++x )
+               for ( size_t x = 0; x < ddfSize[ 0 ]; ++x )
                {
                   // assign the DDF to the RBF displacement
                   core::Buffer1D<float> d = rbfTfm.getRawDeformableDisplacementOnly( core::Buffer1D<float>( mmPosSrc.getBuf(), 3, false ) );
@@ -363,7 +363,7 @@ namespace imaging
          return ddf;
       }
 
-      core::vector3f getInverseTransform( const core::vector3f& v, ui32 maxIter = 100, bool* converged_out = 0 ) const
+      core::vector3f getInverseTransform( const core::vector3f& v, size_t maxIter = 100, bool* converged_out = 0 ) const
       {
 	      bool converged = false;
 
@@ -399,7 +399,7 @@ namespace imaging
 	   - then x_n+1 = x_n - alpha * d(x)/dx
 	   - continue until ||f(x) - v || > epsilon
        */
-      core::vector3f getInverseTransform_gradientDescent( const core::vector3f& v, ui32 maxIter = 500, bool* converged_out = 0, float alpha = 0.1 ) const
+      core::vector3f getInverseTransform_gradientDescent( const core::vector3f& v, size_t maxIter = 500, bool* converged_out = 0, float alpha = 0.1 ) const
       {
          // v = f(x) => if we don't have deformable displacement, then x = affine^-1 * v
          // which is our best initial guess
@@ -409,7 +409,7 @@ namespace imaging
          const float epsilon = 0.1f;
          const float epsilon2 = core::sqr( epsilon );
 
-         ui32 iter = 0;
+         size_t iter = 0;
 		   float lastError = 1e4;
          core::vector3f d( 1, 1, 1 );
          for ( ;; ++iter )
@@ -439,7 +439,7 @@ namespace imaging
          return x;
       }
 
-	  core::vector3f getInverseTransform_newton( const core::vector3f& v, ui32 maxIter = 50, bool* converged_out = 0 ) const
+	  core::vector3f getInverseTransform_newton( const core::vector3f& v, size_t maxIter = 50, bool* converged_out = 0 ) const
       {
          // v = f(x) => if we don't have deformable displacement, then x = affine^-1 * v
          // which is our best initial guess
@@ -449,7 +449,7 @@ namespace imaging
          const float epsilon = 0.01f;
          const float epsilon2 = core::sqr( epsilon );
 
-         ui32 iter = 0;
+         size_t iter = 0;
          core::vector3f d( 1, 1, 1 );
          for ( ;; ++iter )
          {

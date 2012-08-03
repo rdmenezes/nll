@@ -56,11 +56,11 @@ namespace imaging
       {}
 
       // called for each slice
-      void startSlice( ui32 sliceId )
+      void startSlice( size_t sliceId )
       {}
 
       // called after each slice
-      void endSlice( ui32 sliceId )
+      void endSlice( size_t sliceId )
       {}
 
       // called as soon as the volume mapper ended the mapping process
@@ -122,6 +122,21 @@ namespace imaging
       template <class Processor, class T, class Storage>
       void run( Processor& procOrig, const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled ) const
       {
+         run( procOrig, target, tfm, resampled, core::vector3ui( 0, 0, 0 ), resampled.getSize() );
+      }
+
+      /**
+       @brief Transformation mapper on a subset of the volume
+       @param start the begining of the subset
+       @param end the end of the subset, NON inclusive
+       */
+      template <class Processor, class T, class Storage>
+      void run( Processor& procOrig,
+                const VolumeSpatial<T, Storage>& target,
+                const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled,
+                const core::vector3ui& start,
+                const core::vector3ui& end ) const
+      {
          typedef VolumeSpatial<T, Storage>   VolumeType;
          typedef core::Matrix<f32>  Matrix;
 
@@ -130,6 +145,14 @@ namespace imaging
          {
             return;
          }
+
+         ensure( start[ 0 ] <= end[ 0 ], "wrong arg!" );
+         ensure( start[ 1 ] <= end[ 1 ], "wrong arg!" );
+         ensure( start[ 2 ] <= end[ 2 ], "wrong arg!" );
+
+         ensure( end[ 0 ] <= resampled.getSize()[ 0 ], "wrong arg!" );
+         ensure( end[ 1 ] <= resampled.getSize()[ 1 ], "wrong arg!" );
+         ensure( end[ 2 ] <= resampled.getSize()[ 2 ], "wrong arg!" );
 
          // (1) compute the transformation index target->position MM with affine target->source TFM applied
          core::Matrix<float> targetOriginTfm = tfm.getInvertedAffineMatrix() * target.getPst();
@@ -152,13 +175,14 @@ namespace imaging
                                   orientation( 2, 2 ) );
 
          // now fast resampling loop
-         const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
+         const int sizez = static_cast<int>( end[ 2 ] );
+         const int startz = static_cast<int>( start[ 2 ] );
          procOrig.start();
 
          #if !defined(NLL_NOT_MULTITHREADED)
          # pragma omp parallel for
          #endif
-         for ( int z = 0; z < sizez; ++z )
+         for ( int z = startz; z < sizez; ++z )
          {
             Processor proc = procOrig;
             proc.startSlice( z );
@@ -167,7 +191,7 @@ namespace imaging
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
                                                         originInTarget[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
+            for ( size_t y = start[ 1 ]; y < end[ 1 ]; ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
@@ -179,7 +203,7 @@ namespace imaging
                   0
                };
 
-               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
+               for ( size_t x = start[ 0 ]; x < end[ 0 ]; ++x )
                {
                   proc.process( voxelIt, voxelPosSrc );
 
@@ -237,6 +261,21 @@ namespace imaging
       template <class Processor, class T, class Storage>
       void run( Processor& procOrig, const VolumeSpatial<T, Storage>& target, const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled ) const
       {
+         run( procOrig, target, tfm, resampled, core::vector3ui( 0, 0, 0 ), resampled.getSize() );
+      }
+
+      /**
+       @brief Transformation mapper on a subset of the volume
+       @param start the begining of the subset
+       @param end the end of the subset, NON inclusive
+       */
+      template <class Processor, class T, class Storage>
+      void run( Processor& procOrig,
+                const VolumeSpatial<T, Storage>& target,
+                const TransformationAffine& tfm, VolumeSpatial<T, Storage>& resampled,
+                const core::vector3ui& start,
+                const core::vector3ui& end ) const
+      {
          typedef VolumeSpatial<T, Storage>   VolumeType;
          typedef core::Matrix<f32>  Matrix;
 
@@ -245,6 +284,14 @@ namespace imaging
          {
             return;
          }
+
+         ensure( start[ 0 ] <= end[ 0 ], "wrong arg!" );
+         ensure( start[ 1 ] <= end[ 1 ], "wrong arg!" );
+         ensure( start[ 2 ] <= end[ 2 ], "wrong arg!" );
+
+         ensure( end[ 0 ] <= resampled.getSize()[ 0 ], "wrong arg!" );
+         ensure( end[ 1 ] <= resampled.getSize()[ 1 ], "wrong arg!" );
+         ensure( end[ 2 ] <= resampled.getSize()[ 2 ], "wrong arg!" );
 
          // (1) compute the transformation index target->position MM with affine target->source TFM applied
          core::Matrix<float> targetOriginTfm = tfm.getInvertedAffineMatrix() * target.getPst();
@@ -267,13 +314,14 @@ namespace imaging
                                   orientation( 2, 2 ) );
 
          // now fast resampling loop
-         const int sizez = static_cast<int>( resampled.getSize()[ 2 ] );
+         const int sizez = static_cast<int>( end[ 2 ] );
+         const int startz = static_cast<int>( start[ 2 ] );
          procOrig.start();
 
          #if !defined(NLL_NOT_MULTITHREADED)
          # pragma omp parallel for
          #endif
-         for ( int z = 0; z < sizez; ++z )
+         for ( int z = startz; z < sizez; ++z )
          {
             Processor proc = procOrig;
             proc.startSlice( z );
@@ -282,7 +330,7 @@ namespace imaging
             core::vector3f linePosSrc = core::vector3f( originInTarget[ 0 ] + z * dz[ 0 ],
                                                         originInTarget[ 1 ] + z * dz[ 1 ],
                                                         originInTarget[ 2 ] + z * dz[ 2 ] );
-            for ( ui32 y = 0; y < resampled.getSize()[ 1 ]; ++y )
+            for ( size_t y = start[ 1 ]; y < end[ 1 ]; ++y )
             {
                typename VolumeType::DirectionalIterator  voxelIt = lineIt;
                
@@ -294,7 +342,7 @@ namespace imaging
                   0
                };
 
-               for ( ui32 x = 0; x < resampled.getSize()[ 0 ]; ++x )
+               for ( size_t x = start[ 0 ]; x < end[ 0 ]; ++x )
                {
                   proc.process( core::vector3ui( x, y, z ), voxelPosSrc );
 

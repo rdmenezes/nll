@@ -13,12 +13,12 @@ public:
 
    void fillVolume( Volume& v )
    {
-      ui32 n = 1;
-      for ( ui32 z = 0; z < v.size()[ 2 ]; ++z )
+      size_t n = 1;
+      for ( size_t z = 0; z < v.size()[ 2 ]; ++z )
       {
-         for ( ui32 y = 0; y < v.size()[ 1 ]; ++y )
+         for ( size_t y = 0; y < v.size()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < v.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < v.size()[ 0 ]; ++x )
             {
                v( x, y, z ) = n++;
             }
@@ -30,7 +30,7 @@ public:
    {
       for ( i32 y = v.size()[ 1 ] - 1; y >= 0; --y )
       {
-         for ( ui32 x = 0; x < v.size()[ 0 ]; ++x )
+         for ( size_t x = 0; x < v.size()[ 0 ]; ++x )
          {
             std::cout << v( x, y, 0 ) << " ";
          }

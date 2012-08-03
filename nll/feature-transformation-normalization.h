@@ -75,8 +75,8 @@ namespace algorithm
       bool compute( const Database& points )
       {
          Database learningDat = core::filterDatabase( points,
-                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                                                                    Database::Sample::VALIDATION ),
+                                                      core::make_vector<size_t>( Database::Sample::LEARNING,
+                                                                                 Database::Sample::VALIDATION ),
                                                       Database::Sample::LEARNING );
          core::DatabaseInputAdapterRead<Database> databaseAdapter( learningDat );
          return _impl.compute( databaseAdapter );

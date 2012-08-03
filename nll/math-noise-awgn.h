@@ -45,8 +45,8 @@ namespace core
    {
       ensure( variance > 0, "variance can't be <= 0" );
       const double stddev = sqrt( variance );
-      const ui32 size = static_cast<ui32>( v.size() );
-      for ( ui32 n = 0; n < size; ++n )
+      const size_t size = static_cast<size_t>( v.size() );
+      for ( size_t n = 0; n < size; ++n )
       {
          const double err = generateGaussianDistributionStddev( 0, stddev );
          v[ n ] += err;

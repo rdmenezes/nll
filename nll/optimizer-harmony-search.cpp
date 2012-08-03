@@ -42,10 +42,10 @@ namespace algorithm
       assert( _hms );
 
       _memory = HarmonyMemory( _hms );
-      for ( ui32 n = 0; n < _hms; ++n )
+      for ( size_t n = 0; n < _hms; ++n )
       {
-         SolutionVector sol( static_cast<ui32>( parameters.size() ) );
-         for ( ui32 ni = 0; ni < parameters.size(); ++ni )
+         SolutionVector sol( static_cast<size_t>( parameters.size() ) );
+         for ( size_t ni = 0; ni < parameters.size(); ++ni )
             sol[ ni ] = parameters[ ni ].generate();
          _memory[ n ] = SolutionStorage( sol, client.evaluate( sol ) );
       }

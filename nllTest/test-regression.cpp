@@ -85,7 +85,7 @@ public:
       Database dat;
 
       srand( 0 );
-      for ( ui32 n = 0; n < 500; ++n )
+      for ( size_t n = 0; n < 500; ++n )
       {
          double val = static_cast<double>( rand() ) / RAND_MAX;
          double output = fabs( cos( val * 4 ) );
@@ -93,7 +93,7 @@ public:
          dat.add( Database::Sample( make_buffer1D<double>( val ), make_buffer1D<double>( output ), Database::Sample::LEARNING ) );
       }
 
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
          double val = static_cast<double>( rand() ) / RAND_MAX;
          double output = fabs( cos( val * 4 ) );
@@ -117,7 +117,7 @@ public:
       Database dat;
 
       srand( 0 );
-      for ( ui32 n = 0; n < 500; ++n )
+      for ( size_t n = 0; n < 500; ++n )
       {
          double val = static_cast<double>( rand() ) / RAND_MAX;
          double output = fabs( cos( val * 4 ) );
@@ -125,7 +125,7 @@ public:
          dat.add( Database::Sample( make_buffer1D<double>( val ), make_buffer1D<double>( output ), Database::Sample::LEARNING ) );
       }
 
-      for ( ui32 n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 100; ++n )
       {
          double val = static_cast<double>( rand() ) / RAND_MAX;
          double output = fabs( cos( val * 4 ) );

@@ -65,9 +65,9 @@ namespace imaging
       hdr << "version:" << NLL_IMAGING_TEXT_VOLUME_READER_VERSION << std::endl;
       hdr << "size:" << volume.getSize()[ 0 ] << " " << volume.getSize()[ 1 ] << " " << volume.getSize()[ 2 ] << std::endl;
       hdr << "background:" << volume.getBackgroundValue() << std::endl;
-      for ( ui32 ny = 0; ny < 4; ++ny )
+      for ( size_t ny = 0; ny < 4; ++ny )
       {
-         for ( ui32 nx = 0; nx < 4; ++nx )
+         for ( size_t nx = 0; nx < 4; ++nx )
          {
             hdr << volume.getPst()( ny, nx );
             if ( nx != 3 )
@@ -77,15 +77,15 @@ namespace imaging
       }
 
       // text
-      for ( ui32 z = 0; z < volume.getSize()[ 2 ]; ++z )
+      for ( size_t z = 0; z < volume.sizez(); ++z )
       {
-         for ( ui32 y = 0; y < volume.getSize()[ 1 ]; ++y )
+         for ( size_t y = 0; y < volume.sizey(); ++y )
          {
-            for ( ui32 x = 0; x < volume.getSize()[ 0 ]; ++x )
+            for ( size_t x = 0; x < volume.sizex(); ++x )
             {
                const T val = volume( x, y, z );
                txt << val;
-               if ( x + 1 != volume.getSize()[ 0 ] )
+               if ( x + 1 != volume.sizex() )
                   txt << " ";
             }
             txt << std::endl;
@@ -120,7 +120,7 @@ namespace imaging
       if ( lineSpt.size() != 2 )
          throw std::runtime_error( "error: can't parse volume header: version" );
 
-      ui32 version = atoi( lineSpt[ 1 ] );
+      size_t version = atoi( lineSpt[ 1 ] );
       if ( version != NLL_IMAGING_TEXT_VOLUME_READER_VERSION )
          throw std::runtime_error( "error: header version not recognized" );
 
@@ -148,14 +148,14 @@ namespace imaging
 
       // get PSR
       typename VolumeSpatial<T, Storage>::Matrix tfm( 4, 4 );
-      for ( ui32 y = 0; y < 4; ++y )
+      for ( size_t y = 0; y < 4; ++y )
       {
 
          std::getline( hdr, line );
          lineSpt = core::split( line, ' ' );
          if ( lineSpt.size() != 4 )
             throw std::runtime_error( "error: can't parse volume header: transformation matrix" );
-         for ( ui32 x = 0; x < 4; ++x )
+         for ( size_t x = 0; x < 4; ++x )
          {
             tfm( y, x ) = static_cast<typename VolumeSpatial<T, Storage>::Matrix::value_type>( atof( lineSpt[ x ] ) );
          }
@@ -165,11 +165,11 @@ namespace imaging
       // read binary data
       //
       volume = VolumeSpatial<T, Storage>( size, tfm );
-      for ( ui32 z = 0; z < volume.getSize()[ 2 ]; ++z )
+      for ( size_t z = 0; z < volume.sizez(); ++z )
       {
-         for ( ui32 y = 0; y < volume.getSize()[ 1 ]; ++y )
+         for ( size_t y = 0; y < volume.sizey(); ++y )
          {
-            for ( ui32 x = 0; x < volume.getSize()[ 0 ]; ++x )
+            for ( size_t x = 0; x < volume.sizex(); ++x )
             {
                if ( txt.eof() )
                   throw std::runtime_error( "error: read all data of the volume" );

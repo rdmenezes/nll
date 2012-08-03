@@ -69,24 +69,24 @@ namespace core
       /**
        @brief return the size the underlying image
        */
-      ui32 sizex() const { return _img.sizex(); }
+      size_t sizex() const { return _img.sizex(); }
 
       /**
        @brief return the size the underlying image
        */
-      ui32 sizey() const { return _img.sizey(); }
+      size_t sizey() const { return _img.sizey(); }
 
       /**
        @brief return the number of components of the underlying image
        */
-      ui32 getNbComponents() const { return _img.getNbComponents(); }
+      size_t getNbComponents() const { return _img.getNbComponents(); }
       
       virtual ~Interpolator2D(){}
 
       /**
        @brief return the value of an interpolated point
        */
-      virtual value_type interpolate( value_type x, value_type y, ui32 c ) const = 0;
+      virtual value_type interpolate( value_type x, value_type y, size_t c ) const = 0;
 
    protected:
       Interpolator2D& operator=( const Interpolator2D& );
@@ -107,7 +107,7 @@ namespace core
       typedef typename Base::value_type         value_type;
 
       InterpolatorLinear2D( const typename Base::TImage& i ) : Base( i ){}
-      value_type interpolate( value_type x, value_type y, ui32 c ) const
+      value_type interpolate( value_type x, value_type y, size_t c ) const
       {
          value_type buf[ 4 ];
 
@@ -140,9 +140,6 @@ namespace core
          value_type val = ( 1 - dy ) * ( ( 1 - dx ) * buf[ 0 ] + ( dx ) * buf[ 1 ] ) +
                           ( dy )     * ( ( dx )     * buf[ 2 ] + ( 1 - dx ) * buf[ 3 ] );
 
-         // the first line|col is discarded as we can't really interpolate it correctly
-         assert( val >= Bound<T>::min );
-         assert( val <= ( Bound<T>::max + 0.999 ) );   // like 255.000000003, will be automatically truncated to 255
          return val;
       }
 
@@ -165,7 +162,7 @@ namespace core
          if ( xi < 0 || ( xi + 1 ) >= static_cast<int>( this->_img.sizex() ) ||
               yi < 0 || ( yi + 1 ) >= static_cast<int>( this->_img.sizey() ) )
          {
-            for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
+            for ( size_t nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
                output[ nbcomp ] = 0;
             return;
          }
@@ -177,7 +174,7 @@ namespace core
          const value_type a3 = ( 1 - dx ) * ( dy );
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
-         for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp, iterOrig.addcol() )
+         for ( size_t nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp, iterOrig.addcol() )
          {
             typename Base::TImage::ConstDirectionalIterator iter = iterOrig;
             buf[ 0 ] = *iter;
@@ -205,7 +202,7 @@ namespace core
       typedef typename Base::value_type          value_type;
 
       InterpolatorNearestNeighbor2D( const typename Base::TImage& i ) : Base( i ){}
-      value_type interpolate( value_type x, value_type y, ui32 c ) const
+      value_type interpolate( value_type x, value_type y, size_t c ) const
       {
          const value_type xf = x + 0.5f;
          const value_type yf = y + 0.5f;
@@ -236,13 +233,14 @@ namespace core
          if ( xf < 0 || ( xi ) >= static_cast<int>( this->_img.sizex() ) ||
               yf < 0 || ( yi ) >= static_cast<int>( this->_img.sizey() ) )
          {
-            for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
+            for ( size_t nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
                *output++ = 0;
             return;
          }
 
          typename Base::TImage::ConstDirectionalIterator iterOrig = this->_img.getIterator( xi, yi, 0 );
-         for ( ui32 nbcomp = 0; nbcomp < this->_img.getNbComponents(); ++nbcomp )
+         const i32 nbCmp = static_cast<i32>( this->_img.getNbComponents() );
+         for ( i32 nbcomp = 0; nbcomp < nbCmp; ++nbcomp )
             *output++ = iterOrig.pickcol( nbcomp );
       }
    };

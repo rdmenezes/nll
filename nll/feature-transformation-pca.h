@@ -83,14 +83,14 @@ namespace algorithm
        @return true if successful
        */
       template <class Database>
-      bool compute( const Database& _dat, ui32 nbComponents )
+      bool compute( const Database& _dat, size_t nbComponents )
       {
          if ( _pca )
             delete _pca;
          _pca = new Pca();
          Database learningDat = core::filterDatabase( _dat,
-                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                                                                    Database::Sample::VALIDATION ),
+                                                      core::make_vector<size_t>( Database::Sample::LEARNING,
+                                                                                 Database::Sample::VALIDATION ),
                                                       Database::Sample::LEARNING );
          core::DatabaseInputAdapterRead<Database> databaseAdapter( learningDat );
          return _pca->compute( databaseAdapter, nbComponents );

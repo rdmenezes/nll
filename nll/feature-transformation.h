@@ -92,7 +92,7 @@ namespace algorithm
       TDatabase transform( const TDatabase& dat ) const
       {
          TDatabase newDat;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             typename TDatabase::Sample  sample;
             sample.input   = process( dat[ n ].input );

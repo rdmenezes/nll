@@ -59,7 +59,7 @@ namespace algorithm
          double evaluateDiscriminant( const InputPoint& p ) const
          {
             Matrix pm( p.size(), 1 );
-            for ( ui32 n = 0; n < p.size(); ++n )
+            for ( size_t n = 0; n < p.size(); ++n )
                pm[ n ] = p[ n ];
 
             Matrix t = pm - meanm;
@@ -81,7 +81,7 @@ namespace algorithm
             {
                core::LoggerNll::write( core::LoggerNll::ERROR, "covariance is singular in quadratic discriminant analysis" );
                std::cerr << "covariance is singular in quadratic discriminant analysis" << std::endl;
-               for ( ui32 n = 0; n < covinv.sizex(); ++n )
+               for ( size_t n = 0; n < covinv.sizex(); ++n )
                   covinv( n, n ) += 1e-2;
                r = core::inverse( covinv, &det );
             }
@@ -101,7 +101,7 @@ namespace algorithm
       /**
        @brief Compute the model
 
-       Database must define an input = InputPoints and output = ui32
+       Database must define an input = InputPoints and output = size_t
 
        InputPoints must define:
          InputPoint operator[](index)
@@ -118,16 +118,16 @@ namespace algorithm
             return;
 
          // compute some constants
-         const ui32 nbClasses = getNumberOfClass( database );
+         const size_t nbClasses = getNumberOfClass( database );
          _classes = Classes( nbClasses );
 
          // first filter the training samples
-         Database training = core::filterDatabase( database, core::make_vector<ui32>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
+         Database training = core::filterDatabase( database, core::make_vector<size_t>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
          if ( training.size() == 0 )
             return;
 
-         ui32 nbSamples = 0;
-         for ( ui32 classid = 0; classid < nbClasses; ++classid )
+         size_t nbSamples = 0;
+         for ( size_t classid = 0; classid < nbClasses; ++classid )
          {
             // filter the samples by class
             core::DatabaseInputAdapterClass<Database> adapter( training, classid );
@@ -136,13 +136,13 @@ namespace algorithm
                throw std::runtime_error( "cannot estimate the covariance: no data!" );
             }
 
-            _classes[ classid ].prior = adapter.size();
+            _classes[ classid ].prior = static_cast<double>( adapter.size() );
             _classes[ classid ].cov   = core::covariance( adapter, &_classes[ classid ].mean );
 
             nbSamples += adapter.size();
          }
 
-         for ( ui32 classid = 0; classid < nbClasses; ++classid )
+         for ( size_t classid = 0; classid < nbClasses; ++classid )
          {
             _classes[ classid ].prior /= nbSamples;
             _classes[ classid ].precompute();   // precompute the constants
@@ -155,10 +155,10 @@ namespace algorithm
             throw std::runtime_error( "cannot read from stream" );
          
          // read
-         ui32 nbC = 0;
-         core::read<ui32>( nbC, i );
+         size_t nbC = 0;
+         core::read<size_t>( nbC, i );
          _classes = Classes( nbC );
-         for ( ui32 classid = 0; classid < nbC; ++classid )
+         for ( size_t classid = 0; classid < nbC; ++classid )
          {
             core::read<f64>( _classes[ classid ].prior, i );
             _classes[ classid ].mean.read( i );
@@ -172,9 +172,9 @@ namespace algorithm
          if ( !o.good() )
             throw std::runtime_error( "cannot read from stream" );
 
-         ui32 nbC = (ui32)_classes.size();
-         core::write<ui32>( nbC, o );
-         for ( ui32 n = 0; n < nbC; ++n )
+         size_t nbC = (size_t)_classes.size();
+         core::write<size_t>( nbC, o );
+         for ( size_t n = 0; n < nbC; ++n )
          {
             core::write<f64>( _classes[ n ].prior, o );
             _classes[ n ].mean.write( o );
@@ -194,21 +194,21 @@ namespace algorithm
        @brief Detect to what class it belongs
        */
       template <class InputPoint>
-      ui32 test( const InputPoint& p, core::Buffer1D<double>* probability = 0 ) const
+      size_t test( const InputPoint& p, core::Buffer1D<double>* probability = 0 ) const
       {
          ensure( _classes.size() != 0, "there is no parameter learn for this model!" );
 
          double max = (double)INT_MIN;
          double sum = 0;
-         ui32 index = (ui32)_classes.size();
+         size_t index = (size_t)_classes.size();
 
 
          if ( probability )
          {
-            *probability = core::Buffer1D<double>( (ui32)_classes.size() );
+            *probability = core::Buffer1D<double>( (size_t)_classes.size() );
          }
 
-         for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
+         for ( size_t n = 0; n < (size_t)_classes.size(); ++n )
          {
             double v = _classes[ n ].evaluateDiscriminant( p );
             if ( v > max )
@@ -226,7 +226,7 @@ namespace algorithm
 
          if ( probability  )
          {
-            for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
+            for ( size_t n = 0; n < (size_t)_classes.size(); ++n )
                ( *probability )[ n ] /= sum;
          }
 
@@ -240,8 +240,8 @@ namespace algorithm
       template <class InputPoint>
       InputPoint project( const InputPoint& p ) const
       {
-         InputPoint pp( (ui32)_classes.size() );
-         for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
+         InputPoint pp( (size_t)_classes.size() );
+         for ( size_t n = 0; n < (size_t)_classes.size(); ++n )
          {
             pp[ n ] = _classes[ n ].evaluateDiscriminant( p );
          }

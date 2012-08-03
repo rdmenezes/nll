@@ -116,21 +116,21 @@ namespace imaging
       }
 
       // cache the lut address & values in an array // else strange code is generated with VS2005SP1
-      core::Buffer1D<const Lut*> luts( static_cast<ui32>( sliceInfos.size() ) );
+      core::Buffer1D<const Lut*> luts( static_cast<size_t>( sliceInfos.size() ) );
       std::vector<__m128> blendFactors( sliceInfos.size() );
-      for ( ui32 n = 0; n < sliceInfos.size(); ++n )
+      for ( size_t n = 0; n < sliceInfos.size(); ++n )
       {
          luts[ n ] = sliceInfos[ n ].lut;
          blendFactors[ n ] = _mm_set_ps1( sliceInfos[ n ].blendFactor );
       }
 
       __declspec(align(16)) int result[ 4 ];
-      const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
+      const size_t nbSlices = static_cast<size_t>( sliceInfos.size() );
       for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3 )
       {
          __m128 val = _mm_setzero_ps();
 
-         for ( ui32 n = 0; n < nbSlices; ++n )
+         for ( size_t n = 0; n < nbSlices; ++n )
          {
             // we mainly need this for compilation only... it can be instanciated with any type
             // but should never be run with a type different than float
@@ -166,10 +166,10 @@ namespace imaging
          return;
 
       // cache the lut address & values in an array // else strange code is generated with VS2005SP1
-      core::Buffer1D<const Lut*> luts( static_cast<ui32>( sliceInfos.size() ) );
-      core::Buffer1D<float> blendFactors( static_cast<ui32>( sliceInfos.size() ) );
+      core::Buffer1D<const Lut*> luts( static_cast<size_t>( sliceInfos.size() ) );
+      core::Buffer1D<float> blendFactors( static_cast<size_t>( sliceInfos.size() ) );
       std::vector< InputIterator > inputIterators( sliceInfos.size() );
-      for ( ui32 n = 0; n < sliceInfos.size(); ++n )
+      for ( size_t n = 0; n < sliceInfos.size(); ++n )
       {
          luts[ n ] = sliceInfos[ n ].lut;
          blendFactors[ n ] = sliceInfos[ n ].blendFactor;
@@ -187,14 +187,14 @@ namespace imaging
          assert( core::equal( sliceInfos[ n ].slice->getNormal()[ 2 ], out.getNormal()[ 2 ], 1e-4f ) );
       }
 
-      const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
+      const size_t nbSlices = static_cast<size_t>( sliceInfos.size() );
       for ( OutputIterator oit = out.begin(); oit != out.end(); oit += 3 )
       {
          float vala = 0;
          float valb = 0;
          float valc = 0;
 
-         for ( ui32 n = 0; n < nbSlices; ++n )
+         for ( size_t n = 0; n < nbSlices; ++n )
          {
             const typename Lut::value_type* buf = luts[ n ]->transform( *inputIterators[ n ]++ );
             const float blending = blendFactors[ n ];
@@ -218,7 +218,7 @@ namespace imaging
     @param out the slice already allocated.
     */
    template <class Lut, class OutType>
-   void blendDummyPart( const std::vector< BlendSliceInfof<Lut> >& sliceInfos, Slice<OutType>& out, const ui32 xmin, const ui32 ymin, const ui32 xmax, const ui32 ymax )
+   void blendDummyPart( const std::vector< BlendSliceInfof<Lut> >& sliceInfos, Slice<OutType>& out, const size_t xmin, const size_t ymin, const size_t xmax, const size_t ymax )
    {
       typedef typename BlendSliceInfof<Lut>::Slice::value_type     InputType;
       typedef typename Slice<OutType>::value_type                  OutputType;
@@ -229,11 +229,11 @@ namespace imaging
          return;
 
       // cache the lut address & values in an array // else strange code is generated with VS2005SP1
-      core::Buffer1D<const Lut*> luts( static_cast<ui32>( sliceInfos.size() ) );
-      core::Buffer1D<float> blendFactors( static_cast<ui32>( sliceInfos.size() ) );
+      core::Buffer1D<const Lut*> luts( static_cast<size_t>( sliceInfos.size() ) );
+      core::Buffer1D<float> blendFactors( static_cast<size_t>( sliceInfos.size() ) );
       std::vector< InputIterator > inputIterators;
       std::vector< InputIterator > inputIteratorsStartLine;
-      for ( ui32 n = 0; n < sliceInfos.size(); ++n )
+      for ( size_t n = 0; n < sliceInfos.size(); ++n )
       {
          luts[ n ] = sliceInfos[ n ].lut;
          blendFactors[ n ] = sliceInfos[ n ].blendFactor;
@@ -260,23 +260,23 @@ namespace imaging
          assert( out.contains( min ) && out.contains( max ) );
       }
 
-      const ui32 nbSlices = static_cast<ui32>( sliceInfos.size() );
-      for ( ui32 ny = ymin; ny < ymax; ++ny )
+      const size_t nbSlices = static_cast<size_t>( sliceInfos.size() );
+      for ( size_t ny = ymin; ny < ymax; ++ny )
       {
          typename Slice<OutType>::DirectionalIterator oit = out.getIterator( xmin, ny );
-         for ( ui32 n = 0; n < sliceInfos.size(); ++n )
+         for ( size_t n = 0; n < sliceInfos.size(); ++n )
          {
             inputIteratorsStartLine[ n ].addcol();
             inputIterators[ n ] = inputIteratorsStartLine[ n ];
          }
 
-         for ( ui32 nx = xmin; nx < xmax; ++nx )
+         for ( size_t nx = xmin; nx < xmax; ++nx )
          {
             float vala = 0;
             float valb = 0;
             float valc = 0;
 
-            for ( ui32 n = 0; n < nbSlices; ++n )
+            for ( size_t n = 0; n < nbSlices; ++n )
             {
                // get the value: we are not using the postfix operator++ as it involves copying the iterator a lot
                InputIterator& it = inputIterators[ n ];

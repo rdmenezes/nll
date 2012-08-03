@@ -39,13 +39,13 @@ namespace algorithm
          }
 
          model*         _model;
-	      ui32           _solver;
-         ui32           _inputSize;
+	      size_t           _solver;
+         size_t           _inputSize;
 
          feature_node** _vector;
-         ui32           _vectorSize;
-         ui32           _nbClasses;
-         ui32           _createProbabilityModel;
+         size_t           _vectorSize;
+         size_t           _nbClasses;
+         size_t           _createProbabilityModel;
          bool           _balanceData;
          double         _c;
       };
@@ -88,25 +88,25 @@ namespace algorithm
 			   return 0;
          _params->_nbClasses = getNumberOfClass( dat );
 
-         _params->_inputSize = static_cast<ui32>( dat[ 0 ].input.size() );
-		   std::vector<ui32> learningIndex;
-		   for (ui32 n = 0; n < dat.size(); ++n)
+         _params->_inputSize = static_cast<size_t>( dat[ 0 ].input.size() );
+		   std::vector<size_t> learningIndex;
+		   for (size_t n = 0; n < dat.size(); ++n)
             if ( dat[ n ].type == Database::Sample::LEARNING )
 				   learningIndex.push_back(n);
 		   assert( learningIndex.size() ); // "no learning data in database"
 
 		   int* y = new int[ learningIndex.size() ];
-		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
+		   for ( size_t n = 0; n < learningIndex.size(); ++n )
 			   y[ n ] = static_cast<int>( dat[ learningIndex[ n ] ].output );
 
 		   Point* inputs = new Point[ learningIndex.size() ];
-		   for ( ui32 n = 0; n < learningIndex.size(); ++n )
+		   for ( size_t n = 0; n < learningIndex.size(); ++n )
 			   inputs[ n ] = dat[ learningIndex[ n ] ].input;
-         feature_node** x = implementation::build_svmlinear_inputs_from_vectors( inputs, static_cast<ui32>( learningIndex.size() ), static_cast<ui32>( dat[ 0 ].input.size() ) );
+         feature_node** x = implementation::build_svmlinear_inputs_from_vectors( inputs, static_cast<size_t>( learningIndex.size() ), static_cast<size_t>( dat[ 0 ].input.size() ) );
 		   delete [] inputs;
 
 		   problem pb;
-		   pb.l = static_cast<ui32>( learningIndex.size() );
+		   pb.l = static_cast<size_t>( learningIndex.size() );
          pb.n = _params->_inputSize;
          pb.bias = -1;
 
@@ -129,14 +129,14 @@ namespace algorithm
          if ( _params->_balanceData )
          {
             // compute the number of instance for each class
-            for ( ui32 n = 0; n < _params->_nbClasses; ++n )
+            for ( size_t n = 0; n < _params->_nbClasses; ++n )
                labels[ n ] = n + 1; // svmlib classes start at 1 by default
-            for ( ui32 n = 0; n < learningIndex.size(); ++n )
+            for ( size_t n = 0; n < learningIndex.size(); ++n )
                ++weights[ dat[ learningIndex[ n ] ].output ];
             double norm = 0;
-            for ( ui32 n = 0; n < _params->_nbClasses; ++n )
+            for ( size_t n = 0; n < _params->_nbClasses; ++n )
                norm += weights[ n ];
-            for ( ui32 n = 0; n < _params->_nbClasses; ++n )
+            for ( size_t n = 0; n < _params->_nbClasses; ++n )
                weights[ n ] = 1 / ( weights[ n ] / norm );
 
             // set the penalty factor
@@ -156,20 +156,20 @@ namespace algorithm
 		   ensure( _params->_model, "error: model not trained" );
 
          _params->_vector = x;
-         _params->_vectorSize = static_cast<ui32>( learningIndex.size() );
+         _params->_vectorSize = static_cast<size_t>( learningIndex.size() );
 		   delete [] y;
          delete [] pb.W;
 
          return -1;
       }
 
-      virtual ui32 test( const Point& input ) const
+      virtual size_t test( const Point& input ) const
       {
          core::Buffer1D<double> pb; // just discard this param...
          return test( input, pb );
       }
 
-      virtual ui32 test( const Point& p, core::Buffer1D<double>& probability ) const
+      virtual size_t test( const Point& p, core::Buffer1D<double>& probability ) const
       {
          ensure( _params->_model, "no svm model loaded" );
          ensure( _params->_inputSize == p.size(), "wrong size" );
@@ -180,14 +180,14 @@ namespace algorithm
 
          // normalize the probability
          f64 sum = 1e-15;
-         for ( ui32 n = 0; n < pb.size(); ++n )
+         for ( size_t n = 0; n < pb.size(); ++n )
             sum += pb[ n ];
          ensure( sum > 0, "error: probability error" );
-         for ( ui32 n = 0; n < pb.size(); ++n )
+         for ( size_t n = 0; n < pb.size(); ++n )
             pb[ n ] /= sum;
 
          probability = pb;
-		   return static_cast<ui32>( res );
+		   return static_cast<size_t>( res );
       }
 
    private:
@@ -235,7 +235,7 @@ class TestBoosting
 public:
    void testStumpInf1()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::StumpFactory<Database>    StumpFactory;
 
       Database dat;
@@ -252,11 +252,11 @@ public:
       float error = s1->learn( dat, w );
       TESTER_ASSERT( error <= 0 );
 
-      ui32 nbGood;
+      size_t nbGood;
       computeAsStumpResults( dat, 0, s1->getThreshold(), s1->isInfReturningZeroClass(), nbGood );
       TESTER_ASSERT( nbGood == dat.size() );
 
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
          TESTER_ASSERT( s1->test( dat[ n ].input ) == dat[ n ].output );
       }
@@ -264,7 +264,7 @@ public:
 
    void testStumpInf2()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::StumpFactory<Database>    StumpFactory;
 
       Database dat;
@@ -281,14 +281,14 @@ public:
       std::shared_ptr<algorithm::WeakClassifierStump<Database>> s1 = stumpFactory.create();
       s1->learn( dat, w );
 
-      ui32 nbGood;
+      size_t nbGood;
       computeAsStumpResults( dat, 0, s1->getThreshold(), s1->isInfReturningZeroClass(), nbGood );
       TESTER_ASSERT( nbGood == 5 );
    }
 
    void testStumpInf3()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::StumpFactory<Database>    StumpFactory;
 
       Database dat;
@@ -306,14 +306,14 @@ public:
       std::shared_ptr<algorithm::WeakClassifierStump<Database>> s1 = stumpFactory.create();
       s1->learn( dat, w );
 
-      ui32 nbGood;
+      size_t nbGood;
       computeAsStumpResults( dat, 0, s1->getThreshold(), s1->isInfReturningZeroClass(), nbGood );
       TESTER_ASSERT( nbGood == 5 );
    }
 
    void testStumpSup1()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::StumpFactory<Database>    StumpFactory;
 
       Database dat;
@@ -329,14 +329,14 @@ public:
       std::shared_ptr<algorithm::WeakClassifierStump<Database>> s1 = stumpFactory.create();
       s1->learn( dat, w );
 
-      ui32 nbGood;
+      size_t nbGood;
       computeAsStumpResults( dat, 0, s1->getThreshold(), s1->isInfReturningZeroClass(), nbGood );
       TESTER_ASSERT( nbGood == dat.size() );
    }
 
    void testBoosting1()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>   Adaboost;
       typedef algorithm::StumpFactory<Database>    StumpFactory;
 
@@ -358,17 +358,17 @@ public:
 
    void testBoosting2()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>   Adaboost;
       typedef algorithm::StumpFactory<Database>    StumpFactory;
 
       srand(1);
-      const ui32 nbPoints = 2000;
+      const size_t nbPoints = 2000;
       const double mean = 0;
       const double var = 1;
 
       Database dat;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -386,23 +386,23 @@ public:
 
    void testBoostingMlp()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>   Adaboost;
       typedef algorithm::WeakClassifierMlpFactory<Database>    Factory;
 
       srand(10);
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 0;
       const double var = 0.5;
 
       Database dat;
-      ui32 nbClassOne = 0;
+      size_t nbClassOne = 0;
       float max = 0;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
-         const ui32 d = sqrt( x * x + y * y ) < 0.6f;
+         const size_t d = sqrt( x * x + y * y ) < 0.6f;
          dat.add( Database::Sample( core::make_vector<float>( x, y ), d, Database::Sample::LEARNING ) );
 
          max = std::max<float>( fabs( x ), max );
@@ -413,9 +413,9 @@ public:
          }
       }
 
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
-         for ( ui32 nn = 0; nn < dat[ n ].input.size(); ++nn )
+         for ( size_t nn = 0; nn < dat[ n ].input.size(); ++nn )
          {
             dat[ n ].input[ nn ] /= max;
          }
@@ -425,7 +425,7 @@ public:
 
       Adaboost classifier;
       std::shared_ptr<algorithm::StopConditionMlpCycleThreshold> stop( new algorithm::StopConditionMlpCycleThreshold( 500 ) );
-      std::vector<ui32> layout = core::make_vector<ui32>( 2, 2, 2 ); // the NN is sufficiently weak with average error 0.3 but combined, it is much better
+      std::vector<size_t> layout = core::make_vector<size_t>( 2, 2, 2 ); // the NN is sufficiently weak with average error 0.3 but combined, it is much better
 
       Factory factory( layout, stop, 1.0, 0 );
       classifier.learn( dat, 10, factory );
@@ -436,7 +436,7 @@ public:
 
    void testDecisionTree2()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::WeakClassifierDecisionTreeFactory<Database>    Factory;
       typedef Factory::value_type Classifier;
       
@@ -498,7 +498,7 @@ public:
 
    void testPerceptronWeights()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>    Factory;
       typedef Factory::value_type Classifier;
       
@@ -546,20 +546,20 @@ public:
 
    void testDecisionTree()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>         Adaboost;
       typedef algorithm::WeakClassifierDecisionTreeFactory<Database>    Factory;
 
 
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 10;
       const double var = 5;
       const double d = 7;
 
 
       Database dat;
-      ui32 nbOne = 0;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      size_t nbOne = 0;
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -591,17 +591,17 @@ public:
 
    void testBoostingLinearSvm()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierLinearSvmFactory<Database>   WeakClassifierLinearSvmFactory;
 
 
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 0;
       const double var = 1;
 
       Database dat;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -619,7 +619,7 @@ public:
 
    void testPerceptron()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::MarginPerceptron Classifier;
 
       Database dat;
@@ -639,12 +639,12 @@ public:
    void testPerceptron2()
    {
       srand( 1 );
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
 
 
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 20;
       const double var = 10;
 
@@ -653,8 +653,8 @@ public:
       const double var2 = 10;
 
       Database dat;
-      ui32 nbOne = 0;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      size_t nbOne = 0;
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          {
             const float x = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -689,15 +689,15 @@ public:
 
    void testPerceptron3()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
 
       srand( 3 );
-      for ( ui32 iter = 0; iter < 50; )
+      for ( size_t iter = 0; iter < 50; )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "testPerceptron3, iter=" + core::val2str( iter ) );
-         const ui32 nbPoints = 200;
+         const size_t nbPoints = 200;
          const double mean = core::generateUniformDistribution( -60, 60 );
          const double var = 10;
 
@@ -709,8 +709,8 @@ public:
             continue;
 
          Database dat;
-         ui32 nbOne = 0;
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         size_t nbOne = 0;
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             {
                const float x = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -744,20 +744,20 @@ public:
 
    void testBoostingLinearSvm2()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>         Adaboost;
       typedef algorithm::WeakClassifierLinearSvmFactory<Database>   Factory;
 
 
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 10;
       const double var = 5;
       const double d = 6;
 
 
       Database dat;
-      ui32 nbOne = 0;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      size_t nbOne = 0;
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -789,20 +789,20 @@ public:
 
    void testStumpInf4()
    {
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>         Adaboost;
       typedef algorithm::StumpFactory<Database>   Factory;
 
 
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 10;
       const double var = 5;
       const double d = 7;
 
 
       Database dat;
-      ui32 nbOne = 0;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      size_t nbOne = 0;
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -835,20 +835,20 @@ public:
    void testPerceptron4()
    {
       srand( 0 );
-      typedef core::Database< core::ClassificationSample< std::vector<float>, ui32 > > Database;
+      typedef core::Database< core::ClassificationSample< std::vector<float>, size_t > > Database;
       typedef algorithm::AdaboostBasic<Database>      Adaboost;
       typedef algorithm::WeakClassifierMarginPerceptronFactory<Database>   Factory;
 
 
-      const ui32 nbPoints = 200;
+      const size_t nbPoints = 200;
       const double mean = 20;
       const double var = 10;
       const double d = 10;
 
 
       Database dat;
-      ui32 nbOne = 0;
-      for ( ui32 n = 0; n < nbPoints; ++n )
+      size_t nbOne = 0;
+      for ( size_t n = 0; n < nbPoints; ++n )
       {
          const float x = (float)core::generateGaussianDistributionStddev( mean, var );
          const float y = (float)core::generateGaussianDistributionStddev( mean, var );
@@ -885,7 +885,7 @@ private:
    static core::Buffer1D<float> makeWeights( const Database& dat )
    {
       core::Buffer1D<float> w( dat.size() );
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
          w[ n ] = 1.0f / dat.size();
       }
@@ -895,11 +895,11 @@ private:
    template <class Database, class Classifier>
    float getTrainingError( const Database& dat, const Classifier& c )
    {
-      ui32 nbErrors = 0;
-      Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
-      for ( ui32 n = 0; n < learning.size(); ++n )
+      size_t nbErrors = 0;
+      Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
+      for ( size_t n = 0; n < learning.size(); ++n )
       {
-         const ui32 cc = c.test( learning[ n ].input );
+         const size_t cc = c.test( learning[ n ].input );
          if ( cc != learning[ n ].output )
             ++nbErrors;
       }
@@ -909,13 +909,13 @@ private:
 
    // simulate a sump and compute its expected results on the database
    template <class Database>
-   static void computeAsStumpResults( const Database& dat, ui32 feature, float threshold, bool isClassInfZero, ui32& nbRight )
+   static void computeAsStumpResults( const Database& dat, size_t feature, float threshold, bool isClassInfZero, size_t& nbRight )
    {
       nbRight = 0;
-      const ui32 nbSamples = dat.size();
-      for ( ui32 n = 0; n < nbSamples; ++n )
+      const size_t nbSamples = dat.size();
+      for ( size_t n = 0; n < nbSamples; ++n )
       {
-         ui32 classout;
+         size_t classout;
          if ( dat[ n ].input[ feature ] < threshold )
          {
             if ( isClassInfZero )
@@ -943,8 +943,8 @@ private:
    template <class Classifier, class Database>
    static void print( const core::vector2i& min, const core::vector2i& max, const Classifier& c, const Database& dat, core::Image<ui8>& out )
    {
-      ui32 sx = max[ 0 ] - min[ 0 ];
-      ui32 sy = max[ 1 ] - min[ 1 ];
+      size_t sx = max[ 0 ] - min[ 0 ];
+      size_t sy = max[ 1 ] - min[ 1 ];
       out = core::Image<ui8>( sx, sy, 3 );
 
       ui8 red[] = {255, 0, 0};
@@ -957,7 +957,7 @@ private:
             p[ 0 ] = min[ 0 ] + x;
             p[ 1 ] = min[ 1 ] + y;
 
-            ui32 cc = c.test( p );
+            size_t cc = c.test( p );
             ui8* color = ( cc == 1 ) ? green : red;
 
             out( x, y, 0 ) = color[ 0 ];
@@ -966,7 +966,7 @@ private:
          }
       }
 
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
          int px = dat[ n ].input[ 0 ] - min[ 0 ];
          int py = dat[ n ].input[ 1 ] - min[ 1 ];

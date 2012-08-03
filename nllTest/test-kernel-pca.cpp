@@ -124,7 +124,7 @@ public:
 
       nll::algorithm::KernelPreImageMDS<Point, Kernel> preimageGenerator( kpca );
       const unsigned sizeTest = nll::core::getStaticBufferSize( test_points_expected );
-      for ( ui32 n = 0; n < sizeTest; ++n )
+      for ( size_t n = 0; n < sizeTest; ++n )
       {
          nll::core::Buffer1D<double> f = kpca.transform( nll::core::make_vector<double>( test_points[ n ][ 0 ], test_points[ n ][ 1 ] ) );
          Point res = preimageGenerator.preimage( f, 3 );

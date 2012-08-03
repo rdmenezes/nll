@@ -43,7 +43,7 @@ namespace algorithm
            GA. As for all the wrapper techniques, it is rather slow, thus not suitable
            for a very high dimentional feature set.
     */
-   template <class Point, class TClassifier = ClassifierBase<Point, ui32> >
+   template <class Point, class TClassifier = ClassifierBase<Point, size_t> >
    class FeatureSelectionGeneticAlgorithm : public FeatureSelectionWrapper<Point, TClassifier>
    {
       typedef FeatureSelectionWrapper<Point, TClassifier>   Base;
@@ -63,7 +63,7 @@ namespace algorithm
       public:
          void operator()( Gene& gene ) const
          {
-            ui32 geneId = rand() % gene.size();
+            size_t geneId = rand() % gene.size();
             gene[ geneId ] = !gene[ geneId ];
          }
       };
@@ -71,14 +71,14 @@ namespace algorithm
       class OperatorGenerate
       {
       public:
-         OperatorGenerate( f64 ratioSize, ui32 geneSize ) : _ratioSize( ratioSize ), _geneSize( geneSize ){}
+         OperatorGenerate( f64 ratioSize, size_t geneSize ) : _ratioSize( ratioSize ), _geneSize( geneSize ){}
          Gene operator()() const
          {
-            ui32 prob = static_cast<ui32>( _ratioSize * 10000 );
+            size_t prob = static_cast<size_t>( _ratioSize * 10000 );
             Gene gene( _geneSize );
-            for ( ui32 n = 0; n < _geneSize; ++n)
+            for ( size_t n = 0; n < _geneSize; ++n)
             {
-               ui32 r = rand() % 10000;
+               size_t r = rand() % 10000;
                if ( r < prob )
                   gene[ n ] = 1;
                else
@@ -89,7 +89,7 @@ namespace algorithm
 
       private:
          f64   _ratioSize;
-         ui32  _geneSize;
+         size_t  _geneSize;
       };
 
       class OperatorEvaluate
@@ -134,7 +134,7 @@ namespace algorithm
          const core::Buffer1D<f64>& _parameters;
       };
    public:
-      FeatureSelectionGeneticAlgorithm( f64 initialFeatureSizeRatio, ui32 populationSize = 100, ui32 nbRounds = 40, ui32 nbPeriods = 5, f64 mutationRate = 0.3, f64 selectionRate = 0.3 ) :
+      FeatureSelectionGeneticAlgorithm( f64 initialFeatureSizeRatio, size_t populationSize = 100, size_t nbRounds = 40, size_t nbPeriods = 5, f64 mutationRate = 0.3, f64 selectionRate = 0.3 ) :
          _initialFeatureSizeRatio( initialFeatureSizeRatio ), _populationSize( populationSize ), _nbRounds( nbRounds ), _nbPeriods( nbPeriods ), _mutationRate( mutationRate ), _selectionRate( selectionRate )
          {}
 
@@ -144,7 +144,7 @@ namespace algorithm
       {
          if ( !dat.size() )
             return core::Buffer1D<bool>();
-         ui32 geneSize = dat[ 0 ].input.size();
+         size_t geneSize = dat[ 0 ].input.size();
          typedef GeneticAlgorithm<  Gene,
                                     OperatorGenerate,
                                     OperatorEvaluate,
@@ -163,7 +163,7 @@ namespace algorithm
          GeneticAlgorithm geneticAlgorithm( generator, evaluator, selector, stop, recombinator, mutator );
 
          Gene seed( geneSize );
-         for ( ui32 n = 0; n < geneSize; ++n )
+         for ( size_t n = 0; n < geneSize; ++n )
             seed[ n ] = true;
          std::vector<Gene> solution = geneticAlgorithm.optimize( _populationSize, _mutationRate, _selectionRate, _nbPeriods, seed );
 
@@ -173,9 +173,9 @@ namespace algorithm
 
    private:
       f64      _initialFeatureSizeRatio;
-      ui32      _populationSize;
-      ui32     _nbRounds;
-      ui32     _nbPeriods;
+      size_t      _populationSize;
+      size_t     _nbRounds;
+      size_t     _nbPeriods;
       f64      _mutationRate;
       f64      _selectionRate;
    };

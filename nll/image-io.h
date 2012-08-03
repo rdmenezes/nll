@@ -48,7 +48,7 @@ namespace core
    #define TO3(n)	((n & 0xFF0000) >> 16)
    #define TO4(n)	((n & 0xFF000000) >> 24)
 
-   inline static void write4(i8* buf, ui32 v)
+   inline static void write4(i8* buf, size_t v)
    {
 	   *buf		= (i8)TO1(v);
 	   *(buf + 1)	= (i8)TO2(v);
@@ -56,7 +56,7 @@ namespace core
 	   *(buf + 3)	= (i8)TO4(v);
    }
 
-   inline static void write2(i8* buf, ui32 v)
+   inline static void write2(i8* buf, size_t v)
    {
 	   *buf		= (ui8)TO1(v);
 	   *(buf + 1)	= (ui8)TO2(v);
@@ -70,7 +70,7 @@ namespace core
    bool writeBmp( const Image<T, Mapper, Alloc>& i, std::ostream& f )
    {
       assert( IsNativeType<T>::value );
-      ui32 size = i.sizex() * i.sizey() * i.getNbComponents() + 54;
+      size_t size = i.sizex() * i.sizey() * i.getNbComponents() + 54;
 		i8 buf[54];
 		memset(buf, 0, 54);
 		write2(buf, 19778);
@@ -91,13 +91,13 @@ namespace core
 		f.write(buf, 54);
 		
 		// write BMP DATA
-		ui32 padding = (i.sizex()) % 4;
+		size_t padding = (i.sizex()) % 4;
 		i8 padding_tab[] = {0, 0, 0, 0};
 		T* buf2 = new T[i.sizex() * i.getNbComponents()];
-		for (ui32 y = 0; y < i.sizey(); ++y)
+		for (size_t y = 0; y < i.sizey(); ++y)
 		{
-			for (ui32 n = 0; n < i.sizex(); ++n)
-				for (ui32 c = 0; c < i.getNbComponents(); ++c)
+			for (size_t n = 0; n < i.sizex(); ++n)
+				for (size_t c = 0; c < i.getNbComponents(); ++c)
 					buf2[n * i.getNbComponents() + c] = i(n, y, c);			// FIXME conversion min/max
 			f.write((i8*)buf2, i.sizex() * i.getNbComponents() * sizeof (T));
 			if (padding)
@@ -132,9 +132,9 @@ namespace core
    bool readBmp( Image<T, Mapper, Alloc>& out_i, std::istream& f, Alloc alloc = Alloc() )
    {
       assert( IsNativeType<T>::value );
-      ui32 sx = 0;
-      ui32 sy = 0;
-      ui32 nbcomp = 0;
+      size_t sx = 0;
+      size_t sy = 0;
+      size_t nbcomp = 0;
       f.seekg(18L, std::ios::beg);
 		f.read((i8*)&sx, 4);
 		f.read((i8*)&sy, 4);
@@ -146,16 +146,16 @@ namespace core
 		f.seekg(54L, std::ios::beg);
       Image<T, Mapper, Alloc> image(sx, sy, nbcomp, false, alloc);
 
-		ui32 padding = sx % 4;
+		size_t padding = sx % 4;
 		ui8 padding_tab[3];		
 		T* buf = new T[sx * nbcomp];
-		for (ui32 y = 0; y < sy; ++y)
+		for (size_t y = 0; y < sy; ++y)
 		{
 			f.read((i8*)buf, sx * nbcomp * sizeof (T));
 			if (padding)
 				f.read((i8*)padding_tab, padding);
-			for (ui32 n = 0; n < sx; ++n)
-				for (ui32 c = 0; c < nbcomp; ++c)
+			for (size_t n = 0; n < sx; ++n)
+				for (size_t c = 0; c < nbcomp; ++c)
 					image(n, y, c) = buf[n * nbcomp + c];		// FIXME conversion min/max
 		}
 		delete [] buf;

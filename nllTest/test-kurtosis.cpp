@@ -9,13 +9,13 @@ public:
    void testGaussian()
    {
       srand( (unsigned)time( 0 ) );
-      for ( ui32 t = 0; t < 500; ++t )
+      for ( size_t t = 0; t < 500; ++t )
       {
          const double mean = core::generateUniformDistribution( -100, 100 );
          const double var = core::generateUniformDistribution( 0.5, 20 );
 
          std::vector<double> vals;
-         for ( ui32 n = 0; n < 100000; ++n )
+         for ( size_t n = 0; n < 100000; ++n )
          {
             vals.push_back( core::generateGaussianDistribution( mean, var ) );
          }

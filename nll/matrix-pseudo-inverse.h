@@ -68,10 +68,10 @@ namespace core
       ensure( res, "can't compute SVD" );
 
       core::transpose( u );
-      for ( ui32 x = 0; x < v.sizex(); ++x )
+      for ( size_t x = 0; x < v.sizex(); ++x )
       {
          const double f = ( fabs( s[ x ] ) > 1e-10 ) ? 1.0 / s[ x ] : 0;
-         for ( ui32 y = 0; y < v.sizey(); ++y )
+         for ( size_t y = 0; y < v.sizey(); ++y )
          {
             v( y, x ) *= f;
          }

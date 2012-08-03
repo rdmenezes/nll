@@ -75,7 +75,7 @@ namespace algorithm
       {
          assert( p1.size() == p2.size() );
          double sum = 0;
-         for ( ui32 n = 0; n < p1.size(); ++n )
+         for ( size_t n = 0; n < p1.size(); ++n )
             sum += p1[ n ] * p2[ n ];
          return pow( sum, _degree );
       }
@@ -127,7 +127,7 @@ namespace algorithm
       {
          assert( p1.size() == p2.size() );
          double sum = 0;
-         for ( ui32 n = 0; n < p1.size(); ++n )
+         for ( size_t n = 0; n < p1.size(); ++n )
          {
             double val = p1[ n ] - p2[ n ];
             sum += val * val;

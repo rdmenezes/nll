@@ -52,10 +52,10 @@ namespace algorithm
 
       struct LevelData : public core::NonCopyable
       {
-         LevelData( ui32 d, const Database&   dd ) : depth( d ), data( dd )
+         LevelData( size_t d, const Database&   dd ) : depth( d ), data( dd )
          {}
 
-         ui32              depth;
+         size_t              depth;
          const Database&   data;
       };
 
@@ -88,7 +88,7 @@ namespace algorithm
       void compute( const Database& dat, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, const core::Buffer1D<float> weights = core::Buffer1D<float>() )
       {
          ensure( weights.size() == dat.size() || weights.size() == 0, "weights must have the same size as database or empty" );
-         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+         Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
 
          std::vector<float> w;
          if ( weights.size() == 0 )
@@ -106,7 +106,7 @@ namespace algorithm
       /**
        @brief get the class of this point
        */
-      ui32 test( const Point& p ) const
+      size_t test( const Point& p ) const
       {
          if ( _nodes.size() == 0 )
          {
@@ -114,7 +114,7 @@ namespace algorithm
             return _nodeClass;
          }
 
-         ui32 nodeId = _split->test( p );
+         size_t nodeId = _split->test( p );
          return _nodes[ nodeId ].test( p );
       }
 
@@ -159,7 +159,7 @@ namespace algorithm
    private:
       // recursively grow the tree on the sub nodes
       template <class NodeFactory>
-      void _compute( const Database& dat, const std::vector<float>& weights, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, ui32 level )
+      void _compute( const Database& dat, const std::vector<float>& weights, const NodeFactory& nodeFactory, const GrowingStrategy& growingStrategy, size_t level )
       {
          LevelData ld( level, dat );
          const bool continueGrowth = growingStrategy.continueGrowth( ld );
@@ -200,7 +200,7 @@ namespace algorithm
       typedef typename DecisionTree<Database>::Class     Class;
 
    public:
-      GrowingStrategyFixedDepth( ui32 maxDepth = std::numeric_limits<ui32>::max() ) : _maxDepth( maxDepth )
+      GrowingStrategyFixedDepth( size_t maxDepth = std::numeric_limits<size_t>::max() ) : _maxDepth( maxDepth )
       {}
 
       /**
@@ -212,7 +212,7 @@ namespace algorithm
 
          // first ensure the node is not pure
          Class c = data.data[ 0 ].output;
-         for ( ui32 n = 1; n < data.data.size(); ++n )
+         for ( size_t n = 1; n < data.data.size(); ++n )
          {
             if ( c != data.data[ n ].output )
             {
@@ -229,15 +229,15 @@ namespace algorithm
       virtual Class getNodeClass( const Database& dat, const std::vector<float>& weights ) const
       {
          // get the max class to be able to count the classes
-         ui32 max = 0;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         size_t max = 0;
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            max = std::max<ui32>( dat[ n ].output, max );
+            max = std::max<size_t>( dat[ n ].output, max );
          }
 
          // count the classes
          std::vector<float> counts( max + 1 );
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             const float w = weights[ n ];
             counts[ dat[ n ].output ] += w;
@@ -249,7 +249,7 @@ namespace algorithm
       }
 
    private:
-      ui32  _maxDepth;
+      size_t  _maxDepth;
    };
 }
 }

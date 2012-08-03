@@ -24,11 +24,11 @@ struct TestDeformable2D
    Imagec toImagec( const Image& i )
    {
       Imagec iout( i.sizex(), i.sizey(), i.getNbComponents() );
-      for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t x = 0; x < i.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < i.sizey(); ++y )
+         for ( size_t y = 0; y < i.sizey(); ++y )
          {
-            for ( ui32 c = 0; c < i.getNbComponents(); ++c )
+            for ( size_t c = 0; c < i.getNbComponents(); ++c )
             {
                iout( x, y, c ) = (ui8)NLL_BOUND( i(x, y, c ), 0, 255 );
             }
@@ -71,11 +71,11 @@ struct TestDeformable2D
    {
       Image i = createCheckerboard0();
       Image iout( i.sizex(), i.sizey(), 3 );
-      for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t x = 0; x < i.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < i.sizey(); ++y )
+         for ( size_t y = 0; y < i.sizey(); ++y )
          {
-            for ( ui32 c = 0; c < i.getNbComponents(); ++c )
+            for ( size_t c = 0; c < i.getNbComponents(); ++c )
             {
                iout( x, y, c ) = i(x, y, 0 ) * 255;
             }
@@ -275,14 +275,14 @@ struct TestDeformable2D
       Image oi = createCheckerboard();
       Image i = createCheckerboard();
       core::rescaleNearestNeighbor( i, 256, 256 );
-      for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t x = 0; x < i.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < i.sizey(); ++y )
+         for ( size_t y = 0; y < i.sizey(); ++y )
          {
-            ui32 ratiox = i.sizex() / oi.sizex();
-            ui32 ratioy = i.sizey() / oi.sizey();
-            const ui32 xi = x / ratiox;
-            const ui32 yi = y / ratioy;
+            size_t ratiox = i.sizex() / oi.sizex();
+            size_t ratioy = i.sizey() / oi.sizey();
+            const size_t xi = x / ratiox;
+            const size_t yi = y / ratioy;
             if ( ( x % ratiox ) != 0 && ( y % ratioy ) != 0 )
             {
                TESTER_ASSERT( i( x, y, 0 ) == oi( xi, yi, 0 ) );
@@ -302,20 +302,20 @@ struct TestDeformable2D
       Image resampled(256, 256, 3 );
       double col[ 3 ] = {0, 0, 0};
 
-      const ui32 ratiox = i.sizex() / oi.sizex();
-      const ui32 ratioy = i.sizey() / oi.sizey();
+      const size_t ratiox = i.sizex() / oi.sizex();
+      const size_t ratioy = i.sizey() / oi.sizey();
 
       core::Matrix<double> tfm = core::identityMatrix< core::Matrix<double> >( 3 );
       tfm( 0, 0 ) = ratiox;
       tfm( 1, 1 ) = ratioy;
 
       core::resampleNearestNeighbour( oi, resampled, tfm, col );
-      for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t x = 0; x < i.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < i.sizey(); ++y )
+         for ( size_t y = 0; y < i.sizey(); ++y )
          {
-            const ui32 xi = x / ratiox;
-            const ui32 yi = y / ratioy;
+            const size_t xi = x / ratiox;
+            const size_t yi = y / ratioy;
             if ( ( x % ratiox ) != 0 && ( y % ratioy ) != 0 )
             {
                TESTER_ASSERT( i( x, y, 0 ) == oi( xi, yi, 0 ) );
@@ -325,9 +325,9 @@ struct TestDeformable2D
          }
       }
 
-      for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t x = 0; x < i.sizex(); ++x )
       {
-         for ( ui32 y = 0; y < i.sizey(); ++y )
+         for ( size_t y = 0; y < i.sizey(); ++y )
          {
             TESTER_ASSERT( i( x, y, 0 ) == resampled( x, y, 0 ) );
             TESTER_ASSERT( i( x, y, 1 ) == resampled( x, y, 1 ) );

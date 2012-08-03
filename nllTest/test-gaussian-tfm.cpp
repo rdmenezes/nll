@@ -125,11 +125,11 @@ public:
 
    Points generateGaussianData( std::vector< std::pair< double, double > >* param_out = 0 )
    {
-      ui32 nbDim = core::generateUniformDistributioni( 1, 15 );
+      size_t nbDim = core::generateUniformDistributioni( 1, 15 );
 
       // generate distribution parameters
       std::vector< std::pair< double, double > > params;
-      for ( ui32 nn = 0; nn < nbDim; ++nn )
+      for ( size_t nn = 0; nn < nbDim; ++nn )
       {
          const double mean = core::generateUniformDistribution( -30, 30 );
          const double var = core::generateUniformDistribution( 1, 6 );
@@ -138,10 +138,10 @@ public:
 
       // generate the data
       std::vector<Point> points;
-      for ( ui32 nn = 0; nn < 5 * nbDim; ++nn )
+      for ( size_t nn = 0; nn < 5 * nbDim; ++nn )
       {
          Point p( nbDim );
-         for ( ui32 i = 0; i < nbDim; ++i )
+         for ( size_t i = 0; i < nbDim; ++i )
          {
             const double val = core::generateGaussianDistribution( params[ i ].first, params[ i ].second );
             p[ i ] = val;
@@ -159,8 +159,8 @@ public:
    void testConversion()
    {
       srand(1);
-      const ui32 nbTests = 500;
-      for ( ui32 n = 0; n < nbTests; ++n )
+      const size_t nbTests = 500;
+      for ( size_t n = 0; n < nbTests; ++n )
       {
          Points points = generateGaussianData();
 
@@ -187,8 +187,8 @@ public:
 
    void testMarginalization()
    {
-      const ui32 nbTests = 200;
-      for ( ui32 n = 0; n < nbTests; ++n )
+      const size_t nbTests = 200;
+      for ( size_t n = 0; n < nbTests; ++n )
       {
          Points points = generateGaussianData();
 
@@ -206,11 +206,11 @@ public:
          }
 
          // check we find the same results
-         std::vector<ui32> list = core::generateUniqueList( 0, cov.sizex() - 1 );
-         ui32 nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
+         std::vector<size_t> list = core::generateUniqueList( 0, cov.sizex() - 1 );
+         size_t nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
          
          PotentialGaussianMoment::VectorI varToMarginalize( nbVar );
-         for ( ui32 nn = 0; nn < nbVar; ++nn )
+         for ( size_t nn = 0; nn < nbVar; ++nn )
          {
             varToMarginalize[ nn ] = list[ nn ];
          }
@@ -235,7 +235,7 @@ public:
 
    void testConditioning()
    {
-      for ( ui32 sample = 0; sample < 200; ++sample )
+      for ( size_t sample = 0; sample < 200; ++sample )
       {
          const double m1 = core::generateUniformDistribution( -10, 10 );
          const double m2 = core::generateUniformDistribution( -10, 10 );
@@ -245,7 +245,7 @@ public:
          Points points1;
          Points points2;
          Points points;
-         for ( ui32 n = 0; n < 500; ++n )
+         for ( size_t n = 0; n < 500; ++n )
          {
             Point p1( 1 );
             p1[ 0 ] = core::generateGaussianDistribution( m1, c1 );
@@ -313,8 +313,8 @@ public:
 
    void testConditioning2()
    {
-      const ui32 nbTests = 200;
-      for ( ui32 n = 0; n < nbTests; ++n )
+      const size_t nbTests = 200;
+      for ( size_t n = 0; n < nbTests; ++n )
       {
          std::vector< std::pair< double, double > > params;
          Points points = generateGaussianData( &params );
@@ -333,11 +333,11 @@ public:
          }
 
          // check we find the same results
-         std::vector<ui32> list = core::generateUniqueList( 0, cov.sizex() - 1 );
-         ui32 nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
+         std::vector<size_t> list = core::generateUniqueList( 0, cov.sizex() - 1 );
+         size_t nbVar = core::generateUniformDistributioni( 1, cov.sizex() - 1 );
          
          PotentialGaussianMoment::VectorI varToMarginalize( nbVar );
-         for ( ui32 nn = 0; nn < nbVar; ++nn )
+         for ( size_t nn = 0; nn < nbVar; ++nn )
          {
             varToMarginalize[ nn ] = list[ nn ];
          }
@@ -345,7 +345,7 @@ public:
          std::sort( varToMarginalize.begin(), varToMarginalize.end() );
 
          PotentialGaussianMoment::Vector x( nbVar );
-         for ( ui32 nn = 0; nn < nbVar; ++nn )
+         for ( size_t nn = 0; nn < nbVar; ++nn )
          {
             x[ nn ] = core::generateGaussianDistribution( params[ nn ].first, params[ nn ].second );
          }

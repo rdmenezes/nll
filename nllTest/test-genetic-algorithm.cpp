@@ -19,7 +19,7 @@ struct GA_GenerateGene
    nll::core::Buffer1D<nll::f64> operator()() const
    {
       nll::core::Buffer1D<nll::f64> g(5);
-      for (nll::ui32 n = 0; n < 5; ++n)
+      for (size_t n = 0; n < 5; ++n)
 	      g[n] = (nll::f32)(rand() % 200) - 100;
       return g;
    }
@@ -30,7 +30,7 @@ struct GA_Mutate
    void operator()(nll::core::Buffer1D<nll::f64>& g) const
    {
       assert(g.size() == 5);
-      nll::ui32 n = rand() % 5;
+      size_t n = rand() % 5;
       nll::f32 d = static_cast<nll::f32>((rand() % 10000) - 5000) / 20000;
       g[n] += d;
    }
@@ -50,7 +50,7 @@ public:
       GA_Mutate         mutate;
       Gene              seed = Gene(5);
 
-      srand((nll::ui32)time(0));
+      srand((size_t)time(0));
       Genes genes = nll::algorithm::launchGeneticAlgorithm(seed, generate, evaluate, mutate, 50, 100, 0.3, 0.1, 20);
       double val = evaluate( genes[ 0 ] );
       std::cout << "min=" << evaluate(genes[0]) << std::endl;

@@ -92,7 +92,7 @@ namespace algorithm
                                               const std::vector<double>& weights,
                                               const ObjectiveFunction<Database>& function,
                                               const core::Buffer1D<double>& initialParameters,
-                                              ui32 nbIterations ) const = 0;
+                                              size_t nbIterations ) const = 0;
 
       virtual ~FunctionOptimizer()
       {}

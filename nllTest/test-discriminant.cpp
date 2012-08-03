@@ -38,16 +38,16 @@ public:
 
       const Matrix cov2 = nll::core::identityMatrix<Matrix>( 2 );
       const Matrix cov3 = nll::core::identityMatrix<Matrix>( 2 );
-      const ui32 nbSamplesPerClass = 100;
+      const size_t nbSamplesPerClass = 100;
 
       // generate the samples
-      typedef core::ClassificationSample<core::Buffer1D<double>, ui32>  Sample;
+      typedef core::ClassificationSample<core::Buffer1D<double>, size_t>  Sample;
       core::Database< Sample > database;
 
       core::NormalMultiVariateDistribution generator1( mean1b, cov1 );
       core::NormalMultiVariateDistribution generator2( mean2b, cov2 );
       core::NormalMultiVariateDistribution generator3( mean3b, cov3 );
-      for ( ui32 n = 0; n < nbSamplesPerClass; ++n )
+      for ( size_t n = 0; n < nbSamplesPerClass; ++n )
       {
          database.add( Sample( generator1.generate(), 0, ( n > nbSamplesPerClass / 2 ) ? Sample::LEARNING : Sample::TESTING ) );
          database.add( Sample( generator2.generate(), 1, ( n > nbSamplesPerClass / 2 ) ? Sample::LEARNING : Sample::TESTING ) );
@@ -58,7 +58,7 @@ public:
       algorithm::QuadraticDiscriminantAnalysis    discriminant;
       discriminant.compute( database );
 
-      for ( ui32 n = 0; n < 2; ++n )
+      for ( size_t n = 0; n < 2; ++n )
       {
          std::cout << "prior=" << discriminant.getParameters()[ n ].prior << std::endl;
          discriminant.getParameters()[ n ].mean.print( std::cout );
@@ -66,11 +66,11 @@ public:
       }
 
       // now just test it!
-      ui32 nbErrors = 0;
-      core::Database< Sample > testing = core::filterDatabase( database, core::make_vector<ui32>( Sample::TESTING ), Sample::TESTING );
-      for ( ui32 n = 0; n < testing.size(); ++n )
+      size_t nbErrors = 0;
+      core::Database< Sample > testing = core::filterDatabase( database, core::make_vector<size_t>( Sample::TESTING ), Sample::TESTING );
+      for ( size_t n = 0; n < testing.size(); ++n )
       {
-         ui32 id = discriminant.test( testing[ n ].input );
+         size_t id = discriminant.test( testing[ n ].input );
          if ( id != testing[ n ].output )
             ++nbErrors;
       }
@@ -87,9 +87,9 @@ public:
 
       algorithm::QuadraticDiscriminantAnalysis    discriminant2;
       discriminant2.read( ss );
-      for ( ui32 n = 0; n < testing.size(); ++n )
+      for ( size_t n = 0; n < testing.size(); ++n )
       {
-         ui32 id = discriminant2.test( testing[ n ].input );
+         size_t id = discriminant2.test( testing[ n ].input );
          if ( id != testing[ n ].output )
             ++nbErrors;
       }

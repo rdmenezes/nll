@@ -40,7 +40,7 @@ namespace core
     @ingroup core
     @brief Class allowing histogramming of any data, provided std::min/max, std::numeric_limits<>::max/min and access operators are provided
     */
-   template < class CountsStore = std::vector<ui32> >
+   template < class CountsStore = std::vector<size_t> >
    class Histogram
    {
    public:
@@ -86,7 +86,7 @@ namespace core
        @note the min and max of the histogram will be automatically computed
        */
       template <class Data>
-      void compute( const Data& data, ui32 nbBins )
+      void compute( const Data& data, size_t nbBins )
       {
          typedef typename Data::value_type      value_type;
          typedef typename Data::const_iterator  const_iterator;
@@ -108,7 +108,7 @@ namespace core
        @brief Compute the histogram of the data given the number of bins and the histogram bounds
        */
       template <class Data>
-      void compute( const Data& data, ui32 nbBins, const typename Data::value_type min, const typename Data::value_type max )
+      void compute( const Data& data, size_t nbBins, const typename Data::value_type min, const typename Data::value_type max )
       {
          typedef typename Data::value_type      value_type;
          typedef typename Data::const_iterator  const_iterator;
@@ -124,7 +124,7 @@ namespace core
 
          for ( const_iterator it = data.begin(); it != data.end(); ++it )
          {
-            int val = static_cast<ui32>( ( static_cast<double>( *it ) - _min ) / _binInterval );
+            int val = static_cast<size_t>( ( static_cast<double>( *it ) - _min ) / _binInterval );
             if ( val < 0 )
             {
                val = 0;

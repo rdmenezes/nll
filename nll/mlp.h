@@ -65,7 +65,7 @@ namespace algorithm
       /**
        @return true if given these errors, the training can be stopped
        */
-      virtual bool stop( ui32 nbCycles, double errorTraining, double errorValidation, double errorTest ) const = 0;
+      virtual bool stop( size_t nbCycles, double errorTraining, double errorValidation, double errorTest ) const = 0;
 
       virtual ~StopConditionMlp()
       {}
@@ -86,7 +86,7 @@ namespace algorithm
          _errorTest = minTest;
       }
 
-      virtual bool stop( ui32 /*nbCycles*/, double errorTraining, double errorValidation, double errorTest ) const
+      virtual bool stop( size_t /*nbCycles*/, double errorTraining, double errorValidation, double errorTest ) const
       {
          double time = _timer.getCurrentTime();
          return errorTraining < _errorTraining     ||
@@ -110,18 +110,18 @@ namespace algorithm
    class StopConditionMlpCycleThreshold : public StopConditionMlp
    {
    public:
-      StopConditionMlpCycleThreshold( ui32 nbCycles )
+      StopConditionMlpCycleThreshold( size_t nbCycles )
       {
          _nbCycles = nbCycles;
       }
 
-      virtual bool stop( ui32 nbCycles, double /*errorTraining*/, double /*errorValidation*/, double /*errorTest*/ ) const
+      virtual bool stop( size_t nbCycles, double /*errorTraining*/, double /*errorValidation*/, double /*errorTest*/ ) const
       {
          return nbCycles >= _nbCycles;
       }
 
    private:
-      ui32 _nbCycles;
+      size_t _nbCycles;
    };
 
    /**
@@ -134,7 +134,7 @@ namespace algorithm
    template <class FunctionSimpleDifferenciable>
    class Mlp
    {
-      typedef core::Buffer1D<ui32>  Vectori;
+      typedef core::Buffer1D<size_t>  Vectori;
       typedef std::vector<double>   Vectorf;
 
       struct Unit
@@ -210,9 +210,9 @@ namespace algorithm
       void createNetwork( const Vector& layers )
       {
          ensure( layers.size() >= 3, "only valid for at least 3 layers" );
-         ui32 size = static_cast<ui32>( layers.size() );
+         size_t size = static_cast<size_t>( layers.size() );
          _layersDesc = Vectori( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
          {
             // add the bias unit
             _layersDesc[ n ] = layers[ n ] + ( n != ( layers.size() - 1 ) );
@@ -231,14 +231,14 @@ namespace algorithm
       void _createNetwork()
       {
          _layers = Layers( _layersDesc.size() );
-         for ( ui32 n = 0; n < _layersDesc.size(); ++n )
+         for ( size_t n = 0; n < _layersDesc.size(); ++n )
             _layers[ n ] = Layer( _layersDesc[ n ] );
-         for ( ui32 n = 0; n < _layersDesc.size() - 1; ++n )
+         for ( size_t n = 0; n < _layersDesc.size() - 1; ++n )
          {
             for ( size_t nn = 0; nn < _layers[ n ].size(); ++nn )
             {
                // check if ( n + 1 ) is last layer to remove the bias weight
-               const ui32 isLastLayer = ( n + 1 ) == ( _layers.size() - 1 );
+               const size_t isLastLayer = ( n + 1 ) == ( _layers.size() - 1 );
                const size_t size = _layers[ n + 1 ].size() - ( isLastLayer != 1 );
                _layers[ n ][ nn ].weights = Vectorf( _layers[ n + 1 ].size() - ( isLastLayer != 1 ) );
                _layers[ n ][ nn ].olddw = Vectorf( _layers[ n + 1 ].size() - ( isLastLayer != 1 ) );
@@ -255,7 +255,7 @@ namespace algorithm
          }
 
          // init the result vector
-         _result = core::Buffer1D<double>( _layersDesc[ (ui32)_layers.size() - 1 ] );
+         _result = core::Buffer1D<double>( _layersDesc[ (size_t)_layers.size() - 1 ] );
       }
 
       /**
@@ -270,19 +270,19 @@ namespace algorithm
 
          ensure( _layers.size(), "init the network first" );
          ensure( input.size() == _layers[ 0 ].size() - 1, "error: input size doesn't match" );
-         for ( ui32 n = 0; n < (ui32)input.size(); ++n )
+         for ( size_t n = 0; n < (size_t)input.size(); ++n )
          {
             _layers[ 0 ][ n ].y = input[ n ];
          }
 
-         for ( ui32 layer = 1; layer < _layers.size(); ++layer )
+         for ( size_t layer = 1; layer < _layers.size(); ++layer )
          {
-            ui32 isLastLayer = ( ( layer + 1 ) == _layers.size() );
-            ui32 nbUnits = _layersDesc[ layer ] - ( isLastLayer != 1 );
-            for ( ui32 n = 0; n < nbUnits; ++n )
+            size_t isLastLayer = ( ( layer + 1 ) == _layers.size() );
+            size_t nbUnits = _layersDesc[ layer ] - ( isLastLayer != 1 );
+            for ( size_t n = 0; n < nbUnits; ++n )
             {
                double sn = 0;
-               for ( ui32 nn = 0; nn < _layersDesc[ layer - 1 ]; ++nn )
+               for ( size_t nn = 0; nn < _layersDesc[ layer - 1 ]; ++nn )
                   sn += _layers[ layer - 1 ][ nn ].weights[ n ] * _layers[ layer - 1 ][ nn ].y;
                _layers[ layer ][ n ].s = sn;
                _layers[ layer ][ n ].y = f.evaluate( sn );
@@ -296,12 +296,12 @@ namespace algorithm
       double _errorWeightDecay() const
       {
          double weight = 0;
-         for ( ui32 layer = 0; layer < _layers.size() - 1; ++layer )
+         for ( size_t layer = 0; layer < _layers.size() - 1; ++layer )
          {
-            ui32 isLastLayer = ( static_cast<ui32>( _layers.size() ) - 1 - 1 ) == layer;
-            ui32 size = _layersDesc[ layer + 1 ] - ( isLastLayer != 1 );
-            for ( ui32 k = 0; k < layer; ++k )
-               for ( ui32 o = 0; o < size; ++o )
+            size_t isLastLayer = ( static_cast<size_t>( _layers.size() ) - 1 - 1 ) == layer;
+            size_t size = _layersDesc[ layer + 1 ] - ( isLastLayer != 1 );
+            for ( size_t k = 0; k < layer; ++k )
+               for ( size_t o = 0; o < size; ++o )
                {
                   const double val = _layers[ layer ][ k ].weights[ o ];
                   weight += val * val;
@@ -320,9 +320,9 @@ namespace algorithm
       double _errorPattern( const Vector& output ) const
       {
          double sum = 0;
-         const ui32 lastLayer = (ui32)_layers.size() - 1;
-         ensure( (ui32)output.size() == _layersDesc[ lastLayer ], "size doesn't match" );
-         for ( ui32 n = 0; n < _layersDesc[ lastLayer ]; ++n )
+         const size_t lastLayer = (size_t)_layers.size() - 1;
+         ensure( (size_t)output.size() == _layersDesc[ lastLayer ], "size doesn't match" );
+         for ( size_t n = 0; n < _layersDesc[ lastLayer ]; ++n )
          {
             double s = output[ n ] - _layers[ lastLayer ][ n ].y;
             sum += s * s;
@@ -341,22 +341,22 @@ namespace algorithm
          FunctionSimpleDifferenciable f;
 
          // last layer
-         ui32 lastLayer = static_cast<ui32>( _layers.size() ) - 1;
-         for ( ui32 n = 0; n < _layersDesc[ lastLayer ]; ++n )
+         size_t lastLayer = static_cast<size_t>( _layers.size() ) - 1;
+         for ( size_t n = 0; n < _layersDesc[ lastLayer ]; ++n )
          {
             _layers[ lastLayer ][ n ].grad = ( output[ n ] - _layers[ lastLayer ][ n ].y ) * 
                                              f.evaluateDerivative( _layers[ lastLayer ][ n ].s ) * weight;
          }
 
          // other layers
-         for ( int layer = lastLayer - 1; layer >= 0; --layer )
+         for ( int layer = static_cast<int>( lastLayer ) - 1; layer >= 0; --layer )
          {
-            for ( ui32 k = 0; k < _layersDesc[ layer ]; ++k )
+            for ( size_t k = 0; k < _layersDesc[ layer ]; ++k )
             {
                double sum = 0;
-               const ui32 isLast = ( (ui32)layer + 1 + 1 ) == _layers.size();
-               const ui32 size = _layersDesc[ layer + 1 ] - ( isLast != 1 );
-               for ( ui32 o = 0; o < size; ++o )
+               const size_t isLast = ( (size_t)layer + 1 + 1 ) == _layers.size();
+               const size_t size = _layersDesc[ layer + 1 ] - ( isLast != 1 );
+               for ( size_t o = 0; o < size; ++o )
                   sum += _layers[ layer + 1 ][ o ].grad * _layers[ layer ][ k ].weights[ o ];
                _layers[ layer ][ k ].grad = f.evaluateDerivative( _layers[ layer ][ k ].s ) * sum;
             }
@@ -370,13 +370,13 @@ namespace algorithm
       void _updateWeights( double learningRate, double momentum, double decayRate )
       {
          // now update the weights
-         for ( ui32 layer = 0; layer < (ui32)( _layers.size() - 1 ); ++layer )
+         for ( size_t layer = 0; layer < (size_t)( _layers.size() - 1 ); ++layer )
          {
-            for ( ui32 i = 0; i < (ui32)_layers[ layer ].size(); ++i )
+            for ( size_t i = 0; i < (size_t)_layers[ layer ].size(); ++i )
             {
-               ui32 isLastLayer = ( layer + 1 + 1 ) == (ui32)_layers.size();
-               const ui32 size = (ui32)_layers[ layer + 1 ].size() - ( isLastLayer != 1 );
-               for ( ui32 j = 0; j < size; ++j )
+               size_t isLastLayer = ( layer + 1 + 1 ) == (size_t)_layers.size();
+               const size_t size = (size_t)_layers[ layer + 1 ].size() - ( isLastLayer != 1 );
+               for ( size_t j = 0; j < size; ++j )
                {
                   const double delta = _layers[ layer + 1 ][ j ].grad * _layers[ layer ][ i ].y * learningRate;
 
@@ -402,8 +402,8 @@ namespace algorithm
       const core::Buffer1D<double>& propagate( const Vector& v ) const
       {
          _propagate( v );
-         ui32 lastLayer = static_cast<ui32>( _layers.size() ) - 1;
-         for ( ui32 n = 0; n < _layersDesc[ lastLayer ]; ++n )
+         size_t lastLayer = static_cast<size_t>( _layers.size() ) - 1;
+         for ( size_t n = 0; n < _layersDesc[ lastLayer ]; ++n )
             _result[ n ] = _layers[ lastLayer ][ n ].y;
          return _result;
       }
@@ -426,7 +426,7 @@ namespace algorithm
       template <class Point, class Point2>
       Result learn( const core::Database< core::ClassificationSample<Point, Point2> >& database, const StopConditionMlp& stop, double learningRate = 0.05, double momentum = 0.1, double weightDecayRate = 0, double reportTimeIntervalInSec = 0.2, const core::Buffer1D<float> weights_ = core::Buffer1D<float>() )
       {
-         ui32 nbIter = 0;
+         size_t nbIter = 0;
          _createNetwork();
 
          double errorT;
@@ -435,7 +435,7 @@ namespace algorithm
 
          ensure( weights_.size() == 0 || weights_.size() == database.size(), "must be empty or each sample must have an associated weight" );
          core::Buffer1D<double> weights( database.size() );
-         for ( ui32 n = 0; n < weights.size(); ++n )
+         for ( size_t n = 0; n < weights.size(); ++n )
          {
             weights[ n ] = ( weights_.size() == 0 ) ? 1 : weights_[ n ];
          }
@@ -448,7 +448,7 @@ namespace algorithm
             errorV = 0;
 
             typedef core::ClassificationSample<Point, Point2> Sample;
-            for ( ui32 n = 0; n < database.size(); ++n )
+            for ( size_t n = 0; n < database.size(); ++n )
             {
                // run the learning
                switch ( database[ n ].type )
@@ -533,10 +533,10 @@ namespace algorithm
          core::read<Layers>( _layers, f );
 
          // recreate the result vector
-         _result = core::Buffer1D<double>( _layersDesc[ (ui32)_layers.size() - 1 ] );
+         _result = core::Buffer1D<double>( _layersDesc[ (size_t)_layers.size() - 1 ] );
 
          // reset the bias output to 1
-         for ( ui32 n = 0; n < (ui32)_layers.size() - 1; ++n )
+         for ( size_t n = 0; n < (size_t)_layers.size() - 1; ++n )
             _layers[ n ][ _layersDesc[ n ] - 1 ].y = 1;
          return true;
       }
@@ -544,7 +544,7 @@ namespace algorithm
       /**
        @brief return the size of the input layer
        */
-      ui32 getInputSize() const
+      size_t getInputSize() const
       {
          ensure( _layersDesc.size(), "no layer descriptor" );
          return _layersDesc[ 0 ] - 1;
@@ -553,10 +553,10 @@ namespace algorithm
       /**
        @brief return the size of the output layer
        */
-      ui32 getOutputSize() const
+      size_t getOutputSize() const
       {
          ensure( _layersDesc.size(), "no layer descriptor" );
-         return _layersDesc[ (ui32)_layers.size() - 1 ];
+         return _layersDesc[ (size_t)_layers.size() - 1 ];
       }
 
       /**

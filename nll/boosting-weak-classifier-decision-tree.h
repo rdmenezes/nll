@@ -52,7 +52,7 @@ namespace algorithm
       public:
          typedef SplittingCriteria value_type;
 
-         SplittingCriteriaFactory( ui32 nbSplits ) : _nbSplits( nbSplits )
+         SplittingCriteriaFactory( size_t nbSplits ) : _nbSplits( nbSplits )
          {}
 
          value_type create() const
@@ -61,7 +61,7 @@ namespace algorithm
          }
 
       private:
-         ui32  _nbSplits;
+         size_t  _nbSplits;
       };
 
       typedef algorithm::InformationGainWeighted   Metric;
@@ -72,7 +72,7 @@ namespace algorithm
       {
          typedef DecisionNode    value_type;
 
-         DecisionNodeFactory( ui32 nbSplits ) : _nbSplits( nbSplits )
+         DecisionNodeFactory( size_t nbSplits ) : _nbSplits( nbSplits )
          {}
 
          value_type create() const
@@ -81,7 +81,7 @@ namespace algorithm
          }
 
       private:
-         ui32 _nbSplits;
+         size_t _nbSplits;
       };
 
    public:
@@ -89,7 +89,7 @@ namespace algorithm
       typedef DatabaseT                Database;
       typedef float                    value_type;
 
-      WeakClassifierDecisionTree( ui32 maxDepth = 4, ui32 nbSplits = 10 ) : _maxDepth( maxDepth ), _nbSplits( nbSplits )
+      WeakClassifierDecisionTree( size_t maxDepth = 4, size_t nbSplits = 10 ) : _maxDepth( maxDepth ), _nbSplits( nbSplits )
       {}
 
       /**
@@ -105,7 +105,7 @@ namespace algorithm
          return -1;  // not handled
       }
 
-      virtual ui32 test( const typename Database::Sample::Input& input ) const
+      virtual size_t test( const typename Database::Sample::Input& input ) const
       {
          return _classifier.test( input );
       }
@@ -123,8 +123,8 @@ namespace algorithm
 
    private:
       Classifier     _classifier;
-      ui32           _maxDepth;
-      ui32           _nbSplits;
+      size_t           _maxDepth;
+      size_t           _nbSplits;
    };
 
    /**
@@ -137,7 +137,7 @@ namespace algorithm
    public:
       typedef WeakClassifierDecisionTree<DatabaseT>      value_type;
 
-      WeakClassifierDecisionTreeFactory( ui32 maxDepth = 4, ui32 nbSplits = 10 ) : _maxDepth( maxDepth ), _nbSplits( nbSplits )
+      WeakClassifierDecisionTreeFactory( size_t maxDepth = 4, size_t nbSplits = 10 ) : _maxDepth( maxDepth ), _nbSplits( nbSplits )
       {}
 
       std::shared_ptr<value_type> create() const
@@ -146,8 +146,8 @@ namespace algorithm
       }
 
    private:
-      ui32  _maxDepth;
-      ui32  _nbSplits;
+      size_t  _maxDepth;
+      size_t  _nbSplits;
    };
 }
 }

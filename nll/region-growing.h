@@ -46,19 +46,19 @@ namespace algorithm
    class RegionPixelDifferent
    {
    public:
-      RegionPixelDifferent( ui32 nbColors ) : _nbColors( nbColors )
+      RegionPixelDifferent( size_t nbColors ) : _nbColors( nbColors )
       {}
 
       // return true if same, false otherwise
       bool operator()( const T* c1, const T* c2 ) const
       {
-         for ( ui32 n = 0; n < _nbColors; ++n )
+         for ( size_t n = 0; n < _nbColors; ++n )
             if ( c1[ n ] != c2[ n ] )
                return false;
          return true;
       }
    private:
-      ui32     _nbColors;
+      size_t     _nbColors;
    };
 
    /**
@@ -69,7 +69,7 @@ namespace algorithm
    class RegionPixelSimilar
    {
    public:
-      RegionPixelSimilar( ui32 nbColors, f64 minDist ) : _nbColors( nbColors ), _dist( minDist )
+      RegionPixelSimilar( size_t nbColors, f64 minDist ) : _nbColors( nbColors ), _dist( minDist )
       {}
 
       bool operator()( const T* c1, const T* c2 ) const
@@ -77,7 +77,7 @@ namespace algorithm
          return core::generic_norm2<T*, f64>( (T*)c1, (T*)c2, _nbColors ) < _dist;
       }
    private:
-      ui32     _nbColors;
+      size_t     _nbColors;
       f64      _dist;
    };
 
@@ -89,7 +89,7 @@ namespace algorithm
    class RegionPixelSpecific
    {
    public:
-      RegionPixelSpecific( ui32 nbColors, const T* c, ui32 dist ) : _nbColors( nbColors ), _color( c ), _dist( dist )
+      RegionPixelSpecific( size_t nbColors, const T* c, size_t dist ) : _nbColors( nbColors ), _color( c ), _dist( dist )
       {}
 
       bool operator()( const T* c1, const T* c2 ) const
@@ -99,9 +99,9 @@ namespace algorithm
          return isNonZero2 == isNonZero1;
       }
    private:
-      ui32     _nbColors;
+      size_t     _nbColors;
       const T* _color;
-      ui32     _dist;
+      size_t     _dist;
    };
 
 
@@ -128,7 +128,7 @@ namespace algorithm
        @param seed seed point from where the region is growing
        @param seedId must be >0, the growing region will have this ID in the mask
        */
-      void grow( const core::Image<T, Mapper>& img, const core::vector2i& seed, const core::vector2i& minBoundingBox, const core::vector2i& maxBoundingBox, const ui32 seedId, core::ImageMask& outRegions )
+      void grow( const core::Image<T, Mapper>& img, const core::vector2i& seed, const core::vector2i& minBoundingBox, const core::vector2i& maxBoundingBox, const size_t seedId, core::ImageMask& outRegions )
       {
          typedef std::deque<core::vector2i>  Container;
          assert( img.sizex() && img.sizey() );
@@ -149,7 +149,7 @@ namespace algorithm
          while ( pixels.size() )
          {
             const core::vector2i pixel = pixels.front(); // TODO test
-            ui32 index = outRegions.index( pixel[ 0 ], pixel[ 1 ], 0 );
+            size_t index = outRegions.index( pixel[ 0 ], pixel[ 1 ], 0 );
             if ( pixel[ 0 ] <= maxBoundingBox[ 0 ] &&
                  pixel[ 0 ] >= minBoundingBox[ 0 ] &&
                  pixel[ 1 ] <= maxBoundingBox[ 1 ] &&
@@ -174,9 +174,9 @@ namespace algorithm
        @param seed seed point from where the region is growing
        @param seedId must be >0, the growing region will have this ID in the mask
        */
-      inline void grow( const core::Image<T, Mapper>& img, const core::vector2i& seed, const ui32 seedId, core::ImageMask& outRegions )
+      inline void grow( const core::Image<T, Mapper>& img, const core::vector2i& seed, const size_t seedId, core::ImageMask& outRegions )
       {
-         return grow( img, seed, core::vector2i( 0, 0 ), core::vector2i( img.sizex() - 1, img.sizey() - 1 ), seedId, outRegions );
+         return grow( img, seed, core::vector2i( 0, 0 ), core::vector2i( static_cast<i32>( img.sizex() ) - 1, static_cast<i32>( img.sizey() ) - 1 ), seedId, outRegions );
       }
    public:
       Different   _diff;

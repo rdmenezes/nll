@@ -43,8 +43,8 @@ namespace algorithm
                            H(x, o) = | Lyx Lyy Lyz | = | d e f |
                                      | Lzx Lzy Lzz |   | g h i |
 
-                           det(H)= Lxx * | Lyy Lyz | - Lyy * | Lxx Lxz | + Lzz * | Lxx Lxy |
-                                         | Lzy Lzz |         | Lzx Lzz |         | Lyx Lyy |
+                           det(H)= Lxx * | Lyy Lyz | - Lxy * | Lyx Lyz | + Lxz * | Lyx Lyy |
+                                         | Lzy Lzz |         | Lzx Lzz |         | Lzx Lzy |
     @note the area used to compute Lxx Lxy... are different and must be normalized, e.g., using the frobenius norm L=3
     */
    class FastHessianDetPyramid3d
@@ -62,122 +62,146 @@ namespace algorithm
        @param displacements the step between two filter evaluation for this particular level
        */
       template <class VolumeT>
-      void construct( const VolumeT& i, const std::vector<ui32>& scales, const std::vector<ui32>& displacements )
+      void construct( const VolumeT& i, const std::vector<size_t>& scales, const std::vector<size_t>& displacements )
       {
+         typedef typename VolumeT::value_type   T;
          ensure( displacements.size() == scales.size(), "must be the same size" );
 
-         _pyramidDetHessian.clear();
-         _scales = scales;
-         _displacements = displacements;
+         const size_t nbScales = (size_t)scales.size();
 
-         const ui32 sizex = i.size()[ 0 ];
-         const ui32 sizey = i.size()[ 1 ];
-         const ui32 sizez = i.size()[ 2 ];
+         _scales.clear();
+         _displacements.clear();
+         _halfScales.clear();
+         for ( size_t n = 0; n < nbScales; ++n )
+         {
+            _halfScales.push_back( static_cast<i32>( scales[ n ] / 2 ) );
+            _scales.push_back( static_cast<i32>( scales[ n ] ) );
+            _displacements.push_back( static_cast<i32>( displacements[ n ] ) );
+         }
 
-         const value_type max = (value_type)std::max( abs( *std::max_element( i.begin(), i.end() ) ),
-                                                      abs( *std::min_element( i.begin(), i.end() ) ) );
+         const T max = (T)std::max( abs( *std::max_element( i.begin(), i.end() ) ),
+                                    abs( *std::min_element( i.begin(), i.end() ) ) );
 
          // construct an integral image
          IntegralImage3d image;
          image.process( i );
          _integralImage = image;
-
-         for ( size_t n = 0; n < scales.size(); ++n )
+         for ( size_t n = 0; n < nbScales; ++n )
          {
-            core::Timer scaleTimer;
-            ensure( scales[ n ] % 2 == 1, "scales must be odd numbers" );
-            ensure( scales[ n ] >= 9, "minimal size" );
+            ensure( _scales[ n ] % 2 == 1, "scales must be odd numbers" );
+            ensure( _scales[ n ] >= 9, "minimal size" );
 
-            const ui32 step = displacements[ n ];
+            const size_t lobeSize = _scales[ n ] / 3;
+            const value_type areaNormalization = max * _scales[ n ] * _scales[ n ] * _scales[ n ]; // we use <max> so that we are independent of the kind of data
+            const i32 step = (i32)displacements[ n ];
+            i32 resx = ( (i32)i.sizex() ) / step;
+            i32 resy = ( (i32)i.sizey() ) / step;
+            i32 resz = ( (i32)i.sizez() ) / step;
 
-            const int sizeFilterz = scales[ n ];
-            const int sizeFilterx = scales[ n ];
-            const int sizeFiltery = scales[ n ];
-            const double sizeFilter = sizeFilterx * sizeFiltery * sizeFilterz * max; // we normalize by the filter size and maximum value
-
-            // the total size must take into account the step size and filter size (it must be fully inside the image to be computed)
-            const int resx = ( (int)i.size()[ 0 ] ) / (int)step;
-            const int resy = ( (int)i.size()[ 1 ] ) / (int)step;
-            const int resz = ( (int)i.size()[ 2 ] ) / (int)step;
-
+            // here we want the last (resx, resy) to fully fit inside so that we don't have 
+            while ( (int)_getPositionPyramid2IntegralNoShift( (f32)resx, 0, 0, n )[ 0 ] + _scales[ n ] >  (i32)i.sizex() )
+               --resx;
+            while ( (int)_getPositionPyramid2IntegralNoShift( 0, (f32)resy, 0, n )[ 1 ] + _scales[ n ] >  (i32)i.sizey() )
+               --resy;
+            while ( (int)_getPositionPyramid2IntegralNoShift( 0, 0, (f32)resz, n )[ 2 ] + _scales[ n ] >  (i32)i.sizez() )
+               --resz;
             if ( resx <= 0 || resy <= 0 || resz <= 0 )
                break;   // the scale is too big!
+
+            // now compute the hessians for all points inside
             Volume detHessian( resx, resy, resz );
 
+            // compute the hessian
             #ifndef NLL_NOT_MULTITHREADED
             # pragma omp parallel for
             #endif
-            for ( int z = 0; z < resz; ++z )
+            for ( int zp = 0; zp < resz; ++zp )
             {
-               for ( int y = 0; y < resy; ++y )
+               for ( int yp = 0; yp < resy; ++yp )
                {
-                  for ( int x = 0; x < resx; ++x )
+                  for ( int xp = 0; xp < resx; ++xp )
                   {
-                     const core::vector3ui bl( x * step, y * step, z * step );
-                     const core::vector3ui tr( bl[ 0 ] + sizeFilterx - 1, bl[ 1 ] + sizeFiltery - 1, bl[ 2 ] + sizeFilterz - 1 );
-                     if ( tr[ 0 ] < sizex && tr[ 1 ] < sizey && tr[ 2 ] < sizez )
+                     // get the coordinates in the original geometry
+                     const core::vector3f centerf = getPositionPyramid2Integral( static_cast<f32>( xp ), static_cast<f32>( yp ), static_cast<f32>( zp ), n );
+                     const core::vector3i center( static_cast<int>( centerf[ 0 ] ), static_cast<int>(centerf[ 1 ] ), static_cast<int>(centerf[ 2 ] ) );
+
                      {
-                        const double dxx = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DX,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dyy = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DY,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dzz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DZ,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dxy = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DXY,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dxz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DXZ,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
-                        const double dyz = HaarFeatures3d::Feature::getValue( HaarFeatures3d::Feature::DYZ,
-                                                                              image,
-                                                                              bl,
-                                                                              tr ) / sizeFilter;
+                        const double dxx = HaarFeatures3d::getValue( HaarFeatures3d::D2X,
+                                                                     image,
+                                                                     center,
+                                                                     lobeSize ) / areaNormalization;
+                        const double dyy = HaarFeatures3d::getValue( HaarFeatures3d::D2Y,
+                                                                     image,
+                                                                     center,
+                                                                     lobeSize ) / areaNormalization;
+                        const double dzz = HaarFeatures3d::getValue( HaarFeatures3d::D2Z,
+                                                                     image,
+                                                                     center,
+                                                                     lobeSize ) / areaNormalization;
+                        const double dxy = HaarFeatures3d::getValue( HaarFeatures3d::D2XY,
+                                                                     image,
+                                                                     center,
+                                                                     lobeSize ) / areaNormalization;
+                        const double dxz = HaarFeatures3d::getValue( HaarFeatures3d::D2XZ,
+                                                                     image,
+                                                                     center,
+                                                                     lobeSize ) / areaNormalization;
+                        const double dyz = HaarFeatures3d::getValue( HaarFeatures3d::D2YZ,
+                                                                     image,
+                                                                     center,
+                                                                     lobeSize ) / areaNormalization;
                         
                         // the dxx/dxy filters have a different area, so normalize it with the frobenius norm, L=3
                         // f = (9^3-4*9^2)^1/3 / (9^3-9*(2*9+3*7+2*3)^1/3 = 0.928
                         // see http://mathworld.wolfram.com/FrobeniusNorm.html
-                        static const double NORMALIZATION = 0.928 * 0.928;
-                        const double val = dxx * ( dyy * dzz - NORMALIZATION * dyz * dyz ) -
-                                           dyy * ( dxx * dzz - NORMALIZATION * dxz * dxz ) +
-                                           dzz * ( dxx * dyy - NORMALIZATION * dxy * dxy );
-                        detHessian( x, y, z ) = static_cast<value_type>( val );
+                        // det(H)= Lxx * | Lyy Lyz | - Lxy * | Lyx Lyz | + Lxz * | Lyx Lyy |
+                        //               | Lzy Lzz |         | Lzx Lzz |         | Lzx Lzy |
+                        //
+                        static const double NORMALIZATION = 0.928;
+                        
+                        /*
+                        // true determinant, however we dond find the expected points...
+                        const double val =                 dxx *  (                                dyy * dzz - NORMALIZATION * NORMALIZATION * dyz * dyz ) -
+                                           NORMALIZATION * dxy * ( NORMALIZATION *                 dxy * dzz - NORMALIZATION * NORMALIZATION * dyz * dxz ) +
+                                           NORMALIZATION * dxz * ( NORMALIZATION * NORMALIZATION * dxy * dyz - NORMALIZATION                 * dyy * dxz );
+                                           */
+
+                        // here we want to find the blobs as this is used by SURF...
+                        // TODO: refactor so that we can extract the criteria to be used...
+                        const double val = dxx * dxx + dyy * dyy + dzz * dzz - core::sqr( NORMALIZATION * dxy ) - core::sqr( NORMALIZATION * dxz ) - core::sqr( NORMALIZATION * dxz );
+                        detHessian( xp, yp, zp ) = static_cast<value_type>( val );
                      }
                   }
                }
             }
 
-            std::cout << "Time scale=" << scaleTimer.getCurrentTime() << std::endl;
             _pyramidDetHessian.push_back( detHessian );
          }
       }
 
       // computes the index in mapDest the closest from (xRef, yRef, mapDest)
-      void indexInMap( ui32 xRef, ui32 yRef, ui32 zRef, ui32 mapRef, ui32 mapDest, int& outx, int& outy, int& outz ) const
+      void indexInMap( i32 xpRef, i32 ypRef, i32 zpRef, size_t mapRef, size_t mapDest, i32& outxp, i32& outyp, i32& outzp ) const
       {
          if ( mapRef == mapDest )
          {
-            outx = xRef;
-            outy = yRef;
-            outz = zRef;
+            outxp = xpRef;
+            outyp = ypRef;
+            outzp = zpRef;
          } else {
             // map a point at a given scale to the image space
-            const int x = xRef * _displacements[ mapRef ];
-            const int y = yRef * _displacements[ mapRef ];
-            const int z = zRef * _displacements[ mapRef ];
-
+            /*
+            const core::vector3f posInIntegral = _getPositionPyramid2IntegralNoShift( (f32)xpRef, (f32)ypRef, (f32)zpRef, mapRef );
+            const core::vector3f indexInOtherLevel = _getPositionIntegral2PyramidNoShift( posInIntegral[ 0 ], posInIntegral[ 1 ], posInIntegral[ 2 ], mapDest );
+            */
+            
+            // TODO: Here difference with 2D version, however better scaling detection with this version...
+            const core::vector3f posInIntegral = getPositionPyramid2Integral( (f32)xpRef, (f32)ypRef, (f32)zpRef, mapRef );
+            const core::vector3f indexInOtherLevel = getPositionIntegral2Pyramid( posInIntegral[ 0 ], posInIntegral[ 1 ], posInIntegral[ 2 ], mapDest );
+            
             // convert the image space coordinate to the other scale space
-            outx = ( x ) / (int)_displacements[ mapDest ];
-            outy = ( y ) / (int)_displacements[ mapDest ];
-            outz = ( z ) / (int)_displacements[ mapDest ];
+            outxp = static_cast<i32>( core::round( indexInOtherLevel[ 0 ] ) );
+            outyp = static_cast<i32>( core::round( indexInOtherLevel[ 1 ] ) );
+            outzp = static_cast<i32>( core::round( indexInOtherLevel[ 2 ] ) );
          }
       }
 
@@ -185,7 +209,7 @@ namespace algorithm
        @brief Computes the gradient of the hessian at position (x, y, z, map)
               using finite difference
        */
-      core::vector4d getHessianGradient( ui32 x, ui32 y, ui32 z, ui32 map ) const
+      core::vector4d getHessianGradient( int x, int y, int z, size_t map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -195,10 +219,10 @@ namespace algorithm
                  y < _pyramidDetHessian[ map ].size()[ 1 ] - 1 &&
                  z < _pyramidDetHessian[ map ].size()[ 2 ] - 1 );
 
-         int xminus, yminus, zminus;
+         i32 xminus, yminus, zminus;
          indexInMap( x, y, z, map, map - 1, xminus, yminus, zminus );  // we need to look up the closed index in a map that has different dimensions
 
-         int xplus, yplus, zplus;
+         i32 xplus, yplus, zplus;
          indexInMap( x, y, z, map, map + 1, xplus, yplus, zplus ); // we need to look up the closed index in a map that has different dimensions
 
          const Volume& current = _pyramidDetHessian[ map ];
@@ -212,19 +236,19 @@ namespace algorithm
       /**
        @brief returns true if all value around the projection (xRef, yRef, mapRef) on mapDest are smaller
        */
-      bool isDetHessianMax( value_type val, ui32 xRef, ui32 yRef, ui32 zRef, ui32 mapRef, ui32 mapDest ) const
+      bool isDetHessianMax( value_type val, int xRef, int yRef, int zRef, size_t mapRef, size_t mapDest ) const
       {
-         int x, y, z;
+         i32 x, y, z;
 
          // if it is outside, then skip it
          indexInMap( xRef, yRef, zRef, mapRef, mapDest, x, y, z );
          if ( mapDest >= _pyramidDetHessian.size() )
             return false;
          const Volume& m = _pyramidDetHessian[ mapDest ];
-         if ( x < 1 || y < 1 || z < 1 || x + 1 >= (int)m.size()[ 0 ] || y + 1 >= (int)m.size()[ 1 ] || z + 1 >= (int)m.size()[ 2 ] )
+         if ( x < 1 || y < 1 || z < 1 || x + 1 >= (i32)m.size()[ 0 ] || y + 1 >= (i32)m.size()[ 1 ] || z + 1 >= (i32)m.size()[ 2 ] )
             return false;
 
-         return 
+         return
                 // current slice
                 val >= m( x + 0, y + 0, z ) &&
                 val >= m( x + 1, y + 0, z ) &&
@@ -266,7 +290,7 @@ namespace algorithm
        @brief Computes the hessian of the hessian at position (x, y, z, map)
               using finite difference
        */
-      Matrix getHessianHessian( ui32 x, ui32 y, ui32 z, ui32 map ) const
+      Matrix getHessianHessian( int x, int y, int z, size_t map ) const
       {
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
@@ -281,25 +305,25 @@ namespace algorithm
          const Volume& mp = _pyramidDetHessian[ map + 1 ];
          const value_type val = mc( x, y, z );
 
-         int xm, ym, zm;
+         i32 xm, ym, zm;
          indexInMap( x, y, z, map, map - 1, xm, ym, zm );  // we need to look up the closed index in a map that has different dimensions
 
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
          assert( xm > 0 && ym > 0 && zm > 0 &&
-                 xm < (int)_pyramidDetHessian[ map - 1 ].size()[ 0 ] - 1 &&
-                 ym < (int)_pyramidDetHessian[ map - 1 ].size()[ 1 ] - 1 &&
-                 zm < (int)_pyramidDetHessian[ map - 1 ].size()[ 2 ] - 1 );
+                 xm < (i32)_pyramidDetHessian[ map - 1 ].size()[ 0 ] - 1 &&
+                 ym < (i32)_pyramidDetHessian[ map - 1 ].size()[ 1 ] - 1 &&
+                 zm < (i32)_pyramidDetHessian[ map - 1 ].size()[ 2 ] - 1 );
 
-         int xp, yp, zp;
+         i32 xp, yp, zp;
          indexInMap( x, y, z, map, map + 1, xp, yp, zp ); // we need to look up the closed index in a map that has different dimensions
 
          // check the bounds, it cannot be on the border as the gradient is not
          // defined here
          assert( xp > 0 && yp > 0 && zp > 0 &&
-                 xp < (int)_pyramidDetHessian[ map + 1 ].size()[ 0 ] - 1 &&
-                 yp < (int)_pyramidDetHessian[ map + 1 ].size()[ 1 ] - 1 && 
-                 zp < (int)_pyramidDetHessian[ map + 1 ].size()[ 2 ] - 1 );
+                 xp < (i32)_pyramidDetHessian[ map + 1 ].size()[ 0 ] - 1 &&
+                 yp < (i32)_pyramidDetHessian[ map + 1 ].size()[ 1 ] - 1 && 
+                 zp < (i32)_pyramidDetHessian[ map + 1 ].size()[ 2 ] - 1 );
 
          //std::cout << "check=" << x << " " << y << " " << z << " " << " toMP=" << xp << " " << yp << " " << zp << " sizeM=" << mp.size() << std::endl;
          const value_type dxx = mc( x + 1, y, z ) + mc( x - 1, y, z ) - 2 * val;
@@ -361,10 +385,55 @@ namespace algorithm
          return _integralImage;
       }
 
+      /**
+       @brief Given an index in the pyramid, retrieve the corresponding index in the original image
+              (i.e., the one the pyramid is built from)
+       */
+      core::vector3f getPositionPyramid2Integral( f32 x, f32 y, f32 z, size_t map ) const
+      {
+         return core::vector3f( x * _displacements[ map ] + _halfScales[ map ],
+                                y * _displacements[ map ] + _halfScales[ map ],
+                                z * _displacements[ map ] + _halfScales[ map ] );
+      }
+
+      /**
+       @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
+       */
+      core::vector3f getPositionIntegral2Pyramid( f32 xp, f32 yp, f32 zp, size_t map ) const
+      {
+         return core::vector3f( ( xp - _halfScales[ map ] ) / _displacements[ map ],
+                                ( yp - _halfScales[ map ] ) / _displacements[ map ],
+                                ( zp - _halfScales[ map ] ) / _displacements[ map ] );
+      }
+
+   private:
+      /**
+       @brief Given an index in the pyramid, retrieve the corresponding index in the original image
+              (i.e., the one the pyramid is built from) WITHOUT shift by scale / 2
+       */
+      core::vector3f _getPositionPyramid2IntegralNoShift( f32 x, f32 y, f32 z, size_t map ) const
+      {
+         return core::vector3f( x * _displacements[ map ],
+                                y * _displacements[ map ],
+                                z * _displacements[ map ] );
+      }
+
+      /**
+       @brief Given a position in the integral image and a pyramid level, find the corresponding pyramid index at this level
+              WITHOUT shift by scale / 2
+       */
+      core::vector3f _getPositionIntegral2PyramidNoShift( f32 xp, f32 yp, f32 zp, size_t map ) const
+      {
+         return core::vector3f( xp / _displacements[ map ],
+                                yp / _displacements[ map ],
+                                zp / _displacements[ map ] );
+      }
+
    private:
       std::vector<Volume>  _pyramidDetHessian;
-      std::vector<ui32>    _scales;
-      std::vector<ui32>    _displacements;
+      std::vector<i32>     _halfScales;
+      std::vector<i32>     _scales;
+      std::vector<i32>     _displacements;
       IntegralImage3d      _integralImage;
    };
 }

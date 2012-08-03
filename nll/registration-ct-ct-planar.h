@@ -258,8 +258,8 @@ namespace algorithm
          imaging::LookUpTransformWindowingRGB lut( -10, 250, 256, 1 );
          lut.createGreyscale();
 
-         ui32 normSizeY;
-         ui32 normSizeX;
+         size_t normSizeY;
+         size_t normSizeX;
          pz = projectImageZ( v, lut, normSizeY, normSizeX );
          int ymax;
          if ( doTableRemoval )
@@ -273,7 +273,7 @@ namespace algorithm
             #endif
             for ( int x = 0; x < (int)pz.sizex(); ++x )
             {
-               for ( ui32 y = ymax; y < pz.sizey(); ++y )
+               for ( size_t y = ymax; y < pz.sizey(); ++y )
                {
                   pz( x, y, 0 ) = 0;
                }
@@ -295,11 +295,11 @@ namespace algorithm
 
    public:
       template <class T, class BufferType>
-      static core::Image<ui8> projectImageY( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
+      static core::Image<ui8> projectImageY( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, size_t maxSizeY )
       {
          typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
-         core::Image<ui8> p( static_cast<ui32>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ),
-                             static_cast<ui32>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ),
+         core::Image<ui8> p( static_cast<size_t>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ),
+                             static_cast<size_t>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ),
                              1 );
          const int endz = static_cast<int>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ) - 1;
          const double norm = ( maxSizeY * v.getSpacing()[ 1 ] );
@@ -309,13 +309,13 @@ namespace algorithm
          #endif
          for ( int z = 0; z < endz; ++z )
          {
-            for ( ui32 x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
+            for ( size_t x = 0; x < v.getSize()[ 0 ] * v.getSpacing()[ 0 ] - 1; ++x )
             {
                double accum = 0;
-               ConstDirectionalIterator it = v.getIterator( static_cast<ui32>( x / v.getSpacing()[ 0 ] ),
+               ConstDirectionalIterator it = v.getIterator( static_cast<size_t>( x / v.getSpacing()[ 0 ] ),
                                                             0,
-                                                            static_cast<ui32>( z / v.getSpacing()[ 2 ] ) );
-               for ( ui32 y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
+                                                            static_cast<size_t>( z / v.getSpacing()[ 2 ] ) );
+               for ( size_t y = 0; y < ymax / v.getSpacing()[ 1 ]; ++y )
                {
                   const double val = lut.transform( static_cast<float>( *it ) )[ 0 ];
                   it.addy();
@@ -330,12 +330,12 @@ namespace algorithm
       }
 
       template <class T, class BufferType>
-      static core::Image<ui8> projectImageX( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, ui32 maxSizeY )
+      static core::Image<ui8> projectImageX( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, int ymax, size_t maxSizeY )
       {
          typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
 
-         core::Image<ui8> p( static_cast<ui32>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ),
-                             static_cast<ui32>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ),
+         core::Image<ui8> p( static_cast<size_t>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ),
+                             static_cast<size_t>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ),
                              1 );
          const int endz = static_cast<int>( v.getSize()[ 2 ] * v.getSpacing()[ 2 ] ) - 1;
          const double norm = ( maxSizeY * v.getSpacing()[ 0 ] );
@@ -345,13 +345,13 @@ namespace algorithm
          #endif
          for ( int z = 0; z < endz; ++z )
          {
-            for ( ui32 y = 0; y < (ui32)ymax; ++y )
+            for ( size_t y = 0; y < (size_t)ymax; ++y )
             {
                double accum = 0;
                ConstDirectionalIterator it = v.getIterator( 0,
-                                                            static_cast<ui32>( y / v.getSpacing()[ 1 ] ),
-                                                            static_cast<ui32>( z / v.getSpacing()[ 2 ] ) );
-               for ( ui32 x = 0; x < v.getSize()[ 0 ]; ++x )
+                                                            static_cast<size_t>( y / v.getSpacing()[ 1 ] ),
+                                                            static_cast<size_t>( z / v.getSpacing()[ 2 ] ) );
+               for ( size_t x = 0; x < v.getSize()[ 0 ]; ++x )
                {
                   const double val = lut.transform( static_cast<float>( *it ) )[ 0 ];
                   it.addx();
@@ -366,17 +366,17 @@ namespace algorithm
       }
 
       template <class T, class BufferType>
-      static core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, ui32& maxSizeY, ui32& maxSizeX )
+      static core::Image<ui8> projectImageZ( const imaging::VolumeSpatial<T, BufferType>& v, const imaging::LookUpTransformWindowingRGB& lut, size_t& maxSizeY, size_t& maxSizeX )
       {
          typedef typename imaging::VolumeSpatial<T, BufferType>::ConstDirectionalIterator ConstDirectionalIterator;
-         core::Image<ui8> p( static_cast<ui32>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ),
-                             static_cast<ui32>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ),
+         core::Image<ui8> p( static_cast<size_t>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ),
+                             static_cast<size_t>( v.getSize()[ 1 ] * v.getSpacing()[ 1 ] ),
                              1 );
-         ui32 min = p.sizey() - 1;
-         ui32 max = 0;
+         size_t min = p.sizey() - 1;
+         size_t max = 0;
 
-         ui32 minX = p.sizex() - 1;
-         ui32 maxX = 0;
+         size_t minX = p.sizex() - 1;
+         size_t maxX = 0;
 
          const int endx = static_cast<int>( v.getSize()[ 0 ] * v.getSpacing()[ 0 ] ) - 1;
          #ifndef NLL_NOT_MULTITHREADED
@@ -384,13 +384,13 @@ namespace algorithm
          #endif
          for ( int x = 0; x < endx; ++x )
          {
-            for ( ui32 y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
+            for ( size_t y = 0; y < v.getSize()[ 1 ] * v.getSpacing()[ 1 ] - 1; ++y )
             {
                double accum = 0;
-               ConstDirectionalIterator it = v.getIterator( static_cast<ui32>( x / v.getSpacing()[ 0 ] ),
-                                                            static_cast<ui32>( y / v.getSpacing()[ 1 ] ),
+               ConstDirectionalIterator it = v.getIterator( static_cast<size_t>( x / v.getSpacing()[ 0 ] ),
+                                                            static_cast<size_t>( y / v.getSpacing()[ 1 ] ),
                                                             0 );
-               for ( ui32 z = 0; z < v.getSize()[ 2 ]; ++z )
+               for ( size_t z = 0; z < v.getSize()[ 2 ]; ++z )
                {
                   const double val = lut.transform( static_cast<float>( *it ) )[ 0 ];
                   it.addz();
@@ -436,16 +436,16 @@ namespace algorithm
       // pixels
       static int findTableY( const core::Image<ui8>& iz )
       {
-         ui32 nbPixelTable = 0;
+         size_t nbPixelTable = 0;
          double mean = 0;
 
-         for ( ui32 x = 0; x < iz.sizex(); ++x )
+         for ( size_t x = 0; x < iz.sizex(); ++x )
          {
-            ui32 lineId = 0;
-            ui32 nbConnected[ 5 ] = {0, 0, 0, 0, 0};
+            size_t lineId = 0;
+            size_t nbConnected[ 5 ] = {0, 0, 0, 0, 0};
             int ymin[ 5 ];
             int ymax[ 5 ];
-            for ( int y = iz.sizey() - 1; y > 0; --y )
+            for ( int y = static_cast<int>( iz.sizey() ) - 1; y > 0; --y )
             {
                if ( iz( x, y, 0 ) > 0 )
                {

@@ -78,7 +78,7 @@ namespace core
     */
    inline int NLL_API generateSign()
    {
-      ui32 n = rand() % 2;
+      size_t n = rand() % 2;
       return n ? -1 : 1;
    }
 

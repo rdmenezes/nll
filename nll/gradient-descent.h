@@ -53,10 +53,10 @@ namespace algorithm
                                               const std::vector<double>& weights,
                                               const ObjectiveFunction<Database>& function,
                                               const core::Buffer1D<double>& initialParameters,
-                                              ui32 nbIterations ) const
+                                              size_t nbIterations ) const
       {
          #ifdef NLL_SECURE
-         for ( ui32 n = 0; n < datLearning.size(); ++n )
+         for ( size_t n = 0; n < datLearning.size(); ++n )
          {
             ensure( datLearning[ n ].type == Database::Sample::LEARNING, "only learning database allowed!" );
          }
@@ -66,19 +66,19 @@ namespace algorithm
 
          core::Buffer1D<double> model;
          model.clone( initialParameters );
-         for ( ui32 n = 0; n < nbIterations; ++n )
+         for ( size_t n = 0; n < nbIterations; ++n )
          {
             core::Buffer1D<double> gradientMean( model.size() );
-            for ( ui32 s = 0; s < datLearning.size(); ++s )
+            for ( size_t s = 0; s < datLearning.size(); ++s )
             {
                core::Buffer1D<double> gradient = function.computeGradient( model, datLearning[ s ], weights[ s ] );
-               for ( ui32 m = 0; m < gradient.size(); ++m )
+               for ( size_t m = 0; m < gradient.size(); ++m )
                {
                   gradientMean[ m ] -= gradient[ m ];
                }
             }
 
-            for ( ui32 m = 0; m < gradientMean.size(); ++m )
+            for ( size_t m = 0; m < gradientMean.size(); ++m )
             {
                model[ m ] += _learningRate * gradientMean[ m ] / datLearning.size();
             }
@@ -109,10 +109,10 @@ namespace algorithm
                                               const std::vector<double>& weights,
                                               const ObjectiveFunction<Database>& function,
                                               const core::Buffer1D<double>& initialParameters,
-                                              ui32 nbIterations ) const
+                                              size_t nbIterations ) const
       {
          #ifdef NLL_SECURE
-         for ( ui32 n = 0; n < datLearning.size(); ++n )
+         for ( size_t n = 0; n < datLearning.size(); ++n )
          {
             ensure( datLearning[ n ].type == Database::Sample::LEARNING, "only learning database allowed!" );
          }
@@ -122,12 +122,12 @@ namespace algorithm
 
          core::Buffer1D<double> model;
          model.clone( initialParameters );
-         for ( ui32 n = 0; n < nbIterations; ++n )
+         for ( size_t n = 0; n < nbIterations; ++n )
          {
-            for ( ui32 s = 0; s < datLearning.size(); ++s )
+            for ( size_t s = 0; s < datLearning.size(); ++s )
             {
                core::Buffer1D<double> gradient = function.computeGradient( model, datLearning[ s ], weights[ s ] );
-               for ( ui32 m = 0; m < gradient.size(); ++m )
+               for ( size_t m = 0; m < gradient.size(); ++m )
                {
                   model[ m ] -= _learningRate * gradient[ m ] / datLearning.size();
                }

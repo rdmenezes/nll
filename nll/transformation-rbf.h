@@ -67,7 +67,7 @@ namespace core
       {
          ensure( pos.size() == _mean.size(), "vector size mismatch" );
          value_type accum = 0;
-         for ( ui32 n = 0; n < _mean.size(); ++n )
+         for ( size_t n = 0; n < _mean.size(); ++n )
          {
             const value_type diff = _mean[ n ] - pos[ n ];
             accum += diff * diff / ( 2 * _variance[ n ] );
@@ -210,11 +210,11 @@ namespace core
       template <class VectorT>
       Vector getDisplacement( const VectorT& pInMm ) const
       {
-         const ui32 nbDim = _affine.sizex() - 1;
+         const size_t nbDim = _affine.sizex() - 1;
          assert( nbDim == pInMm.size() );
 
          Vector p( pInMm.size() + 1 );
-         for ( ui32 n = 0; n < pInMm.size(); ++n )
+         for ( size_t n = 0; n < pInMm.size(); ++n )
          {
             p[ n ] = static_cast<value_type>( pInMm );
          }
@@ -228,7 +228,7 @@ namespace core
 
          // finally sum the two
          Vector finalPos( nbDim );
-         for ( ui32 n = 0; n < nbDim; ++n )
+         for ( size_t n = 0; n < nbDim; ++n )
          {
             finalPos[ n ] = p[ n ] + ddfPos[ n ];
          }
@@ -251,12 +251,12 @@ namespace core
       Vector _getDeformableDisplacement( const VectorT& pinv ) const
       {
          // finally computes the displacement
-         const ui32 nbDim = _affine.sizex() - 1;
+         const size_t nbDim = _affine.sizex() - 1;
          Vector accum( nbDim );
-         for ( ui32 n = 0; n < _rbfs.size(); ++n )
+         for ( size_t n = 0; n < _rbfs.size(); ++n )
          {
             const value_type weight = _rbfs[ n ].eval( pinv );
-            for ( ui32 nn = 0; nn < nbDim; ++nn )
+            for ( size_t nn = 0; nn < nbDim; ++nn )
             {
                accum[ nn ] += weight * _rbfs[ n ].getValue()[ nn ];
             }

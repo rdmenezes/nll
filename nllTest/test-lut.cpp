@@ -29,8 +29,8 @@ public:
 
       ColorMapper mapper( 256, 3 );
       Lut lut( mapper, 10, 100 );
-      const nll::ui32 sizex = 1024;//*4;
-      const nll::ui32 sizey = 1024;//*4;
+      const size_t sizex = 1024;//*4;
+      const size_t sizey = 1024;//*4;
       Slice t1( nll::core::vector3ui( sizex, sizey, 1 ),
                 nll::core::vector3f( 1.0f, 0, 0),
                 nll::core::vector3f( 0, 1.0f, 0),
@@ -72,8 +72,8 @@ public:
 
       ColorMapper mapper( 256, 3 );
       Lut lut( mapper, 10, 100 );
-      const nll::ui32 sizex = 1024*4;
-      const nll::ui32 sizey = 1024*4;
+      const size_t sizex = 1024*4;
+      const size_t sizey = 1024*4;
       Slice t1( nll::core::vector3ui( sizex, sizey, 1 ),
                 nll::core::vector3f( 1.0f, 0, 0),
                 nll::core::vector3f( 0, 1.0f, 0),
@@ -151,15 +151,15 @@ public:
       srand( 0 );
       Lut lut = createLut();
       nll::core::Image<float> input( size, size, 1 );
-      nll::core::Image<nll::ui32> output( size, size, 1 );
-      nll::core::Image<nll::ui32> output2( size, size, 1 );
+      nll::core::Image<size_t> output( size, size, 1 );
+      nll::core::Image<size_t> output2( size, size, 1 );
       for ( nll::core::Image<float>::iterator it = input.begin(); it != input.end(); ++it )
       {
          *it = (float)(rand() % 500);
       }
 
       nll::core::Image<float>::DirectionalIterator it = input.beginDirectional();
-      nll::core::Image<nll::ui32>::DirectionalIterator out = output.beginDirectional();
+      nll::core::Image<size_t>::DirectionalIterator out = output.beginDirectional();
 
       
       nll::core::Timer t1;

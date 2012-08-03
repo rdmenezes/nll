@@ -104,13 +104,13 @@ namespace algorithm
       {
          assert( p.size() == _pmc.getInputSize() );
 
-         core::Buffer1D<double> i( static_cast<ui32>( p.size() ) );
-         for ( ui32 n = 0; n < _pmc.getInputSize(); ++n )
+         core::Buffer1D<double> i( static_cast<size_t>( p.size() ) );
+         for ( size_t n = 0; n < _pmc.getInputSize(); ++n )
             i[ n ] = static_cast<double>( p[ n ] );
          core::Buffer1D<double> buf = _pmc.propagate( i );
 
          Output r( _pmc.getOutputSize() );
-         for ( ui32 n = 0; n < _pmc.getOutputSize(); ++n )
+         for ( size_t n = 0; n < _pmc.getOutputSize(); ++n )
          {
             r[ n ] = static_cast<typename Output::value_type>( buf[ n ] );
          }
@@ -122,15 +122,15 @@ namespace algorithm
          if ( !dat.size() )
             return;
          ensure( parameters.size() == this->_parametersPrototype.size(), "Incorrect parameters." );
-         std::vector<ui32> layerDesc = core::make_vector<ui32>( 
-            static_cast<ui32>( dat[0].input.size() ),
-            static_cast<ui32>( parameters[ 0 ] ),
-            static_cast<ui32>( dat[0].output.size() ) );
+         std::vector<size_t> layerDesc = core::make_vector<size_t>( 
+            static_cast<size_t>( dat[0].input.size() ),
+            static_cast<size_t>( parameters[ 0 ] ),
+            static_cast<size_t>( dat[0].output.size() ) );
          _pmc.createNetwork( layerDesc );
 
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
-            for ( ui32 nn = 0; nn < dat[ n ].output.size(); ++nn )
+            for ( size_t nn = 0; nn < dat[ n ].output.size(); ++nn )
             {
                // check the database'output is correctly normalized...
                assert( dat[ n ].output[ nn ] >= -0.1 && dat[ n ].output[ nn ] <= 1.1 );

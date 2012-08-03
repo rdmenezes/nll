@@ -20,14 +20,14 @@ public:
       typedef core::Database< core::ClassificationSample<Point, Point> > DatabaseRbf;
 
       Database dat = loadDatabaseSpect<Point>();
-      const ui32 nbClass = core::getNumberOfClass( dat );
+      const size_t nbClass = core::getNumberOfClass( dat );
 
       // encode the class to an array [0..nbClass]
       DatabaseRbf datRbf;
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
          Point out( nbClass );
-         for ( ui32 nn = 0; nn < nbClass; ++nn )
+         for ( size_t nn = 0; nn < nbClass; ++nn )
          {
             out[ nn ] = ( dat[ n ].output == nn );               
          }

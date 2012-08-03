@@ -24,7 +24,7 @@ public:
       dat.add( Database::Sample( nll::core::make_vector<double>( 1, 0 ), 
                                  nll::core::make_vector<double>( 1 ),
                                  Database::Sample::LEARNING ) );
-      Mlp mlp1( nll::core::make_vector<nll::ui32>( 2, 3, 1 ) );
+      Mlp mlp1( nll::core::make_vector<size_t>( 2, 3, 1 ) );
 
       nll::algorithm::StopConditionMlpThreshold c( 0.5 );
       nll::core::Timer t;

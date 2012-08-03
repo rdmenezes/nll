@@ -64,7 +64,7 @@ namespace algorithm
    class StopConditionIteration : public StopCondition
    {
    public:
-      StopConditionIteration( ui32 nbIterMax ) : _nbIterMax( nbIterMax ), _iter( 0 )
+      StopConditionIteration( size_t nbIterMax ) : _nbIterMax( nbIterMax ), _iter( 0 )
       {}
 
       /**
@@ -84,8 +84,8 @@ namespace algorithm
       }
 
    private:
-      mutable ui32 _iter;
-      ui32 _nbIterMax;
+      mutable size_t _iter;
+      size_t _nbIterMax;
    };
 
    /**

@@ -33,25 +33,25 @@ namespace algorithm
        @return the energy of the model
        */
       template <class Points>
-      double trainContrastiveDivergence( const Points& points, ui32 nbHiddenStates, double learningRate, ui32 nbEpoch,
-                                         ui32 batchSize = 100 )
+      double trainContrastiveDivergence( const Points& points, size_t nbHiddenStates, double learningRate, size_t nbEpoch,
+                                         size_t batchSize = 100 )
       {
-         const ui32 inputSize = points[ 0 ].size();
-         const ui32 nbBatches = static_cast<double>( points.size() ) / batchSize;
+         const size_t inputSize = points[ 0 ].size();
+         const size_t nbBatches = static_cast<double>( points.size() ) / batchSize;
          const FunctionSimpleDifferenciableSigmoid sigm;
 
          ensure( nbBatches > 0, "invalid batch size" );
          ensure( nbHiddenStates > 0 && learningRate > 0 && nbEpoch > 0 && batchSize > 0, "invalid parameters" );
 
          // create the batches
-         std::vector< std::vector<ui32> > > batchList( nbBatches );
-         for ( ui32 n = 0; n < nbBatches; ++n )
+         std::vector< std::vector<size_t> > > batchList( nbBatches );
+         for ( size_t n = 0; n < nbBatches; ++n )
             batchList[ n ].reserve( batchSize );
          Vector index( points.size() );
-         for ( ui32 n = 0; n < points.size(); ++n )
+         for ( size_t n = 0; n < points.size(); ++n )
             index[ n ] = n / nbBatches;
          core::shuffleFisherYates( index );
-         for ( ui32 n = 0; n < points.size(); ++n )
+         for ( size_t n = 0; n < points.size(); ++n )
             batchList[ index[ n ] ].push_back( n );
 
          // initialize
@@ -64,25 +64,25 @@ namespace algorithm
          vstates[ inputSize ] = 1;
 
          Matrix w( inputSize + 1, nbHiddenStates + 1, false );
-         for ( ui32 n = 0; n < w.size(); ++n )
+         for ( size_t n = 0; n < w.size(); ++n )
             core::generateUniformDistribution( 1e-15, 1e-1 );
 
-         for ( ui32 epoch = 0; epoch < nbEpoch; ++epoch )
+         for ( size_t epoch = 0; epoch < nbEpoch; ++epoch )
          {
-            for ( ui32 batch = 0; batch < nbBatches; ++batch )
+            for ( size_t batch = 0; batch < nbBatches; ++batch )
             {
-               for ( ui32 point = 0; point < batchList[ batch.size() ]; ++point )
+               for ( size_t point = 0; point < batchList[ batch.size() ]; ++point )
                {
                   // fetch the input
-                  ui32 sampleId = batchList[ batch ][ point ];
-                  for ( ui32 n = 0; n < inputSize; ++n )
+                  size_t sampleId = batchList[ batch ][ point ];
+                  for ( size_t n = 0; n < inputSize; ++n )
                   {
                      vstates[ n ] = points[ sampleId ][ n ];
                   }
 
                   Vector hsum0( nbHiddenStates + 1 );
                   mul( _w, vstates, hsum0 );
-                  for ( ui32 n = 0; n < nbHiddenStates; ++n )
+                  for ( size_t n = 0; n < nbHiddenStates; ++n )
                   {
                      //const double p = sigm.evaluate( XX );
                   }

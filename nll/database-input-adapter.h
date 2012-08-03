@@ -60,17 +60,17 @@ namespace core
    public:
       DatabaseInputAdapter( Database& database ) : _database( database )
       {}
-      const Point& operator[]( ui32 n ) const
+      const Point& operator[]( size_t n ) const
       {
          assert( n < size() );
          return _database[ n ].input;
       }
-      Point& operator[]( ui32 n )
+      Point& operator[]( size_t n )
       {
          assert( n < size() );
          return _database[ n ].input;
       }
-      ui32 size() const
+      size_t size() const
       {
          return _database.size();
       }
@@ -102,12 +102,12 @@ namespace core
    public:
       DatabaseInputAdapterRead( const Database& database ) : _database( database )
       {}
-      const Point& operator[]( ui32 n ) const
+      const Point& operator[]( size_t n ) const
       {
          assert( n < size() );
          return _database[ n ].input;
       }
-      ui32 size() const
+      size_t size() const
       {
          return _database.size();
       }
@@ -141,36 +141,36 @@ namespace core
        @param database the database to be mapped
        @param types the types to be mapped (i.e. <code>Database::Type</code>). The others are discarded.
        */
-      DatabaseInputAdapterType( Database& database, const std::vector<ui32>& types ) : _database( database )
+      DatabaseInputAdapterType( Database& database, const std::vector<size_t>& types ) : _database( database )
       {
          // construct the internal index
          _buildIndex( types );
       }
-      const Point& operator[]( ui32 n ) const
+      const Point& operator[]( size_t n ) const
       {    
          assert( n < size() );
          return _database[ _index[ n ] ].input;
       }
-      Point& operator[]( ui32 n )
+      Point& operator[]( size_t n )
       {
          assert( n < size() );
          return _database[ _index[ n ] ].input;
       }
-      ui32 size() const
+      size_t size() const
       {
-         return static_cast<ui32>( _index.size() );
+         return static_cast<size_t>( _index.size() );
       }
 
    private:
       /**
        @brief build an index to address only the specified types.
        */
-      void _buildIndex( const std::vector<ui32>& types )
+      void _buildIndex( const std::vector<size_t>& types )
       {
-         ui32 size = 0;
+         size_t size = 0;
 
          // compute the size of the index
-         for ( ui32 n = 0; n < _database.size(); ++n )
+         for ( size_t n = 0; n < _database.size(); ++n )
             if ( _isIn( n, types ) )
                ++size;
          if ( !size )
@@ -178,7 +178,7 @@ namespace core
 
          // fill the index
          _index.reserve( size );
-         for ( ui32 n = 0; n < _database.size(); ++n )
+         for ( size_t n = 0; n < _database.size(); ++n )
             if ( _isIn( n, types ) )
                _index.push_back( n );
       }
@@ -187,9 +187,9 @@ namespace core
        @brief check if the <code>index</code> needs to be addressed
        @return false if filtered out
        */
-      inline bool _isIn( ui32 index, const std::vector<ui32>& types ) const
+      inline bool _isIn( size_t index, const std::vector<size_t>& types ) const
       {
-         for ( ui32 n = 0; n < types.size(); ++n )
+         for ( size_t n = 0; n < types.size(); ++n )
             if ( _database[ index ].type == static_cast<typename Database::Sample::Type>( types[ n ] ) )
                return true;
          return false;
@@ -197,7 +197,7 @@ namespace core
 
    private:
       Database&         _database;
-      std::vector<ui32> _index;
+      std::vector<size_t> _index;
    };
 
 
@@ -226,24 +226,24 @@ namespace core
        @param database the database to be mapped
        @param types the types to be mapped (i.e. <code>Database::Type</code>). The others are discarded.
        */
-      DatabaseInputAdapterClass( Database& database, ui32 classToMap ) : _database( database )
+      DatabaseInputAdapterClass( Database& database, size_t classToMap ) : _database( database )
       {
          // construct the internal index
          _buildIndex( classToMap );
       }
-      const Point& operator[]( ui32 n ) const
+      const Point& operator[]( size_t n ) const
       {    
          assert( n < size() );
          return _database[ _index[ n ] ].input;
       }
-      Point& operator[]( ui32 n )
+      Point& operator[]( size_t n )
       {
          assert( n < size() );
          return _database[ _index[ n ] ].input;
       }
-      ui32 size() const
+      size_t size() const
       {
-         return static_cast<ui32>( _index.size() );
+         return static_cast<size_t>( _index.size() );
       }
 
    private:
@@ -253,12 +253,12 @@ namespace core
       /**
        @brief build an index to address only the specified types.
        */
-      void _buildIndex( ui32 classToMap )
+      void _buildIndex( size_t classToMap )
       {
-         ui32 size = 0;
+         size_t size = 0;
 
          // compute the size of the index
-         for ( ui32 n = 0; n < _database.size(); ++n )
+         for ( size_t n = 0; n < _database.size(); ++n )
             if ( _database[ n ].output == classToMap )
                ++size;
          if ( !size )
@@ -266,14 +266,14 @@ namespace core
 
          // fill the index
          _index.reserve( size );
-         for ( ui32 n = 0; n < _database.size(); ++n )
+         for ( size_t n = 0; n < _database.size(); ++n )
             if ( _database[ n ].output == classToMap )
                _index.push_back( n );
       }
 
    private:
       Database&         _database;
-      std::vector<ui32> _index;
+      std::vector<size_t> _index;
    };
 
    /**
@@ -291,12 +291,12 @@ namespace core
    public:
       DatabaseClassAdapterRead( const Database& database ) : _database( database )
       {}
-      const Point& operator[]( ui32 n ) const
+      const Point& operator[]( size_t n ) const
       {
          assert( n < size() );
          return _database[ n ].output;
       }
-      ui32 size() const
+      size_t size() const
       {
          return _database.size();
       }

@@ -50,7 +50,7 @@ namespace core
       template <class Database, int hasClassTypes>
       struct _getNumberOfClass
       {
-         ui32 getNumberOfClass( const Database& dat )
+         size_t getNumberOfClass( const Database& dat )
          {
             ensure( 0, "must never be reached" ); // unimplemented, implement one filter if database Samples has class information
             return 0;
@@ -60,17 +60,17 @@ namespace core
       template <class Database>
       struct _getNumberOfClass<Database, 1>
       {
-         ui32 getNumberOfClass( const Database& dat )
+         size_t getNumberOfClass( const Database& dat )
          {
-            std::set<ui32> cl;
-            ui32 max = 0;
-            for ( ui32 n = 0; n < dat.size(); ++n )
+            std::set<size_t> cl;
+            size_t max = 0;
+            for ( size_t n = 0; n < dat.size(); ++n )
             {
-               max = std::max<ui32>( dat[ n ].output, max );
+               max = std::max<size_t>( dat[ n ].output, max );
                cl.insert( dat[ n ].output );
             }
             assert( ( max + 1 ) == cl.size() ); // assert there is no "hole" in the class label
-            return static_cast<ui32>( cl.size() );
+            return static_cast<size_t>( cl.size() );
          }
       };
    }
@@ -81,7 +81,7 @@ namespace core
            (ie using <code>ClassificationSample</code>).
     */
    template <class Database>
-   inline ui32 getNumberOfClass( const Database& dat )
+   inline size_t getNumberOfClass( const Database& dat )
    {
       return impl::_getNumberOfClass<Database, impl::_IsClassificationSampleTraits<typename Database::Sample::Input, typename Database::Sample::Output, typename Database::Sample>::value >().getNumberOfClass( dat );
    }
@@ -91,15 +91,15 @@ namespace core
     @brief Computes the class distribution of the database for TESTING|LEARNING|VALIDATION
     */
    template <class Database>
-   Buffer1D<ui32> getClassificationDatabaseClassNumber( const Database& d )
+   Buffer1D<size_t> getClassificationDatabaseClassNumber( const Database& d )
    {
       enum {VAL = impl::_IsClassificationSampleTraits<typename Database::Sample::Input, typename Database::Sample::Output, typename Database::Sample>::value };
       STATIC_ASSERT( VAL );
 
-      ui32 nbClass = getNumberOfClass( d );
+      size_t nbClass = getNumberOfClass( d );
       ensure( nbClass, "empty database?" );
-      Buffer1D<ui32> nbs( nbClass );
-      for ( ui32 n = 0; n < d.size(); ++n )
+      Buffer1D<size_t> nbs( nbClass );
+      for ( size_t n = 0; n < d.size(); ++n )
       {
          ++nbs[ d[ n ].output ];
       }
@@ -115,7 +115,7 @@ namespace core
     @param newType the selected types will have <code>newType</code> type in the new database.
     */
    template <class Database>
-   inline Database filterDatabase( const Database& dat, const std::vector<ui32> types, ui32 newType )
+   inline Database filterDatabase( const Database& dat, const std::vector<size_t> types, size_t newType )
    {
       // only CLASSIFICATION database could filtered
       enum
@@ -126,11 +126,11 @@ namespace core
       };
       STATIC_ASSERT( VAL );
       Database ndat;
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
-         for ( ui32 nn = 0; nn < types.size(); ++nn )
+         for ( size_t nn = 0; nn < types.size(); ++nn )
          {
-            if ( static_cast<ui32>( dat[ n ].type ) == types[ nn ] )
+            if ( static_cast<size_t>( dat[ n ].type ) == types[ nn ] )
             {
                ndat.add( dat[ n ] );
                ndat[ ndat.size() - 1 ].type = static_cast<typename Database::Sample::Type>( newType );
@@ -161,26 +161,26 @@ namespace core
       Database ndat;
       if ( !dat.size() )
          return ndat;
-      ui32 sizeInput = dat[ 0 ].input.size();
+      size_t sizeInput = dat[ 0 ].input.size();
       ensure( select.size() == sizeInput, "bad size" );
-      for ( ui32 n = 1 ; n < dat.size(); ++n )
+      for ( size_t n = 1 ; n < dat.size(); ++n )
          assert( dat[ n ].input.size() == sizeInput );
 
       // build the index
-      ui32 selectSize = 0;
-      for ( ui32 n = 0; n < sizeInput; ++n )
+      size_t selectSize = 0;
+      for ( size_t n = 0; n < sizeInput; ++n )
          if ( select[ n ] )
             ++selectSize;
-      Buffer1D<int> index( selectSize );
-      ui32 ii = 0;
-      for ( ui32 n = 0; n < sizeInput; ++n )
+      Buffer1D<size_t> index( selectSize );
+      size_t ii = 0;
+      for ( size_t n = 0; n < sizeInput; ++n )
          if ( select[ n ] )
          {
             index[ ii ] = n;
             ++ii;
          }
 
-      for ( ui32 n = 0; n < dat.size(); ++n )
+      for ( size_t n = 0; n < dat.size(); ++n )
       {
          typedef typename Database::Sample::Input InputV;
          typename Database::Sample s;
@@ -188,7 +188,7 @@ namespace core
          s.output = dat[ n ].output;
          s.debug = dat[ n ].debug;
          s.type = dat[ n ].type;
-         for ( ui32 nn = 0; nn < selectSize; ++nn )
+         for ( size_t nn = 0; nn < selectSize; ++nn )
             s.input[ nn ] = dat[ n ].input[ index[ nn ] ];
          ndat.add( s );
       }
