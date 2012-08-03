@@ -61,7 +61,7 @@ namespace algorithm
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "grid search started" );
          core::Buffer1D<double> pos( params.size() );
-         for ( ui32 n = 0; n < params.size(); ++n )
+         for ( size_t n = 0; n < params.size(); ++n )
             pos[ n ] = params[ n ].getMin();
 
          core::Buffer1D<double> bestSolution;
@@ -84,7 +84,7 @@ namespace algorithm
             }
 
             pos[ 0 ] = params[ 0 ].next( pos[ 0 ] );
-            for ( ui32 n = 0; n < params.size() - 1; ++n )
+            for ( size_t n = 0; n < params.size() - 1; ++n )
                if ( pos[ n ] >= params[ n ].getMax() )
                {
                   pos[ n ] = params[ n ].getMin();
@@ -100,7 +100,7 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
 
          std::vector<double> sol( params.size() );
-         for ( ui32 n = 0; n < params.size(); ++n )
+         for ( size_t n = 0; n < params.size(); ++n )
             sol[ n ] = bestSolution[ n ];
          return sol;
       }

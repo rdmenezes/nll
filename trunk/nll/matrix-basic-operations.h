@@ -165,10 +165,10 @@ namespace core
       assert( op1.sizex() == op2.size() );
       Matrix<T1, Mapper1, Allocator> m( op1.sizey(), 1 );
 
-	   for ( ui32 ny = 0; ny < op1.sizey(); ++ny )
+	   for ( size_t ny = 0; ny < op1.sizey(); ++ny )
 	   {
 		   T1 val = 0;
-		   for ( ui32 n = 0; n < op1.sizex(); ++n )
+		   for ( size_t n = 0; n < op1.sizex(); ++n )
 			   val += op1( ny, n ) * op2[ n ];
 		   m( ny, 0 ) = val;
 	   }

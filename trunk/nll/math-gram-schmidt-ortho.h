@@ -48,7 +48,7 @@ namespace core
       {
          assert( v1.size() == v2.size() );
          double accum = 0;
-         for ( ui32 n = 0; n < v1.size(); ++n )
+         for ( size_t n = 0; n < v1.size(); ++n )
          {
             accum += v1[  n ] * v2[ n ];
          }
@@ -78,18 +78,18 @@ namespace core
          typedef typename Vector::value_type    value_type;
 
          Vectors results = vectors;
-         const ui32 size = static_cast<ui32>( vectors[ 0 ].size() );
+         const size_t size = static_cast<size_t>( vectors[ 0 ].size() );
          std::vector<double> precomputed( vectors.size() );
 
          // orthogonalize
-         for ( ui32 n = 0; n < vectors.size(); ++n )
+         for ( size_t n = 0; n < vectors.size(); ++n )
          {
             // project
-            for ( ui32 proj = 0; proj < n; ++proj )
+            for ( size_t proj = 0; proj < n; ++proj )
             {
                const double inner = TraitInnerProduct::inner( results[ proj ], results[ n ] );
                const double innerb = precomputed[ proj ];
-               for ( ui32 nn = 0; nn < size; ++nn )
+               for ( size_t nn = 0; nn < size; ++nn )
                {
                   results[ n ][ nn ] -= results[ proj ][ nn ] * inner / innerb;
                }
@@ -118,15 +118,15 @@ namespace core
          typedef typename Vectors::value_type   Vector;
          typedef typename Vector::value_type    value_type;
 
-         const ui32 id = static_cast<ui32>( vectors.size() - 1 );
-         const ui32 size = static_cast<ui32>( vectors[ 0 ].size() );
+         const size_t id = static_cast<size_t>( vectors.size() - 1 );
+         const size_t size = static_cast<size_t>( vectors[ 0 ].size() );
 
          // project
-         for ( ui32 proj = 0; proj < id; ++proj )
+         for ( size_t proj = 0; proj < id; ++proj )
          {
             const double inner = TraitInnerProduct::inner( vectors[ proj ], vectors[ id ] );
             const double innerb = TraitInnerProduct::inner( vectors[ proj ], vectors[ proj ] );
-            for ( ui32 nn = 0; nn < size; ++nn )
+            for ( size_t nn = 0; nn < size; ++nn )
             {
                vectors[ id ][ nn ] -= vectors[ proj ][ nn ] * inner / innerb;
             }

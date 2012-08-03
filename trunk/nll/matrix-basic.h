@@ -53,7 +53,7 @@ namespace core
 	{
 		assert(a.sizex() == a.sizey()); //  "non square matrix"
 		Matrix<type, mapper, allocator> y(a.sizey(), a.sizex());
-		Buffer1D<ui32> perm(a.sizex());
+		Buffer1D<size_t> perm(a.sizex());
 		Buffer1D<type> col(a.sizex());
 		
 		type d;
@@ -62,20 +62,20 @@ namespace core
 			return false;
 		if (determinant)
 		{
-			for (ui32 n = 0; n < a.sizex(); ++n)
+			for (size_t n = 0; n < a.sizex(); ++n)
 				d *= a(n, n);
 			*determinant = d;
 		}
 
-		for (ui32 j = 0; j < a.sizex(); ++j)
+		for (size_t j = 0; j < a.sizex(); ++j)
 		{
-			for (ui32 i = 0; i < a.sizex(); ++i)
+			for (size_t i = 0; i < a.sizex(); ++i)
 				col(i) = 0.0;
 			col(j) = 1.0;
 			bool flag = luBackSubstitution<type, mapper, allocator>(a, perm, col);
 			if (!flag)
 				return false;
-			for (ui32 i = 0; i < a.sizex(); ++i)
+			for (size_t i = 0; i < a.sizex(); ++i)
 				y(i, j) = col(i);
 		}
 		a = y;
@@ -87,7 +87,7 @@ namespace core
 	type det( const Matrix<type, mapper, allocator>& a )
 	{
 		assert(a.sizex() == a.sizey()); //  "non square matrix"
-		Buffer1D<ui32> perm(a.sizex());
+		Buffer1D<size_t> perm(a.sizex());
 		
 		type d;
       Matrix<type, mapper, allocator> cp;
@@ -97,7 +97,7 @@ namespace core
       if ( !ok )
          return 0;
 
-		for (ui32 n = 0; n < cp.sizex(); ++n)
+		for (size_t n = 0; n < cp.sizex(); ++n)
 			d *= (type)cp(n, n);
 		return d;
 	}
@@ -107,10 +107,10 @@ namespace core
     @brief Generate an identity matrix of a fixed size.
     */
    template <class type, class mapper, class allocator>
-   Matrix<type, mapper, allocator> identity( ui32 n )
+   Matrix<type, mapper, allocator> identity( size_t n )
    {
       Matrix<type, mapper, allocator> id( n, n );
-      for (ui32 nn = 0; nn < n; ++nn)
+      for (size_t nn = 0; nn < n; ++nn)
          id( nn, nn ) = 1;
       return id;
    }
@@ -121,9 +121,9 @@ namespace core
    template <class type, class mapper, class allocator>
    void identity( Matrix<type, mapper, allocator>& m )
    {
-      for (ui32 nx = 0; nx < m.sizex(); ++nx)
+      for (size_t nx = 0; nx < m.sizex(); ++nx)
       {
-			for (ui32 ny = 0; ny < m.sizey(); ++ny)
+			for (size_t ny = 0; ny < m.sizey(); ++ny)
          {
             m( ny, nx ) = nx == ny;
          }
@@ -135,10 +135,10 @@ namespace core
     @brief Generate an identity matrix of a fixed size.
     */
    template <class Matrix>
-   Matrix identityMatrix( ui32 n )
+   Matrix identityMatrix( size_t n )
    {
       Matrix id( n, n );
-      for (ui32 nn = 0; nn < n; ++nn)
+      for (size_t nn = 0; nn < n; ++nn)
          id( nn, nn ) = 1;
       return id;
    }
@@ -149,10 +149,10 @@ namespace core
     @param val the matrix is filled with this value
     */
    template <class type, class mapper, class allocator>
-   Matrix<type, mapper, allocator> null( ui32 ny, ui32 nx, type val = 0 )
+   Matrix<type, mapper, allocator> null( size_t ny, size_t nx, type val = 0 )
    {
       Matrix<type, mapper, allocator> null( ny, nx );
-      for (ui32 nn = 0; nn < ny * nx; ++nn)
+      for (size_t nn = 0; nn < ny * nx; ++nn)
          null( nn ) = val;
       return null;
    }
@@ -166,7 +166,7 @@ namespace core
    {
       ensure( m.sizex() == m.sizey(), "operation is only defined for square matrix" );
       double accum = 0;
-      for (ui32 nn = 0; nn < m.sizex(); ++nn)
+      for (size_t nn = 0; nn < m.sizex(); ++nn)
          accum += static_cast<double>( m( nn, nn ) );
       return accum;
    }
@@ -186,14 +186,14 @@ namespace core
 			return;
 		}
 		if (m.sizex() == m.sizey())
-			for (ui32 nx = 0; nx < m.sizex(); ++nx)
-				for (ui32 ny = 0; ny < nx; ++ny)
+			for (size_t nx = 0; nx < m.sizex(); ++nx)
+				for (size_t ny = 0; ny < nx; ++ny)
 					std::swap(m(ny, nx), m(nx, ny));
 		else
 		{
 			Matrix<type, mapper, allocator> nn(m.sizex(), m.sizey());
-			for (ui32 nx = 0; nx < m.sizex(); ++nx)
-				for (ui32 ny = 0; ny < m.sizey(); ++ny)
+			for (size_t nx = 0; nx < m.sizex(); ++nx)
+				for (size_t ny = 0; ny < m.sizey(); ++ny)
 					nn(nx, ny) = m(ny, nx);
 			m = nn;
 		}
@@ -206,9 +206,9 @@ namespace core
    void mulidt( const Vector& v, Matrix<type, mapper, allocator>& out )
 	{
       out = Matrix<type, mapper, allocator>( v.size(), v.size(), false );
-      for ( ui32 y = 0; y < v.size(); ++y )
+      for ( size_t y = 0; y < v.size(); ++y )
       {
-         for ( ui32 x = 0; x < v.size(); ++x )
+         for ( size_t x = 0; x < v.size(); ++x )
          {
             out( y, x ) = v[ x ] * v[ y ];
          }
@@ -224,16 +224,16 @@ namespace core
    {
       typedef T value_type;
 
-      const ui32 sizex = m.sizex();
-      const ui32 sizey = m.sizey();
+      const size_t sizex = m.sizex();
+      const size_t sizey = m.sizey();
 
       ensure( v.size() == sizex, "dim don't match" );
 
       value_type accum = 0;
-      for ( ui32 y = 0; y < sizey; ++y )
+      for ( size_t y = 0; y < sizey; ++y )
       {
          const value_type px = v[ y ];
-         for ( ui32 x = 0; x < sizex; ++x )
+         for ( size_t x = 0; x < sizex; ++x )
          {
             accum += m( y, x ) * px * v[ x ];
          }
@@ -258,46 +258,46 @@ namespace core
       typedef core::Matrix<T, IndexMapper2D, AllocatorT> MatrixT;
 
       // now create the submatrix XX YY XY YX
-      xx = MatrixT( (ui32)x.size(), (ui32)x.size() );
-      for ( ui32 ny = 0; ny < xx.sizey(); ++ny )
+      xx = MatrixT( (size_t)x.size(), (size_t)x.size() );
+      for ( size_t ny = 0; ny < xx.sizey(); ++ny )
       {
-         const ui32 idy = x[ ny ];
-         for ( ui32 nx = 0; nx < xx.sizex(); ++nx )
+         const size_t idy = x[ ny ];
+         for ( size_t nx = 0; nx < xx.sizex(); ++nx )
          {
-            const ui32 idx = x[ nx ];
+            const size_t idx = x[ nx ];
             xx( ny, nx ) = src( idy, idx );
          }
       }
 
-      yy = MatrixT( (ui32)y.size(), (ui32)y.size() );
-      for ( ui32 ny = 0; ny < yy.sizey(); ++ny )
+      yy = MatrixT( (size_t)y.size(), (size_t)y.size() );
+      for ( size_t ny = 0; ny < yy.sizey(); ++ny )
       {
-         const ui32 idy = y[ ny ];
-         for ( ui32 nx = 0; nx < yy.sizex(); ++nx )
+         const size_t idy = y[ ny ];
+         for ( size_t nx = 0; nx < yy.sizex(); ++nx )
          {
-            const ui32 idx = y[ nx ];
+            const size_t idx = y[ nx ];
             yy( ny, nx ) = src( idy, idx );
          }
       }
 
-      xy = MatrixT( (ui32)x.size(), (ui32)y.size() );
-      for ( ui32 ny = 0; ny < xy.sizex(); ++ny )
+      xy = MatrixT( (size_t)x.size(), (size_t)y.size() );
+      for ( size_t ny = 0; ny < xy.sizex(); ++ny )
       {
-         const ui32 idy = y[ ny ];
-         for ( ui32 nx = 0; nx < xy.sizey(); ++nx )
+         const size_t idy = y[ ny ];
+         for ( size_t nx = 0; nx < xy.sizey(); ++nx )
          {
-            const ui32 idx = x[ nx ];
+            const size_t idx = x[ nx ];
             xy( nx, ny ) = src( idx, idy );
          }
       }
 
-      yx = MatrixT( (ui32)y.size(), (ui32)x.size() );
-      for ( ui32 ny = 0; ny < xy.sizey(); ++ny )
+      yx = MatrixT( (size_t)y.size(), (size_t)x.size() );
+      for ( size_t ny = 0; ny < xy.sizey(); ++ny )
       {
-         const ui32 idy = x[ ny ];
-         for ( ui32 nx = 0; nx < xy.sizex(); ++nx )
+         const size_t idy = x[ ny ];
+         for ( size_t nx = 0; nx < xy.sizex(); ++nx )
          {
-            const ui32 idx = y[ nx ];
+            const size_t idx = y[ nx ];
             yx( nx, ny ) = src( idx, idy );
          }
       }

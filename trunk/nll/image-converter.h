@@ -44,10 +44,10 @@ namespace core
    void convert( const Image<Ti, Mapperi>& i, Image<To, Mappero>& out )
    {
       Image<To, Mappero> o( i.sizex(), i.sizey(), i.getNbComponents() );
-      for ( ui32 ny = 0; ny < i.sizey(); ++ny )
-         for ( ui32 nx = 0; nx < i.sizex(); ++nx )
-            for ( ui32 c = 0; c < i.getNbComponents(); ++c )
-               o( nx, ny, c ) = static_cast<To> ( NLL_BOUND( i( nx, ny, c ), (To)Bound<To>::min, (To)Bound<To>::max ) );
+      for ( size_t ny = 0; ny < i.sizey(); ++ny )
+         for ( size_t nx = 0; nx < i.sizex(); ++nx )
+            for ( size_t c = 0; c < i.getNbComponents(); ++c )
+               o( nx, ny, c ) = static_cast<To> ( NLL_BOUND( i( nx, ny, c ), std::numeric_limits<To>::min(), std::numeric_limits<To>::min() ) );
       out = o;
    }
 }

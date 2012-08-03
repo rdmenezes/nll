@@ -86,8 +86,8 @@ namespace algorithm
       {
          ensure( points1.size() == points2.size() && points2.size() > 0, "must be pair of points, not empty" );
          
-         const ui32 nbPoints = static_cast<ui32>( points1.size() );
-         const ui32 nbDim = static_cast<ui32>( points1[ 0 ].size() );
+         const size_t nbPoints = static_cast<size_t>( points1.size() );
+         const size_t nbDim = static_cast<size_t>( points1[ 0 ].size() );
          ensure( nbDim == 2, "only for 2D cases - check directly applicable to more dim" );
          ensure( nbPoints >= 3, "Affine 2D DLT needs at least 3 points to estimate the transformation" );
 
@@ -151,23 +151,23 @@ namespace algorithm
       template <class Points1>
       void normalize( const Points1& points1, Points& points1_out, Matrix& normalization )
       {
-         const ui32 nbPoints = static_cast<ui32>( points1.size() );
-         const ui32 nbDim = static_cast<ui32>( points1[ 0 ].size() );
+         const size_t nbPoints = static_cast<size_t>( points1.size() );
+         const size_t nbDim = static_cast<size_t>( points1[ 0 ].size() );
 
          Vector mean = Vector( nbDim );
          Vector std = Vector( nbDim );
-         for ( ui32 n = 0; n < nbDim; ++n )
+         for ( size_t n = 0; n < nbDim; ++n )
          {
-            for ( ui32 p = 0; p < nbPoints; ++p )
+            for ( size_t p = 0; p < nbPoints; ++p )
             {
                mean[ n ] += points1[ p ][ n ];
             }
             mean[ n ] /= nbPoints;
          }
 
-         for ( ui32 n = 0; n < nbDim; ++n )
+         for ( size_t n = 0; n < nbDim; ++n )
          {
-            for ( ui32 p = 0; p < nbPoints; ++p )
+            for ( size_t p = 0; p < nbPoints; ++p )
             {
                std[ n ] += core::sqr( points1[ p ][ n ] - mean[ n ] );
             }
@@ -175,10 +175,10 @@ namespace algorithm
          }
 
          points1_out.clear();
-         for ( ui32 p = 0; p < nbPoints; ++p )
+         for ( size_t p = 0; p < nbPoints; ++p )
          {
             Point point( nbDim );
-            for ( ui32 n = 0; n < nbDim; ++n )
+            for ( size_t n = 0; n < nbDim; ++n )
             {
                point[ n ] = ( points1[ p ][ n ] - mean[ n ] ) / std[ n ];
             }
@@ -197,10 +197,10 @@ namespace algorithm
       template <class Points1, class Points2>
       static void createMatrices( const Points1& points1, const Points2& points2, Matrix& a_out, Matrix& b_out )
       {
-         const ui32 nbPoints = static_cast<ui32>( points1.size() );
+         const size_t nbPoints = static_cast<size_t>( points1.size() );
 
          Matrix a( 2 * nbPoints, 6 );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             a( 2 * n, 3 ) = - points1[ n ][ 0 ];
             a( 2 * n, 4 ) = - points1[ n ][ 1 ];
@@ -212,7 +212,7 @@ namespace algorithm
          }
 
          Matrix b( 2 * nbPoints, 1 );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             b( 2 * n, 0 ) = - points2[ n ][ 1 ];
             b( 2 * n + 1, 0 ) = points2[ n ][ 0 ];
@@ -399,7 +399,7 @@ namespace algorithm
       template <class Points1, class Points2>
       Matrix compute( const Points1& points1, const Points2& points2 )
       {
-         const ui32 nbPoints = static_cast<ui32>( points1.size() );
+         const size_t nbPoints = static_cast<size_t>( points1.size() );
          ensure( points1.size() >= 3, "we need 3 pairs of points" );
          ensure( points2.size() >= 3, "we need 3 pairs of points" );
          ensure( points2.size() == points2.size(), "we need same number of points" );
@@ -407,7 +407,7 @@ namespace algorithm
          // compute the centroid of the two clouds of points
          Point cx( 0, 0 );
          Point cy( 0, 0 );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             cx[ 0 ] += points1[ n ][ 0 ];
             cx[ 1 ] += points1[ n ][ 1 ];
@@ -415,8 +415,8 @@ namespace algorithm
             cy[ 0 ] += points2[ n ][ 0 ];
             cy[ 1 ] += points2[ n ][ 1 ];
          }
-         cx /= nbPoints;
-         cy /= nbPoints;
+         cx /= static_cast<double>( nbPoints );
+         cy /= static_cast<double>( nbPoints );
 
          // center on (0,0) the points
          std::vector<Point> xp;
@@ -424,7 +424,7 @@ namespace algorithm
          std::vector<Point> yp;
          yp.reserve( nbPoints );
 
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             xp.push_back( Point( points1[ n ][ 0 ] - cx[ 0 ], points1[ n ][ 1 ] - cx[ 1 ] ) );
             yp.push_back( Point( points2[ n ][ 0 ] - cy[ 0 ], points2[ n ][ 1 ] - cy[ 1 ] ) );
@@ -437,7 +437,7 @@ namespace algorithm
          Type d = 0;
          Type e = 0;
          Type f = 0;
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             a += xp[ n ][ 0 ] * yp[ n ][ 0 ];
             b += xp[ n ][ 0 ] * yp[ n ][ 1 ];

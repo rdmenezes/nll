@@ -66,12 +66,12 @@ namespace algorithm
        Compute the principal components using only the LEARNING|VALIDATION samples
        */
       template <class Database>
-      bool compute( const Database& dat, ui32 nbFeatures )
+      bool compute( const Database& dat, size_t nbFeatures )
       {
          typedef core::DatabaseInputAdapterRead<Database>   PointsAdapter;
          Database learningDat = core::filterDatabase( dat,
-                                                      core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                                                                    Database::Sample::VALIDATION ),
+                                                      core::make_vector<size_t>( Database::Sample::LEARNING,
+                                                                                 Database::Sample::VALIDATION ),
                                                       Database::Sample::LEARNING );
          PointsAdapter adapter( learningDat );
          return _algorithm.compute( adapter, nbFeatures, *_kernel );

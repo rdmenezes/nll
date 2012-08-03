@@ -19,7 +19,7 @@ public:
       Classifier classifier;
 
       // we only want to train on the LEARNING database as for the test
-      Database dat2 = nll::core::filterDatabase( dat, nll::core::make_vector<nll::ui32>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
+      Database dat2 = nll::core::filterDatabase( dat, nll::core::make_vector<size_t>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
 
       
       nll::core::Buffer1D<double> params = nll::core::make_buffer1D<double>( 10, 100 );

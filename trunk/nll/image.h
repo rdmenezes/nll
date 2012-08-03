@@ -51,7 +51,7 @@ namespace core
     @brief Define a 2D image. Buffers of images are automatically shared
 
     @param Mapper must provide:
-           -inline ui32 index( const ui32 x, const ui32 y, const ui32 comp ) const
+           -inline size_t index( const size_t x, const size_t y, const size_t comp ) const
            -and ensure that components are NOT interleaved ( it is assumed that the color components
             are continuous). This assumption is used in several algorithms...
            -addx, addy, addz to compute a new position from a previous position (but less expensive in computation time)
@@ -71,7 +71,7 @@ namespace core
       class DirectionalIterator
       {
       public:
-         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( size_t index, T* buf, size_t sx, size_t sy, size_t sz, const Mapper& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _sz( sz ), _mapper( mapper )
          {}
 
@@ -191,17 +191,17 @@ namespace core
           */
          DirectionalIterator& operator=( const T* i )
          {
-            for ( ui32 n = 0; n < _sz; ++n )
+            for ( size_t n = 0; n < _sz; ++n )
                _buf[ n ] = i[ n ];
             return *this;
          }
 
       protected:
-         ui32     _index;
+         size_t     _index;
          T*       _buf;
-         ui32     _sx;
-         ui32     _sy;
-         ui32     _sz;
+         size_t     _sx;
+         size_t     _sy;
+         size_t     _sz;
          Mapper   _mapper;
       };
 
@@ -213,7 +213,7 @@ namespace core
       class ConstDirectionalIterator : public DirectionalIterator
       {
       public:
-         ConstDirectionalIterator( ui32 index, const T* buf, ui32 sx, ui32 sy, ui32 sz, const Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
+         ConstDirectionalIterator( size_t index, const T* buf, size_t sx, size_t sy, size_t sz, const Mapper& mapper ) : DirectionalIterator( index, (T*)buf, sx, sy, sz, mapper )
          {}
 
          ConstDirectionalIterator( const DirectionalIterator& it ) : DirectionalIterator( it )
@@ -312,7 +312,7 @@ namespace core
        @brief construct an image of a specific size.
        @param zero if false, the buffer is not initialized
        */
-      Image( ui32 sizex, ui32 sizey, ui32 nbComponents, bool zero = true, Alloc alloc = Alloc() ) : Base( sizex * sizey * nbComponents, zero, alloc ), _mapper( sizex, sizey, nbComponents ), _sizex( sizex ), _sizey( sizey ), _nbcomp( nbComponents )
+      Image( size_t sizex, size_t sizey, size_t nbComponents, bool zero = true, Alloc alloc = Alloc() ) : Base( sizex * sizey * nbComponents, zero, alloc ), _mapper( sizex, sizey, nbComponents ), _sizex( sizex ), _sizey( sizey ), _nbcomp( nbComponents )
       {}
 
       /**
@@ -324,7 +324,7 @@ namespace core
       /**
        @brief contruct an image from a buffer. Ensure the dimensions are correct
        */
-      explicit Image( Base& buf, ui32 sizex, ui32 sizey, ui32 nbcmp ) : Base( buf ), _mapper( sizex, sizey, nbcmp ), _sizex( sizex ), _sizey( sizey ), _nbcomp( nbcmp )
+      explicit Image( Base& buf, size_t sizex, size_t sizey, size_t nbcmp ) : Base( buf ), _mapper( sizex, sizey, nbcmp ), _sizex( sizex ), _sizey( sizey ), _nbcomp( nbcmp )
       {
          assert( ( buf.size() % (sizex * sizey * nbcmp ) ) == 0 );
       }
@@ -344,7 +344,7 @@ namespace core
       {
          // we are importing from an image with the same mapper, so we can safely iterate in order the pixel data
          *this = Image( cpy.sizex(), cpy.sizey(), cpy.getNbComponents() );
-         for ( ui32 n = 0; n < cpy.size(); ++n )
+         for ( size_t n = 0; n < cpy.size(); ++n )
          {
             const Type val = cpy[ n ];
             this->_buffer[ n ] = static_cast<T>( val );
@@ -354,7 +354,7 @@ namespace core
       /**
        @brief return the position of the pixel (x, y, c) in the buffer
        */
-      inline ui32 index( const ui32 x, const ui32 y, const ui32 c ) const
+      inline size_t index( const size_t x, const size_t y, const size_t c ) const
       {
          // previously Base::IndexMapper::index( _mapper.index( x, y, c ) );
          // the base index was taken into account. Instead, it is now discarded
@@ -366,7 +366,7 @@ namespace core
       /**
        @brief return the value at the point (x, y, c)
        */
-      inline const T at( const ui32 x, const ui32 y, const ui32 c) const
+      inline const T at( const size_t x, const size_t y, const size_t c) const
       {
          assert( x < _sizex );
          assert( y < _sizey );
@@ -377,7 +377,7 @@ namespace core
       /**
        @brief return the value at the point (x, y, c)
        */
-      inline T& at( const ui32 x, const ui32 y, const ui32 c)
+      inline T& at( const size_t x, const size_t y, const size_t c)
       {
          assert( x < _sizex );
          assert( y < _sizey );
@@ -388,37 +388,37 @@ namespace core
       /**
        @brief return the value at the point (x, y, c)
        */
-      inline const T operator()( const ui32 x, const ui32 y, const ui32 c) const { return at( x, y, c ); }
+      inline const T operator()( const size_t x, const size_t y, const size_t c) const { return at( x, y, c ); }
 
       /**
        @brief return the value at the point (x, y, c)
        */
-      inline T& operator()( const ui32 x, const ui32 y, const ui32 c) { return at( x, y, c ); }
+      inline T& operator()( const size_t x, const size_t y, const size_t c) { return at( x, y, c ); }
 
       /**
        @brief return the buffer of the pixel (x, y)
        */
-      inline T* point( const ui32 x, const ui32 y ){ assert( x < _sizex && y < _sizey ); return this->_buffer + index( x, y, 0 ); }
+      inline T* point( const size_t x, const size_t y ){ assert( x < _sizex && y < _sizey ); return this->_buffer + index( x, y, 0 ); }
 
       /**
        @brief return the buffer of the pixel (x, y)
        */
-      inline const T* point( const ui32 x, const ui32 y ) const { assert( x < _sizex && y < _sizey ); return this->_buffer + index( x, y, 0 ); }
+      inline const T* point( const size_t x, const size_t y ) const { assert( x < _sizex && y < _sizey ); return this->_buffer + index( x, y, 0 ); }
 
       /**
        @brief return the number of components
        */
-      ui32 getNbComponents() const { return _nbcomp;}
+      size_t getNbComponents() const { return _nbcomp;}
 
       /**
        @brief return the size of the image
        */
-      ui32 sizex() const { return _sizex;}
+      size_t sizex() const { return _sizex;}
 
       /**
        @brief return the size of the image
        */
-      ui32 sizey() const { return _sizey;}
+      size_t sizey() const { return _sizey;}
 
       /**
        @brief copy an image (not shared)
@@ -432,10 +432,10 @@ namespace core
       /**
        @brief set the pixel (x, y) to a specific value
        */
-      void setPixel( const ui32 x, const ui32 y, const T* buf )
+      void setPixel( const size_t x, const size_t y, const T* buf )
       {
          T* b = point( x, y );
-         for ( ui32 n = 0; n < _nbcomp; ++n )
+         for ( size_t n = 0; n < _nbcomp; ++n )
             b[ n ] = buf[ n ];
       }
 
@@ -466,10 +466,10 @@ namespace core
       /**
        @brief return true if 2 pixels are semantically equal
        */
-      bool equal( const ui32 x, const ui32 y, const T* p ) const
+      bool equal( const size_t x, const size_t y, const T* p ) const
       {
          const T* pp = point( x, y );
-         for ( ui32 n = 0; n < _nbcomp; ++n )
+         for ( size_t n = 0; n < _nbcomp; ++n )
             if ( p[ n ] != pp[ n ] )
                return false;
          return true;
@@ -486,9 +486,9 @@ namespace core
             return true;
          if ( ! op._buffer )
             return false;
-         for ( ui32 nx = 0; nx < _sizex; ++nx )
-            for ( ui32 ny = 0; ny < _sizey; ++ny )
-               for ( ui32 c = 0; c < _nbcomp; ++c )
+         for ( size_t nx = 0; nx < _sizex; ++nx )
+            for ( size_t ny = 0; ny < _sizey; ++ny )
+               for ( size_t c = 0; c < _nbcomp; ++c )
                if ( op( nx, ny, c ) != at( nx, ny, c ) )
                   return false; 
          return true;
@@ -499,9 +499,9 @@ namespace core
        */
       void write( std::ostream& o ) const
       {
-         nll::core::write<ui32>( _sizex, o );
-         nll::core::write<ui32>( _sizey, o );
-         nll::core::write<ui32>( _nbcomp, o );
+         nll::core::write<size_t>( _sizex, o );
+         nll::core::write<size_t>( _sizey, o );
+         nll::core::write<size_t>( _nbcomp, o );
          Base::write( o );
       }
 
@@ -510,9 +510,9 @@ namespace core
        */
       void read( std::istream& i )
       {
-         nll::core::read<ui32>( _sizex, i );
-         nll::core::read<ui32>( _sizey, i );
-         nll::core::read<ui32>( _nbcomp, i );
+         nll::core::read<size_t>( _sizex, i );
+         nll::core::read<size_t>( _sizey, i );
+         nll::core::read<size_t>( _nbcomp, i );
          _mapper = IndexMapper( _sizex, _sizey, _nbcomp );
          Base::read( i );
       }
@@ -529,6 +529,7 @@ namespace core
 
       /**
        @brief returns a const iterator on the last pixel + 1, component 0
+       @note this is a costly operation! it must be cahced
        */
       ConstDirectionalIterator endDirectional() const
       {
@@ -545,6 +546,7 @@ namespace core
 
       /**
        @brief returns a const iterator on the last pixel + 1, component 0
+       @note this is a costly operation! it must be cahced
        */
       DirectionalIterator endDirectional()
       {
@@ -554,7 +556,7 @@ namespace core
       /**
        @brief returns an iterator on the specified pixel
        */
-      ConstDirectionalIterator getIterator( ui32 x, ui32 y, ui32 z ) const
+      ConstDirectionalIterator getIterator( size_t x, size_t y, size_t z ) const
       {
          // we have to remove the const, to provide operator=, however it will be guaranteed that
          // no modifications will be done
@@ -564,7 +566,7 @@ namespace core
       /**
        @brief returns an iterator on the specified pixel
        */
-      DirectionalIterator getIterator( ui32 x, ui32 y, ui32 z )
+      DirectionalIterator getIterator( size_t x, size_t y, size_t z )
       {
          return DirectionalIterator( _mapper.index( x, y, z ), this->_buffer, _sizex, _sizey, _nbcomp, _mapper );
       }
@@ -601,12 +603,12 @@ namespace core
 
       void print( std::ostream& o ) const
       {
-         for ( ui32 col = 0; col < _nbcomp; ++col )
+         for ( size_t col = 0; col < _nbcomp; ++col )
          {
             o << "component=" << col << std::endl;
-            for ( ui32 y = 0; y < _sizey; ++y )
+            for ( size_t y = 0; y < _sizey; ++y )
             {
-               for ( ui32 x = 0; x < _sizex; ++x )
+               for ( size_t x = 0; x < _sizex; ++x )
                {
                   o << at( x, y, col ) << " ";
                }
@@ -617,9 +619,9 @@ namespace core
 
    protected:
       Mapper      _mapper;
-      ui32        _sizex;
-      ui32        _sizey;
-      ui32        _nbcomp;
+      size_t        _sizex;
+      size_t        _sizey;
+      size_t        _nbcomp;
    };
 }
 }

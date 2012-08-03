@@ -53,14 +53,14 @@ namespace algorithm
     This code is extracted from numerical recipes
     */
    template <class Functor>
-   double brent( double ax, double bx, double cx, const Functor& f, double& outMinX, double tol, ui32 itMax = 100, bool* error = 0 )
+   double brent( double ax, double bx, double cx, const Functor& f, double& outMinX, double tol, size_t itMax = 100, bool* error = 0 )
    {
       if ( error )
          *error = false;
       const double gold = 0.3819660;
       const double eps = 1e-10;
 
-      ui32 iter;
+      size_t iter;
       double a, b, d = 0, etemp, fu, fv, fw, fx, p, q, r, tol1, tol2, u, v, w, x, xm;
       double e = 0.0;         // This will be the distance moved on the step before last.
       a = (ax < cx ? ax : cx);  // a and b must be in ascending order,
@@ -155,7 +155,7 @@ namespace algorithm
          double operator()( double n ) const
          {
             Point p( _i.size() );
-            for ( ui32 nn = 0; nn < _i.size(); ++nn )
+            for ( size_t nn = 0; nn < _i.size(); ++nn )
             {
                p[ nn ] = n * _dir[ nn ] + _i[ nn ];
             }
@@ -193,7 +193,7 @@ namespace algorithm
       BracketingResult bracket = minimumBracketing( 1, 0, ff );
       double xmin;
       ret = brent( bracket.ax, bracket.bx, bracket.cx, ff, xmin, tol, 100, &error );
-      for ( ui32 n = 0; n < p.size(); ++n )
+      for ( size_t n = 0; n < p.size(); ++n )
       {
          p[ n ] += direction[ n ] * xmin;
          direction[ n ] *= xmin;

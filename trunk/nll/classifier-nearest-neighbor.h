@@ -111,8 +111,8 @@ namespace algorithm
       virtual void read( std::istream& i )
       {
          _dat.read( i );
-		   core::read<ui32>( _k, i );
-         core::read<ui32>( _nbClasses, i );
+		   core::read<size_t>( _k, i );
+         core::read<size_t>( _nbClasses, i );
          
          // rebuild the tree if the database is not empty
          if ( _adapter )
@@ -125,8 +125,8 @@ namespace algorithm
       virtual void write( std::ostream& o ) const
       {
          _dat.write( o );
-		   core::write<ui32>( _k, o );
-         core::write<ui32>( _nbClasses, o );
+		   core::write<size_t>( _k, o );
+         core::write<size_t>( _nbClasses, o );
       }
 
 	   /**
@@ -148,13 +148,13 @@ namespace algorithm
 
          typename NnKdTree::NearestNeighborList list = _tree.findNearestNeighbor( p, _k );
 
-         typedef std::map<ui32, ui32>  Count;
+         typedef std::map<size_t, size_t>  Count;
          Count count;
          for ( typename NnKdTree::NearestNeighborList::const_iterator it = list.begin(); it != list.end(); ++it )
             ++count[ _dat[ it->id ].output ];
 
-         ui32 index = 0;
-         ui32 max_index = 0;
+         size_t index = 0;
+         size_t max_index = 0;
          for ( Count::const_iterator it = count.begin(); it != count.end(); ++it )
          {
             if ( max_index < it->second )
@@ -171,8 +171,8 @@ namespace algorithm
       {
          ensure( parameters.size() == 1, "expected size: 1" );
          ensure( parameters[ 0 ] > 0, "bad argument" );
-         _k = static_cast<ui32>( parameters[ 0 ] );
-         _dat = core::filterDatabase( dat, core::make_vector<ui32>( Base::Database::Sample::LEARNING ), static_cast<ui32>( Base::Database::Sample::LEARNING ) );
+         _k = static_cast<size_t>( parameters[ 0 ] );
+         _dat = core::filterDatabase( dat, core::make_vector<size_t>( Base::Database::Sample::LEARNING ), static_cast<size_t>( Base::Database::Sample::LEARNING ) );
 
          if ( _adapter )
             delete _adapter;
@@ -192,10 +192,10 @@ namespace algorithm
    protected:
       typename Base::Database  _dat;
       const Metric*            _metric;
-	   ui32                     _k;
+	   size_t                     _k;
       NnKdTree                 _tree;
       Adapter*                 _adapter;
-      ui32                     _nbClasses;
+      size_t                     _nbClasses;
    };
 }
 }

@@ -60,26 +60,27 @@ namespace core
       ensure( source.getNbComponents() == target.getNbComponents(), "same NB of components only" );
 
       // we want to find the transformation from target->source
-      Matrix<double> invTfm;
-      invTfm.clone( tfm3x3 );
-      inverse3x3( invTfm );
+      Matrix<float> invTfm;
+      invTfm.import( tfm3x3 );
+      const bool result = inverse3x3( invTfm );
+      ensure( result, "can't inverse the affine matrix !?" );
 
       // here we consider origin = (0,0) for both images
       Interpolator interpolator( source );
-      vector2d dy( invTfm( 0, 2 ), invTfm( 1, 2 ) );  // start at the translation
-      for ( ui32 y = 0; y < target.sizey(); ++y )
+      vector2f dy( invTfm( 0, 2 ), invTfm( 1, 2 ) );  // start at the translation
+      for ( size_t y = 0; y < target.sizey(); ++y )
       {
-         vector2d dx = dy;
-         for ( ui32 x = 0; x < target.sizex(); ++x )
+         vector2f dx = dy;
+         for ( size_t x = 0; x < target.sizex(); ++x )
          {
-            for ( ui32 c = 0; c < target.getNbComponents(); ++c )
+            for ( size_t c = 0; c < target.getNbComponents(); ++c )
             {
                if ( dx[ 0 ] < 0 || dx[ 0 ] >= source.sizex() ||
                     dx[ 1 ] < 0 || dx[ 1 ] >= source.sizey() )
                {
                   target( x, y, c ) = background[ c ];
                } else {
-                  target( x, y, c ) = interpolator.interpolate( dx[ 0 ] - 0.5, dx[ 1 ] - 0.5, c );
+                  target( x, y, c ) = static_cast<T>( interpolator.interpolate( dx[ 0 ] - 0.5f, dx[ 1 ] - 0.5f, c ) );
                }
             }
             dx[ 0 ] += invTfm( 0, 0 );
@@ -119,7 +120,7 @@ namespace core
     @param Interpolator interpolator used for resampling
     */
    template <class T, class IMapper, class Interpolator, class Allocator>
-   void rescale( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
+   void rescale( Image<T, IMapper, Allocator>& img, size_t newSizeX, size_t newSizeY, Allocator alloc = Allocator() )
    {
       typedef typename Interpolator::value_type CoordType;
       CoordType dxsize = static_cast<CoordType> ( img.sizex() - 0 ) / newSizeX;
@@ -127,9 +128,9 @@ namespace core
       Image<T, IMapper, Allocator> i( newSizeX, newSizeY, img.getNbComponents(), false, alloc );
 
       Interpolator interpolator( img );
-	   for ( ui32 y = 0; y < newSizeY; ++y )
-         for ( ui32 x = 0; x < newSizeX; ++x )
-            for ( ui32 c = 0; c < img.getNbComponents(); ++c )
+	   for ( size_t y = 0; y < newSizeY; ++y )
+         for ( size_t x = 0; x < newSizeX; ++x )
+            for ( size_t c = 0; c < img.getNbComponents(); ++c )
             {
                i( x, y, c ) = static_cast<T> ( interpolator.interpolate( x * dxsize - (CoordType)0.5, y * dysize - (CoordType)0.5, c ) );
             }
@@ -141,7 +142,7 @@ namespace core
     @brief resample an image using a bilinear interpolation.
     */
    template <class T, class IMapper, class Allocator>
-   inline void rescaleBilinear( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
+   inline void rescaleBilinear( Image<T, IMapper, Allocator>& img, size_t newSizeX, size_t newSizeY, Allocator alloc = Allocator() )
    {
       rescale<T, IMapper, InterpolatorLinear2D<T, IMapper, Allocator>, Allocator>( img, newSizeX, newSizeY, alloc );
    }
@@ -151,7 +152,7 @@ namespace core
     @brief resample an image using a nearest neighbor interpolation.
     */
    template <class T, class IMapper, class Allocator>
-   inline void rescaleNearestNeighbor( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
+   inline void rescaleNearestNeighbor( Image<T, IMapper, Allocator>& img, size_t newSizeX, size_t newSizeY, Allocator alloc = Allocator() )
    {
       rescale<T, IMapper, InterpolatorNearestNeighbor2D<T, IMapper, Allocator>, Allocator>( img, newSizeX, newSizeY, alloc );
    }
@@ -164,7 +165,7 @@ namespace core
     The resampled image is the mean of all pixels in a specific cell of this grid.
     */
    template <class T, class IMapper, class Allocator>
-   void rescaleFast( Image<T, IMapper, Allocator>& img, ui32 newSizeX, ui32 newSizeY, Allocator alloc = Allocator() )
+   void rescaleFast( Image<T, IMapper, Allocator>& img, size_t newSizeX, size_t newSizeY, Allocator alloc = Allocator() )
    {
       Image<T, IMapper, Allocator> i( newSizeX, newSizeY, img.getNbComponents(), false, alloc );
 		f64 dxsize = static_cast<f64> ( img.sizex() ) / newSizeX;
@@ -173,16 +174,16 @@ namespace core
 		assert( dxsize * dysize ); // "error: image too small"
       f64 divsize = ( ( ( dxsize < 1 ) ? 1 : (int)( dxsize + 1 ) ) *
                       ( ( dysize < 1 ) ? 1 : (int)( dysize + 1 ) ) );
-      for ( ui32 c = 0; c < img.getNbComponents(); ++c )
-		   for ( ui32 y = 0; y < newSizeY; ++y )
-            for ( ui32 x = 0; x < newSizeX; ++x )
+      for ( size_t c = 0; c < img.getNbComponents(); ++c )
+		   for ( size_t y = 0; y < newSizeY; ++y )
+            for ( size_t x = 0; x < newSizeX; ++x )
 			   {
 				   f64 val = 0;
-				   for ( ui32 dx = 0; dx < dxsize; ++dx )
-					   for ( ui32 dy = 0; dy < dysize; ++dy )
-						   val += img(static_cast<ui32>( x * dxsize )  + dx, static_cast<ui32>( y * dysize ) + dy, c );
+				   for ( size_t dx = 0; dx < dxsize; ++dx )
+					   for ( size_t dy = 0; dy < dysize; ++dy )
+						   val += img(static_cast<size_t>( x * dxsize )  + dx, static_cast<size_t>( y * dysize ) + dy, c );
                val /= divsize;
-               i( x, y, c ) = static_cast<T>( NLL_BOUND( val, ( T )Bound<T>::min, ( T )Bound<T>::max ) );
+               i( x, y, c ) = static_cast<T>( NLL_BOUND( val, std::numeric_limits<T>::min(), std::numeric_limits<T>::max() ) );
 			   }
 		img = i;
    }

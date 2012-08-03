@@ -82,9 +82,9 @@ namespace core
 
          _tmp = Vector( mean.size() );
          _cov = Matrix( mean.size(), mean.size(), false );
-         for ( ui32 y = 0; y < _cov.sizey(); ++y )
+         for ( size_t y = 0; y < _cov.sizey(); ++y )
          {
-            for ( ui32 x = 0; x < _cov.sizex(); ++x )
+            for ( size_t x = 0; x < _cov.sizex(); ++x )
             {
                const value_type val = covariance( y, x );
                if ( x != y && fabs( covariance( y, x ) ) > std::numeric_limits<T>::epsilon() )
@@ -99,7 +99,7 @@ namespace core
          _isCovDiagonal = isDiag;
          _mean = Vector( mean.size(), false );
          _isMeanZero = true;
-         for ( ui32 n = 0; n < mean.size(); ++n )
+         for ( size_t n = 0; n < mean.size(); ++n )
          {
             value_type val = static_cast<value_type>( mean[ n ] );
             if ( fabs( val ) > std::numeric_limits<value_type>::epsilon() )
@@ -130,7 +130,7 @@ namespace core
             if ( _isCovDiagonal )
             {
                value_type accum = 0;
-               for ( ui32 n = 0; n < val.size(); ++n )
+               for ( size_t n = 0; n < val.size(); ++n )
                {
                   accum += val[ n ] * val[ n ] * _covInv( n, n );
                }
@@ -139,7 +139,7 @@ namespace core
                return std::exp( -0.5 * fastDoubleMultiplication( val, _covInv ) ) * _cte;
             }
          } else {
-            for ( ui32 n = 0; n < val.size(); ++n )
+            for ( size_t n = 0; n < val.size(); ++n )
             {
                _tmp[ n ] = val[ n ] - _mean[ n ];
             }
@@ -147,7 +147,7 @@ namespace core
             if ( _isCovDiagonal )
             {
                T accum = 0;
-               for ( ui32 n = 0; n < val.size(); ++n )
+               for ( size_t n = 0; n < val.size(); ++n )
                {
                   accum += _tmp[ n ] * _tmp[ n ] * _covInv( n, n );
                }

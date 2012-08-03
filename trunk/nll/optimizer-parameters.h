@@ -115,7 +115,7 @@ namespace algorithm
       typedef std::vector<ParameterOptimizer*>  Container;
 
    public:
-      ParameterOptimizers( ui32 size, bool owns = true ) : _container( size ), _owns( owns )
+      ParameterOptimizers( size_t size, bool owns = true ) : _container( size ), _owns( owns )
       {}
       ParameterOptimizers( bool owns = true ) : _owns( owns )
       {}
@@ -128,17 +128,17 @@ namespace algorithm
          assert( param );
          _container.push_back( param );
       }
-      const ParameterOptimizer& operator[]( ui32 n ) const
+      const ParameterOptimizer& operator[]( size_t n ) const
       {
          return *_container[ n ];
       }
-      ParameterOptimizer& operator[]( ui32 n )
+      ParameterOptimizer& operator[]( size_t n )
       {
          return *_container[ n ];
       }
-      ui32 size() const
+      size_t size() const
       {
-         return static_cast<ui32>( _container.size() );
+         return static_cast<size_t>( _container.size() );
       }
 
       ParameterOptimizers( const ParameterOptimizers& params )
@@ -157,7 +157,7 @@ namespace algorithm
       {
          _free();
          _owns = true;
-         for ( ui32 n = 0; n < params.size(); ++n )
+         for ( size_t n = 0; n < params.size(); ++n )
             _container.push_back( params[ n ].clone() );
       }
 
@@ -165,7 +165,7 @@ namespace algorithm
       {
          if ( _owns )
          {
-            for ( ui32 n = 0; n < static_cast<ui32>( _container.size() ); ++n )
+            for ( size_t n = 0; n < static_cast<size_t>( _container.size() ); ++n )
                delete _container[ n ];
          }
       }

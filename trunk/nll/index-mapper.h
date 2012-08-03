@@ -44,7 +44,7 @@ namespace core
     */
    struct IndexMapperFlat1D
    {
-      inline static ui32 index( const ui32 i ){ return i; }
+      inline static size_t index( const size_t i ){ return i; }
    };
 
    /**
@@ -56,12 +56,12 @@ namespace core
       /**
        @brief initialize with the correct dimension of the image
        */
-      IndexMapperRowMajorFlat2D( const ui32 sizex, const ui32 sizey ) : _sizex( sizex ), _sizey( sizey ){}
+      IndexMapperRowMajorFlat2D( const size_t sizex, const size_t sizey ) : _sizex( sizex ), _sizey( sizey ){}
 
       /**
        @brief return the index in memory that map to the position (x, y)
        */
-      inline ui32 index( const ui32 x, const ui32 y ) const
+      inline size_t index( const size_t x, const size_t y ) const
       {
         assert( x < _sizex );
         assert( y < _sizey );
@@ -71,7 +71,7 @@ namespace core
       /**
        @brief from the index, return mapped position (x, y) of the buffer
        */
-      inline void indexInverse( const ui32 index, ui32& out_x, ui32& out_y ) const
+      inline void indexInverse( const size_t index, size_t& out_x, size_t& out_y ) const
       {
          assert( index < _sizex * _sizey );
          out_x = index % _sizex;
@@ -81,7 +81,7 @@ namespace core
       /**
        @brief return the index shifted by x, based on a previous index
        */
-      inline ui32 addx( i32 index, ui32 size ) const
+      inline size_t addx( size_t index, i32 size ) const
       {
          return index + size;
       }
@@ -89,14 +89,14 @@ namespace core
       /**
        @brief return the index shifted by y, based on a previous index
        */
-      inline ui32 addy( i32 index, ui32 size ) const
+      inline size_t addy( i32 index, i32 size ) const
       {
          return index + size * _sizex;
       }
 
    private:
-      ui32  _sizex;
-      ui32  _sizey;
+      size_t  _sizex;
+      size_t  _sizey;
    };
 
    /**
@@ -108,12 +108,12 @@ namespace core
       /**
        @brief initialize with the correct dimension of the image
        */
-      IndexMapperColumnMajorFlat2D( const ui32 sizex, const ui32 sizey ) : _sizex( sizex ), _sizey( sizey ){}
+      IndexMapperColumnMajorFlat2D( const size_t sizex, const size_t sizey ) : _sizex( sizex ), _sizey( sizey ){}
 
       /**
        @brief return the index in memory that map to the position (x, y)
        */
-      inline ui32 index( const ui32 x, const ui32 y ) const
+      inline size_t index( const size_t x, const size_t y ) const
       {
         assert( x < _sizex );
         assert( y < _sizey );
@@ -123,7 +123,7 @@ namespace core
       /**
        @brief return the index shifted by x, based on a previous index
        */
-      inline ui32 addx( i32 index, ui32 size ) const
+      inline size_t addx( size_t index, i32 size ) const
       {
          return index + size * _sizey;
       }
@@ -131,7 +131,7 @@ namespace core
       /**
        @brief return the index shifted by y, based on a previous index
        */
-      inline ui32 addy( i32 index, ui32 size ) const
+      inline size_t addy( size_t index, i32 size ) const
       {
          return index + size;
       }
@@ -139,7 +139,7 @@ namespace core
       /**
        @brief from the index, return mapped position (x, y) of the buffer
        */
-      inline void indexInverse( const ui32 index, ui32& out_x, ui32& out_y ) const
+      inline void indexInverse( const size_t index, size_t& out_x, size_t& out_y ) const
       {
          assert( index < _sizex * _sizey );
          out_y = index % _sizey;
@@ -147,8 +147,8 @@ namespace core
       }
 
    private:
-      ui32  _sizex;
-      ui32  _sizey;
+      size_t  _sizex;
+      size_t  _sizey;
    };
 
    /**
@@ -160,37 +160,37 @@ namespace core
       /**
        @brief initialize with the correct dimension of the image
        */
-      IndexMapperRowMajorFlat2DColorRGBn( const ui32 sizex, const ui32 sizey, const ui32 nbComponents ) : _sizex( sizex ), _sizey( sizey ), _nbComponents( nbComponents ), _cacheSxMulComp( sizex * nbComponents ){}
+      IndexMapperRowMajorFlat2DColorRGBn( const size_t sizex, const size_t sizey, const size_t nbComponents ) : _sizex( sizex ), _sizey( sizey ), _nbComponents( nbComponents ), _cacheSxMulComp( sizex * nbComponents ){}
 
       /**
        @brief return the index in memory that map to the position (x, y)
        */
-      inline ui32 index( const ui32 x, const ui32 y, const ui32 comp ) const
+      inline size_t index( const size_t x, const size_t y, const size_t comp ) const
       {
         return (x + y * _sizex) * _nbComponents + comp;
       }
 
-      inline ui32 addx( i32 index, ui32 size ) const
+      inline size_t addx( size_t index, i32 size ) const
       {
          return index + _nbComponents * size;
       }
 
-      inline ui32 addy( i32 index, ui32 size ) const
+      inline size_t addy( size_t index, i32 size ) const
       {
          return index + _cacheSxMulComp * size;
       }
 
-      inline ui32 addz( i32 index, ui32 size ) const
+      inline size_t addz( size_t index, i32 size ) const
       {
          return index + size;
       }
 
       private:
-         ui32  _sizex;
-         ui32  _sizey;
-         ui32  _nbComponents;
+         size_t  _sizex;
+         size_t  _sizey;
+         size_t  _nbComponents;
 
-         ui32  _cacheSxMulComp;
+         size_t  _cacheSxMulComp;
    };
 
    /**
@@ -201,32 +201,32 @@ namespace core
     */
    struct IndexMapperRowMajorFlat2DColorRGBnMask
    {
-      IndexMapperRowMajorFlat2DColorRGBnMask( const ui32 sizex, const ui32 sizey, const ui32 /*nbComponents*/ ) : _sizex( sizex ), _sizey( sizey ) {}
+      IndexMapperRowMajorFlat2DColorRGBnMask( const size_t sizex, const size_t sizey, const size_t /*nbComponents*/ ) : _sizex( sizex ), _sizey( sizey ) {}
 
-      inline ui32 index( const ui32 x, const ui32 y, const ui32 /*comp*/ ) const
+      inline size_t index( const size_t x, const size_t y, const size_t /*comp*/ ) const
       {
         return x + y * _sizex;
       }
 
-      inline ui32 addx( i32 index, ui32 size ) const
+      inline size_t addx( size_t index, i32 size ) const
       {
          return index + size;
       }
 
-      inline ui32 addy( i32 index, ui32 size ) const
+      inline size_t addy( size_t index, i32 size ) const
       {
          return index + _sizex * size;
       }
 
-      inline ui32 addz( i32, ui32 ) const
+      inline size_t addz( size_t, i32 ) const
       {
          assert( 0 ); // invalid
          return 0;
       }
 
       private:
-         ui32  _sizex;
-         ui32  _sizey;
+         size_t  _sizex;
+         size_t  _sizey;
    };
 
    /**
@@ -238,7 +238,7 @@ namespace core
       /**
        @brief initialize with the correct dimension of the image
        */
-      IndexMapperRowMajorFlat3D( const ui32 sizex, const ui32 sizey, const ui32 sizez ) : _sizex( sizex ), _sizey( sizey ), _sizez( sizez )
+      IndexMapperRowMajorFlat3D( const size_t sizex, const size_t sizey, const size_t sizez ) : _sizex( sizex ), _sizey( sizey ), _sizez( sizez )
       {
          _sxy = _sizex * _sizey;
       }
@@ -246,7 +246,7 @@ namespace core
       /**
        @brief return the index in memory that map to the position (x, y)
        */
-      inline ui32 index( const ui32 x, const ui32 y, const ui32 z ) const
+      inline size_t index( const size_t x, const size_t y, const size_t z ) const
       {
          assert( x < _sizex );
          assert( y < _sizey );
@@ -254,26 +254,26 @@ namespace core
          return x + y * _sizex + z * _sxy;
       }
 
-      inline ui32 addx( i32 index, ui32 size ) const
+      inline size_t addx( size_t index, i32 size ) const
       {
          return index + size;
       }
 
-      inline ui32 addy( i32 index, ui32 size ) const
+      inline size_t addy( size_t index, i32 size ) const
       {
          return index + _sizex * size;
       }
 
-      inline ui32 addz( i32 index, ui32 size ) const
+      inline size_t addz( size_t index, i32 size ) const
       {
          return index + _sxy * size;
       }
 
       private:
-         ui32  _sxy;
-         ui32  _sizex;
-         ui32  _sizey;
-         ui32  _sizez;
+         size_t  _sxy;
+         size_t  _sizex;
+         size_t  _sizey;
+         size_t  _sizez;
    };
 }
 }

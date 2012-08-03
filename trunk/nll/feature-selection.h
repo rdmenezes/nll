@@ -66,13 +66,13 @@ namespace algorithm
    public:
       void read( std::istream& f )
       {
-         core::read<ui32>( _nbSelectedFeatures, f );
+         core::read<size_t>( _nbSelectedFeatures, f );
          this->_selectedFeatures.read( f );
       }
 
       void write( std::ostream& f ) const
       {
-         core::write<ui32>( _nbSelectedFeatures, f );
+         core::write<size_t>( _nbSelectedFeatures, f );
          this->_selectedFeatures.write( f );
       }
 
@@ -84,8 +84,8 @@ namespace algorithm
          assert( point.size() == _selectedFeatures.size() );   // error : feature set doesn't match
          assert( _nbSelectedFeatures );                        // no selected feature
          Point newPoint( _nbSelectedFeatures );
-         ui32 n = 0;
-         ui32 i = 0;
+         size_t n = 0;
+         size_t i = 0;
          while ( n != _nbSelectedFeatures )
          {
             assert( n < point.size() );
@@ -102,10 +102,10 @@ namespace algorithm
       /**
        @return the number of features that are currently selected
        */
-      ui32 getNumberOfSelectedFeatures()
+      size_t getNumberOfSelectedFeatures()
       {
-         ui32 n = 0;
-         for ( ui32 i = 0; i < _selectedFeatures.size(); ++i )
+         size_t n = 0;
+         for ( size_t i = 0; i < _selectedFeatures.size(); ++i )
             n += ( _selectedFeatures[ i ] == true );
          return n;
       }
@@ -130,7 +130,7 @@ namespace algorithm
 
    private:
       core::Buffer1D<bool> _selectedFeatures;
-      ui32                 _nbSelectedFeatures;
+      size_t                 _nbSelectedFeatures;
    };
 
    /**
@@ -139,7 +139,7 @@ namespace algorithm
 
     The Classifier is directly used to mark the feature set, this can be real classifier, or regression
     */
-   template <class Point, class ClassifierBase = ClassifierBase<Point, ui32> >
+   template <class Point, class ClassifierBase = ClassifierBase<Point, size_t> >
    class FeatureSelectionWrapper : public FeatureSelectionBase<Point>
    {
    public:

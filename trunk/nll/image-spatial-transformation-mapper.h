@@ -149,7 +149,7 @@ namespace core
                                                         originInTarget[ 1 ] + y * dy[ 1 ],
                                                         0 );
             typename ImageType::DirectionalIterator  voxelIt = lineIt;
-            for ( ui32 x = 0; x < resampled.sizex(); ++x )
+            for ( size_t x = 0; x < resampled.sizex(); ++x )
             {
                proc.process( voxelIt, &linePosSrc[0] );
                linePosSrc[ 0 ] += dx[ 0 ];

@@ -135,8 +135,50 @@ namespace imaging
 
        v must remain valid until the end of the calls to the interpolator
        */
-      InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v )
+      InterpolatorTriLinearDummy( const VolumeType& v ) : _volume( &v ), _sizeCheck( static_cast<int>( v.sizex() ) - 1,
+                                                                                     static_cast<int>( v.sizey() ) - 1,
+                                                                                     static_cast<int>( v.sizez() ) - 1 )
       {}
+
+      /**
+       @brief Compute the weights associated to this position on the 8 neighboring voxels
+       @param pos a vector encoded as (x, y, z, 0) specififying the position in voxel
+       @param weights assumed already allocated 8-vector storing the weights 0123 as (p, p+i, p+i+j, p+j)
+              and 4567 as (p+k, p+i+k, p+i+j+k, p+j+k) where (i,j,k) vector director (1,0,0) (0,1,0) (0,0,1)
+       */
+      void computeWeights( const float* pos, float* weights, int& ix, int& iy, int& iz )
+      {
+         ix = core::floor( pos[ 0 ] );
+         iy = core::floor( pos[ 1 ] );
+         iz = core::floor( pos[ 2 ] );
+
+         const value_type_floating dx = fabs( pos[ 0 ] - ix );
+         const value_type_floating dy = fabs( pos[ 1 ] - iy );
+         const value_type_floating dz = fabs( pos[ 2 ] - iz );
+
+         const value_type_floating dxdy = dx * dy;
+         const value_type_floating dydz = dy * dz;
+         /*
+         weights[7] = dxdy * dz;
+         weights[6] = dx * dz          - weights[ 7 ];
+         weights[5] = dxdy             - weights[ 7 ];
+         weights[3] = dydz             - weights[ 7 ];
+         weights[4] = dx - dxdy        - weights[ 6 ];
+         weights[2] = dz - dydz        - weights[ 6 ];
+         weights[1] = dy - dydz        - weights[ 5 ];
+         weights[0] = 1 -dy -dz + dydz - weights[ 4 ]; 
+         */
+
+         weights[6] = dxdy * dz;
+
+         weights[5] = dx * dz          - weights[ 6 ];
+         weights[2] = dxdy             - weights[ 6 ];
+         weights[7] = dydz             - weights[ 6 ];
+         weights[1] = dx - dxdy        - weights[ 5 ];
+         weights[4] = dz - dydz        - weights[ 5 ];
+         weights[3] = dy - dydz        - weights[ 2 ];
+         weights[0] = 1 -dy -dz + dydz - weights[ 1 ]; 
+      }
 
       /**
        @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
@@ -149,9 +191,9 @@ namespace imaging
          const int iz = core::floor( pos[ 2 ] );
 
          // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
+         if ( ix < 0 || ix >= _sizeCheck[ 0 ] ||
+              iy < 0 || iy >= _sizeCheck[ 1 ] ||
+              iz < 0 || iz >= _sizeCheck[ 2 ] )
          {
             return _volume->getBackgroundValue();;
          }
@@ -198,7 +240,8 @@ namespace imaging
       }
 
    protected:
-      const VolumeType* _volume;
+      const VolumeType*       _volume;
+      core::vector3i          _sizeCheck;
 
       mutable value_type v000;
       mutable value_type v001, v010, v011, v100, v110, v101, v111;
@@ -262,128 +305,6 @@ namespace imaging
    protected:
       InterpolatorTriLinearDummy<Volume>  _interpolator;
    };
-
-# if !defined ( NLL_DISABLE_SSE_SUPPORT )
-   //
-   // Optimized version using SSE
-   //
-   template <>
-   class InterpolatorTriLinear< VolumeSpatial<float> >
-   {
-   public:
-      typedef float value_type;
-      typedef Volume<value_type>   VolumeType;
-
-   public:
-      /**
-       @brief Construct an interpolator for the volume v. 
-
-       v must remain valid until the end of the calls to the interpolator
-       */
-      InterpolatorTriLinear( const VolumeType& v ) : _volume( &v )
-      {}
-
-      /**
-       @brief This method must be called before any interpolation is made
-       */
-      void startInterpolation()
-      {
-         if ( core::Configuration::instance().isSupportedSSE2() )
-         {
-            _currentRoundingMode = _MM_GET_ROUNDING_MODE();
-            _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-         }
-         iix = -1;
-      }
-
-      /**
-       @brief This method must be called after any interpolation is made
-       */
-      void endInterpolation()
-      {
-         if ( core::Configuration::instance().isSupportedSSE2() )
-         {
-            _MM_SET_ROUNDING_MODE( _currentRoundingMode );
-         }
-      }
-
-      /**
-       @brief (x, y, z, PADDING) must be an index. It returns background if the point is outside the volume
-       */
-      value_type operator()( const float* pos ) const
-      {
-         __declspec(align(16)) int result[ 4 ];
-
-         // floor the value, beware of the flooring mode
-         __m128i floored = _mm_cvtps_epi32( *( (__m128*)pos ) );
-
-         // retrieve the result from register to memory
-         _mm_store_si128( (__m128i*)result, floored );
-
-         const int ix = result[ 0 ];
-         const int iy = result[ 1 ];
-         const int iz = result[ 2 ];
-
-         // 0 <-> size - 1 as we need an extra sample for linear interpolation
-         const float background = _volume->getBackgroundValue();
-         if ( ix < 0 || ix + 1 >= static_cast<int>( _volume->size()[ 0 ] ) ||
-              iy < 0 || iy + 1 >= static_cast<int>( _volume->size()[ 1 ] ) ||
-              iz < 0 || iz + 1 >= static_cast<int>( _volume->size()[ 2 ] ) )
-         {
-            return background;
-         }
-
-
-         const value_type dx = fabs( pos[ 0 ] - ix );
-         const value_type dy = fabs( pos[ 1 ] - iy );
-         const value_type dz = fabs( pos[ 2 ] - iz );
-
-         // Often in the same neighbourhood, we are using the same voxel, but at a slightly different
-         // position, so we are caching the previous result, and reuse it if necessary
-         if ( ix != iix || iy != iiy || iz != iiz )
-         {
-            // update the position to possibly use the cached values next iteration
-            iix = ix;
-            iiy = iy;
-            iiz = iz;
-
-            // case we are not using the cached values
-            VolumeType::ConstDirectionalIterator it = _volume->getIterator( ix, iy, iz );
-            VolumeType::ConstDirectionalIterator itz( it );
-            itz.addz();
-
-            v000 = *it;
-
-            v100 = it.pickx();
-            v101 = itz.pickx();
-            v010 = it.picky();
-            v011 = itz.picky();
-            v001 = it.pickz();
-            v110 = *it.addx().addy();
-            v111 = it.pickz();            
-         }
-
-         const value_type i1 = v000 + ( v001 - v000 ) * dz;
-         const value_type i2 = v010 + ( v011 - v010 ) * dz;
-         const value_type j1 = v100 + ( v101 - v100 ) * dz;
-         const value_type j2 = v110 + ( v111 - v110 ) * dz;
-
-         const value_type w1 = i1 * ( 1 - dy ) + i2 * dy;
-         const value_type w2 = j1 * ( 1 - dy ) + j2 * dy;
-
-         const value_type value = w1 * ( 1 - dx ) + w2 * dx;
-         return value;
-      }
-
-   protected:
-      const VolumeType* _volume;
-
-      mutable value_type v000;
-      mutable value_type v001, v010, v011, v100, v110, v101, v111;
-      mutable int iix, iiy, iiz;
-      mutable unsigned int _currentRoundingMode;
-   };
-# endif
 }
 }
 

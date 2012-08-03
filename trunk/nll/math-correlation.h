@@ -50,7 +50,7 @@ namespace core
       assert( v1.size() );
 
       double mean1 = 0, mean2 = 0;
-      for ( ui32 n = 0; n < v1.size(); ++n )
+      for ( size_t n = 0; n < v1.size(); ++n )
       {
          mean1 += v1[ n ];
          mean2 += v2[ n ];
@@ -59,7 +59,7 @@ namespace core
       mean2 /= v2.size();
 
       double cov = 0, var1 = 0, var2 = 0;
-      for ( ui32 n = 0; n < v1.size(); ++n )
+      for ( size_t n = 0; n < v1.size(); ++n )
       {
          const double t1 = v1[ n ] - mean1;
          const double t2 = v2[ n ] - mean2;

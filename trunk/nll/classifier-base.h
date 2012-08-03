@@ -166,8 +166,8 @@ namespace algorithm
       {
          Database datl = nll::core::filterDatabase(
             dat,
-            nll::core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                               Database::Sample::VALIDATION ),
+            nll::core::make_vector<size_t>( Database::Sample::LEARNING,
+                                            Database::Sample::VALIDATION ),
             Database::Sample::LEARNING );
          learn( datl, parameters );
       }
@@ -179,9 +179,9 @@ namespace algorithm
       {
          Database datl = nll::core::filterDatabase(
             dat,
-            nll::core::make_vector<nll::ui32>( Database::Sample::LEARNING,
-                                               Database::Sample::VALIDATION,
-                                               Database::Sample::TESTING ),
+            nll::core::make_vector<size_t>( Database::Sample::LEARNING,
+                                            Database::Sample::VALIDATION,
+                                            Database::Sample::TESTING ),
             Database::Sample::LEARNING );
          learn( datl, parameters );
       }
@@ -206,29 +206,29 @@ namespace algorithm
               <code>TESTING</code> samples are discarded so that we are sure the testing dataset is really independant.
        @return Result learningError will be set, the validation and testing are set to -1
        */
-      Result test( const Database& dat, const ClassifierParameters& learningParameters, ui32 kfold ) const
+      Result test( const Database& dat, const ClassifierParameters& learningParameters, size_t kfold ) const
       {
          ensure( kfold >= 3, "useless to do less than a 3-fold cross validation. Current is:" + core::val2str( kfold ) );
          Result rglobal( 0, -1, -1 );
 
          // filter the database
          Database learningDatabase;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
             if ( dat[ n ].type == Database::Sample::LEARNING ||
                  dat[ n ].type == Database::Sample::VALIDATION )
                learningDatabase.add( dat[ n ] );
 
          // set the bins
-         std::vector<ui32> bins = _setCrossFoldBin( learningDatabase, kfold );
+         std::vector<size_t> bins = _setCrossFoldBin( learningDatabase, kfold );
 
          std::stringstream o;
          o << "testing: crossvalidation, k=" << kfold << std::endl;
-         for ( ui32 n = 0; n < kfold; ++n )
+         for ( size_t n = 0; n < kfold; ++n )
          {
             _generateDatabase( learningDatabase, bins, n );
-            ui32 nbLearning;
-            ui32 nbValidation;
-            ui32 nbTesting;
+            size_t nbLearning;
+            size_t nbValidation;
+            size_t nbTesting;
             getInfo( learningDatabase, nbLearning, nbTesting, nbValidation );
             ClassifierBase* newc = deepCopy();
             newc->learn( learningDatabase, learningParameters );
@@ -272,7 +272,7 @@ namespace algorithm
       /**
        @brief set the number of bins for the cross validation
        */
-      void setCrossValidationBinSize( ui32 numberOfBins )
+      void setCrossValidationBinSize( size_t numberOfBins )
       {
          _crossValidationBin = numberOfBins;
       }
@@ -280,13 +280,13 @@ namespace algorithm
       /**
         @brief Returns information on the database.
         */
-      static void getInfo( const Database& dat, ui32& out_nb_learning, ui32& out_nb_testing, ui32& out_nb_validating )
+      static void getInfo( const Database& dat, size_t& out_nb_learning, size_t& out_nb_testing, size_t& out_nb_validating )
       {
          out_nb_learning   = 0;
          out_nb_testing    = 0;
          out_nb_validating = 0;
 
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
          {
             switch( dat[n].type )
             {
@@ -312,14 +312,14 @@ namespace algorithm
 
    protected:
       // set a bin ID for each datasets
-      virtual std::vector<ui32> _setCrossFoldBin( const Database& dat, ui32 nbBins ) const = 0;
+      virtual std::vector<size_t> _setCrossFoldBin( const Database& dat, size_t nbBins ) const = 0;
 
       // generate a database for crossvalidation : currentBin == bins[n] => n testing, else n learning example
-      void _generateDatabase( Database& dat, const std::vector<ui32>& bins, ui32 currentBin ) const
+      void _generateDatabase( Database& dat, const std::vector<size_t>& bins, size_t currentBin ) const
       {
          assert( bins.size() == dat.size() );
 
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         for ( size_t n = 0; n < dat.size(); ++n )
             if ( bins[ n ] == currentBin )
                dat[ n ].type = Database::Sample::TESTING;
             else
@@ -328,7 +328,7 @@ namespace algorithm
 
    protected:
       const ParameterOptimizers  _parametersPrototype;
-      ui32                       _crossValidationBin;
+      size_t                       _crossValidationBin;
    };
 }
 }

@@ -64,10 +64,10 @@ namespace algorithm
    {
    public:
       typedef double                      value_type;
-      typedef ui32                        value_typei;
+      typedef size_t                        value_typei;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<ui32>        VectorI;
+      typedef core::Buffer1D<size_t>        VectorI;
       typedef VectorI                     EvidenceValue;
 
    public:
@@ -110,7 +110,7 @@ namespace algorithm
                                                             */
       PotentialTable( const Vector& table, const VectorI domain, const VectorI& cardinality )
       {
-         const ui32 expectedTableSize = getTableSize( cardinality );
+         const size_t expectedTableSize = getTableSize( cardinality );
          ensure( expectedTableSize == table.size(), "missing table entries" );
          ensure( domain.size() == cardinality.size(), "missing id" );
          ensure( isDomainSorted( domain ), "the domain must be sorted!" );
@@ -120,10 +120,10 @@ namespace algorithm
 
          /*
          // check we have a correctly formated table! (i.e., at least sum(p(x|p)) = 1)
-         for ( ui32 n = 0; n < table.size(); n += cardinality[ 0 ] )
+         for ( size_t n = 0; n < table.size(); n += cardinality[ 0 ] )
          {
             value_type sum = 0;
-            for ( ui32 nn = 0; nn < cardinality[ 0 ]; ++nn )
+            for ( size_t nn = 0; nn < cardinality[ 0 ]; ++nn )
             {
                sum += table[ n + nn ];
             }
@@ -179,19 +179,19 @@ namespace algorithm
          ensure( domain.size() == domainCardinality.size(), "cardinality and domain must have same dimensionality" );
 
          // now sort the domain and keep track of the original order
-         std::vector< std::pair< ui32, ui32 > > domainSorted;
+         std::vector< std::pair< size_t, size_t > > domainSorted;
          domainSorted.reserve( domain.size() );
-         for ( ui32 n = 0; n < domain.size(); ++n )
+         for ( size_t n = 0; n < domain.size(); ++n )
          {
             domainSorted.push_back( std::make_pair( domain[ n ], n ) );
          }
          std::sort( domainSorted.begin(), domainSorted.end() );
 
-         ui32 stride = 1;
-         std::vector<ui32> strides( domain.size() );
-         for ( ui32 n = 0; n < domain.size(); ++n )
+         size_t stride = 1;
+         std::vector<size_t> strides( domain.size() );
+         for ( size_t n = 0; n < domain.size(); ++n )
          {
-            const ui32 indexInOriginalDomain = domainSorted[ n ].second;
+            const size_t indexInOriginalDomain = domainSorted[ n ].second;
             strides[ indexInOriginalDomain ] = stride;
             stride *= domainCardinality[ n ];
          }
@@ -200,21 +200,21 @@ namespace algorithm
          VectorI newDomain( domain.size() );
          VectorI newCardinality( domain.size() );
          Vector newTable( table.size() );
-         for ( ui32 n = 0; n < domain.size(); ++n )
+         for ( size_t n = 0; n < domain.size(); ++n )
          {
-            const ui32 indexInOriginalDomain = domainSorted[ n ].second;
+            const size_t indexInOriginalDomain = domainSorted[ n ].second;
             newDomain[ n ] = domain[ indexInOriginalDomain ];
             newCardinality[ n ] = domainCardinality[ indexInOriginalDomain ];
          }
 
-         std::vector<ui32> counts( domain.size() );
-         ui32 currentIndex = 0;
+         std::vector<size_t> counts( domain.size() );
+         size_t currentIndex = 0;
 
          // Currently, a counter is used to backtrack the source index...
-         for ( ui32 n = 0; n < table.size(); ++n )
+         for ( size_t n = 0; n < table.size(); ++n )
          {
             // check the counter bounds (i.e., it must be within domainCardinality, if not backtrack the source index),
-            for ( ui32 i = 0; i < domain.size(); ++i )
+            for ( size_t i = 0; i < domain.size(); ++i )
             {
                if ( counts[ i ] == newCardinality[ i ] )
                {
@@ -252,16 +252,16 @@ namespace algorithm
 
          // get the index in the table. As the main domain is alwyas domain[0], the probabilities we are interested in are contiguous and of size cardinality[0]
          // now given this set of probabilities, randomly sample a value
-         std::vector<ui32> strides;
+         std::vector<size_t> strides;
          computeStrides( strides );
 
          core::Buffer1D<float> pbs( _cardinality[ 0 ] );
-         const ui32 baseIndex = getIndexFromEvent( strides, inout_evidenceWithoutMainDomain );
-         for ( ui32 i = 0; i < _cardinality[ 0 ]; ++i )
+         const size_t baseIndex = getIndexFromEvent( strides, inout_evidenceWithoutMainDomain );
+         for ( size_t i = 0; i < _cardinality[ 0 ]; ++i )
          {
             pbs[ i ] = (float)_table[ baseIndex + i ];
          }
-         core::Buffer1D<ui32> samples = core::sampling( pbs, 1 );
+         core::Buffer1D<size_t> samples = core::sampling( pbs, 1 );
          inout_evidenceWithoutMainDomain[ 0 ] = samples[ 0 ];  // export the sampled main domain
       }
 
@@ -276,32 +276,32 @@ namespace algorithm
             return;
 
          // first for efficiency, compute the evidence index related to this potential table domain
-         std::vector<ui32> domainMapper( _domain.size() );
-         for ( ui32 n = 0; n < _domain.size(); ++n )
+         std::vector<size_t> domainMapper( _domain.size() );
+         for ( size_t n = 0; n < _domain.size(); ++n )
          {
             VectorI::const_iterator it = std::find( domainData.begin(), domainData.end(), _domain[ n ] );
             ensure( it != domainData.end(), "a domain in CPD can't be found in the fully observed data" );
-            domainMapper[ n ] = static_cast<ui32>( it - domainData.begin() );
+            domainMapper[ n ] = static_cast<size_t>( it - domainData.begin() );
          }
 
          // reset the table;
-         for ( ui32 n = 0; n < _table.size(); ++n )
+         for ( size_t n = 0; n < _table.size(); ++n )
          {
             _table[ n ] = 0;
          }
 
          // do the counting
-         std::vector<ui32> strides;
+         std::vector<size_t> strides;
          computeStrides( strides );
          EvidenceValue event( _domain.size() );
          for ( size_t dataId = 0; dataId < fullyObservedData.size(); ++dataId )
          {
             const EvidenceValue& fullEvent = fullyObservedData[ dataId ];
-            for ( ui32 n = 0; n < _domain.size(); ++n )
+            for ( size_t n = 0; n < _domain.size(); ++n )
             {
                event[ n ] = fullEvent[ domainMapper[ n ] ];
             }
-            const ui32 index = getIndexFromEvent( strides, event );
+            const size_t index = getIndexFromEvent( strides, event );
             ++_table[ index ];
          }
 
@@ -347,11 +347,11 @@ namespace algorithm
          ensure( event.size() == _domain.size(), "all variables must be specified!" );
 
          // first compute the strides
-         std::vector<ui32> strides;
+         std::vector<size_t> strides;
          computeStrides( strides );
 
          // now compute the table index
-         const ui32 index = getIndexFromEvent( strides, event );
+         const size_t index = getIndexFromEvent( strides, event );
          return _table[ index ];
       }
 
@@ -384,18 +384,18 @@ namespace algorithm
          {
             // if there is no domain, we don't want to normalize even if the table is not empty!
             // here we want that sum_x p(x | Y ) = 1, so we need to normalize the domain[ 0 ] by summing all its categories probabilities and normalize
-            const ui32 nbCategories = _cardinality[ 0 ];
-            for ( ui32 index = 0; index < _table.size(); index += nbCategories )
+            const size_t nbCategories = _cardinality[ 0 ];
+            for ( size_t index = 0; index < _table.size(); index += nbCategories )
             {
                value_type sum = 0;
-               for ( ui32 n = index; n < index + nbCategories; ++n ) // we don't need to check the bounds: we know the table's size is multiple of cardinality[ 0 ]
+               for ( size_t n = index; n < index + nbCategories; ++n ) // we don't need to check the bounds: we know the table's size is multiple of cardinality[ 0 ]
                {
                   sum += _table[ n ];
                }
                if ( sum >= std::numeric_limits<value_type>::epsilon() )
                {
                   // handle the case where we don't have any counts: just set the proba to 0...
-                  for ( ui32 n = index; n < index + nbCategories; ++n )
+                  for ( size_t n = index; n < index + nbCategories; ++n )
                   {
                      _table[ n ] /= sum;
                   }
@@ -412,14 +412,14 @@ namespace algorithm
          if ( _domain.size() )
          {
             value_type sum = 0;
-            for ( ui32 index = 0; index < _table.size(); ++index )
+            for ( size_t index = 0; index < _table.size(); ++index )
             {
                sum += _table[ index ];
             }
 
             if ( sum > 1e-5 )
             {
-               for ( ui32 index = 0; index < _table.size(); ++index )
+               for ( size_t index = 0; index < _table.size(); ++index )
                {
                   _table[ index ] /= sum;
                }
@@ -444,8 +444,8 @@ namespace algorithm
 
          PotentialTable extended1 = extendDomain( g2.getDomain(), g2.getCardinality() );
          PotentialTable extended2 = g2.extendDomain( _domain, _cardinality );
-         const ui32 size = extended1.getTable().size();
-         for ( ui32 n = 0; n < size; ++n )
+         const size_t size = extended1.getTable().size();
+         for ( size_t n = 0; n < size; ++n )
          {
             extended1._table[ n ] *= extended2.getTable()[ n ];
          }
@@ -486,13 +486,13 @@ namespace algorithm
        @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
        */
       template <class VectorT>
-      int getIndexFromEvent( const std::vector<ui32>& strides, const VectorT& evidenceValue ) const
+      size_t getIndexFromEvent( const std::vector<size_t>& strides, const VectorT& evidenceValue ) const
       {
-         int index = 0;
+         size_t index = 0;
          ensure( strides.size() == _domain.size(), "must be the same size!" );
          ensure( evidenceValue.size() == _domain.size(), "must be the same size!" );
 
-         for ( ui32 i = 0; i < evidenceValue.size(); ++i )
+         for ( size_t i = 0; i < evidenceValue.size(); ++i )
          {
             index += evidenceValue[ i ] * strides[ i ];
          }
@@ -503,11 +503,11 @@ namespace algorithm
        @brief Given the internal domain and domain's cardinality, computes for each domain variable its stride (i.e., each time a variable is increased by one,
               the index in the table domain is updated by <stride>
        */
-      void computeStrides( std::vector<ui32>& strides ) const
+      void computeStrides( std::vector<size_t>& strides ) const
       {
-         strides = std::vector<ui32>( _domain.size() );
-         ui32 stride = 1;
-         for ( ui32 n = 0; n < _domain.size(); ++n )
+         strides = std::vector<size_t>( _domain.size() );
+         size_t stride = 1;
+         for ( size_t n = 0; n < _domain.size(); ++n )
          {
             strides[ n ] = stride;
             stride *= _cardinality[ n ];
@@ -518,7 +518,7 @@ namespace algorithm
       {
          if ( domain.size() == 0 )
             return true;
-         for ( ui32 n = 0; n < domain.size() - 1; ++n )
+         for ( size_t n = 0; n < domain.size() - 1; ++n )
          {
             if ( domain[ n ] >= domain[ n + 1 ] )
                return false;
@@ -527,10 +527,10 @@ namespace algorithm
       }
 
       template <class VectorT>
-      ui32 getTableSize( const VectorT& cardinality ) const
+      size_t getTableSize( const VectorT& cardinality ) const
       {
-         ui32 tableSize = 1;
-         for ( ui32 n = 0; n < cardinality.size(); ++n )
+         size_t tableSize = 1;
+         for ( size_t n = 0; n < cardinality.size(); ++n )
          {
             tableSize *= cardinality[ n ];
          }
@@ -541,7 +541,7 @@ namespace algorithm
        @brief compute P( X, E = e ), i.e. this is unormalized
        @param pe_out if != 0, computes and export P(E) to easily compute P( X | E = e ) = P( X, E ) / P( E )
        */
-      PotentialTable conditioning( EvidenceValue::value_type evidence, ui32 varIndexToRemove, value_type* pe_out = 0 ) const
+      PotentialTable conditioning( EvidenceValue::value_type evidence, size_t varIndexToRemove, value_type* pe_out = 0 ) const
       {
          assert( std::binary_search( _domain.begin(), _domain.end(), varIndexToRemove ) ); // can't find the variable!
 
@@ -549,23 +549,23 @@ namespace algorithm
          VectorI newDomain;
          VectorI newCardinality;
          int removedIndex = -1;
-         std::vector<ui32> strides;
+         std::vector<size_t> strides;
          computeIndexToRemove( varIndexToRemove, removedIndex, newDomain, newCardinality, strides );
-         ui32 stride = strides[ removedIndex ];
+         size_t stride = strides[ removedIndex ];
 
          // create the result table
-         const ui32 newSize = getTableSize( newCardinality );
+         const size_t newSize = getTableSize( newCardinality );
          Vector newTable( newSize );
 
          // compute p(E=e)
          value_type pe = 0;
-         ui32 indexDst = 0;
-         for ( ui32 index = evidence * stride; index < _table.size(); index += stride * _cardinality[ removedIndex ] )
+         size_t indexDst = 0;
+         for ( size_t index = evidence * stride; index < _table.size(); index += stride * _cardinality[ removedIndex ] )
          {
             // collect evidence and store the accessed index in the same order
-            for ( ui32 c = 0; c < stride; ++c )
+            for ( size_t c = 0; c < stride; ++c )
             {
-               const ui32 indexSrc = index + c;
+               const size_t indexSrc = index + c;
                const value_type val = _table[ indexSrc ];
                pe += val;
                newTable[ indexDst++ ] = val;
@@ -582,23 +582,23 @@ namespace algorithm
       }
 
 
-      void computeIndexToRemove( ui32 varIndexToRemove, int& removedIndex, VectorI& newDomain, VectorI& newCardinality, std::vector<ui32>& strides ) const
+      void computeIndexToRemove( size_t varIndexToRemove, int& removedIndex, VectorI& newDomain, VectorI& newCardinality, std::vector<size_t>& strides ) const
       {
          newDomain = VectorI( _domain.size() - 1 );
          newCardinality = VectorI( _domain.size() - 1 );
-         strides = std::vector<ui32>( _domain.size() );
+         strides = std::vector<size_t>( _domain.size() );
 
          // create the new domain, cardinality and computes the stride necessary to marginalize this variable
          removedIndex = -1;
-         ui32 stride = 1;
-         const ui32 oldSize = _domain.size();
-         ui32 index = 0;
-         for ( ui32 n = 0; n < oldSize; ++n )
+         size_t stride = 1;
+         const size_t oldSize = _domain.size();
+         size_t index = 0;
+         for ( size_t n = 0; n < oldSize; ++n )
          {
-            const ui32 id = _domain[ n ];
+            const size_t id = _domain[ n ];
             if ( id == varIndexToRemove )
             {
-               removedIndex = n;
+               removedIndex = static_cast<int>( n );
             } else {
                newDomain[ index ] = id;
                newCardinality[ index ] = _cardinality[ n ];
@@ -611,30 +611,30 @@ namespace algorithm
       }
 
       // assuming a partition X = [ U V ], computes integral(-inf,+inf)p(U)dV
-      PotentialTable marginalization( ui32 varIndexToRemove ) const
+      PotentialTable marginalization( size_t varIndexToRemove ) const
       {
          // create the new domain, cardinality and computes the stride necessary to marginalize this variable
          ensure( _domain.size(), "domain is empty!" );
          VectorI newDomain;
          VectorI newCardinality;
          int removedIndex = -1;
-         std::vector<ui32> strides;
+         std::vector<size_t> strides;
          computeIndexToRemove( varIndexToRemove, removedIndex, newDomain, newCardinality, strides );
-         ui32 stride = strides[ removedIndex ];
+         size_t stride = strides[ removedIndex ];
          
 
-         const ui32 newSize = getTableSize( newCardinality );
+         const size_t newSize = getTableSize( newCardinality );
          Vector newTable( newSize );
          std::vector<char> used( _table.size() );
-         ui32 indexWrite = 0;
-         for ( ui32 index = 0; index < _table.size(); ++index )
+         size_t indexWrite = 0;
+         for ( size_t index = 0; index < _table.size(); ++index )
          {
             if ( used[ index ] == 0 )
             {
                value_type accum = 0;
-               for ( ui32 nn = 0; nn < _cardinality[ removedIndex ]; ++nn )
+               for ( size_t nn = 0; nn < _cardinality[ removedIndex ]; ++nn )
                {
-                  const ui32 indexRef = index + nn * stride;
+                  const size_t indexRef = index + nn * stride;
                   accum += _table[ indexRef ];
                   used[ indexRef ] = 1;
                }
@@ -650,20 +650,20 @@ namespace algorithm
       {
          ensure( domain.size() == cardinality.size(), "args don't match" );
 
-         std::vector<ui32> newDomain;
-         std::vector<ui32> newCardinality;
+         std::vector<size_t> newDomain;
+         std::vector<size_t> newCardinality;
          std::vector<char> newDomainBelongs;
-         std::vector<ui32> stride;
+         std::vector<size_t> stride;
          joinDomain( _domain, _cardinality, domain, cardinality, newDomain, newCardinality, newDomainBelongs, stride );
          stride.push_back( 0 );  // we add an extra cell to facilitate counting
 
-         const ui32 size = getTableSize( newCardinality );
+         const size_t size = getTableSize( newCardinality );
          Vector newTable( size );
 
-         ui32 index = 0;
-         const ui32 nbId = (ui32)newDomain.size();
-         std::vector<ui32> cpt( newDomain.size() + 1 );
-         ui32 indexTable = 0;
+         size_t index = 0;
+         const size_t nbId = (size_t)newDomain.size();
+         std::vector<size_t> cpt( newDomain.size() + 1 );
+         size_t indexTable = 0;
          while ( cpt[ nbId ] == 0)
          {
             newTable[ indexTable ] = _table[ index ];
@@ -674,7 +674,7 @@ namespace algorithm
             {
                ++index;
             }
-            for ( ui32 id = 0; id < nbId; ++id )
+            for ( size_t id = 0; id < nbId; ++id )
             {
                if ( cpt[ id ] >= newCardinality[ id ] )
                {
@@ -700,15 +700,15 @@ namespace algorithm
       // the stride is the index displacement relating to the domain d1
       static void joinDomain( const VectorI& d1, const VectorI& cardinality1,
                               const VectorI& d2, const VectorI& cardinality2,
-                              std::vector<ui32>& newDomain, std::vector<ui32>& newCardinality, std::vector<char>& newDomainBelongs, std::vector<ui32>& stride )
+                              std::vector<size_t>& newDomain, std::vector<size_t>& newCardinality, std::vector<char>& newDomainBelongs, std::vector<size_t>& stride )
       {
-         ui32 n1 = 0;
-         ui32 n2 = 0;
-         ui32 accum = 1;
+         size_t n1 = 0;
+         size_t n2 = 0;
+         size_t accum = 1;
          while (1)
          {
-            const ui32 id1 = ( n1 < d1.size() ) ? d1[ n1 ] : std::numeric_limits<ui32>::max();
-            const ui32 id2 = ( n2 < d2.size() ) ? d2[ n2 ] : std::numeric_limits<ui32>::max();
+            const size_t id1 = ( n1 < d1.size() ) ? d1[ n1 ] : std::numeric_limits<size_t>::max();
+            const size_t id2 = ( n2 < d2.size() ) ? d2[ n2 ] : std::numeric_limits<size_t>::max();
 
             if ( id1 < id2 )
             {

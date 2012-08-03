@@ -124,10 +124,10 @@ namespace core
                                   getPst()( 1, 2 ) );
 
          // finally iterate on all voxels and compute the displacement vector
-         for ( ui32 y = 0; y < _storage.sizey(); ++y )
+         for ( size_t y = 0; y < _storage.sizey(); ++y )
          {
             core::vector2f startLine = linePos;
-            for ( ui32 x = 0; x < _storage.sizex(); ++x )
+            for ( size_t x = 0; x < _storage.sizex(); ++x )
             {
                value_type* p = _storage.point( x, y );
                Vector d = rbfTfm.getRawDeformableDisplacementOnly( startLine );
@@ -161,7 +161,7 @@ namespace core
 
          // compute p in target space
          Vector v( 3 );
-         for ( ui32 n = 0; n < 2; ++n )
+         for ( size_t n = 0; n < 2; ++n )
          {
             v[ n ] = psource[ n ];
          }
@@ -189,12 +189,12 @@ namespace core
          return out;
       }
 
-      ui32 sizex() const
+      size_t sizex() const
       {
          return _storage.sizex();
       }
 
-      ui32 sizey() const
+      size_t sizey() const
       {
          return _storage.sizey();
       }
@@ -251,7 +251,7 @@ namespace core
          // we are mapping exactly the same area with the storage
          Matrix storagePst;
          storagePst.clone( sourcePst );
-         for ( ui32 n = 0; n < 2; ++n )
+         for ( size_t n = 0; n < 2; ++n )
          {
             storagePst( 0, n ) = storagePst( 0, n ) / ddfSpacing[ n ] * storageSpacing[ n ];
             storagePst( 1, n ) = storagePst( 1, n ) / ddfSpacing[ n ] * storageSpacing[ n ];

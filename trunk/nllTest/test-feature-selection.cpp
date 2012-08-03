@@ -15,7 +15,7 @@ public:
       for ( float nx = -0.5; nx <= 0.5; nx += 0.1f )
          for ( float ny = -0.5; ny <= 0.5; ny += 0.1f )
          {
-            nll::ui32 c;
+            size_t c;
             if ( nx <= 0 && ny <= 0)
                c = 0;
             if ( nx > 0 && ny <= 0)

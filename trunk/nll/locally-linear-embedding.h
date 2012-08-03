@@ -70,7 +70,7 @@ namespace algorithm
        @brief Transform a set of points in high dimention to a lower dimention point
        */
       template <class Points>
-      std::vector<typename Points::value_type> transform( const Points& points, ui32 newDim, ui32 nbNeighbours, double eps = 1e-5 ) const
+      std::vector<typename Points::value_type> transform( const Points& points, size_t newDim, size_t nbNeighbours, double eps = 1e-5 ) const
       {
          typedef typename Points::value_type Point;
          typedef KdTree<Point, MetricEuclidian<Point>, 5, Points> KdTreeT;
@@ -79,8 +79,8 @@ namespace algorithm
          if ( points.size() == 0 )
             return std::vector<Point>();
 
-         const ui32 dim = (ui32)points[ 0 ].size();
-         const ui32 nbPoints = (ui32)points.size();
+         const size_t dim = (size_t)points[ 0 ].size();
+         const size_t nbPoints = (size_t)points.size();
 
          {
             std::stringstream ss;
@@ -109,22 +109,22 @@ namespace algorithm
          //
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " computing reconstruction weights..." );
          std::vector< core::Buffer1D<double> > wis( nbPoints );
-         std::vector< std::vector<ui32> > neighbours( nbPoints );
-         for ( ui32 i = 0; i < nbPoints; ++i )
+         std::vector< std::vector<size_t> > neighbours( nbPoints );
+         for ( size_t i = 0; i < nbPoints; ++i )
          {
             typename KdTreeT::NearestNeighborList nn = kdtree.findNearestNeighbor( points[ i ], nbNeighbours + 1 ); // nbNeighbours + 1, as nn[ 0 ] is the point we are starting from
-            ui32 n = 0;
-            std::vector<ui32> index( nbNeighbours );
+            size_t n = 0;
+            std::vector<size_t> index( nbNeighbours );
             for ( typename KdTreeT::NearestNeighborList::iterator it = ++nn.begin(); it != nn.end(); ++it, ++n )
                index[ n ] = it->id;
             neighbours[ i ] = index;
 
             // create z_j = xj - xi
             Matrix pp( dim, nbNeighbours );
-            for ( ui32 j = 0; j < nbNeighbours; ++j )
+            for ( size_t j = 0; j < nbNeighbours; ++j )
             {
-               const ui32 ii = index[ j ];
-               for ( ui32 k = 0; k < dim; ++k )
+               const size_t ii = index[ j ];
+               for ( size_t k = 0; k < dim; ++k )
                {
                   const double va = points[ ii ][ k ];
                   const double vb = points[ i ][ k ];
@@ -133,31 +133,31 @@ namespace algorithm
             }
 
             Matrix giint = core::covarianceCentred( pp );
-            for ( ui32 j = 0; j < giint.size(); ++j )
+            for ( size_t j = 0; j < giint.size(); ++j )
                giint[ j ] *= nbNeighbours;
 
             // add regularization in case gi is not invertible
             const double trace = core::trace( giint );
-            for ( ui32 j = 0; j < nbNeighbours; ++j )
+            for ( size_t j = 0; j < nbNeighbours; ++j )
                giint( j, j ) += eps * trace;
             core::inverse( giint );  // TODO: instead: slove CX = 1
 
             core::Buffer1D<double> wi( nbNeighbours );
-            for ( ui32 j = 0; j < nbNeighbours; ++j )
+            for ( size_t j = 0; j < nbNeighbours; ++j )
             {
                double accum = 0;
-               for ( ui32 k = 0; k < nbNeighbours; ++k )
+               for ( size_t k = 0; k < nbNeighbours; ++k )
                {
                   accum += giint( j, k );
                }
                wi[ j ] = accum;
             }
             double sum = 0;
-            for ( ui32 j = 0; j < nbNeighbours; ++j )
+            for ( size_t j = 0; j < nbNeighbours; ++j )
             {
                sum += wi[ j ];
             }
-            for ( ui32 j = 0; j < nbNeighbours; ++j )
+            for ( size_t j = 0; j < nbNeighbours; ++j )
             {
                wi[ j ] /= sum;
             }
@@ -177,23 +177,23 @@ namespace algorithm
          core::identity( m );
 
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, " computing M..." );
-         for ( ui32 ii = 0; ii < nbPoints; ++ii )
+         for ( size_t ii = 0; ii < nbPoints; ++ii )
          {
-            for ( ui32 jj = 0; jj < nbNeighbours; ++jj )
+            for ( size_t jj = 0; jj < nbNeighbours; ++jj )
             {
-               const ui32 id = neighbours[ ii ][ jj ];
+               const size_t id = neighbours[ ii ][ jj ];
                m( ii, id ) -= wis[ ii ][ jj ];
                m( id, ii ) -= wis[ ii ][ jj ];
             }
 
             Matrix mm;
             core::mulidt( wis[ ii ], mm );
-            for ( ui32 y = 0; y < nbNeighbours; ++y )
+            for ( size_t y = 0; y < nbNeighbours; ++y )
             {
-               const ui32 idy = neighbours[ ii ][ y ];
-               for ( ui32 x = 0; x < nbNeighbours; ++x )
+               const size_t idy = neighbours[ ii ][ y ];
+               for ( size_t x = 0; x < nbNeighbours; ++x )
                {
-                  const ui32 idx = neighbours[ ii ][ x ];
+                  const size_t idx = neighbours[ ii ][ x ];
                   m( idy, idx ) += mm( y, x );
                }
             }
@@ -211,8 +211,8 @@ namespace algorithm
 
          // sort the eigen values, we are interested in the newDim^th eigen vectors, except the first one which is always
          // zero by definition
-         std::vector< std::pair<double, ui32> > pairs;
-         for ( ui32 n = 0; n < eig.size(); ++n )
+         std::vector< std::pair<double, size_t> > pairs;
+         for ( size_t n = 0; n < eig.size(); ++n )
          {
             pairs.push_back( std::make_pair( eig[ n ], n ) );
          }
@@ -220,9 +220,9 @@ namespace algorithm
 
          {
             Matrix eigs( nbPoints, newDim );
-            for ( ui32 n = 0; n < nbPoints; ++n )
+            for ( size_t n = 0; n < nbPoints; ++n )
             {
-               for ( ui32 m = 0; m < newDim; ++m )
+               for ( size_t m = 0; m < newDim; ++m )
                {
                   eigs( n, m ) = eiv( n, pairs[ m + 1 ].second ); // skip the first eig as it is 0 and uninformative
                }
@@ -233,7 +233,7 @@ namespace algorithm
             eigs.print( ss );
 
             ss << "eigen values=";
-            for ( ui32 m = 0; m < newDim; ++m )
+            for ( size_t m = 0; m < newDim; ++m )
             {
                ss << pairs[ m + 1 ].first << " ";
             }
@@ -241,12 +241,12 @@ namespace algorithm
          }
 
          std::vector<Point> tfmPoints( nbPoints );
-         for ( ui32 n = 0; n < nbPoints; ++n )
+         for ( size_t n = 0; n < nbPoints; ++n )
          {
             Point p( newDim );
-            for ( ui32 nn = 0; nn < newDim; ++nn )
+            for ( size_t nn = 0; nn < newDim; ++nn )
             {
-               const ui32 index = pairs[ nn + 1 ].second;
+               const size_t index = pairs[ nn + 1 ].second;
                p[ nn ] = eiv( n, index );
             }
             tfmPoints[ n ] = p;

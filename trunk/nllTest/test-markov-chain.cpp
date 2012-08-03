@@ -97,7 +97,7 @@ public:
 
       for ( unsigned nb = 0; nb < 20; ++nb )
       {
-         std::vector< nll::core::Buffer1D<nll::ui32> > samples( nbSamples );
+         std::vector< nll::core::Buffer1D<size_t> > samples( nbSamples );
          for ( unsigned n = 0; n < nbSamples; ++n )
             samples[ n ] = markovChain.generateSequence( chainSize );
 

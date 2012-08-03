@@ -156,7 +156,7 @@ namespace imaging
        */
       void getSlice( Slice& slice, const TransformationDenseDeformableField& tfm, bool isSliceCenter = true ) const
       {
-         const float isCenter = isSliceCenter ? 1 : 0;
+         const float isCenter = isSliceCenter  ? 1.0f : 0.0f;
 
          // (1) compute the transformation index source position MM->target index with affine target->source TFM applied
          const core::Matrix<float> srcMmTargetIndex    = _volume.getInvertedPst() * tfm.getAffineMatrix();
@@ -199,10 +199,12 @@ namespace imaging
       template <class Interpolator>
       void _fill( const core::vector3f& start, const core::vector3f& dx, const core::vector3f& dy, Interpolator& interpolator, Slice& slice ) const
       {
+         const int sizey = static_cast<int>( slice.sizey() );
+
          #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          # pragma omp parallel for
          #endif
-         for ( int y = 0; y < (int)slice.size()[ 1 ]; ++y )
+         for ( int y = 0; y < sizey; ++y )
          {
             NLL_ALIGN_16 float pos[ 4 ] =
             {
@@ -216,7 +218,7 @@ namespace imaging
             interpolatorCp.startInterpolation();
 
             typename Slice::DirectionalIterator it = slice.getIterator( 0, y );
-            for ( ui32 x = 0; x < slice.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < slice.sizex(); ++x )
             {
                *it = interpolatorCp( pos );
                pos[ 0 ] += dx[ 0 ];
@@ -233,20 +235,21 @@ namespace imaging
       void _fillDdf( const TransformationDenseDeformableField& tfm, const core::vector3f& start, const core::vector3f& startDdf, const core::vector3f& dx, const core::vector3f& dxDdf, const core::vector3f& dy, const core::vector3f& dyDdf, const Interpolator& interpolator, Slice& slice ) const
       {
          const impl::TransformationHelper transformationHelper( _volume.getInvertedPst() );
+         const int sizey = static_cast<int>( slice.sizey() );
 
          #if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
          # pragma omp parallel for
          #endif
-         for ( int y = 0; y < (int)slice.size()[ 1 ]; ++y )
+         for ( int y = 0; y < sizey; ++y )
          {
-            core::vector3f pos = start + dy * y;
-            core::vector3f posDdf = startDdf + dyDdf * y;
+            core::vector3f pos = start + dy * static_cast<float>( y );
+            core::vector3f posDdf = startDdf + dyDdf * static_cast<float>( y );
 
             Interpolator interpolatorCp = interpolator;
             interpolatorCp.startInterpolation();
 
             typename Slice::DirectionalIterator it = slice.getIterator( 0, y );
-            for ( ui32 x = 0; x < slice.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < slice.sizex(); ++x )
             {
                // get the displacement in MM space. We need to convert it as an index in the target volume
                core::vector3f displacement = tfm.transformDeformableOnlyIndex( posDdf );  // displacement in MM

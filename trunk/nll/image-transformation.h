@@ -105,7 +105,7 @@ namespace core
 	class TransformationInverseX
 	{
 	public:
-		TransformationInverseX(ui32 imageSizeX) : _size(static_cast<f32>( imageSizeX - 1 ) ){}
+		TransformationInverseX(size_t imageSizeX) : _size(static_cast<f32>( imageSizeX - 1 ) ){}
 		vector2f operator()(vector2f point) const {return vector2f(_size - point[0], point[1]);}
 	private:
 		f32		_size;
@@ -118,7 +118,7 @@ namespace core
 	class TransformationInverseY
 	{
 	public:
-		TransformationInverseY(ui32 imageSizeY) : _size(static_cast<f32>( imageSizeY - 1 ) ){}
+		TransformationInverseY(size_t imageSizeY) : _size(static_cast<f32>( imageSizeY - 1 ) ){}
 		vector2f operator()(vector2f point) const {return vector2f(point[0], _size - point[1]);}
 	private:
 		f32		_size;
@@ -132,21 +132,21 @@ namespace core
 	void transformUnaryFast(Image<type, mapper, allocator>& img, const Transformation& transf, const type* background = Image<type, mapper, allocator>::black(), allocator alloc = allocator() )
 	{
 		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false, alloc);
-		for (ui32 y = 0; y < img.sizey(); ++y)
-			for (ui32 x = 0; x < img.sizex(); ++x)
+		for (size_t y = 0; y < img.sizey(); ++y)
+			for (size_t x = 0; x < img.sizex(); ++x)
 			{
 				vector2f vec = transf(vector2f((f32)x, (f32)y));
 				if (vec[0] < 0 || vec[0] >= static_cast<int>(img.sizex()) || vec[1] < 0 || vec[1] >= static_cast<int>(img.sizey()))
             {
                type* t2 = tmp.point(x, y);
-					for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					for (size_t c = 0; c < img.getNbComponents(); ++c)
 						t2[c] = background[c];
             }
 				else
             {
-               type* t1 = img.point(static_cast<ui32>( vec[0] ), static_cast<ui32>( vec[1] ) );
+               type* t1 = img.point(static_cast<size_t>( vec[0] ), static_cast<size_t>( vec[1] ) );
 				   type* t2 = tmp.point(x, y);
-					for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					for (size_t c = 0; c < img.getNbComponents(); ++c)
 						t2[c] = t1[c];
             }
 			}
@@ -163,20 +163,20 @@ namespace core
 	{
 		Image<type, mapper, allocator> tmp(img.sizex(), img.sizey(), img.getNbComponents(), false, alloc);
       Interpolator interpolator( img );
-		for (ui32 y = 0; y < img.sizey(); ++y)
-			for (ui32 x = 0; x < img.sizex(); ++x)
+		for (size_t y = 0; y < img.sizey(); ++y)
+			for (size_t x = 0; x < img.sizex(); ++x)
 			{
 				vector2f vec = transf(vector2f(static_cast<f32>( x ), static_cast<f32>( y ) ));
 				if (vec[0] < 0 || vec[0] >= static_cast<int>(img.sizex()) || vec[1] < 0 || vec[1] >= static_cast<int>(img.sizey()))
             {
                type* t2 = tmp.point(x, y);
-					for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					for (size_t c = 0; c < img.getNbComponents(); ++c)
 						t2[c] = background[c];
             }
 				else
             {
 				   type* t2 = tmp.point(x, y);
-					for (ui32 c = 0; c < img.getNbComponents(); ++c)
+					for (size_t c = 0; c < img.getNbComponents(); ++c)
                   t2[c] = static_cast<type> ( interpolator.interpolate(vec[0], vec[1], c) );
             }
 			}

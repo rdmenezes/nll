@@ -212,8 +212,8 @@ public:
    {
       const std::string volname = NLL_TEST_PATH "data/medical/pet-NAC.mf2";
       typedef nll::imaging::VolumeSpatial<float>           Volume;
-      typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
-      //typedef nll::imaging::InterpolatorTriLinearDummy<Volume>   Interpolator;
+      //typedef nll::imaging::InterpolatorTriLinear<Volume>   Interpolator;
+      typedef nll::imaging::InterpolatorTriLinearDummy<Volume>   Interpolator;
       //typedef nll::imaging::InterpolatorNearestNeighbour<Volume>   Interpolator;
       typedef nll::imaging::Mpr<Volume, Interpolator>       Mpr;
 
@@ -237,13 +237,14 @@ public:
          mprTime.end();
          std::cout << "mpr time=" << mprTime.getCurrentTime() << std::endl;
          slice( 1, 1, 0 ) = 1e6;
-
+         
          nll::core::Image<nll::i8> bmp( slice.size()[ 0 ], slice.size()[ 1 ], 1 );
          for ( unsigned y = 0; y < bmp.sizey(); ++y )
             for ( unsigned x = 0; x < bmp.sizex(); ++x )
                bmp( x, y, 0 ) = (nll::i8)NLL_BOUND( ( (double)slice( x, y, 0 )*4 + 15000 ) / 200, 0, 255 );
          nll::core::extend( bmp, 3 );
          nll::core::writeBmp( bmp, NLL_TEST_PATH "data/mpr-slice-" + nll::core::val2str( z ) + ".bmp" );
+         
       }
    }
 
@@ -290,7 +291,8 @@ public:
 
       nll::core::Timer t2;      
       m = 0;
-      for ( Volume::DirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+      Volume::DirectionalIterator end = i2.endDirectional();
+      for ( Volume::DirectionalIterator it = i2.beginDirectional(); it != end; ++it )
          m += *it;
       double time2t = t2.getCurrentTime();
       std::cout << "volt2=" << t2.getCurrentTime() << std::endl;
@@ -342,7 +344,8 @@ public:
 
       nll::core::Timer t2;      
       m = 0;
-      for ( Volume::ConstDirectionalIterator it = i2.beginDirectional(); it != i2.endDirectional(); ++it )
+      Volume::ConstDirectionalIterator end = i2.beginDirectional();
+      for ( Volume::ConstDirectionalIterator it = i2.beginDirectional(); it != end; ++it )
          m += *it;
       double t2t = t2.getCurrentTime();
       std::cout << "volt2=" << t2.getCurrentTime() << std::endl;
@@ -398,13 +401,13 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestVolume);
- TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testBuffer1);
  TESTER_TEST(testVolume1);
  TESTER_TEST(testVolumeIterator);
  TESTER_TEST(testVolumeSpatial1);
  TESTER_TEST(testIndexToPos);
  TESTER_TEST(testMpr4);
+ TESTER_TEST(testVolumeIterators);
  TESTER_TEST(testResampling2d);
 TESTER_TEST_SUITE_END();
 #endif

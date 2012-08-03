@@ -183,9 +183,9 @@ namespace core
 
       const core::Matrix<T> mul = rotation * scale * shear;
       core::Matrix<T> result = core::identityMatrix< core::Matrix<T> >( 4 );
-      for ( ui32 i = 0; i < 3; ++i )
+      for ( size_t i = 0; i < 3; ++i )
       {
-         for ( ui32 j = 0; j < 3; ++j )
+         for ( size_t j = 0; j < 3; ++j )
          {
             result( i, j ) = mul( i, j );
          }
@@ -211,9 +211,9 @@ namespace core
 
       // get the rotational part and use SVD on it
       MatrixT rot3( 3, 3 );
-      for ( ui32 y = 0; y < 3; ++y )
+      for ( size_t y = 0; y < 3; ++y )
       {
-         for ( ui32 x = 0; x < 3; ++x )
+         for ( size_t x = 0; x < 3; ++x )
          {
             rot3( y, x ) = m( y, x );
          }
@@ -245,9 +245,9 @@ namespace core
       const T max_diff = *std::max_element(&sc_diffs[0], ( &sc_diffs[2] ) + 1 );
       if ( max_diff < 1e-6 * avg_sc )
       {
-         for ( ui32 y = 0; y < 3; ++y )
+         for ( size_t y = 0; y < 3; ++y )
          {
-            for ( ui32 x = 0; x < 3; ++x )
+            for ( size_t x = 0; x < 3; ++x )
             {
                u( y, x ) = m( y, x );
             }

@@ -61,13 +61,13 @@ namespace core
        @param spacing it is used to scale the distance in the considered direction
        */
       template <class AbstractBufferIn, class AbstractBufferOut>
-      void dt1d( const AbstractBufferIn& buf, unsigned size, AbstractBufferOut& outBuf, double spacing = 1.0 )
+      void dt1d( const AbstractBufferIn& buf, size_t size, AbstractBufferOut& outBuf, double spacing = 1.0 )
       {
          const double infinity = std::numeric_limits<double>::max();
          const double ninfinity = std::numeric_limits<double>::min();
 
          std::vector<double> z( size + 1 );
-         std::vector<unsigned> v( size + 1 );
+         std::vector<size_t> v( size + 1 );
 
          int k = 0;
          v[ 0 ] = 0;
@@ -75,9 +75,9 @@ namespace core
          z[ 1 ] = infinity;
 
          const double spacing2 = core::sqr( spacing );
-         for ( unsigned q = 1; q < size; ++q )
+         for ( size_t q = 1; q < size; ++q )
          {
-            double s = ( buf[ q ] + q * q * spacing2  - ( buf[ static_cast<unsigned>( v[ k ] ) ] + v[ k ] * v [ k ] * spacing2 ) )
+            double s = ( buf[ q ] + q * q * spacing2  - ( buf[ static_cast<size_t>( v[ k ] ) ] + v[ k ] * v [ k ] * spacing2 ) )
                        / ( 2 * q * spacing - 2 * v[ k ] * spacing );
  
 
@@ -87,7 +87,7 @@ namespace core
             while ( s <= z[ k ] && k  )
             {
                --k;
-               s = ( buf[ q ] + q * q * spacing2 - ( buf[ static_cast<unsigned>( v[ k ] ) ] + v[ k ] * v [ k ] * spacing2 ) )
+               s = ( buf[ q ] + q * q * spacing2 - ( buf[ static_cast<size_t>( v[ k ] ) ] + v[ k ] * v [ k ] * spacing2 ) )
                      / ( 2 * q * spacing - 2 * v[ k ] * spacing );
             }
 
@@ -98,13 +98,13 @@ namespace core
          }
 
          k = 0;
-         for ( unsigned q = 0; q < size; ++q )
+         for ( size_t q = 0; q < size; ++q )
          {
             while ( z[ k + 1 ] < q * spacing )
             {
                ++k;
             }
-            const double outVal = ( q - v[ k ] ) * ( q - v[ k ] ) * spacing2 + buf[ static_cast<unsigned>( v[ k ] ) ];
+            const double outVal = ( q - v[ k ] ) * ( q - v[ k ] ) * spacing2 + buf[ static_cast<size_t>( v[ k ] ) ];
             outBuf[ q ] = static_cast<typename AbstractBufferOut::value_type>( outVal );
          }
       }
@@ -115,15 +115,15 @@ namespace core
       public:
          typedef T value_type;
 
-         ImageWrapperRow( Image<T, Mapper>& i, ui32 col ) :
+         ImageWrapperRow( Image<T, Mapper>& i, size_t col ) :
             _i( i ), _col( col )
             {}
-         T operator[]( ui32 n ) const
+         T operator[]( size_t n ) const
          {
             return _i( n, _col, 0 );
          }
 
-         T& operator[]( ui32 n )
+         T& operator[]( size_t n )
          {
             return _i( n, _col, 0 );
          }
@@ -132,7 +132,7 @@ namespace core
 
       private:
          Image<T, Mapper>&    _i;
-         ui32                 _col;
+         size_t                 _col;
       };
 
       template <class T, class Mapper>
@@ -141,14 +141,14 @@ namespace core
       public:
          typedef T value_type;
 
-         ImageWrapperCol( Image<T, Mapper>& i, ui32 row ) :
+         ImageWrapperCol( Image<T, Mapper>& i, size_t row ) :
             _i( i ), _row( row )
             {}
-         T operator[]( ui32 n ) const
+         T operator[]( size_t n ) const
          {
             return _i( _row, n, 0 );
          }
-         T& operator[]( ui32 n )
+         T& operator[]( size_t n )
          {
             return _i( _row, n, 0 );
          }
@@ -157,7 +157,7 @@ namespace core
 
       private:
          Image<T, Mapper>&    _i;
-         ui32                 _row;
+         size_t                 _row;
       };
    }
 
@@ -172,18 +172,18 @@ namespace core
       ensure( i.getNbComponents() == 1, "only greyscale image handled" );
       Image<double, Mapper> buf1( i.sizex(), i.sizey(), 1, false );
       Image<double, Mapper> buf2( i.sizex(), i.sizey(), 1, false );
-      for ( ui32 y = 0; y < i.sizey(); ++y )
-         for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t y = 0; y < i.sizey(); ++y )
+         for ( size_t x = 0; x < i.sizex(); ++x )
             buf1( x, y, 0 ) = ( i( x, y, 0 ) > 0 ) ? 0 : std::numeric_limits<double>::max();
 
-      for ( ui32 y = 0; y < i.sizey(); ++y )
+      for ( size_t y = 0; y < i.sizey(); ++y )
       {
          impl::ImageWrapperRow<double, Mapper> mappedBuffer( buf1, y );
          impl::ImageWrapperRow<double, Mapper> mappedBufferOut( buf2, y );
          impl::dt1d( mappedBuffer, i.sizex(), mappedBufferOut );
       }
 
-      for ( ui32 x = 0; x < i.sizex(); ++x )
+      for ( size_t x = 0; x < i.sizex(); ++x )
       {
          impl::ImageWrapperCol<double, Mapper> mappedBuffer( buf2, x );
          impl::ImageWrapperCol<double, Mapper> mappedBufferOut( buf1, x );

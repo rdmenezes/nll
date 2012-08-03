@@ -51,7 +51,7 @@ namespace algorithm
       /**
        @brief given a bayesian network, generate iid samples
        */
-      void compute( const Network& bayesianNetwork, ui32 nbSamples, std::vector<EvidenceValue>& outSamples, VectorI& outDomain ) const
+      void compute( const Network& bayesianNetwork, size_t nbSamples, std::vector<EvidenceValue>& outSamples, VectorI& outDomain ) const
       {
          ensure( 0, "NOT IMPLEMENTED FOR THE TYPE OF NETWORK" );
       }
@@ -73,23 +73,23 @@ namespace algorithm
       /**
        @brief given a bayesian network, generate iid samples
        */
-      void compute( const Network& bayesianNetwork, ui32 nbSamples, std::vector<EvidenceValue>& outSamples, VectorI& outDomain ) const
+      void compute( const Network& bayesianNetwork, size_t nbSamples, std::vector<EvidenceValue>& outSamples, VectorI& outDomain ) const
       {
-         ui32 maxDomain = 0;
+         size_t maxDomain = 0;
          outSamples.clear();
 
          // first retrieve all the factors and build some indexes
          std::vector<const Factor*> factors;
          getFactors( bayesianNetwork, factors );
-         std::set<ui32> mainDomain;
-         std::set<ui32> fullDomain;
+         std::set<size_t> mainDomain;
+         std::set<size_t> fullDomain;
          for ( size_t n = 0; n < factors.size(); ++n )
          {
             const Factor& f = *factors[ n ];
             ensure( f.getDomain().size(), "there is no domain for this factor?" );
             maxDomain = std::max( maxDomain, f.getDomain()[ f.getDomain().size() - 1 ] );
 
-            const ui32 currentDomain = f.getDomain()[ 0 ];
+            const size_t currentDomain = f.getDomain()[ 0 ];
             mainDomain.insert( currentDomain );
 
             fullDomain.insert( f.getDomain().begin(), f.getDomain().end() );
@@ -101,40 +101,40 @@ namespace algorithm
          for ( size_t n = 0; n < factors.size(); ++n )
          {
             const Factor& f = *factors[ n ];
-            const ui32 currentDomain = f.getDomain()[ 0 ];
+            const size_t currentDomain = f.getDomain()[ 0 ];
             ensure( factorsIndexedByDomain[ currentDomain ] == 0, "there are several factors with the same main domain - hugh?" );
             factorsIndexedByDomain[ currentDomain ] = &f;
          }
 
          // map domain to the final domain array indexes
-         std::vector<ui32> domainToFinalDomain( maxDomain + 1 );
-         ui32 index = 0;
-         outDomain = VectorI( static_cast<ui32>( mainDomain.size() ) );
-         for ( std::set<ui32>::const_iterator it = mainDomain.begin(); it != mainDomain.end(); ++it, ++index )
+         std::vector<size_t> domainToFinalDomain( maxDomain + 1 );
+         size_t index = 0;
+         outDomain = VectorI( static_cast<size_t>( mainDomain.size() ) );
+         for ( std::set<size_t>::const_iterator it = mainDomain.begin(); it != mainDomain.end(); ++it, ++index )
          {
-            const ui32 domainId = *it;
+            const size_t domainId = *it;
             domainToFinalDomain[ domainId ] = index;
             outDomain[ index ] = domainId;
          }
 
          // finally create the iid samples
-         for ( ui32 sampleid = 0; sampleid < nbSamples; ++sampleid )
+         for ( size_t sampleid = 0; sampleid < nbSamples; ++sampleid )
          {
-            EvidenceValue sample( static_cast<ui32>( mainDomain.size() ) );
+            EvidenceValue sample( static_cast<size_t>( mainDomain.size() ) );
 
             // what we need to do is to always know the state of the parent variables. Due to the order property we simply
             // need to sample in reverse order of the domain
-            for ( std::set<ui32>::const_reverse_iterator it = mainDomain.rbegin(); it != mainDomain.rend(); ++it )
+            for ( std::set<size_t>::const_reverse_iterator it = mainDomain.rbegin(); it != mainDomain.rend(); ++it )
             {
                // given the parent factors evidence, generate an evidence for the current domain
                // the evidence's domain must be the same as the factor!
-               const ui32 mainDomainId = *it;
+               const size_t mainDomainId = *it;
                const Factor& f = *factorsIndexedByDomain[ mainDomainId ];
                EvidenceValue evidence( f.getDomain().size() );
-               for ( ui32 n = 0; n < evidence.size(); ++n )
+               for ( size_t n = 0; n < evidence.size(); ++n )
                {
-                  const ui32 domainId = f.getDomain()[ n ];
-                  const ui32 domainIdInSample = domainToFinalDomain[ domainId ];
+                  const size_t domainId = f.getDomain()[ n ];
+                  const size_t domainIdInSample = domainToFinalDomain[ domainId ];
                   evidence[ n ] = sample[ domainIdInSample ];
                }
 

@@ -58,7 +58,7 @@ namespace imaging
          // do not start interpolation here! When multithreaded, we want the processor's thread to be in the correct rounding mode (see <code>InterpolatorTriLinear</code>)
       }
 
-      void startSlice( ui32 )
+      void startSlice( size_t )
       {
          // for some reason the interpolation start/end must be done each slice due to accuracy problems...
          _interpolator.startInterpolation();
@@ -70,7 +70,7 @@ namespace imaging
          // do not end interpolation here! When multithreaded, we want the processor's thread to be in the correct rounding mode (see <code>InterpolatorTriLinear</code>)
       }
 
-      void endSlice( ui32 )
+      void endSlice( size_t )
       {
          // for some reason the interpolation start/end must be done each slice due to accuracy problems...
          _interpolator.endInterpolation();

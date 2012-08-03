@@ -105,9 +105,9 @@ public:
          nll::algorithm::MarkovChainFirstOrderDense markovChain( transition, pi );
 
          const unsigned sizeSeq = 15;
-         nll::core::Buffer1D<nll::ui32> chain = markovChain.generateSequence( sizeSeq );
+         nll::core::Buffer1D<size_t> chain = markovChain.generateSequence( sizeSeq );
 
-         std::vector<nll::ui32> chainConv( sizeSeq );
+         std::vector<size_t> chainConv( sizeSeq );
          Observations obs( sizeSeq );
          for ( unsigned n = 0; n < sizeSeq; ++n )
          {
@@ -117,7 +117,7 @@ public:
          }
 
          // compare
-         std::vector<nll::ui32> chainOut;
+         std::vector<size_t> chainOut;
          hmm.computeHiddenState( obs, chainOut );
          TESTER_ASSERT( chainOut == chainConv );
 
@@ -128,7 +128,7 @@ public:
          const unsigned chainSize = 6;
          
          std::vector<Observations> lists( nbChainsGeneration );
-         std::vector< std::vector<nll::ui32> > statesList2( nbChainsGeneration );
+         std::vector< std::vector<size_t> > statesList2( nbChainsGeneration );
          for ( unsigned n = 0; n < nbChainsGeneration; ++n )
          {
             lists[ n ] = hmm.generateSequence( chainSize, &statesList2[ n ] );

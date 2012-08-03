@@ -47,7 +47,7 @@ namespace algorithm
       public:
          struct Match
          {
-            Match( ui32 i1, ui32 i2, double d ) : index1( i1 ), index2( i2 ), dist( d )
+            Match( size_t i1, size_t i2, double d ) : index1( i1 ), index2( i2 ), dist( d )
             {}
 
             Match()
@@ -58,8 +58,8 @@ namespace algorithm
                return dist < m.dist;
             }
 
-            ui32     index1;
-            ui32     index2;
+            size_t     index1;
+            size_t     index2;
             double   dist;
          };
          typedef std::vector< Match >  Matches;
@@ -67,7 +67,7 @@ namespace algorithm
          /**
           @param nbPairsToBeConsidered During the nearest neighbour search, we select the <nbPairsToBeConsidered> neighbours
           */
-         FeatureMatcher( ui32 nbPairsToBeConsidered = 1 ) : _nbPairsToBeConsidered( nbPairsToBeConsidered )
+         FeatureMatcher( size_t nbPairsToBeConsidered = 1 ) : _nbPairsToBeConsidered( nbPairsToBeConsidered )
          {}
 
          template <class Points>
@@ -80,7 +80,7 @@ namespace algorithm
             if ( points1.size() <= 1 + _nbPairsToBeConsidered || 
                  points2.size() <= 1 + _nbPairsToBeConsidered )
                return;
-            const ui32 nbFeatures = (ui32)points1[ 0 ].size();
+            const size_t nbFeatures = (size_t)points1[ 0 ].size();
 
             // find a match from the smaller set to the bigger one
             if ( points2.size() > points1.size() )
@@ -137,7 +137,7 @@ namespace algorithm
          }
 
       private:
-         ui32  _nbPairsToBeConsidered;
+         size_t  _nbPairsToBeConsidered;
       };
 
       class SimilarityIsotropicTransformationEstimatorRansac
@@ -152,12 +152,12 @@ namespace algorithm
             PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector2i& operator[]( ui32 index ) const
+            const core::vector2i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index1 ].position;
             }
@@ -178,12 +178,12 @@ namespace algorithm
             PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector2i& operator[]( ui32 index ) const
+            const core::vector2i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index2 ].position;
             }
@@ -203,7 +203,7 @@ namespace algorithm
          {
          }
 
-         static ui32 minimumNumberOfPointsForEstimation()
+         static size_t minimumNumberOfPointsForEstimation()
          {
             return 2;
          }
@@ -302,12 +302,12 @@ namespace algorithm
             PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector2i& operator[]( ui32 index ) const
+            const core::vector2i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index1 ].position;
             }
@@ -328,12 +328,12 @@ namespace algorithm
             PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector2i& operator[]( ui32 index ) const
+            const core::vector2i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index2 ].position;
             }
@@ -353,7 +353,7 @@ namespace algorithm
          {
          }
 
-         static ui32 minimumNumberOfPointsForEstimation()
+         static size_t minimumNumberOfPointsForEstimation()
          {
             return 3;
          }
@@ -452,12 +452,12 @@ namespace algorithm
             PointsWrapper1( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector2i& operator[]( ui32 index ) const
+            const core::vector2i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index1 ].position;
             }
@@ -478,12 +478,12 @@ namespace algorithm
             PointsWrapper2( const PointsData& points, const PointsMatch& matches ) : _points( points ), _matches( matches )
             {}
 
-            ui32 size() const
+            size_t size() const
             {
-               return static_cast<ui32>( _matches.size() );
+               return static_cast<size_t>( _matches.size() );
             }
 
-            const core::vector2i& operator[]( ui32 index ) const
+            const core::vector2i& operator[]( size_t index ) const
             {
                return _points[ _matches[ index ].index2 ].position;
             }
@@ -503,7 +503,7 @@ namespace algorithm
          {
          }
 
-         static ui32 minimumNumberOfPointsForEstimation()
+         static size_t minimumNumberOfPointsForEstimation()
          {
             return 4;
          }
@@ -676,7 +676,7 @@ namespace algorithm
       typedef algorithm::SpeededUpRobustFeatures::Point        Point;
       typedef std::vector< std::pair<Point, Point> >           PointPairs;
 
-      AffineRegistrationPointBased2d( ui32 surfNumberOfOctaves = 5, ui32 surfNumberOfIntervals = 6, double surfThreshold = 0.00011, FeatureMatcher matcher = FeatureMatcher() ) : _surfNumberOfOctaves( surfNumberOfOctaves ), _surfNumberOfIntervals( surfNumberOfIntervals ), _surfThreshold( surfThreshold ), _matcher( matcher )
+      AffineRegistrationPointBased2d( size_t surfNumberOfOctaves = 5, size_t surfNumberOfIntervals = 6, double surfThreshold = 0.00011, FeatureMatcher matcher = FeatureMatcher() ) : _surfNumberOfOctaves( surfNumberOfOctaves ), _surfNumberOfIntervals( surfNumberOfIntervals ), _surfThreshold( surfThreshold ), _matcher( matcher )
       {}
 
    public:
@@ -687,10 +687,10 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxSource = core::vector2i(),
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
-                      ui32 maxErrorInPixel = 15,
-                      ui32 minimumInliers = 20,
-                      ui32 nbRansacIterations = 25000,
-                      ui32 nbMaxRansacPairs = 1000 )
+                      size_t maxErrorInPixel = 15,
+                      size_t minimumInliers = 20,
+                      size_t nbRansacIterations = 25000,
+                      size_t nbMaxRansacPairs = 1000 )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
          {
@@ -723,10 +723,10 @@ namespace algorithm
                       const core::vector2i& maxBoundingBoxSource = core::vector2i(),
                       const core::vector2i& minBoundingBoxTarget = core::vector2i(),
                       const core::vector2i& maxBoundingBoxTarget = core::vector2i(),
-                      ui32 maxErrorInPixel = 15,
-                      ui32 minimumInliers = 20,
-                      ui32 nbRansacIterations = 25000,
-                      ui32 nbMaxRansacPairs = 1000 )
+                      size_t maxErrorInPixel = 15,
+                      size_t minimumInliers = 20,
+                      size_t nbRansacIterations = 25000,
+                      size_t nbMaxRansacPairs = 1000 )
       {
          nll::core::Timer timerFull;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "starting 2D registration..." );
@@ -758,7 +758,7 @@ namespace algorithm
 
          // take only the best subset...
          ensure( matches.size(), "No match found!" );
-         typename FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<ui32>( nbMaxRansacPairs, (ui32)matches.size() - 1 ) );
+         typename FeatureMatcher::Matches matchesTrimmed( matches.begin(), matches.begin() + std::min<size_t>( nbMaxRansacPairs, (size_t)matches.size() - 1 ) );
 
          // estimate the transformation
          typedef algorithm::Ransac<RansacTransformationEstimator, Factory> Ransac;
@@ -766,10 +766,10 @@ namespace algorithm
          Factory estimatorFactory( points1, points2 );
          Ransac ransac( estimatorFactory );
 
-         core::Buffer1D<float> weights( static_cast<ui32>( matchesTrimmed.size() ) );
-         for ( ui32 n = 0; n < static_cast<ui32>( weights.size() ); ++n )
+         core::Buffer1D<float> weights( static_cast<size_t>( matchesTrimmed.size() ) );
+         for ( size_t n = 0; n < static_cast<size_t>( weights.size() ); ++n )
          {
-            ui32 indexTarget = matchesTrimmed[ n ].index2;
+            size_t indexTarget = matchesTrimmed[ n ].index2;
             weights[ n ] = points2[ indexTarget ].weight;
          }
 
@@ -777,7 +777,7 @@ namespace algorithm
          typename RansacTransformationEstimator::Model model = ransac.estimate( matchesTrimmed,
                                                                                 RansacTransformationEstimator::minimumNumberOfPointsForEstimation(),
                                                                                 nbRansacIterations,
-                                                                                maxErrorInPixel * maxErrorInPixel,
+                                                                                static_cast<double>( maxErrorInPixel * maxErrorInPixel ),
                                                                                 weights );
 
          ensure( ransac.getNbInliers() > minimumInliers, "Error: inliers are too small" );
@@ -785,10 +785,10 @@ namespace algorithm
 
          _inliers.clear();
          _inliers.reserve( static_cast<size_t>( ransac.getNbInliers() ) );
-         const std::vector<ui32>& inliers = ransac.getInliers();
-         for ( ui32 n = 0; n < (ui32)inliers.size(); ++n )
+         const std::vector<size_t>& inliers = ransac.getInliers();
+         for ( size_t n = 0; n < (size_t)inliers.size(); ++n )
          {
-            const ui32 inlierId = ransac.getInliers()[ n ];
+            const size_t inlierId = ransac.getInliers()[ n ];
             const Point& p1 = points1[ matchesTrimmed[ inlierId ].index1 ];
             const Point& p2 = points2[ matchesTrimmed[ inlierId ].index2 ];
             _inliers.push_back( std::make_pair( p1, p2 ) );
@@ -822,8 +822,8 @@ namespace algorithm
          if ( minBoundingBox == maxBoundingBox )
             return points;
 
-         std::vector<ui32> indexes;
-         for ( ui32 n = 0; n < points.size(); ++n )
+         std::vector<size_t> indexes;
+         for ( size_t n = 0; n < points.size(); ++n )
          {
             if ( points[ n ].position[ 0 ] >= minBoundingBox[ 0 ] &&
                  points[ n ].position[ 1 ] >= minBoundingBox[ 1 ] &&
@@ -834,9 +834,9 @@ namespace algorithm
             }
          }
 
-         const ui32 size = static_cast<ui32>( indexes.size() );
+         const size_t size = static_cast<size_t>( indexes.size() );
          algorithm::SpeededUpRobustFeatures::Points trimmedPoints( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
          {
             trimmedPoints[ n ] = points[ indexes[ n ] ];
          }
@@ -849,8 +849,8 @@ namespace algorithm
 
   private:
      FeatureMatcher                    _matcher;
-     ui32                              _surfNumberOfOctaves;
-     ui32                              _surfNumberOfIntervals;
+     size_t                              _surfNumberOfOctaves;
+     size_t                              _surfNumberOfIntervals;
      double                            _surfThreshold;
      PointPairs                        _inliers;
      SpeededUpRobustFeatures::Points   _originalPoints1;

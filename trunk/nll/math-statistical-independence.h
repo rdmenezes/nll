@@ -45,12 +45,12 @@ namespace core
     @TODO this is not good at all! it is just testing with func id, but should be with much more funcs...
     */
    template <class Points>
-   double checkStatisticalIndependence( const Points& points, ui32 v1, ui32 v2 )
+   double checkStatisticalIndependence( const Points& points, size_t v1, size_t v2 )
    {
       double xa = 0;
       double xb = 0;
       double xc = 0;
-      for ( ui32 n = 0; n < points.size(); ++n )
+      for ( size_t n = 0; n < points.size(); ++n )
       {
          xa += ( points[ n ][ v1 ] );
          xb += ( points[ n ][ v2 ] );

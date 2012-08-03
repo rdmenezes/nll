@@ -21,7 +21,7 @@ public:
       PotentialTable::VectorI multiplicity2( 1 );
       multiplicity2[ 0 ] = 2;
       PotentialTable::Vector table( 6 );
-      for ( ui32 n = 0; n < table.size(); ++n )
+      for ( size_t n = 0; n < table.size(); ++n )
       {
          table[ n ] = n + 1;
       }
@@ -58,7 +58,7 @@ public:
       PotentialTable::VectorI multiplicity2( 1 );
       multiplicity2[ 0 ] = 2;
       PotentialTable::Vector table( 6 );
-      for ( ui32 n = 0; n < table.size(); ++n )
+      for ( size_t n = 0; n < table.size(); ++n )
       {
          table[ n ] = n + 1;
       }
@@ -95,7 +95,7 @@ public:
       PotentialTable::VectorI multiplicity2( 1 );
       multiplicity2[ 0 ] = 2;
       PotentialTable::Vector table( 6 );
-      for ( ui32 n = 0; n < table.size(); ++n )
+      for ( size_t n = 0; n < table.size(); ++n )
       {
          table[ n ] = n + 1;
       }
@@ -134,7 +134,7 @@ public:
       multiplicity2[ 0 ] = 2;
       multiplicity2[ 1 ] = 2;
       PotentialTable::Vector table( 4 );
-      for ( ui32 n = 0; n < table.size(); ++n )
+      for ( size_t n = 0; n < table.size(); ++n )
       {
          table[ n ] = n + 1;
       }
@@ -306,7 +306,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 6 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
@@ -353,7 +353,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 6 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
@@ -400,7 +400,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 6 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
@@ -447,7 +447,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 6 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
@@ -492,7 +492,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 4 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
@@ -537,7 +537,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 4 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }
@@ -582,7 +582,7 @@ public:
       p2.print( std::cout );
 
       TESTER_ASSERT( p2.getTable().size() == 4 );
-      for ( ui32 n = 0; n < p2.getTable().size(); ++n )
+      for ( size_t n = 0; n < p2.getTable().size(); ++n )
       {
          TESTER_ASSERT( core::equal( p2.getTable()[ n ], vals2[ n ], 1e-3 ) );
       }

@@ -47,17 +47,17 @@ namespace core
 
     Complexity is n1 * log n2 (n2 the number of points to be selected, n1 in the probabilities)
     <code>Probabilities</code> types needs to define:
-    - <code>floatingType operator[]( ui32 n ) const</code>
-    - <code>ui32 size() const</code>
+    - <code>floatingType operator[]( size_t n ) const</code>
+    - <code>size_t size() const</code>
     */
    template <class Probabilities>
-   Buffer1D<ui32> sampling( const Probabilities& p, ui32 nbSampledPoints )
+   Buffer1D<size_t> sampling( const Probabilities& p, size_t nbSampledPoints )
    {
       if ( !nbSampledPoints )
-         return Buffer1D<ui32>();
+         return Buffer1D<size_t>();
       std::vector<double> sd( p.size() + 1 );
       double prob = 0;
-      for ( ui32 n = 0; n < p.size(); ++n )
+      for ( size_t n = 0; n < p.size(); ++n )
       {
          prob += p[ n ];
          sd[ n + 1 ] = prob;
@@ -65,15 +65,15 @@ namespace core
       sd[ p.size() ] = 10; // we set an impossible "probability" so we are sure we won't miss the last one
       ensure( fabs( prob - 1 ) <= 0.01, "probability must sum to 1" );
       
-      Buffer1D<ui32> points( nbSampledPoints );
-      for ( ui32 n = 0; n < nbSampledPoints; ++n )
+      Buffer1D<size_t> points( nbSampledPoints );
+      for ( size_t n = 0; n < nbSampledPoints; ++n )
       {
          double point = static_cast<double>( rand() ) / RAND_MAX;
          size_t nn = 0;
          // we don't need to test the end of the buffer as it is not possible to reach it!
          for ( ; point >= sd[ nn + 1 ]; ++nn )
             ;
-         points[ n ] = static_cast<ui32>( nn );
+         points[ n ] = static_cast<size_t>( nn );
          assert( points[ n ] < p.size() );
       }
       return points;
@@ -86,20 +86,20 @@ namespace core
                 space o(1), in place
     @see http://en.wikipedia.org/wiki/Fisher%E2%80%93Yates_shuffle
     @param v the vector to be shuffled
-    @param nbSamplesToShuffle the number of samples to generate. if nbSamples != -1, only the first <nbSamples> elements
+    @param nbSamplesToShuffle the number of samples to generate. if nbSamples != 0, only the first <nbSamples> elements
            of v are valid (i.e., after, they are not shuffled!)
     */
    template <class Vector>
-   void shuffleFisherYates( Vector& v, int nbSamplesToShuffle = -1 )
+   void shuffleFisherYates( Vector& v, size_t nbSamplesToShuffle = 0 )
    {
-      const ui32 nbSamples = ( nbSamplesToShuffle == -1 ) ? static_cast<ui32>( v.size() ) : static_cast<ui32>( nbSamplesToShuffle );
-      const ui32 originalVectorSize = static_cast<ui32>( v.size() );
+      const size_t nbSamples = ( nbSamplesToShuffle == 0 ) ? v.size() : nbSamplesToShuffle;
+      const size_t originalVectorSize = v.size();
 
       // then for each pass <i>, generate an index in <i..originalVectorSize-i>, swap the elements
-      for ( ui32 n = 0; n < nbSamples; ++n )
+      for ( size_t n = 0; n < nbSamples; ++n )
       {
-         const ui32 i = originalVectorSize - n - 1;
-         const ui32 index = ( i == 0 ) ? 0 : ( rand() % ( originalVectorSize - n - 1 ) );
+         const size_t i = originalVectorSize - n - 1;
+         const size_t index = ( i == 0 ) ? 0 : ( rand() % ( originalVectorSize - n - 1 ) );
          std::swap( v[ i ], v[ index ] ); // discard the index by moving it at the end of the list
       }
    }
@@ -118,19 +118,19 @@ namespace core
     @param nbSamples the number of samples to generate
     @return the element indexes of the original vector
     */
-   inline Buffer1D<ui32> samplingWithoutReplacement( ui32 originalVectorSize, ui32 nbSamples )
+   inline Buffer1D<size_t> samplingWithoutReplacement( size_t originalVectorSize, size_t nbSamples )
    {
       ensure( nbSamples <= originalVectorSize, "nbSamples must be < originalVectorSize" );
 
       // initialize the list index
-      std::vector<ui32> indexes( originalVectorSize );
-      for ( ui32 n = 0; n < originalVectorSize; ++n )
+      std::vector<size_t> indexes( originalVectorSize );
+      for ( size_t n = 0; n < originalVectorSize; ++n )
       {
          indexes[ n ] = n;
       }
 
       // shuffle the list and copy the first <nbSamples> elements to the results
-      Buffer1D<ui32> result( nbSamples, false );
+      Buffer1D<size_t> result( nbSamples, false );
       shuffleFisherYates( indexes, nbSamples );
       std::copy( indexes.begin(), indexes.begin() + nbSamples, result.begin() );
       return result;

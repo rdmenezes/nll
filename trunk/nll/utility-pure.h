@@ -105,7 +105,7 @@ namespace core
     @ingroup core
     @brief compute statically the size of an array defined like this: T array[] = { .... }
    */
-	template <std::size_t N, class T> ui32 getStaticBufferSize(const T (& /*Elements*/)[N])
+	template <std::size_t N, class T> size_t getStaticBufferSize(const T (& /*Elements*/)[N])
 	{
 		return N;
 	}

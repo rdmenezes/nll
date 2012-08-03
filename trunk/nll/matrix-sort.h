@@ -46,24 +46,24 @@ namespace core
     @param rang a value is attributed for each row. Rows are sorted using this value by increasing order. Stable.
     */
    template <class T, class Mapper, class Allocator>
-   void sortRow( Matrix<T, Mapper, Allocator>& m, const std::vector<ui32>& rang )
+   void sortRow( Matrix<T, Mapper, Allocator>& m, const std::vector<size_t>& rang )
    {
-      typedef std::pair<ui32, ui32> Pair;
+      typedef std::pair<size_t, size_t> Pair;
       typedef std::vector<Pair>     Pairs;
 
       assert( m.sizey() == rang.size() );
 
       // build a temporary array to avoid copy of rows during sorting
       Pairs pairs( m.sizey() );
-      for ( ui32 n = 0; n < m.sizey(); ++n )
+      for ( size_t n = 0; n < m.sizey(); ++n )
          pairs[ n ] = std::make_pair( rang[ n ], n );
       std::sort( pairs.begin(), pairs.end() );
 
       Matrix<T, Mapper, Allocator> cpy( m.sizey(), m.sizex(), false );
-      for ( ui32 ny = 0; ny < m.sizey(); ++ny )
+      for ( size_t ny = 0; ny < m.sizey(); ++ny )
       {
-         const ui32 newIndex = pairs[ ny ].second;
-         for ( ui32 nx = 0; nx < m.sizex(); ++nx )
+         const size_t newIndex = pairs[ ny ].second;
+         for ( size_t nx = 0; nx < m.sizex(); ++nx )
             cpy( ny, nx ) = m( newIndex, nx );
       }
       m = cpy;
@@ -75,25 +75,25 @@ namespace core
     @param rang a value is attributed for each column. Columns are sorted using this value by increasing order. Stable.
     */
    template <class T, class Mapper, class Allocator>
-   void sortCol( Matrix<T, Mapper, Allocator>& m, const std::vector<ui32>& rang )
+   void sortCol( Matrix<T, Mapper, Allocator>& m, const std::vector<size_t>& rang )
    {
-      typedef std::pair<ui32, ui32> Pair;
+      typedef std::pair<size_t, size_t> Pair;
       typedef std::vector<Pair>     Pairs;
 
       assert( m.sizex() == rang.size() );
 
       // build a temporary array to avoid copy of rows during sorting
       Pairs pairs( m.sizex() );
-      for ( ui32 n = 0; n < m.sizex(); ++n )
+      for ( size_t n = 0; n < m.sizex(); ++n )
          pairs[ n ] = std::make_pair( rang[ n ], n );
       std::sort( pairs.begin(), pairs.end() );
 
       Matrix<T, Mapper, Allocator> cpy( m.sizey(), m.sizex(), false );
       
-      for ( ui32 nx = 0; nx < m.sizex(); ++nx )
+      for ( size_t nx = 0; nx < m.sizex(); ++nx )
       {
-         const ui32 newIndex = pairs[ nx ].second;
-         for ( ui32 ny = 0; ny < m.sizey(); ++ny )
+         const size_t newIndex = pairs[ nx ].second;
+         for ( size_t ny = 0; ny < m.sizey(); ++ny )
          
             cpy( ny, nx ) = m( ny, newIndex );
       }

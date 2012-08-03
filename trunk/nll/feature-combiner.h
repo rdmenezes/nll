@@ -54,7 +54,7 @@ namespace algorithm
          Database out;
 
          ensure( input1.size() == input2.size(), "samples from input1 and input2 must match!!" );
-         for ( ui32 n = 0; n < input1.size(); ++n )
+         for ( size_t n = 0; n < input1.size(); ++n )
          {
             assert( input1[ n ].output == input2[ n ].output ); // "samples must match!!"
             typename Database::Sample s = input1[ n ];
@@ -73,9 +73,9 @@ namespace algorithm
       static Point process( const Point& input1, const Point& input2 )
       {
          Point p( input1.size() + input2.size() );
-         for ( ui32 n = 0; n < input1.size(); ++n )
+         for ( size_t n = 0; n < input1.size(); ++n )
             p[ n ] = input1[ n ];
-         for ( ui32 n = 0; n < input2.size(); ++n )
+         for ( size_t n = 0; n < input2.size(); ++n )
             p[ n + input1.size() ] = input2[ n ];
          return p;
       }

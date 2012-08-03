@@ -44,7 +44,7 @@ namespace algorithm
    class NLL_API OptimizerPowell : public Optimizer
    {
    public:
-      OptimizerPowell( ui32 randomSeed = 40, f64 tolerance = 1e-4 ) : _nbSeeds( randomSeed ), _tolerance( tolerance )
+      OptimizerPowell( size_t randomSeed = 40, f64 tolerance = 1e-4 ) : _nbSeeds( randomSeed ), _tolerance( tolerance )
       {}
 
       /**
@@ -56,16 +56,16 @@ namespace algorithm
          core::Buffer1D<f64> best;
 
          std::vector< core::Buffer1D<double> > dir;
-         for ( ui32 n = 0; n < parameters.size(); ++n )
+         for ( size_t n = 0; n < parameters.size(); ++n )
          {
             dir.push_back( core::Buffer1D<f64>( parameters.size() ) );
             dir[ n ][ n ] = 1;
          }
 
-         for ( ui32 n = 0; n < _nbSeeds; ++n )
+         for ( size_t n = 0; n < _nbSeeds; ++n )
          {
             core::Buffer1D<f64> ini( parameters.size() );
-            for ( ui32 n = 0; n < parameters.size(); ++n )
+            for ( size_t n = 0; n < parameters.size(); ++n )
                ini[ n ] = parameters[ n ].generate();
             bool error = false;
             double val = powell( ini, dir, _tolerance, client, 200, &error );
@@ -83,13 +83,13 @@ namespace algorithm
             return std::vector<double>();
 
          std::vector<double> result( parameters.size() );
-         for ( ui32 n = 0; n < parameters.size(); ++n )
+         for ( size_t n = 0; n < parameters.size(); ++n )
             result[ n ] = best[ n ];
          return result;
       }
 
    protected:
-      ui32  _nbSeeds;
+      size_t  _nbSeeds;
       f64   _tolerance;
    };
 }

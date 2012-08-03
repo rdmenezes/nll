@@ -31,11 +31,11 @@ public:
       input( 1, 1, 0 ) = minValueSlice0;
       input( 2, 0, 0 ) = maxValueSlice0;
 
-      for ( ui32 z = 1; z < input.getSize()[ 2 ] - 1; ++z ) // we want specif cases for empty values & maximal range test
+      for ( size_t z = 1; z < input.getSize()[ 2 ] - 1; ++z ) // we want specif cases for empty values & maximal range test
       {
-         for ( ui32 y = 0; y < input.getSize()[ 1 ]; ++y )
+         for ( size_t y = 0; y < input.getSize()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < input.getSize()[ 0 ]; ++x )
+            for ( size_t x = 0; x < input.getSize()[ 0 ]; ++x )
             {
                const double val = core::generateUniformDistribution( -10000, 50000 );
                input( x, y, z ) = val;
@@ -48,11 +48,11 @@ public:
       VolumeDiscretizer discretizer;
       discretizer.discretize( input, output, rsi );
 
-      for ( ui32 z = 0; z < input.getSize()[ 2 ]; ++z )
+      for ( size_t z = 0; z < input.getSize()[ 2 ]; ++z )
       {
-         for ( ui32 y = 0; y < input.getSize()[ 1 ]; ++y )
+         for ( size_t y = 0; y < input.getSize()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < input.getSize()[ 0 ]; ++x )
+            for ( size_t x = 0; x < input.getSize()[ 0 ]; ++x )
             {
                const double expectedVal = input( x, y, z );
                const double val = output( x, y, z );
@@ -69,25 +69,25 @@ public:
 
    void testCompression()
    {
-      for ( ui32 n = 0; n < 500; ++n )
+      for ( size_t n = 0; n < 500; ++n )
       {
-         const ui32 size = ( rand() % 500 ) + 50;
-         std::vector<ui32> test;
-         for ( ui32 nn = 0; nn < size; ++nn )
+         const size_t size = ( rand() % 500 ) + 50;
+         std::vector<size_t> test;
+         for ( size_t nn = 0; nn < size; ++nn )
          {
-            const ui32 v = rand() % 3;
+            const size_t v = rand() % 3;
             test.push_back( v );
          }
 
          DataCompressorCount compressor( 2 );
 
-         DataCompressorCount::Chunks<ui32> chunks;
+         DataCompressorCount::Chunks<size_t> chunks;
          compressor.compress( test.begin(), test.end(), chunks );
       
          const size_t nbData = chunks.dataSize();
          TESTER_ASSERT( nbData == size );
 
-         std::vector<ui32> res( size );
+         std::vector<size_t> res( size );
          chunks.decode( &res[ 0 ] );
 
          TESTER_ASSERT( res == test );
@@ -95,8 +95,8 @@ public:
          std::stringstream ss;
          chunks.write( ss );
 
-         std::vector<ui32> resRead( size );
-         DataCompressorCount::Chunks<ui32> chunksRead;
+         std::vector<size_t> resRead( size );
+         DataCompressorCount::Chunks<size_t> chunksRead;
          chunksRead.read( ss );
          chunks.decode( &resRead[ 0 ] );
          TESTER_ASSERT( chunksRead.dataSize() == size );
@@ -131,11 +131,11 @@ public:
       }
 
       TESTER_ASSERT( volume.getSize() == volume2.getSize() );
-      for ( ui32 z = 0; z < volume.getSize()[ 2 ]; ++z )
+      for ( size_t z = 0; z < volume.getSize()[ 2 ]; ++z )
       {
-         for ( ui32 y = 0; y < volume.getSize()[ 1 ]; ++y )
+         for ( size_t y = 0; y < volume.getSize()[ 1 ]; ++y )
          {
-            for ( ui32 x = 0; x < volume.getSize()[ 0 ]; ++x )
+            for ( size_t x = 0; x < volume.getSize()[ 0 ]; ++x )
             {
                const double expectedVal = volume( x, y, z );
                const double expectedVal2 = volume2( x, y, z );

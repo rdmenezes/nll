@@ -49,7 +49,7 @@ namespace algorithm
       typedef float        value_type;
       typedef typename Database::Sample::Input  Point;
 
-      WeakClassifierMarginPerceptron( ui32 nbCycles, value_type learningRate, value_type margin ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
+      WeakClassifierMarginPerceptron( size_t nbCycles, value_type learningRate, value_type margin ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
       {
       }
 
@@ -64,13 +64,13 @@ namespace algorithm
          return -1;  // not handled
       }
 
-      virtual ui32 test( const Point& input ) const
+      virtual size_t test( const Point& input ) const
       {
          return _classifier.test( input );
       }
 
    private:
-      ui32                                _nbCycles;
+      size_t                                _nbCycles;
       value_type                          _learningRate;
       value_type                          _margin;
       algorithm::MarginPocketPerceptron   _classifier;
@@ -87,7 +87,7 @@ namespace algorithm
       typedef WeakClassifierMarginPerceptron<DatabaseT>  value_type;
       typedef typename value_type::value_type            value_type_float;
 
-      WeakClassifierMarginPerceptronFactory( ui32 nbCycles, value_type_float learningRate, value_type_float margin = 0 ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
+      WeakClassifierMarginPerceptronFactory( size_t nbCycles, value_type_float learningRate, value_type_float margin = 0 ) : _nbCycles( nbCycles ), _learningRate( learningRate ), _margin( margin )
       {
       }
 
@@ -97,7 +97,7 @@ namespace algorithm
       }
 
    private:
-      ui32                          _nbCycles;
+      size_t                          _nbCycles;
       value_type_float              _learningRate;
       value_type_float              _margin;
    };

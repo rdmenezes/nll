@@ -84,7 +84,7 @@ namespace algorithm
       {
          ClassifierGmm* cgmm = new ClassifierGmm();
          cgmm->_gmms = Gmms( _gmms.size() );
-         for ( ui32 n = 0; n < _gmms.size(); ++n )
+         for ( size_t n = 0; n < _gmms.size(); ++n )
             cgmm->_gmms[ n ].clone( _gmms[ n ] );
          cgmm->_crossValidationBin = this->_crossValidationBin;
          return cgmm;
@@ -92,19 +92,19 @@ namespace algorithm
 
       virtual void read( std::istream& i )
       {
-         ui32 size = 0;
-         core::read<ui32>( size, i );
+         size_t size = 0;
+         core::read<size_t>( size, i );
          if ( size == 0)
             return;
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             core::read<TGmm>( _gmms[ n ], i );
       }
 
       virtual void write( std::ostream& o ) const
       {
-         ui32 size = static_cast<ui32>( _gmms.size() );
-         core::write<ui32>( size, o );
-         for ( ui32 n = 0; n < size; ++n )
+         size_t size = static_cast<size_t>( _gmms.size() );
+         core::write<size_t>( size, o );
+         for ( size_t n = 0; n < size; ++n )
             core::write<TGmm>( _gmms[ n ], o );
       }
 
@@ -112,8 +112,8 @@ namespace algorithm
       virtual Class test( const Points& p ) const
       {
          double likelihood_max = INT_MIN;
-         ui32 class_max = INT_MAX;
-         for ( ui32 n = 0; n < _gmms.size(); ++n )
+         size_t class_max = INT_MAX;
+         for ( size_t n = 0; n < _gmms.size(); ++n )
          {
             double l = _gmms[ n ].likelihood( p );
             if ( l > likelihood_max )
@@ -128,12 +128,12 @@ namespace algorithm
 
       virtual Class test( const Point& p, core::Buffer1D<double>& probability ) const
       {
-         probability = core::Buffer1D<double>( (ui32)_gmms.size() );
+         probability = core::Buffer1D<double>( (size_t)_gmms.size() );
 
          double likelihood_max = INT_MIN;
          double sum = 0;
-         ui32 class_max = INT_MAX;
-         for ( ui32 n = 0; n < _gmms.size(); ++n )
+         size_t class_max = INT_MAX;
+         for ( size_t n = 0; n < _gmms.size(); ++n )
          {
             double l = _gmms[ n ].likelihood( p );
             if ( l > likelihood_max )
@@ -147,7 +147,7 @@ namespace algorithm
          }
 
          ensure( sum > 0, "probability error" );
-         for ( ui32 n = 0; n < _gmms.size(); ++n )
+         for ( size_t n = 0; n < _gmms.size(); ++n )
             probability[ n ] /= sum;
 
 
@@ -162,33 +162,33 @@ namespace algorithm
        */
       virtual void learn( const typename Base::Database& dat, const core::Buffer1D<f64>& parameters )
       {
-         std::map<ui32, ui32> sizeDat;
-         for ( ui32 n = 0; n < dat.size(); ++n )
+         std::map<size_t, size_t> sizeDat;
+         for ( size_t n = 0; n < dat.size(); ++n )
             if ( dat[ n ].type == Base::Sample::LEARNING )
-               sizeDat[ dat[ n ].output ] += static_cast<ui32>( dat[ n ].input.size() );
+               sizeDat[ dat[ n ].output ] += static_cast<size_t>( dat[ n ].input.size() );
 
          if ( !sizeDat.size() )
             return;
 
-         for ( ui32 n = 0; n < sizeDat.size(); ++n )
+         for ( size_t n = 0; n < sizeDat.size(); ++n )
          {
-            std::map<ui32, ui32>::const_iterator it = sizeDat.find( n );
+            std::map<size_t, size_t>::const_iterator it = sizeDat.find( n );
             assert( it != sizeDat.end() ); // a class is missing : database class must be continuous and starts at 0
             Points points( it->second );
-            ui32 index = 0;
-            for ( ui32 n2 = 0; n2 < dat.size(); ++n2 )
+            size_t index = 0;
+            for ( size_t n2 = 0; n2 < dat.size(); ++n2 )
             {
                if ( dat[ n2 ].type == Base::Sample::LEARNING && dat[ n2 ].output == n )
-                  for ( ui32 nn = 0; nn < dat[ n2 ].input.size(); ++nn )
+                  for ( size_t nn = 0; nn < dat[ n2 ].input.size(); ++nn )
                      points[ index++ ] = dat[ n2 ].input[ nn ];
             }
 
             TGmm gmm;
             ensure( points.size(), "empty points, error!" );
-            ui32 pointSize = static_cast<ui32>( points[ 0 ].size() );
+            size_t pointSize = static_cast<size_t>( points[ 0 ].size() );
             ensure( pointSize, "point dimension is 0, error!" );
             assert( parameters.size() == this->_parametersPrototype.size() );
-            gmm.em( points, pointSize, static_cast<ui32>( parameters[ 0 ] ), static_cast<ui32>( parameters[ 1 ] ) );
+            gmm.em( points, pointSize, static_cast<size_t>( parameters[ 0 ] ), static_cast<size_t>( parameters[ 1 ] ) );
             _gmms.push_back( gmm );
          }
       }

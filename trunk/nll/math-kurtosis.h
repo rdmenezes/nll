@@ -56,7 +56,7 @@ namespace core
       ensure( p.size(), "empty size!" );
 
       double mean = 0;
-      for ( ui32 n = 0; n < p.size(); ++n )
+      for ( size_t n = 0; n < p.size(); ++n )
       {
          mean += p[ n ];
       }
@@ -64,7 +64,7 @@ namespace core
       
       double var = 0;
       double e = 0;
-      for ( ui32 n = 0; n < p.size(); ++n )
+      for ( size_t n = 0; n < p.size(); ++n )
       {
          const double val = core::sqr( p[ n ] - mean );
          var += val;

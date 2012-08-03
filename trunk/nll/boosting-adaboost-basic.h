@@ -64,7 +64,7 @@ namespace algorithm
        @note it must be ensured the classification error of the weak classifier is <50%, else it will be discarded
        */
       template <class WeakClassifierFactory>
-      void learn( const Database& dat, ui32 nbWeakClassifiers, const WeakClassifierFactory& factory )
+      void learn( const Database& dat, size_t nbWeakClassifiers, const WeakClassifierFactory& factory )
       {
          {
             std::stringstream ss;
@@ -74,21 +74,21 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         ui32 nbClass = core::getNumberOfClass( dat );
+         size_t nbClass = core::getNumberOfClass( dat );
          ensure(  nbClass == 2, "basic Adaboost is only for binary classification problem" );
 
          // get the LEARNING sample only
          _classifiers.clear();
-         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+         Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
 
          // train the classifiers
          core::Buffer1D<value_type>  distribution( learning.size(), false );
-         for ( ui32 n = 0; n < learning.size(); ++n )
+         for ( size_t n = 0; n < learning.size(); ++n )
          {
             distribution[ n ] = 1.0f / learning.size();
          }
 
-         for ( ui32 n = 0; n < nbWeakClassifiers; ++n )
+         for ( size_t n = 0; n < nbWeakClassifiers; ++n )
          {
             // generate a weak classifier and test
             std::shared_ptr<WeakClassifierT> weak = factory.create();
@@ -96,7 +96,7 @@ namespace algorithm
 
             std::vector<Class> res( learning.size() );
             value_type eps = 0;
-            for ( ui32 nn = 0; nn < learning.size(); ++nn )
+            for ( size_t nn = 0; nn < learning.size(); ++nn )
             {
                res[ nn ] = weak->test( learning[ nn ].input );
                if ( res[ nn ] != learning[ nn ].output )
@@ -116,7 +116,7 @@ namespace algorithm
                value_type alpha_t = static_cast<value_type>( 0.5 * core::log2( ( 1.0 - eps ) / ( eps + 1e-4 ) ) );
 
                // update the distribution
-               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               for ( size_t nn = 0; nn < distribution.size(); ++nn )
                {
                   if ( res[ nn ] != learning[ nn ].output )
                   {
@@ -128,13 +128,13 @@ namespace algorithm
 
                // renormalize the distribution
                value_type sum = 0;
-               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               for ( size_t nn = 0; nn < distribution.size(); ++nn )
                {
                   sum += distribution[ nn ];
                }
 
                ensure( sum > 0, "must be > 0" );
-               for ( ui32 nn = 0; nn < distribution.size(); ++nn )
+               for ( size_t nn = 0; nn < distribution.size(); ++nn )
                {
                   distribution[ nn ] /= sum;
                }
@@ -156,7 +156,7 @@ namespace algorithm
       virtual Class test( const Input& p ) const
       {
          core::Buffer1D<double> prob( 2 );
-         for ( ui32 n = 0; n < _classifiers.size(); ++n )
+         for ( size_t n = 0; n < _classifiers.size(); ++n )
          {
             Class t = _classifiers[ n ].classifier->test( p );
             ensure( t < 2, "this Adaboost implementation handles only binary decision problems" );

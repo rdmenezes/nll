@@ -45,7 +45,7 @@ namespace algorithm
        @param nfft the logical length, it must be nfft > real.size(), power of two are fasters, data will be padded with extra zero
        @param outReal the output, will be allocated by the method
        */
-      void forward( const core::Buffer1D<double>& real, ui32 nfft, core::Buffer1D<double>& outComplex );
+      void forward( const core::Buffer1D<double>& real, size_t nfft, core::Buffer1D<double>& outComplex );
 
       /**
        @brief backward FFT for 1D real data. Returns the inverse discrete Fourier transform (DFT) of vector x, computed with a fast Fourier transform (FFT) algorithm
@@ -53,7 +53,7 @@ namespace algorithm
        @param nfft the logical length, it must be  nfft > real.size(), power of two are fasters, data will be padded with extra zero
        @param outReal the output, will be allocated by the method
        */
-      void backward( const core::Buffer1D<double>& complex, ui32 nfft, core::Buffer1D<double>& outReal );
+      void backward( const core::Buffer1D<double>& complex, size_t nfft, core::Buffer1D<double>& outReal );
    };
 }
 }

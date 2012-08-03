@@ -61,7 +61,7 @@ namespace core
 
  @param T type of the buffer
  @param IndexMapper1D define how the buffer is internally mapped in memory. By default it is simply linear it must
-        define the function static ui32 index(const ui32)
+        define the function static size_t index(const size_t)
  */
 template <class T, class IndexMapper1D = IndexMapperFlat1D, class AllocatorT = std::allocator<T> >
 class Buffer1D
@@ -83,7 +83,7 @@ public:
                 if !IsPOS<T>::value, this parameter is not used
     @param size the number of elements of the buffer
     */
-   explicit Buffer1D( ui32 size, bool zero = true, Allocator allocator = Allocator() ) : _cpt( 0 ), _buffer ( 0 ), _size( 0 ), _ownsBuffer( true ), _allocator( allocator ) { _allocate( size, zero ); }
+   explicit Buffer1D( size_t size, bool zero = true, Allocator allocator = Allocator() ) : _cpt( 0 ), _buffer ( 0 ), _size( 0 ), _ownsBuffer( true ), _allocator( allocator ) { _allocate( size, zero ); }
 
    /**
     @brief constructs an empty buffer.
@@ -102,7 +102,7 @@ public:
     @param ownsBuffer if true, the pointer will be used and deleted at the end of life of the object, else it is used
                       but not deleted. Ensure the parameter is valid until Buffer1D is used.
     */
-   Buffer1D( T* buf, ui32 size, bool ownsBuffer, Allocator allocator = Allocator() ) : _buffer( buf ), _size( size ), _ownsBuffer( ownsBuffer ), _allocator( allocator )
+   Buffer1D( T* buf, size_t size, bool ownsBuffer, Allocator allocator = Allocator() ) : _buffer( buf ), _size( size ), _ownsBuffer( ownsBuffer ), _allocator( allocator )
    {
       _cpt = typename Allocator::template rebind<i32>::other( _allocator ).allocate( 1 );
       *_cpt = 1; //initialRefCount;
@@ -116,12 +116,12 @@ public:
    /**
     @return the index in the buffer of its i th element.
     */
-   inline ui32 index( const ui32 i ){ return IndexMapper1D::index( i ); }
+   inline size_t index( const size_t i ){ return IndexMapper1D::index( i ); }
 
    /**
     @return the number of instances sharing this buffer.
     */
-   inline ui32 getRefCount() const {if (!_cpt) return 0; return *_cpt; }
+   inline size_t getRefCount() const {if (!_cpt) return 0; return *_cpt; }
 
    /**
     @return the internal buffer.
@@ -156,7 +156,7 @@ public:
    /**
     @return the idx th value of the buffer.
     */
-   inline typename BestConstReturnType<T>::type at( const ui32 idx ) const
+   inline typename BestConstReturnType<T>::type at( const size_t idx ) const
    {
       assert( IndexMapper::index( idx ) < _size );
       return _buffer[ IndexMapper::index( idx ) ];
@@ -165,16 +165,16 @@ public:
    /**
     @return the idx th value of the buffer.
     */
-   inline T& at( const ui32 idx )
+   inline T& at( const size_t idx )
    {
       assert( IndexMapper::index( idx ) < _size );
       return _buffer[ IndexMapper::index( idx ) ];
    }
 
-   /**
+      /**
     @return the idx th value of the buffer.
     */
-   inline typename BestConstReturnType<T>::type operator()( const ui32 idx ) const
+   inline typename BestConstReturnType<T>::type operator()( const size_t idx ) const
    {
       return at( idx );
    }
@@ -182,7 +182,7 @@ public:
    /**
     @return the idx th value of the buffer.
     */
-   inline T& operator()( const ui32 idx )
+   inline T& operator()( const size_t idx )
    {
       return at( idx );
    }
@@ -190,7 +190,7 @@ public:
    /**
     @return the idx th value of the buffer.
     */
-   inline typename BestConstReturnType<T>::type operator[]( const ui32 idx ) const
+   inline typename BestConstReturnType<T>::type operator[]( const size_t idx ) const
    {
       return at( idx );
    }
@@ -198,7 +198,7 @@ public:
    /**
     @return the idx th value of the buffer.
     */
-   inline T& operator[]( const ui32 idx )
+   inline T& operator[]( const size_t idx )
    {
       return at( idx );
    }
@@ -211,7 +211,7 @@ public:
       if ( _buffer )
       {
          o << "Buffer1D(" << *_cpt << ") size=" << _size << " values=";
-         for (ui32 n = 0; n < _size; ++n)
+         for (size_t n = 0; n < _size; ++n)
             o << at( n ) << " ";
          o << std::endl;
       } else {
@@ -222,17 +222,17 @@ public:
    /**
     @return the size of the vector.
     */
-   inline ui32 size() const {return _size;}
+   inline size_t size() const {return _size;}
 
    /**
     @brief import from a raw buffer (clone it: memory is copied).
     */
-   void import( const T* buf, ui32 size )
+   void import( const T* buf, size_t size )
    {
       unref();
 
       _allocate( size, false );
-      for (ui32 n = 0; n < size; ++n)
+      for (size_t n = 0; n < size; ++n)
          at( n ) = buf[ n ];
    }
 
@@ -245,8 +245,8 @@ public:
 # ifdef DEBUG_BUFFER1D
       std::cout << "clone buffer1D" << std::endl;
 # endif
-      _allocate( static_cast<ui32>( cpy.size() ), false );
-      for (ui32 n = 0; n < cpy.size(); ++n)
+      _allocate( static_cast<size_t>( cpy.size() ), false );
+      for (size_t n = 0; n < cpy.size(); ++n)
          at( n ) = cpy[ n ];
    }
 
@@ -316,7 +316,7 @@ public:
             {
                if ( !IsPOD<T>::value )
                {
-                  for ( ui32 n = 0; n < _size; ++n )
+                  for ( size_t n = 0; n < _size; ++n )
                   {
                      (_buffer + n )->~T();
                   }
@@ -333,8 +333,8 @@ public:
     */
    void write( std::ostream& o ) const
    {
-      nll::core::write<ui32>( _size, o );
-      for ( ui32 n = 0; n < _size; ++n )
+      nll::core::write<size_t>( _size, o );
+      for ( size_t n = 0; n < _size; ++n )
          nll::core::write<T>( _buffer[ n ], o );
    }
 
@@ -343,11 +343,11 @@ public:
     */
    void read( std::istream& i )
    {
-      nll::core::read<ui32>( _size, i );
+      nll::core::read<size_t>( _size, i );
       if ( _size )
       {
          _allocate( _size, true );  // true! in case of recursive Buffer1D<Buffer1D<>> we need to set to the zero the pointers!
-         for ( ui32 n = 0; n < _size; ++n )
+         for ( size_t n = 0; n < _size; ++n )
             nll::core::read<T>( _buffer[ n ], i );
       }
    }
@@ -384,7 +384,7 @@ public:
          return false;
       if ( _buffer == b._buffer )
          return true;
-      for ( ui32 n = 0; n < _size; ++n )
+      for ( size_t n = 0; n < _size; ++n )
          if ( !core::equal( at( n ), b.at( n ) ) )
             return false;
       return true;
@@ -402,7 +402,7 @@ public:
          return false;
       if ( (void*)op.getBuf() == (void*)_buffer )
          return true;
-      for ( ui32 n = 0; n < _size; ++n )
+      for ( size_t n = 0; n < _size; ++n )
          if ( absolute( op( n ) - at( n ) ) > tolerance )
             return false; 
       return true;
@@ -436,7 +436,7 @@ public:
       const_iterator end() const { return _buffer + _size;}
 
 protected:
-   void _allocate( ui32 size, bool zero )
+   void _allocate( size_t size, bool zero )
    {
 # ifdef DEBUG_BUFFER1D
       std::cout << "allocate buffer1D=" << size << std::endl;
@@ -455,7 +455,7 @@ protected:
       _size = size;
       if ( !IsPOD<T>::value )
       {
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
          {
             char* addr = (char*)(_buffer + n);
             PLACEMENT_NEW (addr)T();
@@ -471,7 +471,7 @@ protected:
 protected:
    mutable i32*    _cpt;
    T*             _buffer;
-   ui32           _size;
+   size_t         _size;
    bool           _ownsBuffer;
    Allocator      _allocator;
 };

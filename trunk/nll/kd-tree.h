@@ -51,9 +51,12 @@ namespace algorithm
     @ingroup algorithm
     @brief generic implementation of a kd-tree.
 
+    Implementation of "K-d trees for semidynamic point sets,
+    Jon Louis Bentley	AT&T Bell Laboratories, Murray Hill, NJ"
+
     "http://portal.acm.org/citation.cfm?doid=98524.98564"
     Point need to provide:
-      "f32 operator[](ui32) const"
+      "f32 operator[](size_t) const"
 
     Distance needs to provide
       double distance( const Point& p1, const Point& p2 ) const;
@@ -82,12 +85,12 @@ namespace algorithm
       public:
 		   _KdTree() : bucket(false), cut_dim(-1), cut_val(-1), l(0), h(0), lopt(-1), hipt(-1){}
 		   bool		bucket;
-		   ui32		cut_dim;
+		   size_t		cut_dim;
 		   f32		cut_val;
 		   _KdTree*	l;
 		   _KdTree*	h;
-		   ui32		lopt;
-         ui32     hipt;
+		   size_t		lopt;
+         size_t     hipt;
 
          _KdTree* clone() const
          {
@@ -136,8 +139,8 @@ namespace algorithm
    public:
 	   struct			NearestNeighbor
 	   {
-		   NearestNeighbor(ui32 pointId, f32 pointDist) : id(pointId), dist(pointDist){}
-		   ui32		id;
+		   NearestNeighbor(size_t pointId, f32 pointDist) : id(pointId), dist(pointDist){}
+		   size_t		id;
 		   f32		dist;
 		   bool operator<(const NearestNeighbor& n) const {return dist < n.dist;}
 	   };
@@ -205,21 +208,21 @@ namespace algorithm
               the tree is used. If not the result is invalid.
        @param pointSize the dimension of a point
 	    */
-	   void build(const Points& points, ui32 pointSize )
+	   void build(const Points& points, size_t pointSize )
 	   {
 		   if (!points.size())
 			   return;
          _pointSize = pointSize;
 		   _points = &points;
-		   ui32 size = points.size();
-         _perm = std::vector<ui32>( size );
+		   size_t size = points.size();
+         _perm = std::vector<size_t>( size );
          _tmpMin = std::vector<f32>( pointSize );
          _tmpMax = std::vector<f32>( pointSize );
-		   for (ui32 n = 0; n < size; ++n)
+		   for (size_t n = 0; n < size; ++n)
 			   _perm[ n ] = n;
 		   _root = _build( 0, size - 1 );
-		   _invPerm = std::vector<ui32>( points.size() );
-		   for (ui32 n = 0; n < points.size(); ++n)
+		   _invPerm = std::vector<size_t>( points.size() );
+		   for (size_t n = 0; n < points.size(); ++n)
 			   _invPerm[ _perm[ n ] ] = n;
 	   }
 
@@ -227,7 +230,7 @@ namespace algorithm
        @brief Find the k nearest neighbours. Complexity O(k log n)
        @param point the point to find the k neighbours from
 	    */
-	   NearestNeighborList findNearestNeighbor(const Point& point, ui32 k) const
+	   NearestNeighborList findNearestNeighbor(const Point& point, size_t k) const
 	   {
          ensure( k, "k must be > 1" );
          _Query query;
@@ -263,7 +266,7 @@ namespace algorithm
 			   if (p->bucket)
 			   {
 				   std::cout << "  pt:";
-				   for (ui32 n = p->lopt; n <= p->hipt; ++n)
+				   for (size_t n = p->lopt; n <= p->hipt; ++n)
 					   std::cout << _perm[n] << ";";
 				   std::cout << std::endl;
 			   } else {
@@ -277,11 +280,11 @@ namespace algorithm
 		   }
 	   }
 
-      void _findNearestNeighbor(_Query& query, const _KdTree* p, const Point& point, ui32 k) const
+      void _findNearestNeighbor(_Query& query, const _KdTree* p, const Point& point, size_t k) const
 	   {
 		   if (p->bucket)
 		   {
-			   for (ui32 n = p->lopt; n <= p->hipt; ++n)
+			   for (size_t n = p->lopt; n <= p->hipt; ++n)
 			   {
 				   f32 dist = _distance.distance((*_points)[_perm[n]], point );
 				   if (query.nearest.size() < k)
@@ -341,7 +344,7 @@ namespace algorithm
 		   } else {
 			   p->bucket	= false;
 			   p->cut_dim	= _findMaxSpread(l, u);
-			   ui32 m;
+			   size_t m;
 			   _select(l, u, m, p->cut_dim);
 			   p->cut_val	= (px(m, p->cut_dim));
 
@@ -351,7 +354,7 @@ namespace algorithm
 		   return p;
 	   }
 
-	   f32 px(ui32 id, ui32 dim) const
+	   f32 px(size_t id, size_t dim) const
 	   {
 		   return (*_points)[_perm[id]][dim];
 	   }
@@ -365,12 +368,12 @@ namespace algorithm
 	   // www.cse.yorku.ca/~andy/courses/3101/lecture-notes/LN4.ps 
 	   // average complexity O(n)
 	   //
-	   void _select(ui32 l, ui32 u, ui32& k, ui32 dim)
+	   void _select(size_t l, size_t u, size_t& k, size_t dim)
 	   {
-		   ui32 n_lo = (l + u) / 2;
+		   size_t n_lo = (l + u) / 2;
 		   while (l < u)
 		   {
-			   ui32 i = (u + l) / 2;				// select middle as pivot
+			   size_t i = (u + l) / 2;				// select middle as pivot
 
 			   if (PA(i, dim) > PA(u, dim))		// make sure last > pivot
 				   PASWAP(i, u);
@@ -397,15 +400,15 @@ namespace algorithm
 	   //
 	   // O(n)
 	   //
-	   ui32 _findMaxSpread(ui32 l, ui32 u)
+	   size_t _findMaxSpread(size_t l, size_t u)
 	   {
-		   for (ui32 n = 0; n < _pointSize; ++n)
+		   for (size_t n = 0; n < _pointSize; ++n)
 		   {
 			   _tmpMin[n] = (f32)INT_MAX;
 			   _tmpMax[n] = (f32)INT_MIN;
 		   }
-		   for (ui32 n = l; n <= u; ++n)
-			   for (ui32 dim = 0; dim < _pointSize; ++dim) 
+		   for (size_t n = l; n <= u; ++n)
+			   for (size_t dim = 0; dim < _pointSize; ++dim) 
 			   {
 				   f32 val = px(n, dim);
 				   if (val > _tmpMax[dim])
@@ -415,8 +418,8 @@ namespace algorithm
 			   }
    		
 		   f32	max = (f32)INT_MIN;
-		   ui32	index = -1;
-		   for (ui32 dim = 0; dim < _pointSize; ++dim)
+		   size_t	index = -1;
+		   for (size_t dim = 0; dim < _pointSize; ++dim)
 		   {
 			   f32 val = (f32)(_tmpMax[dim] - _tmpMin[dim]);
 			   if (val > max)
@@ -430,13 +433,13 @@ namespace algorithm
 	   }
 
    private:
-      std::vector<ui32>    _perm;
-      std::vector<ui32>    _invPerm;
+      std::vector<size_t>    _perm;
+      std::vector<size_t>    _invPerm;
 	   _KdTree*		         _root;
       std::vector<f32>     _tmpMin;
       std::vector<f32>     _tmpMax;
 	   const Points*	      _points;
-      ui32                 _pointSize;
+      size_t                 _pointSize;
       Distance             _distance;
    };
 }

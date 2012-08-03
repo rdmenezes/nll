@@ -475,7 +475,7 @@ namespace core
    */
    inline Buffer1D<i8> make_buffer1D_from_string( const std::string& str )
    {
-      Buffer1D<i8> buf( _strdup( str.c_str() ), static_cast<ui32> ( str.size() ), true );
+      Buffer1D<i8> buf( _strdup( str.c_str() ), static_cast<size_t> ( str.size() ), true );
       return buf;
    }
 
@@ -541,12 +541,12 @@ namespace core
 
     For example generateUniqueList( 4, 7 ) could generate the list [ 5, 4, 6, 7 ]
     */
-   inline std::vector<ui32> generateUniqueList( ui32 start, ui32 end )
+   inline std::vector<size_t> generateUniqueList( size_t start, size_t end )
    {
       assert( start <= end );
-      ui32 size = end - start + 1;
-      std::vector<ui32> list( end - start + 1 );
-      for ( ui32 n = 0; n < size; ++n )
+      size_t size = end - start + 1;
+      std::vector<size_t> list( end - start + 1 );
+      for ( size_t n = 0; n < size; ++n )
          list[ n ] = n + start;
       core::shuffleFisherYates( list );
       return list;
@@ -555,8 +555,8 @@ namespace core
    template <class T>
    Buffer1D<T> make_buffer1D( const std::vector<T>& v )
    {
-      Buffer1D<T> buf( static_cast<ui32>( v.size() ) );
-      for ( ui32 n = 0; n < static_cast<ui32>( v.size() ); ++n )
+      Buffer1D<T> buf( static_cast<size_t>( v.size() ) );
+      for ( size_t n = 0; n < static_cast<size_t>( v.size() ); ++n )
          buf[ n ] = v[ n ];
       return buf;
    }

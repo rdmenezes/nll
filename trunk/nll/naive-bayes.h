@@ -55,7 +55,7 @@ namespace algorithm
          double computeProbability( const Point& p ) const
          {
             double pp = 0;
-            for ( ui32 n = 0; n < mean.size(); ++n )
+            for ( size_t n = 0; n < mean.size(); ++n )
             {
                // if we have a log of features, better do a log for numerical stability
                const double pf = _sqrdiv[ n ] * exp( - core::sqr( p[ n ] - mean[ n ] ) / _norm[ n ] );
@@ -68,7 +68,7 @@ namespace algorithm
          {
             _sqrdiv = Vector( mean.size() );
             _norm = Vector( mean.size() );
-            for ( ui32 n = 0; n < mean.size(); ++n )
+            for ( size_t n = 0; n < mean.size(); ++n )
             {
                _sqrdiv[ n ] = 1.0 / ( sqrt( 2 * nll::core::PI * core::sqr( var[ n ] ) ) + 1e-8 );
                _norm[ n ] = 2.0 * core::sqr( var[ n ] ) + 1e-8;
@@ -87,16 +87,16 @@ namespace algorithm
       {
          if ( database.size() == 0 )
             return;
-         const ui32 nbFeatures = database[ 0 ].input.size();
+         const size_t nbFeatures = database[ 0 ].input.size();
 
          // compute some constants
-         const ui32 nbClasses = getNumberOfClass( database );
+         const size_t nbClasses = getNumberOfClass( database );
          _classes = Classes( nbClasses );
 
          // first filter the training samples
-         Database training = core::filterDatabase( database, core::make_vector<ui32>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
+         Database training = core::filterDatabase( database, core::make_vector<size_t>( Database::Sample::LEARNING ), Database::Sample::LEARNING );
 
-         for ( ui32 classid = 0; classid < nbClasses; ++classid )
+         for ( size_t classid = 0; classid < nbClasses; ++classid )
          {
             _classes[ classid ].mean = Vector( nbFeatures );
             _classes[ classid ].var  = Vector( nbFeatures );
@@ -109,32 +109,32 @@ namespace algorithm
             Adapter adapter( training, classid );
 
             // compute the mean
-            for ( ui32 n = 0; n < adapter.size(); ++n )
+            for ( size_t n = 0; n < adapter.size(); ++n )
             {
                typename Adapter::Point& s = adapter[ n ];
-               for ( ui32 f = 0; f < nbFeatures; ++f )
+               for ( size_t f = 0; f < nbFeatures; ++f )
                {
                   mean[ f ] += s[ f ];
                }
             }
 
-            for ( ui32 f = 0; f < nbFeatures; ++f )
+            for ( size_t f = 0; f < nbFeatures; ++f )
             {
                mean[ f ] /= adapter.size();
             }
 
             // compute the variance
-            for ( ui32 n = 0; n < adapter.size(); ++n )
+            for ( size_t n = 0; n < adapter.size(); ++n )
             {
                typename Adapter::Point& s = adapter[ n ];
-               for ( ui32 f = 0; f < nbFeatures; ++f )
+               for ( size_t f = 0; f < nbFeatures; ++f )
                {
                   double val = s[ f ] - mean[ f ];
                   var[ f ] += core::sqr( val );
                }
             }
 
-            for ( ui32 f = 0; f < nbFeatures; ++f )
+            for ( size_t f = 0; f < nbFeatures; ++f )
             {
                var[ f ] /= adapter.size();
             }
@@ -148,9 +148,9 @@ namespace algorithm
          if ( !o.good() )
             throw std::runtime_error( "cannot read from stream" );
 
-         ui32 nbC = (ui32)_classes.size();
-         core::write<ui32>( nbC, o );
-         for ( ui32 n = 0; n < nbC; ++n )
+         size_t nbC = (size_t)_classes.size();
+         core::write<size_t>( nbC, o );
+         for ( size_t n = 0; n < nbC; ++n )
          {
             _classes[ n ].mean.write( o );
             _classes[ n ].var.write( o );
@@ -163,10 +163,10 @@ namespace algorithm
             throw std::runtime_error( "cannot read from stream" );
          
          // read
-         ui32 nbC = 0;
-         core::read<ui32>( nbC, i );
+         size_t nbC = 0;
+         core::read<size_t>( nbC, i );
          _classes = Classes( nbC );
-         for ( ui32 classid = 0; classid < nbC; ++classid )
+         for ( size_t classid = 0; classid < nbC; ++classid )
          {
             _classes[ classid ].mean.read( i );
             _classes[ classid ].var.read( i );
@@ -175,18 +175,18 @@ namespace algorithm
       }
 
       template <class Point>
-      ui32 test( const Point& p, core::Buffer1D<double>* probability = 0 ) const
+      size_t test( const Point& p, core::Buffer1D<double>* probability = 0 ) const
       {
          double max = (double)INT_MIN;
          double sum = 0;
-         ui32 index = (ui32)_classes.size();
+         size_t index = (size_t)_classes.size();
 
          if ( probability )
          {
-            *probability = core::Buffer1D<double>( (ui32)_classes.size() );
+            *probability = core::Buffer1D<double>( (size_t)_classes.size() );
          }
 
-         for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
+         for ( size_t n = 0; n < (size_t)_classes.size(); ++n )
          {
             double v = _classes[ n ].computeProbability( p );
             if ( v > max )
@@ -204,7 +204,7 @@ namespace algorithm
 
          if ( probability )
          {
-            for ( ui32 n = 0; n < (ui32)_classes.size(); ++n )
+            for ( size_t n = 0; n < (size_t)_classes.size(); ++n )
                ( *probability )[ n ] /= sum;
          }
 

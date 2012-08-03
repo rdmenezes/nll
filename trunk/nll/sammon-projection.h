@@ -57,7 +57,7 @@ namespace algorithm
        possible to find a transformation on a smaller space that keeps the same distance).
        */
       template <class Points>
-      std::vector<typename Points::value_type> project( const Points& points, double learningRate = 0.3, ui32 maxIter = 1000, double epsilon = 1e-4, ui32 nbDimension = 2, double* outStress = 0 ) const
+      std::vector<typename Points::value_type> project( const Points& points, double learningRate = 0.3, size_t maxIter = 1000, double epsilon = 1e-4, size_t nbDimension = 2, double* outStress = 0 ) const
       {
          typedef typename Points::value_type Point;
 
@@ -92,7 +92,7 @@ namespace algorithm
          double erro = 1;
          double err = 10;
          const double error = 1e-10;
-         ui32 nbIter = 0;
+         size_t nbIter = 0;
          while ( fabs( err - erro ) > epsilon )
          {
             const double c = d.compute( points ) + error;
@@ -124,7 +124,7 @@ namespace algorithm
             for ( int n = 0; n < nbPoints; ++n )
             {
                // compute gradient
-               for ( ui32 k = 0; k < nbDimension; ++k )
+               for ( size_t k = 0; k < nbDimension; ++k )
                {
                   double sum = 0;
                   double sum2 = 0;
@@ -189,7 +189,7 @@ namespace algorithm
          type compute( const Points& ps )
          {
             type sum = 0;
-            const ui32 size = static_cast<ui32>( ps.size() );
+            const size_t size = static_cast<size_t>( ps.size() );
             if ( _d.sizex() != size || _d.sizey() != size )
                _d = Matrix( size, size );
 #ifndef NLL_NOT_MULTITHREADED
@@ -197,7 +197,7 @@ namespace algorithm
 #endif
             for ( int i = 0; i < (int)size; ++i )
             {
-               for ( ui32 j = i; j < size; ++j )
+               for ( size_t j = i; j < size; ++j )
                {
                   type d = norm2( ps[ i ], ps[ j ] );
                   _d( i, j ) = d;
@@ -211,13 +211,13 @@ namespace algorithm
          static type norm2( const Point& p1, const Point& p2 )
          {
             type val = 0;
-            ui32 size = static_cast<ui32>( p1.size() );
-            for ( ui32 n = 0; n < size; ++n )
+            size_t size = static_cast<size_t>( p1.size() );
+            for ( size_t n = 0; n < size; ++n )
                val += core::sqr( p1[ n ] - p2[ n ] );
             return sqrt( val );
          }
 
-         type operator()( ui32 i, ui32 j ) const
+         type operator()( size_t i, size_t j ) const
          {
             assert( i < _d.sizey() && j < _d.sizex() );
 
@@ -226,7 +226,7 @@ namespace algorithm
             return _d( i, j );
          }
 
-         type& operator()( ui32 i, ui32 j )
+         type& operator()( size_t i, size_t j )
          {
             assert( i < _d.sizey() && j < _d.sizex() );
 

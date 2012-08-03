@@ -78,12 +78,15 @@ namespace imaging
          const float dxIndex = static_cast<float>( slice.size()[ 0 ] ) / gridSize[ 0 ];
          const float dyIndex = static_cast<float>( slice.size()[ 1 ] ) / gridSize[ 1 ];
 
+         const int sizex = static_cast<int>( slice.sizex() );
+         const int sizey = static_cast<int>( slice.sizey() );
+
          core::GeometryPlane plane( core::vector3f( 0, 0, 0 ), slice.getAxisX() * slice.getSpacing()[ 0 ], slice.getAxisY() * slice.getSpacing()[ 1 ] ); // set up a plane a (0, 0, 0) with the same orientation as the slice
-         for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
+         for ( size_t y = 0; y < gridSize[ 1 ]; ++y )
          {
             const int yi = static_cast<int>( dyIndex * y );
             const core::vector3f dyMm = dy * (float)y + bottomLeftTarget;
-            for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+            for ( size_t x = 0; x < gridSize[ 0 ]; ++x )
             {
                const int displayRand = 0;
                core::vector3uc color( rand() % 255, rand() % 255, rand() % 255 );
@@ -104,8 +107,8 @@ namespace imaging
                                          core::round( start[ 1 ] + gradvProj2d[ 1 ] ) );
                core::bresham( slice.getStorage(), start, end, color );
 
-               if ( start[ 0 ] >= 0 && start[ 0 ] < (int)slice.size()[ 0 ] &&
-                    start[ 1 ] >= 0 && start[ 1 ] < (int)slice.size()[ 1 ] )
+               if ( start[ 0 ] >= 0 && start[ 0 ] < sizex &&
+                    start[ 1 ] >= 0 && start[ 1 ] < sizey )
                {
                   ui8* p = slice.getStorage().point( start[ 0 ], start[ 1 ] );
                   p[ 0 ] = 0;
@@ -158,11 +161,11 @@ namespace imaging
          id[ 0 ] = 1;
          id[ 1 ] = 1;
          id[ 2 ] = 1;
-         for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
+         for ( size_t y = 0; y < gridSize[ 1 ]; ++y )
          {
             const int yi = static_cast<int>( dyIndex * y );
             const core::vector3f dyMm = dy * (float)y + slice.getOrigin();
-            for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+            for ( size_t x = 0; x < gridSize[ 0 ]; ++x )
             {
                const int xi = static_cast<int>( dxIndex * x );
                const core::vector3f dxMm = dyMm + dx * (float)x;
@@ -221,7 +224,7 @@ namespace imaging
                      To solve this problem, we could have tested more points on the grid border (currently, we test just the corners)
        */
       template <class T>
-      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 8, 8 ), ui32 extraPadding = 10 )
+      void getSlice( Slice<T>& slice,  T* gridColor, const TransformationDenseDeformableField& ddf, const core::vector2ui gridSize = core::vector2ui( 8, 8 ), size_t extraPadding = 10 )
       {
          ensure( slice.size()[ 0 ] > 0 && slice.size()[ 1 ] > 0, "must not be empty" );
 
@@ -263,8 +266,8 @@ namespace imaging
          _minMaxGridIndex( min, max, topRight2Index );
 
          // add extra padding just to be sure
-         min -= core::vector2f( extraPadding, extraPadding );
-         max += core::vector2f( extraPadding, extraPadding );
+         min -= core::vector2f( static_cast<float>( extraPadding ), static_cast<float>( extraPadding ) );
+         max += core::vector2f( static_cast<float>( extraPadding ), static_cast<float>( extraPadding ) );
 
          // export the min/max: they will be our grid 
          bottomLeftTarget  = core::transf4( ddf.getAffineMatrix(), slice.sliceToWorldCoordinate( min ) );
@@ -277,13 +280,13 @@ namespace imaging
          const core::vector3f dy = ( topLeftTarget     - bottomLeftTarget ) / (float)gridSize[ 1 ];
 
          // draw the vertical and horizontal lines
-         for ( ui32 x = 0; x < gridSize[ 0 ]; ++x )
+         for ( size_t x = 0; x < gridSize[ 0 ]; ++x )
          {
             const core::vector3f ddx = dx * (float)x;
             _drawLine( slice, gridColor, ddf, bottomLeft + ddx, dy, gridSize[ 1 ] );
          }
 
-         for ( ui32 y = 0; y < gridSize[ 1 ]; ++y )
+         for ( size_t y = 0; y < gridSize[ 1 ]; ++y )
          {
             const core::vector3f ddy = dy * (float)y;
             _drawLine( slice, gridColor, ddf, bottomLeft + ddy, dx, gridSize[ 0 ] );
@@ -307,10 +310,10 @@ namespace imaging
                              const TransformationDenseDeformableField& ddf,
                              const core::vector3f& first,
                              const core::vector3f& direction,
-                             ui32 nbSteps )
+                             size_t nbSteps )
       {
-         const core::vector2f half( (float)( slice.size()[ 0 ] / 2 ),
-                                    (float)( slice.size()[ 1 ] / 2 ) );
+         const core::vector2f half( (float)( slice.sizex() / 2 ),
+                                    (float)( slice.sizey() / 2 ) );
          bool converged = false;
          core::vector3f previousMm = ddf.getInverseTransform( first, 100, &converged );
          if ( !converged )
@@ -320,13 +323,13 @@ namespace imaging
          }
 
          core::GeometryBox2d box( core::vector2f( 0, 0 ),
-                                  core::vector2f( (float)slice.size()[ 0 ] - 1,
-                                                  (float)slice.size()[ 1 ] - 1 ) );
+                                  core::vector2f( (float)slice.sizex() - 1,
+                                                  (float)slice.sizey() - 1 ) );
 
          core::vector2f previousIndexf = slice.worldToSliceCoordinate( slice.getOrthogonalProjection( previousMm ) ) /* + half */;
          core::vector2i previousIndex( core::round( previousIndexf[ 0 ] ), core::round( previousIndexf[ 1 ] ) );
          bool isPreviousInside = box.contains( core::vector2f( previousIndexf ) );
-         for ( ui32 step = 1; step < nbSteps; ++step )
+         for ( size_t step = 1; step < nbSteps; ++step )
          {
             const core::vector3f point = first + direction * (float)step;      // point in target
             core::vector3f currentMm = ddf.getInverseTransform( point, 100, &converged );

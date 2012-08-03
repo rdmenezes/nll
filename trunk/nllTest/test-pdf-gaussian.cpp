@@ -23,7 +23,7 @@ public:
       }
 
       Vector tmp( x.size() );
-      for ( ui32 n = 0; n < x.size(); ++n )
+      for ( size_t n = 0; n < x.size(); ++n )
       {
          tmp[ n ] = x[ n ] - mean[ n ];
       }
@@ -43,25 +43,25 @@ public:
    void testCovFullFullMean()
    {
       srand( 0 );
-      ui32 nbTests = 0;
-      for ( ui32 nn = 0; nn < 100; ++nn )
+      size_t nbTests = 0;
+      for ( size_t nn = 0; nn < 100; ++nn )
       {
-         const ui32 size = 3;
+         const size_t size = 3;
          Matrix cov( size, size );
 
-         for ( ui32 n = 0; n < size * size; ++n )
+         for ( size_t n = 0; n < size * size; ++n )
          {
             cov[ n ] = core::generateUniformDistribution( 0.1, 1.1 );
          }
 
          Vector mean( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             mean[ n ] = core::generateUniformDistribution( -1, 1 );
 
-         for ( ui32 nnn = 0; nnn < 500; ++nnn )
+         for ( size_t nnn = 0; nnn < 500; ++nnn )
          {
             Vector x( size );
-            for ( ui32 n = 0; n < size; ++n )
+            for ( size_t n = 0; n < size; ++n )
               x[ n ] = core::generateUniformDistribution( -1, 1 );
 
             bool isWrong = false;
@@ -87,25 +87,25 @@ public:
    void testCovFullNoMean()
    {
       srand( 0 );
-      ui32 nbTests = 0;
-      for ( ui32 nn = 0; nn < 100; ++nn )
+      size_t nbTests = 0;
+      for ( size_t nn = 0; nn < 100; ++nn )
       {
-         const ui32 size = 3;
+         const size_t size = 3;
          Matrix cov( size, size );
 
-         for ( ui32 n = 0; n < size * size; ++n )
+         for ( size_t n = 0; n < size * size; ++n )
          {
             cov[ n ] = core::generateUniformDistribution( 0.1, 1.1 );
          }
 
          Vector mean( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             mean[ n ] = 0;
 
-         for ( ui32 nnn = 0; nnn < 500; ++nnn )
+         for ( size_t nnn = 0; nnn < 500; ++nnn )
          {
             Vector x( size );
-            for ( ui32 n = 0; n < size; ++n )
+            for ( size_t n = 0; n < size; ++n )
                x[ n ] = core::generateUniformDistribution( -1, 1 );
             bool isWrong = false;
             const double expected = dummyPdf( x, mean, cov, isWrong );
@@ -130,15 +130,15 @@ public:
    void testCovNoFullFullMean()
    {
       srand( 0 );
-      ui32 nbTests = 0;
-      for ( ui32 nn = 0; nn < 100; ++nn )
+      size_t nbTests = 0;
+      for ( size_t nn = 0; nn < 100; ++nn )
       {
-         const ui32 size = 3;
+         const size_t size = 3;
          Matrix cov( size, size );
 
-         for ( ui32 y = 0; y < size; ++y )
+         for ( size_t y = 0; y < size; ++y )
          {
-            for ( ui32 x = 0; x < size; ++x )
+            for ( size_t x = 0; x < size; ++x )
             {
                if ( x == y )
                {
@@ -148,13 +148,13 @@ public:
          }
 
          Vector mean( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             mean[ n ] = core::generateUniformDistribution( -1, 1 );
 
-         for ( ui32 nnn = 0; nnn < 500; ++nnn )
+         for ( size_t nnn = 0; nnn < 500; ++nnn )
          {
             Vector x( size );
-            for ( ui32 n = 0; n < size; ++n )
+            for ( size_t n = 0; n < size; ++n )
                x[ n ] = core::generateUniformDistribution( -1, 1 );
 
             bool isWrong = false;
@@ -180,15 +180,15 @@ public:
    void testCovNoFullNoFullMean()
    {
       srand( 0 );
-      ui32 nbTests = 0;
-      for ( ui32 nn = 0; nn < 100; ++nn )
+      size_t nbTests = 0;
+      for ( size_t nn = 0; nn < 100; ++nn )
       {
-         const ui32 size = 3;
+         const size_t size = 3;
          Matrix cov( size, size );
 
-         for ( ui32 y = 0; y < size; ++y )
+         for ( size_t y = 0; y < size; ++y )
          {
-            for ( ui32 x = 0; x < size; ++x )
+            for ( size_t x = 0; x < size; ++x )
             {
                if ( x == y )
                {
@@ -198,15 +198,15 @@ public:
          }
 
          Vector mean( size );
-         for ( ui32 n = 0; n < size; ++n )
+         for ( size_t n = 0; n < size; ++n )
             mean[ n ] = 0;
 
-         for ( ui32 nnn = 0; nnn < 500; ++nnn )
+         for ( size_t nnn = 0; nnn < 500; ++nnn )
          {
             bool isWrong = false;
 
             Vector x( size );
-            for ( ui32 n = 0; n < size; ++n )
+            for ( size_t n = 0; n < size; ++n )
                x[ n ] = core::generateUniformDistribution( -1, 1 );
 
             const double expected = dummyPdf( x, mean, cov, isWrong );
@@ -231,7 +231,7 @@ public:
 
    void testGaussianPdf1d()
    {
-      for ( ui32 n = 0; n < 1000; ++n )
+      for ( size_t n = 0; n < 1000; ++n )
       {
          const double x = core::generateUniformDistribution( -10, 10 );
 
@@ -262,14 +262,14 @@ public:
    void testGaussianSampling()
    {
       srand( 0 );
-      for ( ui32 nn = 0; nn < 100; ++nn )
+      for ( size_t nn = 0; nn < 100; ++nn )
       {
          const double mean = core::generateUniformDistribution( -100, 100 );
          const double variance = core::generateUniformDistribution( 0.1, 4 );
 
          std::vector<double> vals;
          vals.reserve( 100000 );
-         for ( ui32 n = 0; n < 100000; ++n )
+         for ( size_t n = 0; n < 100000; ++n )
          {
             vals.push_back( core::generateGaussianDistribution( mean, variance ) );
          }

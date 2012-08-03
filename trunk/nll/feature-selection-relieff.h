@@ -56,33 +56,33 @@ namespace algorithm
       using Base::write;
 
    public:
-      FeatureSelectionFilterRelieff( ui32 nbOfFeatures, ui32 steps = 1000, ui32 k = 10 ) : _nbOfFeatures( nbOfFeatures ), _steps( steps ), _k( k )
+      FeatureSelectionFilterRelieff( size_t nbOfFeatures, size_t steps = 1000, size_t k = 10 ) : _nbOfFeatures( nbOfFeatures ), _steps( steps ), _k( k )
       {}
 
    protected:
       core::Buffer1D<bool> _compute( const Database& dat )
       {
-         typedef std::pair<double, ui32> Pair;
+         typedef std::pair<double, size_t> Pair;
          typedef Relieff<Point>     Relieff;
          Relieff relief;
 
          typename Relieff::FeatureRank rank = relief.process( dat, _steps, _k );
          std::vector<Pair> vecs( rank.size() );
-         for ( ui32 n = 0; n < vecs.size(); ++n )
+         for ( size_t n = 0; n < vecs.size(); ++n )
             vecs[ n ] = std::make_pair( rank[ n ], n );
          std::sort( vecs.rbegin(), vecs.rend() );
 
          // score are sorted, the highest ones are selected
-         core::Buffer1D<bool> selection( static_cast<ui32>( vecs.size() ) ); // by default no features are selected
-         for ( ui32 n = 0; n < _nbOfFeatures; ++n )
+         core::Buffer1D<bool> selection( static_cast<size_t>( vecs.size() ) ); // by default no features are selected
+         for ( size_t n = 0; n < _nbOfFeatures; ++n )
             selection[ vecs[ n ].second ] = true;
          return selection;
       }
 
    private:
-      ui32     _nbOfFeatures;
-      ui32     _steps;
-      ui32     _k;
+      size_t     _nbOfFeatures;
+      size_t     _steps;
+      size_t     _k;
    };
 }
 }

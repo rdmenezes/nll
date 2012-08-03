@@ -48,7 +48,7 @@ namespace core
    public:
       typedef core::Matrix<float>   Matrix;
 
-      ImageSpatial( ui32 sizex, ui32 sizey, ui32 nbComponents, const Matrix& tfm, bool zero = true, Alloc alloc = Alloc() ) : Base( sizex, sizey, nbComponents, zero, alloc ), _geometry( tfm )
+      ImageSpatial( size_t sizex, size_t sizey, size_t nbComponents, const Matrix& tfm, bool zero = true, Alloc alloc = Alloc() ) : Base( sizex, sizey, nbComponents, zero, alloc ), _geometry( tfm )
       {}
 
       ImageSpatial( Base& b, const Matrix& tfm ) : Base( b ), _geometry( tfm )

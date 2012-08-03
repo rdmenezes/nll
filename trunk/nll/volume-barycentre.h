@@ -48,13 +48,13 @@ namespace imaging
 
       // compute the barycentre
       float nb = 0;
-      const ui32 lutSize = lut.getSize();
+      const size_t lutSize = lut.getSize();
       core::vector3f tmp( 0, 0, 0 );
-      for ( ui32 z = 0; z < vol.size()[ 2 ]; ++z )
+      for ( size_t z = 0; z < vol.sizez(); ++z )
       {
-         for ( ui32 y = 0; y < vol.size()[ 1 ]; ++y )
+         for ( size_t y = 0; y < vol.sizey(); ++y )
          {
-            for ( ui32 x = 0; x < vol.size()[ 0 ]; ++x )
+            for ( size_t x = 0; x < vol.sizex(); ++x )
             {
                const float value = vol( x, y, z );
                const float computed = lut.transform( value )[ 0 ];

@@ -119,13 +119,13 @@ namespace algorithm
       {
          assert( p.size() == _pmc.getInputSize() );
          core::Buffer1D<double> i( p.size() );
-         for ( ui32 n = 0; n < _pmc.getInputSize(); ++n )
+         for ( size_t n = 0; n < _pmc.getInputSize(); ++n )
             i[ n ] = static_cast<double>( p[ n ] );
          core::Buffer1D<double> buf = _pmc.propagate( i );
          double maxp = INT_MIN;
-         ui32 index = 0;
+         size_t index = 0;
          double sum = 1e-6;
-         for ( ui32 n = 0; n < _pmc.getOutputSize(); ++n )
+         for ( size_t n = 0; n < _pmc.getOutputSize(); ++n )
          {
             if ( buf[ n ] > maxp )
             {
@@ -137,7 +137,7 @@ namespace algorithm
 
          probability = core::Buffer1D<double>( _pmc.getOutputSize() );
          ensure( sum > 0, "error: probability error" );
-         for ( ui32 n = 0; n < _pmc.getOutputSize(); ++n )
+         for ( size_t n = 0; n < _pmc.getOutputSize(); ++n )
          {
             probability[ n ] = buf[ n ] / sum;
          }
@@ -157,10 +157,10 @@ namespace algorithm
             return;
          ensure( parameters.size() == this->_parametersPrototype.size(), "Incorrect parameters." );
          MlpDatabase pmcDat = _computePmcDatabase( dat );
-         std::vector<ui32> layerDesc = core::make_vector<ui32>( 
-            static_cast<ui32>( pmcDat[0].input.size() ),
-            static_cast<ui32>( parameters[ 0 ] ),
-            static_cast<ui32>( pmcDat[0].output.size() ) );
+         std::vector<size_t> layerDesc = core::make_vector<size_t>( 
+            static_cast<size_t>( pmcDat[0].input.size() ),
+            static_cast<size_t>( parameters[ 0 ] ),
+            static_cast<size_t>( pmcDat[0].output.size() ) );
          _pmc.createNetwork( layerDesc );
          
          StopConditionMlpThreshold stopCondition( parameters[ 2 ], -10, -10, -10 );
@@ -172,8 +172,8 @@ namespace algorithm
       inline MlpDatabase _computePmcDatabase( const Database& dat )
       {
          MlpDatabase pmcDatabase;
-         ui32 nbOfclass = core::getNumberOfClass( dat );
-         for ( ui32 n = 0; n < dat.size(); ++n)
+         size_t nbOfclass = core::getNumberOfClass( dat );
+         for ( size_t n = 0; n < dat.size(); ++n)
          {
             typename MlpDatabase::Sample s;
             s.input = dat[ n ].input;

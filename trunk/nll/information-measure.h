@@ -58,17 +58,17 @@ namespace algorithm
 
          value_type min = std::numeric_limits<value_type>::max();
          value_type max = std::numeric_limits<value_type>::min();
-         for ( ui32 n = 0; n < v.size(); ++n )
+         for ( size_t n = 0; n < v.size(); ++n )
          {
             min = std::min( min, v[ n ] );
             max = std::max( max, v[ n ] );
          }
 
-         const ui32 range = static_cast<ui32>( max - min ) + 1;
-         std::vector<ui32> counts( range );
-         for ( ui32 n = 0; n < v.size(); ++n )
+         const size_t range = static_cast<size_t>( max - min ) + 1;
+         std::vector<size_t> counts( range );
+         for ( size_t n = 0; n < v.size(); ++n )
          {
-            ui32 c = static_cast<ui32>( v[ n ] - min );
+            size_t c = static_cast<size_t>( v[ n ] - min );
             ++counts[ c ];
          }
 
@@ -108,15 +108,15 @@ namespace algorithm
          ensure( x.size() == y.size(), "must be the same size" );
 
          value_type1 max = std::numeric_limits<value_type1>::min();
-         for ( ui32 n = 0; n < x.size(); ++n )
+         for ( size_t n = 0; n < x.size(); ++n )
          {
             max = std::max( max, x[ n ] );
          }
 
-         std::vector<ui32> counts( max + 1 );
-         for ( ui32 n = 0; n < x.size(); ++n )
+         std::vector<size_t> counts( max + 1 );
+         for ( size_t n = 0; n < x.size(); ++n )
          {
-            ui32 i = static_cast<ui32>( x[ n ] );
+            size_t i = static_cast<size_t>( x[ n ] );
             ++counts[ i ];
          }
 
@@ -126,9 +126,9 @@ namespace algorithm
             cond[ n ].reserve( counts[ n ] );
          }
 
-         for ( ui32 n = 0; n < x.size(); ++n )
+         for ( size_t n = 0; n < x.size(); ++n )
          {
-            ui32 i = static_cast<ui32>( x[ n ] );
+            size_t i = static_cast<size_t>( x[ n ] );
             cond[ i ].push_back( y[ n ] );
          }
 
@@ -173,19 +173,19 @@ namespace algorithm
 
          value_type min = std::numeric_limits<value_type>::max();
          value_type max = std::numeric_limits<value_type>::min();
-         for ( ui32 n = 0; n < v.size(); ++n )
+         for ( size_t n = 0; n < v.size(); ++n )
          {
             min = std::min( min, v[ n ] );
             max = std::max( max, v[ n ] );
          }
 
-         const ui32 range = static_cast<ui32>( max - min ) + 1;
+         const size_t range = static_cast<size_t>( max - min ) + 1;
          std::vector<double> counts( range );
          double totalWeights = 0;
-         for ( ui32 n = 0; n < v.size(); ++n )
+         for ( size_t n = 0; n < v.size(); ++n )
          {
             const double w = static_cast<double>( weights[ n ] );
-            ui32 c = static_cast<ui32>( v[ n ] - min );
+            size_t c = static_cast<size_t>( v[ n ] - min );
             counts[ c ] += w;
             totalWeights += w;
          }
@@ -234,17 +234,17 @@ namespace algorithm
          ensure( weights.size() == x.size(), "weights doesn't match" );
 
          value_type1 max = std::numeric_limits<value_type1>::min();
-         for ( ui32 n = 0; n < x.size(); ++n )
+         for ( size_t n = 0; n < x.size(); ++n )
          {
             max = std::max( max, x[ n ] );
          }
 
          double totalWeights = 0;
          std::vector<double> counts( max + 1 );
-         for ( ui32 n = 0; n < x.size(); ++n )
+         for ( size_t n = 0; n < x.size(); ++n )
          {
             const double w = static_cast<double>( weights[ n ] );
-            ui32 i = static_cast<ui32>( x[ n ] );
+            size_t i = static_cast<size_t>( x[ n ] );
             counts[ i ] += w;
             totalWeights += w;
          }
@@ -257,9 +257,9 @@ namespace algorithm
             condw[ n ].reserve( x.size() / 2 );
          }
 
-         for ( ui32 n = 0; n < x.size(); ++n )
+         for ( size_t n = 0; n < x.size(); ++n )
          {
-            ui32 i = static_cast<ui32>( x[ n ] );
+            size_t i = static_cast<size_t>( x[ n ] );
             cond[ i ].push_back( y[ n ] );
             condw[ i ].push_back( weights[ n ] );
          }

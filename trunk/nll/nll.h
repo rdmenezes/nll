@@ -77,7 +77,7 @@
 // #define NLL_DISABLE_SSE_SUPPORT
 
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
-//#define NLL_NOT_MULTITHREADED
+// #define NLL_NOT_MULTITHREADED
 
 // if defined, extra checks will be performed to check preconditions/postconditions
 #define NLL_SECURE
@@ -113,20 +113,27 @@
 /// define the version of nll as a plain number
 #define NLL_VERSION_ID  0x016
 
-
-
 #ifdef _MSC_VER
 # define NLL_ALIGN_16   __declspec(align(16))
 #else
 # define NLL_ALIGN_16   __attribute__((aligned(16)))
 #endif
 
+// we want an accurate floating point model
+// DDF/RBF transformations are sensitive to this parameter!
+/*
+#pragma float_control( precise, on )
+#pragma float_control( except, off )
+#pragma fp_contract(on)
+#pragma fenv_access(on)
+*/
+
 /**
  Concept: (for future integration with C++ 0x)
    - Point : requires
-         * T& operator[]( ui32 n );
-         * ui32 size() const;
-         * contructor( ui32 size );
+         * T& operator[]( size_t n );
+         * size_t size() const;
+         * contructor( size_t size );
          * typedef internal_point_type value_type;
    - Database: should be used as a template instead of the concrete type to allow different kind of database
    - IndexMapper1D
@@ -316,6 +323,7 @@
  - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
+# include "fast-volume-pyramid.h"
 # include "fft.h"
 # include "periodogram.h"
 # include "function.h"

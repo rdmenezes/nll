@@ -53,7 +53,7 @@ namespace algorithm
        @param weights the weights associated to each data sample. It is assumed sum(weights) = 1
        */
       virtual value_type learn( const Database& database, const core::Buffer1D<value_type> weights ) = 0;
-      virtual ui32 test( const typename Database::Sample::Input& input ) const = 0;
+      virtual size_t test( const typename Database::Sample::Input& input ) const = 0;
 
       virtual ~WeakClassifier()
       {}

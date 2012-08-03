@@ -60,7 +60,7 @@ namespace algorithm
    {
    public:
       typedef std::vector<Observation>    Observations;
-      typedef ui32                        State;
+      typedef size_t                        State;
       typedef std::vector<State>          States;
       typedef core::Buffer1D<double>      Pi;
       typedef core::Matrix<double>        Matrix;
@@ -91,7 +91,7 @@ namespace algorithm
                   const std::vector<unsigned>& nbOfGaussiansPerState,
                   const std::vector<unsigned>& gmmNbIterations )
       {
-         ui32 nbStates = impl::getNumberOfStates( statesList );
+         size_t nbStates = impl::getNumberOfStates( statesList );
          _nbOfGaussiansPerState = nbOfGaussiansPerState;
          ensure( observationsList.size() == statesList.size(), "the number of obersation list must match the number of state list" );
          ensure( nbStates == nbOfGaussiansPerState.size(), "the number of obersation list must match the number of gaussians defined" );
@@ -102,24 +102,24 @@ namespace algorithm
 
          // First we want to find the density probability function for each state, for that
          // we will use a mixture of gaussians
-         typedef std::vector< std::vector< std::pair<ui32, ui32> > > SortedObservations;
+         typedef std::vector< std::vector< std::pair<size_t, size_t> > > SortedObservations;
 
          // we want to sort the observations according to their state index
          SortedObservations sorted( nbStates );
-         for ( ui32 n = 0; n < observationsList.size(); ++n )
+         for ( size_t n = 0; n < observationsList.size(); ++n )
          {
             ensure( observationsList[ n ].size() == statesList[ n ].size(), "each observation must belong to only one state" );
-            for ( ui32 nn = 0; nn < observationsList[ n ].size(); ++nn )
+            for ( size_t nn = 0; nn < observationsList[ n ].size(); ++nn )
             {
                sorted[ statesList[ n ][ nn ] ].push_back( std::make_pair( n, nn ) );
             }
          }
 
          _gmms = std::vector<Gmm>( nbStates );
-         for ( ui32 n = 0; n < nbStates; ++n )
+         for ( size_t n = 0; n < nbStates; ++n )
          {
             impl::ObservationsConstAdaptor<ObservationsList> observations( sorted, observationsList, n );
-            _gmms[ n ].em( observations, (ui32)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
+            _gmms[ n ].em( observations, (size_t)observations[ 0 ].size(), nbOfGaussiansPerState[ n ], gmmNbIterations[ n ] );
             //_gmms[ n ].getGaussians()[ 0 ].mean.print( std::cout );
          }
 
@@ -147,15 +147,15 @@ namespace algorithm
       double probability( const Observations& obs )
       {
          ensure( obs.size() && _pi.size(), "empty data or model" );
-         Matrix emissions( (ui32)_pi.size(), (ui32)obs.size() );
-         for ( ui32 t = 0; t < obs.size(); ++t )
-            for ( ui32 s = 0; s < _pi.size(); ++s )
+         Matrix emissions( (size_t)_pi.size(), (size_t)obs.size() );
+         for ( size_t t = 0; t < obs.size(); ++t )
+            for ( size_t s = 0; s < _pi.size(); ++s )
             {
                std::vector<Observation> o( 1 );
                o[ 0 ] = obs[ t ];
                emissions( s, t ) = exp( _gmms[ s ].likelihood( o ) );
             }
-         return impl::forward( (ui32)obs.size(), _pi, _transitions, emissions );
+         return impl::forward( (size_t)obs.size(), _pi, _transitions, emissions );
       }
 
       /**
@@ -169,9 +169,9 @@ namespace algorithm
       double computeHiddenState( const Observations& obs, std::vector<State>& statesOut )
       {
          assert( obs.size() && _pi.size() );
-         Matrix emissions( (ui32)_pi.size(), (ui32)obs.size() );
-         for ( ui32 o = 0; o < obs.size(); ++o )
-            for ( ui32 s = 0; s < _pi.size(); ++s )
+         Matrix emissions( (size_t)_pi.size(), (size_t)obs.size() );
+         for ( size_t o = 0; o < obs.size(); ++o )
+            for ( size_t s = 0; s < _pi.size(); ++s )
             {
                std::vector<Observation> obss( 1 );
                obss[ 0 ] = obs[ o ];
@@ -182,8 +182,8 @@ namespace algorithm
                emissions( s, o ) = probability;
             }
 
-         ui32 endState;
-         return impl::viterbi<Matrix, Pi, Matrix>( (ui32)obs.size(), 
+         size_t endState;
+         return impl::viterbi<Matrix, Pi, Matrix>( (size_t)obs.size(), 
                                                     _pi,
                                                     _transitions,
                                                     emissions,
@@ -222,11 +222,11 @@ namespace algorithm
        @note this can be further optimized as the generators are instanciated for each state.
              For long sequences, they should be precomputed instead.
        */
-      std::vector<Observation> generateSequence( ui32 size, std::vector<ui32>* outStates = 0 ) const
+      std::vector<Observation> generateSequence( size_t size, std::vector<size_t>* outStates = 0 ) const
       {
          ensure( _pi.size(), "learn a model before" );
          ensure( size, "must be >0" );
-         std::vector<ui32> sequence( size );
+         std::vector<size_t> sequence( size );
          std::vector<Observation> observations( size );
          sequence[ 0 ] = core::sampling( _pi, 1 )[ 0 ];
 
@@ -234,40 +234,40 @@ namespace algorithm
          // first select a gaussian
          const Gmm::Gaussians& gaussians = _gmms[ sequence[ 0 ] ].getGaussians();
          std::vector<double> g( gaussians.size() );
-         for ( ui32 nn = 0; nn < gaussians.size(); ++nn )
+         for ( size_t nn = 0; nn < gaussians.size(); ++nn )
             g[ nn ] = gaussians[ nn ].weight;
-         ui32 gaussianId = core::sampling( g, 1 )[ 0 ];
+         size_t gaussianId = core::sampling( g, 1 )[ 0 ];
 
          // generate a sample from this gaussian
          core::NormalMultiVariateDistribution generator( gaussians[ gaussianId ].mean,
                                                          gaussians[ gaussianId ].covariance );
          core::NormalMultiVariateDistribution::VectorT obs = generator.generate();
          observations[ 0 ] = Observation( obs.size() );
-         for ( ui32 nn = 0; nn < obs.size(); ++nn )
+         for ( size_t nn = 0; nn < obs.size(); ++nn )
             observations[ 0 ][ nn ] = obs[ nn ];
 
          // continue generating the sequence following the transition matrix
-         for ( ui32 n = 1; n < size; ++n )
+         for ( size_t n = 1; n < size; ++n )
          {
             // select the new state
             std::vector<double> p( _pi.size() );
-            for ( ui32 nn = 0; nn < _pi.size(); ++nn )
+            for ( size_t nn = 0; nn < _pi.size(); ++nn )
                p[ nn ] = _transitions( sequence[ n - 1 ], nn );
             sequence[ n ] = core::sampling( p, 1 )[ 0 ];
 
             // select the gaussian that will generate the sample
             const Gmm::Gaussians& gaussians = _gmms[ sequence[ n ] ].getGaussians();
             std::vector<double> g( gaussians.size() );
-            for ( ui32 nn = 0; nn < gaussians.size(); ++nn )
+            for ( size_t nn = 0; nn < gaussians.size(); ++nn )
                g[ nn ] = gaussians[ nn ].weight;
-            ui32 gaussianId = core::sampling( g, 1 )[ 0 ];
+            size_t gaussianId = core::sampling( g, 1 )[ 0 ];
 
             // generate a sample from this gaussian
             core::NormalMultiVariateDistribution generator( gaussians[ gaussianId ].mean,
                                                             gaussians[ gaussianId ].covariance );
             core::NormalMultiVariateDistribution::VectorT obs = generator.generate();
             observations[ n ] = Observation( obs.size() );
-            for ( ui32 nn = 0; nn < obs.size(); ++nn )
+            for ( size_t nn = 0; nn < obs.size(); ++nn )
                observations[ n ][ nn ] = obs[ nn ];
          }
          if ( outStates )

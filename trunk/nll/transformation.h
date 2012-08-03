@@ -109,8 +109,8 @@ namespace imaging
       TransformationAffine( const core::Matrix<T>& init ) : _affine( 4, 4, false )
       {
          ensure( init.sizex() == 4 && init.sizex() == 4, "only 4x4 matrices are handled" );
-         for ( ui32 y = 0; y < 4; ++y )
-            for ( ui32 x = 0; x < 4; ++x )
+         for ( size_t y = 0; y < 4; ++y )
+            for ( size_t x = 0; x < 4; ++x )
                _affine( y, x ) = static_cast<f32>( init( y, x ) );
 
          _affineInverted.clone( _affine );

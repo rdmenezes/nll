@@ -52,15 +52,15 @@ public:
 class GridSearchClientTest : public nll::algorithm::OptimizerClient
 {
 public:
-   GridSearchClientTest( nll::algorithm::ParameterOptimizers params, double value, nll::ui32 nbRecursiveLevel, nll::f64 /*_granularityUpdate*/ )
+   GridSearchClientTest( nll::algorithm::ParameterOptimizers params, double value, size_t nbRecursiveLevel, nll::f64 /*_granularityUpdate*/ )
    {
       // initialize internal memory and indexes
       _size = 1;
-      _sizes = std::vector<nll::ui32>( params.size() );
-      _index = std::vector<nll::ui32>( params.size() );
-      for ( nll::ui32 n = 0; n < params.size(); ++n )
+      _sizes = std::vector<size_t>( params.size() );
+      _index = std::vector<size_t>( params.size() );
+      for ( size_t n = 0; n < params.size(); ++n )
       {
-         _sizes[ n ] = (nll::ui32)floor( params[ n ].getMax() - params[ n ].getMin() );
+         _sizes[ n ] = (size_t)floor( params[ n ].getMax() - params[ n ].getMin() );
          _index[ n ] = _size;
          _size *= _sizes[ n ];
       }
@@ -68,19 +68,19 @@ public:
       _buf = new double[ _size ];
 
       // fill the buffer with random values, put the fitter value at a random position at a random level, the optimizer MUST found the solution
-      nll::ui32 level = rand() % nbRecursiveLevel;
+      size_t level = rand() % nbRecursiveLevel;
       level;
 
       // set the best position
-      nll::core::Buffer1D<nll::f64> valuePos( (nll::ui32)params.size() );
-      for ( nll::ui32 n = 0; n < params.size(); ++n )
+      nll::core::Buffer1D<nll::f64> valuePos( (size_t)params.size() );
+      for ( size_t n = 0; n < params.size(); ++n )
       {
          valuePos[ n ] = rand() % ( _sizes[ n ] - 2 ) + params[ n ].getMin();
       }
 
       // fill the buffer
-      for ( nll::ui32 n = 0; n < _size; ++n )
-         _buf[ n ] = -(double)(rand() % (nll::ui32)value);
+      for ( size_t n = 0; n < _size; ++n )
+         _buf[ n ] = -(double)(rand() % (size_t)value);
       at( valuePos ) = -value;
       _bestPoint = valuePos;
    }
@@ -90,16 +90,16 @@ public:
    }
    double& at( const nll::core::Buffer1D<nll::f64>& pos )
    {
-      nll::ui32 index = 0;
-      for ( nll::ui32 n = 0; n < pos.size(); ++n )
-         index += _index[ n ] * (nll::ui32)pos[ n ];
+      size_t index = 0;
+      for ( size_t n = 0; n < pos.size(); ++n )
+         index += _index[ n ] * (size_t)pos[ n ];
       return _buf[ index ];
    }
    const double& at( const nll::core::Buffer1D<nll::f64>& pos ) const
    {
-      nll::ui32 index = 0;
-      for ( nll::ui32 n = 0; n < pos.size(); ++n )
-         index += _index[ n ] * (nll::ui32)pos[ n ];
+      size_t index = 0;
+      for ( size_t n = 0; n < pos.size(); ++n )
+         index += _index[ n ] * (size_t)pos[ n ];
       return _buf[ index ];
    }
    virtual double evaluate( const nll::core::Buffer1D<nll::f64>& parameters ) const
@@ -113,9 +113,9 @@ public:
 private:
    nll::core::Buffer1D<nll::f64> _bestPoint;
    nll::f64                      _value;
-   std::vector<nll::ui32>        _sizes;
-   std::vector<nll::ui32>        _index;
-   nll::ui32                     _size;
+   std::vector<size_t>           _sizes;
+   std::vector<size_t>           _index;
+   size_t                        _size;
    double*                       _buf;
 };
 
@@ -137,7 +137,7 @@ public:
 
    void testOptimizerHarmonySearch()
    {
-      srand( (nll::ui32)time( 0 ) );
+      srand( (size_t)time( 0 ) );
       ClassifierTest3 c3;
       ClassifierTest3::Database  dummyDatabase;
       nll::algorithm::Optimizer* optimizer = new nll::algorithm::OptimizerHarmonySearch( 6, 0.95, 0.6, 0.001, new nll::algorithm::StopConditionIteration( 10000 ) );
@@ -149,7 +149,7 @@ public:
 
    void testOptimizerHarmonySearchMemory()
    {
-      srand( (nll::ui32)time( 0 ) + 1 );
+      srand( (size_t)time( 0 ) + 1 );
       ClassifierTest3 c3;
       ClassifierTest3::Database  dummyDatabase;
       nll::algorithm::Optimizer* optimizer = new nll::algorithm::OptimizerHarmonySearchMemory( 6, 0.95, 0.6, 0.001, new nll::algorithm::StopConditionIteration( 10000 ), 0.00001, new nll::algorithm::MetricEuclidian<nll::algorithm::OptimizerHarmonySearchMemory::TMetric::value_type>() );
@@ -170,8 +170,8 @@ public:
       GridSearchClientTest client( params, 400, 1, 0.25 );
       nll::algorithm::Optimizer* optimizer = new nll::algorithm::OptimizerGridSearch();
       std::vector<double> sol = optimizer->optimize( client, params );
-      nll::core::Buffer1D<double> solbuf( (nll::ui32)sol.size() );
-      for ( nll::ui32 n = 0; n < sol.size(); ++n )
+      nll::core::Buffer1D<double> solbuf( (size_t)sol.size() );
+      for ( size_t n = 0; n < sol.size(); ++n )
          solbuf[ n ] = sol[ n ];
       /*
       std::cout << "solFound=" << std::endl;

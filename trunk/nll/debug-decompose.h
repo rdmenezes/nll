@@ -41,20 +41,20 @@ namespace debug
     @brief decompose a vector into a collection of images ( like from Gabor features )
     */
    template <class ImageType, class Mapper, class VectorType>
-   std::vector< core::Image<ImageType, Mapper> > decomposeVector( const core::Buffer1D<VectorType>& vec, ui32 sizex, ui32 sizey, ui32 nbcomp )
+   std::vector< core::Image<ImageType, Mapper> > decomposeVector( const core::Buffer1D<VectorType>& vec, size_t sizex, size_t sizey, size_t nbcomp )
    {
       typedef core::Image<ImageType, Mapper> Image;
       typedef std::vector<Image>             Images;
       typedef core::Buffer1D<VectorType>     Vector;
       
-      ui32 imageSize = sizex * sizey * nbcomp;
+      size_t imageSize = sizex * sizey * nbcomp;
       assert( vec.size() % ( imageSize ) == 0 ); // else it is likely that image size doesn't match
-      ui32 nbI = vec.size() / imageSize;
+      size_t nbI = vec.size() / imageSize;
       Images is( nbI );
-      for ( ui32 n = 0; n < nbI; ++n )
+      for ( size_t n = 0; n < nbI; ++n )
       {
          Image i( sizex, sizey, nbcomp, false );
-         for ( ui32 nn = 0; nn < imageSize; ++nn ) 
+         for ( size_t nn = 0; nn < imageSize; ++nn ) 
             i[ nn ] = static_cast<ImageType> ( vec[ imageSize * n + nn ] );
          is[ n ] = i;
       }

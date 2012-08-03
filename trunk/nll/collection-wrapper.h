@@ -49,7 +49,7 @@ namespace core
    {
    public:
       typedef typename Collection::value_type   value_type;
-      typedef ui32                              index_type;
+      typedef size_t                              index_type;
 
    public:
       ConstCollectionWrapper( const Collection& collection ) : _collection( collection )

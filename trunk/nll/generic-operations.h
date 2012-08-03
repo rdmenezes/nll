@@ -47,9 +47,9 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class T2>
-   inline void generic_add( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src, const int size )
+   inline void generic_add( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src, const size_t size )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] += src[ n ];
    }
 
@@ -58,9 +58,9 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class T2>
-   inline void generic_sub( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src, const int size )
+   inline void generic_sub( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src, const size_t size )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] -= src[ n ];
    }
 
@@ -69,9 +69,9 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class T2>
-   inline void generic_div( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src, const int size )
+   inline void generic_div( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src, const size_t size )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] /= src[ n ];
    }
 
@@ -80,9 +80,9 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class T2>
-   inline void generic_mul( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src , const int size )
+   inline void generic_mul( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src , const size_t size )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] *= src[ n ];
    }
 
@@ -91,9 +91,9 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T>
-   inline void generic_div_cte( typename BestArgType<T>::type dst, const double val, const int size )
+   inline void generic_div_cte( typename BestArgType<T>::type dst, const double val, const size_t size )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] /= val;
    }
 
@@ -102,9 +102,9 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T>
-   inline void generic_mul_cte( typename BestArgType<T>::type dst, const double val, const int size )
+   inline void generic_mul_cte( typename BestArgType<T>::type dst, const double val, const size_t size )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] *= val;
    }
 
@@ -112,10 +112,10 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, class T2, int size>
+   template <class T, class T2, size_t size>
    inline void generic_add( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] += src[ n ];
    }
 
@@ -123,10 +123,10 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, class T2, int size>
+   template <class T, class T2, size_t size>
    inline void generic_sub( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] -= src[ n ];
    }
 
@@ -134,10 +134,10 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, class T2, int size>
+   template <class T, class T2, size_t size>
    inline void generic_div( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] /= src[ n ];
    }
 
@@ -145,10 +145,10 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, class T2, int size>
+   template <class T, class T2, size_t size>
    inline void generic_mul( typename BestArgType<T>::type dst, typename BestConstArgType<T2>::type src )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] *= src[ n ];
    }
 
@@ -156,10 +156,10 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, int size>
+   template <class T, size_t size>
    inline void generic_div_cte( typename BestArgType<T>::type dst, const double val )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] /= val;
    }
 
@@ -167,10 +167,10 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, int size>
+   template <class T, size_t size>
    inline void generic_mul_cte( typename BestArgType<T>::type dst, const double val )
    {
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          dst[ n ] *= val;
    }
 
@@ -178,11 +178,11 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, class Result, int size>
+   template <class T, class Result, size_t size>
    inline Result generic_norm2( typename BestConstArgType<T>::type buf )
    {
       Result accum = 0;
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          accum += static_cast<Result> ( buf[ n ] * buf[ n ] );
       return sqrt( accum );
    }
@@ -191,11 +191,11 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]
     */
-   template <class T, class Result, int size>
+   template <class T, class Result, size_t size>
    inline Result generic_norm2( typename BestConstArgType<T>::type buf1, typename BestConstArgType<T>::type buf2 )
    {
       Result accum = 0;
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
       {
          Result val = buf1[ n ] - buf2[ n ];
          accum += val * val;
@@ -208,10 +208,10 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class Result>
-   inline Result generic_norm2( typename BestConstArgType<T>::type buf1, typename BestConstArgType<T>::type buf2, int size )
+   inline Result generic_norm2( typename BestConstArgType<T>::type buf1, typename BestConstArgType<T>::type buf2, size_t size )
    {
       Result accum = 0;
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
       {
          Result val = buf1[ n ] - buf2[ n ];
          accum += val * val;
@@ -224,10 +224,10 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class Result>
-   inline Result generic_dot( typename BestConstArgType<T>::type buf1, typename BestConstArgType<T>::type buf2, int size )
+   inline Result generic_dot( typename BestConstArgType<T>::type buf1, typename BestConstArgType<T>::type buf2, size_t size )
    {
       Result accum = 0;
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
       {
          Result val = buf1[ n ] - buf2[ n ];
          accum += val * val;
@@ -240,10 +240,10 @@ namespace core
     @brief generic operation, target types must define operator[]
     */
    template <class T, class Result>
-   inline Result generic_norm2( typename BestConstArgType<T>::type buf, int size )
+   inline Result generic_norm2( typename BestConstArgType<T>::type buf, size_t size )
    {
       Result accum = 0;
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          accum += static_cast<Result> ( buf[ n ] * buf[ n ] );
       return sqrt( accum );
    }
@@ -252,11 +252,11 @@ namespace core
     @ingroup core
     @brief generic operation, target types must define operator[]. Set each element to null
     */
-   template <class T, int size>
+   template <class T, size_t size>
    inline T generic_null( )
    {
       T buf( size );
-      for ( int n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          buf[ n ] = 0;
       return buf;
    }
@@ -266,10 +266,10 @@ namespace core
     @brief generic operation, target types must define operator[]. Set each element to null
     */
    template <class T>
-   inline T generic_null( ui32 size )
+   inline T generic_null( size_t size )
    {
       T buf( size );
-      for ( ui32 n = 0; n < size; ++n )
+      for ( size_t n = 0; n < size; ++n )
          buf[ n ] = 0;
       return buf;
    }

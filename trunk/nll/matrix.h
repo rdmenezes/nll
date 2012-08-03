@@ -48,9 +48,9 @@ namespace core
     @param IndexMapper2D defines how memory and index are mapped
    
     IndexMapper must define:
-      - IndexMapper(const ui32 sizex, const ui32 sizey)
-      - ui32 index(const ui32 x, const ui32 y) const
-      - void indexInverse( const ui32 index, ui32& out_x, ui32& out_y ) const
+      - IndexMapper(const size_t sizex, const size_t sizey)
+      - size_t index(const size_t x, const size_t y) const
+      - void indexInverse( const size_t index, size_t& out_x, size_t& out_y ) const
 
    AllocatorT: it must be a standard std::allocator
    */
@@ -70,7 +70,7 @@ namespace core
       class DirectionalIterator
       {
       public:
-         DirectionalIterator( ui32 index, T* buf, ui32 sx, ui32 sy, const IndexMapper2D& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
+         DirectionalIterator( size_t index, T* buf, size_t sx, size_t sy, const IndexMapper2D& mapper ) : _index( index ), _buf( buf ), _sx( sx ),
             _sy( sy ), _mapper( mapper )
          {}
 
@@ -154,10 +154,10 @@ namespace core
          DirectionalIterator& operator=( const DirectionalIterator& i );
 
       protected:
-         ui32     _index;
+         size_t     _index;
          T*       _buf;
-         ui32     _sx;
-         ui32     _sy;
+         size_t     _sx;
+         size_t     _sy;
          const IndexMapper2D&  _mapper;
       };
 
@@ -170,7 +170,7 @@ namespace core
       /**
        @brief contruct a new matrix from a buffer.
        */
-      explicit Matrix( const Base& buf, ui32 sy, ui32 sx ) : Base( buf ), _sizex ( sx ), _sizey( sy ), _indexMapper( sx, sy )
+      explicit Matrix( const Base& buf, size_t sy, size_t sx ) : Base( buf ), _sizex ( sx ), _sizey( sy ), _indexMapper( sx, sy )
       {
          ensure( sx * sy == buf.size(), "size error" );
       }
@@ -179,7 +179,7 @@ namespace core
        @brief build a matrix with a fixed size.
        @param zero if true the memory is set to 0, else undetermined.
        */
-      Matrix( ui32 sizey, ui32 sizex, bool zero = true, Allocator allocator = Allocator() ) : Base( sizex * sizey, zero, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
+      Matrix( size_t sizey, size_t sizex, bool zero = true, Allocator allocator = Allocator() ) : Base( sizex * sizey, zero, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
       {}
 
       /**
@@ -198,7 +198,7 @@ namespace core
        @brief make a matrix from a raw memory buffer
        @param ownsBuffer if yes memory will be handled (and destroyed at the end of life of the object). Else ensure buffer is valid until the matrix is alive.
        */
-      Matrix( T* buf, ui32 sizey, ui32 sizex, bool ownsBuffer, Allocator allocator = Allocator() ) : Base( buf, sizex * sizey, ownsBuffer, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
+      Matrix( T* buf, size_t sizey, size_t sizex, bool ownsBuffer, Allocator allocator = Allocator() ) : Base( buf, sizex * sizey, ownsBuffer, allocator ), _sizex( sizex ), _sizey( sizey ), _indexMapper( sizex, sizey )
       {}
 
       virtual ~Matrix(){}
@@ -221,8 +221,8 @@ namespace core
       void import( const Matrix<TT, Mapper, Allocator>& m )
       {
          *this = Matrix( m.sizey(), m.sizex() );
-         for ( ui32 ny = 0; ny < m.sizey(); ++ny )
-            for ( ui32 nx = 0; nx < m.sizex(); ++nx )
+         for ( size_t ny = 0; ny < m.sizey(); ++ny )
+            for ( size_t nx = 0; nx < m.sizex(); ++nx )
                at( ny, nx ) = static_cast<typename Base::value_type>( m( ny, nx ) );
       }
 
@@ -240,7 +240,7 @@ namespace core
       /**
        @brief return the actual index in memory of the point(x, y)
        */
-      inline ui32 index( const ui32 y, const ui32 x ) const
+      inline size_t index( const size_t y, const size_t x ) const
       {
          return Base::IndexMapper::index( _indexMapper.index( y, x ) );
       }
@@ -248,7 +248,7 @@ namespace core
       /**
        @brief return the value at position (x, y)
        */
-      inline typename BestReturnType<T>::type at( const ui32 y, const ui32 x ) const
+      inline typename BestReturnType<T>::type at( const size_t y, const size_t x ) const
       {
          return this->_buffer[ index( x, y ) ];
       }
@@ -256,7 +256,7 @@ namespace core
       /**
        @brief return the value at position (x, y)
        */
-      inline T& at( const ui32 y, const ui32 x )
+      inline T& at( const size_t y, const size_t x )
       {
          return this->_buffer[ index( x, y ) ];
       }
@@ -264,7 +264,7 @@ namespace core
       /**
        @brief return the value at position (x, y)
        */
-      inline typename BestReturnType<T>::type operator()( const ui32 y, const ui32 x ) const
+      inline typename BestReturnType<T>::type operator()( const size_t y, const size_t x ) const
       {
          return at( y, x );
       }
@@ -272,7 +272,7 @@ namespace core
       /**
        @brief return the value at position (x, y)
        */
-      inline T& operator()( const ui32 y, const ui32 x )
+      inline T& operator()( const size_t y, const size_t x )
       {
          return at( y, x );
       }
@@ -286,9 +286,9 @@ namespace core
          {
             o << "Buffer2D(" << *this->_cpt << ") size=" << this->_size << std::endl;
 
-            for ( ui32 ny = 0; ny < _sizey; ++ny )
+            for ( size_t ny = 0; ny < _sizey; ++ny )
             {
-               for ( ui32 nx = 0; nx < _sizex; ++nx )
+               for ( size_t nx = 0; nx < _sizex; ++nx )
                   o << at( ny, nx ) << "\t";
                o << std::endl;
             }
@@ -300,30 +300,30 @@ namespace core
       /**
        @brief return the size
        */
-      ui32 sizex() const{ return _sizex; }
+      size_t sizex() const{ return _sizex; }
 
       /**
        @brief return the size
        */
-      ui32 sizey() const{ return _sizey; }
+      size_t sizey() const{ return _sizey; }
 
       /**
        @brief return the size
        */
-      ui32 nrows() const{ return _sizex; }
+      size_t nrows() const{ return _sizex; }
 
       /**
        @brief return the size
        */
-      ui32 ncols() const{ return _sizey; }
+      size_t ncols() const{ return _sizey; }
 
       /**
        @brief write the matrix to a stream
        */
       void write( std::ostream& o ) const
       {
-         nll::core::write<ui32>( _sizex, o );
-         nll::core::write<ui32>( _sizey, o );
+         nll::core::write<size_t>( _sizex, o );
+         nll::core::write<size_t>( _sizey, o );
          Base::write( o );
       }
 
@@ -332,8 +332,8 @@ namespace core
        */
       void read( std::istream& i )
       {
-         nll::core::read<ui32>( _sizex, i );
-         nll::core::read<ui32>( _sizey, i );
+         nll::core::read<size_t>( _sizex, i );
+         nll::core::read<size_t>( _sizey, i );
          _indexMapper = IndexMapper2D( _sizex, _sizey );
          Base::read( i );
       }
@@ -359,8 +359,8 @@ namespace core
             return false;
          if ( op.getBuf() == this->_buffer )
             return true;
-         for ( ui32 nx = 0; nx < _sizex; ++nx )
-            for ( ui32 ny = 0; ny < _sizey; ++ny )
+         for ( size_t nx = 0; nx < _sizex; ++nx )
+            for ( size_t ny = 0; ny < _sizey; ++ny )
                if ( absolute( op( ny, nx ) - at( ny, nx ) ) > tolerance )
                   return false; 
          return true;
@@ -384,6 +384,7 @@ namespace core
 
       /**
        @brief returns a const iterator on the last pixel + 1, component 0
+       @note this is a costly operation! it must be cahced
        */
       DirectionalIterator endDirectional()
       {
@@ -393,7 +394,7 @@ namespace core
       /**
        @brief returns an iterator on the specified pixel
        */
-      DirectionalIterator getIterator( ui32 x, ui32 y )
+      DirectionalIterator getIterator( size_t x, size_t y )
       {
          return DirectionalIterator( this->_mapper.index( x, y ), this->_buffer, _sizex, _sizey, _indexMapper );
       }
@@ -404,8 +405,8 @@ namespace core
       }
 
    private:
-      ui32					_sizex;
-      ui32					_sizey;
+      size_t					_sizex;
+      size_t					_sizey;
       IndexMapper2D		_indexMapper;
    };
 

@@ -48,9 +48,9 @@ namespace core
          throw std::runtime_error( "Problem!" );
 
       f << "[";
-      for ( ui32 n = 0; n < v.size(); ++n )
+      for ( size_t n = 0; n < v.size(); ++n )
       {
-         for ( ui32 nn = 0; nn < v[ n ].size(); ++nn )
+         for ( size_t nn = 0; nn < v[ n ].size(); ++nn )
             f << v[ n ][ nn ] << " ";
          f << "; ";
       }
@@ -81,7 +81,7 @@ namespace core
          std::vector<const char*> splits = core::split( line, ',' );
          
          std::vector<double> record( splits.size() );
-         for ( ui32 n = 0; n < splits.size(); ++n )
+         for ( size_t n = 0; n < splits.size(); ++n )
             record[ n ] = core::str2val<double>( splits[ n ] );
          if ( record.size() )
             vectors.push_back( record );
@@ -90,10 +90,10 @@ namespace core
       typedef Vectors::value_type Vector;
 
       v = Vectors( vectors.size() );
-      for ( ui32 n = 0; n < vectors.size(); ++n )
+      for ( size_t n = 0; n < vectors.size(); ++n )
       {
          Vector vv( vectors[ n ].size() );
-         for ( ui32 nn = 0; nn < vectors[ n ].size(); ++nn )
+         for ( size_t nn = 0; nn < vectors[ n ].size(); ++nn )
          {
             vv[ nn ] = vectors[ n ][ nn ];
          }

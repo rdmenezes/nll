@@ -70,7 +70,7 @@ namespace core
    {
       bool isInit = false;
       float ratio = 0;
-      ui32 n = 0;
+      size_t n = 0;
 
       // first get the ratio
       const T accuracy = static_cast<T>( 1e-6 );
@@ -327,7 +327,7 @@ namespace core
          };
 
          int i0 = -1;
-         for ( ui32 n = 0; n < 3; ++n )
+         for ( int n = 0; n < 3; ++n )
             if ( _axisx[ n ] != 0 )
             {
                i0 = n;

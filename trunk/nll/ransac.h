@@ -102,7 +102,7 @@ namespace algorithm
               This will be used in RANSAC where it will maximize the sum of the weighted inliers and not anymore the number of inliers
        */
       template <class Points>
-      Model estimate( const Points& points, ui32 minimalSample, ui32 numberOfSubsets, double maxError, const core::Buffer1D<float>& weights )
+      Model estimate( const Points& points, size_t minimalSample, size_t numberOfSubsets, double maxError, const core::Buffer1D<float>& weights )
       {
          enum Value{ value = core::Equal<typename Points::value_type, Point>::value };
          STATIC_ASSERT( value ); // "the points must be identitcal"
@@ -120,10 +120,10 @@ namespace algorithm
 
          double                  bestError = -1000;
          Model                   bestModel;
-         std::vector<ui32>       bestSubset;      // just save a reference, faster than copy the actual point...
+         std::vector<size_t>       bestSubset;      // just save a reference, faster than copy the actual point...
          float                   bestWeight = 0;
 
-         const ui32 nbPoint = static_cast<ui32>( points.size() );
+         const size_t nbPoint = static_cast<size_t>( points.size() );
 
          //#ifndef NLL_NOT_MULTITHREADED
          //# pragma omp parallel for
@@ -131,7 +131,7 @@ namespace algorithm
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
             std::auto_ptr<Estimator> estimator;
-            std::vector<ui32>       currentSubset;
+            std::vector<size_t>       currentSubset;
 
             {
                currentSubset.reserve( points.size() );
@@ -140,12 +140,12 @@ namespace algorithm
 
             core::ConstCollectionWrapper<Points> initialSubset( points );
             initialSubset.reserve( minimalSample );
-            for ( ui32 nn = 0; nn < minimalSample; ++nn )
+            for ( size_t nn = 0; nn < minimalSample; ++nn )
             {
                // randomly select a subset of point. As it is random, maybe the point
                // will be selected several times, and this is fine: the model will be degenerated
                // and so will be discarded...
-               const ui32 index = rand() % nbPoint;
+               const size_t index = rand() % nbPoint;
                initialSubset.insertRef( index );
             }
 
@@ -154,7 +154,7 @@ namespace algorithm
                estimator->estimate( initialSubset );  // the estimator may throw, we don't want to cancel all computations just because one failed...
                double meanError = 0;
                float weightedInliers = 0;
-               for ( ui32 nn = 0; nn < nbPoint; ++nn )
+               for ( size_t nn = 0; nn < nbPoint; ++nn )
                {
                   // compute the subset of inliers
                   const double err = estimator->error( points[ nn ] );
@@ -194,8 +194,8 @@ namespace algorithm
          // now recompute the model parameters with the inlier subset
          Points inliers;
          inliers.reserve( bestSubset.size() );
-         const ui32 nbInliers = static_cast<ui32>( bestSubset.size() );
-         for ( ui32 n = 0; n < nbInliers; ++n )
+         const size_t nbInliers = static_cast<size_t>( bestSubset.size() );
+         for ( size_t n = 0; n < nbInliers; ++n )
          {
             inliers.push_back( points[ bestSubset[ n ] ] );
          }
@@ -229,7 +229,7 @@ namespace algorithm
          return _nbInliers;
       }
 
-      const std::vector<ui32>& getInliers() const
+      const std::vector<size_t>& getInliers() const
       {
          return _inlierId;
       }
@@ -237,7 +237,7 @@ namespace algorithm
    private:
       EstimatorFactory  _estimatorFactory;
       f32               _nbInliers;
-      std::vector<ui32> _inlierId;
+      std::vector<size_t> _inlierId;
    };
 
    /**
@@ -268,7 +268,7 @@ namespace algorithm
          if (success)
          {
             // y = ax + b
-            const ui32 maxIndex = pca.getEigenValues()[ 0 ] > pca.getEigenValues()[ 1 ] ? 0 : 1;
+            const size_t maxIndex = pca.getEigenValues()[ 0 ] > pca.getEigenValues()[ 1 ] ? 0 : 1;
             const double dx = pca.getEigenVectors()( 0, maxIndex );
             const double dy = pca.getEigenVectors()( 1, maxIndex );
             if ( fabs( dx ) < 1e-5 )
@@ -320,7 +320,7 @@ namespace algorithm
          for ( int n = 0; n < (int)numberOfSubsets; ++n )
          {
             std::auto_ptr<Estimator> estimator;
-            std::vector<ui32>       currentSubset;
+            std::vector<size_t>       currentSubset;
 
             #ifndef NLL_NOT_MULTITHREADED
             # pragma omp critical
@@ -332,12 +332,12 @@ namespace algorithm
 
             core::ConstCollectionWrapper<Points> initialSubset( points );
             initialSubset.reserve( minimalSample );
-            for ( ui32 nn = 0; nn < minimalSample; ++nn )
+            for ( size_t nn = 0; nn < minimalSample; ++nn )
             {
                // randomly select a subset of point. As it is random, maybe the point
                // will be selected several times, and this is fine: the model will be degenerated
                // and so will be discarded...
-               const ui32 index = rand() % nbPoint;
+               const size_t index = rand() % nbPoint;
                initialSubset.insertRef( index );
             }
 
@@ -355,7 +355,7 @@ namespace algorithm
    //         # pragma omp critical
    //         #endif
             {
-               for ( ui32 nn = 0; nn < nbPoint; ++nn )
+               for ( size_t nn = 0; nn < nbPoint; ++nn )
                {
                   // compute the subset of inliers
                   const double err = estimator->error( points[ nn ] );

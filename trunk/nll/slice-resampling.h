@@ -75,7 +75,7 @@ namespace imaging
                                                                                                - static_cast<float>( output.size()[ 1 ] ) / 2 ) );
       const core::vector2f cornerInInput = input.worldToSliceCoordinate( cornerInWorldSpace );
       core::vector2f start = cornerInInput + core::vector2f( static_cast<float>( input.size()[ 0 ] ) / 2, static_cast<float>( input.size()[ 1 ] ) / 2 );
-      for ( ui32 y = 0; y < output.size()[ 1 ]; ++y )
+      for ( size_t y = 0; y < output.sizey(); ++y )
       {
          core::vector2f pixelIter = start;
          typename SliceType::DirectionalIterator itline = it;

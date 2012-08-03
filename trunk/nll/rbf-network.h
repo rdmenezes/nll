@@ -116,12 +116,12 @@ namespace algorithm
        @note in the database we expect to have an output as an array and not a class label
        */
       template <class Database>
-      double learn( const Database& dat, ui32 nbRbf, double weightLr, double meanLr, double varianceLr, double minLearningError, double timeout, double reportTimeIntervalInSec = 0.1, bool skipInit = false )
+      double learn( const Database& dat, size_t nbRbf, double weightLr, double meanLr, double varianceLr, double minLearningError, double timeout, double reportTimeIntervalInSec = 0.1, bool skipInit = false )
       {
          ensure( nbRbf > 1 && weightLr >= 0 && meanLr >= 0 && varianceLr >= 0, "invalid parameter" );
 
          // work only on the learning set
-         Database learning = core::filterDatabase( dat, core::make_vector<ui32>( (ui32) Database::Sample::LEARNING ), (ui32) Database::Sample::LEARNING );
+         Database learning = core::filterDatabase( dat, core::make_vector<size_t>( (size_t) Database::Sample::LEARNING ), (size_t) Database::Sample::LEARNING );
          if ( learning.size() == 0 )
             return 0;
          if ( nbRbf > learning.size() )
@@ -176,9 +176,9 @@ namespace algorithm
 
       void write( std::ostream& f ) const
       {
-         ui32 nbRbf = (ui32)_rbf.size();
-         core::write<ui32>( nbRbf, f );
-         for ( ui32 n = 0; n < nbRbf; ++n )
+         size_t nbRbf = (size_t)_rbf.size();
+         core::write<size_t>( nbRbf, f );
+         for ( size_t n = 0; n < nbRbf; ++n )
          {
             core::write< std::vector<type> >( _rbf[ n ].mean, f );
             core::write< type >( _rbf[ n ].var, f );
@@ -188,12 +188,12 @@ namespace algorithm
 
       void read( std::istream& f )
       {
-         ui32 nbRbf = 0;
-         core::read<ui32>( nbRbf, f );
+         size_t nbRbf = 0;
+         core::read<size_t>( nbRbf, f );
          if ( nbRbf == 0 )
             return;
          _rbf = std::vector<Rbf>( nbRbf );
-         for ( ui32 n = 0; n < nbRbf; ++n )
+         for ( size_t n = 0; n < nbRbf; ++n )
          {
             core::read< std::vector<type> >( _rbf[ n ].mean, f );
             core::read< type >( _rbf[ n ].var, f );
@@ -226,7 +226,7 @@ namespace algorithm
 
             // the gradients to be computed
             Matrix               gradientW( _w.sizey(), _w.sizex() );
-            Matrix               gradientMean( _w.sizex(), (ui32)_rbf[ 0 ].mean.size() );
+            Matrix               gradientMean( _w.sizex(), (size_t)_rbf[ 0 ].mean.size() );
             std::vector<type>    gradientVar( _w.sizex() );
             std::vector<type>    fderivsum( _w.sizey() );
             std::vector<type>    result( _w.sizey() );
@@ -234,14 +234,14 @@ namespace algorithm
 
             // stochastic gradient update
             std::vector<type> precomputedRbf;
-            for ( ui32 n = 0; n < dat.size(); ++n )
+            for ( size_t n = 0; n < dat.size(); ++n )
             {
                // precompute the shared computations
                _precomputeRbf( dat[ n ].input, precomputedRbf );
-               for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+               for ( size_t unit = 0; unit < _w.sizey(); ++unit )
                {
                   type sum = 0;
-                  for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+                  for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
                   {
                      sum += _w( unit, rbf ) * precomputedRbf[ rbf ];
                   }
@@ -250,7 +250,7 @@ namespace algorithm
 
                type sumError = 0;
                _forwardPrecomputed( precomputedRbf, result );
-               for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+               for ( size_t unit = 0; unit < _w.sizey(); ++unit )
                {
                   const type diff = dat[ n ].output[ unit ] - result[ unit ];
                   diffResult[ unit ] = diff;
@@ -265,20 +265,20 @@ namespace algorithm
 
                
                // update the free parameters
-               for ( ui32 n = 0; n < _w.size(); ++n )
+               for ( size_t n = 0; n < _w.size(); ++n )
                {
                   _w[ n ] += - weightLr * gradientW[ n ];
                }
 
-               for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+               for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
                {
-                  for ( ui32 n = 0; n < _rbf[ rbf ].mean.size(); ++n )
+                  for ( size_t n = 0; n < _rbf[ rbf ].mean.size(); ++n )
                   {
                      _rbf[ rbf ].mean[ n ] += - meanLr * gradientMean( rbf, n );
                   }
                }
 
-               for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+               for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
                {
                   type newVar = fabs( _rbf[ rbf ].var - varianceLr * gradientVar[ rbf ] );
                   _rbf[ rbf ].var = std::max( 1e-10, newVar );
@@ -311,13 +311,13 @@ namespace algorithm
       template <class Point>
       void _computeGradientCenter( const Point& p, const std::vector<type>& precomputedRbf, const std::vector<type>& fderivsum, const std::vector<type>& diffResult, Matrix& gradient )
       {
-         for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+         for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
          {
             const type val = - precomputedRbf[ rbf ] / ( _rbf[ rbf ].var );
-            for ( ui32 cmp = 0; cmp < _rbf[ rbf ].mean.size(); ++cmp )
+            for ( size_t cmp = 0; cmp < _rbf[ rbf ].mean.size(); ++cmp )
             {
                type sum = 0;
-               for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+               for ( size_t unit = 0; unit < _w.sizey(); ++unit )
                {
                   sum += diffResult[ unit ] * fderivsum[ unit ] * _w( unit, rbf );
                }
@@ -328,11 +328,11 @@ namespace algorithm
 
       void _computeGradientVar( const std::vector<type>& precomputedRbf, const std::vector<type>& fderivsum, const std::vector<type>& diffResult, std::vector<type>& gradient )
       {
-         for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+         for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
          {
             const type val = precomputedRbf[ rbf ] * 2 / _rbf[ rbf ].var * log( precomputedRbf[ rbf ] );
             type sum = 0;
-            for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+            for ( size_t unit = 0; unit < _w.sizey(); ++unit )
             {
                sum += diffResult[ unit ] * fderivsum[ unit ] * _w( unit, rbf );
             }
@@ -342,10 +342,10 @@ namespace algorithm
 
       void _computeGradientWeight( const std::vector<type>& precomputedRbf, const std::vector<type>& fderivsum, const std::vector<type>& diffResult, Matrix& gradient )
       {
-         for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+         for ( size_t unit = 0; unit < _w.sizey(); ++unit )
          {
             const double val = - diffResult[ unit ] * fderivsum[ unit ];
-            for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+            for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
             {
                gradient( unit, rbf ) = val * precomputedRbf[ rbf ];
             }
@@ -359,10 +359,10 @@ namespace algorithm
          std::vector<type> precomputed;
          _precomputeRbf( p, precomputed );
 
-         for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+         for ( size_t unit = 0; unit < _w.sizey(); ++unit )
          {
             type sum = 0;
-            for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+            for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
             {
                sum += precomputed[ rbf ] * _w( unit, rbf );
             }
@@ -373,10 +373,10 @@ namespace algorithm
       void _forwardPrecomputed( const std::vector<type>& precomputed, std::vector<type>& units ) const
       {
          assert( units.size() == _w.sizey() );
-         for ( ui32 unit = 0; unit < _w.sizey(); ++unit )
+         for ( size_t unit = 0; unit < _w.sizey(); ++unit )
          {
             type sum = 0;
-            for ( ui32 rbf = 0; rbf < _w.sizex(); ++rbf )
+            for ( size_t rbf = 0; rbf < _w.sizex(); ++rbf )
             {
                sum += precomputed[ rbf ] * _w( unit, rbf );
             }
@@ -386,7 +386,7 @@ namespace algorithm
 
       // we do a very rough initialization of the RBF
       template <class Database>
-      void _init( const Database& dat, ui32 nbRbf )
+      void _init( const Database& dat, size_t nbRbf )
       {
          // init the RBF centers using k-means
          // first see the database as a collection of points
@@ -398,7 +398,7 @@ namespace algorithm
          typedef BuildKMeansUtility<Point, MetricEuclidian<Point>, Adapter>  Utility;
 
          MetricEuclidian<Point> metric;
-         const ui32 nbDim = dat[ 0 ].input.size();
+         const size_t nbDim = dat[ 0 ].input.size();
          Utility utility( nbDim, metric );
          typedef KMeans<Utility> KMeansConf;
          KMeansConf kmeans( utility );
@@ -407,10 +407,10 @@ namespace algorithm
          typename KMeansConf::KMeansResult results = kmeans( reader, nbRbf );
          _rbf = std::vector<Rbf>( nbRbf );
 
-         for ( ui32 n = 0; n < nbRbf; ++n )
+         for ( size_t n = 0; n < nbRbf; ++n )
          {
             _rbf[ n ].mean = std::vector<type>( nbDim );
-            for ( ui32 nn = 0; nn < nbDim; ++nn )
+            for ( size_t nn = 0; nn < nbDim; ++nn )
             {
                const Point& point = results.second[ n ];
                _rbf[ n ].mean[ nn ] = point[ nn ];
@@ -420,13 +420,13 @@ namespace algorithm
          // measure the mean distance between centroids
          // TODO: improvement: use the distance for each cluster instead of global
          double d = 0;
-         for ( ui32 n = 1; n < nbRbf; ++n )
+         for ( size_t n = 1; n < nbRbf; ++n )
          {
             double sum = 0;
 
             const std::vector<type>& p1 = _rbf[ 0 ].mean;
             const std::vector<type>& p2 = _rbf[ n ].mean;
-            for ( ui32 nn = 0; nn < nbDim; ++nn )
+            for ( size_t nn = 0; nn < nbDim; ++nn )
             {
                const type diff = p1[ nn ] - p2[ nn ];
                sum += core::sqr( diff );
@@ -441,14 +441,14 @@ namespace algorithm
          ss << "initial variance=" << var;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
 
-         for ( ui32 n = 0; n < nbRbf; ++n )
+         for ( size_t n = 0; n < nbRbf; ++n )
          {
             _rbf[ n ].var = var;
          }
 
          // init the weights with small random weights
-         _w = Matrix( (ui32)dat[ 0 ].output.size(), nbRbf );
-         for ( ui32 n = 0; n < _w.size(); ++n )
+         _w = Matrix( (size_t)dat[ 0 ].output.size(), nbRbf );
+         for ( size_t n = 0; n < _w.size(); ++n )
          {
             _w[ n ] = core::generateUniformDistribution( -0.1, 0.1 );
             while ( _w[ n ] == 0 )

@@ -71,7 +71,7 @@ namespace algorithm
             return fitness > sol.fitness;
          }
 
-         inline SolutionVector::value_type& operator[]( ui32 n ){ return solution[ n ]; }
+         inline SolutionVector::value_type& operator[]( size_t n ){ return solution[ n ]; }
 
          SolutionVector    solution;
          SolutionValue     fitness;
@@ -88,7 +88,7 @@ namespace algorithm
        @param par pitch adjustement rate
        @param bandwith the scale of the pitch adjustement
        */
-      OptimizerHarmonySearch( ui32 hms, f64 hmrc, f64 par, f64 bw, StopCondition* stop ) : _hms( hms ), _hmrc( hmrc ), _par( par ), _bw( bw ), _stop( stop )
+      OptimizerHarmonySearch( size_t hms, f64 hmrc, f64 par, f64 bw, StopCondition* stop ) : _hms( hms ), _hmrc( hmrc ), _par( par ), _bw( bw ), _stop( stop )
       {
          assert( stop );
       }
@@ -110,7 +110,7 @@ namespace algorithm
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
 
          std::vector<double> best( parameters.size() );
-         for ( ui32 n = 0; n < best.size(); ++n )
+         for ( size_t n = 0; n < best.size(); ++n )
             best[ n ] = _memory[ 0 ][ n ];
          return best;
       }
@@ -125,9 +125,9 @@ namespace algorithm
       void _run( const OptimizerClient& client, const ParameterOptimizers& parameters )
       {
          // generate a new harmony
-         SolutionVector sol( static_cast<ui32>( parameters.size() ) );
+         SolutionVector sol( static_cast<size_t>( parameters.size() ) );
 
-         for ( ui32 n = 0; n < parameters.size(); ++n )
+         for ( size_t n = 0; n < parameters.size(); ++n )
          {
             if ( core::generateUniformDistribution( 0, 1 ) < _hmrc )
             {
@@ -154,7 +154,7 @@ namespace algorithm
       }
 
    private:
-      ui32  _hms;       // harmony memory size
+      size_t  _hms;       // harmony memory size
       f64   _hmrc;      // harmony memory reconsideration rate
       f64   _par;       // pitch adjustement rate
       f64   _bw;        // bandwith
