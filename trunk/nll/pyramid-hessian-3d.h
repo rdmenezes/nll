@@ -215,9 +215,9 @@ namespace algorithm
          // defined here
          assert( x > 0 && y > 0 && z > 0 && map > 0 &&
                  map < _scales.size() - 1 &&
-                 x < _pyramidDetHessian[ map ].size()[ 0 ] - 1 &&
-                 y < _pyramidDetHessian[ map ].size()[ 1 ] - 1 &&
-                 z < _pyramidDetHessian[ map ].size()[ 2 ] - 1 );
+                 x < (int)_pyramidDetHessian[ map ].size()[ 0 ] - 1 &&
+                 y < (int)_pyramidDetHessian[ map ].size()[ 1 ] - 1 &&
+                 z < (int)_pyramidDetHessian[ map ].size()[ 2 ] - 1 );
 
          i32 xminus, yminus, zminus;
          indexInMap( x, y, z, map, map - 1, xminus, yminus, zminus );  // we need to look up the closed index in a map that has different dimensions
@@ -296,9 +296,9 @@ namespace algorithm
          // defined here
          assert( x > 0 && y > 0 && z > 0 && map > 0 &&
                  map < _scales.size() - 1 &&
-                 x < _pyramidDetHessian[ map ].size()[ 0 ] &&
-                 y < _pyramidDetHessian[ map ].size()[ 1 ] &&
-                 z < _pyramidDetHessian[ map ].size()[ 2 ] );
+                 x < (int)_pyramidDetHessian[ map ].size()[ 0 ] &&
+                 y < (int)_pyramidDetHessian[ map ].size()[ 1 ] &&
+                 z < (int)_pyramidDetHessian[ map ].size()[ 2 ] );
 
          const Volume& mc = _pyramidDetHessian[ map ];
          const Volume& mm = _pyramidDetHessian[ map - 1 ];
