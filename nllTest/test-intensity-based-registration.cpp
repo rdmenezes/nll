@@ -106,7 +106,10 @@ namespace algorithm
          computeHistogram_partialInterpolation( getSource(), *transformation, getTarget(), jointHistogram );
 
          // then run the similarity measure
-         return _similarity.evaluate( jointHistogram );
+         const double val = _similarity.evaluate( jointHistogram );
+         std::cout << "f=" << val << std::endl;
+         parameters.print( std::cout );
+         return val;
       }
 
    protected:
@@ -142,20 +145,48 @@ class TestIntensityBasedRegistration
 {
 public:
    typedef imaging::VolumeSpatial<ui8>                                         Volume;
+   typedef imaging::VolumeSpatial<f32>                                         Volumef;
    typedef algorithm::RegistrationEvaluatorHelper<Volume>::EvaluatorSimilarity RegistrationEvaluator;
+
+   static Volume preprocess( const Volumef& vf )
+   {
+      imaging::LookUpTransformWindowingRGB lut( -150, 150, 1 );
+      lut.createGreyscale();
+      Volume v( vf.size(), vf.getPst() );
+      for ( size_t z = 0; z < v.getSize()[ 2 ]; ++z )
+      {
+         for ( size_t y = 0; y < v.getSize()[ 1 ]; ++y )
+         {
+            for ( size_t x = 0; x < v.getSize()[ 0 ]; ++x )
+            {
+               v( x, y, z ) = lut.transform( vf( x, y, z ) )[ 0 ];
+            }
+         }
+      }
+
+      return v;
+   }
 
    void testBasic()
    {
-      const size_t joinHistogramNbBins = 8;
+      Volumef volumeOrig;
+      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
+      ensure( loaded, "can't load volume" );
+
+      const Volume volumeDiscrete = preprocess( volumeOrig );
+
+      const size_t joinHistogramNbBins = 256;
       const core::vector3ui size( 8, 8, 8);
 
       // construct the volumes
+      /*
       Volume source( size, core::identityMatrix<core::Matrix<float>>( 4 ) );
       for ( Volume::iterator it = source.begin(); it != source.end(); ++it )
       {
          *it = rand() % joinHistogramNbBins;
-      }
+      }*/
 
+      Volume source = volumeDiscrete;
       Volume target = source;
 
       // construct the evaluator
@@ -164,11 +195,11 @@ public:
       RegistrationEvaluator evaluator( source, target, similarity, transformationCreator, joinHistogramNbBins );
 
       // construct the optimizer
-      algorithm::OptimizerPowell optimizer( 1, 0.01 );
+      algorithm::OptimizerPowell optimizer( 1, 0.1 );
       algorithm::ParameterOptimizers parameters;
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 1, 1 ) );
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 1, 1 ) );
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 1, 1 ) );
+      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 0.1, 0 ) );
+      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 0.1, 0 ) );
+      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 0.1, 0 ) );
 
       std::vector<double> result = optimizer.optimize( evaluator, parameters );
       core::Buffer1D<double> resultd = core::make_buffer1D<double>( result );
