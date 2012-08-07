@@ -44,7 +44,7 @@ namespace algorithm
    class NLL_API OptimizerPowell : public Optimizer
    {
    public:
-      OptimizerPowell( size_t randomSeed = 40, f64 tolerance = 1e-4 ) : _nbSeeds( randomSeed ), _tolerance( tolerance )
+      OptimizerPowell( size_t randomSeed = 40, f64 tolerance = 1e-4, size_t nbMaxIter = 200 ) : _nbSeeds( randomSeed ), _tolerance( tolerance ), _nbMaxIter( nbMaxIter )
       {}
 
       /**
@@ -68,7 +68,7 @@ namespace algorithm
             for ( size_t n = 0; n < parameters.size(); ++n )
                ini[ n ] = parameters[ n ].generate();
             bool error = false;
-            double val = powell( ini, dir, _tolerance, client, 200, &error );
+            double val = powell( ini, dir, _tolerance, client, _nbMaxIter, &error );
             if ( error )
                continue;
 
@@ -89,8 +89,9 @@ namespace algorithm
       }
 
    protected:
-      size_t  _nbSeeds;
-      f64   _tolerance;
+      size_t   _nbSeeds;
+      f64      _tolerance;
+      size_t   _nbMaxIter;
    };
 }
 }

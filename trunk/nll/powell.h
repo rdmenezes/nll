@@ -46,8 +46,34 @@ namespace algorithm
     @param tol the tolerance
     */
    template <class Point, class Functor>
-   double powell( Point& p, std::vector< core::Buffer1D<double> >& xi, double tol, const Functor& f, size_t itMax = 200, bool* error = 0 )
+   double powell( Point& p, const std::vector< core::Buffer1D<double> >& xi_orig, double tol, const Functor& f, size_t itMax = 200, bool* error = 0 )
    {
+      // set the init
+      std::vector< core::Buffer1D<double> > xi( xi_orig.size() );
+      for ( size_t n = 0; n < xi_orig.size(); ++n )
+      {
+         xi[ n ].clone( xi_orig[ n ] );
+      }
+
+      // logging info
+      {
+         std::stringstream ss;
+         ss << "powell optimization:" << std::endl
+            << "start point=";
+         for ( size_t n = 0; n < p.size(); ++n )
+            ss << p[ n ] << " ";
+         ss << std::endl <<
+               "tolerance = " << tol << std::endl <<
+               "max iter = " << itMax << std::endl <<
+               "optimization set directions=" << std::endl;
+         for ( size_t n = 0; n < xi.size(); ++n )
+         {
+            xi[ n ].print( ss );
+         }
+
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+      }
+
       if ( error )
          *error = false;
       const double tiny = 1e-20;
@@ -85,6 +111,11 @@ namespace algorithm
          }
          if ( 2.0 * ( fp - fret ) <= tol * ( fabs( fp ) + fabs( fret ) + tiny ) )
          {
+            {
+               std::stringstream ss;
+               ss << "powell end. Tolerance reached. F=" << fret << " nbIterations=" << iter;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
             return fret;
          }
          
@@ -92,7 +123,12 @@ namespace algorithm
          {
             if ( error )
                *error = true;
-            return 1e20;
+            {
+               std::stringstream ss;
+               ss << "powell end. Max number of iterations reached. F=" << fret;
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+            return fret;
          }
 
          for ( j = 0; j < n; j++ )
