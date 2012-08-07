@@ -1,3 +1,8 @@
+#pragma float_control( precise, on )
+#pragma float_control( except, off )
+#pragma fp_contract(on)
+#pragma fenv_access(on)
+
 #include <nll/nll.h>
 #include <tester/register.h>
 #include "config.h"
@@ -12,11 +17,6 @@ namespace imaging
    
 }
 }
-
-#pragma float_control( precise, on )
-#pragma float_control( except, off )
-#pragma fp_contract(on)
-#pragma fenv_access(on)
 
 class TestTransformationMapperDdf3D
 {

@@ -48,6 +48,20 @@ namespace core
 {
    /**
     @ingroup core
+    @brief Forbids assignment
+    */
+   class NonAssignable
+   {
+   public:
+      NonAssignable()
+      {}
+
+   private:
+      NonAssignable& operator=( const NonAssignable& );
+   };
+
+   /**
+    @ingroup core
     @brief Inherit from this class to make explicitly a class not copyiable
     */
    struct NonCopyable

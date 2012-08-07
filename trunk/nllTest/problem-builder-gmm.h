@@ -215,7 +215,7 @@ namespace nll
       {
          if ( _gmms.size() == 0 || _gmms[ 0 ].getGaussians().size() == 0 )
             throw std::runtime_error( "error!" );
-         const ui32 nbDim = _gmms[ 0 ].getGaussians()[ 0 ].mean.size();
+         const size_t nbDim = _gmms[ 0 ].getGaussians()[ 0 ].mean.size();
          if ( nbDim != 2 )
             throw std::runtime_error( "not handled, ensure dim == 2" );
 
