@@ -425,6 +425,8 @@
     <ClInclude Include="index-mapper.h" />
     <ClInclude Include="information-measure.h" />
     <ClInclude Include="io.h" />
+    <ClInclude Include="joint-histogram-similarity.h" />
+    <ClInclude Include="joint-histogram.h" />
     <ClInclude Include="linear-regression.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="logger.h" />

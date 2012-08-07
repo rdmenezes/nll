@@ -80,7 +80,7 @@
 // #define NLL_NOT_MULTITHREADED
 
 // if defined, extra checks will be performed to check preconditions/postconditions
-#define NLL_SECURE
+// #define NLL_SECURE
 
 // if defined, use LIBFFTW3 as the implementation of the FFT
 // note that if this flag is used, you must comply with the FFTW3 licensing terms
@@ -324,6 +324,8 @@
    the developped framework.
  */
 # include "fast-volume-pyramid.h"
+# include "joint-histogram.h"
+# include "joint-histogram-similarity.h"
 # include "fft.h"
 # include "periodogram.h"
 # include "function.h"

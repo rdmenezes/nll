@@ -29,56 +29,48 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NLL_MATH_DISTRIBUTION_UNIFORM_H_
-# define NLL_MATH_DISTRIBUTION_UNIFORM_H_
-
-# include <assert.h>
+#ifndef NLL_ALGORITHM_REGISTRATION_JOINT_HISTOGRAM_SIMILARITY_H_
+# define NLL_ALGORITHM_REGISTRATION_JOINT_HISTOGRAM_SIMILARITY_H_
 
 namespace nll
 {
-namespace core
+namespace algorithm
 {
    /**
-    @ingroup core
-    @brief generate a sample of a specific uniform distribution
-    @param min the min of the distribution
-    @param max the max of the distribution
-    @return a sample of this distribution
+    @brief Function measuring the similarity represented as a joint histogram
     */
-   inline double NLL_API generateUniformDistribution( const double min, const double max )
+   class SimilarityFunction
    {
-      assert( min <= max );
-      return static_cast<double>( rand() ) / RAND_MAX * ( max - min ) + min;
-   }
+   public:
+      virtual double evaluate( const JointHistogram& jh ) const = 0;
+
+      ~SimilarityFunction()
+      {}
+   };
 
    /**
-    @ingroup core
-    @brief generate a sample of a specific uniform distribution
-    @param min the min of the distribution
-    @param max the max of the distribution
-    @return a sample of this distribution
+    @brief Sum of square differences similarity function
     */
-   inline float NLL_API generateUniformDistributionf( const float min, const float max )
+   class SimilarityFunctionSumOfSquareDifferences : public SimilarityFunction
    {
-      assert( min <= max );
-      return static_cast<float>( rand() ) / RAND_MAX * ( max - min ) + min;
-   }
+   public:
+      virtual double evaluate( const JointHistogram& jh ) const
+      {
+         double sum = 0;
 
-   /**
-    @ingroup core
-    @brief generate a sample of a specific uniform distribution
-    @param min the min of the distribution
-    @param max the max of the distribution
-    @return a sample of this distribution
-    */
-   inline int NLL_API generateUniformDistributioni( const int min, const int max )
-   {
-      assert( min <= max );
-      const int interval = max - min;
-      if ( interval == 0 )
-         return min;
-      return ( rand() % interval ) + min;
-   }
+         for ( size_t y = 0; y < jh.getNbBins(); ++y )
+         {
+            for ( size_t x = 0; x < jh.getNbBins(); ++x )
+            {
+               sum += jh( x, y ) * core::sqr( double( x ) - double( y ) );
+            }
+         }
+
+         if ( sum <= 0 )
+            return std::numeric_limits<double>::min();
+         return - sum / jh.getNbSamples();
+      }
+   };
 }
 }
 
