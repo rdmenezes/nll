@@ -173,6 +173,35 @@ namespace imaging
          procOrig.end();
       }
    };
+
+   /**
+    @brief Abstract here the transformation mapper to choose given a transformation
+    */
+   class VolumeTransformationMapperChooser
+   {
+   public:
+      template <class Processor, class T, class Storage>
+      void run( Processor& procOrig, const VolumeSpatial<T, Storage>& target, const Transformation& tfm, VolumeSpatial<T, Storage>& resampled ) const
+      {
+         const TransformationAffine* affineTfm = dynamic_cast<const TransformationAffine*>( &tfm );
+         if ( affineTfm )
+         {
+            VolumeTransformationMapper mapper;
+            mapper.run( procOrig, target, *affineTfm, resampled );
+            return;
+         }
+
+         const TransformationDenseDeformableField* ddfTfm = dynamic_cast<const TransformationDenseDeformableField*>( &tfm );
+         if ( ddfTfm )
+         {
+            VolumeTransformationMapperDdf mapper;
+            mapper.run( procOrig, target, *ddfTfm, resampled );
+            return;
+         }
+
+         ensure( 0, "the transformation is not handled!");
+      }
+   };
 }
 }
 

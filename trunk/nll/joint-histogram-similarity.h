@@ -42,6 +42,10 @@ namespace algorithm
    class SimilarityFunction
    {
    public:
+      /**
+       @brief evalaute a joint histogram
+       @return the lower the value the more similar it represents
+       */
       virtual double evaluate( const JointHistogram& jh ) const = 0;
 
       ~SimilarityFunction()
@@ -67,8 +71,8 @@ namespace algorithm
          }
 
          if ( sum <= 0 )
-            return std::numeric_limits<double>::min();
-         return - sum / jh.getNbSamples();
+            return std::numeric_limits<double>::max();
+         return sum / jh.getNbSamples();
       }
    };
 }
