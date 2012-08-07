@@ -122,7 +122,7 @@ namespace algorithm
     @brief Computes the joint histogram using partial interpolation
     */
    template <class T1, class Storage1>
-   void computeHistogram_partialInterpolation( const imaging::VolumeSpatial<T1, Storage1>& source, const imaging::TransformationAffine& tfmSourceTarget, const imaging::VolumeSpatial<T1, Storage1>& target, JointHistogram& histogram )
+   void computeHistogram_partialInterpolation( const imaging::VolumeSpatial<T1, Storage1>& source, const imaging::Transformation& tfmSourceTarget, const imaging::VolumeSpatial<T1, Storage1>& target, JointHistogram& histogram )
    {
       typedef imaging::VolumeSpatial<T1, Storage1> Volume1;
 
@@ -138,7 +138,7 @@ namespace algorithm
       #endif
 
       impl::VolumeTransformationProcessorPartialInterpolationHistogram<Volume1> processor( source, histogram );
-      imaging::VolumeTransformationMapper mapper;
+      imaging::VolumeTransformationMapperChooser mapper;
       mapper.run( processor, target, tfmSourceTarget, const_cast<Volume1&>( source ) );   // the volume is a const volume mapper...
    }
 
@@ -146,7 +146,7 @@ namespace algorithm
     @brief Computes the joint histogram using a simple nearest neighbor
     */
    template <class T1, class Storage1>
-   void computeHistogram_nearestNeighbor( const imaging::VolumeSpatial<T1, Storage1>& source, const imaging::TransformationAffine& tfmSourceTarget, const imaging::VolumeSpatial<T1, Storage1>& target, JointHistogram& histogram )
+   void computeHistogram_nearestNeighbor( const imaging::VolumeSpatial<T1, Storage1>& source, const imaging::Transformation& tfmSourceTarget, const imaging::VolumeSpatial<T1, Storage1>& target, JointHistogram& histogram )
    {
       typedef imaging::VolumeSpatial<T1, Storage1> Volume1;
 
@@ -162,7 +162,7 @@ namespace algorithm
       #endif
 
       impl::VolumeTransformationProcessorNearestNeighborHistogram<Volume1> processor( source, histogram );
-      imaging::VolumeTransformationMapper mapper;
+      imaging::VolumeTransformationMapperChooser mapper;
       mapper.run( processor, target, tfmSourceTarget, const_cast<Volume1&>( source ) );   // the volume is a const volume mapper...
    }
 
