@@ -91,6 +91,8 @@ namespace algorithm
       typedef core::Buffer1D<double>   Gene;
 
    public:
+      using Optimizer::optimize;
+
       OptimizerGeneticAlgorithm(
          size_t  numberOfCycles,
          size_t  populationSize = 100,
@@ -99,9 +101,13 @@ namespace algorithm
          f32   selectRate = 0.5f
          ) : _numberOfCycles( numberOfCycles ), _populationSize( populationSize ), _numberOfPeriods( numberOfPeriods ), _mutationRate( mutationRate ), _selectRate( selectRate )
       {}
+
       virtual std::vector<double> optimize( const OptimizerClient& evaluator,
-                                            const ParameterOptimizers& params )
+                                            const ParameterOptimizers& params,
+                                            const core::Buffer1D<double>& seed )
       {
+         ensure( seed.size() == params.size(), "argument mismatch!" );
+
          typedef GeneticAlgorithm<  Gene,
                                     OptimizerGeneticAlgorithmGenerator,
                                     OptimizerClient,
@@ -118,7 +124,6 @@ namespace algorithm
          GeneticAlgorithmRecombinate2Splits<Gene>              recombinator;
          GeneticAlgorithm geneticAlgorithm( generator, evaluator, selector, stop, recombinator, mutator );
 
-         Gene seed = generator();
          std::vector<Gene> solution = geneticAlgorithm.optimize( _populationSize, _mutationRate, _selectRate, _numberOfPeriods, seed );
          assert( solution.size() );
          return core::convert<Gene, std::vector<double> > ( solution[ 0 ], static_cast<size_t>( seed.size() ) );

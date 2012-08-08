@@ -44,15 +44,17 @@ namespace algorithm
    class NLL_API OptimizerPowell : public Optimizer
    {
    public:
+      using Optimizer::optimize;
+
       OptimizerPowell( size_t randomSeed = 40, f64 tolerance = 1e-4, size_t nbMaxIter = 200 ) : _nbSeeds( randomSeed ), _tolerance( tolerance ), _nbMaxIter( nbMaxIter )
       {}
 
       /**
        @brief returns an empty set if optimization failed.
        */
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters )
+      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
-         double min = 1e20;
+         double min = std::numeric_limits<double>::max();
          core::Buffer1D<f64> best;
 
          std::vector< core::Buffer1D<double> > dir;
@@ -65,8 +67,15 @@ namespace algorithm
          for ( size_t n = 0; n < _nbSeeds; ++n )
          {
             core::Buffer1D<f64> ini( parameters.size() );
-            for ( size_t n = 0; n < parameters.size(); ++n )
-               ini[ n ] = parameters[ n ].generate();
+            if ( n == 0 )
+            {
+               // just use the seed for the first run, else random generation controlled by the parameters
+               for ( size_t n = 0; n < parameters.size(); ++n )
+                  ini[ n ] = seed[ n ];
+            } else {
+               for ( size_t n = 0; n < parameters.size(); ++n )
+                  ini[ n ] = parameters[ n ].generate();
+            }
             bool error = false;
             double val = powell( ini, dir, _tolerance, client, _nbMaxIter, &error );
             if ( error )

@@ -50,8 +50,27 @@ namespace algorithm
        @param parameters defines the properties of the parameters. Properties like min, max, distribution, search operators...
               These properties are <b>very</b> important. If knowledge of the problem can be added, it would narrow a lot
               the search space, making the optimizer successful.
+       @param seed the starting position
        */
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters ) = 0;
+      virtual std::vector<double> optimize( const OptimizerClient& client,
+                                            const ParameterOptimizers& parameters,
+                                            const core::Buffer1D<double>& seed ) = 0;
+
+      /**
+       @brief Optimize the client function
+       @note the seed is randomly generated from the parameters
+       */
+      virtual std::vector<double> optimize( const OptimizerClient& client,
+                                            const ParameterOptimizers& parameters )
+      {
+         core::Buffer1D<double> seed( parameters.size() );
+         for ( size_t n = 0; n < seed.size(); ++n )
+         {
+            seed[ n ] = parameters[ n ].generate();
+         }
+
+         return optimize( client, parameters, seed );
+      }
 
       virtual ~Optimizer()
       {}

@@ -50,14 +50,18 @@ namespace algorithm
            Grid search could be extremly expensive in time, but it is guaranteed that it will find the minimum
            value on this grid. If the evaluation function is quite fast, and the range search is small, the algorithm
            is suitable.
+
+    @note the seed parameter is discarded
     */
    class OptimizerGridSearch : public Optimizer
    {
    public:
+      using Optimizer::optimize;
+
       /**
        @brief Optimizer. Use the parameter granularities to increment the search.
       */
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& params )
+      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& params, const core::Buffer1D<double>& )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "grid search started" );
          core::Buffer1D<double> pos( params.size() );

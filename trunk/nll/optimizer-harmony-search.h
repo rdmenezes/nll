@@ -57,6 +57,8 @@ namespace algorithm
       typedef core::Buffer1D<SolutionValue>  SolutionVector;
 
    public:
+      using Optimizer::optimize;
+
       // work around for gcc and anbiguous swap operator // should be private!
       struct SolutionStorage
       {
@@ -93,14 +95,16 @@ namespace algorithm
          assert( stop );
       }
 
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters )
+      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
+         ensure( seed.size() == parameters.size(), "argument mismatch!" );
          _stop->reinit();
          _initializeMemory( client, parameters );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "start OptimizerHarmonySearch..." );
+         size_t cycle = 0;
          while ( !_stop->stop( _memory[ 0 ].fitness ) )
          {
-            _run( client, parameters );
+            _run( cycle++, seed, client, parameters );
          }
 
          // log the solution
@@ -122,25 +126,30 @@ namespace algorithm
       void _initializeMemory( const OptimizerClient& client, const ParameterOptimizers& parameters );
 
 
-      void _run( const OptimizerClient& client, const ParameterOptimizers& parameters )
+      void _run( size_t cycle, const core::Buffer1D<double>& seed, const OptimizerClient& client, const ParameterOptimizers& parameters )
       {
          // generate a new harmony
          SolutionVector sol( static_cast<size_t>( parameters.size() ) );
 
          for ( size_t n = 0; n < parameters.size(); ++n )
          {
-            if ( core::generateUniformDistribution( 0, 1 ) < _hmrc )
+            if ( cycle == 0 )
             {
-               // memory consideration
-               sol[ n ] = _memory[ rand() % _hms ][ n ];
-               if ( core::generateUniformDistribution( 0, 1 ) < _par )
-               {
-                  // pitch adjustement
-                  sol[ n ] += core::generateUniformDistribution( -1, 1 ) * _bw;
-               }
+               sol[ n ] = seed[ n ];
             } else {
-               // random selection
-               sol[ n ] = parameters[ n ].generate();
+               if ( core::generateUniformDistribution( 0, 1 ) < _hmrc )
+               {
+                  // memory consideration
+                  sol[ n ] = _memory[ rand() % _hms ][ n ];
+                  if ( core::generateUniformDistribution( 0, 1 ) < _par )
+                  {
+                     // pitch adjustement
+                     sol[ n ] += core::generateUniformDistribution( -1, 1 ) * _bw;
+                  }
+               } else {
+                  // random selection
+                  sol[ n ] = parameters[ n ].generate();
+               }
             }
          }
 

@@ -74,6 +74,11 @@ namespace imaging
        @brief clone the transformation
        */
       virtual Transformation* clone() const = 0;
+
+      virtual void print( std::ostream& o ) const
+      {
+         throw std::runtime_error( "not implemented!" );
+      }
    };
 
 
@@ -166,6 +171,12 @@ namespace imaging
       virtual core::vector3f transform( const core::vector3f& p ) const
       {
          return core::transf4( _affine, p );
+      }
+
+      virtual void print( std::ostream& o ) const
+      {
+         o << "TransformationAffine:";
+         _affine.print( o );
       }
 
    protected:
