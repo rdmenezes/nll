@@ -511,14 +511,14 @@ namespace imaging
          return _lut[ index ];
       }
 
-      void createGreyscale()
+      void createGreyscale( value_type highestValue = 256.0f )
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
          for ( size_t n = 0; n < _lut.getSize(); ++n )
          {
             for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {
-               vals[ i ] = static_cast<value_type>( 256.0 / _lut.getSize() * n );
+               vals[ i ] = static_cast<value_type>( highestValue / _lut.getSize() * n );
             }
             set( n, vals.getBuf() );
          }

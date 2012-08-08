@@ -70,8 +70,11 @@ namespace algorithm
             }
          }
 
-         if ( sum <= 0 )
+         if ( jh.getNbSamples() == 0 )
+         {
+            core::LoggerNll::write( core::LoggerNll::ERROR, "joint histogram is empty!" );
             return std::numeric_limits<double>::max();
+         }
          return sum / jh.getNbSamples();
       }
    };

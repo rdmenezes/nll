@@ -1,6 +1,7 @@
 #include <nll/nll.h>
 #include <tester/register.h>
 #include "config.h"
+#include "utils.h"
 
 namespace nll
 {
@@ -88,8 +89,9 @@ namespace algorithm
    class RegistrationEvaluatorSimilarity : public RegistrationEvaluator<T, Storage>
    {
    public:
-      typedef RegistrationEvaluator<T, Storage>    Base;
-      typedef typename Base::Volume                Volume;
+      typedef RegistrationEvaluator<T, Storage>          Base;
+      typedef typename Base::Volume                      Volume;
+      typedef std::vector< std::pair<double, double> >   SimilarityPlot;
 
    public:
       RegistrationEvaluatorSimilarity  ( const Volume& source, const Volume& target, const SimilarityFunction& similarity, const TransformationCreator& transformationCreator, size_t jointHistogramNbBins = 256 ) : Base( source, target ), _similarity( similarity ), _transformationCreator( transformationCreator ), _jointHistogramNbBins( jointHistogramNbBins )
@@ -101,21 +103,56 @@ namespace algorithm
          std::shared_ptr<imaging::Transformation> transformation = _transformationCreator.create( parameters );
          ensure( transformation.get(), "can't be null!" );
 
+         //transformation->print( std::cout );
+
          // then construct a joint histogram
          JointHistogram jointHistogram( _jointHistogramNbBins );
          computeHistogram_partialInterpolation( getSource(), *transformation, getTarget(), jointHistogram );
 
          // then run the similarity measure
          const double val = _similarity.evaluate( jointHistogram );
-         std::cout << "f=" << val << std::endl;
-         parameters.print( std::cout );
+
+         //std::cout << "f=" << val << std::endl;
+         //parameters.print( std::cout );
          return val;
+      }
+
+      const JointHistogram& getLastRunHistogram() const
+      {
+         return _lastRunHistogram;
+      }
+
+      /**
+       @brief Helper to print the similarity while varying only one parameter
+       @return a list of pair containaing <parameter to vary, similarity>
+       @note this is helpful to understand why a minimization algorithm might fail
+       */
+      SimilarityPlot returnSimilarityAlongParameter( const core::Buffer1D<f64>& startingParameters, size_t varyingParameter, double increment, size_t nbIterations ) const
+      {
+         SimilarityPlot result;
+         result.reserve( nbIterations );
+
+         const double start = startingParameters[ varyingParameter ];
+         for ( size_t iter = 0; iter < nbIterations; ++iter )
+         {
+            core::Buffer1D<f64> p;
+            p.clone( startingParameters );
+
+            const double value = iter * increment + start;
+            p[ varyingParameter ] = value;
+            const double similarity = evaluate( p );
+            result.push_back( std::make_pair( value, similarity ) );
+         }
+
+         return result;
       }
 
    protected:
       const SimilarityFunction&        _similarity;
       const TransformationCreator&     _transformationCreator;
       size_t                           _jointHistogramNbBins;
+
+      mutable JointHistogram           _lastRunHistogram;
    };
 
 
@@ -148,10 +185,10 @@ public:
    typedef imaging::VolumeSpatial<f32>                                         Volumef;
    typedef algorithm::RegistrationEvaluatorHelper<Volume>::EvaluatorSimilarity RegistrationEvaluator;
 
-   static Volume preprocess( const Volumef& vf )
+   static Volume preprocess( const Volumef& vf, size_t joinHistogramNbBins )
    {
-      imaging::LookUpTransformWindowingRGB lut( -150, 150, 1 );
-      lut.createGreyscale();
+      imaging::LookUpTransformWindowingRGB lut( 0, 1000, joinHistogramNbBins, 1 );
+      lut.createGreyscale( joinHistogramNbBins );
       Volume v( vf.size(), vf.getPst() );
       for ( size_t z = 0; z < v.getSize()[ 2 ]; ++z )
       {
@@ -159,7 +196,9 @@ public:
          {
             for ( size_t x = 0; x < v.getSize()[ 0 ]; ++x )
             {
-               v( x, y, z ) = lut.transform( vf( x, y, z ) )[ 0 ];
+               const float voxel = vf( x, y, z );
+               const float val = lut.transform( voxel )[ 0 ];
+               v( x, y, z ) = val;
             }
          }
       }
@@ -169,22 +208,18 @@ public:
 
    void testBasic()
    {
+      srand( 7 );
       Volumef volumeOrig;
       bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
       ensure( loaded, "can't load volume" );
+      volumeOrig.setSpacing( core::vector3f( 2, 2, 2 ) );
 
-      const Volume volumeDiscrete = preprocess( volumeOrig );
+      test::VolumeUtils::Average( volumeOrig, 2 );
+
+      imaging::saveSimpleFlatFile( "c:/tmp2/v1.mf2", volumeOrig  );
 
       const size_t joinHistogramNbBins = 256;
-      const core::vector3ui size( 8, 8, 8);
-
-      // construct the volumes
-      /*
-      Volume source( size, core::identityMatrix<core::Matrix<float>>( 4 ) );
-      for ( Volume::iterator it = source.begin(); it != source.end(); ++it )
-      {
-         *it = rand() % joinHistogramNbBins;
-      }*/
+      const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins );
 
       Volume source = volumeDiscrete;
       Volume target = source;
@@ -194,18 +229,35 @@ public:
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       RegistrationEvaluator evaluator( source, target, similarity, transformationCreator, joinHistogramNbBins );
 
+
+      /*
       // construct the optimizer
-      algorithm::OptimizerPowell optimizer( 1, 0.1 );
+      algorithm::OptimizerPowell optimizer( 1, 0.01, 10 );
+      //algorithm::StopConditionIteration stop( 200 );
+      //algorithm::OptimizerHarmonySearch optimizer( 5, 0.4, 0.1, 10, &stop );
+      
       algorithm::ParameterOptimizers parameters;
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 0.1, 0 ) );
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 0.1, 0 ) );
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -200, 200, 0, 0.1, 0 ) );
+      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
+      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
+      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
 
       std::vector<double> result = optimizer.optimize( evaluator, parameters );
       core::Buffer1D<double> resultd = core::make_buffer1D<double>( result );
 
       resultd.print( std::cout );
       std::cout << "similarity=" << evaluator.evaluate( resultd ) << std::endl;
+      */
+
+
+      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 60,  0,  0 ), 0, -0.1, 200 );
+
+      std::ofstream f( "c:/tmp2/similarity.txt" );
+      ensure( f.good(), "bad!" );
+      for ( ui32 n = 0; n < plot.size(); ++n )
+      {
+         f << plot[ n ].first << " " << plot[ n ].second << std::endl;
+         std::cout << "similarity=" << plot[ n ].second << "pos=" << plot[ n ].first << std::endl;
+      }
    }
 };
 

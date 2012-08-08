@@ -99,7 +99,7 @@ namespace algorithm
          {
             //In each iteration, loop over all directions in the set.
             for ( j = 0; j < n; j++ )
-               xit[ j ] = xi[ j ][ i ]; // Copy the direction,
+               xit[ j ] = xi[ i ][ j ]; // Copy the direction,
             fptt = fret;
             lineMinimization( p, xit, fret, f, tol );
             if ( fptt - fret > del )
@@ -113,7 +113,12 @@ namespace algorithm
          {
             {
                std::stringstream ss;
-               ss << "powell end. Tolerance reached. F=" << fret << " nbIterations=" << iter;
+               ss << "powell end params=";
+               for ( size_t n = 0; n < p.size(); ++n )
+               {
+                  ss << p[ n ] << " ";
+               }
+               ss << " Tolerance reached. value=" << fret << " nbIterations=" << iter;
                core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
             }
             return fret;
@@ -125,7 +130,12 @@ namespace algorithm
                *error = true;
             {
                std::stringstream ss;
-               ss << "powell end. Max number of iterations reached. F=" << fret;
+               ss << "powell end params=";
+               for ( size_t n = 0; n < p.size(); ++n )
+               {
+                  ss << p[ n ] << " ";
+               }
+               ss << " Max number of iterations reached. value=" << fret;
                core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
             }
             return fret;
@@ -147,8 +157,8 @@ namespace algorithm
                lineMinimization( p, xit, fret, f, tol );
                for ( j = 0; j < n; j++ )
                {
-                  xi[ j ][ ibig ] = xi[ j ][ n - 1 ];
-                  xi[ j ][ n - 1 ] = xit[ j ];
+                  xi[ ibig ][ j ] = xi[ n - 1 ][ j ];
+                  xi[ n - 1 ][ j ] = xit[ j ];
                }
             }
          }

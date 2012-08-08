@@ -54,12 +54,12 @@ namespace algorithm
        The lowest is the score, the better.
        @sa Classifier
        */
-      virtual double evaluate( const nll::core::Buffer1D<nll::f64>& parameters ) const = 0;
+      virtual double evaluate( const core::Buffer1D<f64>& parameters ) const = 0;
 
       /**
        @todo deprecate...
        */
-      double operator()( const nll::core::Buffer1D<nll::f64>& parameters ) const { return evaluate( parameters ); }
+      double operator()( const core::Buffer1D<f64>& parameters ) const { return evaluate( parameters ); }
 
       virtual ~OptimizerClient()
       {}
