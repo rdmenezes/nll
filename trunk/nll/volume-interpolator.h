@@ -158,19 +158,8 @@ namespace imaging
 
          const value_type_floating dxdy = dx * dy;
          const value_type_floating dydz = dy * dz;
-         /*
-         weights[7] = dxdy * dz;
-         weights[6] = dx * dz          - weights[ 7 ];
-         weights[5] = dxdy             - weights[ 7 ];
-         weights[3] = dydz             - weights[ 7 ];
-         weights[4] = dx - dxdy        - weights[ 6 ];
-         weights[2] = dz - dydz        - weights[ 6 ];
-         weights[1] = dy - dydz        - weights[ 5 ];
-         weights[0] = 1 -dy -dz + dydz - weights[ 4 ]; 
-         */
 
          weights[6] = dxdy * dz;
-
          weights[5] = dx * dz          - weights[ 6 ];
          weights[2] = dxdy             - weights[ 6 ];
          weights[7] = dydz             - weights[ 6 ];

@@ -75,7 +75,7 @@ namespace imaging
        */
       virtual Transformation* clone() const = 0;
 
-      virtual void print( std::ostream& o ) const
+      virtual void print( std::ostream& ) const
       {
          throw std::runtime_error( "not implemented!" );
       }

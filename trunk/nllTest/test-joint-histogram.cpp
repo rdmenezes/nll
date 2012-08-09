@@ -109,6 +109,72 @@ public:
          }
       }
 
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.4f, 0, 0 ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( core::equal<float>( 0.6f, weights[ 0 ], 1e-2f ) );
+         TESTER_ASSERT( core::equal<float>( 0.4f, weights[ 1 ], 1e-2f ) );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0, 0.6f, 0 ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( core::equal<float>( 0.4f, weights[ 0 ], 1e-2f ) );
+         TESTER_ASSERT( core::equal<float>( 0.6f, weights[ 3 ], 1e-2f ) );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0, 0, 0.4f ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( core::equal<float>( 0.6f, weights[ 0 ], 1e-2f ) );
+         TESTER_ASSERT( core::equal<float>( 0.4f, weights[ 4 ], 1e-2f ) );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.5f, 0.5f, 0.5f ).getBuf(), weights, ix, iy, iz );
+         for ( size_t n = 0; n < 8; ++n )
+            TESTER_ASSERT( core::equal<float>( 1.0f / 8, weights[ n ], 1e-2f ) );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.4f, 0.4f, 0 ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 0 ] > weights[ 1 ] && weights[ 0 ] > weights[ 3 ] );
+         TESTER_ASSERT( weights[ 3 ] > weights[ 2 ] && weights[ 1 ] > weights[ 2 ] && weights[ 2 ] > 0.05 );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.6f, 0.6f, 0 ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 2 ] > weights[ 1 ] && weights[ 2 ] > weights[ 3 ] );
+         TESTER_ASSERT( weights[ 3 ] > weights[ 0 ] && weights[ 1 ] > weights[ 0 ] && weights[ 0 ] > 0.05 );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0, 0.4f, 0.4f ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 0 ] > weights[ 3 ] && weights[ 0 ] > weights[ 4 ] );
+         TESTER_ASSERT( weights[ 3 ] > weights[ 7 ] && weights[ 4 ] > weights[ 7 ] && weights[ 7 ] > 0.05 );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0, 0.6f, 0.6f ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 7 ] > weights[ 3 ] && weights[ 7 ] > weights[ 4 ] );
+         TESTER_ASSERT( weights[ 3 ] > weights[ 0 ] && weights[ 4 ] > weights[ 0 ] && weights[ 0 ] > 0.05 );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.4f, 0, 0.4f ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 0 ] > weights[ 4 ] && weights[ 0 ] > weights[ 1 ] );
+         TESTER_ASSERT( weights[ 4 ] > weights[ 5 ] && weights[ 1 ] > weights[ 5 ] && weights[ 5 ] > 0.05 );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.6f, 0, 0.6f ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 5 ] > weights[ 4 ] && weights[ 5 ] > weights[ 1 ] );
+         TESTER_ASSERT( weights[ 4 ] > weights[ 0 ] && weights[ 1 ] > weights[ 0 ] && weights[ 0 ] > 0.05 );
+      }
+
+      {
+         interpolator.computeWeights( core::vector3f( 0.4f, 0.4f, 0.4f ).getBuf(), weights, ix, iy, iz );
+         TESTER_ASSERT( weights[ 0 ] > weights[ 4 ] && weights[ 0 ] > weights[ 1 ] );
+      }
+
       //
       // test the sum is 1
       //
@@ -143,7 +209,7 @@ public:
          jh.reset();   
 
          core::Timer timer;
-         algorithm::computeHistogram_partialInterpolation( v, tfm, v, jh );
+         algorithm::computeHistogram_partialTrilinearInterpolation( v, tfm, v, jh );
 
          
          std::cout << "JointHistogramTime=" << timer.getCurrentTime() << std::endl;
