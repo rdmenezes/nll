@@ -54,6 +54,48 @@ namespace test
             }
          }
       }
+
+      static void AverageFull( Volume& v, const int kernelSize = 5 )
+      {
+         const int kernelSizeHalf = kernelSize / 2;
+
+         for ( int z = 0; z < (int)v.size()[ 2 ]; ++z )
+         {
+            for ( int y = 0; y < (int)v.size()[ 1 ]; ++y )
+            {
+               for ( int x = 0; x < (int)v.size()[ 0 ]; ++x )
+               {
+
+                  float sum = 0;
+                  size_t nbSamples = 0;
+                  for ( int dz = -kernelSizeHalf; dz <= kernelSizeHalf; ++dz )
+                  {
+                     for ( int dy = -kernelSizeHalf; dy <= kernelSizeHalf; ++dy )
+                     {
+                        for ( int dx = -kernelSizeHalf; dx <= kernelSizeHalf; ++dx )
+                        {
+                           const size_t xx = x + dx;
+                           const size_t yy = y + dy;
+                           const size_t zz = z + dz;
+                           if ( xx >= 0 && yy >= 0 && zz >= 0 &&
+                                xx < v.size()[ 0 ] &&
+                                yy < v.size()[ 1 ] &&
+                                zz < v.size()[ 2 ] )
+                           {
+                              sum += v( xx, yy, zz );
+                              ++nbSamples;
+                           }
+                        }
+                     }
+                  }
+                  if ( nbSamples )
+                     sum /= nbSamples;
+
+                  v( x, y, z ) = sum;
+               }
+            }
+         }
+      }
    };
 }
 }

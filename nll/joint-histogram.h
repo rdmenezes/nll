@@ -122,7 +122,7 @@ namespace algorithm
     @brief Computes the joint histogram using partial interpolation
     */
    template <class T1, class Storage1>
-   void computeHistogram_partialInterpolation( const imaging::VolumeSpatial<T1, Storage1>& source, const imaging::Transformation& tfmSourceTarget, const imaging::VolumeSpatial<T1, Storage1>& target, JointHistogram& histogram )
+   void computeHistogram_partialTrilinearInterpolation( const imaging::VolumeSpatial<T1, Storage1>& source, const imaging::Transformation& tfmSourceTarget, const imaging::VolumeSpatial<T1, Storage1>& target, JointHistogram& histogram )
    {
       typedef imaging::VolumeSpatial<T1, Storage1> Volume1;
 
