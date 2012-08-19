@@ -54,8 +54,9 @@ namespace algorithm
        */
       virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
-         double min = std::numeric_limits<double>::max();
          core::Buffer1D<f64> best;
+         best.clone( seed );
+         double min = client.evaluate( best );
 
          std::vector< core::Buffer1D<double> > dir;
          for ( size_t n = 0; n < parameters.size(); ++n )
@@ -78,8 +79,6 @@ namespace algorithm
             }
             bool error = false;
             double val = powell( ini, dir, _tolerance, client, _nbMaxIter, &error );
-            if ( error )
-               continue;
 
             if ( val < min )
             {
@@ -87,6 +86,7 @@ namespace algorithm
                best.clone( ini );
             }
          }
+
 
          if ( !best.size() )
             return std::vector<double>();

@@ -55,6 +55,15 @@ namespace imaging
       typedef T                     value_type;
 
       /**
+       @brief Utility class allowing to create a similar buffer for another type
+       */
+      template <class U>
+      struct Rebind
+      {
+         typedef VolumeMemoryBuffer<U, Mapper>  value_type;
+      };
+
+      /**
        @brief An image iterator. It allows to iterate over all voxels, slices, over columns, lines. It is also able to pick without moving
               in one of the 3 possible directions.
        @note addx, addy, addz, pickx, picky, pickz beware of the bounds as they are not checked!

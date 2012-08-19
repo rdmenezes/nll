@@ -60,12 +60,12 @@ namespace algorithm
          ++_nbSamples;
       }
 
-      size_t getNbSamples() const
+      value_type getNbSamples() const
       {
          return _nbSamples; 
       }
 
-      void setNbSamples( size_t nb )
+      void setNbSamples( value_type nb )
       {
          _nbSamples = nb;
       }
@@ -114,8 +114,8 @@ namespace algorithm
       }
 
    private:
-      Storage  _storage;
-      size_t   _nbSamples;
+      Storage     _storage;
+      value_type  _nbSamples;
    };
 
    /**
@@ -240,7 +240,7 @@ namespace algorithm
                   }
                }
 
-               size_t nbSamples = 0;
+               JointHistogram::value_type nbSamples = 0;
                for ( size_t n = 0; n < _sharedData->_localJointHistograms.size(); ++n )
                {
                   nbSamples += _sharedData->_localJointHistograms[ n ].getNbSamples();
@@ -302,15 +302,15 @@ namespace algorithm
 
             // finally, update the joint histogram
             const value_type targetVal = *targetPosition;
-         
+
             (*_localJointHistogram)( v000, targetVal ) += _weights[ 0 ];
-            (*_localJointHistogram)( v001, targetVal ) += _weights[ 1 ];
-            (*_localJointHistogram)( v011, targetVal ) += _weights[ 2 ];
+            (*_localJointHistogram)( v100, targetVal ) += _weights[ 1 ];
+            (*_localJointHistogram)( v110, targetVal ) += _weights[ 2 ];
             (*_localJointHistogram)( v010, targetVal ) += _weights[ 3 ];
-            (*_localJointHistogram)( v100, targetVal ) += _weights[ 4 ];
+            (*_localJointHistogram)( v001, targetVal ) += _weights[ 4 ];
             (*_localJointHistogram)( v101, targetVal ) += _weights[ 5 ];
             (*_localJointHistogram)( v111, targetVal ) += _weights[ 6 ];
-            (*_localJointHistogram)( v110, targetVal ) += _weights[ 7 ];
+            (*_localJointHistogram)( v011, targetVal ) += _weights[ 7 ];
          
             _localJointHistogram->increment();
          }
@@ -451,6 +451,53 @@ namespace algorithm
          std::shared_ptr<SharedData>   _sharedData;
       };
    }
+
+   /**
+    @ingroup algorithm
+    @brief Class encapsulating the histogram creation mecanism
+    */
+   template <class T, class Storage>
+   class HistogramMaker
+   {
+   public:
+      typedef imaging::VolumeSpatial<T, Storage> Volume;
+
+      virtual ~HistogramMaker()
+      {}
+
+      /**
+       @brief Compute the joint histogram of a source and target transformed volume
+       */
+      virtual void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const = 0;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief Create a joint histogram using a nearest neighbor histogram
+    */
+   template <class T, class Storage>
+   class HistogramMakerNearestNeighbor : public HistogramMaker<T, Storage>
+   {
+   public:
+      void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const 
+      {
+         algorithm::computeHistogram_nearestNeighbor( source, tfmSourceTarget, target, histogram );
+      }
+   };
+
+   /**
+    @ingroup algorithm
+    @brief Create a joint histogram using a trilinear weight interpolator
+    */
+   template <class T, class Storage>
+   class HistogramMakerTrilinearPartial : public HistogramMaker<T, Storage>
+   {
+   public:
+      void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const 
+      {
+         algorithm::computeHistogram_partialTrilinearInterpolation( source, tfmSourceTarget, target, histogram );
+      }
+   };
 }
 }
 

@@ -303,7 +303,6 @@ namespace imaging
 
       /**
        @brief Deep copy the current volume. Internally a new buffer is created (and not shared with the volume)
-       @note TODO the context cannot be deep copied, we need to use a shared pointer here!
        */
       void clone( const VolumeSpatial& vol )
       {
@@ -311,6 +310,17 @@ namespace imaging
          _pst.clone( vol._pst );
          _spacing = vol._spacing;
          _invertedPst = vol._invertedPst;
+      }
+
+      /**
+       @brief print the volume to a stream
+       */
+      void print( std::ostream& o ) const
+      {
+         o  << "VolumeSpatial:" << std::endl
+            << "  size=" << getSize() << std::endl
+            << "  pst=";
+         getPst().print( o );
       }
 
 

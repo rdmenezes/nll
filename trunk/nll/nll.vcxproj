@@ -468,6 +468,9 @@
     <ClInclude Include="point-based-registration-3d.h" />
     <ClInclude Include="pyramid-hessian-3d.h" />
     <ClInclude Include="quasi-periodicity-analysis.h" />
+    <ClInclude Include="registration-algorithm-intensity-affine.h" />
+    <ClInclude Include="registration-algorithm.h" />
+    <ClInclude Include="registration-preprocessing-volume.h" />
     <ClInclude Include="sequence-converter.h" />
     <ClInclude Include="singleton.h" />
     <ClInclude Include="static-assert.h" />
@@ -475,8 +478,11 @@
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="surf-3d.h" />
     <ClInclude Include="timer.h" />
+    <ClInclude Include="registration-transformation-creator.h" />
     <ClInclude Include="transformation-ddf-2d.h" />
     <ClInclude Include="transformation-ddf.h" />
+    <ClInclude Include="registration-transformation-evaluator-similarity.h" />
+    <ClInclude Include="registration-transformation-evaluator.h" />
     <ClInclude Include="transformation-rbf.h" />
     <ClInclude Include="tree-continuous-splitting-criteria.h" />
     <ClInclude Include="tree-node-split.h" />
