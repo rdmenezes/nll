@@ -289,8 +289,13 @@ namespace core
             for ( size_t ny = 0; ny < _sizey; ++ny )
             {
                for ( size_t nx = 0; nx < _sizex; ++nx )
+               {
                   o << at( ny, nx ) << "\t";
-               o << std::endl;
+               }
+               if ( ny + 1 != _sizey )
+               {
+                  o << std::endl;
+               }
             }
          } else {
             o << "Buffer2D(NULL)" << std::endl;

@@ -758,13 +758,31 @@
     <ClInclude Include="math-pdf-gaussian.h">
       <Filter>core</Filter>
     </ClInclude>
-    <ClInclude Include="fast-volume-pyramid.h">
-      <Filter>core</Filter>
-    </ClInclude>
     <ClInclude Include="joint-histogram.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
     <ClInclude Include="joint-histogram-similarity.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-algorithm.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-preprocessing-volume.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-transformation-creator.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-transformation-evaluator-similarity.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-transformation-evaluator.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="registration-algorithm-intensity-affine.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="fast-volume-pyramid.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
   </ItemGroup>

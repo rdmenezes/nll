@@ -46,7 +46,7 @@ namespace algorithm
     @param tol the tolerance
     */
    template <class Point, class Functor>
-   double powell( Point& p, const std::vector< core::Buffer1D<double> >& xi_orig, double tol, const Functor& f, size_t itMax = 200, bool* error = 0 )
+   double powell( Point& p, const std::vector< core::Buffer1D<double> >& xi_orig, double tol, const Functor& f, size_t itMax = 200, bool* error = 0, bool logging = true )
    {
       // set the init
       std::vector< core::Buffer1D<double> > xi( xi_orig.size() );
@@ -56,6 +56,7 @@ namespace algorithm
       }
 
       // logging info
+      if ( logging )
       {
          std::stringstream ss;
          ss << "powell optimization:" << std::endl
@@ -95,6 +96,19 @@ namespace algorithm
          fp = fret;
          ibig = 0;
          del = 0;
+
+         if ( logging )
+         {
+            std::stringstream ss;
+            ss << "point=";
+            for ( size_t n = 0; n < p.size(); ++n )
+            {
+               ss << p[ n ] << " ";
+            }
+            ss << " similarity=" << fp;
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          for ( i = 0; i < n; i++ )
          {
             //In each iteration, loop over all directions in the set.
@@ -111,6 +125,7 @@ namespace algorithm
          }
          if ( 2.0 * ( fp - fret ) <= tol * ( fabs( fp ) + fabs( fret ) + tiny ) )
          {
+            if ( logging )
             {
                std::stringstream ss;
                ss << "powell end params=";
@@ -127,7 +142,11 @@ namespace algorithm
          if ( iter == itMax )
          {
             if ( error )
+            {
                *error = true;
+            }
+
+            if ( logging )
             {
                std::stringstream ss;
                ss << "powell end params=";

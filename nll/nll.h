@@ -323,9 +323,6 @@
  - feature algorithm group, where it intregrates all the generic algorithms to
    the developped framework.
  */
-# include "fast-volume-pyramid.h"
-# include "joint-histogram.h"
-# include "joint-histogram-similarity.h"
 # include "fft.h"
 # include "periodogram.h"
 # include "function.h"
@@ -356,6 +353,17 @@
 # include "optimizer-harmony-search-memory.h"
 # include "optimizer-grid-search.h"
 # include "optimizer-powell.h"
+
+# include "registration-algorithm.h"
+# include "fast-volume-pyramid.h"
+# include "joint-histogram.h"
+# include "joint-histogram-similarity.h"
+# include "registration-transformation-creator.h"
+# include "registration-transformation-evaluator.h"
+# include "registration-transformation-evaluator-similarity.h"
+# include "registration-preprocessing-volume.h"
+# include "registration-algorithm-intensity-affine.h"
+
 # include "classifier-base.h"
 # include "classifier.h"
 # include "kmeans.h"

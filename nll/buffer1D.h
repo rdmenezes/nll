@@ -96,6 +96,18 @@ public:
    Buffer1D( const Buffer1D& cpy ) : _cpt( 0 ), _buffer( 0 ), _size( 0 ) { copy( cpy ); }
 
    /**
+    @brief Initialize from a vector
+    */
+   Buffer1D( const std::vector<T>& vector, Allocator allocator = Allocator() ) : _cpt( 0 ), _buffer( 0 ), _size( 0 ), _ownsBuffer( true ), _allocator( allocator )
+   {
+      _allocate( vector.size(), !IsPOD<T>::value );
+      for ( size_t n = 0; n < vector.size(); ++n )
+      {
+         _buffer[ n ] = vector[ n ];
+      }
+   }
+
+   /**
     @brief construcs a buffer from a pointer.
     @param buf the source buffer
     @param size the size of the buffer
@@ -213,9 +225,8 @@ public:
          o << "Buffer1D(" << *_cpt << ") size=" << _size << " values=";
          for (size_t n = 0; n < _size; ++n)
             o << at( n ) << " ";
-         o << std::endl;
       } else {
-         o << "Buffer1D(NULL)" << std::endl;
+         o << "Buffer1D(NULL)";
       }
    }
 

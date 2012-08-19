@@ -287,10 +287,9 @@ namespace core
        */
       void print( std::ostream& o ) const
       {
-         o << "static vector, size = " << SIZE << std::endl;
+         o << "static vector, size = " << SIZE << " vector=";
          for ( int n = 0; n < SIZE; ++n )
             o << _buffer[ n ] << " ";
-         o << std::endl;
       }
 
       bool write( std::ostream& f ) const

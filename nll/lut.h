@@ -491,6 +491,11 @@ namespace imaging
          _lut.transformToIndex( start, end, output );
       }
 
+      size_t transformToIndex( value_type val ) const
+      {
+         return _lut.transformToIndex( val );
+      }
+
       size_t getSize() const
       {
          return _lut.getSize();

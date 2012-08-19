@@ -7,220 +7,7 @@ namespace nll
 {
 namespace algorithm
 {
-   /**
-    @brief Transformation creator base class
-
-    Create a transformation from a list of parameters
-    */
-   class TransformationCreator
-   {
-   public:
-      virtual std::shared_ptr<imaging::Transformation> create( const nll::core::Buffer1D<nll::f64>& parameters ) const = 0;
-      virtual ~TransformationCreator()
-      {}
-   };
-
-   /**
-    @brief Rigid Transformation
-    
-    It is modeled by 3 parameters (tx, ty, tz) such that:
-        | 1 0 0 tx |
-    T = | 0 1 0 ty |
-        | 0 0 1 tz |
-        | 0 0 0 1  |
-    */
-   class TransformationCreatorRigid : public TransformationCreator
-   {
-   public:
-      virtual std::shared_ptr<imaging::Transformation> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
-      {
-         ensure( parameters.size() == 3, "only (tx, ty, tz) parameters expected" );
-         core::Matrix<float> tfmMat = core::identityMatrix< core::Matrix<float> >( 4 );
-         tfmMat( 0, 3 ) = static_cast<float>( parameters[ 0 ] );
-         tfmMat( 1, 3 ) = static_cast<float>( parameters[ 1 ] );
-         tfmMat( 2, 3 ) = static_cast<float>( parameters[ 2 ] );
-
-         std::shared_ptr<imaging::Transformation> tfm( new imaging::TransformationAffine( tfmMat ) );
-         return tfm;
-      }
-   };
-
-   /**
-    @ingroup algorithm
-    @brief Evaluate a registration base class
-    */
-   template <class T, class Storage>
-   class RegistrationEvaluator : public core::NonCopyable, public OptimizerClient
-   {
-   public:
-      typedef imaging::VolumeSpatial<T, Storage>   Volume;
-
-   public:
-      RegistrationEvaluator( const Volume& source, const Volume& target ) : _source( source ), _target( target )
-      {}
-
-      /**
-       @brief Evaluate the transfomration source->target modeled with <parameters>
-       */
-      virtual double evaluate( const core::Buffer1D<f64>& parameters ) const = 0;
-
-      virtual ~RegistrationEvaluator()
-      {}
-
-      const Volume& getSource() const
-      {
-         return _source;
-      }
-
-      const Volume& getTarget() const
-      {
-         return _target;
-      }
-
-   protected:
-      const Volume&                 _source;
-      const Volume&                 _target;
-   };
-
-   /**
-    @brief Class encapsulating the histogram creation mecanism
-    */
-   template <class T, class Storage>
-   class HistogramMaker
-   {
-   public:
-      typedef imaging::VolumeSpatial<T, Storage> Volume;
-
-      virtual ~HistogramMaker()
-      {}
-
-      virtual void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const = 0;
-   };
-
-   template <class T, class Storage>
-   class HistogramMakerNearestNeighbor : public HistogramMaker<T, Storage>
-   {
-   public:
-      void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const 
-      {
-         algorithm::computeHistogram_nearestNeighbor( source, tfmSourceTarget, target, histogram );
-      }
-   };
-
-   template <class T, class Storage>
-   class HistogramMakerTrilinearPartial : public HistogramMaker<T, Storage>
-   {
-   public:
-      void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const 
-      {
-         algorithm::computeHistogram_partialTrilinearInterpolation( source, tfmSourceTarget, target, histogram );
-      }
-   };
-
-   /**
-    @brief Implementation of the registration evaluator using a similatity function criteria to maximize
-    */
-   template <class T, class Storage>
-   class RegistrationEvaluatorSimilarity : public RegistrationEvaluator<T, Storage>
-   {
-   public:
-      typedef RegistrationEvaluator<T, Storage>          Base;
-      typedef typename Base::Volume                      Volume;
-      typedef std::vector< std::pair<double, double> >   SimilarityPlot;
-      typedef HistogramMaker<T, Storage>                 HistogramMakerAlgorithm;
-
-   public:
-      RegistrationEvaluatorSimilarity  ( const Volume& source, const Volume& target, const SimilarityFunction& similarity, const TransformationCreator& transformationCreator, const HistogramMakerAlgorithm& histogramMaker, size_t jointHistogramNbBins = 256 ) : Base( source, target ), _similarity( similarity ), _transformationCreator( transformationCreator ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins )
-      {}
-
-      /**
-       @brief Evaluate the transformation parameters
-       @note: the (0, 0) bin of the histogram is removed as we don't want to count the background (a lot of background matching doesn't mean the registration is good!)
-       */
-      virtual double evaluate( const core::Buffer1D<f64>& parameters ) const
-      {
-         // create the actual transformation given the parameters
-         std::shared_ptr<imaging::Transformation> transformation = _transformationCreator.create( parameters );
-         ensure( transformation.get(), "can't be null!" );
-
-         // then construct a joint histogram
-         JointHistogram jointHistogram( _jointHistogramNbBins );
-         _histogramMaker.compute( getSource(), *transformation, getTarget(), jointHistogram );
-
-         // Remove the background intensity from the histogram. Reason: a lot of background match does not mean the registration is good.
-         // It will biase the joint histogram measure
-         const JointHistogram::value_type nbBackground = jointHistogram( 0, 0 );
-         jointHistogram( 0, 0 ) = 0;
-         jointHistogram.setNbSamples( static_cast<JointHistogram::value_type>( jointHistogram.getNbSamples() - nbBackground ) );
-
-         // then run the similarity measure
-         const double val = _similarity.evaluate( jointHistogram );
-
-         _lastRunHistogram = jointHistogram;
-         return val;
-      }
-
-      /**
-       #brief Returns the last histogram computed
-       */
-      const JointHistogram& getLastRunHistogram() const
-      {
-         return _lastRunHistogram;
-      }
-
-      /**
-       @brief Helper to print the similarity while varying only one parameter
-       @return a list of pair containaing <parameter to vary, similarity>
-       @note this is helpful to understand why a minimization algorithm might fail
-       */
-      SimilarityPlot returnSimilarityAlongParameter( const core::Buffer1D<f64>& startingParameters, size_t varyingParameter, double increment, size_t nbIterations ) const
-      {
-         SimilarityPlot result;
-         result.reserve( nbIterations );
-
-         const double start = startingParameters[ varyingParameter ];
-         for ( size_t iter = 0; iter < nbIterations; ++iter )
-         {
-            core::Buffer1D<f64> p;
-            p.clone( startingParameters );
-
-            const double value = iter * increment + start;
-            std::cout << "value=" << value << std::endl;
-            p[ varyingParameter ] = value;
-            const double similarity = evaluate( p );
-            result.push_back( std::make_pair( value, similarity ) );
-         }
-
-         return result;
-      }
-
-   protected:
-      const SimilarityFunction&        _similarity;
-      const TransformationCreator&     _transformationCreator;
-      const HistogramMakerAlgorithm&   _histogramMaker;
-      size_t                           _jointHistogramNbBins;
-
-      mutable JointHistogram           _lastRunHistogram;
-   };
-
-
-   /**
-    @brief Helper class contructing a RegistrationEvaluator type given a spatial volume
-    */
-   template <class Volume>
-   class RegistrationEvaluatorHelper
-   {
-   private:
-      // not constructible!
-      RegistrationEvaluatorHelper()
-      {};
-
-   public:
-      typedef typename Volume::value_type    value_type;
-      typedef typename Volume::VoxelBuffer   VoxelBuffer;
-
-      typedef RegistrationEvaluatorSimilarity<value_type, VoxelBuffer>   EvaluatorSimilarity;
-   };
+   
 }
 }
 
@@ -232,29 +19,19 @@ public:
    typedef imaging::VolumeSpatial<ui8>                                         Volume;
    typedef imaging::VolumeSpatial<f32>                                         Volumef;
    typedef algorithm::RegistrationEvaluatorHelper<Volume>::EvaluatorSimilarity RegistrationEvaluator;
+   typedef algorithm::RegistrationAlgorithmIntensity<Volume::value_type, Volume::VoxelBuffer> RegistrationAlgorithmIntensity;
 
    static Volume preprocess( const Volumef& vf, size_t joinHistogramNbBins )
    {
       imaging::LookUpTransformWindowingRGB lut( 0, 1000, joinHistogramNbBins, 1 );
       lut.createGreyscale( (float)joinHistogramNbBins );
-      Volume v( vf.size(), vf.getPst() );
-      for ( size_t z = 0; z < v.getSize()[ 2 ]; ++z )
-      {
-         for ( size_t y = 0; y < v.getSize()[ 1 ]; ++y )
-         {
-            for ( size_t x = 0; x < v.getSize()[ 0 ]; ++x )
-            {
-               const float voxel = vf( x, y, z );
-               const float val = lut.transform( voxel )[ 0 ];
-               v( x, y, z ) = (ui8)val;
-            }
-         }
-      }
+      algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> preprocess( lut );
+      
 
-      return v;
+      return preprocess.run( vf );
    }
 
-      static Volume createSyntheticPerfect( const core::vector3ui& size, const core::vector3ui sphereCenter, double sphereRadiusVoxel, size_t idSphere = 1 )
+   static Volume createSyntheticPerfect( const core::vector3ui& size, const core::vector3ui sphereCenter, double sphereRadiusVoxel, size_t idSphere = 1 )
    {
       Volume v( size, core::identityMatrix< core::Matrix<float> >( 4 ) );
       
@@ -281,6 +58,7 @@ public:
    static Volume createSyntheticCube( const core::vector3ui& size, const core::vector3ui center, double radiusVoxel, size_t id = 1 )
    {
       Volume v( size, core::identityMatrix< core::Matrix<float> >( 4 ) );
+      size_t nbInside = 0;
       
       for ( size_t z = 0; z < v.getSize()[ 2 ]; ++z )
       {
@@ -295,11 +73,13 @@ public:
                if ( inside )
                {
                   v( x, y, z ) = (ui8)id;
+                  ++nbInside;
                }
             }
          }
       }
 
+      std::cout << "nbVoxelInside=" << nbInside << std::endl;
       return v;
    }
 
@@ -316,26 +96,20 @@ public:
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
       RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins );
 
-      const double v0 = evaluator.evaluate( core::make_buffer1D<double>( 0, 0, 0 ) );
-      const double v1 = evaluator.evaluate( core::make_buffer1D<double>( 0.1, 0, 0 ) );
-      const double v2 = evaluator.evaluate( core::make_buffer1D<double>( -0.1, 0, 0 ) );
+      evaluator.setTransformationCreator( transformationCreator );
+
+      const double v0 = evaluator.evaluate( *transformationCreator.create( core::make_buffer1D<double>( 0, 0, 0 ) ) );
+      const double v1 = evaluator.evaluate( *transformationCreator.create( core::make_buffer1D<double>( 0.1, 0, 0 ) ) );
+      const double v2 = evaluator.evaluate( *transformationCreator.create( core::make_buffer1D<double>( -0.1, 0, 0 ) ) );
 
       TESTER_ASSERT( v0 < v1 );
-      TESTER_ASSERT( v0 < v2 );
-
-      for ( double n = -2; n < 2; n += 0.1 )
-      {
-         std::cout << "n=" << n << " v=" << evaluator.evaluate( core::make_buffer1D<double>( n, 0, 0 ) ) << std::endl;
-         evaluator.getLastRunHistogram().print( std::cout );
-      }
-
-      
+      TESTER_ASSERT( v0 < v2 );      
    }
 
    void testSimilarity()
    {
-      const Volume v = createSyntheticCube( core::vector3ui( 64, 64, 64 ), core::vector3ui( 32, 32, 32 ), 16 );
-      const size_t joinHistogramNbBins = 3;
+      const Volume v = createSyntheticCube( core::vector3ui( 8, 8, 8 ), core::vector3ui( 4, 4, 4 ), 0 );
+      const size_t joinHistogramNbBins = 2;
 
       // construct the evaluator
       algorithm::TransformationCreatorRigid transformationCreator;
@@ -344,86 +118,208 @@ public:
       RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins );
 
       // get the similarity. We expect it to be decreasing until we reach 0, then increasing
-
-      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 10,  0,  0 ), 0, -0.05, 200 );
+      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 0.1,  0,  0 ), 0, -0.01, 22 );
       for ( size_t n = 0; n < plot.size() - 1; ++n )
       {
-         TESTER_ASSERT( plot[ n + 1 ].second < plot[ n ].second );
-
-         /*
-         // NOTE: if we continue after 0 with trilinear interpolation partial, the error will increase but in a stepwise fashion.
-         // this is caused by the interoplator!
-
          if ( plot[ n ].first > 0 )
          {
             TESTER_ASSERT( plot[ n + 1 ].second < plot[ n ].second );
          } else {
             TESTER_ASSERT( plot[ n + 1 ].second > plot[ n ].second );
-         }*/
+         }
       }
    }
 
+   // test a real registration case (MR-MR, using powll, SSD)
+   // then plot the similarity on the x-axis
    void testBasic()
    {
-      srand( 7 );
+      std::cout << "loading volume..." << std::endl;
       Volumef volumeOrig;
       bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
       ensure( loaded, "can't load volume" );
       volumeOrig.setSpacing( core::vector3f( 1, 1, 1 ) );
 
-      test::VolumeUtils::AverageFull( volumeOrig, 12 );
+      std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
 
-      imaging::saveSimpleFlatFile( "c:/tmp2/v1.mf2", volumeOrig  );
+      std::cout << "smoothing volume..." << std::endl;
+      test::VolumeUtils::AverageFull( volumeOrig, 8 );
 
-      const size_t joinHistogramNbBins = 64;
+      std::cout << "registering volume..." << std::endl;
+      const size_t joinHistogramNbBins = 32;
       const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins );
 
       Volume source = volumeDiscrete;
       Volume target = source;
 
-      // construct the evaluator
-      algorithm::TransformationCreatorRigid transformationCreator;
+
+      for ( size_t n = 1; n < 10; ++n )
+      {
+         srand( n * 10 );
+         core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
+                               core::generateUniformDistributionf( -30, 30 ),
+                               core::generateUniformDistributionf( -10, 10 ) );
+
+         core::Buffer1D<double> seed( start.size() );
+         for ( size_t n = 0; n < start.size(); ++n )
+         {
+            seed[ n ] = start[ n ];
+         }
+
+
+         // construct the evaluator
+         algorithm::TransformationCreatorRigid c;
+         algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+         algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
+         RegistrationEvaluator evaluator( source, target, similarity, c, histogramMaker, joinHistogramNbBins );
+         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+
+         // run a registration
+         algorithm::OptimizerPowell optimizer( 1, 0.05, 10 );
+         RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
+         std::shared_ptr<imaging::Transformation> tfm = registration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = c.getParameters( *tfm );
+
+         std::cout << "registration results (expected=(0,0,0)):" << std::endl;
+         resultd.print( std::cout );
+         std::cout << "similarity=" << evaluator.evaluate( *c.create( resultd ) ) << std::endl;
+         TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
+                        fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
+                        fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
+      }
+   }
+
+   void testRigidTransformationCreator()
+   {
+      for ( size_t n = 0; n < 100; ++n )
+      {
+         algorithm::TransformationCreatorRigid tfmCreator;
+
+         const core::Buffer1D<double> params = core::make_buffer1D<double>( core::generateUniformDistributionf( -100, 100 ),
+                                                                            core::generateUniformDistributionf( -100, 100 ),
+                                                                            core::generateUniformDistributionf( -100, 100 ) );
+         const std::shared_ptr<imaging::Transformation> tfm = tfmCreator.create( params );
+         const core::Buffer1D<double> paramsBack = tfmCreator.getParameters( *tfm );
+         TESTER_ASSERT( params.equal( paramsBack, 1e-3 ) );
+      }
+   }
+
+   void testRange()
+   {
+      // data loading
+      std::cout << "loading volume..." << std::endl;
+      Volumef volumeOrig;
+      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
+      ensure( loaded, "can't load volume" );
+      volumeOrig.setSpacing( core::vector3f( 1, 1, 1 ) );
+
+      std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
+
+      std::cout << "smoothing volume..." << std::endl;
+      test::VolumeUtils::AverageFull( volumeOrig, 8 );
+
+      std::cout << "plotting similarity function..." << std::endl;
+      const size_t joinHistogramNbBins = 32;
+      const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins );
+
+      Volume source = volumeDiscrete;
+      Volume target = source;
+
+      algorithm::TransformationCreatorRigid c;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      RegistrationEvaluator evaluator( source, target, similarity, transformationCreator, histogramMaker, joinHistogramNbBins );
-
-      // construct the optimizer
-      algorithm::OptimizerPowell optimizer( 1, 0.01, 10 );      
-      algorithm::ParameterOptimizers parameters;
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
-      parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
-
-      // run a registration
-      std::vector<double> result = optimizer.optimize( evaluator, parameters, core::make_buffer1D<double>( 60,  0,  0 ) );
-      core::Buffer1D<double> resultd = core::make_buffer1D<double>( result );
-
-      std::cout << "registration results (expected=(0,0,0)):" << std::endl;
-      resultd.print( std::cout );
-      std::cout << "similarity=" << evaluator.evaluate( resultd ) << std::endl;
-      TESTER_ASSERT( fabs( result[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 1.1 &&
-                     fabs( result[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 1.1 &&
-                     fabs( result[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 1.1 );
-
-      
-      
-      /*
-      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 1.05,  0,  0 ), 0, -0.001, 100 );
+      RegistrationEvaluator evaluator( source, target, similarity, c, histogramMaker, joinHistogramNbBins );
+      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 60,  0,  0 ), 0, -0.5, 150 );
 
       std::ofstream f( "c:/tmp2/similarity.txt" );
       ensure( f.good(), "bad!" );
-      for ( ui32 n = 0; n < plot.size(); ++n )
+      for ( ui32 n = 0; n < plot.size() - 1; ++n )
       {
          f << plot[ n ].first << " " << plot[ n ].second << std::endl;
-         std::cout << "similarity=" << plot[ n ].second << std::endl;
-      }*/
+         std::cout << "similarity=" << plot[ n ].second << " next=" << plot[ n + 1 ].second << std::endl;
+         if ( plot[ n ].first > 0 )
+         {
+            TESTER_ASSERT( plot[ n ].second > plot[ n + 1 ].second );
+         } else {
+            TESTER_ASSERT( plot[ n ].second < plot[ n + 1 ].second );
+         }
+      }
+   }
+
+   void testPyramidalRegistration()
+   {
+      std::cout << "loading volume..." << std::endl;
+      Volumef volumeOrig;
+      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
+      ensure( loaded, "can't load volume" );
+      volumeOrig.setSpacing( core::vector3f( 1, 1, 1 ) );
+
+      std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
+
+      std::cout << "smoothing volume..." << std::endl;
+      test::VolumeUtils::AverageFull( volumeOrig, 8 );
+
+      std::cout << "registering volume..." << std::endl;
+      const size_t joinHistogramNbBins = 64;
+      Volumef source = volumeOrig;
+      Volumef target = volumeOrig;
+
+
+      srand( 70 );
+
+      std::cout << "pyramid registration:";
+      std::cout.flush();
+      for ( size_t n = 0; n < 10; ++n )
+      {
+         std::cout << "#";
+         core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
+                                 core::generateUniformDistributionf( -30, 30 ),
+                                 core::generateUniformDistributionf( -10, 10 ) );
+
+         core::Buffer1D<double> seed( start.size() );
+         for ( size_t n = 0; n < start.size(); ++n )
+         {
+            seed[ n ] = start[ n ];
+         }
+
+
+         // construct the evaluator
+         algorithm::TransformationCreatorRigid c;
+         algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+         algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
+         RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins );
+         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+
+         // run a registration
+         algorithm::OptimizerPowell optimizer( 1, 0.001, 10 );
+         RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
+
+         // setup the pyramid
+         typedef algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> Preprocessor;
+         typedef algorithm::RegistrationAlgorithmIntensityPyramid<Volumef::value_type, Volumef::VoxelBuffer> PyramidRegistration;
+
+         imaging::LookUpTransformWindowingRGB lut( 0, 10000, joinHistogramNbBins, 1 );
+         lut.createGreyscale( (float)joinHistogramNbBins );
+         Preprocessor preprocessor( lut );
+         PyramidRegistration pyramidRegistration( preprocessor, registration, 3 );
+
+         std::shared_ptr<imaging::Transformation> tfm = pyramidRegistration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = c.getParameters( *tfm );
+
+         TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
+                        fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
+                        fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
+      }
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
- TESTER_TEST(testBasic);
- TESTER_TEST(testSimilarity);
- TESTER_TEST(testEvaluatorSpecificData);
+ //TESTER_TEST(testSimilarity);
+ //TESTER_TEST(testBasic);
+ //TESTER_TEST(testRange);
+ //TESTER_TEST(testEvaluatorSpecificData);
+ //TESTER_TEST(testRigidTransformationCreator);
+ TESTER_TEST(testPyramidalRegistration);
 TESTER_TEST_SUITE_END();
 #endif
