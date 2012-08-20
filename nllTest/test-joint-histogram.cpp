@@ -196,8 +196,8 @@ public:
       tfmMat( 0, 3 ) = 0;
       imaging::TransformationAffine tfm( tfmMat );
 
-      Volume v( core::vector3ui( 512, 512, 256), core::identityMatrix<core::Matrix<float>>( 4 ) );
-      //Volume v( core::vector3ui( 8, 8, 8), core::identityMatrix<core::Matrix<float>>( 4 ) );
+      //Volume v( core::vector3ui( 512, 512, 256), core::identityMatrix<core::Matrix<float>>( 4 ) );
+      Volume v( core::vector3ui( 64, 64, 32), core::identityMatrix<core::Matrix<float>>( 4 ) );
       for ( Volume::iterator it = v.begin(); it != v.end(); ++it )
       {
          *it = rand() % 8;

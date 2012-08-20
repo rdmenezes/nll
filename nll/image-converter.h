@@ -47,7 +47,11 @@ namespace core
       for ( size_t ny = 0; ny < i.sizey(); ++ny )
          for ( size_t nx = 0; nx < i.sizex(); ++nx )
             for ( size_t c = 0; c < i.getNbComponents(); ++c )
-               o( nx, ny, c ) = static_cast<To> ( NLL_BOUND( i( nx, ny, c ), std::numeric_limits<To>::min(), std::numeric_limits<To>::min() ) );
+            {
+               const Ti valRaw = i( nx, ny, c );
+               const Ti val = NLL_BOUND( valRaw, std::numeric_limits<To>::min(), std::numeric_limits<To>::max() );
+               o( nx, ny, c ) = static_cast<To> ( val );
+            }
       out = o;
    }
 }

@@ -356,7 +356,7 @@ namespace algorithm
       }
 
       /**
-       @brief computes p(X | Y=y) i.e., entering evidence
+       @brief computes p(X, Y=y) i.e., entering evidence but without normalization
        @param evidenceValue the evidence of Y=y
        @param varIndexToRemove the index of Y's, must be sorted 0->+inf
        */

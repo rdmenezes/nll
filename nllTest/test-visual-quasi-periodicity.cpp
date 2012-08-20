@@ -429,7 +429,7 @@ struct TestVisualQuasiPeriodicityAnalysis
    {
       typedef std::vector<core::Image<float>>   Frames;
       typedef algorithm::QuasiPeriodicityAnalysis<Frames> Algorithm;
-      for ( size_t n = 0; n < 100; ++n )
+      for ( size_t n = 0; n < 50; ++n )
       {
          srand(n);
          //srand(29);
