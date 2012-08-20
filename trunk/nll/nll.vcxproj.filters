@@ -785,6 +785,9 @@
     <ClInclude Include="fast-volume-pyramid.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
+    <ClInclude Include="registration-gradient-evaluator.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">
