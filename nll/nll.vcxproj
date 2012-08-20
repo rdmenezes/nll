@@ -470,6 +470,7 @@
     <ClInclude Include="quasi-periodicity-analysis.h" />
     <ClInclude Include="registration-algorithm-intensity-affine.h" />
     <ClInclude Include="registration-algorithm.h" />
+    <ClInclude Include="registration-gradient-evaluator.h" />
     <ClInclude Include="registration-preprocessing-volume.h" />
     <ClInclude Include="sequence-converter.h" />
     <ClInclude Include="singleton.h" />

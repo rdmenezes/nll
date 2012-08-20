@@ -38,7 +38,7 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief Evaluate a registration base class
+    @brief Evaluate a registration base class to support intensity based registration
     */
    template <class T, class Storage>
    class RegistrationEvaluator : public core::NonCopyable, public OptimizerClient
@@ -57,6 +57,14 @@ namespace algorithm
        @brief Evaluate the transformation source->target
        */
       virtual double evaluate( const imaging::Transformation& transformationSourceToTarget ) const = 0;
+
+      /**
+       @brief Evaluate the gradient of the transformation
+       */
+      virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const
+      {
+         throw std::runtime_error( "not implemented" );
+      }
 
       virtual ~RegistrationEvaluator()
       {}
@@ -103,8 +111,16 @@ namespace algorithm
       // implement the function evaluation
       virtual double evaluate( const core::Buffer1D<f64>& parameters ) const
       {
+         ensure( _source && _target, "source/target not set" );
          ensure( _transformationCreator, "the transformation creator must be set!" );
          return evaluate( *_transformationCreator->create( parameters ) );
+      }
+
+      virtual core::Buffer1D<double> evaluateGradient( const core::Buffer1D<f64>& parameters ) const
+      {
+         ensure( _source && _target, "source/target not set" );
+         ensure( _transformationCreator, "the transformation creator must be set!" );
+         return evaluateGradient( *_transformationCreator->create( parameters ) );
       }
 
    protected:

@@ -360,6 +360,7 @@
 # include "joint-histogram-similarity.h"
 # include "registration-transformation-creator.h"
 # include "registration-transformation-evaluator.h"
+# include "registration-gradient-evaluator.h"
 # include "registration-transformation-evaluator-similarity.h"
 # include "registration-preprocessing-volume.h"
 # include "registration-algorithm-intensity-affine.h"
