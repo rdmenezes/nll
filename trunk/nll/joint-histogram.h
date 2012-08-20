@@ -36,6 +36,16 @@ namespace nll
 {
 namespace algorithm
 {
+   namespace impl
+   {
+      // forward declaration
+      template <class Volume>
+      class VolumeTransformationProcessorPartialInterpolationHistogram;
+
+      template <class Volume>
+      class VolumeTransformationProcessorNearestNeighborHistogram;
+   }
+
    /**
     @ingroup algorithm
     @brief Compute the joint histogram
@@ -479,6 +489,9 @@ namespace algorithm
    class HistogramMakerNearestNeighbor : public HistogramMaker<T, Storage>
    {
    public:
+      typedef HistogramMaker<T, Storage>     Base;
+      typedef typename Base::Volume          Volume;
+
       void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const 
       {
          algorithm::computeHistogram_nearestNeighbor( source, tfmSourceTarget, target, histogram );
@@ -493,6 +506,9 @@ namespace algorithm
    class HistogramMakerTrilinearPartial : public HistogramMaker<T, Storage>
    {
    public:
+      typedef HistogramMaker<T, Storage>     Base;
+      typedef typename Base::Volume          Volume;
+
       void compute( const Volume& source, const imaging::Transformation& tfmSourceTarget, const Volume& target, JointHistogram& histogram ) const 
       {
          algorithm::computeHistogram_partialTrilinearInterpolation( source, tfmSourceTarget, target, histogram );
