@@ -73,23 +73,23 @@ namespace algorithm
       typedef RegistrationGradientEvaluator<T, Storage>        Base;
       typedef typename Base::Evaluator                         Evaluator;
 
-      RegistrationGradientEvaluatorFiniteDifference( const Evaluator& evaluator, core::Buffer1D<double> steps ) : _evaluator( evaluator ), _steps( steps )
+      RegistrationGradientEvaluatorFiniteDifference( const Evaluator& evaluator, core::Buffer1D<double> steps ) : Base( evaluator ), _steps( steps )
       {}
 
       virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const
       {
-         const double val0 = evaluator.evaluate( transformationSourceToTarget );
+         const double val0 = this->_evaluator.evaluate( transformationSourceToTarget );
 
-         core::Buffer1D<double> parameters = evaluator.getTransformationCreator().getParameters( transformationSourceToTarget );
-         ensure( parameters.size() == step.size(), "we must have a step for each parameter of the transformation" );
+         core::Buffer1D<double> parameters = this->_evaluator.getTransformationCreator().getParameters( transformationSourceToTarget );
+         ensure( parameters.size() == _steps.size(), "we must have a step for each parameter of the transformation" );
          core::Buffer1D<double> gradient( parameters.size() );
          for ( size_t n = 0; n < parameters.size(); ++n )
          {
             core::Buffer1D<double> parametersCpy;
             parametersCpy.clone( parameters );
-            parametersCpy[ n ] += _steps[ n ]
+            parametersCpy[ n ] += _steps[ n ];
 
-            const double val = evaluator.evaluate( evaluator.getTransformationCreator().create( parametersCpy ) );
+            const double val = this->_evaluator.evaluate( this->_evaluator.getTransformationCreator().create( parametersCpy ) );
             gradient[ n ] = ( val - val0 ) / _steps[ n ];
          }
 
@@ -100,7 +100,6 @@ namespace algorithm
       {}
 
    protected:
-      const Evaluator&        _evaluator;
       core::Buffer1D<double>  _steps;
    };
 }

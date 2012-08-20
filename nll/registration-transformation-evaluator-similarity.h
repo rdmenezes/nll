@@ -70,7 +70,7 @@ namespace algorithm
       {
          // then construct a joint histogram
          JointHistogram jointHistogram( _jointHistogramNbBins );
-         _histogramMaker.compute( getSource(), transformation, getTarget(), jointHistogram );
+         _histogramMaker.compute( this->getSource(), transformation, this->getTarget(), jointHistogram );
 
          // Remove the background intensity from the histogram. Reason: a lot of background match does not mean the registration is good.
          // It will biase the joint histogram measure
@@ -110,7 +110,7 @@ namespace algorithm
 
             const double value = iter * increment + start;
             p[ varyingParameter ] = value;
-            const double similarity = evaluate( *getTransformationCreator().create( p ) );
+            const double similarity = evaluate( *this->getTransformationCreator().create( p ) );
             result.push_back( std::make_pair( value, similarity ) );
          }
 

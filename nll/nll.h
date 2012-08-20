@@ -354,6 +354,7 @@
 # include "optimizer-grid-search.h"
 # include "optimizer-powell.h"
 
+# include "integral-image-3d.h"
 # include "registration-algorithm.h"
 # include "fast-volume-pyramid.h"
 # include "joint-histogram.h"
@@ -417,7 +418,6 @@
 # include "pyramid-hessian-2d.h"
 # include "surf-2d.h"
 # include "point-based-registration-2d.h"
-# include "integral-image-3d.h"
 # include "haar-features-3d.h"
 # include "pyramid-hessian-3d.h"
 # include "surf-3d.h"
