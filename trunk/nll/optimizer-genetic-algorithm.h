@@ -102,7 +102,7 @@ namespace algorithm
          ) : _numberOfCycles( numberOfCycles ), _populationSize( populationSize ), _numberOfPeriods( numberOfPeriods ), _mutationRate( mutationRate ), _selectRate( selectRate )
       {}
 
-      virtual std::vector<double> optimize( const OptimizerClient& evaluator,
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& evaluator,
                                             const ParameterOptimizers& params,
                                             const core::Buffer1D<double>& seed )
       {
@@ -125,8 +125,8 @@ namespace algorithm
          GeneticAlgorithm geneticAlgorithm( generator, evaluator, selector, stop, recombinator, mutator );
 
          std::vector<Gene> solution = geneticAlgorithm.optimize( _populationSize, _mutationRate, _selectRate, _numberOfPeriods, seed );
-         assert( solution.size() );
-         return core::convert<Gene, std::vector<double> > ( solution[ 0 ], static_cast<size_t>( seed.size() ) );
+         ensure( solution.size(), "no solutions!" );
+         return solution[ 0 ];
       }
    private:
       size_t  _numberOfCycles;

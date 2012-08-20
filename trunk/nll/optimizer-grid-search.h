@@ -61,7 +61,7 @@ namespace algorithm
       /**
        @brief Optimizer. Use the parameter granularities to increment the search.
       */
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& params, const core::Buffer1D<double>& )
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& params, const core::Buffer1D<double>& )
       {
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "grid search started" );
          core::Buffer1D<double> pos( params.size() );
@@ -103,10 +103,7 @@ namespace algorithm
          bestSolution.print( sstr );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
 
-         std::vector<double> sol( params.size() );
-         for ( size_t n = 0; n < params.size(); ++n )
-            sol[ n ] = bestSolution[ n ];
-         return sol;
+         return bestSolution;
       }
    };
 }

@@ -95,7 +95,7 @@ namespace algorithm
          assert( stop );
       }
 
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
          ensure( seed.size() == parameters.size(), "argument mismatch!" );
          _stop->reinit();
@@ -113,9 +113,8 @@ namespace algorithm
          sstr << "worst=" << _memory[ _memory.size() - 1].fitness << std::endl;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, sstr.str() );
 
-         std::vector<double> best( parameters.size() );
-         for ( size_t n = 0; n < best.size(); ++n )
-            best[ n ] = _memory[ 0 ][ n ];
+         core::Buffer1D<double> best;
+         best.clone( _memory[ 0 ].solution );
          return best;
       }
 

@@ -246,14 +246,15 @@ private:
             static void testSuite##_suite()           \
             {                                         \
                testSuite instance;                    \
-               const char* name = #testSuite;
+               const char* name = #testSuite;         \
+               TESTER_STREAM << "# Runing test suite: " << name << std::endl; \
                
 
 # define TESTER_TEST( func )                          \
                try                                    \
                {                                      \
+                  TESTER_STREAM << "#  Runing test: " << #func << std::endl; \
                   nll::core::Timer startTaskTimer_;   \
-                  TESTER_STREAM << ".";               \
                   instance.func();                    \
                   Register::instance().regression( "nll." + std::string( name ) + "." + #func, nll::impl::ftoa( startTaskTimer_.getCurrentTime() ) ); \
                   Register::instance().successful();  \
@@ -268,7 +269,7 @@ private:
 # define TESTER_ASSERT( exp )                         \
             if ( !( exp ) )                           \
             {                                         \
-               TESTER_STREAM << "F";                  \
+               TESTER_STREAM << "# #F#" << std::endl; \
                throw FailedAssertion( ( std::string("assert failed \"" ) + #exp + std::string( "\"" ) ).c_str() );   \
             }
 

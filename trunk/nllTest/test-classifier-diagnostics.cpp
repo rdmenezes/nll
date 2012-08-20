@@ -130,6 +130,6 @@ struct TestClassifierDiagnostics
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestClassifierDiagnostics);
  TESTER_TEST(testResamplingWithoutReplacement);
- TESTER_TEST(test);
+ //TESTER_TEST(test);
 TESTER_TEST_SUITE_END();
 #endif

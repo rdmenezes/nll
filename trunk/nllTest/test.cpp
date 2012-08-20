@@ -540,6 +540,7 @@ public:
       
 
       nll::core::writeBmp(i5, NLL_TEST_PATH"data/test2.bmp");
+      nll::core::writeBmp(i6, NLL_TEST_PATH"data/test2b.bmp");
       nll::core::writeBmp(i7, NLL_TEST_PATH "data/test3.bmp");
 
       TESTER_ASSERT( i5 == i6 );
@@ -1359,6 +1360,7 @@ public:
 };
 
 #ifndef DONT_RUN_TEST
+
 TESTER_TEST_SUITE(TestnllCore);
 TESTER_TEST(testImageIterators);
 TESTER_TEST(testConstImageIterators);

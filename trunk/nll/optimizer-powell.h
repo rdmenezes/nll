@@ -52,7 +52,7 @@ namespace algorithm
       /**
        @brief returns an empty set if optimization failed.
        */
-      virtual std::vector<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
          core::Buffer1D<f64> best;
          best.clone( seed );
@@ -87,14 +87,7 @@ namespace algorithm
             }
          }
 
-
-         if ( !best.size() )
-            return std::vector<double>();
-
-         std::vector<double> result( parameters.size() );
-         for ( size_t n = 0; n < parameters.size(); ++n )
-            result[ n ] = best[ n ];
-         return result;
+         return best;
       }
 
    protected:

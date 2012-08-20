@@ -129,7 +129,7 @@ public:
       nll::algorithm::OptimizerGeneticAlgorithm gaOptimizer( 50, 300, 10 );
 
       ClassifierTest3::Database  dummyDatabase;
-      std::vector<double> genes = gaOptimizer.optimize(c3.createOptimizer(dummyDatabase), ClassifierTest3::createParameters());
+      nll::core::Buffer1D<double> genes = gaOptimizer.optimize(c3.createOptimizer(dummyDatabase), ClassifierTest3::createParameters());
 
       double val = eval( genes );
       TESTER_ASSERT( val < 0.0001 );
@@ -141,7 +141,7 @@ public:
       ClassifierTest3 c3;
       ClassifierTest3::Database  dummyDatabase;
       nll::algorithm::Optimizer* optimizer = new nll::algorithm::OptimizerHarmonySearch( 6, 0.95, 0.6, 0.001, new nll::algorithm::StopConditionIteration( 10000 ) );
-      std::vector<double> genes = optimizer->optimize( c3.createOptimizer( dummyDatabase ), ClassifierTest3::createParameters() );
+      nll::core::Buffer1D<double> genes = optimizer->optimize( c3.createOptimizer( dummyDatabase ), ClassifierTest3::createParameters() );
       delete optimizer;
       double val = eval( genes );
       TESTER_ASSERT( val < 0.0001 );
@@ -153,7 +153,7 @@ public:
       ClassifierTest3 c3;
       ClassifierTest3::Database  dummyDatabase;
       nll::algorithm::Optimizer* optimizer = new nll::algorithm::OptimizerHarmonySearchMemory( 6, 0.95, 0.6, 0.001, new nll::algorithm::StopConditionIteration( 10000 ), 0.00001, new nll::algorithm::MetricEuclidian<nll::algorithm::OptimizerHarmonySearchMemory::TMetric::value_type>() );
-      std::vector<double> genes = optimizer->optimize( c3.createOptimizer( dummyDatabase ), ClassifierTest3::createParameters() );
+      nll::core::Buffer1D<double> genes = optimizer->optimize( c3.createOptimizer( dummyDatabase ), ClassifierTest3::createParameters() );
       delete optimizer;
       double val = eval( genes );
       TESTER_ASSERT( val < 0.0001 );
@@ -169,7 +169,7 @@ public:
 
       GridSearchClientTest client( params, 400, 1, 0.25 );
       nll::algorithm::Optimizer* optimizer = new nll::algorithm::OptimizerGridSearch();
-      std::vector<double> sol = optimizer->optimize( client, params );
+      nll::core::Buffer1D<double> sol = optimizer->optimize( client, params );
       nll::core::Buffer1D<double> solbuf( (size_t)sol.size() );
       for ( size_t n = 0; n < sol.size(); ++n )
          solbuf[ n ] = sol[ n ];

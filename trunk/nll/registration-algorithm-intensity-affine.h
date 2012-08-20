@@ -84,8 +84,8 @@ namespace algorithm
          _evaluator.setTarget( target );
          _evaluator.setTransformationCreator( _creator );
          core::Buffer1D<double> seed = _creator.getParameters( source2TargetInitTransformation );
-         std::vector<double> result = _optimizer.optimize( _evaluator, _creator.getOptimizerParameters(), seed );
-         std::shared_ptr<imaging::Transformation> tfm = _creator.create( core::Buffer1D<double>( result ) );
+         core::Buffer1D<double> result = _optimizer.optimize( _evaluator, _creator.getOptimizerParameters(), seed );
+         std::shared_ptr<imaging::Transformation> tfm = _creator.create( result );
 
          {
             std::stringstream ss;

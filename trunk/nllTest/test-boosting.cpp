@@ -877,7 +877,7 @@ public:
       }
 
       std::cout << "Error="  << getTrainingError( dat, classifier ) << std::endl;
-      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.006 ); 
+      TESTER_ASSERT( getTrainingError( dat, classifier ) <= 0.01 ); 
    }
 
 private:

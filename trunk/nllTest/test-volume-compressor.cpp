@@ -24,6 +24,7 @@ class TestVolumeCompressor
 public:
    void testBasic()
    {
+      srand( 0 );
       const double minValueSlice0 = -10;
       const double maxValueSlice0 = 20;
       VolumeMemoryBuffer<double> input( 3, 6, 70 );

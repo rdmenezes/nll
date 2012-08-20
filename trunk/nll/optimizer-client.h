@@ -57,6 +57,14 @@ namespace algorithm
       virtual double evaluate( const core::Buffer1D<f64>& parameters ) const = 0;
 
       /**
+       @brief Returns the function gradient for this specific parameters
+       */
+      virtual core::Buffer1D<f64> evaluateGradient( const core::Buffer1D<f64>& /*parameters*/ ) const
+      {
+         throw std::runtime_error( "not implemented for this function" );
+      }
+
+      /**
        @todo deprecate...
        */
       double operator()( const core::Buffer1D<f64>& parameters ) const { return evaluate( parameters ); }

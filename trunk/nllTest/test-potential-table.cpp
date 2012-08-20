@@ -272,7 +272,8 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.25 + 0.08 + 0.05 + 0.15 + 0.09;
+      //const double pevidence = 0.25 + 0.08 + 0.05 + 0.15 + 0.09;
+      const double pevidence = 1; // there is no normalization anymore!
 
       double vals2[] =
       {
@@ -319,7 +320,7 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.35 + 0.16 + 0.07 + 0 + 0.21 + 0.18;
+      const double pevidence = 1.0; //0.35 + 0.16 + 0.07 + 0 + 0.21 + 0.18;
 
       double vals2[] =
       {
@@ -366,7 +367,7 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.25 + 0.35 + 0.05 + 0.07 + 0.15 + 0.21;
+      const double pevidence = 1.0; //0.25 + 0.35 + 0.05 + 0.07 + 0.15 + 0.21;
 
       double vals2[] =
       {
@@ -413,7 +414,7 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.08 + 0.16 + 0 + 0 + 0.09 + 0.18;
+      const double pevidence = 1.0; //0.08 + 0.16 + 0 + 0 + 0.09 + 0.18;
 
       double vals2[] =
       {
@@ -460,7 +461,7 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.25 + 0.35 + 0.08 + 0.16;
+      const double pevidence = 1.0; //0.25 + 0.35 + 0.08 + 0.16;
 
       double vals2[] =
       {
@@ -505,7 +506,7 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.05 + 0.07 + 0 + 0;
+      const double pevidence = 1.0; //0.05 + 0.07 + 0 + 0;
 
       double vals2[] =
       {
@@ -550,7 +551,7 @@ public:
          0.25, 0.35, 0.08, 0.16, 0.05, 0.07, 0, 0, 0.15, 0.21, 0.09, 0.18
       };
 
-      const double pevidence = 0.15 + 0.21 + 0.09 + 0.18;
+      const double pevidence = 1.0; // 0.15 + 0.21 + 0.09 + 0.18;
 
       double vals2[] =
       {

@@ -52,16 +52,16 @@ namespace algorithm
               the search space, making the optimizer successful.
        @param seed the starting position
        */
-      virtual std::vector<double> optimize( const OptimizerClient& client,
-                                            const ParameterOptimizers& parameters,
-                                            const core::Buffer1D<double>& seed ) = 0;
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& client,
+                                               const ParameterOptimizers& parameters,
+                                               const core::Buffer1D<double>& seed ) = 0;
 
       /**
        @brief Optimize the client function
        @note the seed is randomly generated from the parameters
        */
-      virtual std::vector<double> optimize( const OptimizerClient& client,
-                                            const ParameterOptimizers& parameters )
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& client,
+                                               const ParameterOptimizers& parameters )
       {
          core::Buffer1D<double> seed( parameters.size() );
          for ( size_t n = 0; n < seed.size(); ++n )
