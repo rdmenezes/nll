@@ -82,9 +82,10 @@
 // if defined, extra checks will be performed to check preconditions/postconditions
 // #define NLL_SECURE
 
-// if defined, use LIBFFTW3 as the implementation of the FFT
-// note that if this flag is used, you must comply with the FFTW3 licensing terms
-//#define NLL_DONT_USE_LIBFFTW3
+// if not defined, use LIBFFTW3 as the implementation of the FFT
+// NOTE1 that if this flag is used, you must comply with the FFTW3 licensing terms
+// NOTE2 if not defined, by default no FFT library will be binded
+#define NLL_DONT_USE_LIBFFTW3
 
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
@@ -103,8 +104,8 @@
    its full integrated framework : feature creation, feature selection, feature
    transformation, preprocessing, classification and validation algorithms.
  @author Ludovic Sibille
- @version 0.15
- @date 30th May 2011
+ @version 0.16
+ @date 21th August 2012
  */
 
 /// define the version of nll as a string
