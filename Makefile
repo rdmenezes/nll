@@ -29,6 +29,7 @@ distclean: clean
 
 doc:
 	cd nll && doxygen nll.dox
+	mv nll/docs .
 
 tarball: clean doc all
 	mkdir tarball
@@ -41,22 +42,24 @@ tarball: clean doc all
 	cp tutorial/data/uci/yeast/*.data tarball/nll/tutorial/data/uci/yeast/
 	cp tutorial/data/usps/*.txt tarball/nll/tutorial/data/usps/
 	cd tarball/nll && mkdir $(MODE) && cd $(MODE) && mkdir $(PLATFORM)
-	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect medical ica feature histogram manifolds
+	cd tarball/nll/nllTest && mkdir data && cd data && mkdir gmm image spect medical ica feature histogram manifolds ddf bnt
 	cp Makefile ChangeLog License.txt AUTHORS configure nll.sln Readme.txt tarball/nll
 	cp nll/*.h tarball/nll/include
-	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcproj tarball/nll/tutorial
+	cp tutorial/Makefile tutorial/*.h tutorial/*.cpp tutorial/tutorial.vcxproj tarball/nll/tutorial
 	cp tutorial/data/proben1/cancer/*.dt tarball/nll/tutorial/data/proben1/cancer
 	cp tutorial/data/proben1/cancer/*.data tarball/nll/tutorial/data/proben1/cancer
 	cp tutorial/data/image/*.bmp tarball/nll/tutorial/data/image
-	cp nll/*.h nll/*.cpp nll/nll.vcproj nll/nll.rc nll/Makefile nll/nll.dox nll/todo.txt tarball/nll/nll
-	cp nll/docs/html/* tarball/nll/doc
-	cp nllTest/*.h nllTest/*.cpp nllTest/nllTest.vcproj nllTest/Makefile tarball/nll/nllTest
+	cp nll/*.h nll/*.cpp nll/nll.vcxproj nll/nll.vcxproj.filters nll/nll.rc nll/Makefile nll/nll.dox nll/todo.txt tarball/nll/nll
+	cp docs/html/* tarball/nll/doc
+	cp nllTest/*.h nllTest/*.cpp nllTest/nllTest.vcxproj nllTest/Makefile tarball/nll/nllTest
 	cp nllTest/data/gmm/*.mfc tarball/nll/nllTest/data/gmm
 	cp nllTest/data/spect/SPECT* tarball/nll/nllTest/data/spect
 	cp nllTest/data/image/*.bmp tarball/nll/nllTest/data/image
-	cp nllTest/data/medical/pet-NAC.mf2 nllTest/data/medical/test1.mf2 nllTest/data/medical/test2.mf2 nllTest/data/medical/pet.mf2 tarball/nll/nllTest/data/medical
+	cp nllTest/data/medical/pet-NAC.mf2 nllTest/data/medical/test1.mf2 nllTest/data/medical/pet.mf2 nllTest/data/medical/MR-1.mf2 tarball/nll/nllTest/data/medical
 	cp nllTest/data/ica/*.bmp tarball/nll/nllTest/data/ica
 	cp nllTest/data/feature/*.bmp tarball/nll/nllTest/data/feature
 	cp nllTest/data/histogram/*.txt tarball/nll/nllTest/data/histogram
 	cp nllTest/data/manifolds/*.txt tarball/nll/nllTest/data/manifolds
-	cp tester/*.h tester/*.cpp tester/tester.vcproj tester/ReadMe.txt tester/Makefile tarball/nll/tester
+	cp nllTest/data/ddf/*.bmp tarball/nll/nllTest/data/ddf
+	cp nllTest/data/bnt/*.txt tarball/nll/nllTest/data/bnt
+	cp tester/*.h tester/*.cpp tester/tester.vcxproj tester/ReadMe.txt tester/Makefile tarball/nll/tester
