@@ -32,14 +32,14 @@ struct TestMathFloor
 #endif
    }
 
-   void testTruncateu()
+   void testFlooru()
    {
       nll::core::Timer t1;
       double val = 0.1;
       unsigned int sum = 0;
       for ( unsigned n = 0; n < 85000000; ++n, val += 0.4 )
       {
-         unsigned int valn = nll::core::truncateu( val );
+         unsigned int valn = nll::core::flooru( val );
          sum += valn;
       }
       double time1 = t1.getCurrentTime();
@@ -61,41 +61,12 @@ struct TestMathFloor
       TESTER_ASSERT( time1 <= time2 ); // else default implementation so useless to test...
 #endif
    }
-
-   /*
-   void testTruncate()
-   {
-      nll::core::Timer t1;
-      double val = 0.1;
-      int sum = 0;
-      for ( unsigned n = 0; n < 85000000; ++n, val += 0.4 )
-      {
-         int valn = nll::core::truncate( val );
-         sum += valn;
-      }
-      double time1 = t1.getCurrentTime();
-
-      nll::core::Timer t2;
-      double val2 = 0.1;
-      int sum2 = 0;
-      for ( unsigned n = 0; n < 85000000; ++n, val2 += 0.4 )
-      {
-         int valn = (int)( val2 );
-         sum2 += valn;
-      }
-      double time2 = t2.getCurrentTime();
-      std::cout << "Time core::truncate=" << time1 << std::endl;
-      std::cout << "Time default" << time2 << std::endl;
-      TESTER_ASSERT( sum2 == sum ); // check we have the same result!
-      TESTER_ASSERT( time1 <= time2 ); // the assembly one must be faster, else equal if std version is used
-   }*/
 };
 
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestMathFloor);
  TESTER_TEST(testFloor);
- TESTER_TEST(testTruncateu);
- /*TESTER_TEST(testTruncate);*/
+ TESTER_TEST(testFlooru);
 TESTER_TEST_SUITE_END();
 #endif

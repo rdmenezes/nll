@@ -270,19 +270,19 @@ namespace imaging
          return _mapper[ transformToIndex( value ) ];
       }
 
-      const T* operator[]( size_t index ) const
+      const T* operator[]( ui32 index ) const
       {
          ensure( index < _mapper.getSize(), "error out of bound" );
          return _mapper[ index ];
       }
 
-      size_t transformToIndex( float value ) const
+      ui32 transformToIndex( float value ) const
       {
          if ( value < _min )
             return 0;
          if ( value >= _max )
-            return _mapper.getSize() - 1;
-         return (size_t)( ( value - _min ) * _ratio );
+            return (ui32)_mapper.getSize() - 1;
+         return (ui32)( ( value - _min ) * _ratio );
       }
 
       template <class InputIterator, class OutputIterator>
@@ -296,103 +296,54 @@ namespace imaging
 
 // if we disable SSE, this is pointless to have a specialized template
 // additionally, this is not standard compliant (the specialized template should be outside class, which will force a full spacialization.. Mapper.. which we don't want...)
-#  ifndef NLL_DISABLE_SSE_SUPPORT
+# if NLL_INSTRUCTION_SET >= 2
       template <>
-      void transformToIndex( float* first, float* last, size_t* output ) const
+      void transformToIndex<float*, ui32*>( float* start, float* end, ui32* output ) const
       {
-#  if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
-         // finally the multithreaded version doesn't not improve the time performance
-         // usuall it is a very small fraction of time for blending a frame and it costs
-         // more to create the threads and synchronize them, it is only worth it when
-         // the number of indexes to convert is huge
-         #pragma omp parallel
-#  endif
+         transformToIndex<const float*>( start, end, output );
+      }
+
+      template <>
+      void transformToIndex<const float*, ui32*>( const float* start, const float* end, ui32* output ) const
+      {
+         assert( start < end );
+         const size_t nbVectorizedLoops = ( end - start ) / 4;
+         const float* endVectorized = start + nbVectorizedLoops * 4;
+
+         vectorized::Vec4f min( _min );
+         vectorized::Vec4f max( _max );
+         vectorized::Vec4f ratio( _ratio );
+
+         //( value - _min ) * _ratio
+         for( ; start != endVectorized; start += 4, output += 4 )
          {
-#  if !defined(NLL_NOT_MULTITHREADED) && !defined(NLL_NOT_MULTITHREADED_FOR_QUICK_OPERATIONS)
-            size_t size = last - first;
-            const int numberOfThreads = omp_get_num_threads();
-				const int threadNumber = omp_get_thread_num();
+            vectorized::Vec4f vals;
+            vals.load( start );
 
-            size_t* o = output + size * threadNumber / numberOfThreads;
-            const float* i = first  + size * threadNumber / numberOfThreads;
-            const float* l = first  + size * ( threadNumber + 1 ) / numberOfThreads;
-            std::cout << "thread=" << threadNumber << " size=" << l - i << std::endl;
+            vectorized::Vec4fb lower = vals < min;
+            vectorized::Vec4fb higher = vals > max;
 
-#   ifdef NLL_DISABLE_SSE_SUPPORT
-            transformSingleThreaded( i, l, o );
-#    else
-            if ( core::Configuration::instance().isSupportedSSE2() )
+            const bool is1 = vectorized::horizontal_or( lower );
+            const bool is2 = vectorized::horizontal_or( higher );
+            if ( is1 || is2 )
             {
-               const unsigned int rm = _MM_GET_ROUNDING_MODE();
-					_MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
-
-               transformSingleThreadedSSE( i, l, o );
-
-               _MM_SET_ROUNDING_MODE( rm );
+               // if one is outside the domain, don't bother...
+               output[ 0 ] = transformToIndex( start[ 0 ] );
+               output[ 1 ] = transformToIndex( start[ 1 ] );
+               output[ 2 ] = transformToIndex( start[ 2 ] );
+               output[ 3 ] = transformToIndex( start[ 3 ] );
+               continue;
+            } else {
+               // all are in range, so continue...
+               vals = ( vals - min ) * ratio;
+               vectorized::Vec4i indexes = vectorized::truncatei( vals );
+               indexes.store( output );
             }
-            else
-               transformSingleThreaded( i, l, o );
-#   endif
-#   else
-            transformSingleThreaded( first, last, output );
-#  endif
-         }
-      }
-
-      void transformSingleThreaded( const float* first, const float* last, size_t* output ) const
-      {
-         for ( ; first != last; ++first )
-         {
-            *output++ = transformToIndex( *first );
-         }
-      }
-# endif
-
-# ifndef NLL_DISABLE_SSE_SUPPORT
-      void transformSingleThreadedSSE( const float* first, const float* last, size_t* output ) const
-      {
-         // manually transform the non 16bit aligned elements
-         const float* p = first;
-         while ( ( ( ( reinterpret_cast<size_t> ( p ) ) & 15 ) != 0 ) )
-			{
-				if ( p == last )
-				{
-					return;
-				}
-            *output++ = transformToIndex( *p++ );
-			}
-
-
-         // we need to padd 4 (we loop 4 by 4)
-         const float* end16 = last - 4;
-
-         // start vectorisation
-         const __m128 invslope = _mm_set_ps1( static_cast<float>( _ratio ) );
-         const __m128 intercept = _mm_set_ps1( static_cast<float>( _min ) );
-         const __m128 minimumValue = _mm_setzero_ps();
-			const __m128 maximumValue = _mm_set1_ps( static_cast< float >( _mapper.getSize() - 1 ) );
-
-         __declspec(align(16)) int index[ 4 ];
-         while ( p < end16 )
-         {
-            const __m128 rawValue = _mm_load_ps( p ); // load 4 values
-            __m128 value = _mm_mul_ps( _mm_sub_ps( rawValue, intercept ), invslope );
-            const int lowCompMask = _mm_movemask_ps( _mm_cmplt_ps( value, minimumValue ) );
-				const int highCompMask = _mm_movemask_ps( _mm_cmpge_ps( value, maximumValue ) );
-            
-            __m128i floored = _mm_cvtps_epi32( value );
-            _mm_store_si128( (__m128i*)index, floored );
-            
-            *output++ = ( lowCompMask & 0x01 ) ? 0 : (highCompMask & 0x1 ) ? _mapper.getSize() : index[ 0 ];
-            *output++ = ( lowCompMask & 0x02 ) ? 0 : (highCompMask & 0x2 ) ? _mapper.getSize() : index[ 1 ];
-            *output++ = ( lowCompMask & 0x03 ) ? 0 : (highCompMask & 0x3 ) ? _mapper.getSize() : index[ 2 ];
-            *output++ = ( lowCompMask & 0x04 ) ? 0 : (highCompMask & 0x4 ) ? _mapper.getSize() : index[ 3 ];            
-            p += 4;
          }
 
-         for ( ; p != last; ++p )
+         for ( ; start != end; ++start )
          {
-            *output++ = transformToIndex( *p );
+            *output++ = transformToIndex( *start );
          }
       }
 # endif
@@ -491,7 +442,7 @@ namespace imaging
          _lut.transformToIndex( start, end, output );
       }
 
-      size_t transformToIndex( value_type val ) const
+      ui32 transformToIndex( value_type val ) const
       {
          return _lut.transformToIndex( val );
       }
@@ -506,12 +457,12 @@ namespace imaging
          return _lut.getNbComponents();
       }
 
-      void set( size_t index, const value_type* value )
+      void set( ui32 index, const value_type* value )
       {
          _lut.set( index, value );
       }
 
-      const value_type* get( size_t index ) const
+      const value_type* get( ui32 index ) const
       {
          return _lut[ index ];
       }
@@ -519,7 +470,8 @@ namespace imaging
       void createGreyscale( value_type highestValue = 256.0f )
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
-         for ( size_t n = 0; n < _lut.getSize(); ++n )
+         const ui32 nb = static_cast<ui32>( _lut.getSize() );
+         for ( ui32 n = 0; n < nb; ++n )
          {
             for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {
@@ -532,7 +484,8 @@ namespace imaging
       void createGreyscaleInverted()
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
-         for ( size_t n = 0; n < _lut.getSize(); ++n )
+         const ui32 nb = static_cast<ui32>( _lut.getSize() );
+         for ( ui32 n = 0; n < nb; ++n )
          {
             for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {
@@ -554,7 +507,8 @@ namespace imaging
       void createColorScale( const value_type* baseColor )
       {
          core::Buffer1D<value_type> vals( _lut.getNbComponents() );
-         for ( size_t n = 0; n < _lut.getSize(); ++n )
+         const ui32 nb = static_cast<ui32>( _lut.getSize() );
+         for ( ui32 n = 0; n < nb; ++n )
          {
             for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
             {

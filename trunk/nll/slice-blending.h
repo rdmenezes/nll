@@ -83,7 +83,7 @@ namespace imaging
 
 
 #ifndef DISABLE_SSE_BLENDING_OPTIM
-#ifndef NLL_DISABLE_SSE_SUPPORT
+# if NLL_INSTRUCTION_SET >= 2
    /**
     @ingroup imaging
     @brief Typically used compose the result of several MPR to create a RGB fused slice
@@ -311,7 +311,7 @@ namespace imaging
 #ifdef DISABLE_SSE_BLENDING_OPTIM
       blendDummy<Lut>( sliceInfos, out );
 # else
-#  ifndef NLL_DISABLE_SSE_SUPPORT
+# if NLL_INSTRUCTION_SET >= 2
       if ( core::Configuration::instance().isSupportedSSE2() && core::Equal<float, typename Lut::value_type>::value )
          blendSSE<Lut>( sliceInfos, out );
       else

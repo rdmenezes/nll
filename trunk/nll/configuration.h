@@ -32,11 +32,6 @@
 #ifndef NLL_CORE_CONFIGURATION_H_
 # define NLL_CORE_CONFIGURATION_H_
 
-# ifndef NLL_DISABLE_SSE_SUPPORT
-#  include <xmmintrin.h>
-#  include <emmintrin.h>
-#endif
-
 namespace nll
 {
 namespace core

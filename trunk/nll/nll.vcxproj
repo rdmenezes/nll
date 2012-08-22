@@ -183,7 +183,7 @@
       <EnableFiberSafeOptimizations>true</EnableFiberSafeOptimizations>
       <WholeProgramOptimization>true</WholeProgramOptimization>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG; WIN32;NLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
@@ -384,6 +384,7 @@
     <ClInclude Include="Buffer1D-basic-op.h" />
     <ClInclude Include="Buffer1D-convolve.h" />
     <ClInclude Include="buffer1D.h" />
+    <ClInclude Include="constant.h" />
     <ClInclude Include="ddf-overlay.h" />
     <ClInclude Include="decision-tree.h" />
     <ClInclude Include="configuration.h" />
@@ -576,6 +577,9 @@
     <ClInclude Include="slice.h" />
     <ClInclude Include="transformation.h" />
     <ClInclude Include="collection-wrapper.h" />
+    <ClInclude Include="vec4f.h" />
+    <ClInclude Include="vec4fb.h" />
+    <ClInclude Include="vec4i.h" />
     <ClInclude Include="volume-barycentre.h" />
     <ClInclude Include="volume-discretizer.h" />
     <ClInclude Include="volume-distance-transform.h" />

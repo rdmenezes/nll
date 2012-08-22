@@ -141,8 +141,8 @@ namespace algorithm
       const T1 min1 = *std::min_element( source.begin(), source.end() );
       const T1 max2 = *std::max_element( target.begin(), target.end() );
       const T1 min2 = *std::min_element( target.begin(), target.end() );
-      ensure( max1 < histogram.size(), "error: a discrete value in source is higher than the number of bins in histogram" );
-      ensure( max2 < histogram.size(), "error: a discrete value in target is higher than the number of bins in histogram" );
+      ensure( max1 < histogram.getNbBins(), "error: a discrete value in source is higher than the number of bins in histogram" );
+      ensure( max2 < histogram.getNbBins(), "error: a discrete value in target is higher than the number of bins in histogram" );
       ensure( min1 >= 0, "error: a discrete value in source is lower than 0" );
       ensure( min2 >= 0, "error: a discrete value in target is lower than 0" );
       #endif
@@ -165,8 +165,8 @@ namespace algorithm
       const T1 min1 = *std::min_element( source.begin(), source.end() );
       const T1 max2 = *std::max_element( target.begin(), target.end() );
       const T1 min2 = *std::min_element( target.begin(), target.end() );
-      ensure( max1 < histogram.size(), "error: a discrete value in source is higher than the number of bins in histogram" );
-      ensure( max2 < histogram.size(), "error: a discrete value in target is higher than the number of bins in histogram" );
+      ensure( max1 < histogram.getNbBins(), "error: a discrete value in source is higher than the number of bins in histogram" );
+      ensure( max2 < histogram.getNbBins(), "error: a discrete value in target is higher than the number of bins in histogram" );
       ensure( min1 >= 0, "error: a discrete value in source is lower than 0" );
       ensure( min2 >= 0, "error: a discrete value in target is lower than 0" );
       #endif
