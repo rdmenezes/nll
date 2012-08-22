@@ -73,19 +73,36 @@
 
 #define PLACEMENT_NEW   new
 
-// define NLL_DISABLE_SSE_SUPPORT macro to disable all optimizations using SSE
-// #define NLL_DISABLE_SSE_SUPPORT
+#define NLL_INSTRUCTION_SET_BASIC      0
+#define NLL_INSTRUCTION_SET_SSE        1
+#define NLL_INSTRUCTION_SET_SSE2       2
+#define NLL_INSTRUCTION_SET_SSE3       3
+#define NLL_INSTRUCTION_SET_SSSE3      4
+#define NLL_INSTRUCTION_SET_SSE41      5
+#define NLL_INSTRUCTION_SET_SSE42      6
+#define NLL_INSTRUCTION_SET_AVX        7
+#define NLL_INSTRUCTION_SET_AVX2       8
+
+/**
+ @brief Defines the current processor instruction set supported
+ */
+# define NLL_INSTRUCTION_SET NLL_INSTRUCTION_SET_SSE42
+
+# if NLL_INSTRUCTION_SET >= 1
+#  include <xmmintrin.h>
+#  include <emmintrin.h>
+#endif
 
 // define the NLL_NOT_MULTITHREADED macro if NLL needs not to be thread safe. By default it is thread safe.
 // #define NLL_NOT_MULTITHREADED
 
 // if defined, extra checks will be performed to check preconditions/postconditions
-// #define NLL_SECURE
+#define NLL_SECURE
 
 // if not defined, use LIBFFTW3 as the implementation of the FFT
 // NOTE1 that if this flag is used, you must comply with the FFTW3 licensing terms
 // NOTE2 if not defined, by default no FFT library will be binded
-#define NLL_DONT_USE_LIBFFTW3
+// #define NLL_DONT_USE_LIBFFTW3
 
 #ifndef NLL_NOT_MULTITHREADED
 # include <omp.h>
@@ -158,6 +175,7 @@
    - matrix
  */
 
+# include <assert.h>
 # include <fstream>
 # include <stdexcept>
 # include <cstdlib>
@@ -176,6 +194,21 @@
 # include <utility>
 # include <cstring>
 
+# include "types.h"
+
+/**
+ @defgroup vectorized
+
+ Low level primitive blocs helping with vectorization
+ Only available if at least SSE2 is supported
+ */
+# if NLL_INSTRUCTION_SET >= 2
+#  include "constant.h"
+#  include "vec4i.h"
+#  include "vec4fb.h"
+#  include "vec4f.h"
+#endif
+
 /**
  @defgroup core
 
@@ -191,7 +224,6 @@
 # include "indent.h"
 # include "singleton.h"
 # include "configuration.h"
-# include "types.h"
 # include "collection-wrapper.h"
 # include "utility-pure.h"
 # include "utility-matlab.h"

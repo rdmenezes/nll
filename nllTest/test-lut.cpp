@@ -151,15 +151,15 @@ public:
       srand( 0 );
       Lut lut = createLut();
       nll::core::Image<float> input( size, size, 1 );
-      nll::core::Image<size_t> output( size, size, 1 );
-      nll::core::Image<size_t> output2( size, size, 1 );
+      nll::core::Image<nll::ui32> output( size, size, 1 );
+      nll::core::Image<nll::ui32> output2( size, size, 1 );
       for ( nll::core::Image<float>::iterator it = input.begin(); it != input.end(); ++it )
       {
          *it = (float)(rand() % 500);
       }
 
       nll::core::Image<float>::DirectionalIterator it = input.beginDirectional();
-      nll::core::Image<size_t>::DirectionalIterator out = output.beginDirectional();
+      nll::core::Image<nll::ui32>::DirectionalIterator out = output.beginDirectional();
 
       
       nll::core::Timer t1;
@@ -168,8 +168,6 @@ public:
          *out = lut.transformToIndex( *it );
       }
       std::cout << "LUT Time no multithreaded SSE=" << t1.getCurrentTime() << std::endl;
-      
-
       
       nll::core::Timer t2;
       lut.transformToIndex( input.begin(), input.end(), output2.begin() );

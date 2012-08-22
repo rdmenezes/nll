@@ -29,33 +29,23 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef NLL_MATH_FLOOR_H_
-# define NLL_MATH_FLOOR_H_
-
-# include <cmath>
+#ifndef NLL_VECTORIZED_CONSTANT_H_
+# define NLL_VECTORIZED_CONSTANT_H_
 
 namespace nll
 {
-namespace core
+namespace vectorized
 {
-   inline int floor( double x )
-   {
-      return static_cast<int>( x );
-   }
-
-   inline int floor( float x )
-   {
-      return static_cast<int>( x );
-   }
-
-   inline unsigned int flooru( double x )
-   {
-      return static_cast<unsigned int>( x );
-   }
-
-   inline unsigned int flooru( float x )
-   {
-      return static_cast<unsigned int>( x );
+   /**
+    @brief represent a compile time constant
+    */
+   template <int i0, int i1, int i2, int i3>
+   static inline __m128i constant4i() {
+       static const union {
+           int     i[4];
+           __m128i xmm;
+       } u = {{i0,i1,i2,i3}};
+       return u.xmm;
    }
 }
 }

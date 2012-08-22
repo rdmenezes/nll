@@ -40,6 +40,7 @@ namespace nll
    typedef     short             i16;
    typedef     unsigned long     ui32;
    typedef     long              i32;
+   typedef     long long         i64;
    typedef     float             f32;
    typedef     double            f64;
 }

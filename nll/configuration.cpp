@@ -33,8 +33,8 @@
 #include "stdafx.h"
 #include "nll.h"
 
-# ifndef NLL_DISABLE_SSE_SUPPORT
-#include <intrin.h>
+#if NLL_INSTRUCTION_SET >= 1
+# include <intrin.h>
 #endif
 
 namespace nll
@@ -85,7 +85,7 @@ namespace core
          DSCPL     = 0x00000010
       };
 
-# if !defined ( NLL_DISABLE_SSE_SUPPORT )
+# if NLL_INSTRUCTION_SET >= 1
       static inline unsigned long getCPUFeatures( int i )
       {
          static int CPUInfo[ 4 ];

@@ -48,6 +48,9 @@
     <Filter Include="algorithm-time">
       <UniqueIdentifier>{ab5f89ab-6718-4f8b-81bc-25998e1fc49e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vectorized">
+      <UniqueIdentifier>{8825d26c-2806-4f62-82eb-f4f039908ae8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nll.cpp">
@@ -787,6 +790,18 @@
     </ClInclude>
     <ClInclude Include="registration-gradient-evaluator.h">
       <Filter>algorithm-regs</Filter>
+    </ClInclude>
+    <ClInclude Include="vec4f.h">
+      <Filter>vectorized</Filter>
+    </ClInclude>
+    <ClInclude Include="constant.h">
+      <Filter>vectorized</Filter>
+    </ClInclude>
+    <ClInclude Include="vec4i.h">
+      <Filter>vectorized</Filter>
+    </ClInclude>
+    <ClInclude Include="vec4fb.h">
+      <Filter>vectorized</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
