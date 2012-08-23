@@ -48,29 +48,29 @@ namespace vectorized
       Vec4f()
       {}
 
+      Vec4f( const float * p ) : xmm( _mm_loadu_ps( p ) )
+      {}
+
       /**
        @brief Initialize the 4-vector with the same value
        */
-      Vec4f( float f )
-      {
-         xmm = _mm_set1_ps( f );
-      }
+      Vec4f( float f ) : xmm( _mm_set1_ps( f ) )
+      {}
 
       /**
        @brief Constructor to build from 4 values
        */
-      Vec4f( float f0, float f1, float f2, float f3 )
-      {
-         xmm = _mm_setr_ps( f0, f1, f2, f3 ); 
-      }
+      Vec4f( float f0, float f1, float f2, float f3 ) : xmm( _mm_setr_ps( f0, f1, f2, f3 ) )
+      {}
 
       /**
        @brief Constructor to convert from type __m128 used in intrinsics
        */
-      Vec4f( __m128 const & x )
-      {
-         xmm = x;
-      }
+      Vec4f( __m128 const & x ) : xmm( x )
+      {}
+
+      explicit Vec4f( const Vec4i& v ) : xmm( _mm_cvtepi32_ps( v ) )
+      {}
 
       /**
        @brief Assignment operator to convert from type __m128 used in intrinsics

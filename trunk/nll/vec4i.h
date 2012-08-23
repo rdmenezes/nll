@@ -60,36 +60,32 @@ namespace vectorized
       // Default constructor:
       Vec4i()
       {
-      };
+      }
+
       // Constructor to broadcast the same value into all elements:
-      Vec4i(int i)
-      {
-         xmm = _mm_set1_epi32(i);
-      };
+      Vec4i(int i) : xmm( _mm_set1_epi32(i) )
+      {}
 
       // Constructor to build from all elements:
-      Vec4i(i32 i0, i32 i1, i32 i2, i32 i3)
-      {
-         xmm = _mm_setr_epi32(i0, i1, i2, i3);
-      };
+      Vec4i(i32 i0, i32 i1, i32 i2, i32 i3) : xmm( _mm_setr_epi32(i0, i1, i2, i3) )
+      {}
 
       // Constructor to convert from type __m128i used in intrinsics:
-      Vec4i(__m128i const & x)
-      {
-         xmm = x;
-      };
+      Vec4i(__m128i const & x) : xmm( x )
+      {}
+
       // Assignment operator to convert from type __m128i used in intrinsics:
       Vec4i & operator = (__m128i const & x)
       {
          xmm = x;
          return *this;
-      };
+      }
 
       // Type cast operator to convert to __m128i used in intrinsics
       operator __m128i() const
       {
          return xmm;
-      };
+      }
 
       // Member function to load from array (unaligned)
       Vec4i & load(void const * p)
@@ -99,7 +95,7 @@ namespace vectorized
       }
 
       // Member function to load from array (aligned)
-      Vec4i & load_a(void const * p)
+      Vec4i& load_a(void const * p)
       {
          xmm = _mm_load_si128((__m128i const*)p);
          return *this;
@@ -195,13 +191,6 @@ namespace vectorized
          i32 x[4];
          store(x);
          return x[ index ];
-      }
-
-      // Extract a single element. Use store function if extracting more than one element.
-      // Operator [] can only read an element, not write.
-      i32 operator [] (ui32 index) const
-      {
-         return extract(index);
       }
 
    protected:
