@@ -38,62 +38,8 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief Optimize the function using gradient descent in batch mode
-
-    The model is updated when all the samples have been analysed
-    */
-   template <class Database>
-   class FunctionOptimizationGradientDescentBatch : public FunctionOptimizer<Database>
-   {
-   public:
-      FunctionOptimizationGradientDescentBatch( double learningRate ) : _learningRate( learningRate )
-      {}
-
-      virtual core::Buffer1D<double> compute( const Database& datLearning,
-                                              const std::vector<double>& weights,
-                                              const ObjectiveFunction<Database>& function,
-                                              const core::Buffer1D<double>& initialParameters,
-                                              size_t nbIterations ) const
-      {
-         #ifdef NLL_SECURE
-         for ( size_t n = 0; n < datLearning.size(); ++n )
-         {
-            ensure( datLearning[ n ].type == Database::Sample::LEARNING, "only learning database allowed!" );
-         }
-         #endif
-
-         ensure( weights.size() == datLearning.size(), "size mismatch" );
-
-         core::Buffer1D<double> model;
-         model.clone( initialParameters );
-         for ( size_t n = 0; n < nbIterations; ++n )
-         {
-            core::Buffer1D<double> gradientMean( model.size() );
-            for ( size_t s = 0; s < datLearning.size(); ++s )
-            {
-               core::Buffer1D<double> gradient = function.computeGradient( model, datLearning[ s ], weights[ s ] );
-               for ( size_t m = 0; m < gradient.size(); ++m )
-               {
-                  gradientMean[ m ] -= gradient[ m ];
-               }
-            }
-
-            for ( size_t m = 0; m < gradientMean.size(); ++m )
-            {
-               model[ m ] += _learningRate * gradientMean[ m ] / datLearning.size();
-            }
-         }
-
-         return model;
-      }
-
-   private:
-      double   _learningRate;
-   };
-
-   /**
-    @ingroup algorithm
     @brief Optimize the function using gradient descent in stochastic mode
+    @deprecated this should be achieved by the Optimizer OptimizerClient interface
 
     Everytime a sample is presented, the model is updated. Usually more noisy, but conerge
     much faster than the regular gradient descent

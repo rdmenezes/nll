@@ -109,6 +109,38 @@ namespace algorithm
    private:
       f64 _minFitness;
    };
+
+   /**
+    @ingroup algorithm
+    @brief define a stopping condition only based on the fitness
+    */
+   class StopConditionRelativeDifference : public StopCondition
+   {
+   public:
+      StopConditionRelativeDifference( f64 minDifferenceBetweenIteration ) : _minDifferenceBetweenIteration( minDifferenceBetweenIteration )
+      {
+         reinit();
+      }
+
+      virtual void reinit()
+      {
+         _lastEval = std::numeric_limits<double>::max();
+      }
+
+      /**
+       @brief increment the iteration counter each this method is called
+       */
+      virtual bool stop( f64 fitness ) const
+      {
+         const bool mustStop = fabs( fitness - _lastEval ) < _minDifferenceBetweenIteration;
+         _lastEval = fitness;
+         return mustStop;
+      }
+
+   private:
+      f64 _minDifferenceBetweenIteration;
+      mutable f64 _lastEval;
+   };
 }
 }
 

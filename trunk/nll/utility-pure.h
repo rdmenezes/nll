@@ -50,7 +50,7 @@ namespace core
     @ingroup core
     @brief Forbids assignment
     */
-   class NonAssignable
+   class NLL_API NonAssignable
    {
    public:
       NonAssignable()
@@ -64,7 +64,7 @@ namespace core
     @ingroup core
     @brief Inherit from this class to make explicitly a class not copyiable
     */
-   struct NonCopyable
+   struct NLL_API NonCopyable
    {
       NonCopyable()
       {}

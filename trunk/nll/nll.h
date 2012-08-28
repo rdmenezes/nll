@@ -87,6 +87,7 @@
  @brief Defines the current processor instruction set supported
  */
 # define NLL_INSTRUCTION_SET NLL_INSTRUCTION_SET_SSE42
+//# define NLL_INSTRUCTION_SET NLL_INSTRUCTION_SET_BASIC
 
 # if NLL_INSTRUCTION_SET >= 1
 #  include <xmmintrin.h>
@@ -358,9 +359,6 @@
  */
 # include "fft.h"
 # include "periodogram.h"
-# include "function.h"
-# include "gradient-descent.h"
-# include "linear-regression.h"
 # include "bracketing.h"
 # include "brent.h"
 # include "powell.h"
@@ -386,6 +384,10 @@
 # include "optimizer-harmony-search-memory.h"
 # include "optimizer-grid-search.h"
 # include "optimizer-powell.h"
+# include "optimizer-gradient-descent.h"
+# include "function.h"
+# include "gradient-descent.h"
+# include "linear-regression.h"
 
 # include "integral-image-3d.h"
 # include "registration-algorithm.h"
