@@ -803,6 +803,9 @@
     <ClInclude Include="vec4fb.h">
       <Filter>vectorized</Filter>
     </ClInclude>
+    <ClInclude Include="optimizer-gradient-descent.h">
+      <Filter>algorithm-api</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

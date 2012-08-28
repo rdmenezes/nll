@@ -40,7 +40,7 @@ namespace algorithm
     @ingroup algorithm
     @brief interface for a generic optimizer implementation
     */
-   class NLL_API Optimizer
+   class NLL_API Optimizer : public core::NonCopyable
    {
    public:
       /**

@@ -39,6 +39,7 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Function for optimization problem
+    @deprecated this should be achieved by the Optimizer OptimizerClient interface
 
     Lets define a function f(x; theta), a function using x and parameterized by theta
     
@@ -75,6 +76,7 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Optimization algorithm for <Function>
+    @deprecated this should be achieved by the Optimizer OptimizerClient interface
     */
    template <class Database>
    class FunctionOptimizer

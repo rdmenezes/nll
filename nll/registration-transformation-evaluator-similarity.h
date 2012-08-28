@@ -47,18 +47,21 @@ namespace algorithm
       typedef typename Base::Volume                      Volume;
       typedef std::vector< std::pair<double, double> >   SimilarityPlot;
       typedef HistogramMaker<T, Storage>                 HistogramMakerAlgorithm;
+      typedef RegistrationGradientEvaluator<T, Storage>  GradientEvaluator;
 
    public:
       RegistrationEvaluatorSimilarity( const Volume& source, const Volume& target, 
                                        const SimilarityFunction& similarity,
                                        const TransformationCreator& creator,
                                        const HistogramMakerAlgorithm& histogramMaker,
-                                       size_t jointHistogramNbBins = 256 ) : Base( source, target, creator ), _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins )
+                                       size_t jointHistogramNbBins = 256,
+                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>() ) : Base( source, target, creator ), _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator )
       {}
 
       RegistrationEvaluatorSimilarity( const SimilarityFunction& similarity,
                                        const HistogramMakerAlgorithm& histogramMaker,
-                                       size_t jointHistogramNbBins = 256 ) : _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins )
+                                       size_t jointHistogramNbBins = 256,
+                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>() ) : _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator )
       {}
 
       /**
@@ -82,6 +85,12 @@ namespace algorithm
          const double val = _similarity.evaluate( jointHistogram );
          _lastRunHistogram = jointHistogram;
          return val;
+      }
+
+      virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const
+      {
+         ensure( _gradientEvaluator.get(), "a gradient evaluator must be set!" );
+         return _gradientEvaluator->evaluateGradient( *this, transformationSourceToTarget );
       }
 
       /**
@@ -118,9 +127,10 @@ namespace algorithm
       }
 
    protected:
-      const SimilarityFunction&        _similarity;
-      const HistogramMakerAlgorithm&   _histogramMaker;
-      size_t                           _jointHistogramNbBins;
+      const SimilarityFunction&           _similarity;
+      const HistogramMakerAlgorithm&      _histogramMaker;
+      size_t                              _jointHistogramNbBins;
+      std::shared_ptr<GradientEvaluator>  _gradientEvaluator;
 
       // keep it for debugging purpose
       mutable JointHistogram           _lastRunHistogram;

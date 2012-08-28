@@ -32,6 +32,10 @@
 #ifndef NLL_VECTORIZED_VEC4I_H_
 # define NLL_VECTORIZED_VEC4I_H_
 
+# pragma warning( push )
+# pragma warning( disable:4245 ) // conversion from 'int' to ui32 signed/unsigned
+# pragma warning( disable:4127 ) // conditional expression constant
+
 namespace nll
 {
 namespace vectorized

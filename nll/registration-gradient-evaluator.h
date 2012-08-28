@@ -46,16 +46,10 @@ namespace algorithm
    public:
       typedef RegistrationEvaluator<T, Storage>    Evaluator;
 
-      RegistrationGradientEvaluator( const Evaluator& evaluator ) : _evaluator( evaluator )
-      {}
-
-      virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const = 0;
+      virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const imaging::Transformation& transformationSourceToTarget ) const = 0;
 
       virtual ~RegistrationGradientEvaluator()
       {}
-
-   protected:
-      const Evaluator&      _evaluator;
    };
 
    /**
@@ -73,14 +67,17 @@ namespace algorithm
       typedef RegistrationGradientEvaluator<T, Storage>        Base;
       typedef typename Base::Evaluator                         Evaluator;
 
-      RegistrationGradientEvaluatorFiniteDifference( const Evaluator& evaluator, core::Buffer1D<double> steps ) : Base( evaluator ), _steps( steps )
+      /**
+       @param steps the steps used to compute the finite difference
+       */
+      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps ) : _steps( steps )
       {}
 
-      virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const
+      virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const imaging::Transformation& transformationSourceToTarget ) const
       {
-         const double val0 = this->_evaluator.evaluate( transformationSourceToTarget );
+         const double val0 = evaluator.evaluate( transformationSourceToTarget );
 
-         core::Buffer1D<double> parameters = this->_evaluator.getTransformationCreator().getParameters( transformationSourceToTarget );
+         core::Buffer1D<double> parameters = evaluator.getTransformationCreator().getParameters( transformationSourceToTarget );
          ensure( parameters.size() == _steps.size(), "we must have a step for each parameter of the transformation" );
          core::Buffer1D<double> gradient( parameters.size() );
          for ( size_t n = 0; n < parameters.size(); ++n )
@@ -89,7 +86,7 @@ namespace algorithm
             parametersCpy.clone( parameters );
             parametersCpy[ n ] += _steps[ n ];
 
-            const double val = this->_evaluator.evaluate( this->_evaluator.getTransformationCreator().create( parametersCpy ) );
+            const double val = evaluator.evaluate( *evaluator.getTransformationCreator().create( parametersCpy ) );
             gradient[ n ] = ( val - val0 ) / _steps[ n ];
          }
 

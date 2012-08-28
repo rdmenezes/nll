@@ -311,15 +311,97 @@ public:
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
       }
    }
+
+   void testPyramidalRegistrationGradient()
+   {
+      std::cout << "loading volume..." << std::endl;
+      Volumef volumeOrig;
+      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
+      ensure( loaded, "can't load volume" );
+      volumeOrig.setSpacing( core::vector3f( 1, 1, 1 ) );
+
+      std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
+
+      std::cout << "smoothing volume..." << std::endl;
+      test::VolumeUtils::AverageFull( volumeOrig, 8 );
+
+      std::cout << "registering volume..." << std::endl;
+      const size_t joinHistogramNbBins = 64;
+      Volumef source = volumeOrig;
+      Volumef target = volumeOrig;
+
+
+      srand( 70 );
+
+      std::cout << "pyramid registration:";
+      std::cout.flush();
+      for ( size_t n = 0; n < 10; ++n )
+      {
+         std::cout << "#";
+
+         /*
+         core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
+                               core::generateUniformDistributionf( -30, 30 ),
+                               core::generateUniformDistributionf( -10, 10 ) );*/
+
+         core::vector3f start( 30,
+                               0,
+                               0 );
+
+         core::Buffer1D<double> seed( start.size() );
+         for ( size_t n = 0; n < start.size(); ++n )
+         {
+            seed[ n ] = start[ n ];
+         }
+
+
+         // construct the evaluator
+         algorithm::TransformationCreatorRigid c;
+         algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+         algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
+         typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
+         std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ) ) );
+         RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator );
+         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+
+         // run a registration
+         //algorithm::OptimizerPowell optimizer( 1, 0.001, 10 );
+         algorithm::StopConditionRelativeDifference stopCondition( 0.1 );
+         algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.9 );
+         RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
+
+         // setup the pyramid
+         typedef algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> Preprocessor;
+         typedef algorithm::RegistrationAlgorithmIntensityPyramid<Volumef::value_type, Volumef::VoxelBuffer> PyramidRegistration;
+
+         imaging::LookUpTransformWindowingRGB lut( 0, 10000, joinHistogramNbBins, 1 );
+         lut.createGreyscale( (float)joinHistogramNbBins );
+         Preprocessor preprocessor( lut );
+         PyramidRegistration pyramidRegistration( preprocessor, registration, 3 );
+
+         std::shared_ptr<imaging::Transformation> tfm = pyramidRegistration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = c.getParameters( *tfm );
+
+         TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
+                        fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
+                        fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
+
+         break;
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
- //TESTER_TEST(testSimilarity);
- //TESTER_TEST(testBasic);
- //TESTER_TEST(testRange);
- //TESTER_TEST(testEvaluatorSpecificData);
- //TESTER_TEST(testRigidTransformationCreator);
+/*
+ TESTER_TEST(testSimilarity);
+ TESTER_TEST(testBasic);
+ TESTER_TEST(testRange);
+ TESTER_TEST(testEvaluatorSpecificData);
+ TESTER_TEST(testRigidTransformationCreator);
  TESTER_TEST(testPyramidalRegistration);
+ */
+
+ TESTER_TEST(testPyramidalRegistrationGradient);
 TESTER_TEST_SUITE_END();
 #endif
