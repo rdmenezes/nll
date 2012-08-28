@@ -338,15 +338,9 @@ public:
       for ( size_t n = 0; n < 10; ++n )
       {
          std::cout << "#";
-
-         /*
          core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
                                core::generateUniformDistributionf( -30, 30 ),
-                               core::generateUniformDistributionf( -10, 10 ) );*/
-
-         core::vector3f start( 30,
-                               0,
-                               0 );
+                               core::generateUniformDistributionf( -10, 10 ) );
 
          core::Buffer1D<double> seed( start.size() );
          for ( size_t n = 0; n < start.size(); ++n )
@@ -366,8 +360,9 @@ public:
 
          // run a registration
          //algorithm::OptimizerPowell optimizer( 1, 0.001, 10 );
-         algorithm::StopConditionRelativeDifference stopCondition( 0.1 );
-         algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.9 );
+         //algorithm::StopConditionRelativeDifference stopCondition( 0.0001 );
+         algorithm::StopConditionIteration stopCondition( 100 );
+         algorithm::OptimizerGradientDescent optimizer( stopCondition, 10 );
          RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
 
          // setup the pyramid
@@ -386,7 +381,7 @@ public:
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
 
-         break;
+         //break;
       }
    }
 };
