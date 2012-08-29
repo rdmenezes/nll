@@ -38,6 +38,45 @@ namespace core
 {
    /**
     @ingroup core
+    @brief returns true if there is a scaling component in a 4x4 homogenous matrix
+    */
+   template <class T, class Mapper, class Allocator>
+   bool hasSclaling4x4( const core::Matrix<T, Mapper, Allocator>& matrix4x4, float eps = 1e-3f  )
+   {
+      const vector3f spacing = getSpacing4x4( matrix4x4 );
+      return !core::equal<float>( spacing[ 0 ], 1, eps ) ||
+             !core::equal<float>( spacing[ 1 ], 1, eps ) ||
+             !core::equal<float>( spacing[ 2 ], 1, eps );
+   }
+
+   /**
+    @ingroup core
+    @brief returns true if there is a shearing component in a 4x4 homogenous matrix
+    */
+   template <class T, class Mapper, class Allocator>
+   bool hasShearing4x4( const core::Matrix<T, Mapper, Allocator>& matrix4x4, float eps = 1e-2f  )
+   {
+      StaticVector<T, 3> v1;
+      StaticVector<T, 3> v2;
+      StaticVector<T, 3> v3;
+      for ( size_t n = 0; n < 3; ++n )
+      {
+         v1[ n ] = matrix4x4( n, 0 );
+         v2[ n ] = matrix4x4( n, 1 );
+         v3[ n ] = matrix4x4( n, 2 );
+      }
+
+      const T d1 = fabs( v1.dot( v2 ) );
+      const T d2 = fabs( v1.dot( v3 ) );
+      const T d3 = fabs( v3.dot( v2 ) );
+
+      return d1 >= eps ||
+             d2 >= eps ||
+             d3 >= eps;
+   }
+
+   /**
+    @ingroup core
     @brief Create a 2D transformation matrix, given a rotation, scaling and translation parameters
     @param roation the rotation angle from the x-axis in radian
 
@@ -69,13 +108,18 @@ namespace core
 
    /**
     @ingroup core
-    @brief Returns the rotation contained in a 4x4 affine transformation
+    @brief Returns the rotation contained in a 4x4 similarity affine transformation
     @note the matrix must not contain shearing components to be valid
     */
    template <class type, class mapper, class allocator>
    Matrix<type, mapper, allocator> getRotation4x4( const Matrix<type, mapper, allocator>& m )
    {
       ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
+
+      #ifdef NLL_SECURE
+      ensure( !hasShearing4x4( m ), "the transformation must not have any shearing!" );
+      #endif
+
       StaticVector<type, 3> spacing;
       for ( size_t x = 0; x < 3; ++x )
       {
@@ -200,7 +244,7 @@ namespace core
 
    /**
     @ingroup core
-    @brief Returns the spacing of a 4x4 homogeneous transformation matrix
+    @brief Returns the spacing of a 4x4 homogeneous similarity transformation matrix
     */
    template <class type, class mapper, class allocator>
    vector3f getSpacing4x4( const Matrix<type, mapper, allocator>& m )
@@ -213,6 +257,11 @@ namespace core
                                    core::sqr( m( 1, x ) ) +
                                    core::sqr( m( 2, x ) ) );
       }
+
+      #ifdef NLL_SECURE
+      ensure( !hasShearing4x4( m ), "must not have shearing" );
+      #endif
+
       return spacing;
    }
 
@@ -325,6 +374,94 @@ namespace core
       sphericalToCartesianCoordinate( polarCoordinate[ 0 ], polarCoordinate[ 1 ], polarCoordinate[ 2 ],
                                       result[ 0 ], result[ 1 ], result[ 2 ] );
       return result;
+   }
+
+   /**
+    @ingroup core
+    @brief Computes the 4x4 homogenous rotation matrix from the euler angles
+
+    Computes Rot(z) * Rot(y) * Rot(x)
+
+    @see createRotationMatrix4x4FromEuler for the inverse operation
+    */
+   template <class T, class Mapper, class Allocator>
+   void createRotationMatrix4x4FromEuler( const core::vector3f& eulerAngle, core::Matrix<T, Mapper, Allocator>& rotationMatrix4x4 )
+   {
+      typedef core::Matrix<T, Mapper, Allocator> MatrixT;
+      
+      MatrixT rotx( 4, 4 );
+      MatrixT roty( 4, 4 );
+      MatrixT rotz( 4, 4 );
+
+      matrix4x4RotationX( rotx, eulerAngle[ 0 ] );
+      matrix4x4RotationY( roty, eulerAngle[ 1 ] );
+      matrix4x4RotationZ( rotz, eulerAngle[ 2 ] );
+      rotationMatrix4x4 = rotz * roty * rotx;
+   }
+
+   /**
+    @ingroup core
+    @brief Compute the euler rotation angles of a 4x4 homogeneous rotation matrix
+    @note the matrix must be exactly a rotation matrix (i.e., no shearing, no scaling...)
+
+    Computes (x, y, z) such that rotationMatrix4x4 = Rot(z) * Rot(y) * Rot(x)
+
+    @see https://truesculpt.googlecode.com/hg-history/38000e9dfece971460473d5788c235fbbe82f31b/Doc/rotation_matrix_to_euler.pdf
+         Computing Euler angles from a rotation matrix, Gregory G. Slabaugh
+
+    @see createRotationMatrix4x4FromEuler for the inverse operation
+    @note when c1 != 0, we always have 2 solutions for the same matrix!
+    */
+   template <class T, class Mapper, class Allocator>
+   core::vector3f getEulerAngleFromRotationMatrix( const core::Matrix<T, Mapper, Allocator>& rotationMatrix4x4 )
+   {
+      STATIC_ASSERT( core::IsFloatingType<T>::value );   // we must be on floating point
+
+      #ifdef NLL_SECURE
+      ensure( !hasSclaling4x4( rotationMatrix4x4 ), "must not have any scaling" );
+      ensure( !hasShearing4x4( rotationMatrix4x4 ), "must not have any shearing" );
+      #endif
+
+      const T eps = 1e-6;
+
+      if ( equal<T>( fabs( rotationMatrix4x4( 2, 0 ) ), 1, eps ) ) // R31 == +/- 1
+      {
+         const T phi = 0;
+         if ( equal<T>( rotationMatrix4x4( 2, 0 ), -1, eps ) )
+         {
+            const T theta = static_cast<T>( core::PI ) / 2;
+            const T v = phi + std::atan2( rotationMatrix4x4( 0, 1 ), rotationMatrix4x4( 0, 2 ) );
+            return vector3f( v, theta, phi );
+         } else {
+            const T theta = - static_cast<T>( core::PI ) / 2;
+            const T v = - phi + std::atan2( - rotationMatrix4x4( 0, 1 ), - rotationMatrix4x4( 0, 2 ) );
+            return vector3f( v, theta, phi );
+         }
+      } else {
+         const T theta1 = - std::asin( rotationMatrix4x4( 2, 0 ) );
+         const T theta2 = static_cast<T>( core::PI ) - theta1;
+
+         const T c1 = std::cos( theta1 );
+         const T c2 = std::cos( theta2 );
+
+
+         const T v1 = std::atan2( rotationMatrix4x4( 2, 1 ) / c1,
+                                  rotationMatrix4x4( 2, 2 ) / c1 );
+         const T v2 = std::atan2( rotationMatrix4x4( 2, 1 ) / c2,
+                                  rotationMatrix4x4( 2, 2 ) / c2 );
+
+         const T phi1 = std::atan2( rotationMatrix4x4( 1, 0 ) / c1,
+                                    rotationMatrix4x4( 0, 0 ) / c1 );
+         const T phi2 = std::atan2( rotationMatrix4x4( 1, 0 ) / c2,
+                                    rotationMatrix4x4( 0, 0 ) / c2 );
+
+         if ( !equal<T>( c1, 0, eps ) )
+         {
+            return vector3f( v1, theta1, phi1 );
+         } else {
+            return vector3f( v2, theta2, phi2 );
+         }
+      }
    }
 }
 }
