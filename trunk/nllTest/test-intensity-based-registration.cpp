@@ -265,12 +265,11 @@ public:
       Volumef target = volumeOrig;
 
 
-      srand( 70 );
-
       std::cout << "pyramid registration:";
       std::cout.flush();
       for ( size_t n = 0; n < 10; ++n )
       {
+         srand( n );
          std::cout << "#";
          core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
                                  core::generateUniformDistributionf( -30, 30 ),
@@ -312,7 +311,7 @@ public:
       }
    }
 
-   void testPyramidalRegistrationGradient()
+   void testRegistrationGradient()
    {
       std::cout << "loading volume..." << std::endl;
       Volumef volumeOrig;
@@ -327,16 +326,16 @@ public:
 
       std::cout << "registering volume..." << std::endl;
       const size_t joinHistogramNbBins = 64;
-      Volumef source = volumeOrig;
-      Volumef target = volumeOrig;
 
-
-      srand( 70 );
+      const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins );
+      Volume source = volumeDiscrete;
+      Volume target = source;
 
       std::cout << "pyramid registration:";
       std::cout.flush();
       for ( size_t n = 0; n < 10; ++n )
       {
+         srand( n * 10 );
          std::cout << "#";
          core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
                                core::generateUniformDistributionf( -30, 30 ),
@@ -359,44 +358,28 @@ public:
          std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
 
          // run a registration
-         //algorithm::OptimizerPowell optimizer( 1, 0.001, 10 );
-         //algorithm::StopConditionRelativeDifference stopCondition( 0.0001 );
-         algorithm::StopConditionIteration stopCondition( 100 );
-         algorithm::OptimizerGradientDescent optimizer( stopCondition, 10 );
+         algorithm::StopConditionIteration stopCondition( 50 );
+         algorithm::OptimizerGradientDescent optimizer( stopCondition, 4.0 );
+
          RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
-
-         // setup the pyramid
-         typedef algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> Preprocessor;
-         typedef algorithm::RegistrationAlgorithmIntensityPyramid<Volumef::value_type, Volumef::VoxelBuffer> PyramidRegistration;
-
-         imaging::LookUpTransformWindowingRGB lut( 0, 10000, joinHistogramNbBins, 1 );
-         lut.createGreyscale( (float)joinHistogramNbBins );
-         Preprocessor preprocessor( lut );
-         PyramidRegistration pyramidRegistration( preprocessor, registration, 3 );
-
-         std::shared_ptr<imaging::Transformation> tfm = pyramidRegistration.evaluate( source, target, *initTfm );
+         std::shared_ptr<imaging::Transformation> tfm = registration.evaluate( source, target, *initTfm );
          core::Buffer1D<double> resultd = c.getParameters( *tfm );
 
          TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
-
-         //break;
       }
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
-/*
  TESTER_TEST(testSimilarity);
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
  TESTER_TEST(testRigidTransformationCreator);
  TESTER_TEST(testPyramidalRegistration);
- */
-
- TESTER_TEST(testPyramidalRegistrationGradient);
+ TESTER_TEST(testRegistrationGradient);
 TESTER_TEST_SUITE_END();
 #endif
