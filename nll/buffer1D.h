@@ -487,6 +487,13 @@ protected:
    Allocator      _allocator;
 };
 
+template <class T, class Buffer, class Allocator>
+std::ostream& operator<< ( std::ostream& o, const Buffer1D<T, Buffer, Allocator>& buffer )
+{
+   buffer.print( o );
+   return o;
+}
+
 }
 }
 

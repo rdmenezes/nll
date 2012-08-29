@@ -69,14 +69,20 @@ namespace algorithm
 
       /**
        @param steps the steps used to compute the finite difference
+       @param normalizeGradient if true, the gradient will be normalized
+
+       It is recommended to use the normalized gradient else the algorithm may not converge (ie., with simple gradient descent, in some cases
+       the gradient can be very high).
+
        */
-      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps ) : _steps( steps )
+      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true ) : _steps( steps ), _normalizeGradient( normalizeGradient )
       {}
 
       virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const imaging::Transformation& transformationSourceToTarget ) const
       {
          const double val0 = evaluator.evaluate( transformationSourceToTarget );
 
+         double gradientAccum = 0;
          core::Buffer1D<double> parameters = evaluator.getTransformationCreator().getParameters( transformationSourceToTarget );
          ensure( parameters.size() == _steps.size(), "we must have a step for each parameter of the transformation" );
          core::Buffer1D<double> gradient( parameters.size() );
@@ -88,6 +94,15 @@ namespace algorithm
 
             const double val = evaluator.evaluate( *evaluator.getTransformationCreator().create( parametersCpy ) );
             gradient[ n ] = ( val - val0 ) / _steps[ n ];
+            gradientAccum += fabs( gradient[ n ] );
+         }
+
+         if ( _normalizeGradient )
+         {
+            for ( size_t n = 0; n < parameters.size(); ++n )
+            {
+               gradient[ n ] /= gradientAccum;
+            }
          }
 
          return gradient;
@@ -98,6 +113,7 @@ namespace algorithm
 
    protected:
       core::Buffer1D<double>  _steps;
+      bool                    _normalizeGradient;
    };
 }
 }
