@@ -419,6 +419,12 @@ namespace core
    typedef Matrix<f64> Matrixd;
    typedef Matrix<i32> Matrixi;
 
+   template <class T, class Buffer, class Allocator>
+   std::ostream& operator<< ( std::ostream& o, const Matrix<T, Buffer, Allocator>& m )
+   {
+      m.print( o );
+      return o;
+   }
 }
 }
 
