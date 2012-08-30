@@ -56,12 +56,12 @@ namespace algorithm
       /**
        @brief Evaluate the transformation source->target
        */
-      virtual double evaluate( const imaging::Transformation& transformationSourceToTarget ) const = 0;
+      virtual double evaluate( const TransformationParametrized& transformationSourceToTarget ) const = 0;
 
       /**
        @brief Evaluate the gradient of the transformation
        */
-      virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const
+      virtual core::Buffer1D<double> evaluateGradient( const TransformationParametrized& transformationSourceToTarget ) const
       {
          throw std::runtime_error( "not implemented" );
       }

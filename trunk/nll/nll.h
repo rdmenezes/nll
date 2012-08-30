@@ -390,11 +390,11 @@
 # include "linear-regression.h"
 
 # include "integral-image-3d.h"
+# include "registration-transformation-creator.h"
 # include "registration-algorithm.h"
 # include "fast-volume-pyramid.h"
 # include "joint-histogram.h"
 # include "joint-histogram-similarity.h"
-# include "registration-transformation-creator.h"
 # include "registration-transformation-evaluator.h"
 # include "registration-gradient-evaluator.h"
 # include "registration-transformation-evaluator-similarity.h"

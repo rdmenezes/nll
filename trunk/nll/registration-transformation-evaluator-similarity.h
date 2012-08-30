@@ -69,7 +69,7 @@ namespace algorithm
        @note the (0, 0) bin of the histogram is removed as we don't want to count the background
              (a lot of background matching doesn't mean the registration is good!)
        */
-      virtual double evaluate( const imaging::Transformation& transformation ) const
+      virtual double evaluate( const TransformationParametrized& transformation ) const
       {
          // then construct a joint histogram
          JointHistogram jointHistogram( _jointHistogramNbBins );
@@ -87,7 +87,7 @@ namespace algorithm
          return val;
       }
 
-      virtual core::Buffer1D<double> evaluateGradient( const imaging::Transformation& transformationSourceToTarget ) const
+      virtual core::Buffer1D<double> evaluateGradient( const TransformationParametrized& transformationSourceToTarget ) const
       {
          ensure( _gradientEvaluator.get(), "a gradient evaluator must be set!" );
          return _gradientEvaluator->evaluateGradient( *this, transformationSourceToTarget );

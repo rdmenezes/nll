@@ -55,7 +55,7 @@ namespace algorithm
               from the source to the target (i.e., in an affine transform it is usally inversed)
        @return the transformation aligning the target on the source but defined from source->target
        */
-      virtual std::shared_ptr<imaging::Transformation> evaluate( const Volume& source, const Volume& target, const imaging::Transformation& source2TargetInitTransformation ) const = 0;
+      virtual std::shared_ptr<TransformationParametrized> evaluate( const Volume& source, const Volume& target, const TransformationParametrized& source2TargetInitTransformation ) const = 0;
 
       virtual ~RegistrationAlgorithm()
       {}

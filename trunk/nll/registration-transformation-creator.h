@@ -37,6 +37,49 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
+    @brief Create a parametrized transformation
+    @note it is assumed that the parameters are always synchronized with the parameters.
+          Since a transformation can have different parametrizations (e.g. a 4x4 matrix can represent
+          a rigid, similarity, affine transformations...) there is not a 1 to 1 mapping meaning
+          that we need to enforce matrix immutability (which by default it is as we can't set transformation
+          parameters after construction)
+    */
+   class TransformationParametrized : public virtual imaging::Transformation
+   {
+   public:
+      virtual const core::Buffer1D<double>& getParameters() const = 0;
+   };
+
+   
+   /**
+    @ingroup algorithm
+    @brief Create a parametrized transformation based on an affine representation (i.e., can be rigid, affine, similarity...
+           so the parameter size may varies and will not be unique this is why we need to store them)
+    */
+   class TransformationParametrizedAffine : public imaging::TransformationAffine, public TransformationParametrized
+   {
+   public:
+      template <class T, class Mapper, class Allocator>
+      TransformationParametrizedAffine( const core::Matrix<T, Mapper, Allocator>& init, const core::Buffer1D<double>& parameters ) : TransformationAffine( init )
+      {
+         _parameters.clone( parameters );
+      }
+
+      /**
+       @brief Returns the parameters represented by the affine matrix. The caller needs to know what parametrization
+              was used in order to use it correctly
+       */
+      virtual const core::Buffer1D<double>& getParameters() const
+      {
+         return _parameters;
+      }
+
+   protected:
+      core::Buffer1D<double>  _parameters;
+   };
+
+   /**
     @brief Transformation creator base class
 
     Create a transformation from a list of parameters
@@ -47,17 +90,12 @@ namespace algorithm
       /**
        @brief create a transformation represented by the parameters
        */
-      virtual std::shared_ptr<imaging::Transformation> create( const nll::core::Buffer1D<nll::f64>& parameters ) const = 0;
-
-      /**
-       @brief from a transformation, find the corresponding parameters. If the full transformation cannot be recovered,
-              the parameters approaching the best will be returned
-       */
-      virtual core::Buffer1D<f64> getParameters( const imaging::Transformation& transformation ) const = 0;
+      virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const = 0;
 
       /**
        @brief Return the optimizer parameters, allowing the optimizer to generate new instances of the transformation
-              (note that not all optimizers are using it)
+              
+       This will mostly be used in the context of an optimization with multi-seed scheme.
        */
       virtual ParameterOptimizers getOptimizerParameters() const = 0;
 
@@ -77,7 +115,7 @@ namespace algorithm
    class TransformationCreatorRigid : public TransformationCreator
    {
    public:
-      virtual std::shared_ptr<imaging::Transformation> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
+      virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
       {
          ensure( parameters.size() == 3, "only (tx, ty, tz) parameters expected" );
          core::Matrix<float> tfmMat = core::identityMatrix< core::Matrix<float> >( 4 );
@@ -85,20 +123,8 @@ namespace algorithm
          tfmMat( 1, 3 ) = static_cast<float>( parameters[ 1 ] );
          tfmMat( 2, 3 ) = static_cast<float>( parameters[ 2 ] );
 
-         std::shared_ptr<imaging::Transformation> tfm( new imaging::TransformationAffine( tfmMat ) );
+         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat, parameters ) );
          return tfm;
-      }
-
-      virtual core::Buffer1D<f64> getParameters( const imaging::Transformation& transformation ) const
-      {
-         const imaging::TransformationAffine* tfm = dynamic_cast<const imaging::TransformationAffine*>( &transformation );
-         ensure( tfm, "it must be an affine transformatiob!" );
-
-         core::Buffer1D<f64> params( 3 );
-         params[ 0 ] = tfm->getAffineMatrix()( 0, 3 );
-         params[ 1 ] = tfm->getAffineMatrix()( 1, 3 );
-         params[ 2 ] = tfm->getAffineMatrix()( 2, 3 );
-         return params;
       }
 
       virtual ParameterOptimizers getOptimizerParameters() const
