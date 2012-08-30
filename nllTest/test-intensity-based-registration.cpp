@@ -7,6 +7,14 @@ namespace nll
 {
 namespace algorithm
 {
+
+}
+}
+
+namespace nll
+{
+namespace algorithm
+{
    
 }
 }
@@ -172,13 +180,13 @@ public:
          algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
          algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
          RegistrationEvaluator evaluator( source, target, similarity, c, histogramMaker, joinHistogramNbBins );
-         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+         std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
          // run a registration
          algorithm::OptimizerPowell optimizer( 1, 0.05, 10 );
          RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
-         std::shared_ptr<imaging::Transformation> tfm = registration.evaluate( source, target, *initTfm );
-         core::Buffer1D<double> resultd = c.getParameters( *tfm );
+         std::shared_ptr<algorithm::TransformationParametrized> tfm = registration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = tfm->getParameters();
 
          std::cout << "registration results (expected=(0,0,0)):" << std::endl;
          resultd.print( std::cout );
@@ -186,21 +194,6 @@ public:
          TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
-      }
-   }
-
-   void testRigidTransformationCreator()
-   {
-      for ( size_t n = 0; n < 100; ++n )
-      {
-         algorithm::TransformationCreatorRigid tfmCreator;
-
-         const core::Buffer1D<double> params = core::make_buffer1D<double>( core::generateUniformDistributionf( -100, 100 ),
-                                                                            core::generateUniformDistributionf( -100, 100 ),
-                                                                            core::generateUniformDistributionf( -100, 100 ) );
-         const std::shared_ptr<imaging::Transformation> tfm = tfmCreator.create( params );
-         const core::Buffer1D<double> paramsBack = tfmCreator.getParameters( *tfm );
-         TESTER_ASSERT( params.equal( paramsBack, 1e-3 ) );
       }
    }
 
@@ -287,7 +280,7 @@ public:
          algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
          algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
          RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins );
-         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+         std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
          // run a registration
          algorithm::OptimizerPowell optimizer( 1, 0.001, 10 );
@@ -302,8 +295,8 @@ public:
          Preprocessor preprocessor( lut );
          PyramidRegistration pyramidRegistration( preprocessor, registration, 3 );
 
-         std::shared_ptr<imaging::Transformation> tfm = pyramidRegistration.evaluate( source, target, *initTfm );
-         core::Buffer1D<double> resultd = c.getParameters( *tfm );
+         std::shared_ptr<algorithm::TransformationParametrized> tfm = pyramidRegistration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = tfm->getParameters();
 
          TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
@@ -355,15 +348,15 @@ public:
          typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
          std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ) ) );
          RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator );
-         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+         std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
          // run a registration
          algorithm::StopConditionIteration stopCondition( 50 );
          algorithm::OptimizerGradientDescent optimizer( stopCondition, 4.0 );
 
          RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
-         std::shared_ptr<imaging::Transformation> tfm = registration.evaluate( source, target, *initTfm );
-         core::Buffer1D<double> resultd = c.getParameters( *tfm );
+         std::shared_ptr<algorithm::TransformationParametrized> tfm = registration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = tfm->getParameters();
 
          TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
@@ -429,8 +422,8 @@ public:
          TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
-      }*/
-   }
+      }
+   }*/
 };
 
 #ifndef DONT_RUN_TEST
@@ -439,7 +432,6 @@ TESTER_TEST_SUITE(TestIntensityBasedRegistration);
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
- TESTER_TEST(testRigidTransformationCreator);
  TESTER_TEST(testPyramidalRegistration);
  TESTER_TEST(testRegistrationGradient);
 // TESTER_TEST(testRegistrationRotationGradient);

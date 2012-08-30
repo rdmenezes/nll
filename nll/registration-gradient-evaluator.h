@@ -46,7 +46,7 @@ namespace algorithm
    public:
       typedef RegistrationEvaluator<T, Storage>    Evaluator;
 
-      virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const imaging::Transformation& transformationSourceToTarget ) const = 0;
+      virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const = 0;
 
       virtual ~RegistrationGradientEvaluator()
       {}
@@ -78,12 +78,12 @@ namespace algorithm
       RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true ) : _steps( steps ), _normalizeGradient( normalizeGradient )
       {}
 
-      virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const imaging::Transformation& transformationSourceToTarget ) const
+      virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const
       {
          const double val0 = evaluator.evaluate( transformationSourceToTarget );
 
          double gradientAccum = 0;
-         core::Buffer1D<double> parameters = evaluator.getTransformationCreator().getParameters( transformationSourceToTarget );
+         core::Buffer1D<double> parameters = transformationSourceToTarget.getParameters();
          ensure( parameters.size() == _steps.size(), "we must have a step for each parameter of the transformation" );
          core::Buffer1D<double> gradient( parameters.size() );
          for ( size_t n = 0; n < parameters.size(); ++n )

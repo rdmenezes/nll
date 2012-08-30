@@ -66,7 +66,7 @@ namespace algorithm
        @note the parameter source2TargetInitTransformation must be of the same class as what of the evaluator (i.e., rigid registration
              if the evaluator is using rigid, else the initial transformation will not be fully used... TODO prepending transformation as a work around?
        */
-      virtual std::shared_ptr<imaging::Transformation> evaluate( const Volume& source, const Volume& target, const imaging::Transformation& source2TargetInitTransformation ) const
+      virtual std::shared_ptr<TransformationParametrized> evaluate( const Volume& source, const Volume& target, const TransformationParametrized& source2TargetInitTransformation ) const
       {
          {
             std::stringstream ss;
@@ -83,9 +83,9 @@ namespace algorithm
          _evaluator.setSource( source );
          _evaluator.setTarget( target );
          _evaluator.setTransformationCreator( _creator );
-         core::Buffer1D<double> seed = _creator.getParameters( source2TargetInitTransformation );
+         core::Buffer1D<double> seed = source2TargetInitTransformation.getParameters();
          core::Buffer1D<double> result = _optimizer.optimize( _evaluator, _creator.getOptimizerParameters(), seed );
-         std::shared_ptr<imaging::Transformation> tfm = _creator.create( result );
+         std::shared_ptr<TransformationParametrized> tfm = _creator.create( result );
 
          {
             std::stringstream ss;
@@ -146,7 +146,7 @@ namespace algorithm
       /**
        @brief Run the optimization process
        */
-      virtual std::shared_ptr<imaging::Transformation> evaluate( const Volume& source, const Volume& target, const imaging::Transformation& source2TargetInitTransformation ) const
+      virtual std::shared_ptr<TransformationParametrized> evaluate( const Volume& source, const Volume& target, const TransformationParametrized& source2TargetInitTransformation ) const
       {
          {
             std::stringstream ss;
@@ -171,11 +171,11 @@ namespace algorithm
          ensure( targetSampledPyramid.size() == _pyramidNbLevels, "unexpected number og levels" );
          ensure( sourceSampledPyramid.size() == _pyramidNbLevels, "unexpected number og levels" );
 
-         std::shared_ptr<imaging::Transformation> tfm;
+         std::shared_ptr<TransformationParametrized> tfm;
          for ( int level = -1 + (int)_pyramidNbLevels; level >= 0; --level )
          {
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "pyramid level=" + core::val2str( level ) );
-            const imaging::Transformation* tfmToUse = ( level + 1 == (int)_pyramidNbLevels ) ? &source2TargetInitTransformation : tfm.get();
+            const TransformationParametrized* tfmToUse = ( level + 1 == (int)_pyramidNbLevels ) ? &source2TargetInitTransformation : tfm.get();
             ensure( tfmToUse, "registration problem! Wrong initial transformation" );
             tfm   = _registrationAlgorithm.evaluate( sourceSampledPyramid[ level ],
                                                      targetSampledPyramid[ level ],

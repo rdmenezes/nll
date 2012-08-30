@@ -86,7 +86,7 @@ namespace imaging
     @ingroup imaging
     @brief Defines an affine transformation
     */
-   class TransformationAffine : public Transformation
+   class TransformationAffine : public virtual Transformation
    {
    public:
       /**
@@ -110,8 +110,8 @@ namespace imaging
               The spacing is extracted from the matrix: s_x = sqrt( r1^2 + r4^2 + r7^2 ) and so on
               for s_y and s_z spacing.
        */
-      template <class T>
-      TransformationAffine( const core::Matrix<T>& init ) : _affine( 4, 4, false )
+      template <class T, class Mapper, class Allocator>
+      TransformationAffine( const core::Matrix<T, Mapper, Allocator>& init ) : _affine( 4, 4, false )
       {
          ensure( init.sizex() == 4 && init.sizex() == 4, "only 4x4 matrices are handled" );
          for ( size_t y = 0; y < 4; ++y )
