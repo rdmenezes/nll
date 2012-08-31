@@ -61,7 +61,7 @@ namespace algorithm
       /**
        @brief Evaluate the gradient of the transformation
        */
-      virtual core::Buffer1D<double> evaluateGradient( const TransformationParametrized& transformationSourceToTarget ) const
+      virtual core::Buffer1D<double> evaluateGradient( const TransformationParametrized& /*transformationSourceToTarget*/ ) const
       {
          throw std::runtime_error( "not implemented" );
       }

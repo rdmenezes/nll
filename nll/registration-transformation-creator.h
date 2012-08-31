@@ -112,7 +112,7 @@ namespace algorithm
         | 0 0 1 tz |
         | 0 0 0 1  |
     */
-   class TransformationCreatorRigid : public TransformationCreator
+   class TransformationCreatorTranslation : public TransformationCreator
    {
    public:
       virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
@@ -133,6 +133,51 @@ namespace algorithm
          parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
          parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
          parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
+         return parameters;
+      }
+   };
+
+   /**
+    @brief Rigid Transformation
+    
+    It is modeled by 6 parameters (tx, ty, tz) the translation in MM
+                                  (rx, ry, rz) the euler rotation angles in radians
+        | 1 0 0 tx |
+    T = | 0 1 0 ty | * R(rz) * R(ry) * R(rx)
+        | 0 0 1 tz |
+        | 0 0 0 1  |
+    */
+   class TransformationCreatorRigid : public TransformationCreator
+   {
+   public:
+      virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
+      {
+         ensure( parameters.size() == 6, "only (tx, ty, tz, rx, ry, rz) parameters expected" );
+         core::Matrix<float> tfmMat = core::identityMatrix< core::Matrix<float> >( 4 );
+         tfmMat( 0, 3 ) = static_cast<float>( parameters[ 0 ] );
+         tfmMat( 1, 3 ) = static_cast<float>( parameters[ 1 ] );
+         tfmMat( 2, 3 ) = static_cast<float>( parameters[ 2 ] );
+
+         core::Matrix<float> rot;
+         core::createRotationMatrix4x4FromEuler( core::vector3f( (float)parameters[ 3 ],
+                                                                 (float)parameters[ 4 ],
+                                                                 (float)parameters[ 5 ] ),
+                                                 rot );
+
+         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat * rot, parameters ) );
+         return tfm;
+      }
+
+      virtual ParameterOptimizers getOptimizerParameters() const
+      {
+         ParameterOptimizers parameters;
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 1 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 1 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 1 ) );
+
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -core::PIf / 2, core::PIf / 2, 0, 300, 0.01 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -core::PIf / 2, core::PIf / 2, 0, 300, 0.01 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -core::PIf / 2, core::PIf / 2, 0, 300, 0.01 ) );
          return parameters;
       }
    };

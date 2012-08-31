@@ -71,12 +71,13 @@ namespace algorithm
        @param steps the steps used to compute the finite difference
        @param normalizeGradient if true, the gradient will be normalized
 
-       It is recommended to use the normalized gradient else the algorithm may not converge (ie., with simple gradient descent, in some cases
-       the gradient can be very high).
+       @note the impact of the gradient normalization, some parameters may have much bigger impact!
 
        */
-      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true ) : _steps( steps ), _normalizeGradient( normalizeGradient )
-      {}
+      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true ) : _normalizeGradient( normalizeGradient )
+      {
+         _steps.clone( steps );
+      }
 
       virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const
       {

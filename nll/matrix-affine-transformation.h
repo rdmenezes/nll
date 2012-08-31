@@ -385,7 +385,7 @@ namespace core
     @see createRotationMatrix4x4FromEuler for the inverse operation
     */
    template <class T, class Mapper, class Allocator>
-   void createRotationMatrix4x4FromEuler( const core::vector3f& eulerAngle, core::Matrix<T, Mapper, Allocator>& rotationMatrix4x4 )
+   void createRotationMatrix4x4FromEuler( const core::StaticVector<T, 3>& eulerAngle, core::Matrix<T, Mapper, Allocator>& rotationMatrix4x4 )
    {
       typedef core::Matrix<T, Mapper, Allocator> MatrixT;
       
@@ -413,7 +413,7 @@ namespace core
     @note when c1 != 0, we always have 2 solutions for the same matrix!
     */
    template <class T, class Mapper, class Allocator>
-   core::vector3f getEulerAngleFromRotationMatrix( const core::Matrix<T, Mapper, Allocator>& rotationMatrix4x4 )
+   core::StaticVector<T, 3> getEulerAngleFromRotationMatrix( const core::Matrix<T, Mapper, Allocator>& rotationMatrix4x4 )
    {
       STATIC_ASSERT( core::IsFloatingType<T>::value );   // we must be on floating point
 

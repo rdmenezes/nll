@@ -90,6 +90,46 @@ namespace algorithm
 
    /**
     @ingroup algorithm
+    @brief define a stopping condition based on the stability. If after <nbIter> the fitness hasn't decreased, stop
+    */
+   class StopConditionStable : public StopCondition
+   {
+   public:
+      StopConditionStable( size_t nbIterMax ) : _nbIterMax( nbIterMax ), _iter( 0 ), _lastBest( std::numeric_limits<double>::max() ), _lastBestIter( 0 )
+      {}
+
+      /**
+       @brief increment the iteration counter each this method is called
+       */
+      virtual bool stop( f64 fitness ) const
+      {
+         ++_iter;
+         if ( fitness < _lastBest )
+         {
+            _lastBest = fitness;
+            _lastBestIter = _iter;
+            return false;
+         }
+
+         if ( _iter - _lastBestIter >= _nbIterMax )
+            return true;
+         return false;
+      }
+
+      virtual void reinit()
+      {
+         _iter = 0;
+      }
+
+   private:
+      mutable size_t _iter;
+      mutable double _lastBest;
+      mutable size_t _lastBestIter;
+      size_t _nbIterMax;
+   };
+
+   /**
+    @ingroup algorithm
     @brief define a stopping condition only based on the fitness
     */
    class StopConditionFitness : public StopCondition
