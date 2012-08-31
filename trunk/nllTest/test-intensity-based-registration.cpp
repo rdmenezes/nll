@@ -99,7 +99,7 @@ public:
       v( 1, 1, 1 ) = 1;
 
       // construct the evaluator
-      algorithm::TransformationCreatorRigid transformationCreator;
+      algorithm::TransformationCreatorTranslation transformationCreator;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
       RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins );
@@ -120,7 +120,7 @@ public:
       const size_t joinHistogramNbBins = 2;
 
       // construct the evaluator
-      algorithm::TransformationCreatorRigid transformationCreator;
+      algorithm::TransformationCreatorTranslation transformationCreator;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
       RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins );
@@ -176,7 +176,7 @@ public:
 
 
          // construct the evaluator
-         algorithm::TransformationCreatorRigid c;
+         algorithm::TransformationCreatorTranslation c;
          algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
          algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
          RegistrationEvaluator evaluator( source, target, similarity, c, histogramMaker, joinHistogramNbBins );
@@ -218,7 +218,7 @@ public:
       Volume source = volumeDiscrete;
       Volume target = source;
 
-      algorithm::TransformationCreatorRigid c;
+      algorithm::TransformationCreatorTranslation c;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
       RegistrationEvaluator evaluator( source, target, similarity, c, histogramMaker, joinHistogramNbBins );
@@ -276,7 +276,7 @@ public:
 
 
          // construct the evaluator
-         algorithm::TransformationCreatorRigid c;
+         algorithm::TransformationCreatorTranslation c;
          algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
          algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
          RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins );
@@ -342,7 +342,7 @@ public:
 
 
          // construct the evaluator
-         algorithm::TransformationCreatorRigid c;
+         algorithm::TransformationCreatorTranslation c;
          algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
          algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
          typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
@@ -363,8 +363,7 @@ public:
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
       }
    }
-   /*
-   // TODO just a copy and paste for now...
+   
    void testRegistrationRotationGradient()
    {
       std::cout << "loading volume..." << std::endl;
@@ -391,15 +390,13 @@ public:
       {
          srand( n * 10 );
          std::cout << "#";
-         core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
-                               core::generateUniformDistributionf( -30, 30 ),
-                               core::generateUniformDistributionf( -10, 10 ) );
-
-         core::Buffer1D<double> seed( start.size() );
-         for ( size_t n = 0; n < start.size(); ++n )
-         {
-            seed[ n ] = start[ n ];
-         }
+         core::Buffer1D<double> seed = core::make_buffer1D<double>( /*core::generateUniformDistributionf( -60, 60 ),
+                                                                    core::generateUniformDistributionf( -30, 30 ),
+                                                                    core::generateUniformDistributionf( -10, 10 ),
+                                                                    core::generateUniformDistributionf( -0.1, 0.1 ),
+                                                                    core::generateUniformDistributionf( -0.1, 0.1 ),
+                                                                    core::generateUniformDistributionf( -0.1, 0.1 )*/ 20, -5, -10, 0.2, 0.15, 0 );
+         
 
 
          // construct the evaluator
@@ -407,33 +404,44 @@ public:
          algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
          algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
          typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
-         std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ) ) );
+         std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.001, 0.001, 0.001 ), false ) );
          RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator );
-         std::shared_ptr<imaging::Transformation> initTfm = c.create( seed );
+         std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
+
+         initTfm->print( std::cout );
 
          // run a registration
-         algorithm::StopConditionIteration stopCondition( 50 );
-         algorithm::OptimizerGradientDescent optimizer( stopCondition, 4.0 );
+         algorithm::StopConditionStable stopCondition( 5 );
+         algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 1, 1, 1, 0.005, 0.005, 0.005 ),
+                                                                                     core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.0001, 0.0001, 0.0001 ) );
 
          RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
-         std::shared_ptr<imaging::Transformation> tfm = registration.evaluate( source, target, *initTfm );
-         core::Buffer1D<double> resultd = c.getParameters( *tfm );
 
+         std::shared_ptr<algorithm::TransformationParametrized> tfm = registration.evaluate( source, target, *initTfm );
+         core::Buffer1D<double> resultd = tfm->getParameters();
+
+         // the translational part
          TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
                         fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
                         fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
+
+         // the rotational part
+         TESTER_ASSERT( fabs( resultd[ 3 ] - 0.0 ) < 0.05 &&
+                        fabs( resultd[ 4 ] - 0.0 ) < 0.05 &&
+                        fabs( resultd[ 5 ] - 0.0 ) < 0.05 );
       }
-   }*/
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
+/*
  TESTER_TEST(testSimilarity);
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
  TESTER_TEST(testPyramidalRegistration);
- TESTER_TEST(testRegistrationGradient);
-// TESTER_TEST(testRegistrationRotationGradient);
+ TESTER_TEST(testRegistrationGradient);*/
+ TESTER_TEST(testRegistrationRotationGradient);
 TESTER_TEST_SUITE_END();
 #endif

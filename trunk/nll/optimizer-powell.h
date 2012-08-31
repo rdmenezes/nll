@@ -40,6 +40,7 @@ namespace algorithm
     @brief Powell optimizer. Efficient for problems with low dimentionality (<= 10)
     @param randomSeed the powell optimization is independantly generated a fixed number of times. The best solution is exported
     @param tolerance the tolerance of the algorithm
+    @note the granularity used by the line search for a particular dimension is based on the next(0) of parameters[id]
     */
    class NLL_API OptimizerPowell : public Optimizer
    {
@@ -61,8 +62,9 @@ namespace algorithm
          std::vector< core::Buffer1D<double> > dir;
          for ( size_t n = 0; n < parameters.size(); ++n )
          {
+            const double nextLength = fabs( parameters[ n ].next( 0 ) );
             dir.push_back( core::Buffer1D<f64>( parameters.size() ) );
-            dir[ n ][ n ] = 1;
+            dir[ n ][ n ] = nextLength;
          }
 
          for ( size_t n = 0; n < _nbSeeds; ++n )

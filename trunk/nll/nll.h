@@ -32,7 +32,9 @@
 #ifndef NLL_H
 #define NLL_H
 
-#pragma warning(disable:4996) // we don't care about this warning!
+// we don't care about these warnings!
+#pragma warning( disable:4250 ) 
+#pragma warning(disable:4996)
 
 #ifdef _MSC_VER
 // The following ifdef block is the standard way of creating macros which make exporting 
