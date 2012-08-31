@@ -386,16 +386,16 @@ public:
 
       std::cout << "pyramid registration:";
       std::cout.flush();
-      for ( size_t n = 0; n < 10; ++n )
+      for ( size_t n = 0; n < 5; ++n )
       {
          srand( n * 10 );
          std::cout << "#";
-         core::Buffer1D<double> seed = core::make_buffer1D<double>( /*core::generateUniformDistributionf( -60, 60 ),
-                                                                    core::generateUniformDistributionf( -30, 30 ),
+         core::Buffer1D<double> seed = core::make_buffer1D<double>( core::generateUniformDistributionf( -20, 20 ),
+                                                                    core::generateUniformDistributionf( -20, 20 ),
                                                                     core::generateUniformDistributionf( -10, 10 ),
                                                                     core::generateUniformDistributionf( -0.1, 0.1 ),
                                                                     core::generateUniformDistributionf( -0.1, 0.1 ),
-                                                                    core::generateUniformDistributionf( -0.1, 0.1 )*/ 20, -5, -10, 0.2, 0.15, 0 );
+                                                                    core::generateUniformDistributionf( -0.1, 0.1 ) );// */ 20, -5, -10, 0.2, 0.15, 0 );
          
 
 
@@ -410,10 +410,10 @@ public:
 
          initTfm->print( std::cout );
 
-         // run a registration
+         // run a registration: note this can be tricky here if the parameters are not set correctly... e.g., learningRate is too high, we will loop on local minima
          algorithm::StopConditionStable stopCondition( 5 );
          algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 1, 1, 1, 0.005, 0.005, 0.005 ),
-                                                                                     core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.0001, 0.0001, 0.0001 ) );
+                                                                                     core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.00001, 0.00001, 0.00001 ) );
 
          RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
 
@@ -435,13 +435,12 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
-/*
  TESTER_TEST(testSimilarity);
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
  TESTER_TEST(testPyramidalRegistration);
- TESTER_TEST(testRegistrationGradient);*/
+ TESTER_TEST(testRegistrationGradient);
  TESTER_TEST(testRegistrationRotationGradient);
 TESTER_TEST_SUITE_END();
 #endif
