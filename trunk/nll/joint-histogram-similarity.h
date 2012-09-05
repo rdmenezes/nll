@@ -54,6 +54,7 @@ namespace algorithm
 
    /**
     @brief Sum of square differences similarity function
+    @note there is a normalization factor (which must be taken into account if we want the derivative!)
     */
    class SimilarityFunctionSumOfSquareDifferences : public SimilarityFunction
    {
@@ -61,12 +62,12 @@ namespace algorithm
       virtual double evaluate( const JointHistogram& jh ) const
       {
          double sum = 0;
-
          for ( size_t y = 0; y < jh.getNbBins(); ++y )
          {
             for ( size_t x = 0; x < jh.getNbBins(); ++x )
             {
-               sum += jh( x, y ) * core::sqr( double( x ) - double( y ) );
+               const double val = jh( x, y ) * core::sqr( double( x ) - double( y ) );
+               sum += val;
             }
          }
 
@@ -75,7 +76,60 @@ namespace algorithm
             core::LoggerNll::write( core::LoggerNll::ERROR, "joint histogram is empty!" );
             return std::numeric_limits<double>::max();
          }
-         return sum / jh.getNbSamples();
+
+         // - normalize the function by the count and bins so that they give similar intensities
+         // - remove the diagonal counts
+         return sum / ( jh.getNbSamples() * jh.getNbBins() * jh.getNbBins() ) * 33;
+      }
+   };
+
+
+   /**
+    @brief Mutual information similarity function
+    */
+   class SimilarityFunctionMutualInformation : public SimilarityFunction
+   {
+   public:
+      virtual double evaluate( const JointHistogram& jh ) const
+      {
+         if ( jh.getNbSamples() == 0 )
+         {
+            core::LoggerNll::write( core::LoggerNll::ERROR, "joint histogram is empty!" );
+            return std::numeric_limits<double>::max();
+         }
+
+         core::Buffer1D<JointHistogram::value_type> psource( jh.getNbBins() );
+         core::Buffer1D<JointHistogram::value_type> ptarget( jh.getNbBins() );
+
+         for ( size_t n = 0; n < jh.getNbBins(); ++n )
+         {
+            JointHistogram::value_type psrc = 0;
+            JointHistogram::value_type ptgt = 0;
+
+            for ( size_t nn = 0; nn < jh.getNbBins(); ++nn )
+            {
+               psrc += jh( n, nn );
+               ptgt += jh( nn, n );
+            }
+
+            psource[ n ] = psrc / jh.getNbSamples();
+            ptarget[ n ] = ptgt / jh.getNbSamples();
+         }
+
+         double sum = 0;
+         for ( size_t source = 0; source < jh.getNbBins(); ++source )
+         {
+            for ( size_t target = 0; target < jh.getNbBins(); ++target )
+            {
+               const JointHistogram::value_type pxy = jh( source, target ) / jh.getNbSamples();
+               if ( core::equal<JointHistogram::value_type>( pxy, 0, (JointHistogram::value_type)1e-6 ) )
+                  continue;
+               sum += pxy * std::log( pxy / ( psource[ source ] * ptarget[ target ] + 0.1 ) );
+            }
+         }
+
+         // normalize the function...
+         return - sum;
       }
    };
 }

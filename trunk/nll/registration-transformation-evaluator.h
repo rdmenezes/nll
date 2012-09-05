@@ -96,6 +96,7 @@ namespace algorithm
        */
       const TransformationCreator& getTransformationCreator() const
       {
+         ensure( _target, "TransformationCreator was not set" );
          return *_transformationCreator;
       }
 

@@ -119,6 +119,8 @@ namespace algorithm
       virtual void reinit()
       {
          _iter = 0;
+         _lastBest = std::numeric_limits<double>::max();
+         _lastBestIter = 0;
       }
 
    private:

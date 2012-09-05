@@ -54,6 +54,14 @@ namespace algorithm
       typedef typename Matrix::value_type                MatrixType;
 
    public:
+      VolumePyramid()
+      {}
+
+      VolumePyramid( const Volume& volume, size_t nbLevels )
+      {
+         construct( volume, nbLevels );
+      }
+
       /**
        @brief Construct the pyramid
        @param volume the volume to use. Note that the level 0 is taking a reference on this volume
@@ -67,55 +75,86 @@ namespace algorithm
          _volumes.clear();
          _volumes.reserve( nbLevels );
          _volumes.push_back( volume ); // level 0 is the original volume
+
+         core::vector3i factors( 1, 1, 1 );
          for ( size_t n = 1; n < nbLevels; ++n )
          {
+            // compute the next increments
+            const core::vector3i sizeNext( volume.getSize()[ 0 ] / ( 2 * factors[ 0 ] ),
+                                           volume.getSize()[ 1 ] / ( 2 * factors[ 1 ] ),
+                                           volume.getSize()[ 2 ] / ( 2 * factors[ 2 ] ) );
+            int sizeMin = *std::max_element( sizeNext.getBuf(), sizeNext.getBuf() + 3 );
+            for ( int nn = 0; nn < 3; ++nn )
+            {
+               if ( sizeMin <= sizeNext[ nn ] )
+                  factors[ nn ] *= 2;
+            }
+
             Matrix pst;
             pst.clone( volume.getPst() );
-            const int factori = 1 << n;
-            const int area = factori * factori * factori;
-            const MatrixType factor = static_cast<float>( 1 << n );
+            const int area = factors[ 0 ] * factors[ 1 ] * factors[ 2 ];
+            const int areaSmooth = ( factors[ 0 ] + 2 * ( factors[ 0 ] / 2 ) ) *
+                                   ( factors[ 1 ] + 2 * ( factors[ 1 ] / 2 ) ) *
+                                   ( factors[ 2 ] + 2 * ( factors[ 2 ] / 2 ) );
 
             // set the correct spacing
             for ( size_t x = 0; x < 3; ++x )
             {
                for ( size_t y = 0; y < 3; ++y )
                {
-                  pst( y, x ) *= factor;
+                  pst( y, x ) *= factors[ x ];
                }
             }
 
             // now build the volume
-            Volume v( core::vector3ui( volume.sizex() / factori,
-                                       volume.sizey() / factori,
-                                       volume.sizez() / factori ),
+            Volume v( core::vector3ui( volume.sizex() / factors[ 0 ],
+                                       volume.sizey() / factors[ 1 ],
+                                       volume.sizez() / factors[ 2 ] ),
                       pst,
                       volume.getBackgroundValue() );
             ensure( v.sizex() > 0, "too many pyramid levels" );
             ensure( v.sizey() > 0, "too many pyramid levels" );
             ensure( v.sizez() > 0, "too many pyramid levels" );
 
-            const int sizez = static_cast<int>( volume.sizez() ) / factori;
-            const int sizey = static_cast<int>( volume.sizey() ) / factori;
-            const int sizex = static_cast<int>( volume.sizex() ) / factori;
+            const int sizez = static_cast<int>( volume.sizez() ) / factors[ 2 ];
+            const int sizey = static_cast<int>( volume.sizey() ) / factors[ 1 ];
+            const int sizex = static_cast<int>( volume.sizex() ) / factors[ 0 ];
+
+            core::vector3i halfFactors( factors[ 0 ] / 2,
+                                        factors[ 1 ] / 2,
+                                        factors[ 2 ] / 2 );
 
             #if !defined(NLL_NOT_MULTITHREADED)
             # pragma omp parallel for
             #endif
             for ( int z = 0; z < sizez; ++z )
             {
-               const int zRef = z * factori;
+               const int zRef = z * factors[ 2 ];
                typename Volume::DirectionalIterator  lineIt = v.getIterator( 0, 0, z );
                for ( int y = 0; y < sizey; ++y )
                {
-                  const int yRef = y * factori;
+                  const int yRef = y * factors[ 1 ];
                   typename Volume::DirectionalIterator  voxelIt = lineIt;
                   for ( int x = 0; x < sizex; ++x )
                   {
-                     const int xRef = x * factori;
-                     const IntegralImage3d::value_type val = volumeIntegral.getSum( core::vector3i( xRef, yRef, zRef ),
-                                                                                    core::vector3i( xRef + factori - 1,
-                                                                                                    yRef + factori - 1,
-                                                                                                    zRef + factori - 1 ) ) / area;
+                     const int xRef = x * factors[ 0 ];
+                     IntegralImage3d::value_type val;
+
+                     if ( x >= halfFactors[ 0 ] && y >= halfFactors[ 1 ] && z >= halfFactors[ 2 ] &&
+                          x + halfFactors[ 0 ] < v.sizex() &&
+                          y + halfFactors[ 1 ] < v.sizey() &&
+                          z + halfFactors[ 2 ] < v.sizez() )
+                     {
+                        val = volumeIntegral.getSum( core::vector3i( xRef - halfFactors[ 0 ], yRef - halfFactors[ 1 ], zRef - halfFactors[ 2 ] ),
+                                                     core::vector3i( xRef + factors[ 0 ] - 1 + halfFactors[ 0 ],
+                                                                     yRef + factors[ 1 ] - 1 + halfFactors[ 1 ],
+                                                                     zRef + factors[ 2 ] - 1 + halfFactors[ 2 ] ) ) / areaSmooth;
+                     } else {
+                        val = volumeIntegral.getSum( core::vector3i( xRef, yRef, zRef ),
+                                                     core::vector3i( xRef + factors[ 0 ] - 1,
+                                                                     yRef + factors[ 1 ] - 1,
+                                                                     zRef + factors[ 2 ] - 1 ) ) / area;
+                     }
                      *voxelIt = static_cast<T>( val );
                      voxelIt.addx();
                   }
