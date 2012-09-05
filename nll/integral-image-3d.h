@@ -47,6 +47,11 @@ namespace algorithm
     - 2 pass) add the sum of the previous slice to the current slice
 
     The processing is intensively done on the XY plane
+
+    @see http://www.cse.yorku.ca/~kosta/CompVis_Notes/integral_representations.pdf
+         Integral image-based representations, Konstantinos G. Derpanis
+         Department of Computer Science and Engineering
+         York University
     */
    class IntegralImage3d
    {

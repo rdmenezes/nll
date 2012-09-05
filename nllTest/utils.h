@@ -5,6 +5,48 @@ namespace nll
 {
 namespace test
 {
+   /**
+    @brief Extract a Volume MPR for display
+    */
+   template <class Volume>
+   core::Image<ui8> GetMprForDisplay( const Volume& volume,
+                                      const core::vector3ui& size,
+                                      const core::vector3f& axisX,
+                                      const core::vector3f& axisY,
+                                      const core::vector3f& origin,
+                                      const imaging::LookUpTransformWindowingRGB& lut )
+   {
+      typedef typename Volume::value_type             value_type;
+      typedef imaging::InterpolatorTriLinear<Volume>  Interpolator;
+      typedef imaging::Slice<value_type>              Slice;
+
+      ensure( lut.getNbComponents() == 3, "we need a RGB LUT" );
+
+      core::vector2f spacing( axisX.norm2(), axisY.norm2() );
+      imaging::Slice<float> slice( size,
+                                   axisX,
+                                   axisY,
+                                   origin, 
+                                   spacing );
+      imaging::Mpr<Volume, Interpolator> mpr( volume );
+      mpr.getSlice( slice );
+
+
+      core::Image<ui8> slicei( slice.sizex(), slice.sizey(), 3 );
+      for ( size_t y = 0; y < slicei.sizey(); ++y )
+      {
+         for ( size_t x = 0; x < slicei.sizex(); ++x )
+         {
+            const float* val = lut.transform( slice( x, y, 0 ) );
+            slicei( x, y, 0 ) = (ui8)NLL_BOUND( val[ 0 ], 0, 255 );
+            slicei( x, y, 1 ) = (ui8)NLL_BOUND( val[ 1 ], 0, 255 );
+            slicei( x, y, 2 ) = (ui8)NLL_BOUND( val[ 2 ], 0, 255 );
+         }
+      }
+
+      return slicei;
+   }
+
    class VolumeUtils
    {
    public:
@@ -59,6 +101,9 @@ namespace test
       {
          const int kernelSizeHalf = kernelSize / 2;
 
+         #ifndef NLL_NOT_MULTITHREADED
+         # pragma omp parallel for
+         #endif
          for ( int z = 0; z < (int)v.size()[ 2 ]; ++z )
          {
             for ( int y = 0; y < (int)v.size()[ 1 ]; ++y )

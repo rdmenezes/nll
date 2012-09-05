@@ -147,7 +147,7 @@ namespace algorithm
       ensure( min2 >= 0, "error: a discrete value in target is lower than 0" );
       #endif
 
-      impl::VolumeTransformationProcessorPartialInterpolationHistogram<Volume1> processor( source, histogram );
+      impl::VolumeTransformationProcessorPartialInterpolationHistogram<Volume1> processor( target, histogram );
       imaging::VolumeTransformationMapperChooser mapper;
       mapper.run( processor, target, tfmSourceTarget, const_cast<Volume1&>( source ) );   // the volume is a const volume mapper...
    }
@@ -171,7 +171,7 @@ namespace algorithm
       ensure( min2 >= 0, "error: a discrete value in target is lower than 0" );
       #endif
 
-      impl::VolumeTransformationProcessorNearestNeighborHistogram<Volume1> processor( source, histogram );
+      impl::VolumeTransformationProcessorNearestNeighborHistogram<Volume1> processor( target, histogram );
       imaging::VolumeTransformationMapperChooser mapper;
       mapper.run( processor, target, tfmSourceTarget, const_cast<Volume1&>( source ) );   // the volume is a const volume mapper...
    }

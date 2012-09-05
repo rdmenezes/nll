@@ -69,6 +69,9 @@ namespace algorithm
        */
       virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& /* parameters */, const core::Buffer1D<double>& seed )
       {
+         // reinitialization in case we were reusing the algorithm
+         _stopCondition.reinit();
+
          {
             std::stringstream ss;
             ss << "OptimizerGradientDescent.optimize:" << std::endl
@@ -94,11 +97,21 @@ namespace algorithm
 
          // run the main loop
          _stopCondition.reinit();
-         double lastError = std::numeric_limits<double>::max();
+         double bestSolutionEval = std::numeric_limits<double>::max();
+         core::Buffer1D<double> bestSolution;
          size_t iteration = 0;
          do
          {
             const double f = client.evaluate( point );
+            _lastError = f;
+
+            if ( f < bestSolutionEval )
+            {
+               // store the best solution
+               bestSolutionEval = f;
+               bestSolution.clone( point );
+            }
+
             const core::Buffer1D<double> gradient = client.evaluateGradient( point );
 
             if ( _turnOnLogging && ( iteration % _loggingEveryXCycle ) == 0 )
@@ -129,20 +142,19 @@ namespace algorithm
                }
             }
 
-            lastError = f;
             ++iteration;
-         } while ( !_stopCondition.stop( lastError ) );
+         } while ( !_stopCondition.stop( _lastError ) );
 
          {
             std::stringstream ss;
             ss << "OptimizerGradientDescent.optimize result:" << std::endl
                << "  result=" << point << std::endl
-               << "  eval(result)=" << lastError;
+               << "  eval(result)=" << bestSolutionEval;
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         _lastError = lastError;
-         return point;
+         _lastError = bestSolutionEval;
+         return bestSolution;
       }
 
       double getLastError() const

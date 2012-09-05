@@ -29,9 +29,9 @@ public:
    typedef algorithm::RegistrationEvaluatorHelper<Volume>::EvaluatorSimilarity RegistrationEvaluator;
    typedef algorithm::RegistrationAlgorithmIntensity<Volume::value_type, Volume::VoxelBuffer> RegistrationAlgorithmIntensity;
 
-   static Volume preprocess( const Volumef& vf, size_t joinHistogramNbBins )
+   static Volume preprocess( const Volumef& vf, size_t joinHistogramNbBins, double min = 0, double max = 1000 )
    {
-      imaging::LookUpTransformWindowingRGB lut( 0, 1000, joinHistogramNbBins, 1 );
+      imaging::LookUpTransformWindowingRGB lut( min, max, joinHistogramNbBins, 1 );
       lut.createGreyscale( (float)joinHistogramNbBins );
       algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> preprocess( lut );
       
@@ -114,29 +114,7 @@ public:
       TESTER_ASSERT( v0 < v2 );      
    }
 
-   void testSimilarity()
-   {
-      const Volume v = createSyntheticCube( core::vector3ui( 8, 8, 8 ), core::vector3ui( 4, 4, 4 ), 0 );
-      const size_t joinHistogramNbBins = 2;
-
-      // construct the evaluator
-      algorithm::TransformationCreatorTranslation transformationCreator;
-      algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
-      algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins );
-
-      // get the similarity. We expect it to be decreasing until we reach 0, then increasing
-      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 0.1,  0,  0 ), 0, -0.01, 22 );
-      for ( size_t n = 0; n < plot.size() - 1; ++n )
-      {
-         if ( plot[ n ].first > 0 )
-         {
-            TESTER_ASSERT( plot[ n + 1 ].second < plot[ n ].second );
-         } else {
-            TESTER_ASSERT( plot[ n + 1 ].second > plot[ n ].second );
-         }
-      }
-   }
+   
 
    // test a real registration case (MR-MR, using powll, SSD)
    // then plot the similarity on the x-axis
@@ -431,16 +409,153 @@ public:
                         fabs( resultd[ 5 ] - 0.0 ) < 0.05 );
       }
    }
+
+   template <class Volume>
+   core::Image<ui8> GetMprForDisplay( const Volume& volume,
+                                      const core::vector3ui& size,
+                                      const core::vector3f& axisX,
+                                      const core::vector3f& axisY,
+                                      const core::vector3f& origin,
+                                      const imaging::LookUpTransformWindowingRGB& lut )
+   {
+      typedef typename Volume::value_type             value_type;
+      typedef imaging::InterpolatorTriLinear<Volume>  Interpolator;
+      typedef imaging::Slice<value_type>              Slice;
+
+      ensure( lut.getNbComponents() == 3, "we need a RGB LUT" );
+
+      core::vector2f spacing( axisX.norm2(), axisY.norm2() );
+      imaging::Slice<float> slice( size,
+                                   axisX,
+                                   axisY,
+                                   origin, 
+                                   spacing );
+      imaging::Mpr<Volume, Interpolator> mpr( volume );
+      mpr.getSlice( slice );
+
+
+      core::Image<ui8> slicei( slice.sizex(), slice.sizey(), 3 );
+      for ( size_t y = 0; y < slicei.sizey(); ++y )
+      {
+         for ( size_t x = 0; x < slicei.sizex(); ++x )
+         {
+            const float* val = lut.transform( slice( x, y, 0 ) );
+            slicei( x, y, 0 ) = (ui8)NLL_BOUND( val[ 0 ], 0, 255 );
+            slicei( x, y, 1 ) = (ui8)NLL_BOUND( val[ 1 ], 0, 255 );
+            slicei( x, y, 2 ) = (ui8)NLL_BOUND( val[ 2 ], 0, 255 );
+         }
+      }
+
+      return slicei;
+   }
+
+   void testRealMr()
+   {
+      std::cout << "loading volume..." << std::endl;
+      Volumef volumeOrig;
+      Volumef volumeOrig2;
+      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-1h.mf2", volumeOrig );
+      loaded &= imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-2h.mf2", volumeOrig2 );
+      //loaded &= imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-1h.mf2", volumeOrig2 );
+      ensure( loaded, "can't load volume" );
+
+      std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
+      std::cout << "volume size2=" << volumeOrig2.getSize() << std::endl;
+
+      std::cout << "smoothing volume..." << std::endl;
+      //test::VolumeUtils::AverageFull( volumeOrig, 32);
+      //test::VolumeUtils::AverageFull( volumeOrig2, 32 );
+
+
+
+
+      std::cout << "registering volume..." << std::endl;
+      const size_t joinHistogramNbBins = 8;
+
+      const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins, 0, 1000 );
+      const Volume volumeDiscrete2 = preprocess( volumeOrig2, joinHistogramNbBins, 0, 1500 );
+
+      imaging::LookUpTransformWindowingRGB lut( 0, joinHistogramNbBins, 256, 3 );
+      lut.createGreyscale();
+      core::Image<ui8> slicei = GetMprForDisplay( volumeDiscrete,
+                                                  core::vector3ui( 512, 512, 1 ),
+                                                  core::vector3f( 1, 0, 0 ),
+                                                  core::vector3f( 0, 1, 0 ),
+                                                  volumeOrig.getOrigin(), lut );
+      core::writeBmp( slicei, "c:/tmp2/mpr.bmp" );
+      slicei = GetMprForDisplay( volumeDiscrete2,
+                                 core::vector3ui( 512, 512, 1 ),
+                                 core::vector3f( 1, 0, 0 ),
+                                 core::vector3f( 0, 1, 0 ),
+                                 volumeOrig2.getOrigin(), lut );
+      core::writeBmp( slicei, "c:/tmp2/mpr2.bmp" );
+      //return;
+
+      algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid1( volumeDiscrete, 6 );
+      algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid2( volumeDiscrete2, 6 );
+
+      Volume source = pyramid1[ 1 ];
+      Volume target = pyramid2[ 1 ];
+
+      //core::Buffer1D<double> seed = core::make_buffer1D<double>( 30, 0, 0, 0, 0, 0 );
+      core::Buffer1D<double> seed = core::make_buffer1D<double>( 30, 0, 0 );
+         
+
+
+      // construct the evaluator
+      //algorithm::TransformationCreatorRigid c;
+      algorithm::TransformationCreatorTranslation c;
+      //algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+      algorithm::SimilarityFunctionMutualInformation similarity;
+      algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
+      typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
+      //std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.001, 0.001, 0.001 ), false ) );
+      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), true ) );
+      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
+      
+      std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
+
+      initTfm->print( std::cout );
+      
+      // run a registration: note this can be tricky here if the parameters are not set correctly... e.g., learningRate is too high, we will loop on local minima
+      algorithm::StopConditionStable stopCondition( 10 );
+      //algorithm::StopConditionIteration stopCondition( 500 );
+      //algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 1, 1, 1, 0.005, 0.005, 0.005 ),
+      //                                                                              core::make_buffer1D<double>( 1, 1, 1, 0.00001, 0.00001, 0.00001 ) );
+      //algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 2, 2, 2 ),
+      //                                                                            core::make_buffer1D<double>( 1, 1, 1 ) );
+
+      algorithm::OptimizerPowell optimizer;
+
+      RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
+
+      std::shared_ptr<algorithm::TransformationParametrized> tfm = registration.evaluate( source, target, *initTfm );
+      core::Buffer1D<double> resultd = tfm->getParameters();
+      
+
+
+      /*
+      evaluator.setTransformationCreator( c );
+      evaluator.setSource( source );
+      evaluator.setTarget( target );
+      RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 30, 0, 0 ), 0, -0.5, 60 );
+      std::ofstream f( "c:/tmp2/vat.txt" );
+      for ( size_t n = 0; n < plot.size(); ++n )
+      {
+         f << plot[ n ].first << " " << plot[ n ].second << std::endl;
+      }*/
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
- TESTER_TEST(testSimilarity);
+/*
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
  TESTER_TEST(testPyramidalRegistration);
- TESTER_TEST(testRegistrationGradient);
- TESTER_TEST(testRegistrationRotationGradient);
+ TESTER_TEST(testRegistrationGradient);*/
+ //TESTER_TEST(testRegistrationRotationGradient);
+ TESTER_TEST(testRealMr);
 TESTER_TEST_SUITE_END();
 #endif

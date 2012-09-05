@@ -98,7 +98,7 @@ namespace algorithm
             gradientAccum += fabs( gradient[ n ] );
          }
 
-         if ( _normalizeGradient )
+         if ( _normalizeGradient && gradientAccum > 1e-4 )
          {
             for ( size_t n = 0; n < parameters.size(); ++n )
             {

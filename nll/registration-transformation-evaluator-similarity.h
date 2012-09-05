@@ -55,13 +55,15 @@ namespace algorithm
                                        const TransformationCreator& creator,
                                        const HistogramMakerAlgorithm& histogramMaker,
                                        size_t jointHistogramNbBins = 256,
-                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>() ) : Base( source, target, creator ), _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator )
+                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>(),
+                                       bool removeBackgroundFromHistogram = true ) : Base( source, target, creator ), _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator ), _removeBackgroundFromHistogram( removeBackgroundFromHistogram )
       {}
 
       RegistrationEvaluatorSimilarity( const SimilarityFunction& similarity,
                                        const HistogramMakerAlgorithm& histogramMaker,
                                        size_t jointHistogramNbBins = 256,
-                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>() ) : _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator )
+                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>(),
+                                       bool removeBackgroundFromHistogram = true ) : _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator ), _removeBackgroundFromHistogram( removeBackgroundFromHistogram )
       {}
 
       /**
@@ -77,9 +79,22 @@ namespace algorithm
 
          // Remove the background intensity from the histogram. Reason: a lot of background match does not mean the registration is good.
          // It will biase the joint histogram measure
-         const JointHistogram::value_type nbBackground = jointHistogram( 0, 0 );
-         jointHistogram( 0, 0 ) = 0;
-         jointHistogram.setNbSamples( static_cast<JointHistogram::value_type>( jointHistogram.getNbSamples() - nbBackground ) );
+         if ( _removeBackgroundFromHistogram )
+         {
+            JointHistogram::value_type nbBackground = jointHistogram( 0, 0 );
+            jointHistogram( 0, 0 ) = 0;
+
+            /*
+            for ( size_t n = 1; n < jointHistogram.getNbBins(); ++n )
+            {
+               nbBackground += jointHistogram( n, 0 ) + jointHistogram( 0, n );
+               jointHistogram( n, 0 ) = 0;
+               jointHistogram( 0, n ) = 0;
+            }
+            */
+
+            jointHistogram.setNbSamples( static_cast<JointHistogram::value_type>( jointHistogram.getNbSamples() - nbBackground ) );
+         }
 
          // then run the similarity measure
          const double val = _similarity.evaluate( jointHistogram );
@@ -131,6 +146,7 @@ namespace algorithm
       const HistogramMakerAlgorithm&      _histogramMaker;
       size_t                              _jointHistogramNbBins;
       std::shared_ptr<GradientEvaluator>  _gradientEvaluator;
+      bool                                _removeBackgroundFromHistogram;
 
       // keep it for debugging purpose
       mutable JointHistogram           _lastRunHistogram;

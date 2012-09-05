@@ -47,6 +47,19 @@ namespace algorithm
 
     In this registration scheme, it is assumed the volumes are already preprocessed (i.e., using a VolumePreprocessor)
     and discretized (i.e., the cost function will be directly run on the volumes pdf)
+
+    The algorithm is as follow:
+    - start from the seed
+    - compute the joint histogram
+    - compute the similarity from the JH (using the provided similarity function)
+    - find the next step (using the optimizer)
+    - repeat
+
+    To diagnose registration problems, it is useful to check the joint histogram. On some synthetic cases & powell
+    wrong solutions where found due to large transformation making the volumes not in the joint histogram anymore (and so achieving perfect match!)
+
+    Other problems can be due to the gradient optimizer, where it is too low/high. It depends on the similarity measure used and the number of bins of the
+    joint histogram.
     */
    template <class DiscreteType, class DiscreteStorage>
    class RegistrationAlgorithmIntensity : public RegistrationAlgorithm<DiscreteType, DiscreteStorage>, public core::NonAssignable
@@ -96,6 +109,11 @@ namespace algorithm
          return tfm;
       }
 
+      const TransformationCreator& getTransformationCreator() const
+      {
+         return _creator;
+      }
+
    protected:
       const TransformationCreator&  _creator;
       Evaluator&                    _evaluator;
@@ -106,12 +124,9 @@ namespace algorithm
     @ingroup algorithm
     @brief Affine registration algorithm embeded in a multi resolution scheme
            
-           This is the main algorithm for affine registration using intensity based algorithms
-
-           Volumes are preprocessed by a preprocessor and a pyramid is constructed for both volumes
-           which are registered by the given algorithm on each level of the pyramid from the highest to
-           the lowest. This done to improve the robustness of the algorithm (less local minima) and to speed up
-           the algorithm (i.e., the lowest levels are already registered and only a small transformation will be
+           A pyramid is constructed for both volumes which are registered by the given algorithm on each level of
+           the pyramid from the highest to the lowest. This done to improve the robustness of the algorithm (less local minima)
+           and to speed up the algorithm (i.e., the lowest levels are already registered and only a small transformation will be
            required)
     */
    template <class T, class Storage>
@@ -121,24 +136,18 @@ namespace algorithm
       typedef RegistrationAlgorithm<T, Storage>       Base;
       typedef typename Base::Volume                   Volume;
       typedef typename Base::Matrix                   Matrix;
-
-      typedef ui8                                                             InternalType;
-      typedef typename Storage::template Rebind<InternalType>::value_type     InternalStorage;
-      typedef VolumePreprocessor<T, Storage, InternalType, InternalStorage>   VolumePreprocessorFixed;
-      typedef imaging::VolumeSpatial<InternalType, InternalStorage>           VolumeInternal;
-      typedef VolumePyramid<InternalType, InternalStorage>                    Pyramid;
+      typedef VolumePyramid<T, Storage>               Pyramid;
       
    public:
-      typedef RegistrationEvaluator<InternalType, InternalStorage >        Evaluator;
-      typedef RegistrationAlgorithm<InternalType, InternalStorage>         RegistrationAlgorithmInternal;
+      typedef RegistrationEvaluator<T, Storage >        Evaluator;
+      typedef RegistrationAlgorithm<T, Storage>         RegistrationAlgorithmInternal;
 
    public:
       /**
-       @param preprocessor the preprocessor used to convert the input volumes into discretized volumes
        @param RegistrationAlgorithmInternal the registration algorithm operating on the discretized volumes
        @param pyramidNbLevels the number of levels in the pyramid (i.e., the granularity of the registration )
        */
-      RegistrationAlgorithmIntensityPyramid( const VolumePreprocessorFixed& preprocessor, const RegistrationAlgorithmInternal& registrationAlgorithm, size_t pyramidNbLevels = 4 ) : _preprocessor( preprocessor ), _registrationAlgorithm( registrationAlgorithm ), _pyramidNbLevels( pyramidNbLevels )
+      RegistrationAlgorithmIntensityPyramid( const RegistrationAlgorithmInternal& registrationAlgorithm, size_t pyramidNbLevels = 4 ) : _registrationAlgorithm( registrationAlgorithm ), _pyramidNbLevels( pyramidNbLevels )
       {
          ensure( pyramidNbLevels >= 1, "wrong number of levels" );
       }
@@ -146,21 +155,18 @@ namespace algorithm
       /**
        @brief Run the optimization process
        */
-      virtual std::shared_ptr<TransformationParametrized> evaluate( const Volume& source, const Volume& target, const TransformationParametrized& source2TargetInitTransformation ) const
+      virtual std::shared_ptr<TransformationParametrized> evaluate( const Volume& sourceSampled, const Volume& targetSampled, const TransformationParametrized& source2TargetInitTransformation ) const
       {
          {
             std::stringstream ss;
             ss << "RegistrationAlgorithmIntensityPyramid::evaluate" << std::endl
                << "nbLevels=" << _pyramidNbLevels
                << "source:";
-            source.print( ss );
+            sourceSampled.print( ss );
             ss << std::endl << " target:";
-            target.print( ss );
+            targetSampled.print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-
-         const VolumeInternal sourceSampled = _preprocessor.run( source );
-         const VolumeInternal targetSampled = _preprocessor.run( target );
 
          Pyramid sourceSampledPyramid;
          sourceSampledPyramid.construct( sourceSampled, _pyramidNbLevels );
@@ -193,7 +199,6 @@ namespace algorithm
       }
 
    protected:
-      const VolumePreprocessorFixed&         _preprocessor;
       size_t                                 _pyramidNbLevels;
       const RegistrationAlgorithmInternal&   _registrationAlgorithm;
    };
