@@ -217,71 +217,6 @@ public:
       }
    }
 
-   void testPyramidalRegistration()
-   {
-      std::cout << "loading volume..." << std::endl;
-      Volumef volumeOrig;
-      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/MR-1.mf2", volumeOrig );
-      ensure( loaded, "can't load volume" );
-      volumeOrig.setSpacing( core::vector3f( 1, 1, 1 ) );
-
-      std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
-
-      std::cout << "smoothing volume..." << std::endl;
-      test::VolumeUtils::AverageFull( volumeOrig, 8 );
-
-      std::cout << "registering volume..." << std::endl;
-      const size_t joinHistogramNbBins = 64;
-      Volumef source = volumeOrig;
-      Volumef target = volumeOrig;
-
-
-      std::cout << "pyramid registration:";
-      std::cout.flush();
-      for ( size_t n = 0; n < 10; ++n )
-      {
-         srand( n );
-         std::cout << "#";
-         core::vector3f start( core::generateUniformDistributionf( -60, 60 ),
-                                 core::generateUniformDistributionf( -30, 30 ),
-                                 core::generateUniformDistributionf( -10, 10 ) );
-
-         core::Buffer1D<double> seed( start.size() );
-         for ( size_t n = 0; n < start.size(); ++n )
-         {
-            seed[ n ] = start[ n ];
-         }
-
-
-         // construct the evaluator
-         algorithm::TransformationCreatorTranslation c;
-         algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
-         algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-         RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins );
-         std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
-
-         // run a registration
-         algorithm::OptimizerPowell optimizer( 1, 0.001, 10 );
-         RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
-
-         // setup the pyramid
-         typedef algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> Preprocessor;
-         typedef algorithm::RegistrationAlgorithmIntensityPyramid<Volumef::value_type, Volumef::VoxelBuffer> PyramidRegistration;
-
-         imaging::LookUpTransformWindowingRGB lut( 0, 10000, joinHistogramNbBins, 1 );
-         lut.createGreyscale( (float)joinHistogramNbBins );
-         Preprocessor preprocessor( lut );
-         PyramidRegistration pyramidRegistration( preprocessor, registration, 3 );
-
-         std::shared_ptr<algorithm::TransformationParametrized> tfm = pyramidRegistration.evaluate( source, target, *initTfm );
-         core::Buffer1D<double> resultd = tfm->getParameters();
-
-         TESTER_ASSERT( fabs( resultd[ 0 ] - 0.0 ) < source.getSpacing()[ 0 ] * 2 &&
-                        fabs( resultd[ 1 ] - 0.0 ) < source.getSpacing()[ 1 ] * 2 &&
-                        fabs( resultd[ 2 ] - 0.0 ) < source.getSpacing()[ 2 ] * 2 );
-      }
-   }
-
    void testRegistrationGradient()
    {
       std::cout << "loading volume..." << std::endl;
@@ -454,29 +389,38 @@ public:
       std::cout << "loading volume..." << std::endl;
       Volumef volumeOrig;
       Volumef volumeOrig2;
+      /*
       bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-1h.mf2", volumeOrig );
       loaded &= imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-2h.mf2", volumeOrig2 );
-      //loaded &= imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-1h.mf2", volumeOrig2 );
+      */
+      bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source.mf2", volumeOrig );
+      loaded &= imaging::loadSimpleFlatFile( "c:/tmp2/target.mf2", volumeOrig2 );
       ensure( loaded, "can't load volume" );
 
       std::cout << "volume size=" << volumeOrig.getSize() << std::endl;
       std::cout << "volume size2=" << volumeOrig2.getSize() << std::endl;
 
       std::cout << "smoothing volume..." << std::endl;
-      //test::VolumeUtils::AverageFull( volumeOrig, 32);
-      //test::VolumeUtils::AverageFull( volumeOrig2, 32 );
+      
 
 
 
 
       std::cout << "registering volume..." << std::endl;
-      const size_t joinHistogramNbBins = 8;
+      const size_t joinHistogramNbBins = 16;
 
-      const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins, 0, 1000 );
-      const Volume volumeDiscrete2 = preprocess( volumeOrig2, joinHistogramNbBins, 0, 1500 );
+      const Volume volumeDiscrete = preprocess( volumeOrig, joinHistogramNbBins - 1, -100, 100 );
+      const Volume volumeDiscrete2 = preprocess( volumeOrig2, joinHistogramNbBins - 1, -100, 100 );
 
       imaging::LookUpTransformWindowingRGB lut( 0, joinHistogramNbBins, 256, 3 );
-      lut.createGreyscale();
+      float green[] = { 0, 255, 0 };
+      lut.createColorScale( green );
+      //lut.createGreyscale();
+
+      imaging::LookUpTransformWindowingRGB lutTarget( 0, joinHistogramNbBins, 256, 3 );
+      float red[] = { 0, 0, 255 };
+      lutTarget.createColorScale( red );
+
       core::Image<ui8> slicei = GetMprForDisplay( volumeDiscrete,
                                                   core::vector3ui( 512, 512, 1 ),
                                                   core::vector3f( 1, 0, 0 ),
@@ -494,10 +438,10 @@ public:
       algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid1( volumeDiscrete, 6 );
       algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid2( volumeDiscrete2, 6 );
 
-      Volume source = pyramid1[ 1 ];
-      Volume target = pyramid2[ 1 ];
+      Volume source = pyramid1[ 3 ];
+      Volume target = pyramid2[ 3 ];
 
-      //core::Buffer1D<double> seed = core::make_buffer1D<double>( 30, 0, 0, 0, 0, 0 );
+      //core::Buffer1D<double> seed = core::make_buffer1D<double>( 20, 10, 0, 1, 1, 1 );
       core::Buffer1D<double> seed = core::make_buffer1D<double>( 30, 0, 0 );
          
 
@@ -505,12 +449,13 @@ public:
       // construct the evaluator
       //algorithm::TransformationCreatorRigid c;
       algorithm::TransformationCreatorTranslation c;
-      //algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
-      algorithm::SimilarityFunctionMutualInformation similarity;
+      //algorithm::TransformationCreatorTranslationScaling c;
+      algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+      //algorithm::SimilarityFunctionMutualInformation similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
       typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
-      //std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.001, 0.001, 0.001 ), false ) );
-      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), true ) );
+      //std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.01, 0.01, 0.01 ), false ) );
+      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), false ) );
       RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
       
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
@@ -518,19 +463,42 @@ public:
       initTfm->print( std::cout );
       
       // run a registration: note this can be tricky here if the parameters are not set correctly... e.g., learningRate is too high, we will loop on local minima
-      algorithm::StopConditionStable stopCondition( 10 );
+      algorithm::StopConditionStable stopCondition( 100 );
       //algorithm::StopConditionIteration stopCondition( 500 );
-      //algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 1, 1, 1, 0.005, 0.005, 0.005 ),
-      //                                                                              core::make_buffer1D<double>( 1, 1, 1, 0.00001, 0.00001, 0.00001 ) );
-      //algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 2, 2, 2 ),
-      //                                                                            core::make_buffer1D<double>( 1, 1, 1 ) );
+      algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 4, 4, 4 ),
+                                                                                    core::make_buffer1D<double>( 100, 100, 100 ) );
+      //algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 2, 2, 2, 0.031, 0.031, 0.031 ),
+      //                                                                            core::make_buffer1D<double>( 100, 100, 100, 0.1, 0.1, 0.1 ) );
 
-      algorithm::OptimizerPowell optimizer;
+      //algorithm::OptimizerPowell optimizer;
 
       RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
 
       std::shared_ptr<algorithm::TransformationParametrized> tfm = registration.evaluate( source, target, *initTfm );
       core::Buffer1D<double> resultd = tfm->getParameters();
+
+      const core::vector3f center = source.indexToPosition( core::vector3f( source.getSize()[ 0 ] / 2,
+                                                                            source.getSize()[ 1 ] / 2,
+                                                                            source.getSize()[ 2 ] / 2 ) );
+
+      {
+         const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
+         tfmAffine.print( std::cout );
+         std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lut, target, lutTarget, tfmAffine, center );
+         core::writeBmp( mprs[ 0 ], "c:/tmp2/regx_s.bmp" );
+         core::writeBmp( mprs[ 1 ], "c:/tmp2/regy_s.bmp" );
+         core::writeBmp( mprs[ 2 ], "c:/tmp2/regz_s.bmp" );
+      }
+
+
+      {
+         const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *initTfm );
+         tfmAffine.print( std::cout );
+         std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lut, target, lutTarget, tfmAffine, center );
+         core::writeBmp( mprs[ 0 ], "c:/tmp2/regxI_s.bmp" );
+         core::writeBmp( mprs[ 1 ], "c:/tmp2/regyI_s.bmp" );
+         core::writeBmp( mprs[ 2 ], "c:/tmp2/regzI_s.bmp" );
+      }
       
 
 
@@ -549,12 +517,11 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
-/*
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
  TESTER_TEST(testPyramidalRegistration);
- TESTER_TEST(testRegistrationGradient);*/
+ TESTER_TEST(testRegistrationGradient);
  //TESTER_TEST(testRegistrationRotationGradient);
  TESTER_TEST(testRealMr);
 TESTER_TEST_SUITE_END();

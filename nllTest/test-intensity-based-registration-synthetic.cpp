@@ -20,7 +20,7 @@ public:
    typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
 
    template <class Volume>
-   void createSphere( Volume& v, const core::vector3ui& position, double radius, typename Volume::value_type valueForeground )
+   static void createSphere( Volume& v, const core::vector3ui& position, double radius, typename Volume::value_type valueForeground )
    {
       const double radius2 = core::sqr( radius );
       for ( size_t z = 0; z < v.sizez(); ++z )
@@ -42,7 +42,7 @@ public:
    }
 
    template <class Volume>
-   void createBox( Volume& v, const core::vector3ui& position, const core::vector3f& radius, typename Volume::value_type valueForeground )
+   static void createBox( Volume& v, const core::vector3ui& position, const core::vector3f& radius, typename Volume::value_type valueForeground )
    {
       for ( size_t z = 0; z < v.sizez(); ++z )
       {
@@ -62,7 +62,41 @@ public:
       }
    }
 
-   void utilTestSphereSameRadius( const RegistrationAlgorithmIntensity::Base& registrationalgorithm, const algorithm::TransformationParametrized& tfmInit )
+   /**
+    @brief Returns the ratio of voxel identical / number of source voxel != 0
+    */
+   static double compareVoxelRatio( const Volume& source, const Volume& target, const imaging::TransformationAffine& tfmSrcTgt )
+   {
+      Volume resampled( source.getSize(), source.getPst() );
+      imaging::resampleVolumeNearestNeighbour( target, tfmSrcTgt, resampled );
+
+      size_t nbSourceNonZero = 0;
+      size_t nbSimilar = 0;
+      for ( size_t z = 0; z < source.sizez(); ++z )
+      {
+         for ( size_t y = 0; y < source.sizey(); ++y )
+         {
+            for ( size_t x = 0; x < source.sizex(); ++x )
+            {
+               const Volume::value_type sourceVal = source( x, y, z );
+               if ( sourceVal != 0 )
+               {
+                  ++nbSourceNonZero;
+                  if ( sourceVal == resampled( x, y, z ) )
+                  {
+                     ++nbSimilar;
+                  }
+               }
+            }
+         }
+      }
+
+      return static_cast<double>( nbSimilar ) / nbSourceNonZero;
+   }
+
+   
+
+   static void utilTestSphereSameRadius( const RegistrationAlgorithmIntensity::Base& registrationalgorithm, const algorithm::TransformationParametrized& tfmInit )
    {
       const size_t joinHistogramNbBins = 2;
 
@@ -103,7 +137,12 @@ public:
       createSphere( target, positionTarget, radius, joinHistogramNbBins - 1 );
 
       imaging::LookUpTransformWindowingRGB lut( 0, joinHistogramNbBins - 1, 256, 3 );
-      lut.createGreyscale();
+      float green[] = { 0, 255, 0 };
+      lut.createColorScale( green );
+
+      imaging::LookUpTransformWindowingRGB lutTarget( 0, joinHistogramNbBins - 1, 256, 3 );
+      float red[] = { 0, 0, 255 };
+      lutTarget.createColorScale( red );
 
       {
          core::Image<ui8> mpr1 = test::GetMprForDisplay( source,
@@ -128,11 +167,106 @@ public:
       std::shared_ptr<algorithm::TransformationParametrized> tfm = registrationalgorithm.evaluate( source, target, tfmInit );
       core::Buffer1D<double> resultd = tfm->getParameters();
 
+      const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
+      std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lut, target, lutTarget, tfmAffine, core::vector3f( positionSource[ 0 ], positionSource[ 1 ], positionSource[ 2 ] ) );
+      core::writeBmp( mprs[ 0 ], "c:/tmp2/regx.bmp" );
+      core::writeBmp( mprs[ 1 ], "c:/tmp2/regy.bmp" );
+      core::writeBmp( mprs[ 2 ], "c:/tmp2/regz.bmp" );
+
       std::cout << "result=" << resultd << std::endl;
 
       TESTER_ASSERT( core::equal<double>( resultd[ 0 ], expectedTfm[ 0 ], 1 ) );
       TESTER_ASSERT( core::equal<double>( resultd[ 1 ], expectedTfm[ 1 ], 1 ) );
       TESTER_ASSERT( core::equal<double>( resultd[ 2 ], expectedTfm[ 2 ], 1 ) );
+   }
+
+   static void utilTestSphereDifferentRadius( const RegistrationAlgorithmIntensity::Base& registrationalgorithm, const algorithm::TransformationParametrized& tfmInit )
+   {
+      std::cout << "--START--" << std::endl;
+      const size_t joinHistogramNbBins = 2;
+
+      const size_t size = 80;
+      const core::vector3ui sizeVolume( size, size, size );
+      const double radiusSource = core::generateUniformDistribution( 10, 15 );
+      const double radiusTarget = 15;
+
+      const core::vector3ui positionSource( 2 * radiusSource + core::generateUniformDistributioni( 0, size - 4 * radiusSource ),
+                                            2 * radiusSource + core::generateUniformDistributioni( 0, size - 4 * radiusSource ),
+                                            2 * radiusSource + core::generateUniformDistributioni( 0, size - 4 * radiusSource ) );
+
+      core::vector3ui positionTarget( core::generateUniformDistributioni( 2 * radiusTarget, size - 2 * radiusTarget ),
+                                      core::generateUniformDistributioni( 2 * radiusTarget, size - 2 * radiusTarget ),
+                                      core::generateUniformDistributioni( 2 * radiusTarget, size - 2 * radiusTarget ) );
+
+      while ( (positionTarget - positionSource).norm2() > ( std::max( radiusTarget, radiusSource ) ) )
+      {
+         positionTarget = core::vector3ui( core::generateUniformDistributioni( 2 * radiusTarget, size - 2 * radiusTarget ),
+                                           core::generateUniformDistributioni( 2 * radiusTarget, size - 2 * radiusTarget ),
+                                           core::generateUniformDistributioni( 2 * radiusTarget, size - 2 * radiusTarget ) );
+      }
+
+      std::cout << "source=" << positionSource << std::endl;
+      std::cout << "target=" << positionTarget << std::endl;
+      std::cout << "radiusSource=" << radiusSource << std::endl;
+      std::cout << "radiusTarget=" << radiusTarget << std::endl;
+
+      const core::vector3d expectedTfm( - (double)positionSource[ 0 ] + (double)positionTarget[ 0 ],
+                                        - (double)positionSource[ 1 ] + (double)positionTarget[ 1 ],
+                                        - (double)positionSource[ 2 ] + (double)positionTarget[ 2 ] );
+
+      std::cout << "expected=" << expectedTfm << std::endl;
+
+      // data set up
+      Volume source( sizeVolume, core::identityMatrix<Matrix>( 4 ) );
+      createSphere( source, positionSource, radiusSource, joinHistogramNbBins - 1 );
+
+      Volume target( sizeVolume, core::identityMatrix<Matrix>( 4 ) );
+      createSphere( target, positionTarget, radiusTarget, joinHistogramNbBins - 1 );
+
+      imaging::LookUpTransformWindowingRGB lut( 0, joinHistogramNbBins - 1, 256, 3 );
+      float green[] = { 0, 255, 0 };
+      lut.createColorScale( green );
+
+      imaging::LookUpTransformWindowingRGB lutTarget( 0, joinHistogramNbBins - 1, 256, 3 );
+      float red[] = { 0, 0, 255 };
+      lutTarget.createColorScale( red );
+
+      {
+         core::Image<ui8> mpr1 = test::GetMprForDisplay( source,
+                                                         core::vector3ui( size, size, 1 ), 
+                                                         core::vector3f( 1, 0, 0 ),
+                                                         core::vector3f( 0, 1, 0 ),
+                                                         core::vector3f( 30, 30, positionSource[ 2 ] ),
+                                                         lut );
+         core::writeBmp( mpr1, "c:/tmp2/sphereSource.bmp" );
+      }
+
+      {
+         core::Image<ui8> mpr2 = test::GetMprForDisplay( target,
+                                                         core::vector3ui( size, size, 1 ), 
+                                                         core::vector3f( 1, 0, 0 ),
+                                                         core::vector3f( 0, 1, 0 ),
+                                                         core::vector3f( 30, 30, positionTarget[ 2 ] ),
+                                                         lut );
+         core::writeBmp( mpr2, "c:/tmp2/sphereTarget.bmp" );
+      }
+
+      std::shared_ptr<algorithm::TransformationParametrized> tfm = registrationalgorithm.evaluate( source, target, tfmInit );
+      core::Buffer1D<double> resultd = tfm->getParameters();
+
+      std::cout << "result=" << resultd << std::endl;
+
+      const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
+      std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lut, target, lutTarget, tfmAffine, core::vector3f( positionSource[ 0 ], positionSource[ 1 ], positionSource[ 2 ] ) );
+      const std::string id = core::val2str( core::IdMaker::instance().generateId() );
+      core::writeBmp( mprs[ 0 ], "c:/tmp2/regx_s" + id + ".bmp" );
+      core::writeBmp( mprs[ 1 ], "c:/tmp2/regy_s" + id + ".bmp" );
+      core::writeBmp( mprs[ 2 ], "c:/tmp2/regz_s" + id + ".bmp" );
+
+      const double ratioSimilar = compareVoxelRatio( source, target, tfmAffine );
+      std::cout << "SIMILAR RATIO=" << ratioSimilar << std::endl;
+
+      TESTER_ASSERT( ratioSimilar > 0.8 );
    }
 
    // position randomly a sphere in each volume with some overlap. Find the optimal reigstration which is aligning both centers
@@ -220,6 +354,34 @@ public:
       }
    }
 
+   // position randomly a sphere in each volume with some overlap. Find the optimal reigstration which is aligning both centers
+   // maximum error should be 1 spacing
+   void testSphereIsotropicRigidGradient()
+   {
+      const size_t joinHistogramNbBins = 2;
+
+      // set up the algorithm
+      core::Buffer1D<double> seed = core::make_buffer1D<double>( 0, 0, 0, 1, 1, 1 );
+      algorithm::TransformationCreatorTranslationScaling c;
+      algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+      algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
+      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.001, 0.001, 0.001 ), false ) );
+      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
+      std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
+
+      algorithm::StopConditionStable stopCondition( 10 );
+      algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 2, 2, 2, 0.051, 0.051, 0.051 ),
+                                                                                  core::make_buffer1D<double>( 50, 50, 50, 1, 1, 1 ) );
+      RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
+
+      // run and check
+      srand( 4 );
+      for ( int n = 0; n < 15; ++n )
+      {
+         utilTestSphereDifferentRadius( registration, *initTfm );
+      }
+   }
+
    void testSimilarity()
    {
       Volume v( core::vector3ui( 8, 8, 8 ), core::identityMatrix<Matrix>( 4 ) );
@@ -251,6 +413,7 @@ TESTER_TEST_SUITE(TestIntensityBasedRegistrationSynthetic);
  TESTER_TEST(testSphereRigidGradient);
  TESTER_TEST(testSphereRigidGradientMutualInformation);
  TESTER_TEST(testSphereRigidGradientPyramid);
+ TESTER_TEST(testSphereIsotropicRigidGradient);
  TESTER_TEST(testSimilarity);
 TESTER_TEST_SUITE_END();
 #endif

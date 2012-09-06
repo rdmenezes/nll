@@ -6,6 +6,72 @@ namespace nll
 namespace test
 {
    /**
+    @brief Extract orthogonal MPR at the specified location
+    */
+   template <class Volume>
+   std::vector< core::Image<ui8> > visualizeRegistration( const Volume& source,
+                                                          const imaging::LookUpTransformWindowingRGB& lutSource,
+                                                          const Volume& target,
+                                                          const imaging::LookUpTransformWindowingRGB& lutTarget,
+                                                          const imaging::TransformationAffine& tfmSourceToTarget,
+                                                          const core::vector3f& positionMprCenterToVisualize )
+   {
+      typedef typename Volume::value_type value_type;
+      std::vector< core::Image<ui8> > vector;
+
+      Volume targetResampled( source.size(), source.getPst() );
+      imaging::resampleVolumeTrilinear( target, tfmSourceToTarget, targetResampled );
+
+      const core::vector3f axisX[] =
+      {
+         core::vector3f( 1, 0, 0 ),
+         core::vector3f( 1, 0, 0 ),
+         core::vector3f( 0, 1, 0 ),
+      };
+
+      const core::vector3f axisY[] =
+      {
+         core::vector3f( 0, 1, 0 ),
+         core::vector3f( 0, 0, 1 ),
+         core::vector3f( 0, 0, 1 ),
+      };
+      const size_t nbAxis = core::getStaticBufferSize( axisX );
+
+      core::vector3f sizeMm( source.getSize()[ 0 ] * source.getSpacing()[ 0 ],
+                             source.getSize()[ 1 ] * source.getSpacing()[ 1 ],
+                             source.getSize()[ 2 ] * source.getSpacing()[ 2 ] );
+      const ui32 maxSizeMm = 2 * (ui32) *std::max_element( sizeMm.getBuf(), sizeMm.getBuf() + 3 );
+
+      for ( size_t n = 0; n < nbAxis; ++n )
+      {
+         core::Image<ui8>  sourceMpr = test::GetMprForDisplay( source,
+                                                               core::vector3ui( maxSizeMm, maxSizeMm, 1 ),
+                                                               axisX[ n ],
+                                                               axisY[ n ],
+                                                               positionMprCenterToVisualize,
+                                                               lutSource );
+         core::Image<ui8>  targetMpr = test::GetMprForDisplay( targetResampled,
+                                                               core::vector3ui( maxSizeMm, maxSizeMm, 1 ),
+                                                               axisX[ n ],
+                                                               axisY[ n ],
+                                                               positionMprCenterToVisualize,
+                                                               lutTarget );
+
+         core::Image<ui8>  result( sourceMpr.sizex(), sourceMpr.sizey(), 3 );
+         for ( size_t n = 0; n < sourceMpr.size(); ++n )
+         {
+            const value_type v = sourceMpr[ n ] + targetMpr[ n ];
+            result[ n ] = NLL_BOUND( v, 0, 255 );
+         }
+
+
+         vector.push_back( result );
+      }
+
+      return vector;
+   }
+
+   /**
     @brief Extract a Volume MPR for display
     */
    template <class Volume>
