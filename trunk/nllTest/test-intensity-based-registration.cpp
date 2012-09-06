@@ -7,7 +7,66 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @ingroup algorithm
+    @brief Generic registration algorithm
 
+    There is no "generic" algorithm as such, but it is a good starting template to build your specific registration problem.
+    */
+   template <class VolumePreprocessor>
+   class RegistrationIntensityBasedGenericAffine : public RegistrationAlgorithm<typename VolumePreprocessor::VolumeInput::value_type, typename VolumePreprocessor::VolumeInput::VoxelBuffer>
+   {
+   public:
+      typedef RegistrationAlgorithm<typename VolumePreprocessor::VolumeInput::value_type, typename VolumePreprocessor::VolumeInput::VoxelBuffer> Base;
+      typedef typename Base::VolumeInput                                                           VolumeInput;
+      typedef typename Base::VolumeOutput                                                          VolumeOutput;
+      typedef VolumePyramid<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer> Pyramid;
+      
+      RegistrationIntensityBasedGenericAffine( const VolumePreprocessor& sourcePreprocessor,
+                                               const VolumePreprocessor& targetPreprocessor,
+                                               const SimilarityFunction& similarity ) : _sourcePreprocessor( sourcePreprocessor ), _targetPreprocessor( targetPreprocessor ), _similarity( similarity )
+      {}
+
+      virtual std::shared_ptr<TransformationParametrized> evaluate( const VolumeInput& source, const VolumeInput& target, const TransformationParametrized& source2TargetInitTransformation ) const
+      {
+         // first, preprocess the volume so we have discretized volumes ready for the similarity measure
+         const VolumeOutput sourcePreprocessed = _sourcePreprocessor.run( source );
+         const VolumeOutput targetPreprocessed = _targetPreprocessor.run( target );
+
+         // construct the pyramid
+         // first determine the maximum level (i.e., we want to have as a last level a volume of size 20x20x20)
+         // using very rough volumes help the registration algorithm jump the local minima. The registration will be
+         // refined using the higher definition volume and will require typically few computations as it will already be positioned to
+         // the global maximum (well, ideally!)
+         const size_t maxSizeSource = *std::max_element( &source.getSize(), &source.getSize() + 3 );
+         const size_t maxSizeTarget = *std::max_element( &target.getSize(), &target.getSize() + 3 );
+         const size_t nbSourceLevels = getPyramidSize( maxSizeSource );
+         const size_t nbTargetLevels = getPyramidSize( maxSizeTarget );
+
+         Pyramid pyramidSource;
+         pyramidSource.construct( sourcePreprocessed, nbSourceLevels );
+
+         Pyramid pyramidTarget;
+         pyramidTarget.construct( targetPreprocessed, nbTargetLevels );
+
+         // now we are progressively computing the registration starting from a very rough level of the pyramid,
+         // and we also use transformation having the lowest degree of freedom, and progressively increase it
+
+      }
+
+   protected:
+      // we want size / 2^level <= 20 => level >= ln( sizeInVoxel ) / ( ln( 2 ) * ln( 20 ) )
+      static size_t getPyramidSize( const size_t sizeInVoxel )
+      {
+         const static double maxSize = 20;
+         return core::round( core::log2( sizeInVoxel ) / ( core::log2( 2 ) * core::log2( 20 ) ) );
+      }
+
+   protected:
+      const VolumePreprocessor& _sourcePreprocessor;
+      const VolumePreprocessor& _targetPreprocessor;
+      const SimilarityFunction& _similarity;
+   };
 }
 }
 
@@ -384,6 +443,27 @@ public:
       return slicei;
    }
 
+   static Volumef convert( const Volume& v )
+   {
+      Volumef r( v.getSize(), v.getPst() );
+      for ( size_t z = 0; z < v.sizez(); ++z )
+      {
+         for ( size_t y = 0; y < v.sizey(); ++y )
+         {
+            for ( size_t x = 0; x < v.sizex(); ++x )
+            {
+               r( x, y, z ) = v( x, y, z );
+            }
+         }
+      }
+
+      return r;
+   }
+
+   
+
+
+
    void testRealMr()
    {
       std::cout << "loading volume..." << std::endl;
@@ -435,11 +515,16 @@ public:
       core::writeBmp( slicei, "c:/tmp2/mpr2.bmp" );
       //return;
 
-      algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid1( volumeDiscrete, 6 );
-      algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid2( volumeDiscrete2, 6 );
+      algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid1( volumeDiscrete, 10 );
+      algorithm::VolumePyramid<Volume::value_type, Volume::VoxelBuffer> pyramid2( volumeDiscrete2, 10 );
 
-      Volume source = pyramid1[ 3 ];
-      Volume target = pyramid2[ 3 ];
+      for ( size_t n = 1; n < pyramid1.size(); ++n )
+      {
+         imaging::saveSimpleFlatFile( "c:/tmp2/pyr-" + core::val2str( n ) + ".mf2", convert( pyramid1[ n ] ) );
+      }
+
+      Volume source = pyramid1[ 8 ];
+      Volume target = pyramid2[ 8 ];
 
       //core::Buffer1D<double> seed = core::make_buffer1D<double>( 20, 10, 0, 1, 1, 1 );
       core::Buffer1D<double> seed = core::make_buffer1D<double>( 30, 0, 0 );
@@ -450,12 +535,12 @@ public:
       //algorithm::TransformationCreatorRigid c;
       algorithm::TransformationCreatorTranslation c;
       //algorithm::TransformationCreatorTranslationScaling c;
-      algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
-      //algorithm::SimilarityFunctionMutualInformation similarity;
+      //algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
+      algorithm::SimilarityFunctionMutualInformation similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
       typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
       //std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.01, 0.01, 0.01 ), false ) );
-      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), false ) );
+      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), true ) );
       RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
       
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
@@ -463,10 +548,10 @@ public:
       initTfm->print( std::cout );
       
       // run a registration: note this can be tricky here if the parameters are not set correctly... e.g., learningRate is too high, we will loop on local minima
-      algorithm::StopConditionStable stopCondition( 100 );
+      algorithm::StopConditionStable stopCondition( 10 );
       //algorithm::StopConditionIteration stopCondition( 500 );
       algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 4, 4, 4 ),
-                                                                                    core::make_buffer1D<double>( 100, 100, 100 ) );
+                                                                                    core::make_buffer1D<double>( 1, 1, 1 ) );
       //algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 2, 2, 2, 0.031, 0.031, 0.031 ),
       //                                                                            core::make_buffer1D<double>( 100, 100, 100, 0.1, 0.1, 0.1 ) );
 
@@ -517,12 +602,14 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
+/*
  TESTER_TEST(testBasic);
  TESTER_TEST(testRange);
  TESTER_TEST(testEvaluatorSpecificData);
  TESTER_TEST(testPyramidalRegistration);
  TESTER_TEST(testRegistrationGradient);
  //TESTER_TEST(testRegistrationRotationGradient);
+ */
  TESTER_TEST(testRealMr);
 TESTER_TEST_SUITE_END();
 #endif
