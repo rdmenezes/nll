@@ -138,6 +138,48 @@ namespace algorithm
    };
 
    /**
+    @brief Translation + Scaling Transformation
+    
+    It is modeled by 3 parameters (tx, ty, tz, sx, sy, sz) such that:
+        | sx 0  0  tx |
+    T = | 0  sy 0  ty |
+        | 0  0  sz tz |
+        | 0  0  0  1  |
+    */
+   class TransformationCreatorTranslationScaling : public TransformationCreator
+   {
+   public:
+      virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
+      {
+         ensure( parameters.size() == 6, "only (tx, ty, tz) parameters expected" );
+         core::Matrix<float> tfmMat = core::identityMatrix< core::Matrix<float> >( 4 );
+         tfmMat( 0, 3 ) = static_cast<float>( parameters[ 0 ] );
+         tfmMat( 1, 3 ) = static_cast<float>( parameters[ 1 ] );
+         tfmMat( 2, 3 ) = static_cast<float>( parameters[ 2 ] );
+
+         tfmMat( 0, 0 ) = static_cast<float>( parameters[ 3 ] );
+         tfmMat( 1, 1 ) = static_cast<float>( parameters[ 4 ] );
+         tfmMat( 2, 2 ) = static_cast<float>( parameters[ 5 ] );
+
+         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat, parameters ) );
+         return tfm;
+      }
+
+      virtual ParameterOptimizers getOptimizerParameters() const
+      {
+         ParameterOptimizers parameters;
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
+
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( 0.5, 1.5, 1, 0.75, 0.05 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( 0.5, 1.5, 1, 0.75, 0.05 ) );
+         parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( 0.5, 1.5, 1, 0.75, 0.05 ) );
+         return parameters;
+      }
+   };
+
+   /**
     @brief Rigid Transformation
     
     It is modeled by 6 parameters (tx, ty, tz) the translation in MM
