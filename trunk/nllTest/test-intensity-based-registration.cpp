@@ -17,18 +17,37 @@ namespace algorithm
    class RegistrationIntensityBasedGenericAffine : public RegistrationAlgorithm<typename VolumePreprocessor::VolumeInput::value_type, typename VolumePreprocessor::VolumeInput::VoxelBuffer>
    {
    public:
-      typedef RegistrationAlgorithm<typename VolumePreprocessor::VolumeInput::value_type, typename VolumePreprocessor::VolumeInput::VoxelBuffer> Base;
-      typedef typename Base::VolumeInput                                                           VolumeInput;
-      typedef typename Base::VolumeOutput                                                          VolumeOutput;
-      typedef VolumePyramid<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer> Pyramid;
+      typedef RegistrationAlgorithm<typename VolumePreprocessor::VolumeInput::value_type, typename VolumePreprocessor::VolumeInput::VoxelBuffer>   Base;
+      typedef typename VolumePreprocessor::VolumeInput                                                                                             VolumeInput;
+      typedef typename VolumePreprocessor::VolumeOutput                                                                                            VolumeOutput;
+
+   protected:
+      typedef VolumePyramid<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                                                 Pyramid;
+      typedef algorithm::HistogramMakerTrilinearPartial<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                     HistogramMaker;
+      typedef typename algorithm::RegistrationEvaluatorHelper<VolumeOutput>::EvaluatorSimilarity                                                   RegistrationEvaluator;
+      typedef algorithm::RegistrationAlgorithmIntensity<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                     RegistrationAlgorithmIntensity;
+      typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>      GradientEvaluator;
       
+   public:
       RegistrationIntensityBasedGenericAffine( const VolumePreprocessor& sourcePreprocessor,
                                                const VolumePreprocessor& targetPreprocessor,
                                                const SimilarityFunction& similarity ) : _sourcePreprocessor( sourcePreprocessor ), _targetPreprocessor( targetPreprocessor ), _similarity( similarity )
       {}
 
+      // note: only the initial translation in the initial transformation
       virtual std::shared_ptr<TransformationParametrized> evaluate( const VolumeInput& source, const VolumeInput& target, const TransformationParametrized& source2TargetInitTransformation ) const
       {
+         {
+            std::stringstream ss;
+            ss << "RegistrationIntensityBasedGenericAffine: " << std::endl
+               << " source= size:" << source.getSize() << " spacing:" << source.getSpacing() << std::endl
+               << " target= size:" << target.getSize() << " spacing:" << target.getSpacing() << std::endl
+               << " initialTransformatiion=" << std::endl;
+            source2TargetInitTransformation.print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+
          // first, preprocess the volume so we have discretized volumes ready for the similarity measure
          const VolumeOutput sourcePreprocessed = _sourcePreprocessor.run( source );
          const VolumeOutput targetPreprocessed = _targetPreprocessor.run( target );
@@ -38,8 +57,8 @@ namespace algorithm
          // using very rough volumes help the registration algorithm jump the local minima. The registration will be
          // refined using the higher definition volume and will require typically few computations as it will already be positioned to
          // the global maximum (well, ideally!)
-         const size_t maxSizeSource = *std::max_element( &source.getSize(), &source.getSize() + 3 );
-         const size_t maxSizeTarget = *std::max_element( &target.getSize(), &target.getSize() + 3 );
+         const size_t maxSizeSource = *std::max_element( source.getSize().getBuf(), source.getSize().getBuf() + 3 );
+         const size_t maxSizeTarget = *std::max_element( target.getSize().getBuf(), target.getSize().getBuf() + 3 );
          const size_t nbSourceLevels = getPyramidSize( maxSizeSource );
          const size_t nbTargetLevels = getPyramidSize( maxSizeTarget );
 
@@ -49,9 +68,100 @@ namespace algorithm
          Pyramid pyramidTarget;
          pyramidTarget.construct( targetPreprocessed, nbTargetLevels );
 
+         {
+            std::stringstream ss;
+            ss << " pyramidSourceNbLevels=" << pyramidSource.size() << std::endl
+               << " pyramidTargetNbLevels=" << pyramidTarget.size();
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
          // now we are progressively computing the registration starting from a very rough level of the pyramid,
          // and we also use transformation having the lowest degree of freedom, and progressively increase it
+         std::shared_ptr<TransformationParametrized> result;
+         {
+            const VolumeOutput& sourcep = pyramidSource[ pyramidSource.size() - 1 ];
+            const VolumeOutput& targetp = pyramidTarget[ pyramidTarget.size() - 1 ];
+            const core::vector3f initialTranslation = getInitialTranslation( source, source2TargetInitTransformation );
 
+            RegistrationAlgorithmResource resource = instanciateTranslationAlgorithm( _similarity );
+            const std::shared_ptr<TransformationParametrized> tfmInit( resource.transformationCreator->create( core::make_buffer1D<double>( initialTranslation[ 0 ], initialTranslation[ 1 ], initialTranslation[ 2 ] ) ) );
+
+            {
+               std::stringstream ss;
+               ss << " TranslationAlgorithm:" << std::endl
+                  << "  level=" << pyramidSource.size() - 1 << std::endl
+                  << "  initialTransofrmation=" << std::endl;
+               tfmInit->print( ss );
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+
+            result = resource.registrationAlgorithm->evaluate( sourcep, targetp, *tfmInit );
+
+            {
+               std::stringstream ss;
+               ss << " TranslationAlgorithm result:" << pyramidSource.size() << std::endl;
+               result->print( ss );
+               core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+            }
+         }
+
+         {
+            std::stringstream ss;
+            ss << "RegistrationIntensityBasedGenericAffine Final transformation: " << std::endl;
+            result->print( ss );
+            core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+         }
+
+         return result;
+      }
+
+   protected:
+      static core::vector3f getInitialTranslation( const VolumeInput& source, const TransformationParametrized& source2TargetInitTransformation )
+      {
+         const core::vector3f sourceCenter = source.indexToPosition( core::vector3f( source.getSize()[ 0 ] / 2,
+                                                                                     source.getSize()[ 1 ] / 2,
+                                                                                     source.getSize()[ 2 ] / 2 ) );
+
+         const core::vector3f sourceCenterTransformed = source2TargetInitTransformation.transform( sourceCenter );
+         return core::vector3f( sourceCenterTransformed[ 0 ] - sourceCenter[ 0 ],
+                                sourceCenterTransformed[ 1 ] - sourceCenter[ 1 ],
+                                sourceCenterTransformed[ 2 ] - sourceCenter[ 2 ] );
+      }
+
+   public:
+      struct RegistrationAlgorithmResource
+      {
+         std::shared_ptr<TransformationCreator>          transformationCreator;
+         std::shared_ptr<HistogramMaker>                 histogramMaker;
+         std::shared_ptr<RegistrationEvaluator>          registrationEvaluator;
+         std::shared_ptr<StopCondition>                  optimizationStopCondition;
+         std::shared_ptr<Optimizer>                      optimizer;
+         std::shared_ptr<RegistrationAlgorithmIntensity> registrationAlgorithm;
+      };
+
+      /**
+       @brief Construct a translation algorithm
+       */
+      static RegistrationAlgorithmResource instanciateTranslationAlgorithm( const SimilarityFunction& similarity ) 
+      {
+         const size_t joinHistogramNbBins = 16;
+         std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), true ) );
+
+         RegistrationAlgorithmResource algoRes;
+         algoRes.transformationCreator = std::shared_ptr<TransformationCreator>( new TransformationCreatorTranslation() );
+         algoRes.histogramMaker        = std::shared_ptr<HistogramMaker>( new HistogramMaker() );
+         algoRes.registrationEvaluator = std::shared_ptr<RegistrationEvaluator>( new RegistrationEvaluator( similarity, *algoRes.histogramMaker, joinHistogramNbBins, gradientEvaluator, false ) );
+
+         algoRes.optimizationStopCondition = std::shared_ptr<StopCondition>( new algorithm::StopConditionStable( 15 ) );
+         algoRes.optimizer = std::shared_ptr<Optimizer>( new algorithm::OptimizerGradientDescent( *algoRes.optimizationStopCondition, 0.0,
+                                                                                                  true,
+                                                                                                  1,
+                                                                                                  core::make_buffer1D<double>( 4, 4, 4 ),
+                                                                                                  core::make_buffer1D<double>( 1, 1, 1 ) ) );
+         algoRes.registrationAlgorithm = std::shared_ptr<RegistrationAlgorithmIntensity>( new RegistrationAlgorithmIntensity( *algoRes.transformationCreator,
+                                                                                                                              *algoRes.registrationEvaluator,
+                                                                                                                              *algoRes.optimizer ) );
+         return algoRes;
       }
 
    protected:
@@ -59,7 +169,7 @@ namespace algorithm
       static size_t getPyramidSize( const size_t sizeInVoxel )
       {
          const static double maxSize = 20;
-         return core::round( core::log2( sizeInVoxel ) / ( core::log2( 2 ) * core::log2( 20 ) ) );
+         return core::round( core::log2( static_cast<double>( sizeInVoxel ) ) / ( core::log2( 2.0 ) * core::log2( 20.0 ) ) );
       }
 
    protected:
@@ -598,6 +708,71 @@ public:
          f << plot[ n ].first << " " << plot[ n ].second << std::endl;
       }*/
    }
+
+   void testBasicIntensityBasedRegistration()
+   {
+      //
+      // Load data
+      //
+      std::cout << "loading volume..." << std::endl;
+      Volumef source;
+      Volumef target;
+
+      bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source.mf2", source );
+      loaded &= imaging::loadSimpleFlatFile( "c:/tmp2/target.mf2", target );
+      ensure( loaded, "can't load volume" );
+
+      //
+      // prepare algorithm
+      //
+      typedef algorithm::VolumePreprocessorLut8bits<Volumef::value_type, Volumef::VoxelBuffer, Volume::VoxelBuffer> VolumePreprocessor;
+      typedef algorithm::RegistrationIntensityBasedGenericAffine<VolumePreprocessor> RegistrationAlgorithm;
+
+      const size_t joinHistogramNbBins = 16;
+      imaging::LookUpTransformWindowingRGB lut( -100, 100, joinHistogramNbBins, 1 );
+      lut.createGreyscale( (float)joinHistogramNbBins );
+      VolumePreprocessor preprocessor( lut );
+
+      algorithm::SimilarityFunctionMutualInformation similarity;
+      RegistrationAlgorithm algorithm( preprocessor, preprocessor, similarity );
+
+      std::shared_ptr<algorithm::TransformationParametrized> initTfm = algorithm::TransformationCreatorTranslation().create( core::make_buffer1D<double>( 0, 0, 0 ) );
+      std::shared_ptr<algorithm::TransformationParametrized> tfm = algorithm.evaluate( source, target, *initTfm );
+
+      //
+      // Visualization of the result
+      //
+      imaging::LookUpTransformWindowingRGB lutDisplaySource( 0, joinHistogramNbBins, 256, 3 );
+      float green[] = { 0, 255, 0 };
+      lutDisplaySource.createColorScale( green );
+
+      imaging::LookUpTransformWindowingRGB lutDisplayTarget( 0, joinHistogramNbBins, 256, 3 );
+      float red[] = { 0, 0, 255 };
+      lutDisplayTarget.createColorScale( red );
+
+      const core::vector3f center = source.indexToPosition( core::vector3f( source.getSize()[ 0 ] / 2,
+                                                                            source.getSize()[ 1 ] / 2,
+                                                                            source.getSize()[ 2 ] / 2 ) );
+
+      {
+         const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
+         tfmAffine.print( std::cout );
+         std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lutDisplaySource, target, lutDisplayTarget, tfmAffine, center );
+         core::writeBmp( mprs[ 0 ], "c:/tmp2/regx_s.bmp" );
+         core::writeBmp( mprs[ 1 ], "c:/tmp2/regy_s.bmp" );
+         core::writeBmp( mprs[ 2 ], "c:/tmp2/regz_s.bmp" );
+      }
+
+
+      {
+         const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *initTfm );
+         tfmAffine.print( std::cout );
+         std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lutDisplaySource, target, lutDisplayTarget, tfmAffine, center );
+         core::writeBmp( mprs[ 0 ], "c:/tmp2/regxI_s.bmp" );
+         core::writeBmp( mprs[ 1 ], "c:/tmp2/regyI_s.bmp" );
+         core::writeBmp( mprs[ 2 ], "c:/tmp2/regzI_s.bmp" );
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -610,6 +785,7 @@ TESTER_TEST_SUITE(TestIntensityBasedRegistration);
  TESTER_TEST(testRegistrationGradient);
  //TESTER_TEST(testRegistrationRotationGradient);
  */
- TESTER_TEST(testRealMr);
+ //TESTER_TEST(testRealMr);
+TESTER_TEST(testBasicIntensityBasedRegistration);
 TESTER_TEST_SUITE_END();
 #endif
