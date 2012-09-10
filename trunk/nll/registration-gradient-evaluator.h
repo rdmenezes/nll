@@ -53,6 +53,18 @@ namespace algorithm
    };
 
    /**
+    @brief Called to normalize the gradient in a specific way.
+
+    For example in a rigid registration, the gradient of the rotation parameters will be much higher than the translation, so it is better to normalize them independently
+    */
+   class GradientPostprocessor
+   {
+   public:
+      virtual void postprocess( core::Buffer1D<double>& gradient ) const = 0;
+
+   };
+
+   /**
     @ingroup algorithm
     @brief Utility class that computes the gradient of a similarity measure according to the transformation using finite difference
     @note make sure the interpolator handles sub-voxel transformation, else step must be >= 1 voxel (note that the tfm is defined in MM)
@@ -74,7 +86,7 @@ namespace algorithm
        @note the impact of the gradient normalization, some parameters may have much bigger impact!
 
        */
-      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true ) : _normalizeGradient( normalizeGradient )
+      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true, std::shared_ptr<GradientPostprocessor> postprocessor = std::shared_ptr<GradientPostprocessor>() ) : _normalizeGradient( normalizeGradient ), _postprocessor( postprocessor )
       {
          _steps.clone( steps );
       }
@@ -106,6 +118,11 @@ namespace algorithm
             }
          }
 
+         if ( _postprocessor.get() )
+         {
+            _postprocessor->postprocess( gradient );
+         }
+
          return gradient;
       }
 
@@ -113,8 +130,9 @@ namespace algorithm
       {}
 
    protected:
-      core::Buffer1D<double>  _steps;
-      bool                    _normalizeGradient;
+      core::Buffer1D<double>                 _steps;
+      bool                                   _normalizeGradient;
+      std::shared_ptr<GradientPostprocessor> _postprocessor;
    };
 }
 }

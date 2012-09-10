@@ -813,7 +813,9 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="nll.dox" />
     <None Include="todo.txt" />
+    <None Include="nll.dox">
+      <Filter>vectorized</Filter>
+    </None>
   </ItemGroup>
 </Project>

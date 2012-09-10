@@ -62,6 +62,34 @@ namespace algorithm
          construct( volume, nbLevels );
       }
 
+      void constructMaxSize( const Volume& volume, size_t maxSize )
+      {
+         int level = 1;
+
+         core::vector3i factors( 1, 1, 1 );
+         for ( ; ; ++level )
+         {
+            // compute the next increments
+            const core::vector3i sizeNext( volume.getSize()[ 0 ] / ( 2 * factors[ 0 ] ),
+                                           volume.getSize()[ 1 ] / ( 2 * factors[ 1 ] ),
+                                           volume.getSize()[ 2 ] / ( 2 * factors[ 2 ] ) );
+            int sizeMin = *std::max_element( sizeNext.getBuf(), sizeNext.getBuf() + 3 );
+            for ( int nn = 0; nn < 3; ++nn )
+            {
+               if ( sizeMin <= sizeNext[ nn ] )
+                  factors[ nn ] *= 2;
+            }
+
+            const core::vector3ui size( volume.sizex() / factors[ 0 ],
+                                        volume.sizey() / factors[ 1 ],
+                                        volume.sizez() / factors[ 2 ] );
+            if ( *std::max_element( size.getBuf(), size.getBuf() + 3 ) <= maxSize )
+               break;
+         }
+
+         construct( volume, level );
+      }
+
       /**
        @brief Construct the pyramid
        @param volume the volume to use. Note that the level 0 is taking a reference on this volume

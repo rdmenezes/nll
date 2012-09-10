@@ -52,7 +52,13 @@
 #   define ensure( _Expression, _String )                 (_Expression)                  
 #  else
 #   ifdef NLL_ENSURE_THROW
-#    define ensure( _e, _s ) if ( ( _e ) == 0 ) { throw std::runtime_error( _s ); }
+#    define ensure( _e, _s ) if ( ( _e ) == 0 ) {                                \
+         nll::core::LoggerNll::write( nll::core::LoggerNll::ERROR, _s );         \
+	      std::cout << "------------" << std::endl;				                     \
+	      std::cout << "Error : " << _s << std::endl;                             \
+	      std::cout << "  Location : " << __FILE__ << std::endl;	               \
+	      std::cout << "  Line     : " << __LINE__ << std::endl;	               \
+         throw std::runtime_error( _s ); }
 #   else
 #    ifdef _MSC_VER
 #     define ensure( _Expression, _String )							      \
