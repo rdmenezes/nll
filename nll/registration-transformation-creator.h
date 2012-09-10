@@ -151,7 +151,7 @@ namespace algorithm
    public:
       virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const
       {
-         ensure( parameters.size() == 6, "only (tx, ty, tz) parameters expected" );
+         ensure( parameters.size() == 6, "only (tx, ty, tz, sx, sy, sz) parameters expected" );
          core::Matrix<float> tfmMat = core::identityMatrix< core::Matrix<float> >( 4 );
          tfmMat( 0, 3 ) = static_cast<float>( parameters[ 0 ] );
          tfmMat( 1, 3 ) = static_cast<float>( parameters[ 1 ] );
