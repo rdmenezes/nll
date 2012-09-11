@@ -88,6 +88,16 @@ public:
       }
    }
 
+   template <class Volume>
+   void setPstAsVolumeCenter( Volume& v )
+   {
+      const core::vector3f centerVoxel( - (float)v.getSpacing()[ 0 ] * v.getSize()[ 0 ] / 2.0f,
+                                        - (float)v.getSpacing()[ 1 ] * v.getSize()[ 1 ] / 2.0f,
+                                        - (float)v.getSpacing()[ 2 ] * v.getSize()[ 2 ] / 2.0f );
+
+      v.setOrigin( centerVoxel );
+   }
+
    void testBasicIntensityBasedRegistration()
    {
       srand( 0 );
@@ -101,8 +111,8 @@ public:
       //bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source.mf2", source );
       //loaded &= imaging::loadSimpleFlatFile( "c:/tmp2/target.mf2", target );
       
-      //bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source2.mf2", source );
-      //loaded &= imaging::loadSimpleFlatFile( "c:/tmp2/target2.mf2", target );
+      bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source2.mf2", source );
+      loaded &= imaging::loadSimpleFlatFile( "c:/tmp2/target2.mf2", target );
 
       
       //bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source3.mf2", source );
@@ -111,10 +121,16 @@ public:
       //bool loaded = imaging::loadSimpleFlatFile( "c:/tmp2/source4.mf2", source );
       //loaded &= imaging::loadSimpleFlatFile( "c:/tmp2/target4.mf2", target );
 
-      bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-1h.mf2", source );
-      loaded &= imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-2h.mf2", target );
+      //bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-1h.mf2", source );
+      //loaded &= imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/mr-2h.mf2", target );
       ensure( loaded, "can't load volume" );
 
+      std::cout << "origin=" << source.getOrigin() << "---" << target.getOrigin() << std::endl;
+
+      //setPstAsVolumeCenter( source );
+      //setPstAsVolumeCenter( target );
+
+      std::cout << "origin=" << source.getOrigin() << "---" << target.getOrigin() << std::endl;
       //
       // prepare algorithm
       //
@@ -152,20 +168,6 @@ public:
       Volume sourcePreprocessed = preprocessor.run( source );
       Volume targetPreprocessed = preprocessor.run( target );
 
-      // print the registration steps with the different transformation models. The last one counts.
-      for ( size_t n = 0; n < algorithm.getDebugInfo().steps.size(); ++n )
-      {
-         {
-            const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *algorithm.getDebugInfo().steps[ n ].second );
-            tfmAffine.print( std::cout );
-            std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( sourcePreprocessed, lutDisplaySource, targetPreprocessed, lutDisplayTarget, tfmAffine, center );
-            core::writeBmp( mprs[ 0 ], "c:/tmp2/regx_step_" + core::val2str( n ) + ".bmp" );
-            core::writeBmp( mprs[ 1 ], "c:/tmp2/regy_step_" + core::val2str( n ) + ".bmp" );
-            core::writeBmp( mprs[ 2 ], "c:/tmp2/regz_step_" + core::val2str( n ) + ".bmp" );
-         }
-      }
-
-
       {
          const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *initTfm );
          tfmAffine.print( std::cout );
@@ -173,6 +175,31 @@ public:
          core::writeBmp( mprs[ 0 ], "c:/tmp2/regxI_s.bmp" );
          core::writeBmp( mprs[ 1 ], "c:/tmp2/regyI_s.bmp" );
          core::writeBmp( mprs[ 2 ], "c:/tmp2/regzI_s.bmp" );
+      }
+
+      {
+         const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
+         tfmAffine.print( std::cout );
+         std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( sourcePreprocessed, lutDisplaySource, targetPreprocessed, lutDisplayTarget, tfmAffine, center );
+         core::writeBmp( mprs[ 0 ], "c:/tmp2/regxI_final.bmp" );
+         core::writeBmp( mprs[ 1 ], "c:/tmp2/regyI_final.bmp" );
+         core::writeBmp( mprs[ 2 ], "c:/tmp2/regzI_final.bmp" );
+      }
+
+      
+      // print the registration steps with the different transformation models. The last one counts.
+      setPstAsVolumeCenter( sourcePreprocessed );
+      setPstAsVolumeCenter( targetPreprocessed );
+      for ( size_t n = 0; n < algorithm.getDebugInfo().steps.size(); ++n )
+      {
+         {
+            const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *algorithm.getDebugInfo().steps[ n ].second );
+            tfmAffine.print( std::cout );
+            std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( sourcePreprocessed, lutDisplaySource, targetPreprocessed, lutDisplayTarget, tfmAffine, core::vector3f( 0, 0, 0 ) );
+            core::writeBmp( mprs[ 0 ], "c:/tmp2/regx_step_" + core::val2str( n ) + ".bmp" );
+            core::writeBmp( mprs[ 1 ], "c:/tmp2/regy_step_" + core::val2str( n ) + ".bmp" );
+            core::writeBmp( mprs[ 2 ], "c:/tmp2/regz_step_" + core::val2str( n ) + ".bmp" );
+         }
       }
 
       // if this test is failing, it doesn't mean the algo is wrong, just something changed. Check the registration result is correct!
@@ -186,8 +213,9 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestIntensityBasedRegistration);
+/*
  TESTER_TEST(testEvaluatorSpecificData);
- TESTER_TEST(testRange);
+ TESTER_TEST(testRange);*/
  TESTER_TEST(testBasicIntensityBasedRegistration);
 TESTER_TEST_SUITE_END();
 #endif
