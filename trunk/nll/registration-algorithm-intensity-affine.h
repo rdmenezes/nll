@@ -218,6 +218,7 @@ namespace algorithm
       typedef typename VolumePreprocessor::VolumeOutput                                                                                            VolumeOutput;
 
    protected:
+      typedef core::Matrix<float> Matrix;
       typedef VolumePyramid<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                                                 Pyramid;
       typedef algorithm::HistogramMakerTrilinearPartial<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                     HistogramMaker;
       typedef typename algorithm::RegistrationEvaluatorHelper<VolumeOutput>::EvaluatorSimilarity                                                   RegistrationEvaluator;
@@ -238,6 +239,7 @@ namespace algorithm
 
       struct DebugInfo
       {
+         // BEWARE: the intermediate transformations are defined for centred volumes
          typedef std::pair< RegistrationAlgorithmResource, std::shared_ptr<TransformationParametrized> > Step;
          typedef std::vector<Step> Steps;
 
@@ -251,6 +253,8 @@ namespace algorithm
                                  in the joint histogram
        @param targetPreprocessor the preprocessor. It is assumed the preprocessor will discretize the volume, and the highest discretized value will be used
                                  in the joint histogram
+
+       @note source and target MUST have their origin set at their center as this will help the optmization process! (think about scaling: it must be symetrically increased, else you need centering + scaling)
        */
       RegistrationAlgorithmIntensityAffineGeneric( const VolumePreprocessor& sourcePreprocessor,
                                                    const VolumePreprocessor& targetPreprocessor,
@@ -276,9 +280,16 @@ namespace algorithm
 
          // first, preprocess the volume so we have discretized volumes ready for the similarity measure
          // find the maximum value
+
+         //
+         // NOTE: source and target MUST have their origin set at their center as this will help the optmization process!
+         //       (think about scaling: it must be symetrically increased, else you need to update 2 parameters: translation + scaling)
+         //
          core::Timer preprocessingTimer;
-         const VolumeOutput sourcePreprocessed = _sourcePreprocessor.run( source );
-         const VolumeOutput targetPreprocessed = _targetPreprocessor.run( target );
+         VolumeOutput sourcePreprocessed = _sourcePreprocessor.run( source );
+         sourcePreprocessed.setPst( getCenteredPst( source ) );
+         VolumeOutput targetPreprocessed = _targetPreprocessor.run( target );
+         targetPreprocessed.setPst( getCenteredPst( target ) );
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, "preprocessing computation time=" + core::val2str( preprocessingTimer.getCurrentTime() ) );
 
          // find the maximum value, this will be used to in the joint histogram
@@ -363,18 +374,35 @@ namespace algorithm
          // 3 - translation, scaling and rotation
          // TODO
 
+         // Finally, convert the volume centred transformation to the original volume transformation
+         // lets define the following variables:
+         // T = the transformation we want to return with PST not necessarily centered
+         // T1 = transformation from source not centered -> source centered
+         // T3 = transformation from target not centered -> target centered
+         // T2 = registration found between source centered -> target centered
+         // so we have T = T3^-1 * T2 * T1
+         Matrix t1 = getUnceteredToCenteredTransformation( source );
+         Matrix t2 = result->getAffineMatrix();
+         Matrix t3 = getUnceteredToCenteredTransformation( target );
+
+         const bool inverted = core::inverse( t3 );
+         ensure( inverted, "not an affine matrix!" );
+         Matrix t = t3 * t2 * t1;
+         
+         std::shared_ptr<TransformationParametrized> finalResult( new TransformationParametrizedAffine( t, core::Buffer1D<double>() ) );
          {
             std::stringstream ss;
             ss << "RegistrationIntensityBasedGenericAffine:" << std::endl
                << " total computation time=" << registrationTimer.getCurrentTime() << std::endl
                << " Final transformation:" << std::endl;
-            result->print( ss );
+            finalResult->print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
 
-         return result;
+         return finalResult;
       }
 
+      // NOTE the transformation saved are expected to be for the CENTERED VOLUMES (i.e., not the original ones...)
       const DebugInfo& getDebugInfo() const
       {
          return _debugInfo;
@@ -382,7 +410,7 @@ namespace algorithm
 
    protected:
       /**
-       @brief Normalize independently the translation and rotation parameters
+       @brief Normalize independently the translation and scaling parameters
        */
       class GradientPostprocessorTranslationScaling : public GradientPostprocessor
       {
@@ -403,6 +431,35 @@ namespace algorithm
             {
                gradient[ n ] /= sumTranslation;
                gradient[ n + 3 ] /= sumRotation;
+            }
+         }
+      };
+
+      /**
+       @brief Normalize independently the translation and rotation and scaling parameters
+       */
+      class GradientPostprocessorTranslationScalingRotation : public GradientPostprocessor
+      {
+      public:
+         virtual void postprocess( core::Buffer1D<double>& gradient ) const
+         {
+            ensure( gradient.size() == 6, "error! We are expectingTranslationScaling parameterization" );
+
+            double sumTranslation = 0;
+            double sumScaling = 0;
+            double sumRotation = 0;
+            for ( size_t n = 0; n < 3; ++n )
+            {
+               sumTranslation += fabs( gradient[ n ] );
+               sumScaling += fabs( gradient[ n + 3 ] );
+               sumRotation += fabs( gradient[ n + 6 ] );
+            }
+
+            for ( size_t n = 0; n < 3; ++n )
+            {
+               gradient[ n ] /= sumTranslation;
+               gradient[ n + 3 ] /= sumScaling;
+               gradient[ n + 6 ] /= sumRotation;
             }
          }
       };
@@ -447,6 +504,7 @@ namespace algorithm
        */
       static core::vector3f getInitialTranslation( const VolumeInput& source, const TransformationParametrized& source2TargetInitTransformation )
       {
+         // TODO: fix the issue with the volume centred
          const core::vector3f sourceCenter = source.indexToPosition( core::vector3f( source.getSize()[ 0 ] / 2,
                                                                                      source.getSize()[ 1 ] / 2,
                                                                                      source.getSize()[ 2 ] / 2 ) );
@@ -506,6 +564,40 @@ namespace algorithm
                                                                                                                               *algoRes.registrationEvaluator,
                                                                                                                               *algoRes.optimizer ) );
          return algoRes;
+      }
+
+      /**
+       @brief Compute the centered PST: the center of the volume will be (0, 0, 0) with the computed PST
+       */
+      template <class Volume>
+      static Matrix getCenteredPst( const Volume& v )
+      {
+         const core::vector3f centerMm( - (float)v.getSize()[ 0 ] * v.getSpacing()[ 0 ] / 2.0f,
+                                        - (float)v.getSize()[ 1 ] * v.getSpacing()[ 1 ] / 2.0f,
+                                        - (float)v.getSize()[ 2 ] * v.getSpacing()[ 2 ] / 2.0f );
+
+         Matrix pst;
+         pst.clone( v.getPst() );
+         pst( 0, 3 ) = centerMm[ 0 ];
+         pst( 1, 3 ) = centerMm[ 1 ];
+         pst( 2, 3 ) = centerMm[ 2 ];
+
+         return pst;
+      }
+
+      /**
+       @brief Compute the transformation from the uncetered volume -> centered volume
+       */
+      template <class Volume>
+      static Matrix getUnceteredToCenteredTransformation( const Volume& v )
+      {
+         Matrix centered = getCenteredPst( v );
+
+         Matrix pstInv;
+         pstInv.clone( v.getPst() );
+         const bool inverted = core::inverse( pstInv );
+         ensure( inverted, "cant be inverted!" );
+         return centered * pstInv;
       }
 
    protected:
