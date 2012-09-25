@@ -116,7 +116,7 @@ namespace algorithm
          mapper.learn( tfmDat, stop, learningRate );
 
          _mapper = mapper;
-         _normalizer = Normalizer( normalization.getMean(), normalization.getVariance() );
+         _normalizer = Normalizer( normalization.getMean(), normalization.getStddev() );
          return true;
       }
 

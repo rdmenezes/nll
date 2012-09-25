@@ -101,9 +101,9 @@ namespace algorithm
       /**
        @return the variance
        */
-      const Vector& getVariance() const
+      const Vector& getStddev() const
       {
-         return _impl.getVariance();
+         return _impl.getStddev();
       }
 
       /**

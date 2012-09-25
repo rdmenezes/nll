@@ -25,13 +25,13 @@ public:
       Transform tfm;
       tfm.compute( dat );
       TESTER_ASSERT( fabs( tfm.getMean()[ 0 ] - 2.5 ) < 1e-10 );
-      TESTER_ASSERT( fabs( tfm.getVariance()[ 0 ] - 0.8 ) < 1e-10 );
+      TESTER_ASSERT( fabs( tfm.getStddev()[ 0 ] - std::sqrt( 0.8 ) ) < 1e-10 );
 
       Point p( 1 );
       p[ 0 ] = 10;
 
       Point pres = tfm.process( p );
-      TESTER_ASSERT( fabs( pres[ 0 ] - (10 - 2.5) / 0.8 ) < 1e-10 );
+      TESTER_ASSERT( fabs( pres[ 0 ] - (10 - 2.5) / std::sqrt( 0.8 ) ) < 1e-10 );
 
       std::stringstream buf;
       tfm.write( buf );
@@ -39,7 +39,7 @@ public:
       Transform tfm2;
       tfm2.read( buf );
       Point pres2 = tfm2.process( p );
-      TESTER_ASSERT( fabs( pres2[ 0 ] - (10 - 2.5) / 0.8 ) < 1e-10 );
+      TESTER_ASSERT( fabs( pres2[ 0 ] - (10 - 2.5) / std::sqrt( 0.8 ) ) < 1e-10 );
    }
 };
 
