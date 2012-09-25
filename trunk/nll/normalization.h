@@ -42,6 +42,8 @@ namespace algorithm
            for (mean,variance)= (0,1)
 
            A point must define operator[](size_t) and size_t size() and constructible(size)
+
+    @see http://en.wikipedia.org/wiki/Standard_score
     */
    template <class Point>
    class Normalize
@@ -56,17 +58,17 @@ namespace algorithm
       Normalize()
       {}
 
-      Normalize( const Vector& mean, const Vector& var )
+      Normalize( const Vector& mean, const Vector& stddev )
       {
          _mean.clone( mean );
-         _var.clone( var );
+         _stddev.clone( stddev );
       }
 
       template <class PPoint>
       Normalize( const Normalize<PPoint>& normalize )
       {
          _mean.clone( normalize.getMean() );
-         _var.clone( normalize.getVariance() );
+         _stddev.clone( normalize.getStddev() );
       }
 
       /**
@@ -83,7 +85,7 @@ namespace algorithm
 
          const size_t nbFeatures = (size_t)points[ 0 ].size();
          _mean = Vector( nbFeatures );
-         _var = Vector( nbFeatures );
+         _stddev = Vector( nbFeatures );
          size_t nbSamples = static_cast<size_t>( points.size() );
          for ( size_t n = 0; n < points.size(); ++n )
          {
@@ -99,30 +101,30 @@ namespace algorithm
             for ( size_t nn = 0; nn < nbFeatures; ++nn )
             {
                double val = points[ n ][ nn ] - _mean[ nn ];
-               _var[ nn ] += val * val;
+               _stddev[ nn ] += val * val;
             }
          }
 
          for ( size_t nn = 0; nn < nbFeatures; ++nn )
          {
-            if ( fabs( _var[ nn ] ) < 1e-10 )
+            if ( fabs( _stddev[ nn ] ) < 1e-10 )
             {
-               nllWarning( "null variance, this attribut should be discarded instead" );
-               _var[ nn ] = 1;
+               nllWarning( "null stddev, this attribut should be discarded instead" );
+               _stddev[ nn ] = 1;
             } else {
-               _var[ nn ] /= nbSamples;
+               _stddev[ nn ] = sqrt( _stddev[ nn ] / nbSamples );
             }
          }
 
          std::stringstream ss1;
          ss1 << " mean vector=";
          std::stringstream ss2;
-         ss2 << " variance vector=";
+         ss2 << " stddev vector=";
 
          for ( size_t nn = 0; nn < nbFeatures; ++nn )
          {
             ss1 << _mean[ nn ] << " ";
-            ss2 << _var[ nn ] << " ";
+            ss2 << _stddev[ nn ] << " ";
          }
 
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss1.str() );
@@ -136,7 +138,7 @@ namespace algorithm
       bool write( std::ostream& o ) const
       {
          _mean.write( o );
-         _var.write( o );
+         _stddev.write( o );
          return true;
       }
 
@@ -146,7 +148,7 @@ namespace algorithm
       bool read( std::istream& i )
       {
          _mean.read( i );
-         _var.read( i );
+         _stddev.read( i );
          return true;
       }
 
@@ -155,11 +157,11 @@ namespace algorithm
        */
       Point process( const Point& p ) const
       {
-         ensure( p.size() == _var.size(), "error size" );
+         ensure( p.size() == _stddev.size(), "error size" );
 
          Point res( p.size() );
          for ( size_t nn = 0; nn < p.size(); ++nn )
-            res[ nn ] = ( p[ nn ] - _mean[ nn ] ) / _var[ nn ];
+            res[ nn ] = ( p[ nn ] - _mean[ nn ] ) / _stddev[ nn ];
          return res;
       }
 
@@ -171,7 +173,7 @@ namespace algorithm
          assert( p.size() == _mean.size() );
          Point r( _mean.size() );
          for ( size_t nn = 0; nn < p.size(); ++nn )
-            r[ nn ] = p[ nn ] * _var[ nn ] + _mean[ nn ];
+            r[ nn ] = p[ nn ] * _stddev[ nn ] + _mean[ nn ];
          return r;
       }
 
@@ -186,14 +188,14 @@ namespace algorithm
       /**
        @return the variance
        */
-      const Vector& getVariance() const
+      const Vector& getStddev() const
       {
-         return _var;
+         return _stddev;
       }
 
    protected:
       Vector   _mean;
-      Vector   _var;
+      Vector   _stddev;
    };
 }
 }

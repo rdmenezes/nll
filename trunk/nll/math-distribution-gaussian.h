@@ -43,25 +43,6 @@ namespace core
     @brief generate a sample of a specific gaussian distribution using the Box-Muller transform.
            See http://en.wikipedia.org/wiki/Box-Muller_transform
     @param mean the mean of the distribution
-    @param variance the variance of the distribution
-    @return a sample of this distribution
-    @note 2 values instead of 1 could be generated for almost free
-    */
-   inline double NLL_API generateGaussianDistribution( const double mean, const double variance )
-   {
-      double u1 = ( static_cast<double> ( rand() ) + 1 ) / ( (double)RAND_MAX + 1 );
-      double u2 = ( static_cast<double> ( rand() ) + 1 ) / ( (double)RAND_MAX + 1 );
-      assert( -2 * log( u1 ) >= 0 );
-      double t1 = sqrt( -2 * log( u1 ) ) * cos( 2 * core::PI * u2 );
-
-      return mean + sqrt( variance ) * t1;
-   }
-
-   /**
-    @ingroup core
-    @brief generate a sample of a specific gaussian distribution using the Box-Muller transform.
-           See http://en.wikipedia.org/wiki/Box-Muller_transform
-    @param mean the mean of the distribution
     @param stddev the standard deviation of the distribution
     @return a sample of this distribution
     @note 2 values instead of 1 could be generated for almost free
@@ -74,6 +55,21 @@ namespace core
       double t1 = sqrt( -2 * log( u1 ) ) * cos( 2 * core::PI * u2 );
 
       return mean + stddev * t1;
+   }
+
+   /**
+    @ingroup core
+    @brief generate a sample of a specific gaussian distribution using the Box-Muller transform.
+           See http://en.wikipedia.org/wiki/Box-Muller_transform
+    @param mean the mean of the distribution
+    @param variance the variance of the distribution
+    @return a sample of this distribution
+    @note 2 values instead of 1 could be generated for almost free
+    */
+   inline double NLL_API generateGaussianDistribution( const double mean, const double variance )
+   {
+      const double stddev = std::sqrt( variance );
+      return generateGaussianDistributionStddev( mean, stddev );
    }
 }
 }

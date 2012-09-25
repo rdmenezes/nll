@@ -78,6 +78,7 @@ namespace algorithm
    public:
       /**
        @brief Computes PCA, decide the number of eigen vectors retain by the retained variance
+       @param varianceToRetain is a number in ]0..1]
        */
       bool computeByVarianceRetained( const Points& points, double varianceToRetain )
       {

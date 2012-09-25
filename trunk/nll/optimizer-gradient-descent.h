@@ -39,10 +39,13 @@ namespace algorithm
    /**
     @brief Simple Gradient descent algorithm with constant step size
     
-    Efficient for problems with high dimentionality but very sensitive to local minimum.
+    Efficient for problems with high dimentionality but very sensitive to local minimum. It must be noted that
+    the algorithm is particularly sensitive to functions with high curvature (e.g., maybe because of badly scaled parameters).
+    
+    In the case of such pathological functions to optimize, a second order method that will use the curvature information to
+    rescale the steps should be used.
 
-    The algorithm let you define the maximum step for each parameter as well as an independent learningRate.
-
+    The algorithm let you define the maximum step for each parameter as well as an independent learningRate. 
     */
    class OptimizerGradientDescent : public Optimizer
    {

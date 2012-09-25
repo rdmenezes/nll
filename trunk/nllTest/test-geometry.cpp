@@ -230,12 +230,15 @@ public:
          {
             std::cout << "x=" << x << " y=" << y << " expectedInside=" << expectedInside << s1.getP1() << s1.getP2();
          }
-         ensure( s1.contains( vector2f( x, y ),  1e-3 ) == expectedInside, "arg1!" );
+         ensure( s1.contains( vector2f( x, y ),  0.01 ) == expectedInside, "arg1!" );
 
          // this one will never contain it..
-         const vector2f normal( -1, s1.getA() );
-         const vector2f p( x + normal[ 0 ] * 10, y + normal[ 1 ] * 10 );
-         ensure( !s1.contains( p, 0.001 ), "arg2!" );
+         if ( fabs( s1.getA() ) > 1e-3 )
+         {
+            const vector2f normal( -1, s1.getA() );
+            const vector2f p( x + normal[ 0 ] * 10, y + normal[ 1 ] * 10 );
+            ensure( !s1.contains( p, 0.01 ), "arg2!" );
+         }
       }
    }
 
