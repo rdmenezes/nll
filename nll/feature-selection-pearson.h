@@ -46,6 +46,8 @@ namespace algorithm
            redundand features (each feature gives discriminativ information, but the same info). But the algorithm is fastest
            and can still achieves very good results in some case.
 
+    @see http://en.wikipedia.org/wiki/Correlation_and_dependence
+
     @todo evaluate the method for multiclass database.
     */
    template <class Point>

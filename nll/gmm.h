@@ -62,6 +62,9 @@ namespace algorithm
     @ingroup algorithm
     @brief Gaussian mixture model algorithm, using expectation maximization for optimizing GMM parameters
            As an init step, a kmeans algorithm (using euclidian distance) is used to determine the k gaussians.
+    @see http://ssli.ee.washington.edu/people/bilmes/mypapers/em.pdf
+         A Gentle Tutorial of the EM Algorithm and its Application to Parameter Estimation for Gaussian Mixture and
+         Hidden Markov Models, Jeff A. Bilmes
     */
    class Gmm
    {
