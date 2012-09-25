@@ -39,6 +39,7 @@ namespace core
    /**
     @ingroup core
     @brief Compute the correlation of 2 vectors.
+    @see http://en.wikipedia.org/wiki/Correlation_and_dependence
     */
    template <class T, class Mapper, class Allocator>
    double correlation( const Matrix<T, Mapper, Allocator>& v1, const Matrix<T, Mapper, Allocator>& v2 )
