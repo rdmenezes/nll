@@ -68,15 +68,6 @@
     <ClCompile Include="math.cpp">
       <Filter>core</Filter>
     </ClCompile>
-    <ClCompile Include="optimizer-harmony-search-memory.cpp">
-      <Filter>algorithm-api</Filter>
-    </ClCompile>
-    <ClCompile Include="optimizer-harmony-search.cpp">
-      <Filter>algorithm-api</Filter>
-    </ClCompile>
-    <ClCompile Include="optimizer-parameters.cpp">
-      <Filter>algorithm-api</Filter>
-    </ClCompile>
     <ClCompile Include="svm-linear.cpp">
       <Filter>algorithm-impl</Filter>
     </ClCompile>
@@ -91,6 +82,15 @@
     </ClCompile>
     <ClCompile Include="fft.cpp">
       <Filter>algorithm-impl</Filter>
+    </ClCompile>
+    <ClCompile Include="optimizer-harmony-search-memory.cpp">
+      <Filter>algorithm-optimization</Filter>
+    </ClCompile>
+    <ClCompile Include="optimizer-harmony-search.cpp">
+      <Filter>algorithm-optimization</Filter>
+    </ClCompile>
+    <ClCompile Include="optimizer-parameters.cpp">
+      <Filter>algorithm-optimization</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -415,30 +415,6 @@
     <ClInclude Include="metric.h">
       <Filter>algorithm-api</Filter>
     </ClInclude>
-    <ClInclude Include="optimizer-client.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer-genetic-algorithm.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer-grid-search.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer-harmony-search-memory.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer-harmony-search.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer-parameters.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer-powell.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer.h">
-      <Filter>algorithm-api</Filter>
-    </ClInclude>
     <ClInclude Include="region-growing.h">
       <Filter>algorithm-api</Filter>
     </ClInclude>
@@ -713,12 +689,6 @@
     <ClInclude Include="boosting-weak-classifier-decision-tree.h">
       <Filter>algorithm-boosting</Filter>
     </ClInclude>
-    <ClInclude Include="function.h">
-      <Filter>algorithm-optimization</Filter>
-    </ClInclude>
-    <ClInclude Include="gradient-descent.h">
-      <Filter>algorithm-optimization</Filter>
-    </ClInclude>
     <ClInclude Include="linear-regression.h">
       <Filter>algorithm-impl</Filter>
     </ClInclude>
@@ -803,8 +773,32 @@
     <ClInclude Include="vec4fb.h">
       <Filter>vectorized</Filter>
     </ClInclude>
+    <ClInclude Include="optimizer-client.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-genetic-algorithm.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
     <ClInclude Include="optimizer-gradient-descent.h">
-      <Filter>algorithm-api</Filter>
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-grid-search.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-harmony-search-memory.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-harmony-search.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-parameters.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-powell.h">
+      <Filter>algorithm-optimization</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

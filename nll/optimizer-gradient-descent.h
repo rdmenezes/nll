@@ -55,7 +55,7 @@ namespace algorithm
       /**
        @brief The algorithm let you define the maximum step for each parameter as well as an independent learningRate
        @param stopCondition the condition when the algorithm must stop
-       @param learningRate the learning rate to be used if no individual rate is specified
+       @param learningRate the learning rate to be used if no individual rate is specified. If negative, the gradient will be normalized and learning rate applied
        @param maxDisplacement the maximum displacement for one parameter
        @param individualLearningRate override <learningRate> for each of the parameters
        */
@@ -89,7 +89,7 @@ namespace algorithm
          {
             for ( size_t n = 0; n < seed.size(); ++n )
             {
-               weights[ n ] = _learningRate;
+               weights[ n ] = fabs( _learningRate );
             }
          } else {
             weights = _individualLearningRate;
@@ -115,7 +115,15 @@ namespace algorithm
                bestSolution.clone( point );
             }
 
-            const core::Buffer1D<double> gradient = client.evaluateGradient( point );
+            core::Buffer1D<double> gradient = client.evaluateGradient( point );
+            if ( _learningRate < 0 )
+            {
+               const double norm = core::norm2( gradient );
+               for ( size_t n = 0; n < gradient.size(); ++n )
+               {
+                  gradient[ n ] /= norm;
+               }
+            }
 
             if ( _turnOnLogging && ( iteration % _loggingEveryXCycle ) == 0 )
             {
