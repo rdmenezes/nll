@@ -398,10 +398,8 @@
     <ClInclude Include="estimator-affine-transformation.h" />
     <ClInclude Include="fast-volume-pyramid.h" />
     <ClInclude Include="fft.h" />
-    <ClInclude Include="function.h" />
     <ClInclude Include="generic-operations.h" />
     <ClInclude Include="geometry.h" />
-    <ClInclude Include="gradient-descent.h" />
     <ClInclude Include="graph-adjency-list.h" />
     <ClInclude Include="graph-algorithms.h" />
     <ClInclude Include="graph-traits.h" />
