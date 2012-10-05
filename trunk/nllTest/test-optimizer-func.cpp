@@ -7,7 +7,39 @@ namespace nll
 {
 namespace algorithm
 {
+   /**
+    @brief Pure Newton optimizer
 
+    Fits a Taylor series of degree two to the function to optimize and find the extremum.
+
+    f(x+d) = f(x) + grad f(x) * d + d' * Hessian f( x ) * d / 2
+    x_new = x - lambda * (Hf^-1(x)) * grad f(x)
+
+    This algorithm is inverting the Hessian, so this is not a good approach for high dimentional problems. Instead
+    we want to factorize pn = Hf^-1(x)grad(x) => Hf(x) * pn = grad(x)
+
+    @note if the hessian can't be inverted, we will do H = H + alpha * I until it can be (i.e., by doing so we almost revert to gradient descent)
+    @see http://en.wikipedia.org/wiki/Newton's_method_in_optimization
+    */
+   class NLL_API OptimizerNewton : public Optimizer
+   {
+   public:
+      using Optimizer::optimize;
+
+   public:
+      /**
+       @param lambda in ]0..1] to satify the Wolfe condition (http://en.wikipedia.org/wiki/Wolfe_conditions)
+       */
+      OptimizerNewton( double lambda = 0.9 ) : _lambda( lambda )
+      {}
+
+      virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
+      {
+      }
+
+   protected:
+      double   _lambda;
+   };
 }
 }
 
