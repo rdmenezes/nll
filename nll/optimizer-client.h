@@ -44,9 +44,16 @@ namespace algorithm
            A key point for optimization algorithms is how quickly, a solution can be evaluated. It is too slow,
            the number of solutions tested will be too slow, and the underlying algorithm may not converge to an
            acceptable solution.
+
+           To be used with <code>Optimizer</code>. Optimizers will have 
     */
    class NLL_API OptimizerClient
    {
+   public:
+      typedef f64                         value_type;
+      typedef core::Buffer1D<value_type>  Vector;
+      typedef core::Matrix<value_type>    Matrix;
+
    public:
       /**
        @brief return the score of the optimization for a specific set of parameters.
@@ -58,8 +65,22 @@ namespace algorithm
 
       /**
        @brief Returns the function gradient for this specific parameters
+
+       i.e., for a function f to optimize, compute [df/dparam_1 ... dn/dparam_n]
        */
       virtual core::Buffer1D<f64> evaluateGradient( const core::Buffer1D<f64>& /*parameters*/ ) const
+      {
+         throw std::runtime_error( "not implemented for this function" );
+      }
+
+      /**
+       @brief Returns the function gradient for this specific parameters
+
+       i.e., for a function f to optimize, compute |df/dparam_1,d_param_1 ... dn/dparam_n,d_param_1  |
+                                                   |        ...                                      |
+                                                   | df/dparam_1,d_param_n ... dn/dparam_n,d_param_n |
+       */
+      virtual core::Matrix<f64> evaluateHessian( const core::Buffer1D<f64>& /*parameters*/ ) const
       {
          throw std::runtime_error( "not implemented for this function" );
       }

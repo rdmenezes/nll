@@ -30,15 +30,26 @@ namespace algorithm
       /**
        @param lambda in ]0..1] to satify the Wolfe condition (http://en.wikipedia.org/wiki/Wolfe_conditions)
        */
-      OptimizerNewton( double lambda = 0.9 ) : _lambda( lambda )
+      OptimizerNewton( const StopCondition& stop, double lambda = 0.9 ) : _stop( stop ), _lambda( lambda )
       {}
 
       virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
+         core::Buffer1D<double> params;
+         params.clone( seed );
+
+         double eval = client.evaluate( params );
+         while ( !_stop.stop( eval ) )
+         {
+
+
+            double eval = client.evaluate( params );
+         }
       }
 
    protected:
-      double   _lambda;
+      const StopCondition&    _stop;
+      double                  _lambda;
    };
 }
 }
