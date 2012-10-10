@@ -1,29 +1,112 @@
-\documentclass[12pt,a4paper,article]{memoir} % for a short document
+\documentclass[11pt]{article}
 \usepackage[utf8]{inputenc} % set input encoding to utf8
+\usepackage[hmargin=3.5cm,vmargin=2.5cm]{geometry}
+\usepackage{fancyheadings}
+\usepackage{amsmath}
 
-\title{Numerical learning library algorithm documentation}
+\newcommand{\nllversion}{0.16}
+\newcommand{\bigO}{\mathcal{O}}
+
+%% configuration
+%\usepackage{geometry}
+%\setlength{\headheight}{0.6in} 
+%\setlength{\headsep}{25pt}
+%\setlength{\topmargin}{0pt}
+%\setlength{\footskip}{25pt}
+%\setlength{\marginparsep}{11pt}
+
+\title{Numerical learning library \nllversion~algorithm documentation}
 \author{Ludovic Sibille}
 
 \begin{document}
 
 \maketitle
 \newpage
-\tableofcontents* % the asterisk means that the contents itself isn't put into the ToC
+\tableofcontents % the asterisk means that the contents itself isn't put into the ToC
 \newpage
 
-\chapter{Introduction}
-This document will describe all the algorithms used in the Numerical learning library, how they are implemented and specifically all the assumptions made.
+\pagestyle{fancy}
+\lhead{Numerical Learning Library \nllversion}
+%\rhead{code.google.com/p/nll/}
 
-\chapter{Optimization algorithms}
-\section{Newton's method}
-Blablabla said Nobody ~\cite{Nobody06}.
+\section{Introduction}
+This document will describe the main algorithms used in the Numerical Learning Library \nllversion, how they are implemented and the assumptions made.
+
+\section{Other Algorithms}
+\subsection{Hessian approximation using forward finite differences}
+Blablabla said Nobody ~\cite{Scolnik01}.
+
+\section{Optimization algorithms}
+\subsection{Newton's method}
+The Newton's method is attempting to construct a sequence $x_n$ from an initial guess $x_0$ that converges towards $x_*$ such that the function $\nabla_f(x_n)=0$. Consequently finding a global extremum is not guaranteed. The closer the initial guess is from the global minimum, the more likely it is to find the global minimum.
+
+It is assuming the function $f$ is twice differentiable and locally approximated well by a quadratic function. The function $f$ is locally approximated by a Taylor series of degree two:
+\begin{align}
+f(x_n + p)&= f(x_n) + p^T \nabla_f(x_n) + \frac{1}{2} p^T H_f(x_n) p + \bigO(p^3) \nonumber\\
+\frac{d}{dp}f(x_n) &= 0 \nonumber\\
+\frac{d}{dp}f(x_n) &=\nabla_f(x_n) + H_f(x_n) p \nonumber\\
+p &= H_f^{-1}(x_n) \nabla{f}(x_n) \nonumber\\
+\text{taking~} p = x_{n+1} - x_n \nonumber
+&\text{~we obtain~} x_{n+1} = x_n - H_f^{-1}(x_n) \nabla{f}(x_n)
+\end{align}
+
+Additionally, the iteration step is scaled by $\gamma \in ]0..1]$ to help with the convergence, leading to the following update:
+\begin{align}
+&\text{~we obtain~} x_{n+1} = x_n - \gamma H_f^{-1}(x_n) \nabla{f}(x_n) \label{newtonstep}
+\end{align}
+
+In the case $H_f$ is not invertible, the hessian matrix is reconditioned such that $H_f~=~H_f~+~\lambda I$, with $\lambda$ a small value. Note that since we are inverting the Hessian matrix as in (\ref{newtonstep}), this algorithm is not suitable for functions with a high number of variables.
+
+\subsection{Gradient Descent}
+The Newton's method is attempting to construct a sequence $x_n$ from an initial guess $x_0$ that converges towards $x_*$ such that the function $\nabla_f(x_n)=0$. Consequently finding a global extremum is not guaranteed. The closer the initial guess is from the global minimum, the more likely it is to find the global minimum.
+
+It is assuming the function $f$ is differentiable. The parameters must be properly scaled (i.e., all the parameters are comparable and none of them is dominating the others). The update is simply:
+\begin{align}
+x_{n+1} = x_n - \lambda \nabla{f}(x_n)
+\end{align}
+$\lambda$ must be sufficiently small to avoid the bouncing effect and sufficiently by for fast convergence. $\lambda$ is a single value if the parameters are scaled or can be a vector so that each parameter is scaled independently.
+
+If the parameters are not properly scaled (e.g., narrow valley), convergence may be extremely slow. In this case a second order method is advised.
+
+\subsection{Grid Search}
+\subsection{Harmony Search}
+\subsection{Genetic Algorithm}
+\subsection{Powell}
+
+\section{Classifiers}
+\subsection{Feed Forward Neural Networks}
+\subsection{Radial Basis Function Neural networks}
+\subsection{Gaussian Mixture Models}
+\subsection{Boosting}
+\subsection{Decision Tree}
+\subsection{Stump}
+\subsection{Perceptron}
+
+\section{Data Preprocessing}
+\subsection{Feature Selection}
+\subsubsection{Locally Linear Embedding}
+\subsubsection{Pearson Correlation Ratio}
+\subsubsection{Relief-f}
+\subsubsection{Wrapper Methods}
+
+\subsection{Feature Reduction}
+\subsubsection{Principal Component Analysis}
+\subsubsection{Kernel Principal Component Analysis}
+\subsubsection{Independent Component Analysis}
+\subsubsection{Principal Component Analysis}
+\subsection{Normalization}
 
 
-\section{Gradient Descent}
-\section{Grid Search}
-\section{Harmony Search}
-\section{Genetic algorithm}
-\section{Powell}
+\section{3D Visualization Algorithms}
+\subsection{Interpolators}
+\subsubsection{Nearest Neighbour}
+\subsubsection{Trilinear}
+\subsection{Transformation Models}
+\subsubsection{Affine}
+\subsubsection{Radial Basis functions}
+\subsubsection{Dense Deformable Field}
+\subsection{Multi-Planar Reconstruction}
+\subsection{Maximum Intensity Projection}
 
 \bibliography{nll-algorithm-documentation}
 \bibliographystyle{plain}

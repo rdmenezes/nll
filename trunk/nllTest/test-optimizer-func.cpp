@@ -8,6 +8,122 @@ namespace nll
 namespace algorithm
 {
    /**
+    @ingroup algorithm
+    @brief Compute the gradient of a function using finite differences
+
+    Given a function f and a step, compute:
+      grad f(x) = ( f( x + step ) - f( x ) ) / step
+
+    @see http://en.wikipedia.org/wiki/Finite_difference
+    */
+   class GradientCalculatorFiniteDifference : public core::NonAssignable
+   {
+   public:
+      typedef OptimizerClient::Vector     Vector;
+      typedef OptimizerClient::value_type value_type;
+
+   public:
+      GradientCalculatorFiniteDifference( const OptimizerClient& f, value_type step = 0.001 ) : _f( f ), _step( step )
+      {}
+
+      Vector evaluate( const Vector& parameters, value_type fx ) const
+      {
+         Vector gradient( parameters.size() );
+
+         // evaluate gradient by finite difference
+         for ( size_t n = 0; n < parameters.size(); ++n )
+         {
+            core::Buffer1D<f64> p;
+            p.clone( parameters );
+            p[ n ] += _step;
+            const value_type val = _f.evaluate( p );
+
+            gradient[ n ] = ( val - fx ) / _step;
+         }
+
+         return gradient;
+      }
+
+      Vector evaluate( const Vector& parameters ) const
+      {
+         const value_type val = _f.evaluate( parameters );
+         return evaluate( parameters, val );
+      }
+
+   private:
+      const OptimizerClient&  _f;
+      value_type              _step;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief Compute the Hessian using the forward finite difference
+    @see A new method to compute second derivatives, Hugo D. Scolnik, 2001
+         http://journal.info.unlp.edu.ar/journal/journal6/papers/ipaper.pdf
+    */
+   class HessianCalculatorForwardFiniteDifference : public core::NonAssignable
+   {
+   public:
+      typedef OptimizerClient::Vector     Vector;
+      typedef OptimizerClient::Matrix     Matrix;
+      typedef OptimizerClient::value_type value_type;
+
+   public:
+      HessianCalculatorForwardFiniteDifference( const OptimizerClient& f, value_type step = 0.001 ) : _f( f ), _step( step )
+      {}
+
+      Matrix evaluate( const Vector& parameters ) const
+      {
+         throw std::runtime_error("NOT IMPLEMENTED");
+         Matrix hessian( parameters.size(), parameters.size() );
+         return hessian;
+      }
+
+   private:
+      const OptimizerClient&  _f;
+      value_type              _step;
+   };
+
+   /**
+    @brief Simple wrapper for computing the gradient and Hessian of a function where the analytical forms are complex
+
+    Gradient and Hessian are computed unsing forward finite difference method.
+
+    @see <code>HessianCalculatorForwardFiniteDifference</code>, <code>GradientCalculatorFiniteDifference</code>
+    */
+   class OptimizerClientWrapperFiniteDifference : public OptimizerClient
+   {
+   public:
+      typedef OptimizerClient::Vector     Vector;
+      typedef OptimizerClient::Matrix     Matrix;
+      typedef OptimizerClient::value_type value_type;
+
+   public:
+      OptimizerClientWrapperFiniteDifference( const OptimizerClient& func, value_type step = 0.001 ) : _func( func ), _gradientCalculator( func, step ), _hessianCalculator( func, step )
+      {}
+
+      virtual double evaluate( const Vector& parameters ) const
+      {
+         return _func.evaluate( parameters );
+      }
+
+      virtual Vector evaluateGradient( const Vector& parameters ) const
+      {
+         return _gradientCalculator.evaluate( parameters );
+      }
+
+      virtual Matrix evaluateHessian( const Vector& parameters ) const
+      {
+         return _hessianCalculator.evaluate( parameters );
+      }
+
+   private:
+      const OptimizerClient&                    _func;
+      GradientCalculatorFiniteDifference        _gradientCalculator;
+      HessianCalculatorForwardFiniteDifference  _hessianCalculator;
+   };
+
+   /**
     @brief Pure Newton optimizer
 
     Fits a Taylor series of degree two to the function to optimize and find the extremum.
@@ -25,31 +141,53 @@ namespace algorithm
    {
    public:
       using Optimizer::optimize;
+      typedef OptimizerClient::Matrix  Matrix;
+      typedef OptimizerClient::Vector  Vector;
+
 
    public:
       /**
        @param lambda in ]0..1] to satify the Wolfe condition (http://en.wikipedia.org/wiki/Wolfe_conditions)
        */
-      OptimizerNewton( const StopCondition& stop, double lambda = 0.9 ) : _stop( stop ), _lambda( lambda )
+      OptimizerNewton( StopCondition& stop, double lambda = 0.9, double alpha = 0.1 ) : _stop( stop ), _lambda( lambda ), _alpha( alpha )
       {}
 
       virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& parameters, const core::Buffer1D<double>& seed )
       {
+         _stop.reinit();
+
          core::Buffer1D<double> params;
          params.clone( seed );
 
          double eval = client.evaluate( params );
          while ( !_stop.stop( eval ) )
          {
+            Matrix hessian = client.evaluateHessian( params );
+            Vector gradient = client.evaluateGradient( params );
 
+            while (1)
+            {
+               const bool inverted = core::inverse( hessian );
+               if ( inverted )
+                  break;
 
-            double eval = client.evaluate( params );
+               // make sure the hessian is invertible
+               for ( size_t n = 0; n < hessian.size(); ++n )
+               {
+                  hessian( n, n ) += _alpha;
+               }
+            }
+
+            // compute the next step
+            params = params - _alpha * ( hessian * gradient );
+            eval = client.evaluate( params );
          }
       }
 
    protected:
-      const StopCondition&    _stop;
+      StopCondition&          _stop;
       double                  _lambda;
+      double                  _alpha;
    };
 }
 }
@@ -65,22 +203,8 @@ public:
       virtual core::Buffer1D<f64> evaluateGradient( const core::Buffer1D<f64>& parameters ) const
       {
          static const double step = 1e-10;
-
-         core::Buffer1D<f64> gradient( parameters.size() );
-         const double val = evaluate( parameters );
-
-         // evaluate gradient by finite difference
-         for ( size_t n = 0; n < parameters.size(); ++n )
-         {
-            core::Buffer1D<f64> p;
-            p.clone( parameters );
-            p[ n ] += step;
-            const double vale = evaluate( p );
-
-            gradient[ n ] = ( vale - val ) / step;
-         }
-
-         return gradient;
+         algorithm::GradientCalculatorFiniteDifference gradientCalculator( *this, step );
+         return gradientCalculator.evaluate( parameters );
       }
 
       virtual ~Function()
