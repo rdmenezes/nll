@@ -47,7 +47,7 @@ namespace algorithm
 
            To be used with <code>Optimizer</code>. Optimizers will have 
     */
-   class NLL_API OptimizerClient
+   class NLL_API OptimizerClient : public core::NonCopyable
    {
    public:
       typedef f64                         value_type;
@@ -61,14 +61,14 @@ namespace algorithm
        The lowest is the score, the better.
        @sa Classifier
        */
-      virtual double evaluate( const core::Buffer1D<f64>& parameters ) const = 0;
+      virtual double evaluate( const Vector& parameters ) const = 0;
 
       /**
        @brief Returns the function gradient for this specific parameters
 
        i.e., for a function f to optimize, compute [df/dparam_1 ... dn/dparam_n]
        */
-      virtual core::Buffer1D<f64> evaluateGradient( const core::Buffer1D<f64>& /*parameters*/ ) const
+      virtual Vector evaluateGradient( const Vector& /*parameters*/ ) const
       {
          throw std::runtime_error( "not implemented for this function" );
       }
@@ -80,7 +80,7 @@ namespace algorithm
                                                    |        ...                                      |
                                                    | df/dparam_1,d_param_n ... dn/dparam_n,d_param_n |
        */
-      virtual core::Matrix<f64> evaluateHessian( const core::Buffer1D<f64>& /*parameters*/ ) const
+      virtual Matrix evaluateHessian( const Vector& /*parameters*/ ) const
       {
          throw std::runtime_error( "not implemented for this function" );
       }
@@ -88,7 +88,7 @@ namespace algorithm
       /**
        @todo deprecate...
        */
-      double operator()( const core::Buffer1D<f64>& parameters ) const { return evaluate( parameters ); }
+      double operator()( const Vector& parameters ) const { return evaluate( parameters ); }
 
       virtual ~OptimizerClient()
       {}

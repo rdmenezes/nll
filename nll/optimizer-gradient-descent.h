@@ -72,9 +72,6 @@ namespace algorithm
        */
       virtual core::Buffer1D<double> optimize( const OptimizerClient& client, const ParameterOptimizers& /* parameters */, const core::Buffer1D<double>& seed )
       {
-         // reinitialization in case we were reusing the algorithm
-         _stopCondition.reinit();
-
          {
             std::stringstream ss;
             ss << "OptimizerGradientDescent.optimize:" << std::endl

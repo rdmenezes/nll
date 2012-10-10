@@ -41,7 +41,7 @@ namespace algorithm
     @brief Evaluate a registration base class to support intensity based registration
     */
    template <class T, class Storage>
-   class RegistrationEvaluator : public core::NonCopyable, public OptimizerClient
+   class RegistrationEvaluator : public OptimizerClient
    {
    public:
       typedef imaging::VolumeSpatial<T, Storage>   Volume;
