@@ -1,3 +1,7 @@
+v0.17
+-added Newton's optimizer
+-added hybrid gradient descent/line search optimizer
+
 v0.16
 -added matrix utilities
 -added multithreaded various imaging algorithms (resampling, transformation mapper, MPR)

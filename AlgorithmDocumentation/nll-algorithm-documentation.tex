@@ -4,8 +4,10 @@
 \usepackage{fancyheadings}
 \usepackage{amsmath}
 
-\newcommand{\nllversion}{0.16}
+\newcommand{\nllversion}{0.17}
 \newcommand{\bigO}{\mathcal{O}}
+
+\newcommand{\nllref}[1]{[\small{\textit{#1}}]}
 
 %% configuration
 %\usepackage{geometry}
@@ -27,17 +29,25 @@
 
 \pagestyle{fancy}
 \lhead{Numerical Learning Library \nllversion}
-%\rhead{code.google.com/p/nll/}
+\rhead{nll.googlecode.com}
 
 \section{Introduction}
-This document will describe the main algorithms used in the Numerical Learning Library \nllversion, how they are implemented and the assumptions made.
+This document will describe the main algorithms used in the Numerical Learning Library \nllversion, how they are implemented and the assumptions made. It is meant to be as self-contained as possible, although some technical points requiring a great length of details will be referenced.
 
 \section{Other Algorithms}
-\subsection{Hessian approximation using forward finite differences}
-Blablabla said Nobody ~\cite{Scolnik01}.
+\subsection{Hessian approximation FD \nllref{HessianCalculatorForwardFiniteDifference}}
+Using finite differences, we have:
+\begin{align}
+\frac{\partial f(x)}{\partial x_i \partial x_j} &= \frac{\partial}{\partial x_j}( \frac{\partial f(x)}{x_i}) \nonumber\\
+&= \frac{\partial}{\partial x_j}( \frac{f(x + he_i) - f(x)}{h} ) \nonumber\\
+&= \frac{1}{h}( \frac{f(x + he_i + he_j) - f(x + he_i)}{h} - \frac{f(x + he_j) - f(x)}{h} ) \nonumber\\
+&= \frac{f(x + he_i + he_j) - f(x + he_i)-f(x + he_j)+f(x)}{h^2}
+\end{align}
+
+with $h$ close to 0 and $e_k$ the basis vector for the parameter $k$. See~\cite{Scolnik01} for other implementations and drawbacks.
 
 \section{Optimization algorithms}
-\subsection{Newton's method}
+\subsection{Newton's method \nllref{OptimizerNewton}}
 The Newton's method is attempting to construct a sequence $x_n$ from an initial guess $x_0$ that converges towards $x_*$ such that the function $\nabla_f(x_n)=0$. Consequently finding a global extremum is not guaranteed. The closer the initial guess is from the global minimum, the more likely it is to find the global minimum.
 
 It is assuming the function $f$ is twice differentiable and locally approximated well by a quadratic function. The function $f$ is locally approximated by a Taylor series of degree two:
@@ -52,26 +62,37 @@ p &= H_f^{-1}(x_n) \nabla{f}(x_n) \nonumber\\
 
 Additionally, the iteration step is scaled by $\gamma \in ]0..1]$ to help with the convergence, leading to the following update:
 \begin{align}
-&\text{~we obtain~} x_{n+1} = x_n - \gamma H_f^{-1}(x_n) \nabla{f}(x_n) \label{newtonstep}
+x_{n+1} = x_n - \gamma H_f^{-1}(x_n) \nabla{f}(x_n) \label{newtonstep}
 \end{align}
 
 In the case $H_f$ is not invertible, the hessian matrix is reconditioned such that $H_f~=~H_f~+~\lambda I$, with $\lambda$ a small value. Note that since we are inverting the Hessian matrix as in (\ref{newtonstep}), this algorithm is not suitable for functions with a high number of variables.
 
-\subsection{Gradient Descent}
+\subsection{Gradient Descent \nllref{OptimizerGradientDescent}}
 The Newton's method is attempting to construct a sequence $x_n$ from an initial guess $x_0$ that converges towards $x_*$ such that the function $\nabla_f(x_n)=0$. Consequently finding a global extremum is not guaranteed. The closer the initial guess is from the global minimum, the more likely it is to find the global minimum.
 
 It is assuming the function $f$ is differentiable. The parameters must be properly scaled (i.e., all the parameters are comparable and none of them is dominating the others). The update is simply:
 \begin{align}
-x_{n+1} = x_n - \lambda \nabla{f}(x_n)
+x_{n+1} = x_n - \lambda \nabla{f}(x_n) \label{gradientstep}
 \end{align}
-$\lambda$ must be sufficiently small to avoid the bouncing effect and sufficiently by for fast convergence. $\lambda$ is a single value if the parameters are scaled or can be a vector so that each parameter is scaled independently.
+$\lambda$ must be sufficiently small to avoid the bouncing effect and sufficiently by for fast convergence. $\lambda$ is a single value if the parameters are scaled or can be a vector so that each parameter is scaled independently. The gradient can be normalized to have more comparable $\lambda$ accross problems.
 
 If the parameters are not properly scaled (e.g., narrow valley), convergence may be extremely slow. In this case a second order method is advised.
+
+\subsection{Gradient Descent with line search}
+One problem with the Gradient Descent is that the step size $\lambda$ is constant (it might be a good step at the beginning of the optimization, but not so afterward) and needs to be chosen by hand with all the problems that implies. An alternative is to have a variable step size and its value being computed by a line search. Note that this approach requires more function evaluations. This leads to the following parameter update:
+
+\begin{align}
+& d_n = \frac{\nabla{f}(x_n)}{\lVert \nabla{f}(x_n) \lVert} \nonumber\\
+& \lambda_n = lineSearch(x_n, d_n) \nonumber\\
+& x_{n+1} = x_n - \lambda _n d_n
+\end{align}
 
 \subsection{Grid Search}
 \subsection{Harmony Search}
 \subsection{Genetic Algorithm}
+\subsection{Line Search}
 \subsection{Powell}
+\subsection{Bracketing}
 
 \section{Classifiers}
 \subsection{Feed Forward Neural Networks}
@@ -84,6 +105,7 @@ If the parameters are not properly scaled (e.g., narrow valley), convergence may
 
 \section{Data Preprocessing}
 \subsection{Feature Selection}
+blabla
 \subsubsection{Locally Linear Embedding}
 \subsubsection{Pearson Correlation Ratio}
 \subsubsection{Relief-f}
@@ -107,6 +129,9 @@ If the parameters are not properly scaled (e.g., narrow valley), convergence may
 \subsubsection{Dense Deformable Field}
 \subsection{Multi-Planar Reconstruction}
 \subsection{Maximum Intensity Projection}
+
+\section{Notations}
+function~$f$ is defined throughout the document as $f \colon \textbf{R}^n \to \textbf{R}$
 
 \bibliography{nll-algorithm-documentation}
 \bibliographystyle{plain}

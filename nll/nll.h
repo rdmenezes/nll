@@ -387,6 +387,7 @@
 # include "optimizer-grid-search.h"
 # include "optimizer-powell.h"
 # include "optimizer-gradient-descent.h"
+# include "optimizer-gradient-descent-line-search.h"
 # include "function.h"
 # include "gradient-descent.h"
 # include "linear-regression.h"

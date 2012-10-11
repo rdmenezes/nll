@@ -800,6 +800,9 @@
     <ClInclude Include="optimizer-powell.h">
       <Filter>algorithm-optimization</Filter>
     </ClInclude>
+    <ClInclude Include="optimizer-gradient-descent-line-search.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">
