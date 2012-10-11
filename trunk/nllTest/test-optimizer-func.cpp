@@ -123,6 +123,9 @@ namespace algorithm
       HessianCalculatorForwardFiniteDifference  _hessianCalculator;
    };
 
+
+   
+
    /**
     @brief Pure Newton optimizer
 
@@ -359,6 +362,13 @@ public:
          {
             return;
          }
+
+         // not passed! it means we must at least be on a local minima!!
+         core::Buffer1D<double> grad = function.evaluateGradient( result );
+         for ( size_t n = 0; n < grad.size(); ++n )
+         {
+            ensure( core::equal<double>( grad[ n ], 0.0, 1e-2 ), "the gradient is not zero => we are not even on a local minima!" );
+         }
       }
 
       TESTER_ASSERT( 0 ); // failed!
@@ -427,7 +437,7 @@ public:
    void testGA()
    {
       const std::vector< std::shared_ptr<Function> > functions = generateTestFunctions();
-      algorithm::OptimizerGeneticAlgorithm optimizer( 50, 50, 10 );
+      algorithm::OptimizerGeneticAlgorithm optimizer( 30, 100, 20 );
 
       const size_t size = functions.size();
       for ( size_t n = 0; n < size; ++n )
@@ -443,7 +453,7 @@ public:
    void testHarmony()
    {
       const std::vector< std::shared_ptr<Function> > functions = generateTestFunctions();
-      algorithm::StopConditionIteration stop( 200000 );
+      algorithm::StopConditionIteration stop( 800000 );
       algorithm::OptimizerHarmonySearch optimizer( 9, 0.8, 0.1, 5, &stop );
 
       const size_t size = functions.size();
@@ -456,11 +466,29 @@ public:
          }
       }
    }
+
+   void testGradiendOptimizerLineSearch()
+   {
+      const std::vector< std::shared_ptr<Function> > functions = generateTestFunctions();
+      algorithm::StopConditionStable stop( 100 );
+      algorithm::OptimizerGradientDescentLineSearch optimizer( stop );
+
+      const size_t size = functions.size();
+      for ( size_t n = 0; n < size; ++n )
+      {
+         for ( size_t nn = 0; nn < 5; ++nn )
+         {
+            srand( nn );
+            test( *functions[ n ], optimizer, 100 );  // it is fine to have a high restart rate: some functions have very high number of local minima
+         }
+      }
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestOptimizerFunc);
 TESTER_TEST(testGradiendOptimizer);
+TESTER_TEST(testGradiendOptimizerLineSearch);
 TESTER_TEST(testPowell);
 TESTER_TEST(testGA);
 TESTER_TEST(testHarmony);

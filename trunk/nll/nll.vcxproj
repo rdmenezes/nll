@@ -461,6 +461,7 @@
     <ClInclude Include="matrix-sort.h" />
     <ClInclude Include="matrix-svd.h" />
     <ClInclude Include="matrix.h" />
+    <ClInclude Include="optimizer-gradient-descent-line-search.h" />
     <ClInclude Include="optimizer-gradient-descent.h" />
     <ClInclude Include="pca-sparse.h" />
     <ClInclude Include="perceptron-margin.h" />
