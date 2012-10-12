@@ -41,11 +41,13 @@ namespace algorithm
     @brief Base class for a client to be optimized. The optimizer has to find the best parameters minimizing the cost
            funtion.
            
-           A key point for optimization algorithms is how quickly, a solution can be evaluated. It is too slow,
+           A key point for optimization algorithms is how quickly, a solution can be evaluated. If it is too slow,
            the number of solutions tested will be too slow, and the underlying algorithm may not converge to an
            acceptable solution.
 
-           To be used with <code>Optimizer</code>. Optimizers will have 
+           To be used with <code>Optimizer</code>. Optimizers will have different requirement, from simple function
+           evaluation to gradient and hessian computation
+    @sa <code>OptimizerClientWrapperFiniteDifference</code>
     */
    class NLL_API OptimizerClient : public core::NonCopyable
    {

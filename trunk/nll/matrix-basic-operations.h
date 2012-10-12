@@ -175,6 +175,12 @@ namespace core
 	   return m;   
    }
 
+   template <class T1, class Mapper1, class Mapper2, class Allocator, class Allocator2>
+   Matrix<T1, Mapper1, Allocator> operator*( const Matrix<T1, Mapper1, Allocator>& op1, const Buffer1D<T1, Mapper2, Allocator2>& op2 )
+   {
+      return mul( op1, op2 );
+   }
+
    /**
     @ingroup core
     @brief Define operator on matrix.
@@ -237,8 +243,8 @@ namespace core
     @ingroup core
     @brief Define operator on matrix.
     */
-   template <class T, class Mapper, class T2, class Allocator>
-   Matrix<T, Mapper, Allocator> operator*( const Matrix<T, Mapper, Allocator>& lhs, const T2 val )
+   template <class T, class Mapper, class Allocator>
+   Matrix<T, Mapper, Allocator> operator*( const Matrix<T, Mapper, Allocator>& lhs, const T val )
    {
       Matrix<T, Mapper, Allocator> op;
       op.clone( lhs );
@@ -250,8 +256,8 @@ namespace core
     @ingroup core
     @brief Define operator on matrix.
     */
-   template <class T, class Mapper, class T2, class Allocator>
-   Matrix<T, Mapper, Allocator> operator*=( Matrix<T, Mapper, Allocator>& lhs, const T2 val )
+   template <class T, class Mapper, class Allocator>
+   Matrix<T, Mapper, Allocator> operator*=( Matrix<T, Mapper, Allocator>& lhs, const T val )
    {
       mul( lhs, val );
       return lhs;
@@ -261,8 +267,8 @@ namespace core
     @ingroup core
     @brief Define operator on matrix.
     */
-   template <class T, class Mapper, class T2, class Allocator>
-   Matrix<T, Mapper, Allocator> operator*( const T2 val, const Matrix<T, Mapper, Allocator>& rhs)
+   template <class T, class Mapper, class Allocator>
+   Matrix<T, Mapper, Allocator> operator*( const T val, const Matrix<T, Mapper, Allocator>& rhs)
    {
       Matrix<T, Mapper, Allocator> op;
       op.clone( rhs );
@@ -274,8 +280,8 @@ namespace core
     @ingroup core
     @brief Define operator on matrix.
     */
-   template <class T, class Mapper, class T2, class Allocator>
-   Matrix<T, Mapper, Allocator> operator/( const Matrix<T, Mapper, Allocator>& lhs, const T2 val)
+   template <class T, class Mapper, class Allocator>
+   Matrix<T, Mapper, Allocator> operator/( const Matrix<T, Mapper, Allocator>& lhs, const T val)
    {
       Matrix<T, Mapper, Allocator> op;
       op.clone( lhs );
@@ -287,8 +293,8 @@ namespace core
     @ingroup core
     @brief Define operator on matrix.
     */
-   template <class T, class Mapper, class T2, class Allocator>
-   Matrix<T, Mapper, Allocator> operator/=( Matrix<T, Mapper, Allocator>& lhs, const T2 val)
+   template <class T, class Mapper, class Allocator>
+   Matrix<T, Mapper, Allocator> operator/=( Matrix<T, Mapper, Allocator>& lhs, const T val)
    {
       div( lhs, val );
       return lhs;

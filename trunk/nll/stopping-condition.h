@@ -95,7 +95,7 @@ namespace algorithm
    class StopConditionStable : public StopCondition
    {
    public:
-      StopConditionStable( size_t nbIterMax ) : _nbIterMax( nbIterMax ), _iter( 0 ), _lastBest( std::numeric_limits<double>::max() ), _lastBestIter( 0 )
+      StopConditionStable( size_t nbIterMax, f64 epsilon = 1e-4 ) : _nbIterMax( nbIterMax ), _iter( 0 ), _lastBest( std::numeric_limits<double>::max() ), _lastBestIter( 0 ), _epsilon( epsilon )
       {}
 
       /**
@@ -104,7 +104,7 @@ namespace algorithm
       virtual bool stop( f64 fitness ) const
       {
          ++_iter;
-         if ( fitness < _lastBest )
+         if ( fitness + _epsilon < _lastBest )
          {
             _lastBest = fitness;
             _lastBestIter = _iter;
@@ -124,10 +124,11 @@ namespace algorithm
       }
 
    private:
-      mutable size_t _iter;
-      mutable double _lastBest;
-      mutable size_t _lastBestIter;
-      size_t _nbIterMax;
+      mutable size_t    _iter;
+      mutable double    _lastBest;
+      mutable size_t    _lastBestIter;
+      size_t            _nbIterMax;
+      f64               _epsilon;
    };
 
    /**
