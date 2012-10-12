@@ -398,6 +398,9 @@
     <ClInclude Include="estimator-affine-transformation.h" />
     <ClInclude Include="fast-volume-pyramid.h" />
     <ClInclude Include="fft.h" />
+    <ClInclude Include="func-estimator-gradient.h" />
+    <ClInclude Include="func-estimator-hessian.h" />
+    <ClInclude Include="func-estimator.h" />
     <ClInclude Include="generic-operations.h" />
     <ClInclude Include="geometry.h" />
     <ClInclude Include="graph-adjency-list.h" />
@@ -463,6 +466,8 @@
     <ClInclude Include="matrix.h" />
     <ClInclude Include="optimizer-gradient-descent-line-search.h" />
     <ClInclude Include="optimizer-gradient-descent.h" />
+    <ClInclude Include="optimizer-newton-line-search.h" />
+    <ClInclude Include="optimizer-newton.h" />
     <ClInclude Include="pca-sparse.h" />
     <ClInclude Include="perceptron-margin.h" />
     <ClInclude Include="periodogram.h" />

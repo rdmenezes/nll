@@ -129,10 +129,10 @@
  */
 
 /// define the version of nll as a string
-#define NLL_VERSION     "nll-0.16"
+#define NLL_VERSION     "nll-0.17"
 
 /// define the version of nll as a plain number
-#define NLL_VERSION_ID  0x016
+#define NLL_VERSION_ID  0x017
 
 #ifdef _MSC_VER
 # define NLL_ALIGN_16   __declspec(align(16))
@@ -380,6 +380,9 @@
 # include "genetic-algorithm.h"
 # include "optimizer-parameters.h"
 # include "optimizer-client.h"
+# include "func-estimator-gradient.h"
+# include "func-estimator-hessian.h"
+# include "func-estimator.h"
 # include "optimizer.h"
 # include "optimizer-genetic-algorithm.h"
 # include "optimizer-harmony-search.h"
@@ -388,6 +391,8 @@
 # include "optimizer-powell.h"
 # include "optimizer-gradient-descent.h"
 # include "optimizer-gradient-descent-line-search.h"
+# include "optimizer-newton.h"
+# include "optimizer-newton-line-search.h"
 # include "function.h"
 # include "gradient-descent.h"
 # include "linear-regression.h"

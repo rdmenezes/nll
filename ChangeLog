@@ -1,6 +1,7 @@
 v0.17
--added Newton's optimizer
+-added Newton's optimizer and hybrid Newton/Line search
 -added hybrid gradient descent/line search optimizer
+-added Hessian/gradient finite difference estimator
 
 v0.16
 -added matrix utilities

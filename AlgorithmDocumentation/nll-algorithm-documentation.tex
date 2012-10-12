@@ -7,7 +7,7 @@
 \newcommand{\nllversion}{0.17}
 \newcommand{\bigO}{\mathcal{O}}
 
-\newcommand{\nllref}[1]{[\small{\textit{#1}}]}
+\newcommand{\nllref}[1]{\mbox{[\small{\textit{#1}}]}}
 
 %% configuration
 %\usepackage{geometry}
@@ -44,11 +44,11 @@ Using finite differences, we have:
 &= \frac{f(x + he_i + he_j) - f(x + he_i)-f(x + he_j)+f(x)}{h^2}
 \end{align}
 
-with $h$ close to 0 and $e_k$ the basis vector for the parameter $k$. See~\cite{Scolnik01} for other implementations and drawbacks.
+with $h$ close to 0 and $e_k$ the basis vector for the parameter $k$. See~\cite{Scolnik01} for other implementations and drawbacks. Note that the step size $h$ must be sufficiently low for a good accuracy but it must be as well sufficiently high to avoid underflow problems; This is problem dependent.
 
 \section{Optimization algorithms}
 \subsection{Newton's method \nllref{OptimizerNewton}}
-The Newton's method is attempting to construct a sequence $x_n$ from an initial guess $x_0$ that converges towards $x_*$ such that the function $\nabla_f(x_n)=0$. Consequently finding a global extremum is not guaranteed. The closer the initial guess is from the global minimum, the more likely it is to find the global minimum.
+The Newton's method finds a \textbf{local extremum} (i.e., minimum or maximum) by constructing a sequence $x_n$ from an initial guess $x_0$ that converges towards $x_*$ such that the function $\nabla_f(x_n)=0$. Consequently finding a global extremum is not guaranteed. The closer the initial guess is from the global extremum, the more likely it is to find the global extremum.
 
 It is assuming the function $f$ is twice differentiable and locally approximated well by a quadratic function. The function $f$ is locally approximated by a Taylor series of degree two:
 \begin{align}
@@ -78,7 +78,7 @@ $\lambda$ must be sufficiently small to avoid the bouncing effect and sufficient
 
 If the parameters are not properly scaled (e.g., narrow valley), convergence may be extremely slow. In this case a second order method is advised.
 
-\subsection{Gradient Descent with line search}
+\subsection{Hybrid Gradient Descent \nllref{OptimizerGradientDescentLineSearch}}
 One problem with the Gradient Descent is that the step size $\lambda$ is constant (it might be a good step at the beginning of the optimization, but not so afterward) and needs to be chosen by hand with all the problems that implies. An alternative is to have a variable step size and its value being computed by a line search. Note that this approach requires more function evaluations. This leads to the following parameter update:
 
 \begin{align}
@@ -86,6 +86,10 @@ One problem with the Gradient Descent is that the step size $\lambda$ is constan
 & \lambda_n = lineSearch(x_n, d_n) \nonumber\\
 & x_{n+1} = x_n - \lambda _n d_n
 \end{align}
+
+If the parameters are not properly scaled (e.g., narrow valley), convergence may be extremely slow. In this case a second order method is advised.
+
+Very similarly, other optimizer are combined with a line search such as \nllref{OptimizerNewton}
 
 \subsection{Grid Search}
 \subsection{Harmony Search}

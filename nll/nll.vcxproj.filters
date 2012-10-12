@@ -803,6 +803,21 @@
     <ClInclude Include="optimizer-gradient-descent-line-search.h">
       <Filter>algorithm-optimization</Filter>
     </ClInclude>
+    <ClInclude Include="func-estimator.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="func-estimator-hessian.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="func-estimator-gradient.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-newton.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
+    <ClInclude Include="optimizer-newton-line-search.h">
+      <Filter>algorithm-optimization</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">
