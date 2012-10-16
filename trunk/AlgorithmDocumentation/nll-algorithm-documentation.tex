@@ -3,15 +3,16 @@
 \usepackage[hmargin=3.5cm,vmargin=2.5cm]{geometry}
 \usepackage{fancyheadings}
 \usepackage{amsmath}
+\usepackage{bm} % bold math
 
 \newcommand{\nllversion}{0.17}
 \newcommand{\bigO}{\mathcal{O}}
 
-\newcommand{\nllref}[1]{\mbox{[\small{\textit{#1}}]}}
+\newcommand{\nllref}[1]{[\small{\textit{#1}}]}
 
 %% configuration
 %\usepackage{geometry}
-%\setlength{\headheight}{0.6in} 
+%\setlength{\headheight}{0.6in}
 %\setlength{\headsep}{25pt}
 %\setlength{\topmargin}{0pt}
 %\setlength{\footskip}{25pt}
@@ -89,7 +90,8 @@ One problem with the Gradient Descent is that the step size $\lambda$ is constan
 
 If the parameters are not properly scaled (e.g., narrow valley), convergence may be extremely slow. In this case a second order method is advised.
 
-Very similarly, other optimizer are combined with a line search such as \nllref{OptimizerNewton}
+Very similarly, other optimizers are combined with a line search such as
+\nllref{OptimizerNewtonLineSearch}
 
 \subsection{Grid Search}
 \subsection{Harmony Search}
@@ -101,7 +103,79 @@ Very similarly, other optimizer are combined with a line search such as \nllref{
 \section{Classifiers}
 \subsection{Feed Forward Neural Networks}
 \subsection{Radial Basis Function Neural networks}
-\subsection{Gaussian Mixture Models}
+\subsection{Gaussian Mixture Models \nllref{gmm}}
+A gaussian mixture model (gmm) is a generative model modelling a distribution $p(X|\Theta)$ using a mixture of gaussian models. It is defined as following $p(x_i|\Theta)= \sum_{k=1}^K \lambda _k N(x_i|\mu _k, \Sigma _k)$ where $X=\{x_1,...,x_n\}$ is the training data and $\Theta$ represents the parameters of the gaussian functions $(\mu _k, \Sigma _k)$ and weights $\lambda _k$.
+
+Assuming the samples are independent and identically distributed, we have the log-likelihood function defined as:
+\begin{align*}
+L(\Theta | X)&=\log \prod_{i=1}^N p(x_i|\Theta) \\
+&=\sum_{i=1}^N \log p(x_i|\Theta) \\
+&=\sum_{i=1}^N \sum_{k=1}^K \log \lambda _k N(x_i|\mu _k, \Sigma _k) \\
+\end{align*}
+
+We found that the parameters updates are:
+\begin{align*}
+\mu _ k &= \frac{1}{N_k} \sum_{i=1}^N \gamma _{ik} x_i \text{~with~} \\
+\Sigma _k &= \frac{1}{N_k} \sum _{i=1}^N \gamma _{ik}(x_i-\mu _k)(x_i-\mu _k)^T \\
+\lambda _k &= \frac{N_k}{N} \\
+\end{align*}
+With $N_k = \sum _{i=1}^N \gamma _{ik}$ and $\gamma _{ik} = \frac{\lambda_k N(x_i| \mu _k, \theta _k)}{\sum _{j=1}^K \lambda _j N(x_i| \mu _j, \theta _j)}$
+
+~\\~
+Intial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm. For improved stability of the algorithm, $\Sigma_k$ is approximated by its diagonal.
+
+\subsubsection{Derivation of the algorithm}
+Recall that $\frac{d}{dx} \log f(x) = \frac{f'(x)}{f(x)}$ and $\frac{d}{dx} e ^x=x' e^x$, lets compute $\mu _k$:
+\begin{align}
+\frac{\partial L(\Theta | X)}{\partial\mu _k} &=  \sum_{i=1}^N \frac{\lambda_k N(x_i| \mu _k, \theta _k)}{\sum _{j=1}^K \lambda _j N(x_i| \mu _j, \theta _j)} \Sigma _k^{-1} (x_i-\mu _k) \nonumber\\
+&=  \sum_{i=1}^N \gamma _{ik} \Sigma _k^{-1} (x_i-\mu _k) \text{~with ~} \nonumber\\
+\text{rearranging~} \sum_{i=1}^N \gamma _{ik} \mu _ k &= \sum_{i=1}^N \gamma _{ik} x_i \nonumber\\
+\bm{\mu _ k} &= \bm{\frac{1}{N_k} \sum_{i=1}^N \gamma _{ik} x_i} \text{~with~} N_k = \sum _{i=1}^N \gamma _{ik}
+\end{align}
+
+Recall that:
+\begin{align*}
+& \frac{d|M|}{dM} = |M|(M^-1)^T \\
+& \frac{d(a^TMb)}{dM} = ab^T
+\end{align*}
+
+Lets name $c=e^{-\frac{1}{2}(x_n-\mu_k)\Sigma_k(x_n-\mu_k)}$. We have:
+\begin{align*}
+\frac{\partial c}{\partial \Sigma^{-1}_k} &= c(-\frac{1}{2})(x_n - \mu_k)(x_n - \mu_k)^T \\
+\frac{\partial \lambda_k N(x_n|\mu_k,\Sigma_k)}{\partial\Sigma_k^{-1}} &= \frac{\partial(\frac{\lambda_k|\Sigma_k^{-1}|^{0.5}}{(2 \pi)^{D/2}}c)}{\partial \Sigma^{-1}_k} \\
+&= \frac{\lambda_k c}{(2 \pi)^{D/2}}\frac{\partial(|\Sigma_k^{-1}|^{0.5})}{\Sigma_k^{-1}}
++ \frac{\lambda_k |\Sigma_k^{-1}|^{0.5}}{(2 \pi)^{D/2}} \frac{\partial c}{\partial \Sigma_k^{-1}} \\
+&=\frac{\lambda_k c}{(2 \pi)^{D/2}}\frac{1}{2}|\Sigma_k^{-1}|^{-1/2} |\Sigma_k^{-1}| \Sigma_k
++ \frac{\lambda_k |\Sigma_k^{-1}|^{0.5}}{(2 \pi)^{D/2}}c{(-0.5(x_n-\mu_k)(x_n-\mu_k)^T)}\\
+&= \frac{1}{2} \frac{\lambda_k |\Sigma_k^{-1}|^{0.5}c}{(2 \pi)^{D/2}}(\Sigma_k - (x_n-\mu_k)(x_n-\mu_k)^T)\\
+&= \frac{1}{2} N(x_n|\mu_k, \Sigma_k)(\Sigma_k - (x_n-\mu_k)(x_n-\mu_k)^T) \\
+\frac{\partial ln p(X|\Theta)}{\partial \Sigma_k^{-1}} &= \sum_{n=1}^N
+\frac{1}{\sum_{j=1}^K \lambda_k N(x_n|\mu_j,\Sigma_j)}
+\frac{\partial \lambda_k N(x_n|\mu_k,\Sigma_k)}{\partial\Sigma_k^{-1}} \\
+&= \frac{1}{2} \sum_{n=1}^N \frac{\lambda_k N(x_n|\mu_k,\Sigma_k)(\Sigma_k-(x_n-\lambda_k)(x_n-\lambda_k)^T))}{\sum_{j=1}^K \lambda_j N(x_n|\mu_j,\Sigma_j)}\\
+&=\frac{1}{2}\sum_{n=1}^N\gamma_{nk}(\Sigma_k-(x_n-\lambda_k)(x_n-\lambda_k)^T))
+\end{align*}
+Setting $\frac{\partial ln p(X|\Theta)}{\partial \Sigma_k^{-1}}$ to 0, we get:
+\begin{align*}
+\bm{\Sigma _k} &= \bm{\frac{1}{N_k} \sum _{n=1}^N \gamma _{nk}(x_n-\mu _k)(x_n-\mu _k)^T}
+\end{align*}
+
+Finally, compute $\lambda_k$
+\begin{align*}
+\frac{\partial ln p(X|\Theta)}{\partial \mu_k^{-1}} &= \sum_{n=1}^K \frac{N(x_n|\mu_k,\Sigma_k)}{\sum_{j=1}^K N(x_j|\mu_j,\Sigma_j)} \\
+&= \sum_{n=1}^K \frac{\gamma_{nk}}{\lambda_k} \text{~(i.e., we just add the missing term from~} \gamma_{nk})
+\end{align*}
+We need to consider the constraint $\sum_{k=1}^K \lambda_k=1$ and form the Lagrangian
+
+\begin{align*}
+L &=\ln p(X|\Theta) + \lambda((\sum_{k=1}^K \lambda_k-1)) \\
+\frac{\partial L}{\partial \lambda_k} &= 0 \\
+0 &= \sum_{n=1}^K \frac{\gamma_{nk}}{\lambda_k} - \lambda \\
+\sum_{k=1}^K \sum_{n=1}^N \gamma_{nk} &= \lambda \sum_{n=1}^K( \lambda_K) \\
+\sum_{n=1}^N 1 &= \lambda \\
+\lambda &= N\\
+\text{Substituting we have:~} \bm{\lambda_k} &= \bm{\frac{N_k}{N}}
+\end{align*}
 \subsection{Boosting}
 \subsection{Decision Tree}
 \subsection{Stump}
