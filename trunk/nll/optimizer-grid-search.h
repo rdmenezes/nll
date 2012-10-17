@@ -43,7 +43,7 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief Find the optimal parameters using an exhaustif search. The search step for each parameter is defined
+    @brief Find the optimal parameters using an exhaustive search. The search step for each parameter is defined
            by <code>params[n].next(val)</code> The whole range for each parameter is searched, this method is
            NOT suitable for a complex search space (lots of parameters and search range).
 

@@ -40,8 +40,7 @@ namespace algorithm
     @ingroup algorithm
     @brief basic Adaboost implementation for binary classification only
 
-    This version of the algorithm is using resampling of the training data instead of the original version
-    (i.e., a specific weak learner using the Dt distribution must be used to weight the learner)
+    Weak classifier must be able to handle weights for each sample.
 
     @note see http://www.site.uottawa.ca/~stan/csi5387/boost-tut-ppr.pdf for implementation details
           see http://www.face-rec.org/algorithms/Boosting-Ensemble/decision-theoretic_generalization.pdf for full proof of the algorithm

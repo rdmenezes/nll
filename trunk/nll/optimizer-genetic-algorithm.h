@@ -53,9 +53,7 @@ namespace algorithm
             assert( gene.size() == _params.size() );
             size_t n = rand() % gene.size();
             const ParameterOptimizer& param = _params[ n ];
-            double newval = param.modify( gene[ n ] );
-            newval = NLL_BOUND( newval, param.getMin(), param.getMax() );
-            gene[ n ] = newval;
+            gene[ n ] = core::generateUniformDistribution( param.getMin(), param.getMax() );
          }
 
       private:
@@ -97,8 +95,8 @@ namespace algorithm
          size_t  numberOfCycles,
          size_t  populationSize = 100,
          size_t  numberOfPeriods = 10,
-         f32   mutationRate = 0.3f,
-         f32   selectRate = 0.5f
+         f32   mutationRate = 0.05f,
+         f32   selectRate = 0.7f
          ) : _numberOfCycles( numberOfCycles ), _populationSize( populationSize ), _numberOfPeriods( numberOfPeriods ), _mutationRate( mutationRate ), _selectRate( selectRate )
       {}
 
