@@ -259,7 +259,7 @@ namespace algorithm
             {
                ss << " gaussian weight=" << _gaussians[ n ].weight << std::endl
                   << " mean:" << std::endl;
-               _gaussians[ n ].mean.print( ss );
+               _gaussians[ n ].mean.print( ss ); 
                ss << " cov:" << std::endl;
                _gaussians[ n ].covariance.print( ss );
             }

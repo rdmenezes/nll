@@ -85,10 +85,10 @@ namespace algorithm
    public:
       /**
        @brief constructor: initialize the parameters of the algorithm
-       @param hms harmony memory size
-       @param hmrc harmony memory reconsideration rate
-       @param par pitch adjustement rate
-       @param bandwith the scale of the pitch adjustement
+       @param hms harmony memory size, typical value is 30
+       @param hmrc harmony memory reconsideration rate, typical value is 0.9
+       @param par pitch adjustement rate, typical value is 0.3
+       @param bandwith the scale of the pitch adjustement, depends on the data
        */
       OptimizerHarmonySearch( size_t hms, f64 hmrc, f64 par, f64 bw, StopCondition* stop ) : _hms( hms ), _hmrc( hmrc ), _par( par ), _bw( bw ), _stop( stop )
       {

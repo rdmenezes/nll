@@ -4,11 +4,18 @@
 \usepackage{fancyheadings}
 \usepackage{amsmath}
 \usepackage{bm} % bold math
+\usepackage{placeins} % FloatBarrier
+
+\usepackage{algorithm}
+\usepackage{algorithmic}
 
 \newcommand{\nllversion}{0.17}
 \newcommand{\bigO}{\mathcal{O}}
 
 \newcommand{\nllref}[1]{[\small{\textit{#1}}]}
+\newcommand{\norm}[1]{\| #1 \|}
+
+\DeclareMathOperator*{\argmax}{arg\,max}
 
 %% configuration
 %\usepackage{geometry}
@@ -36,6 +43,22 @@
 This document will describe the main algorithms used in the Numerical Learning Library \nllversion, how they are implemented and the assumptions made. It is meant to be as self-contained as possible, although some technical points requiring a great length of details will be referenced.
 
 \section{Other Algorithms}
+\subsection{k-means clustering \nllref{KMeans}}
+k-means clustering is a method of cluster analysis which aims to partition $N$ observations into $K$ clusters $c_k$ in which each observation belongs to the cluster with the nearest mean.
+
+We want to determine:
+\begin{align}
+\min_{c_k,r_{ik}} D &= \sum_{i=1}^N\sum_{k=1}^K r_{ik} \norm{x_i-c_k}^2\nonumber\\
+\frac{\partial}{\partial c_k}D &= 2 \sum_{i=1}^Nr_{ik}(x_i-c_k) \nonumber\\
+c_k &= \frac{\sum_{i=1}^N r_{ik}x_i}{\sum_{i=1}^N r_{ik}} \label{kmeansUpdate}
+\end{align}
+
+With $r_{ik}=1$ if the point $i$ belongs to cluster $k$, 0 otherwise. The algorithm repeats these two steps until convergence:
+\begin{itemize}
+\item assign $r_{ik}$ so that each point belongs to the closest cluster
+\item update the cluster position using \ref{kmeansUpdate}
+\end{itemize}
+It must be noted that the algorithm is very sensitive to the initial cluster position.
 \subsection{Hessian approximation FD \nllref{HessianCalculatorForwardFiniteDifference}}
 Using finite differences, we have:
 \begin{align}
@@ -93,20 +116,78 @@ If the parameters are not properly scaled (e.g., narrow valley), convergence may
 Very similarly, other optimizers are combined with a line search such as
 \nllref{OptimizerNewtonLineSearch}
 
-\subsection{Grid Search}
+\subsection{Grid Search \nllref{OptimizerGridSearch}}
+Find the optimal parameters using an exhaustive search at discrete intervals. The search step for each parameter is defined
+by \textbf{param.next(currentVal)}. Grid search could be extremely expensive in time, but it is guaranteed that it will find the minimum
+value on this grid. If the evaluation function is quite fast, and the range search is small, this algorithm is suitable. It is often used for parameter selection for example for a classifier.
+
 \subsection{Harmony Search}
-\subsection{Genetic Algorithm}
+Harmony search (HS) is a meta-heuristic optimization method imitating the music improvisation process where
+musicians improvise their instruments' pitches searching for a perfect state of harmony. The following inputs are required:
+\begin{itemize}
+\item hms: harmony memory rate. The memory size used to improvise new harmony from. Typical range is [10..100],
+\item hmrc: harmony considering rate. Indicates the probability of generating a value from the memory. Typical range is [0.7..0.99],
+\item par: pitch adjusting rate. Given a value generated from memory, this indicates the probability of modifying it. [0.1..0.4],
+\item bw: bandwith. The update size,
+\item f: the function to minimize.
+\end{itemize}
+
+\begin{algorithm}
+\caption{HarmonySearch(f, hms, hmrc, par, bw)}
+\begin{algorithmic} 
+\STATE $memory \leftarrow InitializeRandomlyMemory(hms)$
+\WHILE{$stoppingCriteria$}
+\STATE // generate each value of vector from random,
+\STATE // or taken from memory and slighly updated
+\STATE $x \leftarrow empty$
+\FOR{(i=0; n $<$ dim; ++n)}
+\IF{$U(0,1)<hmrc$}
+\STATE $x[i] \leftarrow memory[U(1..hms)][i]$
+\IF{$U(0,1)<par$}
+\STATE $x[i] \leftarrow x[i] \pm U(0..1) * bw$
+\ENDIF
+\ELSE
+\STATE $x[i] \leftarrow random()$
+\ENDIF
+\ENDFOR
+\STATE // finally evaluate the solution and remove
+\STATE // from memory the worst one
+\IF{$f(x) < memory.worst$()}
+\STATE $memory.removeWorstAndAdd(x)$
+\ENDIF
+\ENDWHILE
+\RETURN $memory.best()$
+
+\end{algorithmic}
+\end{algorithm}
+
+\FloatBarrier
+
+\subsection{Genetic Algorithm \nllref{OptimizerGeneticAlgorithm}}
+The genetic algorithm (GA) optimizer uses a GA to perform the minimization. It is configured as following:
+\begin{itemize}
+\item mutation operator: the value is randomly updated within the range of the parameter,
+\item selection operator: elitist. The best solution is always selected and never mutated,
+\item crossover operator: vector 2-point split. Two Potential solutions are selected and split at two random positions. Some segments of the solutions are swaped,
+\item termination: defined by the number of epochs.
+\end{itemize}
+
 \subsection{Line Search}
 \subsection{Powell}
-\subsection{Bracketing}
+
+\subsection{Bracketing \nllref{minimumBracketing}}
+Given a function $f$ and two initial points $a$ and $b$, find a triplet $(a', b', c')$ such that $f(a')>f(b')$ and  $f(c')>f(b')$. This is often to make sure that a function has at least a minima in this interval.
+
+
+
 
 \section{Classifiers}
 \subsection{Feed Forward Neural Networks}
 \subsection{Radial Basis Function Neural networks}
 \subsection{Gaussian Mixture Models \nllref{gmm}}
-A gaussian mixture model (gmm) is a generative model modelling a distribution $p(X|\Theta)$ using a mixture of gaussian models. It is defined as following $p(x_i|\Theta)= \sum_{k=1}^K \lambda _k N(x_i|\mu _k, \Sigma _k)$ where $X=\{x_1,...,x_n\}$ is the training data and $\Theta$ represents the parameters of the gaussian functions $(\mu _k, \Sigma _k)$ and weights $\lambda _k$.
+A gaussian mixture model ($gmm$) is a generative model modelling a distribution using a mixture of gaussian models. It is defined as following $p(x|\Theta)= \sum_{k=1}^K \lambda _k N(x|\mu _k, \Sigma _k)$ Where $(\mu _k, \Sigma _k)$ is the parametrization of a gaussian and $\lambda _k$ its weight within the mixture.
 
-Assuming the samples are independent and identically distributed, we have the log-likelihood function defined as:
+Assuming we have $N$ samples $X=\{x_1,...,x_n\}$ which are independent and identically distributed, we have the log-likelihood function defined as:
 \begin{align*}
 L(\Theta | X)&=\log \prod_{i=1}^N p(x_i|\Theta) \\
 &=\sum_{i=1}^N \log p(x_i|\Theta) \\
@@ -122,7 +203,14 @@ We found that the parameters updates are:
 With $N_k = \sum _{i=1}^N \gamma _{ik}$ and $\gamma _{ik} = \frac{\lambda_k N(x_i| \mu _k, \theta _k)}{\sum _{j=1}^K \lambda _j N(x_i| \mu _j, \theta _j)}$
 
 ~\\~
-Intial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm. For improved stability of the algorithm, $\Sigma_k$ is approximated by its diagonal.
+Intial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm. For improved stability of the algorithm, $\Sigma_k$ is approximated by its diagonal (i.e., often if the number of mixture is too high, the matrix $\Sigma$ may not be invertible).
+
+~\\~
+In the classification context:
+\begin{itemize}
+\item learning: for each class $k$, fit a $gmm_k$ with all the samples belonging to the class $k$. 
+\item classify: $class=\argmax_k L(x,\Theta_k)$
+\end{itemize}
 
 \subsubsection{Derivation of the algorithm}
 Recall that $\frac{d}{dx} \log f(x) = \frac{f'(x)}{f(x)}$ and $\frac{d}{dx} e ^x=x' e^x$, lets compute $\mu _k$:
@@ -209,7 +297,11 @@ blabla
 \subsection{Maximum Intensity Projection}
 
 \section{Notations}
-function~$f$ is defined throughout the document as $f \colon \textbf{R}^n \to \textbf{R}$
+\begin{itemize}
+\item function~$f$ is defined throughout the document as $f \colon \textbf{R}^n \to \textbf{R}$
+\item U(a..b) generate a random number uniformly in the range [a..b]
+\item N(m, v) generate a random number following a gaussian distribution mean $m$ and standard deviation $v$
+\end{itemize}
 
 \bibliography{nll-algorithm-documentation}
 \bibliographystyle{plain}
