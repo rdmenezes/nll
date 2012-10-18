@@ -121,7 +121,7 @@ Find the optimal parameters using an exhaustive search at discrete intervals. Th
 by \textbf{param.next(currentVal)}. Grid search could be extremely expensive in time, but it is guaranteed that it will find the minimum
 value on this grid. If the evaluation function is quite fast, and the range search is small, this algorithm is suitable. It is often used for parameter selection for example for a classifier.
 
-\subsection{Harmony Search}
+\subsection{Harmony Search \nllref{OptimizerHarmonySearch}}
 Harmony search (HS) is a meta-heuristic optimization method imitating the music improvisation process where
 musicians improvise their instruments' pitches searching for a perfect state of harmony. The following inputs are required:
 \begin{itemize}
@@ -134,7 +134,7 @@ musicians improvise their instruments' pitches searching for a perfect state of 
 
 \begin{algorithm}
 \caption{HarmonySearch(f, hms, hmrc, par, bw)}
-\begin{algorithmic} 
+\begin{algorithmic}
 \STATE $memory \leftarrow InitializeRandomlyMemory(hms)$
 \WHILE{$stoppingCriteria$}
 \STATE // generate each value of vector from random,
@@ -172,14 +172,15 @@ The genetic algorithm (GA) optimizer uses a GA to perform the minimization. It i
 \item termination: defined by the number of epochs.
 \end{itemize}
 
-\subsection{Line Search}
-\subsection{Powell}
+\subsection{Powell's conjugate direction method \nllref{powell}}
+The method minimises the function by a bi-directional search along each search vector, in turn. The new position can then be expressed as a linear combination of the search vectors. The new displacement vector becomes a new search vector, and is added to the end of the search vector list. Meanwhile the search vector which contributed most to the new direction, i.e. the one which was most successful, is deleted from the search vector list. The algorithm iterates an arbitrary number of times until no significant improvement is made. The function needs not be differentiable. Implemented exactly as described in \cite{NumericalRecipes}.
+
 
 \subsection{Bracketing \nllref{minimumBracketing}}
-Given a function $f$ and two initial points $a$ and $b$, find a triplet $(a', b', c')$ such that $f(a')>f(b')$ and  $f(c')>f(b')$. This is often to make sure that a function has at least a minima in this interval.
+Given a function $f$ and two initial points $a$ and $b$, find a triplet $(a', b', c')$ such that $f(a')>f(b')$ and  $f(c')>f(b')$. This is often to make sure that a function has at least a minima in this interval, especially for a line search algorithm. Implemented exactly as described in \cite{NumericalRecipes} using a golden section search.
 
-
-
+\subsection{Line Search \nllref{lineMinimization}}
+The line search is using \nllref{minimumBracketing} for an initial bracketing of the minimum followed by a line minimization, using brent's method which is a root-finding algorithm combining the bisection method, the secant method and inverse quadratic interpolation. It has the reliability of bisection but it can be as quick as some of the less reliable methods. The idea is to use the secant method or inverse quadratic interpolation if possible, because they converge faster, but to fall back to the more robust bisection method if necessary. The function needs not be differentiable. Implemented exactly as described in \cite{NumericalRecipes}.
 
 \section{Classifiers}
 \subsection{Feed Forward Neural Networks}
@@ -208,7 +209,7 @@ Intial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm
 ~\\~
 In the classification context:
 \begin{itemize}
-\item learning: for each class $k$, fit a $gmm_k$ with all the samples belonging to the class $k$. 
+\item learning: for each class $k$, fit a $gmm_k$ with all the samples belonging to the class $k$.
 \item classify: $class=\argmax_k L(x,\Theta_k)$
 \end{itemize}
 
