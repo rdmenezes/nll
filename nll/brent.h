@@ -174,10 +174,12 @@ namespace algorithm
    }
 
    /**
+    @note This is mostly for the powell optimizer...
+
     @ingroup algorithm
     @brief Line minimization for multidimentional data
     @param p the entry point. It will be updated with the position of the minimum found
-    @param direction the direction of the line search
+    @param direction the direction of the line search. It will be updated with the scaled direction
     @param ret the minimum found
     @param f the function to minimize
 
@@ -186,7 +188,7 @@ namespace algorithm
     Point must define operator[], size(), Point(n)
     */
    template <class Point, class Functor>
-   bool lineMinimization( Point& p, core::Buffer1D<double>& direction, double& ret, const Functor& f, double tol = 2.0e-4 )
+   bool lineMinimizationUnsafe( Point& p, core::Buffer1D<double>& direction, double& ret, const Functor& f, double tol = 2.0e-4 )
    {
       bool error = false;
       impl::HelperLineMinimizationFunctionWrapper<Point, Functor> ff( p, direction, f );
@@ -197,6 +199,33 @@ namespace algorithm
       {
          p[ n ] += direction[ n ] * xmin;
          direction[ n ] *= xmin;
+      }
+      return error;
+   }
+
+   /**
+    @ingroup algorithm
+    @brief Line minimization for multidimentional data
+    @param p the entry point.
+    @param direction the direction of the line search. It will be updated with the scaled direction
+    @param ret the minimum found
+    @param f the function to minimize
+
+    @return true if error occured
+
+    Point must define operator[], size(), Point(n)
+    */
+   template <class Point, class Functor>
+   bool lineMinimization( Point& p, const core::Buffer1D<double>& direction, double& ret, const Functor& f, double tol = 2.0e-4 )
+   {
+      bool error = false;
+      impl::HelperLineMinimizationFunctionWrapper<Point, Functor> ff( p, direction, f );
+      BracketingResult bracket = minimumBracketing( 1, 0, ff );
+      double xmin;
+      ret = brent( bracket.ax, bracket.bx, bracket.cx, ff, xmin, tol, 100, &error );
+      for ( size_t n = 0; n < p.size(); ++n )
+      {
+         p[ n ] += direction[ n ] * xmin;
       }
       return error;
    }

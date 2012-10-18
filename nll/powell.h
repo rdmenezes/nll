@@ -115,7 +115,7 @@ namespace algorithm
             for ( j = 0; j < n; j++ )
                xit[ j ] = xi[ i ][ j ]; // Copy the direction,
             fptt = fret;
-            lineMinimization( p, xit, fret, f, tol );
+            lineMinimizationUnsafe( p, xit, fret, f, tol );
             if ( fptt - fret > del )
             {
                //and record it if it is the largest decrease so far.
@@ -173,7 +173,7 @@ namespace algorithm
             t = 2.0 * ( fp - 2.0 * fret + fptt ) * core::sqr( fp - fret - del ) - del * core::sqr( fp - fptt );
             if ( t < 0.0 )
             {
-               lineMinimization( p, xit, fret, f, tol );
+               lineMinimizationUnsafe( p, xit, fret, f, tol );
                for ( j = 0; j < n; j++ )
                {
                   xi[ ibig ][ j ] = xi[ n - 1 ][ j ];
