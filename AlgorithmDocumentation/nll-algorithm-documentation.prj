@@ -4,16 +4,22 @@
 0
 1
 nll-algorithm-documentation.tex
-4
-0
+6
+2
 0
 
 nll-algorithm-documentation.tex
 TeX:UTF-8:UNIX
-17936379 0 -1 3095 -1 76 50 50 1123 670 0 137 51 33 391 0 0 2854 -1 -1 3091 1 0 76 -1   0
+286371835 0 -1 9535 -1 9535 50 50 1123 670 0 1041 442 33 391 0 0 9791 -1 -1 9791 1 0 9535 -1   0
 nll-algorithm-documentation.bib
 BibTeX
-1049586 0 0 1 0 1 125 125 1248 611 0 25 0 -1 -1 0 0 -1 -1 -1 -1 1 0 1 0   0
+1049586 1 0 8 0 17 125 125 1248 611 0 153 0 -1 -1 0 0 18 0 0 18 1 0 17 0   0
+C:\Users\sibilu7n\Downloads\norm.tex
+TeX:UNIX
+269594619 1 -1 876 -1 882 50 50 1101 510 0 369 357 -1 -1 0 0 -1 -1 -1 -1 1 0 882 -1   0
+C:\Users\sibilu7n\Downloads\LaTeX-Template.tex
+TeX
+269496315 2 -1 7183 -1 7190 225 225 1276 685 0 425 -493 -1 -1 0 0 -1 -1 -1 -1 1 0 7190 -1   0
 C:\Users\sibilu7n\Downloads\example.tex
 TeX
 1060859 1 -1 2857 -1 2808 100 100 1173 720 0 25 782 -1 -1 0 0 -1 -1 -1 -1 1 0 2808 -1   0
@@ -22,3 +28,6 @@ ASCII
 307242875 0 0 1 13 1 0 0 1073 620 1 73 221 -1 -1 0 0 -1 -1 -1 -1 1 0 1 13   0
 
 *nll-algorithm-documentation.tex
+>
+*nll-algorithm-documentation.bib
+<

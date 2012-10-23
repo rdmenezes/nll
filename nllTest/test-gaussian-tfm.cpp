@@ -229,7 +229,7 @@ public:
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
-         // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-8 ) ); // not the same!
+         //TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-8 ) ); // not the same!
       }
    }
 
@@ -435,7 +435,6 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianTransformation);
-/*
 TESTER_TEST(testConversionBasic);
 TESTER_TEST(testConversion);
 TESTER_TEST(testMarginalization1);
@@ -443,6 +442,6 @@ TESTER_TEST(testMarginalization);
 TESTER_TEST(testMul1);
 TESTER_TEST(testConditioning);
 TESTER_TEST(testConditioning2);
-TESTER_TEST(testConditioning3);*/
+TESTER_TEST(testConditioning3);
 TESTER_TEST_SUITE_END();
 #endif

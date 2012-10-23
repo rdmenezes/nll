@@ -49,15 +49,11 @@ namespace algorithm
                                v2 * #DomainVar1 +
                                v1 )
 
-    The table must always model p( a | b, c, ... x ) so that domain[ a ] = 0
-                                                             domain[ b ] = 1
-                                                             ...
-                                                             domain[ x ] = 26
-    (this is used in normalization and <BayesianNetworkSampling>)
+    The table can model only p( a | b, c, ... x )
+                          or p( a,  b, c, ... x )  so that domain[ a ] < domain[ b ] < ... < domain[ x ]
+                          or a single value with no domain
 
-    The domain must also be ordered so that domain[ 0 ] < domain[ 1 ] < domain[ 2 ] ... meaning that in a graph,
-    the parent nodes must have a higher domain than the children.
-
+    The domain is ordered, meaning that in a graph, the parent nodes must have a higher domain than the children.
     (this is used in <BayesianNetworkSampling> to help with predecessors, and helpful for performance e.g., domain merge)
     */
    class PotentialTable
@@ -89,16 +85,22 @@ namespace algorithm
 
           See a working example: BNT of 4 nodes with Cloudy->Sprinkler, Cloudy->Rainy, Sprinkler->Wet, Rainy->Wet dependencies
                                          Cloudy (domain = 3)
-                    Sprinkler (domain = 2)             Rainy (domain = 1)
+                                         Sprinkler (domain = 2)
+                                         Rainy (domain = 1)
                                          Wet (domain = 0)
 
            The table will be stored as:
+            P(Cloudy)
             Cloudy  p(C=t)    p(C=f)  =>   table encoding = 0.5  table index = 0
                      0.5        0.5                         0.5                1
+
+            P(Rainy|Cloudy)
             Rainy  C P(R=t)   p(R=f)  =>   table encoding = 0.2                0
                    f 0.8      0.2                           0.8                1
                    t 0.2      0.8                           0.8                2
                                                             0.2                3
+
+            P(Wet|Rainy,Cloudy)
             Wet  S R P(W=f)  P(W=t)   =>   table encoding = 1
                  f f 1       0                              0
                  t f 0.1     0.9                            0.1
@@ -117,19 +119,6 @@ namespace algorithm
          _domain = domain;
          _cardinality = cardinality;
          _table = table;
-
-         /*
-         // check we have a correctly formated table! (i.e., at least sum(p(x|p)) = 1)
-         for ( size_t n = 0; n < table.size(); n += cardinality[ 0 ] )
-         {
-            value_type sum = 0;
-            for ( size_t nn = 0; nn < cardinality[ 0 ]; ++nn )
-            {
-               sum += table[ n + nn ];
-            }
-            ensure( fabs( sum - 1 ) < 1e-2, "sum_x(x|p(x)) == 1 for a correct table!" );
-         }*/
-
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
       }
 
@@ -157,93 +146,9 @@ namespace algorithm
       }
 
       /**
-       @brief Utility function to reorder tables into a sorted domain
-
-       This is a convenient function. Often the table statistics don't follow the order constraint, hence this function.
-
-       For exemple, lets say we have a domain of 3 vars [ 1 2 3 ] and for each var 2 posibilities but our table was stored
-       in this order [ 1 3 2 ], we want to express this table in the original order (it must be sorted for performance reasons).
-
-       domain: 1 3 2 probability index         1 2 3 index in original table
-       value   0 0 0 1.0         0             0 0 0 0
-               0 0 1 0.0         1             0 0 1 2
-               0 1 0 0.9         2     sorted  0 1 0 1
-               0 1 1 0.1         3       =>    0 1 1 3
-               1 0 0 0.8         4             1 0 0 4
-               1 0 1 0.2         5             1 0 1 6
-               1 1 0 0.01        6             1 1 0 5
-               1 1 1 0.99        7             1 1 1 7
-       */
-      static PotentialTable reorderTable( const Vector& table, const VectorI& domain, const VectorI& domainCardinality )
-      {
-         ensure( domain.size() == domainCardinality.size(), "cardinality and domain must have same dimensionality" );
-
-         // now sort the domain and keep track of the original order
-         std::vector< std::pair< size_t, size_t > > domainSorted;
-         domainSorted.reserve( domain.size() );
-         for ( size_t n = 0; n < domain.size(); ++n )
-         {
-            domainSorted.push_back( std::make_pair( domain[ n ], n ) );
-         }
-         std::sort( domainSorted.begin(), domainSorted.end() );
-
-         size_t stride = 1;
-         std::vector<size_t> strides( domain.size() );
-         for ( size_t n = 0; n < domain.size(); ++n )
-         {
-            const size_t indexInOriginalDomain = domainSorted[ n ].second;
-            strides[ indexInOriginalDomain ] = stride;
-            stride *= domainCardinality[ n ];
-         }
-
-         // now reorder the table
-         VectorI newDomain( domain.size() );
-         VectorI newCardinality( domain.size() );
-         Vector newTable( table.size() );
-         for ( size_t n = 0; n < domain.size(); ++n )
-         {
-            const size_t indexInOriginalDomain = domainSorted[ n ].second;
-            newDomain[ n ] = domain[ indexInOriginalDomain ];
-            newCardinality[ n ] = domainCardinality[ indexInOriginalDomain ];
-         }
-
-         std::vector<size_t> counts( domain.size() );
-         size_t currentIndex = 0;
-
-         // Currently, a counter is used to backtrack the source index...
-         for ( size_t n = 0; n < table.size(); ++n )
-         {
-            // check the counter bounds (i.e., it must be within domainCardinality, if not backtrack the source index),
-            for ( size_t i = 0; i < domain.size(); ++i )
-            {
-               if ( counts[ i ] == newCardinality[ i ] )
-               {
-                  ++counts[ i + 1 ];
-                  for ( int j = (int)i; j >= 0; --j )
-                  {
-                     currentIndex -= strides[ j ] * counts[ j ];
-                     counts[ j ] = 0;
-                  }
-                  currentIndex += strides[ i + 1 ];
-               } else break;
-            }
-
-            // handling the table
-            newTable[ n ] = table[ currentIndex ];
-
-            // finally increase the counter
-            ++counts[ 0 ];
-            currentIndex += strides[ 0 ];
-         }
-
-         return PotentialTable( newTable, newDomain, newCardinality );
-      }
-
-      /**
        @brief This method will sample the value 'domain[0]' wich we call main domain given the other evidence of the other variables
        @param inout_evidenceWithoutMainDomain the evidence. If inout_evidenceWithoutMainDomain[ 0 ] != 0, it will be discarded. Only
               inout_evidenceWithoutMainDomain[ 0 ] will be updated
-       @TODO relatively inefficient with repeated <computeStrides> calls and pbs copies...
        */
       void sample( EvidenceValue& inout_evidenceWithoutMainDomain ) const
       {
@@ -306,7 +211,7 @@ namespace algorithm
          }
 
          // finally normalize and we are done
-         normalize();
+         normalizeConditional();
       }
 
       void print( std::ostream& o ) const
@@ -378,7 +283,7 @@ namespace algorithm
 
        This is valid only if there is an associated domain, else no normalization is done
        */
-      void normalize()
+      void normalizeConditional()
       {
          if ( _domain.size() )
          {
@@ -428,7 +333,7 @@ namespace algorithm
       }
 
       /**
-       @brief Combine the two table potentials
+       @brief Create a potential out of two potentials representing a joint probability
        */
       PotentialTable operator*( const PotentialTable& g2 ) const
       {
@@ -453,8 +358,11 @@ namespace algorithm
       }
 
       /**
-       @brief Extend the domain of the table by adding new domain variable with
-              associated probability of 0
+       @brief Given the current domain, extend the table to another domain
+      
+       e.g., we have P(X), extend the scope to include Y such that the table represents P(X|Y)
+       then we have P(X=xi | Y=yj) = P(X=xi) for all j
+       if instead the table represents P(X,Y) we need to renormalize the table
        */
       PotentialTable extendDomain( const VectorI& domain, const VectorI& cardinality ) const
       {
@@ -646,6 +554,9 @@ namespace algorithm
       }
 
       // given the current domain, extend the table to another domain
+      // e.g., we have P(X), extend the scope to include Y such that the table represents P(X|Y)
+      // then we have P(X=xi | Y=yj) = P(X=xi) for all j
+      // if instead the table represents P(X,Y) we need to renormalize the table
       Vector extend( const VectorI& domain, const VectorI& cardinality, VectorI& newDomain_out, VectorI& newCardinality_out ) const
       {
          ensure( domain.size() == cardinality.size(), "args don't match" );
