@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="drawing.eps">
+  <defs
+     id="defs4">
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow2Lend"
+       style="overflow:visible;">
+      <path
+         id="path3865"
+         style="fill-rule:evenodd;stroke-width:0.62500000;stroke-linejoin:round;"
+         d="M 8.7185878,4.0337352 L -2.2072895,0.016013256 L 8.7185884,-4.0017078 C 6.9730900,-1.6296469 6.9831476,1.6157441 8.7185878,4.0337352 z "
+         transform="scale(1.1) rotate(180) translate(1,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;">
+      <path
+         id="path3847"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1.0pt;"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow2Lend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Lend-5"
+       style="overflow:visible">
+      <path
+         inkscape:connector-curvature="0"
+         id="path3865-1"
+         style="fill-rule:evenodd;stroke-width:0.625;stroke-linejoin:round"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-1.1,0,0,-1.1,-1.1,0)" />
+    </marker>
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="2"
+     inkscape:cx="248.0062"
+     inkscape:cy="815.70244"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1680"
+     inkscape:window-height="1028"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:type="arc"
+       style="fill:#e3dbdb;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path2985"
+       sodipodi:cx="140.71428"
+       sodipodi:cy="152.36218"
+       sodipodi:rx="47.857143"
+       sodipodi:ry="34.285713"
+       d="m 188.57142,152.36218 a 47.857143,34.285713 0 1 1 -95.714284,0 47.857143,34.285713 0 1 1 95.714284,0 z"
+       transform="translate(64,0)"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:41.68107224px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="183.90997"
+       y="166.84953"
+       id="text2987"
+       sodipodi:linespacing="125%"
+       transform="scale(0.99270009,1.0073536)"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan2989"
+         x="183.90997"
+         y="166.84953">Y1</tspan></text>
+    <path
+       transform="translate(189.85715,-1.4285729)"
+       sodipodi:type="arc"
+       style="fill:#e3dbdb;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path2985-1"
+       sodipodi:cx="140.71428"
+       sodipodi:cy="152.36218"
+       sodipodi:rx="47.857143"
+       sodipodi:ry="34.285713"
+       d="m 188.57142,152.36218 a 47.857143,34.285713 0 1 1 -95.714284,0 47.857143,34.285713 0 1 1 95.714284,0 z"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <a
+       id="a3026"
+       transform="translate(70,-2.2857141)"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <text
+         transform="scale(0.99270009,1.0073536)"
+         sodipodi:linespacing="125%"
+         id="text2987-7"
+         y="165.4314"
+         x="238.1631"
+         style="font-size:41.68107224px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+         xml:space="preserve"><tspan
+           y="165.4314"
+           x="238.1631"
+           id="tspan2989-4"
+           sodipodi:role="line">Y2</tspan></text>
+    </a>
+    <path
+       transform="translate(125,148.57143)"
+       sodipodi:type="arc"
+       style="fill:#e3dbdb;fill-rule:evenodd;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       id="path2985-8"
+       sodipodi:cx="140.71428"
+       sodipodi:cy="152.36218"
+       sodipodi:rx="47.857143"
+       sodipodi:ry="34.285713"
+       d="m 188.57142,152.36218 a 47.857143,34.285713 0 1 1 -95.714284,0 47.857143,34.285713 0 1 1 95.714284,0 z"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:41.68107224px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       x="251.40263"
+       y="314.3364"
+       id="text2987-2"
+       sodipodi:linespacing="125%"
+       transform="scale(0.99270009,1.0073536)"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         id="tspan2989-45"
+         x="251.40263"
+         y="314.3364">X</tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-start:none;marker-end:url(#Arrow2Lend);display:inline"
+       d="m 218.22262,185.26306 33.98332,82.76968"
+       id="path3058"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-end="#path2985-8"
+       inkscape:connection-end-point="d4"
+       inkscape:connection-start="#path2985"
+       inkscape:connection-start-point="d4"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;marker-end:url(#Arrow2Lend-5)"
+       d="m 316.407,183.69276 -36.52829,84.48171"
+       id="path4868"
+       inkscape:connector-type="polyline"
+       inkscape:connector-curvature="0"
+       inkscape:connection-start="#path2985-1"
+       inkscape:connection-start-point="d4"
+       inkscape:connection-end="#path2985-8"
+       inkscape:connection-end-point="d4"
+       inkscape:export-filename="D:\devel\nll\AlgorithmDocumentation\img\bn1.eps.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+  </g>
+</svg>

@@ -5,15 +5,24 @@
 \usepackage{amsmath}
 \usepackage{bm} % bold math
 \usepackage{placeins} % FloatBarrier
+\usepackage{graphicx} %  includegraphics
 
 \usepackage{algorithm}
 \usepackage{algorithmic}
+
+\usepackage{paralist}
 
 \newcommand{\nllversion}{0.17}
 \newcommand{\bigO}{\mathcal{O}}
 
 \newcommand{\nllref}[1]{[\small{\textit{#1}}]}
 \newcommand{\norm}[1]{\| #1 \|}
+\newcommand{\counta}[1]{\small{\#}#1}
+
+\renewcommand{\labelitemi}{-}
+
+\newcommand{\subsubsubsection}[1]{\noindent\textbf{#1}\\}
+
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 
@@ -42,6 +51,91 @@
 \section{Introduction}
 This document will describe the main algorithms used in the Numerical Learning Library \nllversion, how they are implemented and the assumptions made. It is meant to be as self-contained as possible, although some technical points requiring a great length of details will be referenced.
 
+\section{Bayesian networks}
+\subsection{Overview}
+Bayesian networks are directed acyclic graphs whose nodes represent random variables which may be observable quantities, latent variables, unknown parameters. Edges represent conditional dependencies; nodes which are not connected represent variables which are conditionally independent of each other. Each node is associated with a probability function that takes as input a particular set of values for the node's parent variables and gives the probability of the variable represented by the node. For example in Figure \ref{bn1}, we model the joint probability $p(X, Y_1, Y_2) = p(Y_1)p(Y_2)p(X|Y_1,Y_2)$.
+
+\begin{figure}[h]
+\centering
+\includegraphics{img/bn1.eps}
+\caption{Bayesian network with random variables $Y_1$, $Y_2$ and $X$. $Y_1$ and $Y_2$ are independent, while $X$ depends on $Y_1$ and $Y_2$.}
+\label{bn1}
+\end{figure}
+
+
+
+\subsection{Conditional Probability Distribution}
+Conditional Probability Distribution, or CPD, are modelling a conditional probability $p$, of a random variable $X$ given the parents $Y$ as following: $p(X|Y)$. $Y$ can represent several random variables. Each CPD has a scope composed of the different variables it contains (i.e., $(X,Y)$). Inference and learning algorithms for bayesian network will require the CPD to implement some basic operations such as:
+\begin{compactitem}
+\item marginalization: given $p(X,Y)$, compute $p(X)$,
+\item conditioning: given $p(X,Y)$ and evidence $Y=y$, compute $p(X,Y=y)$,
+\item normalization: given $p(X)$, update the CPD so that it represents a probability distribution,
+\item multiplication: given $p(X)$ and $p(Y)$ combine the CPDs into a joint distribution $p(X,Y)$
+\end{compactitem}
+
+To simplify the implementation, the scope will be identified by an integer with the following properties:
+\begin{compactitem}
+\item the parents' identifier will be higher than the children's identifier,
+\item the scope of the CPD will always be sorted according to the identifier in increasing order. Consequently Scope[0] will always be the children variables.
+\end{compactitem}
+
+\subsubsection{Table CPD \nllref{PotentialTable}}
+A table CPD is encoding probabilities for random discrete variables in a dense way. Given a random variable $X$ with $N$ Parents $Par_i(X)$, the table will have a size of $Size=\counta{X}\prod_{n=1}^{N} \counta{Par_n(X)}$. The table will consider the scope as a new basis so that $index(X_1=e_1, ..., X_n=e_n)=\sum_{j=1}^N e_j \prod_{i=1}^{j-1}\counta{X_i} $. For example, see the table CPD of Figure \ref{tablecpd1}.
+
+\begin{table}[h]
+\label{tablecpd1}
+\centering
+\begin{tabular}{| l | l |}
+\hline
+$p(X_2, X_1)$ & index\\
+\hline\hline
+(0, 0) & 0\\
+\hline
+(0, 1) & 1\\
+\hline
+(1, 0) & 2\\
+\hline
+(1, 1) & 3\\
+\hline
+(2, 0) & 4\\
+\hline
+(2, 1) & 5\\
+\hline
+\end{tabular}
+\caption{Table CPD encoding the conditional distribution $p(X_1,X_2)$ of two discrete random variables $X_1$ and $X_2$ of cardinality 2 and 3 respectively.}
+\end{table}
+
+
+\begin{compactitem}
+\item marginalization: given $p(X,Y)$ compute $p(X) = \sum_{y_i \in Y}p(X)p(X|Y=y_i)$,
+\item conditioning: $p(X,Y=y)$ simply eliminates the rows that do not agree with $y$ and drop $Y$ from the scope,
+\item normalization: normalize the table so that $\sum_ip(X=i)=1$,
+\item scope extension: given $p(X)$, extend the CPD's scope to $(X, Y)$ such that $p(X=i|Y_j) = p(X=i), \forall j$
+\item multiplication: given $p(X)$ and $p(Y)$ merge the CPD into a single CPD $p(X,Y)$. First extend $p(X)$ scope to $Y$ (and similarly for $p(Y)$), then multiply the tables element by element.
+\end{compactitem}
+
+\subsubsection{Gaussian Moment CPD \nllref{PotentialGaussianMoment}}
+\subsubsubsection{Parametrization}
+Consider a Gaussian with mean $\mu$ and covariance matrix $\Sigma$ defined on some domain $x$.
+\begin{align*}
+\phi(x) &= \alpha N(x;\mu,\Sigma)\\
+&= \alpha |2\pi\Sigma|^{-0.5}e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}
+\end{align*}
+
+\subsubsubsection{Marginalization}
+Consider a Gaussian on some domain $(x_1, x_2)$.
+
+
+\subsubsection{Gaussian Canonical CPD}
+\subsubsection{Conditional Linear Gaussian CPD}
+\subsection{Inference}
+\subsubsection{Naive algorithm}
+The naive algorithm is an exact inference algorithm. It simply constructs the full joint probability after incorporating the evidence to form the result of the inference query. Since it is extremely simple but generally inefficient (except for the Gaussian or Linear Gaussian CPD) it is only used for debugging purposes.
+
+\subsubsection{Variable elimination}
+\subsection{Learning}
+\subsubsection{Fully observed case}
+
 \section{Other Algorithms}
 \subsection{k-means clustering \nllref{KMeans}}
 k-means clustering is a method of cluster analysis which aims to partition $N$ observations into $K$ clusters $c_k$ in which each observation belongs to the cluster with the nearest mean.
@@ -54,10 +148,10 @@ c_k &= \frac{\sum_{i=1}^N r_{ik}x_i}{\sum_{i=1}^N r_{ik}} \label{kmeansUpdate}
 \end{align}
 
 With $r_{ik}=1$ if the point $i$ belongs to cluster $k$, 0 otherwise. The algorithm repeats these two steps until convergence:
-\begin{itemize}
+\begin{compactitem}
 \item assign $r_{ik}$ so that each point belongs to the closest cluster
 \item update the cluster position using \ref{kmeansUpdate}
-\end{itemize}
+\end{compactitem}
 It must be noted that the algorithm is very sensitive to the initial cluster position.
 \subsection{Hessian approximation FD \nllref{HessianCalculatorForwardFiniteDifference}}
 Using finite differences, we have:
@@ -124,13 +218,13 @@ value on this grid. If the evaluation function is quite fast, and the range sear
 \subsection{Harmony Search \nllref{OptimizerHarmonySearch}}
 Harmony search (HS) is a meta-heuristic optimization method imitating the music improvisation process where
 musicians improvise their instruments' pitches searching for a perfect state of harmony. The following inputs are required:
-\begin{itemize}
+\begin{compactitem}
 \item hms: harmony memory rate. The memory size used to improvise new harmony from. Typical range is [10..100],
 \item hmrc: harmony considering rate. Indicates the probability of generating a value from the memory. Typical range is [0.7..0.99],
 \item par: pitch adjusting rate. Given a value generated from memory, this indicates the probability of modifying it. [0.1..0.4],
 \item bw: bandwith. The update size,
 \item f: the function to minimize.
-\end{itemize}
+\end{compactitem}
 
 \begin{algorithm}
 \caption{HarmonySearch(f, hms, hmrc, par, bw)}
@@ -165,12 +259,12 @@ musicians improvise their instruments' pitches searching for a perfect state of 
 
 \subsection{Genetic Algorithm \nllref{OptimizerGeneticAlgorithm}}
 The genetic algorithm (GA) optimizer uses a GA to perform the minimization. It is configured as following:
-\begin{itemize}
+\begin{compactitem}
 \item mutation operator: the value is randomly updated within the range of the parameter,
 \item selection operator: elitist. The best solution is always selected and never mutated,
 \item crossover operator: vector 2-point split. Two Potential solutions are selected and split at two random positions. Some segments of the solutions are swaped,
 \item termination: defined by the number of epochs.
-\end{itemize}
+\end{compactitem}
 
 \subsection{Powell's conjugate direction method \nllref{powell}}
 The method minimises the function by a bi-directional search along each search vector, in turn. The new position can then be expressed as a linear combination of the search vectors. The new displacement vector becomes a new search vector, and is added to the end of the search vector list. Meanwhile the search vector which contributed most to the new direction, i.e. the one which was most successful, is deleted from the search vector list. The algorithm iterates an arbitrary number of times until no significant improvement is made. The function needs not be differentiable. Implemented exactly as described in \cite{NumericalRecipes}.
@@ -208,10 +302,10 @@ Intial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm
 
 ~\\~
 In the classification context:
-\begin{itemize}
+\begin{compactitem}
 \item learning: for each class $k$, fit a $gmm_k$ with all the samples belonging to the class $k$.
 \item classify: $class=\argmax_k L(x,\Theta_k)$
-\end{itemize}
+\end{compactitem}
 
 \subsubsection{Derivation of the algorithm}
 Recall that $\frac{d}{dx} \log f(x) = \frac{f'(x)}{f(x)}$ and $\frac{d}{dx} e ^x=x' e^x$, lets compute $\mu _k$:
@@ -298,11 +392,12 @@ blabla
 \subsection{Maximum Intensity Projection}
 
 \section{Notations}
-\begin{itemize}
+\begin{compactitem}
 \item function~$f$ is defined throughout the document as $f \colon \textbf{R}^n \to \textbf{R}$
 \item U(a..b) generate a random number uniformly in the range [a..b]
 \item N(m, v) generate a random number following a gaussian distribution mean $m$ and standard deviation $v$
-\end{itemize}
+\item for a discrete random $X$, $\counta{X}$ will denote the number of states of $X$
+\end{compactitem}
 
 \bibliography{nll-algorithm-documentation}
 \bibliographystyle{plain}
