@@ -65,7 +65,7 @@ Bayesian networks are directed acyclic graphs whose nodes represent random varia
 
 
 \subsection{Conditional Probability Distribution}
-Conditional Probability Distribution, or CPD, are modelling a conditional probability $p$, of a random variable $X$ given the parents $Y$ as following: $p(X|Y)$. $Y$ can represent several random variables. Each CPD has a scope composed of the different variables it contains (i.e., $(X,Y)$). Inference and learning algorithms for bayesian network will require the CPD to implement some basic operations such as:
+Conditional Probability Distribution, or CPD, are modelling a conditional probability $p$, of a random variable $X$ given the parents $Y$ as following: $p(X|Y)$. $Y$ can represent several random variables. Each CPD has a scope composed of the variables it contains (i.e., $(X,Y)$). Inference and learning algorithms for bayesian network will require the CPD to implement some basic operations such as:
 \begin{compactitem}
 \item marginalization: given $p(X,Y)$, compute $p(X)$,
 \item conditioning: given $p(X,Y)$ and evidence $Y=y$, compute $p(X,Y=y)$,
@@ -102,7 +102,7 @@ $p(X_2, X_1)$ & index\\
 (2, 1) & 5\\
 \hline
 \end{tabular}
-\caption{Table CPD encoding the conditional distribution $p(X_1,X_2)$ of two discrete random variables $X_1$ and $X_2$ of cardinality 2 and 3 respectively.}
+\caption{Table CPD encoding the conditional distribution $p(X_1|X_2)$ or joint distribution $p(X_1,X_2)$ of two discrete random variables $X_1$ and $X_2$ of cardinality 2 and 3 respectively.}
 \end{table}
 
 
@@ -116,10 +116,35 @@ $p(X_2, X_1)$ & index\\
 
 \subsubsection{Gaussian Moment CPD \nllref{PotentialGaussianMoment}}
 \subsubsubsection{Parametrization}
-Consider a Gaussian with mean $\mu$ and covariance matrix $\Sigma$ defined on some domain $x$.
+Consider a Gaussian with mean $\mu$ and covariance matrix $\Sigma$ defined on some domain $x$ of size $n$.
 \begin{align*}
-\phi(x) &= \alpha N(x;\mu,\Sigma)\\
-&= \alpha |2\pi\Sigma|^{-0.5}e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}
+\phi(x) = \alpha  e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}
+\end{align*}
+If $\alpha = (2\pi)^{-n0.5} \Sigma^{-0.5}$, the potential is exactly a gaussian PDF and will be called "normalized".\\
+
+
+\subsubsubsection{Block diagonalization}
+Consider a general partitioned matrix $M= \left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]$ To zero out the upper right and lower left part of the matrix, we can do the following:
+
+%% see http://people.csail.mit.edu/yks/documents/classes/mlbook/pdf/chapter12.pdf
+%% and http://vis.uky.edu/~cheung/courses/ee595/MultivariateGaussian.ppt
+$$
+\left[ \begin{array}{cc} I & -FH^{-1} \\ 0 & I \end{array} \right]
+\left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]
+\left[ \begin{array}{cc} I & 0 \\ -H^{-1}G & I \end{array} \right]
+=
+\left[ \begin{array}{cc} E-FH^{-1}G & 0 \\ 0 & H \end{array} \right]
+$$
+
+We define the Schur complement of matrix M with respect to H, $M/H = E-FH^{-1}G$. Since $(XYZ)^{-1}=Z^{-1}Y^{-1}Z^{-1}=W^{-1}$ and so $Y^{-1}=ZW^{-1}X$. Consequently we have:
+\begin{align*}
+\left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]^{-1}
+&= 
+\left[ \begin{array}{cc} I & 0 \\ -H^{-1}G & I \end{array} \right]
+\left[ \begin{array}{cc} (M/H)^{-1} & 0 \\ 0 & H^{-1} \end{array} \right]
+\left[ \begin{array}{cc} I & -FH^{-1} \\ 0 & I \end{array} \right] \\
+&=
+\left[ \begin{array}{cc} (M/H)^{-1} & -(M/H)^{-1}FH^{-1} \\ -H^{-1}G(M/H)^{-1} & H^{-1}+H^{-1}G(M/H)^{-1}FH^{-1} \end{array} \right]
 \end{align*}
 
 \subsubsubsection{Marginalization}
@@ -318,7 +343,7 @@ Recall that $\frac{d}{dx} \log f(x) = \frac{f'(x)}{f(x)}$ and $\frac{d}{dx} e ^x
 
 Recall that:
 \begin{align*}
-& \frac{d|M|}{dM} = |M|(M^-1)^T \\
+& \frac{d|M|}{dM} = |M|(M^{-1})^T \\
 & \frac{d(a^TMb)}{dM} = ab^T
 \end{align*}
 
