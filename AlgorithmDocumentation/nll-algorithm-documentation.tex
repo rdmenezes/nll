@@ -10,6 +10,9 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 
+\usepackage{color}
+%\usepackage{hyperref}  % hyperlink NLL
+
 \usepackage{paralist}
 
 \newcommand{\nllversion}{0.17}
@@ -22,7 +25,6 @@
 \renewcommand{\labelitemi}{-}
 
 \newcommand{\subsubsubsection}[1]{\noindent\textbf{#1}\\}
-
 
 \DeclareMathOperator*{\argmax}{arg\,max}
 
@@ -46,7 +48,9 @@
 
 \pagestyle{fancy}
 \lhead{Numerical Learning Library \nllversion}
-\rhead{nll.googlecode.com}
+%\rhead{\url{http://nll.googlecode.com}}
+%\rhead{\href{http://nll.googlecode.com}{test}}
+\rhead{\textcolor{blue}{nll.googlecode.com}}
 
 \section{Introduction}
 This document will describe the main algorithms used in the Numerical Learning Library \nllversion, how they are implemented and the assumptions made. It is meant to be as self-contained as possible, although some technical points requiring a great length of details will be referenced.
@@ -139,16 +143,78 @@ $$
 We define the Schur complement of matrix M with respect to H, $M/H = E-FH^{-1}G$. Since $(XYZ)^{-1}=Z^{-1}Y^{-1}Z^{-1}=W^{-1}$ and so $Y^{-1}=ZW^{-1}X$. Consequently we have:
 \begin{align*}
 \left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]^{-1}
-&= 
+&=
 \left[ \begin{array}{cc} I & 0 \\ -H^{-1}G & I \end{array} \right]
 \left[ \begin{array}{cc} (M/H)^{-1} & 0 \\ 0 & H^{-1} \end{array} \right]
 \left[ \begin{array}{cc} I & -FH^{-1} \\ 0 & I \end{array} \right] \\
 &=
 \left[ \begin{array}{cc} (M/H)^{-1} & -(M/H)^{-1}FH^{-1} \\ -H^{-1}G(M/H)^{-1} & H^{-1}+H^{-1}G(M/H)^{-1}FH^{-1} \end{array} \right]
 \end{align*}
+We can note that $|M|=|M/H||H|$.
 
-\subsubsubsection{Marginalization}
-Consider a Gaussian on some domain $(x_1, x_2)$.
+~\\ \subsubsubsection{Marginalization}
+%Consider a Gaussian on some domain $(x_1, x_2)$ of size $(p,q)$ with mean $\mu = \left[ \begin{array}{c} \mu_1 \\ \mu_2 \end{array} \right]$ and covariance $\Sigma = \left[ \begin{array}{cc} 
+Consider a Gaussian on some domain $(x_1, x_2)$ of size $(p,q)$ with mean $\mu = \left[ \mu_1~\mu_2 \right]^T$ and covariance $\Sigma = \left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right]$. We have:
+\begin{align*}
+&p(x_1,x_2)=
+\underbrace{
+\frac{1}{(2\pi)^{1/2*(p+q)}|\Sigma|^{1/2k}}
+}_A
+\exp
+\underbrace{
+\left\{
+  -\frac{1}{2}
+  \left( \begin{array}{c} x_1 - \mu_1 \\ x_2 - \mu_2 \end{array} \right)^{T}
+  \left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right]^{-1}
+  \left( \begin{array}{c} x_1 - \mu_1 \\ x_2 - \mu_2 \end{array} \right)
+\right\}
+}_B \\
+B &=
+\left\{
+  -\frac{1}{2}
+  \left( \begin{array}{c} x_1 - \mu_1 \\ x_2 - \mu_2 \end{array} \right)^{T}
+  \left[ \begin{array}{cc} I & 0 \\ -\Sigma_{22}^{-1}\Sigma_{21} & I\end{array} \right]
+  \left[ \begin{array}{cc} (\Sigma/\Sigma_{22})^{-1} & 0 \\ 0 & \Sigma_{22}^{-1} \end{array} \right]
+  \left[ \begin{array}{cc} I & -\Sigma_{12}\Sigma_{22}^{-1} \\ 0 & I\end{array} \right]
+  \left( \begin{array}{c} x_1 - \mu_1 \\ x_2 - \mu_2 \end{array} \right)
+\right\}\\
+&= -\frac{1}{2} %\left\{
+(x_1 - \mu_1-\Sigma_{12}\Sigma_{22}^{-1}(x_2-\mu_2))^T(\Sigma/\Sigma_{22})^{-1}(x_1 - \mu_1-\Sigma_{12}\Sigma_{22}^{-1}(x_2-\mu_2))\\
+&~~~-\frac{1}{2} (x_2-\mu_2)^T\Sigma_{22}^{-1}(x_2-\mu_2)\\
+A &= \frac{1}{(2\pi)^{0.5(p+q)}(|\Sigma/\Sigma_{22}||\Sigma_{22}|)^{0.5}}\\
+&= \left(
+     \frac{1}{(2\pi)^{0.5p}|\Sigma/\Sigma_{22}|^{0.5}}
+   \right)
+   \left(
+     \frac{1}{(2\pi)^{0.5q}|\Sigma_{22}|^{0.5}}
+   \right)
+%\right\}
+\end{align*}
+
+
+From the relation $p(x_1,x_2) = p(x_1|x_2)p(x_2)$ and the previous equations, we find that:
+\begin{align*}
+p(x_2) &= \frac{1}{(2\pi)^{0.5q}|\Sigma_{22}|^{0.5}} \exp \left( -\frac{1}{2} (x_2 - \mu_2)^T \Sigma_{22}^{-1} (x_2 - \mu_2)\right)\\
+p(x_1|x_2) &= \frac{1}{(2\pi)^{0.5p}|\Sigma/\Sigma_{22}|^{0.5}}* \\ ~~~~& \exp \left(
+                                                                     -\frac{1}{2}
+(x_1 - \mu_1-\Sigma_{12}\Sigma_{22}^{-1}(x_2-\mu_2))^T(\Sigma/\Sigma_{22})^{-1}(x_1 - \mu_1-\Sigma_{12}\Sigma_{22}^{-1}(x_2-\mu_2))
+                                                                     \right)
+\end{align*}
+
+Note that we extend the previous results for non normalized gaussian distribution, we have the following results:
+\begin{align}
+\mu_{2}^{new}&= \mu_2\\
+\Sigma_{2}^{new}&= \Sigma_2\\
+\alpha_{2}^{new}&= \frac{\alpha_{1,2}}{\alpha_{1|2}}
+\end{align}
+
+~\\ \subsubsubsection{Conditioning}
+From the previous decompositions, we find that:
+\begin{align}
+\mu_{1|2}&= \mu_1 + \Sigma_{12}\Sigma_{22}^{-1}(x_2 - \mu_2)\\
+\Sigma_{1|2}&= \Sigma_1 + \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}\\
+\alpha_{1|2}&= \frac{\alpha_{1,2}}{\alpha_2}
+\end{align}
 
 
 \subsubsection{Gaussian Canonical CPD}
