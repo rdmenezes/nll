@@ -43,7 +43,7 @@ namespace core
     @ingroup core
     @brief Inverse a square matrix.
     @param a matrix to be inversed
-    @param determinant export the determinant is necessary
+    @param determinant export the determinant of <a> if necessary
     @return false if the matrix is singular
     @note use a LU decomposition internally, complexity N^3
           BEWARE: the matrix a is directly modified!
@@ -245,7 +245,7 @@ namespace core
     @ingroup core
     @brief Recompose a matrix given 2 index vector X and Y so that the matrix has this format:
              src = | XX XY |
-                   | YX XX |
+                   | YX YY |
     */
    template <class T, class IndexMapper2D, class AllocatorT, class Index>
    void partitionMatrix( const core::Matrix<T, IndexMapper2D, AllocatorT>& src,

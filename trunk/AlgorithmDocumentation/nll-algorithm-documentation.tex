@@ -122,7 +122,7 @@ $p(X_2, X_1)$ & index\\
 \subsubsubsection{Parametrization}
 Consider a Gaussian with mean $\mu$ and covariance matrix $\Sigma$ defined on some domain $x$ of size $n$.
 \begin{align*}
-\phi(x) = \alpha  e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}
+\phi(x; \alpha, \mu, \Sigma) = \alpha  e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}
 \end{align*}
 If $\alpha = (2\pi)^{-n0.5} \Sigma^{-0.5}$, the potential is exactly a gaussian PDF and will be called "normalized".\\
 
@@ -201,23 +201,67 @@ p(x_1|x_2) &= \frac{1}{(2\pi)^{0.5p}|\Sigma/\Sigma_{22}|^{0.5}}* \\ ~~~~& \exp \
                                                                      \right)
 \end{align*}
 
-Note that we extend the previous results for non normalized gaussian distribution, we have the following results:
-\begin{align}
-\mu_{2}^{new}&= \mu_2\\
-\Sigma_{2}^{new}&= \Sigma_2\\
-\alpha_{2}^{new}&= \frac{\alpha_{1,2}}{\alpha_{1|2}}
-\end{align}
+Note that we extend the previous results for non-normalized gaussian distribution which gives us the following results:
+\begin{align*}
+\phi(x_2) &= \int \phi(x_1,x_2)dx_1\\
+&= \phi(x_2; \alpha, \mu_2, \Sigma_2)\int p(x_1|x_2)dx_1\\
+&= \phi(x_2; \frac{\alpha}{\alpha_{1|2}}, \mu_2, \Sigma_2) \text{~where~} \alpha_{1|2} = \frac{1}{(2\pi)^{0.5p}|\Sigma/\Sigma_{22}|^{0.5}}
+\end{align*}
 
 ~\\ \subsubsubsection{Conditioning}
-From the previous decompositions, we find that:
+From the previous decompositions, knowing $x_2$ (i.e., our evidence), we find that:
 \begin{align}
-\mu_{1|2}&= \mu_1 + \Sigma_{12}\Sigma_{22}^{-1}(x_2 - \mu_2)\\
-\Sigma_{1|2}&= \Sigma_1 + \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}\\
-\alpha_{1|2}&= \frac{\alpha_{1,2}}{\alpha_2}
+\phi(x_1|x_2) = \phi( x_1; \frac{\alpha}{\alpha_2}, \mu_1 + \Sigma_{12}\Sigma_{22}^{-1}(x_2 - \mu_2), \Sigma_{11} + \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21} )
 \end{align}
 
 
 \subsubsection{Gaussian Canonical CPD}
+Unfortunately multiplication operations are difficult to realize in the moment form as it involves the inversion of the two potentials' covariance matrix which may not exist. To help with this, the computation will be done on another form, namely the canonical representation.
+$$
+\phi(x; K, h, g) = \exp(g+h^Tx - \frac{1}{2}x^TKx)
+$$
+
+\subsubsubsection{Moment to Canonical representation}
+\begin{align*}
+\phi(x; \alpha, \mu, \Sigma) &= \alpha \exp ( -\frac{1}{2} (x-\mu)^T\Sigma^{-1}(x-\mu)) \\
+&= \exp ( \log (\alpha) - \frac{1}{2}(x^T\Sigma^{-1}x
+                                     -x^T\Sigma^{-1}\mu
+                                     -\mu^T\Sigma^{-1}x
+                                     +\mu^T\Sigma^{-1}\mu
+                                      ))\\
+&= \exp ( \{\log (\alpha) - \frac{1}{2}\mu^T\Sigma^{-1}\mu\} + \{(\Sigma^{-1}\mu)^T x\} + \{x^T\Sigma^{-1}x\} )
+\end{align*}
+
+We conclude that:
+\begin{align}
+K &= \Sigma^{-1}\\
+h &=\Sigma^{-1}\mu\\
+g &= \log (\alpha) - \frac{1}{2}\mu^T\Sigma^{-1}\mu
+\end{align}
+
+\subsubsubsection{Canonical to Moment representation}
+\begin{align}
+\Sigma &= K^{-1}\\
+\mu &=K^{-1}h
+\end{align}
+Additionally we have:
+\begin{align}
+g&= \log (\alpha) - \frac{1}{2}(K^{-1}h)^TK^{-1}h \nonumber\\
+&= \log (\alpha) - \frac{1}{2}h^TK^{-1}h \nonumber\\
+\log (\alpha) &= g + \frac{1}{2}h^TK^{-1}h \nonumber\\
+\alpha &= \exp(g + \frac{1}{2}h^TK^{-1}h )
+\end{align}
+
+\subsubsubsection{Multiplication/Division}
+When multiplied, potentials are first extended to the other's domain by adding zeros. Multiplying/Dividing potentials in exponential forms is straightforward:
+\begin{align}
+\phi(K_a, h_a, g_a)*\phi(K_b, h_b, g_b) = \phi(K_a + K_b, h_a + h_b, g_a + g_b)\\
+\phi(K_a, h_a, g_a)/\phi(K_b, h_b, g_b) = \phi(K_a - K_b, h_a - h_b, g_a - g_b)\\
+\end{align}
+
+\subsubsubsection{Marginalization}
+\subsubsubsection{Conditioning}
+
 \subsubsection{Conditional Linear Gaussian CPD}
 \subsection{Inference}
 \subsubsection{Naive algorithm}
@@ -380,7 +424,7 @@ L(\Theta | X)&=\log \prod_{i=1}^N p(x_i|\Theta) \\
 &=\sum_{i=1}^N \sum_{k=1}^K \log \lambda _k N(x_i|\mu _k, \Sigma _k) \\
 \end{align*}
 
-We found that the parameters updates are:
+The log-likelihood is used as this is generally more stable numerically as it will avoid the overflow problem. We found that the parameters updates are:
 \begin{align*}
 \mu _ k &= \frac{1}{N_k} \sum_{i=1}^N \gamma _{ik} x_i \text{~with~} \\
 \Sigma _k &= \frac{1}{N_k} \sum _{i=1}^N \gamma _{ik}(x_i-\mu _k)(x_i-\mu _k)^T \\
@@ -389,7 +433,7 @@ We found that the parameters updates are:
 With $N_k = \sum _{i=1}^N \gamma _{ik}$ and $\gamma _{ik} = \frac{\lambda_k N(x_i| \mu _k, \theta _k)}{\sum _{j=1}^K \lambda _j N(x_i| \mu _j, \theta _j)}$
 
 ~\\~
-Intial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm. For improved stability of the algorithm, $\Sigma_k$ is approximated by its diagonal (i.e., often if the number of mixture is too high, the matrix $\Sigma$ may not be invertible).
+Initial values for $\lambda_k, \mu_k, \Sigma_k$ are found using K-means algorithm. For improved stability of the algorithm, $\Sigma_k$ is approximated by its diagonal (i.e., often if the number of mixture is too high, the matrix $\Sigma$ may not be invertible).
 
 ~\\~
 In the classification context:

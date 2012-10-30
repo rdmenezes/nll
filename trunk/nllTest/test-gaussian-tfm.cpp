@@ -262,6 +262,10 @@ public:
             points.push_back( p );
          }
 
+         PotentialGaussianMoment::VectorI i( 2 );
+         i[ 0 ] = 0;
+         i[ 1 ] = 1;
+
          PotentialGaussianMoment::VectorI i1( 1 );
          i1[ 0 ] = 0;
          PotentialGaussianMoment::VectorI i2( 1 );
@@ -280,7 +284,7 @@ public:
          v[ 0 ] = m1;
          PotentialGaussianMoment gg2 = gc.conditioning( v, i1 ).toGaussianMoment();
 
-         PotentialGaussianMoment gg( points, i2 );
+         PotentialGaussianMoment gg( points, i );
 
          /*
          std::cout << "---" << std::endl;
@@ -426,9 +430,70 @@ public:
       TESTER_ASSERT( core::equal( gc2.getG(), 0.4783, 1e-3 ) );
    }
 
-   void testSmallNode()
+   void testMarginalization2_moment()
    {
+      srand( 30 );
+      // lets start with a random PDF. If we marginalize the PDF it must stay a PDF!
+      // integral -inf/inf p(x,y)dy = p(x)
+      for ( size_t sample = 0; sample < 200; ++sample )
+      {
+         const double m1 = core::generateUniformDistribution( -10, 10 );
+         const double c1 = core::generateUniformDistribution( 0.1, 6 );
 
+         Points points;
+         for ( size_t n = 0; n < 10; ++n )
+         {
+            Point p1( 3 );
+            p1[ 0 ] = core::generateGaussianDistribution( m1, c1 );
+            p1[ 1 ] = core::generateGaussianDistribution( m1, c1 );
+            p1[ 2 ] = core::generateGaussianDistribution( m1, c1 );
+            points.push_back( p1 );
+         }
+
+         PotentialGaussianMoment::VectorI i( 3 );
+         i[ 0 ] = 0;
+         i[ 1 ] = 1;
+         i[ 2 ] = 2;
+         PotentialGaussianMoment::VectorI i1( 1 );
+         i1[ 0 ] = 2;
+         PotentialGaussianMoment::VectorI i2( 2 );
+         i2[ 0 ] = 0;
+         i2[ 1 ] = 2;
+         PotentialGaussianMoment::VectorI i3( 3 );
+         i3[ 0 ] = 0;
+         i3[ 1 ] = 1;
+         i3[ 2 ] = 2;
+
+         PotentialGaussianMoment::VectorI* vecs[] =
+         {
+            &i1, &i2, &i3
+         };
+
+         const size_t index = rand() % core::getStaticBufferSize( vecs );
+         PotentialGaussianMoment::VectorI& query = *vecs[ index ];
+
+         {
+            // g must be normalized by default
+            PotentialGaussianMoment g( points, i );
+            const double sanityAlphaBefore = g.getAlpha();
+            g.normalizeGaussian();
+            const double sanityAlphaAfter = g.getAlpha();
+            TESTER_ASSERT( core::equal( sanityAlphaBefore, sanityAlphaAfter, 1e-2 ) );
+
+            // even if we marginalize i1, g2 must still be normalized
+            PotentialGaussianMoment g2 = g.marginalization( query );
+            const double alphaBefore = g2.getAlpha();
+            g2.normalizeGaussian();
+            const double alphaAfter = g2.getAlpha();
+            TESTER_ASSERT( core::equal( alphaBefore, alphaAfter, 1e-2 ) );
+
+            if ( &query == &i3 )
+            {
+               // since we are marginalizing all the scope, the integral must be equal to 1
+               TESTER_ASSERT( core::equal( alphaBefore, 1.0, 1e-3 ) );
+            }
+         }
+      }
    }
 
 };
@@ -439,6 +504,7 @@ TESTER_TEST(testConversionBasic);
 TESTER_TEST(testConversion);
 TESTER_TEST(testMarginalization1);
 TESTER_TEST(testMarginalization);
+TESTER_TEST(testMarginalization2_moment);
 TESTER_TEST(testMul1);
 TESTER_TEST(testConditioning);
 TESTER_TEST(testConditioning2);

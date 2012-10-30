@@ -76,43 +76,26 @@ namespace algorithm
        @param id naming of the variable
        @param alpha if alpha not set, ensure that integral -inf/+inf p(x)dx = 1 (it represents a PDF)
        */
-      PotentialGaussianMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI(), const value_type alpha = std::numeric_limits<value_type>::max() ) : _mean( m ),
-         _cov( c ), _isCovSync( false ), _id( id ), _alpha( alpha )
+      PotentialGaussianMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI() ) : _mean( m ), _id( id )
       {
-         ensure( m.size() == c.sizex(), "mean size and cov size don't match" );
-         ensure( c.sizex() == c.sizey(), "covariance matrix must be square" );
-         ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
-
-         ensure( isOrdered( id ), "the id list must be ordered first" );
-
-         if ( alpha >= std::numeric_limits<value_type>::max() )
-         {
-            _isAlphaNormalized = true;
-         } else {
-            _isAlphaNormalized = false;
-         }
-
-         if ( id.size() == 0 )
-         {
-            // generate the id
-            _id = VectorI( m.size() );
-            for ( size_t n = 0; n < _id.size(); ++n )
-            {
-               _id[ n ] = n;
-            }
-         }
+         _init( m, c, id );
+         normalizeGaussian(); // we represent a real PDF if there is no alpha
       }
 
-      PotentialGaussianMoment() : _isCovSync( false ), _isAlphaNormalized( true )
+      PotentialGaussianMoment( const Vector& m, const Matrix& c, const VectorI id, value_type alpha )
       {
-         // nothing, unsusable moment
+         _init( m, c, id );
+         _alpha = alpha;   // unormalized potential
       }
+
+      PotentialGaussianMoment()
+      {}
 
       /**
        @brief Create a multivariate gaussian pdf given a set of points using Maximum likelihood estimation
        */
       template <class Points>
-      PotentialGaussianMoment( const Points& points, const VectorI id = VectorI() ) : _isCovSync( false ), _id( id ), _isAlphaNormalized( true )
+      PotentialGaussianMoment( const Points& points, const VectorI id = VectorI() )
       {
          ensure( points.size(), "cannot do an estimation with no points" );
          const size_t nbDim = (size_t)points[ 0 ].size();
@@ -130,8 +113,9 @@ namespace algorithm
          Vector mean;
          Matrix cov = core::covariance( points, &mean );
 
-         _mean = mean;
-         _cov = cov;
+         // setup the potential
+         _init( mean, cov, id );
+         normalizeGaussian();
       }
 
       value_type value( const Vector& x ) const
@@ -148,38 +132,39 @@ namespace algorithm
          return getAlpha() * std::exp( -0.5 * core::fastDoubleMultiplication( x, covInv ) );
       }
 
-      // this will sync alpha & cov if necessary
       const Matrix& getCovInv() const
       {
-         if ( !_isCovSync )
-         {
-            // if cov and covInv are not sunchronized, then do it...
-            _covInv.clone( _cov );
-            bool r = core::inverse( _covInv, &_covDet );
-            ensure( r, "covariance is singular!" );
-            _isCovSync = true;
-            if ( _isAlphaNormalized )
-            {
-               normalizeGaussian();
-            }
-         }
-
          return _covInv;
       }
 
       /**
        @brief ensure integral -inf/+inf p(x)dx = 1 by adjusting alpha
        */
-      void normalizeGaussian() const
+      void normalizeGaussian()
       {
-         value_type det = getCovDet();
-         _alpha = 1.0 / ( std::pow( (value_type)core::PI, (value_type)_cov.sizex() / 2 ) * sqrt( det ) );
-         _isAlphaNormalized = true;
+         _alpha = normalizeGaussian( getCovDet(), _cov.sizex() );
+      }
+
+      value_type normalizeGaussian( value_type det, size_t size ) const
+      {
+         const value_type piCte = std::pow( 2 * core::PI, size * 0.5 );
+         const value_type detCte = sqrt( det );
+         return 1.0 / ( piCte * detCte );
       }
 
       const Matrix& getCov() const
       {
          return _cov;
+      }
+
+      // note: beware of alpha. It is not updated, the potential will  not be normalized
+      void setCov( const Matrix& cov )
+      {
+         _covDet = 0;
+         _cov.clone( cov );
+         _covInv.clone( cov );
+         const bool inverted = core::inverse( _covInv, &_covDet );
+         ensure( inverted, "cov is not a PDF!" );
       }
 
       const Vector& getMean() const
@@ -198,31 +183,22 @@ namespace algorithm
 
       value_type getAlpha() const
       {
-         if ( _isAlphaNormalized && !_isCovSync )
-         {
-            getCovInv();
-         }
          return _alpha;
       }
 
       // force a specific alpha, it will remove synchronization
       void setAlpha( value_type alpha )
       {
-         _isAlphaNormalized = false;
          _alpha = alpha;
       }
 
       value_type getCovDet() const
       {
-         if ( !_isCovSync )
-         {
-            getCovInv();
-         }
          return _covDet;
       }
 
       /**
-       assuming a partition X = [ U V ], computes integral(-inf,+inf)p(U)dV
+       Given a potential on domain X=[U,V], compute the potential p(U)
        @param varIndexToRemove the index of V's
        */
       PotentialGaussianMoment marginalization( const VectorI& varIndexToRemove ) const
@@ -230,10 +206,13 @@ namespace algorithm
          std::vector<size_t> ids, mids;
          computeIndexInstersection( varIndexToRemove, ids, mids );
          ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
-         ensure( ids.size() > 0, "marginalization of a gaussian on all its variables is 1!" );
 
-         Matrix xx;
-         partitionMatrix( _cov, ids, xx );
+         Matrix xx, yy, xy, yx;
+         core::partitionMatrix( _cov, ids, mids, xx, yy, xy, yx );
+
+         // we have |Sigma| = |Sigma/Sigma_xx|*|Sigma_xx| => |Sigma/Sigma_xx| = |Sigma| / |Sigma_xx|
+         const value_type detToRemove = getCovDet() / core::det( xx );            
+         const value_type newAlpha = _alpha / normalizeGaussian( detToRemove, yy.sizex() );
 
          Vector newMean( (size_t)ids.size() );
          VectorI newId( (size_t)ids.size() );
@@ -243,8 +222,7 @@ namespace algorithm
             newId[ n ] = _id[ ids[ n ] ];
          }
 
-         // _alpha stays the same! TODO: check as the marginalization in canonical form doesn't give the same resutls
-         return PotentialGaussianMoment( newMean, xx, newId, _alpha );
+         return PotentialGaussianMoment( newMean, xx, newId, newAlpha );
       }
 
       /**
@@ -298,6 +276,30 @@ namespace algorithm
       PotentialGaussianCanonical toGaussianCanonical() const;
 
    private:
+      void _init( const Vector& m, const Matrix& c, const VectorI id )
+      {
+         _mean = m;
+         _id = id;
+
+         ensure( m.size() == c.sizex(), "mean size and cov size don't match" );
+         ensure( c.sizex() == c.sizey(), "covariance matrix must be square" );
+         ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
+
+         ensure( isOrdered( id ), "the id list must be ordered first" );
+
+         if ( id.size() == 0 )
+         {
+            // generate the id
+            _id = VectorI( m.size() );
+            for ( size_t n = 0; n < _id.size(); ++n )
+            {
+               _id[ n ] = n;
+            }
+         }
+
+         setCov( c );
+      }
+
       static bool isOrdered( const VectorI& v )
       {
          if ( !v.size() )
@@ -351,7 +353,7 @@ namespace algorithm
       /**
         Recompose a matrix given 2 index vector X and Y so that the matrix has this format:
                 src = | XX XY |
-                      | YX XX |
+                      | YX YY |
               => export XX
        */
       void partitionMatrix( const Matrix& src,
@@ -371,14 +373,12 @@ namespace algorithm
       }
 
    private:
-      Vector   _mean;
-      Matrix   _cov;
-      mutable Matrix       _covInv;       // NOTE: this must NEVER be used alone, but use the getter getCovInv() to ensure correct update
-      mutable value_type   _covDet;
-      mutable value_type   _alpha;        // the normalization constante
-      mutable bool         _isCovSync;    // if true, it means <_cov> and <_covInv> are synchronized, else <_covInv> will need to be recomputed
-      mutable bool         _isAlphaNormalized;    // if true, the alpha will make sure integral -inf/+inf p(x)dx = 1
-      VectorI  _id;
+      Vector       _mean;
+      Matrix       _cov;      // it cannot be manually updated! use "setCov"
+      Matrix       _covInv;
+      value_type   _covDet;
+      value_type   _alpha; 
+      VectorI     _id;
    };
 }
 }
