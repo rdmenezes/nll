@@ -60,6 +60,8 @@ namespace algorithm
 
     Usually marginalization is done using gaussian moment form and factor multiplication, division, conditioning
     are done in the canonical form.
+
+    @note there is no multiply/divide operations as canonical form is responsible for it
     */
    class NLL_API PotentialGaussianMoment
    {
@@ -145,7 +147,10 @@ namespace algorithm
          _alpha = normalizeGaussian( getCovDet(), _cov.sizex() );
       }
 
-      value_type normalizeGaussian( value_type det, size_t size ) const
+      /**
+       @brief Compute the normalization factor for a gaussian PDF given the determinant of the covariance matrix and its dimension
+       */
+      static value_type normalizeGaussian( value_type det, size_t size )
       {
          const value_type piCte = std::pow( 2 * core::PI, size * 0.5 );
          const value_type detCte = sqrt( det );
@@ -210,6 +215,7 @@ namespace algorithm
          Matrix xx, yy, xy, yx;
          core::partitionMatrix( _cov, ids, mids, xx, yy, xy, yx );
 
+         // inn the doc we describe how to get pot(x2), but here we are computing pot(x1) hence the different letters...
          // we have |Sigma| = |Sigma/Sigma_xx|*|Sigma_xx| => |Sigma/Sigma_xx| = |Sigma| / |Sigma_xx|
          const value_type detToRemove = getCovDet() / core::det( xx );            
          const value_type newAlpha = _alpha / normalizeGaussian( detToRemove, yy.sizex() );
@@ -264,11 +270,9 @@ namespace algorithm
          Matrix xyyyinv = xy * yyinv;
 
 
-         Matrix newCov = xx - xyyyinv * yx;
-         Vector newMean = Matrix( hx, hx.size(), 1 ) + xyyyinv * Matrix( t, t.size(), 1 );
-
-         const value_type newAlpha = getAlpha() / std::sqrt( 2 * core::PI * yydet ) * 
-            std::exp( -0.5 * core::fastDoubleMultiplication( t, yyinv ) );
+         const Matrix newCov = xx - xyyyinv * yx;
+         const Vector newMean = Matrix( hx, hx.size(), 1 ) + xyyyinv * Matrix( t, t.size(), 1 );
+         const value_type newAlpha = getAlpha() / normalizeGaussian( yydet, yy.sizex() );
 
          return PotentialGaussianMoment( newMean, newCov, indexNew, newAlpha );
       }
@@ -346,28 +350,6 @@ namespace algorithm
                }
                // if == or < we need to increase the index to check
                ++indexToCheck;
-            }
-         }
-      }
-
-      /**
-        Recompose a matrix given 2 index vector X and Y so that the matrix has this format:
-                src = | XX XY |
-                      | YX YY |
-              => export XX
-       */
-      void partitionMatrix( const Matrix& src,
-                            const std::vector<size_t>& x,
-                            Matrix& xx ) const
-      {
-         xx = Matrix( (size_t)x.size(), (size_t)x.size() );
-         for ( size_t ny = 0; ny < xx.sizey(); ++ny )
-         {
-            const size_t idy = x[ ny ];
-            for ( size_t nx = 0; nx < xx.sizex(); ++nx )
-            {
-               const size_t idx = x[ nx ];
-               xx( ny, nx ) = src( idy, idx );
             }
          }
       }
