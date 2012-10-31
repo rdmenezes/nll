@@ -47,10 +47,6 @@ namespace algorithm
          http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.20.3377
 
     p(x) = exp( g + h^t * x - 0.5 x^t * K * x )
-
-    K = cov^-1
-    h = cov^-1 * mean
-    g = -0.5 * m^t * cov^-1 * m - log( (2pi)^(n/2)|cov|^0.5)
     */
    class NLL_API PotentialGaussianCanonical
    {
@@ -154,7 +150,6 @@ namespace algorithm
          std::vector<size_t> mids;
          computeIndexInstersection( varIndexToRemove, ids, mids );
          ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
-         ensure( ids.size() > 0, "marginalization of a gaussian on all its variables is 1!" );
 
          // create the hx and hy subvectors
          Matrix hx( (size_t)ids.size(), 1 );
@@ -183,13 +178,14 @@ namespace algorithm
 
          Matrix xyyyinv = xy * yyinv;
          ensure( detyyinv > 0, "determinant YY must be > 0" );
-         const value_type detyy = 1.0 / detyyinv;
 
          // new params:
          Matrix      knew = xx - xyyyinv * yx;
          Matrix      hnew = hx - xyyyinv * hy;
-         value_type  gnew = _g + 0.5 * ( yyinv.sizex() * std::log( 2 * core::PI ) - std::log( detyy )
-                                       + core::fastDoubleMultiplication( hy, yyinv ) );
+
+         // Note: det A^-1 = 1 / det A
+         ensure( !core::equal( detyyinv, 0.0, 1e-10 ), "the determinant is null!" );
+         value_type  gnew = _g - std::log( PotentialGaussianMoment::normalizeGaussian( 1 / detyyinv, yy.sizex() ) ) + 0.5 * core::fastDoubleMultiplication( hy, yyinv );
          return PotentialGaussianCanonical( hnew, knew, gnew, indexNew );
       }
 
@@ -241,10 +237,7 @@ namespace algorithm
          Vector mean = cov * Matrix( _h,  _h.size(), 1 );
 
          ensure( detk > 0, "determinant K must be > 0" );
-         const value_type cte1 = 0.5 * ( log( detk )
-                                       - _h.size() * std::log( 2.0 * core::PI )
-                                       - core::fastDoubleMultiplication( mean, _k ) );
-         const value_type alpha = std::exp( _g - cte1 );
+         const value_type alpha = std::exp( _g + 0.5 * core::fastDoubleMultiplication( _h, cov ) );
 
          return PotentialGaussianMoment( mean, cov, _id, alpha );
       }

@@ -229,7 +229,7 @@ public:
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
-         //TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-8 ) ); // not the same!
+         TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-8 ) );
       }
    }
 
@@ -430,6 +430,80 @@ public:
       TESTER_ASSERT( core::equal( gc2.getG(), 0.4783, 1e-3 ) );
    }
 
+   void testMarginalization2_canonical()
+   {
+      srand( 30 );
+      // lets start with a random PDF. If we marginalize the PDF it must stay a PDF!
+      // integral -inf/inf p(x,y)dy = p(x)
+      for ( size_t sample = 0; sample < 200; ++sample )
+      {
+         const double m1 = core::generateUniformDistribution( -10, 10 );
+         const double c1 = core::generateUniformDistribution( 0.1, 6 );
+
+         Points points;
+         for ( size_t n = 0; n < 10; ++n )
+         {
+            Point p1( 3 );
+            p1[ 0 ] = core::generateGaussianDistribution( m1, c1 );
+            p1[ 1 ] = core::generateGaussianDistribution( m1, c1 );
+            p1[ 2 ] = core::generateGaussianDistribution( m1, c1 );
+            points.push_back( p1 );
+         }
+
+         PotentialGaussianCanonical::VectorI i( 3 );
+         i[ 0 ] = 0;
+         i[ 1 ] = 1;
+         i[ 2 ] = 2;
+         PotentialGaussianCanonical::VectorI i1( 1 );
+         i1[ 0 ] = 2;
+         PotentialGaussianCanonical::VectorI i2( 2 );
+         i2[ 0 ] = 0;
+         i2[ 1 ] = 2;
+         PotentialGaussianCanonical::VectorI i3( 3 );
+         i3[ 0 ] = 0;
+         i3[ 1 ] = 1;
+         i3[ 2 ] = 2;
+         PotentialGaussianCanonical::VectorI i4( 2 );
+         i4[ 0 ] = 1;
+         i4[ 1 ] = 2;
+         PotentialGaussianCanonical::VectorI i5( 1 );
+         i5[ 0 ] = 0;
+
+         PotentialGaussianCanonical::VectorI* vecs[] =
+         {
+            &i1, &i2, &i3, &i4, &i5
+         };
+
+         const size_t index = rand() % core::getStaticBufferSize( vecs );
+         PotentialGaussianCanonical::VectorI& query = *vecs[ index ];
+
+         {
+            // g must be normalized by default
+            PotentialGaussianMoment gm( points, i );
+            PotentialGaussianCanonical gc = gm.toGaussianCanonical();
+
+
+            // even if we marginalize i1, g2 must still be normalized
+            PotentialGaussianCanonical g2 = gc.marginalization( query );
+            PotentialGaussianMoment gm2 = g2.toGaussianMoment();
+
+            PotentialGaussianCanonical gtest = gm2.toGaussianCanonical();  // test conversion with no domain (i.e., with "i3")
+
+            const double alphaBefore = gm2.getAlpha();
+            gm2.normalizeGaussian();
+            const double alphaAfter = gm2.getAlpha();
+            TESTER_ASSERT( core::equal( alphaBefore, alphaAfter, 1e-2 ) );
+            
+            if ( &query == &i3 )
+            {
+               // since we are marginalizing all the scope, the integral must be equal to 1
+               TESTER_ASSERT( core::equal( alphaBefore, 1.0, 1e-3 ) );
+               TESTER_ASSERT( core::equal( gtest.getG(), 0.0, 1e-3 ) );
+            }
+         }
+      }
+   }
+
    void testMarginalization2_moment()
    {
       srand( 30 );
@@ -463,10 +537,15 @@ public:
          i3[ 0 ] = 0;
          i3[ 1 ] = 1;
          i3[ 2 ] = 2;
+         PotentialGaussianMoment::VectorI i4( 2 );
+         i4[ 0 ] = 1;
+         i4[ 1 ] = 2;
+         PotentialGaussianMoment::VectorI i5( 1 );
+         i5[ 0 ] = 0;
 
          PotentialGaussianMoment::VectorI* vecs[] =
          {
-            &i1, &i2, &i3
+            &i1, &i2, &i3, &i4, &i5
          };
 
          const size_t index = rand() % core::getStaticBufferSize( vecs );
@@ -500,14 +579,14 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianTransformation);
-TESTER_TEST(testConversionBasic);
 TESTER_TEST(testConversion);
 TESTER_TEST(testMarginalization1);
 TESTER_TEST(testMarginalization);
 TESTER_TEST(testMarginalization2_moment);
+TESTER_TEST(testMarginalization2_canonical);
 TESTER_TEST(testMul1);
-TESTER_TEST(testConditioning);
 TESTER_TEST(testConditioning2);
+TESTER_TEST(testConditioning);
 TESTER_TEST(testConditioning3);
 TESTER_TEST_SUITE_END();
 #endif

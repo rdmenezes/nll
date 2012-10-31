@@ -141,19 +141,34 @@ $$
 $$
 
 We define the Schur complement of matrix M with respect to H, $M/H = E-FH^{-1}G$. Since $(XYZ)^{-1}=Z^{-1}Y^{-1}Z^{-1}=W^{-1}$ and so $Y^{-1}=ZW^{-1}X$. Consequently we have:
-\begin{align*}
+\begin{align}
 \left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]^{-1}
 &=
 \left[ \begin{array}{cc} I & 0 \\ -H^{-1}G & I \end{array} \right]
 \left[ \begin{array}{cc} (M/H)^{-1} & 0 \\ 0 & H^{-1} \end{array} \right]
-\left[ \begin{array}{cc} I & -FH^{-1} \\ 0 & I \end{array} \right] \\
+\left[ \begin{array}{cc} I & -FH^{-1} \\ 0 & I \end{array} \right] \nonumber\\
 &=
-\left[ \begin{array}{cc} (M/H)^{-1} & -(M/H)^{-1}FH^{-1} \\ -H^{-1}G(M/H)^{-1} & H^{-1}+H^{-1}G(M/H)^{-1}FH^{-1} \end{array} \right]
-\end{align*}
+\left[ \begin{array}{cc} (M/H)^{-1} & -(M/H)^{-1}FH^{-1} \\
+-H^{-1}G(M/H)^{-1} & H^{-1}+H^{-1}G(M/H)^{-1}FH^{-1} \end{array} \right] \label{blockinv}
+\end{align}
+Note that we can also decompose the matrix as followed:
+$$
+\left[ \begin{array}{cc} I & 0 \\ -GE^{-1} & I \end{array} \right]
+\left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]
+\left[ \begin{array}{cc} I & -E^{-1}F \\ 0 & I \end{array} \right]
+=
+\left[ \begin{array}{cc} E & 0 \\ 0 & -GE^{-1}F - H \end{array} \right]
+$$
+Which similarly to (\ref{blockinv}) lead to the following:
+\begin{align}
+\left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]^{-1}
+&=
+\left[ \begin{array}{cc} E^{-1} + E^{-1}F(M/E)^{-1}GE^{-1} & -E^{-1}F(M/E)^{-1} \\ -(M/E)^{-1}GE^{-1} & (M/E)^{-1} \end{array} \right] \label{blockinv2}
+\end{align}
 We can note that $|M|=|M/H||H|$.
 
 ~\\ \subsubsubsection{Marginalization}
-%Consider a Gaussian on some domain $(x_1, x_2)$ of size $(p,q)$ with mean $\mu = \left[ \begin{array}{c} \mu_1 \\ \mu_2 \end{array} \right]$ and covariance $\Sigma = \left[ \begin{array}{cc} 
+%Consider a Gaussian on some domain $(x_1, x_2)$ of size $(p,q)$ with mean $\mu = \left[ \begin{array}{c} \mu_1 \\ \mu_2 \end{array} \right]$ and covariance $\Sigma = \left[ \begin{array}{cc}
 Consider a Gaussian on some domain $(x_1, x_2)$ of size $(p,q)$ with mean $\mu = \left[ \mu_1~\mu_2 \right]^T$ and covariance $\Sigma = \left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right]$. We have:
 \begin{align*}
 &p(x_1,x_2)=
@@ -216,7 +231,7 @@ From the previous decompositions, knowing $x_2$ (i.e., our evidence), we find th
 
 
 \subsubsection{Gaussian Canonical CPD}
-Unfortunately multiplication operations are difficult to realize in the moment form as it involves the inversion of the two potentials' covariance matrix which may not exist. To help with this, the computation will be done on another form, namely the canonical representation.
+Unfortunately multiplication operations are difficult to realize in the moment form as it involves the inversion of the two potentials' covariance matrices which may not exist. To help with this, the computation will be done on another form, namely the canonical representation.
 $$
 \phi(x; K, h, g) = \exp(g+h^Tx - \frac{1}{2}x^TKx)
 $$
@@ -242,7 +257,7 @@ g &= \log (\alpha) - \frac{1}{2}\mu^T\Sigma^{-1}\mu
 \subsubsubsection{Canonical to Moment representation}
 \begin{align}
 \Sigma &= K^{-1}\\
-\mu &=K^{-1}h
+\mu &=K^{-1}h \label{meanhCanonical}
 \end{align}
 Additionally we have:
 \begin{align}
@@ -256,11 +271,66 @@ g&= \log (\alpha) - \frac{1}{2}(K^{-1}h)^TK^{-1}h \nonumber\\
 When multiplied, potentials are first extended to the other's domain by adding zeros. Multiplying/Dividing potentials in exponential forms is straightforward:
 \begin{align}
 \phi(K_a, h_a, g_a)*\phi(K_b, h_b, g_b) = \phi(K_a + K_b, h_a + h_b, g_a + g_b)\\
-\phi(K_a, h_a, g_a)/\phi(K_b, h_b, g_b) = \phi(K_a - K_b, h_a - h_b, g_a - g_b)\\
+\phi(K_a, h_a, g_a)/\phi(K_b, h_b, g_b) = \phi(K_a - K_b, h_a - h_b, g_a - g_b)
 \end{align}
 
 \subsubsubsection{Marginalization}
+Consider the potential:
+$$
+\phi(x_1, x_2) = \left[ \left( \begin{array}{c} h_1 \\ h_2 \end{array} \right), \left[ \begin{array}{cc} K_{11} & K_{12} \\ K_{21} & K_{22} \end{array} \right], g \right]
+$$
+We want to find:
+$$
+\phi(x_1; h', K', g') = \int \phi(x_1, x_2)dx_2
+$$
+By definition, we have:
+$$
+\left[ \begin{array}{cc} K_{11} & K_{12} \\ K_{21} & K_{22} \end{array} \right]^{-1} = \left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right]
+$$
+Using (\ref{blockinv}) we find that 
+$$\bm{K'=K_{11}=(\Sigma/\Sigma_{22})^{-1} = K_{11}-K_{12}K_{22}^{-1}K_{21}}$$
+Using (\ref{blockinv2}) we have:
+\begin{align}
+K_{22} &= (\Sigma/\Sigma_{11})^{-1}\nonumber\\
+K_{12} &= - \Sigma_{11}^{-1}\Sigma_{12}(\Sigma/\Sigma_{11})^{-1}\nonumber\\
+&= - \Sigma_{11}^{-1}\Sigma_{12}K_{22}\nonumber\\
+\text{meaning~that~} \Sigma_{12} &= -\Sigma_{11}K_{12}K_{22}^{-1}\label{marg1}
+\end{align}
+
+Using (\ref{meanhCanonical}) we have:
+\begin{align*}
+\left( \begin{array}{c} \mu_1 \\ \mu_2 \end{array} \right) &=
+\left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right] \left( \begin{array}{c} h_1 \\ h_2 \end{array} \right) \\
+\mu_1 &= \Sigma_{11}h_1 +  \Sigma_{12}h_2\\
+\text{By definition~}h'&= \Sigma_{11}^{-1}\mu_1 \\
+\text{Injecting~}\mu_1~h' &=\Sigma_{11}^{-1}(\Sigma_{11}h_1 +  \Sigma_{12}h_2)\\
+\text{Using (\ref{marg1}) we find that~}\bm{h'} &= \bm{h_1 -K_{12}K_{22}^{-1}h_2}
+\end{align*}
+
+Finally, we compute the constant in the same way as we did for the moment case. We use $\alpha_2$ as the normalization constant for $p(x_2)$:
+\begin{align*}
+\phi(x_1) &= \int \phi(x_1,x_2)dx_2\\
+&= \int \phi(x_1; h', K', g')p(x_2|x_1)dx_1\\
+&= \phi(x_1; h', K', g')\int p(x_2|x_1)dx_1\\
+&= \bm{\phi(x_1; h', K', g-(\log(\alpha_2)-\frac{1}{2}\mu_2^T \Sigma_{22}^{-1}\mu_2)}\\
+~\text{With~}&\alpha_2=\frac{1}{(2\pi)^{0.5q}|\Sigma_{22}|^{0.5}}
+\end{align*}
+
 \subsubsubsection{Conditioning}
+Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
+\begin{align*}
+\phi(x_1, x_2=\hat{x}_2) &= \exp\left( g + \left( \begin{array}{c} h_1 \\ h_2 \end{array}\right)^T
+                                           \left( \begin{array}{c} x_1 \\ \hat{x}_2 \end{array}\right)
+- \frac{1}{2} \left( \begin{array}{c} x_1 \\ \hat{x}_2 \end{array}\right)^T
+              \left[ \begin{array}{cc} K_{11} & K_{12} \\ K_{21} & K_{22} \end{array} \right]
+              \left( \begin{array}{c} x_1 \\ \hat{x}_2 \end{array}\right)
+                                        \right)\\
+&= \exp \left(
+              \left\{ g + h_2^T\hat{x}_2 - \frac{1}{2}\hat{x}_2^T K_{22} \hat{x}_2 \right\} +
+              \left\{ x_1^T(h_1-K_{12}\hat{x}_2) \right\} +    
+              \left\{ -\frac{1}{2}x_1^T K_{11}x_1 \right\}
+        \right)
+\end{align*}
 
 \subsubsection{Conditional Linear Gaussian CPD}
 \subsection{Inference}
