@@ -310,8 +310,7 @@ public:
          TESTER_ASSERT( cov1a.equal( cov2a, 1e-8 ) );
          TESTER_ASSERT( mean1b.equal( mean2b, 1e-8 ) );
          TESTER_ASSERT( cov1b.equal( cov2b, 1e-8 ) );
-
-         // TODO CHECK : alpha are not the same?
+         TESTER_ASSERT( core::equal( gg1.getAlpha(), gg2.getAlpha(), 1e-2 ) );
       }
    }
 
@@ -366,7 +365,7 @@ public:
 
          TESTER_ASSERT( mean1.equal( mean2, 1e-8 ) );
          TESTER_ASSERT( cov1.equal( cov2, 1e-8 ) );
-         // TODO: CHECK WHY WE HAVE DIFFERENCES, however same matlab results... // TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-3 ) );
+         TESTER_ASSERT( core::equal( gmm.getAlpha(), gmm2.getAlpha(), 1e-3 ) );
       }
    }
 
@@ -575,6 +574,73 @@ public:
       }
    }
 
+
+   void testConditioning4()
+   {
+      srand( 30 );
+      for ( size_t sample = 0; sample < 200; ++sample )
+      {
+         const double m1 = core::generateUniformDistribution( -10, 10 );
+         const double c1 = core::generateUniformDistribution( 0.1, 6 );
+
+         Points points;
+         for ( size_t n = 0; n < 10; ++n )
+         {
+            Point p1( 3 );
+            p1[ 0 ] = core::generateGaussianDistribution( m1, c1 );
+            p1[ 1 ] = core::generateGaussianDistribution( m1, c1 );
+            p1[ 2 ] = core::generateGaussianDistribution( m1, c1 );
+            points.push_back( p1 );
+         }
+
+         PotentialGaussianMoment::VectorI i( 3 );
+         i[ 0 ] = 0;
+         i[ 1 ] = 1;
+         i[ 2 ] = 2;
+         PotentialGaussianMoment::VectorI i1( 1 );
+         i1[ 0 ] = 2;
+         PotentialGaussianMoment::VectorI i2( 2 );
+         i2[ 0 ] = 0;
+         i2[ 1 ] = 2;
+         PotentialGaussianMoment::VectorI i3( 3 );
+         i3[ 0 ] = 0;
+         i3[ 1 ] = 1;
+         i3[ 2 ] = 2;
+         PotentialGaussianMoment::VectorI i4( 2 );
+         i4[ 0 ] = 1;
+         i4[ 1 ] = 2;
+         PotentialGaussianMoment::VectorI i5( 1 );
+         i5[ 0 ] = 0;
+
+         PotentialGaussianMoment::VectorI* vecs[] =
+         {
+            &i1, &i2, &i3, &i4, &i5
+         };
+
+         const size_t index = rand() % core::getStaticBufferSize( vecs );
+         PotentialGaussianMoment::VectorI& query = *vecs[ index ];
+
+         {
+            PotentialGaussianMoment g( points, i );
+            PotentialGaussianCanonical gc = g.toGaussianCanonical();
+            
+
+            // even if we marginalize i1, g2 must still be normalized
+            PotentialGaussianMoment::Vector evidence( query.size() );
+            for ( size_t n = 0; n < query.size(); ++n )
+            {
+               evidence[ n ] = core::generateGaussianDistribution( m1, c1 );
+            }
+
+            PotentialGaussianMoment g2 = g.conditioning( evidence, query );
+            PotentialGaussianCanonical gc2c = gc.conditioning( evidence, query );
+            PotentialGaussianMoment g2c = gc2c.toGaussianMoment();
+
+            TESTER_ASSERT( core::equal( g2.getAlpha(), g2c.getAlpha(), 1e-5 ) );
+         }
+      }
+   }
+
 };
 
 #ifndef DONT_RUN_TEST
@@ -585,6 +651,7 @@ TESTER_TEST(testMarginalization);
 TESTER_TEST(testMarginalization2_moment);
 TESTER_TEST(testMarginalization2_canonical);
 TESTER_TEST(testMul1);
+TESTER_TEST(testConditioning4);
 TESTER_TEST(testConditioning2);
 TESTER_TEST(testConditioning);
 TESTER_TEST(testConditioning3);

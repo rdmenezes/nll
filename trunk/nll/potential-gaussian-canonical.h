@@ -54,7 +54,7 @@ namespace algorithm
       typedef double                      value_type;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<size_t>        VectorI;
+      typedef core::Buffer1D<size_t>      VectorI;
 
    public:
       PotentialGaussianCanonical( const Vector& h, const Matrix& k, value_type g, const VectorI id = VectorI() )
@@ -190,7 +190,7 @@ namespace algorithm
       }
 
       /**
-       @brief computes p(X, Y=y) i.e., entering evidence
+       @brief computes p(X, Y=y) i.e., entering evidence Y = y
        @param vars the values of Y=y
        @param varsIndex the index of Y's, must be sorted 0->+inf
        */

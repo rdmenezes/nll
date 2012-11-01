@@ -7,6 +7,9 @@
 \usepackage{placeins} % FloatBarrier
 \usepackage{graphicx} %  includegraphics
 
+\usepackage{glossary}
+\makeglossary
+
 \usepackage{algorithm}
 \usepackage{algorithmic}
 
@@ -21,6 +24,8 @@
 \newcommand{\nllref}[1]{[\small{\textit{#1}}]}
 \newcommand{\norm}[1]{\| #1 \|}
 \newcommand{\counta}[1]{\small{\#}#1}
+
+\newcommand{\lglossary}[2] {\glossary{name=#1, description=#2}}
 
 \renewcommand{\labelitemi}{-}
 
@@ -124,8 +129,7 @@ Consider a Gaussian with mean $\mu$ and covariance matrix $\Sigma$ defined on so
 \begin{align*}
 \phi(x; \alpha, \mu, \Sigma) = \alpha  e^{-\frac{1}{2}(x-\mu)^T\Sigma^{-1}(x-\mu)}
 \end{align*}
-If $\alpha = (2\pi)^{-n0.5} \Sigma^{-0.5}$, the potential is exactly a gaussian PDF and will be called "normalized".\\
-
+If $\alpha = (2\pi)^{-n0.5} \Sigma^{-0.5}$, the potential is exactly a gaussian PDF and will be called "normalized". Note that in most published papers, $\alpha$ will often be wrongly computed and this is why the computations are extensively detailed.
 
 \subsubsubsection{Block diagonalization}
 Consider a general partitioned matrix $M= \left[ \begin{array}{cc} E & F \\ G & H \end{array} \right]$ To zero out the upper right and lower left part of the matrix, we can do the following:
@@ -224,13 +228,15 @@ Note that we extend the previous results for non-normalized gaussian distributio
 \end{align*}
 
 ~\\ \subsubsubsection{Conditioning}
-From the previous decompositions, knowing $x_2$ (i.e., our evidence), we find that:
-\begin{align}
-\phi(x_1|x_2) = \phi( x_1; \frac{\alpha}{\alpha_2}, \mu_1 + \Sigma_{12}\Sigma_{22}^{-1}(x_2 - \mu_2), \Sigma_{11} + \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21} )
-\end{align}
-
+Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
+\begin{align*}
+\phi(x_1, x_2=\hat{x}_2)&=\alpha \exp \left( B \right)\\
+&= \phi( x_1; \alpha\alpha_2, \mu_1 + \Sigma_{12}\Sigma_{22}^{-1}(\hat{x}_2 - \mu_2), \Sigma_{11} + \Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21} )
+\end{align*}
+Where $\alpha_2=\exp \left( - \frac{1}{2}\hat{x}_2^T\Sigma_{22}^{-1}\hat{x}_2 \right)$
 
 \subsubsection{Gaussian Canonical CPD}
+\subsubsubsection{Parametrization}
 Unfortunately multiplication operations are difficult to realize in the moment form as it involves the inversion of the two potentials' covariance matrices which may not exist. To help with this, the computation will be done on another form, namely the canonical representation.
 $$
 \phi(x; K, h, g) = \exp(g+h^Tx - \frac{1}{2}x^TKx)
@@ -280,9 +286,12 @@ $$
 \phi(x_1, x_2) = \left[ \left( \begin{array}{c} h_1 \\ h_2 \end{array} \right), \left[ \begin{array}{cc} K_{11} & K_{12} \\ K_{21} & K_{22} \end{array} \right], g \right]
 $$
 We want to find:
-$$
-\phi(x_1; h', K', g') = \int \phi(x_1, x_2)dx_2
-$$
+\begin{align*}
+\phi(x_1; h', K', g') &= \int \phi(x_1, x_2)dx_2\\
+&= \int \phi(x_1; h', K', g)p(x_2|x_1)dx_1\\
+&= \phi(x_1; h', K', g)\int p(x_2|x_1)dx_1
+\end{align*}
+
 By definition, we have:
 $$
 \left[ \begin{array}{cc} K_{11} & K_{12} \\ K_{21} & K_{22} \end{array} \right]^{-1} = \left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right]
@@ -310,8 +319,8 @@ Using (\ref{meanhCanonical}) we have:
 Finally, we compute the constant in the same way as we did for the moment case. We use $\alpha_2$ as the normalization constant for $p(x_2)$:
 \begin{align*}
 \phi(x_1) &= \int \phi(x_1,x_2)dx_2\\
-&= \int \phi(x_1; h', K', g')p(x_2|x_1)dx_1\\
-&= \phi(x_1; h', K', g')\int p(x_2|x_1)dx_1\\
+&= \int \phi(x_1; h', K', g)p(x_2|x_1)dx_1\\
+&= \phi(x_1; h', K', g)\int p(x_2|x_1)dx_1\\
 &= \bm{\phi(x_1; h', K', g-(\log(\alpha_2)-\frac{1}{2}\mu_2^T \Sigma_{22}^{-1}\mu_2)}\\
 ~\text{With~}&\alpha_2=\frac{1}{(2\pi)^{0.5q}|\Sigma_{22}|^{0.5}}
 \end{align*}
@@ -332,7 +341,25 @@ Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
         \right)
 \end{align*}
 
+\subsubsection{Linear Gaussian CPD}
+\lglossary{LG}{Linear Gaussian}
+
+
 \subsubsection{Conditional Linear Gaussian CPD}
+\lglossary{CLG}{Conditional Linear Gaussian}
+
+We are building on top of the Linear Gaussian CPD (LG), where discrete parents of continuous variables are allowed in the model. We are facing two problems:
+\begin{compactitem}
+\item if we marginalize a discrete variable of a CLG, the resulting PDF will be a mixture of gaussians of higher dimension than each of the LG it is composed of,
+\item we cannot represent CLG with a discrete variable having a gaussian parent
+\end{compactitem}
+
+\subsubsection{Mixture of truncated exponentials}
+\lglossary{MTE}{Mixture of truncated exponentials}
+
+\subsubsection{Always Observed Nodes}
+If we can guaranty that some variables are always observed then we can easily combine any model in the bayesian network (neural nets, trees...) as we do not need to manipulate its PDF.
+
 \subsection{Inference}
 \subsubsection{Naive algorithm}
 The naive algorithm is an exact inference algorithm. It simply constructs the full joint probability after incorporating the evidence to form the result of the inference query. Since it is extremely simple but generally inefficient (except for the Gaussian or Linear Gaussian CPD) it is only used for debugging purposes.
@@ -485,6 +512,8 @@ The line search is using \nllref{minimumBracketing} for an initial bracketing of
 \subsection{Feed Forward Neural Networks}
 \subsection{Radial Basis Function Neural networks}
 \subsection{Gaussian Mixture Models \nllref{gmm}}
+\lglossary{GMM}{Gaussian Mixture Model}
+
 A gaussian mixture model ($gmm$) is a generative model modelling a distribution using a mixture of gaussian models. It is defined as following $p(x|\Theta)= \sum_{k=1}^K \lambda _k N(x|\mu _k, \Sigma _k)$ Where $(\mu _k, \Sigma _k)$ is the parametrization of a gaussian and $\lambda _k$ its weight within the mixture.
 
 Assuming we have $N$ samples $X=\{x_1,...,x_n\}$ which are independent and identically distributed, we have the log-likelihood function defined as:
@@ -603,6 +632,8 @@ blabla
 \item N(m, v) generate a random number following a gaussian distribution mean $m$ and standard deviation $v$
 \item for a discrete random $X$, $\counta{X}$ will denote the number of states of $X$
 \end{compactitem}
+
+\printglossary
 
 \bibliography{nll-algorithm-documentation}
 \bibliographystyle{plain}
