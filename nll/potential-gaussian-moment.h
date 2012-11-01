@@ -45,7 +45,7 @@ namespace algorithm
 
    /**
     @ingroup algorithm
-    @brief Represent a multivariate gaussian parametrized by its moments (mean = m, covariance = cov)
+    @brief Represent a multivariate gaussian parametrized by its moments (mean = m, covariance = cov, alpha)
     @see "A Technique for Painless Derivation of Kalman Filtering Recursions", Ali Taylan Cemgil [1]
          http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.20.3377
 
@@ -54,7 +54,7 @@ namespace algorithm
 
     p(x) = alpha * exp( -0.5 * (x - m)^t * cov^-1 * (x - m) )
 
-    with alpha = 1 / ( (2Pi)^(n/2) * |cov|^(1/2) ) in case of normalized gaussian
+    with p(x) is a PDF, then alpha = 1 / ( (2Pi)^(n/2) * |cov|^(1/2) ) so that it is normalized
 
     with size(x) = n
 
@@ -76,7 +76,7 @@ namespace algorithm
        @param m mean
        @param c covariance
        @param id naming of the variable
-       @param alpha if alpha not set, ensure that integral -inf/+inf p(x)dx = 1 (it represents a PDF)
+       @note alpha will be set so that the PDF is normaized
        */
       PotentialGaussianMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI() ) : _mean( m ), _id( id )
       {
@@ -84,6 +84,12 @@ namespace algorithm
          normalizeGaussian(); // we represent a real PDF if there is no alpha
       }
 
+      /**
+       @param m mean
+       @param c covariance
+       @param id naming of the variable
+       @param alpha the nozmalization constante
+       */
       PotentialGaussianMoment( const Vector& m, const Matrix& c, const VectorI id, value_type alpha )
       {
          _init( m, c, id );
@@ -162,7 +168,7 @@ namespace algorithm
          return _cov;
       }
 
-      // note: beware of alpha. It is not updated, the potential will  not be normalized
+      // note: beware of alpha. It is not updated, the potential will not be normalized
       void setCov( const Matrix& cov )
       {
          _covDet = 0;
@@ -232,9 +238,10 @@ namespace algorithm
       }
 
       /**
-       @brief computes p(X, Y=y)
+       @brief Given a potential on domain [X, Y] and evidence Y = y, computes p(X, Y=y)
        @param vars the values of Y=y
        @param varsIndex the index of Y's, must be sorted 0->+inf
+       @note to be successful, the covariance must be invertible (i.e., represent a PDF)
        */
       PotentialGaussianMoment conditioning( const Vector& vars, const VectorI& varsIndex ) const
       {
@@ -269,10 +276,11 @@ namespace algorithm
          Vector t = vars - hy;
          Matrix xyyyinv = xy * yyinv;
 
-
          const Matrix newCov = xx - xyyyinv * yx;
          const Vector newMean = Matrix( hx, hx.size(), 1 ) + xyyyinv * Matrix( t, t.size(), 1 );
-         const value_type newAlpha = getAlpha() / normalizeGaussian( yydet, yy.sizex() );
+
+         const value_type alphayy = std::exp( -0.5 * core::fastDoubleMultiplication( t, yyinv ) );
+         const value_type newAlpha = getAlpha() * alphayy;
 
          return PotentialGaussianMoment( newMean, newCov, indexNew, newAlpha );
       }
