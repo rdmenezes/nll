@@ -88,7 +88,7 @@ To simplify the implementation, the scope will be identified by an integer with 
 \item the scope of the CPD will always be sorted according to the identifier in increasing order. Consequently Scope[0] will always be the children variables.
 \end{compactitem}
 
-\subsubsection{Table CPD \nllref{PotentialTable}}
+\subsubsection{Table Factor \nllref{PotentialTable}}
 A table CPD is encoding probabilities for random discrete variables in a dense way. Given a random variable $X$ with $N$ Parents $Par_i(X)$, the table will have a size of $Size=\counta{X}\prod_{n=1}^{N} \counta{Par_n(X)}$. The table will consider the scope as a new basis so that $index(X_1=e_1, ..., X_n=e_n)=\sum_{j=1}^N e_j \prod_{i=1}^{j-1}\counta{X_i} $. For example, see the table CPD of Figure \ref{tablecpd1}.
 
 \begin{table}[h]
@@ -123,7 +123,7 @@ $p(X_2, X_1)$ & index\\
 \item multiplication: given $p(X)$ and $p(Y)$ merge the CPD into a single CPD $p(X,Y)$. First extend $p(X)$ scope to $Y$ (and similarly for $p(Y)$), then multiply the tables element by element.
 \end{compactitem}
 
-\subsubsection{Gaussian Moment CPD \nllref{PotentialGaussianMoment}}
+\subsubsection{Gaussian Moment Factor \nllref{PotentialGaussianMoment}}
 \subsubsubsection{Parametrization}
 Consider a Gaussian with mean $\mu$ and covariance matrix $\Sigma$ defined on some domain $x$ of size $n$.
 \begin{align*}
@@ -235,7 +235,7 @@ Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
 \end{align*}
 Where $\alpha_2=\exp \left( - \frac{1}{2}\hat{x}_2^T\Sigma_{22}^{-1}\hat{x}_2 \right)$
 
-\subsubsection{Gaussian Canonical CPD}
+\subsubsection{Gaussian Canonical Factor}
 \subsubsubsection{Parametrization}
 Unfortunately multiplication operations are difficult to realize in the moment form as it involves the inversion of the two potentials' covariance matrices which may not exist. To help with this, the computation will be done on another form, namely the canonical representation.
 $$
@@ -341,11 +341,15 @@ Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
         \right)
 \end{align*}
 
-\subsubsection{Linear Gaussian CPD}
+\subsubsection{Linear Gaussian Factor}
 \lglossary{LG}{Linear Gaussian}
+Let $y$ be a continuous node with continuous parents $x_1...x_k$. We says that $y$ has a linear Gaussian model if it can be described using parameters $\beta_0...\beta_k$ and $\sigma$ such that:
+$$
+P(y|x_1, ..., x_k)=N(\mu_u + \beta_1x_1 + ... + \beta_kx_k; \sigma^2)
+$$
 
 
-\subsubsection{Conditional Linear Gaussian CPD}
+\subsubsection{Conditional Linear Gaussian Factor}
 \lglossary{CLG}{Conditional Linear Gaussian}
 
 We are building on top of the Linear Gaussian CPD (LG), where discrete parents of continuous variables are allowed in the model. We are facing two problems:

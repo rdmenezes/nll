@@ -46,6 +46,7 @@ namespace algorithm
          std::shared_ptr<PotentialLinearGaussian>  potential;
          value_type weight;
       };
+      typedef std::vector<Dependency>  Dependencies;
 
       PotentialLinearGaussian()
       {}
@@ -73,7 +74,7 @@ namespace algorithm
        @param id naming of the variable
        @param dependencies the dependencies of the linear gaussian. They must have exactly the same dimentionality as the current potential
        */
-      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids, std::vector<Dependency>& dependencies ) : _mean( m ),
+      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids, Dependencies& dependencies ) : _mean( m ),
          _cov( c ), _ids( ids ), _dependencies( dependencies )
       {
          ensure( ids.size() == 1, "NOT TESTED" );
@@ -104,6 +105,11 @@ namespace algorithm
       const VectorI& getIds() const
       {
          return _ids;
+      }
+
+      const Dependencies& getDependencies() const
+      {
+         return _dependencies;
       }
 
       /**
@@ -220,7 +226,7 @@ namespace algorithm
       Vector      _mean;
       Matrix      _cov;
       VectorI     _ids;
-      std::vector<Dependency>  _dependencies;
+      Dependencies  _dependencies;
    };
 
    /**
@@ -814,15 +820,69 @@ public:
 
       TESTER_ASSERT( core::equal<double>( result.getAlpha(), 1, 1e-6 ) );
    }
+
+   void testLinearGaussian2()
+   {
+      typedef algorithm::PotentialLinearGaussian               Potential;
+      typedef algorithm::PotentialLinearGaussian::Dependency   Dependency;
+      typedef algorithm::PotentialLinearGaussian::Dependencies   Dependencies;
+
+      /*
+      Potential::Vector meanX1 = core::make_buffer1D<double>( 1 );
+      Potential::Matrix covX1( 1, 1 ); covX1[ 0 ] = 4;
+      Potential::VectorI idX1 = core::make_buffer1D<size_t>( 2 );
+      Potential potX1( meanX1, covX1, idX1 );
+
+      Dependency dependencyX2( std::shared_ptr<Potential>( &potX1, EmptyDeleter<Potential>() ), 0.5 );
+      Dependencies dependenciesX2;
+      dependenciesX2.push_back( dependencyX2 );
+      Potential::Vector meanX2 = core::make_buffer1D<double>( -3.5 );
+      Potential::Matrix covX2( 1, 1 ); covX2[ 0 ] = 4;
+      Potential::VectorI idX2 = core::make_buffer1D<size_t>( 1 );
+      Potential potX2( meanX2, covX2, idX2, dependenciesX2 );
+
+      Dependency dependencyX3( std::shared_ptr<Potential>( &potX2, EmptyDeleter<Potential>() ), -1 );
+      Dependencies dependenciesX3;
+      dependenciesX3.push_back( dependencyX3 );
+      Potential::Vector meanX3 = core::make_buffer1D<double>( 1 );
+      Potential::Matrix covX3( 1, 1 ); covX3[ 0 ] = 4;
+      Potential::VectorI idX3 = core::make_buffer1D<size_t>( 3 );
+      Potential potX3( meanX3, covX3, idX3, dependenciesX3 );
+
+      algorithm::PotentialGaussianMoment pot =  (potX1.toGaussianCanonical() * potX2.toGaussianCanonical() * potX3.toGaussianCanonical()).toGaussianMoment();
+      pot.normalizeGaussian();
+      pot.print( std::cout );
+      */
+
+      Factorg::Vector meanX1 = core::make_buffer1D<double>( 1 );
+      Factorg::Matrix covX1( 1, 1 ); covX1[ 0 ] = 4;
+      Factorg::VectorI idX1 = core::make_buffer1D<size_t>( 2 );
+      Factorg potX1( meanX1, covX1, idX1 );
+
+      Factorg::Vector meanX2 = core::make_buffer1D<double>( -3 );
+      Factorg::Matrix covX2( 1, 1 ); covX2[ 0 ] = 4;
+      Factorg::VectorI idX2 = core::make_buffer1D<size_t>( 1 );
+      Factorg potX2( meanX2, covX2, idX2 );
+
+      Factorg::Vector meanX3 = core::make_buffer1D<double>( 4 );
+      Factorg::Matrix covX3( 1, 1 ); covX3[ 0 ] = 3;
+      Factorg::VectorI idX3 = core::make_buffer1D<size_t>( 0 );
+      Factorg potX3( meanX3, covX3, idX3 );
+
+      (potX1.toGaussianCanonical() * potX2.toGaussianCanonical() * potX3.toGaussianCanonical() ).toGaussianMoment().print( std::cout );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
+TESTER_TEST( testLinearGaussian2 );
+/*
 TESTER_TEST( testLinearGaussian1 );
 //TESTER_TEST( testInferenceGaussianBn );
 
 TESTER_TEST( testPotentialTableMlParametersEstimation );
 TESTER_TEST( testBasicInfPotentialTable );
 TESTER_TEST( testBnPotentialSampling );
+*/
 TESTER_TEST_SUITE_END();
 #endif
