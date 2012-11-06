@@ -66,7 +66,7 @@ Bayesian networks are directed acyclic graphs whose nodes represent random varia
 
 \begin{figure}[h]
 \centering
-\includegraphics{img/bn1.eps}
+\includegraphics{img/bn1}
 \caption{Bayesian network with random variables $Y_1$, $Y_2$ and $X$. $Y_1$ and $Y_2$ are independent, while $X$ depends on $Y_1$ and $Y_2$.}
 \label{bn1}
 \end{figure}
@@ -235,7 +235,7 @@ Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
 \end{align*}
 Where $\alpha_2=\exp \left( - \frac{1}{2}\hat{x}_2^T\Sigma_{22}^{-1}\hat{x}_2 \right)$
 
-\subsubsection{Gaussian Canonical Factor}
+\subsubsection{Gaussian Canonical Factor  \nllref{PotentialGaussianCanonical}}
 \subsubsubsection{Parametrization}
 Unfortunately multiplication operations are difficult to realize in the moment form as it involves the inversion of the two potentials' covariance matrices which may not exist. To help with this, the computation will be done on another form, namely the canonical representation.
 $$
@@ -341,7 +341,7 @@ Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
         \right)
 \end{align*}
 
-\subsubsection{Linear Gaussian Factor}
+\subsubsection{Linear Gaussian Factor \nllref{PotentialLinearGaussian}}
 \lglossary{LG}{Linear Gaussian}
 Let $Y$ be a continuous set of nodes with continuous parents $X$. We says that $Y$ has a linear Gaussian model if it can be described using parameters $A$, $\mu_0$ and variance $\Sigma_0$ such that:
 $$
@@ -367,8 +367,7 @@ p(X,Y) = N \left(
   \left[ \begin{array}{cc} \Sigma_x & \Sigma_x A^T \\ A\Sigma_x & A\Sigma_xA^T + \Sigma_0 \end{array}\right],
 \right)
 $$
-Since the conditional probability may not be invertible, we need to convert the moment directly to canonical to avoid the covariance inversion:
-
+Since the conditional probability may not be a PDF, the covariance matrix may not be invertible. Consequently, we directly convert to a canonical gaussian to avoid the covariance inversion:
 %see http://homes.soic.indiana.edu/classes/spring2012/csci/b553-hauserk/20continuousprobability.pptx
 \begin{align*}
 p(y|x)&=N(\mu_0 + Ax, \Sigma_0)  \\
@@ -399,7 +398,7 @@ h &= \left[ \begin{array}{cc} I & -A \end{array}\right]^T \Sigma_0^{-1} \mu_0 \\
 g &=  \log(\frac{1}{Z})-\frac{1}{2}\mu_0^T \Sigma_0^{-1} \mu_0
 \end{align}
 
-\subsubsection{Conditional Linear Gaussian Factor}
+\subsubsection{Conditional Linear Gaussian Factor \nllref{PotentialLinearGaussianConditional}}
 \lglossary{CLG}{Conditional Linear Gaussian}
 
 We are building on top of the Linear Gaussian CPD (LG), where discrete parents of continuous variables are allowed in the model. We are facing two problems:
@@ -436,7 +435,7 @@ c_k &= \frac{\sum_{i=1}^N r_{ik}x_i}{\sum_{i=1}^N r_{ik}} \label{kmeansUpdate}
 With $r_{ik}=1$ if the point $i$ belongs to cluster $k$, 0 otherwise. The algorithm repeats these two steps until convergence:
 \begin{compactitem}
 \item assign $r_{ik}$ so that each point belongs to the closest cluster
-\item update the cluster position using \ref{kmeansUpdate}
+\item update the cluster position using (\ref{kmeansUpdate})
 \end{compactitem}
 It must be noted that the algorithm is very sensitive to the initial cluster position.
 \subsection{Hessian approximation FD \nllref{HessianCalculatorForwardFiniteDifference}}
