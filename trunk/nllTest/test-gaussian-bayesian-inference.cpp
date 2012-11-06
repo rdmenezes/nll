@@ -13,223 +13,6 @@ namespace nll
 namespace algorithm
 {
    /**
-    @brief Efficiently represent a factored gaussian joint distribution
-    @note we are building up on the PotentialGaussian which are used to do the math
-
-    The domain must be ordered so that domain[ 0 ] < domain[ 1 ] < domain[ 2 ] ... meaning that in a graph,
-    the parent nodes must have a higher domain than the children.
-
-    We model the conditional gaussian as below: let's define  variables y; x and its corresponding weight vector w
-    p(y | x1..xn) = N(b0 + b^t * x; stddev^2 )
-
-    with b0 = mean_y - Cov_yx * Cov_xx^-1 * mean_x
-         b = Cov_xx^-1 * Cov_yx
-         stddev^2 = Cov_yy - Cov_yx * Cov_xx^-1 * Cov_xy
-    */
-   class PotentialLinearGaussian
-   {
-   public:
-      typedef double                      value_type;
-      typedef core::Matrix<value_type>    Matrix;
-      typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<size_t>        VectorI;
-
-   public:
-      struct Dependency
-      {
-         Dependency()
-         {}
-
-         Dependency( std::shared_ptr<PotentialLinearGaussian> p, value_type w ) : potential( p ), weight( w )
-         {}
-
-         std::shared_ptr<PotentialLinearGaussian>  potential;
-         value_type weight;
-      };
-      typedef std::vector<Dependency>  Dependencies;
-
-      PotentialLinearGaussian()
-      {}
-
-      /**
-       @brief Intanciate a potential without dependencies
-       @param m mean
-       @param c covariance
-       @param id naming of the variable
-       */
-      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids ) : _mean( m ),
-         _cov( c ), _ids( ids )
-      {
-         ensure( m.size() == ids.size(), "dimention mismatch" );
-         ensure( m.size() == c.sizex(), "dimention mismatch" );
-         ensure( m.size() == c.sizey(), "dimention mismatch" );
-
-         ensure( ids.size() == 1, "NOT TESTED" );
-      }
-
-      /**
-      @brief Intanciate a potential with dependencies
-       @param m mean
-       @param c covariance
-       @param id naming of the variable
-       @param dependencies the dependencies of the linear gaussian. They must have exactly the same dimentionality as the current potential
-       */
-      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids, Dependencies& dependencies ) : _mean( m ),
-         _cov( c ), _ids( ids ), _dependencies( dependencies )
-      {
-         ensure( ids.size() == 1, "NOT TESTED" );
-         ensure( dependencies.size() > 0, "use other constructor!" );
-
-         size_t id = dependencies[ 0 ].potential->getIds()[ 0 ];
-         for ( size_t n = 1; n < dependencies.size(); ++n )
-         {
-            size_t curId = dependencies[ n ].potential->getIds()[ 0 ];
-            ensure( id > curId, "the dependencies must be ordered from min->max id" );
-         }
-
-         ensure( m.size() == ids.size(), "dimention mismatch" );
-         ensure( m.size() == c.sizex(), "dimention mismatch" );
-         ensure( m.size() == c.sizey(), "dimention mismatch" );
-      }
-
-      const Vector& getMean() const
-      {
-         return _mean;
-      }
-
-      const Matrix& getCov() const
-      {
-         return _cov;
-      }
-
-      const VectorI& getIds() const
-      {
-         return _ids;
-      }
-
-      const Dependencies& getDependencies() const
-      {
-         return _dependencies;
-      }
-
-      /**
-       @brief Create a canonical potential out of the linear gaussian format. The purpose is to create a joint gaussian instead of the conditional gaussian!
-       */
-      PotentialGaussianCanonical toGaussianCanonical() const
-      {
-         // first, get our merged ids
-         std::vector<const VectorI*> idsptr( _dependencies.size() + 1 );
-         for ( size_t n = 0; n < _dependencies.size(); ++n )
-         {
-            idsptr[ n ] = &(_dependencies[ n ].potential->getIds());
-         }
-         idsptr[ _dependencies.size() ] = &_ids;
-         const std::vector<size_t> ids = mergeIds( idsptr );
-
-         // now just prepare the parameters of the canonical potential
-         Matrix sinv;
-         sinv.clone( _cov );
-         core::inverse( sinv );
-
-
-         const value_type gaussCte = getGaussNorm( _cov );
-         const value_type g = -0.5 * core::fastDoubleMultiplication( _mean, sinv ) + std::log( gaussCte );
-
-         Vector w( static_cast<size_t>( ids.size() ) - _ids.size() );
-         Vector h( static_cast<size_t>( ids.size() ) );
-         for ( size_t n = 0; n < _dependencies.size(); ++n )
-         {
-            const size_t nui = static_cast<size_t>( n );
-            h[ nui + 1 ] = - _dependencies[ nui ].weight * sinv[ 0 ] * _mean[ 0 ];
-            w[ nui ] = _dependencies[ nui ].weight;
-         }
-         h[ 0 ] = sinv[ 0 ] * _mean[ 0 ];
-
-         Matrix ksub = Matrix( w, w.size(), 1 ) * sinv * Matrix( w, 1, w.size() );
-         Matrix k( (size_t)ids.size(), (size_t)ids.size() );
-         for ( size_t nx = 0; nx < ksub.sizex(); ++nx )
-         {
-            for ( size_t ny = 0; ny < ksub.sizey(); ++ny )
-            {
-               k( ny + 1, nx + 1 ) = ksub( ny, nx );
-            }
-
-            const value_type v = -w[ nx ] * sinv[ 0 ];
-            k( nx + 1, 0 ) = v;
-            k( 0, nx + 1 ) = v;
-         }
-         k( 0, 0 ) = sinv[ 0 ];
-
-         VectorI idsi( static_cast<size_t>( ids.size() ) );
-         std::copy( ids.begin(), ids.end(), idsi.begin() );
-         return PotentialGaussianCanonical( h, k, g, idsi );
-      }
-
-   private:
-      // compute the gaussian normalization factor
-      static value_type getGaussNorm( const Matrix& m )
-      {
-         const value_type length = static_cast<value_type>( m.size() );
-         return std::pow( 2 * core::PI, -length / 2 ) * std::pow( core::det( m ), -0.5 );
-      }
-
-      /**
-       @brief given a list if domains, build the merged domain
-       */
-      static std::vector<size_t> mergeIds( const std::vector<const VectorI*>& lists )
-      {
-         size_t maxIds = 0;
-         for ( size_t n = 0; n < lists.size(); ++n )
-         {
-            maxIds += lists[ n ]->size();
-         }
-
-         if ( maxIds == 0 )
-            return std::vector<size_t>();   // empty list
-
-         std::vector<size_t> merged;
-         merged.reserve( maxIds );
-         std::vector<size_t> pointer( lists.size() );
-
-
-         // the list are already sorted, so we can simply do a mergesort
-         while (1)
-         {
-            size_t lastMin = std::numeric_limits<size_t>::max();
-            size_t minIndex = 0;
-            size_t min = std::numeric_limits<size_t>::max();  // we don't want duplicates...
-            for ( size_t n = 0; n < lists.size(); ++n )
-            {
-               const size_t pointerIndex = pointer[ n ];
-               if ( pointerIndex < lists[ n ]->size() )
-               {
-                  const size_t id = static_cast<size_t>( (*lists[ n ])[ pointerIndex ] );
-                  if ( id < min && id != lastMin )
-                  {
-                     minIndex = n;
-                     min = id;
-                  }
-               }
-            }
-
-            if ( min == std::numeric_limits<size_t>::max() || ( merged.size() && min == *merged.rbegin() ) )
-               break;   // no more min this iteration
-            merged.push_back( min );
-            ++pointer[ minIndex ];
-            lastMin = min;
-         }
-
-         return merged;
-      }
-
-   private:
-      Vector      _mean;
-      Matrix      _cov;
-      VectorI     _ids;
-      Dependencies  _dependencies;
-   };
-
-   /**
     @brief Traits to instanciate a Bayesian potential
 
     In the general case, instanciating a potential is not required. However for Linear Gaussian potential for example, each node must be transformed
@@ -257,7 +40,9 @@ namespace core
 }
 }
 
-
+/**
+ @note BNT alpha or g values are not following the same conventions and so are not matching alpha_BNT = alpha / gaussian_normalization_constant
+ */
 class TestGaussianBayesianInference
 {
 public:
@@ -768,6 +553,11 @@ public:
 
    void testLinearGaussian1()
    {
+      //
+      // Compared against BNT
+      // C -
+      //    -> S
+      // R -
       typedef algorithm::PotentialLinearGaussian   Potential;
       enum
       {
@@ -800,6 +590,8 @@ public:
 
       algorithm::PotentialGaussianMoment result = (potr * potc * pots).toGaussianMoment();
 
+      result.print( std::cout );
+
       // validated against matlab
       TESTER_ASSERT( core::equal<double>( result.getMean()[ S ], 145 ) );
       TESTER_ASSERT( core::equal<double>( result.getMean()[ C ], 15 ) );
@@ -818,7 +610,10 @@ public:
       TESTER_ASSERT( core::equal<double>( result.getCov()( R, C ), 0, 1e-6 ) );
       TESTER_ASSERT( core::equal<double>( result.getCov()( C, R ), 0, 1e-6 ) );
 
-      TESTER_ASSERT( core::equal<double>( result.getAlpha(), 1, 1e-6 ) );
+      // the result must be normalized
+      const double alpha = result.getAlpha();
+      result.normalizeGaussian();
+      TESTER_ASSERT( core::equal<double>( alpha, result.getAlpha(), 1e-6 ) );
    }
 
    void testLinearGaussian2()
@@ -827,10 +622,12 @@ public:
       typedef algorithm::PotentialLinearGaussian::Dependency   Dependency;
       typedef algorithm::PotentialLinearGaussian::Dependencies   Dependencies;
 
-      /*
+      //
+      // test a network x1 -> x2 -> x3
+      //
       Potential::Vector meanX1 = core::make_buffer1D<double>( 1 );
       Potential::Matrix covX1( 1, 1 ); covX1[ 0 ] = 4;
-      Potential::VectorI idX1 = core::make_buffer1D<size_t>( 2 );
+      Potential::VectorI idX1 = core::make_buffer1D<size_t>( 3 );
       Potential potX1( meanX1, covX1, idX1 );
 
       Dependency dependencyX2( std::shared_ptr<Potential>( &potX1, EmptyDeleter<Potential>() ), 0.5 );
@@ -838,46 +635,120 @@ public:
       dependenciesX2.push_back( dependencyX2 );
       Potential::Vector meanX2 = core::make_buffer1D<double>( -3.5 );
       Potential::Matrix covX2( 1, 1 ); covX2[ 0 ] = 4;
-      Potential::VectorI idX2 = core::make_buffer1D<size_t>( 1 );
+      Potential::VectorI idX2 = core::make_buffer1D<size_t>( 2 );
       Potential potX2( meanX2, covX2, idX2, dependenciesX2 );
 
       Dependency dependencyX3( std::shared_ptr<Potential>( &potX2, EmptyDeleter<Potential>() ), -1 );
       Dependencies dependenciesX3;
       dependenciesX3.push_back( dependencyX3 );
       Potential::Vector meanX3 = core::make_buffer1D<double>( 1 );
-      Potential::Matrix covX3( 1, 1 ); covX3[ 0 ] = 4;
-      Potential::VectorI idX3 = core::make_buffer1D<size_t>( 3 );
+      Potential::Matrix covX3( 1, 1 ); covX3[ 0 ] = 3;
+      Potential::VectorI idX3 = core::make_buffer1D<size_t>( 1 );
       Potential potX3( meanX3, covX3, idX3, dependenciesX3 );
 
-      algorithm::PotentialGaussianMoment pot =  (potX1.toGaussianCanonical() * potX2.toGaussianCanonical() * potX3.toGaussianCanonical()).toGaussianMoment();
-      pot.normalizeGaussian();
+      algorithm::PotentialGaussianMoment pot = (potX1.toGaussianCanonical() * potX2.toGaussianCanonical() * potX3.toGaussianCanonical()).toGaussianMoment();
       pot.print( std::cout );
-      */
 
-      Factorg::Vector meanX1 = core::make_buffer1D<double>( 1 );
-      Factorg::Matrix covX1( 1, 1 ); covX1[ 0 ] = 4;
-      Factorg::VectorI idX1 = core::make_buffer1D<size_t>( 2 );
-      Factorg potX1( meanX1, covX1, idX1 );
 
-      Factorg::Vector meanX2 = core::make_buffer1D<double>( -3 );
-      Factorg::Matrix covX2( 1, 1 ); covX2[ 0 ] = 4;
-      Factorg::VectorI idX2 = core::make_buffer1D<size_t>( 1 );
-      Factorg potX2( meanX2, covX2, idX2 );
+      // checked againtst: Probabilistic graphical model, daphne koller, p252
 
-      Factorg::Vector meanX3 = core::make_buffer1D<double>( 4 );
-      Factorg::Matrix covX3( 1, 1 ); covX3[ 0 ] = 3;
-      Factorg::VectorI idX3 = core::make_buffer1D<size_t>( 0 );
-      Factorg potX3( meanX3, covX3, idX3 );
+      TESTER_ASSERT( core::equal<double>( pot.getMean()[ 0 ], 4, 1e-5 ) );
+      TESTER_ASSERT( core::equal<double>( pot.getMean()[ 1 ], -3, 1e-5 ) );
+      TESTER_ASSERT( core::equal<double>( pot.getMean()[ 2 ], 1, 1e-5 ) );
 
-      (potX1.toGaussianCanonical() * potX2.toGaussianCanonical() * potX3.toGaussianCanonical() ).toGaussianMoment().print( std::cout );
+      TESTER_ASSERT( core::equal<double>( pot.getCov()( 0, 0 ), 8, 1e-5 ) );
+      TESTER_ASSERT( core::equal<double>( pot.getCov()( 1, 1 ), 5, 1e-5 ) );
+      TESTER_ASSERT( core::equal<double>( pot.getCov()( 2, 2 ), 4, 1e-5 ) );
+
+      TESTER_ASSERT( core::equal<double>( pot.getCov()( 2, 1 ), 2, 1e-5 ) );
+      TESTER_ASSERT( core::equal<double>( pot.getCov()( 2, 0 ), -2, 1e-5 ) );
+   }
+
+   void testLinearGaussian3()
+   {
+      //
+      // Compared against BNT, diamond network
+      //   ->C -
+      // W       -> S
+      //   ->R -
+      typedef algorithm::PotentialLinearGaussian   Potential;
+      enum
+      {
+         S, C, R, W
+      };
+
+      Potential::Vector meanW = core::make_buffer1D<double>( 2 );
+      Potential::Matrix covW( 1, 1 ); covW[ 0 ] = 1.2;
+      Potential::VectorI idW = core::make_buffer1D<size_t>( (int)W );
+      Potential potW( meanW, covW, idW );
+
+      Potential::Vector meanR = core::make_buffer1D<double>( 50 );
+      Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
+      Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
+      std::vector<Potential::Dependency> dpsR;
+      dpsR.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.1 ) );
+      Potential potR( meanR, covR, idR, dpsR );
+
+      Potential::Vector meanC = core::make_buffer1D<double>( 15 );
+      Potential::Matrix covC( 1, 1 ); covC[ 0 ] = 0.5;
+      Potential::VectorI idC = core::make_buffer1D<size_t>( (int)C );
+      std::vector<Potential::Dependency> dpsC;
+      dpsC.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.2 ) );
+      Potential potC( meanC, covC, idC, dpsC );
+
+      Potential::Vector meanS = core::make_buffer1D<double>( 30 );
+      Potential::Matrix covS( 1, 1 ); covS[ 0 ] = 3;
+      Potential::VectorI idS = core::make_buffer1D<size_t>( (int)S );
+      Potential::Vector wS = core::make_buffer1D<double>( 1, 2 );
+      
+      std::vector<Potential::Dependency> dpsS;
+      dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potR, EmptyDeleter<Potential>() ), wS[ 0 ] ) );
+      dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potC, EmptyDeleter<Potential>() ), wS[ 1 ] ) );
+      Potential potS( meanS, covS, idS, dpsS );
+
+      algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
+      algorithm::PotentialGaussianCanonical pots = potS.toGaussianCanonical();
+      algorithm::PotentialGaussianCanonical potc = potC.toGaussianCanonical();
+      algorithm::PotentialGaussianCanonical potw = potW.toGaussianCanonical();
+
+      algorithm::PotentialGaussianMoment result = (potw * potr * potc * pots).toGaussianMoment();
+      result.print( std::cout );
+      
+      // validated against matlab BNT
+      const double tol = 1e-3;
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ S ], 145.8, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ C ], 15.4, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ R ], 50.2, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ W ], 2, tol ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, S ), 4.092, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, C ), 0.596, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, R ), 0.248, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( S, W ), 0.48, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( C, C ), 0.548, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( C, R ), 0.024, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( C, W ), 0.24, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, R ), 0.112, 1e-6 ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, W ), 0.12, 1e-6 ) );
+
+      TESTER_ASSERT( core::equal<double>( result.getCov()( W, W ), 1.2, 1e-6 ) );
+
+      // the result must be normalized
+      const double alpha = result.getAlpha();
+      result.normalizeGaussian();
+      TESTER_ASSERT( core::equal<double>( alpha, result.getAlpha(), 1e-6 ) );
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
+// test basic behaviour of linear gaussians
+TESTER_TEST( testLinearGaussian3 );
 TESTER_TEST( testLinearGaussian2 );
-/*
 TESTER_TEST( testLinearGaussian1 );
+/*
 //TESTER_TEST( testInferenceGaussianBn );
 
 TESTER_TEST( testPotentialTableMlParametersEstimation );

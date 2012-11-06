@@ -69,7 +69,7 @@ namespace algorithm
       typedef double                      value_type;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<size_t>        VectorI;
+      typedef core::Buffer1D<size_t>      VectorI;
 
    public:
       /**
@@ -81,7 +81,7 @@ namespace algorithm
       PotentialGaussianMoment( const Vector& m, const Matrix& c, const VectorI id = VectorI() ) : _mean( m ), _id( id )
       {
          _init( m, c, id );
-         normalizeGaussian(); // we represent a real PDF if there is no alpha
+         normalizeGaussian(); // we represent a "normalized PDF" if there is no alpha
       }
 
       /**
@@ -96,8 +96,17 @@ namespace algorithm
          _alpha = alpha;   // unormalized potential
       }
 
-      PotentialGaussianMoment()
+      PotentialGaussianMoment() : _isSync( false )
       {}
+
+      /**
+       @brief Initialize a gaussian moment using the covInv instead of the regular covariance
+       */
+      void initWithCovInv( const Vector& m, const Matrix& covInv, const VectorI id, value_type alpha )
+      {
+         _initCovInv( m, covInv, id );
+         _alpha = alpha;   // unormalized potential
+      }
 
       /**
        @brief Create a multivariate gaussian pdf given a set of points using Maximum likelihood estimation
@@ -140,17 +149,15 @@ namespace algorithm
          return getAlpha() * std::exp( -0.5 * core::fastDoubleMultiplication( x, covInv ) );
       }
 
-      const Matrix& getCovInv() const
-      {
-         return _covInv;
-      }
-
       /**
        @brief ensure integral -inf/+inf p(x)dx = 1 by adjusting alpha
        */
       void normalizeGaussian()
       {
-         _alpha = normalizeGaussian( getCovDet(), _cov.sizex() );
+         if ( _id.size() ) // if the domain is empty, it means we are storing a probability value and we don't want to change it
+         {
+            _alpha = normalizeGaussian( getCovDet(), getCov().sizex() );
+         }
       }
 
       /**
@@ -163,19 +170,46 @@ namespace algorithm
          return 1.0 / ( piCte * detCte );
       }
 
+      //
+      // The 3 methods having dependencies on cov/covInv have a lazy evaluation
+      //
       const Matrix& getCov() const
       {
+         _sync();
          return _cov;
+      }
+
+      value_type getCovDet() const
+      {
+         _sync();
+         return _covDet;
+      }
+
+      const Matrix& getCovInv() const
+      {
+         _sync();
+         return _covInv;
       }
 
       // note: beware of alpha. It is not updated, the potential will not be normalized
       void setCov( const Matrix& cov )
       {
-         _covDet = 0;
-         _cov.clone( cov );
-         _covInv.clone( cov );
-         const bool inverted = core::inverse( _covInv, &_covDet );
-         ensure( inverted, "cov is not a PDF!" );
+         if ( cov.getBuf() != _cov.getBuf() )
+         {
+            _isSync = false;
+            _syncModeSource = Covariance;
+            _cov.clone( cov );
+         }
+      }
+
+      void setCovInv( const Matrix& covInv )
+      {
+         if ( covInv.getBuf() != _covInv.getBuf() )
+         {
+            _isSync = false;
+            _syncModeSource = CovarianceInverse;
+            _covInv.clone( covInv );
+         }
       }
 
       const Vector& getMean() const
@@ -189,7 +223,7 @@ namespace algorithm
            << "mean=";
          _mean.print( o );
          o << "covariance=";
-         _cov.print( o );
+         getCov().print( o );
       }
 
       value_type getAlpha() const
@@ -203,11 +237,6 @@ namespace algorithm
          _alpha = alpha;
       }
 
-      value_type getCovDet() const
-      {
-         return _covDet;
-      }
-
       /**
        Given a potential on domain X=[U,V], compute the potential p(U)
        @param varIndexToRemove the index of V's
@@ -219,7 +248,7 @@ namespace algorithm
          ensure( mids.size() == varIndexToRemove.size(), "wrong index: some vars are missing!" );
 
          Matrix xx, yy, xy, yx;
-         core::partitionMatrix( _cov, ids, mids, xx, yy, xy, yx );
+         core::partitionMatrix( getCov(), ids, mids, xx, yy, xy, yx );
 
          // inn the doc we describe how to get pot(x2), but here we are computing pot(x1) hence the different letters...
          // we have |Sigma| = |Sigma/Sigma_xx|*|Sigma_xx| => |Sigma/Sigma_xx| = |Sigma| / |Sigma_xx|
@@ -251,7 +280,7 @@ namespace algorithm
          computeIndexInstersection( varsIndex, ids, mids );
 
          Matrix xx, yy, xy, yx;
-         core::partitionMatrix( _cov, ids, mids, xx, yy, xy, yx );
+         core::partitionMatrix( getCov(), ids, mids, xx, yy, xy, yx );
 
          Vector hx( (size_t)ids.size() );
          VectorI indexNew( hx.size() );
@@ -288,8 +317,34 @@ namespace algorithm
       PotentialGaussianCanonical toGaussianCanonical() const;
 
    private:
+      void _sync() const
+      {
+         // note beware: conditional gaussians may not represent a PDF: user must ensure it is a PDF before using it
+         if ( !_isSync )
+         {
+            if ( _syncModeSource == CovarianceInverse )
+            {
+               // covInv is the source, so compute the cov accordingly
+               value_type covInvDet = 0;
+
+               _cov.clone( _covInv );
+               const bool inverted = core::inverse( _cov, &covInvDet );
+               ensure( inverted, "this gaussian is not a PDF!" );
+
+               _covDet = 1 / covInvDet;   // det A^-1 = 1 / det A
+            } else {
+               // cov is the source, so compute the covInv accordingly
+               _covInv.clone( _cov );
+               const bool inverted = core::inverse( _covInv, &_covDet );
+               ensure( inverted, "this gaussian is not a PDF!" );
+            }
+            _isSync = true;
+         }
+      }
+
       void _init( const Vector& m, const Matrix& c, const VectorI id )
       {
+         _covDet = 0;
          _mean = m;
          _id = id;
 
@@ -310,6 +365,30 @@ namespace algorithm
          }
 
          setCov( c );
+      }
+
+      void _initCovInv( const Vector& m, const Matrix& covInv, const VectorI id )
+      {
+         _covDet = 0;
+         _mean = m;
+         _id = id;
+
+         ensure( m.size() == covInv.sizex(), "mean size and cov size don't match" );
+         ensure( covInv.sizex() == covInv.sizey(), "covariance matrix must be square" );
+         ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
+         ensure( isOrdered( id ), "the id list must be ordered first" );
+
+         if ( id.size() == 0 )
+         {
+            // generate the id
+            _id = VectorI( m.size() );
+            for ( size_t n = 0; n < _id.size(); ++n )
+            {
+               _id[ n ] = n;
+            }
+         }
+
+         setCovInv( covInv );
       }
 
       static bool isOrdered( const VectorI& v )
@@ -364,11 +443,23 @@ namespace algorithm
 
    private:
       Vector       _mean;
-      Matrix       _cov;      // it cannot be manually updated! use "setCov"
-      Matrix       _covInv;
-      value_type   _covDet;
       value_type   _alpha; 
-      VectorI     _id;
+      VectorI      _id;
+
+      // because it is lazily evaluated, they must be mutable. Very often we don't need the inversion of the covariance (e.g., because it may not exist yet!
+      // and similarly for the covInv), this is why they are lazily 
+      mutable Matrix       _cov;      // it cannot be manually updated! use "setCov"
+      mutable Matrix       _covInv;   // lazy evaluation: in the case of moment->canonical representation, we don't need to compute this matrix
+      mutable value_type   _covDet;
+
+      enum SyncMode
+      {
+         Error,
+         Covariance,
+         CovarianceInverse
+      };
+      mutable SyncMode  _syncModeSource;  // indicate what is being synced: if "Covariance", covariance is always up to date, but cov^-1 must be computed in a lazy fashion
+      mutable bool      _isSync;          // if true, the <_covInv> is up to date
    };
 }
 }

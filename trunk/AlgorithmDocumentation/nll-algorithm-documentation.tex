@@ -296,7 +296,7 @@ By definition, we have:
 $$
 \left[ \begin{array}{cc} K_{11} & K_{12} \\ K_{21} & K_{22} \end{array} \right]^{-1} = \left[ \begin{array}{cc} \Sigma_{11} & \Sigma_{12} \\ \Sigma_{21} & \Sigma_{22} \end{array} \right]
 $$
-Using (\ref{blockinv}) we find that 
+Using (\ref{blockinv}) we find that
 $$\bm{K'=K_{11}=(\Sigma/\Sigma_{22})^{-1} = K_{11}-K_{12}K_{22}^{-1}K_{21}}$$
 Using (\ref{blockinv2}) we have:
 \begin{align}
@@ -336,18 +336,68 @@ Suppose we are observing $x_2$ with value $\hat{x}_2$, then we have:
                                         \right)\\
 &= \exp \left(
               \left\{ g + h_2^T\hat{x}_2 - \frac{1}{2}\hat{x}_2^T K_{22} \hat{x}_2 \right\} +
-              \left\{ x_1^T(h_1-K_{12}\hat{x}_2) \right\} +    
+              \left\{ x_1^T(h_1-K_{12}\hat{x}_2) \right\} +
               \left\{ -\frac{1}{2}x_1^T K_{11}x_1 \right\}
         \right)
 \end{align*}
 
 \subsubsection{Linear Gaussian Factor}
 \lglossary{LG}{Linear Gaussian}
-Let $y$ be a continuous node with continuous parents $x_1...x_k$. We says that $y$ has a linear Gaussian model if it can be described using parameters $\beta_0...\beta_k$ and $\sigma$ such that:
+Let $Y$ be a continuous set of nodes with continuous parents $X$. We says that $Y$ has a linear Gaussian model if it can be described using parameters $A$, $\mu_0$ and variance $\Sigma_0$ such that:
 $$
-P(y|x_1, ..., x_k)=N(\mu_u + \beta_1x_1 + ... + \beta_kx_k; \sigma^2)
+p(Y|X=x)=N(\mu_0 + Ax; \Sigma_0)
 $$
+From the linear transformations of gaussians, we have the following results:
+\begin{compactitem}
+\item If X is drawn by a gaussian $N(\mu, \Sigma)$ such that $y=Ax + b$
+\item Then $p(Y)=N(A\mu + b, A\Sigma A^T)$
+\item In fact,
+$$
+p(X,Y) = N \left(
+  \left[ \begin{array}{c} \mu_x \\ \mu_0 + A \mu_x \end{array}\right],
+  \left[ \begin{array}{cc} \Sigma_x & \Sigma_x A^T \\ A\Sigma_x & A\Sigma_xA^T\end{array}\right],
+\right)
+$$
+\end{compactitem}
 
+In this model, the noise is accumulating (i.e., the noise of $y$ depends on $\Sigma_0$ as well as the parents noise). If X is drawn by a gaussian $N(\mu_x, \Sigma_x)$ we have this joint distribution:
+$$
+p(X,Y) = N \left(
+  \left[ \begin{array}{c} \mu_x \\ \mu_0 + A \mu_x \end{array}\right],
+  \left[ \begin{array}{cc} \Sigma_x & \Sigma_x A^T \\ A\Sigma_x & A\Sigma_xA^T + \Sigma_0 \end{array}\right],
+\right)
+$$
+Since the conditional probability may not be invertible, we need to convert the moment directly to canonical to avoid the covariance inversion:
+
+%see http://homes.soic.indiana.edu/classes/spring2012/csci/b553-hauserk/20continuousprobability.pptx
+\begin{align*}
+p(y|x)&=N(\mu_0 + Ax, \Sigma_0)  \\
+&= \frac{1}{Z}\exp\left(
+   -\frac{1}{2}(y-Ax-\mu_0)^T\Sigma_0^{-1}(y-Ax-\mu_0)
+   \right)\\
+&= \frac{1}{Z}\exp\left(
+-\frac{1}{2}
+  \left\{
+  \left[ \begin{array}{cc} y & x \end{array}\right]
+  \left[ \begin{array}{cc} I & -A \end{array}\right]^T
+  \Sigma_0^{-1}
+  \left[ \begin{array}{cc} I & -A \end{array}\right]
+  \left[ \begin{array}{cc} y & x \end{array}\right]^T
+  \right\} +A
+\right) \\
+\text{with~}A &= \mu_0^T\Sigma_0^{-1} \left[ \begin{array}{cc} I & -A \end{array}\right]
+                                      \left[ \begin{array}{cc} y & x \end{array}\right]
+                 -\frac{1}{2}\mu_0^T \Sigma_0^{-1} \mu_0
+\end{align*}
+
+We conclude that:
+\begin{align}
+K& = \left[ \begin{array}{cc} I & -A \end{array}\right]^T
+     \Sigma_0^{-1}
+     \left[ \begin{array}{cc} I & -A \end{array}\right] \\
+h &= \left[ \begin{array}{cc} I & -A \end{array}\right]^T \Sigma_0^{-1} \mu_0 \\
+g &=  \log(\frac{1}{Z})-\frac{1}{2}\mu_0^T \Sigma_0^{-1} \mu_0
+\end{align}
 
 \subsubsection{Conditional Linear Gaussian Factor}
 \lglossary{CLG}{Conditional Linear Gaussian}

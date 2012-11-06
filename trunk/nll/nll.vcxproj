@@ -472,6 +472,7 @@
     <ClInclude Include="perceptron-margin.h" />
     <ClInclude Include="periodogram.h" />
     <ClInclude Include="point-based-registration-3d.h" />
+    <ClInclude Include="potential-gaussian-linear.h" />
     <ClInclude Include="pyramid-hessian-3d.h" />
     <ClInclude Include="quasi-periodicity-analysis.h" />
     <ClInclude Include="registration-algorithm-intensity-affine.h" />

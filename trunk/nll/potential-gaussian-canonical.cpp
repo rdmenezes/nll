@@ -38,7 +38,7 @@ namespace algorithm
    PotentialGaussianCanonical PotentialGaussianMoment::toGaussianCanonical() const
    {
       const Matrix& covInv = getCovInv();
-      ensure( getCovDet() > 0, "determinant K must be > 0" );
+      ensure( getCovDet() >= 0, "determinant K must be > 0" );
 
       Matrix k;
       k.clone( covInv );
