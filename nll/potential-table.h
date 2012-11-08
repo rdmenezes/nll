@@ -60,10 +60,10 @@ namespace algorithm
    {
    public:
       typedef double                      value_type;
-      typedef size_t                        value_typei;
+      typedef size_t                      value_typei;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<size_t>        VectorI;
+      typedef core::Buffer1D<size_t>      VectorI;
       typedef VectorI                     EvidenceValue;
 
    public:
@@ -389,6 +389,18 @@ namespace algorithm
          return _table;
       }
 
+      static bool isDomainSorted( const VectorI& domain )
+      {
+         if ( domain.size() == 0 )
+            return true;
+         for ( size_t n = 0; n < domain.size() - 1; ++n )
+         {
+            if ( domain[ n ] >= domain[ n + 1 ] )
+               return false;
+         }
+         return true;
+      }
+
    private:
       /**
        @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
@@ -420,18 +432,6 @@ namespace algorithm
             strides[ n ] = stride;
             stride *= _cardinality[ n ];
          }
-      }
-
-      static bool isDomainSorted( const VectorI& domain )
-      {
-         if ( domain.size() == 0 )
-            return true;
-         for ( size_t n = 0; n < domain.size() - 1; ++n )
-         {
-            if ( domain[ n ] >= domain[ n + 1 ] )
-               return false;
-         }
-         return true;
       }
 
       template <class VectorT>

@@ -59,7 +59,7 @@ namespace algorithm
    public:
       PotentialGaussianCanonical( const Vector& h, const Matrix& k, value_type g, const VectorI id = VectorI() )
       {
-         ensure( isOrdered( id ), "the id list must be ordered first" );
+         ensure( PotentialTable::isDomainSorted( id ), "the id list must be ordered first" );
          _h = h;
          _k = k;
          _g = g;
@@ -400,19 +400,6 @@ namespace algorithm
                ++indexToCheck;
             }
          }
-      }
-
-      static bool isOrdered( const VectorI& v )
-      {
-         if ( !v.size() )
-            return true;
-         const size_t s = v.size() - 1;
-         for ( size_t n = 0; n < s; ++n )
-         {
-            if ( v[ n ] >= v[ n + 1 ] )
-               return false;
-         }
-         return true;
       }
 
       static bool deepCheck( const VectorI& v1, const VectorI& v2 )

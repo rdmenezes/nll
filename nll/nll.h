@@ -475,10 +475,10 @@
 # include "decision-tree.h"
 
 // Bayesian network related files
+# include "potential-table.h"
 # include "potential-gaussian-moment.h"
 # include "potential-gaussian-canonical.h"
 # include "potential-gaussian-linear.h"
-# include "potential-table.h"
 # include "bayesian-network.h"
 # include "bayesian-network-utils.h"
 # include "bayesian-network-ml-param-estimation.h"

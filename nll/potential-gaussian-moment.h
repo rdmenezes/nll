@@ -352,7 +352,7 @@ namespace algorithm
          ensure( c.sizex() == c.sizey(), "covariance matrix must be square" );
          ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
 
-         ensure( isOrdered( id ), "the id list must be ordered first" );
+         ensure( PotentialTable::isDomainSorted( id ), "the id list must be ordered first" );
 
          if ( id.size() == 0 )
          {
@@ -376,7 +376,7 @@ namespace algorithm
          ensure( m.size() == covInv.sizex(), "mean size and cov size don't match" );
          ensure( covInv.sizex() == covInv.sizey(), "covariance matrix must be square" );
          ensure( _id.size() == 0 || _id.size() == m.size(), "id has wrong size" );
-         ensure( isOrdered( id ), "the id list must be ordered first" );
+         ensure( PotentialTable::isDomainSorted( id ), "the id list must be ordered first" );
 
          if ( id.size() == 0 )
          {
@@ -389,19 +389,6 @@ namespace algorithm
          }
 
          setCovInv( covInv );
-      }
-
-      static bool isOrdered( const VectorI& v )
-      {
-         if ( !v.size() )
-            return true;
-         const size_t s = v.size() - 1;
-         for ( size_t n = 0; n < s; ++n )
-         {
-            if ( v[ n ] >= v[ n + 1 ] )
-               return false;
-         }
-         return true;
       }
 
       void computeIndexInstersection( const VectorI& varsIndex, std::vector<size_t>& ids, std::vector<size_t>& mids ) const
