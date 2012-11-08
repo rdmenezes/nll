@@ -48,6 +48,7 @@ namespace algorithm
     p(y | x1..xn) = N(b0 + w^t * x; Sigma )
 
     @note BNT doesn't follow the same notations for g
+    @see http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.32.6529
     */
    class PotentialLinearGaussian
    {
@@ -55,7 +56,7 @@ namespace algorithm
       typedef double                      value_type;
       typedef core::Matrix<value_type>    Matrix;
       typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<size_t>        VectorI;
+      typedef core::Buffer1D<size_t>      VectorI;
 
    public:
       struct Dependency
@@ -88,7 +89,7 @@ namespace algorithm
          ensure( m.size() == c.sizey(), "dimention mismatch" );
 
          ensure( ids.size() == 1, "must only represents a 1-variable node" );
-         ensure( isOrdered( ids ), "Parents ID must be higher than child" );
+         ensure( PotentialTable::isDomainSorted( ids ), "Parents ID must be higher than child" );
       }
 
       /**
@@ -96,14 +97,14 @@ namespace algorithm
        @param m mean
        @param c covariance
        @param id naming of the variable
-       @param dependencies the dependencies of the linear gaussian. They must have exactly the same dimentionality as the current potential
+       @param dependencies the dependencies of the linear gaussian. Dependencies must be ordered from lowest to highest id
        */
       PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids, Dependencies& dependencies ) : _mean( m ),
          _cov( c ), _ids( ids ), _dependencies( dependencies )
       {
          ensure( ids.size() == 1, "must only represents a 1-variable node, however, it is possible to extend it to multi valued nodes" );
          ensure( dependencies.size() > 0, "use other constructor!" );
-         ensure( isOrdered( ids ), "Parents ID must be higher than child" );
+         ensure( PotentialTable::isDomainSorted( ids ), "Parents ID must be higher than child" );
          ensure( isOrdered( _dependencies ), "dependencies must be ordered too! higher->lower" );
 
          // check the dependency assumption: 
@@ -149,6 +150,11 @@ namespace algorithm
        */
       PotentialGaussianCanonical toGaussianCanonical() const
       {
+         //
+         // TODO: update if necessary? to a multivariate form as all the others
+         // see in particular Inference and Learning in Hybrid Bayesian Networks, Kevin P. Murphy, 1998
+         // http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.32.6529
+
          // first, get our merged ids
          std::vector<const VectorI*> idsptr( _dependencies.size() + 1 );
          for ( size_t n = 0; n < _dependencies.size(); ++n )
@@ -202,29 +208,16 @@ namespace algorithm
    private:
       static bool isOrdered( const Dependencies& dps )
       {
-         size_t last = std::numeric_limits<size_t>::max();
+         int last = std::numeric_limits<int>::min();
          for ( size_t n = 0; n < dps.size(); ++n )
          {
             for ( size_t id = 0; id < dps[ n ].potential->getIds().size(); ++id )
             {
-               const size_t current = dps[ n ].potential->getIds()[ id ];
-               if ( last < current )
+               const int current = static_cast<int>( dps[ n ].potential->getIds()[ id ] );
+               if ( last > current )
                   return false;
                last = current;
             }
-         }
-         return true;
-      }
-
-      static bool isOrdered( const VectorI& v )
-      {
-         if ( !v.size() )
-            return true;
-         const size_t s = v.size() - 1;
-         for ( size_t n = 0; n < s; ++n )
-         {
-            if ( v[ n ] >= v[ n + 1 ] )
-               return false;
          }
          return true;
       }
