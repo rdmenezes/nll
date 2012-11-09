@@ -23,22 +23,49 @@ namespace algorithm
       typedef core::Buffer1D<value_type>                       Vector;
       typedef core::Buffer1D<size_t>                           VectorI;
       typedef std::vector<PotentialLinearGaussianConditional>  PotentialLinearGaussianConditionals;
-      typedef std::vector<std::vector<PotentialLinearGaussianConditional>>  PotentialLinearGaussianConditionalss;
+      typedef std::vector<PotentialGaussianMoment>             PotentialGaussianMoments;
+
+      struct Dependency
+      {
+         Dependency()
+         {}
+
+         Dependency( std::shared_ptr<PotentialLinearGaussianConditional> p, value_type w ) : potential( p ), weight( w )
+         {}
+
+         std::shared_ptr<PotentialLinearGaussianConditional>  potential;
+         value_type weight;
+      };
+
+      /**
+       @brief instanciate a CLG with only continuous variables
+       */
+      PotentialLinearGaussianConditional( const PotentialGaussianMoment& continuous )
+      {
+         _continuousVariables.push_back( continuous );
+      }
+
+      /**
+       @brief instanciate a CLG with only discrete variables
+       */
+      PotentialLinearGaussianConditional( const PotentialTable& discreteVariables ) : _discreteVariables( discreteVariables )
+      {
+      }
 
       /**
        @param construct the potential given discrete and continuous variables
        @param discreteVariables the parent discrete variables
        */
-      PotentialLinearGaussianConditional( const PotentialTable& discreteVariable, const PotentialLinearGaussianConditionalss& continuousVariables )
+      PotentialLinearGaussianConditional( const PotentialTable& discreteVariables, const PotentialGaussianMoments& continuousVariables ) : _discreteVariables( discreteVariables ), _continuousVariables( continuousVariables )
       {
-         // basic checks
-         for ( size_t n = 0; n < continuousVariables.size() - 1; ++n )
-         {
-          //  ensure( continuousVariables[ n ].getDomain().equal( continuousVariables[ n + 1 ].getDomain() ), "domain must be the same for the continuous variables"
-         }
+         ensure( discreteVariables.getTable().size() == continuousVariables.size(), "the node must have its own (mean, cov) for each instance of a discrete varaible" );
       }
 
+
+
    private:
+      PotentialGaussianMoments   _continuousVariables;
+      PotentialTable             _discreteVariables;
    };
 
    /**
@@ -944,16 +971,73 @@ public:
 
       TESTER_ASSERT( core::equal<double>( result.getCov()( S, S ), 4.866, tol ) );
    }
+
+   void testLinearGaussian6()
+   {
+      //
+      // Use a multi variable node
+      //   
+      // WX  ->R
+      //
+      typedef algorithm::PotentialLinearGaussian   Potential;
+      enum
+      {
+         R, X, W
+      };
+
+      Potential::Vector meanWX = core::make_buffer1D<double>( 3, 1 );
+      Potential::Matrix covWX( 2, 2 );
+      covWX( 0, 0 ) = 2.2;
+      covWX( 0, 1 ) = 0.1;
+      covWX( 1, 0 ) = 0.1;
+      covWX( 1, 1 ) = 1.2;
+      Potential::VectorI idWX = core::make_buffer1D<size_t>( (int)X, (int)W );
+      Potential potWX( meanWX, covWX, idWX );
+
+      Potential::Vector meanR = core::make_buffer1D<double>( 50 );
+      Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
+      Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
+      std::vector<Potential::Dependency> dpsR;
+      const double weight = 0.2;
+      dpsR.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potWX, EmptyDeleter<Potential>() ), weight ) );
+      Potential potR( meanR, covR, idR, dpsR );
+
+
+      algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
+      algorithm::PotentialGaussianCanonical potwx = potWX.toGaussianCanonical();
+
+      algorithm::PotentialGaussianMoment result = (potr * potwx).toGaussianMoment();
+      result.print( std::cout );
+
+      const double tol = 1e-3;
+      // copied from the parents
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ R ], 50.799, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ X ], 3, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getMean()[ W ], 1, tol ) );
+      
+      TESTER_ASSERT( core::equal<double>( result.getCov()( X, X ), 2.2, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( X, W ), 0.1, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( W, W ), 1.2, tol ) );
+
+      // the cov must at least be bigger
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, R ), 0.244, tol ) );
+
+      // must be non zero
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, X ), 0.46, tol ) );
+      TESTER_ASSERT( core::equal<double>( result.getCov()( R, W ), 0.26, tol ) );
+   }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestGaussianBayesianInference);
 // test basic behaviour of linear gaussians
+TESTER_TEST( testLinearGaussian6 );
 TESTER_TEST( testLinearGaussian4 );
 TESTER_TEST( testLinearGaussian5 );
 TESTER_TEST( testLinearGaussian3 );
 TESTER_TEST( testLinearGaussian2 );
 TESTER_TEST( testLinearGaussian1 );
+
 /*
 //TESTER_TEST( testInferenceGaussianBn );
 

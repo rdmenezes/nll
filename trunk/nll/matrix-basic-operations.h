@@ -92,6 +92,11 @@ namespace core
       template <class T1, class Mapper1, class Allocator>
       Matrix<T1, Mapper1, Allocator> mulThreadedOuter( const Matrix<T1, Mapper1, Allocator>& op1, const Matrix<T1, Mapper1, Allocator>& op2 )
       {
+         if ( !op1.sizex() || !op1.sizey() || !op2.sizex() || !op2.sizey() )
+         {
+            // if one of the operand is null, the matrix product is null
+            return Matrix<T1, Mapper1, Allocator>();
+         }
          assert( op1.sizex() == op2.sizey() );
          Matrix<T1, Mapper1, Allocator> m(op1.sizey(), op2.sizex());
 
@@ -116,6 +121,11 @@ namespace core
       template <class T1, class Mapper1, class Allocator>
       Matrix<T1, Mapper1, Allocator> mulThreadedInner( const Matrix<T1, Mapper1, Allocator>& op1, const Matrix<T1, Mapper1, Allocator>& op2 )
       {
+         if ( !op1.sizex() || !op1.sizey() || !op2.sizex() || !op2.sizey() )
+         {
+            // if one of the operand is null, the matrix product is null
+            return Matrix<T1, Mapper1, Allocator>();
+         }
          assert( op1.sizex() == op2.sizey() );
          Matrix<T1, Mapper1, Allocator> m(op1.sizey(), op2.sizex());
 
@@ -162,6 +172,12 @@ namespace core
    template <class T1, class Mapper1, class Mapper2, class Allocator, class Allocator2>
    Matrix<T1, Mapper1, Allocator> mul( const Matrix<T1, Mapper1, Allocator>& op1, const Buffer1D<T1, Mapper2, Allocator2>& op2 )
    {
+      if ( !op1.sizex() || !op1.sizey() || !op2.size() )
+      {
+         // if one of the operand is null, the matrix product is null
+         return Matrix<T1, Mapper1, Allocator>();
+      }
+
       assert( op1.sizex() == op2.size() );
       Matrix<T1, Mapper1, Allocator> m( op1.sizey(), 1 );
 

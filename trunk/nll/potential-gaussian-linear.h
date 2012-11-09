@@ -87,8 +87,6 @@ namespace algorithm
          ensure( m.size() == ids.size(), "dimention mismatch" );
          ensure( m.size() == c.sizex(), "dimention mismatch" );
          ensure( m.size() == c.sizey(), "dimention mismatch" );
-
-         ensure( ids.size() == 1, "must only represents a 1-variable node" );
          ensure( PotentialTable::isDomainSorted( ids ), "Parents ID must be higher than child" );
       }
 
@@ -150,12 +148,7 @@ namespace algorithm
        */
       PotentialGaussianCanonical toGaussianCanonical() const
       {
-         //
-         // TODO: update if necessary? to a multivariate form as all the others
-         // see in particular Inference and Learning in Hybrid Bayesian Networks, Kevin P. Murphy, 1998
-         // http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.32.6529
-
-         // first, get our merged ids
+         // get all our variables
          std::vector<const VectorI*> idsptr( _dependencies.size() + 1 );
          for ( size_t n = 0; n < _dependencies.size(); ++n )
          {
@@ -164,7 +157,10 @@ namespace algorithm
          idsptr[ _dependencies.size() ] = &_ids;
          const std::vector<size_t> ids = mergeIds( idsptr );
 
-         // now just prepare the parameters of the canonical potential
+         // expand all the weights into a single vector (i.e., in case of multivariate nodes)
+         const Vector ww = expandWeights( _dependencies );
+
+         // prepare the parameters of the canonical potential
          Matrix sinv;
          sinv.clone( _cov );
          value_type detcov = 0;
@@ -173,32 +169,56 @@ namespace algorithm
          const value_type gaussCte = PotentialGaussianMoment::normalizeGaussian( detcov, _cov.sizex() );
          const value_type g = -0.5 * core::fastDoubleMultiplication( _mean, sinv ) + std::log( gaussCte );
 
-         // compute h = - mean_y * sinv_y | w |
-         //                               | 1 |
+         // w should be a matrix, not a vector as we have now...
+         const Matrix wt = Matrix( ww, 1, ww.size() ); // w is a matrix for multivariate
+         const Matrix w = Matrix( ww, ww.size(), 1 );
+         const Matrix covinvmean = sinv * _mean;
+         const Matrix wcovinvmean = w * covinvmean;
+
+         // compute h = | covinv * mean        |
+         //             | -w * covinv * mmean |
          Vector h( static_cast<size_t>( ids.size() ) );
-         for ( size_t n = 0; n < _dependencies.size(); ++n )
+         for ( size_t n = 0; n < covinvmean.sizey(); ++n )
          {
-            h[ n + 1 ] = - _dependencies[ n ].weight * sinv[ 0 ] * _mean[ 0 ];
+            h[ n ] = covinvmean( n, 0 );
          }
-         h[ 0 ] = sinv[ 0 ] * _mean[ 0 ];
-
-
+         for ( size_t n = 0; n < wcovinvmean.sizey(); ++n )
+         {
+            h[ n + covinvmean.sizey() ] = - wcovinvmean( n, 0 );
+         }
+        
          // construct this matrix:
-         // K = 1 / cov_Y * | ww' -w |
-         //                 | -w' 1  |
-         Matrix k( (size_t)ids.size(), (size_t)ids.size() );
-         for ( size_t y = 0; y < k.sizex() - 1; ++y )
-         {
-            for ( size_t x = 0; x < k.sizex() - 1; ++x )
-            {
-               k( y + 1, x + 1 ) = _dependencies[ x ].weight * _dependencies[ y ].weight * sinv[ 0 ];
-            }
+         // K = | covinv          -covinv * w'   |
+         //     | -w * covinv    w * covinv * w' |
+         const Matrix wcovinv = w * sinv;
+         const Matrix wcovinvwt = wcovinv * wt;
+         ensure( wcovinvwt.sizex() == wcovinvwt.sizey(), "must be square byb design" );
 
-            const value_type v = - _dependencies[ y ].weight * sinv[ 0 ];
-            k( y + 1, 0 ) = v;
-            k( 0, y + 1 ) = v;
+         Matrix k( (size_t)ids.size(), (size_t)ids.size() );
+         for ( size_t y = 0; y < sinv.sizey(); ++y )
+         {
+            for ( size_t x = 0; x < sinv.sizex(); ++x )
+            {
+               k( y, x ) = sinv( y, x );
+            }
          }
-         k( 0, 0 ) = sinv[ 0 ];
+
+         for ( size_t y = 0; y < wcovinvwt.sizey(); ++y )
+         {
+            for ( size_t x = 0; x < wcovinvwt.sizex(); ++x )
+            {
+               k( y + sinv.sizey(), x + sinv.sizex() ) = wcovinvwt( y, x );
+            }
+         }
+
+         for ( size_t y = 0; y < wcovinv.sizey(); ++y )
+         {
+            for ( size_t x = 0; x < wcovinv.sizex(); ++x )
+            {
+               k( y + sinv.sizey(), x ) = - wcovinv( y, x );
+               k( x, y + sinv.sizex() ) = - wcovinv( y, x );
+            }
+         }
 
          VectorI idsi( static_cast<size_t>( ids.size() ) );
          std::copy( ids.begin(), ids.end(), idsi.begin() );
@@ -206,6 +226,30 @@ namespace algorithm
       }
 
    private:
+      // expand all the weights into a single vector (i.e., in case of multivariate nodes)
+      static Vector expandWeights( const Dependencies& dps )
+      {
+         // first count the depdendencies
+         size_t nbDependencies = 0;
+         for ( size_t n = 0; n < dps.size(); ++n )
+         {
+            nbDependencies += dps[ n ].potential->getIds().size();
+         }
+
+         // then expand them into a single vector
+         Vector expandedw( nbDependencies );
+         size_t index = 0;   // we start with the dependend variables
+         for ( size_t n = 0; n < dps.size(); ++n )
+         {
+            for ( size_t nbVar = 0; nbVar < dps[ n ].potential->getIds().size(); ++nbVar )
+            {
+               expandedw[ index ] = dps[ n ].weight;
+               ++index;
+            }
+         }
+         return expandedw;
+      }
+
       static bool isOrdered( const Dependencies& dps )
       {
          int last = std::numeric_limits<int>::min();

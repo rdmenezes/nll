@@ -398,14 +398,39 @@ h &= \left[ \begin{array}{cc} I & -A \end{array}\right]^T \Sigma_0^{-1} \mu_0 \\
 g &=  \log(\frac{1}{Z})-\frac{1}{2}\mu_0^T \Sigma_0^{-1} \mu_0
 \end{align}
 
+See \cite{Murphy98inferenceand} (p10) for further references.
+
 \subsubsection{Conditional Linear Gaussian Factor \nllref{PotentialLinearGaussianConditional}}
 \lglossary{CLG}{Conditional Linear Gaussian}
 
-We are building on top of the Linear Gaussian CPD (LG), where discrete parents of continuous variables are allowed in the model. We are facing two problems:
+%We are facing two problems:
+%\begin{compactitem}
+%\item if we marginalize a discrete variable of a CLG, the resulting PDF will be a mixture of gaussians of higher dimension than each of the LG it is composed of,
+%\item we cannot represent CLG with a discrete variable having a gaussian parent
+%\end{compactitem}
+
+We are building on top of the Linear Gaussian CPD (LG), where discrete parents of continuous variables are allowed in the model. If node $X$ has discrete parents $Y$ and continuous parents $Z$, it has different parameter for every value of $Y$:
+$$
+p(X | Y = i,Z)=N(X; \mu_i + A_iZ, \Sigma_i)
+$$
+All operations defined for LG applies except the marginalization which is different. Indeed,
+$$
+\sum_i\phi(X, Y=i, Z)=\sum_i p(Y=i)\phi(X, Z; \mu_i, \Sigma_i) 
+$$
+As we can see, the result of the marginalization of a discrete variable is a mixture of gaussians. From here, there are two strategies:
 \begin{compactitem}
-\item if we marginalize a discrete variable of a CLG, the resulting PDF will be a mixture of gaussians of higher dimension than each of the LG it is composed of,
-\item we cannot represent CLG with a discrete variable having a gaussian parent
+\item weak marginalization: approximate the mixture by only one gaussian. However, the approximation may not be appropriate.
+\item strong marginalization: find an elimination ordering that ensures the marginalization of continuous variables are done before the discrete ones. However this may result in an exponential number of factor evaluations.
 \end{compactitem}
+
+~\\
+\subsubsubsection{Weak marginalization}
+Collapsing a mixture of gaussians defined as $\sum_i \alpha_i N(\mu_i, \Sigma_i)$ onto a single gaussian $N(\mu, \Sigma)$ is given by:
+\begin{align}
+\alpha &= \sum_i \alpha_i \\
+\mu &= \sum_i \alpha_i u_i \\
+\Sigma &= \sum_i \alpha_i \Sigma_i + \sum_i \alpha_i(\mu_i-\mu)(\mu_i-\mu)^T
+\end{align}
 
 \subsubsection{Mixture of truncated exponentials}
 \lglossary{MTE}{Mixture of truncated exponentials}
