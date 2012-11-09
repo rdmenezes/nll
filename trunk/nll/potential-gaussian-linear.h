@@ -81,14 +81,8 @@ namespace algorithm
        @param c covariance
        @param id naming of the variable
        */
-      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids ) : _mean( m ),
-         _cov( c ), _ids( ids )
-      {
-         ensure( m.size() == ids.size(), "dimention mismatch" );
-         ensure( m.size() == c.sizex(), "dimention mismatch" );
-         ensure( m.size() == c.sizey(), "dimention mismatch" );
-         ensure( PotentialTable::isDomainSorted( ids ), "Parents ID must be higher than child" );
-      }
+      PotentialLinearGaussian( const PotentialGaussianMoment& potential ) : _potential( potential )
+      {}
 
       /**
       @brief Intanciate a potential with dependencies
@@ -97,43 +91,38 @@ namespace algorithm
        @param id naming of the variable
        @param dependencies the dependencies of the linear gaussian. Dependencies must be ordered from lowest to highest id
        */
-      PotentialLinearGaussian( const Vector& m, const Matrix& c, const VectorI& ids, Dependencies& dependencies ) : _mean( m ),
-         _cov( c ), _ids( ids ), _dependencies( dependencies )
+      PotentialLinearGaussian( const PotentialGaussianMoment& potential, Dependencies& dependencies ) : _potential( potential ), _dependencies( dependencies )
       {
-         ensure( ids.size() == 1, "must only represents a 1-variable node, however, it is possible to extend it to multi valued nodes" );
+         // we don't represent it with multi gaussian, as it doesn't seem to be very useful for LG. It would be more difficult to configure...
+         ensure( potential.getDomain().size() == 1, "must only represents a 1-variable node, however, it is possible to extend it to multi valued nodes" );
          ensure( dependencies.size() > 0, "use other constructor!" );
-         ensure( PotentialTable::isDomainSorted( ids ), "Parents ID must be higher than child" );
          ensure( isOrdered( _dependencies ), "dependencies must be ordered too! higher->lower" );
 
          // check the dependency assumption: 
-         const size_t current = ids[ 0 ];
+         const size_t current = potential.getDomain()[ 0 ];
          for ( size_t n = 0; n < dependencies.size(); ++n )
          {
-            for ( size_t nn = 0; nn < dependencies[ n ].potential->getIds().size(); ++nn )
+            for ( size_t nn = 0; nn < dependencies[ n ].potential->getDomain().size(); ++nn )
             {
-               const size_t parent = dependencies[ n ].potential->getIds()[ nn ];
+               const size_t parent = dependencies[ n ].potential->getDomain()[ nn ];
                ensure( parent > current, "the dependencies must be ordered from min->max id" );
             }
          }
-
-         ensure( m.size() == ids.size(), "dimention mismatch" );
-         ensure( m.size() == c.sizex(), "dimention mismatch" );
-         ensure( m.size() == c.sizey(), "dimention mismatch" );
       }
 
       const Vector& getMean() const
       {
-         return _mean;
+         return _potential.getMean();
       }
 
       const Matrix& getCov() const
       {
-         return _cov;
+         return _potential.getCov();
       }
 
-      const VectorI& getIds() const
+      const VectorI& getDomain() const
       {
-         return _ids;
+         return _potential.getDomain();
       }
 
       const Dependencies& getDependencies() const
@@ -152,9 +141,9 @@ namespace algorithm
          std::vector<const VectorI*> idsptr( _dependencies.size() + 1 );
          for ( size_t n = 0; n < _dependencies.size(); ++n )
          {
-            idsptr[ n ] = &(_dependencies[ n ].potential->getIds());
+            idsptr[ n ] = &(_dependencies[ n ].potential->getDomain());
          }
-         idsptr[ _dependencies.size() ] = &_ids;
+         idsptr[ _dependencies.size() ] = &_potential.getDomain();
          const std::vector<size_t> ids = mergeIds( idsptr );
 
          // expand all the weights into a single vector (i.e., in case of multivariate nodes)
@@ -162,17 +151,17 @@ namespace algorithm
 
          // prepare the parameters of the canonical potential
          Matrix sinv;
-         sinv.clone( _cov );
+         sinv.clone( _potential.getCov() );
          value_type detcov = 0;
          core::inverse( sinv, &detcov );
 
-         const value_type gaussCte = PotentialGaussianMoment::normalizeGaussian( detcov, _cov.sizex() );
-         const value_type g = -0.5 * core::fastDoubleMultiplication( _mean, sinv ) + std::log( gaussCte );
+         const value_type gaussCte = PotentialGaussianMoment::normalizeGaussian( detcov, sinv.sizex() );
+         const value_type g = -0.5 * core::fastDoubleMultiplication( _potential.getMean(), sinv ) + std::log( gaussCte );
 
          // w should be a matrix, not a vector as we have now...
          const Matrix wt = Matrix( ww, 1, ww.size() ); // w is a matrix for multivariate
          const Matrix w = Matrix( ww, ww.size(), 1 );
-         const Matrix covinvmean = sinv * _mean;
+         const Matrix covinvmean = sinv * _potential.getMean();
          const Matrix wcovinvmean = w * covinvmean;
 
          // compute h = | covinv * mean        |
@@ -233,7 +222,7 @@ namespace algorithm
          size_t nbDependencies = 0;
          for ( size_t n = 0; n < dps.size(); ++n )
          {
-            nbDependencies += dps[ n ].potential->getIds().size();
+            nbDependencies += dps[ n ].potential->getDomain().size();
          }
 
          // then expand them into a single vector
@@ -241,7 +230,7 @@ namespace algorithm
          size_t index = 0;   // we start with the dependend variables
          for ( size_t n = 0; n < dps.size(); ++n )
          {
-            for ( size_t nbVar = 0; nbVar < dps[ n ].potential->getIds().size(); ++nbVar )
+            for ( size_t nbVar = 0; nbVar < dps[ n ].potential->getDomain().size(); ++nbVar )
             {
                expandedw[ index ] = dps[ n ].weight;
                ++index;
@@ -255,9 +244,9 @@ namespace algorithm
          int last = std::numeric_limits<int>::min();
          for ( size_t n = 0; n < dps.size(); ++n )
          {
-            for ( size_t id = 0; id < dps[ n ].potential->getIds().size(); ++id )
+            for ( size_t id = 0; id < dps[ n ].potential->getDomain().size(); ++id )
             {
-               const int current = static_cast<int>( dps[ n ].potential->getIds()[ id ] );
+               const int current = static_cast<int>( dps[ n ].potential->getDomain()[ id ] );
                if ( last > current )
                   return false;
                last = current;
@@ -316,10 +305,8 @@ namespace algorithm
       }
 
    private:
-      Vector         _mean;
-      Matrix         _cov;
-      VectorI        _ids;
-      Dependencies   _dependencies;
+      PotentialGaussianMoment    _potential;   // only the original potential, i.e., without the dependencies
+      Dependencies               _dependencies;
    };
 }
 }

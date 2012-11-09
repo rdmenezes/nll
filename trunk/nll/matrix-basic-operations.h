@@ -48,6 +48,12 @@ namespace core
    template <class T1, class Mapper1, class T2, class Allocator>
    void add( Matrix<T1, Mapper1, Allocator>& dst, const Matrix<T2, Mapper1, Allocator>& src )
    {
+      if ( !dst.sizex() || !dst.sizey() || !src.sizex() || !src.sizey() )
+      {
+         // one of the dimension is empty so don't do anything
+         return;
+      }
+
       assert( dst.sizex() == src.sizex() );
       assert( dst.sizey() == src.sizey() );
       generic_add<T1*, const T2*>( dst.getBuf(), src.getBuf(), dst.size() );
@@ -62,6 +68,12 @@ namespace core
    template <class T1, class Mapper1, class T2, class Allocator>
    void sub( Matrix<T1, Mapper1, Allocator>& dst, const Matrix<T2, Mapper1, Allocator>& src )
    {
+      if ( !dst.sizex() || !dst.sizey() || !src.sizex() || !src.sizey() )
+      {
+         // one of the dimension is empty so don't do anything
+         return;
+      }
+
       assert( dst.sizex() == src.sizex() );
       assert( dst.sizey() == src.sizey() );
       generic_sub<T1*, const T2*>( dst.getBuf(), src.getBuf(), dst.size() );

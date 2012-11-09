@@ -269,7 +269,7 @@ namespace algorithm
          return _g;
       }
 
-      const VectorI& getId() const
+      const VectorI& getDomain() const
       {
          return _id;
       }

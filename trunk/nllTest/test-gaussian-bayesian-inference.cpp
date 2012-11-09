@@ -114,6 +114,7 @@ public:
    typedef algorithm::PotentialTable               Factor;
    typedef algorithm::BayesianNetwork<Factor>      BayesianNetwork;
    typedef algorithm::PotentialLinearGaussian      Factorg;
+   typedef algorithm::PotentialGaussianMoment      Factorm;
    typedef algorithm::BayesianNetwork<Factorg>     BayesianNetworkg;
 
    static std::auto_ptr<BayesianNetwork> buildSprinklerNet()
@@ -623,12 +624,12 @@ public:
       Potential::Vector meanR = core::make_buffer1D<double>( 50 );
       Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
       Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
-      Potential potR( meanR, covR, idR );
+      Potential potR( Factorm( meanR, covR, idR ) );
 
       Potential::Vector meanC = core::make_buffer1D<double>( 15 );
       Potential::Matrix covC( 1, 1 ); covC[ 0 ] = 0.5;
       Potential::VectorI idC = core::make_buffer1D<size_t>( (int)C );
-      Potential potC( meanC, covC, idC );
+      Potential potC( Factorm( meanC, covC, idC ) );
 
       Potential::Vector meanS = core::make_buffer1D<double>( 30 );
       Potential::Matrix covS( 1, 1 ); covS[ 0 ] = 3;
@@ -638,7 +639,7 @@ public:
       std::vector<Potential::Dependency> dpsS;
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potC, EmptyDeleter<Potential>() ), wS[ 0 ] ) );
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potR, EmptyDeleter<Potential>() ), wS[ 1 ] ) );
-      Potential potS( meanS, covS, idS, dpsS );
+      Potential potS( Factorm( meanS, covS, idS ), dpsS );
 
       algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
       algorithm::PotentialGaussianCanonical pots = potS.toGaussianCanonical();
@@ -684,7 +685,7 @@ public:
       Potential::Vector meanX1 = core::make_buffer1D<double>( 1 );
       Potential::Matrix covX1( 1, 1 ); covX1[ 0 ] = 4;
       Potential::VectorI idX1 = core::make_buffer1D<size_t>( 3 );
-      Potential potX1( meanX1, covX1, idX1 );
+      Potential potX1( Factorm( meanX1, covX1, idX1 ) );
 
       Dependency dependencyX2( std::shared_ptr<Potential>( &potX1, EmptyDeleter<Potential>() ), 0.5 );
       Dependencies dependenciesX2;
@@ -692,7 +693,7 @@ public:
       Potential::Vector meanX2 = core::make_buffer1D<double>( -3.5 );
       Potential::Matrix covX2( 1, 1 ); covX2[ 0 ] = 4;
       Potential::VectorI idX2 = core::make_buffer1D<size_t>( 2 );
-      Potential potX2( meanX2, covX2, idX2, dependenciesX2 );
+      Potential potX2( Factorm( meanX2, covX2, idX2 ), dependenciesX2 );
 
       Dependency dependencyX3( std::shared_ptr<Potential>( &potX2, EmptyDeleter<Potential>() ), -1 );
       Dependencies dependenciesX3;
@@ -700,7 +701,7 @@ public:
       Potential::Vector meanX3 = core::make_buffer1D<double>( 1 );
       Potential::Matrix covX3( 1, 1 ); covX3[ 0 ] = 3;
       Potential::VectorI idX3 = core::make_buffer1D<size_t>( 1 );
-      Potential potX3( meanX3, covX3, idX3, dependenciesX3 );
+      Potential potX3( Factorm( meanX3, covX3, idX3 ), dependenciesX3 );
 
       potX3.toGaussianCanonical();
 
@@ -738,21 +739,21 @@ public:
       Potential::Vector meanW = core::make_buffer1D<double>( 2 );
       Potential::Matrix covW( 1, 1 ); covW[ 0 ] = 1.2;
       Potential::VectorI idW = core::make_buffer1D<size_t>( (int)W );
-      Potential potW( meanW, covW, idW );
+      Potential potW( Factorm( meanW, covW, idW ) );
 
       Potential::Vector meanR = core::make_buffer1D<double>( 50 );
       Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
       Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
       std::vector<Potential::Dependency> dpsR;
       dpsR.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.1 ) );
-      Potential potR( meanR, covR, idR, dpsR );
+      Potential potR( Factorm( meanR, covR, idR ), dpsR );
 
       Potential::Vector meanC = core::make_buffer1D<double>( 15 );
       Potential::Matrix covC( 1, 1 ); covC[ 0 ] = 0.5;
       Potential::VectorI idC = core::make_buffer1D<size_t>( (int)C );
       std::vector<Potential::Dependency> dpsC;
       dpsC.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.2 ) );
-      Potential potC( meanC, covC, idC, dpsC );
+      Potential potC( Factorm( meanC, covC, idC ), dpsC );
 
       Potential::Vector meanS = core::make_buffer1D<double>( 30 );
       Potential::Matrix covS( 1, 1 ); covS[ 0 ] = 3;
@@ -762,7 +763,7 @@ public:
       std::vector<Potential::Dependency> dpsS;
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potC, EmptyDeleter<Potential>() ), wS[ 0 ] ) );
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potR, EmptyDeleter<Potential>() ), wS[ 1 ] ) );
-      Potential potS( meanS, covS, idS, dpsS );
+      Potential potS( Factorm( meanS, covS, idS ), dpsS );
 
       algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
       algorithm::PotentialGaussianCanonical pots = potS.toGaussianCanonical();
@@ -816,21 +817,21 @@ public:
       Potential::Vector meanW = core::make_buffer1D<double>( 2 );
       Potential::Matrix covW( 1, 1 ); covW[ 0 ] = 1.2;
       Potential::VectorI idW = core::make_buffer1D<size_t>( (int)W );
-      Potential potW( meanW, covW, idW );
+      Potential potW( Factorm( meanW, covW, idW ) );
 
       Potential::Vector meanR = core::make_buffer1D<double>( 50 );
       Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
       Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
       std::vector<Potential::Dependency> dpsR;
       dpsR.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.1 ) );
-      Potential potR( meanR, covR, idR, dpsR );
+      Potential potR( Factorm( meanR, covR, idR ), dpsR );
 
       Potential::Vector meanC = core::make_buffer1D<double>( 15 );
       Potential::Matrix covC( 1, 1 ); covC[ 0 ] = 0.5;
       Potential::VectorI idC = core::make_buffer1D<size_t>( (int)C );
       std::vector<Potential::Dependency> dpsC;
       dpsC.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.2 ) );
-      Potential potC( meanC, covC, idC, dpsC );
+      Potential potC( Factorm( meanC, covC, idC ), dpsC );
 
       Potential::Vector meanS = core::make_buffer1D<double>( 30 );
       Potential::Matrix covS( 1, 1 ); covS[ 0 ] = 3;
@@ -842,7 +843,7 @@ public:
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potC, EmptyDeleter<Potential>() ), 1 ) );
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potR, EmptyDeleter<Potential>() ), 2 ) );
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.0 ) );
-      Potential potS( meanS, covS, idS, dpsS );
+      Potential potS( Factorm( meanS, covS, idS ), dpsS );
 
       algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
       algorithm::PotentialGaussianCanonical pots = potS.toGaussianCanonical();
@@ -893,26 +894,26 @@ public:
       Potential::Vector meanX = core::make_buffer1D<double>( 3 );
       Potential::Matrix covX( 1, 1 ); covX[ 0 ] = 2.2;
       Potential::VectorI idX = core::make_buffer1D<size_t>( (int)X );
-      Potential potX( meanX, covX, idX );
+      Potential potX( Factorm( meanX, covX, idX ) );
 
       Potential::Vector meanW = core::make_buffer1D<double>( 2 );
       Potential::Matrix covW( 1, 1 ); covW[ 0 ] = 1.2;
       Potential::VectorI idW = core::make_buffer1D<size_t>( (int)W );
-      Potential potW( meanW, covW, idW );
+      Potential potW( Factorm( meanW, covW, idW ) );
 
       Potential::Vector meanR = core::make_buffer1D<double>( 50 );
       Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
       Potential::VectorI idR = core::make_buffer1D<size_t>( (int)R );
       std::vector<Potential::Dependency> dpsR;
       dpsR.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.2 ) );
-      Potential potR( meanR, covR, idR, dpsR );
+      Potential potR( Factorm( meanR, covR, idR ), dpsR );
 
       Potential::Vector meanC = core::make_buffer1D<double>( 15 );
       Potential::Matrix covC( 1, 1 ); covC[ 0 ] = 0.5;
       Potential::VectorI idC = core::make_buffer1D<size_t>( (int)C );
       std::vector<Potential::Dependency> dpsC;
       dpsC.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potX, EmptyDeleter<Potential>() ), 0.1 ) );
-      Potential potC( meanC, covC, idC, dpsC );
+      Potential potC( Factorm( meanC, covC, idC ), dpsC );
 
       Potential::Vector meanS = core::make_buffer1D<double>( 30 );
       Potential::Matrix covS( 1, 1 ); covS[ 0 ] = 3;
@@ -925,7 +926,7 @@ public:
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potR, EmptyDeleter<Potential>() ), 2 ) );
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potX, EmptyDeleter<Potential>() ), 0.2 ) );
       dpsS.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potW, EmptyDeleter<Potential>() ), 0.4 ) );
-      Potential potS( meanS, covS, idS, dpsS );
+      Potential potS( Factorm( meanS, covS, idS ), dpsS );
 
       algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();
       algorithm::PotentialGaussianCanonical pots = potS.toGaussianCanonical();
@@ -992,7 +993,7 @@ public:
       covWX( 1, 0 ) = 0.1;
       covWX( 1, 1 ) = 1.2;
       Potential::VectorI idWX = core::make_buffer1D<size_t>( (int)X, (int)W );
-      Potential potWX( meanWX, covWX, idWX );
+      Potential potWX( Factorm( meanWX, covWX, idWX ) );
 
       Potential::Vector meanR = core::make_buffer1D<double>( 50 );
       Potential::Matrix covR( 1, 1 ); covR[ 0 ] = 0.1;
@@ -1000,7 +1001,7 @@ public:
       std::vector<Potential::Dependency> dpsR;
       const double weight = 0.2;
       dpsR.push_back( Potential::Dependency( std::shared_ptr<Potential>( &potWX, EmptyDeleter<Potential>() ), weight ) );
-      Potential potR( meanR, covR, idR, dpsR );
+      Potential potR( Factorm( meanR, covR, idR ), dpsR );
 
 
       algorithm::PotentialGaussianCanonical potr = potR.toGaussianCanonical();

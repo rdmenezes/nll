@@ -41,30 +41,22 @@ namespace algorithm
 {
    /**
     @ingroup algorithm
-    @brief represent a potential constructed as discrete events
+    @brief Potential class holding table of values
 
-    Table is stored as: consider a new base DomainVar3 | DomainVar2 | DomainVar1,
-    potential(DomainVar3 = v3, DomainVar2 = v2, DomainVar1 = v1 ) = x
-    and is stored at index = ( v3 * #DomainVar2 * #DomainVar1 +
-                               v2 * #DomainVar1 +
-                               v1 )
-
-    The table can model only p( a | b, c, ... x )
-                          or p( a,  b, c, ... x )  so that domain[ a ] < domain[ b ] < ... < domain[ x ]
-                          or a single value with no domain
-
-    The domain is ordered, meaning that in a graph, the parent nodes must have a higher domain than the children.
-    (this is used in <BayesianNetworkSampling> to help with predecessors, and helpful for performance e.g., domain merge)
+    Since it is generic, only the method for accessing and storing are provided in this class
+    @sa PotentialTable
     */
-   class PotentialTable
+   template <class T>
+   class PotentialTableGeneric
    {
    public:
-      typedef double                      value_type;
-      typedef size_t                      value_typei;
-      typedef core::Matrix<value_type>    Matrix;
-      typedef core::Buffer1D<value_type>  Vector;
-      typedef core::Buffer1D<size_t>      VectorI;
-      typedef VectorI                     EvidenceValue;
+      typedef T                              value_stored;
+      typedef double                         value_type;
+      typedef size_t                         value_typei;
+      typedef core::Matrix<value_type>       Matrix;
+      typedef core::Buffer1D<value_stored>   Vector;
+      typedef core::Buffer1D<size_t>         VectorI;
+      typedef VectorI                        EvidenceValue;
 
    public:
       /**
@@ -110,7 +102,7 @@ namespace algorithm
                                                             0.01
                                                             0.99
                                                             */
-      PotentialTable( const Vector& table, const VectorI domain, const VectorI& cardinality )
+      PotentialTableGeneric( const Vector& table, const VectorI domain, const VectorI& cardinality )
       {
          const size_t expectedTableSize = getTableSize( cardinality );
          ensure( expectedTableSize == table.size(), "missing table entries" );
@@ -121,6 +113,344 @@ namespace algorithm
          _table = table;
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
       }
+
+      // empty table
+      PotentialTableGeneric()
+      {}
+
+      virtual ~PotentialTableGeneric()
+      {}
+
+      void print( std::ostream& o ) const
+      {
+         o << "Potential Table:" << std::endl;
+         o << "Domain=" ;
+         _domain.print( o );
+         o << "Cardinality=" ;
+         _cardinality.print( o );
+         o << "Table=" << std::endl;
+         _table.print( o );
+      }
+
+      /**
+       @brief returns the probability stored in the table and associated to the provided event
+       @note this is a convenient way to initialize the table but it is not very performant...
+       @param evidence the evidence for all the table variable!
+       */
+      value_stored& getValue( const VectorI& event )
+      {
+         ensure( event.size() == _domain.size(), "all variables must be specified!" );
+
+         // first compute the strides
+         std::vector<size_t> strides;
+         computeStrides( strides );
+
+         // now compute the table index
+         const size_t index = getIndexFromEvent( strides, event );
+         return _table[ index ];
+      }
+
+      /**
+       @brief Create a potential out of two potentials representing a joint probability
+       */
+      virtual PotentialTableGeneric operator*( const PotentialTableGeneric& g2 ) const
+      {
+         // no more computations, the other one is empty!
+         if ( getDomain().size() == 0 && g2.getDomain().size() == 0 )
+         {
+            return PotentialTableGeneric();
+         }
+         if ( g2.getDomain().size() == 0 )
+            return *this;
+         if ( getDomain().size() == 0 )
+            return g2;
+
+         PotentialTableGeneric extended1 = extendDomain( g2.getDomain(), g2.getCardinality() );
+         PotentialTableGeneric extended2 = g2.extendDomain( _domain, _cardinality );
+         const size_t size = extended1.getTable().size();
+         for ( size_t n = 0; n < size; ++n )
+         {
+            extended1._table[ n ] *= extended2.getTable()[ n ];
+         }
+         return extended1;
+      }
+
+      /**
+       @brief Given the current domain, extend the table to another domain
+      
+       e.g., we have P(X), extend the scope to include Y such that the table represents P(X|Y)
+       then we have P(X=xi | Y=yj) = P(X=xi) for all j
+       if instead the table represents P(X,Y) we need to renormalize the table
+       */
+      PotentialTableGeneric extendDomain( const VectorI& domain, const VectorI& cardinality ) const
+      {
+         ensure( isDomainSorted( domain ), "domain must be sorted first" );
+
+         VectorI newDomain;
+         VectorI newCardinality;
+         Vector newTable = extend( domain, cardinality, newDomain, newCardinality );
+         return PotentialTableGeneric( newTable, newDomain, newCardinality );
+      }
+
+      const VectorI& getDomain() const
+      {
+         return _domain;
+      }
+
+      const VectorI& getCardinality() const
+      {
+         return _cardinality;
+      }
+
+      const Vector& getTable() const
+      {
+         return _table;
+      }
+
+      static bool isDomainSorted( const VectorI& domain )
+      {
+         if ( domain.size() == 0 )
+            return true;
+         for ( size_t n = 0; n < domain.size() - 1; ++n )
+         {
+            if ( domain[ n ] >= domain[ n + 1 ] )
+               return false;
+         }
+         return true;
+      }
+
+   protected:
+      /**
+       @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
+       */
+      template <class VectorT>
+      size_t getIndexFromEvent( const std::vector<size_t>& strides, const VectorT& evidenceValue ) const
+      {
+         size_t index = 0;
+         ensure( strides.size() == _domain.size(), "must be the same size!" );
+         ensure( evidenceValue.size() == _domain.size(), "must be the same size!" );
+
+         for ( size_t i = 0; i < evidenceValue.size(); ++i )
+         {
+            index += evidenceValue[ i ] * strides[ i ];
+         }
+         return index;
+      }
+
+      /**
+       @brief Given the internal domain and domain's cardinality, computes for each domain variable its stride (i.e., each time a variable is increased by one,
+              the index in the table domain is updated by <stride>
+       */
+      void computeStrides( std::vector<size_t>& strides ) const
+      {
+         strides = std::vector<size_t>( _domain.size() );
+         size_t stride = 1;
+         for ( size_t n = 0; n < _domain.size(); ++n )
+         {
+            strides[ n ] = stride;
+            stride *= _cardinality[ n ];
+         }
+      }
+
+      template <class VectorT>
+      size_t getTableSize( const VectorT& cardinality ) const
+      {
+         size_t tableSize = 1;
+         for ( size_t n = 0; n < cardinality.size(); ++n )
+         {
+            tableSize *= cardinality[ n ];
+         }
+         return tableSize;
+      }
+
+      // given the current domain, extend the table to another domain
+      // e.g., we have P(X), extend the scope to include Y such that the table represents P(X|Y)
+      // then we have P(X=xi | Y=yj) = P(X=xi) for all j
+      // if instead the table represents P(X,Y) we need to renormalize the table
+      Vector extend( const VectorI& domain, const VectorI& cardinality, VectorI& newDomain_out, VectorI& newCardinality_out ) const
+      {
+         ensure( domain.size() == cardinality.size(), "args don't match" );
+
+         std::vector<size_t> newDomain;
+         std::vector<size_t> newCardinality;
+         std::vector<char> newDomainBelongs;
+         std::vector<size_t> stride;
+         joinDomain( _domain, _cardinality, domain, cardinality, newDomain, newCardinality, newDomainBelongs, stride );
+         stride.push_back( 0 );  // we add an extra cell to facilitate counting
+
+         const size_t size = getTableSize( newCardinality );
+         Vector newTable( size );
+
+         size_t index = 0;
+         const size_t nbId = (size_t)newDomain.size();
+         std::vector<size_t> cpt( newDomain.size() + 1 );
+         size_t indexTable = 0;
+         while ( cpt[ nbId ] == 0)
+         {
+            newTable[ indexTable ] = _table[ index ];
+
+            ++cpt[ 0 ];
+            ++indexTable;
+            if ( newDomainBelongs[ 0 ] == 0 )
+            {
+               ++index;
+            }
+            for ( size_t id = 0; id < nbId; ++id )
+            {
+               if ( cpt[ id ] >= newCardinality[ id ] )
+               {
+                  index -= stride[ id ] * newCardinality[ id ];
+                  index += stride[ id + 1 ];
+                  ++cpt[ id + 1 ];
+                  cpt[ id ] = 0;
+               } else {
+                  break;
+               }
+            }
+         }
+
+         newDomain_out      = VectorI( nbId );
+         newCardinality_out = VectorI( nbId );
+         std::copy( newDomain.begin(), newDomain.end(), newDomain_out.begin() );
+         std::copy( newCardinality.begin(), newCardinality.end(), newCardinality_out.begin() );
+
+         return newTable;
+      }
+
+      // join the two domains <d1, d2> resulting in <outNewDomain> holding the ids and <outDomainBelongs> = 0, means this id is from domain 1, else only domain 2 (if d1 & d2, it prefers d1)
+      // the stride is the index displacement relating to the domain d1
+      static void joinDomain( const VectorI& d1, const VectorI& cardinality1,
+                              const VectorI& d2, const VectorI& cardinality2,
+                              std::vector<size_t>& newDomain, std::vector<size_t>& newCardinality, std::vector<char>& newDomainBelongs, std::vector<size_t>& stride )
+      {
+         size_t n1 = 0;
+         size_t n2 = 0;
+         size_t accum = 1;
+         while (1)
+         {
+            const size_t id1 = ( n1 < d1.size() ) ? d1[ n1 ] : std::numeric_limits<size_t>::max();
+            const size_t id2 = ( n2 < d2.size() ) ? d2[ n2 ] : std::numeric_limits<size_t>::max();
+
+            if ( id1 < id2 )
+            {
+               newDomain.push_back( id1 );
+               newDomainBelongs.push_back( 0 );
+               newCardinality.push_back( cardinality1[ n1 ] );
+               stride.push_back( accum );
+               accum *= cardinality1[ n1 ];
+               ++n1;
+            } else if ( id2 < id1 )
+            {
+               newDomain.push_back( id2 );
+               newDomainBelongs.push_back( 1 );
+               newCardinality.push_back( cardinality2[ n2 ] );
+               stride.push_back( 0 );
+               ++n2;
+            } else {
+               // equal!
+               newDomain.push_back( id1 );
+               newDomainBelongs.push_back( 0 );
+               newCardinality.push_back( cardinality1[ n1 ] );
+               assert( cardinality1[ n1 ] == cardinality2[ n2 ] );   // if we have the same domain id, we must have the same cardinality
+
+               stride.push_back( accum );
+               accum *= cardinality1[ n1 ];
+
+               ++n1;
+               ++n2;
+            }
+
+            if ( n1 == d1.size() && n2 == d2.size() )
+               break;
+         }
+      }
+
+   protected:
+      Vector   _table;
+      VectorI  _cardinality;
+      VectorI  _domain;
+   };
+
+   /**
+    @ingroup algorithm
+    @brief represent a potential constructed as discrete events
+
+    Table is stored as: consider a new base DomainVar3 | DomainVar2 | DomainVar1,
+    potential(DomainVar3 = v3, DomainVar2 = v2, DomainVar1 = v1 ) = x
+    and is stored at index = ( v3 * #DomainVar2 * #DomainVar1 +
+                               v2 * #DomainVar1 +
+                               v1 )
+
+    The table can model only p( a | b, c, ... x )
+                          or p( a,  b, c, ... x )  so that domain[ a ] < domain[ b ] < ... < domain[ x ]
+                          or a single value with no domain
+
+    The domain is ordered, meaning that in a graph, the parent nodes must have a higher domain than the children.
+    (this is used in <BayesianNetworkSampling> to help with predecessors, and helpful for performance e.g., domain merge)
+    */
+   class PotentialTable : public PotentialTableGeneric<double>
+   {
+   public:
+      typedef PotentialTableGeneric<double> Base;
+
+      typedef Base::value_stored    value_stored;
+      typedef Base::value_type      value_type;
+      typedef Base::value_typei     value_typei;
+      typedef Base::Matrix          Matrix;
+      typedef Base::Vector          Vector;
+      typedef Base::VectorI         VectorI;
+      typedef Base::EvidenceValue   EvidenceValue;
+
+   public:
+      /**
+       @brief table the table of events annotated with the corresponding probability
+
+       Cardinality = [2 2] // for each variable, there are 2 discrete possibilities
+       event  A B
+       ex: T[ 0 0 ] = 0.01 | index = 0
+           T[ 0 1 ] = 0.25 | index = 1
+           T[ 1 0 ] = 0.05 | index = 2
+           T[ 1 1 ] = 0.75 | index = 3
+
+        For example index = 1, represents p(A=false, B=true) = 0.25
+
+        Format that must be followed:
+          for a bayesian network the parent nodes must have a higher domain than the current node, consequently
+          the table will be stored with domain[0] being the probability
+
+          See a working example: BNT of 4 nodes with Cloudy->Sprinkler, Cloudy->Rainy, Sprinkler->Wet, Rainy->Wet dependencies
+                                         Cloudy (domain = 3)
+                                         Sprinkler (domain = 2)
+                                         Rainy (domain = 1)
+                                         Wet (domain = 0)
+
+           The table will be stored as:
+            P(Cloudy)
+            Cloudy  p(C=t)    p(C=f)  =>   table encoding = 0.5  table index = 0
+                     0.5        0.5                         0.5                1
+
+            P(Rainy|Cloudy)
+            Rainy  C P(R=t)   p(R=f)  =>   table encoding = 0.2                0
+                   f 0.8      0.2                           0.8                1
+                   t 0.2      0.8                           0.8                2
+                                                            0.2                3
+
+            P(Wet|Rainy,Cloudy)
+            Wet  S R P(W=f)  P(W=t)   =>   table encoding = 1
+                 f f 1       0                              0
+                 t f 0.1     0.9                            0.1
+                 f t 0.1     0.9                            0.9
+                 t t 0.01    0.99                           0.1
+                                                            0.9
+                                                            0.01
+                                                            0.99
+                                                            */
+      PotentialTable( const Vector& table, const VectorI domain, const VectorI& cardinality ) : PotentialTableGeneric( table, domain, cardinality )
+      {}
+
+      // we want to be careful here: PotentialTable() is very different from PotentialTableGeneric()
+      explicit PotentialTable( const PotentialTableGeneric& table  ) : PotentialTableGeneric( table )
+      {}
 
       /**
        @brief same as before but set all probabilities to zero
@@ -214,17 +544,6 @@ namespace algorithm
          normalizeConditional();
       }
 
-      void print( std::ostream& o ) const
-      {
-         o << "Potential Table:" << std::endl;
-         o << "Domain=" ;
-         _domain.print( o );
-         o << "Cardinality=" ;
-         _cardinality.print( o );
-         o << "Table=" << std::endl;
-         _table.print( o );
-      }
-
       /**
        @brief Given a representing PDF p( X, Y ), compute p( X ) by integrating over Y
        @param varIndexToRemove refering to the Y above
@@ -240,24 +559,6 @@ namespace algorithm
             p = p.marginalization( varIndexToRemove[ n ] );
          }
          return p;
-      }
-
-      /**
-       @brief returns the probability stored in the table and associated to the provided event
-       @note this is a convenient way to initialize the table but it is not very performant...
-       @param evidence the evidence for all the table variable!
-       */
-      value_type& getProbability( const VectorI& event )
-      {
-         ensure( event.size() == _domain.size(), "all variables must be specified!" );
-
-         // first compute the strides
-         std::vector<size_t> strides;
-         computeStrides( strides );
-
-         // now compute the table index
-         const size_t index = getIndexFromEvent( strides, event );
-         return _table[ index ];
       }
 
       /**
@@ -332,119 +633,12 @@ namespace algorithm
          }
       }
 
-      /**
-       @brief Create a potential out of two potentials representing a joint probability
-       */
-      PotentialTable operator*( const PotentialTable& g2 ) const
+      virtual PotentialTable operator*( const PotentialTable& g2 ) const
       {
-         // no more computations, the other one is empty!
-         if ( getDomain().size() == 0 && g2.getDomain().size() == 0 )
-         {
-            return PotentialTable();
-         }
-         if ( g2.getDomain().size() == 0 )
-            return *this;
-         if ( getDomain().size() == 0 )
-            return g2;
-
-         PotentialTable extended1 = extendDomain( g2.getDomain(), g2.getCardinality() );
-         PotentialTable extended2 = g2.extendDomain( _domain, _cardinality );
-         const size_t size = extended1.getTable().size();
-         for ( size_t n = 0; n < size; ++n )
-         {
-            extended1._table[ n ] *= extended2.getTable()[ n ];
-         }
-         return extended1;
-      }
-
-      /**
-       @brief Given the current domain, extend the table to another domain
-      
-       e.g., we have P(X), extend the scope to include Y such that the table represents P(X|Y)
-       then we have P(X=xi | Y=yj) = P(X=xi) for all j
-       if instead the table represents P(X,Y) we need to renormalize the table
-       */
-      PotentialTable extendDomain( const VectorI& domain, const VectorI& cardinality ) const
-      {
-         ensure( isDomainSorted( domain ), "domain must be sorted first" );
-
-         VectorI newDomain;
-         VectorI newCardinality;
-         Vector newTable = extend( domain, cardinality, newDomain, newCardinality );
-         return PotentialTable( newTable, newDomain, newCardinality );
-      }
-
-      const VectorI& getDomain() const
-      {
-         return _domain;
-      }
-
-      const VectorI& getCardinality() const
-      {
-         return _cardinality;
-      }
-
-      const Vector& getTable() const
-      {
-         return _table;
-      }
-
-      static bool isDomainSorted( const VectorI& domain )
-      {
-         if ( domain.size() == 0 )
-            return true;
-         for ( size_t n = 0; n < domain.size() - 1; ++n )
-         {
-            if ( domain[ n ] >= domain[ n + 1 ] )
-               return false;
-         }
-         return true;
+         return PotentialTable( Base::operator*( g2 ) );
       }
 
    private:
-      /**
-       @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
-       */
-      template <class VectorT>
-      size_t getIndexFromEvent( const std::vector<size_t>& strides, const VectorT& evidenceValue ) const
-      {
-         size_t index = 0;
-         ensure( strides.size() == _domain.size(), "must be the same size!" );
-         ensure( evidenceValue.size() == _domain.size(), "must be the same size!" );
-
-         for ( size_t i = 0; i < evidenceValue.size(); ++i )
-         {
-            index += evidenceValue[ i ] * strides[ i ];
-         }
-         return index;
-      }
-
-      /**
-       @brief Given the internal domain and domain's cardinality, computes for each domain variable its stride (i.e., each time a variable is increased by one,
-              the index in the table domain is updated by <stride>
-       */
-      void computeStrides( std::vector<size_t>& strides ) const
-      {
-         strides = std::vector<size_t>( _domain.size() );
-         size_t stride = 1;
-         for ( size_t n = 0; n < _domain.size(); ++n )
-         {
-            strides[ n ] = stride;
-            stride *= _cardinality[ n ];
-         }
-      }
-
-      template <class VectorT>
-      size_t getTableSize( const VectorT& cardinality ) const
-      {
-         size_t tableSize = 1;
-         for ( size_t n = 0; n < cardinality.size(); ++n )
-         {
-            tableSize *= cardinality[ n ];
-         }
-         return tableSize;
-      }
-
       /**
        @brief compute P( X, E = e ), i.e. this is unormalized
        @param pe_out if != 0, computes and export P(E) to easily compute P( X | E = e ) = P( X, E ) / P( E )
@@ -552,113 +746,6 @@ namespace algorithm
 
          return PotentialTable( newTable, newDomain, newCardinality );
       }
-
-      // given the current domain, extend the table to another domain
-      // e.g., we have P(X), extend the scope to include Y such that the table represents P(X|Y)
-      // then we have P(X=xi | Y=yj) = P(X=xi) for all j
-      // if instead the table represents P(X,Y) we need to renormalize the table
-      Vector extend( const VectorI& domain, const VectorI& cardinality, VectorI& newDomain_out, VectorI& newCardinality_out ) const
-      {
-         ensure( domain.size() == cardinality.size(), "args don't match" );
-
-         std::vector<size_t> newDomain;
-         std::vector<size_t> newCardinality;
-         std::vector<char> newDomainBelongs;
-         std::vector<size_t> stride;
-         joinDomain( _domain, _cardinality, domain, cardinality, newDomain, newCardinality, newDomainBelongs, stride );
-         stride.push_back( 0 );  // we add an extra cell to facilitate counting
-
-         const size_t size = getTableSize( newCardinality );
-         Vector newTable( size );
-
-         size_t index = 0;
-         const size_t nbId = (size_t)newDomain.size();
-         std::vector<size_t> cpt( newDomain.size() + 1 );
-         size_t indexTable = 0;
-         while ( cpt[ nbId ] == 0)
-         {
-            newTable[ indexTable ] = _table[ index ];
-
-            ++cpt[ 0 ];
-            ++indexTable;
-            if ( newDomainBelongs[ 0 ] == 0 )
-            {
-               ++index;
-            }
-            for ( size_t id = 0; id < nbId; ++id )
-            {
-               if ( cpt[ id ] >= newCardinality[ id ] )
-               {
-                  index -= stride[ id ] * newCardinality[ id ];
-                  index += stride[ id + 1 ];
-                  ++cpt[ id + 1 ];
-                  cpt[ id ] = 0;
-               } else {
-                  break;
-               }
-            }
-         }
-
-         newDomain_out      = VectorI( nbId );
-         newCardinality_out = VectorI( nbId );
-         std::copy( newDomain.begin(), newDomain.end(), newDomain_out.begin() );
-         std::copy( newCardinality.begin(), newCardinality.end(), newCardinality_out.begin() );
-
-         return newTable;
-      }
-
-      // join the two domains <d1, d2> resulting in <outNewDomain> holding the ids and <outDomainBelongs> = 0, means this id is from domain 1, else only domain 2 (if d1 & d2, it prefers d1)
-      // the stride is the index displacement relating to the domain d1
-      static void joinDomain( const VectorI& d1, const VectorI& cardinality1,
-                              const VectorI& d2, const VectorI& cardinality2,
-                              std::vector<size_t>& newDomain, std::vector<size_t>& newCardinality, std::vector<char>& newDomainBelongs, std::vector<size_t>& stride )
-      {
-         size_t n1 = 0;
-         size_t n2 = 0;
-         size_t accum = 1;
-         while (1)
-         {
-            const size_t id1 = ( n1 < d1.size() ) ? d1[ n1 ] : std::numeric_limits<size_t>::max();
-            const size_t id2 = ( n2 < d2.size() ) ? d2[ n2 ] : std::numeric_limits<size_t>::max();
-
-            if ( id1 < id2 )
-            {
-               newDomain.push_back( id1 );
-               newDomainBelongs.push_back( 0 );
-               newCardinality.push_back( cardinality1[ n1 ] );
-               stride.push_back( accum );
-               accum *= cardinality1[ n1 ];
-               ++n1;
-            } else if ( id2 < id1 )
-            {
-               newDomain.push_back( id2 );
-               newDomainBelongs.push_back( 1 );
-               newCardinality.push_back( cardinality2[ n2 ] );
-               stride.push_back( 0 );
-               ++n2;
-            } else {
-               // equal!
-               newDomain.push_back( id1 );
-               newDomainBelongs.push_back( 0 );
-               newCardinality.push_back( cardinality1[ n1 ] );
-               assert( cardinality1[ n1 ] == cardinality2[ n2 ] );   // if we have the same domain id, we must have the same cardinality
-
-               stride.push_back( accum );
-               accum *= cardinality1[ n1 ];
-
-               ++n1;
-               ++n2;
-            }
-
-            if ( n1 == d1.size() && n2 == d2.size() )
-               break;
-         }
-      }
-
-   private:
-      Vector   _table;
-      VectorI  _cardinality;
-      VectorI  _domain;
    };
 }
 }
