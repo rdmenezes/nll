@@ -217,6 +217,11 @@ namespace algorithm
          return _mean;
       }
 
+      const VectorI& getDomain() const
+      {
+         return _id;
+      }
+
       void print( std::ostream& o ) const
       {
          o << "alpha=" << _alpha << std::endl
