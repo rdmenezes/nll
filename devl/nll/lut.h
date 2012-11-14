@@ -544,6 +544,35 @@ namespace imaging
       }
 
       /**
+       @brief Create a gaussian spike, useful to display the edges
+       @param stdDevRatio the stddev to be used, sepficied relative to the lut size (e.g., 0.2 means the stddev will be 0.2 * lutSize)
+       @param meanRatio the mean to be used, sepficied relative to the lut size (e.g., with 0.5, the means will be 0.2 * lutSize)
+       */
+      void createColorVolcano( const value_type* baseColor, double stdDevRatio = 0.2, double meanRatio = 0.5 )
+      {
+         // create the gaussian function
+         core::Matrix<double> variance( 1, 1 );
+         variance( 0, 0 ) = ( _lut.getSize() * stdDevRatio );
+         const core::Buffer1D<double> mean = core::make_buffer1D<double>( _lut.getSize() * meanRatio );
+         core::ProbabilityDistributionFunctionGaussian<double> pdf( variance, mean );
+
+         const double scaling = 1 / pdf.eval( mean ); // we want the mean to be the max
+
+         // create the LUT
+         core::Buffer1D<value_type> vals( _lut.getNbComponents() );
+         const ui32 nb = static_cast<ui32>( _lut.getSize() );
+         for ( ui32 n = 0; n < nb; ++n )
+         {
+            const double ratio = pdf.eval( core::make_buffer1D<double>( (double)n ) );
+            for ( size_t i = 0; i < _lut.getNbComponents(); ++i )
+            {
+               vals[ i ] = static_cast<value_type>( scaling * ratio * baseColor[ i ] );
+            }
+            set( n, vals.getBuf() );
+         }
+      }
+
+      /**
        @param baseColor an index that must contain getNbComponents() components
        */ 
       void createColorScale( const value_type* baseColor )

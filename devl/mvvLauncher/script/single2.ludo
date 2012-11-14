@@ -68,7 +68,7 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 20;
+   int index                        = 0;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
    VolumeID displayed1              = NULL;
@@ -125,7 +125,7 @@ class VolumeSwitchReg
 	  groundtruth = 0;
 
 	  string name = registrator.getTestMrVolume( index );
-	  name = "MR-6";
+	  //name = "MR-379";
 
       string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
       string volname = base + name;
@@ -138,9 +138,10 @@ class VolumeSwitchReg
       
 	  int id = 0;
 	  AffineRegistration tfm;
-      //tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
-	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
-	  tfmReg = AffineRegistration( t );
+      tfmReg = registrator.affinePlanarRegistrationMr( displayed2, id );
+	  
+	  //Matrix4f t = registrator.getRegistrationPrecomputed( "template_MR", name );
+	  //tfmReg = AffineRegistration( t );
 
 	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_MR", name ) );
 	  displayed1 = registrator.templates[id];
@@ -149,8 +150,9 @@ class VolumeSwitchReg
 	  holdery.set(registrator.getDebugY());
 	  holderz.set(registrator.getDebugZ());
 
-      volumes.add( displayed2, lut1, 1.0, tfmReg );
+      volumes.add( displayed2, lut1, 1.5, tfmReg );
       volumes.add( displayed1, lut2, 1.0 );
+	  //volumes.add( displayed1, lut2, 0.0 );
    }
 }
 
@@ -215,8 +217,10 @@ class LutSwitchReg
 
 
 
-Lut ctLut1( 0.0, 500.0, Vector3i( 0, 255, 0 ) );
-Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
+Lut ctLut1( 0.0, 500.0, Vector3i( 255, 0, 0 ) );
+//Lut ctLut1( 0.0, 500.0, Vector3i( 255, 255, 255 ) );
+Lut ctLut2( 32000.0, 55000.0, Vector3i( 0, 255, 0 ) );
+ctLut2.setVolcanoColor(Vector3i(0, 255, 0), 3.0, 0.4);
 //Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) ); 
 
 
@@ -260,7 +264,7 @@ segment2.setTool( annotations );
 
 Segment segment3( volumes, Vector3f( factor, 0.0, 0.0 ), Vector3f( 0.0, 0.0, factor ) );
 segment3.setTool( toolCentering );
-segment3.setTool( manipultors );
+//segment3.setTool( manipultors );
 segment3.setTool( annotations );
 //segment3.setInterpolator( typename Segment::Nearest() );
 

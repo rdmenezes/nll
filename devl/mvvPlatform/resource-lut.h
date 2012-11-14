@@ -82,6 +82,16 @@ namespace platform
       {
          return getValue().lut.getSize();
       }
+
+      /**
+       @brief Create a gaussian spike, useful to display the edges
+       @param stdDevRatio the stddev to be used, sepficied relative to the lut size (e.g., 0.2 means the stddev will be 0.2 * lutSize)
+       @param meanRatio the mean to be used, sepficied relative to the lut size (e.g., with 0.5, the means will be 0.2 * lutSize)
+       */
+      void createColorVolcano( const value_type* baseColor, double stdDevRatio = 0.2, double meanRatio = 0.5 )
+      {
+         getValue().lut.createColorVolcano( baseColor, stdDevRatio, meanRatio );
+      }
    };
 }
 }

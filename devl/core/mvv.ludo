@@ -164,6 +164,13 @@ class Lut
     @brief Adjust the range of the LUT so that <ratioVoxelKept> % voxels are displayed in the dynamic range
     */
    import void detectRange( VolumeID v, float ratioVoxelKept = 0.4 );
+
+   /**
+    @brief Create a gaussian spike, useful to display the edges
+    @param stdDevRatio the stddev to be used, sepficied relative to the lut size (e.g., 0.2 means the stddev will be 0.2 * lutSize)
+    @param meanRatio the mean to be used, sepficied relative to the lut size (e.g., with 0.5, the means will be 0.2 * lutSize)
+    */
+   import void setVolcanoColor( Vector3i color = Vector3i( 255, 255, 255 ), float stdDevRatio = 0.2, float meanRatio = 0.5 );
 }
 
 /**

@@ -68,7 +68,7 @@ namespace algorithm
    };
 
    template <class T1, class Storage1, class T2, class Storage2>
-   void computeHistogram( imaging::VolumeSpatial<T1, Storage1>& source, const imaging::TransformationAffine& tfmSourceTarget, const imaging::VolumeSpatial<T2, Storage2>& target, JointHistogram& histogram )
+   void computeHistogram_partialInterpolation( imaging::VolumeSpatial<T1, Storage1>& source, const imaging::TransformationAffine& tfmSourceTarget, const imaging::VolumeSpatial<T2, Storage2>& target, JointHistogram& histogram )
    {
       typedef imaging::VolumeSpatial<T1, Storage1> Volume1;
       typedef imaging::VolumeSpatial<T2, Storage2> Volume2

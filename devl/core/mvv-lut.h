@@ -326,4 +326,58 @@ private:
    mvv::platform::Context&    _context;
 };
 
+class FunctionLutSetVolcanoColor : public FunctionRunnable
+{
+   typedef platform::ResourceLut Pointee;
+
+public:
+   // We need these variables to be able to run the destructor
+   // volumeClass: the class declaration
+   // eval: the evaluator
+   FunctionLutSetVolcanoColor( const AstDeclFun* fun, mvv::platform::Context& context ) : FunctionRunnable( fun ), _context( context )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 4 )
+      {
+         throw std::runtime_error( "unexpected number of arguments, expecting VolumeID, float" );
+      }
+
+      RuntimeValue& v0 = unref( *args[ 0 ] );
+      RuntimeValue& v1 = unref( *args[ 1 ] );
+      RuntimeValue& v2 = unref( *args[ 2 ] );
+      RuntimeValue& v3 = unref( *args[ 3 ] );
+
+      nll::core::vector3i vals;
+      getVector3iValues( v1, vals );
+
+      if ( v2.type != RuntimeValue::CMP_FLOAT )
+      {
+         throw std::runtime_error( "float" );
+      }
+
+      if ( v3.type != RuntimeValue::CMP_FLOAT )
+      {
+         throw std::runtime_error( "float" );
+      }
+
+      // check we have the data
+      assert( (*v0.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* lut = reinterpret_cast<Pointee*>( (*v0.vals)[ 0 ].ref );
+
+      float colors[] = { vals[ 0 ], vals[ 1 ], vals[ 2 ] };
+      lut->createColorVolcano( colors, v2.floatval, v3.floatval );
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&    _context;
+};
+
+
+
 #endif

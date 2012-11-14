@@ -138,6 +138,8 @@ class VolumeSwitchReg
       displayed2 = readDicomVolume( volname );
 
       lut1.detectRange( displayed2, 0.5 );
+	  //lut1.setVolcanoColor(Vector3i(0, 255, 0), 10.8, 0.5);
+	  //lut1.set( 5000.01, 12000.05, Vector3i( 255, 0, 0 ) );
       
 	  int id = 0;
 	  AffineRegistration tfm;
@@ -226,9 +228,12 @@ class LutSwitchReg
 }
 
 
+Lut ctLut1( 0.0, 500.0, Vector3i( 255, 0, 0 ) );
+Lut ctLut2( 32000.0, 55000.0, Vector3i( 0, 255, 0 ) );
+ctLut2.setVolcanoColor(Vector3i(0, 255, 0), 3.0, 0.4);
 
-Lut ctLut1( 0.0, 500.0, Vector3i( 0, 255, 0 ) );
-Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
+//Lut ctLut1( 0.0, 500.0, Vector3i( 0, 255, 0 ) );
+//Lut ctLut2( 32000.0, 55000.0, Vector3i( 255, 0, 0 ) );
 //Lut ctLut2( 0.0, 0.5, Vector3i( 0, 255, 0 ) ); 
 
 

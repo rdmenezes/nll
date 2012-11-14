@@ -381,6 +381,6 @@ TESTER_TEST(testSurf3d);
 TESTER_TEST(testcartesianToSphericalCoordinate);
 TESTER_TEST(testRotation3d);
 TESTER_TEST(testRotation3dTfmId);
-//TESTER_TEST(testPointLocation);
+TESTER_TEST(testPointLocation);
 TESTER_TEST_SUITE_END();
 #endif

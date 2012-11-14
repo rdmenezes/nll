@@ -2845,6 +2845,13 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLutDetectRange( fn, context ) ) );
    }
 
+   {
+      Type* color = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "Lut"), platform::Symbol::create( "setVolcanoColor") ), nll::core::make_vector<const Type*>( color, new TypeFloat( false ), new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionLutSetVolcanoColor( fn, context ) ) );
+   }
+
    //
    // AffineRegistration
    //
