@@ -75,6 +75,12 @@
 
 #define PLACEMENT_NEW   new
 
+# ifdef _MSC_VER
+# define RESTRICT __declspec(restrict)
+#else
+# define RESTRICT
+#endif
+
 #define NLL_INSTRUCTION_SET_BASIC      0
 #define NLL_INSTRUCTION_SET_SSE        1
 #define NLL_INSTRUCTION_SET_SSE2       2
