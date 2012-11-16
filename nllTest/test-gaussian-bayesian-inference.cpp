@@ -36,6 +36,7 @@ namespace algorithm
          std::shared_ptr<PotentialLinearGaussianConditional>  potential;
          value_type weight;
       };
+      typedef std::vector<Dependency>  Dependencies;
 
       /**
        @brief instanciate a CLG with only continuous variables
@@ -56,16 +57,15 @@ namespace algorithm
        @param construct the potential given discrete and continuous variables
        @param discreteVariables the parent discrete variables
        */
-      PotentialLinearGaussianConditional( const PotentialTable& discreteVariables, const PotentialGaussianMoments& continuousVariables ) : _discreteVariables( discreteVariables ), _continuousVariables( continuousVariables )
+      PotentialLinearGaussianConditional( const PotentialTable& discreteVariables, const PotentialGaussianMoments& continuousVariables, const Dependencies& dependencies ) : _discreteVariables( discreteVariables ), _continuousVariables( continuousVariables ), _dependencies( dependencies )
       {
          ensure( discreteVariables.getTable().size() == continuousVariables.size(), "the node must have its own (mean, cov) for each instance of a discrete varaible" );
       }
 
-
-
    private:
       PotentialGaussianMoments   _continuousVariables;
       PotentialTable             _discreteVariables;
+      dependencies               _dependencies;
    };
 
    /**

@@ -102,16 +102,16 @@ namespace algorithm
                                                             0.01
                                                             0.99
                                                             */
-      PotentialTableGeneric( const Vector& table, const VectorI domain, const VectorI& cardinality )
+      PotentialTableGeneric( const Vector& table, const VectorI domain, const VectorI& cardinality ) : _table( table ), _domain( domain ), _cardinality( cardinality )
       {
          const size_t expectedTableSize = getTableSize( cardinality );
          ensure( expectedTableSize == table.size(), "missing table entries" );
          ensure( domain.size() == cardinality.size(), "missing id" );
-         ensure( isDomainSorted( domain ), "the domain must be sorted!" );
-         _domain = domain;
-         _cardinality = cardinality;
-         _table = table;
+         ensure( isDomainSorted( domain ), "the domain ust be sorted!" );
          ensure( ( domain.size() < 8 * sizeof( value_typei ) ), "the number of joined variable is way too big! (exponential in the size of the id)" );
+
+         // preprocess the strides as the domain can't be changed
+         computeStrides( _strides );
       }
 
       // empty table
@@ -134,19 +134,14 @@ namespace algorithm
 
       /**
        @brief returns the probability stored in the table and associated to the provided event
-       @note this is a convenient way to initialize the table but it is not very performant...
        @param evidence the evidence for all the table variable!
        */
       value_stored& getValue( const VectorI& event )
       {
          ensure( event.size() == _domain.size(), "all variables must be specified!" );
 
-         // first compute the strides
-         std::vector<size_t> strides;
-         computeStrides( strides );
-
          // now compute the table index
-         const size_t index = getIndexFromEvent( strides, event );
+         const size_t index = getIndexFromEvent( event );
          return _table[ index ];
       }
 
@@ -219,32 +214,32 @@ namespace algorithm
          return true;
       }
 
-   protected:
       /**
        @brief Given the strides of the domain's variables and an 'event' vector, return the corresponding table index
        */
       template <class VectorT>
-      size_t getIndexFromEvent( const std::vector<size_t>& strides, const VectorT& evidenceValue ) const
+      size_t getIndexFromEvent( const VectorT& evidenceValue ) const
       {
          size_t index = 0;
-         ensure( strides.size() == _domain.size(), "must be the same size!" );
+         ensure( _strides.size() == _domain.size(), "must be the same size!" );
          ensure( evidenceValue.size() == _domain.size(), "must be the same size!" );
 
          for ( size_t i = 0; i < evidenceValue.size(); ++i )
          {
-            index += evidenceValue[ i ] * strides[ i ];
+            index += evidenceValue[ i ] * _strides[ i ];
          }
          return index;
       }
 
+   protected:
       /**
        @brief Given the internal domain and domain's cardinality, computes for each domain variable its stride (i.e., each time a variable is increased by one,
               the index in the table domain is updated by <stride>
        */
-      void computeStrides( std::vector<size_t>& strides ) const
+      void computeStrides( VectorI& strides ) const
       {
          strides = std::vector<size_t>( _domain.size() );
-         size_t stride = 1;
+         VectorI::value_type stride = 1;
          for ( size_t n = 0; n < _domain.size(); ++n )
          {
             strides[ n ] = stride;
@@ -369,6 +364,7 @@ namespace algorithm
       Vector   _table;
       VectorI  _cardinality;
       VectorI  _domain;
+      VectorI  _strides;
    };
 
    /**
@@ -487,11 +483,9 @@ namespace algorithm
 
          // get the index in the table. As the main domain is alwyas domain[0], the probabilities we are interested in are contiguous and of size cardinality[0]
          // now given this set of probabilities, randomly sample a value
-         std::vector<size_t> strides;
-         computeStrides( strides );
 
          core::Buffer1D<float> pbs( _cardinality[ 0 ] );
-         const size_t baseIndex = getIndexFromEvent( strides, inout_evidenceWithoutMainDomain );
+         const size_t baseIndex = getIndexFromEvent( inout_evidenceWithoutMainDomain );
          for ( size_t i = 0; i < _cardinality[ 0 ]; ++i )
          {
             pbs[ i ] = (float)_table[ baseIndex + i ];
@@ -526,8 +520,6 @@ namespace algorithm
          }
 
          // do the counting
-         std::vector<size_t> strides;
-         computeStrides( strides );
          EvidenceValue event( _domain.size() );
          for ( size_t dataId = 0; dataId < fullyObservedData.size(); ++dataId )
          {
@@ -536,7 +528,7 @@ namespace algorithm
             {
                event[ n ] = fullEvent[ domainMapper[ n ] ];
             }
-            const size_t index = getIndexFromEvent( strides, event );
+            const size_t index = getIndexFromEvent( event );
             ++_table[ index ];
          }
 
