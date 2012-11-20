@@ -381,8 +381,8 @@ int main( int argc, char** argv )
 
       int nbThreads = 12; //8;
       //std::string mainScript = "../../mvvLauncher/script/dicomExport";
-      std::string mainScript = "../../mvvLauncher/script/single2";
-      //std::string mainScript = "../../mvvLauncher/script/single2Pt";
+      //std::string mainScript = "../../mvvLauncher/script/single2";
+      std::string mainScript = "../../mvvLauncher/script/single2Pt";
       //std::string mainScript = "../../mvvLauncher/script/single2Ct";
       //std::string mainScript = "../../mvvLauncher/script/single2Fdg";
       //std::string mainScript = "../../mvvLauncher/script/basic";

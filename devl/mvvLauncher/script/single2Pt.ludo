@@ -3,35 +3,6 @@ import "siemens"
 import "mvvDicomTools"
 
 include "helper1"
-//include "N:/Shared Folder/Ludovic/mvv-1.0/mvv-1.0.4/Registration/mrRegistrationData"
-/*
-string base = "C:/Users/Civo/Desktop/nll/RegistrationImpl/data/mr/";
-//string base = "C:/Users/Civo/Desktop/nll/RegistrationImpl/data/mrOldConversion/";
-
-string registrationVolumes[] =
-{
-	base + "MR2-281/",
-	base + "MR2-282/",
-	base + "MR2-283/",
-	base + "MR2-284/",
-	base + "MR2-285/",
-	base + "MR2-286/",
-	base + "MR2-287/",
-	base + "MR2-288/",
-	base + "MR2-289/",
-	base + "MR2-295/",
-	base + "MR2-298/",
-	base + "MR2-300/",
-	base + "MR4-290/",
-	base + "MR4-291/",
-	base + "MR4-292/",
-	base + "MR4-293/",
-	base + "MR4-294/",
-	base + "MR4-296/",
-	base + "MR4-297/",
-	base + "MR12-299/"
-};*/
-
 
 /**
  @note the following variables must have been defined:
@@ -68,9 +39,10 @@ VolumeContainer         volumes;
 
 class VolumeSwitchReg
 {
-   int index                        = 40;
+   int index                        = 0;
    Lut lut1                         = NULL;
    Lut lut2                         = NULL;
+   Lut lut3                         = NULL;
    VolumeID displayed1              = NULL;
    VolumeID displayed2              = NULL;
    DisplayRegionDetection detection = NULL;
@@ -84,10 +56,11 @@ class VolumeSwitchReg
    AffineRegistration tfmGroundTruth;
    AffineRegistration tfmReg;
 
-   VolumeSwitchReg( Lut l1, Lut l2, VolumeContainer vs, RegistrationMr reg, ImageHolder hx, ImageHolder hy, ImageHolder hz )
+   VolumeSwitchReg( Lut l1, Lut l2, Lut l3, VolumeContainer vs, RegistrationMr reg, ImageHolder hx, ImageHolder hy, ImageHolder hz )
    {
       lut1 = l1;
       lut2 = l2;
+	  lut3 = l3;
       volumes = vs;
 	  registrator = reg;
 
@@ -126,7 +99,14 @@ class VolumeSwitchReg
 
 	  //string name = registrator.getTestMrVolume( index );
 	  string name = registrator.getTestPtVolume( index );
-	  name = "PT-379";
+	  //name = "PT-413";
+	  //name = "PT-449";
+	  //name = "PT-508";
+	  //name = "PT-509";
+	  //name = "PT-399";
+	  //name = "PT-405";
+	  //name = "PT-411";
+	  //name = "PT-412";
 
       //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
 	  string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/pt/";
@@ -138,23 +118,33 @@ class VolumeSwitchReg
 
       lut1.detectRange( displayed2, 0.8 );
 	  //lut1.setVolcanoColor(Vector3i(0, 255, 0), 3.0, 0.6);
-	  //lut1.set( 5000.01, 12000.05, Vector3i( 255, 0, 0 ) );
+	  //lut1.set( 1.01, 5.05, Vector3i( 255, 0, 0 ) );
       
-	  int id = 0;
+	  int id = 1;
 	  AffineRegistration tfm;
-      //tfmReg = registrator.affinePlanarRegistrationPt( displayed2, id );
 
-	  Matrix4f t = registrator.getRegistrationPrecomputed( "template_PT", name );
-	  tfmReg = AffineRegistration( t );
+	  //-> recompute reg
+      tfmReg = registrator.affinePlanarRegistrationPt( displayed2, id );
+	  //-> OR get the result
+	  //Matrix4f t = registrator.getRegistrationPrecomputed( "template_PT", name ); tfmReg = AffineRegistration( t );
+	  //-> END
+
 	  tfmGroundTruth = AffineRegistration( registrator.getGoundTruth( "template_PT", name ) );
-	  displayed1 = registrator.templates[id];
+	  displayed1 = registrator.templates[0];
+	  VolumeID displayed1mask = registrator.templates[1];
+	  VolumeID displayed1roi = registrator.templates[2];
 
 	  holderx.set(registrator.getDebugX());
 	  holdery.set(registrator.getDebugY());
 	  holderz.set(registrator.getDebugZ());
 
       volumes.add( displayed2, lut1, 1.0, tfmReg );
-      volumes.add( displayed1, lut2, 1.0 );
+      volumes.add( displayed1, lut2, 0.2 );
+	  volumes.add( displayed1mask, lut3, 0.6 );
+	  volumes.add( displayed1roi, lut3, 0.25 );
+
+	  print("TEMPLATE=");
+	  print(registrator.templates[id]);
    }
 }
 
@@ -228,9 +218,10 @@ class LutSwitchReg
 
 
 
-Lut ctLut1( 0.0, 500.0, Vector3i( 255, 0, 0 ) );
+Lut ctLut1( 0.0, 500.0, Vector3i( 255, 255, 255 ) );
 Lut ctLut2( 32000.0, 55000.0, Vector3i( 0, 255, 0 ) );
 ctLut2.setVolcanoColor(Vector3i(0, 255, 0), 3.0, 0.4);
+Lut ctLut3( 0.0, 1.0, Vector3i( 255, 0, 0 ) );
 
 RegistrationMr registrator( "c:/tmp/templates.bin",
                             "c:/tmp/templatesPt.bin"  );
@@ -241,7 +232,7 @@ ImageHolder holderx;
 ImageHolder holdery;
 ImageHolder holderz;
 
-VolumeSwitchReg switch( ctLut1, ctLut2, volumes, registrator, holderx, holdery, holderz );
+VolumeSwitchReg switch( ctLut1, ctLut2, ctLut3, volumes, registrator, holderx, holdery, holderz );
 callbacks.addShortcut( switch.next, "F3" );
 
 
