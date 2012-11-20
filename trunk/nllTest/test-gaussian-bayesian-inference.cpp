@@ -65,7 +65,7 @@ namespace algorithm
    private:
       PotentialGaussianMoments   _continuousVariables;
       PotentialTable             _discreteVariables;
-      dependencies               _dependencies;
+      Dependencies               _dependencies;
    };
 
    /**
