@@ -377,6 +377,7 @@
 # include "quasi-periodicity-analysis.h"
 # include "estimator-affine2D-transformation.h"
 # include "estimator-affine-transformation.h"
+# include "transformation-reflection.h"
 # include "ransac.h"
 # include "sammon-projection.h"
 # include "ica.h"

@@ -821,6 +821,9 @@
       <Filter>algorithm-bayes</Filter>
     </ClInclude>
     <ClInclude Include="nll.h" />
+    <ClInclude Include="transformation-reflection.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

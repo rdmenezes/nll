@@ -38,6 +38,34 @@ namespace core
 {
    /**
     @ingroup core
+    @brief Renomalize the 4x4 affine homogeneous matrix ensuring the element tfm( 3, 3 ) = 1
+    @note most algorithms assume tfm( 3, 3 ) = 1
+    */
+   template <class T, class Mapper, class Alloc>
+   core::Matrix<T, Mapper, Alloc> resetHomogeneous4x4( const core::Matrix<T, Mapper, Alloc>& tfm )
+   {
+      ensure( tfm.sizex() == 4 && tfm.sizey() == 4, "must be a 4x4 matrix" );
+
+      core::Matrix<T, Mapper, Alloc> m = tfm.clone();
+      const T coef = tfm( 3, 3 );
+      for ( size_t y = 0; y < 3; ++y )
+      {
+         for ( size_t x = 0; x < 3; ++x )
+         {
+            m( y, x ) /= coef;
+         }
+      }
+
+      m( 0, 3 ) =  tfm( 0, 3 );
+      m( 1, 3 ) =  tfm( 1, 3 );
+      m( 2, 3 ) =  tfm( 2, 3 );
+      m( 3, 3 ) = 1;
+
+      return m;
+   }
+
+   /**
+    @ingroup core
     @brief returns true if there is a scaling component in a 4x4 homogenous matrix
     */
    template <class T, class Mapper, class Allocator>
