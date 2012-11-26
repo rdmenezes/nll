@@ -492,6 +492,7 @@
     <ClInclude Include="registration-transformation-evaluator-similarity.h" />
     <ClInclude Include="registration-transformation-evaluator.h" />
     <ClInclude Include="transformation-rbf.h" />
+    <ClInclude Include="transformation-reflection.h" />
     <ClInclude Include="tree-continuous-splitting-criteria.h" />
     <ClInclude Include="tree-node-split.h" />
     <ClInclude Include="type-traits-inherited.h" />
