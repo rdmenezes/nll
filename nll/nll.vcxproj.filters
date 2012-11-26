@@ -610,7 +610,6 @@
     <ClInclude Include="potential-table.h">
       <Filter>algorithm-bayes</Filter>
     </ClInclude>
-    <ClInclude Include="nll.h" />
     <ClInclude Include="collection-wrapper.h">
       <Filter>core</Filter>
     </ClInclude>
@@ -821,6 +820,7 @@
     <ClInclude Include="potential-gaussian-linear.h">
       <Filter>algorithm-bayes</Filter>
     </ClInclude>
+    <ClInclude Include="nll.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

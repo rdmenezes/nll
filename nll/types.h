@@ -43,6 +43,14 @@ namespace nll
    typedef     long long         i64;
    typedef     float             f32;
    typedef     double            f64;
+
+#ifdef WIN64
+   typedef     long                 iint;    // signed machine word
+   typedef     unsigned long long   uiint;   // unsigned machine word
+#else
+   typedef     int                  iint;    // signed machine word
+   typedef     unsigned int         uiint;   // unsigned machine word
+#endif 
 }
 
 #endif

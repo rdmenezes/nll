@@ -114,12 +114,14 @@ namespace algorithm
          {
             _result = ERROR;
             scale = _minimumScale;
+            return core::identityMatrix<Matrix>( mean1.size() );
          }
 
          if ( scale > _maximumScale )
          {
             _result = ERROR;
             scale = _maximumScale;
+            return core::identityMatrix<Matrix>( mean1.size() );
          }
 
          core::transpose( v );
