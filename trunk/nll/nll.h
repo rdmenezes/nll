@@ -106,7 +106,7 @@
 // #define NLL_NOT_MULTITHREADED
 
 // if defined, extra checks will be performed to check preconditions/postconditions
-#define NLL_SECURE
+//#define NLL_SECURE
 
 // if not defined, use LIBFFTW3 as the implementation of the FFT
 // NOTE1 that if this flag is used, you must comply with the FFTW3 licensing terms

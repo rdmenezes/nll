@@ -48,14 +48,21 @@ namespace core
    class StaticVector
    {
    public:
-      typedef T      value_type;
+      typedef T            value_type;
+      typedef T*           iterator;
+      typedef const T*     const_iterator;
+
       enum{sizeDef = SIZE};
 
    public:
       /**
        @brief Fake constructor tp encure compatibility with the dynamic one
        */
+#ifdef NDEBUG
+      StaticVector( const size_t )
+#else
       StaticVector( const size_t size )
+#endif
       {
          assert( size == SIZE );
       }
@@ -319,6 +326,26 @@ namespace core
          return ! ( *this == r );
       }
 
+      iterator begin()
+      {
+         return _buffer;
+      }
+
+      const_iterator begin() const
+      {
+         return _buffer;
+      }
+
+      iterator end()
+      {
+         return _buffer + SIZE;
+      }
+
+      const_iterator end() const
+      {
+         return _buffer + SIZE;
+      }
+
    protected:
       T     _buffer[ SIZE ];
    };
@@ -327,9 +354,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector2i : public StaticVector<i32, 2>
+   class vector2i : public StaticVector<iint, 2>
    {
-      typedef StaticVector<i32, 2> BaseClass;
+      typedef StaticVector<iint, 2> BaseClass;
    public:
       vector2i( )
       {
@@ -345,9 +372,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector2ui : public StaticVector<size_t, 2>
+   class vector2ui : public StaticVector<uiint, 2>
    {
-      typedef StaticVector<size_t, 2> BaseClass;
+      typedef StaticVector<uiint, 2> BaseClass;
    public:
       vector2ui( )
       {
@@ -363,9 +390,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector3ui : public StaticVector<size_t, 3>
+   class vector3ui : public StaticVector<uiint, 3>
    {
-      typedef StaticVector<size_t, 3> BaseClass;
+      typedef StaticVector<uiint, 3> BaseClass;
    public:
       vector3ui( )
       {
@@ -458,10 +485,10 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector3i : public StaticVector<int, 3>
+   class vector3i : public StaticVector<iint, 3>
    {
    public:
-      typedef StaticVector<int, 3> BaseClass;
+      typedef StaticVector<iint, 3> BaseClass;
 
       vector3i( const BaseClass& b ) : BaseClass( b )
       {
@@ -556,6 +583,10 @@ namespace core
       return true;
    }
 
+   /**
+    @ingroup core
+    @brief Computes the outer product of two 3-vectors
+    */
    template <class T>
    inline StaticVector<T, 3> cross( const StaticVector<T, 3>& a, const StaticVector<T, 3>& b )
    {

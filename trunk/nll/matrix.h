@@ -215,6 +215,16 @@ namespace core
       }
 
       /**
+       @brief return a cloned matrix
+       */
+      Matrix clone() const
+      {
+         Matrix cpy;
+         cpy.clone( *this );
+         return cpy;
+      }
+
+      /**
        @brief Import a matrix that uses a different mapper/form...
        */
       template <class TT, class Mapper, class Allocator>

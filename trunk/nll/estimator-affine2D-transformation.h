@@ -391,8 +391,8 @@ namespace algorithm
       typedef core::vector2d      Point;
 
    public:
-      EstimatorAffineSimilarityNonIsotropic2d( double minimumScale = 0.7, double maximumScale = 1.6 ) : 
-         _result( ERROR ), _minimumScale( minimumScale ), _maximumScale( maximumScale )
+      EstimatorAffineSimilarityNonIsotropic2d( double minimumScale = 0.7, double maximumScale = 1.6, double maximumAngleRadian = 0.8 ) : 
+         _result( ERROR ), _minimumScale( minimumScale ), _maximumScale( maximumScale ), _maximumAngleRadian( maximumAngleRadian )
       {
       }
 
@@ -470,7 +470,8 @@ namespace algorithm
          const Type ty = cy[ 1 ] - ( sc1 * sina * cx[ 0 ] + sc2 * cosa * cx[ 1 ] );
 
          if ( sc1 < _minimumScale || sc2 < _minimumScale ||
-              sc1 > _maximumScale || sc2 > _maximumScale )
+              sc1 > _maximumScale || sc2 > _maximumScale ||
+              fabs( angle ) > _maximumAngleRadian )
          {
             _result = ERROR;
             return core::identityMatrix<Matrix>( 3 );
@@ -498,6 +499,7 @@ namespace algorithm
       Result   _result;
       double   _minimumScale;
       double   _maximumScale;
+      double   _maximumAngleRadian;
    };
 }
 }
