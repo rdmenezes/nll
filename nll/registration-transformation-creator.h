@@ -56,12 +56,14 @@ namespace algorithm
     @ingroup algorithm
     @brief Create a parametrized transformation based on an affine representation (i.e., can be rigid, affine, similarity...
            so the parameter size may varies and will not be unique this is why we need to store them)
+    @note TransformationParametrizedAffine must be a TransformationAffine so that we can directly use it in the transformation mapper
     */
    class TransformationParametrizedAffine : public imaging::TransformationAffine, public TransformationParametrized
    {
    public:
-      template <class T, class Mapper, class Allocator>
-      TransformationParametrizedAffine( const core::Matrix<T, Mapper, Allocator>& init, const core::Buffer1D<double>& parameters ) : TransformationAffine( init )
+      typedef imaging::TransformationAffine::Matrix   Matrix;
+
+      TransformationParametrizedAffine( const Matrix& init, const core::Buffer1D<double>& parameters ) : TransformationAffine( init )
       {
          _parameters.clone( parameters );
       }
@@ -75,6 +77,8 @@ namespace algorithm
          return _parameters;
       }
 
+
+
    protected:
       core::Buffer1D<double>  _parameters;
    };
@@ -87,10 +91,19 @@ namespace algorithm
    class TransformationCreator
    {
    public:
+      typedef TransformationParametrized::Matrix   Matrix;
+
       /**
-       @brief create a transformation represented by the parameters
+       @brief set an initial tranformation
+
+       Typically, the prepending transform is used as an initial transformation and mostly used to center the volume. This is to help the minization
+       algorithm so that when 1 parameter is changed, the corresponding transformation varies only in one "direction". Consider the scaling,
+       if the volumes are not centered, a change in scaling will require scaling + translation update by the optimizer (if they are centered,
+       a scaling update will not introduce translation bias).
+
+       Typically, "create" should return the transformation: create(params) * prependingTransformation
        */
-      virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const = 0;
+      virtual void setPrependingMatrix( const Matrix& m ) = 0;
 
       /**
        @brief Return the optimizer parameters, allowing the optimizer to generate new instances of the transformation
@@ -101,6 +114,11 @@ namespace algorithm
 
       virtual ~TransformationCreator()
       {}
+
+      /**
+       @brief create a transformation represented by the parameters
+       */
+      virtual std::shared_ptr<TransformationParametrized> create( const nll::core::Buffer1D<nll::f64>& parameters ) const = 0;
    };
 
    /**
@@ -123,7 +141,7 @@ namespace algorithm
          tfmMat( 1, 3 ) = static_cast<float>( parameters[ 1 ] );
          tfmMat( 2, 3 ) = static_cast<float>( parameters[ 2 ] );
 
-         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat, parameters ) );
+         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat * _prependingMatrix, parameters ) );
          return tfm;
       }
 
@@ -135,6 +153,19 @@ namespace algorithm
          parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -500, 500, 0, 300, 0 ) );
          return parameters;
       }
+
+      virtual void setPrependingMatrix( const Matrix& m )
+      {
+         _prependingMatrix = m.clone();
+      }
+
+      TransformationCreatorTranslation()
+      {
+         _prependingMatrix = core::identityMatrix<Matrix>( 4 );
+      }
+
+   protected:
+      Matrix   _prependingMatrix;
    };
 
    /**
@@ -161,7 +192,7 @@ namespace algorithm
          tfmMat( 1, 1 ) = static_cast<float>( parameters[ 4 ] );
          tfmMat( 2, 2 ) = static_cast<float>( parameters[ 5 ] );
 
-         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat, parameters ) );
+         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat * _prependingMatrix, parameters ) );
          return tfm;
       }
 
@@ -177,6 +208,19 @@ namespace algorithm
          parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( 0.5, 1.5, 1, 0.75, 0.05 ) );
          return parameters;
       }
+
+      virtual void setPrependingMatrix( const Matrix& m )
+      {
+         _prependingMatrix = m.clone();
+      }
+
+      TransformationCreatorTranslationScaling()
+      {
+         _prependingMatrix = core::identityMatrix<Matrix>( 4 );
+      }
+
+   protected:
+      Matrix   _prependingMatrix;
    };
 
    /**
@@ -206,7 +250,7 @@ namespace algorithm
                                                                  (float)parameters[ 5 ] ),
                                                  rot );
 
-         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat * rot, parameters ) );
+         std::shared_ptr<TransformationParametrized> tfm( new TransformationParametrizedAffine( tfmMat * rot * _prependingMatrix, parameters ) );
          return tfm;
       }
 
@@ -222,6 +266,19 @@ namespace algorithm
          parameters.push_back( new algorithm::ParameterOptimizerGaussianLinear( -core::PIf / 2, core::PIf / 2, 0, 300, 0.01 ) );
          return parameters;
       }
+
+      virtual void setPrependingMatrix( const Matrix& m )
+      {
+         _prependingMatrix = m.clone();
+      }
+
+      TransformationCreatorRigid()
+      {
+         _prependingMatrix = core::identityMatrix<Matrix>( 4 );
+      }
+
+   protected:
+      Matrix   _prependingMatrix;
    };
 }
 }

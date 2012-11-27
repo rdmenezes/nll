@@ -223,7 +223,7 @@ namespace algorithm
       typedef algorithm::HistogramMakerTrilinearPartial<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                     HistogramMaker;
       typedef typename algorithm::RegistrationEvaluatorHelper<VolumeOutput>::EvaluatorSimilarity                                                   RegistrationEvaluator;
       typedef algorithm::RegistrationAlgorithmIntensity<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>                     RegistrationAlgorithmIntensity;
-      typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>      GradientEvaluator;
+      typedef algorithm::RegistrationGradientHessianEvaluatorFiniteDifference<typename VolumeOutput::value_type, typename VolumeOutput::VoxelBuffer>      GradientHessianEvaluator;
      
    public:
       struct RegistrationAlgorithmResource
@@ -520,13 +520,13 @@ namespace algorithm
        */
       static RegistrationAlgorithmResource instanciateTranslationAlgorithm( const SimilarityFunction& similarity, size_t joinHistogramNbBins ) 
       {
-         std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), true ) );
+         std::shared_ptr<GradientHessianEvaluator> gradientHessianEvaluator( new GradientHessianEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1 ), true ) );
 
          RegistrationAlgorithmResource algoRes;
          algoRes.algorithmClassIdentifier = "RegistrationTranslationAlgorithm";
          algoRes.transformationCreator = std::shared_ptr<TransformationCreator>( new TransformationCreatorTranslation() );
          algoRes.histogramMaker        = std::shared_ptr<HistogramMaker>( new HistogramMaker() );
-         algoRes.registrationEvaluator = std::shared_ptr<RegistrationEvaluator>( new RegistrationEvaluator( similarity, *algoRes.histogramMaker, joinHistogramNbBins, gradientEvaluator, true ) );
+         algoRes.registrationEvaluator = std::shared_ptr<RegistrationEvaluator>( new RegistrationEvaluator( similarity, *algoRes.histogramMaker, joinHistogramNbBins, gradientHessianEvaluator, true ) );
 
          algoRes.optimizationStopCondition = std::shared_ptr<StopCondition>( new algorithm::StopConditionStable( 15 ) );
          algoRes.optimizer = std::shared_ptr<Optimizer>( new algorithm::OptimizerGradientDescent( *algoRes.optimizationStopCondition, 0.0,
@@ -546,13 +546,13 @@ namespace algorithm
       static RegistrationAlgorithmResource instanciateTranslationScalingAlgorithm( const SimilarityFunction& similarity, size_t joinHistogramNbBins ) 
       {
          std::shared_ptr<GradientPostprocessor> gradientPostprocessor( new GradientPostprocessorTranslationScaling() );
-         std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.01, 0.01, 0.01 ), false, gradientPostprocessor ) );
+         std::shared_ptr<GradientHessianEvaluator> gradientHessianEvaluator( new GradientHessianEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.01, 0.01, 0.01 ), false, gradientPostprocessor ) );
 
          RegistrationAlgorithmResource algoRes;
          algoRes.algorithmClassIdentifier = "RegistrationTranslationScalingAlgorithm";
          algoRes.transformationCreator = std::shared_ptr<TransformationCreator>( new TransformationCreatorTranslationScaling() );
          algoRes.histogramMaker        = std::shared_ptr<HistogramMaker>( new HistogramMaker() );
-         algoRes.registrationEvaluator = std::shared_ptr<RegistrationEvaluator>( new RegistrationEvaluator( similarity, *algoRes.histogramMaker, joinHistogramNbBins, gradientEvaluator, true ) );
+         algoRes.registrationEvaluator = std::shared_ptr<RegistrationEvaluator>( new RegistrationEvaluator( similarity, *algoRes.histogramMaker, joinHistogramNbBins, gradientHessianEvaluator, true ) );
 
          algoRes.optimizationStopCondition = std::shared_ptr<StopCondition>( new algorithm::StopConditionStable( 15 ) );
          algoRes.optimizer = std::shared_ptr<Optimizer>( new algorithm::OptimizerGradientDescent( *algoRes.optimizationStopCondition, 0.0,

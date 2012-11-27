@@ -39,16 +39,21 @@ namespace algorithm
    /**
     @ingroup algorithm
     @brief Utility class that computes the gradient of a similarity measure according to the transformation
+
+    Since a lot of parameters are influencing the gradient (e.g., interpolation mecanism, transformation model, similarity measure), an instance of this
+    class is always provided for a registration algorithm using gradient or Hessian.
     */
    template <class T, class Storage>
-   class RegistrationGradientEvaluator
+   class RegistrationGradientHessianEvaluator
    {
    public:
       typedef RegistrationEvaluator<T, Storage>    Evaluator;
 
       virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const = 0;
 
-      virtual ~RegistrationGradientEvaluator()
+      virtual core::Buffer1D<double> evaluateHessian( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const = 0;
+
+      virtual ~RegistrationGradientHessianEvaluator()
       {}
    };
 
@@ -73,48 +78,36 @@ namespace algorithm
     df(x)/dx = (f(x+step)-f(x)) / step
     */
    template <class T, class Storage>
-   class RegistrationGradientEvaluatorFiniteDifference : public RegistrationGradientEvaluator<T, Storage>
+   class RegistrationGradientHessianEvaluatorFiniteDifference : public RegistrationGradientHessianEvaluator<T, Storage>
    {
    public:
-      typedef RegistrationGradientEvaluator<T, Storage>        Base;
+      typedef RegistrationGradientHessianEvaluator<T, Storage>        Base;
       typedef typename Base::Evaluator                         Evaluator;
 
       /**
-       @param steps the steps used to compute the finite difference
+       @param step the step used to compute the finite difference
        @param normalizeGradient if true, the gradient will be normalized
 
        @note the impact of the gradient normalization, some parameters may have much bigger impact!
 
        */
-      RegistrationGradientEvaluatorFiniteDifference( const core::Buffer1D<double>& steps, bool normalizeGradient = true, std::shared_ptr<GradientPostprocessor> postprocessor = std::shared_ptr<GradientPostprocessor>() ) : _normalizeGradient( normalizeGradient ), _postprocessor( postprocessor )
+      RegistrationGradientHessianEvaluatorFiniteDifference( double step, bool normalizeGradient = true, std::shared_ptr<GradientPostprocessor> postprocessor = std::shared_ptr<GradientPostprocessor>() ) : _normalizeGradient( normalizeGradient ), _postprocessor( postprocessor )
       {
-         _steps.clone( steps );
+         _step = step;
       }
 
       virtual core::Buffer1D<double> evaluateGradient( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const
       {
-         const double val0 = evaluator.evaluate( transformationSourceToTarget );
+         GradientCalculatorFiniteDifference finiteDifference( evaluator, _step );
+         const core::Buffer1D<double> parameters = transformationSourceToTarget.getParameters();
+         core::Buffer1D<double> gradient = finiteDifference.evaluate( parameters );
+         const double norm = core::norm2( gradient );
 
-         double gradientAccum = 0;
-         core::Buffer1D<double> parameters = transformationSourceToTarget.getParameters();
-         ensure( parameters.size() == _steps.size(), "we must have a step for each parameter of the transformation" );
-         core::Buffer1D<double> gradient( parameters.size() );
-         for ( size_t n = 0; n < parameters.size(); ++n )
-         {
-            core::Buffer1D<double> parametersCpy;
-            parametersCpy.clone( parameters );
-            parametersCpy[ n ] += _steps[ n ];
-
-            const double val = evaluator.evaluate( *evaluator.getTransformationCreator().create( parametersCpy ) );
-            gradient[ n ] = ( val - val0 ) / _steps[ n ];
-            gradientAccum += fabs( gradient[ n ] );
-         }
-
-         if ( _normalizeGradient && gradientAccum > 1e-4 )
+         if ( _normalizeGradient && norm > 1e-4 )
          {
             for ( size_t n = 0; n < parameters.size(); ++n )
             {
-               gradient[ n ] /= gradientAccum;
+               gradient[ n ] /= norm;
             }
          }
 
@@ -126,11 +119,17 @@ namespace algorithm
          return gradient;
       }
 
-      virtual ~RegistrationGradientEvaluatorFiniteDifference()
+      virtual core::Buffer1D<double> evaluateHessian( const Evaluator& evaluator, const TransformationParametrized& transformationSourceToTarget ) const
+      {
+         HessianCalculatorForwardFiniteDifference calculator( evaluator, _step );
+         return calculator.evaluate( transformationSourceToTarget.getParameters() );
+      }
+
+      virtual ~RegistrationGradientHessianEvaluatorFiniteDifference()
       {}
 
    protected:
-      core::Buffer1D<double>                 _steps;
+      double                                 _step;
       bool                                   _normalizeGradient;
       std::shared_ptr<GradientPostprocessor> _postprocessor;
    };

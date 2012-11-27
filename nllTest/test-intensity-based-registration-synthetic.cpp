@@ -17,7 +17,7 @@ public:
    typedef Volume::Matrix                                                      Matrix;
    typedef algorithm::RegistrationEvaluatorHelper<Volume>::EvaluatorSimilarity RegistrationEvaluator;
    typedef algorithm::RegistrationAlgorithmIntensity<Volume::value_type, Volume::VoxelBuffer> RegistrationAlgorithmIntensity;
-   typedef algorithm::RegistrationGradientEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientEvaluator;
+   typedef algorithm::RegistrationGradientHessianEvaluatorFiniteDifference<Volume::value_type, Volume::VoxelBuffer> GradientHessianEvaluator;
 
    template <class Volume>
    static void createSphere( Volume& v, const core::vector3ui& position, double radius, typename Volume::value_type valueForeground )
@@ -151,7 +151,7 @@ public:
                                                          core::vector3f( 0, 1, 0 ),
                                                          core::vector3f( 30, 30, positionSource[ 2 ] ),
                                                          lut );
-         core::writeBmp( mpr1, "c:/tmp2/sphereSource.bmp" );
+         core::writeBmp( mpr1, "c:/tmp/sphereSource.bmp" );
       }
 
       {
@@ -161,7 +161,7 @@ public:
                                                          core::vector3f( 0, 1, 0 ),
                                                          core::vector3f( 30, 30, positionTarget[ 2 ] ),
                                                          lut );
-         core::writeBmp( mpr2, "c:/tmp2/sphereTarget.bmp" );
+         core::writeBmp( mpr2, "c:/tmp/sphereTarget.bmp" );
       }
 
       std::shared_ptr<algorithm::TransformationParametrized> tfm = registrationalgorithm.evaluate( source, target, tfmInit );
@@ -169,9 +169,9 @@ public:
 
       const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
       std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lut, target, lutTarget, tfmAffine, core::vector3f( positionSource[ 0 ], positionSource[ 1 ], positionSource[ 2 ] ) );
-      core::writeBmp( mprs[ 0 ], "c:/tmp2/regx.bmp" );
-      core::writeBmp( mprs[ 1 ], "c:/tmp2/regy.bmp" );
-      core::writeBmp( mprs[ 2 ], "c:/tmp2/regz.bmp" );
+      core::writeBmp( mprs[ 0 ], "c:/tmp/regx.bmp" );
+      core::writeBmp( mprs[ 1 ], "c:/tmp/regy.bmp" );
+      core::writeBmp( mprs[ 2 ], "c:/tmp/regz.bmp" );
 
       std::cout << "result=" << resultd << std::endl;
 
@@ -238,7 +238,7 @@ public:
                                                          core::vector3f( 0, 1, 0 ),
                                                          core::vector3f( 30, 30, positionSource[ 2 ] ),
                                                          lut );
-         core::writeBmp( mpr1, "c:/tmp2/sphereSource.bmp" );
+         core::writeBmp( mpr1, "c:/tmp/sphereSource.bmp" );
       }
 
       {
@@ -248,7 +248,7 @@ public:
                                                          core::vector3f( 0, 1, 0 ),
                                                          core::vector3f( 30, 30, positionTarget[ 2 ] ),
                                                          lut );
-         core::writeBmp( mpr2, "c:/tmp2/sphereTarget.bmp" );
+         core::writeBmp( mpr2, "c:/tmp/sphereTarget.bmp" );
       }
 
       std::shared_ptr<algorithm::TransformationParametrized> tfm = registrationalgorithm.evaluate( source, target, tfmInit );
@@ -259,9 +259,9 @@ public:
       const imaging::TransformationAffine tfmAffine = dynamic_cast<imaging::TransformationAffine&>( *tfm );
       std::vector< core::Image<ui8> > mprs = test::visualizeRegistration( source, lut, target, lutTarget, tfmAffine, core::vector3f( positionSource[ 0 ], positionSource[ 1 ], positionSource[ 2 ] ) );
       const std::string id = core::val2str( core::IdMaker::instance().generateId() );
-      core::writeBmp( mprs[ 0 ], "c:/tmp2/regx_s" + id + ".bmp" );
-      core::writeBmp( mprs[ 1 ], "c:/tmp2/regy_s" + id + ".bmp" );
-      core::writeBmp( mprs[ 2 ], "c:/tmp2/regz_s" + id + ".bmp" );
+      core::writeBmp( mprs[ 0 ], "c:/tmp/regx_s" + id + ".bmp" );
+      core::writeBmp( mprs[ 1 ], "c:/tmp/regy_s" + id + ".bmp" );
+      core::writeBmp( mprs[ 2 ], "c:/tmp/regz_s" + id + ".bmp" );
 
       const double ratioSimilar = compareVoxelRatio( source, target, tfmAffine );
       std::cout << "SIMILAR RATIO=" << ratioSimilar << std::endl;
@@ -280,8 +280,8 @@ public:
       algorithm::TransformationCreatorTranslation c;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 1, 1, 1 ), true ) );
-      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
+      std::shared_ptr<GradientHessianEvaluator> GradientHessianEvaluator( new GradientHessianEvaluator( 1, true ) );
+      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, GradientHessianEvaluator, false );
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
       algorithm::StopConditionStable stopCondition( 10 );
@@ -308,8 +308,8 @@ public:
       algorithm::TransformationCreatorTranslation c;
       algorithm::SimilarityFunctionMutualInformation similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 1, 1, 1 ), true ) );
-      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
+      std::shared_ptr<GradientHessianEvaluator> GradientHessianEvaluator( new GradientHessianEvaluator( 1, true ) );
+      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, GradientHessianEvaluator, false );
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
       algorithm::StopConditionStable stopCondition( 10 );
@@ -336,8 +336,8 @@ public:
       algorithm::TransformationCreatorTranslation c;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 1, 1, 1 ), true ) );
-      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
+      std::shared_ptr<GradientHessianEvaluator> GradientHessianEvaluator( new GradientHessianEvaluator( 1, true ) );
+      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, GradientHessianEvaluator, false );
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
       algorithm::StopConditionStable stopCondition( 10 );
@@ -365,8 +365,8 @@ public:
       algorithm::TransformationCreatorTranslationScaling c;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      std::shared_ptr<GradientEvaluator> gradientEvaluator( new GradientEvaluator( core::make_buffer1D<double>( 0.1, 0.1, 0.1, 0.001, 0.001, 0.001 ), false ) );
-      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, gradientEvaluator, false );
+      std::shared_ptr<GradientHessianEvaluator> GradientHessianEvaluator( new GradientHessianEvaluator( 0.00001, false ) );
+      RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, GradientHessianEvaluator, false );
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
       algorithm::StopConditionStable stopCondition( 10 );
@@ -392,7 +392,7 @@ public:
       algorithm::TransformationCreatorTranslation transformationCreator;
       algorithm::SimilarityFunctionSumOfSquareDifferences similarity;
       algorithm::HistogramMakerTrilinearPartial<Volume::value_type, Volume::VoxelBuffer> histogramMaker;
-      RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins, std::shared_ptr<GradientEvaluator>(), false );
+      RegistrationEvaluator evaluator( v, v, similarity, transformationCreator, histogramMaker, joinHistogramNbBins, std::shared_ptr<GradientHessianEvaluator>(), false );
 
       // get the similarity. We expect it to be decreasing until we reach 0, then increasing
       RegistrationEvaluator::SimilarityPlot plot = evaluator.returnSimilarityAlongParameter( core::make_buffer1D<double>( 0.1,  0,  0 ), 0, -0.01, 22 );

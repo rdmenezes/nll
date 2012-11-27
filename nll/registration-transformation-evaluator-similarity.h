@@ -47,7 +47,7 @@ namespace algorithm
       typedef typename Base::Volume                      Volume;
       typedef std::vector< std::pair<double, double> >   SimilarityPlot;
       typedef HistogramMaker<T, Storage>                 HistogramMakerAlgorithm;
-      typedef RegistrationGradientEvaluator<T, Storage>  GradientEvaluator;
+      typedef RegistrationGradientHessianEvaluator<T, Storage>  GradientHessianEvaluator;
 
    public:
       RegistrationEvaluatorSimilarity( const Volume& source, const Volume& target, 
@@ -55,15 +55,15 @@ namespace algorithm
                                        const TransformationCreator& creator,
                                        const HistogramMakerAlgorithm& histogramMaker,
                                        size_t jointHistogramNbBins = 256,
-                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>(),
-                                       bool removeBackgroundFromHistogram = true ) : Base( source, target, creator ), _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator ), _removeBackgroundFromHistogram( removeBackgroundFromHistogram )
+                                       std::shared_ptr<GradientHessianEvaluator> gradientHessianEvaluator = std::shared_ptr<GradientHessianEvaluator>(),
+                                       bool removeBackgroundFromHistogram = true ) : Base( source, target, creator ), _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientHessianEvaluator( gradientHessianEvaluator ), _removeBackgroundFromHistogram( removeBackgroundFromHistogram )
       {}
 
       RegistrationEvaluatorSimilarity( const SimilarityFunction& similarity,
                                        const HistogramMakerAlgorithm& histogramMaker,
                                        size_t jointHistogramNbBins = 256,
-                                       std::shared_ptr<GradientEvaluator> gradientEvaluator = std::shared_ptr<GradientEvaluator>(),
-                                       bool removeBackgroundFromHistogram = true ) : _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientEvaluator( gradientEvaluator ), _removeBackgroundFromHistogram( removeBackgroundFromHistogram )
+                                       std::shared_ptr<GradientHessianEvaluator> gradientHessianEvaluator = std::shared_ptr<GradientHessianEvaluator>(),
+                                       bool removeBackgroundFromHistogram = true ) : _similarity( similarity ), _histogramMaker( histogramMaker ), _jointHistogramNbBins( jointHistogramNbBins ), _gradientHessianEvaluator( gradientHessianEvaluator ), _removeBackgroundFromHistogram( removeBackgroundFromHistogram )
       {}
 
       /**
@@ -104,8 +104,8 @@ namespace algorithm
 
       virtual core::Buffer1D<double> evaluateGradient( const TransformationParametrized& transformationSourceToTarget ) const
       {
-         ensure( _gradientEvaluator.get(), "a gradient evaluator must be set!" );
-         return _gradientEvaluator->evaluateGradient( *this, transformationSourceToTarget );
+         ensure( _gradientHessianEvaluator.get(), "a gradient evaluator must be set!" );
+         return _gradientHessianEvaluator->evaluateGradient( *this, transformationSourceToTarget );
       }
 
       /**
@@ -145,7 +145,7 @@ namespace algorithm
       const SimilarityFunction&           _similarity;
       const HistogramMakerAlgorithm&      _histogramMaker;
       size_t                              _jointHistogramNbBins;
-      std::shared_ptr<GradientEvaluator>  _gradientEvaluator;
+      std::shared_ptr<GradientHessianEvaluator>  _gradientHessianEvaluator;
       bool                                _removeBackgroundFromHistogram;
 
       // keep it for debugging purpose
