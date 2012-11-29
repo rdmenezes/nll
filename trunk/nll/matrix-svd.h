@@ -319,8 +319,10 @@ namespace core
 
    /**
     @brief svd matlab like function
-           the eiv are ordered by eiv importance,
-           eiv <= epsilon are discarded (and corresponding rows removed in eiv, eig, out)
+
+    if a is symmetric, u = v and represents the eigen vectors of a
+
+    @param vOut right eigen vector, 1 vector = 1 column
 
     @note it is using significantly more memory due to matrices copy...
     */

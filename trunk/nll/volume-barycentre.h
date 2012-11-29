@@ -39,6 +39,7 @@ namespace imaging
    /**
     @ingroup imaging
     @brief Computes the barycentre of the volume, using this specific LUT
+    @param lut the LUT to use. Only the first component will be used, equivalent as computing the barycenter of the transformed LUT volume
     */
    template <class Volume, class Lut>
    core::vector3f computeBarycentre( const Volume& vol, const Lut& lut )
@@ -57,15 +58,20 @@ namespace imaging
             for ( size_t x = 0; x < vol.sizex(); ++x )
             {
                const float value = vol( x, y, z );
-               const float computed = lut.transform( value )[ 0 ];
-               const float ratio = computed / lutSize;
+               const float computed = lut.transform( value )[ 0 ] / lutSize;  // to avoid overflow. Since we must divide by the sum, we can divide by a constant!
+                                                                              // use the actual LUT value and not the index so that we can do non linear mappings
                tmp += core::vector3f( static_cast<f32>( x ),
                                       static_cast<f32>( y ), 
-                                      static_cast<f32>( z ) ) * ratio;
-               nb += ratio;
+                                      static_cast<f32>( z ) ) * computed;
+               nb += computed;
             }
          }
       }
+      if ( nb <= 0 )
+      {
+         return vol.getOrigin();
+      }
+
       tmp /= nb;
       core::vector3f position = geometry.indexToPosition( tmp );
 
@@ -73,7 +79,7 @@ namespace imaging
          std::stringstream ss;
          ss << "Compute barycenter:" << std::endl;
          vol.print( ss );
-         ss << " index=" << tmp << std::endl <<
+         ss << " index=" << tmp << std::endl
             << " position=" << position;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }

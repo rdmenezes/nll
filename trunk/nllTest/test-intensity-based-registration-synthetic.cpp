@@ -41,6 +41,7 @@ public:
       }
    }
 
+   // gradient is not good at all to evaluate the direction with box
    template <class Volume>
    static void createBox( Volume& v, const core::vector3ui& position, const core::vector3f& radius, typename Volume::value_type valueForeground )
    {
@@ -93,8 +94,6 @@ public:
 
       return static_cast<double>( nbSimilar ) / nbSourceNonZero;
    }
-
-   
 
    static void utilTestSphereSameRadius( const RegistrationAlgorithmIntensity::Base& registrationalgorithm, const algorithm::TransformationParametrized& tfmInit )
    {
@@ -266,7 +265,7 @@ public:
       const double ratioSimilar = compareVoxelRatio( source, target, tfmAffine );
       std::cout << "SIMILAR RATIO=" << ratioSimilar << std::endl;
 
-      TESTER_ASSERT( ratioSimilar > 0.8 );
+      TESTER_ASSERT( ratioSimilar > 0.9 );
    }
 
    // position randomly a sphere in each volume with some overlap. Find the optimal reigstration which is aligning both centers
@@ -369,9 +368,12 @@ public:
       RegistrationEvaluator evaluator( similarity, histogramMaker, joinHistogramNbBins, GradientHessianEvaluator, false );
       std::shared_ptr<algorithm::TransformationParametrized> initTfm = c.create( seed );
 
-      algorithm::StopConditionStable stopCondition( 10 );
+      
+      algorithm::StopConditionStable stopCondition( 50 );
       algorithm::OptimizerGradientDescent optimizer( stopCondition, 0.0, true, 1, core::make_buffer1D<double>( 2, 2, 2, 0.051, 0.051, 0.051 ),
                                                                                   core::make_buffer1D<double>( 50, 50, 50, 1, 1, 1 ) );
+                                                                                  
+      //algorithm::OptimizerPowell optimizer;
       RegistrationAlgorithmIntensity registration( c, evaluator, optimizer );
 
       // run and check
@@ -406,6 +408,49 @@ public:
          }
       }
    }
+
+   void testPrependingTransform()
+   {
+      Volumef v;
+      const bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/pet.mf2", v );
+      ensure( loaded, "can't find the volume" );
+
+      // set the origin somewhere
+      Volumef::Matrix pst = v.getPst().clone();
+      const double distTest = 6000;
+      pst( 0, 3 ) = distTest;
+      pst( 1, 3 ) = distTest;
+      pst( 2, 3 ) = distTest;
+      v.setPst( pst );
+
+      
+
+      // create a random rotation and prepend the world origin->volume center transform
+      // we expect the volume to be rotated only (ie., the prepended tfm cancelled out any translation)
+      Matrix centeringTfm = algorithm::TransformationCreatorAffine::computeCentredTransformation( v );
+      algorithm::TransformationCreatorRigid rigidTfmFactory;
+
+      imaging::LookUpTransformWindowingRGB lut( 0, 1, 256, 1 );
+      lut.createGreyscale();
+      lut.detectRange( v, 0.8 );
+      const core::vector3f gravityCenterBefore = imaging::computeBarycentre( v, lut );
+
+      rigidTfmFactory.setTransformCentering( centeringTfm );
+
+      std::shared_ptr<algorithm::TransformationParametrized> tfm = rigidTfmFactory.create( core::make_buffer1D<double>( 0, 0, 0, 0.3, 0, 0 ) );
+      const imaging::TransformationAffine* tfmAffine = dynamic_cast<const imaging::TransformationAffine*>( tfm.get() );
+      Volumef resampledSpace( v.getSize(), v.getPst(), v.getBackgroundValue() );
+      imaging::resampleVolumeTrilinear( v, *tfmAffine, resampledSpace );
+
+      const core::vector3f gravityCenterAfter = imaging::computeBarycentre( resampledSpace, lut );
+      const double dist = ( gravityCenterAfter - gravityCenterBefore ).norm2();
+      std::cout << "center before=" << gravityCenterBefore << std::endl
+                << "center after=" << gravityCenterAfter << std::endl
+                << "dist=" << dist << std::endl;
+
+      // the gravity center is expected to move as if we resample with big angles, part of the volume will be out
+      TESTER_ASSERT( dist < 0.01 * distTest );
+   }
 };
 
 #ifndef DONT_RUN_TEST
@@ -415,5 +460,6 @@ TESTER_TEST_SUITE(TestIntensityBasedRegistrationSynthetic);
  TESTER_TEST(testSphereRigidGradientPyramid);
  TESTER_TEST(testSphereIsotropicRigidGradient);
  TESTER_TEST(testSimilarity);
+ TESTER_TEST(testPrependingTransform);
 TESTER_TEST_SUITE_END();
 #endif

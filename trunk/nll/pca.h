@@ -277,6 +277,7 @@ namespace algorithm
 
       /**
        @brief Compute the PCA on the given set of points.
+       @param nbVectors the number of eigen vectors to retain
        */
       bool compute( const Points& points, size_t nbVectors )
       {

@@ -101,6 +101,7 @@ namespace algorithm
          double scale;
          std::vector< std::vector<double> > points;
          generateData( h, points, nbPoints, noise, &scale );
+
          
          Gmm gmm;
          gmm.em( points, 2, nbGaussians, nbIter, 1e-3 );
