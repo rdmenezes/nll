@@ -71,7 +71,7 @@ namespace algorithm
       typedef RegistrationEvaluator<DiscreteType, DiscreteStorage>      Evaluator;
 
    public:
-      RegistrationAlgorithmIntensity( const TransformationCreator& creator, Evaluator& evaluator, Optimizer& optimizer ) : _creator( creator ), _evaluator( evaluator ), _optimizer( optimizer )
+      RegistrationAlgorithmIntensity( TransformationCreatorAffine& creator, Evaluator& evaluator, Optimizer& optimizer ) : _creator( creator ), _evaluator( evaluator ), _optimizer( optimizer )
       {}
 
       /**
@@ -92,7 +92,8 @@ namespace algorithm
             source2TargetInitTransformation.print( ss );
             core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
          }
-
+         Matrix transformationCenter = TransformationCreatorAffine::computeCentredTransformation( target );
+         _creator.setTransformCentering( transformationCenter );
          _evaluator.setSource( source );
          _evaluator.setTarget( target );
          _evaluator.setTransformationCreator( _creator );
@@ -115,9 +116,9 @@ namespace algorithm
       }
 
    protected:
-      const TransformationCreator&  _creator;
-      Evaluator&                    _evaluator;
-      Optimizer&                    _optimizer;
+      TransformationCreatorAffine&        _creator;
+      Evaluator&                          _evaluator;
+      Optimizer&                          _optimizer;
    };
 
    /**

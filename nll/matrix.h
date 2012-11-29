@@ -312,6 +312,13 @@ namespace core
          }
       }
 
+      Matrix inverse() const
+      {
+         Matrix m = this->clone();
+         core::inverse( m );
+         return m;
+      }
+
       /**
        @brief return the size
        */

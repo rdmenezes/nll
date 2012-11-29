@@ -234,6 +234,8 @@ namespace algorithm
       template <class Points>
       void em( const Points& points, size_t pointSize, size_t nbGaussians, size_t nbIter, ComputingType minDiffStop = 0.1 )
       {
+         _errorOccurred = false;
+
          {
             std::stringstream ss;
             ss << "Mixture of gaussian fitting using EM," <<
@@ -375,6 +377,14 @@ namespace algorithm
             delete [] kres.second[ n ];
       }
 
+      /**
+       @return true if an error occured...
+       */
+      bool errorOccured() const
+      {
+         return _errorOccurred;
+      }
+
       // covariance is approximated to its diagonal
       void _expectation( const Matrix& points, Matrix& out_density, Matrix& out_norm_density ) const
       {
@@ -401,8 +411,11 @@ namespace algorithm
                   sum += ( pmean * covInv( f, f ) * pmean );
                }
                expectation( n, g ) = normFactor * exp( -0.5 * sum );
-               if ( IS_NAN( expectation( n, g ) ) )
-					   std::cout << "error: expectation couldn't be calculated acurately, you should restart it!" << std::endl;
+               if ( !_errorOccurred && IS_NAN( expectation( n, g ) ) )
+               {
+                  _errorOccurred = true;
+					   nllWarning( "GMM::EM, error: expectation couldn't be calculated acurately, you should restart it!" );
+               }
             }
          }
 
@@ -476,7 +489,8 @@ namespace algorithm
 
    private:
       size_t                 _pointSize;
-      Gaussians            _gaussians;
+      Gaussians              _gaussians;
+      mutable bool           _errorOccurred; // for debug...
    };
 }
 }
