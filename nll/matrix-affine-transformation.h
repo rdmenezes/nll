@@ -168,6 +168,27 @@ namespace core
       return rot;
    }
 
+      /**
+    @ingroup core
+    @brief Returns the rotation contained in a 4x4 similarity affine transformation
+    @note the matrix must not contain shearing components to be valid
+    */
+   template <class type, class mapper, class allocator>
+   Matrix<type, mapper, allocator> get3x3From4x4( const Matrix<type, mapper, allocator>& m )
+   {
+      ensure( m.sizex() == 4 && m.sizey() == 4, "must be a 4x4 matrix" );
+
+      Matrix<type, mapper, allocator> rot( 3, 3 );
+      for ( size_t y = 0; y < 3; ++y )
+      {
+         for ( size_t x = 0; x < 3; ++x )
+         {
+            rot( y, x ) = m( y, x );
+         }
+      }
+      return rot;
+   }
+
    /**
     @ingroup core
     @brief Assuming a 4x4 transformation matrix defined as

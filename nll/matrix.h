@@ -315,7 +315,8 @@ namespace core
       Matrix inverse() const
       {
          Matrix m = this->clone();
-         core::inverse( m );
+         const bool success = core::inverse( m );
+         ensure( success, "the matrix is singular" );
          return m;
       }
 

@@ -38,15 +38,12 @@ namespace imaging
 {
    /**
     @ingroup imaging
-    @brief Computes the barycentre of the volume, using this specific LUT
+    @brief Computes the barycentre of the volume, using this specific LUT in voxel space
     @param lut the LUT to use. Only the first component will be used, equivalent as computing the barycenter of the transformed LUT volume
     */
-   template <class Volume, class Lut>
-   core::vector3f computeBarycentre( const Volume& vol, const Lut& lut )
+   template <class T, class Buffer, class Lut>
+   core::vector3f computeBarycentreVoxel( const imaging::Volume<T, Buffer>& vol, const Lut& lut )
    {
-      // by default, it is the centre of the volume
-      core::VolumeGeometry geometry( vol.getPst() );
-
       // compute the barycentre
       float nb = 0;
       const size_t lutSize = lut.getSize();
@@ -69,18 +66,38 @@ namespace imaging
       }
       if ( nb <= 0 )
       {
-         return vol.getOrigin();
+         // no voxel visible, so just return the volume origin
+         return core::vector3f( 0, 0, 0 );
+      }
+      tmp /= nb;
+
+      {
+         std::stringstream ss;
+         ss << "computeBarycentreVoxel:" << std::endl;
+         ss << " index=" << tmp << std::endl;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }
 
-      tmp /= nb;
-      core::vector3f position = geometry.indexToPosition( tmp );
+      return tmp;
+   }
+
+   /**
+    @ingroup imaging
+    @brief Computes the barycentre of the volume, using this specific LUT
+    @param lut the LUT to use. Only the first component will be used, equivalent as computing the barycenter of the transformed LUT volume
+    */
+   template <class T, class Buffer, class Lut>
+   core::vector3f computeBarycentre( const VolumeSpatial<T, Buffer>& vol, const Lut& lut )
+   {
+      // by default, it is the centre of the volume
+      const core::VolumeGeometry geometry( vol.getPst() );
+      const core::vector3f position = geometry.indexToPosition( computeBarycentreVoxel( vol, lut ) );
 
       {
          std::stringstream ss;
          ss << "Compute barycenter:" << std::endl;
          vol.print( ss );
-         ss << " index=" << tmp << std::endl
-            << " position=" << position;
+         ss << " position MM=" << position;
          core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
       }
 
