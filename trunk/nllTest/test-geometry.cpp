@@ -30,7 +30,7 @@ public:
                                              nll::core::vector3f( 0, 0.001f, 1 ) ) );
       TESTER_ASSERT( !nll::core::isCollinear( nll::core::vector3f( 0, 1.1f, 0 ),
                                              nll::core::vector3f( 0, 0, 1 ) ) );
-      TESTER_ASSERT( !nll::core::isCollinear( nll::core::vector3f( 0, 0, 0 ),
+      TESTER_ASSERT( nll::core::isCollinear( nll::core::vector3f( 0, 0, 0 ),
                                              nll::core::vector3f( 0, 0, 0 ) ) );
    }
 

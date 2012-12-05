@@ -63,39 +63,35 @@ namespace core
    /**
     @ingroup core
     @brief Test if 2 vectors are colinear
-    @note we take the convention that 2 zero vectors are not colinear
+    @note if one of the vector is null, then they are collinear
     */
    template <class T, int N>
-   bool isCollinear( const StaticVector<T, N>& a, const StaticVector<T, N>& b )
+   bool isCollinear( const StaticVector<T, N>& x1, const StaticVector<T, N>& x2, T tol = 1e-4 )
    {
-      bool isInit = false;
-      float ratio = 0;
-      size_t n = 0;
+      const double norm1 = x1.norm2();
+      const double norm2 = x2.norm2();
+      if ( norm1 <= 0 || norm2 <= 0 )
+         return true;
 
-      // first get the ratio
-      const T accuracy = static_cast<T>( 1e-6 );
-      for ( ; n < N && !isInit; ++n )
+      const StaticVector<T, N> x1c = x1 / norm1;
+      const StaticVector<T, N> x2c = x2 / norm2;
+      T sign = 1;
+
+      // first, assign a direction
+      for ( size_t n = 0; n < 3; ++n )
       {
-         if ( !equal<T>( b[ n ], 0, accuracy ) )
-         {
-            ratio = static_cast<float>( a[ n ] ) / static_cast<float>( b[ n ] );
-            isInit = true;
-            break;
-         }
+         if ( fabs( x1c[ n ] ) > tol )
+            sign = ( ( x1c[ n ] < 0 && x2c[ n ] < 0 ) || ( x1c[ n ] > 0 && x2c[ n ] > 0 ) ) ? 1 : -1;
       }
 
-      // then check it is always the same
-      for ( ; n < N; ++n )
+      // then compare we have the same values, modulo the sign
+      for ( size_t n = 0; n < 3; ++n )
       {
-         if ( !equal<T>( b[ n ], 0, accuracy ) )
-         {
-            float ratioTest = static_cast<float>( a[ n ] ) / static_cast<float>( b[ n ] );
-            if ( !equal<float>( ratio, ratioTest, 1e-6f ) )
-               return false;
-         }
+         if ( !core::equal<T>( x1c[ n ], x2c[ n ] * sign, tol ) )
+            return false;
       }
-      // only zero...
-      return isInit && !equal<T>( ratio, 0, accuracy );
+
+      return true;
    }
 
    /**
