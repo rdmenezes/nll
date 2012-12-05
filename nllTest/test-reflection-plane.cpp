@@ -12,7 +12,7 @@ namespace algorithm
    /**
     @brief Given a weighted set of points, compute the ellipsoid fitting the best the data
     */
-   class EllipsoidAxesOfIntertia
+   class EllipsoidAxesOfInertia
    {
    public:
       typedef core::Matrix<double>  Matrix;
@@ -143,7 +143,7 @@ namespace algorithm
    class ReflectionPlaneCalculator
    {
    public:
-      typedef EllipsoidAxesOfIntertia::Matrix   Matrix;
+      typedef EllipsoidAxesOfInertia::Matrix   Matrix;
 
    public:
       template <class T, class Buffer>
@@ -167,11 +167,12 @@ namespace algorithm
 
          // increase the minimum so that we are not capturing the background values
          const double range = lut.getMax() - lut.getMin();
-         lut.reset( lut.getMin() + range * 0.2, lut.getMax(), lut.getSize() );
+         //lut.reset( lut.getMin() + range * 0.2, lut.getMax(), lut.getSize() );
+         lut.reset( 0.1, 20, lut.getSize() );
          lut.createGreyscale();
 
          // find the initial plane using biggest ellipsoid axes
-         EllipsoidAxesOfIntertia ellipsoidAxesCalculator;
+         EllipsoidAxesOfInertia ellipsoidAxesCalculator;
          core::vector3d eigenValues;
          core::vector3d outCenterOfMassVoxel;
          Matrix ellipsoidAxes = ellipsoidAxesCalculator.extractOrderedAxis( volume, lut, &eigenValues, &outCenterOfMassVoxel );
@@ -247,6 +248,31 @@ class TestReflectionPlane
 {
 public:
    typedef imaging::VolumeSpatial<f32>                                         Volumef;
+   typedef imaging::VolumeSpatial<f32>::Matrix                                 Matrix;
+
+   void createSegment( Volumef& volume, const core::vector3f& orig, const core::vector3f& x, const core::vector3f& y, size_t sx, size_t sy, size_t sz )
+   {
+      core::vector3f zz = core::cross( x, y );
+      zz /= zz.norm2() * 2;
+      
+      const core::vector3f xx = x / ( x.norm2() * 2 );
+      const core::vector3f yy = y / ( y.norm2() * 2 );
+      for ( size_t n = 0; n < sz; ++n )
+      {
+         core::vector3f pz = orig + zz * n;
+         for ( size_t dx = 0; dx < sx; ++dx )
+         {
+            core::vector3f pzx = pz + xx * dx;
+            for ( size_t dy = 0; dy < sy; ++dy )
+            {
+               core::vector3f pzxy = pzx + yy * dy;
+               volume( (size_t)pzxy[ 0 ],
+                       (size_t)pzxy[ 1 ],
+                       (size_t)pzxy[ 2 ] ) = 100 + rand() % 10;
+            }
+         }
+      }
+   }
 
    void testEllipsoidAxis1()
    {
@@ -259,8 +285,8 @@ public:
       imaging::LookUpTransformWindowingRGB lut( 100, 8000, 256, 1 );
       lut.createGreyscale();
 
-      algorithm::EllipsoidAxesOfIntertia calculator;
-      algorithm::EllipsoidAxesOfIntertia::Matrix proj = calculator.extractOrderedAxis( v, lut );
+      algorithm::EllipsoidAxesOfInertia calculator;
+      algorithm::EllipsoidAxesOfInertia::Matrix proj = calculator.extractOrderedAxis( v, lut );
 
       core::Matrix<double> proj4( 4, 4 );
       for ( size_t y = 0; y < 3; ++y )
@@ -305,7 +331,7 @@ public:
       imaging::saveSimpleFlatFile( "C:/tmp2/vol_rsp.mf2", resampledSpace );
 
       core::vector3d eiv;
-      const algorithm::EllipsoidAxesOfIntertia::Matrix proj2 = calculator.extractOrderedAxis( resampledSpace, lut, &eiv );
+      const algorithm::EllipsoidAxesOfInertia::Matrix proj2 = calculator.extractOrderedAxis( resampledSpace, lut, &eiv );
       std::cout << proj2 << std::endl;
       std::cout << "eiv=" << eiv << std::endl;
 
@@ -322,11 +348,95 @@ public:
       TESTER_ASSERT( core::equal<double>( fabs( p1b[ 2 ] ), 0, tol ) );
    }
 
+   static bool isColinear( const core::vector3f& x1, const core::vector3f& x2 )
+   {
+      const core::vector3f x1c = x1 / x1.norm2();
+      const core::vector3f x2c = x2 / x2.norm2();
+      double sign = 1;
+
+      const double tol = 0.05;
+      for ( size_t n = 0; n < 3; ++n )
+      {
+         if ( fabs( x1c[ n ] ) > tol )
+            sign = ( ( x1c[ n ] < 0 && x2c[ n ] < 0 ) || ( x1c[ n ] > 0 && x2c[ n ] > 0 ) ) ? 1 : -1;
+      }
+
+      for ( size_t n = 0; n < 3; ++n )
+      {
+         if ( !core::equal<double>( x1[ n ], x2[ n ] * sign, tol ) )
+            return false;
+      }
+
+      return true;
+   }
+
+   void testEllipsoidAxis2()
+   {
+      // create a random rotation
+      for ( size_t n = 0; n < 15; ++n )
+      {
+         std::cout << "case=" << n << std::endl;
+         Volumef v( core::vector3ui( 256, 256, 256 ), core::identityMatrix<Matrix>( 4 ), 0 );
+
+         core::vector3f orig = v.indexToPosition( core::vector3f( v.getSize()[ 0 ] / 2,
+                                                                  v.getSize()[ 1 ] / 2,
+                                                                  v.getSize()[ 2 ] / 2 ) );
+         Matrix rotation;
+         core::createRotationMatrix4x4FromEuler( core::vector3f( core::generateUniformDistributionf( - core::PIf, core::PIf ),
+                                                                 core::generateUniformDistributionf( - core::PIf, core::PIf ),
+                                                                 core::generateUniformDistributionf( - core::PIf, core::PIf ) ),
+                                                 rotation );
+         std::cout << "rotation to be recovered (unordered axis)=" << rotation << std::endl;
+
+         core::vector3f x( rotation( 0, 0 ),
+                           rotation( 1, 0 ),
+                           rotation( 2, 0 ) );
+         core::vector3f y( rotation( 0, 1 ),
+                           rotation( 1, 1 ),
+                           rotation( 2, 1 ) );
+         createSegment( v, orig, x, y, 40 + rand() % 5, 60 + rand() % 5, 160 + rand() % 5 );
+         imaging::saveSimpleFlatFile( "C:/tmp2/vol_tgt.mf2", v );
+
+         algorithm::EllipsoidAxesOfInertia algo;
+         imaging::LookUpTransformWindowingRGB lut( 50, 150, 256 );
+         lut.createGreyscale();
+
+         core::vector3d centerOfMass;
+         core::vector3d eiv;
+         algorithm::EllipsoidAxesOfInertia::Matrix axis = algo.extractOrderedAxis( v, lut, &eiv, &centerOfMass );
+         std::cout << "rotation recovered=" << axis << std::endl;
+
+         const core::vector3f centerOfMassExpected = imaging::computeBarycentre( v, lut );
+         core::vector3d diffCenterOfMass( centerOfMassExpected[ 0 ] - centerOfMass[ 0 ],
+                                          centerOfMassExpected[ 1 ] - centerOfMass[ 1 ],
+                                          centerOfMassExpected[ 2 ] - centerOfMass[ 2 ] );
+         TESTER_ASSERT( diffCenterOfMass.norm2() < 5 );
+
+         // main axis is Z, followed by y, followed by x
+         TESTER_ASSERT( core::isCollinear( x, core::vector3f( axis( 0, 2 ),
+                                                              axis( 1, 2 ),
+                                                              axis( 2, 2 ) ),
+                                           1e-1f ) );
+         TESTER_ASSERT( core::isCollinear( y, core::vector3f( axis( 0, 1 ),
+                                                       axis( 1, 1 ),
+                                                       axis( 2, 1 ) ), 1e-1f ) );
+         TESTER_ASSERT( core::isCollinear( core::cross( x, y ), core::vector3f( axis( 0, 0 ),
+                                                                         axis( 1, 0 ),
+                                                                         axis( 2, 0 ) ), 1e-1f ) );
+
+
+         std::cout << "diffCenterOfMass=" << diffCenterOfMass << std::endl;
+         std::cout << "1CenterOfMass=" << centerOfMass << std::endl;
+         std::cout << "2CenterOfMass=" << centerOfMassExpected << std::endl;
+      }
+   }
+
    void testInitialTransformation()
    {
       // load volume
       Volumef v;
-      const bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/brain5.mf2", v );
+      //const bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/brain4.mf2", v );
+      const bool loaded = imaging::loadSimpleFlatFile( "C:/tmp2/vol_tgt.mf2", v );
       ensure( loaded, "can't find the volume" );
 
       //v.setOrigin( core::vector3f( 0, 0, 0 ) );
@@ -359,7 +469,8 @@ public:
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestReflectionPlane);
- //TESTER_TEST(testEllipsoidAxis1);
- TESTER_TEST(testInitialTransformation);
+ TESTER_TEST(testEllipsoidAxis1);
+ TESTER_TEST(testEllipsoidAxis2);
+ //TESTER_TEST(testInitialTransformation);
 TESTER_TEST_SUITE_END();
 #endif
