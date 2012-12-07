@@ -394,6 +394,7 @@
     <ClInclude Include="database-input-adapter.h" />
     <ClInclude Include="database-manipulation.h" />
     <ClInclude Include="database.h" />
+    <ClInclude Include="ellipsoid-axis-inertia.h" />
     <ClInclude Include="ensure.h" />
     <ClInclude Include="estimator-affine-transformation.h" />
     <ClInclude Include="fast-volume-pyramid.h" />

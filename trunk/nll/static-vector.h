@@ -354,9 +354,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector2i : public StaticVector<iint, 2>
+   class vector2i : public StaticVector<i32, 2>
    {
-      typedef StaticVector<iint, 2> BaseClass;
+      typedef StaticVector<i32, 2> BaseClass;
    public:
       vector2i( )
       {
@@ -372,9 +372,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector2ui : public StaticVector<uiint, 2>
+   class vector2ui : public StaticVector<size_t, 2>
    {
-      typedef StaticVector<uiint, 2> BaseClass;
+      typedef StaticVector<size_t, 2> BaseClass;
    public:
       vector2ui( )
       {
@@ -390,9 +390,9 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector3ui : public StaticVector<uiint, 3>
+   class vector3ui : public StaticVector<size_t, 3>
    {
-      typedef StaticVector<uiint, 3> BaseClass;
+      typedef StaticVector<size_t, 3> BaseClass;
    public:
       vector3ui( )
       {
@@ -485,10 +485,10 @@ namespace core
     @ingroup core
     @brief specific implementation with custom constructor
     */
-   class vector3i : public StaticVector<iint, 3>
+   class vector3i : public StaticVector<i32, 3>
    {
    public:
-      typedef StaticVector<iint, 3> BaseClass;
+      typedef StaticVector<i32, 3> BaseClass;
 
       vector3i( const BaseClass& b ) : BaseClass( b )
       {
