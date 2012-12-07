@@ -154,11 +154,14 @@ namespace algorithm
       }
 
       /**
-       @brief Find the intial transform that rotates the volumes following the ellipsoid axes and having the center of mass
-              centered on the volume
+       @brief find a good initial transformation
+
+       - The center of mass will be centered
+       - the normal of the plane defined by the two biggest ellipsoid axis will be aligned with the vector (-1, 0, 0)
+       - other axis are left unchanged
        */
       template <class T, class Buffer>
-      Matrix computeInitialTransformation( const imaging::VolumeSpatial<T, Buffer>& volume )  const
+      Matrix computeInitialTransformation( const imaging::VolumeSpatial<T, Buffer>& volume, double eps = 1e-3 )  const
       {
          // find initial range
          imaging::LookUpTransformWindowingRGB lut( 100, 8000, 256, 1 );
@@ -167,8 +170,7 @@ namespace algorithm
 
          // increase the minimum so that we are not capturing the background values
          const double range = lut.getMax() - lut.getMin();
-         //lut.reset( lut.getMin() + range * 0.2, lut.getMax(), lut.getSize() );
-         lut.reset( 0.1, 20, lut.getSize() );
+         lut.reset( lut.getMin() + range * 0.1, lut.getMax() - range * 0.5, lut.getSize() );
          lut.createGreyscale();
 
          // find the initial plane using biggest ellipsoid axes
@@ -183,62 +185,75 @@ namespace algorithm
                                          outCenterOfMassf[ 1 ],
                                          outCenterOfMassf[ 2 ] );
 
+         std::cout << "ellipsoid axis=" << ellipsoidAxes << std::endl;
+
+         // the two higest axis are defining the initial plane. We simply wants to
+         // find the "smallest" rotation that transform the plane's normal to the axis (-1, 0, 0)
+         // the third axis is always the normal
+         core::vector3d normal( ellipsoidAxes( 0, 2 ), 
+                                ellipsoidAxes( 1, 2 ),
+                                ellipsoidAxes( 2, 2 ) );
+         normal /= normal.norm2();  // just in case!
+         const core::vector3d expectedNormal( -1, 0, 0 );
+
+         // now just make sure the normal and expected normal are oriented the same way so the angle
+         // we find is the smallest one
+         const double sign = normal.dot( expectedNormal );
+         if ( sign < 0 )
+         {
+            normal = core::vector3d( -normal[ 0 ],
+                                     -normal[ 1 ],
+                                     -normal[ 2 ] );
+         }
+         std::cout << "normal=" << normal << std::endl;
+
+         Matrix rotation = core::identityMatrix<Matrix>( 4 ); // the normal and expected normal are very close, so we can just return identity rotation
+         if ( !core::equal<double>( fabs( sign ), 1, eps ) )
+         {
+            // if the normal is too close to the expected normal, the normal2 of the plan defined by the vectors (normal, expected normal) will
+            // be inaccurate. This normal2 represents the direction for P3 which will not biase the rotation estimation
+            core::StaticVector<double, 3> normal2 = core::cross( normal, expectedNormal );
+            normal2 /= normal2.norm2();
+            std::cout << "normal2=" << normal2 << std::endl;
+
+            // now build a point mapping. It is the simplest way to avoid all angle computations...
+            std::vector< core::StaticVector<double, 3> > fromPoints;
+            std::vector< core::StaticVector<double, 3> > toPoints;
+
+            // P1: define the rotation center
+            fromPoints.push_back( core::vector3d( 0, 0, 0 ) );
+            toPoints.push_back( core::vector3d( 0, 0, 0 ) );
+
+            // P2: rotation between the two normals
+            fromPoints.push_back( core::vector3d( 0, 0, 0 ) + normal );
+            toPoints.push_back( core::vector3d( 0, 0, 0 ) + expectedNormal );
+
+            // P3: force the rotation so that there is only one angle and the transformation is well defined!
+            fromPoints.push_back( core::vector3d( 0, 0, 0 ) + normal + normal2 );
+            toPoints.push_back( core::vector3d( 0, 0, 0 ) + expectedNormal + normal2 );
+
+            // our initial transformation
+            EstimatorTransformSimilarityIsometric estimator;
+            rotation = estimator.compute( fromPoints, toPoints );
+         }
 
          // Now, we have the center of mass and the associate transformation
          // the idea is then to have the center of mass at the center of the volume
          // and rotate the volume according to the new reference coordinate
          //   T0 = tfm volume center of mass->origin
-         //   R = tfm rotating the volume so that the ellipsoid axes are matching system {orign, (1, 0, 0), (0, 1, 0), (0, 0, 1)}
+         //   R = tfm rotating the volume so that the normal and expected normal are aligned
          //   T = tfm center of mass -> volume center
          // We get the following initialization: T * T0^-1 R T0
-         //Matrix rot = core::identityMatrix<Matrix>( 4 );
-         
-         std::cout << ellipsoidAxes << std::endl;
-         Matrix rot( 4, 4 );
-
-         // rotate by several 90 degrees rotations. We are expecting the Y axis, followed by Z and finally X
-         // so rewrite the matrix in [X Y Z] format
-         const size_t index[] =
-         {
-            1, 2, 0
-         };
-
-         for ( size_t y = 0; y < 3; ++y )
-         {
-            for ( size_t x = 0; x < 3; ++x )
-            {
-               rot( y, index[ x ] ) = ellipsoidAxes( y, x );
-            }
-         }
-         rot( 3, 3 ) = 1;
-
-         // force the orientation to be in the "positive" way
-         // so that we are keeping standard orientation (there is no guaranty on the orientation, so choose an arbitrary one)
-         core::vector3d sign;
-         for ( size_t x = 0; x < 3; ++x )
-         {
-            sign[ x ] = core::sign( rot( x, x ) );
-         }
-
-         for ( size_t y = 0; y < 3; ++y )
-         {
-            for ( size_t x = 0; x < 3; ++x )
-            {
-               rot( y, x ) *= sign[ x ];
-            }
-         }
-         
          const core::vector3f centerMm = volume.indexToPosition( core::vector3f( static_cast<float>( volume.getSize()[ 0 ] ) / 2,
                                                                                  static_cast<float>( volume.getSize()[ 1 ] ) / 2,
                                                                                  static_cast<float>( volume.getSize()[ 2 ] ) / 2 ) );
-
          const Matrix t0 = core::createTranslation4x4( core::vector3d( -outCenterOfMass[ 0 ], -outCenterOfMass[ 1 ], -outCenterOfMass[ 2 ] ) ); 
          const Matrix t0inv = core::createTranslation4x4( outCenterOfMass ); 
 
          const Matrix t = core::createTranslation4x4( core::vector3d( centerMm[ 0 ] - outCenterOfMass[ 0 ],
                                                                       centerMm[ 1 ] - outCenterOfMass[ 1 ],
                                                                       centerMm[ 2 ] - outCenterOfMass[ 2 ] ) ); 
-         return ( t * t0inv * rot.inverse() * t0 ).inverse();
+         return ( t * t0inv * rotation /*.inverse()*/ * t0 ).inverse();
       }
    };
 }
@@ -434,9 +449,9 @@ public:
    void testInitialTransformation()
    {
       // load volume
-      Volumef v;
-      //const bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/brain4.mf2", v );
-      const bool loaded = imaging::loadSimpleFlatFile( "C:/tmp2/vol_tgt.mf2", v );
+      Volumef v; // 8 9 11 12 13
+      const bool loaded = imaging::loadSimpleFlatFile( NLL_TEST_PATH "data/medical/brain13.mf2", v );
+      //const bool loaded = imaging::loadSimpleFlatFile( "C:/tmp2/vol_tgt.mf2", v );
       ensure( loaded, "can't find the volume" );
 
       //v.setOrigin( core::vector3f( 0, 0, 0 ) );
@@ -454,23 +469,24 @@ public:
       imaging::resampleVolumeTrilinear( v, tfm, resampledSpace );
       imaging::saveSimpleFlatFile( "C:/tmp2/vol_rsp.mf2", resampledSpace );
       imaging::saveSimpleFlatFile( "C:/tmp2/vol_tgt.mf2", v );
-
+      /*
       // finally, redo an initialization, this time we must have exactly identity
       core::Matrix<double> tfmInit2 = calculator.computeInitialTransformation( resampledSpace );
       std::cout << "tfmInit2=" << tfmInit2 << std::endl;
-
+      
       // resample the volume according to initial tfm
       imaging::TransformationAffine tfm2( tfmInit2 );
       Volumef resampledSpace2( v.getSize(), v.getPst(), v.getBackgroundValue() );
       imaging::resampleVolumeTrilinear( resampledSpace, tfm2, resampledSpace2 );
       imaging::saveSimpleFlatFile( "C:/tmp2/vol_rsp2.mf2", resampledSpace2 );
+      */
    }
 };
 
 #ifndef DONT_RUN_TEST
 TESTER_TEST_SUITE(TestReflectionPlane);
- TESTER_TEST(testEllipsoidAxis1);
- TESTER_TEST(testEllipsoidAxis2);
- //TESTER_TEST(testInitialTransformation);
+ //TESTER_TEST(testEllipsoidAxis1);
+ //TESTER_TEST(testEllipsoidAxis2);
+ TESTER_TEST(testInitialTransformation);
 TESTER_TEST_SUITE_END();
 #endif
