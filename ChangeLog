@@ -2,6 +2,9 @@ v0.17
 -added Newton's optimizer and hybrid Newton/Line search
 -added hybrid gradient descent/line search optimizer
 -added Hessian/gradient finite difference estimator
+-reworked affine registration algorithms
+-reworked bayesian network algorithms
+-added ellipsoid of inertia decomposition
 
 v0.16
 -added matrix utilities

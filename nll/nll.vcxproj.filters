@@ -824,6 +824,9 @@
     <ClInclude Include="transformation-reflection.h">
       <Filter>algorithm-regs</Filter>
     </ClInclude>
+    <ClInclude Include="ellipsoid-axis-inertia.h">
+      <Filter>algorithm-regs</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="nll.rc">

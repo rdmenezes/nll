@@ -228,7 +228,7 @@ namespace core
     @note the matrix is directly modified!
     */
    template <class T, class Mapper, class Allocator>
-   void matrix4x4RotationX( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
+   void matrix4x4RotationX( core::Matrix<T, Mapper, Allocator>& m, T angleRadian )
    {
       if ( m.sizex() != 4 || m.sizey() != 4 )
          m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
@@ -246,7 +246,7 @@ namespace core
     @note the matrix is directly modified!
     */
    template <class T, class Mapper, class Allocator>
-   void matrix4x4RotationZ( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
+   void matrix4x4RotationZ( core::Matrix<T, Mapper, Allocator>& m, T angleRadian )
    {
       if ( m.sizex() != 4 || m.sizey() != 4 )
          m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );
@@ -264,7 +264,7 @@ namespace core
     @note the matrix is directly modified!
     */
    template <class T, class Mapper, class Allocator>
-   void matrix4x4RotationY( core::Matrix<T, Mapper, Allocator>& m, float angleRadian )
+   void matrix4x4RotationY( core::Matrix<T, Mapper, Allocator>& m, T angleRadian )
    {
       if ( m.sizex() != 4 || m.sizey() != 4 )
          m = core::Matrix<T, Mapper, Allocator>( 4, 4, true );

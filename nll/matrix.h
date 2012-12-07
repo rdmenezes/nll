@@ -373,8 +373,7 @@ namespace core
       /**
        @brief test if the matrices are semantically equal
        */
-      template <class Mapper>
-      inline bool equal( const Matrix<T, Mapper, Allocator>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
+      inline bool equal( const Matrix<T, IndexMapper, Allocator>& op, T tolerance = std::numeric_limits<T>::epsilon() ) const
       {
          if ( _sizex != op.sizex() || _sizey != op.sizey() )
             return false;

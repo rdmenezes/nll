@@ -73,8 +73,8 @@ namespace core
       if ( norm1 <= 0 || norm2 <= 0 )
          return true;
 
-      const StaticVector<T, N> x1c = x1 / norm1;
-      const StaticVector<T, N> x2c = x2 / norm2;
+      const StaticVector<T, N> x1c = x1 / static_cast<T>( norm1 );
+      const StaticVector<T, N> x2c = x2 / static_cast<T>( norm2 );
       T sign = 1;
 
       // first, assign a direction

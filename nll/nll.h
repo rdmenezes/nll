@@ -415,6 +415,7 @@
 # include "registration-transformation-evaluator-similarity.h"
 # include "registration-preprocessing-volume.h"
 # include "registration-algorithm-intensity-affine.h"
+# include "ellipsoid-axis-inertia.h"
 
 # include "classifier-base.h"
 # include "classifier.h"
