@@ -340,7 +340,7 @@ namespace detect
             {
                {
                   const std::string sliceName = std::string( "c:/tmp/case-" ) + core::val2str( n ) + "-slice-" + core::val2str( results[ n ].skullStart ) + "-skull.bmp";
-                  ui32 index = std::min( (ui32)results[ n ].skullStart, volume.size()[ 2 ] - 1 );
+                  ui32 index = std::min<ui32>( (ui32)results[ n ].skullStart, volume.size()[ 2 ] - 1 );
                   if ( index < volume.size()[ 2 ] )
                   {
                      Point input = _convert( volume, index, sliceName );  // we can't take the first slice as it is empty due to interpolation...
@@ -402,7 +402,7 @@ namespace detect
       {
          std::cout << "generate feature database..." << std::endl;
          algorithm::HaarFeatures2d features = _generateRandomFeatures();
-         features.write( HAAR_FEATURES );
+         //features.write( HAAR_FEATURES );
 
          std::cout << " read source database..." << std::endl;
          Database sourceDatabase;
@@ -416,11 +416,11 @@ namespace detect
             core::Image<Point::value_type> image( sourceDatabase[ n ].input, REGION_DETECTION_SOURCE_IMG_X, REGION_DETECTION_SOURCE_IMG_Y, 1 );
 
             // process it
-            Point point = features.process( image );
+            //Point point = features.process( image );
             //point.print( std::cout );
 
             Database::Sample::Type type = Database::Sample::LEARNING;
-            haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type, sourceDatabase[ n ].debug ) );
+            //haarDatabase.add( Database::Sample( point, sourceDatabase[ n ].output, type, sourceDatabase[ n ].debug ) );
          }
 
          haarDatabase.write( DATABASE_HAAR );
@@ -458,9 +458,9 @@ namespace detect
                std::swap( v1[ 1 ], v2[ 1 ] );
             ui32 dir = rand() % 2;
 
-            features.add( algorithm::HaarFeatures2d::Feature( (algorithm::HaarFeatures2d::Feature::Direction)dir,
-                                                              v1,
-                                                              v2 ) );
+            //features.add( algorithm::HaarFeatures2d::Feature( (algorithm::HaarFeatures2d::Feature::Direction)dir,
+                                                              //v1,
+                                                              //v2 ) );
          }
          return features;
       }

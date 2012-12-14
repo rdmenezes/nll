@@ -45,7 +45,7 @@ namespace detect
       TestVolume( Classifier* classifier, const std::string& haarFeatures, const std::string& haarNormalization, const std::string& featureSelection ) //: _selection( 0 )
       {
          _classifier = classifier;
-         _haar.read( haarFeatures );
+         //_haar.read( haarFeatures );
          _normalization.read( haarNormalization );
          _selection.read( featureSelection );
       }
@@ -256,12 +256,12 @@ namespace detect
          //std::cout << "EXTRACT" << std::endl;
          // extract 2D Haar features
          core::Image<Point::value_type> mprf( sliceFeature, mpr_xy.sizex(), mpr_xy.sizey(), 1 );
-         Point haarFeature = _haar.process( mprf );
+         //Point haarFeature = _haar.process( mprf );
 
          //haarFeature.print( std::cout );
          //std::cout << "-------------" << std::endl;
 
-         Point p = _selection.process( _normalization.process( haarFeature ) );
+         Point p;// = _selection.process( _normalization.process( haarFeature ) );
          //p.print( std::cout );
          return p;
       }
