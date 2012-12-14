@@ -313,6 +313,14 @@ namespace imaging
          _invertedPst = vol._invertedPst;
       }
 
+      void print( std::ostream& o ) const
+      {
+         o << "VolumeSpatial:"
+           << " background=" << getBackgroundValue() << std::endl
+           << " size=" << getSize() << std::endl;
+         _pst.print( o );
+      }
+
 
    protected:
       /**

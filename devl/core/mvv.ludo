@@ -59,6 +59,16 @@ class AffineRegistration
     @brief Return the current registration matrix
     */
    import Matrix4f getMatrix();
+
+   /**
+    @brief Transform a single point under this transformation
+    */
+   import Vector3f transform( Vector3f point );
+
+   /**
+    @brief Transform a single point under the inverse of this transformation
+    */
+   import Vector3f transformInverse( Vector3f point );
 }
 
 /**

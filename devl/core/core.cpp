@@ -2872,6 +2872,22 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
+      Type* vector = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vector );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "transform" ) ), nll::core::make_vector<const Type*>( vector ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationTransform( fn ) ) );
+   }
+
+   {
+      Type* vector = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3f" ) ) ) );
+      assert( vector );
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "transformInverse" ) ), nll::core::make_vector<const Type*>( vector ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationTransformInverse( fn ) ) );
+   }
+
+   {
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "AffineRegistration"), platform::Symbol::create( "getMatrix" ) ), std::vector<const Type*>() );
       assert( fn );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionAffineRegistrationGetMatrix( fn ) ) );

@@ -125,7 +125,7 @@ class VolumeSwitchReg
 	  groundtruth = 0;
 
 	  string name = registrator.getTestMrVolume( index );
-	  //name = "MR-379";
+	  name = "MR-334";
 
       string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
       string volname = base + name;
@@ -264,7 +264,7 @@ segment2.setTool( annotations );
 
 Segment segment3( volumes, Vector3f( factor, 0.0, 0.0 ), Vector3f( 0.0, 0.0, factor ) );
 segment3.setTool( toolCentering );
-//segment3.setTool( manipultors );
+segment3.setTool( manipultors );
 segment3.setTool( annotations );
 //segment3.setInterpolator( typename Segment::Nearest() );
 

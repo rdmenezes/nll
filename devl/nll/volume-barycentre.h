@@ -66,7 +66,19 @@ namespace imaging
             }
          }
       }
-      return geometry.indexToPosition( tmp / nb );
+      tmp /= nb;
+      core::vector3f position = geometry.indexToPosition( tmp );
+
+      {
+         std::stringstream ss;
+         ss << "Compute barycenter:" << std::endl;
+         vol.print( ss );
+         ss << " index=" << tmp << std::endl
+            << " position=" << position;
+         core::LoggerNll::write( core::LoggerNll::IMPLEMENTATION, ss.str() );
+      }
+
+      return position;
    }
 }
 }

@@ -280,17 +280,21 @@ namespace core
       /**
        @brief print the matrix to a stream
        */
-      void print( std::ostream& o ) const
+      void print( std::ostream& o, bool verbose = true ) const
       {
          if ( this->_buffer )
          {
-            o << "Buffer2D(" << *this->_cpt << ") size=" << this->_size << std::endl;
+            if ( verbose )
+            {
+               o << "Buffer2D(" << *this->_cpt << ") size=" << this->_size << std::endl;
+            }
 
             for ( size_t ny = 0; ny < _sizey; ++ny )
             {
                for ( size_t nx = 0; nx < _sizex; ++nx )
                   o << at( ny, nx ) << "\t";
-               o << std::endl;
+               if ( ny + 1 != _sizey )
+                  o << std::endl;
             }
          } else {
             o << "Buffer2D(NULL)" << std::endl;

@@ -132,6 +132,86 @@ public:
    }
 };
 
+class FunctionAffineRegistrationTransform: public FunctionRunnable
+{
+   typedef platform::ResourceRegistration Pointee;
+
+public:
+   FunctionAffineRegistrationTransform( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v2.type != RuntimeValue::TYPE )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 Matrix4f" );
+      }
+
+      nll::core::vector3f vector;
+      getVector3fValues( v2, vector );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* reg = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      const nll::core::vector3f val = nll::core::transf4( reg->getValue(), vector );
+      
+      RuntimeValue rt;
+      createVector3f( rt, val[ 0 ], val[ 1 ], val[ 2 ] );
+      return rt;
+   }
+};
+
+class FunctionAffineRegistrationTransformInverse: public FunctionRunnable
+{
+   typedef platform::ResourceRegistration Pointee;
+
+public:
+   FunctionAffineRegistrationTransformInverse( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 2 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      if ( v2.type != RuntimeValue::TYPE )
+      {
+         throw std::runtime_error( "wrong arguments: expecting 1 Matrix4f" );
+      }
+
+      nll::core::vector3f vector;
+      getVector3fValues( v2, vector );
+
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* reg = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      Pointee::value_type invMat;
+      invMat.clone( reg->getValue() );
+      const bool success = nll::core::inverse( invMat );
+      ensure( success, "the tfm is not affine!" );
+      const nll::core::vector3f val = nll::core::transf4( invMat, vector );
+      
+      RuntimeValue rt;
+      createVector3f( rt, val[ 0 ], val[ 1 ], val[ 2 ] );
+      return rt;
+   }
+};
+
 class FunctionAffineRegistrationGetMatrix: public FunctionRunnable
 {
    typedef platform::ResourceRegistration Pointee;

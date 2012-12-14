@@ -178,7 +178,7 @@ namespace imaging
 
          // do binning
          std::vector<size_t> bins( nbBins );
-         const double range = ( static_cast<double>( max ) - static_cast<double>( min ) ) / nbBins;
+         const double range = ( static_cast<double>( max ) - static_cast<double>( min ) + 1 ) / nbBins;
          size_t nbVoxels = 0;
          for ( typename Volume::const_iterator it = v.begin(); it != v.end(); ++it )
          {

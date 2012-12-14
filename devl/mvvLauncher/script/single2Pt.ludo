@@ -52,11 +52,12 @@ class VolumeSwitchReg
    ImageHolder holderx = NULL;
    ImageHolder holdery = NULL;
    ImageHolder holderz = NULL;
+   ToolAnnotations annotations = NULL;
 
    AffineRegistration tfmGroundTruth;
    AffineRegistration tfmReg;
 
-   VolumeSwitchReg( Lut l1, Lut l2, Lut l3, VolumeContainer vs, RegistrationMr reg, ImageHolder hx, ImageHolder hy, ImageHolder hz )
+   VolumeSwitchReg( Lut l1, Lut l2, Lut l3, VolumeContainer vs, RegistrationMr reg, ImageHolder hx, ImageHolder hy, ImageHolder hz, ToolAnnotations toolAnnotations )
    {
       lut1 = l1;
       lut2 = l2;
@@ -67,6 +68,8 @@ class VolumeSwitchReg
 	  holderx = hx;
 	  holdery = hy;
 	  holderz = hz;
+
+	  annotations = toolAnnotations;
 
       //displayed1 = readDicomVolume( list[ 6 ] );
    }
@@ -94,19 +97,32 @@ class VolumeSwitchReg
 
    void register()
    {
+      annotations.clear();
 	  volumes.clear();
 	  groundtruth = 0;
 
 	  //string name = registrator.getTestMrVolume( index );
 	  string name = registrator.getTestPtVolume( index );
-	  //name = "PT-413";
-	  //name = "PT-449";
-	  //name = "PT-508";
-	  //name = "PT-509";
+	  //name = "PT-390";  // atrophy
+	  //name = "PT-394";
+	  //name = "PT-398";
 	  //name = "PT-399";
 	  //name = "PT-405";
 	  //name = "PT-411";
 	  //name = "PT-412";
+	  //name = "PT-413";
+	  //name = "PT-435";
+	  //name = "PT-449";
+	  //name = "PT-501";
+	  //name = "PT-508";
+	  //name = "PT-509";
+
+	  //name = "PT-382";	// atrophy
+
+	  //name = "PT-506";	// atrophy lateral
+	  //name = "PT-492";	// atrophy lateral
+
+	  name = "PT-86";
 
       //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
 	  string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/pt/";
@@ -115,6 +131,7 @@ class VolumeSwitchReg
 
       print( "----------------=" + volname );
       displayed2 = readDicomVolume( volname );
+	  Volume v = displayed2.getVolume();
 
       lut1.detectRange( displayed2, 0.8 );
 	  //lut1.setVolcanoColor(Vector3i(0, 255, 0), 3.0, 0.6);
@@ -138,13 +155,20 @@ class VolumeSwitchReg
 	  holdery.set(registrator.getDebugY());
 	  holderz.set(registrator.getDebugZ());
 
+	  //volumes.add( displayed2, lut1, 1.0 );
       volumes.add( displayed2, lut1, 1.0, tfmReg );
       volumes.add( displayed1, lut2, 0.2 );
 	  volumes.add( displayed1mask, lut3, 0.6 );
 	  volumes.add( displayed1roi, lut3, 0.25 );
-
+	  
 	  print("TEMPLATE=");
 	  print(registrator.templates[id]);
+
+	  // transform to new space the barycenter
+	  Lut lutCentre( 0.0, 50.0, Vector3i( 255, 255, 255 ) );
+	  Vector3f center = barycentre( displayed2, lutCentre );
+	  Vector3f centerTfm = tfmReg.transformInverse( center );
+	  annotations.add( centerTfm, "" );
    }
 }
 
@@ -232,7 +256,7 @@ ImageHolder holderx;
 ImageHolder holdery;
 ImageHolder holderz;
 
-VolumeSwitchReg switch( ctLut1, ctLut2, ctLut3, volumes, registrator, holderx, holdery, holderz );
+VolumeSwitchReg switch( ctLut1, ctLut2, ctLut3, volumes, registrator, holderx, holdery, holderz, annotations );
 callbacks.addShortcut( switch.next, "F3" );
 
 
