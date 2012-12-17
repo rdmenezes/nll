@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <nll/types.h>
+
+#define NLL_API __declspec(dllimport)
 #include <nll/utility-pure.h>
 #include <sstream>
 
