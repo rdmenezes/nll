@@ -122,7 +122,7 @@ class VolumeSwitchReg
 	  //name = "PT-506";	// atrophy lateral
 	  //name = "PT-492";	// atrophy lateral
 
-	  name = "PT-86";
+	  //name = "PT-86";
 
       //string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/mr/";
 	  string base = "D:/devel/sandbox_vs2010/RegistrationImpl/data/pt/";
