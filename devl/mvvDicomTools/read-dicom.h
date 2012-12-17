@@ -6,6 +6,7 @@
 # include <mvvScript/compiler-helper.h>
 # include "utils.h"
 # include "dicom-attributs.h"
+# include <nll/nll.h>
 
 using namespace mvv::platform;
 using namespace mvv::parser;
