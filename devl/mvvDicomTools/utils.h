@@ -16,7 +16,7 @@ using namespace mvv::parser;
 
 // TODO this is a quick fix for <RegistrationImpl> project: the tool to export DICOM volumes inverts y axis, if the DICOM is not reading for this particular
 // the flag should be disabled!
-#define ORIENTATION_FOR_MATLAB_COMPABILITY
+//#define ORIENTATION_FOR_MATLAB_COMPABILITY
 
 namespace mvv
 {
@@ -946,7 +946,7 @@ namespace mvv
             throw std::runtime_error( "spacing cannot be <= 0" );
 
          // compute the volume origin
-         DicomWrapper wrapperLastSlice( *suids[ suids.size() - 1 ].getDataset(), true );
+         DicomWrapper wrapperLastSlice( *suids[ 0 ].getDataset(), true );
          nll::core::vector3f origin;
          wrapperLastSlice.getImagePositionPatient( origin );
 
@@ -961,11 +961,11 @@ namespace mvv
          // TODO: check which corner should be the origin?
 #ifdef ORIENTATION_FOR_MATLAB_COMPABILITY
          pst( 0, 3 ) = origin[ 0 ];
-         pst( 1, 3 ) = -origin[ 1 ];
-         pst( 2, 3 ) = -origin[ 2 ];
+         pst( 1, 3 ) = -origin[ 1 ];      // matlab is inverting Y
+         pst( 2, 3 ) = origin[ 2 ];
 #else
-         pst( 0, 3 ) = -origin[ 0 ];
-         pst( 1, 3 ) = -origin[ 1 ];
+         pst( 0, 3 ) = origin[ 0 ];
+         pst( 1, 3 ) = origin[ 1 ];
          pst( 2, 3 ) = origin[ 2 ];
 #endif
          pst( 3, 3 ) = 1;
