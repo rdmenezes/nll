@@ -105,6 +105,11 @@ namespace mvv
          setString( DCM_AcquisitionNumber, name );
       }
 
+      ui32 getPixelRepresentation()
+      {
+         return getUnsignedShort( DCM_PixelRepresentation );
+      }
+
       const char* getKvp()
       {
          return getString( DCM_KVP );
@@ -512,6 +517,7 @@ namespace mvv
          const ui16* array = getUint16Array( DCM_PixelData );
          memcpy( allocatedOutput, array, sizeof( ui16 ) * getRows() * getColumns() );
       }
+
 
       void setPixelData( const ui16* allocatedOutput )
       {
@@ -981,7 +987,6 @@ namespace mvv
          for ( ui32 z = 0; z < size[ 2 ]; ++z )
          {
             DicomWrapper wrapper( *suids[ z ].getDataset(), false );
-            wrapper.getPixelData( ptr.get() ); // we really don't want this to be in the multithreaded loop as it is reading slices from disk
             float slope = 1.0f;
             float intercept = 0.0f;
 
@@ -995,15 +1000,36 @@ namespace mvv
                //std::cout << "warning: RSI tag is missing!" << std::endl;
             }
 
-            #pragma omp parallel for
-            for ( int y = 0; y < (int)size[ 1 ]; ++y )
+            const bool isSigned = wrapper.getPixelRepresentation() != 0;
+            wrapper.getPixelData( ptr.get() ); // we really don't want this to be in a multithreaded loop as it is reading slices from disk
+
+            if ( isSigned )
             {
-               typename Volume::DirectionalIterator iter = volume->getIterator( 0, y, z );
-               for ( ui32 x = 0; x < size[ 0 ]; ++x )
+               const i16* signedData = reinterpret_cast<i16*>( ptr.get() );   // we MUST interpret the data as signed!
+
+               #pragma omp parallel for
+               for ( int y = 0; y < (int)size[ 1 ]; ++y )
                {
-                  const float val = ( (float)ptr.get()[ x + y * size[ 0 ] ] ) * slope + intercept;
-                  *iter = val;
-                  ++iter;
+                  typename Volume::DirectionalIterator iter = volume->getIterator( 0, y, z );
+                  for ( ui32 x = 0; x < size[ 0 ]; ++x )
+                  {
+
+                     const float val = signedData[ x + y * size[ 0 ] ] * slope + intercept;
+                     *iter = val;
+                     ++iter;
+                  }
+               }
+            } else {
+               #pragma omp parallel for
+               for ( int y = 0; y < (int)size[ 1 ]; ++y )
+               {
+                  typename Volume::DirectionalIterator iter = volume->getIterator( 0, y, z );
+                  for ( ui32 x = 0; x < size[ 0 ]; ++x )
+                  {
+                     const float val = ( (float)ptr.get()[ x + y * size[ 0 ] ] ) * slope + intercept;
+                     *iter = val;
+                     ++iter;
+                  }
                }
             }
          }
