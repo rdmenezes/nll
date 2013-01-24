@@ -966,9 +966,9 @@ namespace mvv
 
          // TODO: check which corner should be the origin?
 #ifdef ORIENTATION_FOR_MATLAB_COMPABILITY
-         pst( 0, 3 ) = origin[ 0 ];
+         pst( 0, 3 ) =  origin[ 0 ];
          pst( 1, 3 ) = -origin[ 1 ];      // matlab is inverting Y
-         pst( 2, 3 ) = origin[ 2 ];
+         pst( 2, 3 ) =  origin[ 2 ];
 #else
          pst( 0, 3 ) = origin[ 0 ];
          pst( 1, 3 ) = origin[ 1 ];
