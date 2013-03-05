@@ -6,6 +6,7 @@
 # include <mvvScript/compiler-helper.h>
 # include <dcmtk/dcmimgle/dcmimage.h>
 # include "utils.h"
+# include <dicom/dicom-wrapper.h>
 
 using namespace mvv::platform;
 using namespace mvv::parser;
@@ -310,7 +311,7 @@ namespace mvv
 
       static void exportTagsToDataset( const DicomAttributs& val, DcmDataset& out )
       {
-         DicomWrapper wrapper( out );
+         nll::dicom::DicomWrapper wrapper( out );
          wrapper.setPatientName( val.patientName.c_str() );  
          wrapper.setPatientId( val.patientID.c_str() );
          wrapper.setPatientSex( val.patientSex.c_str() );
@@ -361,7 +362,7 @@ namespace mvv
     */
    inline DicomAttributs createDicomAttributs( DcmDataset& dataset )
    {
-      DicomWrapper wrapper( dataset, false );
+      nll::dicom::DicomWrapper wrapper( dataset, false );
 
       DicomAttributs attributs;
       attributs.patientName = std::string( wrapper.getPatientName() );

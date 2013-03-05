@@ -120,7 +120,7 @@ namespace mvv
          if ( DcmTagKey( v1.intval, v2.intval ) == DCM_PixelData )
          {
             
-            DicomWrapper wrapper( *data, false );
+            nll::dicom::DicomWrapper wrapper( *data, false );
             const size_t sizeSlice = wrapper.getRows() * wrapper.getColumns();
             ensure( v3.intval == sizeSlice, "new data size and slice data size don't match" );
             std::auto_ptr<ui16> buffer( createArrayFromString<ui16>( v3.stringval.c_str(), sizeSlice ) );
@@ -181,7 +181,7 @@ namespace mvv
          DicomAttributs::exportTagsToDataset( attributs, *data );
 
          // now update the actual tag
-         DicomWrapper wrapper( *data, false );
+         nll::dicom::DicomWrapper wrapper( *data, false );
          const size_t sizeSlice = wrapper.getRows() * wrapper.getColumns();
          ensure( v3.intval == sizeSlice, "new data size and slice data size don't match" );
          std::auto_ptr<ui16> buffer( createArrayFromString<ui16>( v3.stringval.c_str(), sizeSlice ) );
@@ -250,7 +250,7 @@ namespace mvv
          // special case for pixel data
          if ( DcmTagKey( v1.intval, v2.intval ) == DCM_PixelData )
          {
-            DicomWrapper wrapper( *data, false );
+            nll::dicom::DicomWrapper wrapper( *data, false );
 
             const ui32 size = wrapper.getRows() * wrapper.getColumns();
             std::auto_ptr<ui16> buffer( new ui16[ size ] );
@@ -305,7 +305,7 @@ namespace mvv
          DicomAttributs::exportTagsToDataset( attributs, *data );
 
          // extract the tag
-         DicomWrapper wrapper( *data, false );
+         nll::dicom::DicomWrapper wrapper( *data, false );
 
          const ui32 size = wrapper.getRows() * wrapper.getColumns();
          std::auto_ptr<ui16> buffer( new ui16[ size ] );
@@ -371,7 +371,7 @@ namespace mvv
          RuntimeValue& v0 = unref( *args[ 0 ] );
          RuntimeValue& v1 = unref( *args[ 1 ] );
 
-         DicomDatasets datasets;
+         nll::dicom::DicomDatasets datasets;
          datasets.loadDicomDirectory( v0.stringval );
 
          std::vector<DcmFileFormat*> files;

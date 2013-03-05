@@ -7,6 +7,8 @@
 # include "utils.h"
 # include "dicom-attributs.h"
 # include <nll/nll.h>
+# include <dicom/dicom-wrapper.h>
+# include <dicom/dicom-datasets.h>
 
 using namespace mvv::platform;
 using namespace mvv::parser;
@@ -49,18 +51,23 @@ namespace mvv
             throw std::runtime_error( "expecting <string, DicomAttributs> as argument" );
          }
 
-         DicomDatasets datasets;
+         nll::dicom::DicomDatasets datasets;
          datasets.loadDicomDirectory( v0.stringval );
 
          if ( datasets.getSeriesUids().size() )
          {
             try
             {
-               RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( 0 ) );
+               const int indexVolume = 0;
+               RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( indexVolume ) );
                const std::string volumeId = "DICOM" + nll::core::val2str( dicomVolumeId );
                volumes->volumes.insert( mvv::SymbolVolume::create( volumeId ), volume );
 
-               const nll::core::Context& context = (*volume).getContext();
+               DicomFiles& suids = datasets.getSeriesUids()[ indexVolume ];
+               DicomAttributs dicomHeader = createDicomAttributs( *suids[ 0 ].getDataset() ); 
+               nll::core::Context& context = (*volume).getContext();
+               context.add( new ContextInstanceDicomInfo( dicomHeader ) );
+
 
                // get the DICOM header
                ContextInstanceDicomInfo* contextDicom = 0;
@@ -131,7 +138,7 @@ namespace mvv
             throw std::runtime_error( "expecting <string, DicomAttributs> as argument" );
          }
 
-         DicomDatasets datasets;
+         nll::dicom::DicomDatasets datasets;
          datasets.loadDicomDirectory( v0.stringval );
 
          if ( datasets.getSeriesUids().size() )

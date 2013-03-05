@@ -59,7 +59,7 @@ namespace mvv
       // first fill up the DICOM info using the <additionalAttributs>
       DcmDataset dataset;
       DicomAttributs::exportTagsToDataset( additionalAttributs, dataset );
-      DicomWrapper dicomWrapper( dataset );
+      nll::dicom::DicomWrapper dicomWrapper( dataset );
 
       // then for each slice, fill up the correct info
       const nll::core::vector3f dx( volume.getPst()( 0, 0 ) / volume.getSpacing()[ 0 ],
