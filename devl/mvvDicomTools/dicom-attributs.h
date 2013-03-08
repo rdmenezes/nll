@@ -311,7 +311,7 @@ namespace mvv
 
       static void exportTagsToDataset( const DicomAttributs& val, DcmDataset& out )
       {
-         nll::dicom::DicomWrapper wrapper( out );
+         nll::dicom::DicomWrapperDcmtk wrapper( out );
          wrapper.setPatientName( val.patientName.c_str() );  
          wrapper.setPatientId( val.patientID.c_str() );
          wrapper.setPatientSex( val.patientSex.c_str() );
@@ -360,10 +360,8 @@ namespace mvv
     @brief Create a <DicomAttributs> from a dcmtk dataset
     @note this must perfectly reflect the DicomAttributs defined in <mvvDicomTools.ludo>
     */
-   inline DicomAttributs createDicomAttributs( DcmDataset& dataset )
+   inline DicomAttributs createDicomAttributs( const nll::dicom::DicomWrapperInterface& wrapper )
    {
-      nll::dicom::DicomWrapper wrapper( dataset, false );
-
       DicomAttributs attributs;
       attributs.patientName = std::string( wrapper.getPatientName() );
       attributs.patientID = std::string( wrapper.getPatientId() );

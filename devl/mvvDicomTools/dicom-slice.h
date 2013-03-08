@@ -12,6 +12,9 @@
 using namespace mvv::platform;
 using namespace mvv::parser;
 
+// TODO: we need to modify the slice storage so that it can store the dicom wrapper + referenced dcmtk object
+
+/*
 namespace mvv
 {
    template <class T>
@@ -514,5 +517,5 @@ namespace mvv
       CompilerFrontEnd&    _e;
    };
 }
-
+*/
 #endif

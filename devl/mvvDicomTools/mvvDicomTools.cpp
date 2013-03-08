@@ -44,6 +44,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionReadDicomVolumes( fn, context, e ) ) );
    }
 
+   /*
    {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "DicomSlice" ) ) ) );
       TypeArray* arrayty = new TypeArray( 0, *ty, false );
@@ -113,7 +114,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       ensure( fn, "can't find the function declaration in mvvDicomTools.dll" );
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionWriteDicomSlices( fn, e ) ) );
    }
-
+   */
    {
       Type* ty = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "VolumeID" ) ) ) );
       Type* ty2 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "DicomAttributs" ) ) ) );

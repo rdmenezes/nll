@@ -162,11 +162,7 @@ import VolumeID readDicomVolume( string directory, DicomAttributs attributs = NU
 /**
  @brief Read the volumes contained in a DICOM directory
  @param attributs if an attribut is not NULL, it will be populated with the corresponding values
- @param studyIndex index on the volumes belonging to the same Study
-        e.g. studyIndex = [ 3, 6 ], with 10 series,
-        means the volume 0-3 => study 0
-                  volume 4-6 => study 1
-                  volume 7-9 => study 2
+ @param for each volume, store the corresponding study group they belong to
  @note when loaded, it is guaranteed volumes belonging to the same study UID will be consecutive
  */
 import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs = NULL, int[] studyIndex = NULL );
@@ -174,7 +170,7 @@ import VolumeID[] readDicomVolumes( string directory, DicomAttributs[] attributs
 /**
  @brief returns the size of the array
  */
-import int size( DicomSlice[] array );
+//import int size( DicomSlice[] array );
 
 /**
  @brief Write a DICOM volume, if the <attributs> is not NULL, its header will be used to write the DICOM files,
@@ -189,36 +185,38 @@ import void writeDicomVolume( VolumeID volume, string outputDirectory, DicomAttr
  Internally the DICOM file is stored but not accessible except form the <mainAttributs> that will be synced
  for I/O
  */
-class DicomSlice
-{
-   DicomAttributs mainAttributs;
+ 
 
+//class DicomSlice
+//{
+//   DicomAttributs mainAttributs;
+//
    // not constructible!
-   import ~DicomSlice();
+//   import ~DicomSlice();
 
-   /**
-    @brief Set a tag (group, element) with a new value. If the tag is part of <DicomAttributs>,
-           the attribut will be updated, if not the actual Dicom file held internally will be updated
-
-    @note the string will be internally converted to any require VR, it can also be used with VM > 1
-          by separating the values by the character '\'
-          e.g. pixel spacing: setTag( 0x0028, 0x0030, "1.5" + "\\" + "1.6" )
-
-          This may not work for some specific Tag. Only for Tag with VR = {AE, AS, CS, DA, DS, DT, IS, LO, LT, PN, SH, ST, TM, UI, UT}
-          For example pixel data tag has VR VR_ox in DCMTK
-    */
-   import void setTag( int group, int element, string value );
-
-   import string getTag( int group, int element );
-
-   import void setPixelTag( string value );
-   import string getPixelTag();
-}
+//   /**
+//    @brief Set a tag (group, element) with a new value. If the tag is part of <DicomAttributs>,
+//           the attribut will be updated, if not the actual Dicom file held internally will be updated
+//
+//    @note the string will be internally converted to any require VR, it can also be used with VM > 1
+//          by separating the values by the character '\'
+//          e.g. pixel spacing: setTag( 0x0028, 0x0030, "1.5" + "\\" + "1.6" )
+//
+//          This may not work for some specific Tag. Only for Tag with VR = {AE, AS, CS, DA, DS, DT, IS, LO, LT, PN, SH, ST, TM, UI, UT}
+//          For example pixel data tag has VR VR_ox in DCMTK
+//    */
+//   import void setTag( int group, int element, string value );
+//
+//   import string getTag( int group, int element );
+//
+//   import void setPixelTag( string value );
+//   import string getPixelTag();
+//}
 
 /**
  @brief Read a specific DICOM slice
  */
-import DicomSlice readDicomSlice( string path );
+//import DicomSlice readDicomSlice( string path );
 
 /**
  @brief Read a specific DICOM directory and return all DICOM slices
@@ -230,7 +228,7 @@ import DicomSlice readDicomSlice( string path );
                   slice 7-9 => series 2
         if seriesIndex == NULL, the series will not be exported
  */
-import DicomSlice[] readDicomSlices( string path, int[] seriesIndex = NULL );
+//import DicomSlice[] readDicomSlices( string path, int[] seriesIndex = NULL );
 
 
 /**
@@ -249,23 +247,23 @@ import DicomSlice[] readDicomSlices( string path, int[] seriesIndex = NULL );
  @brief Function that will name a DICOM slice, this is used to personalize the how the slice are named
         It can be extended so that the functions give different directories to different series instance UID...
  */
-typedef string ( DicomSlice slice )  DicomSliceNamingFunc;
+//typedef string ( DicomSlice slice )  DicomSliceNamingFunc;
 
-string defaultDicomSliceNamingFunc( DicomSlice slice )
-{
-   return slice.mainAttributs.seriesInstanceUid + "-" + slice.mainAttributs.sopInstanceUid + ".dcm";
-}
+//string defaultDicomSliceNamingFunc( DicomSlice slice )
+//{
+//   return slice.mainAttributs.seriesInstanceUid + "-" + slice.mainAttributs.sopInstanceUid + ".dcm";
+//}
 
 /**
  @brief Write a DICOM slice on the disk
  @note  Note that if the <mainAttributs> in <DicomSlice> have been modified
         they will be updated
  */
-import void writeDicomSlice( DicomSlice slice, string path );
+//import void writeDicomSlice( DicomSlice slice, string path );
 
 /**
  @brief Write DICOM slices on the disk
  @note  Note that if the <mainAttributs> in <DicomSlice> have been modified
         they will be updated
  */
-import void writeDicomSlices( DicomSlice[] slices, string directory, DicomSliceNamingFunc namingSlice = defaultDicomSliceNamingFunc );
+//import void writeDicomSlices( DicomSlice[] slices, string directory, DicomSliceNamingFunc namingSlice = defaultDicomSliceNamingFunc );

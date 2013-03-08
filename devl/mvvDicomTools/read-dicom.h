@@ -54,17 +54,19 @@ namespace mvv
          nll::dicom::DicomDatasets datasets;
          datasets.loadDicomDirectory( v0.stringval );
 
-         if ( datasets.getSeriesUids().size() )
+         if ( datasets.getNbSeries() )
          {
             try
             {
                const int indexVolume = 0;
-               RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( indexVolume ) );
+               nll::dicom::DicomDatasets::const_volume_iterator volumeIt = datasets.begin();
+               RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries( volumeIt ) );
                const std::string volumeId = "DICOM" + nll::core::val2str( dicomVolumeId );
                volumes->volumes.insert( mvv::SymbolVolume::create( volumeId ), volume );
 
-               DicomFiles& suids = datasets.getSeriesUids()[ indexVolume ];
-               DicomAttributs dicomHeader = createDicomAttributs( *suids[ 0 ].getDataset() ); 
+               const std::auto_ptr<nll::dicom::DicomWrapperInterface> header = datasets.getDicomHeader( volumeIt );
+               DicomAttributs dicomHeader = createDicomAttributs( *header );
+
                nll::core::Context& context = (*volume).getContext();
                context.add( new ContextInstanceDicomInfo( dicomHeader ) );
 
@@ -141,24 +143,24 @@ namespace mvv
          nll::dicom::DicomDatasets datasets;
          datasets.loadDicomDirectory( v0.stringval );
 
-         if ( datasets.getSeriesUids().size() )
+         if ( datasets.getNbSeries() )
          {
             // fill the Study index
             if ( v2.type != RuntimeValue::NIL )
             {
+               throw std::runtime_error("TODO: update implementation: not correct anymore!");// need to create an iterator on the study
+
                v2.type = RuntimeValue::TYPE;
-               if ( datasets.getStudyUids().size() > 1 )
+
+               TypeArray* arrayint = new TypeArray( 0, *new TypeInt( false ), false );
+               v2.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), arrayint, new RuntimeValues( datasets.getNbSeries() ) );
+               int accum = 0;
+               size_t n = 0;
+               for ( nll::dicom::DicomDatasets::const_volume_iterator it = datasets.begin(); it != datasets.end(); ++it, ++n )
                {
-                  TypeArray* arrayint = new TypeArray( 0, *new TypeInt( false ), false );
-                  v2.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), arrayint, new RuntimeValues( datasets.getStudyUids().size() - 1 ) );
-                  int accum = 0;
-                  for ( ui32 n = 0; n < datasets.getStudyUids().size() - 1; ++n )
-                  {
-                     accum += (int)datasets.getStudyUids()[ n ].size();
-                     RuntimeValue v( RuntimeValue::CMP_INT );
-                     v.intval = accum - 1;
-                     (*v2.vals)[ n ] = v;
-                  }
+                  RuntimeValue v( RuntimeValue::CMP_INT );
+                  v.intval = datasets.getStudyId( it );
+                  (*v2.vals)[ n ] = v;
                }
             }
 
@@ -167,7 +169,7 @@ namespace mvv
             Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
             ensure( ty, "can't find type VolumeID" );
             TypeArray* arrayty = new TypeArray( 0, *ty, false );
-            returnValue.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), arrayty, new RuntimeValues( datasets.getSeriesUids().size() ) );
+            returnValue.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), arrayty, new RuntimeValues( datasets.getNbSeries() ) );
 
             // create the array of DicomAttributs if necessary
             if ( v1.type != RuntimeValue::NIL )
@@ -176,11 +178,54 @@ namespace mvv
                ensure( ty2, "can't find type VolumeID" );
                TypeArray* arrayty2 = new TypeArray( 0, *ty2, false );
 
-               v1.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), arrayty2, new RuntimeValues( datasets.getSeriesUids().size() ) );
+               v1.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), arrayty2, new RuntimeValues( datasets.getNbSeries() ) );
                v1.type = RuntimeValue::TYPE;
             }
 
             ui32 index = 0;
+            for ( nll::dicom::DicomDatasets::const_volume_iterator it = datasets.begin(); it != datasets.end(); ++it )
+            {
+               try
+               {
+                  RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries( it ) );
+                  const std::string volumeId = "DICOM" + nll::core::val2str( dicomVolumeId );
+                  volumes->volumes.insert( mvv::SymbolVolume::create( volumeId ), volume );
+
+                  const nll::core::Context& context = (*volume).getContext();
+
+                  // get the DICOM header
+                  ContextInstanceDicomInfo* contextDicom = 0;
+                  context.get( contextDicom );
+                  ensure( contextDicom, "DICOM volume must be associated with a DICOM context" );
+                     
+                  // translate it to a modifiable structure
+                  if ( v1.type != RuntimeValue::NIL )
+                  {
+                     std::cout << "Fill attribut=" << index << std::endl;
+                     DicomAttributs::exportTagsToRuntime( (*v1.vals)[ index ], contextDicom->attributs );
+                  }
+
+                  ++dicomVolumeId;
+
+                  // create the volume ID
+                  RuntimeValue rt( RuntimeValue::TYPE );
+                  Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
+                  ensure( ty, "can't find type VolumeID" );
+                  rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
+                  (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
+                  (*rt.vals)[ 0 ].stringval = volumeId;
+
+                  (*returnValue.vals)[ index ] = rt;
+                  std::cout << "INDEX=" << index << " TYPE=" << contextDicom->attributs.modality << std::endl;
+               } catch (...)
+               {
+                  std::cerr << "Volume creation from DICOM series failed, index=" << index << std::endl;
+                  RuntimeValue rt( RuntimeValue::NIL );
+               }
+               ++index;
+            }
+            /*
+
             for ( ui32 study = 0; study < datasets.getStudyUids().size(); ++study )
             {
                for ( ui32 series = 0; series < datasets.getStudyUids()[ study ].size(); ++series )
@@ -188,7 +233,7 @@ namespace mvv
                   try
                   {
                      const size_t n = datasets.getStudyUids()[ study ][ series ];
-                     RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries<float>( (ui32)n ) );
+                     RefcountedTyped<Volume> volume( datasets.constructVolumeFromSeries( (ui32)n ) );
                      const std::string volumeId = "DICOM" + nll::core::val2str( dicomVolumeId );
                      volumes->volumes.insert( mvv::SymbolVolume::create( volumeId ), volume );
 
@@ -226,6 +271,7 @@ namespace mvv
                   ++index;
                }
             }
+            */
             return returnValue;
          } else {
             RuntimeValue rt( RuntimeValue::EMPTY );
