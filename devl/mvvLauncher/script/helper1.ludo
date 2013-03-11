@@ -1,65 +1,3 @@
-// list of local volumes to analyse...
-string volumeList[] =
-{
-   "D:/Devel/sandbox/regionDetectionTest/data/case300.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case301.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case302.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case303.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case304.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case305.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case306.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case307.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case308.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case309.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case310.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case311.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case312.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case313.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case314.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case315.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case316.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case317.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case318.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case400.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case401.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case402.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case403.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case404.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case405.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case406.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case407.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case408.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case409.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case410.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case411.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case412.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case413.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case414.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case500.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case501.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case502.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case503.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case504.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case505.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case506.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case507.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case48.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case49.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case50.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case51.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case52.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case53.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case54.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case55.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case56.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case57.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case58.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case59.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case60.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case61.mf2",
-   "D:/Devel/sandbox/regionDetectionTest/data/case62.mf2"
-};
-
 /**
  @brief Pre-load volumes to speed up loading time
  */
@@ -69,16 +7,14 @@ class VolumeSwitch
    Lut lut                          = NULL;
    VolumeID displayed               = NULL;
    VolumeID preloaded               = NULL;
-   DisplayRegionDetection detection = NULL;
    VolumeContainer volumes          = NULL;
    string[] list;
 
-   VolumeSwitch( Lut l, VolumeContainer vs, string[] volumeList, DisplayRegionDetection rd )
+   VolumeSwitch( Lut l, VolumeContainer vs, string[] volumeList )
    {
       lut = l;
       volumes = vs;
       list = volumeList;
-      detection = rd;
 
       preloaded = readVolumeMF2Asynchronous( list[ index ] );
    }
@@ -88,10 +24,7 @@ class VolumeSwitch
       volumes.clear();
       displayed = preloaded;
       volumes.add( displayed, lut );
-      detection.annotations.clear();
       Vector3f b = barycentre( displayed, lut );
-      detection.compute( displayed );
-      detection.annotations.add( b, "barycentre" );
 
       index = index + 1;
       preloaded = readVolumeMF2Asynchronous( list[ index ] );
