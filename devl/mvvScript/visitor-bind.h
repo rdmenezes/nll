@@ -15,7 +15,8 @@ namespace parser
       inline void reportUndeclaredType( const YYLTYPE& current, mvv::parser::ParserContext& context, const std::string& msg )
       {
          std::stringstream ss;
-         ss << current << msg << std::endl;
+         
+         ss << context.getFilename() << ": " << current << msg << std::endl;
          context.getError() << ss.str() << mvv::parser::Error::BIND;
       }
 

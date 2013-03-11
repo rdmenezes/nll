@@ -23,7 +23,7 @@ struct yy_buffer_state;
 // Define our location type
 struct MVVSCRIPT_API YYLTYPE
 {
-   YYLTYPE() : filename( mvv::Symbol::create("(input)") )
+   YYLTYPE()
    {
       first_line = 1;
       first_column = 0;

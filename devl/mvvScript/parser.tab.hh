@@ -118,7 +118,7 @@ typedef union YYSTYPE
 {
 
 /* Line 1685 of yacc.c  */
-#line 127 "parser.yy"
+#line 122 "parser.yy"
 
    // Tokens.
    int                        ival;

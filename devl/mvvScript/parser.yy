@@ -116,11 +116,6 @@
 %initial-action
 {
 	yydebug = tp._parse_trace_p;
-   /**
-    setup the filename each time before parsing
-    */
-   static int mvvParserInputNumber = 0;
-   @$.filename = mvv::Symbol::create( tp._filename == "" ? "(input" + nll::core::val2str( mvvParserInputNumber++ ) + ")" : tp._filename );
 }
 
 %union
@@ -263,7 +258,7 @@
 program: statements									{ tp._root = $1; }        
 
 /* TODO Find a nice way to initialize the file!!*/
-statements: /* empty */								{ @$.filename = mvv::Symbol::create( tp._filename == "" ? "(input)" : tp._filename ); $$ = new mvv::parser::AstStatements( @$ ); }		
+statements: /* empty */								{ $$ = new mvv::parser::AstStatements( @$ ); }		
 			|statement statements					{ $$ = $2; $2->insert( $1 ); }
 
 statement: IF LPAREN rvalue RPAREN LBRACE statements RBRACE %prec IFX                     { $$ = new mvv::parser::AstIf( @$, $3, $6, 0 ); }

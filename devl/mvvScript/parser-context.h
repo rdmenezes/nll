@@ -51,6 +51,16 @@ namespace parser
          _error.clear();
       }
 
+      const std::string& getInput() const
+      {
+         return _input;
+      }
+
+      const std::string& getFilename() const
+      {
+         return _filename;
+      }
+
    private:
       // open the scanner, defined in lexer.ll
       void _scanOpen();
