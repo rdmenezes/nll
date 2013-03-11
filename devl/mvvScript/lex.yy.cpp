@@ -676,7 +676,7 @@ char *yytext;
 #line 15 "lexer.ll"
    #define YYDEBUG 1
    
-   #define YY_USER_ACTION  yylloc->first_column = yylloc->last_column; yylloc->last_column += yyleng;
+   #define YY_USER_ACTION  yylloc->first_column = yylloc->last_column; yylloc->last_column += yyleng; yylloc->filename = mvv::Symbol::create( tp._filename.c_str() );
    
 	#include <iostream>
 	#include <stdexcept>
