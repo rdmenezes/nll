@@ -197,6 +197,35 @@ public:
    }
 };
 
+class FunctionVolumeContainerNotify : public FunctionRunnable
+{
+   typedef ::impl::VolumeContainer Pointee;
+
+public:
+   FunctionVolumeContainerNotify( const AstDeclFun* fun ) : FunctionRunnable( fun )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 1 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      
+      // check we have the data
+      assert( (*v1.vals)[ 0 ].type == RuntimeValue::PTR ); // it must be 1 field, PTR type
+      Pointee* pointee = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+
+      pointee->volumes.notify();
+
+      RuntimeValue rt( RuntimeValue::EMPTY );
+      return rt;
+   }
+};
+
 class FunctionVolumeContainerErase : public FunctionRunnable
 {
    typedef ::impl::VolumeContainer Pointee;

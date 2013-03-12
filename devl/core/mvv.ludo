@@ -236,6 +236,11 @@ class VolumeContainer
     @brief Remove all the volumes from the container
     */
    import void clear();
+   
+   /**
+    @brief when a volume list is changed
+    */
+   import void notify();
 }
 
 /**
