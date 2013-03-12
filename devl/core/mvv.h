@@ -176,6 +176,68 @@ private:
    CompilerFrontEnd&        _e;
 };
 
+
+/**
+ @brief synchronously load volumes
+ */
+class FunctionCreateVolume : public FunctionRunnable
+{
+public:
+   FunctionCreateVolume( const AstDeclFun* fun, mvv::platform::Context& context, CompilerFrontEnd& e ) : FunctionRunnable( fun ), _context( context ), _e( e )
+   {
+   }
+
+   virtual RuntimeValue run( const std::vector<RuntimeValue*>& args )
+   {
+      if ( args.size() != 3 )
+      {
+         throw std::runtime_error( "unexpected number of arguments" );
+      }
+
+      RuntimeValue& v1 = unref( *args[ 0 ] );
+      RuntimeValue& v2 = unref( *args[ 1 ] );
+      RuntimeValue& v3 = unref( *args[ 2 ] );
+      if ( v3.type != RuntimeValue::CMP_FLOAT )
+      {
+         throw std::runtime_error( "wrong arguments: expecting Vector3i, Matrix4f, float as arguments" );
+      }
+
+      nll::core::vector3i size;
+      getVector3iValues( v1, size );
+
+      nll::core::Matrix<float> pst;
+      getMatrix4fValues( v2, pst );
+
+      ContextVolumes* volumes = _context.get<ContextVolumes>();
+      if ( !volumes )
+      {
+         throw std::runtime_error( "ContextVolumes context has not been loaded" );
+      }
+
+      ++volumeId;
+
+
+      RefcountedTyped<Volume> volume( new Volume( size.staticCastTo<nll::core::vector3ui::value_type>(), pst, v3.floatval ) );
+      volumes->volumes.insert( mvv::SymbolVolume::create( nll::core::val2str( volumeId ) ), volume );
+      
+      // create the volume ID
+      RuntimeValue rt( RuntimeValue::TYPE );
+      Type* ty = const_cast<Type*>( _e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create("VolumeID") ) ) );
+      assert( ty );
+
+      rt.vals = RuntimeValue::RefcountedValues( &_e.getEvaluator(), ty, new RuntimeValues( 1 ) );
+      (*rt.vals)[ 0 ].setType( RuntimeValue::STRING );
+      (*rt.vals)[ 0 ].stringval = nll::core::val2str( volumeId );
+
+      std::cout << "created volume:" << volumeId << std::endl;
+      return rt;
+   }
+
+private:
+   mvv::platform::Context&  _context;
+   CompilerFrontEnd&        _e;
+};
+
 class FunctionWriteTxtVolume : public FunctionRunnable
 {
 public:

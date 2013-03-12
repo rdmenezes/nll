@@ -2795,6 +2795,16 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
       e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionVolumeIDDestructor( fn, context ) ) );
    }
 
+   {   
+      Type* vector3i = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Vector3i" ) ) ) );
+      Type* matrix4 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "Matrix4f" ) ) ) );
+      assert( vector3i && matrix4  );
+
+      const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "createVolume" ) ), nll::core::make_vector<const Type*>( vector3i, matrix4, new TypeFloat( false ) ) );
+      assert( fn );
+      e.registerFunctionImport( platform::RefcountedTyped<FunctionRunnable>( new FunctionCreateVolume( fn, context, e ) ) );
+   }
+
    //
    // Lut
    //
@@ -3795,7 +3805,7 @@ void importFunctions( CompilerFrontEnd& e, mvv::platform::Context& context )
    }
 
    {
-      Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ManipulatorPoint" ) ) ) );
+      Type* vec3 = const_cast<Type*>( e.getType( nll::core::make_vector<mvv::Symbol>( mvv::Symbol::create( "ManipulatorPointer" ) ) ) );
       assert( vec3 );
       const AstDeclFun* fn = e.getFunction( nll::core::make_vector<platform::Symbol>( platform::Symbol::create( "ToolManipulators"), platform::Symbol::create( "erase") ), nll::core::make_vector<const Type*>( vec3 ) );
       assert( fn );

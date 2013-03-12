@@ -394,6 +394,7 @@
     <CustomBuildStep Include="mvv.ludo">
       <FileType>Document</FileType>
     </CustomBuildStep>
+    <None Include="mvv.ludo" />
     <None Include="registration.ludo" />
     <None Include="core.dox" />
   </ItemGroup>
