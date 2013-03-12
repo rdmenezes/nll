@@ -41,15 +41,16 @@ string inputDicomVolume = ("D:/Data/Colin MR/mr.imgDICOM/");
 VolumeID ct = readDicomVolume( inputDicomVolume );
 Volume ctVolume = ct.getVolume();
 VolumeID mask = createVolume( ctVolume.getSize(), ctVolume.getPst(), ctVolume.getBackgroundValue() );
+//VolumeID mask = readVolumeMF2("c:/tmp/volumeExport.mf2");
 
 
 Lut maskLut( 0.0, 1.0, Vector3i( 0, 255, 0 ) );
-Lut ctLut( -250.0, 250.0 );
-ctLut.detectRange( ct, 0.425 );
+Lut ctLut( 2500.0, 4500.0 );
+//ctLut.detectRange( ct, 0.425 );
 
 
 volumes.add( ct, ctLut, 0.5 );
-volumes.add( mask, maskLut, 0.5 );
+volumes.add( mask, maskLut, 0.1 );
 
 
 
@@ -89,47 +90,46 @@ class Segmenter
 {
 	VolumeID volume = NULL;
 	VolumeID mask = NULL;
-	Segmenter( VolumeID v, VolumeID m )
+	VolumeContainer volumes = NULL;
+	Segmenter( VolumeID v, VolumeID m, VolumeContainer vs )
 	{
 		volume = v;
 		mask = m;
+		volumes = vs;
 	}
 
 	void onMouseLeftClick( Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
 	{
 		print( "LEFT" );
-
-		print( mousePosition );
-
-		//print( axisx );
-		//print( axisy );
-
 		Vector2i dm = mousePosition;
 		Vector3f d( segmentOrigin[ 0 ] + toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
 					segmentOrigin[ 1 ] + toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
 					segmentOrigin[ 2 ] + toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
 
-		//print(d);
-
-
 		Volume v = volume.getVolume();
 		Volume m = mask.getVolume();
 		Vector3f index = v.positionToIndex( d );
-		//println( toString( index[ 0 ] ) + " " + toString( index[ 1 ] ) + " " + toString( index[ 2 ] ) );
-
 		m.setValue( round( index[ 0 ] ),
 					round( index[ 1 ] ),
 					round( index[ 2 ] ), 1.0 );
-
-					/*
-		seg1.notify();
-		seg2.notify();
-		seg3.notify();*/
+		volumes.notify();
 	}
 
 	void onMouseRightClick( Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
 	{
-		print( "RIGHT" );
+		print( "LEFT" );
+		Vector2i dm = mousePosition;
+		Vector3f d( segmentOrigin[ 0 ] + toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
+					segmentOrigin[ 1 ] + toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
+					segmentOrigin[ 2 ] + toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
+
+		Volume v = volume.getVolume();
+		Volume m = mask.getVolume();
+		Vector3f index = v.positionToIndex( d );
+		m.setValue( round( index[ 0 ] ),
+					round( index[ 1 ] ),
+					round( index[ 2 ] ), 0.0 );
+		volumes.notify();
 	}
 }
 
@@ -150,7 +150,9 @@ class SegmenterSwitch
 		println( "-- segmentation mode --" );
 		manipulators.erase( pointer );
 		setOnSegmentLeftMouseClick( segmenter.onMouseLeftClick );
+		setOnSegmentLeftMousePressed( segmenter.onMouseLeftClick );
 		setOnSegmentRightMouseClick( segmenter.onMouseRightClick );
+		setOnSegmentRightMousePressed( segmenter.onMouseRightClick );
 	}
 
 	void startNavigation()
@@ -158,13 +160,36 @@ class SegmenterSwitch
 		println( "-- navigation mode --" );
 		manipulators.add( pointer );
 		setOnSegmentLeftMouseClick( NULL );
+		setOnSegmentLeftMousePressed( NULL );
 		setOnSegmentRightMouseClick( NULL );
+		setOnSegmentRightMousePressed( NULL );
 	}
 }
 
-Segmenter segmenter( ct, mask );
+class VolumeSaver
+{
+	VolumeID	volume = NULL;
+	string		output;
+
+	VolumeSaver( VolumeID v, string o = "c:/tmp/volumeExport.mf2" )
+	{
+		volume = v;
+		output = o;
+	}
+
+	void save()
+	{
+		writeVolumeMF2( volume, output );
+		println( "volume saved:" + output );
+	}
+}
+
+Segmenter segmenter( ct, mask, volumes );
 SegmenterSwitch switch( segmenter, manipultors, pointer );
+VolumeSaver saver( mask );
 
 KeyboardCallback callbacks;
 callbacks.addShortcut( switch.startSegmentation, "F1" );
 callbacks.addShortcut( switch.startNavigation, "F2" );
+callbacks.addShortcut( saver.save, "F3" );
+callbacks.addShortcut( saver.save, "F12" );
