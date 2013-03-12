@@ -1,0 +1,170 @@
+import "core"
+import "siemens"
+import "mvvDicomTools"
+
+include "helper1"
+
+/**
+ @note the following variables must have been defined:
+       - "layout" of type "Layout" defines the layout and event dispatcher to be used.
+       - "callbacks" of type "KeyboardCallback" defines the scripts to be called upon the specific key pressed.
+
+ @note the following variables may be defined (if not default values apply)
+       - "sizeHistoryExport" of type "int", defines the number of commands imported/exported between sessions
+       - "historyExportLocation" of type "string", defines where the command history is imported/exported
+ */
+
+//
+// configuration constants
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+/// saves the last XXX commands typed by the user, these will be imported next sessions
+int      sizeHistoryExport            = 500;
+
+/// defines the export/import location
+string   historyExportLocation        = "c:/Temp/command_history.txt";
+
+//
+// -----------------------------------------------------------------------------------------------------------------
+//
+
+SegmentToolCentering    toolCentering;
+MipToolPointer          toolPointerMip(17);
+ToolAnnotations         annotations;
+ToolManipulators        manipultors;
+ManipulatorPointer	    pointer;
+
+VolumeContainer         volumes;
+
+string inputDicomVolume = ("D:/Data/Colin MR/mr.imgDICOM/");
+VolumeID ct = readDicomVolume( inputDicomVolume );
+Volume ctVolume = ct.getVolume();
+VolumeID mask = createVolume( ctVolume.getSize(), ctVolume.getPst(), ctVolume.getBackgroundValue() );
+
+
+Lut maskLut( 0.0, 1.0, Vector3i( 0, 255, 0 ) );
+Lut ctLut( -250.0, 250.0 );
+ctLut.detectRange( ct, 0.425 );
+
+
+volumes.add( ct, ctLut, 0.5 );
+volumes.add( mask, maskLut, 0.5 );
+
+
+
+manipultors.add( pointer );
+
+Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment1.setTool( toolCentering );
+segment1.setTool( manipultors );
+segment1.setTool( annotations );
+segment1.setInterpolator( typename Segment::Nearest() );
+
+Segment segment2( volumes, Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment2.setTool( toolCentering );
+segment2.setTool( manipultors );
+segment2.setTool( annotations );
+segment2.setInterpolator( typename Segment::Nearest() );
+
+Segment segment3( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment3.setTool( toolCentering );
+segment3.setTool( manipultors );
+segment3.setTool( annotations );
+segment3.setInterpolator( typename Segment::Nearest() );
+
+
+Layout::Vertical vertical;
+Layout::Horizontal horizontal;
+Layout l1( segment1 );
+Layout l2( segment2 );
+Layout l3( segment3 );
+Layout l6( Console() );
+
+Layout layoutDisplay( horizontal, Layout(horizontal, l1, l2, 0.5), l3, 0.66 );
+Layout layout = Layout(vertical, l6, layoutDisplay, 0.05);
+
+
+class Segmenter
+{
+	VolumeID volume = NULL;
+	VolumeID mask = NULL;
+	Segmenter( VolumeID v, VolumeID m )
+	{
+		volume = v;
+		mask = m;
+	}
+
+	void onMouseLeftClick( Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
+	{
+		print( "LEFT" );
+
+		print( mousePosition );
+
+		//print( axisx );
+		//print( axisy );
+
+		Vector2i dm = mousePosition;
+		Vector3f d( segmentOrigin[ 0 ] + toFloat( dm[ 0 ] ) * axisx[ 0 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 0 ] * segmentSpacing[ 1 ],
+					segmentOrigin[ 1 ] + toFloat( dm[ 0 ] ) * axisx[ 1 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 1 ] * segmentSpacing[ 1 ],
+					segmentOrigin[ 2 ] + toFloat( dm[ 0 ] ) * axisx[ 2 ] * segmentSpacing[ 0 ] + toFloat( dm[ 1 ] ) * axisy[ 2 ] * segmentSpacing[ 1 ] );
+
+		//print(d);
+
+
+		Volume v = volume.getVolume();
+		Volume m = mask.getVolume();
+		Vector3f index = v.positionToIndex( d );
+		//println( toString( index[ 0 ] ) + " " + toString( index[ 1 ] ) + " " + toString( index[ 2 ] ) );
+
+		m.setValue( round( index[ 0 ] ),
+					round( index[ 1 ] ),
+					round( index[ 2 ] ), 1.0 );
+
+					/*
+		seg1.notify();
+		seg2.notify();
+		seg3.notify();*/
+	}
+
+	void onMouseRightClick( Vector2i mousePosition, Vector3f segmentOrigin, Vector2f segmentSpacing, Vector2i segmentSize, Vector3f axisx, Vector3f axisy )
+	{
+		print( "RIGHT" );
+	}
+}
+
+class SegmenterSwitch
+{
+	Segmenter			segmenter = NULL;
+	ToolManipulators	manipulators = NULL;
+	ManipulatorPointer	pointer = NULL;
+
+	SegmenterSwitch( Segmenter s, ToolManipulators m, ManipulatorPointer p )
+	{
+		segmenter = s;
+		manipulators = m;
+		pointer = p;
+	}
+	void startSegmentation()
+	{
+		println( "-- segmentation mode --" );
+		manipulators.erase( pointer );
+		setOnSegmentLeftMouseClick( segmenter.onMouseLeftClick );
+		setOnSegmentRightMouseClick( segmenter.onMouseRightClick );
+	}
+
+	void startNavigation()
+	{
+		println( "-- navigation mode --" );
+		manipulators.add( pointer );
+		setOnSegmentLeftMouseClick( NULL );
+		setOnSegmentRightMouseClick( NULL );
+	}
+}
+
+Segmenter segmenter( ct, mask );
+SegmenterSwitch switch( segmenter, manipultors, pointer );
+
+KeyboardCallback callbacks;
+callbacks.addShortcut( switch.startSegmentation, "F1" );
+callbacks.addShortcut( switch.startNavigation, "F2" );

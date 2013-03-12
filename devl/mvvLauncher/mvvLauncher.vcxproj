@@ -341,6 +341,7 @@
     <None Include="script\dicomExport.ludo" />
     <None Include="script\helper1.ludo" />
     <None Include="script\infromatics.ludo" />
+    <None Include="script\segmentation.ludo" />
     <None Include="script\single.ludo">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
