@@ -40,8 +40,8 @@ VolumeContainer         volumes;
 string inputDicomVolume = ("D:/Data/Colin MR/mr.imgDICOM/");
 VolumeID ct = readDicomVolume( inputDicomVolume );
 Volume ctVolume = ct.getVolume();
-VolumeID mask = createVolume( ctVolume.getSize(), ctVolume.getPst(), ctVolume.getBackgroundValue() );
-//VolumeID mask = readVolumeMF2("c:/tmp/volumeExport.mf2");
+//VolumeID mask = createVolume( ctVolume.getSize(), ctVolume.getPst(), ctVolume.getBackgroundValue() );
+VolumeID mask = readVolumeMF2("c:/tmp/volumeExport.mf2");
 
 
 Lut maskLut( 0.0, 1.0, Vector3i( 0, 255, 0 ) );
@@ -49,8 +49,9 @@ Lut ctLut( 2500.0, 4500.0 );
 //ctLut.detectRange( ct, 0.425 );
 
 
+float maskRatio = 0.1;
 volumes.add( ct, ctLut, 0.5 );
-volumes.add( mask, maskLut, 0.1 );
+volumes.add( mask, maskLut, maskRatio );
 
 
 
@@ -184,12 +185,51 @@ class VolumeSaver
 	}
 }
 
+class MaskSwitch
+{
+	VolumeID volume = NULL;
+	VolumeID mask = NULL;
+	VolumeContainer volumes = NULL;
+	int maskIsOn = 1;
+
+	Lut lutVolume = NULL;
+	Lut lutMask = NULL;
+	float ratioMask = 1.0;
+
+	MaskSwitch( VolumeID v, VolumeID m, VolumeContainer vs, Lut lutv, Lut lutm, float r )
+	{
+		volume = v;
+		mask = m;
+		volumes = vs;
+
+		lutVolume = lutv;
+		lutMask = lutm;
+		ratioMask = r;
+	}
+
+	void run()
+	{
+		if ( maskIsOn == 1 )
+		{
+			volumes.clear();
+			volumes.add( volume, lutVolume, 0.5 );
+			maskIsOn = 0;
+		} else {
+			maskIsOn = 1;
+			volumes.clear();
+			volumes.add( volume, lutVolume, 0.5 );
+			volumes.add( mask, lutMask, ratioMask );
+		}
+	}
+}
+
 Segmenter segmenter( ct, mask, volumes );
 SegmenterSwitch switch( segmenter, manipultors, pointer );
 VolumeSaver saver( mask );
+MaskSwitch maskSwitch( ct, mask, volumes, ctLut, maskLut, maskRatio );
 
 KeyboardCallback callbacks;
 callbacks.addShortcut( switch.startSegmentation, "F1" );
 callbacks.addShortcut( switch.startNavigation, "F2" );
 callbacks.addShortcut( saver.save, "F3" );
-callbacks.addShortcut( saver.save, "F12" );
+callbacks.addShortcut( maskSwitch.run, "F4" );
