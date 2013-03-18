@@ -159,7 +159,7 @@ class CuboidCreator
          cuboid.setP1( segmentOrigin + d );
          cuboid.setP2( segmentOrigin + d );
       } else {
-         cuboid = ManipulatorCuboid( segmentOrigin + d, segmentOrigin + d );
+         cuboid = ManipulatorCuboid( segmentOrigin + d, segmentOrigin + d, Vector3i( 255, 0, 0 ) );
       }
       manipulators.add( cuboid );
 

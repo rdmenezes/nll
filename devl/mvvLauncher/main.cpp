@@ -387,8 +387,8 @@ int main( int argc, char** argv )
       //std::string mainScript = "../../mvvLauncher/script/single2Fdg";
       //std::string mainScript = "../../mvvLauncher/script/basic";
       //std::string mainScript = "../../mvvLauncher/script/surf3d";
-      //std::string mainScript = "../../mvvLauncher/script/infromatics";
-      std::string mainScript = "../../mvvLauncher/script/segmentation";
+      std::string mainScript = "../../mvvLauncher/script/infromatics";
+      //std::string mainScript = "../../mvvLauncher/script/segmentation";
 
       std::string font = "../../nllTest/data/font/bitmapfont1_24";
       bool nowindow = false;

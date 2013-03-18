@@ -40,19 +40,12 @@ VolumeID pet = readVolumeMF2Asynchronous("../../nllTest/data/medical/pet.mf2");
 
 Lut petLut( 5000.0, 20000.0, Vector3i( 0, 255, 0 ) );
 
-//KeyboardCallback callbacks;
-//callbacks.addShortcut( annotationCreator.run, "F1" );
-//callbacks.addShortcut( switch.next, "F3" );
 
 AffineRegistration petReg;
 AffineRegistration ctReg;
 
 volumes.add( pet, petLut, 0.5, petReg );
 
-ManipulatorPoint manipulator1( Vector3f(0.0, 0.0, 0.0) );
-manipultors.add( manipulator1 );
-manipultors.add( ManipulatorPoint( Vector3f(10.0, 0.0, 0.0) ) );
-manipultors.add( ManipulatorPoint( Vector3f(20.0, 0.0, 0.0) ) );
 manipultors.add( pointer );
 
 Segment segment1( volumes, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
@@ -70,11 +63,28 @@ segment3.setTool( toolCentering );
 segment3.setTool( manipultors );
 segment3.setTool( annotations );
 
-VolumeContainer volumesResult;
-Segment segment4( volumesResult, Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
-segment4.setTool( toolCentering );
-segment4.setTool( manipultors );
-segment4.setTool( annotations );
+VolumeContainer volumesResult[ 3 ];
+ToolAnnotations  manipulatorsResult[ 3 ];
+Segment segment4a( volumesResult[ 0 ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment4a.setTool( manipulatorsResult[ 0 ] );
+Segment segment4b( volumesResult[ 0 ], Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment4b.setTool( manipulatorsResult[ 0 ] );
+Segment segment4c( volumesResult[ 0 ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment4c.setTool( manipulatorsResult[ 0 ] );
+
+Segment segment5a( volumesResult[ 1 ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment5a.setTool( manipulatorsResult[ 1 ] );
+Segment segment5b( volumesResult[ 1 ], Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment5b.setTool( manipulatorsResult[ 1 ] );
+Segment segment5c( volumesResult[ 1 ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment5c.setTool( manipulatorsResult[ 1 ] );
+
+Segment segment6a( volumesResult[ 2 ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, -1.0, 0.0 ) );
+segment6a.setTool( manipulatorsResult[ 2 ] );
+Segment segment6b( volumesResult[ 2 ], Vector3f( 0.0, 1.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment6b.setTool( manipulatorsResult[ 2 ] );
+Segment segment6c( volumesResult[ 2 ], Vector3f( 1.0, 0.0, 0.0 ), Vector3f( 0.0, 0.0, 1.0 ) );
+segment6c.setTool( manipulatorsResult[ 2 ] );
 
 
 Layout::Vertical vertical;
@@ -83,12 +93,70 @@ Layout l1( segment1 );
 Layout l2( segment2 );
 Layout l3( segment3 );
 Layout l6( Console() );
-Layout l4( segment4 );
+Layout l4a( segment4a );
+Layout l4b( segment4b );
+Layout l4c( segment4c );
+
+Layout l5a( segment5a );
+Layout l5b( segment5b );
+Layout l5c( segment5c );
+
+Layout l6a( segment6a );
+Layout l6b( segment6b );
+Layout l6c( segment6c );
+
+Layout result1 = Layout( horizontal, Layout(horizontal, l4a, l4b, 0.51), l4c, 0.66 );
+Layout result2 = Layout( horizontal, Layout(horizontal, l5a, l5b, 0.51), l5c, 0.66 );
+Layout result3 = Layout( horizontal, Layout(horizontal, l6a, l6b, 0.51), l6c, 0.66 );
+Layout result = Layout( vertical, Layout(vertical, result1, result2, 0.51), result3, 0.66 );
 
 Layout layoutDisplayMpr( horizontal, Layout(horizontal, l1, l2, 0.51), l3, 0.66 );
-Layout layoutDisplay( vertical, l4, layoutDisplayMpr, 0.51);
+Layout layoutDisplay( vertical, result, layoutDisplayMpr, 0.51);
 Layout layout = Layout(vertical, l6, layoutDisplay, 0.05);
 
-ImageHolder holder;
-Layout layout1 = layout;
-Layout layout2 = Layout(vertical, Layout(Console()), Layout(holder), 0.5);
+class SearchWorkflow
+{
+	Informatics informatics = NULL;
+	CuboidCreator cuboid = NULL;
+	VolumeContainer[] resultContainer = NULL;
+	VolumeID volume = NULL;
+	int nbLesions;
+
+	SearchWorkflow( Informatics i, CuboidCreator c, VolumeContainer[] container, VolumeID v, int nbContainers )
+	{
+		informatics = i;
+		cuboid = c;
+		resultContainer = container;
+		volume = v;
+		nbLesions = nbContainers;
+	}
+
+	void run()
+	{
+		Lesion[] lesions = informatics.findClosestLesions( volume, cuboid.cuboid.getP1(), cuboid.cuboid.getP2(), nbLesions );
+
+		int n = 0;
+		while ( n < nbLesions )
+		{
+			if ( n >= size( lesions ))
+			{
+				break;
+			}
+			VolumeID lesion = lesions[ n ].loadVolume();
+			Lut lut( 0.0, 1.0 );
+			lut.detectRange( lesion );
+			resultContainer[ n ].clear();
+			resultContainer[ n ].add( lesion, lut );
+			n = n + 1;
+		}
+	}
+}
+
+CuboidCreator creator( manipultors );
+creator.start();
+
+
+Informatics informatics;
+SearchWorkflow search( informatics, creator, volumesResult, pet, 3 );
+KeyboardCallback callbacks;
+callbacks.addShortcut( search.run, "F1" );
