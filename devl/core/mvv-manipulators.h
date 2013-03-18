@@ -111,6 +111,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ensure( p, "Cuboid not valid!" );
       ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
       if ( !pp )
          throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
@@ -141,6 +142,7 @@ public:
       RuntimeValue& v1 = unref( *args[ 0 ] );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ensure( p, "Cuboid not valid!" );
       ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
       if ( !pp )
          throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
@@ -174,6 +176,7 @@ public:
       getVector3fValues( v2, value );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ensure( p, "Cuboid not valid!" );
       ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
       if ( !pp )
          throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
@@ -208,6 +211,7 @@ public:
       getVector3fValues( v2, value );
             
       Pointee* p = reinterpret_cast<Pointee*>( (*v1.vals)[ 0 ].ref );
+      ensure( p, "Cuboid not valid!" );
       ToolManipulatorsCuboid* pp = dynamic_cast<ToolManipulatorsCuboid*>( &( **p ) );
       if ( !pp )
          throw std::runtime_error( "ToolManipulatorsPoint is not a ToolManipulatorsPoint!" );
