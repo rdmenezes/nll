@@ -359,3 +359,10 @@ import int size( float[]      array );
  @brief Replace the all the letters <letterToReplace> in <theString> by <replacement>
  */
 import void replace( string theString, string letterToReplace, string replacement );
+
+void swap( float& a, float& b )
+{
+   float tmp = b;
+   b = a;
+   a = tmp;
+}
